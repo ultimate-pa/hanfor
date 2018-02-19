@@ -1,3 +1,15 @@
+/.metadata/
+**/stored_sessions
+config.py
+hanfor/data/**
+
+**/__pycache__*
+**/.webassets-cache/
+**/static/gen/style.css
+**/static/gen/vendor.js
+**/static/main/
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

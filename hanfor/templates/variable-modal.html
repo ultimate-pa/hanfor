@@ -1,0 +1,69 @@
+<div id="variable_modal"
+     class="modal fade bd-example-modal-lg"
+     tabindex="-1"
+     role="dialog"
+     aria-labelledby="myLargeModalLabel"
+     aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 id="variable_modal_title" class="modal-title"></h5>
+                    <input type="hidden" id="variable_id" hidden />
+                    <input type="hidden" id="variable_name_old" hidden />
+                    <input type="hidden" id="variable_type_old" hidden />
+                    <input type="hidden" id="variable_value_old" hidden />
+                    <input type="hidden" id="occurences" hidden />
+                    <input type="hidden" id="modal_associated_row_index" hidden />
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h5>Properties</h5>
+                    <div id="variable_name_form_group" class="form-group">
+                            <div class="row form-inline">
+                                <div class="input-group col-md-12">
+                                    <span class="input-group-addon" id="name-addon" style="width: 5em">Name</span>
+                                    <input type="text"
+                                           class="form-control reqirement-variable"
+                                           id="variable_name"
+                                           aria-describedby="name-addon"
+                                           aria-label="Name"
+                                           title="Name">
+                                </div>
+                            </div>
+                    </div>
+                    <div id="variable_type_form_group" class="form-group">
+                            <div class="row form-inline">
+                                <div class="input-group col-md-12">
+                                    <span class="input-group-addon" id="type-addon" style="width: 5em">Type</span>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="variable_type"
+                                           aria-describedby="type-addon"
+                                           aria-label="type"
+                                           title="type">
+                                </div>
+                            </div>
+                    </div>
+                    <div id="variable_value_form_group" class="form-group">
+                            <div class="row form-inline">
+                                <div class="input-group col-md-12">
+                                    <span class="input-group-addon" id="value-addon" style="width: 5em">Value</span>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="variable_value"
+                                           aria-describedby="value-addon"
+                                           aria-label="value"
+                                           title="value">
+                                </div>
+                            </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="save_variable_modal" type="button" class="btn btn-primary">Save changes</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+</div>

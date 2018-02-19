@@ -1,0 +1,53 @@
+{# templates/layout.html #}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    {% block head %}
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="Requirements transformer web frontend.">
+        {% assets "css" %}
+            <link rel="stylesheet" href="{{ ASSET_URL }}" />
+        {% endassets %}
+        {% assets "js" %}
+            <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+        {% endassets %}
+        <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+        <title>{% block title %}{% endblock %} | Hanfor.</title>
+    {% endblock %}
+    </head>
+    <body>
+    {% block navbar %}
+        <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse">
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+    <a class="navbar-brand" href="{{ url_for('site', site='/') }}"
+       title="Hanfor helps analyzing and formalizing requirements.">Hanfor</a>
+
+    <div class="collapse navbar-collapse" id="navbarColor01">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item{% if request.path == '/' %} active{% endif %}">
+          <a class="nav-link" href="{{ url_for('site', site='/') }}">Start</a>
+        </li>
+        <li class="nav-item{% if request.path == '/variables' %} active{% endif %}">
+          <a class="nav-link" href="{{ url_for('site', site='variables') }}">Variables</a>
+        </li>
+        <li class="nav-item{% if request.path == '/statistics' %} active{% endif %}">
+          <a class="nav-link" href="{{ url_for('site', site='statistics') }}">Statistics</a>
+        </li>
+        <li class="nav-item{% if request.path == '/help' %} active{% endif %}">
+          <a class="nav-link" href="{{ url_for('site', site='/help') }}">Help</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+    {% endblock %}
+    <main role="main" class="container">
+    {% block body %}
+    {% endblock %}
+    </main>
+    {% block scripts %}
+    {% endblock %}
+    </body>
+</html>

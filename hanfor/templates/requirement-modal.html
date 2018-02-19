@@ -1,0 +1,60 @@
+<div id="requirement_modal"
+     class="modal fade bd-example-modal-lg"
+     tabindex="-1"
+     role="dialog"
+     aria-labelledby="myLargeModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="requirement_modal_title" class="modal-title"></h5>
+                <input type="hidden" id="requirement_id" hidden/>
+                <input type="hidden" id="modal_associated_row_index" hidden/>
+                <input type="hidden" id="requirement_formalization_updated"
+                       name="requirement_formalization_updated" value="false" hidden/>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h5>Description</h5>
+                <div class="form-group">
+                    <textarea class="form-control" id="description_textarea" rows="3" readonly
+                              title="Description"></textarea>
+                </div>
+                <h5>
+                    Formalizations
+                    <button id="add_formalization"
+                            type="button"
+                            class="btn btn-success btn-sm"
+                            title="Add formalization">
+                        <strong>+</strong>
+                    </button>
+                </h5>
+                <div id="formalization_accordion"></div>
+                <h5 class="top-padding">Tags</h5>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="requirement_tag_field" value=""
+                           aria-label="Tags" aria-describedby="requirement-tags-addon">
+                </div>
+                <label for="requirement_tag_field">Hit "Enter" to actually set a new tag.</label>
+                <h5>Status</h5>
+                <div class="form-group">
+                    <div class="row form-inline">
+                        <div class="form-group col-md-4">
+                            <select id="requirement_status" class="form-control">
+                                <option value="Todo">Todo</option>
+                                <option value="Review">Review</option>
+                                <option value="Done">Done</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="save_requirement_modal" type="button" class="btn btn-primary">Save changes</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

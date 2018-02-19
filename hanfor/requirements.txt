@@ -1,0 +1,11 @@
+flask
+flask-debugtoolbar
+Flask-Assets
+Jinja2
+flask-security
+flask-sqlalchemy
+sqlalchemy
+flask-restful
+jsmin
+cssutils
+lark-parser

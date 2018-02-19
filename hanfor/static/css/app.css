@@ -1,0 +1,37 @@
+.dataTables_wrapper {
+    padding-bottom: 10px;
+}
+
+.top-padding {
+    padding-top: 10px;
+}
+
+body,
+body.modal-open{
+    overflow: visible;
+    padding-right: 0 !important;
+    position: inherit;
+}
+
+#requirements_table > tbody > tr > td {
+    word-break: break-all;
+}
+
+.ui-front {
+    z-index: 9999999 !important;
+}
+
+#requirement_pattern.form-control.formalization_selector {
+    width: 100%;
+}
+
+#variables_table .badge-info a,
+#requirements_table td a {
+    color: #000;
+}
+
+#variables_table .badge-info a:focus, a:hover,
+#requirements_table td a:focus, a:hover {
+    color: #1d1e1f;
+    text-decoration: underline;
+}

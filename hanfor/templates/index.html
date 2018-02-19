@@ -1,0 +1,132 @@
+{# templates/index.html #}
+{% extends "layout.html" %}
+{% block title %}Home{% endblock %}
+{% block body %}
+    <div class="container-fluid top-padding">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                          <li class="nav-item">
+                            <a class="nav-link active" id="search-tab" data-toggle="tab" href="#search-pane" role="tab"
+                               aria-controls="home" aria-selected="true">Search</a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" id="filter-tab" data-toggle="tab" href="#filter-pane" role="tab"
+                               aria-controls="profile" aria-selected="false">Filter</a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" id="tools-tab" data-toggle="tab" href="#tools-pane" role="tab"
+                               aria-controls="contact" aria-selected="false">Tools</a>
+                          </li>
+                        </ul>
+                    </div>
+
+                    <div class="tab-content" id="myTabContent">
+                      <div class="tab-pane fade show active" id="search-pane" role="tabpanel" aria-labelledby="search-tab">
+                          <div class="input-group top-padding">
+                            <span class="input-group-addon" id="basic-addon1">
+                                <img src="{{ url_for('static', filename='img/icons/magnifying-glass.svg') }}">
+                            </span>
+                            <input id="search_bar" type="text" class="form-control"
+                                   placeholder="Search table" aria-describedby="basic-addon1">
+                            <span class="input-group-btn">
+                                <button class="btn btn-secondary clear-all-filters" type="button">
+                                    Clear all filters.
+                                </button>
+                            </span>
+                        </div>
+                      </div>
+                      <div class="tab-pane fade" id="filter-pane" role="tabpanel" aria-labelledby="filter-tab">
+                          <div class="card-body">
+                            <div class="input-group top-padding">
+                                <span class="input-group-addon" id="status-filter" style="width: 5em">
+                                    Status</span>
+                                <input type="text" class="form-control" id="status-filter-input"
+                                       aria-describedby="status-filter">
+                            </div>
+                            <div class="input-group top-padding">
+                                <span class="input-group-addon" id="tag-filter" style="width: 5em">Tags</span>
+                                <input type="text" class="form-control" id="tag-filter-input"
+                                       aria-describedby="tag-filter">
+                            </div>
+                            <div class="input-group top-padding">
+                                <span class="input-group-addon" id="type-filter" style="width: 5em">Type</span>
+                                <input type="text" class="form-control" id="type-filter-input"
+                                       aria-describedby="type-filter">
+                            </div>
+                            <div class="input-group top-padding">
+                                <button class="btn btn-secondary btn-block clear-all-filters" type="button">
+                                    Clear all filters.
+                                </button>
+                            </div>
+                        </div>
+                      </div>
+                      <div class="tab-pane fade" id="tools-pane" role="tabpanel" aria-labelledby="tools-tab">
+                        <form id="generate_req_form" method="post"
+                              action="{{ url_for('tools_api', command='req_file') }}"
+                              target="_blank">
+                            <input type="hidden" id="selected_requirement_ids" name="selected_requirement_ids" hidden />
+                        </form>
+                        <div class="input-group top-padding">
+                            <button id="gen-req-from-selection"
+                                    class="btn btn-secondary btn-block"
+                                    type="button">
+                                Generate .req file from (filtered) requirements table.
+                            </button>
+                        </div>
+                        <form id="generate_csv_form" method="post"
+                              action="{{ url_for('tools_api', command='csv_file') }}"
+                              target="_blank">
+                            <input type="hidden" id="selected_csv_requirement_ids" name="selected_requirement_ids"
+                                   hidden />
+                        </form>
+                        <div class="input-group top-padding">
+                            <button id="gen-csv-from-selection"
+                                    class="btn btn-secondary btn-block"
+                                    type="button">
+                                Generate .csv file from (filtered) requirements table.
+                            </button>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table id="requirements_table" class="table table-hover table-bordered" width="100%" cellspacing="0">
+        <thead>
+        <tr>
+            <td title="Position in CSV file.">Pos.</td>
+            <th>Id</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th>Tags</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tfoot>
+        <tr>
+            <td title="Position in CSV file.">Pos.</td>
+            <th>Id</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th>Tags</th>
+            <th>Status</th>
+        </tr>
+        </tfoot>
+        <tbody>
+        </tbody>
+    </table>
+    {% include 'requirement-modal.html' %}
+{% endblock %}
+{% block scripts %}
+    <script type="text/javascript">
+        var search_query = '{{ query|tojson }}';
+    </script>
+    {% assets "main" %}
+        <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+    {% endassets %}
+{% endblock %}
