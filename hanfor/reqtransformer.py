@@ -4,6 +4,9 @@
 @licence: GPLv3
 """
 import csv
+
+import os
+
 import boogie_parsing
 import logging
 import random
@@ -120,6 +123,19 @@ class Requirement:
         }
         return d
 
+    @classmethod
+    def load_requirement_by_id(self, id, app) -> 'Requirement':
+        """ Loads requirement from session folder if it exists.
+
+        :param id: requirement_id
+        :type id: str
+        :param app: The flask app.
+        :rtype: Requirement
+        """
+        filepath = os.path.join(app.config['SESSION_FOLDER'], '{}.pickle'.format(id))
+        if os.path.exists(filepath) and os.path.isfile(filepath):
+            return utils.pickle_load_from_dump(filepath)
+
     def add_empty_formalization(self):
         """ Add an empty formalization to the formalizations list.
 
@@ -131,6 +147,24 @@ class Requirement:
         self.formalizations.append(Formalization())
 
         return len(self.formalizations) - 1, Formalization()
+
+    def delete_formalization(self, formalization_id, app):
+        formalization_id = int(formalization_id)
+        variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+
+        # Remove formalizatioin
+        del self.formalizations[formalization_id]
+        # Collect remaining vars.
+        remaining_vars = set()
+        for formalization in self.formalizations:
+            for expression in formalization.expressions_mapping.values():
+                if expression.used_variables is not None:
+                    remaining_vars = remaining_vars.union(expression.used_variables)
+
+        # Update the mappings.
+        variable_collection.req_var_mapping[self.rid] = remaining_vars
+        variable_collection.var_req_mapping = variable_collection.invert_mapping(variable_collection.req_var_mapping)
+        variable_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
 
     def update_formalizations(self, formalizations: dict, app):
         logging.debug('Updating formalizatioins of requirement {}.'.format(self.rid))
@@ -420,6 +454,9 @@ class VariableCollection:
         if len(result) > 0 and sort_by is not None and sort_by in result[0].keys():
             result = sorted(result, key=lambda k: k[sort_by])
         return result
+
+    def get_available_var_names_list(self, used_only=True):
+        return [var['name'] for var in self.get_available_vars_list(used_only=used_only)]
 
     def add_var(self, var_name):
         if var_name not in self.collection.keys():

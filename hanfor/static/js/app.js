@@ -2,6 +2,7 @@
 var available_tags = ['', 'has_formalization'];
 var available_status = ['', 'Todo', 'Review', 'Done'];
 var available_types = [''];
+var available_vars = [''];
 var get_query = JSON.parse(search_query);
 
 /**
@@ -264,6 +265,31 @@ function add_formalization() {
         update_vars();
         update_formalization();
         bind_expression_buttons();
+        bind_var_autocomplete();
+    });
+}
+
+function delete_formalization(formal_id) {
+    requirement_modal_content = $('.modal-content');
+    requirement_modal_content.LoadingOverlay('show');
+    req_id = $('#requirement_id').val();
+    $.post( "api/req/del_formalization",
+        {
+            requirement_id: req_id,
+            formalization_id: formal_id
+        },
+        function( data ) {
+            requirement_modal_content.LoadingOverlay('hide', true);
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                $('#formalization_accordion').html(data['html']);
+            }
+    }).done(function () {
+        update_vars();
+        update_formalization();
+        bind_expression_buttons();
+        bind_var_autocomplete();
     });
 }
 
@@ -275,6 +301,53 @@ function bind_expression_buttons() {
     });
     $('.reqirement-variable, .req_var_type').change(function () {
         update_formalization();
+    });
+    $('.delete_formalization').confirmation({
+      rootSelector: '.delete_formalization'
+    }).click(function () {
+        delete_formalization( $(this).attr('name') );
+    });
+}
+
+
+function bind_var_autocomplete() {
+    $( ".reqirement-variable" )
+        // don't navigate away from the field on tab when selecting an item
+        .on( "keydown", function( event ) {
+            if ( event.keyCode === $.ui.keyCode.TAB &&
+                    $( this ).autocomplete( "instance" ).menu.active ) {
+                event.preventDefault();
+            }
+        })
+        .autocomplete({
+            minLength: 0,
+            source: function( request, response ) {
+                // delegate back to autocomplete, but extract the last term
+                response( $.ui.autocomplete.filter(
+                available_vars, extractLast( request.term ) ) );
+            },
+            focus: function() {
+                // prevent value inserted on focus
+                return false;
+            },
+            select: function( event, ui ) {
+                var terms = ( this.value.split( / \s*/ ) );
+                // remove the current input
+                current_input = terms.pop();
+                // If our input starts with one of [!, (, [, {]
+                // we assume this should be in front of the input.
+                selected_item = ui.item.value;
+                var searchPattern = new RegExp(/^[!\(\[\{]/g);
+                if (searchPattern.test(current_input)) {
+                    selected_item = current_input.charAt(0) + selected_item;
+                }
+                // add the selected item
+                terms.push( selected_item );
+                // add placeholder to get the space at the end
+                terms.push( "" );
+                this.value = terms.join( " " );
+                return false;
+            }
     });
 }
 
@@ -386,7 +459,7 @@ $(document).ready(function() {
             $('#requirement_id').val(data.id);
             $('#requirement_formalization_updated').val('false');
             $('#modal_associated_row_index').val(row_id);
-
+            available_vars = data.available_vars;
             // Visible information
             $('#requirement_modal_title').html(data.id + ': ' + data.type);
             $('#description_textarea').text(data.desc);
@@ -394,56 +467,20 @@ $(document).ready(function() {
             // Parse the formalizations
             $('#formalization_accordion').html(data.formalizations_html);
 
-
-
             $('#requirement_scope').val(data.scope);
             $('#requirement_pattern').val(data.pattern);
 
             // Set the tags
             $('#requirement_tag_field').tokenfield('setTokens', data.tags);
             $('#requirement_status').val(data.status);
+            if (data.success === false) {
+                alert('Could Not load the Requirement: ' + data.errormsg);
+            }
         } ).done(function () {
             // Update visible Vars.
             update_vars();
             // Handle autocompletion for variables.
-            $( ".reqirement-variable" )
-                // don't navigate away from the field on tab when selecting an item
-                .on( "keydown", function( event ) {
-                    if ( event.keyCode === $.ui.keyCode.TAB &&
-                            $( this ).autocomplete( "instance" ).menu.active ) {
-                        event.preventDefault();
-                    }
-                })
-                .autocomplete({
-                    minLength: 0,
-                    source: function( request, response ) {
-                        // delegate back to autocomplete, but extract the last term
-                        response( $.ui.autocomplete.filter(
-                        data.available_vars, extractLast( request.term ) ) );
-                    },
-                    focus: function() {
-                        // prevent value inserted on focus
-                        return false;
-                    },
-                    select: function( event, ui ) {
-                        var terms = ( this.value.split( / \s*/ ) );
-                        // remove the current input
-                        current_input = terms.pop();
-                        // If our input starts with one of [!, (, [, {]
-                        // we assume this should be in front of the input.
-                        selected_item = ui.item.value;
-                        var searchPattern = new RegExp(/^[!\(\[\{]/g);
-                        if (searchPattern.test(current_input)) {
-                            selected_item = current_input.charAt(0) + selected_item;
-                        }
-                        // add the selected item
-                        terms.push( selected_item );
-                        // add placeholder to get the space at the end
-                        terms.push( "" );
-                        this.value = terms.join( " " );
-                        return false;
-                    }
-            });
+            bind_var_autocomplete();
             // Update available vars based on the selection of requirement and pattern.
             bind_expression_buttons();
             requirement_modal_content.LoadingOverlay('hide', true);

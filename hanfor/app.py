@@ -95,21 +95,25 @@ def api(resource, command):
         'update',
         'delete',
         'predict_pattern',
-        'new_formalization'
+        'new_formalization',
+        'del_formalization'
     ]
     if resource not in resources or command not in commands:
-        return jsonify({'msg': 'sorry, request not supported.'}), 400
+        return jsonify({
+            'success': False,
+            'errormsg': 'sorry, request not supported.'
+        }), 200
 
     if resource == 'req':
         # Get a single requirement.
         if command == 'get' and request.method == 'GET':
             id = request.args.get('id', '')
-            requirement = utils.load_requirement_by_id(id, app)
-            var_collection = utils.pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])  # type:
+            requirement = utils.load_requirement_by_id(id, app)  # type: Requirement
+            var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
             # VariableCollection
             result = requirement.to_dict()
             result['formalizations_html'] = utils.formalizations_to_html(app, requirement.formalizations)
-            result['available_vars'] = var_collection.get_available_vars_list()
+            result['available_vars'] = var_collection.get_available_var_names_list()
             if requirement:
                 return jsonify(result)
 
@@ -147,6 +151,9 @@ def api(resource, command):
                     except KeyError as e:
                         error = True
                         error_msg = 'Could not set formalization: Missing expression/variable for {}'.format(e)
+                    except Exception as e:
+                        error = True
+                        error_msg = 'Could not parse formalization: `{}`'.format(e)
                 else:
                     logging.debug('Skipping formalization update.')
 
@@ -188,6 +195,17 @@ def api(resource, command):
             )
             return jsonify(result)
 
+        # Delete a formalization
+        if command == 'del_formalization' and request.method == 'POST':
+            result = dict()
+            formalization_id = request.form.get('formalization_id', '')
+            requirement_id = request.form.get('requirement_id', '')
+            requirement = utils.load_requirement_by_id(requirement_id, app)  # type: Requirement
+            requirement.delete_formalization(formalization_id, app)
+            utils.store_requirement(requirement, app)
+            result['html'] = utils.formalizations_to_html(app, requirement.formalizations)
+            return jsonify(result)
+
     if resource == 'var':
         # Get available variables
         if command == 'gets':
@@ -203,7 +221,10 @@ def api(resource, command):
             data = utils.get_statistics(app)
             return jsonify(data)
 
-    return jsonify({'msg': 'sorry, could not parse your request.'}), 400
+    return jsonify({
+        'success': False,
+        'errormsg': 'sorry, could not parse your request.'
+    }), 200
 
 
 @app.route('/<site>')
@@ -234,7 +255,7 @@ def varcollection_consistency_check(app):
     logging.info('Check varcollection consistency.')
     try:
         var_collection = utils.pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
-    except ModuleNotFoundError:
+    except ImportError:
         # The "old" var_collection before the refactoring.
         sys.modules['reqtransformer.reqtransformer'] = reqtransformer
         sys.modules['reqtransformer.patterns'] = reqtransformer
@@ -251,6 +272,28 @@ def varcollection_consistency_check(app):
             new_var_collection.collection[var['name']] = Variable(var['name'], var['type'], var['value'])
         new_var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
         logging.info('Migrated old collection.')
+
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    app.logger.error('Server Error: {}'.format(error))
+    logging.error(error)
+
+    return jsonify({
+        'success': False,
+        'errormsg': 'Server Error: {}'.format(error)
+    })
+
+
+@app.errorhandler(Exception)
+def unhandled_exception(exception):
+    app.logger.error('Unhandled Exception: {}'.format(exception))
+    logging.exception(exception)
+
+    return jsonify({
+        'success': False,
+        'errormsg': 'Unhandled Exception: {}'.format(exception)
+    })
 
 
 def requirements_consistency_check(app):
@@ -280,7 +323,7 @@ def requirements_consistency_check(app):
                 if changes:
                     count += 1
                     utils.store_requirement(req, app)
-        except ModuleNotFoundError:
+        except ImportError:
             # The "old" requirements before the refactoring.
             sys.modules['reqtransformer.reqtransformer'] = reqtransformer
             sys.modules['reqtransformer.patterns'] = reqtransformer

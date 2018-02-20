@@ -346,7 +346,7 @@ def update_variable_in_collection(app, request):
                         var_collection.collection[var_name].type
                     )
                 )
-                var_collection.merge(var_name_old, var_name, app)
+                var_collection.merge_vars(var_name_old, var_name, app)
                 result['rebuild_table'] = True
 
             # delete the old.
@@ -397,9 +397,13 @@ def rename_variable_in_expressions(app, occurences, var_name_old, var_name):
                     if var_name_old not in expression.raw_expression:
                         continue
                     new_expression = boogie_parsing.replace_var_in_expression(
-                        expression.raw_expression, var_name_old, var_name)
+                        expression=expression.raw_expression,
+                        old_var=var_name_old,
+                        new_var=var_name
+                    )
                     requirement.formalizations[index].expressions_mapping[key].raw_expression = new_expression
-
+                    requirement.formalizations[index].expressions_mapping[key].used_variables.discard(var_name_old)
+                    requirement.formalizations[index].expressions_mapping[key].used_variables.add(var_name)
             logging.debug('Updated variables in requirement id: `{}`.'.format(requirement.rid))
             store_requirement(requirement, app)
 
@@ -651,6 +655,7 @@ def register_assets(app):
             'js/bootstrap.js',
             'js/dataTables.bootstrap4.js',
             'js/loadingoverlay.js',
+            'js/bootstrap-confirmation.min.js',
             filters='jsmin',
             output='gen/vendor.js'
         ),
