@@ -351,10 +351,12 @@ if __name__ == '__main__':
     utils.register_assets(app)
 
     # Parse python args and init config.
-    args = utils.HanforArgumentParser().parse_args()
+    args = utils.HanforArgumentParser(app).parse_args()
     app.config['SESSION_TAG'] = args.tag
-    session_folder = os.path.join(HERE, 'data', app.config['SESSION_TAG'])
-    app.config['SESSION_FOLDER'] = session_folder
+    if app.config['SESSION_BASE_FOLDER'] is None:
+        app.config['SESSION_FOLDER'] = os.path.join(HERE, 'data', app.config['SESSION_TAG'])
+    else:
+        app.config['SESSION_FOLDER'] = os.path.join(app.config['SESSION_BASE_FOLDER'], app.config['SESSION_TAG'])
     app.config['TEMPLATES_FOLDER'] = os.path.join(HERE, 'templates')
     app.config['SESSION_VARIABLE_COLLECTION'] = os.path.join(
         app.config['SESSION_FOLDER'],
@@ -366,15 +368,15 @@ if __name__ == '__main__':
     )
 
     # Initialize sessioin if this is a new one.
-    if not os.path.exists(session_folder):
+    if not os.path.exists(app.config['SESSION_FOLDER']):
         # Load requirements from .csv file and store them into separate requirements.
         requirement_collection = RequirementCollection()
         requirement_collection.create_from_csv(csv_file=args.input_csv, input_encoding='utf8')
 
         # Store Requirements as pickeled objects to the session dir.
-        os.makedirs(session_folder, exist_ok=True)
+        os.makedirs(app.config['SESSION_FOLDER'], exist_ok=True)
         for index, req in enumerate(requirement_collection.requirements):  # type: Requirement
-            filename = os.path.join(session_folder, '{}.pickle'.format(req.rid))
+            filename = os.path.join(app.config['SESSION_FOLDER'], '{}.pickle'.format(req.rid))
             utils.pickle_dump_obj_to_file(req, filename)
 
         # Generate the session dict: Store some meta information.

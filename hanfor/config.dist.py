@@ -3,6 +3,12 @@
 @copyright: 2017 Samuel Roth <samuel@smel.de>
 @licence: GPLv3
 """
+################################################################################
+#                               Storage and folders                            #
+################################################################################
+# Set the SESSION_BASE_FOLDER to a path hanfor will store/load sessions.
+# If set to None, hanfor will store its sessions in ./data
+SESSION_BASE_FOLDER = None
 
 ################################################################################
 #                                DEBUG and logging                             #

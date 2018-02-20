@@ -576,15 +576,25 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
     return output_file
 
 
-def get_stored_session_names(basedir=None):
-    if not basedir:
-        basedir = here
-    sessions_dir_path = os.path.join(basedir, 'data')
-    entries = ((os.path.join(sessions_dir_path, file_name), file_name) for file_name in
-               os.listdir(sessions_dir_path))
-    entries = ((os.stat(entry[0]), entry[1]) for entry in entries)
+def get_stored_session_names(session_folder=None) -> list:
+    """ Get stored session tags (folder names).
 
-    return entries
+    :param session_folder: path to folder
+    :type session_folder: str
+    :return: List of folder names
+    :rtype: list
+    """
+    result = []
+    if not session_folder:
+        session_folder = os.path.join(here, 'data')
+
+    try:
+        result = ((os.path.join(session_folder, file_name), file_name) for file_name in os.listdir(session_folder))
+        result = ((os.stat(entry[0]), entry[1]) for entry in result)
+    except Exception as e:
+        logging.error('Could not fetch stored sessions: {}'.format(e))
+
+    return result
 
 
 def enable_logging(log_level=logging.ERROR, to_file=False, filename='reqtransformer.log'):
@@ -684,15 +694,24 @@ class PrefixMiddleware(object):
 
 
 class ListStoredSessions(argparse.Action):
+    """ List available session tags. """
+    def __init__(self, option_strings, app, dest, *args, **kwargs):
+        self.app = app
+        super(ListStoredSessions, self).__init__(
+            option_strings=option_strings, dest=dest, *args, **kwargs)
+
     def __call__(self, *args, **kwargs):
-        entries = get_stored_session_names()
+        entries = get_stored_session_names(self.app.config['SESSION__BASE_FOLDER'])
         data = []
         data.append(['Tag', 'Created'])
         for entry in entries:
             date_string = datetime.datetime.fromtimestamp(entry[0].st_mtime).strftime("%A %d. %B %Y at %X")
             data.append([entry[1], date_string])
         print('Stored sessions: ')
-        print(DoubleTable(data).table)
+        if len(data) > 1:
+            print(DoubleTable(data).table)
+        else:
+            print('No sessions in found.')
         exit(0)
 
 
@@ -705,15 +724,17 @@ class ParseSessionsToUltimateReqFile(argparse.Action):
 
 
 class HanforArgumentParser(argparse.ArgumentParser):
-    def __init__(self):
+    def __init__(self, app):
         super().__init__()
+        self.app = app
         self.add_argument("input_csv", help="Path to the csv to be processed.")
         self.add_argument("tag", help="A tag for the session. Session will be reloaded, if tag exists.")
         self.add_argument(
             '-L', '--list_stored_sessions',
             nargs=0,
             help="List the tags of stored sessions..",
-            action=ListStoredSessions
+            action=ListStoredSessions,
+            app=self.app
         )
         self.add_argument(
             '-G', '--generate_formalization_from_session',
