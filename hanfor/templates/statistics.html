@@ -7,6 +7,8 @@
     <canvas id="processed_pie" width="50%"></canvas>
     <h4>Requirement types.</h4>
     <canvas id="requirement_types" width="50%"></canvas>
+    <h4>Most used variables.</h4>
+    <canvas id="top_variables" width="50%"></canvas>
 {% endblock %}
 {% block scripts %}
     <script type="text/javascript" src="{{ url_for('static', filename='js/chart.bundle.min.js') }}"></script>
@@ -60,6 +62,22 @@
                             label: 'Requirement types.'
                         }],
                         labels: data.type_names
+                    },
+                    options: {
+                        responsive: true
+                    }
+                });
+                var top_variables = new Chart(
+                    document.getElementById("top_variables").getContext('2d'),
+                    {
+                    type: 'polarArea',
+                    data: {
+                        datasets: [{
+                            data: data.top_variables_counts,
+                            backgroundColor: data.top_variable_colors,
+                            label: 'Top 10 used variables.'
+                        }],
+                        labels: data.top_variable_names
                     },
                     options: {
                         responsive: true

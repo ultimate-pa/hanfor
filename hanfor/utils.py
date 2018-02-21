@@ -417,9 +417,13 @@ def get_statistics(app):
         'types': dict(),
         'type_names': list(),
         'type_counts': list(),
-        'type_colors': list()
+        'type_colors': list(),
+        'top_variable_names': list(),
+        'top_variables_counts': list(),
+        'top_variable_colors': list()
     }
     requirement_filenames = get_filenames_from_dir(app.config['SESSION_FOLDER'])
+    # Gather requirements statistics
     for requirement_filename in requirement_filenames:
         requirement = pickle_load_from_dump(requirement_filename)
         if hasattr(requirement, 'type_in_csv'):
@@ -438,6 +442,22 @@ def get_statistics(app):
         data['type_names'].append(name)
         data['type_counts'].append(count)
         data['type_colors'].append("#%06x" % random.randint(0, 0xFFFFFF))
+
+    # Gather most used variables.
+    var_collection = pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
+    var_usage = []
+    for name, used_by in var_collection.var_req_mapping.items():
+        var_usage.append((len(used_by), name))
+
+    var_usage.sort(reverse=True)
+    if len(var_usage) > 10:
+        var_usage = var_usage[:10]
+
+    for count, name in var_usage:
+        data['top_variable_names'].append(name)
+        data['top_variables_counts'].append(count)
+        data['top_variable_colors'].append("#%06x" % random.randint(0, 0xFFFFFF))
+
     return data
 
 
