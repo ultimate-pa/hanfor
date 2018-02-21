@@ -9,3 +9,8 @@ flask-restful
 jsmin
 cssutils
 lark-parser
+colorama
+sklearn
+numpy
+scipy
+terminaltables
