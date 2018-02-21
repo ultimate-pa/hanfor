@@ -5,8 +5,7 @@ from lark.reconstruct import Reconstructor
 hanfor_boogie_grammar = r"""
 // Expressions
 // Start with exprcommastar
-?exprcommastar: ""
-    | exprcommaplus
+?exprcommastar: exprcommaplus?
 
 exprcommaplus: expr
     | exprcommaplus COMMA expr
