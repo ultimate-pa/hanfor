@@ -567,6 +567,11 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
                         continue
                     if formalization.scoped_pattern.get_scope_slug().lower() == 'none':
                         continue
+                    if formalization.scoped_pattern.get_pattern_slug() in ['NotFormalizable', 'None']:
+                        continue
+                    if len(formalization.get_string()) == 0:
+                        # formalizatioin string is empty if expressions are missing or none set. Ignore in output
+                        continue
                     content += '{}_{}: {}\n'.format(
                         re.sub(r"\s+", '_', requirement.rid),
                         index,
