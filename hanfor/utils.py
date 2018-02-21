@@ -4,16 +4,16 @@
 @licence: GPLv3
 """
 import argparse
-import datetime
-
 import boogie_parsing
 import csv
+import datetime
 import html
 import logging
-import shlex
-import os
 import pickle
 import random
+import re
+import shlex
+import os
 
 from colorama import Fore, Style
 from flask_assets import Bundle, Environment
@@ -540,7 +540,7 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
                 if used_in & target_set:
                     available_vars.append(var)
             except:
-                logging.debug('Ignoring variable `{}`: No ')
+                logging.debug('Ignoring variable `{}`'.format(var))
     else:
         available_vars = var_collection.get_available_vars_list(sort_by='name')
 
@@ -568,7 +568,7 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
                     if formalization.scoped_pattern.get_scope_slug().lower() == 'none':
                         continue
                     content += '{}_{}: {}\n'.format(
-                        requirement.rid,
+                        re.sub(r"\s+", '_', requirement.rid),
                         index,
                         formalization.get_string()
                     )
