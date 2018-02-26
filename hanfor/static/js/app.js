@@ -670,7 +670,6 @@ function load_datatable(){
         }
 
     }).done(function () {
-            // Update visible Vars.
             init_datatable(columnDefs);
     });
 }
