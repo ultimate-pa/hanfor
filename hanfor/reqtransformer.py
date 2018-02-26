@@ -119,7 +119,8 @@ class Requirement:
             'pattern': 'None',
             'vars': dict(),
             'pos': self.pos_in_csv,
-            'status': self.status
+            'status': self.status,
+            'csv_data': self.csv_row
         }
         return d
 

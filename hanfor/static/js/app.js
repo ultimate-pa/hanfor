@@ -473,6 +473,19 @@ $(document).ready(function() {
             // Set the tags
             $('#requirement_tag_field').tokenfield('setTokens', data.tags);
             $('#requirement_status').val(data.status);
+
+            // Set csv_data
+            csv_row_content = $('#csv_content_accordion');
+            csv_row_content.html('');
+            csv_row_content.collapse('hide');
+            var csv_data = data.csv_data;
+            for(var key in csv_data){
+                if (csv_data.hasOwnProperty(key)){
+                    var value = csv_data[key];
+                    csv_row_content.append('<p><strong>' + key + ':</strong>' + value + '</p>');
+                }
+            }
+
             if (data.success === false) {
                 alert('Could Not load the Requirement: ' + data.errormsg);
             }
