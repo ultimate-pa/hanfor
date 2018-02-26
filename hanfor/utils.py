@@ -174,9 +174,11 @@ def formalization_html(templates_folder, formalization_id, scope_options, patter
 
     # Set values
     html_template = html_template.replace('__formalization_text__', formalization.get_string())
-    html_template = html_template.replace('__formal_desc__', '{} ... (click to open)'.format(
-        formalization.get_string()[:50]))
     html_template = html_template.replace('__formal_id__', '{}'.format(formalization_id))
+    form_desc = formalization.get_string()[:90]
+    if len(form_desc) < 10:  # Add hint to open if desc is short.
+        form_desc += '... (click to open)'
+    html_template = html_template.replace('__formal_desc__', form_desc)
 
     # Selected scope and pattern:
     if formalization.scoped_pattern is not None:
