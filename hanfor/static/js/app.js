@@ -311,6 +311,11 @@ function bind_expression_buttons() {
 }
 
 
+/**
+ * Bind autocomplete trigger to formalization input fields.
+ * Implement autocomplete.
+ *
+ */
 function bind_var_autocomplete() {
     $( ".reqirement-variable" )
         // don't navigate away from the field on tab when selecting an item
@@ -353,6 +358,12 @@ function bind_var_autocomplete() {
 }
 
 
+/**
+ * Bind the Links to open a requirement modal.
+ * Implement Behaviour:
+ *  * Load and show requirement data
+ * @param requirements_table
+ */
 function bind_requirement_id_to_modals(requirements_table) {
     // Add listener for clicks on the Rows.
     $('#requirements_table').find('tbody').on('click', 'a', function (event) {
@@ -421,6 +432,11 @@ function bind_requirement_id_to_modals(requirements_table) {
 }
 
 
+/**
+ * Update the color of the column toggle buttons.
+ * Column visible -> Button blue (btn-info).
+ * Column not visible -> Button grey (btn-secondary).
+ */
 function update_colum_buttons() {
     var requirements_table = $('#requirements_table').DataTable();
     $.each(requirements_table.columns().visible(), function(key, value) {
@@ -432,7 +448,11 @@ function update_colum_buttons() {
     });
 }
 
-
+/**
+ * Bind the requirements table manipulators to the table.
+ * Initialize manipulators behaviour.
+ * @param requirements_table The requirements table
+ */
 function init_datatable_manipulators(requirements_table) {
     // Save button
     $('#save_requirement_modal').click(function () {
@@ -557,7 +577,12 @@ function init_datatable_manipulators(requirements_table) {
     update_colum_buttons();
 }
 
-
+/**
+ * Fetch requirements from hanfor api and build the requirements table.
+ * Apply search queries to table
+ * Bind button/links to events.
+ * @param columnDefs predefined columDefs (https://datatables.net/reference/option/columnDefs)
+ */
 function init_datatable(columnDefs) {
     requirements_table = $('#requirements_table').DataTable({
         "language": {
@@ -596,6 +621,9 @@ function init_datatable(columnDefs) {
 }
 
 
+/**
+ * Load requirements datatable definitions. Trigger build of a fresh requirement datatable.
+ */
 function load_datatable(){
     // Initialize the Column defs.
     // First set the static colum definitions.
@@ -674,7 +702,9 @@ function load_datatable(){
     });
 }
 
-
+/**
+ * Initialize the requirement modal behaviour.
+ */
 function init_modal() {
     // Initialize tag autocomplete filed in the requirements modal.
     $('#requirement_tag_field').tokenfield({
@@ -700,7 +730,9 @@ function init_modal() {
     update_vars();
 }
 
-
+/**
+ * Start the app.
+ */
 $(document).ready(function() {
     load_datatable();
     init_modal();
