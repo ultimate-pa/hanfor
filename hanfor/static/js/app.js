@@ -269,6 +269,7 @@ function add_formalization() {
     });
 }
 
+
 function delete_formalization(formal_id) {
     requirement_modal_content = $('.modal-content');
     requirement_modal_content.LoadingOverlay('show');
@@ -352,89 +353,7 @@ function bind_var_autocomplete() {
 }
 
 
-$(document).ready(function() {
-    requirements_table = $('#requirements_table').DataTable({
-        "language": {
-          "emptyTable": "Loading data."
-        },
-        "paging": true,
-        "stateSave": true,
-        "pageLength": 50,
-        "lengthMenu": [[10, 50, 100, 500, -1], [10, 50, 100, 500, "All"]],
-        "dom": 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
-        "ajax": "api/req/gets",
-        "deferRender": true,
-        "columns": [
-            { "data": "pos"},
-            {
-                "data": "id",
-                "render": function ( data, type, row, meta ) {
-                    result = '<a href="#">' + data + '</a>';
-                    return result;
-                }
-            },
-            { "data": "desc" },
-            {
-                "data": "type",
-                "render": function ( data, type, row, meta ) {
-                    if (available_types.indexOf(data) <= -1) {
-                        available_types.push(data);
-                    }
-                    return data;
-                }
-            },
-            {
-                "data": "tags",
-                "render": function ( data, type, row, meta ) {
-                    result = '';
-                    $(data).each(function (id, tag) {
-                        if (tag.length > 0) {
-                            result += '<span class="badge badge-info">' + tag + '</span></br>';
-                            // Add tag to available tags
-                            if (available_tags.indexOf(tag) <= -1) {
-                                available_tags.push(tag);
-                            }
-                        }
-                    });
-                    if (row.formal.length > 0) {
-                        result += '<span class="badge badge-success">has_formalization</span></br>';
-                    }
-                    return result;
-                }
-
-            },
-            {
-                "data": "status",
-                "render": function ( data, type, row, meta ) {
-                    result = '<span class="badge badge-info">' + data + '</span></br>';
-                    return result;
-                }
-            },
-            {
-                "data": "formal",
-                "visible": false,
-                "searchable": false
-            }
-        ],
-        "createdRow": function( row, data, dataIndex ) {
-            if (data['type'] === 'Heading') {
-                $(row).addClass( 'bg-primary' );
-            }
-            if (data['type'] === 'Information') {
-                $(row).addClass( 'table-info' );
-            }
-            if (data['type'] === 'Requirement') {
-                $(row).addClass( 'table-warning' );
-            }
-            if (data['type'] === 'not set') {
-                $(row).addClass( 'table-light');
-            }
-        },
-        initComplete : function() {
-            $('#search_bar').val('');
-        }
-    });
-
+function bind_requirement_id_to_modals(requirements_table) {
     // Add listener for clicks on the Rows.
     $('#requirements_table').find('tbody').on('click', 'a', function (event) {
         // prevent body to be scrolled to the top.
@@ -499,33 +418,34 @@ $(document).ready(function() {
             requirement_modal_content.LoadingOverlay('hide', true);
         });
     } );
+}
 
-    // Initialize tag autocomplete filed in the requirements modal.
-    $('#requirement_tag_field').tokenfield({
-      autocomplete: {
-        source: available_tags,
-        delay: 100
-      },
-      showAutocompleteOnFocus: true
+
+function update_colum_buttons() {
+    var requirements_table = $('#requirements_table').DataTable();
+    $.each(requirements_table.columns().visible(), function(key, value) {
+        if(value === false){
+            $('#col_toggle_button_' + key).removeClass('btn-info').addClass('btn-secondary');
+        } else {
+            $('#col_toggle_button_' + key).removeClass('btn-secondary').addClass('btn-info');
+        }
     });
+}
 
+
+function init_datatable_manipulators(requirements_table) {
+    // Save button
     $('#save_requirement_modal').click(function () {
         store_requirement(requirements_table);
     });
 
-    // Clear the Modal after closing modal.
-    $('#requirement_modal').on('hidden.bs.modal', function (e) {
-        $('#requirement_tag_field').val('');
-        $('#requirement_tag_field-tokenfield').val('');
-    });
-
-    // Search related stuff.
+    // Table Search related stuff.
     // Bind big custom searchbar to search the table.
     $('#search_bar').keyup(function(){
       requirements_table.search($(this).val()).draw() ;
     });
 
-    // Set up the filters.
+    // Table filters.
     $('#type-filter-input').autocomplete({
     minLength: 0,
     source: available_types,
@@ -617,13 +537,172 @@ $(document).ready(function() {
         }
     });
 
+    // Column toggling
+    $('.colum-toggle-button').on( 'click', function (e) {
+        e.preventDefault();
+
+        // Get the column API object
+        var column = requirements_table.column( $(this).attr('data-column') );
+
+        // Toggle the visibility
+        state = column.visible( ! column.visible() );
+        update_colum_buttons();
+    } );
+    $('.reset-colum-toggle').on('click', function (e) {
+        e.preventDefault();
+        requirements_table.columns( '.default-col' ).visible( true );
+        requirements_table.columns( '.extra-col' ).visible( false );
+        update_colum_buttons();
+    });
+    update_colum_buttons();
+}
+
+
+function init_datatable(columnDefs) {
+    requirements_table = $('#requirements_table').DataTable({
+        "language": {
+          "emptyTable": "Loading data."
+        },
+        "paging": true,
+        "stateSave": true,
+        "pageLength": 50,
+        "lengthMenu": [[10, 50, 100, 500, -1], [10, 50, 100, 500, "All"]],
+        "dom": 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
+        "ajax": "api/req/gets",
+        "deferRender": true,
+        "columnDefs": columnDefs,
+        "createdRow": function( row, data, dataIndex ) {
+            if (data['type'] === 'Heading') {
+                $(row).addClass( 'bg-primary' );
+            }
+            if (data['type'] === 'Information') {
+                $(row).addClass( 'table-info' );
+            }
+            if (data['type'] === 'Requirement') {
+                $(row).addClass( 'table-warning' );
+            }
+            if (data['type'] === 'not set') {
+                $(row).addClass( 'table-light');
+            }
+        },
+        initComplete : function() {
+            $('#search_bar').val('');
+            bind_requirement_id_to_modals(requirements_table);
+            init_datatable_manipulators(requirements_table);
+            // Process URL search query.
+            process_url_query(requirements_table, get_query);
+        }
+    });
+}
+
+
+function load_datatable(){
+    // Initialize the Column defs.
+    // First set the static colum definitions.
+    var columnDefs = [
+            {
+                "targets": [0],
+                "data": "pos"
+            },
+            {
+                "targets": [1],
+                "data": "id",
+                "render": function ( data, type, row, meta ) {
+                    result = '<a href="#">' + data + '</a>';
+                    return result;
+                }
+            },
+            {
+                "targets": [2],
+                "data": "desc"
+            },
+            {
+                "targets": [3],
+                "data": "type",
+                "render": function ( data, type, row, meta ) {
+                    if (available_types.indexOf(data) <= -1) {
+                        available_types.push(data);
+                    }
+                    return data;
+                }
+            },
+            {
+                "targets": [4],
+                "data": "tags",
+                "render": function ( data, type, row, meta ) {
+                    result = '';
+                    $(data).each(function (id, tag) {
+                        if (tag.length > 0) {
+                            result += '<span class="badge badge-info">' + tag + '</span></br>';
+                            // Add tag to available tags
+                            if (available_tags.indexOf(tag) <= -1) {
+                                available_tags.push(tag);
+                            }
+                        }
+                    });
+                    if (row.formal.length > 0) {
+                        result += '<span class="badge badge-success">has_formalization</span></br>';
+                    }
+                    return result;
+                }
+
+            },
+            {
+                "targets": [5],
+                "data": "status",
+                "render": function ( data, type, row, meta ) {
+                    result = '<span class="badge badge-info">' + data + '</span></br>';
+                    return result;
+                }
+            }
+        ];
+    // Load generic colums.
+    genericColums = $.get( "api/table/colum_defs", '', function (data) {
+        var dataLength = data['col_defs'].length;
+        for (var i = 0; i < dataLength; i++) {
+            columnDefs.push(
+            {
+                "targets": [parseInt(data['col_defs'][i]['target'])],
+                "data": data['col_defs'][i]['csv_name'],
+                "visible": false,
+                "searchable": false
+            });
+        }
+
+    }).done(function () {
+            // Update visible Vars.
+            init_datatable(columnDefs);
+    });
+}
+
+
+function init_modal() {
+    // Initialize tag autocomplete filed in the requirements modal.
+    $('#requirement_tag_field').tokenfield({
+      autocomplete: {
+        source: available_tags,
+        delay: 100
+      },
+      showAutocompleteOnFocus: true
+    });
+
+    // Clear the Modal after closing modal.
+    $('#requirement_modal').on('hidden.bs.modal', function (e) {
+        $('#requirement_tag_field').val('');
+        $('#requirement_tag_field-tokenfield').val('');
+    });
+
+    // Listener for adding new formalizations.
     $('#add_formalization').click(function () {
         add_formalization();
     });
 
-    // Initialize modal.
+    // Initialize variables.
     update_vars();
+}
 
-    // Process URL search query.
-    process_url_query(requirements_table, get_query);
-} );
+
+$(document).ready(function() {
+    load_datatable();
+    init_modal();
+});

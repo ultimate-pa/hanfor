@@ -706,6 +706,23 @@ def register_assets(app):
     assets.register(bundles)
 
 
+def get_datatable_additional_cols(app):
+    offset = 6  # we have 6 fixed cols.
+    result = list()
+    session_dict = pickle_load_from_dump(app.config['SESSION_STATUS'])  # type: dict
+
+    for index, name in enumerate(session_dict['csv_fieldnames']):
+        result.append(
+            {
+                'target': index + offset,
+                'csv_name': 'csv_data.{}'.format(name),
+                'table_header_name': 'csv: {}'.format(name)
+            }
+        )
+
+    return {'col_defs': result}
+
+
 class PrefixMiddleware(object):
     ''' Support for url prefixes. '''
 

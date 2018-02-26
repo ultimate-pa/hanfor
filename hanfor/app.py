@@ -80,6 +80,14 @@ def tools_api(command):
         return response
 
 
+@app.route('/api/table/colum_defs', methods=['GET'])
+@nocache
+def table_api():
+    result = utils.get_datatable_additional_cols(app)
+
+    return jsonify(result)
+
+
 @app.route('/api/<resource>/<command>', methods=['GET', 'POST'])
 @nocache
 def api(resource, command):
@@ -248,7 +256,16 @@ def index():
         'q': request.args.get('q', ''),
         'col': request.args.get('col', '')
     }
-    return render_template('index.html', query=query)
+    default_cols = [
+        {'name': 'Pos', 'target': 0},
+        {'name': 'Id', 'target': 1},
+        {'name': 'Description', 'target': 2},
+        {'name': 'Type', 'target': 3},
+        {'name': 'Tags', 'target': 4},
+        {'name': 'Status', 'target': 5},
+    ]
+    additional_cols = utils.get_datatable_additional_cols(app)['col_defs']
+    return render_template('index.html', query=query, additional_cols=additional_cols, default_cols=default_cols)
 
 
 def varcollection_consistency_check(app):

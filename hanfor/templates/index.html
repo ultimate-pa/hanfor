@@ -17,6 +17,10 @@
                                aria-controls="profile" aria-selected="false">Filter</a>
                           </li>
                           <li class="nav-item">
+                            <a class="nav-link" id="colums-tab" data-toggle="tab" href="#colums-pane" role="tab"
+                               aria-controls="profile" aria-selected="false">Colums</a>
+                          </li>
+                          <li class="nav-item">
                             <a class="nav-link" id="tools-tab" data-toggle="tab" href="#tools-pane" role="tab"
                                aria-controls="contact" aria-selected="false">Tools</a>
                           </li>
@@ -63,6 +67,26 @@
                             </div>
                         </div>
                       </div>
+                      <div class="tab-pane fade" id="colums-pane" role="tabpanel" aria-labelledby="colums-tab">
+                        <p>Click on a button to toggle a column.</p>
+                          {% for col in default_cols %}
+                              <button id="col_toggle_button_{{ col.target }}"
+                                      class="btn btn-info btn-sm colum-toggle-button"
+                                      type="button"
+                                      data-column="{{ col.target }}">
+                                  {{ col.name }}
+                              </button>
+                          {% endfor %}
+                          {% for col in additional_cols %}
+                            <button id="col_toggle_button_{{ col.target }}"
+                                    class="btn btn-info btn-sm colum-toggle-button"
+                                    type="button"
+                                    data-column="{{ col.target }}">
+                                {{ col.table_header_name|title }}
+                            </button>
+                          {% endfor %}
+                          <button class="btn btn-danger btn-sm reset-colum-toggle" >Reset</button>
+                      </div>
                       <div class="tab-pane fade" id="tools-pane" role="tabpanel" aria-labelledby="tools-tab">
                         <form id="generate_req_form" method="post"
                               action="{{ url_for('tools_api', command='req_file') }}"
@@ -99,22 +123,28 @@
     <table id="requirements_table" class="table table-hover table-bordered" width="100%" cellspacing="0">
         <thead>
         <tr>
-            <td title="Position in CSV file.">Pos.</td>
-            <th>Id</th>
-            <th>Description</th>
-            <th>Type</th>
-            <th>Tags</th>
-            <th>Status</th>
+            <td title="Position in CSV file." class="default-col">Pos.</td>
+            <th class="default-col">Id</th>
+            <th class="default-col">Description</th>
+            <th class="default-col">Type</th>
+            <th class="default-col">Tags</th>
+            <th class="default-col">Status</th>
+            {% for col in additional_cols %}
+                <th class="extra-col">{{ col.table_header_name|title }}</th>
+            {% endfor %}
         </tr>
         </thead>
         <tfoot>
         <tr>
-            <td title="Position in CSV file.">Pos.</td>
-            <th>Id</th>
-            <th>Description</th>
-            <th>Type</th>
-            <th>Tags</th>
-            <th>Status</th>
+            <td title="Position in CSV file." class="default-col">Pos.</td>
+            <th class="default-col">Id</th>
+            <th class="default-col">Description</th>
+            <th class="default-col">Type</th>
+            <th class="default-col">Tags</th>
+            <th class="default-col">Status</th>
+            {% for col in additional_cols %}
+                <th class="extra-col">{{ col.table_header_name|title }}</th>
+            {% endfor %}
         </tr>
         </tfoot>
         <tbody>
