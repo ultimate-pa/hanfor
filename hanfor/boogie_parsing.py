@@ -128,6 +128,7 @@ expr8ni: expr8ni LBKT exprcommaplus RBKT
 expr9ni: FALSE
     | TRUE
     | NUMBER
+    | REALNUMBER
     | ID
     | ID LPAR exprcommastar RPAR
     | OLD LPAR expr RPAR
