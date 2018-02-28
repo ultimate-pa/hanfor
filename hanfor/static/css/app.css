@@ -35,3 +35,8 @@ body.modal-open{
     color: #1d1e1f;
     text-decoration: underline;
 }
+
+.colum-toggle-button,
+.reset-colum-toggle {
+    width: 14em;
+}
