@@ -3,7 +3,69 @@ var available_tags = ['', 'has_formalization'];
 var available_status = ['', 'Todo', 'Review', 'Done'];
 var available_types = [''];
 var available_vars = [''];
+var visible_columns = [true, true, true, true, true, true];
+
 var get_query = JSON.parse(search_query);
+
+/**
+ * Hanfor specific requirements table filtering.
+ * In user search queries we use:
+ * -> :OR: and :AND: to concatenate queries.
+ * -> " to indicate the beginning or end of a search sequence.
+ */
+$.fn.dataTable.ext.search.push(
+    function( settings, data, dataIndex ) {
+        // data contains the row. data[0] is the content of the first column in the actual row.
+        // Return true to include the row into the data. false to exclude.
+
+        // Get the search query.
+        query = $('#search_bar').val();
+        // Shortcut for empty query.
+        if (query.length === 0) {
+            return true;
+        }
+
+        // Split by :OR:
+        processed_query = '';
+        or_parts = query.split(':OR:');
+
+        for (var i = 0; i < or_parts.length; i++) {
+            if (i > 0) {
+                processed_query += '|('; // Concatenate by | to implement ":OR:" behaviour
+            } else {
+                processed_query += '(';
+            }
+
+            // Each :OR: part is allowed to contain :AND: parts.
+            and_parts = or_parts[i].split(':AND:');
+            for (var j = 0; j < and_parts.length; j++) {
+                processed_query += "(?=.*";  // wrap ":AND:" into (?=.*<query>) to implement intersection behaviour.
+                processed_query += and_parts[j].trim();
+                processed_query += ")";
+            }
+
+            processed_query += ')';
+        }
+
+        // replace " by \b to allow for exact matches.
+        processed_query = processed_query.replace(/\"/g, "\\b");
+        // Search query to regex
+        var query_re = new RegExp(processed_query, "i");
+
+        // Loop through all colums and apply search for the visible ones.
+        for (var i = 0; i < visible_columns.length; i++) {
+            if (visible_columns[i]) { // col visible
+                // Check if regex matches col.
+                if (query_re.test(data[i])) {
+                    return true;  // We return on the first match.
+                }
+            }
+        }
+
+        return false;
+    }
+);
+
 
 /**
  * Apply a URL search query to the requirements table.
@@ -436,16 +498,21 @@ function bind_requirement_id_to_modals(requirements_table) {
  * Update the color of the column toggle buttons.
  * Column visible -> Button blue (btn-info).
  * Column not visible -> Button grey (btn-secondary).
+ * Update visible_columns
  */
-function update_colum_buttons() {
+function update_visible_columns_information() {
     var requirements_table = $('#requirements_table').DataTable();
+    var new_visible_columns = [];
     $.each(requirements_table.columns().visible(), function(key, value) {
         if(value === false){
             $('#col_toggle_button_' + key).removeClass('btn-info').addClass('btn-secondary');
+            new_visible_columns.push(false);
         } else {
             $('#col_toggle_button_' + key).removeClass('btn-secondary').addClass('btn-info');
+            new_visible_columns.push(true);
         }
     });
+    visible_columns = new_visible_columns;
 }
 
 /**
@@ -461,8 +528,10 @@ function init_datatable_manipulators(requirements_table) {
 
     // Table Search related stuff.
     // Bind big custom searchbar to search the table.
-    $('#search_bar').keyup(function(){
-      requirements_table.search($(this).val()).draw() ;
+    $('#search_bar').keypress(function(e) {
+        if(e.which === 13) { // Search on enter.
+            requirements_table.draw();
+        }
     });
 
     // Table filters.
@@ -566,15 +635,15 @@ function init_datatable_manipulators(requirements_table) {
 
         // Toggle the visibility
         state = column.visible( ! column.visible() );
-        update_colum_buttons();
+        update_visible_columns_information();
     } );
     $('.reset-colum-toggle').on('click', function (e) {
         e.preventDefault();
         requirements_table.columns( '.default-col' ).visible( true );
         requirements_table.columns( '.extra-col' ).visible( false );
-        update_colum_buttons();
+        update_visible_columns_information();
     });
-    update_colum_buttons();
+    update_visible_columns_information();
 }
 
 /**
@@ -693,7 +762,7 @@ function load_datatable(){
                 "targets": [parseInt(data['col_defs'][i]['target'])],
                 "data": data['col_defs'][i]['csv_name'],
                 "visible": false,
-                "searchable": false
+                "searchable": true
             });
         }
 
