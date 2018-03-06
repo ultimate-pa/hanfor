@@ -118,7 +118,7 @@ def load_requirement_by_id(id, app):
     :param app: The flask app.
     :rtype: Requirement
     """
-    filepath = os.path.join(app.config['SESSION_FOLDER'], '{}.pickle'.format(id))
+    filepath = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(id))
     if os.path.exists(filepath) and os.path.isfile(filepath):
         return pickle_load_from_dump(filepath)
 
@@ -205,7 +205,7 @@ def store_requirement(requirement, app):
     :param app: The flask app.
     :type app:
     """
-    filepath = os.path.join(app.config['SESSION_FOLDER'], '{}.pickle'.format(requirement.rid))
+    filepath = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(requirement.rid))
     if os.path.exists(filepath) and os.path.isfile(filepath):
         return pickle_dump_obj_to_file(requirement, filepath)
 
@@ -390,7 +390,7 @@ def rename_variable_in_expressions(app, occurences, var_name_old, var_name):
     """
     logging.debug('Update requirements using old var `{}` to `{}`'.format(var_name_old, var_name))
     for rid in occurences:
-        filepath = os.path.join(app.config['SESSION_FOLDER'], '{}.pickle'.format(rid))
+        filepath = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(rid))
         if os.path.exists(filepath) and os.path.isfile(filepath):
             requirement = pickle_load_from_dump(filepath)  # type: Requirement
             # replace in every formalization
@@ -424,7 +424,7 @@ def get_statistics(app):
         'top_variables_counts': list(),
         'top_variable_colors': list()
     }
-    requirement_filenames = get_filenames_from_dir(app.config['SESSION_FOLDER'])
+    requirement_filenames = get_filenames_from_dir(app.config['REVISION_FOLDER'])
     # Gather requirements statistics
     for requirement_filename in requirement_filenames:
         requirement = pickle_load_from_dump(requirement_filename)
@@ -509,14 +509,17 @@ def generate_csv_file(app, output_file=None, filter_list=None, invert_filter=Fal
     :rtype: str
     """
     # Get requirements
-    requirements = get_requirements(app.config['SESSION_FOLDER'], filter_list=filter_list, invert_filter=invert_filter)
+    requirements = get_requirements(app.config['REVISION_FOLDER'], filter_list=filter_list, invert_filter=invert_filter)
 
     # get session status
-    session_dict = pickle_load_from_dump(app.config['SESSION_STATUS'])  # type: dict
+    session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])  # type: dict
 
     # Write to output_file
     if not output_file:
-        output_file = os.path.join(app.config['SESSION_FOLDER'], '{}_out.csv'.format(app.config['SESSION_TAG']))
+        output_file = os.path.join(app.config['SESSION_FOLDER'], '{}_{}_out.csv'.format(
+            app.config['SESSION_TAG'],
+            app.config['USING_REVISION']
+        ))
     for requirement in requirements:
         requirement.csv_row[session_dict['csv_formal_header']] = requirement.get_formalization_string()
     rows = [r.csv_row for r in requirements]
@@ -544,10 +547,10 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
     """
     logging.info('Generating .req file for session {}'.format(app.config['SESSION_TAG']))
     # Get requirements
-    requirements = get_requirements(app.config['SESSION_FOLDER'], filter_list=filter_list, invert_filter=invert_filter)
+    requirements = get_requirements(app.config['REVISION_FOLDER'], filter_list=filter_list, invert_filter=invert_filter)
 
     # get session status
-    session_dict = pickle_load_from_dump(app.config['SESSION_STATUS'])  # type: dict
+    session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])  # type: dict
 
     var_collection = pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
     available_vars = []
@@ -569,7 +572,10 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
     # Write to .req file
     if not output_file:
         output_file = os.path.join(
-            app.config['SESSION_FOLDER'], '{}_formalized_requirements.req'.format(app.config['SESSION_TAG']))
+            app.config['SESSION_FOLDER'], '{}_{}_formalized_requirements.req'.format(
+                app.config['SESSION_TAG'],
+                app.config['USING_REVISION']
+            ))
     logging.info('Write to output file: {}'.format(output_file))
     with open(output_file, mode='w') as out_file:
         content = ''
@@ -607,21 +613,44 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
     return output_file
 
 
-def get_stored_session_names(session_folder=None) -> list:
-    """ Get stored session tags (folder names).
+def get_stored_session_names(session_folder=None, only_names=False) -> tuple:
+    """ Get stored session tags (folder names) including os.stat.
+    Returned tuple is (
+        (os.stat(), name),
+        ...
+    )
+    If only_names == True the list is (
+        name_1,
+        ...
+    )
 
     :param session_folder: path to folder
     :type session_folder: str
-    :return: List of folder names
-    :rtype: list
+    :return: tuple  of folder names or stats with names
+    :rtype: tuple
     """
-    result = []
+    result = ()
     if not session_folder:
         session_folder = os.path.join(here, 'data')
 
     try:
         result = ((os.path.join(session_folder, file_name), file_name) for file_name in os.listdir(session_folder))
-        result = ((os.stat(entry[0]), entry[1]) for entry in result)
+        if only_names:
+            result = (entry[1] for entry in result)
+        else:
+            result = ((os.stat(entry[0]), entry[1]) for entry in result)
+    except Exception as e:
+        logging.error('Could not fetch stored sessions: {}'.format(e))
+
+    return result
+
+
+def get_available_revisions(config):
+    result = []
+
+    try:
+        names = os.listdir(config['SESSION_FOLDER'])
+        result = [name for name in names if os.path.isdir(os.path.join(config['SESSION_FOLDER'], name))]
     except Exception as e:
         logging.error('Could not fetch stored sessions: {}'.format(e))
 
@@ -711,7 +740,7 @@ def register_assets(app):
 def get_datatable_additional_cols(app):
     offset = 6  # we have 6 fixed cols.
     result = list()
-    session_dict = pickle_load_from_dump(app.config['SESSION_STATUS'])  # type: dict
+    session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])  # type: dict
 
     for index, name in enumerate(session_dict['csv_fieldnames']):
         result.append(
@@ -723,6 +752,18 @@ def get_datatable_additional_cols(app):
         )
 
     return {'col_defs': result}
+
+
+def slugify(s):
+    """ Normalizes string, converts to lowercase, removes non-alpha characters, and converts spaces to hyphens.
+
+    :param s: string
+    :type s: str
+    :return: String save for filename
+    :rtype: str
+    """
+    s = str(s).strip().replace(' ', '_')
+    return re.sub(r'(?u)[^-\w.]', '', s)
 
 
 class PrefixMiddleware(object):
@@ -750,7 +791,7 @@ class ListStoredSessions(argparse.Action):
             option_strings=option_strings, dest=dest, *args, **kwargs)
 
     def __call__(self, *args, **kwargs):
-        entries = get_stored_session_names(self.app.config['SESSION__BASE_FOLDER'])
+        entries = get_stored_session_names(self.app.config['SESSION_BASE_FOLDER'])
         data = []
         data.append(['Tag', 'Created'])
         for entry in entries:
@@ -778,6 +819,11 @@ class HanforArgumentParser(argparse.ArgumentParser):
         self.app = app
         self.add_argument("input_csv", help="Path to the csv to be processed.")
         self.add_argument("tag", help="A tag for the session. Session will be reloaded, if tag exists.")
+        self.add_argument(
+            "-r", "--revision",
+            action="store_true",
+            help="Create a new session by updating a existing session with a new csv file."
+        )
         self.add_argument(
             '-L', '--list_stored_sessions',
             nargs=0,

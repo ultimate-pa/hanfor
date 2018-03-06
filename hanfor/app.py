@@ -127,7 +127,7 @@ def api(resource, command):
 
         # Get all requirements
         if command == 'gets':
-            filenames = utils.get_filenames_from_dir(app.config['SESSION_FOLDER'])
+            filenames = utils.get_filenames_from_dir(app.config['REVISION_FOLDER'])
             result = dict()
             result['data'] = list()
             for filename in filenames:
@@ -315,7 +315,7 @@ def unhandled_exception(exception):
 
 def requirements_consistency_check(app):
     logging.info('Check requirements consistency.')
-    filenames = utils.get_filenames_from_dir(app.config['SESSION_FOLDER'])
+    filenames = utils.get_filenames_from_dir(app.config['REVISION_FOLDER'])
     var_collection = utils.pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
     result = dict()
     result['data'] = list()
@@ -401,11 +401,165 @@ def requirements_consistency_check(app):
     if count > 0:
         logging.info('Done with consistency check. Repaired {} requirements'.format(count))
 
+
+def create_revision(input_csv, base_revision_name):
+    # Create initial revision if no base revision is given
+    if not base_revision_name:
+        revision_name = 'revision_0'
+        base_revision_settings = None
+    # Revision based on a existing revision
+    else:
+        new_revision_count = max([int(name.split('_')[1]) for name in utils.get_available_revisions(app.config)]) + 1
+        revision_name = 'revision_{}'.format(new_revision_count)
+        base_revision_folder = os.path.join(
+            app.config['SESSION_FOLDER'],
+            base_revision_name
+        )
+        base_revision_var_collectioin_path = os.path.join(
+            base_revision_folder,
+            'session_variable_collection.pickle'
+        )
+        base_revision_settings = utils.pickle_load_from_dump(
+            os.path.join(
+                base_revision_folder,
+                'session_status.pickle'
+            )
+        )
+
+    if base_revision_name and base_revision_name not in utils.get_available_revisions(app.config):
+        logging.error('Base revision `{}` not found in `{}`'.format(base_revision_name, app.config['SESSION_FOLDER']))
+        raise FileNotFoundError
+
+    app.config['USING_REVISION'] = revision_name
+    app.config['REVISION_FOLDER'] = os.path.join(
+        app.config['SESSION_FOLDER'],
+        revision_name
+    )
+    app.config['SESSION_VARIABLE_COLLECTION'] = os.path.join(
+        app.config['REVISION_FOLDER'],
+        'session_variable_collection.pickle'
+    )
+    app.config['SESSION_STATUS_PATH'] = os.path.join(
+        app.config['REVISION_FOLDER'],
+        'session_status.pickle'
+    )
+    # Load requirements from .csv file and store them into separate requirements.
+    requirement_collection = RequirementCollection()
+    requirement_collection.create_from_csv(
+        csv_file=input_csv,
+        input_encoding='utf8',
+        base_revision_headers=base_revision_settings
+    )
+
+    # Store Requirements as pickeled objects to the session dir.
+    os.makedirs(app.config['REVISION_FOLDER'], exist_ok=True)
+    for index, req in enumerate(requirement_collection.requirements):  # type: Requirement
+        filename = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(req.rid))
+        utils.pickle_dump_obj_to_file(req, filename)
+
+    # Generate the session dict: Store some meta information.
+    session = dict()
+    session['csv_input_file'] = args.input_csv
+    session['csv_fieldnames'] = requirement_collection.csv_meta['fieldnames']
+    session['csv_id_header'] = requirement_collection.csv_meta['id_header']
+    session['csv_formal_header'] = requirement_collection.csv_meta['formal_header']
+    session['csv_type_header'] = requirement_collection.csv_meta['type_header']
+    session['csv_desc_header'] = requirement_collection.csv_meta['desc_header']
+    session['csv_dialect'] = requirement_collection.csv_meta['dialect']
+    utils.pickle_dump_obj_to_file(session, app.config['SESSION_STATUS_PATH'])
+
+    # No need to merge anything if we created only the base revision
+    if revision_name == 'revision_0':
+        return
+
+    # Merge the old revision into the new revision
+    logging.info('Merging `{}` into `{}`.'.format(base_revision_name, revision_name))
+    old_reqs = dict()
+    for filename in utils.get_filenames_from_dir(base_revision_folder):
+        r = utils.pickle_load_from_dump(filename)  # type: Requirement
+        if type(r) is Requirement:
+            old_reqs[r.rid] = {
+                'req': r,
+                'path': filename
+            }
+    new_reqs = dict()
+    for filename in utils.get_filenames_from_dir(app.config['REVISION_FOLDER']):
+        r = utils.pickle_load_from_dump(filename)  # type: Requirement
+        if type(r) is Requirement:
+            new_reqs[r.rid] = {
+                'req': r,
+                'path': filename
+            }
+    # Compare diff for the requirements.
+    for rid in new_reqs.keys():
+        # Tag newly introduced requirements.
+        if rid not in old_reqs.keys():
+            logging.info('Add newly introduced requirement `{}`'.format(rid))
+            new_reqs[rid]['req'].tags.add('new_in_{}'.format(revision_name))
+            continue
+        # Migrate tags and status.
+        new_reqs[rid]['req'].tags = old_reqs[rid]['req'].tags
+        new_reqs[rid]['req'].status = old_reqs[rid]['req'].status
+
+        # If the new formalization is empty: just migrate the formalization.
+        #  - Tag with `migrated_formalization` if the description changed.
+        if len(new_reqs[rid]['req'].formalizations) == 0:
+            logging.info('Migrate formalization for `{}`'.format(rid))
+            new_reqs[rid]['req'].formalizations = old_reqs[rid]['req'].formalizations
+            if new_reqs[rid]['req'].description != old_reqs[rid]['req'].description:
+                logging.info(
+                    'Add `migrated_formalization` tag to `{}`, status to `Todo` since description changed'.format(rid))
+                new_reqs[rid]['req'].tags.add('migrated_formalization')
+                new_reqs[rid]['req'].status = 'Todo'
+        # Handle existing formalizations
+        else:
+            # Todo: Resolve formalization conflicts.
+            raise NotImplementedError
+
+    # Store the updated requirements for the new revision.
+    logging.info('Store merge changes to new `{}`'.format(revision_name))
+    for r in new_reqs.values():
+        utils.pickle_dump_obj_to_file(r['req'], r['path'])
+
+    # Store the variables collection in the new revision.
+    logging.info('Migrate variables from `{}` to `{}`'.format(base_revision_name, revision_name))
+    utils.pickle_dump_obj_to_file(
+        utils.pickle_load_from_dump(base_revision_var_collectioin_path),
+        app.config['SESSION_VARIABLE_COLLECTION']
+    )
+
+
+def load_revision(revision_id):
+    """ Loads a revision to by served by hanfor by setting the config.
+
+    :param revision_id: An existing revision name
+    :type revision_id: str
+    """
+    if revision_id not in utils.get_available_revisions(app.config):
+        logging.error('Revision `{}` not found in `{}`'.format(revision_id, app.config['SESSION_FOLDER']))
+        raise FileNotFoundError
+
+    app.config['USING_REVISION'] = revision_id
+    app.config['REVISION_FOLDER'] = os.path.join(
+        app.config['SESSION_FOLDER'],
+        revision_id
+    )
+    app.config['SESSION_VARIABLE_COLLECTION'] = os.path.join(
+        app.config['REVISION_FOLDER'],
+        'session_variable_collection.pickle'
+    )
+    app.config['SESSION_STATUS_PATH'] = os.path.join(
+        app.config['REVISION_FOLDER'],
+        'session_status.pickle'
+    )
+
+
 if __name__ == '__main__':
     utils.setup_logging(app)
 
     # Setup for debug
     app.debug = app.config['DEBUG_MODE']
+
     if app.config['DEBUG_MODE']:
         toolbar = DebugToolbarExtension(app)
     utils.register_assets(app)
@@ -417,38 +571,71 @@ if __name__ == '__main__':
         app.config['SESSION_FOLDER'] = os.path.join(HERE, 'data', app.config['SESSION_TAG'])
     else:
         app.config['SESSION_FOLDER'] = os.path.join(app.config['SESSION_BASE_FOLDER'], app.config['SESSION_TAG'])
+
+    # Create a new revision.
+    if args.revision:
+        logging.info('Generating a new revision.')
+        available_sessions = utils.get_stored_session_names(app.config['SESSION_BASE_FOLDER'], only_names=True)
+        if app.config['SESSION_TAG'] not in available_sessions:
+            logging.error('Session `{tag}` not found (in `{sessions_folder}`)'.format(
+                tag=app.config['SESSION_TAG'],
+                sessions_folder=app.config['SESSION_BASE_FOLDER']
+            ))
+            raise FileNotFoundError
+        # Ask user for base revision.
+        available_revisions = utils.get_available_revisions(app.config)
+        if len(available_revisions) == 0:
+            logging.error('No base revisions found in `{}`.'.format(app.config['SESSION_FOLDER']))
+            raise FileNotFoundError
+        print('Which revision should I use as a base?')
+        base_revision_choice = utils.choice(available_revisions, 'revision_0')
+        create_revision(args.input_csv, base_revision_choice)
+
+    # If we should not create a new revision: Create a new session or load a existing session revision.
+    else:
+        # If there is no session with given tak: Create a new (initial) revision.
+        if not os.path.exists(app.config['SESSION_FOLDER']):
+            create_revision(args.input_csv, None)
+
+        # If this is a already existing session, ask the user which revision to start.
+        else:
+            available_revisions = utils.get_available_revisions(app.config)
+            # Start the first revision if there is only one.
+            if len(available_revisions) == 1:
+                revision_choice = available_revisions[0]
+            # If there is no revision it means probably that this is an old hanfor version.
+            # ask the user to migrate.
+            elif len(available_revisions) == 0:
+                print('No revisions found. You might use a deprecated session version without revision support.')
+                print('Is that true and should I migrate this session?')
+                migrate_session = utils.choice(['yes', 'no'], 'no')
+                if migrate_session == 'yes':
+                    revision_choice = 'revision_0'
+                    file_paths = [
+                        path for path in utils.get_filenames_from_dir(app.config['SESSION_FOLDER'])
+                        if path.endswith('.pickle')
+                    ]
+                    revision_folder = os.path.join(
+                        app.config['SESSION_FOLDER'],
+                        revision_choice
+                    )
+                    logging.info('Create revision folder and copy existing data.')
+                    os.makedirs(revision_folder, exist_ok=True)
+                    for path in file_paths:
+                        new_path = os.path.join(
+                            revision_folder,
+                            os.path.basename(path)
+                        )
+                        os.rename(path, new_path)
+                else:
+                    exit()
+            else:
+                print('Which revision should I start.')
+                revision_choice = utils.choice(utils.get_available_revisions(app.config), 'revision_0')
+            logging.info('Loading session `{}` at `{}`'.format(app.config['SESSION_TAG'], revision_choice))
+            load_revision(revision_choice)
+
     app.config['TEMPLATES_FOLDER'] = os.path.join(HERE, 'templates')
-    app.config['SESSION_VARIABLE_COLLECTION'] = os.path.join(
-        app.config['SESSION_FOLDER'],
-        'session_variable_collection.pickle'
-    )
-    app.config['SESSION_STATUS'] = os.path.join(
-        app.config['SESSION_FOLDER'],
-        'session_status.pickle'
-    )
-
-    # Initialize sessioin if this is a new one.
-    if not os.path.exists(app.config['SESSION_FOLDER']):
-        # Load requirements from .csv file and store them into separate requirements.
-        requirement_collection = RequirementCollection()
-        requirement_collection.create_from_csv(csv_file=args.input_csv, input_encoding='utf8')
-
-        # Store Requirements as pickeled objects to the session dir.
-        os.makedirs(app.config['SESSION_FOLDER'], exist_ok=True)
-        for index, req in enumerate(requirement_collection.requirements):  # type: Requirement
-            filename = os.path.join(app.config['SESSION_FOLDER'], '{}.pickle'.format(req.rid))
-            utils.pickle_dump_obj_to_file(req, filename)
-
-        # Generate the session dict: Store some meta information.
-        session = dict()
-        session['csv_input_file'] = args.input_csv
-        session['csv_fieldnames'] = requirement_collection.csv_meta['fieldnames']
-        session['csv_id_header'] = requirement_collection.csv_meta['id_header']
-        session['csv_formal_header'] = requirement_collection.csv_meta['formal_header']
-        session['csv_type_header'] = requirement_collection.csv_meta['type_header']
-        session['csv_desc_header'] = requirement_collection.csv_meta['desc_header']
-        session['csv_dialect'] = requirement_collection.csv_meta['dialect']
-        utils.pickle_dump_obj_to_file(session, app.config['SESSION_STATUS'])
 
     # Initialize variables collection.
     if not os.path.exists(app.config['SESSION_VARIABLE_COLLECTION']):
@@ -463,10 +650,9 @@ if __name__ == '__main__':
     app_options = {
         'host': app.config['HOST'],
         'port': app.config['PORT']
-
     }
-    PYCHARM_DEBUG = False
-    if PYCHARM_DEBUG:
+
+    if app.config['PYCHARM_DEBUG']:
         app_options["debug"] = False
         app_options["use_debugger"] = False
         app_options["use_reloader"] = False
