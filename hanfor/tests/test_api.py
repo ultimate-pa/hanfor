@@ -13,9 +13,9 @@ class TestApi(TestCase):
         app.wsgi_app.prefix = ''
         # Load requirements
         session_folder = os.path.join('test_sessions', app.config['SESSION_TAG'])
-        app.config['SESSION_FOLDER'] = session_folder
+        app.config['REVISION_FOLDER'] = session_folder
         app.config['SESSION_VARIABLE_COLLECTION'] = os.path.join(
-            app.config['SESSION_FOLDER'],
+            app.config['REVISION_FOLDER'],
             'session_variable_collection.pickle'
         )
         self.app = app.test_client()
