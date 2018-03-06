@@ -32,7 +32,11 @@ LOG_LEVEL = 'DEBUG'
 # Set LOG_TO_FILE to True if vou want to log to the file
 # you specified in LOG_FILE
 LOG_TO_FILE = False
-LOG_FILE = 'regtransformer_flask.log'
+LOG_FILE = 'hanfor.log'
+
+# Set PYCHARM_DEBUG to True to suppresss the flask debugging so it
+# won't interfere with the pycharm debugger.
+PYCHARM_DEBUG = False
 
 ################################################################################
 #                         App and web server section                           #
