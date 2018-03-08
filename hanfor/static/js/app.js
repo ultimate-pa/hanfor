@@ -79,7 +79,7 @@ function process_url_query(requirements_table, get_query) {
     if (get_query.q.length > 0) {
         requirements_table
             .columns( Number(get_query.col) )
-            .search( get_query.q );
+            .search( '^' + get_query.q + '$', true, false);
     }
     // Draw the table.
     requirements_table.draw();
