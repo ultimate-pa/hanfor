@@ -19,10 +19,16 @@ $.fn.dataTable.ext.search.push(
         // Return true to include the row into the data. false to exclude.
 
         // Get the search query.
-        query = $('#search_bar').val();
+        query = $('#search_bar').val().trim();
         // Shortcut for empty query.
         if (query.length === 0) {
             return true;
+        }
+
+        // If the search query is enclosed by ""<query"" the user would like to exclusively match cells with query.
+        // No additional content should be in the cell. So query should match ^\s*<query>\s*$
+        if (query.startsWith('""') && query.endsWith('""')) {
+            query = '^\\s*' + query.substr(2, (query.length - 4)) + '\\s*$';
         }
 
         // Split by :OR:
@@ -47,8 +53,12 @@ $.fn.dataTable.ext.search.push(
             processed_query += ')';
         }
 
+
         // replace " by \b to allow for exact matches.
-        processed_query = processed_query.replace(/\"/g, "\\b");
+        // In the input we escaped " by \" so we would like to apply (?<!\\)\"
+        // since javascript does not allow negative look behinds we do
+        // something like ([^\\])(\") and replace the 2. group by \b but keeping \" intact.
+        processed_query = processed_query.replace(/([^\\])\"/g, "$1\\b");
         // Search query to regex
         var query_re = new RegExp(processed_query, "i");
 
