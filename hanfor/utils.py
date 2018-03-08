@@ -344,8 +344,8 @@ def update_variable_in_collection(app, request):
                     '`{}` is an existing var name. Merging the two vars. '
                     '(Type of the new var `{}` wins over the old type `{}` )'.format(
                         var_name,
-                        var_type,
-                        var_collection.collection[var_name].type
+                        var_collection.collection[var_name].type,
+                        var_type
                     )
                 )
                 var_collection.merge_vars(var_name_old, var_name, app)
