@@ -94,7 +94,8 @@ def api(resource, command):
     resources = [
         'req',
         'var',
-        'stats'
+        'stats',
+        'tag'
     ]
     commands = [
         'get',
@@ -104,7 +105,8 @@ def api(resource, command):
         'delete',
         'predict_pattern',
         'new_formalization',
-        'del_formalization'
+        'del_formalization',
+        'del_tag'
     ]
     if resource not in resources or command not in commands:
         return jsonify({
@@ -229,6 +231,15 @@ def api(resource, command):
             data = utils.get_statistics(app)
             return jsonify(data)
 
+    if resource == 'tag':
+        # Get all tags
+        if command == 'gets':
+            return jsonify({'data': utils.get_available_tags(app)})
+        if command == 'update':
+            return jsonify(utils.update_tag(app, request))
+        if command == 'del_tag':
+            return jsonify(utils.update_tag(app, request, delete=True))
+
     return jsonify({
         'success': False,
         'errormsg': 'sorry, could not parse your request.'
@@ -241,7 +252,7 @@ def site(site):
         'help',
         'statistics',
         'variables',
-        'tools'
+        'tags'
     ]
     if site in available_sites:
         return render_template('{}.html'.format(site))

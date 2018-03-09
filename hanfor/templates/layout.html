@@ -27,18 +27,21 @@
 
     <div class="collapse navbar-collapse" id="navbarColor01">
       <ul class="navbar-nav mr-auto">
-        <li class="nav-item{% if request.path == '/' %} active{% endif %}">
-          <a class="nav-link" href="{{ url_for('site', site='/') }}">Start</a>
-        </li>
-        <li class="nav-item{% if request.path == '/variables' %} active{% endif %}">
-          <a class="nav-link" href="{{ url_for('site', site='variables') }}">Variables</a>
-        </li>
-        <li class="nav-item{% if request.path == '/statistics' %} active{% endif %}">
-          <a class="nav-link" href="{{ url_for('site', site='statistics') }}">Statistics</a>
-        </li>
-        <li class="nav-item{% if request.path == '/help' %} active{% endif %}">
-          <a class="nav-link" href="{{ url_for('site', site='/help') }}">Help</a>
-        </li>
+          <li class="nav-item{% if request.path == '/' %} active{% endif %}">
+            <a class="nav-link" href="{{ url_for('site', site='/') }}">Start</a>
+          </li>
+          <li class="nav-item{% if request.path == '/variables' %} active{% endif %}">
+            <a class="nav-link" href="{{ url_for('site', site='variables') }}">Variables</a>
+          </li>
+          <li class="nav-item{% if request.path == '/tags' %} active{% endif %}">
+            <a class="nav-link" href="{{ url_for('site', site='tags') }}">Tags</a>
+          </li>
+          <li class="nav-item{% if request.path == '/statistics' %} active{% endif %}">
+            <a class="nav-link" href="{{ url_for('site', site='statistics') }}">Statistics</a>
+          </li>
+          <li class="nav-item{% if request.path == '/help' %} active{% endif %}">
+            <a class="nav-link" href="{{ url_for('site', site='/help') }}">Help</a>
+          </li>
       </ul>
     </div>
   </nav>

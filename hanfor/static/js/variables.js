@@ -6,8 +6,8 @@ var available_types = ['CONST'];
  * @param variables_datatable
  */
 function store_variable(variables_datatable) {
-    variable_modal_content = $('.modal-content');
-    variable_modal_content.LoadingOverlay('show');
+    tag_modal_content = $('.modal-content');
+    tag_modal_content.LoadingOverlay('show');
 
     // Get data.
     var_name = $('#variable_name').val();
@@ -37,14 +37,14 @@ function store_variable(variables_datatable) {
         },
         // Update var table on success or show an error message.
         function( data ) {
-            variable_modal_content.LoadingOverlay('hide', true);
+            tag_modal_content.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
                 if (data.rebuild_table) {
                     location.reload();
                 } else {
-                    variables_datatable.row(associated_row_id).data(data.data).draw();
+                    tags_datatable.row(associated_row_id).data(data.data).draw();
                     $('#variable_modal').modal('hide');
                 }
             }
@@ -66,7 +66,7 @@ function variable_is_const(revert) {
 $(document).ready(function() {
     // Prepare and load the variables table.
     variables_table = $('#variables_table');
-    variables_datatable = variables_table.DataTable({
+    tags_datatable = variables_table.DataTable({
         "paging": true,
         "stateSave": true,
         "pageLength": 50,
@@ -133,11 +133,11 @@ $(document).ready(function() {
             $('#search_bar').val('');
         }
     });
-    variables_datatable.column(3).visible(false);
+    tags_datatable.column(3).visible(false);
 
     // Bind big custom searchbar to search the table.
     $('#search_bar').keyup(function(){
-      variables_datatable.search($(this).val()).draw() ;
+      tags_datatable.search($(this).val()).draw() ;
     });
 
     // Add listener for variable link to modal.
@@ -146,11 +146,11 @@ $(document).ready(function() {
         event.preventDefault();
 
         // Get row data
-        var data = variables_datatable.row($(event.target).parent()).data();
-        var row_id = variables_datatable.row($(event.target).parent()).index();
+        var data = tags_datatable.row($(event.target).parent()).data();
+        var row_id = tags_datatable.row($(event.target).parent()).index();
 
         // Prepare requirement Modal
-        variable_modal_content = $('.modal-content');
+        tag_modal_content = $('.modal-content');
         $('#variable_value_form_group').hide();
         $('#variable_modal').modal('show');
 
@@ -180,12 +180,12 @@ $(document).ready(function() {
             source: available_types
         }).on('focus', function() { $(this).keydown(); });
 
-        variable_modal_content.LoadingOverlay('hide');
+        tag_modal_content.LoadingOverlay('hide');
     });
 
     // Store changes on variable on save.
     $('#save_variable_modal').click(function () {
-        store_variable(variables_datatable);
+        store_variable(tags_datatable);
     });
 
     $('#variable_type').on('keyup change autocompleteclose', function () {

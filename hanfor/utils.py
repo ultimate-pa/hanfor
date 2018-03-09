@@ -284,6 +284,101 @@ def get_available_vars(app, parser=None, full=False):
     return result
 
 
+def get_available_tags(app):
+    """ Returns a list of all available tags.
+    One list entry is: {
+        'name': <tag_name>
+        'used_by': [rids of requirement using this tag]
+    }
+
+    :rtype: list
+    """
+    # For each requirement:
+
+    filenames = get_filenames_from_dir(app.config['REVISION_FOLDER'])
+    collected_tags = dict()
+    for filename in filenames:
+        req = pickle_load_from_dump(filename)
+        if type(req).__name__ == 'Requirement':
+            for tag in req.tags:
+                if len(tag) == 0:
+                    continue
+                if tag not in collected_tags.keys():
+                    collected_tags[tag] = {
+                        'name': tag,
+                        'used_by': list()
+                    }
+                collected_tags[tag]['used_by'].append(req.rid)
+
+    return [tag for tag in collected_tags.values()]
+
+
+def update_tag(app, request, delete=False):
+    """ Update a tag.
+    The request should contain a form:
+        name -> the new tag name
+        name_old -> the name of the tag before.
+        occurences -> Ids of requirements using this tag.
+
+        :param delete: Should the tag be just deleted? (Default false).
+        :type delete: bool
+        :param app: the running flask app
+        :type app: Flask
+        :param request: A form request
+        :type request: flask.Request
+        :return: Dictionary containing changed data and request status information.
+        :rtype: dict
+        """
+
+    # Get properties from request
+    tag_name = request.form.get('name', '').strip()
+    tag_name_old = request.form.get('name_old', '').strip()
+    occurences = request.form.get('occurences', '').strip().split(',')
+
+    result = {
+        'success': True,
+        'has_changes': False,
+        'rebuild_table': False,
+        'data': {
+            'name': tag_name,
+            'used_by': occurences
+        }
+    }
+
+    # Delete the tag.
+    if delete:
+        logging.info('Delete Tag `{}`'.format(tag_name_old, tag_name))
+        result['has_changes'] = True
+
+        if len(occurences) > 0:
+            result['rebuild_table'] = True
+            for rid in occurences:
+                filepath = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(rid))
+                if os.path.exists(filepath) and os.path.isfile(filepath):
+                    requirement = pickle_load_from_dump(filepath)
+                    logging.info('Delete tag `{}` in requirement `{}`'.format(tag_name, requirement.rid))
+                    requirement.tags.discard(tag_name)
+                    store_requirement(requirement, app)
+    # Rename the tag.
+    elif tag_name_old != tag_name:
+        logging.info('Update Tag `{}` to new name `{}`'.format(tag_name_old, tag_name))
+        result['has_changes'] = True
+
+        if len(occurences) > 0:
+            # Todo: only rebuild if we have a merge.
+            result['rebuild_table'] = True
+            for rid in occurences:
+                filepath = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(rid))
+                if os.path.exists(filepath) and os.path.isfile(filepath):
+                    requirement = pickle_load_from_dump(filepath)
+                    logging.info('Update tags in requirement `{}`'.format(requirement.rid))
+                    requirement.tags.discard(tag_name_old)
+                    requirement.tags.add(tag_name)
+                    store_requirement(requirement, app)
+
+    return result
+
+
 def update_variable_in_collection(app, request):
     """ Update a single variable. The request should contain a form:
         name -> the new name of the var.
