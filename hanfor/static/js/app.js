@@ -552,11 +552,11 @@ function init_datatable_manipulators(requirements_table) {
     })
         .on('focus', function() { $(this).keydown(); })
         .on('autocompleteselect', function(event, ui){
-            requirements_table.columns( 3 ).search( ui.item['value'] ).draw() ;
+            requirements_table.columns( 4 ).search( ui.item['value'] ).draw() ;
         })
         .on('keypress', function (e) {
             if (e.which === 13) { // Search on Enter.
-                requirements_table.columns( 3 ).search( $( this ).val() ).draw() ;
+                requirements_table.columns( 4 ).search( $( this ).val() ).draw() ;
             }
         });
 
@@ -567,11 +567,11 @@ function init_datatable_manipulators(requirements_table) {
     })
         .on('focus', function() { $(this).keydown(); })
         .on('autocompleteselect', function(event, ui){
-            requirements_table.columns( 5 ).search( ui.item['value'] ).draw() ;
+            requirements_table.columns( 6 ).search( ui.item['value'] ).draw() ;
         })
         .on('keypress', function (e) {
             if (e.which === 13) { // Search on Enter.
-                requirements_table.columns( 5 ).search( $( this ).val() ).draw() ;
+                requirements_table.columns( 6 ).search( $( this ).val() ).draw() ;
             }
         });
 
@@ -582,11 +582,11 @@ function init_datatable_manipulators(requirements_table) {
     })
         .on('focus', function() { $(this).keydown(); })
         .on('autocompleteselect', function(event, ui){
-            requirements_table.columns( 4 ).search( ui.item['value'] ).draw() ;
+            requirements_table.columns( 5 ).search( ui.item['value'] ).draw() ;
         })
         .on('keypress', function (e) {
             if (e.which === 13) { // Search on Enter.
-                requirements_table.columns( 4 ).search( $( this ).val() ).draw() ;
+                requirements_table.columns( 5 ).search( $( this ).val() ).draw() ;
             }
         });
 
@@ -669,6 +669,10 @@ function init_datatable(columnDefs) {
         },
         "paging": true,
         "stateSave": true,
+        "select": {
+            style:    'os',
+            selector: 'td:first-child'
+        },
         "pageLength": 50,
         "lengthMenu": [[10, 50, 100, 500, -1], [10, 50, 100, 500, "All"]],
         "dom": 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
@@ -708,11 +712,18 @@ function load_datatable(){
     // First set the static colum definitions.
     var columnDefs = [
             {
+                "orderable": false,
+                "className": 'select-checkbox',
                 "targets": [0],
-                "data": "pos"
+                "data": null,
+                "defaultContent": ""
             },
             {
                 "targets": [1],
+                "data": "pos"
+            },
+            {
+                "targets": [2],
                 "data": "id",
                 "render": function ( data, type, row, meta ) {
                     result = '<a href="#">' + data + '</a>';
@@ -720,11 +731,11 @@ function load_datatable(){
                 }
             },
             {
-                "targets": [2],
+                "targets": [3],
                 "data": "desc"
             },
             {
-                "targets": [3],
+                "targets": [4],
                 "data": "type",
                 "render": function ( data, type, row, meta ) {
                     if (available_types.indexOf(data) <= -1) {
@@ -734,7 +745,7 @@ function load_datatable(){
                 }
             },
             {
-                "targets": [4],
+                "targets": [5],
                 "data": "tags",
                 "render": function ( data, type, row, meta ) {
                     result = '';
@@ -755,7 +766,7 @@ function load_datatable(){
 
             },
             {
-                "targets": [5],
+                "targets": [6],
                 "data": "status",
                 "render": function ( data, type, row, meta ) {
                     result = '<span class="badge badge-info">' + data + '</span></br>';

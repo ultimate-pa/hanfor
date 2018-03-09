@@ -10,19 +10,23 @@
                         <ul class="nav nav-tabs" id="myTab" role="tablist">
                           <li class="nav-item">
                             <a class="nav-link active" id="search-tab" data-toggle="tab" href="#search-pane" role="tab"
-                               aria-controls="home" aria-selected="true">Search</a>
+                               aria-controls="search" aria-selected="true">Search</a>
                           </li>
                           <li class="nav-item">
                             <a class="nav-link" id="filter-tab" data-toggle="tab" href="#filter-pane" role="tab"
-                               aria-controls="profile" aria-selected="false">Filter</a>
+                               aria-controls="filter" aria-selected="false">Filter</a>
                           </li>
                           <li class="nav-item">
                             <a class="nav-link" id="colums-tab" data-toggle="tab" href="#colums-pane" role="tab"
-                               aria-controls="profile" aria-selected="false">Colums</a>
+                               aria-controls="colums" aria-selected="false">Colums</a>
+                          </li>
+                            <li class="nav-item">
+                            <a class="nav-link" id="selected-tab" data-toggle="tab" href="#selected-pane" role="tab"
+                               aria-controls="selected" aria-selected="false">Edit Selected</a>
                           </li>
                           <li class="nav-item">
                             <a class="nav-link" id="tools-tab" data-toggle="tab" href="#tools-pane" role="tab"
-                               aria-controls="contact" aria-selected="false">Tools</a>
+                               aria-controls="tools" aria-selected="false">Tools</a>
                           </li>
                         </ul>
                     </div>
@@ -87,6 +91,8 @@
                           {% endfor %}
                           <button class="btn btn-danger btn-sm reset-colum-toggle" >Reset</button>
                       </div>
+                      <div class="tab-pane fade" id="selected-pane" role="tabpanel" aria-labelledby="tools-tab">
+                      </div>
                       <div class="tab-pane fade" id="tools-pane" role="tabpanel" aria-labelledby="tools-tab">
                         <form id="generate_req_form" method="post"
                               action="{{ url_for('tools_api', command='req_file') }}"
@@ -123,6 +129,7 @@
     <table id="requirements_table" class="table table-hover table-bordered" width="100%" cellspacing="0">
         <thead>
         <tr>
+            <td></td>
             <td title="Position in CSV file." class="default-col">Pos.</td>
             <th class="default-col">Id</th>
             <th class="default-col">Description</th>
@@ -136,6 +143,7 @@
         </thead>
         <tfoot>
         <tr>
+            <td></td>
             <td title="Position in CSV file." class="default-col">Pos.</td>
             <th class="default-col">Id</th>
             <th class="default-col">Description</th>

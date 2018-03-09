@@ -89,7 +89,7 @@ $(document).ready(function() {
                     result = '';
                     $(data).each(function (id, name) {
                         if (name.length > 0) {
-                            search_query = '?command=search&col=1&q=' + name;
+                            search_query = '?command=search&col=2&q=' + name;
                             result += '<span class="badge badge-info">' +
                                 '<a href="' + base_url + search_query + '" target="_blank">' + name + '</a>' +
                                 '</span></br>';

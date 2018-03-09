@@ -805,6 +805,7 @@ def register_assets(app):
             'js/tether.js',
             'js/bootstrap.js',
             'js/dataTables.bootstrap4.js',
+            'js/dataTables.select.min.js',
             'js/loadingoverlay.js',
             'js/bootstrap-confirmation.min.js',
             filters='jsmin',
@@ -819,6 +820,7 @@ def register_assets(app):
             'css/bootstrap-grid.css',
             'css/bootstrap-reboot.css',
             'css/dataTables.bootstrap4.css',
+            'css/select.bootstrap4.css',
             'css/tether.css',
             'css/jquery-ui.css',
             'css/bootstrap-tokenfield.css',
@@ -833,7 +835,7 @@ def register_assets(app):
 
 
 def get_datatable_additional_cols(app):
-    offset = 6  # we have 6 fixed cols.
+    offset = 7  # we have 7 fixed cols.
     result = list()
     session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])  # type: dict
 

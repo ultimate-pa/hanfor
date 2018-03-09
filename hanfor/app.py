@@ -268,12 +268,12 @@ def index():
         'col': request.args.get('col', '')
     }
     default_cols = [
-        {'name': 'Pos', 'target': 0},
-        {'name': 'Id', 'target': 1},
-        {'name': 'Description', 'target': 2},
-        {'name': 'Type', 'target': 3},
-        {'name': 'Tags', 'target': 4},
-        {'name': 'Status', 'target': 5},
+        {'name': 'Pos', 'target': 1},
+        {'name': 'Id', 'target': 2},
+        {'name': 'Description', 'target': 3},
+        {'name': 'Type', 'target': 4},
+        {'name': 'Tags', 'target': 5},
+        {'name': 'Status', 'target': 6},
     ]
     additional_cols = utils.get_datatable_additional_cols(app)['col_defs']
     return render_template('index.html', query=query, additional_cols=additional_cols, default_cols=default_cols)
