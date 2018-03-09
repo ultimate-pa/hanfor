@@ -631,7 +631,8 @@ if __name__ == '__main__':
                     exit()
             else:
                 print('Which revision should I start.')
-                revision_choice = utils.choice(utils.get_available_revisions(app.config), 'revision_0')
+                available_revisions = sorted(utils.get_available_revisions(app.config))
+                revision_choice = utils.choice(available_revisions, available_revisions[-1])
             logging.info('Loading session `{}` at `{}`'.format(app.config['SESSION_TAG'], revision_choice))
             load_revision(revision_choice)
 
