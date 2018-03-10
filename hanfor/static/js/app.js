@@ -157,6 +157,39 @@ function store_requirement(requirements_table) {
     });
 }
 
+function apply_multi_edit(requirements_table) {
+    var page = $('body');
+    page.LoadingOverlay('show');
+    var add_tag = $('#multi-add-tag-input').val().trim();
+    var remove_tag = $('#multi-remove-tag-input').val().trim();
+    var set_status =  $('#multi-set-status-input').val().trim();
+    var selected_ids = [];
+    requirements_table.rows( {selected:true} ).every( function () {
+           var d = this.data();
+           selected_ids.push(d['id']);
+    } );
+
+    // Store the requirement.
+    $.post( "api/req/multi_update",
+        {
+            add_tag: add_tag,
+            remove_tag: remove_tag,
+            set_status: set_status,
+            selected_ids: JSON.stringify(selected_ids)
+        },
+        // Update requirements table on success or show an error message.
+        function( data ) {
+            page.LoadingOverlay('hide', true);
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                location.reload();
+            }
+    });
+}
+
+
+
 /**
  * Enable/disable the active variables (P, Q, R, ...) in the requirement modal based on scope and pattern.
  */
@@ -487,7 +520,6 @@ function bind_requirement_id_to_modals(requirements_table) {
                     csv_row_content.append('<p><strong>' + key + ':</strong>' + value + '</p>');
                 }
             }
-
             if (data.success === false) {
                 alert('Could Not load the Requirement: ' + data.errormsg);
             }
@@ -654,6 +686,43 @@ function init_datatable_manipulators(requirements_table) {
         update_visible_columns_information();
     });
     update_visible_columns_information();
+    
+    // Select rows
+    $('.select-all-button').on('click', function (e) {
+        // Toggle selection on
+        if ($( this ).hasClass('btn-secondary')) {
+            requirements_table.rows( {page:'current'} ).select();
+        }
+        else { // Toggle selection off
+            requirements_table.rows( {page:'current'} ).deselect();
+        }
+        // Toggle button state.
+        $('.select-all-button').toggleClass('btn-secondary btn-primary');
+    });
+
+    // Toggle "Select all rows to `off` on user specific selection."
+    requirements_table.on( 'user-select', function ( ) {
+        var select_buttons = $('.select-all-button');
+        select_buttons.removeClass('btn-primary');
+        select_buttons.addClass('btn-secondary ');
+    });
+
+    // Bind autocomplete for "edit-selected" inputs
+    $('#multi-add-tag-input, #multi-remove-tag-input').autocomplete({
+        minLength: 0,
+        source: available_tags,
+        delay: 100
+    }).on('focus', function() { $(this).keydown(); }).val('');
+
+    $('#multi-set-status-input').autocomplete({
+        minLength: 0,
+        source: available_status,
+        delay: 100
+    }).on('focus', function() { $(this).keydown(); }).val('');
+
+    $('.apply-multi-edit').click(function () {
+        apply_multi_edit(requirements_table);
+    });
 }
 
 /**

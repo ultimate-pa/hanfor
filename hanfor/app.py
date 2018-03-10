@@ -106,7 +106,8 @@ def api(resource, command):
         'predict_pattern',
         'new_formalization',
         'del_formalization',
-        'del_tag'
+        'del_tag',
+        'multi_update'
     ]
     if resource not in resources or command not in commands:
         return jsonify({
@@ -177,6 +178,52 @@ def api(resource, command):
                 else:
                     utils.store_requirement(requirement, app)
                     return jsonify(requirement.to_dict()), 200
+
+        if command == 'multi_update':
+            logging.info('Multi edit requirements.')
+            result = {'success': True, 'errormsg': ''}
+
+            # Get user Input
+            add_tag = request.form.get('add_tag', '').strip()
+            remove_tag = request.form.get('remove_tag', '').strip()
+            set_status = request.form.get('set_status', '').strip()
+            rid_list = request.form.get('selected_ids', '')
+            logging.debug(rid_list)
+            if len(rid_list) > 0:
+                rid_list = json.loads(rid_list)
+            else:
+                result['success'] = False
+                result['errormsg'] = 'No requirements selected.'
+
+            # Check if the status is valid.
+            available_status = ['Todo', 'Review', 'Done']
+            if len(set_status) > 0 and set_status not in available_status:
+                result['success'] = False
+                result['errormsg'] = 'Status `{}` not supported.\nChoose from `{}`'.format(
+                    set_status, ', '.join(available_status))
+
+            # Update all requirements given by the rid_list
+            if result['success']:
+                log_msg = 'Update {} requirements.'.format(len(rid_list))
+                if len(add_tag) > 0:
+                    log_msg += ' Adding tag `{}`'.format(add_tag)
+                if len(remove_tag) > 0:
+                    log_msg += ', removing Tag `{}` (is present)'.format(remove_tag)
+                if len(set_status) > 0:
+                    log_msg += ', set Status=`{}`.'.format(set_status)
+                logging.info(log_msg)
+
+                for rid in rid_list:
+                    requirement = utils.load_requirement_by_id(rid, app)  # type: Requirement
+                    if requirement is not None:
+                        logging.info('Updating requirement `{}`'.format(rid))
+                        requirement.tags.discard(remove_tag)
+                        requirement.tags.add(add_tag)
+                        if set_status:
+                            requirement.status = set_status
+                        utils.store_requirement(requirement, app)
+
+            return jsonify(result)
 
         # Predict the scoped Pattern of a requirement
         # TODO: Learn by considering the formalized. Improve data munging.
