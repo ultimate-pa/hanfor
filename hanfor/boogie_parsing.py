@@ -243,7 +243,7 @@ def replace_var_in_expression(expression, old_var, new_var, parser=None, matchin
 
     return recons.reconstruct(tree)
 
-def inifre_variable_types(tree: Tree, type_env: dict):
+def infere_variable_types(tree: Tree, type_env: dict):
 
     class TypeNode:
 
@@ -275,8 +275,13 @@ def inifre_variable_types(tree: Tree, type_env: dict):
                         op.children.append(Variable(str(child),type_env[child] if child in type_env else "?"))
 
         def derive_type(self):
+            op_type_env = {}
             for child in self.children:
-                return child.derive_type(None)
+                t, local, type_env =  child.derive_type(None)
+                op_type_env.update(type_env)
+                for id in local:
+                    op_type_env[id] = t if t != "?" else "bool"
+            return t if t != "?" else "bool", op_type_env
 
     class LogicOperator(TypeNode):
 
