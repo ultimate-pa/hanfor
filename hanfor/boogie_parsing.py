@@ -1,6 +1,7 @@
 from lark import Lark, Tree
 from lark.lexer import Token
 from lark.reconstruct import Reconstructor
+from lark.tree import Visitor
 
 hanfor_boogie_grammar = r"""
 // Expressions
@@ -241,3 +242,113 @@ def replace_var_in_expression(expression, old_var, new_var, parser=None, matchin
                     node.set(data=node.data, children=[Token(child.type, new_var)])
 
     return recons.reconstruct(tree)
+
+def inifre_variable_types(tree: Tree, type_env: dict):
+
+    class TypeNode:
+
+        def __init__(self):
+            self.children = []
+
+        @staticmethod
+        def gen_type_tree(tree: Tree, father, type_env: dict):
+            op = None
+            for child in tree.children:
+                if isinstance(child, Token):
+                    if child.type in ["AND", "EXPLIES", "IFF", "IMPLIES", "NOT", "OR"]:
+                        op = LogicOperator(child.type)
+                        father.children.append(op)
+                    elif child.type in ["EQ", "GREATER", "GTEQ", "LESS", "LTEQ", "NEQ","DIVIDE", "MINUS", "MOD", "PLUS", "TIMES","DIVIDE", "MINUS", "MOD", "PLUS", "TIMES" ]:
+                        op = RealIntOperator(child.type)
+                        father.children.append(op)
+            if op is None:
+                op = father
+            for child in tree.children:
+                if isinstance(child, Tree):
+                    TypeNode.gen_type_tree(child, op, type_env)
+                if isinstance(child, Token):
+                    if child.type == "REALNUMBER": op.children.append(Constant(str(child), "real"))
+                    if child.type == "NUMBER": op.children.append(Constant(str(child), "int"))
+                    if child.type == "TRUE": op.children.append(Constant(str(child), "bool"))
+                    if child.type == "FALSE": op.children.append(Constant(str(child), "bool"))
+                    if child.type == "ID":
+                        op.children.append(Variable(str(child),type_env[child] if child in type_env else "?"))
+
+        def derive_type(self):
+            for child in self.children:
+                return child.derive_type(None)
+
+    class LogicOperator(TypeNode):
+
+        def __init__(self, op_type):
+            super().__init__()
+            self.op_type = op_type
+            self.return_type = "error"
+
+        def derive_type(self, next_op):
+            op_type_env = {}
+            for child in self.children:
+                type, local, type_env = child.derive_type(self.op_type)
+                op_type_env.update(type_env)
+                for id in local:
+                    op_type_env[id] = "bool"
+            return ("bool", set(), op_type_env)
+
+    class RealIntOperator(TypeNode):
+
+        def __init__(self, op_type):
+            super().__init__()
+            self.op_type = op_type
+            self.return_type = "error"
+
+        def derive_type(self, next_op):
+            op_type_env = {}
+            types = set()
+            locals = set()
+            for child in self.children:
+                type, local, type_env = child.derive_type(self.op_type)
+                op_type_env.update(type_env)
+                locals |= local
+                types |= {type}
+            types -= {"?"}
+            if len(types) == 1: t = list(types)[0]
+            elif len(types) == 0: t = "?"
+            else: t = "error"
+            if next_op not in ["EQ", "GREATER", "GTEQ", "LESS", "LTEQ", "NEQ","DIVIDE", "MINUS", "MOD", "PLUS", "TIMES","DIVIDE", "MINUS", "MOD", "PLUS", "TIMES" ]:
+                for id in locals:
+                    op_type_env[id] = t
+                locals = set()
+            print(locals)
+            if self.op_type in ["DIVIDE", "MINUS", "MOD", "PLUS", "TIMES"]:
+                return (t, locals, op_type_env)
+            else:
+                return ("bool", locals, op_type_env)
+
+    class Constant(TypeNode):
+
+        def __init__(self, content, type):
+            super().__init__()
+            self.type = type
+            self.content = content
+
+        def derive_type(self, next_op):
+            return (self.type, set(), {})
+
+    class Variable(TypeNode):
+
+        def __init__(self, var_name, type):
+            super().__init__()
+            self.type = type
+            self.var_name = var_name
+
+        def derive_type(self, next_op):
+            # directly dreived type, direct children of the current op, children of a sub-op
+            return (self.type,  set([self.var_name]), {})
+
+    type_node = TypeNode()
+    TypeNode.gen_type_tree(tree, type_node, type_env)
+    return type_node
+
+
+
+
