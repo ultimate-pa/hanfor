@@ -211,7 +211,6 @@ def get_variables_list(tree):
 def get_parser_instance():
     return Lark(hanfor_boogie_grammar, start='exprcommastar')
 
-
 def replace_var_in_expression(expression, old_var, new_var, parser=None, matching_terminal_names=('ID')):
     """ Replaces all occurrences of old_var in expression with new_var.
 
@@ -243,6 +242,13 @@ def replace_var_in_expression(expression, old_var, new_var, parser=None, matchin
 
     return recons.reconstruct(tree)
 
+class BoogieType:
+    bool = 1
+    int = 2
+    real = 3
+    unknown = 0
+    error = -1
+
 def infer_variable_types(tree: Tree, type_env: dict):
 
     class TypeNode:
@@ -267,12 +273,12 @@ def infer_variable_types(tree: Tree, type_env: dict):
                 if isinstance(child, Tree):
                     TypeNode.gen_type_tree(child, op, type_env)
                 if isinstance(child, Token):
-                    if child.type == "REALNUMBER": op.children.append(Constant(str(child), "real"))
-                    if child.type == "NUMBER": op.children.append(Constant(str(child), "int"))
-                    if child.type == "TRUE": op.children.append(Constant(str(child), "bool"))
-                    if child.type == "FALSE": op.children.append(Constant(str(child), "bool"))
+                    if child.type == "REALNUMBER": op.children.append(Constant(str(child), BoogieType.real))
+                    if child.type == "NUMBER": op.children.append(Constant(str(child), BoogieType.int))
+                    if child.type == "TRUE": op.children.append(Constant(str(child), BoogieType.bool))
+                    if child.type == "FALSE": op.children.append(Constant(str(child), BoogieType.bool))
                     if child.type == "ID":
-                        op.children.append(Variable(str(child),type_env[child] if child in type_env else "?"))
+                        op.children.append(Variable(str(child),type_env[child] if child in type_env else BoogieType.unknown))
 
         def derive_type(self):
             op_type_env = {}
@@ -280,15 +286,15 @@ def infer_variable_types(tree: Tree, type_env: dict):
                 t, local, type_env =  child.derive_type(None)
                 op_type_env.update(type_env)
                 for id in local:
-                    op_type_env[id] = t if t != "?" else "bool"
-            return t if t != "?" else "bool", op_type_env
+                    op_type_env[id] = t if t != BoogieType.unknown else BoogieType.bool
+            return t if t != BoogieType.unknown else BoogieType.bool, op_type_env
 
     class LogicOperator(TypeNode):
 
         def __init__(self, op_type):
             super().__init__()
             self.op_type = op_type
-            self.return_type = "error"
+            self.return_type = BoogieType.error
 
         def derive_type(self, next_op):
             op_type_env = {}
@@ -296,15 +302,15 @@ def infer_variable_types(tree: Tree, type_env: dict):
                 type, local, type_env = child.derive_type(self.op_type)
                 op_type_env.update(type_env)
                 for id in local:
-                    op_type_env[id] = "bool"
-            return ("bool", set(), op_type_env)
+                    op_type_env[id] = BoogieType.bool
+            return (BoogieType.bool, set(), op_type_env)
 
     class RealIntOperator(TypeNode):
 
         def __init__(self, op_type):
             super().__init__()
             self.op_type = op_type
-            self.return_type = "error"
+            self.return_type = BoogieType.error
 
         def derive_type(self, next_op):
             op_type_env = {}
@@ -315,10 +321,10 @@ def infer_variable_types(tree: Tree, type_env: dict):
                 op_type_env.update(type_env)
                 locals |= local
                 types |= {type}
-            types -= {"?"}
+            types -= {BoogieType.unknown}
             if len(types) == 1: t = list(types)[0]
-            elif len(types) == 0: t = "?"
-            else: t = "error"
+            elif len(types) == 0: t = BoogieType.unknown
+            else: t = BoogieType.error
             if next_op not in ["EQ", "GREATER", "GTEQ", "LESS", "LTEQ", "NEQ","DIVIDE", "MINUS", "MOD", "PLUS", "TIMES","DIVIDE", "MINUS", "MOD", "PLUS", "TIMES" ]:
                 for id in locals:
                     op_type_env[id] = t
@@ -327,7 +333,7 @@ def infer_variable_types(tree: Tree, type_env: dict):
             if self.op_type in ["DIVIDE", "MINUS", "MOD", "PLUS", "TIMES"]:
                 return (t, locals, op_type_env)
             else:
-                return ("bool", locals, op_type_env)
+                return (BoogieType.bool, locals, op_type_env)
 
     class Constant(TypeNode):
 
