@@ -243,7 +243,7 @@ def replace_var_in_expression(expression, old_var, new_var, parser=None, matchin
 
     return recons.reconstruct(tree)
 
-def infere_variable_types(tree: Tree, type_env: dict):
+def infer_variable_types(tree: Tree, type_env: dict):
 
     class TypeNode:
 
