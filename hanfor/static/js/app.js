@@ -4,8 +4,130 @@ var available_status = ['', 'Todo', 'Review', 'Done'];
 var available_types = [''];
 var available_vars = [''];
 var visible_columns = [true, true, true, true, true, true];
-
+var search_tree = undefined;
 var get_query = JSON.parse(search_query);
+
+/**
+ * SearchNode represents one node in a search expression used to filter the requirements table.
+ */
+class SearchNode {
+    constructor(value) {
+        this.left = false;
+        this.value = value;
+        this.right = false;
+    }
+
+    static to_string(tree) {
+        var repr = '';
+        if (tree.left !== false) {
+            repr += SearchNode.to_string(tree.left) + ' ';
+        }
+        repr += tree.value;
+        if (tree.right !== false) {
+            repr += ' ' + SearchNode.to_string(tree.right);
+        }
+        return repr;
+    }
+}
+
+/**
+ * Check is value is in string. Support `"` for exact and `""` padding for exclusive match.
+ * @param value string to be converted to regex and matched agains string.
+ * @param string
+ * @returns {boolean}
+ */
+function check_value_in_string(value, string) {
+    // We support value to be `
+    //  * "<inner>"` for exact match.
+    //  * ""<inner>"" for exclusive match.
+
+    if (value.startsWith('""') && value.endsWith('""')) {
+        value = '^\\s*' + value.substr(2, (value.length - 4)) + '\\s*$';
+    } else {
+        // replace " by \b to allow for exact matches.
+        // In the input we escaped " by \" so we would like to apply (?<!\\)\"
+        // since javascript does not allow negative look behinds we do
+        // something like ([^\\])(\") and replace the 2. group by \b but keeping \" intact.
+        value = value.replace(/([^\\])?\"/g, "$1\\b");
+    }
+
+    var regex = new RegExp(value, "i");
+    var test = regex.test(string);
+    return test;
+
+}
+
+/**
+ * Apply a search expression tree on string.
+ * @param tree
+ * @param string
+ * @returns {bool}
+ */
+function evaluateSearchExpressionTree(tree, string) {
+    // Root node
+    if (tree === undefined) {
+        return true;
+    }
+
+    // Leaf node.
+    if (tree.left === false && tree.right === false) {
+        const not_index = tree.value.indexOf(':NOT:');
+        if (not_index >= 0) { // Invert search on :NOT: keyword.
+            return !check_value_in_string(tree.value.substring(not_index + 5), string);
+        } else {
+            return check_value_in_string(tree.value, string);
+        }
+    }
+
+    // evaluate left tree
+    var left_sub = evaluateSearchExpressionTree(tree.left, string);
+
+    // evaluate right tree
+    var right_sub = evaluateSearchExpressionTree(tree.right, string);
+
+    // Apply operations
+    if (tree.value === ':AND:') {
+        return (left_sub && right_sub);
+    }
+
+    if (tree.value === ':OR:') {
+        return (left_sub || right_sub);
+    }
+}
+
+/**
+ * Parse a search query into a search expression tree.
+ * @param query
+ * @returns {SearchNode}
+ */
+function get_search_tree(query) {
+    var tree = new SearchNode('');
+    if (query.length === 0) {
+        return tree;
+    }
+
+    var or_index = query.indexOf(':OR:');
+    var and_index = query.indexOf(':AND:');
+
+    if (or_index >= 0) {
+        // console.log('left:', query.substring(0, or_index));
+        // console.log('right:', query.substring(or_index + 4));
+        tree.left = get_search_tree(query.substring(0, or_index));
+        tree.value = ':OR:';
+        tree.right = get_search_tree(query.substring(or_index + 4));
+
+    } else if (and_index >= 0) {
+        // console.log('left:', query.substring(0, and_index));
+        // console.log('right:', query.substring(and_index + 5));
+        tree.left = get_search_tree(query.substring(0, and_index));
+        tree.value = ':AND:';
+        tree.right = get_search_tree(query.substring(and_index + 5));
+    } else {
+        tree.value = query;
+    }
+    return tree;
+}
+
 
 /**
  * Hanfor specific requirements table filtering.
@@ -18,55 +140,12 @@ $.fn.dataTable.ext.search.push(
         // data contains the row. data[0] is the content of the first column in the actual row.
         // Return true to include the row into the data. false to exclude.
 
-        // Get the search query.
-        query = $('#search_bar').val().trim();
-        // Shortcut for empty query.
-        if (query.length === 0) {
-            return true;
-        }
-
-        // If the search query is enclosed by ""<query"" the user would like to exclusively match cells with query.
-        // No additional content should be in the cell. So query should match ^\s*<query>\s*$
-        if (query.startsWith('""') && query.endsWith('""')) {
-            query = '^\\s*' + query.substr(2, (query.length - 4)) + '\\s*$';
-        }
-
-        // Split by :OR:
-        processed_query = '';
-        or_parts = query.split(':OR:');
-
-        for (var i = 0; i < or_parts.length; i++) {
-            if (i > 0) {
-                processed_query += '|('; // Concatenate by | to implement ":OR:" behaviour
-            } else {
-                processed_query += '(';
-            }
-
-            // Each :OR: part is allowed to contain :AND: parts.
-            and_parts = or_parts[i].split(':AND:');
-            for (var j = 0; j < and_parts.length; j++) {
-                processed_query += "(?=.*";  // wrap ":AND:" into (?=.*<query>) to implement intersection behaviour.
-                processed_query += and_parts[j].trim();
-                processed_query += ")";
-            }
-
-            processed_query += ')';
-        }
-
-
-        // replace " by \b to allow for exact matches.
-        // In the input we escaped " by \" so we would like to apply (?<!\\)\"
-        // since javascript does not allow negative look behinds we do
-        // something like ([^\\])(\") and replace the 2. group by \b but keeping \" intact.
-        processed_query = processed_query.replace(/([^\\])\"/g, "$1\\b");
-        // Search query to regex
-        var query_re = new RegExp(processed_query, "i");
-
         // Loop through all colums and apply search for the visible ones.
         for (var i = 0; i < visible_columns.length; i++) {
             if (visible_columns[i]) { // col visible
                 // Check if regex matches col.
-                if (query_re.test(data[i])) {
+                //if (search_regex.test(data[i])) {
+                if (evaluateSearchExpressionTree(search_tree, data[i])) {
                     return true;  // We return on the first match.
                 }
             }
@@ -76,6 +155,12 @@ $.fn.dataTable.ext.search.push(
     }
 );
 
+/**
+ * Update the search expression tree.
+ */
+function update_search_tree() {
+    search_tree = get_search_tree($('#search_bar').val().trim());
+}
 
 /**
  * Apply a URL search query to the requirements table.
@@ -126,7 +211,7 @@ function store_requirement(requirements_table) {
             }
         });
 
-        // Expresions
+        // Expressions
         formalization['expression_mapping'] = {};
         $( this ).find( 'input' ).each(function () {
             formalization['expression_mapping'][$(this).attr('title')] = $(this).val();
@@ -572,6 +657,7 @@ function init_datatable_manipulators(requirements_table) {
     // Bind big custom searchbar to search the table.
     $('#search_bar').keypress(function(e) {
         if(e.which === 13) { // Search on enter.
+            update_search_tree();
             requirements_table.draw();
         }
     });
