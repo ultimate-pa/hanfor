@@ -38,3 +38,7 @@ class TestParseExpressions(TestCase):
                 print('Error in expression:\n{}\n{}^'.format(expression, ' '*(e.column-1)))
                 raise e
             self.assertEqual(expression, reconstructed_expression, 'Reconstructed expression should match origin.')
+
+    def test_get_var_list(self):
+        tree = boogie_parsing.get_parser_instance().parse('(Hello <==> Spam) && (((((b + a) + d) * 23) < 4) && x ==> y )')
+        self.assertEqual(boogie_parsing.get_variables_list(tree), ['Hello', 'Spam', 'b', 'a', 'd', 'x', 'y'])
