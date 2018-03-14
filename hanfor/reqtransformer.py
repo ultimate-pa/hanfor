@@ -285,8 +285,14 @@ class Expression:
         )
         # Get the vars occurring in the expression.
         parser = boogie_parsing.get_parser_instance()
-        parser.parse(expression)
-        self.used_variables = set(boogie_parsing.get_variables_list(parser.parse(expression)))
+        tree = parser.parse(expression)
+        # Test type inference.
+        type_a = boogie_parsing.infer_variable_types(tree, {'MAX': boogie_parsing.BoogieType.bool})
+        type, type_env = type_a.derive_type()
+        if type == boogie_parsing.BoogieType.error:
+            raise boogie_parsing.EvilTypeConfusion
+
+        self.used_variables = set(boogie_parsing.get_variables_list(tree))
 
         for var_name in self.used_variables:
             if var_name not in variable_collection:
