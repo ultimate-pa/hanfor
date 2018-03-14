@@ -287,10 +287,10 @@ class Expression:
         parser = boogie_parsing.get_parser_instance()
         tree = parser.parse(expression)
         # Test type inference.
-        type_a = boogie_parsing.infer_variable_types(tree, {'MAX': boogie_parsing.BoogieType.bool})
+        type_a = boogie_parsing.infer_variable_types(tree, variable_collection.get_boogie_type_env())
         type, type_env = type_a.derive_type()
-        if type == boogie_parsing.BoogieType.error:
-            raise boogie_parsing.EvilTypeConfusion
+        if type == boogie_parsing.BoogieType.error or boogie_parsing.BoogieType.error in type_env.values():
+            raise boogie_parsing.EvilTypeConfusion(type_env)
 
         self.used_variables = set(boogie_parsing.get_variables_list(tree))
 
@@ -537,6 +537,41 @@ class VariableCollection:
         del self.var_req_mapping[origin]
         del self.collection[origin]
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
+
+    def get_boogie_type_env(self):
+        mapping = {
+            'bool': boogie_parsing.BoogieType.bool,
+            'int': boogie_parsing.BoogieType.int,
+            'real': boogie_parsing.BoogieType.real,
+            'unknown': boogie_parsing.BoogieType.unknown,
+            'error': boogie_parsing.BoogieType.error
+        }
+        type_env = dict()
+        for name, var in self.collection.items():
+            if var.type is None:
+                type_env[name] = mapping['unknown']
+            elif var.type.lower() in mapping.keys():
+                type_env[name] = mapping[var.type.lower()]
+            elif var.type == 'CONST':
+                # Check for int, real or unknown based on value.
+                try:
+                    x = float(var.value)
+                except ValueError:
+                    type_env[name] = mapping['unknown']
+                    continue
+
+                try:
+                    x = int(x)
+                except ValueError:
+                    type_env[name] = mapping['real']
+                    continue
+
+                type_env[name] = mapping['int']
+            else:
+                type_env[name] = mapping['unknown']
+
+        # Todo: Store this so we can reuse and update on collection change.
+        return type_env
 
 
 class Variable:
