@@ -15,6 +15,7 @@ class SearchNode {
         this.left = false;
         this.value = value;
         this.right = false;
+        this.col_target = -1
     }
 
     static to_string(tree) {
@@ -57,12 +58,12 @@ function check_value_in_string(value, string) {
 }
 
 /**
- * Apply a search expression tree on string.
+ * Apply a search expression tree on row data.
  * @param tree
- * @param string
+ * @param data
  * @returns {bool}
  */
-function evaluateSearchExpressionTree(tree, string) {
+function evaluateSearchExpressionTree(tree, data) {
     // Root node
     if (tree === undefined) {
         return true;
@@ -70,6 +71,19 @@ function evaluateSearchExpressionTree(tree, string) {
 
     // Leaf node.
     if (tree.left === false && tree.right === false) {
+        // First build the string to search.
+        let string = '';
+        // We have a specific target.
+        if (tree.col_target !== -1) {
+            string = data[tree.col_target];
+        } else {
+            // We search in all visible columns.
+            for (let i = 0; i < visible_columns.length; i++) {
+                if (visible_columns[i]) {
+                    string += data[i] + ' ';
+                }
+            }
+        }
         const not_index = tree.value.indexOf(':NOT:');
         if (not_index >= 0) { // Invert search on :NOT: keyword.
             return !check_value_in_string(tree.value.substring(not_index + 5), string);
@@ -79,10 +93,10 @@ function evaluateSearchExpressionTree(tree, string) {
     }
 
     // evaluate left tree
-    let left_sub = evaluateSearchExpressionTree(tree.left, string);
+    let left_sub = evaluateSearchExpressionTree(tree.left, data);
 
     // evaluate right tree
-    let right_sub = evaluateSearchExpressionTree(tree.right, string);
+    let right_sub = evaluateSearchExpressionTree(tree.right, data);
 
     // Apply operations
     if (tree.value === ':AND:') {
@@ -118,8 +132,18 @@ function get_search_tree(query) {
         tree.value = ':AND:';
         tree.right = get_search_tree(query.substring(and_index + 5));
     } else {
+        let col_target = -1;
+        const col_string_index = query.indexOf(':COL_INDEX_');
+        if (col_string_index >= 0) {
+            col_target = parseInt(query.substring(col_string_index + 11, col_string_index + 13));
+        }
+        if (col_target >= 0) {
+            query = query.substring(col_string_index + 14);
+        }
+        tree.col_target = col_target;
         tree.value = query;
     }
+
     return tree;
 }
 
@@ -134,19 +158,7 @@ $.fn.dataTable.ext.search.push(
     function( settings, data, dataIndex ) {
         // data contains the row. data[0] is the content of the first column in the actual row.
         // Return true to include the row into the data. false to exclude.
-
-        // Loop through all colums and apply search for the visible ones.
-        for (let i = 0; i < visible_columns.length; i++) {
-            if (visible_columns[i]) { // col visible
-                // Check if regex matches col.
-                //if (search_regex.test(data[i])) {
-                if (evaluateSearchExpressionTree(search_tree, data[i])) {
-                    return true;  // We return on the first match.
-                }
-            }
-        }
-
-        return false;
+        return evaluateSearchExpressionTree(search_tree, data);
     }
 );
 
