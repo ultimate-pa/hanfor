@@ -123,3 +123,17 @@ class TestParseExpressions(TestCase):
         self.assertEqual(BoogieType.bool, type_env["b"], msg="Infering bool from mixed expression failed.")
         self.assertEqual(BoogieType.error, type_env["x"], msg="Detecting variable in real/int mixed expression failed.")
         self.assertEqual(BoogieType.bool, t, msg="Error deriving expression type")
+
+    def test_illegal_compare(self):
+        expr = 'MAX > 2.2'
+        initial_type_env = {"MAX": BoogieType.bool}
+
+        tree = self.parse(expr)
+        type_node = boogie_parsing.infer_variable_types(tree, initial_type_env)
+        type, type_env = type_node.derive_type()
+
+        self.assertEqual(
+            type,
+            boogie_parsing.BoogieType.error,
+            "Derived `{}` for expression `{}` with type_env: `{}`".format(type.name, expr, initial_type_env)
+        )
