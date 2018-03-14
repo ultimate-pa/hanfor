@@ -366,5 +366,20 @@ def infer_variable_types(tree: Tree, type_env: dict):
 
 
 class EvilTypeConfusion(Exception):
-    def __init__(self):
-        Exception.__init__(self, "Error in deriving expression type.")
+    def __init__(self, env=None):
+        """
+
+        :param env: type environment.
+        :type env: dict
+        """
+        candidates = ''
+        if env:
+            candidates = 'Error candidates: `{}`.'.format(
+                ', '.join([
+                    name for name in env.keys() if env[name] == BoogieType.error
+                ])
+            )
+        Exception.__init__(
+            self,
+            "Error in deriving expression type. {}".format(candidates)
+        )
