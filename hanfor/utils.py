@@ -604,19 +604,35 @@ def generate_csv_file(app, output_file=None, filter_list=None, invert_filter=Fal
     :rtype: str
     """
     # Get requirements
+    tag_col_name = 'Hanfor_Tags'
     requirements = get_requirements(app.config['REVISION_FOLDER'], filter_list=filter_list, invert_filter=invert_filter)
 
     # get session status
     session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])  # type: dict
 
-    # Write to output_file
+    # Generate Output filename.
     if not output_file:
         output_file = os.path.join(app.config['SESSION_FOLDER'], '{}_{}_out.csv'.format(
             app.config['SESSION_TAG'],
             app.config['USING_REVISION']
         ))
+
+    # Add Formalization col if not existent in input CSV.
+    for csv_key in [session_dict['csv_formal_header']]:
+        if csv_key not in session_dict['csv_fieldnames']:
+            session_dict['csv_fieldnames'].append(csv_key)
+
+    # Add Hanfor Tag col to csv.
+    while tag_col_name in session_dict['csv_fieldnames']:
+        tag_col_name += '_1'
+    session_dict['csv_fieldnames'].append(tag_col_name)
+
+    # Collect data.
     for requirement in requirements:
         requirement.csv_row[session_dict['csv_formal_header']] = requirement.get_formalization_string()
+        requirement.csv_row[tag_col_name] = ', '.join(requirement.tags)
+
+    # Write data to file.
     rows = [r.csv_row for r in requirements]
     with open(output_file, mode='w') as out_csv:
         csv.register_dialect('ultimate', delimiter=',')
