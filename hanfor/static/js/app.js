@@ -1,11 +1,11 @@
 // Globals
-var available_tags = ['', 'has_formalization'];
-var available_status = ['', 'Todo', 'Review', 'Done'];
-var available_types = [''];
-var available_vars = [''];
-var visible_columns = [true, true, true, true, true, true];
-var search_tree = undefined;
-var get_query = JSON.parse(search_query);
+let available_tags = ['', 'has_formalization'];
+let available_status = ['', 'Todo', 'Review', 'Done'];
+let available_types = [''];
+let available_vars = [''];
+let visible_columns = [true, true, true, true, true, true];
+let search_tree = undefined;
+let get_query = JSON.parse(search_query);
 
 /**
  * SearchNode represents one node in a search expression used to filter the requirements table.
