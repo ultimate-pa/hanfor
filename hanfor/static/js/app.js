@@ -214,7 +214,6 @@ function store_requirement(requirements_table) {
 
         formalizations[formalization['id']] = formalization;
     });
-    console.log(formalizations);
 
     // Store the requirement.
     $.post( "api/req/update",
