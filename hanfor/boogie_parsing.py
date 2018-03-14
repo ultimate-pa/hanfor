@@ -212,6 +212,7 @@ def get_variables_list(tree):
 def get_parser_instance():
     return Lark(hanfor_boogie_grammar, start='exprcommastar')
 
+
 def replace_var_in_expression(expression, old_var, new_var, parser=None, matching_terminal_names=('ID')):
     """ Replaces all occurrences of old_var in expression with new_var.
 
@@ -243,12 +244,14 @@ def replace_var_in_expression(expression, old_var, new_var, parser=None, matchin
 
     return recons.reconstruct(tree)
 
+
 class BoogieType(Enum):
     bool = 1
     int = 2
     real = 3
     unknown = 0
     error = -1
+
 
 def infer_variable_types(tree: Tree, type_env: dict):
 
@@ -360,7 +363,3 @@ def infer_variable_types(tree: Tree, type_env: dict):
     type_node = TypeNode()
     TypeNode.gen_type_tree(tree, type_node, type_env)
     return type_node
-
-
-
-
