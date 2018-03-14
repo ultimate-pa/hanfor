@@ -179,6 +179,7 @@ def api(resource, command):
                     utils.store_requirement(requirement, app)
                     return jsonify(requirement.to_dict()), 200
 
+        # Multi Update Tags or Status.
         if command == 'multi_update':
             logging.info('Multi edit requirements.')
             result = {'success': True, 'errormsg': ''}
