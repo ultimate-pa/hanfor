@@ -5,7 +5,7 @@ let available_types = [''];
 let available_vars = [''];
 let visible_columns = [true, true, true, true, true, true];
 let search_tree = undefined;
-let get_query = JSON.parse(search_query);
+let get_query = JSON.parse(search_query); // search_query is set in index.html
 
 /**
  * SearchNode represents one node in a search expression used to filter the requirements table.

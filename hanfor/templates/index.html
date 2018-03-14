@@ -191,7 +191,7 @@
 {% endblock %}
 {% block scripts %}
 <script type="text/javascript">
-    var search_query = '{{ query|tojson }}';
+    let search_query = '{{ query|tojson }}';
 </script>
 {% assets "main" %}
 <script type="text/javascript" src="{{ ASSET_URL }}"></script>
