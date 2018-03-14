@@ -18,7 +18,7 @@ class SearchNode {
     }
 
     static to_string(tree) {
-        var repr = '';
+        let repr = '';
         if (tree.left !== false) {
             repr += SearchNode.to_string(tree.left) + ' ';
         }
@@ -51,9 +51,8 @@ function check_value_in_string(value, string) {
         value = value.replace(/([^\\])?\"/g, "$1\\b");
     }
 
-    var regex = new RegExp(value, "i");
-    var test = regex.test(string);
-    return test;
+    const regex = new RegExp(value, "i");
+    return regex.test(string);
 
 }
 
@@ -80,10 +79,10 @@ function evaluateSearchExpressionTree(tree, string) {
     }
 
     // evaluate left tree
-    var left_sub = evaluateSearchExpressionTree(tree.left, string);
+    let left_sub = evaluateSearchExpressionTree(tree.left, string);
 
     // evaluate right tree
-    var right_sub = evaluateSearchExpressionTree(tree.right, string);
+    let right_sub = evaluateSearchExpressionTree(tree.right, string);
 
     // Apply operations
     if (tree.value === ':AND:') {
@@ -101,13 +100,13 @@ function evaluateSearchExpressionTree(tree, string) {
  * @returns {SearchNode}
  */
 function get_search_tree(query) {
-    var tree = new SearchNode('');
+    let tree = new SearchNode('');
     if (query.length === 0) {
         return tree;
     }
 
-    var or_index = query.indexOf(':OR:');
-    var and_index = query.indexOf(':AND:');
+    const or_index = query.indexOf(':OR:');
+    const and_index = query.indexOf(':AND:');
 
     if (or_index >= 0) {
         // console.log('left:', query.substring(0, or_index));
@@ -141,7 +140,7 @@ $.fn.dataTable.ext.search.push(
         // Return true to include the row into the data. false to exclude.
 
         // Loop through all colums and apply search for the visible ones.
-        for (var i = 0; i < visible_columns.length; i++) {
+        for (let i = 0; i < visible_columns.length; i++) {
             if (visible_columns[i]) { // col visible
                 // Check if regex matches col.
                 //if (search_regex.test(data[i])) {
@@ -197,10 +196,10 @@ function store_requirement(requirements_table) {
     associated_row_id = parseInt($('#modal_associated_row_index').val());
 
     // Fetch the formalizations
-    var formalizations = {};
+    let formalizations = {};
     $('.formalization_card').each(function ( index ) {
         // Scope and Pattern
-        var formalization = {};
+        let formalization = {};
         formalization['id'] = $(this).attr('title');
         $( this ).find( 'select').each( function () {
             if ($( this ).hasClass('scope_selector')) {
@@ -243,15 +242,15 @@ function store_requirement(requirements_table) {
 }
 
 function apply_multi_edit(requirements_table) {
-    var page = $('body');
+    let page = $('body');
     page.LoadingOverlay('show');
-    var add_tag = $('#multi-add-tag-input').val().trim();
-    var remove_tag = $('#multi-remove-tag-input').val().trim();
-    var set_status =  $('#multi-set-status-input').val().trim();
-    var selected_ids = [];
+    let add_tag = $('#multi-add-tag-input').val().trim();
+    let remove_tag = $('#multi-remove-tag-input').val().trim();
+    let set_status = $('#multi-set-status-input').val().trim();
+    let selected_ids = [];
     requirements_table.rows( {selected:true} ).every( function () {
-           var d = this.data();
-           selected_ids.push(d['id']);
+        let d = this.data();
+        selected_ids.push(d['id']);
     } );
 
     // Store the requirement.
@@ -527,13 +526,13 @@ function bind_var_autocomplete() {
                 return false;
             },
             select: function( event, ui ) {
-                var terms = ( this.value.split( / \s*/ ) );
+                let terms = ( this.value.split(/ \s*/) );
                 // remove the current input
                 current_input = terms.pop();
                 // If our input starts with one of [!, (, [, {]
                 // we assume this should be in front of the input.
                 selected_item = ui.item.value;
-                var searchPattern = new RegExp(/^[!\(\[\{]/g);
+                const searchPattern = new RegExp(/^[!\(\[\{]/g);
                 if (searchPattern.test(current_input)) {
                     selected_item = current_input.charAt(0) + selected_item;
                 }
@@ -561,8 +560,8 @@ function bind_requirement_id_to_modals(requirements_table) {
         event.preventDefault();
 
         // Get row data
-        var data = requirements_table.row( $(event.target).parent() ).data();
-        var row_id = requirements_table.row( $(event.target).parent() ).index();
+        let data = requirements_table.row($(event.target).parent()).data();
+        let row_id = requirements_table.row($(event.target).parent()).index();
 
         // Prepare requirement Modal
         requirement_modal_content = $('.modal-content');
@@ -598,10 +597,10 @@ function bind_requirement_id_to_modals(requirements_table) {
             csv_row_content = $('#csv_content_accordion');
             csv_row_content.html('');
             csv_row_content.collapse('hide');
-            var csv_data = data.csv_data;
-            for(var key in csv_data){
+            let csv_data = data.csv_data;
+            for(const key in csv_data){
                 if (csv_data.hasOwnProperty(key)){
-                    var value = csv_data[key];
+                    const value = csv_data[key];
                     csv_row_content.append('<p><strong>' + key + ':</strong>' + value + '</p>');
                 }
             }
@@ -628,8 +627,8 @@ function bind_requirement_id_to_modals(requirements_table) {
  * Update visible_columns
  */
 function update_visible_columns_information() {
-    var requirements_table = $('#requirements_table').DataTable();
-    var new_visible_columns = [];
+    let requirements_table = $('#requirements_table').DataTable();
+    let new_visible_columns = [];
     $.each(requirements_table.columns().visible(), function(key, value) {
         if(value === false){
             $('#col_toggle_button_' + key).removeClass('btn-info').addClass('btn-secondary');
@@ -726,8 +725,8 @@ function init_datatable_manipulators(requirements_table) {
     $('#gen-req-from-selection').click(function () {
         req_ids = [];
         requirements_table.rows( {search:'applied'} ).every( function () {
-           var d = this.data();
-           req_ids.push(d['id']);
+            let d = this.data();
+            req_ids.push(d['id']);
          } );
         $('#selected_requirement_ids').val(JSON.stringify(req_ids));
         $('#generate_req_form').submit();
@@ -736,8 +735,8 @@ function init_datatable_manipulators(requirements_table) {
     $('#gen-csv-from-selection').click(function () {
         req_ids = [];
         requirements_table.rows( {search:'applied'} ).every( function () {
-           var d = this.data();
-           req_ids.push(d['id']);
+            let d = this.data();
+            req_ids.push(d['id']);
          } );
         $('#selected_csv_requirement_ids').val(JSON.stringify(req_ids));
         $('#generate_csv_form').submit();
@@ -759,7 +758,7 @@ function init_datatable_manipulators(requirements_table) {
         e.preventDefault();
 
         // Get the column API object
-        var column = requirements_table.column( $(this).attr('data-column') );
+        let column = requirements_table.column($(this).attr('data-column'));
 
         // Toggle the visibility
         state = column.visible( ! column.visible() );
@@ -788,7 +787,7 @@ function init_datatable_manipulators(requirements_table) {
 
     // Toggle "Select all rows to `off` on user specific selection."
     requirements_table.on( 'user-select', function ( ) {
-        var select_buttons = $('.select-all-button');
+        let select_buttons = $('.select-all-button');
         select_buttons.removeClass('btn-primary');
         select_buttons.addClass('btn-secondary ');
     });
@@ -865,74 +864,74 @@ function init_datatable(columnDefs) {
 function load_datatable(){
     // Initialize the Column defs.
     // First set the static colum definitions.
-    var columnDefs = [
-            {
-                "orderable": false,
-                "className": 'select-checkbox',
-                "targets": [0],
-                "data": null,
-                "defaultContent": ""
-            },
-            {
-                "targets": [1],
-                "data": "pos"
-            },
-            {
-                "targets": [2],
-                "data": "id",
-                "render": function ( data, type, row, meta ) {
-                    result = '<a href="#">' + data + '</a>';
-                    return result;
-                }
-            },
-            {
-                "targets": [3],
-                "data": "desc"
-            },
-            {
-                "targets": [4],
-                "data": "type",
-                "render": function ( data, type, row, meta ) {
-                    if (available_types.indexOf(data) <= -1) {
-                        available_types.push(data);
-                    }
-                    return data;
-                }
-            },
-            {
-                "targets": [5],
-                "data": "tags",
-                "render": function ( data, type, row, meta ) {
-                    result = '';
-                    $(data).each(function (id, tag) {
-                        if (tag.length > 0) {
-                            result += '<span class="badge badge-info">' + tag + '</span></br>';
-                            // Add tag to available tags
-                            if (available_tags.indexOf(tag) <= -1) {
-                                available_tags.push(tag);
-                            }
-                        }
-                    });
-                    if (row.formal.length > 0) {
-                        result += '<span class="badge badge-success">has_formalization</span></br>';
-                    }
-                    return result;
-                }
-
-            },
-            {
-                "targets": [6],
-                "data": "status",
-                "render": function ( data, type, row, meta ) {
-                    result = '<span class="badge badge-info">' + data + '</span></br>';
-                    return result;
-                }
+    let columnDefs = [
+        {
+            "orderable": false,
+            "className": 'select-checkbox',
+            "targets": [0],
+            "data": null,
+            "defaultContent": ""
+        },
+        {
+            "targets": [1],
+            "data": "pos"
+        },
+        {
+            "targets": [2],
+            "data": "id",
+            "render": function (data, type, row, meta) {
+                result = '<a href="#">' + data + '</a>';
+                return result;
             }
-        ];
+        },
+        {
+            "targets": [3],
+            "data": "desc"
+        },
+        {
+            "targets": [4],
+            "data": "type",
+            "render": function (data, type, row, meta) {
+                if (available_types.indexOf(data) <= -1) {
+                    available_types.push(data);
+                }
+                return data;
+            }
+        },
+        {
+            "targets": [5],
+            "data": "tags",
+            "render": function (data, type, row, meta) {
+                result = '';
+                $(data).each(function (id, tag) {
+                    if (tag.length > 0) {
+                        result += '<span class="badge badge-info">' + tag + '</span></br>';
+                        // Add tag to available tags
+                        if (available_tags.indexOf(tag) <= -1) {
+                            available_tags.push(tag);
+                        }
+                    }
+                });
+                if (row.formal.length > 0) {
+                    result += '<span class="badge badge-success">has_formalization</span></br>';
+                }
+                return result;
+            }
+
+        },
+        {
+            "targets": [6],
+            "data": "status",
+            "render": function (data, type, row, meta) {
+                result = '<span class="badge badge-info">' + data + '</span></br>';
+                return result;
+            }
+        }
+    ];
     // Load generic colums.
     genericColums = $.get( "api/table/colum_defs", '', function (data) {
-        var dataLength = data['col_defs'].length;
-        for (var i = 0; i < dataLength; i++) {
+        const dataLength = data['col_defs'].length;
+        for (let i = 0; i < dataLength; i++) {
             columnDefs.push(
             {
                 "targets": [parseInt(data['col_defs'][i]['target'])],
