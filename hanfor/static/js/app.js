@@ -109,15 +109,11 @@ function get_search_tree(query) {
     const and_index = query.indexOf(':AND:');
 
     if (or_index >= 0) {
-        // console.log('left:', query.substring(0, or_index));
-        // console.log('right:', query.substring(or_index + 4));
         tree.left = get_search_tree(query.substring(0, or_index));
         tree.value = ':OR:';
         tree.right = get_search_tree(query.substring(or_index + 4));
 
     } else if (and_index >= 0) {
-        // console.log('left:', query.substring(0, and_index));
-        // console.log('right:', query.substring(and_index + 5));
         tree.left = get_search_tree(query.substring(0, and_index));
         tree.value = ':AND:';
         tree.right = get_search_tree(query.substring(and_index + 5));
