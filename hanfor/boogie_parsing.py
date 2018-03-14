@@ -363,3 +363,8 @@ def infer_variable_types(tree: Tree, type_env: dict):
     type_node = TypeNode()
     TypeNode.gen_type_tree(tree, type_node, type_env)
     return type_node
+
+
+class EvilTypeConfusion(Exception):
+    def __init__(self):
+        Exception.__init__(self, "Error in deriving expression type.")
