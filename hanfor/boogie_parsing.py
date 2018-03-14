@@ -1,3 +1,4 @@
+from enum import Enum
 from lark import Lark, Tree
 from lark.lexer import Token
 from lark.reconstruct import Reconstructor
@@ -242,7 +243,7 @@ def replace_var_in_expression(expression, old_var, new_var, parser=None, matchin
 
     return recons.reconstruct(tree)
 
-class BoogieType:
+class BoogieType(Enum):
     bool = 1
     int = 2
     real = 3
