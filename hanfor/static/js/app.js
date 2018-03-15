@@ -654,6 +654,11 @@ function update_visible_columns_information() {
  * @param requirements_table The requirements table
  */
 function init_datatable_manipulators(requirements_table) {
+    // Headers extension: Add index to address in search.
+    requirements_table.columns().every( function ( index ) {
+        if (index > 0) requirements_table.column( index ).header().append(' (' + index + ')');
+    } );
+
     // Save button
     $('#save_requirement_modal').click(function () {
         store_requirement(requirements_table);
