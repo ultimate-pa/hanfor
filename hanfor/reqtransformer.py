@@ -375,6 +375,13 @@ class Pattern:
             'it is always the case that if "{R}" holds, then "{S}" holds after at most "{T}" time units',
         'BoundedInvariance':
             'it is always the case that if "{R}" holds, then "{S}" holds for at least "{T}" time units',
+        'TimeConstrainedMinDuration':
+            'if {R} holds for at least {S} time units, then {T} holds afterwards for at least {U} time units',
+        'TimeConstrainedInvariant':
+            'if {R} holds for at least {S} time units, then {T} holds afterwards',
+        'ConstrainedTimedExistence':
+            'it is always the case that if {R} holds, then {S} holds after at most {T} time units for at least {U} '
+            'time units',
         'NotFormalizable': '// not formalizable'
     }
 

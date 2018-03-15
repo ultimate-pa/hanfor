@@ -441,11 +441,14 @@ function update_vars() {
             case 'ResponseChain2-1':
             case 'BoundedResponse':
             case 'BoundedInvariance':
+            case 'TimeConstrainedInvariant':
                 var_r.show();
                 var_s.show();
                 var_t.show();
                 break;
             case 'ConstrainedChain':
+            case 'TimeConstrainedMinDuration':
+            case 'ConstrainedTimedExistence':
                 var_r.show();
                 var_s.show();
                 var_t.show();
