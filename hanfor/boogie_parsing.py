@@ -293,8 +293,9 @@ def infer_variable_types(tree: Tree, type_env: dict):
             op_type_env = {}
             t, local, type_env = self.children[0].derive_type(None)
             op_type_env.update(type_env)
+            t = BoogieType.error if t is not BoogieType.unknown and t is not BoogieType.bool else BoogieType.bool
             for id in local:
-                op_type_env[id] = BoogieType.error if t is BoogieType.error else BoogieType.bool
+                op_type_env[id] = t
             return t, op_type_env
 
 
