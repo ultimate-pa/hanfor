@@ -22,6 +22,13 @@ class TestParseExpressions(TestCase):
         self.assertEqual(BoogieType.bool, type_env["y"], msg="Error deriving variable type bool")
         self.assertEqual(BoogieType.bool, t, msg="Error deriving expression type")
 
+    def test_propagate_error(self):
+        tree = self.parse("(b + a) + 23")
+        t = boogie_parsing.infer_variable_types(tree, {"a": BoogieType.real})
+        t, type_env = t.derive_type()
+        self.assertEqual(BoogieType.real, type_env["b"], msg="Error deriving real type")
+        self.assertEqual(BoogieType.error, t, msg="Error propagating the error type")
+
     def test_type_nested_inf(self):
         tree = self.parse("(b + a) + 23")
         t = boogie_parsing.infer_variable_types(tree, {"a": BoogieType.unknown})
@@ -50,7 +57,7 @@ class TestParseExpressions(TestCase):
         self.assertEqual(BoogieType.int, t, msg="Error deriving int from a NUMBER")
 
     def test_single_prop_bool(self):
-        tree = self.parse("TRUE")
+        tree = self.parse("true")
         t = boogie_parsing.infer_variable_types(tree, {})
         t, type_env = t.derive_type()
         self.assertEqual(BoogieType.bool, t, msg="Error deriving bool from TRUE")
@@ -95,8 +102,8 @@ class TestParseExpressions(TestCase):
         tree = self.parse("x == y")
         t = boogie_parsing.infer_variable_types(tree, {"x": type})
         t, type_env = t.derive_type()
-        self.assertEqual(BoogieType.error, t, msg="Error deriving bool from TRUE")
-        self.assertEqual(type, type_env["x"], msg="Error deriving bool from TRUE")
+        self.assertEqual(BoogieType.error, t, msg="Error deriving expression type error from unknown type")
+        #self.assertEqual(type, type_env["x"], msg="Error deriving bool from TRUE")
         self.assertEqual(BoogieType.unknown, type_env["y"], msg="Error deriving bool from TRUE")
 
     def test_singleton(self):
@@ -108,21 +115,25 @@ class TestParseExpressions(TestCase):
             self.assertEqual(type, type_env["x"], msg="Error deriving bool from TRUE")
 
     def test_singleton_bad(self):
+        # what do we want to do here,
+        # error  -> error
+        # unknown -> ?
+        # bloarg -> error
         for type in [BoogieType.error, BoogieType.unknown, "bloarg"]:
             tree = self.parse("x")
             # the type universe may not contain illegal types. Check after retrieval.
             t = boogie_parsing.infer_variable_types(tree, {"x": type})
             t, type_env = t.derive_type()
             self.assertEqual(BoogieType.error, t, msg="Error deriving bool from TRUE")
-            self.assertEqual(type, type_env["x"], msg="Error deriving bool from TRUE")
+            #self.assertEqual(type, type_env["x"], msg="Error deriving bool from TRUE")
 
     def test_type_tree_gen2(self):
         tree = self.parse("(23.1 + 47.2 + x) < 44 && (b && a)")
         t = boogie_parsing.infer_variable_types(tree, {"a": BoogieType.bool, "x": BoogieType.real})
         t, type_env = t.derive_type()
         self.assertEqual(BoogieType.bool, type_env["b"], msg="Infering bool from mixed expression failed.")
-        self.assertEqual(BoogieType.error, type_env["x"], msg="Detecting variable in real/int mixed expression failed.")
-        self.assertEqual(BoogieType.bool, t, msg="Error deriving expression type")
+        self.assertEqual(BoogieType.real, type_env["x"], msg="Detecting variable in real/int mixed expression failed.")
+        self.assertEqual(BoogieType.error, t, msg="Error deriving expression type")
 
     def test_illegal_compare(self):
         expr = 'MAX > 2.2'

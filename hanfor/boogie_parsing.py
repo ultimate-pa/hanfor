@@ -252,9 +252,12 @@ class BoogieType(Enum):
     unknown = 0
     error = -1
 
+    @staticmethod
+    def get_valid_types():
+        return [BoogieType.bool, BoogieType.int, BoogieType.real, BoogieType.unknown]
+
 
 def infer_variable_types(tree: Tree, type_env: dict):
-
     class TypeNode:
 
         def __init__(self):
@@ -268,7 +271,8 @@ def infer_variable_types(tree: Tree, type_env: dict):
                     if child.type in ["AND", "EXPLIES", "IFF", "IMPLIES", "NOT", "OR"]:
                         op = LogicOperator(child.type)
                         father.children.append(op)
-                    elif child.type in ["EQ", "GREATER", "GTEQ", "LESS", "LTEQ", "NEQ","DIVIDE", "MINUS", "MOD", "PLUS", "TIMES","DIVIDE", "MINUS", "MOD", "PLUS", "TIMES" ]:
+                    elif child.type in ["EQ", "GREATER", "GTEQ", "LESS", "LTEQ", "NEQ", "DIVIDE", "MINUS", "MOD",
+                                        "PLUS", "TIMES", "DIVIDE", "MINUS", "MOD", "PLUS", "TIMES"]:
                         op = RealIntOperator(child.type)
                         father.children.append(op)
             if op is None:
@@ -282,16 +286,17 @@ def infer_variable_types(tree: Tree, type_env: dict):
                     if child.type == "TRUE": op.children.append(Constant(str(child), BoogieType.bool))
                     if child.type == "FALSE": op.children.append(Constant(str(child), BoogieType.bool))
                     if child.type == "ID":
-                        op.children.append(Variable(str(child),type_env[child] if child in type_env else BoogieType.unknown))
+                        op.children.append(
+                            Variable(str(child), type_env[child] if child in type_env else BoogieType.unknown))
 
         def derive_type(self):
             op_type_env = {}
-            for child in self.children:
-                t, local, type_env =  child.derive_type(None)
-                op_type_env.update(type_env)
-                for id in local:
-                    op_type_env[id] = t if t != BoogieType.unknown else BoogieType.bool
-            return t if t != BoogieType.unknown else BoogieType.bool, op_type_env
+            t, local, type_env = self.children[0].derive_type(None)
+            op_type_env.update(type_env)
+            for id in local:
+                op_type_env[id] = BoogieType.error if t is BoogieType.error else BoogieType.bool
+            return t, op_type_env
+
 
     class LogicOperator(TypeNode):
 
@@ -302,12 +307,21 @@ def infer_variable_types(tree: Tree, type_env: dict):
 
         def derive_type(self, next_op):
             op_type_env = {}
+            child_types = set()
             for child in self.children:
-                type, local, type_env = child.derive_type(self.op_type)
+                child_type, local, type_env = child.derive_type(self.op_type)
                 op_type_env.update(type_env)
+                child_types |= {child_type}
                 for id in local:
                     op_type_env[id] = BoogieType.bool
-            return (BoogieType.bool, set(), op_type_env)
+            child_types -= {BoogieType.unknown}
+            if len(child_types) == 1:
+                t = list(child_types)[0]
+            elif len(child_types) == 0:
+                t = BoogieType.bool
+            else:
+                t = BoogieType.error
+            return t, set(), op_type_env
 
     class RealIntOperator(TypeNode):
 
@@ -318,23 +332,26 @@ def infer_variable_types(tree: Tree, type_env: dict):
 
         def derive_type(self, next_op):
             op_type_env = {}
-            types = set()
+            child_types = set()
             locals = set()
             for child in self.children:
                 type, local, type_env = child.derive_type(self.op_type)
                 op_type_env.update(type_env)
                 locals |= local
-                types |= {type}
-            types -= {BoogieType.unknown}
-            if len(types) == 1: t = list(types)[0]
-            elif len(types) == 0: t = BoogieType.unknown
-            else: t = BoogieType.error
-            if next_op not in ["EQ", "GREATER", "GTEQ", "LESS", "LTEQ", "NEQ","DIVIDE", "MINUS", "MOD", "PLUS", "TIMES","DIVIDE", "MINUS", "MOD", "PLUS", "TIMES" ]:
+                child_types |= {type}
+            child_types -= {BoogieType.unknown}
+            if len(child_types) == 1:
+                t = list(child_types)[0]
+            elif len(child_types) == 0:
+                t = BoogieType.unknown
+            else:
+                t = BoogieType.error
+            if next_op not in ["EQ", "GREATER", "GTEQ", "LESS", "LTEQ", "NEQ", "DIVIDE", "MINUS", "MOD", "PLUS",
+                               "TIMES", "DIVIDE", "MINUS", "MOD", "PLUS", "TIMES"] or t is not BoogieType.unknown:
                 for id in locals:
-                    op_type_env[id] = t
+                    op_type_env[id] = t if t is not BoogieType.error else BoogieType.unknown
                 locals = set()
-            print(locals)
-            if self.op_type in ["DIVIDE", "MINUS", "MOD", "PLUS", "TIMES"]:
+            if self.op_type in ["DIVIDE", "MINUS", "MOD", "PLUS", "TIMES"] or t is BoogieType.error:
                 return (t, locals, op_type_env)
             else:
                 return (BoogieType.bool, locals, op_type_env)
@@ -347,18 +364,24 @@ def infer_variable_types(tree: Tree, type_env: dict):
             self.content = content
 
         def derive_type(self, next_op):
-            return (self.type, set(), {})
+            return self.type, set(), {}
 
     class Variable(TypeNode):
 
         def __init__(self, var_name, type):
             super().__init__()
-            self.type = type
+
+            if type in BoogieType.get_valid_types():
+                self.type = type
+            else:
+                self.type = BoogieType.error
             self.var_name = var_name
 
         def derive_type(self, next_op):
             # directly dreived type, direct children of the current op, children of a sub-op
-            return (self.type,  set([self.var_name]), {})
+            local = {self.var_name} if self.type is BoogieType.unknown else set()
+            type_env = {self.var_name: self.type} if self.type is not BoogieType.unknown else set()
+            return self.type, local , type_env
 
     type_node = TypeNode()
     TypeNode.gen_type_tree(tree, type_node, type_env)
