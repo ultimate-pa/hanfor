@@ -7,6 +7,13 @@ let visible_columns = [true, true, true, true, true, true];
 let search_tree = undefined;
 let get_query = JSON.parse(search_query); // search_query is set in index.html
 
+// Search query grammar declarations.
+const operators = {":AND:": 1, ":OR:": 1};
+const leftAssoc = {":AND:": 1, ":OR:": 1};
+const rightAssoc = {};
+const parantheses = {"(": 1, ")": 1};
+const precedenceOf = {":AND:": 3, ":OR:": 2};
+
 /**
  * SearchNode represents one node in a search expression used to filter the requirements table.
  */
@@ -15,7 +22,23 @@ class SearchNode {
         this.left = false;
         this.value = value;
         this.right = false;
-        this.col_target = -1
+        this.col_target = -1;
+        this.update_target();
+    }
+
+    update_target() {
+        const col_string_index = this.value.indexOf(':COL_INDEX_');
+        if (col_string_index >= 0) {
+            const target_index = parseInt(this.value.substring(col_string_index + 11, col_string_index + 13));
+            if (target_index >= 0) {
+                this.value = this.value.substring(col_string_index + 14);
+                this.col_target = target_index;
+            }
+        }
+    }
+
+    static is_search_string(token) {
+        return !(token in parantheses || token in operators);
     }
 
     static to_string(tree) {
@@ -29,6 +52,126 @@ class SearchNode {
         }
         return repr;
     }
+
+    static peek(array) {
+        return array[array.length - 1];
+    }
+
+    /**
+     * Parses a search array to a binary search tree using shunting yard algorithm.
+     * @param array
+     * @returns {*}
+     */
+    static searchArrayToTree(array) {
+
+        let output_tree_stack = [], op_stack = [];
+
+        for (let i = 0, length = array.length; i < length;  i++) {
+            const token = array[i]; // current token
+
+            // If token is a search string, add it to the output_tree_stack as a singleton tree.
+            if (SearchNode.is_search_string(token))
+                output_tree_stack.push(new SearchNode(token));
+
+            else if (token in operators) {
+                // We encountered an operator.
+                while (op_stack.length) {
+                    // As long as there is an operator (prev_op) at the top of the op_stack
+                    const prev_op = SearchNode.peek(op_stack);
+                    if (prev_op in operators && (
+                            // and token is left associative and precedence <= to that of prev_op,
+                            (token in leftAssoc &&
+                                (precedenceOf[token] <= precedenceOf[prev_op])) ||
+                            // or token is right associative and its precedence < to that of prev_op,
+                            (token in rightAssoc &&
+                                (precedenceOf[token] < precedenceOf[prev_op]))
+                        )) {
+                        // Pop last two subtrees and make them children of a new subtree (with prev_op as root).
+                        let right = output_tree_stack.pop(), left = output_tree_stack.pop();
+                        let sub_tree = new SearchNode(op_stack.pop());
+                        sub_tree.left = left;
+                        sub_tree.right = right;
+                        output_tree_stack.push(sub_tree);
+                    } else {
+                        break;
+                    }
+                }
+                op_stack.push(token);
+            }
+
+            // If token is opening parenthesis, just push to the op_stack.
+            else if (token === "(")
+                op_stack.push(token);
+
+            // If token is closing parenthesis:
+            else if (token === ")") {
+
+                let has_opening_match = false;
+
+                // Search for opening paranthesis in op_stack.
+                while (op_stack.length) {
+                    const op = op_stack.pop();
+                    if (op === "(") {
+                        has_opening_match = true;
+                        break;
+                    } else {
+                        // Until match pop operators off the op_stack and create a new subtree with operator as root.
+                        let right = output_tree_stack.pop();
+                        let left = output_tree_stack.pop();
+                        let sub_tree = new SearchNode(op);
+                        sub_tree.left = left;
+                        sub_tree.right = right;
+                        output_tree_stack.push(sub_tree);
+                    }
+                }
+                if (!has_opening_match)
+                    throw "Error: parentheses mismatch.";
+            }
+            else throw "Error: Token unknown: " + token;
+        }
+
+        // No more tokens in input but operator tokens in the op_stack:
+        while (op_stack.length) {
+
+            const op = op_stack.pop();
+
+            if (op === "(" || op === ")")
+                throw "Error: Parentheses mismatch.";
+
+            // Create new subtree with op as root.
+            let right = output_tree_stack.pop();
+            let left = output_tree_stack.pop();
+            let sub_tree = new SearchNode(op);
+            sub_tree.left = left;
+            sub_tree.right = right;
+            output_tree_stack.push(sub_tree);
+        }
+
+        // The last remaining node should be the root of our complete search tree.
+        return output_tree_stack[0];
+    }
+
+    /**
+     * Splits a search query into array where each element is one token.
+     * @param query
+     * @returns {*|string[]}
+     */
+    static awesomeQuerySplitt0r(query) {
+        // Split by :AND:
+        let result = query.split(/(:OR:|:AND:|\(|\))/g);
+        result = result.filter(String); // Remove empty elements.
+        return result;
+    }
+
+    /**
+     * Create a Search Tree from search query.
+     * @param query
+     * @returns {*}
+     */
+    static fromQuery(query) {
+        return SearchNode.searchArrayToTree(SearchNode.awesomeQuerySplitt0r(query));
+    }
+
 }
 
 /**
@@ -108,45 +251,6 @@ function evaluateSearchExpressionTree(tree, data) {
     }
 }
 
-/**
- * Parse a search query into a search expression tree.
- * @param query
- * @returns {SearchNode}
- */
-function get_search_tree(query) {
-    let tree = new SearchNode('');
-    if (query.length === 0) {
-        return tree;
-    }
-
-    const or_index = query.indexOf(':OR:');
-    const and_index = query.indexOf(':AND:');
-
-    if (or_index >= 0) {
-        tree.left = get_search_tree(query.substring(0, or_index));
-        tree.value = ':OR:';
-        tree.right = get_search_tree(query.substring(or_index + 4));
-
-    } else if (and_index >= 0) {
-        tree.left = get_search_tree(query.substring(0, and_index));
-        tree.value = ':AND:';
-        tree.right = get_search_tree(query.substring(and_index + 5));
-    } else {
-        let col_target = -1;
-        const col_string_index = query.indexOf(':COL_INDEX_');
-        if (col_string_index >= 0) {
-            col_target = parseInt(query.substring(col_string_index + 11, col_string_index + 13));
-        }
-        if (col_target >= 0) {
-            query = query.substring(col_string_index + 14);
-        }
-        tree.col_target = col_target;
-        tree.value = query;
-    }
-
-    return tree;
-}
-
 
 /**
  * Hanfor specific requirements table filtering.
@@ -166,7 +270,7 @@ $.fn.dataTable.ext.search.push(
  * Update the search expression tree.
  */
 function update_search_tree() {
-    search_tree = get_search_tree($('#search_bar').val().trim());
+    search_tree = SearchNode.fromQuery($('#search_bar').val().trim());
 }
 
 /**
