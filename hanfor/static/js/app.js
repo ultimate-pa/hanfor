@@ -6,6 +6,7 @@ let available_vars = [''];
 let visible_columns = [true, true, true, true, true, true];
 let search_tree = undefined;
 let get_query = JSON.parse(search_query); // search_query is set in index.html
+let type_inference_errors = [];
 
 // Search query grammar declarations.
 const operators = {":AND:": 1, ":OR:": 1};
@@ -391,6 +392,7 @@ function apply_multi_edit(requirements_table) {
 function update_vars() {
     $('.requirement_var_group').each(function () {
         $( this ).hide();
+        $( this ).removeClass('type-error');
     });
 
     $('.formalization_card').each(function ( index ) {
@@ -398,12 +400,23 @@ function update_vars() {
         formalization_id = $(this).attr('title');
         selected_scope = $('#requirement_scope' + formalization_id).val();
         selected_pattern = $('#requirement_pattern' + formalization_id).val();
+        header = $('#formalization_heading' + formalization_id);
         var_p = $('#requirement_var_group_p' + formalization_id);
         var_q = $('#requirement_var_group_q' + formalization_id);
         var_r = $('#requirement_var_group_r' + formalization_id);
         var_s = $('#requirement_var_group_s' + formalization_id);
         var_t = $('#requirement_var_group_t' + formalization_id);
         var_u = $('#requirement_var_group_u' + formalization_id);
+
+        // Set the red boxes for type inference failed expressions.
+        if (formalization_id in type_inference_errors) {
+            for (let i = 0; i < type_inference_errors[formalization_id].length; i++) {
+                window['var_' + type_inference_errors[formalization_id][i]].addClass('type-error');
+                header.addClass('type-error-head');
+            }
+        } else {
+            header.removeClass('type-error-head');
+        }
 
         switch(selected_scope) {
             case 'BEFORE':
@@ -693,6 +706,7 @@ function bind_requirement_id_to_modals(requirements_table) {
             $('#requirement_formalization_updated').val('false');
             $('#modal_associated_row_index').val(row_id);
             available_vars = data.available_vars;
+            type_inference_errors = data.type_inference_errors;
             // Visible information
             $('#requirement_modal_title').html(data.id + ': ' + data.type);
             $('#description_textarea').text(data.desc);

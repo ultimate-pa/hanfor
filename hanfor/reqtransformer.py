@@ -121,6 +121,10 @@ class Requirement:
         self.status = 'Todo'
 
     def to_dict(self):
+        type_inference_errors = dict()
+        for index, f in enumerate(self.formalizations):
+            if f.has_type_inference_errors():
+                type_inference_errors[index] = [key.lower() for key in f.type_inference_errors.keys()]
         d = {
             'id': self.rid,
             'desc': self.description,
@@ -132,7 +136,8 @@ class Requirement:
             'vars': dict(),
             'pos': self.pos_in_csv,
             'status': self.status,
-            'csv_data': self.csv_row
+            'csv_data': self.csv_row,
+            'type_inference_errors': type_inference_errors
         }
         return d
 
@@ -273,6 +278,9 @@ class Formalization:
         except:
             logging.debug('Formalizatioin can not be instanciated. There is no scoped pattern set.')
         return result
+
+    def has_type_inference_errors(self):
+        return len(self.type_inference_errors) > 0
 
 
 class Expression:

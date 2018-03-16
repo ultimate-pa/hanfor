@@ -40,3 +40,11 @@ body.modal-open{
 .reset-colum-toggle {
     width: 14em;
 }
+
+.type-error {
+    background-color: red;
+}
+
+.type-error-head {
+    background-color: goldenrod;
+}
