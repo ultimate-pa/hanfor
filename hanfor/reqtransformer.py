@@ -180,6 +180,7 @@ class Requirement:
         variable_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
 
     def update_formalizations(self, formalizations: dict, app):
+        self.tags.discard('Type_inference_error')
         logging.debug('Updating formalizatioins of requirement {}.'.format(self.rid))
         variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
         # Reset the var mapping.
@@ -203,6 +204,11 @@ class Requirement:
                     app=app,
                     rid=self.rid
                 )
+                if len(self.formalizations[id].type_inference_errors) > 0:
+                    logging.debug('Type inference Error in formalization at {}.'.format(
+                        [n for n in self.formalizations[id].type_inference_errors.keys()]
+                    ))
+                    self.tags.add('Type_inference_error')
 
             except Exception as e:
                 logging.error('Could not update Formalization: {}'.format(e.__str__()))
@@ -219,20 +225,37 @@ class Formalization:
         self.expressions_mapping = dict()
         self.belongs_to_requirement = None
         self.used_variables = None
+        self.type_inference_errors = dict()
 
     def set_expressions_mapping(self, mapping, variable_collection, app, rid):
-        # * Parse expression mapping.
-        #   + Extract variables. Replace by their ID. Create new Variables if they do not exist.
-        # * For used variables and update the "used_by_requirements" set.
+        """ Parse expression mapping.
+            + Extract variables. Replace by their ID. Create new Variables if they do not exist.
+            + For used variables and update the "used_by_requirements" set.
+
+        :return: type_inference_errors dict {key: type_env, ...}
+        :rtype: dict
+        """
         for key, expression_string in mapping.items():
             if len(expression_string) is 0:
                 continue
             expression = Expression()
-            expression.set_expression(expression_string, variable_collection, app, rid)
+            expression.set_expression(
+                expression_string, variable_collection, app, rid)
             if self.expressions_mapping is None:
                 self.expressions_mapping = dict()
             self.expressions_mapping[key] = expression
         self.get_string()
+        self.type_inference_check(variable_collection)
+
+    def type_inference_check(self, variable_collection):
+        type_inference_errors = dict()
+        for key, expression in self.expressions_mapping.items():
+            tree = boogie_parsing.get_parser_instance().parse(expression.raw_expression)
+            type_a = boogie_parsing.infer_variable_types(tree, variable_collection.get_boogie_type_env())
+            type, type_env = type_a.derive_type()
+            if type == boogie_parsing.BoogieType.error or boogie_parsing.BoogieType.error in type_env.values():
+                type_inference_errors[key] = type_env
+        self.type_inference_errors = type_inference_errors
 
     def to_dict(self):
         d = {
@@ -286,11 +309,6 @@ class Expression:
         # Get the vars occurring in the expression.
         parser = boogie_parsing.get_parser_instance()
         tree = parser.parse(expression)
-        # Test type inference.
-        type_a = boogie_parsing.infer_variable_types(tree, variable_collection.get_boogie_type_env())
-        type, type_env = type_a.derive_type()
-        if type == boogie_parsing.BoogieType.error or boogie_parsing.BoogieType.error in type_env.values():
-            raise boogie_parsing.EvilTypeConfusion(type_env)
 
         self.used_variables = set(boogie_parsing.get_variables_list(tree))
 

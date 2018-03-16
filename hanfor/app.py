@@ -396,6 +396,17 @@ def requirements_consistency_check(app):
                 if type(req.description) is tuple:
                     changes = True
                     req.description = req.description[0]
+                # Derive type inference errors if not set.
+                try:
+                    for formalization in req.formalizations:
+                        tmp = formalization.type_inference_errors
+                except:
+                    logging.info('Update type inference results for `{}`'.format(req.rid))
+                    changes = True
+                    for index, formalization in enumerate(req.formalizations):
+                        req.formalizations[index].type_inference_check(var_collection)
+                        if len(req.formalizations[index].type_inference_errors) > 0:
+                            req.tags.add('Type_inference_error')
                 if changes:
                     count += 1
                     utils.store_requirement(req, app)
