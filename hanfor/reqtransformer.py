@@ -89,7 +89,10 @@ class RequirementCollection:
                 'System Requirement Specification of Audi Central Connected Getway'
             )
             print('Select formalization header')
-            self.csv_meta['formal_header'] = utils.choice(self.csv_meta['headers'], 'Formal Req')
+            self.csv_meta['formal_header'] = utils.choice(self.csv_meta['headers'] + ['Add new Formalization'],
+                                                          'Formal Req')
+            if self.csv_meta['formal_header'] == 'Add new Formalization':
+                self.csv_meta['formal_header'] = 'Hanfor_Formalization'
             print('Select type header.')
             self.csv_meta['type_header'] = utils.choice(self.csv_meta['headers'], 'RB_Classification')
 
