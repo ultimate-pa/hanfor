@@ -42,6 +42,13 @@ PATTERN_EXAMPLES = [
      'desc': 'it is always the case that if "{R}" holds, then "{S}" holds after at most "{T}" time units'},
     {'label': 'BoundedInvariance',
      'desc': 'it is always the case that if "{R}" holds, then "{S}" holds for at least "{T}" time units'},
+    {'label': 'TimeConstrainedMinDuration',
+     'desc': 'if {R} holds for at least {S} time units, then {T} holds afterwards for at least {U} time units'},
+    {'label': 'TimeConstrainedInvariant',
+     'desc': 'if {R} holds for at least {S} time units, then {T} holds afterwards'},
+    {'label': 'ConstrainedTimedExistence',
+     'desc': 'it is always the case that if {R} holds, then {S} holds after at most {T} time units for '
+             'at least {U} time units'},
     {'label': 'NotFormalizable', 'desc': 'Some non formalizable Text'}
 ]
 
