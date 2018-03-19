@@ -6,22 +6,28 @@
     <p><strong>Hanfor</strong> <strong>h</strong>elps <strong>an</strong>alyzing <strong>an</strong>d <strong>for</strong>malizing <strong>r</strong>equirements.</p>
     <h1><a id="Usage_3"></a>Usage</h1>
         <h4 id="search_requirements_table">Search in requirements table.</h4>
-    You can concatenate search queries by
-    <ul>
-        <li><code>search_1 :OR: search_2</code> yields the union of <code>search_1</code> and <code>search_2</code>.
-        </li>
-        <li><code>search_1 :AND: search_2</code> yields the intersection of <code>search_1</code> and
-            <code>search_2</code>.</li>
-        <li><code>:AND:</code> binds stronger than <code>:OR:</code>.</li>
-    </ul>
-    You can get exact search results by using <code>"</code> to indicate the bedinning or end of a sequence.
-    <ul>
-        <li><code>"fast</code> Includes <code>faster</code> but not <code>breakfast</code>.</li>
-        <li><code>fast"</code> Includes <code>breakfast</code> but not <code>faster</code>.</li>
-        <li><code>"fast"</code> Includes only exact matches of <code>fast</code>.</li>
-        <li><code>search_1 :AND: search_2</code> yields the intersection of <code>search_1</code> and
-            <code>search_2</code>.</li>
-    </ul>
+        <h5 id="search_operators">Search Operators.</h5>
+        You can concatenate search queries by
+        <ul>
+            <li><code>search_1 :OR: search_2</code> yields the union of <code>search_1</code> and <code>search_2</code>.
+            </li>
+            <li><code>search_1 :AND: search_2</code> yields the intersection of <code>search_1</code> and
+                <code>search_2</code>.</li>
+            <li><code>:AND:</code> binds stronger than <code>:OR:</code>.</li>
+        </ul>
+        To invert the result use <code>:NOT:</code> before your search string.
+        <h5 id="search_exact">Exact searches.</h5>
+        You can get exact search results by using <code>"</code> to indicate the beginning or end of a sequence.
+        <ul>
+            <li><code>"fast</code> Includes <code>faster</code> but not <code>breakfast</code>.</li>
+            <li><code>fast"</code> Includes <code>breakfast</code> but not <code>faster</code>.</li>
+            <li><code>"fast"</code> Includes only exact matches of <code>fast</code>.</li>
+            <li><code>search_1 :AND: search_2</code> yields the intersection of <code>search_1</code> and
+                <code>search_2</code>.</li>
+        </ul>
+        <h5 id="search_target">Search Target.</h5>
+        To target a specific column use <code>:COL_INDEX_02:</code> to target the column 2. <br>
+        The column indexes are appended in the requirements table header in parentheses.
     <h4><a id="mass_edit"></a>Mass edit requirements</h4>
     You can mass edit requirements. Select requirements by clicking on the requirement checkbox in the table. <br>
     Hold <code>shift</code> for multi select and <code>Ctrl</code> to toggle a single selection. <br>
