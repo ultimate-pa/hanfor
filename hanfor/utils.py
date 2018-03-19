@@ -67,9 +67,9 @@ default_pattern_options = '''
         holds after at most "{T}" time units</option>
     <option value="BoundedInvariance">it is always the case that if "{R}" holds, then "{S}"
         holds for at least "{T}" time units</option>
-    <option value="TimeConstrainedMinDuration">if {R} holds for at least {S} time units,
+    <option value="TimeConstrainedMinDuration">it is always the case that if {R} holds for at least {S} time units,
         then {T} holds afterwards for at least {U} time units</option>
-    <option value="TimeConstrainedInvariant">if {R} holds for at least {S} time units,
+    <option value="TimeConstrainedInvariant">it is always the case that if {R} holds for at least {S} time units,
         then {T} holds afterwards</option>
     <option value="ConstrainedTimedExistence">it is always the case that if {R} holds,
         then {S} holds after at most {T} time units for at least {U} time units</option>
