@@ -473,6 +473,12 @@ def update_variable_in_collection(app, request):
 
         logging.info('Store updated variables.')
         var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
+        logging.info('Update derived types by parsing affected formalizations.')
+        for rid in var_collection.var_req_mapping[var_name]:
+            logging.debug('Checking `{}`'.format(rid))
+            requirement = load_requirement_by_id(rid, app)
+            for id in range(len(requirement.formalizations)):
+                requirement.formalizations[id].type_inference_check(var_collection)
 
     return result
 
