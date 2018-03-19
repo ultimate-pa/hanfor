@@ -257,12 +257,17 @@ class Formalization:
 
     def type_inference_check(self, variable_collection):
         type_inference_errors = dict()
+        allowed_types = self.scoped_pattern.get_allowed_types()
+        var_env = variable_collection.get_boogie_type_env()
+
         for key, expression in self.expressions_mapping.items():
             tree = boogie_parsing.get_parser_instance().parse(expression.raw_expression)
-            type_a = boogie_parsing.infer_variable_types(tree, variable_collection.get_boogie_type_env())
-            type, type_env = type_a.derive_type()
-            if type == boogie_parsing.BoogieType.error or boogie_parsing.BoogieType.error in type_env.values():
+            type, type_env = boogie_parsing.infer_variable_types(tree, var_env).derive_type()
+            if type not in allowed_types[key]:  # We have derived error.
                 type_inference_errors[key] = type_env
+            for name, type in type_env.items():  # Update the hanfor variable types.
+                variable_collection.set_type(name, type.name)
+        variable_collection.store()
         self.type_inference_errors = type_inference_errors
 
     def to_dict(self):
@@ -415,6 +420,138 @@ class Pattern:
         'NotFormalizable': '// not formalizable'
     }
 
+    pattern_env = {
+        'Invariant': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool],
+            'S': [boogie_parsing.BoogieType.bool]
+        },
+        'Absence': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool]
+        },
+        'Universality': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool]
+        },
+        'Existence': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool]
+        },
+        'BoundedExistence': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool]
+        },
+        'Precedence': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool],
+            'S': [boogie_parsing.BoogieType.bool]
+        },
+        'PrecedenceChain1-2': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool],
+            'S': [boogie_parsing.BoogieType.bool],
+            'T': [boogie_parsing.BoogieType.bool]
+        },
+        'PrecedenceChain2-1': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool],
+            'S': [boogie_parsing.BoogieType.bool],
+            'T': [boogie_parsing.BoogieType.bool]
+        },
+        'Response': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool],
+            'S': [boogie_parsing.BoogieType.bool]
+        },
+        'ResponseChain1-2': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool],
+            'S': [boogie_parsing.BoogieType.bool],
+            'T': [boogie_parsing.BoogieType.bool]
+        },
+        'ResponseChain2-1': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool],
+            'S': [boogie_parsing.BoogieType.bool],
+            'T': [boogie_parsing.BoogieType.bool]
+        },
+        'ConstrainedChain': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool],
+            'S': [boogie_parsing.BoogieType.bool],
+            'T': [boogie_parsing.BoogieType.bool]
+        },
+        'MinDuration': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool],
+            'S': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
+        },
+        'MaxDuration': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool],
+            'S': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
+        },
+        'BoundedRecurrence': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool],
+            'S': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
+        },
+        'BoundedResponse': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool],
+            'S': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
+            'T': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
+        },
+        'BoundedInvariance': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool],
+            'S': [boogie_parsing.BoogieType.bool],
+            'T': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
+        },
+        'TimeConstrainedMinDuration': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool],
+            'S': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
+            'T': [boogie_parsing.BoogieType.bool],
+            'U': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
+        },
+        'TimeConstrainedInvariant': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool],
+            'S': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
+            'T': [boogie_parsing.BoogieType.bool],
+        },
+        'ConstrainedTimedExistence': {
+            'P': [boogie_parsing.BoogieType.bool],
+            'Q': [boogie_parsing.BoogieType.bool],
+            'R': [boogie_parsing.BoogieType.bool],
+            'S': [boogie_parsing.BoogieType.bool],
+            'T': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
+            'U': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
+        },
+        'NotFormalizable': {}
+    }
+
     def __init__(self, name, pattern=None):
         self.name = name
         if pattern is None:
@@ -427,6 +564,9 @@ class Pattern:
 
     def __str__(self):
         return self.pattern
+
+    def get_allowed_types(self):
+        return self.pattern_env[self.name]
 
 
 class ScopedPattern:
@@ -475,19 +615,25 @@ class ScopedPattern:
     def __str__(self):
         return str(self.scope) + ', ' + str(self.pattern)
 
+    def get_allowed_types(self):
+        return self.pattern.get_allowed_types()
+
 
 class VariableCollection:
     def __init__(self):
         self.collection = dict()
         self.req_var_mapping = dict()
         self.var_req_mapping = dict()
+        self.my_path = None
 
     def __contains__(self, item):
         return item in self.collection.keys()
 
     @classmethod
     def load(self, path) -> 'VariableCollection':
-        return utils.pickle_load_from_dump(path)
+        vc = utils.pickle_load_from_dump(path)
+        vc.my_path = path
+        return vc
 
     def get_available_vars_list(self, sort_by=None, used_only=False):
         """ Returns a list of all available var names.
@@ -519,7 +665,9 @@ class VariableCollection:
             logging.debug('Adding variable `{}` to collection.'.format(var_name))
             self.collection[var_name] = Variable(var_name, None, None)
 
-    def store(self, path):
+    def store(self, path=None):
+        if path is None:
+            path = self.my_path
         self.var_req_mapping = self.invert_mapping(self.req_var_mapping)
         utils.pickle_dump_obj_to_file(self, path)
 
@@ -609,6 +757,9 @@ class VariableCollection:
 
         # Todo: Store this so we can reuse and update on collection change.
         return type_env
+
+    def set_type(self, name, type):
+        self.collection[name].type = type
 
 
 class Variable:
