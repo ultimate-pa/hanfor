@@ -5,6 +5,7 @@ let available_types = [''];
 let available_vars = [''];
 let visible_columns = [true, true, true, true, true, true];
 let search_tree = undefined;
+let filter_tree = undefined;
 let get_query = JSON.parse(search_query); // search_query is set in index.html
 let type_inference_errors = [];
 
@@ -155,22 +156,33 @@ class SearchNode {
     /**
      * Splits a search query into array where each element is one token.
      * @param query
+     * @param target_col optional target col to restrict the search on a specific col.
      * @returns {*|string[]}
      */
-    static awesomeQuerySplitt0r(query) {
+    static awesomeQuerySplitt0r(query, target_col=undefined) {
         // Split by :AND:
         let result = query.split(/(:OR:|:AND:|\(|\))/g);
         result = result.filter(String); // Remove empty elements.
+        // If the resulting tree should be restricted to a col..
+        if (target_col !== undefined) {
+            for (let i = 0, length = result.length; i < length;  i++) {
+                // Add :COL_INDEX_<target_col>: to each search string (not a operator or parenthesis).
+                if (!(result[i] in operators || result[i] in parantheses)) {
+                    result[i] = ':COL_INDEX_' + ("00" + target_col).slice(-2) + ':' + result[i];
+                }
+            }
+        }
         return result;
     }
 
     /**
      * Create a Search Tree from search query.
      * @param query
+     * @param target_col optional target col to restrict the search on a specific col.
      * @returns {*}
      */
-    static fromQuery(query) {
-        return SearchNode.searchArrayToTree(SearchNode.awesomeQuerySplitt0r(query));
+    static fromQuery(query, target_col=undefined) {
+        return SearchNode.searchArrayToTree(SearchNode.awesomeQuerySplitt0r(query, target_col));
     }
 
 }
@@ -263,7 +275,7 @@ $.fn.dataTable.ext.search.push(
     function( settings, data, dataIndex ) {
         // data contains the row. data[0] is the content of the first column in the actual row.
         // Return true to include the row into the data. false to exclude.
-        return evaluateSearchExpressionTree(search_tree, data);
+        return evaluateSearchExpressionTree(search_tree, data) && evaluateSearchExpressionTree(filter_tree, data);
     }
 );
 
@@ -273,6 +285,31 @@ $.fn.dataTable.ext.search.push(
 function update_search_tree() {
     search_tree = SearchNode.fromQuery($('#search_bar').val().trim());
 }
+
+/**
+ * Update the filter search tree used to filter the table by the values from the Filter tab.
+ */
+function update_filter_tree() {
+    let search_array = [];
+    function pad_with_parantheses(array) {
+        return ["("].concat(array, [")"]);
+    }
+    function add_query(array, query, target) {
+        if (query.length > 0) {
+            if (array.length > 0) {
+                array = array.concat([":AND:"]);
+            }
+            array = array.concat(pad_with_parantheses(SearchNode.awesomeQuerySplitt0r(query, target)));
+        }
+        return array
+    }
+    search_array = add_query(search_array, $('#type-filter-input').val(), 4);
+    search_array = add_query(search_array, $('#tag-filter-input').val(), 5);
+    search_array = add_query(search_array, $('#status-filter-input').val(), 6);
+
+    filter_tree = SearchNode.searchArrayToTree(search_array);
+}
+
 
 /**
  * Apply a URL search query to the requirements table.
@@ -801,14 +838,10 @@ function init_datatable_manipulators(requirements_table) {
     delay: 100
     })
         .on('focus', function() { $(this).keydown(); })
-        .on('autocompleteselect', function(event, ui){
-            // let tree = SearchNode().fromQuery(ui.item['value']);
-            requirements_table.columns( 4 ).search( ui.item['value'] ).draw() ;
-        })
         .on('keypress', function (e) {
             if (e.which === 13) { // Search on Enter.
-                // let tree = SearchNode().fromQuery( $( this ).val() );
-                requirements_table.columns( 4 ).search( $( this ).val() ).draw() ;
+                update_filter_tree();
+                requirements_table.draw();
             }
         });
 
@@ -818,12 +851,10 @@ function init_datatable_manipulators(requirements_table) {
         delay: 100
     })
         .on('focus', function() { $(this).keydown(); })
-        .on('autocompleteselect', function(event, ui){
-            requirements_table.columns( 6 ).search( ui.item['value'] ).draw() ;
-        })
         .on('keypress', function (e) {
             if (e.which === 13) { // Search on Enter.
-                requirements_table.columns( 6 ).search( $( this ).val() ).draw() ;
+                update_filter_tree();
+                requirements_table.draw();
             }
         });
 
@@ -833,12 +864,10 @@ function init_datatable_manipulators(requirements_table) {
         delay: 100
     })
         .on('focus', function() { $(this).keydown(); })
-        .on('autocompleteselect', function(event, ui){
-            requirements_table.columns( 5 ).search( ui.item['value'] ).draw() ;
-        })
         .on('keypress', function (e) {
             if (e.which === 13) { // Search on Enter.
-                requirements_table.columns( 5 ).search( $( this ).val() ).draw() ;
+                update_filter_tree();
+                requirements_table.draw();
             }
         });
 
@@ -854,6 +883,7 @@ function init_datatable_manipulators(requirements_table) {
         $('#type-filter-input').val('').effect("highlight", {color: 'green'}, 500);
         $('#search_bar').val('').effect("highlight", {color: 'green'}, 500);
         search_tree = undefined;
+        filter_tree = undefined;
         requirements_table.search( '' ).columns().search( '' ).draw();
     });
 
