@@ -143,3 +143,28 @@ class TestParseExpressions(TestCase):
             boogie_parsing.BoogieType.error,
             "Derived `{}` for expression `{}` with type_env: `{}`".format(type.name, expr, initial_type_env)
         )
+
+    def test_numbers(self):
+        expressions = [
+            'MAX_TIME',
+            'MAX_TIME + OFFSET',
+            'MAX_TIME - OFFSET',
+            'MAX_TIME * OFFSET',
+            'MAX_TIME / OFFSET'
+        ]
+
+        initial_type_env = {
+            "MAX_TIME": BoogieType.real
+        }
+
+        for expr in expressions:
+            tree = self.parse(expr)
+            type_node = boogie_parsing.infer_variable_types(tree, initial_type_env)
+            type, type_env = type_node.derive_type()
+
+            self.assertEqual(
+                type.name,
+                boogie_parsing.BoogieType.real.name,
+                "Derived `{}` for `{}` with type_env: `{}`. Expected type `{}`.".format(
+                    type.name, expr, initial_type_env, boogie_parsing.BoogieType.real.name)
+            )
