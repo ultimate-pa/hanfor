@@ -836,33 +836,21 @@ function init_datatable_manipulators(requirements_table) {
     minLength: 0,
     source: available_types,
     delay: 100
-    })
-        .on('focus', function() { $(this).keydown(); })
-        .on('keypress', function (e) {
-            if (e.which === 13) { // Search on Enter.
-                update_filter_tree();
-                requirements_table.draw();
-            }
-        });
+    });
 
     $('#status-filter-input').autocomplete({
         minLength: 0,
         source: available_status,
         delay: 100
-    })
-        .on('focus', function() { $(this).keydown(); })
-        .on('keypress', function (e) {
-            if (e.which === 13) { // Search on Enter.
-                update_filter_tree();
-                requirements_table.draw();
-            }
-        });
+    });
 
     $('#tag-filter-input').autocomplete({
         minLength: 0,
         source: available_tags,
         delay: 100
-    })
+    });
+
+    $('#tag-filter-input, #status-filter-input, #type-filter-input')
         .on('focus', function() { $(this).keydown(); })
         .on('keypress', function (e) {
             if (e.which === 13) { // Search on Enter.
