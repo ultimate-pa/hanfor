@@ -802,10 +802,12 @@ function init_datatable_manipulators(requirements_table) {
     })
         .on('focus', function() { $(this).keydown(); })
         .on('autocompleteselect', function(event, ui){
+            // let tree = SearchNode().fromQuery(ui.item['value']);
             requirements_table.columns( 4 ).search( ui.item['value'] ).draw() ;
         })
         .on('keypress', function (e) {
             if (e.which === 13) { // Search on Enter.
+                // let tree = SearchNode().fromQuery( $( this ).val() );
                 requirements_table.columns( 4 ).search( $( this ).val() ).draw() ;
             }
         });
@@ -851,6 +853,7 @@ function init_datatable_manipulators(requirements_table) {
         $('#tag-filter-input').val('').effect("highlight", {color: 'green'}, 500);
         $('#type-filter-input').val('').effect("highlight", {color: 'green'}, 500);
         $('#search_bar').val('').effect("highlight", {color: 'green'}, 500);
+        search_tree = undefined;
         requirements_table.search( '' ).columns().search( '' ).draw();
     });
 
