@@ -759,13 +759,11 @@ class VariableCollection:
                     type_env[name] = mapping['unknown']
                     continue
 
-                try:
-                    x = int(x)
-                except ValueError:
-                    type_env[name] = mapping['int']
+                if '.' in var.value:
+                    type_env[name] = mapping['real']
                     continue
 
-                type_env[name] = mapping['real']
+                type_env[name] = mapping['int']
             else:
                 type_env[name] = mapping['unknown']
 
