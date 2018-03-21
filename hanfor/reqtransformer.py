@@ -224,6 +224,7 @@ class Requirement:
 
     def reload_type_inference(self, var_collection, app):
         logging.info('Reload type inference for `{}`'.format(self.rid))
+        self.tags.discard('Type_inference_error')
         for id in range(len(self.formalizations)):
             try:
                 self.formalizations[id].type_inference_check(var_collection)
