@@ -762,10 +762,10 @@ class VariableCollection:
                 try:
                     x = int(x)
                 except ValueError:
-                    type_env[name] = mapping['real']
+                    type_env[name] = mapping['int']
                     continue
 
-                type_env[name] = mapping['int']
+                type_env[name] = mapping['real']
             else:
                 type_env[name] = mapping['unknown']
 
