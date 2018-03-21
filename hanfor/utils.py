@@ -477,8 +477,7 @@ def update_variable_in_collection(app, request):
         for rid in var_collection.var_req_mapping[var_name]:
             logging.debug('Checking `{}`'.format(rid))
             requirement = load_requirement_by_id(rid, app)
-            for id in range(len(requirement.formalizations)):
-                requirement.formalizations[id].type_inference_check(var_collection)
+            requirement.reload_type_inference(var_collection, app)
 
     return result
 

@@ -222,6 +222,22 @@ class Requirement:
                 logging.error('Could not update Formalization: {}'.format(e.__str__()))
                 raise e
 
+    def reload_type_inference(self, var_collection, app):
+        logging.info('Reload type inference for `{}`'.format(self.rid))
+        for id in range(len(self.formalizations)):
+            try:
+                self.formalizations[id].type_inference_check(var_collection)
+                if len(self.formalizations[id].type_inference_errors) > 0:
+                    self.tags.add('Type_inference_error')
+            except AttributeError as e:
+                # Probably No pattern set.
+                logging.info('Could not derive type inference for requirement `{}`, Formalization No. {}. {}'.format(
+                    self.rid,
+                    id,
+                    e
+                ))
+        utils.store_requirement(self, app)
+
     def get_formalization_string(self):
         # TODO: implement this. (Used to print the whole formalization into the csv).
         return ''
@@ -268,7 +284,18 @@ class Formalization:
             if type not in allowed_types[key]:  # We have derived error.
                 type_inference_errors[key] = type_env
             for name, type in type_env.items():  # Update the hanfor variable types.
-                variable_collection.set_type(name, type.name)
+                try:
+                    if variable_collection.collection[name].type.lower() == 'const':
+                        continue
+                except:
+                    pass
+                if variable_collection.collection[name].type != type.name:
+                    logging.info('Update variable `{}` with derived type. Old: `{}` => New: `{}`.'.format(
+                        name,
+                        variable_collection.collection[name].type,
+                        type.name
+                    ))
+                    variable_collection.set_type(name, type.name)
         variable_collection.store()
         self.type_inference_errors = type_inference_errors
 
