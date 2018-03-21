@@ -536,7 +536,7 @@ class Pattern:
         },
         'BoundedResponse': {
             'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
+            'S': [boogie_parsing.BoogieType.bool],
             'T': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
         },
         'BoundedInvariance': {
