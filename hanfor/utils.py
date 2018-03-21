@@ -950,6 +950,11 @@ class HanforArgumentParser(argparse.ArgumentParser):
             help="Create a new session by updating a existing session with a new csv file."
         )
         self.add_argument(
+            "-rti", "--reload_type_inference",
+            action="store_true",
+            help="Reload the type inference results."
+        )
+        self.add_argument(
             '-L', '--list_stored_sessions',
             nargs=0,
             help="List the tags of stored sessions..",

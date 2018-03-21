@@ -372,13 +372,31 @@ def unhandled_exception(exception):
     })
 
 
-def requirements_consistency_check(app):
+def requirements_consistency_check(app, args):
     logging.info('Check requirements consistency.')
     filenames = utils.get_filenames_from_dir(app.config['REVISION_FOLDER'])
     var_collection = utils.pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
     result = dict()
     result['data'] = list()
     count = 0
+
+    def reload_type_inference(req, var_collection, app):
+        logging.info('Reload type inference for `{}`'.format(req.rid))
+        for id in range(len(req.formalizations)):
+            try:
+                req.formalizations[id].type_inference_check(var_collection)
+                if len(req.formalizations[id].type_inference_errors) > 0:
+                    req.tags.add('Type_inference_error')
+            except AttributeError as e:
+                # Probably No pattern set.
+                logging.info('Could not derive type inference for requirement `{}`, Formalization No. {}. {}'.format(
+                    req.rid,
+                    id,
+                    e
+                ))
+
+        utils.store_requirement(req, app)
+
     for filename in filenames:
         try:
             req = utils.pickle_load_from_dump(filename)  # type: Requirement
@@ -402,11 +420,9 @@ def requirements_consistency_check(app):
                         tmp = formalization.type_inference_errors
                 except:
                     logging.info('Update type inference results for `{}`'.format(req.rid))
-                    changes = True
-                    for index, formalization in enumerate(req.formalizations):
-                        req.formalizations[index].type_inference_check(var_collection)
-                        if len(req.formalizations[index].type_inference_errors) > 0:
-                            req.tags.add('Type_inference_error')
+                    reload_type_inference(req, var_collection, app)
+                if args.reload_type_inference:
+                    reload_type_inference(req, var_collection, app)
                 if changes:
                     count += 1
                     utils.store_requirement(req, app)
@@ -715,7 +731,7 @@ if __name__ == '__main__':
 
     # Run consistency checks.
     varcollection_consistency_check(app)
-    requirements_consistency_check(app)
+    requirements_consistency_check(app, args)
 
     # Run the app
     app_options = {
