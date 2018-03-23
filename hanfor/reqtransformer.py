@@ -463,13 +463,13 @@ class Pattern:
         'BoundedInvariance':
             'it is always the case that if "{R}" holds, then "{S}" holds for at least "{T}" time units',
         'TimeConstrainedMinDuration':
-            'it is always the case that if {R} holds for at least {S} time units, then {T} holds afterwards for '
-            'at least {U} time units',
+            'it is always the case that if "{R}" holds for at least "{S}" time units, then "{T}" holds afterwards for '
+            'at least "{U}" time units',
         'TimeConstrainedInvariant':
-            'it is always the case that if {R} holds for at least {S} time units, then {T} holds afterwards',
+            'it is always the case that if "{R}" holds for at least "{S}" time units, then "{T}" holds afterwards',
         'ConstrainedTimedExistence':
-            'it is always the case that if {R} holds, then {S} holds after at most {T} time units for at least {U} '
-            'time units',
+            'it is always the case that if "{R}" holds, then "{S}" holds after at most "{T}" time units for at least '
+            '"{U}" time units',
         'NotFormalizable': '// not formalizable'
     }
 
@@ -573,10 +573,10 @@ class Pattern:
             self.pattern = pattern
 
     def instantiate(self, scope, *args):
-        return scope + ', ' + self.pattern.format(*args)
+        return scope + ', ' + Pattern.name_mapping[self.name].format(*args)
 
     def __str__(self):
-        return self.pattern
+        return Pattern.name_mapping[self.name]
 
     def get_allowed_types(self):
         return self.pattern_env[self.name]
