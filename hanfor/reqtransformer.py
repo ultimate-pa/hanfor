@@ -314,7 +314,7 @@ class Formalization:
         try:
             result = self.scoped_pattern.get_string(self.expressions_mapping)
         except:
-            logging.debug('Formalizatioin can not be instanciated. There is no scoped pattern set.')
+            logging.debug('Formalization can not be instantiated. There is no scoped pattern set.')
         return result
 
     def has_type_inference_errors(self):
