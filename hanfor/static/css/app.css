@@ -48,3 +48,8 @@ body.modal-open{
 .type-error-head {
     background-color: goldenrod;
 }
+
+
+#requirement_modal .modal-lg {
+    max-width: 90%;
+}
