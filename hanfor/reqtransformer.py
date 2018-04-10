@@ -366,7 +366,12 @@ class Expression:
         variable_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
 
     def __str__(self):
-        return self.raw_expression
+        result = '"{}"'.format(self.raw_expression)
+        # If the var is a number,
+        if re.search(r'^\d+$', self.raw_expression) or re.search(r'^\d+\.\d+$', self.raw_expression):
+            # do not quote.
+            result = self.raw_expression
+        return result
 
 
 class Scope(Enum):
@@ -427,49 +432,49 @@ class Scope(Enum):
 class Pattern:
     name_mapping = {
         'Invariant':
-            'it is always the case that if "{R}" holds, then "{S}" holds as well',
+            'it is always the case that if {R} holds, then {S} holds as well',
         'Absence':
-            'it is never the case that "{R}" holds',
+            'it is never the case that {R} holds',
         'Universality':
-            'it is always the case that "{R}" holds',
+            'it is always the case that {R} holds',
         'Existence':
-            '"{R}" eventually holds',
+            '{R} eventually holds',
         'BoundedExistence':
-            'transitions to states in which "{R}" holds occur at most twice',
+            'transitions to states in which {R} holds occur at most twice',
         'Precedence':
-            'it is always the case that if "{R}" holds then "{S}" previously held',
+            'it is always the case that if {R} holds then {S} previously held',
         'PrecedenceChain1-2':
-            'it is always the case that if "{R}" holds and is succeeded by "{S}", then "{T}" previously held',
+            'it is always the case that if {R} holds and is succeeded by {S}, then {T} previously held',
         'PrecedenceChain2-1':
-            'it is always the case that if "{R}" holds then "{S}" previously held and was preceded by "{T}"',
+            'it is always the case that if {R} holds then {S} previously held and was preceded by {T}',
         'Response':
-            'it is always the case that if "{R}" holds then "{S}" eventually holds',
+            'it is always the case that if {R} holds then {S} eventually holds',
         'ResponseChain1-2':
-            'it is always the case that if "{R}" holds then "{S}" eventually holds and is succeeded by "{T}"',
+            'it is always the case that if {R} holds then {S} eventually holds and is succeeded by {T}',
         'ResponseChain2-1':
-            'it is always the case that if "{R}" holds and is succeeded by "{S}", '
-            'then "{T}" eventually holds after "{S}"',
+            'it is always the case that if {R} holds and is succeeded by {S}, '
+            'then {T} eventually holds after {S}',
         'ConstrainedChain':
-            'it is always the case that if "{R}" holds then "{S}" eventually holds and is succeeded by "{T}", '
-            'where "{U}" does not hold between "{S}" and "{T}"',
+            'it is always the case that if {R} holds then {S} eventually holds and is succeeded by {T}, '
+            'where {U} does not hold between {S} and {T}',
         'MinDuration':
-            'it is always the case that once "{R}" becomes satisfied, it holds for at least "{S}" time units',
+            'it is always the case that once {R} becomes satisfied, it holds for at least {S} time units',
         'MaxDuration':
-            'it is always the case that once "{R}" becomes satisfied, it holds for less than "{S}" time units',
+            'it is always the case that once {R} becomes satisfied, it holds for less than {S} time units',
         'BoundedRecurrence':
-            'it is always the case that "{R}" holds at least every "{S}" time units',
+            'it is always the case that {R} holds at least every {S} time units',
         'BoundedResponse':
-            'it is always the case that if "{R}" holds, then "{S}" holds after at most "{T}" time units',
+            'it is always the case that if {R} holds, then {S} holds after at most {T} time units',
         'BoundedInvariance':
-            'it is always the case that if "{R}" holds, then "{S}" holds for at least "{T}" time units',
+            'it is always the case that if {R} holds, then {S} holds for at least {T} time units',
         'TimeConstrainedMinDuration':
-            'it is always the case that if "{R}" holds for at least "{S}" time units, then "{T}" holds afterwards for '
-            'at least "{U}" time units',
+            'it is always the case that if {R} holds for at least {S} time units, then {T} holds afterwards for '
+            'at least {U} time units',
         'TimeConstrainedInvariant':
-            'it is always the case that if "{R}" holds for at least "{S}" time units, then "{T}" holds afterwards',
+            'it is always the case that if {R} holds for at least {S} time units, then {T} holds afterwards',
         'ConstrainedTimedExistence':
-            'it is always the case that if "{R}" holds, then "{S}" holds after at most "{T}" time units for at least '
-            '"{U}" time units',
+            'it is always the case that if {R} holds, then {S} holds after at most {T} time units for at least '
+            '{U} time units',
         'NotFormalizable': '// not formalizable'
     }
 
