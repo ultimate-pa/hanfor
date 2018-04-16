@@ -1,7 +1,7 @@
 require('gasparesganga-jquery-loading-overlay');
 require('bootstrap');
 require('bootstrap-confirmation2');
-require('datatables.net');
+require('datatables.net-bs4');
 require('jquery-ui/ui/widgets/autocomplete');
 require('./bootstrap-tokenfield.js');
 

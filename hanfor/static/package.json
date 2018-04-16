@@ -15,7 +15,7 @@
   "dependencies": {
     "bootstrap": "^4.1.0",
     "bootstrap-confirmation2": "^4.0.0",
-    "datatables.net": "^1.10.16",
+    "chart.js": "^2.7.2",
     "datatables.net-bs4": "^1.10.16",
     "datatables.net-select": "^1.2.5",
     "gasparesganga-jquery-loading-overlay": "1.5.4",
