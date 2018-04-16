@@ -1,3 +1,10 @@
+require('gasparesganga-jquery-loading-overlay');
+require('bootstrap');
+require('bootstrap-confirmation2');
+require('datatables.net');
+require('jquery-ui/ui/widgets/autocomplete');
+require('./bootstrap-tokenfield.js');
+
 // Globals
 var available_types = ['CONST'];
 

@@ -823,25 +823,6 @@ def setup_logging(app):
 
 def register_assets(app):
     bundles = {
-        'js': Bundle(
-            'js/jquery-3.2.1.js',
-            'js/jquery-ui.js',
-            'js/bootstrap-tokenfield.js',
-            'js/popper.js',
-            'js/jquery.dataTables.js',
-            'js/tether.js',
-            'js/bootstrap.js',
-            'js/dataTables.bootstrap4.js',
-            'js/dataTables.select.min.js',
-            'js/loadingoverlay.js',
-            'js/bootstrap-confirmation.min.js',
-            filters='jsmin',
-            output='gen/vendor.js'
-        ),
-        'main': Bundle(
-            'js/app.js',
-            output='main/app.js'
-        ),
         'css': Bundle(
             'css/bootstrap.css',
             'css/bootstrap-grid.css',

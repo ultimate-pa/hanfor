@@ -1,0 +1,31 @@
+{
+  "name": "hanfor",
+  "repository": "https://github.com/ultimate-pa/hanfor",
+  "version": "1.0.0",
+  "description": "Hanfor frontend.",
+  "main": "../app.py",
+  "scripts": {
+    "build": "webpack -p --progress --config webpack.config.js",
+    "dev-build": "webpack --progress -d --config webpack.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "webpack --progress -d --config webpack.config.js --watch  --display-error-details"
+  },
+  "author": "Samuel Roth",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "bootstrap": "^4.1.0",
+    "bootstrap-confirmation2": "^4.0.0",
+    "datatables.net": "^1.10.16",
+    "datatables.net-bs4": "^1.10.16",
+    "datatables.net-select": "^1.2.5",
+    "gasparesganga-jquery-loading-overlay": "1.5.4",
+    "jquery": "^3.3.1",
+    "jquery-ui": "^1.12.1",
+    "popper.js": "^1.14.3",
+    "textcomplete": "^0.17.1"
+  },
+  "devDependencies": {
+    "webpack": "^4.5.0",
+    "webpack-cli": "^2.0.14"
+  }
+}

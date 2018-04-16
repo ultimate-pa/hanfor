@@ -1,3 +1,10 @@
+require('gasparesganga-jquery-loading-overlay');
+require('bootstrap');
+require('bootstrap-confirmation2');
+require('datatables.net');
+require('jquery-ui/ui/widgets/autocomplete');
+require('./bootstrap-tokenfield.js');
+
 // Globals
 let available_tags = ['', 'has_formalization'];
 let available_status = ['', 'Todo', 'Review', 'Done'];
@@ -925,7 +932,7 @@ function init_datatable_manipulators(requirements_table) {
         update_visible_columns_information();
     });
     update_visible_columns_information();
-    
+
     // Select rows
     $('.select-all-button').on('click', function (e) {
         // Toggle selection on

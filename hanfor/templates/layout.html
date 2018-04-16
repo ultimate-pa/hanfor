@@ -9,9 +9,6 @@
         {% assets "css" %}
             <link rel="stylesheet" href="{{ ASSET_URL }}" />
         {% endassets %}
-        {% assets "js" %}
-            <script type="text/javascript" src="{{ ASSET_URL }}"></script>
-        {% endassets %}
         <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
         <title>{% block title %}{% endblock %} | Hanfor.</title>
     {% endblock %}
