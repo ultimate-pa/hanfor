@@ -198,7 +198,7 @@ def formalization_html(templates_folder, formalization_id, scope_options, patter
     # Expressions
     for key, value in formalization.expressions_mapping.items():
         html_template = html_template.replace(
-            'title="{}"'.format(key), 'title="{}" value="{}"'.format(key, html.escape(str(value))))
+            'title="{}"'.format(key), 'title="{}" value="{}"'.format(key, html.escape(str(value.raw_expression))))
 
     return html_template
 

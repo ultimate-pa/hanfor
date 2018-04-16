@@ -400,10 +400,11 @@ class Scope(Enum):
             str(self.AFTER_UNTIL): 'AFTER_UNTIL',
             str(self.NONE): 'NONE'
         }
-        return slug_map[self.value]
+        return slug_map[self.__str__()]
 
     def __str__(self):
-        return str(self.value)
+        result = str(self.value).replace('"', '')
+        return result
 
     def get_allowed_types(self):
         scope_env = {
