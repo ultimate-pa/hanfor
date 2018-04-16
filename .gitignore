@@ -111,3 +111,6 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# npm local
+node_modules/
