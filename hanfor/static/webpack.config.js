@@ -2,6 +2,7 @@ const webpack = require('webpack');
 
 const config = {
     entry: {
+        autocomplete: __dirname + '/js/autocomplete.js',
         requirements: __dirname + '/js/requirements.js',
         variables: __dirname + '/js/variables.js',
         stats: __dirname + '/js/stats.js',
@@ -14,10 +15,21 @@ const config = {
     resolve: {
         extensions: ['.js', '.jsx', '.css']
     },
+    optimization: {
+        splitChunks: {
+            cacheGroups: {
+                commons: {
+                    name: "commons",
+                    chunks: "initial",
+                    minChunks: 2
+                }
+            }
+        }
+    },
     plugins: [
         new webpack.ProvidePlugin({
-          $: 'jquery',
-          jQuery: 'jquery'
+            $: 'jquery',
+            jQuery: 'jquery'
         })
     ],
 };

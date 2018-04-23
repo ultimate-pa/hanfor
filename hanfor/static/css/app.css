@@ -53,3 +53,29 @@ body.modal-open{
 #requirement_modal .modal-lg {
     max-width: 90%;
 }
+
+
+/**
+ Textcomplete styling.
+ */
+.dropdown-menu .textcomplete-item a,
+.dropdown-menu .textcomplete-item a:hover {
+  cursor: pointer;
+  font-weight: normal;
+  color: #000;
+  position: relative;
+  padding: 3px 10px;
+}
+
+.dropdown-menu .textcomplete-item.active a {
+  background: #F0F0F0;
+}
+
+.dropdown-menu .textcomplete-item a em {
+  font-style: normal;
+  font-weight: bold;
+}
+.dropdown-menu .textcomplete-footer {
+  border-top: solid 1px #F0F0F0;
+  margin-top: 3px;
+}

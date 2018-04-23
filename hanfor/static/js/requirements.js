@@ -7,6 +7,10 @@ require('jquery-ui/ui/widgets/autocomplete');
 require('./bootstrap-tokenfield.js');
 
 // Globals
+let Fuse = require('fuse.js');
+let { Textcomplete, Textarea } = require('textcomplete');
+let fuse = new Fuse([], {});
+
 let available_tags = ['', 'has_formalization'];
 let available_status = ['', 'Todo', 'Review', 'Done'];
 let available_types = [''];
@@ -370,7 +374,8 @@ function store_requirement(requirements_table) {
 
         // Expressions
         formalization['expression_mapping'] = {};
-        $( this ).find( 'input' ).each(function () {
+        $( "textarea.reqirement-variable" ).each(function () {
+            if ($(this).attr('title') !== '')
             formalization['expression_mapping'][$(this).attr('title')] = $(this).val();
         });
 
@@ -428,7 +433,6 @@ function apply_multi_edit(requirements_table) {
             }
     });
 }
-
 
 
 /**
@@ -522,6 +526,7 @@ function update_vars() {
     });
 }
 
+
 /**
  * Updates the formalization textarea based on the selected scope and expressions in P, Q, R, S, T.
  */
@@ -568,17 +573,6 @@ function update_formalization() {
         $('#current_formalization_textarea' + formalization_id).val(formalization);
     });
     $('#requirement_formalization_updated').val('true');
-}
-
-/**
- * Extract the last term in an expression string.
- * @param {string} term an expression.
- * @returns {string}
- */
-function extractLast( term ) {
-    last_term = term.split( / \s*/ ).pop();
-    last_term = last_term.replace(/^[!\(\[\{]/g, '');
-    return last_term;
 }
 
 
@@ -673,49 +667,63 @@ function bind_expression_buttons() {
 
 
 /**
+ * Reload fuse the fuzzy search provider used for autocomplete.
+ * fuse will be reloaded with available_vars.
+ */
+function update_fuse() {
+    let options = {
+      shouldSort: true,
+      threshold: 0.6,
+      location: 0,
+      distance: 100,
+      maxPatternLength: 12,
+      minMatchCharLength: 1,
+      keys: undefined
+    };
+
+    fuse = new Fuse(available_vars, options);
+}
+
+
+/**
+ * Search term in the fuse fuzzy search provider.
+ * Fuse is initialized with the available_vars.
+ * @param term
+ */
+function fuzzy_search(term) {
+    return fuse.search(term);
+}
+
+
+/**
  * Bind autocomplete trigger to formalization input fields.
  * Implement autocomplete.
  *
  */
 function bind_var_autocomplete() {
-    $( ".reqirement-variable" )
-        // don't navigate away from the field on tab when selecting an item
-        .on( "keydown", function( event ) {
-            if ( event.keyCode === $.ui.keyCode.TAB &&
-                    $( this ).autocomplete( "instance" ).menu.active ) {
-                event.preventDefault();
-            }
-        })
-        .autocomplete({
-            minLength: 0,
-            source: function( request, response ) {
-                // delegate back to autocomplete, but extract the last term
-                response( $.ui.autocomplete.filter(
-                available_vars, extractLast( request.term ) ) );
-            },
-            focus: function() {
-                // prevent value inserted on focus
-                return false;
-            },
-            select: function( event, ui ) {
-                let terms = ( this.value.split(/ \s*/) );
-                // remove the current input
-                current_input = terms.pop();
-                // If our input starts with one of [!, (, [, {]
-                // we assume this should be in front of the input.
-                selected_item = ui.item.value;
-                const searchPattern = new RegExp(/^[!\(\[\{]/g);
-                if (searchPattern.test(current_input)) {
-                    selected_item = current_input.charAt(0) + selected_item;
-                }
-                // add the selected item
-                terms.push( selected_item );
-                // add placeholder to get the space at the end
-                terms.push( "" );
-                this.value = terms.join( " " );
-                return false;
-            }
-    });
+    $( ".reqirement-variable" ).each(function ( index ) {
+        let editor = new Textarea(this);
+        let textcomplete = new Textcomplete(editor, {
+          dropdown: {
+              maxCount: 10
+          }
+        });
+        textcomplete.register([{
+          match: /(^|\s)(\w+)$/,
+          search: function (term, callback) {
+              include_elems = fuzzy_search(term);
+
+              result = [];
+              for (let i = 0; i < Math.min(10, include_elems.length); i++) {
+                    result.push(available_vars[include_elems[i]]);
+              }
+              callback(result);
+          },
+          replace: function (value) {
+            return '$1' + value + ' ';
+          }
+        }]);
+    })
 }
 
 
@@ -752,6 +760,7 @@ function bind_requirement_id_to_modals(requirements_table) {
             $('#modal_associated_row_index').val(row_id);
             available_vars = data.available_vars;
             type_inference_errors = data.type_inference_errors;
+            update_fuse();
             // Visible information
             $('#requirement_modal_title').html(data.id + ': ' + data.type);
             $('#description_textarea').text(data.desc);

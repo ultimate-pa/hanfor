@@ -297,6 +297,7 @@ def api(resource, command):
 @app.route('/<site>')
 def site(site):
     available_sites = [
+        'autocomplete',
         'help',
         'statistics',
         'variables',
