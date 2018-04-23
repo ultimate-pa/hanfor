@@ -4,6 +4,7 @@ require('bootstrap-confirmation2');
 require('datatables.net-bs4');
 require('datatables.net-select');
 require('jquery-ui/ui/widgets/autocomplete');
+require('jquery-ui/ui/effects/effect-highlight');
 require('./bootstrap-tokenfield.js');
 
 // Globals
