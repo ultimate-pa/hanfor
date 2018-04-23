@@ -710,7 +710,7 @@ function bind_var_autocomplete() {
           }
         });
         textcomplete.register([{
-          match: /(^|\s)(\w+)$/,
+          match: /(^|\s|[!=&\|>]+)(\w+)$/,
           search: function (term, callback) {
               include_elems = fuzzy_search(term);
 
