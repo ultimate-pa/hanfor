@@ -79,3 +79,12 @@ body.modal-open{
   border-top: solid 1px #F0F0F0;
   margin-top: 3px;
 }
+
+/**
+* Modal specific styling
+ */
+
+/* Prevent overflow for formalizatioin titles. */
+.card-header{
+    overflow: hidden;
+}
