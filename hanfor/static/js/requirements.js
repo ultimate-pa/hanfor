@@ -733,6 +733,16 @@ function bind_var_autocomplete() {
 }
 
 
+function prevent_double_token_insert() {
+    $('#requirement_tag_field').on('tokenfield:createtoken', function (event) {
+        let existingTokens = $(this).tokenfield('getTokens');
+        $.each(existingTokens, function(index, token) {
+            if (token.value === event.attrs.value)
+                event.preventDefault();
+        });
+    });
+}
+
 /**
  * Bind the Links to open a requirement modal.
  * Implement Behaviour:
@@ -802,6 +812,8 @@ function bind_requirement_id_to_modals(requirements_table) {
             bind_var_autocomplete();
             // Update available vars based on the selection of requirement and pattern.
             bind_expression_buttons();
+            // Prevent inserting a token twice on enter
+            prevent_double_token_insert();
             requirement_modal_content.LoadingOverlay('hide', true);
         });
     } );
