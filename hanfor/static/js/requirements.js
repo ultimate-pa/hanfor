@@ -724,6 +724,11 @@ function bind_var_autocomplete() {
             return '$1' + value + ' ';
           }
         }]);
+        // Close dropdown if textarea is no longer focused.
+        $(this).on('blur', function (e) {
+            textcomplete.dropdown.deactivate();
+            e.preventDefault();
+        })
     })
 }
 
