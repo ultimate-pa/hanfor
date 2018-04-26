@@ -398,7 +398,7 @@ function store_requirement(requirements_table) {
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
-                requirements_table.row(associated_row_id).data(data).draw();
+                requirements_table.row(associated_row_id).data(data);
                 $('#requirement_modal').modal('hide');
             }
     });
