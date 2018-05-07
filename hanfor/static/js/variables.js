@@ -58,6 +58,60 @@ function store_variable(variables_datatable) {
     });
 }
 
+
+function import_variables() {
+    let variable_import_modal = $('#variable_import_modal');
+    let sess_name = $('#variable_import_sess_name').val();
+    let sess_revision = $('#variable_import_sess_revision').val();
+    let import_option = $('#import_option').val();
+
+    variable_import_modal.LoadingOverlay('show');
+
+    $.post( "api/var/var_import_collection",
+        {
+            sess_name: sess_name,
+            sess_revision: sess_revision,
+            import_option: import_option
+        },
+        function( data ) {
+            variable_import_modal.LoadingOverlay('hide', true);
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                variable_import_modal.modal('hide');
+                location.reload();
+            }
+    });
+}
+
+
+function open_import_modal(sess_name, sess_revision) {
+    // Prepare requirement Modal
+    let variable_import_modal = $('#variable_import_modal');
+    $('#variable_import_sess_name').val(sess_name);
+    $('#variable_import_sess_revision').val(sess_revision);
+    $('#variable_import_modal_title').html('Import from Session: ' + sess_name + ' at: ' + sess_revision);
+
+    variable_import_modal.modal('show');
+
+    // Load informations about selected var collection
+    variable_import_modal.LoadingOverlay('show');
+    $.post( "api/var/var_import_info",
+        {
+            sess_name: sess_name,
+            sess_revision: sess_revision
+        },
+        function( data ) {
+            variable_import_modal.LoadingOverlay('hide', true);
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                $('#import_tot_number').html('Total:\t' + data['tot_vars'] + ' Variables.');
+                $('#import_new_number').html('New:\t' + data['new_vars'] + ' Variables.');
+            }
+    });
+}
+
 /**
  * Show / Hide Value input for variables.
  * @param revert
@@ -201,5 +255,17 @@ $(document).ready(function() {
         } else {
             variable_is_const(revert=true);
         }
+    });
+
+    // Add listener for importing variables from existing sessions/revisions
+    $('.import_link').on('click', function () {
+        const sess_name = $( this ).attr('data-name');
+        const sess_revision = $( this ).attr('data-revision');
+
+        open_import_modal(sess_name, sess_revision);
+    });
+
+    $('#save_variable_import_modal').click(function ( e ) {
+        import_variables();
     });
 } );

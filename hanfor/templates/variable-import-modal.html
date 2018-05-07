@@ -1,0 +1,37 @@
+<div id="variable_import_modal"
+     class="modal fade"
+     tabindex="-1"
+     role="dialog"
+     aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 id="variable_import_modal_title" class="modal-title"></h5>
+                    <input type="hidden" id="variable_import_sess_name" hidden />
+                    <input type="hidden" id="variable_import_sess_revision" hidden />
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h5>Properties</h5>
+                    <ul>
+                        <li id="import_tot_number"></li>
+                        <li id="import_new_number"></li>
+                    </ul>
+                    <h5>Import Options</h5>
+                    <div class="input-group mb-3">
+                      <select class="custom-select" id="import_option">
+                        <option selected>Choose...</option>
+                        <option value="override">Override existing types and values with imported variables</option>
+                        <option value="keep">Keep existing types and values</option>
+                      </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="save_variable_import_modal" type="button" class="btn btn-primary">Import Variables</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+</div>

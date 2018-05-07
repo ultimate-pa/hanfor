@@ -288,7 +288,79 @@ def choice(choices, default):
 
 def get_available_vars(app, parser=None, full=False):
     var_collection = pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
-    result = var_collection.get_available_vars_list(used_only=True)
+    result = var_collection.get_available_vars_list(used_only=False)
+
+    return result
+
+
+def varcollection_diff_info(app, request):
+    """ Collect diff info of current and requested var collection.
+        * Number of var in the requested var collection
+        * Number of new vars in the requested var collection.
+
+
+    :param request: API request
+    :return: {'tot_vars': int, 'new_vars': int}
+    :rtype: dict
+    """
+    current_var_collection = pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
+    req_path = os.path.join(
+        app.config['SESSION_BASE_FOLDER'],
+        request.form.get('sess_name').strip(),
+        request.form.get('sess_revision').strip(),
+        'session_variable_collection.pickle'
+    )
+    requested_var_collection = pickle_load_from_dump(req_path)
+
+    numb_new_vars = len(
+        set(requested_var_collection.collection.keys()).difference(current_var_collection.collection.keys())
+    )
+
+    result = {
+        'tot_vars': len(requested_var_collection.collection),
+        'new_vars': numb_new_vars
+    }
+
+    return result
+
+
+def varcollection_import_collection(app, request):
+    """ Collect diff info of current and requested var collection.
+            * Number of var in the requested var collection
+            * Number of new vars in the requested var collection.
+
+
+        :param request: API request
+        :return: {'tot_vars': int, 'new_vars': int}
+        :rtype: dict
+        """
+    current_var_collection = pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
+    req_path = os.path.join(
+        app.config['SESSION_BASE_FOLDER'],
+        request.form.get('sess_name').strip(),
+        request.form.get('sess_revision').strip(),
+        'session_variable_collection.pickle'
+    )
+    requested_var_collection = pickle_load_from_dump(req_path)
+    import_option = request.form.get('import_option').strip()
+
+    numb_new_vars = len(
+        set(requested_var_collection.collection.keys()).difference(current_var_collection.collection.keys())
+    )
+
+    for key, var in requested_var_collection.collection.items():
+        if import_option == 'keep':
+            if key not in current_var_collection.collection:
+                current_var_collection.collection[key] = var
+        else:
+            current_var_collection.collection[key] = var
+
+    result = {
+        'tot_vars': len(requested_var_collection.collection),
+        'new_vars': numb_new_vars
+    }
+
+    current_var_collection.store()
 
     return result
 
@@ -738,14 +810,18 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
     return output_file
 
 
-def get_stored_session_names(session_folder=None, only_names=False) -> tuple:
+def get_stored_session_names(session_folder=None, only_names=False, with_revisions=False) -> tuple:
     """ Get stored session tags (folder names) including os.stat.
     Returned tuple is (
         (os.stat(), name),
         ...
     )
-    If only_names == True the list is (
+    If only_names == True the tuple is (
         name_1,
+        ...
+    )
+    If with_with_revisions == True the tuple is (
+        {name: 'name_1', 'revisions': [revision_1, ...]},
         ...
     )
 
@@ -760,7 +836,9 @@ def get_stored_session_names(session_folder=None, only_names=False) -> tuple:
 
     try:
         result = ((os.path.join(session_folder, file_name), file_name) for file_name in os.listdir(session_folder))
-        if only_names:
+        if with_revisions:
+            result = ({'name': entry[1], 'revisions': get_available_revisions(None, entry[0])} for entry in result)
+        elif only_names:
             result = (entry[1] for entry in result)
         else:
             result = ((os.stat(entry[0]), entry[1]) for entry in result)
@@ -770,14 +848,17 @@ def get_stored_session_names(session_folder=None, only_names=False) -> tuple:
     return result
 
 
-def get_available_revisions(config):
+def get_available_revisions(config, folder=None):
     result = []
 
+    if folder is None:
+        folder = config['SESSION_FOLDER']
+
     try:
-        names = os.listdir(config['SESSION_FOLDER'])
-        result = [name for name in names if os.path.isdir(os.path.join(config['SESSION_FOLDER'], name))]
+        names = os.listdir(folder)
+        result = [name for name in names if os.path.isdir(os.path.join(folder, name))]
     except Exception as e:
-        logging.error('Could not fetch stored sessions: {}'.format(e))
+        logging.error('Could not fetch stored revisions: {}'.format(e))
 
     return result
 

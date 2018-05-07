@@ -107,7 +107,9 @@ def api(resource, command):
         'new_formalization',
         'del_formalization',
         'del_tag',
-        'multi_update'
+        'multi_update',
+        'var_import_info',
+        'var_import_collection'
     ]
     if resource not in resources or command not in commands:
         return jsonify({
@@ -124,7 +126,7 @@ def api(resource, command):
             # VariableCollection
             result = requirement.to_dict()
             result['formalizations_html'] = utils.formalizations_to_html(app, requirement.formalizations)
-            result['available_vars'] = var_collection.get_available_var_names_list()
+            result['available_vars'] = var_collection.get_available_var_names_list(used_only=False)
             if requirement:
                 return jsonify(result)
 
@@ -266,12 +268,20 @@ def api(resource, command):
 
     if resource == 'var':
         # Get available variables
+        result = {
+            'success': False,
+            'errormsg': 'sorry, request not supported.'
+        }
         if command == 'gets':
-            return jsonify({'data': utils.get_available_vars(app, parser=boogie_parser, full=True)})
-        if command == 'update':
+            result = {'data': utils.get_available_vars(app, parser=boogie_parser, full=True)}
+        elif command == 'update':
             result = utils.update_variable_in_collection(app, request)
+        elif command == 'var_import_info':
+            result = utils.varcollection_diff_info(app, request)
+        elif command == 'var_import_collection':
+            result = utils.varcollection_import_collection(app, request)
 
-            return jsonify(result)
+        return jsonify(result)
 
     if resource == 'stats':
         # Get all stats
@@ -304,7 +314,20 @@ def site(site):
         'tags'
     ]
     if site in available_sites:
-        return render_template('{}.html'.format(site))
+        if site == 'variables':
+            available_sessions = utils.get_stored_session_names(
+                app.config['SESSION_BASE_FOLDER'],
+                only_names=True,
+                with_revisions=True
+            )
+            return render_template(
+                '{}.html'.format(site),
+                available_sessions=available_sessions,
+                current_session=app.config['SESSION_TAG'],
+                current_revision=app.config['USING_REVISION']
+            )
+        else:
+            return render_template('{}.html'.format(site))
     else:
         return render_template('404.html'), 404
 
