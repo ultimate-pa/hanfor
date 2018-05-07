@@ -168,6 +168,11 @@ $(document).ready(function() {
                                 '</span></br>';
                         }
                     });
+                    if (result.length < 1) {
+                        result += '<span class="badge badge-warning">' +
+                            '<a href="#">Not used</a>' +
+                            '</span></br>';
+                    }
                     return result;
                 }
 
