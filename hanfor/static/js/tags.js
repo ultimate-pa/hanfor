@@ -5,6 +5,8 @@ require('datatables.net-bs4');
 require('jquery-ui/ui/widgets/autocomplete');
 require('./bootstrap-tokenfield.js');
 
+let tag_search_string = sessionStorage.getItem('tag_search_string');
+
 /**
  * Store the currently active (in the modal) tag.
  * @param tagss_datatable
@@ -125,14 +127,15 @@ $(document).ready(function() {
             }
         ],
         initComplete : function() {
-            $('#search_bar').val('');
+            $('#search_bar').val(tag_search_string);
         }
     });
     tags_datatable.column(2).visible(false);
 
     // Bind big custom searchbar to search the table.
     $('#search_bar').keyup(function(){
-      tags_datatable.search($(this).val()).draw() ;
+      tags_datatable.search($(this).val()).draw();
+      sessionStorage.setItem('tag_search_string', $(this).val());
     });
 
     // Add listener for tag link to modal.
