@@ -5,6 +5,8 @@ require('datatables.net-bs4');
 require('jquery-ui/ui/widgets/autocomplete');
 require('./bootstrap-tokenfield.js');
 
+let var_search_string = sessionStorage.getItem('var_search_string');
+
 // Globals
 var available_types = ['CONST'];
 
@@ -196,14 +198,15 @@ $(document).ready(function() {
             }
         ],
         initComplete : function() {
-            $('#search_bar').val('');
+            $('#search_bar').val(var_search_string);
         }
     });
     tags_datatable.column(3).visible(false);
 
     // Bind big custom searchbar to search the table.
     $('#search_bar').keyup(function(){
-      tags_datatable.search($(this).val()).draw() ;
+      tags_datatable.search($(this).val()).draw();
+      sessionStorage.setItem('var_search_string', $(this).val());
     });
 
     // Add listener for variable link to modal.
