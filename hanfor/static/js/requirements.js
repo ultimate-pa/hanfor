@@ -21,6 +21,10 @@ let search_tree = undefined;
 let filter_tree = undefined;
 let get_query = JSON.parse(search_query); // search_query is set in index.html
 let type_inference_errors = [];
+let req_search_string = sessionStorage.getItem('req_search_string');
+let filter_status_string = sessionStorage.getItem('filter_status_string');
+let filter_tag_string = sessionStorage.getItem('filter_tag_string');
+let filter_type_string = sessionStorage.getItem('filter_type_string');
 
 // Search query grammar declarations.
 const operators = {":AND:": 1, ":OR:": 1};
@@ -296,7 +300,9 @@ $.fn.dataTable.ext.search.push(
  * Update the search expression tree.
  */
 function update_search_tree() {
-    search_tree = SearchNode.fromQuery($('#search_bar').val().trim());
+    req_search_string = $('#search_bar').val().trim();
+    search_tree = SearchNode.fromQuery(req_search_string);
+    sessionStorage.setItem('req_search_string', req_search_string);
 }
 
 /**
@@ -316,9 +322,17 @@ function update_filter_tree() {
         }
         return array
     }
-    search_array = add_query(search_array, $('#type-filter-input').val(), 4);
-    search_array = add_query(search_array, $('#tag-filter-input').val(), 5);
-    search_array = add_query(search_array, $('#status-filter-input').val(), 6);
+    filter_status_string = $('#status-filter-input').val();
+    filter_tag_string = $('#tag-filter-input').val();
+    filter_type_string = $('#type-filter-input').val();
+
+    search_array = add_query(search_array, filter_type_string, 4);
+    search_array = add_query(search_array, filter_tag_string, 5);
+    search_array = add_query(search_array, filter_status_string, 6);
+
+    sessionStorage.setItem('filter_status_string', filter_status_string);
+    sessionStorage.setItem('filter_tag_string', filter_tag_string);
+    sessionStorage.setItem('filter_type_string', filter_type_string);
 
     filter_tree = SearchNode.searchArrayToTree(search_array);
 }
@@ -908,6 +922,8 @@ function init_datatable_manipulators(requirements_table) {
         search_tree = undefined;
         filter_tree = undefined;
         requirements_table.search( '' ).columns().search( '' ).draw();
+        update_filter_tree();
+        update_search_tree();
     });
 
     // Listen for tool section triggers.
@@ -1037,11 +1053,18 @@ function init_datatable(columnDefs) {
             }
         },
         initComplete : function() {
-            $('#search_bar').val('');
+            $('#search_bar').val(req_search_string);
+            $('#type-filter-input').val(filter_type_string);
+            $('#tag-filter-input').val(filter_tag_string);
+            $('#status-filter-input').val(filter_status_string);
+
             bind_requirement_id_to_modals(requirements_table);
             init_datatable_manipulators(requirements_table);
             // Process URL search query.
             process_url_query(requirements_table, get_query);
+            update_search_tree();
+            update_filter_tree();
+            this.api().draw();
         }
     });
 }
