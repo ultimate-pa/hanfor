@@ -737,7 +737,7 @@ function bind_var_autocomplete() {
           }
         }]);
         // Close dropdown if textarea is no longer focused.
-        $(this).on('blur', function (e) {
+        $(this).on('blur click', function (e) {
             textcomplete.dropdown.deactivate();
             e.preventDefault();
         })
