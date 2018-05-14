@@ -792,7 +792,7 @@ class Variable:
         try:
             used_by = sorted(list(var_req_mapping[self.name]))
         except:
-            logging.info('No req mapping found for var `{}`'.format(self.name))
+            logging.debug('Variable `{}` is not used.'.format(self.name))
 
         d = {
             'name': self.name,
