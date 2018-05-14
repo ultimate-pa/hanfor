@@ -367,8 +367,6 @@ function store_requirement(requirements_table) {
     req_id = $('#requirement_id').val();
     req_tags = $('#requirement_tag_field').val();
     req_status = $('#requirement_status').val();
-    selected_scope = $('#requirement_scope').val();
-    selected_pattern = $('#requirement_pattern').val();
     updated_formalization = $('#requirement_formalization_updated').val();
     associated_row_id = parseInt($('#modal_associated_row_index').val());
 
@@ -389,7 +387,7 @@ function store_requirement(requirements_table) {
 
         // Expressions
         formalization['expression_mapping'] = {};
-        $( "textarea.reqirement-variable" ).each(function () {
+        $( this ).find( "textarea.reqirement-variable" ).each(function () {
             if ($(this).attr('title') !== '')
             formalization['expression_mapping'][$(this).attr('title')] = $(this).val();
         });
