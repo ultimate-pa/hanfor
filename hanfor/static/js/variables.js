@@ -167,7 +167,7 @@ $(document).ready(function() {
                             search_query = '?command=search&col=2&q=' + name;
                             result += '<span class="badge badge-info">' +
                                 '<a href="' + base_url + search_query + '" target="_blank">' + name + '</a>' +
-                                '</span></br>';
+                                '</span>';
                         }
                     });
                     if (result.length < 1) {
