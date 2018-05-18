@@ -8,6 +8,7 @@ import boogie_parsing
 import csv
 import datetime
 import html
+import itertools
 import logging
 import pickle
 import random
@@ -603,7 +604,10 @@ def get_statistics(app):
         'type_colors': list(),
         'top_variable_names': list(),
         'top_variables_counts': list(),
-        'top_variable_colors': list()
+        'top_variable_colors': list(),
+        'variable_graph': list(),
+        'tags_per_type': dict(),
+        'status_per_type': dict()
     }
     requirement_filenames = get_filenames_from_dir(app.config['REVISION_FOLDER'])
     # Gather requirements statistics
@@ -621,6 +625,15 @@ def get_statistics(app):
                 data['types'][requirement.type_in_csv] += 1
             else:
                 data['types'][requirement.type_in_csv] = 1
+                data['tags_per_type'][requirement.type_in_csv] = dict()
+                data['status_per_type'][requirement.type_in_csv] = {'Todo': 0, 'Review': 0, 'Done': 0}
+            for tag in requirement.tags:
+                if len(tag) > 0:
+                    if tag not in data['tags_per_type'][requirement.type_in_csv]:
+                        data['tags_per_type'][requirement.type_in_csv][tag] = 0
+                    data['tags_per_type'][requirement.type_in_csv][tag] += 1
+            data['status_per_type'][requirement.type_in_csv][requirement.status] += 1
+
     for name, count in data['types'].items():
         data['type_names'].append(name)
         data['type_counts'].append(count)
@@ -633,6 +646,42 @@ def get_statistics(app):
         var_usage.append((len(used_by), name))
 
     var_usage.sort(reverse=True)
+
+    # Create the variable graph
+    # Limit the ammount of data.
+    if len(var_usage) > 100:
+        var_usage = var_usage[:100]
+    # First create the edges data.
+    edges = dict()
+    available_names = [v[1] for v in var_usage]
+    for co_occuring_vars in var_collection.req_var_mapping.values():
+        name_combinations = itertools.combinations(co_occuring_vars, 2)
+        for name_combination in name_combinations:
+            name = '_'.join(name_combination)
+            if name_combination[0] in available_names and name_combination[1] in available_names:
+                if name not in edges:
+                    edges[name] = {'source': name_combination[0], 'target': name_combination[1], 'weight': 0}
+                edges[name]['weight'] += 1
+
+    for count, name in var_usage:
+        if count > 0:
+            data['variable_graph'].append(
+                {
+                    'data': {
+                        'id': name,
+                        'size': count
+                    }
+
+                }
+            )
+
+    for edge, values in edges.items():
+        data['variable_graph'].append(
+            {
+                'data': {'id': edge, 'source': values['source'], 'target': values['target']}
+            }
+        )
+
     if len(var_usage) > 10:
         var_usage = var_usage[:10]
 
@@ -974,6 +1023,7 @@ class PrefixMiddleware(object):
 
 class ListStoredSessions(argparse.Action):
     """ List available session tags. """
+
     def __init__(self, option_strings, app, dest, *args, **kwargs):
         self.app = app
         super(ListStoredSessions, self).__init__(
