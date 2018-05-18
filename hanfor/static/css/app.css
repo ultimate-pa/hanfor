@@ -88,3 +88,12 @@ body.modal-open{
 .card-header{
     overflow: hidden;
 }
+
+/**
+* graph
+ */
+#cy {
+  width: 100%;
+  height: 800px;
+  display: block;
+}

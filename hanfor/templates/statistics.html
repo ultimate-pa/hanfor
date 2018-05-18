@@ -2,13 +2,53 @@
 {% extends "layout.html" %}
 {% block title %}Statistics{% endblock %}
 {% block body %}
+<div class="container-fluid">
     <h1>Statistics</h1>
-    <h4>Processed requirements.</h4>
-    <canvas id="processed_pie" width="50%"></canvas>
-    <h4>Requirement types.</h4>
-    <canvas id="requirement_types" width="50%"></canvas>
-    <h4>Most used variables.</h4>
-    <canvas id="top_variables" width="50%"></canvas>
+    <div class="row">
+        <div class="col-12">
+            <p>
+                To hide/unhide specific data, click on the label. <br />
+                Hover over the areas to get more information on the data via tooltip.
+            </p>
+        </div>
+    </div>
+    <h4>General Statistics.</h4>
+    <div class="row">
+        <div class="col-4">
+            <div class="card"><div class="card-body">
+            <h4 class="card-title">Processed requirements.</h4>
+            <canvas id="processed_pie" width="50%"></canvas>
+            </div></div>
+        </div>
+        <div class="col-4">
+            <div class="card"><div class="card-body">
+            <h4 class="card-title">Requirement types.</h4>
+            <canvas id="requirement_types" width="50%"></canvas>
+            </div></div>
+        </div>
+        <div class="col-4">
+            <div class="card"><div class="card-body">
+            <h4>Most used variables.</h4>
+            <canvas id="top_variables" width="50%"></canvas>
+            </div></div>
+        </div>
+    </div>
+    <hr />
+    <h4>Tags per type.</h4>
+    <div class="row" id="tags_per_type"></div>
+    <hr />
+    <h4>Status per type.</h4>
+    <div class="row" id="status_per_type"></div>
+    <hr />
+    <div class="row">
+        <div class="col-12">
+            <div class="card"><div class="card-body">
+            <h4 class="card-title">Variable Co-Occurrences.</h4>
+            <div id="cy"></div>
+            </div></div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 {% block scripts %}
     <script type="text/javascript" src="{{ url_for('static', filename='dist/stats-bundle.js') }}"></script>
