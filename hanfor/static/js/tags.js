@@ -101,7 +101,7 @@ $(document).ready(function() {
                             search_query = '?command=search&col=2&q=' + name;
                             result += '<span class="badge badge-info">' +
                                 '<a href="' + base_url + search_query + '" target="_blank">' + name + '</a>' +
-                                '</span></br>';
+                                '</span>';
                         }
                     });
                     return result;
@@ -144,8 +144,8 @@ $(document).ready(function() {
         event.preventDefault();
 
         // Get row data
-        var data = tags_datatable.row($(event.target).parent()).data();
-        var row_id = tags_datatable.row($(event.target).parent()).index();
+        let data = tags_datatable.row($(event.target).parent()).data();
+        let row_id = tags_datatable.row($(event.target).parent()).index();
 
         // Prepare tag modal
         tag_modal_content = $('.modal-content');
