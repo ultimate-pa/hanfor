@@ -19,6 +19,7 @@ function store_tag(tagss_datatable) {
     tag_name = $('#tag_name').val();
     tag_name_old = $('#tag_name_old').val();
     occurences = $('#occurences').val();
+    tag_color = $('#tag_color').val();
     associated_row_id = parseInt($('#modal_associated_row_index').val());
 
     // Store the tag.
@@ -26,7 +27,8 @@ function store_tag(tagss_datatable) {
         {
             name: tag_name,
             name_old: tag_name_old,
-            occurences: occurences
+            occurences: occurences,
+            color: tag_color
         },
         // Update tag table on success or show an error message.
         function( data ) {

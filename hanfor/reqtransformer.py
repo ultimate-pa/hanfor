@@ -821,3 +821,21 @@ class PatternVariable:
 
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()
+
+
+class Tag:
+    def __init__(self, name, color='#5bc0de'):
+        self.name = name
+        self.color = color
+
+    def __str__(self):
+        return self.name
+
+    def __hash__(self):
+        return hash(self.name)
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __ne__(self, other):
+        return self.name != other.name
