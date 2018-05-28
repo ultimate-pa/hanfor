@@ -428,7 +428,6 @@ function apply_multi_edit(requirements_table) {
         selected_ids.push(d['id']);
     } );
 
-    // Store the requirement.
     $.post( "api/req/multi_update",
         {
             add_tag: add_tag,
