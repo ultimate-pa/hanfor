@@ -16,6 +16,10 @@
                             <a class="nav-link" id="import-tab" data-toggle="tab" href="#import-pane" role="tab"
                                aria-controls="import" aria-selected="false">Import</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="multi-edit-tab" data-toggle="tab" href="#multi-edit-pane" role="tab"
+                               aria-controls="multi-edit" aria-selected="false">Edit Selected</a>
+                        </li>
                     </ul>
                 </div>
 
@@ -61,6 +65,21 @@
                                 {% endfor %}
                             </div>
                         </div>
+                        <div class="tab-pane fade" id="multi-edit-pane" role="tabpanel"
+                             aria-labelledby="multi-edit-tab">
+                            <div class="card-body">
+                                <div class="input-group top-padding">
+                                    <span class="input-group-addon" id="multi-change-type" style="width: 7em">To Type</span>
+                                    <input type="text" class="form-control" id="multi-change-type-input"
+                                           aria-describedby="multi-change-type">
+                                </div>
+                                <div class="input-group top-padding">
+                                    <button class="btn btn-primary btn-block apply-multi-edit" type="button">
+                                        Apply multi edit.
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -70,6 +89,9 @@
     <table id="variables_table" class="table table-hover table-bordered" width="100%" cellspacing="0">
         <thead>
         <tr>
+            <td>
+                <button class="btn btn-secondary btn-sm select-all-button" type="button">All</button>
+            </td>
             <th>Name</th>
             <th>Type</th>
             <th>Used by</th>
@@ -78,6 +100,9 @@
         </thead>
         <tfoot>
         <tr>
+            <td>
+                <button class="btn btn-secondary btn-sm select-all-button" type="button">All</button>
+            </td>
             <th>Name</th>
             <th>Type</th>
             <th>Used by</th>
@@ -85,6 +110,7 @@
         </tr>
         </tfoot>
         <tbody>
+            <tr></tr>
             <tr></tr>
             <tr></tr>
             <tr></tr>

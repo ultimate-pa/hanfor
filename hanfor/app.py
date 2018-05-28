@@ -280,6 +280,38 @@ def api(resource, command):
             result = utils.varcollection_diff_info(app, request)
         elif command == 'var_import_collection':
             result = utils.varcollection_import_collection(app, request)
+        elif command == 'multi_update':
+            logging.info('Multi edit Variables.')
+            result = {'success': True, 'errormsg': ''}
+
+            # Get user Input.
+            change_type = request.form.get('change_type', '').strip()
+            var_list = request.form.get('selected_vars', '')
+            if len(var_list) > 0:
+                var_list = json.loads(var_list)
+            if len(change_type) > 0:
+                logging.debug('Change type to `{}`.\nAffected Vars:\n{}'.format(change_type, '\n'.join(var_list)))
+            else:
+                result['success'] = False
+                result['errormsg'] = 'No variables selected.'
+
+            # Update all requirements given by the rid_list
+            if result['success']:
+                # Change the var type.
+                if len(change_type) > 0:
+                    var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+                    for var_name in var_list:
+                        try:
+                            logging.debug('Set type for `{}` to `{}`. Formerly was `{}`'.format(
+                                var_name,
+                                change_type,
+                                var_collection.collection[var_name].type
+                            ))
+                            var_collection.collection[var_name].type = change_type
+                        except KeyError:
+                            logging.debug('Variable `{}` not found'.format(var_list))
+                    var_collection.store()
+            return jsonify(result)
 
         return jsonify(result)
 

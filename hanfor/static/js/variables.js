@@ -2,6 +2,7 @@ require('gasparesganga-jquery-loading-overlay');
 require('bootstrap');
 require('bootstrap-confirmation2');
 require('datatables.net-bs4');
+require('datatables.net-select');
 require('jquery-ui/ui/widgets/autocomplete');
 require('./bootstrap-tokenfield.js');
 
@@ -126,12 +127,43 @@ function variable_is_const(revert) {
     }
 }
 
+function apply_multi_edit(tags_datatable) {
+    let page = $('body');
+    page.LoadingOverlay('show');
+    let change_type = $('#multi-change-type-input').val().trim();
+    let selected_vars = [];
+    tags_datatable.rows( {selected:true} ).every( function () {
+        let d = this.data();
+        selected_vars.push(d['name']);
+    } );
+
+    // Update selected vars.
+    $.post( "api/var/multi_update",
+        {
+            change_type: change_type,
+            selected_vars: JSON.stringify(selected_vars)
+        },
+        // Update requirements table on success or show an error message.
+        function( data ) {
+            page.LoadingOverlay('hide', true);
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                location.reload();
+            }
+    });
+}
+
 $(document).ready(function() {
     // Prepare and load the variables table.
     variables_table = $('#variables_table');
     tags_datatable = variables_table.DataTable({
         "paging": true,
         "stateSave": true,
+        "select": {
+            style:    'os',
+            selector: 'td:first-child'
+        },
         "pageLength": 50,
         "responsive": true,
         "lengthMenu": [[10, 50, 100, 500, -1], [10, 50, 100, 500, "All"]],
@@ -140,7 +172,15 @@ $(document).ready(function() {
         "deferRender": true,
         "columns": [
             {
+                "orderable": false,
+                "className": 'select-checkbox',
+                "targets": [0],
+                "data": null,
+                "defaultContent": ""
+            },
+            {
                 "data": "name",
+                "targets": [1],
                 "render": function ( data, type, row, meta ) {
                     result = '<a class="modal-opener" href="#">' + data + '</span></br>';
                     return result;
@@ -148,6 +188,7 @@ $(document).ready(function() {
             },
             {
                 "data": "type",
+                "targets": [2],
                 "render": function ( data, type, row, meta ) {
                     if (data !== null && available_types.indexOf(data) <= -1) {
                         available_types.push(data);
@@ -160,6 +201,7 @@ $(document).ready(function() {
             },
             {
                 "data": "used_by",
+                "targets": [3],
                 "render": function ( data, type, row, meta ) {
                     result = '';
                     $(data).each(function (id, name) {
@@ -181,6 +223,7 @@ $(document).ready(function() {
             },
             {
                 "data": "used_by",
+                "targets": [4],
                 "visible": false,
                 "searchable": false,
                 "render": function ( data, type, row, meta ) {
@@ -201,7 +244,8 @@ $(document).ready(function() {
             $('#search_bar').val(var_search_string);
         }
     });
-    tags_datatable.column(3).visible(false);
+    tags_datatable.column(3).visible(true);
+    tags_datatable.column(4).visible(false);
 
     // Bind big custom searchbar to search the table.
     $('#search_bar').keyup(function(){
@@ -276,4 +320,37 @@ $(document).ready(function() {
     $('#save_variable_import_modal').click(function ( e ) {
         import_variables();
     });
+
+    // Multiselect.
+    // Select single rows
+    $('.select-all-button').on('click', function (e) {
+        // Toggle selection on
+        if ($( this ).hasClass('btn-secondary')) {
+            tags_datatable.rows( {page:'current'} ).select();
+        }
+        else { // Toggle selection off
+            tags_datatable.rows( {page:'current'} ).deselect();
+        }
+        // Toggle button state.
+        $('.select-all-button').toggleClass('btn-secondary btn-primary');
+    });
+
+    // Toggle "Select all rows to `off` on user specific selection."
+    tags_datatable.on( 'user-select', function ( ) {
+        let select_buttons = $('.select-all-button');
+        select_buttons.removeClass('btn-primary');
+        select_buttons.addClass('btn-secondary ');
+    });
+
+    // Bind autocomplete for "edit-selected" types
+    $('#multi-change-type-input').autocomplete({
+        minLength: 0,
+        source: available_types,
+        delay: 100
+    }).on('focus', function() { $(this).keydown(); }).val('');
+
+    $('.apply-multi-edit').click(function () {
+        apply_multi_edit(tags_datatable);
+    });
+
 } );
