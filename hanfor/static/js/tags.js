@@ -9,9 +9,9 @@ let tag_search_string = sessionStorage.getItem('tag_search_string');
 
 /**
  * Store the currently active (in the modal) tag.
- * @param tagss_datatable
+ * @param tags_datatable
  */
-function store_tag(tagss_datatable) {
+function store_tag(tags_datatable) {
     tag_modal_content = $('.modal-content');
     tag_modal_content.LoadingOverlay('show');
 
@@ -101,7 +101,7 @@ $(document).ready(function() {
                     $(data).each(function (id, name) {
                         if (name.length > 0) {
                             search_query = '?command=search&col=2&q=' + name;
-                            result += '<span class="badge badge-info">' +
+                            result += '<span class="badge" style="background-color: ' + row.color +'">' +
                                 '<a href="' + base_url + search_query + '" target="_blank">' + name + '</a>' +
                                 '</span>';
                         }
@@ -152,6 +152,7 @@ $(document).ready(function() {
         // Prepare tag modal
         tag_modal_content = $('.modal-content');
         $('#tag_modal').modal('show');
+        $('#modal_associated_row_index').val(row_id);
 
         // Meta information
         $('#tag_name_old').val(data.name);
@@ -160,6 +161,7 @@ $(document).ready(function() {
         // Visible information
         $('#tag_modal_title').html('Tag: ' + data.name);
         $('#tag_name').val(data.name);
+        $('#tag_color').val(data.color);
 
         tag_modal_content.LoadingOverlay('hide');
     });

@@ -20,6 +20,7 @@ let visible_columns = [true, true, true, true, true, true];
 let search_tree = undefined;
 let filter_tree = undefined;
 let get_query = JSON.parse(search_query); // search_query is set in index.html
+let tag_colors = {};
 let type_inference_errors = [];
 let req_search_string = sessionStorage.getItem('req_search_string');
 let filter_status_string = sessionStorage.getItem('filter_status_string');
@@ -1068,6 +1069,13 @@ function init_datatable(columnDefs) {
 
 
 /**
+ * Get the color for a tag
+ */
+function get_tag_color(tag_name){
+    return tag_colors.hasOwnProperty(tag_name) ? tag_colors[tag_name] : '#5bc0de';
+}
+
+/**
  * Load requirements datatable definitions. Trigger build of a fresh requirement datatable.
  */
 function load_datatable(){
@@ -1114,7 +1122,8 @@ function load_datatable(){
                 result = '';
                 $(data).each(function (id, tag) {
                     if (tag.length > 0) {
-                        result += '<span class="badge badge-info">' + tag + '</span></br>';
+                        result += '<span class="badge" style="background-color: ' + get_tag_color(tag) + '">' +
+                            tag + '</span></br>';
                         // Add tag to available tags
                         if (available_tags.indexOf(tag) <= -1) {
                             available_tags.push(tag);
@@ -1183,10 +1192,21 @@ function init_modal() {
     update_vars();
 }
 
+
+/**
+ * Load the hanfor frontend meta settings.
+ */
+function load_meta_settings() {
+    $.get( "api/meta/get", '', function (data) {
+        tag_colors = data['tag_colors'];
+    });
+}
+
 /**
  * Start the app.
  */
 $(document).ready(function() {
+    load_meta_settings();
     load_datatable();
     init_modal();
 });

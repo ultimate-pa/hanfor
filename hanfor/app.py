@@ -95,7 +95,8 @@ def api(resource, command):
         'req',
         'var',
         'stats',
-        'tag'
+        'tag',
+        'meta'
     ]
     commands = [
         'get',
@@ -329,6 +330,10 @@ def api(resource, command):
             return jsonify(utils.update_tag(app, request))
         if command == 'del_tag':
             return jsonify(utils.update_tag(app, request, delete=True))
+
+    if resource == 'meta':
+        if command == 'get':
+            return jsonify(utils.MetaSettings(app.config['META_SETTTINGS_PATH']).__dict__)
 
     return jsonify({
         'success': False,
@@ -767,6 +772,13 @@ if __name__ == '__main__':
     if not os.path.exists(app.config['SESSION_VARIABLE_COLLECTION']):
         var_collection = VariableCollection()
         utils.pickle_dump_obj_to_file(var_collection, app.config['SESSION_VARIABLE_COLLECTION'])
+
+    # Initilize meta settings
+    app.config['META_SETTTINGS_PATH'] = os.path.join(app.config['SESSION_FOLDER'], 'meta_settings.pickle')
+    if not os.path.exists(app.config['META_SETTTINGS_PATH']):
+        meta_settings = dict()
+        meta_settings['tag_colors'] = dict()
+        utils.pickle_dump_obj_to_file(meta_settings, app.config['META_SETTTINGS_PATH'])
 
     # Run consistency checks.
     varcollection_consistency_check(app)

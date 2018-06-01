@@ -379,6 +379,16 @@ def get_available_tags(app):
 
     filenames = get_filenames_from_dir(app.config['REVISION_FOLDER'])
     collected_tags = dict()
+    meta_settings = MetaSettings(app.config['META_SETTTINGS_PATH'])
+
+    def get_color(tag_name):
+        col = '#5bc0de'
+        try:
+            col = meta_settings['tag_colors'][tag_name]
+        except KeyError:
+            pass
+        return col
+
     for filename in filenames:
         req = pickle_load_from_dump(filename)
         if type(req).__name__ == 'Requirement':
@@ -388,7 +398,8 @@ def get_available_tags(app):
                 if tag not in collected_tags.keys():
                     collected_tags[tag] = {
                         'name': tag,
-                        'used_by': list()
+                        'used_by': list(),
+                        'color': get_color(tag)
                     }
                 collected_tags[tag]['used_by'].append(req.rid)
 
@@ -416,6 +427,7 @@ def update_tag(app, request, delete=False):
     tag_name = request.form.get('name', '').strip()
     tag_name_old = request.form.get('name_old', '').strip()
     occurences = request.form.get('occurences', '').strip().split(',')
+    color = request.form.get('color', '#5bc0de').strip()  # Default = #5bc0de
 
     result = {
         'success': True,
@@ -423,7 +435,8 @@ def update_tag(app, request, delete=False):
         'rebuild_table': False,
         'data': {
             'name': tag_name,
-            'used_by': occurences
+            'used_by': occurences,
+            'color': color
         }
     }
 
@@ -457,6 +470,13 @@ def update_tag(app, request, delete=False):
                     requirement.tags.discard(tag_name_old)
                     requirement.tags.add(tag_name)
                     store_requirement(requirement, app)
+
+    # Store the color into meta settings.
+    meta_settings = MetaSettings(app.config['META_SETTTINGS_PATH'])
+    if 'tag_colors' not in meta_settings:
+        meta_settings['tag_colors'] = dict()
+    meta_settings['tag_colors'][tag_name] = color
+    meta_settings.update_storage()
 
     return result
 
@@ -1083,3 +1103,22 @@ class HanforArgumentParser(argparse.ArgumentParser):
             help="Generates ultimate formalization from an existing session and stores the result to .req file.",
             action=ParseSessionsToUltimateReqFile
         )
+
+
+class MetaSettings():
+    """ Just an auto saving minimal dict. """
+    def __init__(self, path):
+        self.__dict__ = pickle_load_from_dump(path)  # type: dict
+        self.path = path
+
+    def update_storage(self):
+        pickle_dump_obj_to_file(self.__dict__, self.path)
+
+    def __contains__(self, item):
+        return self.__dict__.__contains__(item)
+
+    def __setitem__(self, key, value):
+        self.__dict__.__setitem__(key, value)
+
+    def __getitem__(self, item):
+        return self.__dict__.__getitem__(item)
