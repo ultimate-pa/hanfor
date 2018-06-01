@@ -361,7 +361,7 @@ def varcollection_import_collection(app, request):
         'new_vars': numb_new_vars
     }
 
-    current_var_collection.store()
+    current_var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
 
     return result
 
