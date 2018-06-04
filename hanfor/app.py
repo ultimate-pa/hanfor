@@ -32,6 +32,7 @@ def nocache(view):
     """ Decorator for a flask view. If applied this will prevent caching.
 
     """
+
     @wraps(view)
     def no_cache(*args, **kwargs):
         response = make_response(view(*args, **kwargs))
@@ -288,10 +289,13 @@ def api(resource, command):
             # Get user Input.
             change_type = request.form.get('change_type', '').strip()
             var_list = request.form.get('selected_vars', '')
+            delete = request.form.get('del', 'false')
             if len(var_list) > 0:
                 var_list = json.loads(var_list)
             if len(change_type) > 0:
                 logging.debug('Change type to `{}`.\nAffected Vars:\n{}'.format(change_type, '\n'.join(var_list)))
+            if delete == 'true':
+                logging.debug('Deleting variables.\nAffected Vars:\n{}'.format(change_type, '\n'.join(var_list)))
             else:
                 result['success'] = False
                 result['errormsg'] = 'No variables selected.'
@@ -309,6 +313,19 @@ def api(resource, command):
                                 var_collection.collection[var_name].type
                             ))
                             var_collection.collection[var_name].type = change_type
+                        except KeyError:
+                            logging.debug('Variable `{}` not found'.format(var_list))
+                    var_collection.store()
+                if delete == 'true':
+                    var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+                    for var_name in var_list:
+                        try:
+                            logging.debug('Deleting `{}`'.format(var_name))
+                            if var_name not in var_collection.var_req_mapping \
+                                    or len(var_collection.var_req_mapping[var_name]) == 0:
+                                # Delete if var not used.
+                                var_collection.collection.pop(var_name, None)
+                                var_collection.var_req_mapping.pop(var_name, None)
                         except KeyError:
                             logging.debug('Variable `{}` not found'.format(var_list))
                     var_collection.store()

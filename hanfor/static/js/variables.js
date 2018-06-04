@@ -127,7 +127,7 @@ function variable_is_const(revert) {
     }
 }
 
-function apply_multi_edit(tags_datatable) {
+function apply_multi_edit(tags_datatable, del=false) {
     let page = $('body');
     page.LoadingOverlay('show');
     let change_type = $('#multi-change-type-input').val().trim();
@@ -141,7 +141,8 @@ function apply_multi_edit(tags_datatable) {
     $.post( "api/var/multi_update",
         {
             change_type: change_type,
-            selected_vars: JSON.stringify(selected_vars)
+            selected_vars: JSON.stringify(selected_vars),
+            del: del
         },
         // Update requirements table on success or show an error message.
         function( data ) {
@@ -351,6 +352,13 @@ $(document).ready(function() {
 
     $('.apply-multi-edit').click(function () {
         apply_multi_edit(tags_datatable);
+    });
+
+    // Multi Delete variables.
+    $('.delete_button').confirmation({
+      rootSelector: '.delete_button'
+    }).click(function () {
+        apply_multi_edit(tags_datatable, del=true);
     });
 
 } );
