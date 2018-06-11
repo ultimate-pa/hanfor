@@ -187,6 +187,29 @@ class Requirement:
         variable_collection.var_req_mapping = variable_collection.invert_mapping(variable_collection.req_var_mapping)
         variable_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
 
+    def update_formalization(self, formalization_id, scope_name, pattern_name, mapping, app, variable_collection=None):
+        if variable_collection is None:
+            variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+
+        # set scoped pattern
+        self.formalizations[formalization_id].scoped_pattern = ScopedPattern(
+            Scope[scope_name], Pattern(name=pattern_name)
+        )
+        # set parent
+        self.formalizations[formalization_id].belongs_to_requirement = self.rid
+        # Parse and set the expressions.
+        self.formalizations[formalization_id].set_expressions_mapping(
+            mapping=mapping,
+            variable_collection=variable_collection,
+            app=app,
+            rid=self.rid
+        )
+        if len(self.formalizations[formalization_id].type_inference_errors) > 0:
+            logging.debug('Type inference Error in formalization at {}.'.format(
+                [n for n in self.formalizations[formalization_id].type_inference_errors.keys()]
+            ))
+            self.tags.add('Type_inference_error')
+
     def update_formalizations(self, formalizations: dict, app):
         self.tags.discard('Type_inference_error')
         logging.debug('Updating formalizatioins of requirement {}.'.format(self.rid))
@@ -198,26 +221,14 @@ class Requirement:
             logging.debug('Updating formalizatioin No. {}.'.format(formalization['id']))
             logging.debug('Scope: `{}`, Pattern: `{}`.'.format(formalization['scope'], formalization['pattern']))
             try:
-                id = int(formalization['id'])
-                # set scoped pattern
-                self.formalizations[id].scoped_pattern = ScopedPattern(
-                    Scope[formalization['scope']], Pattern(name=formalization['pattern'])
-                )
-                # set parent
-                self.formalizations[id].belongs_to_requirement = self.rid
-                # Parse and set the expressions.
-                self.formalizations[id].set_expressions_mapping(
+                self.update_formalization(
+                    formalization_id=int(formalization['id']),
+                    scope_name=formalization['scope'],
+                    pattern_name=formalization['pattern'],
                     mapping=formalization['expression_mapping'],
-                    variable_collection=variable_collection,
                     app=app,
-                    rid=self.rid
+                    variable_collection=variable_collection
                 )
-                if len(self.formalizations[id].type_inference_errors) > 0:
-                    logging.debug('Type inference Error in formalization at {}.'.format(
-                        [n for n in self.formalizations[id].type_inference_errors.keys()]
-                    ))
-                    self.tags.add('Type_inference_error')
-
             except Exception as e:
                 logging.error('Could not update Formalization: {}'.format(e.__str__()))
                 raise e

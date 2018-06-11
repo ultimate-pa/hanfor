@@ -18,6 +18,7 @@ from functools import wraps, update_wrapper
 import reqtransformer
 from reqtransformer import RequirementCollection, Requirement, VariableCollection, Formalization, Variable, Scope, \
     ScopedPattern, Pattern
+from guessers import REGISTERED_GUESSERS
 
 # Create the app
 app = Flask(__name__)
@@ -107,11 +108,14 @@ def api(resource, command):
         'delete',
         'predict_pattern',
         'new_formalization',
+        'new_constraint',
         'del_formalization',
         'del_tag',
         'multi_update',
         'var_import_info',
-        'var_import_collection'
+        'var_import_collection',
+        'get_available_guesses',
+        'add_formalization_from_guess'
     ]
     if resource not in resources or command not in commands:
         return jsonify({
@@ -268,6 +272,69 @@ def api(resource, command):
             result['html'] = utils.formalizations_to_html(app, requirement.formalizations)
             return jsonify(result)
 
+        # Get available guesses.
+        if command == 'get_available_guesses' and request.method == 'POST':
+            result = {'success': True}
+            requirement_id = request.form.get('requirement_id', '')
+            requirement = utils.load_requirement_by_id(requirement_id, app)  # type: Requirement
+            if requirement is None:
+                result['success'] = False
+                result['errormsg'] = 'Requirement `{}` not found'.format(requirement_id)
+            else:
+                result['available_guesses'] = list()
+                tmp_guesses = list()
+                var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+
+                for guesser in REGISTERED_GUESSERS:
+                    try:
+                        tmp_guesses += guesser(requirement, var_collection, app).guess()
+                    except ValueError as e:
+                        result['success'] = False
+                        result['errormsg'] = 'Could not determine a guess: '
+                        result['errormsg'] += e.__str__()
+
+                tmp_guesses = sorted(tmp_guesses, key=lambda guess: guess[0])
+                for score, scoped_pattern, mapping in tmp_guesses:
+                    result['available_guesses'].append(
+                        {
+                            'scope': scoped_pattern.scope.name,
+                            'pattern': scoped_pattern.pattern.name,
+                            'mapping': mapping,
+                            'string': scoped_pattern.get_string(mapping)
+                        }
+                    )
+
+            return jsonify(result)
+
+        if command == 'add_formalization_from_guess' and request.method == 'POST':
+            requirement_id = request.form.get('requirement_id', '')
+            scope = request.form.get('scope', '')
+            pattern = request.form.get('pattern', '')
+            mapping = request.form.get('mapping', '')
+            mapping = json.loads(mapping)
+
+            # Add an empty Formalization.
+            requirement = utils.load_requirement_by_id(requirement_id, app)  # type: Requirement
+            formalization_id, formalization = requirement.add_empty_formalization()
+            # Add add content to the formalization.
+            requirement.update_formalization(
+                formalization_id=formalization_id,
+                scope_name=scope,
+                pattern_name=pattern,
+                mapping=mapping,
+                app=app
+            )
+            utils.store_requirement(requirement, app)
+
+            result = utils.get_formalization_template(
+                app.config['TEMPLATES_FOLDER'],
+                requirement,
+                formalization_id,
+                requirement.formalizations[formalization_id]
+            )
+
+            return jsonify(result)
+
     if resource == 'var':
         # Get available variables
         result = {
@@ -329,6 +396,10 @@ def api(resource, command):
                         except KeyError:
                             logging.debug('Variable `{}` not found'.format(var_list))
                     var_collection.store()
+            return jsonify(result)
+        elif command == 'new_constraint':
+            result = {'success': True, 'errormsg': ''}
+            result['html'] = "<p>Hallo... </p>"
             return jsonify(result)
 
         return jsonify(result)

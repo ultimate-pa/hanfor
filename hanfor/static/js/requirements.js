@@ -638,6 +638,35 @@ function add_formalization() {
 }
 
 
+function add_formalization_from_guess(scope, pattern, mapping) {
+    // Request a new Formalization. And add its edit elements to the modal.
+    let requirement_modal_content = $('.modal-content');
+    requirement_modal_content.LoadingOverlay('show');
+
+    let requirement_id = $('#requirement_id').val();
+    $.post( "api/req/add_formalization_from_guess",
+        {
+            requirement_id: requirement_id,
+            scope: scope,
+            pattern: pattern,
+            mapping: JSON.stringify(mapping)
+        },
+        function( data ) {
+            requirement_modal_content.LoadingOverlay('hide', true);
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                $('#formalization_accordion').append(data['html']);
+            }
+    }).done(function () {
+        update_vars();
+        update_formalization();
+        bind_expression_buttons();
+        bind_var_autocomplete();
+    });
+}
+
+
 function delete_formalization(formal_id) {
     requirement_modal_content = $('.modal-content');
     requirement_modal_content.LoadingOverlay('show');
@@ -1075,6 +1104,61 @@ function get_tag_color(tag_name){
     return tag_colors.hasOwnProperty(tag_name) ? tag_colors[tag_name] : '#5bc0de';
 }
 
+
+/**
+ * Load available guesses into the modal.
+ */
+function fetch_available_guesses() {
+    let modal = $('#requirement_guess_modal');
+    let available_guesses_cards = $('#available_guesses_cards');
+    let modal_content = $('.modal-content');
+    let requirement_id = $('#requirement_id').val();
+
+    modal.modal('show');
+    modal_content.LoadingOverlay('show');
+    available_guesses_cards.html('');
+
+    function add_available_guess(guess) {
+        let template = '<div id="available_guesses_cards" >' +
+            '                <div class="card">' +
+            '                    <div class="pl-1 pr-1">' +
+            '                        <p>'+
+            guess['string'] +
+            '                        </p>' +
+            '                    </div>' +
+            '                    <button type="button" class="btn btn-success btn-sm add_guess"' +
+            '                            title="Add formalization"' +
+            '                            data-scope="' + guess['scope'] + '"' +
+            '                            data-pattern="' + guess['pattern'] + '"' +
+            '                            data-mapping=\'' + JSON.stringify(guess['mapping']) + '\'>' +
+            '                        <strong>+ Add this formalization +</strong>' +
+            '                    </button>' +
+            '                </div>' +
+            '            </div>';
+        available_guesses_cards.append(template);
+    }
+
+    $.post( "api/req/get_available_guesses",
+        {
+            requirement_id: requirement_id
+        },
+        function (data) {
+            if (data['success'] === false) {
+                alert(data['errormsg'])
+            } else {
+                for (let i = 0; i < data['available_guesses'].length; i++) {
+                    add_available_guess(data['available_guesses'][i]);
+                }
+            }
+    }).done(function () {
+        $('.add_guess').click(function () {
+            add_formalization_from_guess($(this).data('scope'), $(this).data('pattern'), $(this).data('mapping'));
+        });
+        modal_content.LoadingOverlay('hide', true);
+    });
+}
+
+
 /**
  * Load requirements datatable definitions. Trigger build of a fresh requirement datatable.
  */
@@ -1164,6 +1248,7 @@ function load_datatable(){
     });
 }
 
+
 /**
  * Initialize the requirement modal behaviour.
  */
@@ -1186,6 +1271,11 @@ function init_modal() {
     // Listener for adding new formalizations.
     $('#add_formalization').click(function () {
         add_formalization();
+    });
+
+    // Listener for adding new geussed formalizations.
+    $('#add_gussed_formalization').click(function () {
+        fetch_available_guesses();
     });
 
     // Initialize variables.

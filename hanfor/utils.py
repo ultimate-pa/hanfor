@@ -128,17 +128,17 @@ def load_requirement_by_id(id, app):
     filepath = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(id))
     if os.path.exists(filepath) and os.path.isfile(filepath):
         return pickle_load_from_dump(filepath)
+    logging.info('Requirement `{}` at `{}` not found'.format(id, filepath))
 
 
 def get_formalization_template(templates_folder, requirement, formalization_id, formalization):
     result = {'success': True}
-    options = predict_scoped_pattern_to_options(requirement, reset=True)
 
     result['html'] = formalization_html(
         templates_folder,
         formalization_id,
-        options['scopes'],
-        options['patterns'],
+        default_scope_options,
+        default_pattern_options,
         formalization
     )
 
