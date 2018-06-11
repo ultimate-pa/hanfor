@@ -287,7 +287,9 @@ def api(resource, command):
 
                 for guesser in REGISTERED_GUESSERS:
                     try:
-                        tmp_guesses += guesser(requirement, var_collection, app).guess()
+                        guesser_instance = guesser(requirement, var_collection, app)
+                        guesser_instance.guess()
+                        tmp_guesses += guesser_instance.guesses
                     except ValueError as e:
                         result['success'] = False
                         result['errormsg'] = 'Could not determine a guess: '

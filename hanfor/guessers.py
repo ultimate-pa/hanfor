@@ -24,15 +24,16 @@ class AGuesser(ABC):
         self.requirement = requirement
         self.variable_collection = variable_collection
         self.app = app
+        self.guesses = list()
         super().__init__()
 
     @abstractmethod
     def guess(self):
         """ Determine formalization guess(es).
-        This method is expected to return a list containing guesses.
-        A valid returned list would be:
+        This method is expected to fill the self.guesses() list with guesses.
+        A valid append would be:
 
-            [
+            self.guesses.append(
                 Guess(
                     score=0.1,
                     scoped_pattern=ScopedPattern(
@@ -44,13 +45,9 @@ class AGuesser(ABC):
                         'R': 'Street_is_wet'
                     }
                 )
-            ]
-
-
-        :returns: list of guesses [guess, ... ]
-        :rtype: list
+            )
         """
-        pass
+        raise NotImplementedError
 
 
 class Guess(tuple):
@@ -124,39 +121,5 @@ class Guess(tuple):
 
         return super(Guess, cls).__new__(cls, tuple((score, scoped_pattern, mapping)))
 
-####################################################################
-# Add your Guessers here and decorate them with "@register_guesser".
-# On all registered guessers the results will be combined and added
-# to the available guesses.
-####################################################################
-
-
-@register_guesser
-class GuessSimpleInvariant(AGuesser):
-    """ A simple guesser implementation. Using regex to search for `var_a := var_b` """
-    def guess(self):
-        guesses = list()
-
-        regex = r"(.*):=(.*)"
-        # Search in the requirement description.
-        matches = re.finditer(regex, self.requirement.description, re.MULTILINE)
-
-        # For each match add a guess.
-        for match in matches:
-            scoped_pattern = ScopedPattern(
-                Scope['GLOBALLY'],
-                Pattern(name='Invariant')
-            )
-            mapping = {
-                'R': match.group(1).strip(),
-                'S': match.group(2).strip()
-            }
-            guesses.append(
-                Guess(
-                    score=1,
-                    scoped_pattern=scoped_pattern,
-                    mapping=mapping
-                )
-            )
-
-        return guesses
+# impport All guessers, so the decorated will be in REGISTERED_GUESSERS
+from local_guessers import *
