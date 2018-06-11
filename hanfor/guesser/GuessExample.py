@@ -1,17 +1,13 @@
 import re
 
-from guessers import AGuesser, register_guesser, Guess
+from guesser.AGuesser import AGuesser
+from guesser.Guess import Guess
+from guesser.guesser_registerer import register_guesser
 from reqtransformer import ScopedPattern, Scope, Pattern
-
-####################################################################
-# Add your Guessers here and decorate them with "@register_guesser".
-# On all registered guessers the results will be combined and added
-# to the available guesses.
-####################################################################
 
 
 @register_guesser
-class GuessSimpleInvariant(AGuesser):
+class GuessExample(AGuesser):
     """ A simple guesser implementation. Using regex to search for `var_a := var_b` """
     def guess(self):
         regex = r"(.*):=(.*)"

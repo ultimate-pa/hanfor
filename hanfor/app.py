@@ -18,7 +18,7 @@ from functools import wraps, update_wrapper
 import reqtransformer
 from reqtransformer import RequirementCollection, Requirement, VariableCollection, Formalization, Variable, Scope, \
     ScopedPattern, Pattern
-from guessers import REGISTERED_GUESSERS
+from guesser.guesser_registerer import REGISTERED_GUESSERS
 
 # Create the app
 app = Flask(__name__)
