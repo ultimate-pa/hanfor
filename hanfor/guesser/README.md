@@ -15,4 +15,4 @@ Assume you want to implement `FancyGuesser`.
     5. Decorate your gesser with @register_guesser so it will be taken into account 
        when hanfor derives the formalization guesses.
 
-See `GuessExample.py` for a example implementation.
+See `GuesserExample.py` for a example implementation.

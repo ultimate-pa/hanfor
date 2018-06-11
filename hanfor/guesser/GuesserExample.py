@@ -7,7 +7,7 @@ from reqtransformer import ScopedPattern, Scope, Pattern
 
 
 @register_guesser
-class GuessExample(AGuesser):
+class GuesserExample(AGuesser):
     """ A simple guesser implementation. Using regex to search for `var_a := var_b` """
     def guess(self):
         regex = r"(.*):=(.*)"
