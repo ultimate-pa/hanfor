@@ -821,6 +821,7 @@ function bind_requirement_id_to_modals(requirements_table) {
             // Visible information
             $('#requirement_modal_title').html(data.id + ': ' + data.type);
             $('#description_textarea').text(data.desc);
+            $('#add_guess_description').text(data.desc);
 
             // Parse the formalizations
             $('#formalization_accordion').html(data.formalizations_html);
