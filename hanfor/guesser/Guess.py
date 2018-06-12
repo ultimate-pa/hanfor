@@ -2,7 +2,7 @@ from reqtransformer import ScopedPattern
 
 
 class Guess(tuple):
-    """ A guess should be used by an AGuesser implementation. """
+    """ A guess should be used by an AbstractGuesser implementation. """
     def __init__(cls, score, scoped_pattern, mapping):
         # This is just a dummy __init__ to make documentation work
         """ A single `guess` is represented by tuple:

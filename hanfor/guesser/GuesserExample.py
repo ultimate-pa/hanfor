@@ -1,13 +1,13 @@
 import re
 
-from guesser.AGuesser import AGuesser
+from guesser.AbstractGuesser import AbstractGuesser
 from guesser.Guess import Guess
 from guesser.guesser_registerer import register_guesser
 from reqtransformer import ScopedPattern, Scope, Pattern
 
 
 @register_guesser
-class GuesserExample(AGuesser):
+class GuesserExample(AbstractGuesser):
     """ A simple guesser implementation. Using regex to search for `var_a := var_b` """
     def guess(self):
         regex = r"(.*):=(.*)"
