@@ -133,7 +133,7 @@ class Requirement:
             'desc': self.description,
             'type': self.type_in_csv if type(self.type_in_csv) is str else self.type_in_csv[0],
             'tags': sorted([tag for tag in self.tags]),
-            'formal': [f.to_dict() for f in self.formalizations],
+            'formal': [f.get_string() for f in self.formalizations],
             'scope': 'None',
             'pattern': 'None',
             'vars': dict(),
