@@ -473,6 +473,7 @@ def index():
         {'name': 'Type', 'target': 4},
         {'name': 'Tags', 'target': 5},
         {'name': 'Status', 'target': 6},
+        {'name': 'Formalization', 'target': 7}
     ]
     additional_cols = utils.get_datatable_additional_cols(app)['col_defs']
     return render_template('index.html', query=query, additional_cols=additional_cols, default_cols=default_cols)

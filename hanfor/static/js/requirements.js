@@ -1229,6 +1229,21 @@ function load_datatable(){
                 result = '<span class="badge badge-info">' + data + '</span></br>';
                 return result;
             }
+        },
+        {
+            "targets": [7],
+            "data": "formal",
+            "render": function (data, type, row, meta) {
+                result = '';
+                if (row.formal.length > 0) {
+                    $(data).each(function (id, formalization) {
+                        if (formalization.length > 0) {
+                            result += '<p>' + formalization + '</p>';
+                        }
+                    });
+                }
+                return result;
+            }
         }
     ];
     // Load generic colums.

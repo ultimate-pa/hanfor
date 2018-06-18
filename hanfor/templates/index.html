@@ -87,7 +87,7 @@
                                 class="btn btn-info btn-sm colum-toggle-button"
                                 type="button"
                                 data-column="{{ col.target }}">
-                            {{ col.table_header_name|title }} ({{ loop.index + 6 }})
+                            {{ col.table_header_name|title }} ({{ loop.index + 7 }})
                         </button>
                         {% endfor %}
                         <button class="btn btn-danger btn-sm reset-colum-toggle">Reset</button>
@@ -163,6 +163,7 @@
         <th class="default-col">Type</th>
         <th class="default-col">Tags</th>
         <th class="default-col">Status</th>
+        <th class="default-col">Formalization</th>
         {% for col in additional_cols %}
         <th class="extra-col">{{ col.table_header_name|title }}</th>
         {% endfor %}
@@ -179,6 +180,7 @@
         <th class="default-col">Type</th>
         <th class="default-col">Tags</th>
         <th class="default-col">Status</th>
+        <th class="default-col">Formalization</th>
         {% for col in additional_cols %}
         <th class="extra-col">{{ col.table_header_name|title }}</th>
         {% endfor %}

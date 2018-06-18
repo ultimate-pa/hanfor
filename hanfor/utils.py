@@ -997,7 +997,7 @@ def register_assets(app):
 
 
 def get_datatable_additional_cols(app):
-    offset = 7  # we have 7 fixed cols.
+    offset = 8  # we have 8 fixed cols.
     result = list()
     session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])  # type: dict
 
