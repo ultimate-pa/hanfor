@@ -115,7 +115,8 @@ def api(resource, command):
         'var_import_info',
         'var_import_collection',
         'get_available_guesses',
-        'add_formalization_from_guess'
+        'add_formalization_from_guess',
+        'multi_add_top_guess'
     ]
     if resource not in resources or command not in commands:
         return jsonify({
@@ -334,6 +335,46 @@ def api(resource, command):
                 formalization_id,
                 requirement.formalizations[formalization_id]
             )
+
+            return jsonify(result)
+
+        if command == 'multi_add_top_guess' and request.method == 'POST':
+            result = {'success': True}
+            requirement_ids = request.form.get('selected_ids', '')
+            if len(requirement_ids) > 0:
+                requirement_ids = json.loads(requirement_ids)
+            else:
+                result['success'] = False
+                result['errormsg'] = 'No requirements selected.'
+
+            var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+            for req_id in requirement_ids:
+                requirement = utils.load_requirement_by_id(req_id, app)  # type: Requirement
+                if requirement is not None:
+                    logging.info('Add top guess to requirement `{}`'.format(req_id))
+                    tmp_guesses = list()
+                    for guesser in REGISTERED_GUESSERS:
+                        try:
+                            guesser_instance = guesser(requirement, var_collection, app)
+                            guesser_instance.guess()
+                            tmp_guesses += guesser_instance.guesses
+                            tmp_guesses = sorted(tmp_guesses, key=lambda guess: guess[0])
+                            if len(tmp_guesses) > 0:
+                                score, scoped_pattern, mapping = tmp_guesses[0]
+                                formalization_id, formalization = requirement.add_empty_formalization()
+                                # Add add content to the formalization.
+                                requirement.update_formalization(
+                                    formalization_id=formalization_id,
+                                    scope_name=scoped_pattern.scope.name,
+                                    pattern_name=scoped_pattern.pattern.name,
+                                    mapping=mapping,
+                                    app=app
+                                )
+                                utils.store_requirement(requirement, app)
+                        except ValueError as e:
+                            result['success'] = False
+                            result['errormsg'] = 'Could not determine a guess: '
+                            result['errormsg'] += e.__str__()
 
             return jsonify(result)
 

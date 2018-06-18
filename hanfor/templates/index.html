@@ -111,10 +111,27 @@
                                 <input type="text" class="form-control" id="multi-set-status-input"
                                        aria-describedby="type-filter">
                             </div>
-                            <div class="input-group top-padding">
-                                <button class="btn btn-primary btn-block apply-multi-edit" type="button">
-                                    Apply multi edit.
-                                </button>
+                            <div class="row top-padding">
+                                <div class="col-12">
+                                    <div class="btn-group">
+                                        <button class="btn btn-primary apply-multi-edit" type="button">
+                                            Apply multi edit.
+                                        </button>
+                                    </div>
+                                    <div class="btn-group">
+                                        <button name="add-top-guess"
+                                                class="add_top_guess_button btn btn-warning"
+                                                data-toggle="confirmation"
+                                                data-btn-ok-label="Yes"
+                                                data-btn-ok-class="btn-success"
+                                                data-btn-cancel-label="Nooo Stoooop!"
+                                                data-btn-cancel-class="btn-danger"
+                                                data-title="Sure?"
+                                                data-content="Add top ranked guess to all selected requirements?">
+                                              Add first guess to selected.
+                                            </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

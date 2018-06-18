@@ -417,17 +417,30 @@ function store_requirement(requirements_table) {
     });
 }
 
+
+/***
+ *
+ * @param requirements_table
+ * @returns {Array} User selected requirement ids.
+ */
+function get_selected_requirement_ids(requirements_table) {
+    let selected_ids = [];
+    requirements_table.rows( {selected:true} ).every( function () {
+        let d = this.data();
+        selected_ids.push(d['id']);
+    } );
+
+    return selected_ids
+}
+
+
 function apply_multi_edit(requirements_table) {
     let page = $('body');
     page.LoadingOverlay('show');
     let add_tag = $('#multi-add-tag-input').val().trim();
     let remove_tag = $('#multi-remove-tag-input').val().trim();
     let set_status = $('#multi-set-status-input').val().trim();
-    let selected_ids = [];
-    requirements_table.rows( {selected:true} ).every( function () {
-        let d = this.data();
-        selected_ids.push(d['id']);
-    } );
+    let selected_ids = get_selected_requirement_ids(requirements_table);
 
     $.post( "api/req/multi_update",
         {
@@ -447,6 +460,26 @@ function apply_multi_edit(requirements_table) {
     });
 }
 
+
+function add_top_guess_to_selected_requirements(requirements_table) {
+    let page = $('body');
+    page.LoadingOverlay('show');
+    let selected_ids = get_selected_requirement_ids(requirements_table);
+
+    $.post( "api/req/multi_add_top_guess",
+        {
+            selected_ids: JSON.stringify(selected_ids)
+        },
+        // Update requirements table on success or show an error message.
+        function( data ) {
+            page.LoadingOverlay('hide', true);
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                location.reload();
+            }
+    });
+}
 
 /**
  * Enable/disable the active variables (P, Q, R, ...) in the requirement modal based on scope and pattern.
@@ -1040,6 +1073,13 @@ function init_datatable_manipulators(requirements_table) {
 
     $('.apply-multi-edit').click(function () {
         apply_multi_edit(requirements_table);
+    });
+
+    // Multi Delete variables.
+    $('.add_top_guess_button').confirmation({
+      rootSelector: '.add_top_guess_button'
+    }).click(function () {
+        add_top_guess_to_selected_requirements(requirements_table);
     });
 }
 
