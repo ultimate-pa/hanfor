@@ -4,6 +4,8 @@
 @licence: GPLv3
 """
 import argparse
+from typing import Union
+
 import boogie_parsing
 import csv
 import datetime
@@ -1011,6 +1013,60 @@ def get_datatable_additional_cols(app):
         )
 
     return {'col_defs': result}
+
+
+def add_msg_to_flask_session_log(session, msg, rid=None, rid_list=None, clear=False, max_msg=50) -> None:
+    """ Add a log message for the frontend to the flask session.
+
+    :param max_msg: Max number of messages to keep in the log.
+    :param rid_list: A list of affected requirement IDs
+    :param rid: Affected requirement id
+    :param session: The flask session
+    :param msg: Log message string
+    :param clear: Turncate the logs if set to true (false on default).
+    """
+    if clear or 'hanfor_log' not in session:
+        session['hanfor_log'] = list()
+
+    if rid is not None:
+        template = '[{timestamp}] {message} <a class="req_direct_link" href="#" data-rid="{rid}">{rid}</a>'
+    else:
+        template = '[{timestamp}] {message}'
+
+    if rid_list is not None:
+        template += ','.join([
+            ' <a class="req_direct_link" href="#" data-rid="{rid}">{rid}</a>'.format(rid=rid) for rid in rid_list
+        ])
+
+    session['hanfor_log'].append(template.format(
+            timestamp=datetime.datetime.now(),
+            message=msg,
+            rid=rid)
+    )
+
+    # Remove oldest logs until threshold
+    while len(session['hanfor_log']) > max_msg:
+        session['hanfor_log'].pop(0)
+
+
+def get_flask_session_log(session, html=False) -> Union[list, str]:
+    """ Get the frontent log messages from flask session.
+
+    :param session: The flask session
+    :param html: Return formatted html version.
+    :return: list of messages or html string in case `html == True`
+    """
+    result = list()
+    if 'hanfor_log' in session:
+        result = session['hanfor_log']
+
+    if html:
+        tmp = ''
+        for msg in result:
+            tmp += '<p>{}</p>'.format(msg)
+        result = tmp
+
+    return result
 
 
 def slugify(s):

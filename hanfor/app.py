@@ -11,7 +11,7 @@ import logging
 import os
 import utils
 
-from flask import Flask, render_template, request, jsonify, url_for, make_response, send_file, json
+from flask import Flask, render_template, request, jsonify, url_for, make_response, send_file, json, session
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_restful import reqparse, abort, Api, Resource
 from functools import wraps, update_wrapper
@@ -98,7 +98,8 @@ def api(resource, command):
         'var',
         'stats',
         'tag',
-        'meta'
+        'meta',
+        'logs'
     ]
     commands = [
         'get',
@@ -130,10 +131,11 @@ def api(resource, command):
             id = request.args.get('id', '')
             requirement = utils.load_requirement_by_id(id, app)  # type: Requirement
             var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
-            # VariableCollection
+
             result = requirement.to_dict()
             result['formalizations_html'] = utils.formalizations_to_html(app, requirement.formalizations)
             result['available_vars'] = var_collection.get_available_var_names_list(used_only=False)
+
             if requirement:
                 return jsonify(result)
 
@@ -151,6 +153,7 @@ def api(resource, command):
         # Update a requirement
         if command == 'update' and request.method == 'POST':
             id = request.form.get('id', '')
+            row_idx = request.form.get('row_idx', '')
             requirement = utils.load_requirement_by_id(id, app)  # type: Requirement
             error = False
             error_msg = ''
@@ -168,6 +171,7 @@ def api(resource, command):
                     logging.debug('Updated Formalizations: {}'.format(formalizations))
                     try:
                         requirement.update_formalizations(formalizations, app)
+                        utils.add_msg_to_flask_session_log(session, 'Updated requirement', id)
                     except KeyError as e:
                         error = True
                         error_msg = 'Could not set formalization: Missing expression/variable for {}'.format(e)
@@ -217,10 +221,28 @@ def api(resource, command):
                 log_msg = 'Update {} requirements.'.format(len(rid_list))
                 if len(add_tag) > 0:
                     log_msg += ' Adding tag `{}`'.format(add_tag)
+                    utils.add_msg_to_flask_session_log(
+                        session, 'Adding tag `{}` to requirements.'.format(
+                            add_tag
+                        ),
+                        rid_list=rid_list
+                    )
                 if len(remove_tag) > 0:
                     log_msg += ', removing Tag `{}` (is present)'.format(remove_tag)
+                    utils.add_msg_to_flask_session_log(
+                        session, 'Removing tag `{}` from requirements.'.format(
+                            remove_tag
+                        ),
+                        rid_list=rid_list
+                    )
                 if len(set_status) > 0:
                     log_msg += ', set Status=`{}`.'.format(set_status)
+                    utils.add_msg_to_flask_session_log(
+                        session, 'Set status to `{}` for requirements. '.format(
+                            set_status
+                        ),
+                        rid_list=rid_list
+                    )
                 logging.info(log_msg)
 
                 for rid in rid_list:
@@ -254,6 +276,7 @@ def api(resource, command):
             requirement = utils.load_requirement_by_id(id, app)  # type: Requirement
             formalization_id, formalization = requirement.add_empty_formalization()
             utils.store_requirement(requirement, app)
+            utils.add_msg_to_flask_session_log(session, 'Added new Formalization to requirement', id)
             result = utils.get_formalization_template(
                 app.config['TEMPLATES_FOLDER'],
                 requirement,
@@ -270,6 +293,7 @@ def api(resource, command):
             requirement = utils.load_requirement_by_id(requirement_id, app)  # type: Requirement
             requirement.delete_formalization(formalization_id, app)
             utils.store_requirement(requirement, app)
+            utils.add_msg_to_flask_session_log(session, 'Deleted formalization from requirement', requirement_id)
             result['html'] = utils.formalizations_to_html(app, requirement.formalizations)
             return jsonify(result)
 
@@ -328,6 +352,7 @@ def api(resource, command):
                 app=app
             )
             utils.store_requirement(requirement, app)
+            utils.add_msg_to_flask_session_log(session, 'Added formalization guess to requirement', requirement_id)
 
             result = utils.get_formalization_template(
                 app.config['TEMPLATES_FOLDER'],
@@ -375,6 +400,7 @@ def api(resource, command):
                             result['success'] = False
                             result['errormsg'] = 'Could not determine a guess: '
                             result['errormsg'] += e.__str__()
+            utils.add_msg_to_flask_session_log(session, 'Added top guess to requirements', rid_list=requirement_ids)
 
             return jsonify(result)
 
@@ -465,6 +491,10 @@ def api(resource, command):
     if resource == 'meta':
         if command == 'get':
             return jsonify(utils.MetaSettings(app.config['META_SETTTINGS_PATH']).__dict__)
+
+    if resource == 'logs':
+        if command == 'get':
+            return utils.get_flask_session_log(session, html=True)
 
     return jsonify({
         'success': False,

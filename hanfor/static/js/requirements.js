@@ -400,6 +400,7 @@ function store_requirement(requirements_table) {
     $.post( "api/req/update",
         {
             id: req_id,
+            row_idx: associated_row_id,
             update_formalization: updated_formalization,
             tags: req_tags,
             status: req_status,
@@ -414,6 +415,8 @@ function store_requirement(requirements_table) {
                 requirements_table.row(associated_row_id).data(data);
                 $('#requirement_modal').modal('hide');
             }
+    }).done(function () {
+        update_logs();
     });
 }
 
@@ -667,6 +670,7 @@ function add_formalization() {
         update_formalization();
         bind_expression_buttons();
         bind_var_autocomplete();
+        update_logs();
     });
 }
 
@@ -696,6 +700,7 @@ function add_formalization_from_guess(scope, pattern, mapping) {
         update_formalization();
         bind_expression_buttons();
         bind_var_autocomplete();
+        update_logs();
     });
 }
 
@@ -721,6 +726,7 @@ function delete_formalization(formal_id) {
         update_formalization();
         bind_expression_buttons();
         bind_var_autocomplete();
+        update_logs();
     });
 }
 
@@ -817,6 +823,76 @@ function prevent_double_token_insert() {
     });
 }
 
+function load_requirement(row_idx) {
+    if (row_idx === -1) {
+        alert("Requirement not found.");
+        return
+    }
+
+    // Get row data
+    let data = requirements_table.row(row_idx).data();
+
+    // Prepare requirement Modal
+    requirement_modal_content = $('.modal-content');
+    $('#requirement_modal').modal('show');
+    requirement_modal_content.LoadingOverlay('show');
+    $('#formalization_accordion').html('');
+
+    // Set available tags.
+    $('#requirement_tag_field').data('bs.tokenfield').$input.autocomplete({source: available_tags});
+
+    // Get the requirement data and set the modal.
+    requirement = $.get( "api/req/get", { id: data['id'], row_idx: row_idx }, function (data) {
+        // Meta information
+        $('#requirement_id').val(data.id);
+        $('#requirement_formalization_updated').val('false');
+        $('#modal_associated_row_index').val(row_idx);
+        available_vars = data.available_vars;
+        type_inference_errors = data.type_inference_errors;
+        update_fuse();
+
+        // Visible information
+        $('#requirement_modal_title').html(data.id + ': ' + data.type);
+        $('#description_textarea').text(data.desc);
+        $('#add_guess_description').text(data.desc);
+
+        // Parse the formalizations
+        $('#formalization_accordion').html(data.formalizations_html);
+
+        $('#requirement_scope').val(data.scope);
+        $('#requirement_pattern').val(data.pattern);
+
+        // Set the tags
+        $('#requirement_tag_field').tokenfield('setTokens', data.tags);
+        $('#requirement_status').val(data.status);
+
+        // Set csv_data
+        csv_row_content = $('#csv_content_accordion');
+        csv_row_content.html('');
+        csv_row_content.collapse('hide');
+        let csv_data = data.csv_data;
+        for(const key in csv_data){
+            if (csv_data.hasOwnProperty(key)){
+                const value = csv_data[key];
+                csv_row_content.append('<p><strong>' + key + ':</strong>' + value + '</p>');
+            }
+        }
+        if (data.success === false) {
+            alert('Could Not load the Requirement: ' + data.errormsg);
+        }
+    } ).done(function () {
+        // Update visible Vars.
+        update_vars();
+        // Handle autocompletion for variables.
+        bind_var_autocomplete();
+        // Update available vars based on the selection of requirement and pattern.
+        bind_expression_buttons();
+        // Prevent inserting a token twice on enter
+        prevent_double_token_insert();
+        requirement_modal_content.LoadingOverlay('hide', true);
+    });
+}
+
 /**
  * Bind the Links to open a requirement modal.
  * Implement Behaviour:
@@ -828,69 +904,8 @@ function bind_requirement_id_to_modals(requirements_table) {
     $('#requirements_table').find('tbody').on('click', 'a', function (event) {
         // prevent body to be scrolled to the top.
         event.preventDefault();
-
-        // Get row data
-        let data = requirements_table.row($(event.target).parent()).data();
-        let row_id = requirements_table.row($(event.target).parent()).index();
-
-        // Prepare requirement Modal
-        requirement_modal_content = $('.modal-content');
-        $('#requirement_modal').modal('show');
-        requirement_modal_content.LoadingOverlay('show');
-        $('#formalization_accordion').html('');
-
-        // Set available tags.
-        $('#requirement_tag_field').data('bs.tokenfield').$input.autocomplete({source: available_tags});
-
-        // Get the requirement data and set the modal.
-        requirement = $.get( "api/req/get", { id: data['id']}, function (data) {
-            // Meta information
-            $('#requirement_id').val(data.id);
-            $('#requirement_formalization_updated').val('false');
-            $('#modal_associated_row_index').val(row_id);
-            available_vars = data.available_vars;
-            type_inference_errors = data.type_inference_errors;
-            update_fuse();
-            // Visible information
-            $('#requirement_modal_title').html(data.id + ': ' + data.type);
-            $('#description_textarea').text(data.desc);
-            $('#add_guess_description').text(data.desc);
-
-            // Parse the formalizations
-            $('#formalization_accordion').html(data.formalizations_html);
-
-            $('#requirement_scope').val(data.scope);
-            $('#requirement_pattern').val(data.pattern);
-
-            // Set the tags
-            $('#requirement_tag_field').tokenfield('setTokens', data.tags);
-            $('#requirement_status').val(data.status);
-
-            // Set csv_data
-            csv_row_content = $('#csv_content_accordion');
-            csv_row_content.html('');
-            csv_row_content.collapse('hide');
-            let csv_data = data.csv_data;
-            for(const key in csv_data){
-                if (csv_data.hasOwnProperty(key)){
-                    const value = csv_data[key];
-                    csv_row_content.append('<p><strong>' + key + ':</strong>' + value + '</p>');
-                }
-            }
-            if (data.success === false) {
-                alert('Could Not load the Requirement: ' + data.errormsg);
-            }
-        } ).done(function () {
-            // Update visible Vars.
-            update_vars();
-            // Handle autocompletion for variables.
-            bind_var_autocomplete();
-            // Update available vars based on the selection of requirement and pattern.
-            bind_expression_buttons();
-            // Prevent inserting a token twice on enter
-            prevent_double_token_insert();
-            requirement_modal_content.LoadingOverlay('hide', true);
-        });
+        let row_idx = requirements_table.row($(event.target).parent()).index();
+        load_requirement(row_idx);
     } );
 }
 
@@ -1348,6 +1363,45 @@ function load_meta_settings() {
     });
 }
 
+
+/**
+ * Find the datatable row index for a requirement by its requirement id.
+ * @param {number} rid the requirement id.
+ * @returns {number} row_index the datatables row index.
+ */
+function get_rowidx_by_reqid(rid) {
+    let requirement_table = $('#requirements_table').DataTable();
+    let result = -1;
+    let filteredData = requirement_table
+        .column( 2 )
+        .data()
+        .filter( function ( value, index ) {
+            if (value === rid) {
+                result = index;
+                return true;
+            }
+            return false;
+        } );
+
+    return result;
+}
+
+
+/**
+ * Refresh the hanfor frontend logs.
+ */
+function update_logs() {
+    $.get( "api/logs/get", '', function (data) {
+        $('#log_textarea').html(data);
+    }).done(function () {
+        // Bind direct requirement links to load the modal.
+        $('.req_direct_link').click( function () {
+            load_requirement(get_rowidx_by_reqid($(this).data("rid")));
+        });
+        $('#log_textarea').scrollTop( 1000 );
+    });
+}
+
 /**
  * Start the app.
  */
@@ -1355,4 +1409,5 @@ $(document).ready(function() {
     load_meta_settings();
     load_datatable();
     init_modal();
+    update_logs();
 });
