@@ -1028,10 +1028,10 @@ def add_msg_to_flask_session_log(session, msg, rid=None, rid_list=None, clear=Fa
     if clear or 'hanfor_log' not in session:
         session['hanfor_log'] = list()
 
+    template = '[{timestamp}] {message}'
+    
     if rid is not None:
-        template = '[{timestamp}] {message} <a class="req_direct_link" href="#" data-rid="{rid}">{rid}</a>'
-    else:
-        template = '[{timestamp}] {message}'
+        template += ' <a class="req_direct_link" href="#" data-rid="{rid}">{rid}</a>'
 
     if rid_list is not None:
         template += ','.join([
