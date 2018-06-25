@@ -289,9 +289,9 @@ def choice(choices, default):
         print('Illegal choice "' + str(choice) + '", choose again')
 
 
-def get_available_vars(app, parser=None, full=False):
+def get_available_vars(app, full=True):
     var_collection = pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
-    result = var_collection.get_available_vars_list(used_only=False)
+    result = var_collection.get_available_vars_list(used_only=not full)
 
     return result
 
@@ -1029,7 +1029,7 @@ def add_msg_to_flask_session_log(session, msg, rid=None, rid_list=None, clear=Fa
         session['hanfor_log'] = list()
 
     template = '[{timestamp}] {message}'
-    
+
     if rid is not None:
         template += ' <a class="req_direct_link" href="#" data-rid="{rid}">{rid}</a>'
 

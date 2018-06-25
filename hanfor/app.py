@@ -3,17 +3,14 @@
 @copyright: 2018 Samuel Roth <samuel@smel.de>
 @licence: GPLv3
 """
-import sys
-
-import boogie_parsing
 import datetime
 import logging
 import os
+import sys
 import utils
 
 from flask import Flask, render_template, request, jsonify, url_for, make_response, send_file, json, session
 from flask_debugtoolbar import DebugToolbarExtension
-from flask_restful import reqparse, abort, Api, Resource
 from functools import wraps, update_wrapper
 import reqtransformer
 from reqtransformer import RequirementCollection, Requirement, VariableCollection, Formalization, Variable, Scope, \
@@ -23,11 +20,6 @@ from guesser.guesser_registerer import REGISTERED_GUESSERS
 # Create the app
 app = Flask(__name__)
 app.config.from_object('config')
-api = Api(app)
-app.wsgi_app = utils.PrefixMiddleware(app.wsgi_app, prefix=app.config['URL_PREFIX'])
-HERE = os.path.dirname(os.path.realpath(__file__))
-boogie_parser = boogie_parsing.get_parser_instance()
-
 
 def nocache(view):
     """ Decorator for a flask view. If applied this will prevent caching.
@@ -411,7 +403,7 @@ def api(resource, command):
             'errormsg': 'sorry, request not supported.'
         }
         if command == 'gets':
-            result = {'data': utils.get_available_vars(app, parser=boogie_parser, full=True)}
+            result = {'data': utils.get_available_vars(app, full=True)}
         elif command == 'update':
             result = utils.update_variable_in_collection(app, request)
         elif command == 'var_import_info':
@@ -848,15 +840,16 @@ def load_revision(revision_id):
 
 if __name__ == '__main__':
     utils.setup_logging(app)
+    app.wsgi_app = utils.PrefixMiddleware(app.wsgi_app, prefix=app.config['URL_PREFIX'])
+    HERE = os.path.dirname(os.path.realpath(__file__))
 
-    # Setup for debug
     app.debug = app.config['DEBUG_MODE']
-
     if app.config['DEBUG_MODE']:
         toolbar = DebugToolbarExtension(app)
+
     utils.register_assets(app)
 
-    # Parse python args and init config.
+    # Parse python args and init session variables.
     args = utils.HanforArgumentParser(app).parse_args()
     app.config['SESSION_TAG'] = args.tag
     if app.config['SESSION_BASE_FOLDER'] is None:
@@ -864,7 +857,7 @@ if __name__ == '__main__':
     else:
         app.config['SESSION_FOLDER'] = os.path.join(app.config['SESSION_BASE_FOLDER'], app.config['SESSION_TAG'])
 
-    # Create a new revision.
+    # Create a new revision if requested.
     if args.revision:
         logging.info('Generating a new revision.')
         available_sessions = utils.get_stored_session_names(app.config['SESSION_BASE_FOLDER'], only_names=True)
