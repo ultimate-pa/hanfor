@@ -1121,14 +1121,6 @@ class ListStoredSessions(argparse.Action):
         exit(0)
 
 
-class ParseSessionsToUltimateReqFile(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None, **kwargs):
-        tag = values[0]
-        logging.info('Generating .req file for session {}'.format(tag))
-        generate_req_file(tag)
-        exit(0)
-
-
 class HanforArgumentParser(argparse.ArgumentParser):
     def __init__(self, app):
         super().__init__()
@@ -1151,13 +1143,6 @@ class HanforArgumentParser(argparse.ArgumentParser):
             help="List the tags of stored sessions..",
             action=ListStoredSessions,
             app=self.app
-        )
-        self.add_argument(
-            '-G', '--generate_formalization_from_session',
-            metavar='session_tag',
-            nargs=1,
-            help="Generates ultimate formalization from an existing session and stores the result to .req file.",
-            action=ParseSessionsToUltimateReqFile
         )
 
 
