@@ -838,6 +838,41 @@ def load_revision(revision_id):
     )
 
 
+def user_request_new_revision(args):
+    """ Asks the user about the base revision and triggers create_revision with the user choice.
+
+    :param args:
+    """
+    logging.info('Generating a new revision.')
+    available_sessions = utils.get_stored_session_names(app.config['SESSION_BASE_FOLDER'], only_names=True)
+    if app.config['SESSION_TAG'] not in available_sessions:
+        logging.error('Session `{tag}` not found (in `{sessions_folder}`)'.format(
+            tag=app.config['SESSION_TAG'],
+            sessions_folder=app.config['SESSION_BASE_FOLDER']
+        ))
+        raise FileNotFoundError
+    # Ask user for base revision.
+    available_revisions = utils.get_available_revisions(app.config)
+    if len(available_revisions) == 0:
+        logging.error('No base revisions found in `{}`.'.format(app.config['SESSION_FOLDER']))
+        raise FileNotFoundError
+    print('Which revision should I use as a base?')
+    base_revision_choice = utils.choice(available_revisions, 'revision_0')
+    create_revision(args.input_csv, base_revision_choice)
+
+
+def set_session_config_vars(args):
+    """ Initialize variables for current session.
+
+    :param args: Parsed arguments.
+    """
+    app.config['SESSION_TAG'] = args.tag
+    if app.config['SESSION_BASE_FOLDER'] is None:
+        app.config['SESSION_FOLDER'] = os.path.join(HERE, 'data', app.config['SESSION_TAG'])
+    else:
+        app.config['SESSION_FOLDER'] = os.path.join(app.config['SESSION_BASE_FOLDER'], app.config['SESSION_TAG'])
+
+
 if __name__ == '__main__':
     utils.setup_logging(app)
     app.wsgi_app = utils.PrefixMiddleware(app.wsgi_app, prefix=app.config['URL_PREFIX'])
@@ -851,34 +886,15 @@ if __name__ == '__main__':
 
     # Parse python args and init session variables.
     args = utils.HanforArgumentParser(app).parse_args()
-    app.config['SESSION_TAG'] = args.tag
-    if app.config['SESSION_BASE_FOLDER'] is None:
-        app.config['SESSION_FOLDER'] = os.path.join(HERE, 'data', app.config['SESSION_TAG'])
-    else:
-        app.config['SESSION_FOLDER'] = os.path.join(app.config['SESSION_BASE_FOLDER'], app.config['SESSION_TAG'])
+    set_session_config_vars(args)
 
     # Create a new revision if requested.
     if args.revision:
-        logging.info('Generating a new revision.')
-        available_sessions = utils.get_stored_session_names(app.config['SESSION_BASE_FOLDER'], only_names=True)
-        if app.config['SESSION_TAG'] not in available_sessions:
-            logging.error('Session `{tag}` not found (in `{sessions_folder}`)'.format(
-                tag=app.config['SESSION_TAG'],
-                sessions_folder=app.config['SESSION_BASE_FOLDER']
-            ))
-            raise FileNotFoundError
-        # Ask user for base revision.
-        available_revisions = utils.get_available_revisions(app.config)
-        if len(available_revisions) == 0:
-            logging.error('No base revisions found in `{}`.'.format(app.config['SESSION_FOLDER']))
-            raise FileNotFoundError
-        print('Which revision should I use as a base?')
-        base_revision_choice = utils.choice(available_revisions, 'revision_0')
-        create_revision(args.input_csv, base_revision_choice)
-
-    # If we should not create a new revision: Create a new session or load a existing session revision.
+        user_request_new_revision(args)
+    # If we should not create a new revision:
+    # Create a new session (== initial revision) or load a existing session revision.
     else:
-        # If there is no session with given tak: Create a new (initial) revision.
+        # If there is no session with given tag: Create a new (initial) revision.
         if not os.path.exists(app.config['SESSION_FOLDER']):
             create_revision(args.input_csv, None)
 
