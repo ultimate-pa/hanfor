@@ -99,7 +99,6 @@ def api(resource, command):
         'set',
         'update',
         'delete',
-        'predict_pattern',
         'new_formalization',
         'new_constraint',
         'del_formalization',
@@ -248,19 +247,6 @@ def api(resource, command):
                         utils.store_requirement(requirement, app)
 
             return jsonify(result)
-
-        # Predict the scoped Pattern of a requirement
-        # TODO: Learn by considering the formalized. Improve data munging.
-        if command == 'predict_pattern' and request.method == 'POST':
-            id = request.form.get('id', '')
-            reset = request.form.get('reset', '')
-            requirement = utils.load_requirement_by_id(id, app)
-            result = requirement.to_dict()
-            predicted_options = utils.predict_scoped_pattern_to_options(requirement, reset)
-            result['scopes'] = predicted_options['scopes']
-            result['patterns'] = predicted_options['patterns']
-            if requirement:
-                return jsonify(result)
 
         # Add a new empty formalization
         if command == 'new_formalization' and request.method == 'POST':

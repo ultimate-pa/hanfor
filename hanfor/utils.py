@@ -147,34 +147,6 @@ def get_formalization_template(templates_folder, requirement, formalization_id, 
     return result
 
 
-def predict_scoped_pattern_to_options(requirement, reset=True):
-    """ Predicts the requirement scope and pattern and returns the html options for the requirement modal.
-
-    :type requirement: Requirement
-    """
-    result = {
-        'scopes': default_scope_options,
-        'patterns': default_pattern_options
-    }
-
-    if not reset:
-        clf = SvmPatternClassifier()
-        clf.train()
-        predicted_scopes = clf.predict_scope(requirement.description)
-        predicted_pattern = clf.predict_pattern(requirement.description)
-        patterns = ''
-        for pattern in predicted_pattern:  # type Pattern
-            patterns += '<option value="{}">{}</option>'.format(pattern.name, pattern.pattern)
-        result['patterns'] = patterns
-
-        scopes = ''
-        for scope_name, scope_instance in predicted_scopes:
-            scopes += '<option value="{}">{}</option>'.format(scope_name, scope_instance)
-        result['scopes'] = scopes
-
-    return result
-
-
 def formalization_html(templates_folder, formalization_id, scope_options, pattern_options, formalization):
     # Load template.
     html_template = ''

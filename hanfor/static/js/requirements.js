@@ -361,29 +361,6 @@ function update_formalization() {
 }
 
 
-function sort_pattern_by_guess(reset) {
-    requirement_modal_content = $('.modal-content');
-    requirement_modal_content.LoadingOverlay('show');
-    req_id = $('#requirement_id').val();
-
-    // Get predicted scope and pattern for the requirement.
-    $.post( "api/req/predict_pattern",
-        {
-            id: req_id,
-            reset: reset
-        },
-        function( data ) {
-            requirement_modal_content.LoadingOverlay('hide', true);
-            if (data['success'] === false) {
-                alert(data['errormsg']);
-            } else {
-                $('#requirement_scope').html(data['scopes']);
-                $('#requirement_pattern').html(data['patterns']);
-            }
-    });
-}
-
-
 function add_formalization() {
     // Request a new Formalization. And add its edit elements to the modal.
     requirement_modal_content = $('.modal-content');
@@ -755,17 +732,6 @@ function init_datatable_manipulators(requirements_table) {
          } );
         $('#selected_csv_requirement_ids').val(JSON.stringify(req_ids));
         $('#generate_csv_form').submit();
-    });
-
-    // Sort the pattern and scope by guess (toggle on/off).
-    $('#sort_by_guess').click(function () {
-        if ($( this ).hasClass("btn-secondary")) { // sort by guesss.
-            sort_pattern_by_guess();
-            $( this ).removeClass("btn-secondary").addClass("btn-success").text("On");
-        } else { // Back to normal sorting.
-            $( this ).removeClass("btn-success").addClass("btn-secondary").text("Off");
-            sort_pattern_by_guess(reset=true);
-        }
     });
 
     // Column toggling
