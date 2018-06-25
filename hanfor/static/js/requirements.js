@@ -26,6 +26,8 @@ let req_search_string = sessionStorage.getItem('req_search_string');
 let filter_status_string = sessionStorage.getItem('filter_status_string');
 let filter_tag_string = sessionStorage.getItem('filter_tag_string');
 let filter_type_string = sessionStorage.getItem('filter_type_string');
+let search_tree = undefined;
+let filter_tree = undefined;
 
 
 /**
@@ -34,6 +36,7 @@ let filter_type_string = sessionStorage.getItem('filter_type_string');
 function update_search() {
     req_search_string = $('#search_bar').val().trim();
     sessionStorage.setItem('req_search_string', req_search_string);
+    search_tree = SearchNode.fromQuery(query=req_search_string);
 }
 
 /**
@@ -64,8 +67,13 @@ function update_filter() {
     filter_search_array = add_query(filter_search_array, filter_type_string, 4);
     filter_search_array = add_query(filter_search_array, filter_tag_string, 5);
     filter_search_array = add_query(filter_search_array, filter_status_string, 6);
+
+    filter_tree = SearchNode.searchArrayToTree(filter_search_array);
 }
 
+function evaluate_search(data){
+    return search_tree.evaluate(data, visible_columns) && filter_tree.evaluate(data, visible_columns);
+}
 
 /**
  * Apply a URL search query to the requirements table.
@@ -879,8 +887,10 @@ function init_datatable(columnDefs) {
                 function( settings, data, dataIndex ) {
                     // data contains the row. data[0] is the content of the first column in the actual row.
                     // Return true to include the row into the data. false to exclude.
-                    return SearchNode.fromQuery(query=req_search_string).evaluate(data, visible_columns) &&
-                        SearchNode.searchArrayToTree(filter_search_array).evaluate(data, visible_columns);
+                    console.log('Evaluate search');
+                    return evaluate_search(data);
+                    // return SearchNode.fromQuery(query=req_search_string).evaluate(data, visible_columns) &&
+                    //     SearchNode.searchArrayToTree(filter_search_array).evaluate(data, visible_columns);
                 }
             );
 
