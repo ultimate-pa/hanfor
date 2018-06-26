@@ -80,17 +80,22 @@ function evaluate_search(data){
  * @param requirements_table
  * @param get_query
  */
-function process_url_query(requirements_table, get_query) {
-    // Clear old search.
-    requirements_table.search( '' ).columns().search( '' );
+function process_url_query(get_query) {
     // Apply search if we have one.
     if (get_query.q.length > 0) {
-        requirements_table
-            .columns( Number(get_query.col) )
-            .search( '^' + get_query.q + '$', true, false);
+        function pad(num) {
+            let s = "00" + num;
+            return s.substr(s.length-2);
+        }
+        // Clear filters.
+        $('#status-filter-input').val('');
+        $('#tag-filter-input').val('');
+        $('#type-filter-input').val('');
+
+        // Set search for requirement ID
+        const s = ':COL_INDEX_' + pad(get_query.col).toString() + ':' + get_query.q;
+        $('#search_bar').val(s);
     }
-    // Draw the table.
-    requirements_table.draw();
 }
 
 /**
@@ -843,8 +848,8 @@ function init_datatable(columnDefs) {
 
             bind_requirement_id_to_modals(requirements_table);
             init_datatable_manipulators(requirements_table);
-            // Process URL search query.
-            process_url_query(requirements_table, get_query);
+
+            process_url_query(get_query);
             update_search();
             update_filter();
 
@@ -853,10 +858,7 @@ function init_datatable(columnDefs) {
                 function( settings, data, dataIndex ) {
                     // data contains the row. data[0] is the content of the first column in the actual row.
                     // Return true to include the row into the data. false to exclude.
-                    console.log('Evaluate search');
                     return evaluate_search(data);
-                    // return SearchNode.fromQuery(query=req_search_string).evaluate(data, visible_columns) &&
-                    //     SearchNode.searchArrayToTree(filter_search_array).evaluate(data, visible_columns);
                 }
             );
 
