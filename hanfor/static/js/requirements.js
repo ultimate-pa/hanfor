@@ -1111,7 +1111,7 @@ function update_logs() {
         $('.req_direct_link').click( function () {
             load_requirement(get_rowidx_by_reqid($(this).data("rid")));
         });
-        $('#log_textarea').scrollTop( 1000 );
+        $('#log_textarea').scrollTop( 100000 );
     });
 }
 
