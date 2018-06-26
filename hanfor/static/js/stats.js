@@ -62,7 +62,6 @@ $(document).ready(function () {
                    '<canvas id="tags_per_type_' + count + '" width="50%"></canvas>' +
                    '</div></div></div>').appendTo(tags_per_type_div);
 
-               console.log('Type: ' + req_type);
                let tag_counts = [];
                let tag_names = [];
                let tag_colors = [];
@@ -70,7 +69,6 @@ $(document).ready(function () {
                    tag_names.push(tag_name);
                    tag_counts.push(tag_count);
                    tag_colors.push(dynamicColors());
-                   console.log('Tag: ' + tag_name + ' occures ' + tag_count + ' times.');
                });
                new Chart(
                     document.getElementById("tags_per_type_" + count).getContext('2d'),
