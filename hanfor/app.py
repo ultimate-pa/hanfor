@@ -144,17 +144,40 @@ def api(resource, command):
         # Update a requirement
         if command == 'update' and request.method == 'POST':
             id = request.form.get('id', '')
-            row_idx = request.form.get('row_idx', '')
             requirement = utils.load_requirement_by_id(id, app)  # type: Requirement
             error = False
             error_msg = ''
 
             if requirement:
                 logging.debug('Updating requirement: {}'.format(requirement.rid))
-                requirement.status = request.form.get('status', '')
-                logging.debug('Requirement status set to `{}`'.format(requirement.status))
-                requirement.tags = set(t.strip() for t in request.form.get('tags', '').split(','))
-                logging.debug('Requirement tags set to `{}`'.format(requirement.tags))
+
+                new_status = request.form.get('status', '')
+                if requirement.status != new_status:
+                    requirement.status = new_status
+                    utils.add_msg_to_flask_session_log(
+                        session, 'Set status to `{}` for requirement'.format(new_status), id
+                    )
+                    logging.debug('Requirement status set to `{}`'.format(requirement.status))
+
+                new_tag_set = set(t.strip() for t in request.form.get('tags', '').split(','))
+                if requirement.tags != new_tag_set:
+                    added_tags = new_tag_set - requirement.tags
+                    removed_tags = requirement.tags - new_tag_set
+                    requirement.tags = new_tag_set
+                    if added_tags:
+                        utils.add_msg_to_flask_session_log(
+                            session, 'Added tags `{}` to requirement'.format(', '.join(added_tags)), id
+                        )
+                        logging.debug(
+                            'Added tags `{}` to requirement `{}`'.format(', '.join(added_tags), requirement.tags)
+                        )
+                    if removed_tags:
+                        utils.add_msg_to_flask_session_log(
+                            session, 'Removed tags `{}` from requirement'.format(', '.join(removed_tags)), id
+                        )
+                        logging.debug(
+                            'Removed tags `{}` from requirement `{}`'.format(', '.join(removed_tags), requirement.tags)
+                        )
 
                 # Update formalization.
                 if request.form.get('update_formalization') == 'true':
@@ -162,7 +185,7 @@ def api(resource, command):
                     logging.debug('Updated Formalizations: {}'.format(formalizations))
                     try:
                         requirement.update_formalizations(formalizations, app)
-                        utils.add_msg_to_flask_session_log(session, 'Updated requirement', id)
+                        utils.add_msg_to_flask_session_log(session, 'Updated requirement formalization', id)
                     except KeyError as e:
                         error = True
                         error_msg = 'Could not set formalization: Missing expression/variable for {}'.format(e)
