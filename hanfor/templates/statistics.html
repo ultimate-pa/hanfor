@@ -2,7 +2,6 @@
 {% extends "layout.html" %}
 {% block title %}Statistics{% endblock %}
 {% block body %}
-<div class="container-fluid">
     <h1>Statistics</h1>
     <div class="row">
         <div class="col-12">
@@ -48,7 +47,6 @@
             </div></div>
         </div>
     </div>
-</div>
 {% endblock %}
 {% block scripts %}
     <script type="text/javascript" src="{{ url_for('static', filename='dist/stats-bundle.js') }}"></script>

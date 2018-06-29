@@ -2,96 +2,94 @@
 {% extends "layout.html" %}
 {% block title %}Variables{% endblock %}
 {% block body %}
-    <div class="container-fluid top-padding">
-        <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <ul class="nav nav-tabs" id="myTab" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" id="search-tab" data-toggle="tab" href="#search-pane" role="tab"
-                               aria-controls="search" aria-selected="true">Search</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="import-tab" data-toggle="tab" href="#import-pane" role="tab"
-                               aria-controls="import" aria-selected="false">Import</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="multi-edit-tab" data-toggle="tab" href="#multi-edit-pane" role="tab"
-                               aria-controls="multi-edit" aria-selected="false">Edit Selected</a>
-                        </li>
-                    </ul>
-                </div>
+    <div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="search-tab" data-toggle="tab" href="#search-pane" role="tab"
+                           aria-controls="search" aria-selected="true">Search</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="import-tab" data-toggle="tab" href="#import-pane" role="tab"
+                           aria-controls="import" aria-selected="false">Import</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="multi-edit-tab" data-toggle="tab" href="#multi-edit-pane" role="tab"
+                           aria-controls="multi-edit" aria-selected="false">Edit Selected</a>
+                    </li>
+                </ul>
+            </div>
 
-                <div class="tab-content">
-                    <div class="tab-pane fade show active" id="search-pane" role="tabpanel"
-                         aria-labelledby="search-tab">
-                        <div class="input-group top-padding">
-                            <span class="input-group-addon" id="basic-addon1">
-                                <img src="{{ url_for('static', filename='img/icons/magnifying-glass.svg') }}">
-                            </span>
-                            <input id="search_bar" type="text" class="form-control" placeholder="Search table"
-                                    aria-describedby="basic-addon1">
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="search-pane" role="tabpanel"
+                     aria-labelledby="search-tab">
+                    <div class="input-group top-padding">
+                        <span class="input-group-addon" id="basic-addon1">
+                            <img src="{{ url_for('static', filename='img/icons/magnifying-glass.svg') }}">
+                        </span>
+                        <input id="search_bar" type="text" class="form-control" placeholder="Search table"
+                                aria-describedby="basic-addon1">
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="import-pane" role="tabpanel" aria-labelledby="import-tab">
+                    <div class="card-body">
+                        <div class="row">
+                          <div class="col-12"><h4>Current Session</h4><hr></div>
+                        </div>
+                        <div class="row">
+                                <div class="col-12">
+                                    <h6><code>{{ current_session }}</code> at <code>{{ current_revision }}</code></h6>
+                                </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-12"><h4>Existing Sessions</h4><hr></div>
+                        </div>
+                            {% for ses in available_sessions %}
+                            <div class="row">
+                                <div class="col-12">
+                                    <h6><code>{{ ses.name }}</code></h6>
+                                    <ul>
+                                        {% for revision in ses.revisions %}
+                                        <li>
+                                            <a href="#" class="import_link"
+                                               data-name="{{ ses.name }}"
+                                               data-revision="{{ revision }}"><code>{{ revision }}</code></a>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                            {% endfor %}
                         </div>
                     </div>
-                    <div class="tab-pane fade" id="import-pane" role="tabpanel" aria-labelledby="import-tab">
+                    <div class="tab-pane fade" id="multi-edit-pane" role="tabpanel"
+                         aria-labelledby="multi-edit-tab">
                         <div class="card-body">
-                            <div class="row">
-                              <div class="col-12"><h4>Current Session</h4><hr></div>
+                            <div class="input-group top-padding">
+                                <span class="input-group-addon" id="multi-change-type" style="width: 7em">To Type</span>
+                                <input type="text" class="form-control" id="multi-change-type-input"
+                                       aria-describedby="multi-change-type">
                             </div>
-                            <div class="row">
-                                    <div class="col-12">
-                                        <h6><code>{{ current_session }}</code> at <code>{{ current_revision }}</code></h6>
+                            <div class="row top-padding">
+                                <div class="col-12">
+                                    <div class="btn-group">
+                                        <button class="btn btn-primary apply-multi-edit" type="button">
+                                            Apply multi edit.
+                                        </button>
                                     </div>
-                            </div>
-                            <div class="row">
-                              <div class="col-12"><h4>Existing Sessions</h4><hr></div>
-                            </div>
-                                {% for ses in available_sessions %}
-                                <div class="row">
-                                    <div class="col-12">
-                                        <h6><code>{{ ses.name }}</code></h6>
-                                        <ul>
-                                            {% for revision in ses.revisions %}
-                                            <li>
-                                                <a href="#" class="import_link"
-                                                   data-name="{{ ses.name }}"
-                                                   data-revision="{{ revision }}"><code>{{ revision }}</code></a>
-                                            </li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        <div class="tab-pane fade" id="multi-edit-pane" role="tabpanel"
-                             aria-labelledby="multi-edit-tab">
-                            <div class="card-body">
-                                <div class="input-group top-padding">
-                                    <span class="input-group-addon" id="multi-change-type" style="width: 7em">To Type</span>
-                                    <input type="text" class="form-control" id="multi-change-type-input"
-                                           aria-describedby="multi-change-type">
-                                </div>
-                                <div class="row top-padding">
-                                    <div class="col-12">
-                                        <div class="btn-group">
-                                            <button class="btn btn-primary apply-multi-edit" type="button">
-                                                Apply multi edit.
-                                            </button>
-                                        </div>
-                                        <div class="btn-group">
-                                            <button name="delete"
-                                                class="delete_button btn btn-danger"
-                                                data-toggle="confirmation"
-                                                data-btn-ok-label="Yes"
-                                                data-btn-ok-class="btn-success"
-                                                data-btn-cancel-label="Nooo Stoooop!"
-                                                data-btn-cancel-class="btn-danger"
-                                                data-title="Sure?" data-content="Delete all selected variables?">
-                                              Delete selected variables.
-                                            </button>
-                                        </div>
+                                    <div class="btn-group">
+                                        <button name="delete"
+                                            class="delete_button btn btn-danger"
+                                            data-toggle="confirmation"
+                                            data-btn-ok-label="Yes"
+                                            data-btn-ok-class="btn-success"
+                                            data-btn-cancel-label="Nooo Stoooop!"
+                                            data-btn-cancel-class="btn-danger"
+                                            data-title="Sure?" data-content="Delete all selected variables?">
+                                          Delete selected variables.
+                                        </button>
                                     </div>
                                 </div>
                             </div>

@@ -44,8 +44,10 @@
   </nav>
     {% endblock %}
     <main role="main">
-    {% block body %}
-    {% endblock %}
+        <div class="container-fluid top-padding">
+            {% block body %}
+            {% endblock %}
+        </div>
     </main>
     <script type="text/javascript" src="{{ url_for('static', filename='dist/commons-bundle.js') }}"></script>
     {% block scripts %}
