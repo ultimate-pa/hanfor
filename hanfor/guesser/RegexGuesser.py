@@ -14,6 +14,7 @@ class RegexGuesser(AbstractGuesser):
         matcher = [
             self.__guess_assign,
             self.__guess_signal_routing,
+            self.__guess_signal_routing_message,
             self.__guess_signal_routing_value
         ]
 
@@ -41,6 +42,13 @@ class RegexGuesser(AbstractGuesser):
 
     def __guess_signal_routing(self):
         matches = self.__match(r"^The signal (\w+) shall be routet on \w+ \((\w+)\)[\s|\.]*$")
+        if len(matches) != 1:
+            return None, None
+
+        return self.__create_bounded_response(matches[0])
+
+    def __guess_signal_routing_message(self):
+        matches = self.__match(r"^The message (\w+) shall be routet on \w+ \((\w+)\)[\s|\.]*$")
         if len(matches) != 1:
             return None, None
 
