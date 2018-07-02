@@ -52,7 +52,8 @@ body.modal-open{
 }
 
 
-#requirement_modal .modal-lg {
+#requirement_modal .modal-lg,
+#variable_modal .modal-lg {
     max-width: 90%;
 }
 
