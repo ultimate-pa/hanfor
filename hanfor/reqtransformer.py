@@ -167,7 +167,7 @@ class Requirement:
             self.formalizations = list()
         self.formalizations.append(Formalization())
 
-        return len(self.formalizations) - 1, Formalization()
+        return len(self.formalizations) - 1, self.formalizations[-1]
 
     def delete_formalization(self, formalization_id, app):
         formalization_id = int(formalization_id)
@@ -738,7 +738,11 @@ class VariableCollection:
 
         # Update the mappings.
         # Copy old to new mapping
-        self.var_req_mapping[new_name] = self.var_req_mapping.pop(old_name)
+        try:
+            self.var_req_mapping[new_name] = self.var_req_mapping.pop(old_name)
+        except KeyError:
+            # There is no old mapping. Create a new empty one.
+            self.var_req_mapping[new_name] = set()
         # Update the req -> var mapping.
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
 
@@ -750,8 +754,9 @@ class VariableCollection:
         :param source:
         :type source:
         """
-        self.var_req_mapping[target] = self.var_req_mapping[target].union(self.var_req_mapping[origin])
-        del self.var_req_mapping[origin]
+        self.var_req_mapping[target] = self.var_req_mapping.pop(origin, set()).union(
+            self.var_req_mapping.pop(target, set())
+        )
         del self.collection[origin]
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
 
@@ -815,7 +820,8 @@ class Variable:
         return d
 
 
-# This PatternVariable is here only for compatibility reasons.
+# This PatternVariable is here only for compatibility reasons
+# when migrating an old Hanfor session.
 class PatternVariable:
     TYPES = ['bool', 'int']
 
