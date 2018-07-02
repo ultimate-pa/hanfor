@@ -1,8 +1,7 @@
 <div id="variable_modal"
-     class="modal fade bd-example-modal-lg"
+     class="modal fade"
      tabindex="-1"
      role="dialog"
-     aria-labelledby="myLargeModalLabel"
      aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -14,6 +13,8 @@
                     <input type="hidden" id="variable_value_old" hidden />
                     <input type="hidden" id="occurences" hidden />
                     <input type="hidden" id="modal_associated_row_index" hidden />
+                    <input type="hidden" id="variable_constraint_updated"
+                       name="variable_constraint_updated" value="false" hidden/>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -59,6 +60,16 @@
                                 </div>
                             </div>
                     </div>
+                    <h5>
+                        Constraints
+                        <button id="add_constraint"
+                                type="button"
+                                class="btn btn-success btn-sm"
+                                title="Add constraint">
+                            <strong>+</strong>
+                        </button>
+                    </h5>
+                    <div id="formalization_accordion"></div>
                 </div>
                 <div class="modal-footer">
                     <button id="save_variable_modal" type="button" class="btn btn-primary">Save changes</button>

@@ -6,28 +6,53 @@ require('datatables.net-select');
 require('jquery-ui/ui/widgets/autocomplete');
 require('./bootstrap-tokenfield.js');
 
-let var_search_string = sessionStorage.getItem('var_search_string');
-
 // Globals
-var available_types = ['CONST'];
+let available_types = ['CONST'];
+let var_search_string = sessionStorage.getItem('var_search_string');
 
 /**
  * Store the currently active (in the modal) variable.
- * @param variables_datatable
+ * @param variables_table
  */
-function store_variable(variables_datatable) {
-    tag_modal_content = $('.modal-content');
-    tag_modal_content.LoadingOverlay('show');
+function store_variable(variables_table) {
+    let var_modal_content = $('.modal-content');
+    var_modal_content.LoadingOverlay('show');
 
     // Get data.
-    var_name = $('#variable_name').val();
-    var_name_old = $('#variable_name_old').val();
-    var_type = $('#variable_type').val();
-    var_type_old = $('#variable_type_old').val();
-    associated_row_id = parseInt($('#modal_associated_row_index').val());
-    occurences = $('#occurences').val();
-    const_val = $('#variable_value').val();
-    const_val_old = $('#variable_value_old').val();
+    const var_name = $('#variable_name').val();
+    const var_name_old = $('#variable_name_old').val();
+    const var_type = $('#variable_type').val();
+    const var_type_old = $('#variable_type_old').val();
+    const associated_row_id = parseInt($('#modal_associated_row_index').val());
+    const occurrences = $('#occurences').val();
+    const const_val = $('#variable_value').val();
+    const const_val_old = $('#variable_value_old').val();
+    const updated_constraints = $('#variable_constraint_updated').val();
+
+    // Fetch the constraints
+    let constraints = {};
+    $('.formalization_card').each(function ( index ) {
+        // Scope and Pattern
+        let constraint = {};
+        constraint['id'] = $(this).attr('title');
+        $( this ).find( 'select').each( function () {
+            if ($( this ).hasClass('scope_selector')) {
+                constraint['scope'] = $( this ).val();
+            }
+            if ($( this ).hasClass('pattern_selector')) {
+                constraint['pattern'] = $( this ).val();
+            }
+        });
+
+        // Expressions
+        constraint['expression_mapping'] = {};
+        $( this ).find( "textarea.reqirement-variable" ).each(function () {
+            if ($(this).attr('title') !== '')
+            constraint['expression_mapping'][$(this).attr('title')] = $(this).val();
+        });
+
+        constraints[constraint['id']] = constraint;
+    });
 
     // Update available types.
     if (var_type !== null && available_types.indexOf(var_type) <= -1) {
@@ -43,18 +68,20 @@ function store_variable(variables_datatable) {
             const_val: const_val,
             const_val_old: const_val_old,
             type_old: var_type_old,
-            occurences: occurences
+            occurrences: occurrences,
+            constraints: JSON.stringify(constraints),
+            updated_constraints: updated_constraints
         },
         // Update var table on success or show an error message.
         function( data ) {
-            tag_modal_content.LoadingOverlay('hide', true);
+            var_modal_content.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
                 if (data.rebuild_table) {
                     location.reload();
                 } else {
-                    tags_datatable.row(associated_row_id).data(data.data).draw();
+                    variables_table.row(associated_row_id).data(data.data).draw();
                     $('#variable_modal').modal('hide');
                 }
             }
@@ -62,6 +89,9 @@ function store_variable(variables_datatable) {
 }
 
 
+/**
+ * Import variable collection set in the import modal.
+ */
 function import_variables() {
     let variable_import_modal = $('#variable_import_modal');
     let sess_name = $('#variable_import_sess_name').val();
@@ -88,6 +118,11 @@ function import_variables() {
 }
 
 
+/**
+ * Open modal for the user to trigger variable import.
+ * @param sess_name
+ * @param sess_revision
+ */
 function open_import_modal(sess_name, sess_revision) {
     // Prepare requirement Modal
     let variable_import_modal = $('#variable_import_modal');
@@ -115,6 +150,7 @@ function open_import_modal(sess_name, sess_revision) {
     });
 }
 
+
 /**
  * Show / Hide Value input for variables.
  * @param revert
@@ -127,12 +163,18 @@ function variable_is_const(revert) {
     }
 }
 
-function apply_multi_edit(tags_datatable, del=false) {
+
+/**
+ * Apply multi edit on selected variables.
+ * @param variables_table
+ * @param del
+ */
+function apply_multi_edit(variables_table, del=false) {
     let page = $('body');
     page.LoadingOverlay('show');
     let change_type = $('#multi-change-type-input').val().trim();
     let selected_vars = [];
-    tags_datatable.rows( {selected:true} ).every( function () {
+    variables_table.rows( {selected:true} ).every( function () {
         let d = this.data();
         selected_vars.push(d['name']);
     } );
@@ -155,10 +197,230 @@ function apply_multi_edit(tags_datatable, del=false) {
     });
 }
 
+
+/**
+ * Enable/disable the active variables (P, Q, R, ...) in the requirement modal based on scope and pattern.
+ */
+function update_vars() {
+    $('.requirement_var_group').each(function () {
+        $( this ).hide();
+    });
+
+    $('.formalization_card').each(function ( index ) {
+        // Fetch attributes
+        const formalization_id = $(this).attr('title');
+        const selected_scope = $('#requirement_scope' + formalization_id).val();
+        const selected_pattern = $('#requirement_pattern' + formalization_id).val();
+        let var_p = $('#requirement_var_group_p' + formalization_id);
+        let var_q = $('#requirement_var_group_q' + formalization_id);
+        let var_r = $('#requirement_var_group_r' + formalization_id);
+        let var_s = $('#requirement_var_group_s' + formalization_id);
+        let var_t = $('#requirement_var_group_t' + formalization_id);
+        let var_u = $('#requirement_var_group_u' + formalization_id);
+
+        switch(selected_scope) {
+            case 'BEFORE':
+            case 'AFTER':
+                var_p.show();
+                break;
+            case 'BETWEEN':
+            case 'AFTER_UNTIL':
+                var_p.show();
+                var_q.show();
+                break;
+            default:
+                break;
+        }
+
+        switch(selected_pattern) {
+            case 'Absence':
+            case 'Universality':
+            case 'Existence':
+            case 'BoundedExistence':
+                var_r.show();
+                break;
+            case 'Invariant':
+            case 'Precedence':
+            case 'Response':
+            case 'MinDuration':
+            case 'MaxDuration':
+            case 'BoundedRecurrence':
+                var_r.show();
+                var_s.show();
+                break;
+            case 'PrecedenceChain1-2':
+            case 'PrecedenceChain2-1':
+            case 'ResponseChain1-2':
+            case 'ResponseChain2-1':
+            case 'BoundedResponse':
+            case 'BoundedInvariance':
+            case 'TimeConstrainedInvariant':
+                var_r.show();
+                var_s.show();
+                var_t.show();
+                break;
+            case 'ConstrainedChain':
+            case 'TimeConstrainedMinDuration':
+            case 'ConstrainedTimedExistence':
+                var_r.show();
+                var_s.show();
+                var_t.show();
+                var_u.show();
+                break;
+            case 'NotFormalizable':
+                var_p.hide();
+                var_q.hide();
+                break;
+            default:
+                break;
+        }
+    });
+}
+
+
+/**
+ * Updates the formalization textarea based on the selected scope and expressions in P, Q, R, S, T.
+ */
+function update_formalization() {
+    $('.formalization_card').each(function ( index ) {
+        // Fetch attributes
+        const formalization_id = $(this).attr('title');
+
+        let formalization = '';
+        const selected_scope = $('#requirement_scope' + formalization_id).find('option:selected').text().replace(/\s\s+/g, ' ');
+        const selected_pattern = $('#requirement_pattern' + formalization_id).find('option:selected').text().replace(/\s\s+/g, ' ');
+
+        if (selected_scope !== 'None' && selected_pattern !== 'None') {
+            formalization = selected_scope + ', ' + selected_pattern + '.';
+        }
+
+        // Update formalization with variables.
+        let var_p = $('#formalization_var_p' + formalization_id).val();
+        let var_q = $('#formalization_var_q' + formalization_id).val();
+        let var_r = $('#formalization_var_r' + formalization_id).val();
+        let var_s = $('#formalization_var_s' + formalization_id).val();
+        let var_t = $('#formalization_var_t' + formalization_id).val();
+        let var_u = $('#formalization_var_u' + formalization_id).val();
+
+        if (var_p.length > 0) {
+            formalization = formalization.replace(/{P}/g, var_p);
+        }
+        if (var_q.length > 0) {
+            formalization = formalization.replace(/{Q}/g, var_q);
+        }
+        if (var_r.length > 0) {
+            formalization = formalization.replace(/{R}/g, var_r);
+        }
+        if (var_s.length > 0) {
+            formalization = formalization.replace(/{S}/g, var_s);
+        }
+        if (var_t.length > 0) {
+            formalization = formalization.replace(/{T}/g, var_t);
+        }
+        if (var_u.length > 0) {
+            formalization = formalization.replace(/{U}/g, var_u);
+        }
+
+        $('#current_formalization_textarea' + formalization_id).val(formalization);
+    });
+    $('#variable_constraint_updated').val('true');
+}
+
+
+function delete_constraint(constraint_id) {
+    let requirement_modal_content = $('.modal-content');
+    requirement_modal_content.LoadingOverlay('show');
+    const var_name = $('#variable_name').val();
+    $.post( "api/var/del_constraint",
+        {
+            name: var_name,
+            constraint_id: constraint_id
+        },
+        function( data ) {
+            requirement_modal_content.LoadingOverlay('hide', true);
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                $('#formalization_accordion').html(data['html']);
+            }
+    }).done(function () {
+        update_vars();
+        update_formalization();
+        bind_expression_buttons();
+    });
+}
+
+
+function bind_expression_buttons() {
+    $('.formalization_selector').change(function () {
+        update_vars();
+        update_formalization();
+    });
+    $('.reqirement-variable, .req_var_type').change(function () {
+        update_formalization();
+    });
+    $('.delete_formalization').confirmation({
+      rootSelector: '.delete_formalization'
+    }).click(function () {
+        delete_constraint( $(this).attr('name') );
+    });
+}
+
+
+function add_constraint() {
+    // Request a new Constraint/Formalization. And add its edit elements to the modal.
+    let var_modal_content = $('.modal-content');
+    var_modal_content.LoadingOverlay('show');
+
+    // Get data.
+    const var_name = $('#variable_name').val();
+    const associated_row_id = parseInt($('#modal_associated_row_index').val());
+
+    // Store the variable.
+    $.post( "api/var/new_constraint",
+        {
+            name: var_name
+        },
+        // Update var table on success or show an error message.
+        function( data ) {
+            var_modal_content.LoadingOverlay('hide', true);
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                $('#formalization_accordion').html(data['html']);
+            }
+    }).done(function () {
+        update_vars();
+        update_formalization();
+        bind_expression_buttons();
+    });
+}
+
+
+function get_variable_constraints_html(var_name) {
+    // Store the variable.
+    $.post( "api/var/get_constraints_html",
+        {
+            name: var_name
+        },
+        // Update var table on success or show an error message.
+        function( data ) {
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                $('#formalization_accordion').html(data['html']);
+            }
+    }).done(function () {
+        update_vars();
+        update_formalization();
+        bind_expression_buttons();
+    });
+}
+
+
 $(document).ready(function() {
     // Prepare and load the variables table.
-    variables_table = $('#variables_table');
-    tags_datatable = variables_table.DataTable({
+    let variables_table = $('#variables_table').DataTable({
         "paging": true,
         "stateSave": true,
         "select": {
@@ -245,26 +507,26 @@ $(document).ready(function() {
             $('#search_bar').val(var_search_string);
         }
     });
-    tags_datatable.column(3).visible(true);
-    tags_datatable.column(4).visible(false);
+    variables_table.column(3).visible(true);
+    variables_table.column(4).visible(false);
 
     // Bind big custom searchbar to search the table.
     $('#search_bar').keyup(function(){
-      tags_datatable.search($(this).val()).draw();
+      variables_table.search($(this).val()).draw();
       sessionStorage.setItem('var_search_string', $(this).val());
     });
 
     // Add listener for variable link to modal.
-    variables_table.find('tbody').on('click', 'a.modal-opener', function (event) {
+    $('#variables_table').find('tbody').on('click', 'a.modal-opener', function (event) {
         // prevent body to be scrolled to the top.
         event.preventDefault();
 
         // Get row data
-        var data = tags_datatable.row($(event.target).parent()).data();
-        var row_id = tags_datatable.row($(event.target).parent()).index();
+        let data = variables_table.row($(event.target).parent()).data();
+        let row_id = variables_table.row($(event.target).parent()).index();
 
         // Prepare requirement Modal
-        tag_modal_content = $('.modal-content');
+        let var_modal_content = $('.modal-content');
         $('#variable_value_form_group').hide();
         $('#variable_modal').modal('show');
 
@@ -277,7 +539,8 @@ $(document).ready(function() {
         // Visible information
         $('#variable_modal_title').html('Variable: ' + data.name);
         $('#variable_name').val(data.name);
-        type_input = $('#variable_type');
+
+        let type_input = $('#variable_type');
         type_input.val(data.type);
         if (data.type === 'CONST') {
             variable_is_const();
@@ -294,12 +557,15 @@ $(document).ready(function() {
             source: available_types
         }).on('focus', function() { $(this).keydown(); });
 
-        tag_modal_content.LoadingOverlay('hide');
+        // Load constraints
+        get_variable_constraints_html(data.name);
+
+        var_modal_content.LoadingOverlay('hide');
     });
 
     // Store changes on variable on save.
     $('#save_variable_modal').click(function () {
-        store_variable(tags_datatable);
+        store_variable(variables_table);
     });
 
     $('#variable_type').on('keyup change autocompleteclose', function () {
@@ -327,17 +593,17 @@ $(document).ready(function() {
     $('.select-all-button').on('click', function (e) {
         // Toggle selection on
         if ($( this ).hasClass('btn-secondary')) {
-            tags_datatable.rows( {page:'current'} ).select();
+            variables_table.rows( {page:'current'} ).select();
         }
         else { // Toggle selection off
-            tags_datatable.rows( {page:'current'} ).deselect();
+            variables_table.rows( {page:'current'} ).deselect();
         }
         // Toggle button state.
         $('.select-all-button').toggleClass('btn-secondary btn-primary');
     });
 
     // Toggle "Select all rows to `off` on user specific selection."
-    tags_datatable.on( 'user-select', function ( ) {
+    variables_table.on( 'user-select', function ( ) {
         let select_buttons = $('.select-all-button');
         select_buttons.removeClass('btn-primary');
         select_buttons.addClass('btn-secondary ');
@@ -351,14 +617,19 @@ $(document).ready(function() {
     }).on('focus', function() { $(this).keydown(); }).val('');
 
     $('.apply-multi-edit').click(function () {
-        apply_multi_edit(tags_datatable);
+        apply_multi_edit(variables_table);
     });
 
     // Multi Delete variables.
     $('.delete_button').confirmation({
-      rootSelector: '.delete_button'
+        rootSelector: '.delete_button'
     }).click(function () {
-        apply_multi_edit(tags_datatable, del=true);
+        apply_multi_edit(variables_table, del=true);
+    });
+
+    // Add new Constraint
+    $('#add_constraint').click(function () {
+        add_constraint();
     });
 
 } );

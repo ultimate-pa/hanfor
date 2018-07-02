@@ -6,6 +6,8 @@
 import argparse
 from typing import Union
 
+from flask import json
+
 import boogie_parsing
 import csv
 import datetime
@@ -477,7 +479,7 @@ def update_variable_in_collection(app, request):
     var_type_old = request.form.get('type_old', '').strip()
     var_const_val = request.form.get('const_val', '').strip()
     var_const_val_old = request.form.get('const_val_old', '').strip()
-    occurences = request.form.get('occurences', '').strip().split(',')
+    occurrences = request.form.get('occurrences', '').strip().split(',')
 
     result = {
         'success': True,
@@ -488,16 +490,31 @@ def update_variable_in_collection(app, request):
         'data': {
             'name': var_name,
             'type': var_type,
-            'used_by': occurences,
+            'used_by': occurrences,
             'const_val': var_const_val
         }
     }
 
     # Check for changes
-    if var_type_old != var_type or var_name_old != var_name or var_const_val_old != var_const_val:
+    if var_type_old != var_type or var_name_old != var_name or var_const_val_old != var_const_val or \
+            request.form.get('updated_constraints') == 'true':
         logging.info('Update Variable `{}`'.format(var_name_old))
         result['has_changes'] = True
         var_collection = pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])  # type: dict
+
+        if request.form.get('updated_constraints') == 'true':
+            constraints = json.loads(request.form.get('constraints', ''))
+            logging.debug('Update Variable Constraints')
+            try:
+                var_collection.collection[var_name_old].update_constraints(constraints, app)
+            except KeyError as e:
+                result['success'] = False
+                result['error_msg'] = 'Could not set constraint: Missing expression/variable for {}'.format(e)
+            except Exception as e:
+                result['success'] = False
+                result['error_msg'] = 'Could not parse formalization: `{}`'.format(e)
+        else:
+            logging.debug('Skipping variable Constraints update.')
 
         # update name.
         if var_name_old != var_name:
@@ -511,6 +528,7 @@ def update_variable_in_collection(app, request):
                 var_collection.rename(var_name_old, var_name, app)
 
             else:  # Case: New name exists. -> Merge the two vars into one. -> Complete rebuild.
+                # TODO: merge the var constraints.
                 logging.debug(
                     '`{}` is an existing var name. Merging the two vars. '
                     '(Type of the new var `{}` wins over the old type `{}` )'.format(
@@ -524,8 +542,8 @@ def update_variable_in_collection(app, request):
 
             # delete the old.
             # Update the requirements using this var.
-            if len(occurences) > 0:
-                rename_variable_in_expressions(app, occurences, var_name_old, var_name)
+            if len(occurrences) > 0:
+                rename_variable_in_expressions(app, occurrences, var_name_old, var_name)
 
             result['name_changed'] = True
 
@@ -810,6 +828,8 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
     else:
         available_vars = var_collection.get_available_vars_list(sort_by='name')
 
+    available_vars = [var['name'] for var in available_vars]
+
     # Write to .req file
     if not output_file:
         output_file = os.path.join(
@@ -821,13 +841,34 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
     with open(output_file, mode='w') as out_file:
         content = ''
         constants = ''
-        for var in available_vars:
-            if var['type'] == 'CONST':
-                constants += 'CONST {} IS {}\n'.format(var['name'], var['const_val'])
-            else:
-                content += 'Input {} IS {}\n'.format(var['name'], var['type'])
+        constraints = ''
+        for var in var_collection.collection.values():
+            if var.name in available_vars:
+                if var.type == 'CONST':
+                    constants += 'CONST {} IS {}\n'.format(var.name, var.value)
+                else:
+                    content += 'Input {} IS {}\n'.format(var.name, var.type)
+                try:
+                    for index, constraint in enumerate(var.constraints):
+                        if constraint.scoped_pattern is None:
+                            continue
+                        if constraint.scoped_pattern.get_scope_slug().lower() == 'none':
+                            continue
+                        if constraint.scoped_pattern.get_pattern_slug() in ['NotFormalizable', 'None']:
+                            continue
+                        if len(constraint.get_string()) == 0:
+                            continue
+                        constraints += '{}_constraint_{}: {}\n'.format(
+                            re.sub(r"\s+", '_', var.name),
+                            index,
+                            constraint.get_string()
+                        )
+                except:
+                    pass
         if len(constants) > 0:
             content = '\n'.join([constants, content])
+        if len(constraints) > 0:
+            content = '\n'.join([content, constraints])
         content += '\n'
         for requirement in requirements:  # type: Requirement
             try:

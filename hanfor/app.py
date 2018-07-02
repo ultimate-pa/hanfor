@@ -108,7 +108,8 @@ def api(resource, command):
         'var_import_collection',
         'get_available_guesses',
         'add_formalization_from_guess',
-        'multi_add_top_guess'
+        'multi_add_top_guess',
+        'get_constraints_html'
     ]
     if resource not in resources or command not in commands:
         return jsonify({
@@ -469,10 +470,27 @@ def api(resource, command):
 
         elif command == 'new_constraint':
             result = {'success': True, 'errormsg': ''}
-            result['html'] = "<p>Hallo... </p>"
+            var_name = request.form.get('name', '').strip()
+
+            var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+            var_collection.add_new_constraint(var_name=var_name)
+            var_collection.store()
+            result['html'] = utils.formalizations_to_html(app, var_collection.collection[var_name].constraints)
+            return jsonify(result)
+
+        elif command == 'get_constraints_html':
+            result = {'success': True, 'errormsg': '', 'html': '<p>No constraints set.</p>'}
+            var_name = request.form.get('name', '').strip()
+            var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+            try:
+                result['html'] = utils.formalizations_to_html(app, var_collection.collection[var_name].constraints)
+            except AttributeError:
+                pass
+
             return jsonify(result)
 
         return jsonify(result)
+
 
     if resource == 'stats':
         # Get all stats

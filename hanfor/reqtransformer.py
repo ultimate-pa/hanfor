@@ -283,6 +283,21 @@ class Formalization:
         self.get_string()
         self.type_inference_check(variable_collection)
 
+    def set_expressions_mapping_raw(self, mapping):
+        """ Set expression mapping without type inference and var collection updates.
+
+        :param mapping:
+        """
+        for key, expression_string in mapping.items():
+            if len(expression_string) is 0:
+                continue
+            expression = Expression()
+            expression.raw_expression = expression_string
+            if self.expressions_mapping is None:
+                self.expressions_mapping = dict()
+            self.expressions_mapping[key] = expression
+        self.get_string()
+
     def type_inference_check(self, variable_collection):
         type_inference_errors = dict()
         allowed_types = self.scoped_pattern.get_allowed_types()
@@ -796,6 +811,13 @@ class VariableCollection:
     def set_type(self, name, type):
         self.collection[name].type = type
 
+    def add_new_constraint(self, var_name):
+        """ Add a new empty constraint to var_name variable.
+        :type var_name: str
+        :param var_name:
+        """
+        return self.collection[var_name].add_constraint()
+
 
 class Variable:
     def __init__(self, name, type, value):
@@ -818,6 +840,45 @@ class Variable:
         }
 
         return d
+
+    def add_constraint(self):
+        try:
+            self.constraints.append(Formalization())
+        except:
+            self.constraints = [Formalization()]
+
+        return len(self.constraints) - 1, self.constraints[-1]
+
+    def get_constraints(self):
+        try:
+            return self.constraints
+        except:
+            return []
+
+    def update_constraint(self, constraint_id, scope_name, pattern_name, mapping):
+        # set scoped pattern
+        self.constraints[constraint_id].scoped_pattern = ScopedPattern(
+            Scope[scope_name], Pattern(name=pattern_name)
+        )
+        # Parse and set the expressions.
+        self.constraints[constraint_id].set_expressions_mapping_raw(mapping=mapping)
+
+    def update_constraints(self, constraints, app):
+        logging.debug('Updating constraints for variable.'.format(self.name))
+
+        for constraint in constraints.values():
+            logging.debug('Updating formalizatioin No. {}.'.format(constraint['id']))
+            logging.debug('Scope: `{}`, Pattern: `{}`.'.format(constraint['scope'], constraint['pattern']))
+            try:
+                self.update_constraint(
+                    constraint_id=int(constraint['id']),
+                    scope_name=constraint['scope'],
+                    pattern_name=constraint['pattern'],
+                    mapping=constraint['expression_mapping']
+                )
+            except Exception as e:
+                logging.error('Could not update Formalization: {}'.format(e.__str__()))
+                raise e
 
 
 # This PatternVariable is here only for compatibility reasons
