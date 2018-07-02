@@ -75,8 +75,8 @@ class RegexGuesser(AbstractGuesser):
         var2 = match.group(2).strip()
 
         mapping = {
-            'R': "%s != %s".format(var1, var2),
-            'S': "%s == %s".format(var1, var2),
+            'R': "{} != {}".format(var1, var2),
+            'S': "{} == {}".format(var1, var2),
             'T': 'MAX_TIME'
         }
         return scoped_pattern, mapping
