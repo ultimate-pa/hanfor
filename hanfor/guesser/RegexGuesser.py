@@ -7,9 +7,10 @@ from reqtransformer import ScopedPattern, Scope, Pattern
 
 
 @register_guesser
-class GuesserExample(AbstractGuesser):
-    """ A simple guesser implementation. Using regex to search for `var_a := var_b` """
+class RegexGuesser(AbstractGuesser):
+    """ A guesser that uses multiple regex in some order to make a guess."""
     def guess(self):
+        # try `var_a := var_b`
         regex = r"(.*):=(.*)"
         # Search in the requirement description.
         matches = re.finditer(regex, self.requirement.description, re.MULTILINE)
