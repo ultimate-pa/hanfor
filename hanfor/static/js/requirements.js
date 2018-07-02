@@ -36,7 +36,7 @@ let filter_tree = undefined;
 function update_search() {
     req_search_string = $('#search_bar').val().trim();
     sessionStorage.setItem('req_search_string', req_search_string);
-    search_tree = SearchNode.fromQuery(query=req_search_string);
+    search_tree = SearchNode.fromQuery(req_search_string);
 }
 
 /**
@@ -103,14 +103,14 @@ function process_url_query(get_query) {
  * @param {DataTable} requirements_table
  */
 function store_requirement(requirements_table) {
-    requirement_modal_content = $('.modal-content');
+    let requirement_modal_content = $('.modal-content');
     requirement_modal_content.LoadingOverlay('show');
 
-    req_id = $('#requirement_id').val();
-    req_tags = $('#requirement_tag_field').val();
-    req_status = $('#requirement_status').val();
-    updated_formalization = $('#requirement_formalization_updated').val();
-    associated_row_id = parseInt($('#modal_associated_row_index').val());
+    const req_id = $('#requirement_id').val();
+    const req_tags = $('#requirement_tag_field').val();
+    const req_status = $('#requirement_status').val();
+    const updated_formalization = $('#requirement_formalization_updated').val();
+    const associated_row_id = parseInt($('#modal_associated_row_index').val());
 
     // Fetch the formalizations
     let formalizations = {};
@@ -236,21 +236,23 @@ function update_vars() {
 
     $('.formalization_card').each(function ( index ) {
         // Fetch attributes
-        formalization_id = $(this).attr('title');
-        selected_scope = $('#requirement_scope' + formalization_id).val();
-        selected_pattern = $('#requirement_pattern' + formalization_id).val();
-        header = $('#formalization_heading' + formalization_id);
-        var_p = $('#requirement_var_group_p' + formalization_id);
-        var_q = $('#requirement_var_group_q' + formalization_id);
-        var_r = $('#requirement_var_group_r' + formalization_id);
-        var_s = $('#requirement_var_group_s' + formalization_id);
-        var_t = $('#requirement_var_group_t' + formalization_id);
-        var_u = $('#requirement_var_group_u' + formalization_id);
+        const formalization_id = $(this).attr('title');
+        const selected_scope = $('#requirement_scope' + formalization_id).val();
+        const selected_pattern = $('#requirement_pattern' + formalization_id).val();
+        let header = $('#formalization_heading' + formalization_id);
+        let var_p = $('#requirement_var_group_p' + formalization_id);
+        let var_q = $('#requirement_var_group_q' + formalization_id);
+        let var_r = $('#requirement_var_group_r' + formalization_id);
+        let var_s = $('#requirement_var_group_s' + formalization_id);
+        let var_t = $('#requirement_var_group_t' + formalization_id);
+        let var_u = $('#requirement_var_group_u' + formalization_id);
 
         // Set the red boxes for type inference failed expressions.
+        console.log(type_inference_errors);
         if (formalization_id in type_inference_errors) {
             for (let i = 0; i < type_inference_errors[formalization_id].length; i++) {
-                window['var_' + type_inference_errors[formalization_id][i]].addClass('type-error');
+                $('#formalization_var_' + type_inference_errors[formalization_id][i] + formalization_id)
+                    .addClass('type-error');
                 header.addClass('type-error-head');
             }
         } else {
@@ -323,23 +325,23 @@ function update_vars() {
 function update_formalization() {
     $('.formalization_card').each(function ( index ) {
         // Fetch attributes
-        formalization_id = $(this).attr('title');
+        const formalization_id = $(this).attr('title');
 
-        formalization = '';
-        selected_scope = $('#requirement_scope' + formalization_id).find('option:selected').text().replace(/\s\s+/g, ' ');
-        selected_pattern = $('#requirement_pattern' + formalization_id).find('option:selected').text().replace(/\s\s+/g, ' ');
+        let formalization = '';
+        const selected_scope = $('#requirement_scope' + formalization_id).find('option:selected').text().replace(/\s\s+/g, ' ');
+        const selected_pattern = $('#requirement_pattern' + formalization_id).find('option:selected').text().replace(/\s\s+/g, ' ');
 
         if (selected_scope !== 'None' && selected_pattern !== 'None') {
             formalization = selected_scope + ', ' + selected_pattern + '.';
         }
 
         // Update formalization with variables.
-        var_p = $('#formalization_var_p' + formalization_id).val();
-        var_q = $('#formalization_var_q' + formalization_id).val();
-        var_r = $('#formalization_var_r' + formalization_id).val();
-        var_s = $('#formalization_var_s' + formalization_id).val();
-        var_t = $('#formalization_var_t' + formalization_id).val();
-        var_u = $('#formalization_var_u' + formalization_id).val();
+        let var_p = $('#formalization_var_p' + formalization_id).val();
+        let var_q = $('#formalization_var_q' + formalization_id).val();
+        let var_r = $('#formalization_var_r' + formalization_id).val();
+        let var_s = $('#formalization_var_s' + formalization_id).val();
+        let var_t = $('#formalization_var_t' + formalization_id).val();
+        let var_u = $('#formalization_var_u' + formalization_id).val();
 
         if (var_p.length > 0) {
             formalization = formalization.replace(/{P}/g, var_p);
@@ -368,10 +370,10 @@ function update_formalization() {
 
 function add_formalization() {
     // Request a new Formalization. And add its edit elements to the modal.
-    requirement_modal_content = $('.modal-content');
+    let requirement_modal_content = $('.modal-content');
     requirement_modal_content.LoadingOverlay('show');
 
-    req_id = $('#requirement_id').val();
+    const req_id = $('#requirement_id').val();
     $.post( "api/req/new_formalization",
         {
             id: req_id
@@ -424,9 +426,9 @@ function add_formalization_from_guess(scope, pattern, mapping) {
 
 
 function delete_formalization(formal_id) {
-    requirement_modal_content = $('.modal-content');
+    let requirement_modal_content = $('.modal-content');
     requirement_modal_content.LoadingOverlay('show');
-    req_id = $('#requirement_id').val();
+    const req_id = $('#requirement_id').val();
     $.post( "api/req/del_formalization",
         {
             requirement_id: req_id,
@@ -551,7 +553,7 @@ function load_requirement(row_idx) {
     let data = requirements_table.row(row_idx).data();
 
     // Prepare requirement Modal
-    requirement_modal_content = $('.modal-content');
+    let requirement_modal_content = $('.modal-content');
     $('#requirement_modal').modal('show');
     requirement_modal_content.LoadingOverlay('show');
     $('#formalization_accordion').html('');
@@ -560,7 +562,7 @@ function load_requirement(row_idx) {
     $('#requirement_tag_field').data('bs.tokenfield').$input.autocomplete({source: available_tags});
 
     // Get the requirement data and set the modal.
-    requirement = $.get( "api/req/get", { id: data['id'], row_idx: row_idx }, function (data) {
+    $.get( "api/req/get", { id: data['id'], row_idx: row_idx }, function (data) {
         // Meta information
         $('#requirement_id').val(data.id);
         $('#requirement_formalization_updated').val('false');
@@ -585,7 +587,7 @@ function load_requirement(row_idx) {
         $('#requirement_status').val(data.status);
 
         // Set csv_data
-        csv_row_content = $('#csv_content_accordion');
+        let csv_row_content = $('#csv_content_accordion');
         csv_row_content.html('');
         csv_row_content.collapse('hide');
         let csv_data = data.csv_data;
@@ -750,6 +752,7 @@ function init_datatable_manipulators(requirements_table) {
         state = column.visible( ! column.visible() );
         update_visible_columns_information();
     } );
+
     $('.reset-colum-toggle').on('click', function (e) {
         e.preventDefault();
         requirements_table.columns( '.default-col' ).visible( true );
@@ -1017,7 +1020,7 @@ function load_datatable(){
         }
     ];
     // Load generic colums.
-    genericColums = $.get( "api/table/colum_defs", '', function (data) {
+    $.get( "api/table/colum_defs", '', function (data) {
         const dataLength = data['col_defs'].length;
         for (let i = 0; i < dataLength; i++) {
             columnDefs.push(
