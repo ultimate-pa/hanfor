@@ -62,9 +62,13 @@ class RegexGuesser(AbstractGuesser):
             Scope['GLOBALLY'],
             Pattern(name='BoundedResponse')
         )
+
+        var1 = match.group(1).strip()
+        var2 = match.group(2).strip()
+
         mapping = {
-            'R': match.group(1).strip(),
-            'S': match.group(2).strip(),
+            'R': "%s != %s".format(var1, var2),
+            'S': "%s == %s".format(var1, var2),
             'T': 'MAX_TIME'
         }
         return scoped_pattern, mapping
