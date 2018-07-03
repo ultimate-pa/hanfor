@@ -109,7 +109,8 @@ def api(resource, command):
         'get_available_guesses',
         'add_formalization_from_guess',
         'multi_add_top_guess',
-        'get_constraints_html'
+        'get_constraints_html',
+        'del_constraint'
     ]
     if resource not in resources or command not in commands:
         return jsonify({
@@ -487,6 +488,17 @@ def api(resource, command):
             except AttributeError:
                 pass
 
+            return jsonify(result)
+
+        elif command == 'del_constraint':
+            result = {'success': True, 'errormsg': ''}
+            var_name = request.form.get('name', '').strip()
+            constraint_id = request.form.get('constraint_id', '').strip()
+
+            var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+            var_collection.del_constraint(var_name=var_name, constraint_id=int(constraint_id))
+            var_collection.store()
+            result['html'] = utils.formalizations_to_html(app, var_collection.collection[var_name].constraints)
             return jsonify(result)
 
         return jsonify(result)

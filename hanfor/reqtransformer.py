@@ -818,6 +818,9 @@ class VariableCollection:
         """
         return self.collection[var_name].add_constraint()
 
+    def del_constraint(self, var_name, constraint_id):
+        return self.collection[var_name].del_constraint(constraint_id)
+
 
 class Variable:
     def __init__(self, name, type, value):
@@ -842,12 +845,24 @@ class Variable:
         return d
 
     def add_constraint(self):
+        """ Add a new empty constraint
+
+        :return: (index: int, The constraint: Formalization)
+        """
         try:
             self.constraints.append(Formalization())
         except:
             self.constraints = [Formalization()]
 
         return len(self.constraints) - 1, self.constraints[-1]
+
+    def del_constraint(self, id):
+        try:
+            self.constraints.pop(id)
+            return True
+        except:
+            logging.debug('Constraint id `{}` not found in var `{}`'.format(id, self.name))
+            return False
 
     def get_constraints(self):
         try:
