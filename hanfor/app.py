@@ -584,7 +584,7 @@ def index():
 def varcollection_consistency_check(app):
     logging.info('Check varcollection consistency.')
     try:
-        var_collection = utils.pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
+        VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
     except ImportError:
         # The "old" var_collection before the refactoring.
         sys.modules['reqtransformer.reqtransformer'] = reqtransformer
@@ -629,7 +629,7 @@ def unhandled_exception(exception):
 def requirements_consistency_check(app, args):
     logging.info('Check requirements consistency.')
     filenames = utils.get_filenames_from_dir(app.config['REVISION_FOLDER'])
-    var_collection = utils.pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
+    var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
     result = dict()
     result['data'] = list()
     count = 0
