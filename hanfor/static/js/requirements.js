@@ -71,6 +71,7 @@ function update_filter() {
     filter_tree = SearchNode.searchArrayToTree(filter_search_array);
 }
 
+
 function evaluate_search(data){
     return search_tree.evaluate(data, visible_columns) && filter_tree.evaluate(data, visible_columns);
 }
@@ -248,7 +249,6 @@ function update_vars() {
         let var_u = $('#requirement_var_group_u' + formalization_id);
 
         // Set the red boxes for type inference failed expressions.
-        console.log(type_inference_errors);
         if (formalization_id in type_inference_errors) {
             for (let i = 0; i < type_inference_errors[formalization_id].length; i++) {
                 $('#formalization_var_' + type_inference_errors[formalization_id][i] + formalization_id)
@@ -550,7 +550,7 @@ function load_requirement(row_idx) {
     }
 
     // Get row data
-    let data = requirements_table.row(row_idx).data();
+    let data = $('#requirements_table').DataTable().row(row_idx).data();
 
     // Prepare requirement Modal
     let requirement_modal_content = $('.modal-content');
@@ -678,9 +678,9 @@ function init_datatable_manipulators(requirements_table) {
 
     // Table filters.
     $('#type-filter-input').autocomplete({
-    minLength: 0,
-    source: available_types,
-    delay: 100
+        minLength: 0,
+        source: available_types,
+        delay: 100
     });
 
     $('#status-filter-input').autocomplete({
@@ -722,7 +722,7 @@ function init_datatable_manipulators(requirements_table) {
 
     // Listen for tool section triggers.
     $('#gen-req-from-selection').click(function () {
-        req_ids = [];
+        let req_ids = [];
         requirements_table.rows( {search:'applied'} ).every( function () {
             let d = this.data();
             req_ids.push(d['id']);
@@ -732,7 +732,7 @@ function init_datatable_manipulators(requirements_table) {
     });
 
     $('#gen-csv-from-selection').click(function () {
-        req_ids = [];
+        let req_ids = [];
         requirements_table.rows( {search:'applied'} ).every( function () {
             let d = this.data();
             req_ids.push(d['id']);
@@ -749,7 +749,7 @@ function init_datatable_manipulators(requirements_table) {
         let column = requirements_table.column($(this).attr('data-column'));
 
         // Toggle the visibility
-        state = column.visible( ! column.visible() );
+        column.visible( ! column.visible() );
         update_visible_columns_information();
     } );
 
@@ -813,7 +813,7 @@ function init_datatable_manipulators(requirements_table) {
  * @param columnDefs predefined columDefs (https://datatables.net/reference/option/columnDefs)
  */
 function init_datatable(columnDefs) {
-    requirements_table = $('#requirements_table').DataTable({
+    let requirements_table = $('#requirements_table').DataTable({
         "language": {
           "emptyTable": "Loading data."
         },
@@ -1031,7 +1031,6 @@ function load_datatable(){
                 "searchable": true
             });
         }
-
     }).done(function () {
             init_datatable(columnDefs);
     });
