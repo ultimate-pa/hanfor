@@ -858,7 +858,7 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
                             continue
                         if len(constraint.get_string()) == 0:
                             continue
-                        constraints += '{}_constraint_{}: {}\n'.format(
+                        constraints += 'Constraint_{}_{}: {}\n'.format(
                             re.sub(r"\s+", '_', var.name),
                             index,
                             constraint.get_string()
