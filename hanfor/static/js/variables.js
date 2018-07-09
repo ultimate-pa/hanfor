@@ -9,6 +9,7 @@ require('./bootstrap-tokenfield.js');
 // Globals
 let available_types = ['CONST'];
 let var_search_string = sessionStorage.getItem('var_search_string');
+let type_inference_errors = [];
 
 /**
  * Store the currently active (in the modal) variable.
@@ -322,6 +323,18 @@ function update_formalization() {
         }
 
         $('#current_formalization_textarea' + formalization_id).val(formalization);
+
+        // Update visual representation of type inference errors.
+        let header = $('#formalization_heading' + formalization_id);
+        if (formalization_id in type_inference_errors) {
+            for (let i = 0; i < type_inference_errors[formalization_id].length; i++) {
+                $('#formalization_var_' + type_inference_errors[formalization_id][i] + formalization_id)
+                    .addClass('type-error');
+                header.addClass('type-error-head');
+            }
+        } else {
+            header.removeClass('type-error-head');
+        }
     });
     $('#variable_constraint_updated').val('true');
 }
@@ -408,6 +421,8 @@ function get_variable_constraints_html(var_name) {
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
+                console.log(data.type_inference_errors);
+                type_inference_errors = data.type_inference_errors;
                 $('#formalization_accordion').html(data['html']);
             }
     }).done(function () {
@@ -417,6 +432,82 @@ function get_variable_constraints_html(var_name) {
     });
 }
 
+
+function is_constraint_link(name) {
+    const regex = /^(Constraint_)(.*)(_[0-9]+$)/gm;
+    let result = null;
+    let match = regex.exec(name);
+
+    if (match !== null) {
+      result = match[2];
+    }
+
+    return result
+}
+
+/**
+ * Find the datatable row index for a variable by its name.
+ * @param {number} name the requirement id.
+ * @returns {number} row_index the datatables row index.
+ */
+function get_rowidx_by_var_name(name) {
+    let variables_table = $('#variables_table').DataTable();
+    let result = -1;
+    let filteredData = variables_table
+        .column( 1 )
+        .data()
+        .filter( function ( value, index ) {
+            if (value === name) {
+                result = index;
+                return true;
+            }
+            return false;
+        } );
+
+    return result;
+}
+
+function load_variable(row_idx) {
+    // Get row data
+    let data = $('#variables_table').DataTable().row(row_idx).data();
+
+    // Prepare requirement Modal
+    let var_modal_content = $('.modal-content');
+    $('#variable_value_form_group').hide();
+    $('#variable_modal').modal('show');
+
+    // Meta information
+    $('#modal_associated_row_index').val(row_idx);
+    $('#variable_name_old').val(data.name);
+    $('#variable_type_old').val(data.type);
+    $('#occurences').val(data.used_by);
+
+    // Visible information
+    $('#variable_modal_title').html('Variable: ' + data.name);
+    $('#variable_name').val(data.name);
+
+    let type_input = $('#variable_type');
+    type_input.val(data.type);
+    if (data.type === 'CONST') {
+        variable_is_const();
+        $('#variable_value').val(data.const_val);
+        $('#variable_value_old').val(data.const_val);
+
+    } else {
+        $('#variable_value').val('');
+        $('#variable_value_old').val('');
+    }
+
+    type_input.autocomplete({
+        minLength: 0,
+        source: available_types
+    }).on('focus', function() { $(this).keydown(); });
+
+    // Load constraints
+    get_variable_constraints_html(data.name);
+
+    var_modal_content.LoadingOverlay('hide');
+}
 
 $(document).ready(function() {
     // Prepare and load the variables table.
@@ -466,13 +557,27 @@ $(document).ready(function() {
                 "data": "used_by",
                 "targets": [3],
                 "render": function ( data, type, row, meta ) {
-                    result = '';
+                    let result = '';
+                    if ($.inArray('Type_inference_error', row.tags) > -1) {
+                        result += '<span class="badge badge-danger">' +
+                                    '<a href="#" class="variable_link" ' +
+                                    'data-name="' + row.name + '" >Has type inference error</a>' +
+                                    '</span> ';
+                    }
                     $(data).each(function (id, name) {
                         if (name.length > 0) {
-                            search_query = '?command=search&col=2&q=' + name;
-                            result += '<span class="badge badge-info">' +
-                                '<a href="' + base_url + search_query + '" target="_blank">' + name + '</a>' +
-                                '</span>';
+                            let constraint_parent = is_constraint_link(name);
+                            if (constraint_parent !== null) {
+                                result += '<span class="badge badge-success">' +
+                                    '<a href="#" class="variable_link" ' +
+                                    'data-name="' + constraint_parent + '" >' + name + '</a>' +
+                                    '</span> ';
+                            } else {
+                                let search_query = '?command=search&col=2&q=' + name;
+                                result += '<span class="badge badge-info">' +
+                                '<a href="./' + search_query + '" target="_blank">' + name + '</a>' +
+                                '</span> ';
+                            }
                         }
                     });
                     if (result.length < 1) {
@@ -505,6 +610,10 @@ $(document).ready(function() {
         ],
         initComplete : function() {
             $('#search_bar').val(var_search_string);
+            $('.variable_link').click(function (event) {
+                event.preventDefault();
+                load_variable(get_rowidx_by_var_name($(this).data('name')));
+            });
         }
     });
     variables_table.column(3).visible(true);
@@ -520,47 +629,8 @@ $(document).ready(function() {
     $('#variables_table').find('tbody').on('click', 'a.modal-opener', function (event) {
         // prevent body to be scrolled to the top.
         event.preventDefault();
-
-        // Get row data
-        let data = variables_table.row($(event.target).parent()).data();
-        let row_id = variables_table.row($(event.target).parent()).index();
-
-        // Prepare requirement Modal
-        let var_modal_content = $('.modal-content');
-        $('#variable_value_form_group').hide();
-        $('#variable_modal').modal('show');
-
-        // Meta information
-        $('#modal_associated_row_index').val(row_id);
-        $('#variable_name_old').val(data.name);
-        $('#variable_type_old').val(data.type);
-        $('#occurences').val(data.used_by);
-
-        // Visible information
-        $('#variable_modal_title').html('Variable: ' + data.name);
-        $('#variable_name').val(data.name);
-
-        let type_input = $('#variable_type');
-        type_input.val(data.type);
-        if (data.type === 'CONST') {
-            variable_is_const();
-            $('#variable_value').val(data.const_val);
-            $('#variable_value_old').val(data.const_val);
-
-        } else {
-            $('#variable_value').val('');
-            $('#variable_value_old').val('');
-        }
-
-        type_input.autocomplete({
-            minLength: 0,
-            source: available_types
-        }).on('focus', function() { $(this).keydown(); });
-
-        // Load constraints
-        get_variable_constraints_html(data.name);
-
-        var_modal_content.LoadingOverlay('hide');
+        let row_idx = variables_table.row($(event.target).parent()).index();
+        load_variable(row_idx);
     });
 
     // Store changes on variable on save.
@@ -631,5 +701,4 @@ $(document).ready(function() {
     $('#add_constraint').click(function () {
         add_constraint();
     });
-
 } );

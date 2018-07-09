@@ -283,21 +283,6 @@ class Formalization:
         self.get_string()
         self.type_inference_check(variable_collection)
 
-    def set_expressions_mapping_raw(self, mapping):
-        """ Set expression mapping without type inference and var collection updates.
-
-        :param mapping:
-        """
-        for key, expression_string in mapping.items():
-            if len(expression_string) is 0:
-                continue
-            expression = Expression()
-            expression.raw_expression = expression_string
-            if self.expressions_mapping is None:
-                self.expressions_mapping = dict()
-            self.expressions_mapping[key] = expression
-        self.get_string()
-
     def type_inference_check(self, variable_collection):
         type_inference_errors = dict()
         allowed_types = self.scoped_pattern.get_allowed_types()
@@ -748,8 +733,8 @@ class VariableCollection:
         """
         # Copy to new location.
         self.collection[new_name] = self.collection.pop(old_name)
-        # Update name to new name
-        self.collection[new_name].name = new_name
+        # Update name to new name (rename also triggers to update constraint names.)
+        self.collection[new_name].rename(new_name)
 
         # Update the mappings.
         # Copy old to new mapping
@@ -758,6 +743,26 @@ class VariableCollection:
         except KeyError:
             # There is no old mapping. Create a new empty one.
             self.var_req_mapping[new_name] = set()
+
+        # Rename
+        # Todo: this is inefficient. Parse the var name from constraint name to limit only for affected vars.
+        for affected_var_name in self.collection.keys():
+            try:
+                self.collection[affected_var_name].rename_var_in_constraints(old_name, new_name)
+            except Exception as e:
+                logging.debug('`{}` constraints not updatable: {}'.format(affected_var_name, e))
+
+        # Update the constraint names if any
+        def rename_constraint(name: str, old_name: str, new_name: str):
+            match = re.match(Variable.CONSTRAINT_REGEX, name)
+            if match is not None and match.group(2) == old_name:
+                return name.replace(old_name, new_name)
+            return name
+
+        # Todo: this is even more inefficient :-(
+        for key in self.var_req_mapping.keys():
+            self.var_req_mapping[key] = {rename_constraint(name, old_name, new_name) for name in self.var_req_mapping[key]}
+
         # Update the req -> var mapping.
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
 
@@ -819,17 +824,62 @@ class VariableCollection:
         return self.collection[var_name].add_constraint()
 
     def del_constraint(self, var_name, constraint_id):
+        self.req_var_mapping.pop('Constraint_{}_{}'.format(var_name, constraint_id), None)
         return self.collection[var_name].del_constraint(constraint_id)
+
+    def refresh_var_constraint_mapping(self):
+        def not_in_constraint(var_name, constraint_name):
+            """ Checks if var_name is used in constraint_name (if constraint_name is existing).
+
+            :param var_name:
+            :param constraint_name:
+            :return:
+            """
+            match = re.match(Variable.CONSTRAINT_REGEX, constraint_name)
+            if match:
+                constraint_variable_name = match.group(2)
+                if not constraint_variable_name in self.collection.keys():
+                    # The referenced variable is no longer existing.
+                    try:
+                        self.req_var_mapping[constraint_name].discard(var_name)
+                    except:
+                        pass
+                    return True
+                else:
+                    # The variable exists. Now check if var_name occures in one of its constraints.
+                    for constraint in self.collection[constraint_variable_name].get_constraints():
+                        if var_name in constraint.get_string():
+                            return False
+                    try:
+                        self.req_var_mapping[constraint_name].discard(var_name)
+                    except:
+                        pass
+                    return True
+
+            return False
+
+        for name, variable in self.collection.items():
+            if name in self.var_req_mapping:
+                self.var_req_mapping[name] = {
+                    c_name for c_name in self.var_req_mapping[name] if not not_in_constraint(name, c_name)
+                }
 
 
 class Variable:
+    CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
+
     def __init__(self, name, type, value):
         self.name = name
         self.type = type
         self.value = value
+        self.tags = set()
 
     def to_dict(self, var_req_mapping):
         used_by = []
+        type_inference_errors = dict()
+        for index, f in enumerate(self.get_constraints()):
+            if f.has_type_inference_errors():
+                type_inference_errors[index] = [key.lower() for key in f.type_inference_errors.keys()]
         try:
             used_by = sorted(list(var_req_mapping[self.name]))
         except:
@@ -839,10 +889,30 @@ class Variable:
             'name': self.name,
             'type': self.type,
             'const_val': self.value,
-            'used_by': used_by
+            'used_by': used_by,
+            'tags': list(self.get_tags()),
+            'type_inference_errors': type_inference_errors
         }
 
         return d
+
+    def add_tag(self, tag_name):
+        try:
+            self.tags.add(tag_name)
+        except AttributeError:
+            self.tags = {tag_name}
+
+    def remove_tag(self, tag_name):
+        try:
+            self.tags.discard(tag_name)
+        except AttributeError:
+            self.tags = {}
+
+    def get_tags(self):
+        try:
+            return self.tags
+        except AttributeError:
+            return set()
 
     def add_constraint(self):
         """ Add a new empty constraint
@@ -870,31 +940,82 @@ class Variable:
         except:
             return []
 
-    def update_constraint(self, constraint_id, scope_name, pattern_name, mapping):
+    def update_constraint(self, constraint_id, scope_name, pattern_name, mapping, app, variable_collection):
         # set scoped pattern
+        #scoped_pattern = ScopedPattern(
+        #    Scope[scope_name], Pattern(name=pattern_name)
+        #)
         self.constraints[constraint_id].scoped_pattern = ScopedPattern(
             Scope[scope_name], Pattern(name=pattern_name)
         )
         # Parse and set the expressions.
-        self.constraints[constraint_id].set_expressions_mapping_raw(mapping=mapping)
+        for key, expression_string in mapping.items():
+            if len(expression_string) is 0:
+                continue
+            expression = Expression()
+            expression.set_expression(
+                expression_string, variable_collection, app, 'Constraint_{}_{}'.format(self.name, constraint_id)
+            )
+            if self.constraints[constraint_id].expressions_mapping is None:
+                self.constraints[constraint_id].expressions_mapping = dict()
+            self.constraints[constraint_id].expressions_mapping[key] = expression
+        self.constraints[constraint_id].get_string()
+        self.constraints[constraint_id].type_inference_check(variable_collection)
+
+        if len(self.constraints[constraint_id].type_inference_errors) > 0:
+            logging.debug('Type inference Error in variable `{}` constraint `{}` at {}.'.format(
+                self.name,
+                constraint_id,
+                [n for n in self.constraints[constraint_id].type_inference_errors.keys()]
+            ))
+            self.add_tag('Type_inference_error')
+
+        variable_collection.collection[self.name] = self
+
+        return variable_collection
 
     def update_constraints(self, constraints, app):
         logging.debug('Updating constraints for variable.'.format(self.name))
+        self.remove_tag('Type_inference_error')
+        variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
 
         for constraint in constraints.values():
             logging.debug('Updating formalizatioin No. {}.'.format(constraint['id']))
             logging.debug('Scope: `{}`, Pattern: `{}`.'.format(constraint['scope'], constraint['pattern']))
             try:
-                self.update_constraint(
+                variable_collection = self.update_constraint(
                     constraint_id=int(constraint['id']),
                     scope_name=constraint['scope'],
                     pattern_name=constraint['pattern'],
-                    mapping=constraint['expression_mapping']
+                    mapping=constraint['expression_mapping'],
+                    app=app,
+                    variable_collection=variable_collection
                 )
             except Exception as e:
                 logging.error('Could not update Formalization: {}'.format(e.__str__()))
                 raise e
 
+        return variable_collection
+
+    def rename_var_in_constraints(self, old_name, new_name):
+        # replace in every formalization
+        for index, constraint in enumerate(self.get_constraints()):
+            for key, expression in constraint.expressions_mapping.items():
+                if old_name not in expression.raw_expression:
+                    continue
+                new_expression = boogie_parsing.replace_var_in_expression(
+                    expression=expression.raw_expression,
+                    old_var=old_name,
+                    new_var=new_name
+                )
+                self.constraints[index].expressions_mapping[key].raw_expression = new_expression
+                self.constraints[index].expressions_mapping[key].used_variables.discard(old_name)
+                self.constraints[index].expressions_mapping[key].used_variables.add(new_name)
+
+    def rename(self, new_name):
+        old_name = self.name
+        self.name = new_name
+        self.rename_var_in_constraints(old_name, new_name)
 
 # This PatternVariable is here only for compatibility reasons
 # when migrating an old Hanfor session.

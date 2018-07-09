@@ -484,7 +484,10 @@ def api(resource, command):
             var_name = request.form.get('name', '').strip()
             var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
             try:
-                result['html'] = utils.formalizations_to_html(app, var_collection.collection[var_name].constraints)
+                var = var_collection.collection[var_name]
+                var_dict = var.to_dict(var_collection.var_req_mapping)
+                result['html'] = utils.formalizations_to_html(app, var.constraints)
+                result['type_inference_errors'] = var_dict['type_inference_errors']
             except AttributeError:
                 pass
 

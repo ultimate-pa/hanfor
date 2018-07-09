@@ -500,13 +500,14 @@ def update_variable_in_collection(app, request):
             request.form.get('updated_constraints') == 'true':
         logging.info('Update Variable `{}`'.format(var_name_old))
         result['has_changes'] = True
+        reload_type_inference = False
         var_collection = pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])  # type: dict
 
         if request.form.get('updated_constraints') == 'true':
             constraints = json.loads(request.form.get('constraints', ''))
             logging.debug('Update Variable Constraints')
             try:
-                var_collection.collection[var_name_old].update_constraints(constraints, app)
+                var_collection = var_collection.collection[var_name_old].update_constraints(constraints, app)
             except KeyError as e:
                 result['success'] = False
                 result['error_msg'] = 'Could not set constraint: Missing expression/variable for {}'.format(e)
@@ -518,6 +519,7 @@ def update_variable_in_collection(app, request):
 
         # update name.
         if var_name_old != var_name:
+            # Todo: rename occurences in variable constraints.
             logging.debug('Change name of var `{}` to `{}`'.format(var_name_old, var_name))
             #  Case: New name which does not exist -> remove the old var and replace in reqs ocurring.
             if var_name not in var_collection:
@@ -539,6 +541,7 @@ def update_variable_in_collection(app, request):
                 )
                 var_collection.merge_vars(var_name_old, var_name, app)
                 result['rebuild_table'] = True
+                reload_type_inference = True
 
             # delete the old.
             # Update the requirements using this var.
@@ -552,6 +555,7 @@ def update_variable_in_collection(app, request):
             logging.info('Change type from `{}` to `{}`.'.format(var_type_old, var_type))
             var_collection.collection[var_name].type = var_type
             result['type_changed'] = True
+            reload_type_inference = True
 
         # Update const value.
         if var_const_val_old != var_const_val:
@@ -560,13 +564,15 @@ def update_variable_in_collection(app, request):
             result['val_changed'] = True
 
         logging.info('Store updated variables.')
+        var_collection.refresh_var_constraint_mapping()
         var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
         logging.info('Update derived types by parsing affected formalizations.')
-        if var_name in var_collection.var_req_mapping:
+        if reload_type_inference and var_name in var_collection.var_req_mapping:
             for rid in var_collection.var_req_mapping[var_name]:
                 logging.debug('Checking `{}`'.format(rid))
                 requirement = load_requirement_by_id(rid, app)
-                requirement.reload_type_inference(var_collection, app)
+                if requirement:
+                    requirement.reload_type_inference(var_collection, app)
 
     return result
 
@@ -603,6 +609,20 @@ def rename_variable_in_expressions(app, occurences, var_name_old, var_name):
                     requirement.formalizations[index].expressions_mapping[key].used_variables.add(var_name)
             logging.debug('Updated variables in requirement id: `{}`.'.format(requirement.rid))
             store_requirement(requirement, app)
+
+
+def rename_variable_in_constraints(app, occurences, var_name_old, var_name, variable_collection):
+    """ Renames the variable in
+
+    :param app:
+    :param occurences:
+    :param var_name_old:
+    :param var_name:
+    :param variable_collection:
+    """
+    if var_name_old in variable_collection.collection.keys():
+        pass
+
 
 
 def get_statistics(app):
