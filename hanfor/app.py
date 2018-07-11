@@ -585,7 +585,8 @@ def index():
 
 
 def varcollection_consistency_check(app):
-    logging.info('Check varcollection consistency.')
+    logging.info('Check Variables for consistency.')
+    # Migrate from old Hanfor versions
     try:
         VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
     except ImportError:
@@ -605,6 +606,11 @@ def varcollection_consistency_check(app):
             new_var_collection.collection[var['name']] = Variable(var['name'], var['type'], var['value'])
         new_var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
         logging.info('Migrated old collection.')
+
+    # Update usages and constraint type check.
+    # TODO: implement this.
+    # var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+
 
 
 @app.errorhandler(500)
