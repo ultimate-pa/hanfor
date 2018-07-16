@@ -71,3 +71,12 @@ class Guess(tuple):
             raise ValueError('Mapping is missing some variables.')
 
         return super(Guess, cls).__new__(cls, tuple((score, scoped_pattern, mapping)))
+
+    @staticmethod
+    def eval_score(guesses):
+        if type(guesses) is list and len(guesses) > 0:
+            score = -1 * sum([guess[0] for guess in guesses]) / len(guesses)
+        else:
+            score = -1 * guesses[0]
+
+        return score

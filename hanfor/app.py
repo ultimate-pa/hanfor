@@ -13,6 +13,7 @@ from flask import Flask, render_template, request, jsonify, url_for, make_respon
 from flask_debugtoolbar import DebugToolbarExtension
 from functools import wraps, update_wrapper
 import reqtransformer
+from guesser.Guess import Guess
 from reqtransformer import RequirementCollection, Requirement, VariableCollection, Formalization, Variable, Scope, \
     ScopedPattern, Pattern
 from guesser.guesser_registerer import REGISTERED_GUESSERS
@@ -323,8 +324,15 @@ def api(resource, command):
                         result['errormsg'] = 'Could not determine a guess: '
                         result['errormsg'] += e.__str__()
 
-                tmp_guesses = sorted(tmp_guesses, key=lambda guess: guess[0])
-                for score, scoped_pattern, mapping in tmp_guesses:
+                tmp_guesses = sorted(tmp_guesses, key=Guess.eval_score)
+                guesses = list()
+                for g in tmp_guesses:
+                    if type(g) is list:
+                        guesses += g
+                    else:
+                        guesses.append(g)
+
+                for score, scoped_pattern, mapping in guesses:
                     result['available_guesses'].append(
                         {
                             'scope': scoped_pattern.scope.name,
@@ -386,19 +394,25 @@ def api(resource, command):
                             guesser_instance = guesser(requirement, var_collection, app)
                             guesser_instance.guess()
                             tmp_guesses += guesser_instance.guesses
-                            tmp_guesses = sorted(tmp_guesses, key=lambda guess: guess[0])
+                            tmp_guesses = sorted(tmp_guesses, key=Guess.eval_score)
                             if len(tmp_guesses) > 0:
-                                score, scoped_pattern, mapping = tmp_guesses[0]
-                                formalization_id, formalization = requirement.add_empty_formalization()
-                                # Add add content to the formalization.
-                                requirement.update_formalization(
-                                    formalization_id=formalization_id,
-                                    scope_name=scoped_pattern.scope.name,
-                                    pattern_name=scoped_pattern.pattern.name,
-                                    mapping=mapping,
-                                    app=app
-                                )
-                                utils.store_requirement(requirement, app)
+                                if type(tmp_guesses[0]) is Guess:
+                                    top_guesses = [tmp_guesses[0]]
+                                elif type(tmp_guesses[0]) is list:
+                                    top_guesses = tmp_guesses[0]
+                                else:
+                                    raise TypeError('Type: `{}` not supported as guesses'.format(type(tmp_guesses[0])))
+                                for score, scoped_pattern, mapping in top_guesses:
+                                    formalization_id, formalization = requirement.add_empty_formalization()
+                                    # Add add content to the formalization.
+                                    requirement.update_formalization(
+                                        formalization_id=formalization_id,
+                                        scope_name=scoped_pattern.scope.name,
+                                        pattern_name=scoped_pattern.pattern.name,
+                                        mapping=mapping,
+                                        app=app
+                                    )
+                                    utils.store_requirement(requirement, app)
                         except ValueError as e:
                             result['success'] = False
                             result['errormsg'] = 'Could not determine a guess: '

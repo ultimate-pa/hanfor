@@ -3,7 +3,14 @@ from reqtransformer import Requirement, ScopedPattern, Scope, Pattern
 
 
 class AbstractGuesser(ABC):
-    """ Guess formalization(s) for a requirement. """
+    """ Guess formalization(s) for a requirement.
+
+    Attributes:
+        guesses: list of: Guesses | lists of Guesses | mixture of both.
+                 To determine which guesses will be used:
+                 Single guesses will be sorted by their score.
+                 Lists of guesses will be sorted by their average score.
+    """
     def __init__(self, requirement, variable_collection, app):
         """
 
