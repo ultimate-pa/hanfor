@@ -508,6 +508,7 @@ def update_variable_in_collection(app, request):
             logging.debug('Update Variable Constraints')
             try:
                 var_collection = var_collection.collection[var_name_old].update_constraints(constraints, app)
+                result['rebuild_table'] = True
             except KeyError as e:
                 result['success'] = False
                 result['error_msg'] = 'Could not set constraint: Missing expression/variable for {}'.format(e)
