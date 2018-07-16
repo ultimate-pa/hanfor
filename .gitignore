@@ -117,3 +117,6 @@ package-lock.json
 
 # Pycharm
 .idea/
+
+# Local test files
+loctest_*
