@@ -864,6 +864,42 @@ class VariableCollection:
                     c_name for c_name in self.var_req_mapping[name] if not not_in_constraint(name, c_name)
                 }
 
+    def reload_type_inference_errors_in_constraints(self):
+        for name, var in self.collection.items():
+            if len(var.get_constraints()) > 0:
+                var.reload_constraints_type_inference_errors(self)
+                self.collection[name] = var
+
+    def refresh_var_usage(self, app):
+        filenames = utils.get_filenames_from_dir(app.config['REVISION_FOLDER'])
+        mapping = dict()
+
+        # Add the requirements using this variable.
+        for filename in filenames:
+            req = utils.pickle_load_from_dump(filename)  # type: Requirement
+            if type(req) is Requirement:
+                for formalization in req.formalizations:
+                    try:
+                        for var_name in formalization.used_variables:
+                            if var_name not in mapping.keys():
+                                mapping[var_name] = set()
+                            mapping[var_name].add(req.rid)
+                    except TypeError:
+                        pass
+                    except Exception as e:
+                        logging.info('Could not read formalizations for `{}`: {}'.format(req.rid, e))
+                        raise e
+
+        # Add the constraints using this variable.
+        for var in self.collection.values():
+            for constraint in var.get_constraints():
+                for constraint_id, expression in enumerate(constraint.expressions_mapping.values()):
+                    for var_name in expression.used_variables:
+                        if var_name not in mapping.keys():
+                            mapping[var_name] = set()
+                        mapping[var_name].add('Constraint_{}_{}'.format(var.name, constraint_id))
+
+        self.var_req_mapping = mapping
 
 class Variable:
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
@@ -940,11 +976,34 @@ class Variable:
         except:
             return []
 
+    def reload_constraints_type_inference_errors(self, var_collection):
+        logging.info('Reload type inference for variable `{}` constraints'.format(self.name))
+        self.remove_tag('Type_inference_error')
+        for id in range(len(self.get_constraints())):
+            try:
+                self.constraints[id].type_inference_check(var_collection)
+                if len(self.constraints[id].type_inference_errors) > 0:
+                    self.tags.add('Type_inference_error')
+            except AttributeError as e:
+                # Probably No pattern set.
+                logging.info('Could not derive type inference for variable `{}` constraint No. {}. {}'.format(
+                    self.name,
+                    id,
+                    e
+                ))
+
     def update_constraint(self, constraint_id, scope_name, pattern_name, mapping, app, variable_collection):
+        """ Update a single constraint
+
+        :param constraint_id:
+        :param scope_name:
+        :param pattern_name:
+        :param mapping:
+        :param app:
+        :param variable_collection:
+        :return:
+        """
         # set scoped pattern
-        #scoped_pattern = ScopedPattern(
-        #    Scope[scope_name], Pattern(name=pattern_name)
-        #)
         self.constraints[constraint_id].scoped_pattern = ScopedPattern(
             Scope[scope_name], Pattern(name=pattern_name)
         )
@@ -975,6 +1034,10 @@ class Variable:
         return variable_collection
 
     def update_constraints(self, constraints, app):
+        """ replace all constraints with :param constraints.
+
+        :return: updated VariableCollection
+        """
         logging.debug('Updating constraints for variable.'.format(self.name))
         self.remove_tag('Type_inference_error')
         variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])

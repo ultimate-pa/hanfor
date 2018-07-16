@@ -584,6 +584,28 @@ def index():
     return render_template('index.html', query=query, additional_cols=additional_cols, default_cols=default_cols)
 
 
+@app.errorhandler(500)
+def internal_server_error(error):
+    app.logger.error('Server Error: {}'.format(error))
+    logging.error(error)
+
+    return jsonify({
+        'success': False,
+        'errormsg': 'Server Error: {}'.format(error)
+    })
+
+
+@app.errorhandler(Exception)
+def unhandled_exception(exception):
+    app.logger.error('Unhandled Exception: {}'.format(exception))
+    logging.exception(exception)
+
+    return jsonify({
+        'success': False,
+        'errormsg': 'Unhandled Exception: {}'.format(exception)
+    })
+
+
 def varcollection_consistency_check(app):
     logging.info('Check Variables for consistency.')
     # Migrate from old Hanfor versions
@@ -608,31 +630,13 @@ def varcollection_consistency_check(app):
         logging.info('Migrated old collection.')
 
     # Update usages and constraint type check.
-    # TODO: implement this.
-    # var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
-
-
-
-@app.errorhandler(500)
-def internal_server_error(error):
-    app.logger.error('Server Error: {}'.format(error))
-    logging.error(error)
-
-    return jsonify({
-        'success': False,
-        'errormsg': 'Server Error: {}'.format(error)
-    })
-
-
-@app.errorhandler(Exception)
-def unhandled_exception(exception):
-    app.logger.error('Unhandled Exception: {}'.format(exception))
-    logging.exception(exception)
-
-    return jsonify({
-        'success': False,
-        'errormsg': 'Unhandled Exception: {}'.format(exception)
-    })
+    var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+    if args.reload_type_inference:
+        var_collection.reload_type_inference_errors_in_constraints()
+    var_collection.refresh_var_usage(app)
+    var_collection.req_var_mapping = var_collection.invert_mapping(var_collection.var_req_mapping)
+    var_collection.refresh_var_constraint_mapping()
+    var_collection.store()
 
 
 def requirements_consistency_check(app, args):
