@@ -480,7 +480,12 @@ def api(resource, command):
             return jsonify(result)
 
         elif command == 'get_constraints_html':
-            result = {'success': True, 'errormsg': '', 'html': '<p>No constraints set.</p>'}
+            result = {
+                'success': True,
+                'errormsg': '',
+                'html': '<p>No constraints set.</p>',
+                'type_inference_errors': dict()
+            }
             var_name = request.form.get('name', '').strip()
             var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
             try:

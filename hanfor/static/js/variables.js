@@ -411,17 +411,14 @@ function add_constraint() {
 
 
 function get_variable_constraints_html(var_name) {
-    // Store the variable.
     $.post( "api/var/get_constraints_html",
         {
             name: var_name
         },
-        // Update var table on success or show an error message.
         function( data ) {
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
-                console.log(data.type_inference_errors);
                 type_inference_errors = data.type_inference_errors;
                 $('#formalization_accordion').html(data['html']);
             }
