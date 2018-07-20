@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_assets import Environment
 from webassets import Bundle
+from hanfor.utils.prefix_middleware import PrefixMiddleware
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -47,6 +48,7 @@ def create_app(config_class=Config):
     app.register_blueprint(sites_bp, url_prefix='')
 
     if not app.testing:
+        app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix=app.config['URL_PREFIX'])
         register_assets(app)
 
     if not app.debug:

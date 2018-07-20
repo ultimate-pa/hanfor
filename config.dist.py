@@ -9,3 +9,11 @@ class Config(object):
     HOST = '127.0.0.1'
     FLASK_ENV = 'development'
     DEBUG = False
+
+    ################################################################################
+    #                         App and web server section                           #
+    ################################################################################
+
+    # If you are running the app with a url prefix set URL_PREFIX like
+    # URL_PREFIX = '/hanfor'
+    URL_PREFIX = '/hanfor'
