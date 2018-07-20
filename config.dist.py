@@ -10,6 +10,16 @@ class Config(object):
     FLASK_ENV = 'development'
     DEBUG = False
 
+    # Set the log level to increase or decrease the logging sensitivity.
+    # You can set LOG_LEVEL (in decreasing sensitivity to):
+    # 'DEBUG', 'INFO', 'WARNING', 'ERROR'
+    LOG_LEVEL = 'DEBUG'
+
+    # Set LOG_TO_FILE to True if vou want to log to the file
+    # you specified in LOG_FILE
+    LOG_TO_FILE = False
+    LOG_FILE = 'hanfor.log'
+
     ################################################################################
     #                         App and web server section                           #
     ################################################################################

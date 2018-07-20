@@ -26,7 +26,7 @@ class ListStoredSessions(argparse.Action):
 
 def create_parser(app):
     parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers()
+    subparsers = parser.add_subparsers(dest='subparser_name')
     parser_init = subparsers.add_parser('init', help='Initialize a new session.')
     parser_init.add_argument("input_csv", help="Path to the csv to be parsed.")
     parser_init.add_argument("tag", help="A unique name for the session.")
