@@ -2,7 +2,6 @@ from enum import Enum
 from lark import Lark, Tree
 from lark.lexer import Token
 from lark.reconstruct import Reconstructor
-from lark.tree import Visitor
 
 hanfor_boogie_grammar = r"""
 // Expressions
