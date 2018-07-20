@@ -2,8 +2,8 @@ from unittest import TestCase
 
 from lark import Tree
 
-from boogie_parsing import BoogieType
-import boogie_parsing
+from hanfor.boogie_parsing import boogie_parsing
+from hanfor.boogie_parsing.boogie_parsing import BoogieType
 
 
 class TestParseExpressions(TestCase):
