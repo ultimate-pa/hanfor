@@ -140,7 +140,7 @@
                     </div>
                     <div class="tab-pane fade" id="tools-pane" role="tabpanel" aria-labelledby="tools-tab">
                         <form id="generate_req_form" method="post"
-                              action="{{ url_for('tools_api', command='req_file') }}"
+                              action="{{ url_for('api.tools', command='req_file') }}"
                               target="_blank">
                             <input type="hidden" id="selected_requirement_ids" name="selected_requirement_ids" hidden/>
                         </form>
@@ -152,7 +152,7 @@
                             </button>
                         </div>
                         <form id="generate_csv_form" method="post"
-                              action="{{ url_for('tools_api', command='csv_file') }}"
+                              action="{{ url_for('api.tools', command='csv_file') }}"
                               target="_blank">
                             <input type="hidden" id="selected_csv_requirement_ids" name="selected_requirement_ids"
                                    hidden/>
