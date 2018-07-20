@@ -4,8 +4,8 @@ from hanfor.sites import bp
 from hanfor.utils.nocache_decorator import nocache
 
 
-@bp.route('/<name>', methods=['GET'])
-def static_sites(name):
+@bp.route('/<site>', methods=['GET'])
+def static_sites(site):
     available_sites = [
         'autocomplete',
         'help',
@@ -13,7 +13,7 @@ def static_sites(name):
         'variables',
         'tags'
     ]
-    if name in available_sites:
-            return render_template('simple.html'.format(name))
+    if site in available_sites:
+            return render_template('{}.html'.format(site))
     else:
         return render_template('404.html'), 404

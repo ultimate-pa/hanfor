@@ -19,25 +19,25 @@
     <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
-    <a class="navbar-brand" href="{{ url_for('site', site='/') }}"
+    <a class="navbar-brand" href="{{ url_for('sites.static_sites', site='/') }}"
        title="Hanfor helps analyzing and formalizing requirements.">Hanfor</a>
 
     <div class="collapse navbar-collapse" id="navbarColor01">
       <ul class="navbar-nav mr-auto">
           <li class="nav-item{% if request.path == '/' %} active{% endif %}">
-            <a class="nav-link" href="{{ url_for('site', site='/') }}">Start</a>
+            <a class="nav-link" href="{{ url_for('sites.static_sites', site='/') }}">Start</a>
           </li>
           <li class="nav-item{% if request.path == '/variables' %} active{% endif %}">
-            <a class="nav-link" href="{{ url_for('site', site='variables') }}">Variables</a>
+            <a class="nav-link" href="{{ url_for('sites.static_sites', site='variables') }}">Variables</a>
           </li>
           <li class="nav-item{% if request.path == '/tags' %} active{% endif %}">
-            <a class="nav-link" href="{{ url_for('site', site='tags') }}">Tags</a>
+            <a class="nav-link" href="{{ url_for('sites.static_sites', site='tags') }}">Tags</a>
           </li>
           <li class="nav-item{% if request.path == '/statistics' %} active{% endif %}">
-            <a class="nav-link" href="{{ url_for('site', site='statistics') }}">Statistics</a>
+            <a class="nav-link" href="{{ url_for('sites.static_sites', site='statistics') }}">Statistics</a>
           </li>
           <li class="nav-item{% if request.path == '/help' %} active{% endif %}">
-            <a class="nav-link" href="{{ url_for('site', site='/help') }}">Help</a>
+            <a class="nav-link" href="{{ url_for('sites.static_sites', site='/help') }}">Help</a>
           </li>
       </ul>
     </div>

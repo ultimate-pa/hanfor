@@ -34,7 +34,7 @@
 {% endblock %}
 {% block scripts %}
     <script type="text/javascript">
-        var base_url = '{{ url_for('site', site='/') }}';
+        var base_url = '{{ url_for('sites.static_sites', site='/') }}';
     </script>
     <script type="text/javascript" src="{{ url_for('static', filename='dist/tags-bundle.js') }}"></script>
 {% endblock %}
