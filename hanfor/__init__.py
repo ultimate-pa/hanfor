@@ -45,8 +45,11 @@ def create_app(config_class=Config):
     from hanfor.sites import bp as sites_bp
     app.register_blueprint(sites_bp, url_prefix='')
 
-    if not app.debug and not app.testing:
+    if not app.testing:
         register_assets(app)
+
+    if not app.debug:
+        pass
 
     return app
 
