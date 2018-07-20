@@ -11,6 +11,7 @@ from webassets import Bundle
 db = SQLAlchemy()
 migrate = Migrate()
 
+
 def register_assets(app):
     bundles = {
         'css': Bundle(
@@ -52,5 +53,6 @@ def create_app(config_class=Config):
         pass
 
     return app
+
 
 from hanfor import models
