@@ -348,6 +348,12 @@ class Expression:
         self.raw_expression = None
         self.parent_rid = None
 
+    def get_used_variables(self):
+        if self.used_variables is not None:
+            return self.used_variables
+        else:
+            return []
+
     def set_expression(self, expression: str, variable_collection: 'VariableCollection', app, parent_rid):
         """ Parses the Expression using the boogie grammar.
             * Extract variables.
@@ -894,7 +900,7 @@ class VariableCollection:
         for var in self.collection.values():
             for constraint in var.get_constraints():
                 for constraint_id, expression in enumerate(constraint.expressions_mapping.values()):
-                    for var_name in expression.used_variables:
+                    for var_name in expression.get_used_variables():
                         if var_name not in mapping.keys():
                             mapping[var_name] = set()
                         mapping[var_name].add('Constraint_{}_{}'.format(var.name, constraint_id))
