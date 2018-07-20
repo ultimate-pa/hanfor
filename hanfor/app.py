@@ -617,6 +617,8 @@ def internal_server_error(error):
 
 @app.errorhandler(Exception)
 def unhandled_exception(exception):
+    if exception.code in range(300, 308):
+        return exception
     app.logger.error('Unhandled Exception: {}'.format(exception))
     logging.exception(exception)
 
