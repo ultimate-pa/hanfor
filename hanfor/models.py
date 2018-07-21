@@ -1,5 +1,9 @@
 from flask import current_app, url_for
-from hanfor import db
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import select
+from sqlalchemy.orm import deferred, column_property
+
+from hanfor import db  # type: SQLAlchemy
 import hanfor.boogie_parsing.boogie_parsing as boogie_parsing
 
 expressions_variables = db.Table('expressions_variables',
@@ -142,7 +146,7 @@ class Expression(db.Model):
         db.session.commit()
 
     def __repr__(self):
-        return 'Expression(string="{}")'.format(self.input_string)
+        return 'Expression(string=`{}`)'.format(self.input_string)
 
     def __str__(self):
         result = str(self.parsed_string)
@@ -180,31 +184,86 @@ class Pattern(db.Model):
 class Formalization(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     scope_id = db.Column(db.Integer, db.ForeignKey('scope.id'))
-    scope = db.relationship("Scope")
+    scope = db.relationship('Scope')
     pattern_id = db.Column(db.Integer, db.ForeignKey('pattern.id'))
-    pattern = db.relationship("Pattern")
+    pattern = db.relationship('Pattern')
     expressions = db.relationship('Expression', secondary=formalizations_expressions, back_populates='formalizations')
     tags = db.relationship('Tag', secondary=formalizations_tags)
 
 
-class CsvEntry(db.Model):
+class Requirement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    header_id = db.Column(db.Integer, db.ForeignKey('csv_entry.id'))
-    header = db.relationship("CsvEntry")
+
+    rid_header_id =           db.Column(db.Integer, db.ForeignKey('csv_header_entry.id'))
+    description_header_id =   db.Column(db.Integer, db.ForeignKey('csv_header_entry.id'))
+    formalization_header_id = db.Column(db.Integer, db.ForeignKey('csv_header_entry.id'))
+    type_header_id =          db.Column(db.Integer, db.ForeignKey('csv_header_entry.id'))
+
+    rid_header = db.relationship('CsvHeaderEntry', foreign_keys=[rid_header_id])
+    description_header = db.relationship('CsvHeaderEntry', foreign_keys=[description_header_id])
+    formalization_header = db.relationship('CsvHeaderEntry', foreign_keys=[formalization_header_id])
+    type_header = db.relationship('CsvHeaderEntry', foreign_keys=[type_header_id])
+    csv_entries = db.relationship('CsvEntry', order_by='CsvEntry.order', lazy='dynamic')
+
+    pos_in_csv = db.Column(db.Integer)
+
+    #formalizations = db.relationship('Formalization', lazy=True)
+    #tags = db.relationship('Tag', lazy=True)
+    #status = db.relationship('Status', lazy=True)
+    @property
+    def rid_csv_entry(self):
+        return self.csv_entries.filter_by(header=self.rid_header).first()
+
+    @property
+    def rid(self):
+        return self.rid_csv_entry.text
+
+    @rid.setter
+    def rid(self, value):
+        self.rid_csv_entry.text = value
+
+    @property
+    def description_csv_entry(self):
+        return self.csv_entries.filter_by(header=self.description_header).first()
+
+    @property
+    def description(self):
+        return self.description_csv_entry.text
+
+    @description.setter
+    def description(self, value):
+        self.description_csv_entry.text = value
+
+    @property
+    def type_csv_entry(self):
+        return self.csv_entries.filter_by(header=self.type_header).first()
+
+    @property
+    def type(self):
+        return self.type_csv_entry.text
+
+    @type.setter
+    def type(self, value):
+        self.type_csv_entry.text = value
+
+    def get_csv_headers(self):
+        return [csv_entry.header for csv_entry in self.csv_entries]
+
+    def get_csv_entries(self):
+        return self.csv_entries
+
+
+class CsvHeaderEntry(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text)
     order = db.Column(db.Integer)
 
-    def is_header(self):
-        return self.header_id is None
 
-
-class Requirement(db.Model):
+class CsvEntry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    rid = db.relationship('CsvEntry', lazy=True)
-    formalizations = db.relationship('Formalization', lazy=True)
-    csv_entries = db.relationship('CsvEntry', lazy=True)
-    description = db.relationship('CsvEntry', lazy=True)
-    type_in_csv = db.relationship('CsvEntry', lazy=True)
-    pos_in_csv = db.Column(db.Integer)
-    tags = db.relationship('Tag', lazy=True)
-    status = db.relationship('Status', lazy=True)
+    header_id = db.Column(db.Integer, db.ForeignKey('csv_header_entry.id'))
+    header = db.relationship('CsvHeaderEntry')
+    requirement_id = db.Column(db.Integer, db.ForeignKey('requirement.id'))
+    requirement = db.relationship('Requirement')
+    text = db.Column(db.Text)
+    order = deferred(select([CsvHeaderEntry.order]).where(CsvHeaderEntry.id == header_id))

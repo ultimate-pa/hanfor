@@ -24,5 +24,6 @@ if __name__ == '__main__':
     if args.subparser_name == 'init':
         logging.info('Initialize a new session.')
 
+
     if args.subparser_name == 'start':
         app.run(**app_options)

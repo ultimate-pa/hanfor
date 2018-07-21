@@ -12,6 +12,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class TestEnvironment(TestCase):
     """ Hanfor specific TestCase """
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'test_app.db')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     TESTING = True
 
     def create_app(self):
