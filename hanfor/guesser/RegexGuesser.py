@@ -41,21 +41,21 @@ class RegexGuesser(AbstractGuesser):
         return self.__create_invariant(matches[0])
 
     def __guess_signal_routing(self):
-        matches = self.__match(r"^The signal (\w+) shall be routet on \w+ \((\w+)\)[\s|\.]*$")
+        matches = self.__match(r"^The signal (\w+) shall be routet on \w+ \((\w+)\s*\)[\s|\.]*$")
         if len(matches) != 1:
             return None, None
 
         return self.__create_bounded_response(matches[0])
 
     def __guess_signal_routing_message(self):
-        matches = self.__match(r"^The message (\w+) shall be routet on \w+ \((\w+)\)[\s|\.]*$")
+        matches = self.__match(r"^The message (\w+) shall be routet on \w+ \((\w+)\s*\)[\s|\.]*$")
         if len(matches) != 1:
             return None, None
 
         return self.__create_bounded_response(matches[0])
 
     def __guess_signal_routing_value(self):
-        matches = self.__match(r"^The value of the parameter (\w+) shall be routet on \w+ \((\w+)\)[\s|\.]*$")
+        matches = self.__match(r"^The value of the parameter (\w+) shall be routet on \w+ \((\w+)\s*\)[\s|\.]*$")
         if len(matches) != 1:
             return None, None
 
