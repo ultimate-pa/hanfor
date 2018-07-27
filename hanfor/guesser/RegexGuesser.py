@@ -167,7 +167,7 @@ class RegexGuesser(AbstractGuesser):
             new_term = "%s %s %s" % (LHS, sep, RHS)
         elif timer:
             LHS = case.group(2).strip()
-            RHS = 0
+            RHS = 0.0
             new_term = "%s %s %s" % (LHS, sep, RHS)
         else:
             new_term = None
