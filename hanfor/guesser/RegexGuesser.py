@@ -153,7 +153,7 @@ class RegexGuesser(AbstractGuesser):
 
         if equals or not_equals:
             LHS = case.group(1).strip()
-            RHS = case.group(3).strip().replace('"', '').replace(" ", "_").lower().replace("true", "1").replace("false", "0").replace("(", "").replace(")", "").replace("&", "AND")
+            RHS = case.group(3).strip().replace('"', '').replace(" ", "_").lower().replace("(", "").replace(")", "").replace("&", "AND")
             if RHS != "1" and RHS != "0":
                 RHS = "%s_%s" % (LHS, RHS.upper())
             new_term = "%s %s %s" % (LHS, sep, RHS)
