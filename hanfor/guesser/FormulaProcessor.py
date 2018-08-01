@@ -1,6 +1,7 @@
 import re
 
 from enum import IntEnum
+from collections import namedtuple
 
 class Operator(IntEnum):
     MULTIPLY = 9,
@@ -43,7 +44,19 @@ class Stack:
     def size(self):
         return len(self.items)
 
+class TermBuildingCase(IntEnum):
+    EQUALS = 1,
+    NOT_EQUALS = 2,
+    EQUALS_VALUE = 3,
+    NOT_EQUALS_VALUE = 4,
+    GT_LT = 5,
+    AVAILABLE = 6,
+    NOT_AVAILABLE = 7,
+    RECEIVED = 8,
+    NOT_RECEIVED = 9,
+    TIMER = 10
 
+TermBuildingTuple = namedtuple("TermBuildingTuple", ["match", "separator", "term_building_case"])
 
 class FormulaProcessor(object):
 
@@ -73,25 +86,31 @@ class FormulaProcessor(object):
             "OR": Operator.ORTEXT,
         }
 
-    def process_formula(self, infix_formula, term_wise=False):
-        result = ""
-        # convert infix formula into an array
-        infix_array = self.expression_to_array(infix_formula, term_wise)
-        # convert infix to postfix
-        postfix_array = self.infix_to_postfix(infix_array)
-        # process postfix.
-        processed_posfix_array = self.process_postfix(postfix_array)
-        processed_infix = self.postfix_to_infix(processed_posfix_array)
+        self.umlaut_replacements = {
+            'Ä': 'AE',
+            'Ö': 'OE',
+            'Ü': 'UE',
+            'ä': 'ae',
+            'ö': 'oe',
+            'ü': 'ue',
+        }
 
-        return processed_infix
+        self.term_replacements = {
+            ' := ': ' == ',
+            '== ->': '==',
+            '==->': '==',
+            '!= ->': '!=',
+            '!=->': '!='
+        }
 
-    def process_postfix(self, postfix):
-        """
-
-        :param postfix:
-        :return:
-        """
-
+        self.term_righthand_side_replacements = {
+            '"': '',
+            ' ': '_',
+            '-': '',
+            '(': '',
+            ')': '',
+            '&': 'AND'
+        }
 
     def infix_to_postfix(self, infix_array):
         """
@@ -249,104 +268,120 @@ class FormulaProcessor(object):
         else:
             return False
 
+    def create_term_building_tuple(self, regex, term, term_building_case, separator_match_group=None, separator=""):
+        pair = False
+        matcher = re.search(regex, term, re.DOTALL)
+        if matcher:
+            if not separator and separator is not None:
+                separator = matcher.group(separator_match_group)
+            pair = TermBuildingTuple(match=re.search(regex, term, re.DOTALL), separator=separator, term_building_case=term_building_case)
+        return pair
+
     def process_term(self, term):
-        # x == y
-        equals = re.search(r'(.*)\s*(==)\s*([^\"\s]+).*',
-                           term.replace(" := ", " == ").replace("== ->", "==").replace("==->", "=="), re.DOTALL)
-        # x == "lel"
-        equals_value = re.search(r'(.*)\s*(==)\s*\"(.+)\".*',
-                                 term.replace(" := ", " == ").replace("== ->", "==").replace("==->", "=="), re.DOTALL)
-        # x != y
-        not_equals = re.search(r'(.*)\s*(!=)\s*([^\"\s]+).*', term.replace("!= ->", "!=").replace("!=->", "!="),
-                               re.DOTALL)
-        not_equals_value = re.search(r'(.*)\s*(!=)\s*\"(.+)\".*', term.replace("!= ->", "!=").replace("!=->", "!="),
-                                     re.DOTALL)
-        gt_lt = re.search(r'(.*)\s(<|>=|>|<=)\s(.*)', term, re.DOTALL)
-        not_available = re.search(r'(.*) not available', term, re.DOTALL)
-        available = re.search(r'(.*)(is)* available', term, re.DOTALL)
-        received = re.search(r'(.*)(is)* received', term, re.DOTALL)
-        not_received = re.search(r'(.*) not received', term, re.DOTALL)
-        timer = re.search(r'(start|stop) timer (.*)', term, re.DOTALL)
+        for key, val in self.term_replacements.items():
+            term = term.replace(key, val)
 
-        sep = "=="
-        case = False
+        matchers = list()
+        matchers.append(self.create_term_building_tuple(regex=r'(.*)\s*(==)\s*([^\"\s]+).*', term=term,
+                                                        term_building_case=TermBuildingCase.EQUALS,
+                                                        separator="=="))
+        matchers.append(self.create_term_building_tuple(regex=r'(.*)\s*(==)\s*\"(.+)\".*', term=term,
+                                                        term_building_case=TermBuildingCase.EQUALS_VALUE,
+                                                        separator="=="))
+        matchers.append(self.create_term_building_tuple(regex=r'(.*)\s*(!=)\s*([^\"\s]+).*', term=term,
+                                                        term_building_case=TermBuildingCase.NOT_EQUALS,
+                                                        separator="!="))
+        matchers.append(self.create_term_building_tuple(regex=r'(.*)\s*(!=)\s*\"(.+)\".*', term=term,
+                                                        term_building_case=TermBuildingCase.NOT_EQUALS_VALUE,
+                                                        separator="!="))
+        matchers.append(self.create_term_building_tuple(regex=r'(.*)\s(<|>=|>|<=)\s(.*)', term=term,
+                                                        term_building_case=TermBuildingCase.GT_LT,
+                                                        separator_match_group=2))
+        matchers.append(self.create_term_building_tuple(regex=r'(.*) not available', term=term,
+                                                        term_building_case=TermBuildingCase.NOT_AVAILABLE))
+        matchers.append(self.create_term_building_tuple(regex=r'(.*)(is)* available', term=term,
+                                                        term_building_case=TermBuildingCase.AVAILABLE,
+                                                        separator=None))
+        matchers.append(self.create_term_building_tuple(regex=r'(.*)(is)* received', term=term,
+                                                        term_building_case=TermBuildingCase.RECEIVED,
+                                                        separator=None))
+        matchers.append(self.create_term_building_tuple(regex=r'(.*) not received', term=term,
+                                                        term_building_case=TermBuildingCase.NOT_RECEIVED,
+                                                        separator=None))
+        matchers.append(self.create_term_building_tuple(regex=r'(start|stop) timer (.*)', term=term,
+                                                        term_building_case=TermBuildingCase.TIMER,
+                                                        separator="=="))
 
-        if equals_value:
-            sep = "=="
-            case = equals_value
-        elif not_equals_value:
-            sep = "!="
-            case = not_equals_value
-        elif equals:
-            sep = "=="
-            case = equals
-        elif not_equals:
-            sep = "!="
-            case = not_equals
-        elif not_available:
-            sep = None
-            case = not_available
-        elif not_received:
-            sep = None
-            case = not_received
-        elif received:
-            sep = None
-            case = received
-        elif available:
-            sep = None
-            case = available
-        elif gt_lt:
-            sep = gt_lt.group(2)
-            case = gt_lt
-        elif timer:
-            sep = "=="
-            case = timer
+        # make pycharm happy and avoid "might be referenced before assigned"-notifications.
+        match = None
+        term_building_case = None
+        separator = None
 
-        if equals or not_equals:
-            LHS = case.group(1).strip()
-            RHS = case.group(3).strip().replace('"', '').replace(" ", "_").replace("-", "").lower().replace("(",
-                                                                                                            "").replace(
-                ")", "").replace("&", "AND")
-            new_term = "%s %s %s" % (LHS, sep, RHS)
-        elif equals_value or not_equals_value:
-            LHS = case.group(1).strip()
-            RHS = case.group(3).strip().replace('"', '').replace(" ", "_").replace("-", "_").lower().replace("(",
-                                                                                                             "").replace(
-                ")", "").replace("&", "AND")
-            if RHS != "true" and RHS != "false":
-                RHS = "%s_%s" % (LHS, RHS.upper())
-                new_term = "%s %s %s" % (LHS, sep, RHS)
-            elif RHS == "true":
-                new_term = "%s" % (LHS)
-            elif RHS == "false":
-                new_term = "!%s" % (LHS)
-        elif not_available or not_received:
-            new_term = "!%s" % case.group(1).strip().replace(" is", "")
-        elif received or available:
-            new_term = "%s" % case.group(1).strip().replace(" is", "")
-        elif gt_lt:
-            LHS = case.group(1).strip()
-            RHS = case.group(3).strip().replace('"', '').replace(" ", "_").replace("(", "").replace(")", "").replace(
-                "&", "AND")
-            new_term = "%s %s %s" % (LHS, sep, RHS)
-        elif timer:
-            LHS = case.group(2).strip()
-            RHS = 0.0
-            new_term = "%s %s %s" % (LHS, sep, RHS)
+        for matcher in matchers:
+            if matcher:
+                match = matcher.match
+                separator = matcher.separator
+                term_building_case = matcher.term_building_case
+
+        if not match:
+            return None
+
+        # build term according to case.
+        # x == y,  x != y
+        if term_building_case is TermBuildingCase.EQUALS or term_building_case is TermBuildingCase.NOT_EQUALS:
+            lhs = match.group(1).strip()
+            rhs = match.group(3).strip().lower()
+            for key, val in self.term_righthand_side_replacements.items():
+                rhs = rhs.replace(key, val)
+            new_term = "%s %s %s" % (lhs, separator, rhs)
+        # x == "y",  x != "y"
+        elif term_building_case is TermBuildingCase.EQUALS_VALUE or term_building_case is TermBuildingCase.NOT_EQUALS_VALUE:
+            lhs = match.group(1).strip()
+            rhs = match.group(3).strip().lower()
+            for key, val in self.term_righthand_side_replacements.items():
+                rhs = rhs.replace(key, val)
+            if rhs != "true" and rhs != "false":
+                rhs = "%s_%s" % (lhs, rhs.upper())
+                new_term = "%s %s %s" % (lhs, separator, rhs)
+            elif rhs == "true":
+                new_term = "%s" % lhs
+            elif rhs == "false":
+                new_term = "!%s" % lhs
+        # x (is) not available/received
+        elif term_building_case is TermBuildingCase.NOT_AVAILABLE or term_building_case is TermBuildingCase.NOT_RECEIVED:
+            new_term = "!%s" % match.group(1).strip().replace(" is", "")
+        # x (is) available/received
+        elif term_building_case is TermBuildingCase.RECEIVED or term_building_case is TermBuildingCase.AVAILABLE:
+            new_term = "%s" % match.group(1).strip().replace(" is", "")
+        # x >= y, x <= y, x > y, x < y
+        elif term_building_case is TermBuildingCase.GT_LT:
+            lhs = match.group(1).strip()
+            rhs = match.group(3).strip()
+            for key, val in self.term_righthand_side_replacements.items():
+                rhs = rhs.replace(key, val)
+            new_term = "%s %s %s" % (lhs, separator, rhs)
+        # start/stop timer
+        elif term_building_case is TermBuildingCase.TIMER:
+            lhs = match.group(2).strip()
+            rhs = 0.0
+            new_term = "%s %s %s" % (lhs, separator, rhs)
         else:
             new_term = None
 
         return new_term
 
     def process_if_part(self, part, and_logic):
+        for key, val in self.umlaut_replacements.items():
+            part = part.replace(key, val)
+        # parts are one or more lines, *usually* separated by a newline "\n"
         lines = part.strip().split("\n")
         processed_lines = []
         for line in lines:
+            # Split each line into an array of terms. We split on AND, OR, ||, &&
             terms_array = self.expression_to_array(line, term_wise=True)
-            print(terms_array)
             processed_terms = []
+            # Each term is processed
             for term in terms_array:
-                print("term: %s" % term)
                 if term == 'OR':
                     processed_terms.append(' || ')
                 elif term == 'AND':
@@ -354,14 +389,19 @@ class FormulaProcessor(object):
                 else:
                     processed_term = self.process_term(term)
                     if processed_term is not None:
-                        print("processed: %s" % processed_term)
                         processed_terms.append(processed_term)
             if processed_terms:
-                processed_lines.append("("+ "".join(processed_terms)+ ")")
-        print(processed_lines)
+                processed_lines.append("(" + "".join(processed_terms) + ")")
         if and_logic:
             new_part = "\n&& ".join(processed_lines)
         else:
             new_part = "\n|| ".join(processed_lines)
 
         return new_part
+
+    def preprocess_part(self, part):
+        preprocessed = part
+        for key, val in self.umlaut_replacements.items():
+            preprocessed = preprocessed.replace(key, val)
+
+        return preprocessed

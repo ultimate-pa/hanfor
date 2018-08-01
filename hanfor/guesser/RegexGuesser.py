@@ -86,8 +86,10 @@ class RegexGuesser(AbstractGuesser):
         if "(or-logic)" in match.group(1).lower():
             and_logic = False
 
-        var1 = self.formula_processor.process_if_part(match.group(1).replace("(AND-logic)", "").replace("(OR-logic)", ""), and_logic)
-        var2 = self.formula_processor.process_if_part(match.group(2), and_logic)
+        if_part = match.group(1).replace("(AND-logic)", "").replace("(OR-logic)", "")
+        then_part = match.group(2)
+        var1 = self.formula_processor.process_if_part(if_part, and_logic)
+        var2 = self.formula_processor.process_if_part(then_part, and_logic)
 
         if var1 is None or var2 is None:
             return None, None
