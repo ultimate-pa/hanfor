@@ -526,7 +526,6 @@ def api(resource, command):
 
         return jsonify(result)
 
-
     if resource == 'stats':
         # Get all stats
         if command == 'gets':
@@ -1018,7 +1017,7 @@ if __name__ == '__main__':
         var_collection = VariableCollection()
         utils.pickle_dump_obj_to_file(var_collection, app.config['SESSION_VARIABLE_COLLECTION'])
 
-    # Initilize meta settings
+    # Initialize meta settings
     app.config['META_SETTTINGS_PATH'] = os.path.join(app.config['SESSION_FOLDER'], 'meta_settings.pickle')
     if not os.path.exists(app.config['META_SETTTINGS_PATH']):
         meta_settings = dict()
