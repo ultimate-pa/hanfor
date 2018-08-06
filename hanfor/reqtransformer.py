@@ -263,6 +263,17 @@ class Formalization:
         self.used_variables = None
         self.type_inference_errors = dict()
 
+    @property
+    def used_variables(self):
+        result = []
+        for exp in self.expressions_mapping.values():  # type: Expression
+            result += exp.get_used_variables()
+        return list(set(result))
+
+    @used_variables.setter
+    def used_variables(self, value):
+        self._used_variables = value
+
     def set_expressions_mapping(self, mapping, variable_collection, app, rid):
         """ Parse expression mapping.
             + Extract variables. Replace by their ID. Create new Variables if they do not exist.
