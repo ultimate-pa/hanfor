@@ -728,7 +728,7 @@ def get_statistics(app):
 
 
 def get_requirements(input_dir, filter_list=None, invert_filter=False):
-    """ Load all requiremenst from session folder and return in a list.
+    """ Load all requirements from session folder and return in a list.
 
     :param tag: Session tag
     :type tag: str
@@ -741,6 +741,7 @@ def get_requirements(input_dir, filter_list=None, invert_filter=False):
         os.path.join(input_dir, f) for f in os.listdir(input_dir)
         if os.path.isfile(os.path.join(input_dir, f))
     ]
+    filenames.sort()
     requirements = list()
 
     def should_be_in_result(req) -> bool:
@@ -863,6 +864,7 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
         content = ''
         constants = ''
         constraints = ''
+        # Parse variables and variable constraints.
         for var in var_collection.collection.values():
             if var.name in available_vars:
                 if var.type == 'CONST':
@@ -891,6 +893,8 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
         if len(constraints) > 0:
             content = '\n'.join([content, constraints])
         content += '\n'
+
+        # parse requirement formalizations.
         for requirement in requirements:  # type: Requirement
             try:
                 for index, formalization in enumerate(requirement.formalizations):
