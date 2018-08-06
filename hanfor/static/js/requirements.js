@@ -1066,6 +1066,14 @@ function init_modal() {
         fetch_available_guesses();
     });
 
+    // In case of stacked modals and on modal closing:
+    // Prevent removal of modal-open class from body if a modal remains. This will keep the scrollbar intact.
+    $(".modal").on('hidden.bs.modal', function (event) {
+        if ($('.modal:visible').length) {
+            $('body').addClass('modal-open');
+        }
+    });
+
     // Initialize variables.
     update_vars();
 }
