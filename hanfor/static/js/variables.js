@@ -7,7 +7,7 @@ require('jquery-ui/ui/widgets/autocomplete');
 require('./bootstrap-tokenfield.js');
 
 // Globals
-let available_types = ['CONST'];
+let available_types = ['CONST', 'ENUM'];
 let var_search_string = sessionStorage.getItem('var_search_string');
 let type_inference_errors = [];
 
@@ -60,6 +60,17 @@ function store_variable(variables_table) {
         available_types.push(var_type);
     }
 
+    // Process enumerators in case we have an enum
+    let enumerators = [];
+    if (var_type === 'ENUM') {
+        // Fetch enumerators.
+        $('.enumerator-input').each(function (index, elem) {
+            let enum_name = $(this).find('.enum_name_input').val();
+            let enum_value = $(this).find('.enum_value_input').val();
+            enumerators.push([enum_name, enum_value]);
+        });
+    }
+
     // Store the variable.
     $.post( "api/var/update",
         {
@@ -71,7 +82,8 @@ function store_variable(variables_table) {
             type_old: var_type_old,
             occurrences: occurrences,
             constraints: JSON.stringify(constraints),
-            updated_constraints: updated_constraints
+            updated_constraints: updated_constraints,
+            enumerators: JSON.stringify(enumerators)
         },
         // Update var table on success or show an error message.
         function( data ) {
@@ -464,13 +476,46 @@ function get_rowidx_by_var_name(name) {
     return result;
 }
 
+
+function show_enumerators_in_modal(revert=false) {
+    if (revert === true) {
+        $('.enum-controls').hide();
+    } else {
+        $('.enum-controls').show();
+    }
+}
+
+
+function load_enumerators_to_modal(var_name) {
+    $.post( "api/var/get_enumerators",
+        {
+            name: var_name
+        },
+        function( data ) {
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                console.log(data['enumerators']);
+                $.each(data['enumerators'], function (index, item) {
+                    const stripped_name = item[0].substr(var_name.length + 1);
+                    add_enumerator_template(stripped_name, item[1]);
+                })
+            }
+    }).done(function () {
+        update_displayed_constraint_inputs();
+        update_formalization();
+        bind_expression_buttons();
+    });
+}
+
 function load_variable(row_idx) {
     // Get row data
     let data = $('#variables_table').DataTable().row(row_idx).data();
 
     // Prepare requirement Modal
     let var_modal_content = $('.modal-content');
-    $('#variable_value_form_group').hide();
+    show_variable_val_input(true);
+    show_enumerators_in_modal(true);
     $('#variable_modal').modal('show');
 
     // Meta information
@@ -484,15 +529,21 @@ function load_variable(row_idx) {
     $('#variable_name').val(data.name);
 
     let type_input = $('#variable_type');
-    type_input.val(data.type);
-    if (data.type === 'CONST') {
-        show_variable_val_input();
-        $('#variable_value').val(data.const_val);
-        $('#variable_value_old').val(data.const_val);
+    let variable_value = $('#variable_value');
+    let variable_value_old = $('#variable_value_old');
 
-    } else {
-        $('#variable_value').val('');
-        $('#variable_value_old').val('');
+    type_input.val(data.type);
+    variable_value.val('');
+    variable_value_old.val('');
+
+    if (data.type === 'CONST' || data.type === 'ENUMERATOR') {
+        show_variable_val_input();
+        variable_value.val(data.const_val);
+        variable_value_old.val(data.const_val);
+    } else if (data.type === 'ENUM') {
+        show_enumerators_in_modal();
+        $('#enumerators').html('');
+        load_enumerators_to_modal(data.name);
     }
 
     type_input.autocomplete({
@@ -521,6 +572,18 @@ function add_enum_via_modal() {
         }
     });
 }
+
+function add_enumerator_template(name, value) {
+    const enumerator_template = `
+        <div class="input-group enumerator-input">
+            <span class="input-group-addon">Name</span>
+            <input class="form-control enum_name_input" type="text" value="${name}">
+            <span class="input-group-addon">Value</span>
+            <input class="form-control enum_value_input" type="number" value="${value}">
+        </div>`;
+    $('#enumerators').append(enumerator_template);
+}
+
 
 $(document).ready(function() {
     // Prepare and load the variables table.
@@ -718,6 +781,11 @@ $(document).ready(function() {
     // Add new enum via modal.
     $('#save_new_enum_modal').click(function () {
         add_enum_via_modal();
+    });
+
+    // Add new enumerator from emum modal
+    $('#add_enumerator').click(function () {
+        add_enumerator_template('');
     });
 
 } );

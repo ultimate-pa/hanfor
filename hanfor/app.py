@@ -115,7 +115,8 @@ def api(resource, command):
         'multi_add_top_guess',
         'get_constraints_html',
         'del_constraint',
-        'add_new_enum'
+        'add_new_enum',
+        'get_enumerators'
     ]
     if resource not in resources or command not in commands:
         return jsonify({
@@ -540,11 +541,26 @@ def api(resource, command):
                     'errormsg': '`{}` is already existing.'.format(enum_name)
                 }
             else:
-                new_enum = Variable(enum_name, 'enum', None)
+                new_enum = Variable(enum_name, 'ENUM', None)
                 logging.debug('Adding new Enum `{}` to Variable collection.'.format(enum_name))
                 var_collection.collection[enum_name] = new_enum
                 var_collection.store()
                 return jsonify(result)
+        elif command == 'get_enumerators':
+            result = {'success': True, 'errormsg': ''}
+            enumerators = []
+            enum_name = request.form.get('name', '').strip()
+            var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+
+            for other_var_name, other_var in var_collection.collection.items():
+                if (len(other_var_name) > len(enum_name)
+                    and other_var_name.startswith(enum_name)
+                        and other_var.type == 'ENUMERATOR'):
+                    enumerators.append((other_var_name, other_var.value))
+
+            result['enumerators'] = enumerators
+
+            return jsonify(result)
 
         return jsonify(result)
 

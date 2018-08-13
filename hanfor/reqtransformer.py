@@ -1100,6 +1100,39 @@ class Variable:
         self.name = new_name
         self.rename_var_in_constraints(old_name, new_name)
 
+    def get_parent_enum(self, variable_collection):
+        """ Returns the parent enum in case this variable is an enumerator.
+
+        :return: The parent enum name
+        :param variable_collection:
+        """
+        result = ''
+        if self.type == 'ENUMERATOR':
+            for other_var_name in variable_collection.collection.keys():
+                if (len(self.name) > len(other_var_name)
+                    and variable_collection.collection[other_var_name].type == 'ENUM'
+                        and self.name.startswith(other_var_name)):
+                    result = other_var_name
+                    break
+        return result
+
+    def get_enumerators(self, variable_collection):
+        """ Returns a list of enumerator names, in case this variable is an enum.
+
+        :param variable_collection:
+        :return: List of enumerator names.
+        """
+        result = []
+        if self.type == 'ENUM':
+            for other_var_name in variable_collection.collection.keys():
+                if (len(self.name) < len(other_var_name)
+                    and variable_collection.collection[other_var_name].type == 'ENUMERATOR'
+                        and self.other_var_name.startswith(self.name)):
+                    result.append(other_var_name)
+                    break
+        return result
+
+
 # This PatternVariable is here only for compatibility reasons
 # when migrating an old Hanfor session.
 class PatternVariable:

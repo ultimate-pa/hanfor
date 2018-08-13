@@ -480,7 +480,9 @@ def update_variable_in_collection(app, request):
     var_const_val = request.form.get('const_val', '').strip()
     var_const_val_old = request.form.get('const_val_old', '').strip()
     occurrences = request.form.get('occurrences', '').strip().split(',')
+    enumerators = json.loads(request.form.get('enumerators', ''));
 
+    var_collection = pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
     result = {
         'success': True,
         'has_changes': False,
@@ -496,12 +498,13 @@ def update_variable_in_collection(app, request):
     }
 
     # Check for changes
-    if var_type_old != var_type or var_name_old != var_name or var_const_val_old != var_const_val or \
-            request.form.get('updated_constraints') == 'true':
+    if (var_type_old != var_type
+        or var_name_old != var_name
+        or var_const_val_old != var_const_val
+            or request.form.get('updated_constraints') == 'true'):
         logging.info('Update Variable `{}`'.format(var_name_old))
         result['has_changes'] = True
         reload_type_inference = False
-        var_collection = pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])  # type: dict
 
         if request.form.get('updated_constraints') == 'true':
             constraints = json.loads(request.form.get('constraints', ''))
@@ -574,6 +577,35 @@ def update_variable_in_collection(app, request):
                 requirement = load_requirement_by_id(rid, app)
                 if requirement:
                     requirement.reload_type_inference(var_collection, app)
+
+    if var_type == 'ENUM':
+        for enumerator_name, enumerator_value in enumerators:
+            if len(enumerator_name) == 0 or not re.match('^[a-zA-Z0-9_-]+$', enumerator_name):
+                result = {
+                    'success': False,
+                    'errormsg': 'Enumerator name `{}` not valid'.format(enumerator_name)
+                }
+                break
+            try:
+                int(enumerator_value)
+            except:
+                result = {
+                    'success': False,
+                    'errormsg': 'Enumerator value `{}` for enumerator `{}` not valid'.format(
+                        enumerator_name, enumerator_value
+                    )
+                }
+                break
+
+            enumerator_name = '{}_{}'.format(var_name, enumerator_name)
+            # Add new enumerators to the var_collection
+            if not var_collection.var_name_exists(enumerator_name):
+                var_collection.add_var(enumerator_name)
+
+            var_collection.collection[enumerator_name].type = 'ENUMERATOR'
+            var_collection.collection[enumerator_name].value = enumerator_value
+
+        var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
 
     return result
 
