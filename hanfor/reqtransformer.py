@@ -709,8 +709,11 @@ class VariableCollection:
     def get_available_var_names_list(self, used_only=True):
         return [var['name'] for var in self.get_available_vars_list(used_only=used_only)]
 
+    def var_name_exists(self, name):
+        return name in self.collection.keys()
+
     def add_var(self, var_name):
-        if var_name not in self.collection.keys():
+        if not self.var_name_exists(var_name):
             logging.debug('Adding variable `{}` to collection.'.format(var_name))
             self.collection[var_name] = Variable(var_name, None, None)
 

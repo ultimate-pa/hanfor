@@ -7,6 +7,9 @@ import datetime
 import logging
 import os
 import sys
+
+import re
+
 import utils
 
 from flask import Flask, render_template, request, jsonify, url_for, make_response, send_file, json, session
@@ -111,7 +114,8 @@ def api(resource, command):
         'add_formalization_from_guess',
         'multi_add_top_guess',
         'get_constraints_html',
-        'del_constraint'
+        'del_constraint',
+        'add_new_enum'
     ]
     if resource not in resources or command not in commands:
         return jsonify({
@@ -482,7 +486,6 @@ def api(resource, command):
                     var_collection.store()
 
             return jsonify(result)
-
         elif command == 'new_constraint':
             result = {'success': True, 'errormsg': ''}
             var_name = request.form.get('name', '').strip()
@@ -492,7 +495,6 @@ def api(resource, command):
             var_collection.store()
             result['html'] = utils.formalizations_to_html(app, var_collection.collection[var_name].constraints)
             return jsonify(result)
-
         elif command == 'get_constraints_html':
             result = {
                 'success': True,
@@ -511,7 +513,6 @@ def api(resource, command):
                 pass
 
             return jsonify(result)
-
         elif command == 'del_constraint':
             result = {'success': True, 'errormsg': ''}
             var_name = request.form.get('name', '').strip()
@@ -523,6 +524,27 @@ def api(resource, command):
             var_collection.store()
             result['html'] = utils.formalizations_to_html(app, var_collection.collection[var_name].get_constraints())
             return jsonify(result)
+        elif command == 'add_new_enum':
+            result = {'success': True, 'errormsg': ''}
+            enum_name = request.form.get('name', '').strip()
+            var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+
+            if len(enum_name) == 0 or not re.match('^[a-zA-Z0-9_-]+$', enum_name):
+                result = {
+                    'success': False,
+                    'errormsg': 'Illegal enum name. Must Be at least 1 Char and only alphanum + { -, _}'
+                }
+            elif var_collection.var_name_exists(enum_name):
+                result = {
+                    'success': False,
+                    'errormsg': '`{}` is already existing.'.format(enum_name)
+                }
+            else:
+                new_enum = Variable(enum_name, 'enum', None)
+                logging.debug('Adding new Enum `{}` to Variable collection.'.format(enum_name))
+                var_collection.collection[enum_name] = new_enum
+                var_collection.store()
+                return jsonify(result)
 
         return jsonify(result)
 

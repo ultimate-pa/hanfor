@@ -19,6 +19,10 @@
                         <a class="nav-link" id="multi-edit-tab" data-toggle="tab" href="#multi-edit-pane" role="tab"
                            aria-controls="multi-edit" aria-selected="false">Edit Selected</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="tools-tab" data-toggle="tab" href="#tools-pane" role="tab"
+                           aria-controls="tools" aria-selected="false">Tools</a>
+                    </li>
                 </ul>
             </div>
 
@@ -64,7 +68,7 @@
                             {% endfor %}
                         </div>
                     </div>
-                    <div class="tab-pane fade" id="multi-edit-pane" role="tabpanel"
+                <div class="tab-pane fade" id="multi-edit-pane" role="tabpanel"
                          aria-labelledby="multi-edit-tab">
                         <div class="card-body">
                             <div class="input-group top-padding">
@@ -95,9 +99,26 @@
                             </div>
                         </div>
                     </div>
+                <div class="tab-pane fade" id="tools-pane" role="tabpanel" aria-labelledby="tools-tab">
+                    <div class="card-body">
+                            <div class="row top-padding">
+                                <div class="col-12">
+                                    <div class="btn-group">
+                                        <button
+                                                class="btn btn-success add-new-enum"
+                                                type="button"
+                                                data-toggle="modal"
+                                                data-target="#variable_new_enum_modal">
+                                            + Add new enum.
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                 </div>
             </div>
         </div>
+    </div>
     </div>
     <table id="variables_table" class="table table-hover table-bordered" width="100%" cellspacing="0">
         <thead>
@@ -132,6 +153,7 @@
     </table>
     {% include 'variable-modal.html' %}
     {% include 'variable-import-modal.html' %}
+    {% include 'variable-new-enum-modal.html' %}
 {% endblock %}
 {% block scripts %}
     <script type="text/javascript">

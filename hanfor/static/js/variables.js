@@ -153,10 +153,10 @@ function open_import_modal(sess_name, sess_revision) {
 
 
 /**
- * Show / Hide Value input for variables.
+ * Show / Hide Value CONST value input for variables.
  * @param revert
  */
-function variable_is_const(revert) {
+function show_variable_val_input(revert) {
     if (revert === true) {
         $('#variable_value_form_group').hide();
     } else {
@@ -202,7 +202,7 @@ function apply_multi_edit(variables_table, del=false) {
 /**
  * Enable/disable the active variables (P, Q, R, ...) in the requirement modal based on scope and pattern.
  */
-function update_vars() {
+function update_displayed_constraint_inputs() {
     $('.requirement_var_group').each(function () {
         $( this ).hide();
     });
@@ -357,7 +357,7 @@ function delete_constraint(constraint_id) {
                 $('#formalization_accordion').html(data['html']);
             }
     }).done(function () {
-        update_vars();
+        update_displayed_constraint_inputs();
         update_formalization();
         bind_expression_buttons();
     });
@@ -366,7 +366,7 @@ function delete_constraint(constraint_id) {
 
 function bind_expression_buttons() {
     $('.formalization_selector').change(function () {
-        update_vars();
+        update_displayed_constraint_inputs();
         update_formalization();
     });
     $('.reqirement-variable, .req_var_type').change(function () {
@@ -403,7 +403,7 @@ function add_constraint() {
                 $('#formalization_accordion').html(data['html']);
             }
     }).done(function () {
-        update_vars();
+        update_displayed_constraint_inputs();
         update_formalization();
         bind_expression_buttons();
     });
@@ -423,7 +423,7 @@ function get_variable_constraints_html(var_name) {
                 $('#formalization_accordion').html(data['html']);
             }
     }).done(function () {
-        update_vars();
+        update_displayed_constraint_inputs();
         update_formalization();
         bind_expression_buttons();
     });
@@ -486,7 +486,7 @@ function load_variable(row_idx) {
     let type_input = $('#variable_type');
     type_input.val(data.type);
     if (data.type === 'CONST') {
-        variable_is_const();
+        show_variable_val_input();
         $('#variable_value').val(data.const_val);
         $('#variable_value_old').val(data.const_val);
 
@@ -504,6 +504,22 @@ function load_variable(row_idx) {
     get_variable_constraints_html(data.name);
 
     var_modal_content.LoadingOverlay('hide');
+}
+
+
+function add_enum_via_modal() {
+    const enum_name = $('#enum_name').val();
+    $.post( "api/var/add_new_enum",
+    {
+        name: enum_name
+    },
+    function( data ) {
+        if (data['success'] === false) {
+            alert(data['errormsg']);
+        } else {
+            location.reload();
+        }
+    });
 }
 
 $(document).ready(function() {
@@ -637,9 +653,9 @@ $(document).ready(function() {
 
     $('#variable_type').on('keyup change autocompleteclose', function () {
         if ($( this ).val() === 'CONST') {
-            variable_is_const();
+            show_variable_val_input();
         } else {
-            variable_is_const(revert=true);
+            show_variable_val_input(revert=true);
         }
     });
 
@@ -698,4 +714,10 @@ $(document).ready(function() {
     $('#add_constraint').click(function () {
         add_constraint();
     });
+
+    // Add new enum via modal.
+    $('#save_new_enum_modal').click(function () {
+        add_enum_via_modal();
+    });
+
 } );
