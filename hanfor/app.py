@@ -133,7 +133,10 @@ def api(resource, command):
 
             result = requirement.to_dict()
             result['formalizations_html'] = utils.formalizations_to_html(app, requirement.formalizations)
-            result['available_vars'] = var_collection.get_available_var_names_list(used_only=False)
+            result['available_vars'] = var_collection.get_available_var_names_list(
+                used_only=False,
+                exclude_types={'ENUM'}
+            )
 
             if requirement:
                 return jsonify(result)

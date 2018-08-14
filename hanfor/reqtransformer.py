@@ -312,7 +312,7 @@ class Formalization:
                         continue
                 except:
                     pass
-                if variable_collection.collection[name].type != type.name:
+                if variable_collection.collection[name].type not in boogie_parsing.BoogieType.aliases(type):
                     logging.info('Update variable `{}` with derived type. Old: `{}` => New: `{}`.'.format(
                         name,
                         variable_collection.collection[name].type,
@@ -684,30 +684,36 @@ class VariableCollection:
         vc.my_path = path
         return vc
 
-    def get_available_vars_list(self, sort_by=None, used_only=False):
+    def get_available_vars_list(self, sort_by=None, used_only=False, exclude_types=frozenset()):
         """ Returns a list of all available var names.
 
         :return:
         :rtype:
         """
-        def in_result(var_name) -> bool:
+        def in_result(var) -> bool:
             if used_only:
-                if var_name not in self.var_req_mapping.keys():
+                if var.name not in self.var_req_mapping.keys():
                     return False
-                if len(self.var_req_mapping[var_name]) == 0:
+                if len(self.var_req_mapping[var.name]) == 0:
                     return False
+            if var.type in exclude_types:
+                return False
+
             return True
+
         result = [
             var.to_dict(self.var_req_mapping)
             for var in self.collection.values()
-            if in_result(var.name)
+            if in_result(var)
         ]
+
         if len(result) > 0 and sort_by is not None and sort_by in result[0].keys():
             result = sorted(result, key=lambda k: k[sort_by])
+
         return result
 
-    def get_available_var_names_list(self, used_only=True):
-        return [var['name'] for var in self.get_available_vars_list(used_only=used_only)]
+    def get_available_var_names_list(self, used_only=True, exclude_types=frozenset()):
+        return [var['name'] for var in self.get_available_vars_list(used_only=used_only, exclude_types=exclude_types)]
 
     def var_name_exists(self, name):
         return name in self.collection.keys()
@@ -804,6 +810,7 @@ class VariableCollection:
         mapping = {
             'bool': boogie_parsing.BoogieType.bool,
             'int': boogie_parsing.BoogieType.int,
+            'enumerator': boogie_parsing.BoogieType.int,
             'real': boogie_parsing.BoogieType.real,
             'unknown': boogie_parsing.BoogieType.unknown,
             'error': boogie_parsing.BoogieType.error

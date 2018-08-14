@@ -902,7 +902,10 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
                 if var.type == 'CONST':
                     constants += 'CONST {} IS {}\n'.format(var.name, var.value)
                 else:
-                    content += 'Input {} IS {}\n'.format(var.name, var.type)
+                    content += 'Input {} IS {}\n'.format(
+                        var.name,
+                        boogie_parsing.BoogieType.reverse_alias(var.type).name
+                    )
                 try:
                     for index, constraint in enumerate(var.constraints):
                         if constraint.scoped_pattern is None:

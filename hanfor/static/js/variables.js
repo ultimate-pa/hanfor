@@ -508,6 +508,7 @@ function load_enumerators_to_modal(var_name) {
     });
 }
 
+
 function load_variable(row_idx) {
     // Get row data
     let data = $('#variables_table').DataTable().row(row_idx).data();
@@ -572,6 +573,7 @@ function add_enum_via_modal() {
         }
     });
 }
+
 
 function add_enumerator_template(name, value) {
     const enumerator_template = `
