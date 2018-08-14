@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from enum import Enum
 from lark import Lark, Tree
 from lark.lexer import Token
@@ -254,6 +256,36 @@ class BoogieType(Enum):
     @staticmethod
     def get_valid_types():
         return [BoogieType.bool, BoogieType.int, BoogieType.real, BoogieType.unknown]
+
+    @staticmethod
+    def get_alias_mapping():
+        mapping = defaultdict(lambda: BoogieType.unknown)
+        for t in BoogieType:
+            mapping[t.name] = t
+
+        mapping['ENUMERATOR'] = BoogieType.int
+
+        return mapping
+
+    @staticmethod
+    def aliases(type):
+        """ Get allowed name aliases for type
+
+        :param type: BoogieType
+        :return: set containing the allowed alias names in hanfor.
+        """
+        result = {type.name}
+
+        if type in BoogieType.get_alias_mapping().values():
+            result |= {alias for alias, alias_type in BoogieType.get_alias_mapping().items() if alias_type == type}
+
+        return result
+
+    @staticmethod
+    def reverse_alias(name):
+
+        return BoogieType.get_alias_mapping()[name]
+
 
 
 def infer_variable_types(tree: Tree, type_env: dict):
