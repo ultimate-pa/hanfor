@@ -892,20 +892,21 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
                 app.config['USING_REVISION']
             ))
     logging.info('Write to output file: {}'.format(output_file))
+
+    content_list = []
+    constants_list = []
+    constraints_list = []
     with open(output_file, mode='w') as out_file:
-        content = ''
-        constants = ''
-        constraints = ''
         # Parse variables and variable constraints.
         for var in var_collection.collection.values():
             if var.name in available_vars:
-                if var.type == 'CONST':
-                    constants += 'CONST {} IS {}\n'.format(var.name, var.value)
+                if var.type in ['CONST', 'ENUMERATOR']:
+                    constants_list.append('CONST {} IS {}'.format(var.name, var.value))
                 else:
-                    content += 'Input {} IS {}\n'.format(
+                    content_list.append('Input {} IS {}'.format(
                         var.name,
                         boogie_parsing.BoogieType.reverse_alias(var.type).name
-                    )
+                    ))
                 try:
                     for index, constraint in enumerate(var.constraints):
                         if constraint.scoped_pattern is None:
@@ -916,18 +917,26 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
                             continue
                         if len(constraint.get_string()) == 0:
                             continue
-                        constraints += 'Constraint_{}_{}: {}\n'.format(
+                        constraints_list.append('Constraint_{}_{}: {}'.format(
                             re.sub(r"\s+", '_', var.name),
                             index,
                             constraint.get_string()
-                        )
+                        ))
                 except:
                     pass
+        content_list.sort()
+        constants_list.sort()
+        constraints_list.sort()
+
+        content = '\n'.join(content_list)
+        constants = '\n'.join(constants_list)
+        constraints = '\n'.join(constraints_list)
+
         if len(constants) > 0:
-            content = '\n'.join([constants, content])
+            content = '\n\n'.join([constants, content])
         if len(constraints) > 0:
-            content = '\n'.join([content, constraints])
-        content += '\n'
+            content = '\n\n'.join([content, constraints])
+        content += '\n\n'
 
         # parse requirement formalizations.
         for requirement in requirements:  # type: Requirement
