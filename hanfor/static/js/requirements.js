@@ -210,10 +210,12 @@ function add_top_guess_to_selected_requirements(requirements_table) {
     let page = $('body');
     page.LoadingOverlay('show');
     let selected_ids = get_selected_requirement_ids(requirements_table);
+    let insert_mode = $('#top_guess_append_mode').val();
 
     $.post( "api/req/multi_add_top_guess",
         {
-            selected_ids: JSON.stringify(selected_ids)
+            selected_ids: JSON.stringify(selected_ids),
+            insert_mode: insert_mode
         },
         // Update requirements table on success or show an error message.
         function( data ) {
@@ -798,7 +800,6 @@ function init_datatable_manipulators(requirements_table) {
         apply_multi_edit(requirements_table);
     });
 
-    // Multi Delete variables.
     $('.add_top_guess_button').confirmation({
       rootSelector: '.add_top_guess_button'
     }).click(function () {

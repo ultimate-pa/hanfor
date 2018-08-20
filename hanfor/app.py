@@ -385,6 +385,7 @@ def api(resource, command):
         if command == 'multi_add_top_guess' and request.method == 'POST':
             result = {'success': True}
             requirement_ids = request.form.get('selected_ids', '')
+            insert_mode = request.form.get('insert_mode', 'append')
             if len(requirement_ids) > 0:
                 requirement_ids = json.loads(requirement_ids)
             else:
@@ -410,6 +411,9 @@ def api(resource, command):
                                     top_guesses = tmp_guesses[0]
                                 else:
                                     raise TypeError('Type: `{}` not supported as guesses'.format(type(tmp_guesses[0])))
+                                if insert_mode == 'override':
+                                    for f_id in range(len(requirement.formalizations)):
+                                        requirement.delete_formalization(0, app)
                                 for score, scoped_pattern, mapping in top_guesses:
                                     formalization_id, formalization = requirement.add_empty_formalization()
                                     # Add add content to the formalization.
