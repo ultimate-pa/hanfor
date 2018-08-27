@@ -896,6 +896,9 @@ function fetch_available_guesses() {
     let modal_content = $('.modal-content');
     let requirement_id = $('#requirement_id').val();
 
+    modal.modal({
+        keyboard: false
+    });
     modal.modal('show');
     modal_content.LoadingOverlay('show');
     available_guesses_cards.html('');
@@ -1083,6 +1086,28 @@ function init_modal() {
 
     requirement_modal.on('hide.bs.modal', function (event) {
         modal_closing_routine(event);
+    });
+
+    // Handle ESC key
+    $(document).keyup(function(e) {
+        // If modal is open and ESC pressed (ESC maps to keyCode "27")
+        if ($('.modal:visible').length && e.keyCode === 27){
+            let focused_input = $('input[type=text], textarea, select').filter(":focus");
+            // If no input elements in focus => Close modal.
+            if (focused_input.length === 0) {
+                // First hide the autoguess modal
+                if($('#requirement_guess_modal:visible').length){
+                    $('#requirement_guess_modal').modal('hide');
+                } else {
+                    $('#requirement_modal').modal('hide');
+                }
+            } else {
+                // Defocus input elements.
+                focused_input.each(function( index ) {
+                    $( this ).blur();
+                });
+            }
+        }
     });
 
     // Clear the Modal after closing modal.
