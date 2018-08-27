@@ -110,7 +110,7 @@ function store_requirement(requirements_table) {
     const req_id = $('#requirement_id').val();
     const req_tags = $('#requirement_tag_field').val();
     const req_status = $('#requirement_status').val();
-    const updated_formalization = $('#requirement_formalization_updated').val();
+    const updated_formalization = $('#requirement_modal').data('updated_formalization');
     const associated_row_id = parseInt($('#modal_associated_row_index').val());
 
     // Fetch the formalizations
@@ -155,7 +155,7 @@ function store_requirement(requirements_table) {
                 alert(data['errormsg']);
             } else {
                 requirements_table.row(associated_row_id).data(data);
-                $('#requirement_modal').modal('hide');
+                $('#requirement_modal').data('unsaved_changes', false).modal('hide');
             }
     }).done(function () {
         update_logs();
@@ -366,7 +366,10 @@ function update_formalization() {
 
         $('#current_formalization_textarea' + formalization_id).val(formalization);
     });
-    $('#requirement_formalization_updated').val('true');
+    $('#requirement_modal').data({
+        'unsaved_changes': true,
+        'updated_formalization': true
+    });
 }
 
 
@@ -545,6 +548,7 @@ function prevent_double_token_insert() {
     });
 }
 
+
 function load_requirement(row_idx) {
     if (row_idx === -1) {
         alert("Requirement not found.");
@@ -567,7 +571,6 @@ function load_requirement(row_idx) {
     $.get( "api/req/get", { id: data['id'], row_idx: row_idx }, function (data) {
         // Meta information
         $('#requirement_id').val(data.id);
-        $('#requirement_formalization_updated').val('false');
         $('#modal_associated_row_index').val(row_idx);
         available_vars = data.available_vars;
         type_inference_errors = data.type_inference_errors;
@@ -611,6 +614,10 @@ function load_requirement(row_idx) {
         bind_expression_buttons();
         // Prevent inserting a token twice on enter
         prevent_double_token_insert();
+        $('#requirement_modal').data({
+            'unsaved_changes': false,
+            'updated_formalization': false
+        });
         requirement_modal_content.LoadingOverlay('hide', true);
     });
 }
@@ -1037,22 +1044,51 @@ function load_datatable(){
     });
 }
 
+/**
+ * Handle requirement modal hiding event.
+ * Prevent hiding on unsaved changes by asking user feedback (discard, save, back to edit).
+ * @param event | the modal hiding event.
+ */
+function modal_closing_routine(event) {
+    const unsaved_changes = $('#requirement_modal').data('unsaved_changes');
+    if (unsaved_changes === true) {
+        const force_close = confirm("You have unsaved changes, do you really want to close?");
+        if (force_close !== true) {
+            event.preventDefault();
+        }
+    }
+}
 
 /**
  * Initialize the requirement modal behaviour.
  */
 function init_modal() {
+    let requirement_modal = $('#requirement_modal');
     // Initialize tag autocomplete filed in the requirements modal.
-    $('#requirement_tag_field').tokenfield({
-      autocomplete: {
-        source: available_tags,
-        delay: 100
-      },
-      showAutocompleteOnFocus: true
+    $('#requirement_tag_field')
+        .tokenfield({
+            autocomplete: {
+                source: available_tags,
+                delay: 100
+            },
+            showAutocompleteOnFocus: true
+        })
+        .change(function (e) {
+            requirement_modal.data('unsaved_changes', true);
+        });
+
+    $('#requirement_status').change(function() {
+        $('#requirement_modal').data('unsaved_changes', true);
+    });
+
+    requirement_modal.on('hide.bs.modal', function (event) {
+        modal_closing_routine(event);
     });
 
     // Clear the Modal after closing modal.
-    $('#requirement_modal').on('hidden.bs.modal', function (e) {
+    // In case of stacked modals and on modal closing:
+    // Prevent removal of modal-open class from body if a modal remains. This will keep the scrollbar intact.
+    requirement_modal.on('hidden.bs.modal', function (e) {
         $('#requirement_tag_field').val('');
         $('#requirement_tag_field-tokenfield').val('');
     });
@@ -1067,8 +1103,6 @@ function init_modal() {
         fetch_available_guesses();
     });
 
-    // In case of stacked modals and on modal closing:
-    // Prevent removal of modal-open class from body if a modal remains. This will keep the scrollbar intact.
     $(".modal").on('hidden.bs.modal', function (event) {
         if ($('.modal:visible').length) {
             $('body').addClass('modal-open');
