@@ -18,6 +18,21 @@ let dynamicColors = function() {
     return "rgb(" + r + "," + g + "," + b + ")";
 };
 
+Chart.plugins.register({
+    afterInit: function (chart) {
+        if (chart.config.options.show_total) {
+            //Get ctx from string
+            let counts = chart.config.data.datasets[0].data;
+            const total_count = counts.reduce((l, r) => l + r, 0);
+            chart.config.options.title = {
+                display: true,
+                position: 'bottom',
+                text: 'Total count: ' + total_count
+            };
+        }
+    }
+});
+
 $(document).ready(function () {
     statistics_request = $.get('api/stats/gets', function (data) {
         // Processed requirements pie
@@ -44,7 +59,8 @@ $(document).ready(function () {
                 ]
             },
             options: {
-                responsive: true
+                responsive: true,
+                show_total: true
             }
         });
 
@@ -56,7 +72,7 @@ $(document).ready(function () {
            count += 1;
 
            if (tag_count > 0) {
-               $('<div class="col-md-6 col-lg-4">' +
+               $('<div class="col-lg-6 col-md-12">' +
                    '<div class="card"><div class="card-body">' +
                    '<h5 class="card-title">Type: ' + req_type + '</h5>' +
                    '<canvas id="tags_per_type_' + count + '" width="50%"></canvas>' +
@@ -83,7 +99,8 @@ $(document).ready(function () {
                         labels: tag_names
                     },
                     options: {
-                        responsive: true
+                        responsive: true,
+                        show_total: true
                     }
                 });
            }
@@ -97,7 +114,7 @@ $(document).ready(function () {
            count += 1;
 
            if (tag_count > 0) {
-               $('<div class="col-md-6 col-lg-4">' +
+               $('<div class="col-lg-6 col-md-12">' +
                    '<div class="card"><div class="card-body">' +
                    '<h5 class="card-title">Type: ' + req_type + '</h5>' +
                    '<canvas id="status_per_type_' + count + '" width="50%"></canvas>' +
@@ -124,7 +141,8 @@ $(document).ready(function () {
                         labels: status_names
                     },
                     options: {
-                        responsive: true
+                        responsive: true,
+                        show_total: true
                     }
                 });
            }
@@ -144,7 +162,8 @@ $(document).ready(function () {
                 labels: data.type_names
             },
             options: {
-                responsive: true
+                responsive: true,
+                show_total: true
             }
         });
 
@@ -162,7 +181,8 @@ $(document).ready(function () {
                 labels: data.top_variable_names
             },
             options: {
-                responsive: true
+                responsive: true,
+                show_total: true
             }
         });
 
