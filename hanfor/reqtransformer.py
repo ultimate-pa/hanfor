@@ -750,25 +750,36 @@ class VariableCollection:
             self.req_var_mapping[rid].add(var)
 
     def rename(self, old_name, new_name, app):
-        """ Rename a var in the collection.
+        """ Rename a var in the collection. Merges the variables if new_name variable exists.
 
-        :param old_name:
-        :type old_name:
-        :param new_name:
-        :type new_name:
+        :param old_name: The old var name.
+        :type old_name: str
+        :param new_name: The new var name.
+        :type new_name: str
         """
+        # Store constraints if currently
+        tmp_constraints = []
+        try:
+            tmp_constraints += self.collection[old_name].get_constraints()
+        except:
+            pass
+        try:
+            tmp_constraints += self.collection[new_name].get_constraints()
+        except:
+            pass
+
         # Copy to new location.
         self.collection[new_name] = self.collection.pop(old_name)
         # Update name to new name (rename also triggers to update constraint names.)
         self.collection[new_name].rename(new_name)
+        # Copy back back Constraints
+        self.collection[new_name].constraints = tmp_constraints
 
         # Update the mappings.
         # Copy old to new mapping
-        try:
-            self.var_req_mapping[new_name] = self.var_req_mapping.pop(old_name)
-        except KeyError:
-            # There is no old mapping. Create a new empty one.
-            self.var_req_mapping[new_name] = set()
+        self.var_req_mapping[new_name] = self.var_req_mapping \
+            .pop(old_name, set()) \
+            .union(self.var_req_mapping.pop(new_name, set()))
 
         # Rename
         # Todo: this is inefficient. Parse the var name from constraint name to limit only for affected vars.
@@ -790,20 +801,6 @@ class VariableCollection:
             self.var_req_mapping[key] = {rename_constraint(name, old_name, new_name) for name in self.var_req_mapping[key]}
 
         # Update the req -> var mapping.
-        self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
-
-    def merge_vars(self, origin, target, app):
-        """ Merge var origin into var source (resulting in only a source var).
-
-        :param origin:
-        :type origin:
-        :param source:
-        :type source:
-        """
-        self.var_req_mapping[target] = self.var_req_mapping.pop(origin, set()).union(
-            self.var_req_mapping.pop(target, set())
-        )
-        del self.collection[origin]
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
 
     def get_boogie_type_env(self):

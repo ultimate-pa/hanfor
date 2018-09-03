@@ -521,9 +521,15 @@ def update_variable_in_collection(app, request):
         else:
             logging.debug('Skipping variable Constraints update.')
 
+        # Update type.
+        if var_type_old != var_type:
+            logging.info('Change type from `{}` to `{}`.'.format(var_type_old, var_type))
+            var_collection.collection[var_name].type = var_type
+            result['type_changed'] = True
+            reload_type_inference = True
+
         # update name.
         if var_name_old != var_name:
-            # Todo: rename occurences in variable constraints.
             logging.debug('Change name of var `{}` to `{}`'.format(var_name_old, var_name))
             #  Case: New name which does not exist -> remove the old var and replace in reqs ocurring.
             if var_name not in var_collection:
@@ -534,16 +540,16 @@ def update_variable_in_collection(app, request):
                 var_collection.rename(var_name_old, var_name, app)
 
             else:  # Case: New name exists. -> Merge the two vars into one. -> Complete rebuild.
-                # TODO: merge the var constraints.
-                logging.debug(
-                    '`{}` is an existing var name. Merging the two vars. '
-                    '(Type of the new var `{}` wins over the old type `{}` )'.format(
-                        var_name,
-                        var_collection.collection[var_name].type,
-                        var_type
+                if var_collection.collection[var_name_old].type != var_collection.collection[var_name].type:
+                    result['success'] = False
+                    result['errormsg'] = 'To merge two variables the types must be identical. {} != {}'.format(
+                        var_collection.collection[var_name_old].type,
+                        var_collection.collection[var_name].type
                     )
-                )
-                var_collection.merge_vars(var_name_old, var_name, app)
+                    return result
+                logging.debug('`{}` is an existing var name. Merging the two vars. '.format(var_name))
+                # var_collection.merge_vars(var_name_old, var_name, app)
+                var_collection.rename(var_name_old, var_name, app)
                 result['rebuild_table'] = True
                 reload_type_inference = True
 
@@ -553,13 +559,6 @@ def update_variable_in_collection(app, request):
                 rename_variable_in_expressions(app, occurrences, var_name_old, var_name)
 
             result['name_changed'] = True
-
-        # Update type.
-        if var_type_old != var_type:
-            logging.info('Change type from `{}` to `{}`.'.format(var_type_old, var_type))
-            var_collection.collection[var_name].type = var_type
-            result['type_changed'] = True
-            reload_type_inference = True
 
         # Update const value.
         if var_const_val_old != var_const_val:
