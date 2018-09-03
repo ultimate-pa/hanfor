@@ -462,16 +462,12 @@ function is_constraint_link(name) {
 function get_rowidx_by_var_name(name) {
     let variables_table = $('#variables_table').DataTable();
     let result = -1;
-    let filteredData = variables_table
-        .column( 1 )
-        .data()
-        .filter( function ( value, index ) {
-            if (value === name) {
-                result = index;
-                return true;
+    variables_table
+        .row( function ( idx, data, node ) {
+            if (data.name === name) {
+                result = idx;
             }
-            return false;
-        } );
+        });
 
     return result;
 }
