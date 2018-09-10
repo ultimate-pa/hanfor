@@ -851,7 +851,18 @@ function init_datatable(columnDefs) {
                 $(row).addClass( 'table-light');
             }
         },
-        initComplete : function() {
+        "infoCallback": function( settings, start, end, max, total, pre ) {
+            var api = this.api();
+            var pageInfo = api.page.info();
+
+            $('#clear-all-filters-text').html("Showing " + total +"/"+ pageInfo.recordsTotal + ". Clear all.");
+
+            let result = "Showing " + start + " to " + end + " of " + total + " entries";
+            result += " (filtered from " + pageInfo.recordsTotal + " total entries).";
+
+            return result;
+        },
+        "initComplete" : function() {
             $('#search_bar').val(req_search_string);
             $('#type-filter-input').val(filter_type_string);
             $('#tag-filter-input').val(filter_tag_string);
