@@ -572,7 +572,6 @@ def update_variable_in_collection(app, request):
         logging.info('Update derived types by parsing affected formalizations.')
         if reload_type_inference and var_name in var_collection.var_req_mapping:
             for rid in var_collection.var_req_mapping[var_name]:
-                logging.debug('Checking `{}`'.format(rid))
                 requirement = load_requirement_by_id(rid, app)
                 if requirement:
                     requirement.reload_type_inference(var_collection, app)

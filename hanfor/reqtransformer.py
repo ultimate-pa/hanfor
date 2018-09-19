@@ -308,7 +308,7 @@ class Formalization:
                 type_inference_errors[key] = type_env
             for name, type in type_env.items():  # Update the hanfor variable types.
                 try:
-                    if variable_collection.collection[name].type.lower() == 'const':
+                    if variable_collection.collection[name].type.lower() in ['const', 'enum']:
                         continue
                 except:
                     pass
