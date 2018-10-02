@@ -72,14 +72,14 @@ class RegexGuesser(AbstractGuesser):
         return self.__create_bounded_response(matches[0])
 
     def __guess_if_then(self):
-        #if "== ->" in self.requirement.description or "==->" in self.requirement.description:
-        #    return None, None
 
         # match IF ... THEN ... case.
-        match = re.search(r'IF(.*)THEN(.*)(Hint: .*)*', self.requirement.description, re.DOTALL)
+        match = re.search(r'(?:IF|WENN)(.*)(?:THEN|DANN)(.*)(Hint: .*)*', self.requirement.description, re.DOTALL)
 
         if not match:
             return None, None
+
+        after = "== ->" in self.requirement.description or "==->" in self.requirement.description
 
         # There is IF (AND-logic) .. THEN and IF (OR-logic) .. THEN
         and_logic = True
@@ -94,7 +94,7 @@ class RegexGuesser(AbstractGuesser):
         if var1 is None or var2 is None:
             return None, None
 
-        return self.__create_bounded_response_if_then(var1=var1, var2=var2)
+        return self.__create_bounded_response_if_then(var1=var1, var2=var2, after=after)
 
 
     def __create_bounded_response(self, match):
@@ -128,21 +128,34 @@ class RegexGuesser(AbstractGuesser):
         }
         return scoped_pattern, mapping
 
-    def __create_bounded_response_if_then(self, var1, var2):
+    def __create_bounded_response_if_then(self, var1, var2, after=False):
         """
         Creates 'BoundedResponse' pattern with MAX_TIME as T
         'it is always the case that if {R} holds, then {S} holds after at most {T} time units',
         """
+        if after:
+            scope = 'AFTER'
+        else:
+            scope = 'GLOBALLY'
+
         scoped_pattern = ScopedPattern(
-            Scope['GLOBALLY'],
+            Scope[scope],
             Pattern(name='BoundedResponse')
         )
 
-        mapping = {
-            'R': "%s" % var1,
-            'S': "%s" % var2,
-            'T': 'MAX_TIME'
-        }
+        if after:
+            mapping = {
+                'P': "!(%s)" % var1,
+                'R': "%s" % var1,
+                'S': "%s" % var2,
+                'T': 'MAX_TIME'
+            }
+        else:
+            mapping = {
+                'R': "%s" % var1,
+                'S': "%s" % var2,
+                'T': 'MAX_TIME'
+            }
 
         return scoped_pattern, mapping
 

@@ -97,8 +97,8 @@ class FormulaProcessor(object):
 
         self.term_replacements = {
             ' := ': ' == ',
-            '== ->': '==',
-            '==->': '==',
+            '== ->': '==->',
+            '==->': '==->',
             '!= ->': '!=',
             '!=->': '!='
         }
@@ -202,9 +202,9 @@ class FormulaProcessor(object):
         >>> f.expression_to_array("x !=-> y")
         ['x', '!=->', 'y']
         >>> f.expression_to_array("x == -> y")
-        ['x', '==->', 'y']
+        ['x', '== ->', 'y']
         >>> f.expression_to_array("x != -> y")
-        ['x', '!=->', 'y']
+        ['x', '!= ->', 'y']
         >>> f.expression_to_array("x && y", term_wise=True)
         ['x', '&&', 'y']
         >>> f.expression_to_array("x || y",term_wise=True)
@@ -216,7 +216,11 @@ class FormulaProcessor(object):
         >>> f.expression_to_array('s_KL_15 == "FALSE" AND s_zat_betaetigt == -> "TRUE"', term_wise=True)
         ['s_KL_15 == "FALSE"', 'AND', 's_zat_betaetigt == -> "TRUE"']
         >>> f.expression_to_array('s_KL_15 == "FALSE" AND s_zat_betaetigt == -> "TRUE"')
-        ['s_KL_15', '==', '"FALSE"', 'AND', 's_zat_betaetigt', '==->', '"TRUE"']
+        ['s_KL_15', '==', '"FALSE"', 'AND', 's_zat_betaetigt', '== ->', '"TRUE"']
+        >>> f.expression_to_array('adp_Lichtsensor_Typ != "LIN_REGEN_LICHT_SENSOR"', term_wise=True)
+        ['adp_Lichtsensor_Typ != "LIN_REGEN_LICHT_SENSOR"']
+        >>> f.expression_to_array('adp_Lichtsensor_Typ != "LIN_REGEN_LICHT_SENSOR"')
+        ['adp_Lichtsensor_Typ', '!=', '"LIN_REGEN_LICHT_SENSOR"']
 
 
         Function which converts an expression into an arry.
@@ -226,15 +230,13 @@ class FormulaProcessor(object):
         # operators we split at.
         # Todo: generate from operators.
         if term_wise:
-            pattern = re.compile("([&]{1,2}|OR|AND|[|]{1,2}|\\(|\\))")
+            pattern = re.compile("([&]{1,2}| OR | AND |[|]{1,2}|\\(|\\))")
         else:
             pattern = re.compile(
-                "([&]{1,2}|[|]{1,2}|>=?|<=?|==->?|== ->?|!=->?|!= ->?|<(?!=)|>(?!=)|==(?!->)|!=(?!->)|:=|OR|AND|\\+|(?<!=|&)-|/|\\*|\\||\\(|\\))")
+                "([&]{1,2}|[|]{1,2}|>=?|<=?|==->?|== ->?|!=->?|!= ->?|<(?!=)|>(?!=)|==(?!->)|!=(?!->)|:=| OR | AND |\\+|(?<!=|&)-|/|\\*|\\||\\(|\\))")
 
-        if not term_wise:
-            expression = expression.replace(" ","")
-        splitted = re.split(pattern=pattern,string=expression)
-        splitted = [x.strip() for x in splitted if x is not '']
+        splitted = re.split(pattern=pattern, string=expression)
+        splitted = list(filter(bool, [x.strip() for x in splitted]))
         return splitted
 
 
