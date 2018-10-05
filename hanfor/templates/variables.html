@@ -55,11 +55,14 @@
                                 <div class="col-12">
                                     <h6><code>{{ ses.name }}</code></h6>
                                     <ul>
-                                        {% for revision in ses.revisions %}
+                                        {% for revision, revision_stats in ses.revisions_stats.items() %}
                                         <li>
                                             <a href="#" class="import_link"
                                                data-name="{{ ses.name }}"
-                                               data-revision="{{ revision }}"><code>{{ revision }}</code></a>
+                                               data-revision="{{ revision }}">
+                                                <code>{{ revision }}</code>
+                                                with {{ revision_stats.num_vars }} variables (Last edit: {{ revision_stats.last_mod }})
+                                            </a>
                                         </li>
                                         {% endfor %}
                                     </ul>

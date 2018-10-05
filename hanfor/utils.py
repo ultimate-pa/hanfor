@@ -973,7 +973,17 @@ def get_stored_session_names(session_folder=None, only_names=False, with_revisio
         ...
     )
     If with_with_revisions == True the tuple is (
-        {name: 'name_1', 'revisions': [revision_1, ...]},
+        {
+            name: 'name_1',
+            'revisions': [revision_1, ...],
+            revisions_stats: {
+                revision_1: {
+                    name: 'revision_1',
+                    last_mod: "%A %d. %B %Y at %X" formatted mtime,
+                    num_vars: Number of variables used in this revision.
+                }
+            }
+        },
         ...
     )
 
@@ -989,7 +999,13 @@ def get_stored_session_names(session_folder=None, only_names=False, with_revisio
     try:
         result = ((os.path.join(session_folder, file_name), file_name) for file_name in os.listdir(session_folder))
         if with_revisions:
-            result = ({'name': entry[1], 'revisions': get_available_revisions(None, entry[0])} for entry in result)
+            result = (
+                {
+                    'name': entry[1],
+                    'revisions': get_available_revisions(None, entry[0]),
+                    'revisions_stats': get_revisions_with_stats(entry[0])
+                } for entry in result
+            )
         elif only_names:
             result = (entry[1] for entry in result)
         else:
@@ -1000,7 +1016,53 @@ def get_stored_session_names(session_folder=None, only_names=False, with_revisio
     return result
 
 
+def get_revisions_with_stats(session_path):
+    """ Get meta information about revisions available for a given session path.
+
+    Returns a dict with revision name as kay for each revision.
+    each item is then a dict like:
+
+
+    :param session_path: { revision_1: { name: 'revision_1', last_mod: %A %d. %B %Y at %X, num_vars: 9001} ... }
+    """
+    revisions = get_available_revisions(None, session_path)
+    revisions_stats = dict()
+    for revision in revisions:
+        revision_path = os.path.join(session_path, revision)
+        revision_var_collection_path = os.path.join(
+            revision_path,
+            'session_variable_collection.pickle'
+        )
+        try:
+            num_vars = len(pickle_load_from_dump(revision_var_collection_path).collection)
+        except:
+            num_vars = -1
+
+        revisions_stats[revision] = {
+            'name': revision,
+            'last_mod': get_last_edit_from_path(revision_path),
+            'num_vars': num_vars
+        }
+    return revisions_stats
+
+
+def get_last_edit_from_path(path_str):
+    """ Return a human readable form of the last edit (mtime) for a path.
+
+    :param path_str: str to path.
+    :return: "%A %d. %B %Y at %X" formatted mtime
+    """
+    return datetime.datetime.fromtimestamp(os.stat(path_str).st_mtime).strftime("%A %d. %B %Y at %X")
+
+
 def get_available_revisions(config, folder=None):
+    """ Returns available revisions for a given session folder.
+    Uses config['SESSION_FOLDER'] if no explicit folder is given.
+
+    :param config:
+    :param folder:
+    :return:
+    """
     result = []
 
     if folder is None:
