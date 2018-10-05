@@ -1017,10 +1017,15 @@ def get_stored_session_names(session_folder=None, only_names=False, with_revisio
 
 
 def get_revisions_with_stats(session_path):
-    """ Get meta information about revisions available for a given session path.
+    """ Get meta information about available revisions for a given session path.
 
-    Returns a dict with revision name as kay for each revision.
-    each item is then a dict like:
+    Returns a dict with revision name as key for each revision.
+    Each item is then a dict like:
+        {
+            name: 'revision_1',
+            last_mod: %A %d. %B %Y at %X formatted mtime,
+            num_vars: 9001
+        }
 
 
     :param session_path: { revision_1: { name: 'revision_1', last_mod: %A %d. %B %Y at %X, num_vars: 9001} ... }
