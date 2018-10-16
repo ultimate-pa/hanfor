@@ -18,7 +18,7 @@ from functools import wraps, update_wrapper
 import reqtransformer
 from guesser.Guess import Guess
 from reqtransformer import RequirementCollection, Requirement, VariableCollection, Formalization, Variable, Scope, \
-    ScopedPattern, Pattern
+    ScopedPattern, Pattern, VarImportSession, VarImportSessions
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 
 # Create the app
@@ -116,7 +116,8 @@ def api(resource, command):
         'get_constraints_html',
         'del_constraint',
         'add_new_enum',
-        'get_enumerators'
+        'get_enumerators',
+        'start_import_session'
     ]
     if resource not in resources or command not in commands:
         return jsonify({
@@ -568,6 +569,23 @@ def api(resource, command):
             result['enumerators'] = enumerators
 
             return jsonify(result)
+        elif command == 'start_import_session':
+            result = {'success': True, 'errormsg': ''}
+            # create a new import session.
+            source_session_name = request.form.get('sess_name', '').strip()
+            source_revision_name = request.form.get('sess_revision', '').strip()
+
+            result['session_id'] = utils.varcollection_create_new_import_session(
+                app=app,
+                source_session_name=source_session_name,
+                source_revision_name=source_revision_name
+            )
+
+            if result['session_id'] < 0:
+                result['success'] = False
+                result['errormsg'] = 'Could not create the import session.'
+
+            return jsonify(result)
 
         return jsonify(result)
 
@@ -599,6 +617,68 @@ def api(resource, command):
         'errormsg': 'sorry, could not parse your request.'
     }), 200
 
+
+@app.route('/variable_import/<id>', methods=['GET'])
+@nocache
+def variable_import(id):
+    return render_template('variable-import-session.html', id=id)
+
+
+@app.route('/variable_import/api/<session_id>/<command>', methods=['GET', 'POST'])
+@nocache
+def var_import_session(session_id, command):
+    def load_sessions():
+        """ Open variable import sessions if existing.
+
+        """
+        try:
+            # load import_sessions
+            var_import_sessions_path = os.path.join(
+                app.config['SESSION_BASE_FOLDER'],
+                'variable_import_sessions.pickle'
+            )
+            var_import_sessions = VarImportSessions.load(var_import_sessions_path)
+        except FileNotFoundError as e:
+            logging.info('Could not find import session with id:{}'.format(session_id))
+            raise e
+
+        return var_import_sessions
+
+    if command == 'get_var':
+        var_import_sessions = load_sessions()
+        result = dict()
+        name = request.form.get('name', '')
+        which_collection = request.form.get('which_collection', '')
+
+        try:
+            var_collection = var_import_sessions.import_sessions[int(session_id)]
+            if which_collection == 'source_link':
+                var_collection = var_collection.source_var_collection
+            if which_collection == 'target_link':
+                var_collection = var_collection.target_var_collection
+            if which_collection == 'result_link':
+                var_collection = var_collection.result_var_collection
+            result = var_collection.collection[name].to_dict(var_collection.var_req_mapping)
+        except Exception as e:
+            logging.info('Could not load var: {} from import session: {}'.format(name, session_id))
+
+        return jsonify(result), 200
+
+    if command == 'get_table_data':
+        var_import_sessions = load_sessions()
+        result = dict()
+        try:
+            result = {'data': var_import_sessions.import_sessions[int(session_id)].to_datatables_data()}
+        except Exception as e:
+            logging.info('Could not load session with id: {} ({})'.format(session_id, e))
+            raise e
+
+        return jsonify(result), 200
+
+    return jsonify({
+        'success': False,
+        'errormsg': 'Command not found'
+    }), 404
 
 @app.route('/<site>')
 def site(site):

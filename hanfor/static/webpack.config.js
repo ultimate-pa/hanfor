@@ -5,6 +5,7 @@ const config = {
         autocomplete: __dirname + '/js/autocomplete.js',
         requirements: __dirname + '/js/requirements.js',
         variables: __dirname + '/js/variables.js',
+        variable_import: __dirname + '/js/variable-import.js',
         stats: __dirname + '/js/stats.js',
         tags: __dirname + '/js/tags.js',
     },

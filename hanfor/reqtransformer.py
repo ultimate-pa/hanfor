@@ -4,6 +4,7 @@
 @licence: GPLv3
 """
 import csv
+from collections import defaultdict
 
 import os
 import re
@@ -1173,3 +1174,76 @@ class Tag:
 
     def __ne__(self, other):
         return self.name != other.name
+
+
+class VarImportSession:
+    def __init__(self, source_var_collection, target_var_collection):
+        """
+
+        :type source_var_collection: VariableCollection
+        :type target_var_collection: VariableCollection
+        """
+        self.source_var_collection = source_var_collection
+        self.target_var_collection = target_var_collection
+
+        self.result_var_collection = VariableCollection()
+        self.result_var_collection.collection = target_var_collection.collection.copy()
+        self.result_var_collection.req_var_mapping = target_var_collection.req_var_mapping.copy()
+        self.result_var_collection.var_req_mapping = target_var_collection.var_req_mapping.copy()
+
+        self.actions = dict()
+        self.init_actions()
+
+    def init_actions(self):
+        dict_data = self.to_dict()
+        for name, data in dict_data.items():
+            self.actions[name] = 'target' if 'target' in data else 'skipped'
+
+    def to_dict(self):
+        result = defaultdict(defaultdict)
+        for name, variable in self.source_var_collection.collection.items():
+            result[name]['source'] = variable.to_dict(self.source_var_collection.var_req_mapping)
+        for name, variable in self.target_var_collection.collection.items():
+            result[name]['target'] = variable.to_dict(self.target_var_collection.var_req_mapping)
+        for name, variable in self.result_var_collection.collection.items():
+            result[name]['result'] = variable.to_dict(self.result_var_collection.var_req_mapping)
+        return result
+
+    def to_datatables_data(self):
+        dict_data = self.to_dict()
+        result = list()
+        for name, data in dict_data.items():
+            result.append({
+                'name': name,
+                'action': self.actions[name],
+                'source': data['source'] if 'source' in data else {},
+                'target': data['target'] if 'target' in data else {},
+                'result': data['result'] if 'result' in data else {}
+            })
+        return result
+
+class VarImportSessions:
+    def __init__(self, path=None):
+        self.import_sessions = list()
+        self.my_path = path
+
+    @classmethod
+    def load(self, path) -> 'VarImportSessions':
+        vis = utils.pickle_load_from_dump(path)
+        vis.my_path = path
+        return vis
+
+    def store(self, path=None):
+        if path is None:
+            path = self.my_path
+        utils.pickle_dump_obj_to_file(self, path)
+
+    def create_new_session(self, source_collection, target_collection):
+        new_session = VarImportSession(
+            source_var_collection=source_collection,
+            target_var_collection=target_collection
+        )
+        self.import_sessions.append(new_session)
+        self.store()
+        return len(self.import_sessions) - 1
+

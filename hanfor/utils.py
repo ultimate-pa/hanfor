@@ -22,6 +22,8 @@ import os
 
 from colorama import Fore, Style
 from flask_assets import Bundle, Environment
+
+from reqtransformer import VarImportSessions
 from svm_pattern_classifier import SvmPatternClassifier
 from terminaltables import DoubleTable
 
@@ -299,6 +301,40 @@ def varcollection_diff_info(app, request):
     }
 
     return result
+
+
+def varcollection_create_new_import_session(app, source_session_name, source_revision_name):
+    """ Creates a new blank variable collection import session.
+    Returns the associated session_id or -1 if the creation fails.
+
+    :param app: Current flask app.
+    :param source_session_name:
+    :param source_revision_name:
+    """
+    current_var_collection = pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
+    source_var_collection_path = os.path.join(
+        app.config['SESSION_BASE_FOLDER'],
+        source_session_name,
+        source_revision_name,
+        'session_variable_collection.pickle'
+    )
+    source_var_collection = pickle_load_from_dump(source_var_collection_path)
+
+    # load import_sessions
+    var_import_sessions_path = os.path.join(app.config['SESSION_BASE_FOLDER'], 'variable_import_sessions.pickle')
+    try:
+        var_import_sessions = VarImportSessions.load(var_import_sessions_path)
+    except FileNotFoundError:
+        var_import_sessions = VarImportSessions(path=var_import_sessions_path)
+        var_import_sessions.store()
+
+    session_id = var_import_sessions.create_new_session(
+        source_collection=source_var_collection,
+        target_collection=current_var_collection
+    )
+
+    return session_id
+
 
 
 def varcollection_import_collection(app, request):

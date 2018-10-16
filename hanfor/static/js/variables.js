@@ -101,6 +101,32 @@ function store_variable(variables_table) {
     });
 }
 
+/**
+ * Start a new import session (redirect to the session on success).
+ */
+function start_import_session() {
+    let variable_import_modal = $('#variable_import_modal');
+    let sess_name = $('#variable_import_sess_name').val();
+    let sess_revision = $('#variable_import_sess_revision').val();
+    let import_option = $('#import_option').val();
+
+    variable_import_modal.LoadingOverlay('show');
+
+    $.post( "api/var/start_import_session",
+        {
+            sess_name: sess_name,
+            sess_revision: sess_revision
+        },
+        function( data ) {
+            variable_import_modal.LoadingOverlay('hide', true);
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                window.location.href = base_url + "variable_import/" + data['session_id'];
+            }
+    });
+}
+
 
 /**
  * Import variable collection set in the import modal.
@@ -730,6 +756,10 @@ $(document).ready(function() {
 
     $('#save_variable_import_modal').click(function ( e ) {
         import_variables();
+    });
+
+    $('#start_variable_import_session').click(function ( e ) {
+        start_import_session();
     });
 
     // Multiselect.
