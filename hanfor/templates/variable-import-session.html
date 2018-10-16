@@ -1,0 +1,116 @@
+{# templates/variable-import-session.html #}
+{% extends "layout.html" %}
+{% block title %}Variable Import Session{% endblock %}
+{% block body %}
+    <div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="search-tab" data-toggle="tab" href="#search-pane" role="tab"
+                           aria-controls="search" aria-selected="true">Search</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="tools-tab" data-toggle="tab" href="#tools-pane" role="tab"
+                           aria-controls="tools" aria-selected="false">Tools</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="search-pane" role="tabpanel"
+                     aria-labelledby="search-tab">
+                    <div class="input-group top-padding">
+                        <span class="input-group-addon" id="basic-addon1">
+                            <img src="{{ url_for('static', filename='img/icons/magnifying-glass.svg') }}">
+                        </span>
+                        <input id="search_bar" type="text" class="form-control" placeholder="Search table"
+                                aria-describedby="basic-addon1">
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="tools-pane" role="tabpanel" aria-labelledby="tools-tab">
+                    <div class="card-body">
+                            <div class="row top-padding">
+                                <div class="col-12">
+                                    <div class="btn-group">
+                                        <button
+                                                class="btn btn-success add-new-enum"
+                                                type="button"
+                                                data-toggle="modal"
+                                                data-target="#variable_new_enum_modal">
+                                            Apply import
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <table id="var_import_table" class="table table-hover table-bordered" width="100%" cellspacing="0">
+        <thead>
+        <tr>
+            <td>
+                <button class="btn btn-secondary btn-sm select-all-button" type="button">All</button>
+            </td>
+            <th>Action</th>
+            <th>Attributes</th>
+            <th>Source</th>
+            <th>Target</th>
+            <th>Result</th>
+        </tr>
+        </thead>
+        <tfoot>
+        <tr>
+            <td>
+                <button class="btn btn-secondary btn-sm select-all-button" type="button">All</button>
+            </td>
+            <th>Action</th>
+            <th>Attributes</th>
+            <th>Source</th>
+            <th>Target</th>
+            <th>Result</th>
+        </tr>
+        </tfoot>
+        <tbody>
+            <tr></tr>
+            <tr></tr>
+            <tr></tr>
+            <tr></tr>
+            <tr></tr>
+            <tr></tr>
+        </tbody>
+    </table>
+    <div id="variable_view_modal"
+     class="modal fade"
+     tabindex="-1"
+     role="dialog"
+     aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 id="variable_view_modal_title" class="modal-title"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div id="var_view_modal_body" class="modal-body">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+    <script type="text/javascript">
+        const base_url = '{{ url_for('site', site='/') }}';
+        const session_id = '{{ id }}';
+    </script>
+    <script type="text/javascript" src="{{ url_for('static', filename='dist/variable_import-bundle.js') }}"></script>
+{% endblock %}
