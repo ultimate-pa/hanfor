@@ -29,7 +29,7 @@ function load_var_view_modal(data, collection) {
     var_view_modal.modal('show');
 }
 
-function modify_row_by_action(row, action) {
+function modify_row_by_action(row, action, redraw = true) {
     let data = row.data();
     if (action === 'source') {
         if (typeof(data.source.name) !== 'undefined') {
@@ -45,7 +45,25 @@ function modify_row_by_action(row, action) {
         data.result = data.target;
         data.action =  (typeof(data.target.name) !== 'undefined' ? 'target' : 'skipped');
     }
-    row.data(data).draw('full-hold');
+    if (redraw) {
+        row.data(data).draw('full-hold');
+    }
+}
+
+function get_selected_vars(variables_table) {
+    let selected_vars = [];
+    variables_table.rows( {selected:true} ).every( function () {
+        let d = this.data();
+        selected_vars.push(d['name']);
+    });
+    return selected_vars;
+}
+
+function apply_multiselect_action(var_import_table, action) {
+    console.log('apply_multi_select');
+    var_import_table.rows( {selected:true} ).every( function () {
+        modify_row_by_action(this, action);
+    });
 }
 
 $(document).ready(function() {
@@ -212,6 +230,11 @@ $(document).ready(function() {
         }
         // Toggle button state.
         $('.select-all-button').toggleClass('btn-secondary btn-primary');
+    });
+
+    // Multiselect action buttons
+    $('.action-btn').click(function (e) {
+        apply_multiselect_action(var_import_table, $(this).attr('data-action'));
     });
 
     // Toggle "Select all rows to `off` on user specific selection."
