@@ -96,6 +96,7 @@ $(document).ready(function() {
                     return row;
                 },
                 "targets": [1],
+                "orderable": false,
                 "render": function ( data, type, row, meta ) {
                     let result = '<div class="btn-group" role="group" aria-label="Basic example">'
                         + '<button type="button" data-action="skip" class="skip-btn btn btn-secondary'
@@ -156,6 +157,7 @@ $(document).ready(function() {
                     return row.target;
                 },
                 "targets": [4],
+                "order": 'asc',
                 "render": function ( data, type, row, meta ) {
                     let result = '';
                     if (typeof(data.name) !== 'undefined') {
