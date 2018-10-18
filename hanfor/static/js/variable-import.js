@@ -60,10 +60,42 @@ function get_selected_vars(variables_table) {
 }
 
 function apply_multiselect_action(var_import_table, action) {
-    console.log('apply_multi_select');
     var_import_table.rows( {selected:true} ).every( function () {
         modify_row_by_action(this, action);
     });
+}
+
+function store_changes(var_import_table) {
+    // Fetch relevant changes
+    let data = Object();
+    var_import_table.rows( ).every( function () {
+        let row = this.data();
+        data[row.name] = {
+            action: row.action,
+            result: row.result
+        };
+    });
+    data = JSON.stringify(data);
+
+    // Send changes to backend.
+    $.post( "api/" + session_id + "/store_table",
+        {
+            rows: data
+        },
+        // Update requirements table on success or show an error message.
+        function( data ) {
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                location.reload();
+            }
+    });
+}
+
+function apply_tools_action(var_import_table, action) {
+    if (action === 'store-changes') {
+        store_changes(var_import_table);
+    }
 }
 
 $(document).ready(function() {
@@ -220,8 +252,7 @@ $(document).ready(function() {
         modify_row_by_action(row, action);
     });
 
-    // Multiselect.
-    // Select single rows
+    // Multiselect. Select single rows.
     $('.select-all-button').on('click', function (e) {
         // Toggle selection on
         if ($( this ).hasClass('btn-secondary')) {
@@ -237,6 +268,12 @@ $(document).ready(function() {
     // Multiselect action buttons
     $('.action-btn').click(function (e) {
         apply_multiselect_action(var_import_table, $(this).attr('data-action'));
+    });
+
+    // Tools Buttons
+    $('.tools-btn').click(function (e) {
+        let action = $(this).attr('data-action');
+        apply_tools_action(var_import_table, action);
     });
 
     // Toggle "Select all rows to `off` on user specific selection."

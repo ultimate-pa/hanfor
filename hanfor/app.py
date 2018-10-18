@@ -627,6 +627,11 @@ def variable_import(id):
 @app.route('/variable_import/api/<session_id>/<command>', methods=['GET', 'POST'])
 @nocache
 def var_import_session(session_id, command):
+    result = {
+        'success': False,
+        'errormsg': 'Command not found'
+    }
+
     def load_sessions():
         """ Open variable import sessions if existing.
 
@@ -675,10 +680,19 @@ def var_import_session(session_id, command):
 
         return jsonify(result), 200
 
-    return jsonify({
-        'success': False,
-        'errormsg': 'Command not found'
-    }), 404
+    if command == 'store_table':
+        rows = json.loads(request.form.get('rows', ''))
+        var_import_sessions = load_sessions()
+        try:
+            var_import_sessions.import_sessions[int(session_id)].store_changes(rows)
+        except Exception as e:
+            logging.info('Could not store table: {}'.format(e))
+            result['success'] = False
+            result['errormsg'] = 'Could not store: {}'.format(e)
+
+        return jsonify(result), 200
+
+    return jsonify(result), 404
 
 @app.route('/<site>')
 def site(site):
