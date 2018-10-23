@@ -250,7 +250,6 @@ class BoogieType(Enum):
     bool = 1
     int = 2
     real = 3
-    enum = 4
     unknown = 0
     error = -1
 
@@ -265,6 +264,7 @@ class BoogieType(Enum):
             mapping[t.name] = t
 
         mapping['ENUMERATOR'] = BoogieType.int
+        mapping['ENUM'] = BoogieType.int
 
         return mapping
 
