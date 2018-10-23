@@ -4,30 +4,100 @@ require('bootstrap-confirmation2');
 require('datatables.net-bs4');
 require('datatables.net-select');
 require('jquery-ui/ui/widgets/autocomplete');
+require('jquery-ui/ui/effects/effect-highlight');
 require('./bootstrap-tokenfield.js');
 
 let var_search_string = sessionStorage.getItem('var_search_string');
+let available_types = ['bool', 'int', 'real', 'unknown', 'CONST', 'ENUM', 'ENUMERATOR'];
 
-function set_var_view_modal_data(data) {
+function load_enumerators_to_modal(var_name, var_import_table) {
+    let enum_div = $('#enumerators');
+    enum_div.html('');
+    let enum_html = '';
+    var_import_table.rows( ).every( function () {
+        let data = this.data();
+        if ((var_name.length < data.name.length) && data.name.startsWith(var_name)) {
+            if (typeof(data.result.name) !== 'undefined') {
+                enum_html += '<p><code>' + data.name + '</code> : <code>' + data.result.const_val + '</code></p>';
+            }
+        }
+    });
 
+    enum_div.html(enum_html);
 }
 
-function load_var_view_modal(data, collection) {
-    let var_view_modal = $('#variable_view_modal');
-    $('#variable_view_modal_title').html('Name: <code>' + data.name + '</code>');
-    let var_object;
-    if (collection === 'source_link') {
+
+function load_constraints_to_container(var_object, constraints_container) {
+    if (var_object.constraints.length > 0) {
+        let constraints_list_dom = $('#constraints_list');
+        let constraints_html = '';
+        var_object.constraints.forEach(function (constraint) {
+            constraints_html += '<pre>' + constraint + '</pre>';
+        });
+        constraints_list_dom.html(constraints_html);
+        constraints_container.show();
+    }
+}
+
+
+function load_modal(data, var_import_table, type) {
+    let var_view_modal = $('#variable_modal');
+    let var_value_form = $('#variable_value_form_group');
+    let enum_controls = $('.enum-controls');
+    let constraints_container = $('#constraints_container');
+    let var_object = Object();
+    let type_input = $('#variable_type');
+    let variable_value = $('#variable_value');
+    let save_variable_modal = $('#save_variable_modal');
+    let title = '';
+
+    if (type === 'source') {
         var_object = data.source;
-    } else if (collection === 'target_link') {
+        title = 'Source Variable:';
+        type_input.prop('disabled', true);
+        save_variable_modal.hide();
+    } else if (type === 'target') {
         var_object = data.target;
+        title = 'Target Variable:';
+        type_input.prop('disabled', true);
+        save_variable_modal.hide();
+    } else {
+        title = 'Resulting Variable:';
+        var_object = data.result;
+        type_input.prop('disabled', false);
+        save_variable_modal.show();
     }
-    let body_html = '<h5>Type</h5><code>' + var_object.type + '</code>';
-    if (var_object.type === 'CONST') {
-        body_html += '<h5>Const value</h5><code>' + var_object.const_val + '</code>'
+
+    type_input.autocomplete({
+        minLength: 0,
+        source: available_types
+    }).on('focus', function() { $(this).keydown(); });
+
+    // Prepare modal
+    $('#variable_modal_title').html(title + ' <code>' + data.name + '</code>');
+    save_variable_modal.attr('data-name', data.name);
+    type_input.val(var_object.type);
+    var_value_form.hide();
+    enum_controls.hide();
+    constraints_container.hide();
+
+
+    if (var_object.type === 'CONST' || var_object.type === 'ENUMERATOR') {
+        var_value_form.show();
+        variable_value.val(var_object.const_val);
+        //variable_value_old.val(var_object.const_val);
+    } else if (var_object.type === 'ENUM') {
+        enum_controls.show();
+        $('#enumerators').html('');
+        load_enumerators_to_modal(var_object.name, var_import_table);
     }
-    $('#var_view_modal_body').html(body_html);
+
+    load_constraints_to_container(var_object, constraints_container);
+
+    // $('#var_view_modal_body').html(body_html);
     var_view_modal.modal('show');
 }
+
 
 function modify_row_by_action(row, action, redraw = true) {
     let data = row.data();
@@ -50,6 +120,7 @@ function modify_row_by_action(row, action, redraw = true) {
     }
 }
 
+
 function get_selected_vars(variables_table) {
     let selected_vars = [];
     variables_table.rows( {selected:true} ).every( function () {
@@ -59,11 +130,55 @@ function get_selected_vars(variables_table) {
     return selected_vars;
 }
 
+
 function apply_multiselect_action(var_import_table, action) {
     var_import_table.rows( {selected:true} ).every( function () {
         modify_row_by_action(this, action);
     });
 }
+
+
+function store_modal(var_table, target_row) {
+    let var_view_modal = $('#variable_modal');
+    let type_by_modal = $('#variable_type').val();
+    let value_by_modal = $('#variable_value').val();
+    let table_data = target_row.data();
+    // First check if we have changes.
+    let changes = false;
+    if (table_data.result.type !== type_by_modal) {
+        changes = true;
+        table_data.result.type = type_by_modal;
+    }
+    if ((table_data.result.type === 'CONST' || table_data.result.type === 'ENUMERATOR') &&
+        (table_data.result.const_val !== value_by_modal)) {
+        changes = true;
+        table_data.result.const_val = value_by_modal;
+    }
+    if (changes) {
+        table_data.action = 'custom';
+        console.log(table_data);
+        // Sync with backend.
+        var_view_modal.LoadingOverlay('show');
+        $.post( "api/" + session_id + "/store_variable",
+            {
+                row: JSON.stringify(table_data)
+            },
+            // Update var table on success or show an error message.
+            function( data ) {
+                var_view_modal.LoadingOverlay('hide', true);
+                if (data['success'] === false) {
+                    alert(data['errormsg']);
+                } else {
+                    target_row.data(table_data).draw('full-hold');
+                    $(target_row.node()).effect("highlight", {color: 'green'}, 800);
+                    var_view_modal.modal('hide');
+                }
+        });
+    } else {
+        var_view_modal.modal('hide');
+    }
+}
+
 
 function store_changes(var_import_table) {
     // Fetch relevant changes
@@ -92,11 +207,13 @@ function store_changes(var_import_table) {
     });
 }
 
+
 function apply_tools_action(var_import_table, action) {
     if (action === 'store-changes') {
         store_changes(var_import_table);
     }
 }
+
 
 $(document).ready(function() {
     // Prepare and load the variables table.
@@ -113,6 +230,7 @@ $(document).ready(function() {
         "dom": 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
         "ajax": "api/" + session_id + "/get_table_data",
         "deferRender": true,
+        "rowId": 'name',
         "columns": [
             {
                 // The mass selection column.
@@ -175,8 +293,8 @@ $(document).ready(function() {
                 "render": function ( data, type, row, meta ) {
                     let result = '';
                     if (typeof(data.name) !== 'undefined') {
-                        result = '<p class="source_link" style="cursor: pointer"><code>' +
-                            data.name + '</code><span class="badge badge-info">' + data.type + '</span></p>';
+                        result = '<p class="var_link" data-type="source" style="cursor: pointer"><code>' +
+                            data.name + '</code> <span class="badge badge-info">' + data.type + '</span></p>';
                     } else {
                         result = 'No match.'
                     }
@@ -193,7 +311,7 @@ $(document).ready(function() {
                 "render": function ( data, type, row, meta ) {
                     let result = '';
                     if (typeof(data.name) !== 'undefined') {
-                        result = '<p class="target_link" style="cursor: pointer"><code>' +
+                        result = '<p class="var_link" data-type="target" style="cursor: pointer"><code>' +
                             data.name + '</code><span class="badge badge-info">' + data.type + '</span>';
                     } else {
                         result = 'No match.'
@@ -211,7 +329,7 @@ $(document).ready(function() {
                 "render": function ( data, type, row, meta ) {
                     let result = '';
                     if (typeof(data.name) !== 'undefined') {
-                        result = '<p class="result_link" style="cursor: pointer"><code>' +
+                        result = '<p class="var_link" data-type="result" style="cursor: pointer"><code>' +
                             data.name + '</code><span class="badge badge-info">' + data.type + '</span>';
                     } else {
                         result = 'Skipped.'
@@ -235,11 +353,27 @@ $(document).ready(function() {
     let var_import_table_body = $('#var_import_table tbody');
 
     // Add listener for variable link to modal.
-    var_import_table_body.on('click', '.source_link, .target_link', function (event) {
+    var_import_table_body.on('click', '.var_link', function (event) {
         // prevent body to be scrolled to the top.
         event.preventDefault();
         let data = var_import_table.row( $(this).parents('tr') ).data();
-        load_var_view_modal(data, $(this)[0].className);
+        let type = $(this).attr('data-type');
+        load_modal(data, var_import_table, type);
+    });
+    
+    $('#save_variable_modal').click(function () {
+        let name = $(this).attr('data-name');
+        let row = var_import_table.row('#' + name);
+        store_modal(var_import_table, row);
+    });
+
+    $('#variable_type').on('change, focusout, keyup', function () {
+        let var_value_form = $('#variable_value_form_group');
+        if (['CONST', 'ENUMERATOR'].includes($( this ).val())) {
+            var_value_form.show();
+        } else {
+            var_value_form.hide();
+        }
     });
 
     // Add listener for table row action buttons.
@@ -247,7 +381,6 @@ $(document).ready(function() {
         // prevent body to be scrolled to the top.
         event.preventDefault();
         let row = var_import_table.row( $(this).parents('tr') );
-        console.log(row.data());
         let action = $(this).attr('data-action');
         modify_row_by_action(row, action);
     });

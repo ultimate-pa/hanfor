@@ -684,12 +684,29 @@ def var_import_session(session_id, command):
         rows = json.loads(request.form.get('rows', ''))
         var_import_sessions = load_sessions()
         try:
+            logging.info('Store changes for variable import session: {}'.format(session_id))
             var_import_sessions.import_sessions[int(session_id)].store_changes(rows)
+            var_import_sessions.store()
+            result['success'] = True
         except Exception as e:
             logging.info('Could not store table: {}'.format(e))
             result['success'] = False
             result['errormsg'] = 'Could not store: {}'.format(e)
 
+        return jsonify(result), 200
+
+    if command == 'store_variable':
+        row = json.loads(request.form.get('row', ''))
+        var_import_sessions = load_sessions()
+        try:
+            logging.info('Store changes for variable "{}" of import session: {}'.format(row['name'], session_id))
+            var_import_sessions.import_sessions[int(session_id)].store_variable(row)
+            var_import_sessions.store()
+            result['success'] = True
+        except Exception as e:
+            logging.info('Could not store table: {}'.format(e))
+            result['success'] = False
+            result['errormsg'] = 'Could not store: {}'.format(e)
         return jsonify(result), 200
 
     return jsonify(result), 404

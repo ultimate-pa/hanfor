@@ -952,7 +952,8 @@ class Variable:
             'const_val': self.value,
             'used_by': used_by,
             'tags': list(self.get_tags()),
-            'type_inference_errors': type_inference_errors
+            'type_inference_errors': type_inference_errors,
+            'constraints': [constraint.get_string() for constraint in self.get_constraints()]
         }
 
         return d
@@ -1221,6 +1222,19 @@ class VarImportSession:
                 'result': data['result'] if 'result' in data else {}
             })
         return result
+
+    def store_changes(self, rows):
+        for name, data in rows.items():
+            self.actions[name] = data['action']
+
+    def store_variable(self, row):
+        self.actions[row['name']] = row['action']
+        self.result_var_collection.collection[row['name']].type = row['result']['type']
+        try:
+            const_val = int(row['result']['const_val'])
+            self.result_var_collection.collection[row['name']].value = const_val
+        except:
+            pass
 
 class VarImportSessions:
     def __init__(self, path=None):
