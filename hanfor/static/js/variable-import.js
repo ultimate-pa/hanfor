@@ -100,7 +100,7 @@ function load_modal(data, var_import_table, type) {
 }
 
 
-function modify_row_by_action(row, action, redraw = true) {
+function modify_row_by_action(row, action, redraw = true, store = true) {
     let data = row.data();
     if (action === 'source') {
         if (typeof(data.source.name) !== 'undefined') {
@@ -119,6 +119,9 @@ function modify_row_by_action(row, action, redraw = true) {
     if (redraw) {
         row.data(data).draw('full-hold');
     }
+    if (store) {
+        store_changes(data);
+    }
 }
 
 
@@ -134,8 +137,9 @@ function get_selected_vars(variables_table) {
 
 function apply_multiselect_action(var_import_table, action) {
     var_import_table.rows( {selected:true} ).every( function () {
-        modify_row_by_action(this, action);
+        modify_row_by_action(this, action, true, false);
     });
+    store_changes();
 }
 
 
@@ -181,29 +185,39 @@ function store_modal(var_table, target_row) {
 }
 
 
-function store_changes(var_import_table) {
+function store_changes(data = false) {
+    let body = $('body');
+    body.LoadingOverlay('show');
+
     // Fetch relevant changes
-    let data = Object();
-    var_import_table.rows( ).every( function () {
-        let row = this.data();
-        data[row.name] = {
-            action: row.action,
-            result: row.result
-        };
-    });
-    data = JSON.stringify(data);
+    let rows = Object();
+    if (!data) {
+        $( '#var_import_table' ).DataTable().rows( {selected:true} ).every( function () {
+            let row = this.data();
+            rows[row.name] = {
+                action: row.action
+            };
+        });
+    } else {
+        rows[data.name] = {
+            action: data.action
+        }
+    }
+    console.log(data);
+    console.log(rows);
+
+    rows = JSON.stringify(rows);
 
     // Send changes to backend.
     $.post( "api/" + session_id + "/store_table",
         {
-            rows: data
+            rows: rows
         },
         // Update requirements table on success or show an error message.
         function( data ) {
+            body.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
-            } else {
-                location.reload();
             }
     });
 }

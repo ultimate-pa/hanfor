@@ -16,6 +16,7 @@ import string
 import utils
 
 from enum import Enum
+from copy import deepcopy
 
 
 class RequirementCollection:
@@ -1188,9 +1189,9 @@ class VarImportSession:
         self.target_var_collection = target_var_collection
 
         self.result_var_collection = VariableCollection()
-        self.result_var_collection.collection = target_var_collection.collection.copy()
-        self.result_var_collection.req_var_mapping = target_var_collection.req_var_mapping.copy()
-        self.result_var_collection.var_req_mapping = target_var_collection.var_req_mapping.copy()
+        self.result_var_collection.collection = deepcopy(target_var_collection.collection)
+        self.result_var_collection.req_var_mapping = deepcopy(target_var_collection.req_var_mapping)
+        self.result_var_collection.var_req_mapping = deepcopy(target_var_collection.var_req_mapping)
 
         self.actions = dict()
         self.init_actions()
@@ -1226,6 +1227,10 @@ class VarImportSession:
     def store_changes(self, rows):
         for name, data in rows.items():
             self.actions[name] = data['action']
+            if data['action'] == 'source':
+                self.result_var_collection.collection[name] = deepcopy(self.source_var_collection.collection[name])
+            if data['action'] == 'target':
+                self.result_var_collection.collection[name] = deepcopy(self.target_var_collection.collection[name])
 
     def store_variable(self, row):
         self.actions[row['name']] = row['action']
