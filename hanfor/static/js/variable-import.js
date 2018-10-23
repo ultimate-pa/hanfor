@@ -9,6 +9,8 @@ require('./bootstrap-tokenfield.js');
 
 let var_search_string = sessionStorage.getItem('var_search_string');
 let available_types = ['bool', 'int', 'real', 'unknown', 'CONST', 'ENUM', 'ENUMERATOR'];
+let current_constraints = [];
+let changes = false;
 
 function load_enumerators_to_modal(var_name, var_import_table) {
     let enum_div = $('#enumerators');
@@ -27,13 +29,54 @@ function load_enumerators_to_modal(var_name, var_import_table) {
 }
 
 
-function load_constraints_to_container(var_object, constraints_container) {
+function load_constraints_to_container(data, var_object, constraints_container, type) {
+
+    function add_constraints(constraints, handles = false, type = 'none', data = false) {
+        let constraints_html = '';
+
+        constraints.forEach(function (constraint) {
+            if (handles) {
+                console.log(data);
+                let text = '';
+                let css_class = '';
+                if (data.result.constraints.includes(constraint)) {
+                    text = 'Included in result (click to toggle).';
+                    css_class = 'btn-success';
+                } else {
+                    text = 'Not Included in result (click to toggle).';
+                    css_class = 'btn-secondary'
+                }
+                constraints_html += '<div class="constraint-element">'
+                constraints_html += '<button type="button" ' +
+                    'data-type="' + type + '" ' +
+                    'class="btn ' + css_class + ' btn-sm constraint-handle">' +
+                    text +
+                    '</button>';
+                constraints_html += '<pre>' + constraint + '</pre>';
+                constraints_html += '</div>';
+            } else {
+                constraints_html += '<pre>' + constraint + '</pre>';
+            }
+        });
+        return constraints_html;
+
+    }
+
     if (var_object.constraints.length > 0) {
         let constraints_list_dom = $('#constraints_list');
         let constraints_html = '';
-        var_object.constraints.forEach(function (constraint) {
-            constraints_html += '<pre>' + constraint + '</pre>';
-        });
+        if (type === 'result') {
+            if (data.target.constraints.length > 0) {
+                constraints_html += '<h6>In Target</h6>';
+                constraints_html += add_constraints(data.target.constraints, true, 'target', data);
+            }
+            if (data.source.constraints.length > 0) {
+                constraints_html += '<h6>In Source</h6>';
+                constraints_html += add_constraints(data.source.constraints, true, 'source', data);
+            }
+        } else {
+            constraints_html += add_constraints(var_object.constraints);
+        }
         constraints_list_dom.html(constraints_html);
         constraints_container.show();
     }
@@ -51,17 +94,19 @@ function load_modal(data, var_import_table, type) {
     let save_variable_modal = $('#save_variable_modal');
     let title = '';
 
-
     type_input.prop('disabled', true);
     variable_value.prop('disabled', true);
     save_variable_modal.hide();
+    current_constraints = data.result.constraints;
+    changes = false;
+
     if (type === 'source') {
         var_object = data.source;
         title = 'Source Variable:';
     } else if (type === 'target') {
         var_object = data.target;
         title = 'Target Variable:';
-    } else {
+    } else if (type === 'result') {
         title = 'Resulting Variable:';
         var_object = data.result;
         type_input.prop('disabled', false);
@@ -93,7 +138,24 @@ function load_modal(data, var_import_table, type) {
         load_enumerators_to_modal(var_object.name, var_import_table);
     }
 
-    load_constraints_to_container(var_object, constraints_container);
+    load_constraints_to_container(data, var_object, constraints_container, type);
+
+    // Bind constraint handles
+    $('.constraint-handle').click(function () {
+        changes = true;
+        let constraint = $(this).closest('div').find( "pre" );
+        constraint.effect("highlight", {color: 'green'}, 800);
+        alert(constraint.html());
+        $(this).toggleClass("btn-success");
+        $(this).toggleClass("btn-secondary");
+        if ($(this).hasClass("btn-success")) {
+            $(this).html('Included in result (click to toggle).');
+            current_constraints.push(constraint.html());
+        } else {
+            $(this).html('Not Included in result (click to toggle).');
+        }
+        console.log(current_constraints);
+    });
 
     // $('#var_view_modal_body').html(body_html);
     var_view_modal.modal('show');
@@ -203,8 +265,6 @@ function store_changes(data = false) {
             action: data.action
         }
     }
-    console.log(data);
-    console.log(rows);
 
     rows = JSON.stringify(rows);
 
@@ -224,9 +284,6 @@ function store_changes(data = false) {
 
 
 function apply_tools_action(var_import_table, action) {
-    if (action === 'store-changes') {
-        store_changes(var_import_table);
-    }
 }
 
 
