@@ -51,20 +51,21 @@ function load_modal(data, var_import_table, type) {
     let save_variable_modal = $('#save_variable_modal');
     let title = '';
 
+
+    type_input.prop('disabled', true);
+    variable_value.prop('disabled', true);
+    save_variable_modal.hide();
     if (type === 'source') {
         var_object = data.source;
         title = 'Source Variable:';
-        type_input.prop('disabled', true);
-        save_variable_modal.hide();
     } else if (type === 'target') {
         var_object = data.target;
         title = 'Target Variable:';
-        type_input.prop('disabled', true);
-        save_variable_modal.hide();
     } else {
         title = 'Resulting Variable:';
         var_object = data.result;
         type_input.prop('disabled', false);
+        variable_value.prop('disabled', false);
         save_variable_modal.show();
     }
 
