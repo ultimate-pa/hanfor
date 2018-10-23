@@ -939,7 +939,7 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
                 else:
                     content_list.append('Input {} IS {}'.format(
                         var.name,
-                        boogie_parsing.BoogieType.reverse_alias(var.type).name
+                        boogie_parsing.BoogieType.reverse_alias(var.type.lower()).name
                     ))
                 try:
                     for index, constraint in enumerate(var.constraints):

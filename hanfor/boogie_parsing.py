@@ -250,6 +250,7 @@ class BoogieType(Enum):
     bool = 1
     int = 2
     real = 3
+    enum = 4
     unknown = 0
     error = -1
 
