@@ -9,8 +9,7 @@ require('./bootstrap-tokenfield.js');
 
 let var_search_string = sessionStorage.getItem('var_search_string');
 let available_types = ['bool', 'int', 'real', 'unknown', 'CONST', 'ENUM', 'ENUMERATOR'];
-let current_constraints = [];
-let changes = false;
+let global_changes = false;
 
 function load_enumerators_to_modal(var_name, var_import_table) {
     let enum_div = $('#enumerators');
@@ -31,15 +30,18 @@ function load_enumerators_to_modal(var_name, var_import_table) {
 
 function load_constraints_to_container(data, var_object, constraints_container, type) {
 
-    function add_constraints(constraints, handles = false, type = 'none', data = false) {
+    function add_constraints(constraints, handles = false, type = 'none') {
         let constraints_html = '';
 
-        constraints.forEach(function (constraint) {
+        for (var key in constraints) {
+            let constraint = constraints[key];
+            if (constraint.origin !== type) {
+                continue;
+            }
             if (handles) {
-                console.log(data);
                 let text = '';
                 let css_class = '';
-                if (data.result.constraints.includes(constraint)) {
+                if (constraint.to_result) {
                     text = 'Included in result (click to toggle).';
                     css_class = 'btn-success';
                 } else {
@@ -49,17 +51,17 @@ function load_constraints_to_container(data, var_object, constraints_container, 
                 constraints_html += '<div class="constraint-element">'
                 constraints_html += '<button type="button" ' +
                     'data-type="' + type + '" ' +
+                    'data-constrid="' + constraint.id + '" ' +
                     'class="btn ' + css_class + ' btn-sm constraint-handle">' +
                     text +
                     '</button>';
-                constraints_html += '<pre>' + constraint + '</pre>';
+                constraints_html += '<pre>' + constraint.constraint + '</pre>';
                 constraints_html += '</div>';
             } else {
-                constraints_html += '<pre>' + constraint + '</pre>';
+                constraints_html += '<pre>' + constraint.constraint + '</pre>';
             }
-        });
+        }
         return constraints_html;
-
     }
 
     if (var_object.constraints.length > 0) {
@@ -67,15 +69,15 @@ function load_constraints_to_container(data, var_object, constraints_container, 
         let constraints_html = '';
         if (type === 'result') {
             if (data.target.constraints.length > 0) {
-                constraints_html += '<h6>In Target</h6>';
-                constraints_html += add_constraints(data.target.constraints, true, 'target', data);
+                constraints_html += '<h6>From Target</h6>';
+                constraints_html += add_constraints(data.available_constraints, true, 'target');
             }
             if (data.source.constraints.length > 0) {
-                constraints_html += '<h6>In Source</h6>';
-                constraints_html += add_constraints(data.source.constraints, true, 'source', data);
+                constraints_html += '<h6>From Source</h6>';
+                constraints_html += add_constraints(data.available_constraints, true, 'source');
             }
         } else {
-            constraints_html += add_constraints(var_object.constraints);
+            constraints_html += add_constraints(data.available_constraints, false, type);
         }
         constraints_list_dom.html(constraints_html);
         constraints_container.show();
@@ -97,8 +99,7 @@ function load_modal(data, var_import_table, type) {
     type_input.prop('disabled', true);
     variable_value.prop('disabled', true);
     save_variable_modal.hide();
-    current_constraints = data.result.constraints;
-    changes = false;
+    global_changes = false;
 
     if (type === 'source') {
         var_object = data.source;
@@ -142,19 +143,24 @@ function load_modal(data, var_import_table, type) {
 
     // Bind constraint handles
     $('.constraint-handle').click(function () {
-        changes = true;
+        global_changes = true;
+        let constraint_id = $(this).attr('data-constrid');
         let constraint = $(this).closest('div').find( "pre" );
+        let row = var_import_table.row('#' + data.name);
+        let row_data = row.data();
+
         constraint.effect("highlight", {color: 'green'}, 800);
-        alert(constraint.html());
         $(this).toggleClass("btn-success");
         $(this).toggleClass("btn-secondary");
+
         if ($(this).hasClass("btn-success")) {
             $(this).html('Included in result (click to toggle).');
-            current_constraints.push(constraint.html());
+            row_data.available_constraints[constraint_id].to_result = true;
         } else {
             $(this).html('Not Included in result (click to toggle).');
+            row_data.available_constraints[constraint_id].to_result = false;
         }
-        console.log(current_constraints);
+        row.data(row_data);
     });
 
     // $('#var_view_modal_body').html(body_html);
@@ -221,7 +227,7 @@ function store_modal(var_table, target_row) {
         changes = true;
         table_data.result.const_val = value_by_modal;
     }
-    if (changes) {
+    if (changes || global_changes) {
         table_data.action = 'custom';
         console.log(table_data);
         // Sync with backend.
@@ -237,8 +243,8 @@ function store_modal(var_table, target_row) {
                     alert(data['errormsg']);
                 } else {
                     target_row.data(table_data).draw('full-hold');
-                    $(target_row.node()).effect("highlight", {color: 'green'}, 800);
                     var_view_modal.modal('hide');
+                    $(target_row.node()).effect("highlight", {color: 'green'}, 800);
                 }
         });
     } else {

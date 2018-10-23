@@ -1196,6 +1196,28 @@ class VarImportSession:
         self.actions = dict()
         self.init_actions()
 
+        self.available_constraints = dict()
+        for name, vars in self.to_dict().items():
+            av_dict = dict()
+            i = 0
+            for c in vars['source']['constraints']:
+                i += 1
+                av_dict[i] = {
+                    'id': i,
+                    'constraint': c,
+                    'origin': 'source',
+                    'to_result': False
+                }
+            for c in vars['target']['constraints']:
+                i += 1
+                av_dict[i] = {
+                    'id': i,
+                    'constraint': c,
+                    'origin': 'target',
+                    'to_result': True
+                }
+            self.available_constraints[name] = av_dict
+
     def init_actions(self):
         dict_data = self.to_dict()
         for name, data in dict_data.items():
@@ -1217,6 +1239,7 @@ class VarImportSession:
         for name, data in dict_data.items():
             result.append({
                 'name': name,
+                'available_constraints': self.available_constraints[name],
                 'action': self.actions[name],
                 'source': data['source'] if 'source' in data else {},
                 'target': data['target'] if 'target' in data else {},
@@ -1235,6 +1258,7 @@ class VarImportSession:
     def store_variable(self, row):
         self.actions[row['name']] = row['action']
         self.result_var_collection.collection[row['name']].type = row['result']['type']
+        self.available_constraints[row['name']] = row['available_constraints']
         try:
             const_val = int(row['result']['const_val'])
             self.result_var_collection.collection[row['name']].value = const_val
