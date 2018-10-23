@@ -1254,6 +1254,10 @@ class VarImportSession:
                 self.result_var_collection.collection[name] = deepcopy(self.source_var_collection.collection[name])
             if data['action'] == 'target':
                 self.result_var_collection.collection[name] = deepcopy(self.target_var_collection.collection[name])
+            for key in self.available_constraints[name].keys():
+                self.available_constraints[name][key]['to_result'] = (
+                            self.available_constraints[name][key]['origin'] == data['action']
+                )
 
     def store_variable(self, row):
         self.actions[row['name']] = row['action']

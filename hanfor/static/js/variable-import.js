@@ -29,7 +29,6 @@ function load_enumerators_to_modal(var_name, var_import_table) {
 
 
 function load_constraints_to_container(data, var_object, constraints_container, type) {
-
     function add_constraints(constraints, handles = false, type = 'none') {
         let constraints_html = '';
 
@@ -64,24 +63,22 @@ function load_constraints_to_container(data, var_object, constraints_container, 
         return constraints_html;
     }
 
-    if (var_object.constraints.length > 0) {
-        let constraints_list_dom = $('#constraints_list');
-        let constraints_html = '';
-        if (type === 'result') {
-            if (data.target.constraints.length > 0) {
-                constraints_html += '<h6>From Target</h6>';
-                constraints_html += add_constraints(data.available_constraints, true, 'target');
-            }
-            if (data.source.constraints.length > 0) {
-                constraints_html += '<h6>From Source</h6>';
-                constraints_html += add_constraints(data.available_constraints, true, 'source');
-            }
-        } else {
-            constraints_html += add_constraints(data.available_constraints, false, type);
+    let constraints_list_dom = $('#constraints_list');
+    let constraints_html = '';
+    if (type === 'result') {
+        if (data.target.constraints.length > 0) {
+            constraints_html += '<h6>From Target</h6>';
+            constraints_html += add_constraints(data.available_constraints, true, 'target');
         }
-        constraints_list_dom.html(constraints_html);
-        constraints_container.show();
+        if (data.source.constraints.length > 0) {
+            constraints_html += '<h6>From Source</h6>';
+            constraints_html += add_constraints(data.available_constraints, true, 'source');
+        }
+    } else {
+        constraints_html += add_constraints(data.available_constraints, false, type);
     }
+    constraints_list_dom.html(constraints_html);
+    constraints_container.show();
 }
 
 
@@ -170,12 +167,12 @@ function load_modal(data, var_import_table, type) {
 
 function modify_row_by_action(row, action, redraw = true, store = true) {
     let data = row.data();
-    if (action === 'source') {
+    if ((action === 'source') && (data.action !== 'source')) {
         if (typeof(data.source.name) !== 'undefined') {
             data.result = data.source;
             data.action = 'source';
         }
-    } else if (action === 'target') {
+    } else if ((action === 'target') && (data.action !== 'target')) {
         if (typeof(data.target.name) !== 'undefined') {
             data.result = data.target;
             data.action = 'target';
@@ -184,6 +181,12 @@ function modify_row_by_action(row, action, redraw = true, store = true) {
         data.result = data.target;
         data.action =  (typeof(data.target.name) !== 'undefined' ? 'target' : 'skipped');
     }
+
+    for (var key in data.available_constraints) {
+        let constraint = data.available_constraints[key];
+        data.available_constraints[key].to_result = constraint.origin === action;
+    }
+
     if (redraw) {
         row.data(data).draw('full-hold');
     }
