@@ -1200,18 +1200,20 @@ class VarImportSession:
         for name, vars in self.to_dict().items():
             av_dict = dict()
             i = 0
-            for c in vars['source']['constraints']:
+            for j, c in enumerate(vars['source']['constraints']):
                 i += 1
                 av_dict[i] = {
                     'id': i,
+                    'origin_id': j,
                     'constraint': c,
                     'origin': 'source',
                     'to_result': False
                 }
-            for c in vars['target']['constraints']:
+            for j, c in enumerate(vars['target']['constraints']):
                 i += 1
                 av_dict[i] = {
                     'id': i,
+                    'origin_id': j,
                     'constraint': c,
                     'origin': 'target',
                     'to_result': True
@@ -1268,6 +1270,22 @@ class VarImportSession:
             self.result_var_collection.collection[row['name']].value = const_val
         except:
             pass
+
+    def apply_constraint_selection(self):
+        for var_name, available_constraints in self.available_constraints.items():
+            if len(available_constraints) > 0:
+                self.result_var_collection.collection[var_name].constraints = []
+                for id, constraint in available_constraints.items():
+                    if constraint['to_result']:
+                        if constraint['origin'] == 'source':
+                            self.result_var_collection.collection[var_name].constraints.append(deepcopy(
+                                self.source_var_collection.collection[var_name].constraints[constraint['origin_id']]
+                            ))
+                        else:
+                            self.result_var_collection.collection[var_name].constraints.append(deepcopy(
+                                self.target_var_collection.collection[var_name].constraints[constraint['origin_id']]
+                            ))
+
 
 class VarImportSessions:
     def __init__(self, path=None):

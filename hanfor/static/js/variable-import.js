@@ -292,7 +292,33 @@ function store_changes(data = false) {
 }
 
 
+function apply_import(var_import_table) {
+    let body = $('body');
+    body.LoadingOverlay('show');
+
+    // Fetch relevant changes
+    let rows = var_import_table.rows().data().toArray();
+
+    rows = JSON.stringify(rows);
+
+    // Send changes to backend.
+    $.post( "api/" + session_id + "/apply_import",
+        {
+            rows: rows
+        },
+        // Update requirements table on success or show an error message.
+        function( data ) {
+            body.LoadingOverlay('hide', true);
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            }
+    });
+}
+
 function apply_tools_action(var_import_table, action) {
+    if (action === 'apply-import') {
+        apply_import(var_import_table);
+    }
 }
 
 

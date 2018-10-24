@@ -709,6 +709,22 @@ def var_import_session(session_id, command):
             result['errormsg'] = 'Could not store: {}'.format(e)
         return jsonify(result), 200
 
+    if command == 'apply_import':
+        var_import_sessions = load_sessions()
+        try:
+            logging.info('Apply import for variable import session: {}'.format(session_id))
+            var_import_sessions.import_sessions[int(session_id)].apply_constraint_selection()
+            var_import_sessions.store()
+            new_collection = var_import_sessions.import_sessions[int(session_id)].result_var_collection
+            new_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
+            result['success'] = True
+        except Exception as e:
+            logging.info('Could apply import: {}'.format(e))
+            result['success'] = False
+            result['errormsg'] = 'Could apply import: {}'.format(e)
+
+        return jsonify(result), 200
+
     return jsonify(result), 404
 
 @app.route('/<site>')
