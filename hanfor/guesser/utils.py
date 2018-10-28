@@ -18,3 +18,42 @@ def flatten_list(nested_list):
             nested_list = sublist + nested_list
         else:
             yield sublist
+
+
+umlaut_replacements = {
+    'Ä': 'Ae',
+    'Ö': 'Oe',
+    'Ü': 'Ue',
+    'ä': 'ae',
+    'ö': 'oe',
+    'ü': 'ue',
+    }
+
+term_replacements = {
+    ':=':    '==',
+    '== ->': '==',
+    '==->':  '==',
+    '!= ->': '!=',
+    '!=->':  '!=',
+    '[':     '(',
+    ']':     ')',
+    '{':     '',
+    '}':     '',
+    '.':     '_'
+    }
+
+replacements = {**umlaut_replacements, **term_replacements}
+
+
+def replace_characters(string):
+    """
+    >>> replace_characters("x := y")
+    'x == y'
+
+    :param string:
+    :return:
+    """
+    res = string
+    for k, v in replacements.items():
+        res = res.replace(k, v)
+    return res
