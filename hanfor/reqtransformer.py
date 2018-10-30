@@ -1200,24 +1200,26 @@ class VarImportSession:
         for name, vars in self.to_dict().items():
             av_dict = dict()
             i = 0
-            for j, c in enumerate(vars['source']['constraints']):
-                i += 1
-                av_dict[i] = {
-                    'id': i,
-                    'origin_id': j,
-                    'constraint': c,
-                    'origin': 'source',
-                    'to_result': False
-                }
-            for j, c in enumerate(vars['target']['constraints']):
-                i += 1
-                av_dict[i] = {
-                    'id': i,
-                    'origin_id': j,
-                    'constraint': c,
-                    'origin': 'target',
-                    'to_result': True
-                }
+            if 'source' in vars:
+                for j, c in enumerate(vars['source']['constraints']):
+                    i += 1
+                    av_dict[i] = {
+                        'id': i,
+                        'origin_id': j,
+                        'constraint': c,
+                        'origin': 'source',
+                        'to_result': False
+                    }
+            if 'target' in vars:
+                for j, c in enumerate(vars['target']['constraints']):
+                    i += 1
+                    av_dict[i] = {
+                        'id': i,
+                        'origin_id': j,
+                        'constraint': c,
+                        'origin': 'target',
+                        'to_result': True
+                    }
             self.available_constraints[name] = av_dict
 
     def init_actions(self):

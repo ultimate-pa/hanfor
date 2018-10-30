@@ -66,11 +66,12 @@ function load_constraints_to_container(data, var_object, constraints_container, 
     let constraints_list_dom = $('#constraints_list');
     let constraints_html = '';
     if (type === 'result') {
-        if (data.target.constraints.length > 0) {
+        console.log(data);
+        if ((typeof(data.target.constraints) !== 'undefined') && (data.target.constraints.length > 0)) {
             constraints_html += '<h6>From Target</h6>';
             constraints_html += add_constraints(data.available_constraints, true, 'target');
         }
-        if (data.source.constraints.length > 0) {
+        if ((typeof(data.source.constraints) !== 'undefined') && (data.source.constraints.length > 0)) {
             constraints_html += '<h6>From Source</h6>';
             constraints_html += add_constraints(data.available_constraints, true, 'source');
         }
