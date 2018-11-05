@@ -927,6 +927,16 @@ class VariableCollection:
 
         self.var_req_mapping = mapping
 
+    def del_var(self, var_name):
+        if var_name not in self.var_req_mapping \
+                or len(self.var_req_mapping[var_name]) == 0:
+            # Delete if var not used.
+            self.collection.pop(var_name, None)
+            self.var_req_mapping.pop(var_name, None)
+            return True
+        return False
+
+
 class Variable:
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
 

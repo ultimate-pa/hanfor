@@ -107,6 +107,7 @@ def api(resource, command):
         'new_constraint',
         'del_formalization',
         'del_tag',
+        'del_var',
         'multi_update',
         'var_import_info',
         'var_import_collection',
@@ -486,11 +487,7 @@ def api(resource, command):
                     for var_name in var_list:
                         try:
                             logging.debug('Deleting `{}`'.format(var_name))
-                            if var_name not in var_collection.var_req_mapping \
-                                    or len(var_collection.var_req_mapping[var_name]) == 0:
-                                # Delete if var not used.
-                                var_collection.collection.pop(var_name, None)
-                                var_collection.var_req_mapping.pop(var_name, None)
+                            var_collection.del_var(var_name)
                         except KeyError:
                             logging.debug('Variable `{}` not found'.format(var_list))
                     var_collection.store()
@@ -533,6 +530,21 @@ def api(resource, command):
             var_collection.collection[var_name].reload_constraints_type_inference_errors(var_collection)
             var_collection.store()
             result['html'] = utils.formalizations_to_html(app, var_collection.collection[var_name].get_constraints())
+            return jsonify(result)
+        elif command == 'del_var':
+            result = {'success': True, 'errormsg': ''}
+            var_name = request.form.get('name', '').strip()
+
+            var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+            try:
+                logging.debug('Deleting `{}`'.format(var_name))
+                success = var_collection.del_var(var_name)
+                if not success:
+                    result = {'success': False, 'errormsg': 'Variable is used and thus cannot be deleted.'}
+                var_collection.store()
+            except KeyError:
+                logging.debug('Variable `{}` not found'.format(var_name))
+                result = {'success': False, 'errormsg': 'Variable not found.'}
             return jsonify(result)
         elif command == 'add_new_enum':
             result = {'success': True, 'errormsg': ''}
