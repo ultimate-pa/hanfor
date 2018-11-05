@@ -6,6 +6,7 @@
 import argparse
 from typing import Union
 
+from copy import deepcopy
 from flask import json
 
 import boogie_parsing
@@ -364,9 +365,9 @@ def varcollection_import_collection(app, request):
     for key, var in requested_var_collection.collection.items():
         if import_option == 'keep':
             if key not in current_var_collection.collection:
-                current_var_collection.collection[key] = var
+                current_var_collection.collection[key] = deepcopy(var)
         else:
-            current_var_collection.collection[key] = var
+            current_var_collection.collection[key] = deepcopy(var)
 
     result = {
         'tot_vars': len(requested_var_collection.collection),
