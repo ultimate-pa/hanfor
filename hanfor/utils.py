@@ -615,6 +615,8 @@ def update_variable_in_collection(app, request):
 
     if var_type == 'ENUM':
         for enumerator_name, enumerator_value in enumerators:
+            if len(enumerator_name) == 0 and len(enumerator_value) == 0:
+                continue
             if len(enumerator_name) == 0 or not re.match('^[a-zA-Z0-9_-]+$', enumerator_name):
                 result = {
                     'success': False,
