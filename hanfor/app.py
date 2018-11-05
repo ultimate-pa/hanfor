@@ -448,6 +448,7 @@ def api(resource, command):
             result = utils.varcollection_diff_info(app, request)
         elif command == 'var_import_collection':
             result = utils.varcollection_import_collection(app, request)
+            varcollection_consistency_check(app)
         elif command == 'multi_update':
             logging.info('Multi edit Variables.')
             result = {'success': True, 'errormsg': ''}
