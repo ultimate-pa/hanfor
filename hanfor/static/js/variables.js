@@ -604,10 +604,28 @@ function add_enumerator_template(name, value) {
             <input class="form-control enum_name_input" type="text" value="${name}">
             <span class="input-group-addon">Value</span>
             <input class="form-control enum_value_input" type="number" value="${value}">
+            <buttton type="button" class="btn btn-danger input-group-addon del_enum" data-name="${name}">Delete</buttton>
         </div>`;
     $('#enumerators').append(enumerator_template);
 }
 
+
+function delete_enumerator(enum_name, enumerator_name, enum_dom) {
+    let var_modal = $('#variable_modal');
+    var_modal.LoadingOverlay('show');
+    $.post( "api/var/del_var",
+    {
+        name: enum_name + '_' + enumerator_name
+    },
+    function( data ) {
+        var_modal.LoadingOverlay('hide', true);
+        if (data['success'] === false) {
+            alert(data['errormsg']);
+        } else {
+            enum_dom.remove();
+        }
+    });
+}
 
 $(document).ready(function() {
     // Prepare and load the variables table.
@@ -815,5 +833,17 @@ $(document).ready(function() {
     $('#add_enumerator').click(function () {
         add_enumerator_template('');
     });
+
+    // Delete enumerator via the enum modal.
+    $('#enumerators').on('click', '.del_enum', function(e) {
+        const enumerator_name = $(this).attr('data-name');
+        const enum_name = $('#variable_name_old').val();
+        let enum_dom = $(this).parent('.enumerator-input');
+        if (enumerator_name.length === 0) {
+            enum_dom.remove();
+        } else {
+            delete_enumerator(enum_name, enumerator_name, enum_dom);
+        }
+    })
 
 } );
