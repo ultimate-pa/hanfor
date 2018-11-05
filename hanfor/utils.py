@@ -627,7 +627,7 @@ def update_variable_in_collection(app, request):
                 result = {
                     'success': False,
                     'errormsg': 'Enumerator value `{}` for enumerator `{}` not valid'.format(
-                        enumerator_name, enumerator_value
+                        enumerator_value, enumerator_name
                     )
                 }
                 break
