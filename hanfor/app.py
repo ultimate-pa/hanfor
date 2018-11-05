@@ -717,6 +717,7 @@ def var_import_session(session_id, command):
             var_import_sessions.store()
             new_collection = var_import_sessions.import_sessions[int(session_id)].result_var_collection
             new_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
+            varcollection_consistency_check(app)
             result['success'] = True
         except Exception as e:
             logging.info('Could apply import: {}'.format(e))

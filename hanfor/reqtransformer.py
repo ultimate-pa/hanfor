@@ -1274,6 +1274,7 @@ class VarImportSession:
             pass
 
     def apply_constraint_selection(self):
+        used_variables = set()
         for var_name, available_constraints in self.available_constraints.items():
             if len(available_constraints) > 0:
                 self.result_var_collection.collection[var_name].constraints = []
@@ -1287,7 +1288,28 @@ class VarImportSession:
                             self.result_var_collection.collection[var_name].constraints.append(deepcopy(
                                 self.target_var_collection.collection[var_name].constraints[constraint['origin_id']]
                             ))
-
+                # Collect used variables to auto include missing ones into the target.
+                vars_in_constraint = set()
+                for constraint in self.result_var_collection.collection[var_name].constraints:
+                    for var in constraint.used_variables:
+                        vars_in_constraint.add(var)
+                used_variables |= vars_in_constraint
+        # Include missing vars used by constraints.
+        for var_name in used_variables:
+            if not var_name in self.result_var_collection.collection:
+                logging.debug('Var: `{}` not marked to be in result but used in a constraint -> auto include.'.format(
+                    var_name
+                ))
+                if var_name in self.source_var_collection:
+                    self.actions[var_name] = 'source'
+                    self.result_var_collection.collection[var_name] = deepcopy(
+                        self.source_var_collection.collection[var_name]
+                    )
+                if var_name in self.target_var_collection:
+                    self.actions[var_name] = 'target'
+                    self.result_var_collection.collection[var_name] = deepcopy(
+                        self.target_var_collection.collection[var_name]
+                    )
 
 class VarImportSessions:
     def __init__(self, path=None):
