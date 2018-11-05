@@ -6,6 +6,7 @@ require('datatables.net-select');
 require('jquery-ui/ui/widgets/autocomplete');
 require('jquery-ui/ui/effects/effect-highlight');
 require('./bootstrap-tokenfield.js');
+const autosize = require('autosize');
 
 // Globals
 const { SearchNode } = require('./datatables-advanced-search.js');
@@ -330,6 +331,7 @@ function update_formalization() {
         const formalization_id = $(this).attr('title');
 
         let formalization = '';
+        let formalization_textarea = $('#current_formalization_textarea' + formalization_id);
         const selected_scope = $('#requirement_scope' + formalization_id).find('option:selected').text().replace(/\s\s+/g, ' ');
         const selected_pattern = $('#requirement_pattern' + formalization_id).find('option:selected').text().replace(/\s\s+/g, ' ');
 
@@ -364,7 +366,8 @@ function update_formalization() {
             formalization = formalization.replace(/{U}/g, var_u);
         }
 
-        $('#current_formalization_textarea' + formalization_id).val(formalization);
+        formalization_textarea.val(formalization);
+        autosize.update(formalization_textarea);
     });
     $('#requirement_modal').data({
         'unsaved_changes': true,
@@ -617,6 +620,10 @@ function load_requirement(row_idx) {
         $('#requirement_modal').data({
             'unsaved_changes': false,
             'updated_formalization': false
+        });
+        $('textarea').each(function(){
+            autosize($(this));
+            autosize.update($(this));
         });
         requirement_modal_content.LoadingOverlay('hide', true);
     });
@@ -915,8 +922,7 @@ function fetch_available_guesses() {
     available_guesses_cards.html('');
 
     function add_available_guess(guess) {
-        let template = '<div id="available_guesses_cards" >' +
-            '                <div class="card">' +
+        let template = '<div class="card">' +
             '                    <div class="pl-1 pr-1">' +
             '                        <p>'+
             guess['string'] +
@@ -929,8 +935,7 @@ function fetch_available_guesses() {
             '                            data-mapping=\'' + JSON.stringify(guess['mapping']) + '\'>' +
             '                        <strong>+ Add this formalization +</strong>' +
             '                    </button>' +
-            '                </div>' +
-            '            </div>';
+            '                </div>';
         available_guesses_cards.append(template);
     }
 
@@ -950,6 +955,7 @@ function fetch_available_guesses() {
         $('.add_guess').click(function () {
             add_formalization_from_guess($(this).data('scope'), $(this).data('pattern'), $(this).data('mapping'));
         });
+        autosize.update($('#add_guess_description'));
         modal_content.LoadingOverlay('hide', true);
     });
 }
@@ -1143,6 +1149,13 @@ function init_modal() {
         if ($('.modal:visible').length) {
             $('body').addClass('modal-open');
         }
+    });
+
+    $('#formalization_accordion').on('shown.bs.collapse', '.card', function (e) {
+        $(this).find('textarea').each(function() {
+            autosize($(this));
+            autosize.update($(this));
+        });
     });
 
     // Initialize variables.

@@ -13,6 +13,7 @@
   "author": "Samuel Roth",
   "license": "UNLICENSED",
   "dependencies": {
+    "autosize": "^4.0.2",
     "bootstrap": "4.1.0",
     "bootstrap-confirmation2": "^4.0.0",
     "chart.js": "^2.7.2",
