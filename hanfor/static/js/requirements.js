@@ -1017,11 +1017,23 @@ function load_datatable(){
                     }
                 });
                 if (row.formal.length > 0) {
-                    if (row.formal[0].length > 0) {
-                        result += '<span class="badge badge-success">has_formalization</span></br>';
-                    } else {
-                        result += '<span class="badge badge-warning">incomplete_formalization</span></br>';
-                    }
+                    let tagged_formal = false;
+                    let tagged_incomplete = false;
+
+                    $.each(row.formal, function (index, formalization) {
+                        if ((formalization.length > 0) && (formalization !== '// None, // not formalizable')
+                        ) {
+                            if (!tagged_formal) {
+                                tagged_formal = true;
+                                result += '<span class="badge badge-success">has_formalization</span></br>';
+                            }
+                        } else {
+                            if (!tagged_incomplete) {
+                                tagged_incomplete = true;
+                                result += '<span class="badge badge-warning">incomplete_formalization</span></br>';
+                            }
+                        }
+                    });
                 }
                 return result;
             }
