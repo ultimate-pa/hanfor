@@ -312,6 +312,8 @@ function apply_import(var_import_table) {
             body.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
+            } else {
+                alert('Imported result variables.');
             }
     });
 }
