@@ -15,6 +15,7 @@ body.modal-open{
     position: inherit;
 }
 
+#var_import_table > tbody > tr > td,
 #requirements_table > tbody > tr > td {
     word-break: break-all;
 }
