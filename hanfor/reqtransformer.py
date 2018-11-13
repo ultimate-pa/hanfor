@@ -809,6 +809,7 @@ class VariableCollection:
         mapping = {
             'bool': boogie_parsing.BoogieType.bool,
             'int': boogie_parsing.BoogieType.int,
+            'enum': boogie_parsing.BoogieType.int,
             'enumerator': boogie_parsing.BoogieType.int,
             'real': boogie_parsing.BoogieType.real,
             'unknown': boogie_parsing.BoogieType.unknown,
