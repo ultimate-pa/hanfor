@@ -419,6 +419,28 @@ def get_available_tags(app):
     return [tag for tag in collected_tags.values()]
 
 
+def update_req_search(app, request, delete=False):
+    """ Update a search query.
+    A search query will be used as presets for requirements search in the frontend.
+
+    :param delete: If true remove the search query
+    """
+    search_query = request.form.get('query', '').strip()
+
+    result = {
+        'success': True
+    }
+
+    if len(search_query) > 0:
+        # Store the search query into meta settings.
+        meta_settings = MetaSettings(app.config['META_SETTTINGS_PATH'])
+        if 'available_search_strings' not in meta_settings:
+            meta_settings['available_search_strings'] = list()
+        meta_settings['available_search_strings'].append(search_query)
+        meta_settings.update_storage()
+
+    return result
+
 def update_tag(app, request, delete=False):
     """ Update a tag.
     The request should contain a form:

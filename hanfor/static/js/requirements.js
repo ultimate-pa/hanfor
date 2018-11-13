@@ -6,6 +6,7 @@ require('datatables.net-select');
 require('jquery-ui/ui/widgets/autocomplete');
 require('jquery-ui/ui/effects/effect-highlight');
 require('./bootstrap-tokenfield.js');
+let Cookies = require('js-cookie');
 const autosize = require('autosize');
 
 // Globals
@@ -18,6 +19,7 @@ let available_tags = ['', 'has_formalization'];
 let available_status = ['', 'Todo', 'Review', 'Done'];
 let available_types = [''];
 let available_vars = [''];
+let available_search_strings = [''];
 let visible_columns = [true, true, true, true, true, true];
 let filter_search_array = [];
 let get_query = JSON.parse(search_query); // search_query is set in index.html
@@ -1185,6 +1187,11 @@ function init_modal() {
 function load_meta_settings() {
     $.get( "api/meta/get", '', function (data) {
         tag_colors = data['tag_colors'];
+        available_search_strings = data['available_search_strings'];
+        let search_bar = $( "#search_bar" );
+        search_bar.autocomplete({
+          source: available_search_strings
+        });
     });
 }
 
@@ -1227,6 +1234,30 @@ function update_logs() {
     });
 }
 
+
+function init_search_autocomplete() {
+    let search_bar = $( "#search_bar" );
+
+    $('#store_search').click(function () {
+        let body = $('body');
+        body.LoadingOverlay('show');
+        const new_search_string = search_bar.val();
+        $.post( "api/req_search/update",
+        {
+            query: new_search_string
+        },
+        function( data ) {
+            body.LoadingOverlay('hide', true);
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                search_bar.effect("highlight", {color: 'green'}, 500);
+                load_meta_settings();
+            }
+        });
+    });
+}
+
 /**
  * Start the app.
  */
@@ -1234,5 +1265,6 @@ $(document).ready(function() {
     load_meta_settings();
     load_datatable();
     init_modal();
+    init_search_autocomplete();
     update_logs();
 });

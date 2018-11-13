@@ -95,7 +95,8 @@ def api(resource, command):
         'stats',
         'tag',
         'meta',
-        'logs'
+        'logs',
+        'req_search'
     ]
     commands = [
         'get',
@@ -624,6 +625,10 @@ def api(resource, command):
     if resource == 'logs':
         if command == 'get':
             return utils.get_flask_session_log(session, html=True)
+
+    if resource == 'req_search':
+        if command == 'update':
+            return jsonify(utils.update_req_search(app, request)), 200
 
     return jsonify({
         'success': False,
