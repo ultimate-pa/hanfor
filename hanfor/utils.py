@@ -4,7 +4,7 @@
 @licence: GPLv3
 """
 import argparse
-from typing import Union
+from typing import Union, Set
 
 from copy import deepcopy
 from flask import json
@@ -882,6 +882,33 @@ def generate_csv_file(app, output_file=None, filter_list=None, invert_filter=Fal
     return output_file
 
 
+def clean_identifier_for_ultimate_parser(slug: str, used_slugs: Set[str]) -> (str, Set[str]):
+    """ Clean slug to be sound for ultimate parser.
+
+    :param slug:
+    :param used_slugs:
+    :return:
+    """
+    # Replace any occurence of [whitespace, `.`, `-`] with `_`
+    slug = re.sub(r"[\s+.-]+", '_', slug.strip())
+
+    # Resolve illegal start
+    slug = re.sub(r"^[^a-zA-Z]", 'ID_', slug)
+
+    # Resolve duplicates
+    # search for the first free suffix.
+    if slug in used_slugs:
+        suffix = 1
+        pad = lambda s: '{}_{}'.format(slug, s)
+        while pad(suffix) in used_slugs:
+            suffix += 1
+        slug = pad(suffix)
+
+    used_slugs.add(slug)
+
+    return slug, used_slugs
+
+
 def generate_req_file(app, output_file=None, filter_list=None, invert_filter=False):
     """ Generate the ulltimate requirements file.
 
@@ -976,9 +1003,11 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
         content += '\n\n'
 
         # parse requirement formalizations.
+        used_slugs = set()
         for requirement in requirements:  # type: Requirement
             try:
                 for index, formalization in enumerate(requirement.formalizations):
+                    slug, used_slugs = clean_identifier_for_ultimate_parser(requirement.rid, used_slugs)
                     if formalization.scoped_pattern is None:
                         continue
                     if formalization.scoped_pattern.get_scope_slug().lower() == 'none':
@@ -989,7 +1018,7 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
                         # formalizatioin string is empty if expressions are missing or none set. Ignore in output
                         continue
                     content += '{}_{}: {}\n'.format(
-                        re.sub(r"\s+", '_', requirement.rid),
+                        slug,
                         index,
                         formalization.get_string()
                     )
