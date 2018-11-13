@@ -1230,6 +1230,8 @@ def add_msg_to_flask_session_log(session, msg, rid=None, rid_list=None, clear=Fa
             rid=rid)
     )
 
+    session.modified = True
+
     # Remove oldest logs until threshold
     while len(session['hanfor_log']) > max_msg:
         session['hanfor_log'].pop(0)
