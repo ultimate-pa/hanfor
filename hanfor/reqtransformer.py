@@ -1071,14 +1071,15 @@ class Variable:
 
         return variable_collection
 
-    def update_constraints(self, constraints, app):
+    def update_constraints(self, constraints, app, variable_collection=None):
         """ replace all constraints with :param constraints.
 
         :return: updated VariableCollection
         """
         logging.debug('Updating constraints for variable.'.format(self.name))
         self.remove_tag('Type_inference_error')
-        variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+        if variable_collection is None:
+            variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
 
         for constraint in constraints.values():
             logging.debug('Updating formalizatioin No. {}.'.format(constraint['id']))

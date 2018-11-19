@@ -565,11 +565,23 @@ def update_variable_in_collection(app, request):
         result['has_changes'] = True
         reload_type_inference = False
 
+        # Update type.
+        if var_type_old != var_type:
+            logging.info('Change type from `{}` to `{}`.'.format(var_type_old, var_type))
+            var_collection.collection[var_name].type = var_type
+            result['type_changed'] = True
+            reload_type_inference = True
+
+        # Update constraints.
         if request.form.get('updated_constraints') == 'true':
             constraints = json.loads(request.form.get('constraints', ''))
             logging.debug('Update Variable Constraints')
             try:
-                var_collection = var_collection.collection[var_name_old].update_constraints(constraints, app)
+                var_collection = var_collection.collection[var_name_old].update_constraints(
+                    constraints,
+                    app,
+                    var_collection
+                )
                 result['rebuild_table'] = True
             except KeyError as e:
                 result['success'] = False
@@ -579,13 +591,6 @@ def update_variable_in_collection(app, request):
                 result['error_msg'] = 'Could not parse formalization: `{}`'.format(e)
         else:
             logging.debug('Skipping variable Constraints update.')
-
-        # Update type.
-        if var_type_old != var_type:
-            logging.info('Change type from `{}` to `{}`.'.format(var_type_old, var_type))
-            var_collection.collection[var_name].type = var_type
-            result['type_changed'] = True
-            reload_type_inference = True
 
         # update name.
         if var_name_old != var_name:
