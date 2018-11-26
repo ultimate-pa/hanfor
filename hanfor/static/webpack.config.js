@@ -1,7 +1,10 @@
 const webpack = require('webpack');
+const GitRevisionPlugin = require('git-revision-webpack-plugin');
+const gitRevisionPlugin = new GitRevisionPlugin();
 
 const config = {
     entry: {
+        layout_globals: __dirname + '/js/layout-globals.js',
         autocomplete: __dirname + '/js/autocomplete.js',
         requirements: __dirname + '/js/requirements.js',
         variables: __dirname + '/js/variables.js',
@@ -31,6 +34,11 @@ const config = {
         new webpack.ProvidePlugin({
             $: 'jquery',
             jQuery: 'jquery'
+        }),
+        new webpack.DefinePlugin({
+            'HANFOR_VERSION': JSON.stringify(gitRevisionPlugin.version()),
+            'HANFOR_COMMITHASH': JSON.stringify(gitRevisionPlugin.commithash()),
+            'HANFOR_BRANCH': JSON.stringify(gitRevisionPlugin.branch()),
         })
     ],
 };
