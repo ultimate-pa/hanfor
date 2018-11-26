@@ -669,6 +669,20 @@ function update_visible_columns_information() {
     visible_columns = new_visible_columns;
 }
 
+
+/**
+ * Clear all user input in filters and search bar. Reload the table.
+ */
+function clear_all_search_filter_inputs() {
+    $('#status-filter-input').val('').effect("highlight", {color: 'green'}, 500);
+    $('#tag-filter-input').val('').effect("highlight", {color: 'green'}, 500);
+    $('#type-filter-input').val('').effect("highlight", {color: 'green'}, 500);
+    $('#search_bar').val('').effect("highlight", {color: 'green'}, 500);
+    update_filter();
+    update_search();
+    requirements_table.draw();
+}
+
 /**
  * Bind the requirements table manipulators to the table.
  * Initialize manipulators behaviour.
@@ -729,13 +743,7 @@ function init_datatable_manipulators(requirements_table) {
 
     // Clear all applied searches.
     $('.clear-all-filters').click(function () {
-        $('#status-filter-input').val('').effect("highlight", {color: 'green'}, 500);
-        $('#tag-filter-input').val('').effect("highlight", {color: 'green'}, 500);
-        $('#type-filter-input').val('').effect("highlight", {color: 'green'}, 500);
-        $('#search_bar').val('').effect("highlight", {color: 'green'}, 500);
-        update_filter();
-        update_search();
-        requirements_table.draw();
+        clear_all_search_filter_inputs();
     });
 
     // Listen for tool section triggers.
@@ -1259,6 +1267,40 @@ function init_search_autocomplete() {
 }
 
 /**
+ * Evaluate the report queries given by the report_query_textarea.
+ * Paste the result into the report_results_textarea.
+ * @TODO: the .draw() method is potentially overkill, since it will render the whole datatable.
+ * So look into callstack and only apply necessary steps to evaluate the new search tree.
+ * (.search() would not work since we use our own plugin to support the search expression parsing.)
+ */
+function evaluate_report() {
+    const report_querys = $('#report_query_textarea').val().split('\n');
+    let reqTable = $('#requirements_table').DataTable();
+    let results = '';
+    $.each(report_querys, function (id, report_query) {
+        search_tree = SearchNode.fromQuery(report_query);
+        reqTable.draw();
+        let result = reqTable.page.info();
+        results += `Eval of query No. ${id} => ${result.recordsDisplay} results.\n`;
+    });
+    $('#report_results_textarea').val(results);
+    update_search();
+    reqTable.draw();
+}
+
+/**
+ * Listen on click events to add and eval a report.
+ */
+function init_report_generation() {
+    $('#add-new-report').click(function () {
+        $('#report_modal').modal('show');
+    });
+    $('#eval_report').click(function () {
+        evaluate_report();
+    });
+}
+
+/**
  * Start the app.
  */
 $(document).ready(function() {
@@ -1267,4 +1309,5 @@ $(document).ready(function() {
     init_modal();
     init_search_autocomplete();
     update_logs();
+    init_report_generation();
 });

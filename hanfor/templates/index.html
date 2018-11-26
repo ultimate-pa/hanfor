@@ -26,6 +26,10 @@
                    aria-controls="tools" aria-selected="false">Tools</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" id="reports-tab" data-toggle="tab" href="#reports-pane" role="tab"
+                   aria-controls="tools" aria-selected="false">Reports</a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link" id="log-tab" data-toggle="tab" href="#log-pane" role="tab"
                    aria-controls="log" aria-selected="false">Logs</a>
             </li>
@@ -169,6 +173,15 @@
                 </button>
             </div>
         </div>
+        <div class="tab-pane fade" id="reports-pane" role="tabpanel" aria-labelledby="tools-tab">
+            <div class="input-group top-padding">
+                <button id="add-new-report"
+                        class="btn btn-secondary btn-block"
+                        type="button">
+                    Add a new Report.
+                </button>
+            </div>
+        </div>
         <div class="tab-pane fade" id="log-pane" role="tabpanel" aria-labelledby="log-tab">
             <div class="col-12" id="log_textarea"></div>
         </div>
@@ -214,6 +227,7 @@
     </tbody>
 </table>
 {% include 'requirement-modal.html' %}
+{% include 'report-modal.html' %}
 {% endblock %}
 {% block scripts %}
 <script type="text/javascript">
