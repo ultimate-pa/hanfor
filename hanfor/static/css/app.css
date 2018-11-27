@@ -52,9 +52,9 @@ body.modal-open{
     background-color: goldenrod;
 }
 
-
 #requirement_modal .modal-lg,
-#variable_modal .modal-lg {
+#variable_modal .modal-lg,
+#report_modal .modal-lg {
     max-width: 90%;
 }
 
@@ -91,6 +91,10 @@ body.modal-open{
 /* Prevent overflow for formalizatioin titles. */
 .card-header{
     overflow: hidden;
+}
+
+.report-results{
+    white-space:pre-wrap;
 }
 
 /**

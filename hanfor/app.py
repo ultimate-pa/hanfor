@@ -22,6 +22,8 @@ from reqtransformer import RequirementCollection, Requirement, VariableCollectio
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 
 # Create the app
+from ressources import Report
+
 app = Flask(__name__)
 app.config.from_object('config')
 
@@ -86,7 +88,7 @@ def table_api():
     return jsonify(result)
 
 
-@app.route('/api/<resource>/<command>', methods=['GET', 'POST'])
+@app.route('/api/<resource>/<command>', methods=['GET', 'POST', 'DELETE'])
 @nocache
 def api(resource, command):
     resources = [
@@ -96,7 +98,8 @@ def api(resource, command):
         'tag',
         'meta',
         'logs',
-        'req_search'
+        'req_search',
+        'report'
     ]
     commands = [
         'get',
@@ -629,6 +632,9 @@ def api(resource, command):
     if resource == 'req_search':
         if command == 'update':
             return jsonify(utils.update_req_search(app, request)), 200
+
+    if resource == 'report':
+            return Report(app, request).apply_request()
 
     return jsonify({
         'success': False,

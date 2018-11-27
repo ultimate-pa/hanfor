@@ -19,6 +19,7 @@ let available_tags = ['', 'has_formalization'];
 let available_status = ['', 'Todo', 'Review', 'Done'];
 let available_types = [''];
 let available_vars = [''];
+let available_reports = [];
 let available_search_strings = [''];
 let visible_columns = [true, true, true, true, true, true];
 let filter_search_array = [];
@@ -1274,18 +1275,105 @@ function init_search_autocomplete() {
  * (.search() would not work since we use our own plugin to support the search expression parsing.)
  */
 function evaluate_report() {
+    let body = $('body');
+    body.LoadingOverlay('show');
     const report_querys = $('#report_query_textarea').val().split('\n');
     let reqTable = $('#requirements_table').DataTable();
     let results = '';
-    $.each(report_querys, function (id, report_query) {
-        search_tree = SearchNode.fromQuery(report_query);
+    try {
+        $.each(report_querys, function (id, report_query) {
+            search_tree = SearchNode.fromQuery(report_query);
+            reqTable.draw();
+            let result = reqTable.page.info();
+            results += `Eval of query No. ${id} => ${result.recordsDisplay} results.\n`;
+        });
+        $('#report_results_textarea').val(results);
+        update_search();
         reqTable.draw();
-        let result = reqTable.page.info();
-        results += `Eval of query No. ${id} => ${result.recordsDisplay} results.\n`;
+    }
+    catch(err) {
+        alert(err);
+    }
+    body.LoadingOverlay('hide', true);
+}
+
+function load_reports() {
+    $.get( "api/report/get", {},
+    function( data ) {
+        if (data['success'] === false) {
+            alert(data['errormsg']);
+        } else {
+            let result = '';
+            available_reports = data.data;
+            $.each(data.data, function (id, report) {
+                result += `<div class="card border-primary">
+                              <div class="card-body">
+                                <h5 class="card-title">Report ${id}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">Query</h6>
+                                <p class="card-text report-results">${report.queries}</p>
+                                <h6 class="card-subtitle mb-2 text-muted">Results</h6>
+                                <p class="card-text report-results">${report.results}</p>
+                                <a href="#" class="card-link open-report" data-id="${id}">
+                                    Edit (reevaluate) Report.
+                                </a>
+                                <a href="#" class="card-link delete-report" data-id="${id}">Delete Report.</a>
+                              </div>
+                            </div>`;
+            });
+            $('#available_reports').html(result);
+        }
     });
-    $('#report_results_textarea').val(results);
-    update_search();
-    reqTable.draw();
+}
+
+function save_report() {
+    let body = $('body');
+    body.LoadingOverlay('show');
+
+    $.post( "api/report/set",
+    {
+        report_querys: $('#report_query_textarea').val(),
+        report_results: $('#report_results_textarea').val(),
+        report_id: $('#save_report').attr('data-id')
+    },
+    function( data ) {
+        body.LoadingOverlay('hide', true);
+        if (data['success'] === false) {
+            alert(data['errormsg']);
+        }
+        load_reports();
+    });
+}
+
+function delete_report(id) {
+    $.ajax({
+      type: "DELETE",
+      url: "api/report/delete",
+      data: {report_id: id},
+      success: function (data) {
+        if (data['success'] === false) {
+            alert(data['errormsg']);
+        }
+        load_reports();
+      }
+    });
+}
+
+function open_report_modal(source=false){
+    let query_textarea = $('#report_query_textarea');
+    let results_textarea = $('#report_results_textarea');
+    let queries = '';
+    let results = '';
+    let report_id = -1;
+    let report_modal = $('#report_modal');
+    if (source !== false) {
+        report_id = source.attr('data-id');
+        queries = available_reports[report_id].queries;
+        results = available_reports[report_id].results;
+    }
+    query_textarea.val(queries);
+    results_textarea.val(results);
+    $('#save_report').attr('data-id', report_id);
+    report_modal.modal('show');
 }
 
 /**
@@ -1293,11 +1381,22 @@ function evaluate_report() {
  */
 function init_report_generation() {
     $('#add-new-report').click(function () {
-        $('#report_modal').modal('show');
+        open_report_modal();
     });
     $('#eval_report').click(function () {
         evaluate_report();
     });
+    $('#save_report').click(function () {
+        save_report();
+    });
+    let av_reports = $('#available_reports');
+    av_reports.on('click', '.open-report', function (event) {
+        open_report_modal($(this));
+    });
+    av_reports.on('click', '.delete-report', function (event) {
+        delete_report($(this).attr('data-id'));
+    });
+    load_reports();
 }
 
 /**
