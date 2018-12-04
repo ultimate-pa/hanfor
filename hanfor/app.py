@@ -9,6 +9,7 @@ import os
 import sys
 
 import re
+import subprocess
 
 import utils
 
@@ -1230,6 +1231,12 @@ if __name__ == '__main__':
         'host': app.config['HOST'],
         'port': app.config['PORT']
     }
+
+    try:
+        app.config['HANFOR_VERSION'] = subprocess.check_output(['git', 'describe', '--always', '--tags']).decode("utf-8").strip()
+    except Exception as e:
+        logging.info('Could not get Hanfor version. Is git installed and Hanfor run from its repo?: {}'.format(e))
+        app.config['HANFOR_VERSION'] = '?'
 
     if app.config['PYCHARM_DEBUG']:
         app_options["debug"] = False
