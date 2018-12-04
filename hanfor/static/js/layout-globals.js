@@ -1,1 +1,1 @@
-$('#runtime-info').append(` - Hanfor Version: ${HANFOR_VERSION} (${HANFOR_BRANCH})`);
+$('#runtime-info').append(` - Hanfor Version: ${HANFOR_VERSION}`);

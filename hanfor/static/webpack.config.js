@@ -1,6 +1,8 @@
 const webpack = require('webpack');
 const GitRevisionPlugin = require('git-revision-webpack-plugin');
-const gitRevisionPlugin = new GitRevisionPlugin();
+const gitRevisionPlugin = new GitRevisionPlugin({
+    versionCommand: 'describe --always --tags'
+});
 
 const config = {
     entry: {
