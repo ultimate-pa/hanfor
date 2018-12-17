@@ -959,7 +959,7 @@ def requirements_consistency_check(app, args):
         logging.info('Done with consistency check. Repaired {} requirements'.format(count))
 
 
-def create_revision(input_csv, base_revision_name):
+def create_revision(args, base_revision_name):
     # Create initial revision if no base revision is given
     if not base_revision_name:
         revision_name = 'revision_0'
@@ -1003,7 +1003,7 @@ def create_revision(input_csv, base_revision_name):
     # Load requirements from .csv file and store them into separate requirements.
     requirement_collection = RequirementCollection()
     requirement_collection.create_from_csv(
-        csv_file=input_csv,
+        csv_file=args.input_csv,
         input_encoding='utf8',
         base_revision_headers=base_revision_settings
     )
@@ -1131,7 +1131,7 @@ def user_request_new_revision(args):
         raise FileNotFoundError
     print('Which revision should I use as a base?')
     base_revision_choice = utils.choice(available_revisions, 'revision_0')
-    create_revision(args.input_csv, base_revision_choice)
+    create_revision(args, base_revision_choice)
 
 
 def set_session_config_vars(args):
@@ -1169,7 +1169,7 @@ if __name__ == '__main__':
     else:
         # If there is no session with given tag: Create a new (initial) revision.
         if not os.path.exists(app.config['SESSION_FOLDER']):
-            create_revision(args.input_csv, None)
+            create_revision(args, None)
 
         # If this is a already existing session, ask the user which revision to start.
         else:
