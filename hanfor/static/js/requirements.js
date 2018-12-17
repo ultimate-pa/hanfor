@@ -681,7 +681,6 @@ function clear_all_search_filter_inputs() {
     $('#search_bar').val('').effect("highlight", {color: 'green'}, 500);
     update_filter();
     update_search();
-    requirements_table.draw();
 }
 
 /**
@@ -745,6 +744,7 @@ function init_datatable_manipulators(requirements_table) {
     // Clear all applied searches.
     $('.clear-all-filters').click(function () {
         clear_all_search_filter_inputs();
+        requirements_table.draw();
     });
 
     // Listen for tool section triggers.
