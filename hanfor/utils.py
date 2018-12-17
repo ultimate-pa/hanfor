@@ -912,9 +912,9 @@ def generate_csv_file(app, output_file=None, filter_list=None, invert_filter=Fal
 def clean_identifier_for_ultimate_parser(slug: str, used_slugs: Set[str]) -> (str, Set[str]):
     """ Clean slug to be sound for ultimate parser.
 
-    :param slug:
-    :param used_slugs:
-    :return:
+    :param slug: The slug to be cleaned.
+    :param used_slugs: Set of already used slugs.
+    :return: (save_slug, used_slugs) save_slug a save to use form of slug. save_slug added to used_slugs.
     """
     # Replace any occurence of [whitespace, `.`, `-`] with `_`
     slug = re.sub(r"[\s+.-]+", '_', slug.strip())
@@ -1365,6 +1365,56 @@ class ListStoredSessions(argparse.Action):
         exit(0)
 
 
+class GenerateScopedPatternTrainingData(argparse.Action):
+    """ Generate training data consisting of requirement descriptions with assigned scoped pattern."""
+    def __init__(self, option_strings, app, dest, *args, **kwargs):
+        self.app = app
+        super(GenerateScopedPatternTrainingData, self).__init__(
+            option_strings=option_strings, dest=dest, *args, **kwargs)
+
+    def __call__(self, *args, **kwargs):
+        # logging.debug(self.app.config)
+        entries = get_stored_session_names(self.app.config['SESSION_BASE_FOLDER'])
+        result = dict()
+        for entry in entries:
+            logging.debug('Looking into {}'.format(entry[1]))
+            current_session_folder = os.path.join(self.app.config['SESSION_BASE_FOLDER'], entry[1])
+            revisions = get_available_revisions(self.app.config, folder=current_session_folder)
+            for revision in revisions:
+                current_revision_folder = os.path.join(current_session_folder, revision)
+                logging.debug('Processing `{}`'.format(current_revision_folder))
+                requirements = get_requirements(current_revision_folder)
+                logging.debug('Found {} requirements .. fetching the formalized ones.'.format(len(requirements)))
+                used_slugs = set()
+                for requirement in requirements:
+                    try:
+                        if len(requirement.description) == 0:
+                            continue
+                        slug, used_slugs = clean_identifier_for_ultimate_parser(requirement.rid, used_slugs)
+                        result[slug] = dict()
+                        result[slug]['desc'] = requirement.description
+                        for index, formalization in enumerate(requirement.formalizations):
+                            if formalization.scoped_pattern is None:
+                                continue
+                            if formalization.scoped_pattern.get_scope_slug().lower() == 'none':
+                                continue
+                            if formalization.scoped_pattern.get_pattern_slug() in ['NotFormalizable', 'None']:
+                                continue
+                            if len(formalization.get_string()) == 0:
+                                # formalization string is empty if expressions are missing or none set. Ignore in output
+                                continue
+                            f_key = 'formalization_{}'.format(index)
+                            result[slug][f_key] = dict()
+                            result[slug][f_key]['scope'] = formalization.scoped_pattern.get_scope_slug()
+                            result[slug][f_key]['pattern'] = formalization.scoped_pattern.get_pattern_slug()
+                            result[slug][f_key]['formalization'] = formalization.get_string()
+                    except AttributeError:
+                        continue
+            with open('training_data', mode='w', encoding='utf-8') as f:
+                json.dump(result, f)
+        exit(0)
+
+
 class HanforArgumentParser(argparse.ArgumentParser):
     def __init__(self, app):
         super().__init__()
@@ -1386,6 +1436,13 @@ class HanforArgumentParser(argparse.ArgumentParser):
             nargs=0,
             help="List the tags of stored sessions..",
             action=ListStoredSessions,
+            app=self.app
+        )
+        self.add_argument(
+            '-G', '--generate_scoped_pattern_training_data',
+            nargs=0,
+            help="Generate training data out of description with assigned scoped pattern.",
+            action=GenerateScopedPatternTrainingData,
             app=self.app
         )
 
