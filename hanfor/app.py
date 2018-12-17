@@ -633,6 +633,8 @@ def api(resource, command):
     if resource == 'req_search':
         if command == 'update':
             return jsonify(utils.update_req_search(app, request)), 200
+        if command == 'delete':
+            return jsonify(utils.update_req_search(app, request, delete=True)), 200
 
     if resource == 'report':
             return Report(app, request).apply_request()
