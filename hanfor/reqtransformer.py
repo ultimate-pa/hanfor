@@ -67,7 +67,7 @@ class RequirementCollection:
             self.csv_meta['dialect'] = dialect
             self.csv_all_rows = list(reader)
             self.csv_meta['fieldnames'] = reader.fieldnames
-            self.csv_meta['headers'] = list(self.csv_all_rows[0].keys())
+            self.csv_meta['headers'] = sorted(list(self.csv_all_rows[0].keys()))
 
     def select_headers(self, base_revision_headers=None):
         """ Ask the users, which of the csv headers correspond to our needed data.
