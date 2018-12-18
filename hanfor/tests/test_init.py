@@ -1,4 +1,4 @@
-from app import app, api, set_session_config_vars, create_revision
+from app import app, api, set_session_config_vars, create_revision, startup_hanfor
 import os
 import shutil
 import utils
@@ -33,21 +33,20 @@ def mock_user_input(*args, **kwargs) -> str:
 
 class TestInit(TestCase):
     def setUp(self):
-        self.args = utils.HanforArgumentParser(app).parse_args([TEST_CSV, TEST_TAG])
         app.config['SESSION_BASE_FOLDER'] = TESTS_BASE_FOLDER
         utils.register_assets(app)
-        set_session_config_vars(self.args)
         self.app = app.test_client()
 
     @patch('builtins.input', mock_user_input)
-    def create_revision(self):
+    def startup_hanfor(self, args):
         global mock_results
         mock_results = [2, 0, 1, 3]
 
-        create_revision(self.args, None)
+        startup_hanfor(args, HERE)
 
     def test_1_init_from_csv(self):
-        self.create_revision()
+        args = utils.HanforArgumentParser(app).parse_args([TEST_CSV, TEST_TAG])
+        self.startup_hanfor(args)
         self.assertTrue(
             os.path.isdir(os.path.join(TESTS_BASE_FOLDER, TEST_TAG)),
             msg='No session folder created.'
@@ -65,7 +64,8 @@ class TestInit(TestCase):
             )
 
     def test_2_get_requirements(self):
-        self.create_revision()
+        args = utils.HanforArgumentParser(app).parse_args([TEST_CSV, TEST_TAG])
+        self.startup_hanfor(args)
         result = self.app.get('api/req/gets')
         self.maxDiff = None
         desired_reqs = [
