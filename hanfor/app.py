@@ -827,7 +827,7 @@ def unhandled_exception(exception):
     })
 
 
-def varcollection_consistency_check(app):
+def varcollection_consistency_check(app, args=None):
     logging.info('Check Variables for consistency.')
     # Migrate from old Hanfor versions
     try:
@@ -852,7 +852,7 @@ def varcollection_consistency_check(app):
 
     # Update usages and constraint type check.
     var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
-    if args.reload_type_inference:
+    if args is not None and args.reload_type_inference:
         var_collection.reload_type_inference_errors_in_constraints()
     var_collection.refresh_var_usage(app)
     var_collection.req_var_mapping = var_collection.invert_mapping(var_collection.var_req_mapping)
@@ -960,7 +960,12 @@ def requirements_consistency_check(app, args):
 
 
 def create_revision(args, base_revision_name):
-    # Create initial revision if no base revision is given
+    """ Create new revision.
+
+    :param args: Parser arguments
+    :param base_revision_name: Name of revision the created will be based on. Creates initial revision_0 if none given.
+    :return: None
+    """
     if not base_revision_name:
         revision_name = 'revision_0'
         base_revision_settings = None
@@ -1058,9 +1063,17 @@ def create_revision(args, base_revision_name):
         new_reqs[rid]['req'].tags = old_reqs[rid]['req'].tags
         new_reqs[rid]['req'].status = old_reqs[rid]['req'].status
 
+        if new_reqs[rid]['req'].description != old_reqs[rid]['req'].description:
+            logging.info(
+                'Description changed. Add `description_changed` tag to `{}`.'.format(rid)
+            )
+            new_reqs[rid]['req'].tags.add('description_changed')
+
         # If the new formalization is empty: just migrate the formalization.
         #  - Tag with `migrated_formalization` if the description changed.
-        if len(new_reqs[rid]['req'].formalizations) == 0:
+        if len(new_reqs[rid]['req'].formalizations) == 0 and len(old_reqs[rid]['req'].formalizations) == 0:
+            pass
+        elif len(new_reqs[rid]['req'].formalizations) == 0 and len(old_reqs[rid]['req'].formalizations) > 0:
             logging.info('Migrate formalization for `{}`'.format(rid))
             new_reqs[rid]['req'].formalizations = old_reqs[rid]['req'].formalizations
             if new_reqs[rid]['req'].description != old_reqs[rid]['req'].description:
@@ -1074,7 +1087,7 @@ def create_revision(args, base_revision_name):
             raise NotImplementedError
 
     # Store the updated requirements for the new revision.
-    logging.info('Store merge changes to new `{}`'.format(revision_name))
+    logging.info('Store merge changes to revision `{}`'.format(revision_name))
     for r in new_reqs.values():
         utils.pickle_dump_obj_to_file(r['req'], r['path'])
 
@@ -1134,7 +1147,7 @@ def user_request_new_revision(args):
     create_revision(args, base_revision_choice)
 
 
-def set_session_config_vars(args):
+def set_session_config_vars(args, HERE):
     """ Initialize variables for current session.
 
     :param args: Parsed arguments.
@@ -1144,6 +1157,119 @@ def set_session_config_vars(args):
         app.config['SESSION_FOLDER'] = os.path.join(HERE, 'data', app.config['SESSION_TAG'])
     else:
         app.config['SESSION_FOLDER'] = os.path.join(app.config['SESSION_BASE_FOLDER'], app.config['SESSION_TAG'])
+
+
+def init_var_collection():
+    """ Creates a new empty VariableCollection if non is existent for current session.
+
+    """
+    if not os.path.exists(app.config['SESSION_VARIABLE_COLLECTION']):
+        var_collection = VariableCollection()
+        utils.pickle_dump_obj_to_file(var_collection, app.config['SESSION_VARIABLE_COLLECTION'])
+
+
+def init_meta_settings():
+    """ Initializes META_SETTTINGS_PATH and creates a new meta_settings dict, if none is existent.
+
+    """
+    app.config['META_SETTTINGS_PATH'] = os.path.join(app.config['SESSION_FOLDER'], 'meta_settings.pickle')
+    if not os.path.exists(app.config['META_SETTTINGS_PATH']):
+        meta_settings = dict()
+        meta_settings['tag_colors'] = dict()
+        utils.pickle_dump_obj_to_file(meta_settings, app.config['META_SETTTINGS_PATH'])
+
+
+def user_choose_start_revision():
+    """ Asks the user which revision should be loaded if there is more than one revision.
+    :rtype: str
+    :return: revision name
+    """
+    available_revisions = utils.get_available_revisions(app.config)
+    revision_choice = 'revision_0'
+    # Start the first revision if there is only one.
+    if len(available_revisions) == 1:
+        revision_choice = available_revisions[0]
+    # If there is no revision it means probably that this is an old hanfor version.
+    # ask the user to migrate.
+    elif len(available_revisions) == 0:
+        print('No revisions found. You might use a deprecated session version without revision support.')
+        print('Is that true and should I migrate this session?')
+        migrate_session = utils.choice(['yes', 'no'], 'no')
+        if migrate_session == 'yes':
+            file_paths = [
+                path for path in utils.get_filenames_from_dir(app.config['SESSION_FOLDER'])
+                if path.endswith('.pickle')
+            ]
+            revision_folder = os.path.join(
+                app.config['SESSION_FOLDER'],
+                revision_choice
+            )
+            logging.info('Create revision folder and copy existing data.')
+            os.makedirs(revision_folder, exist_ok=True)
+            for path in file_paths:
+                new_path = os.path.join(
+                    revision_folder,
+                    os.path.basename(path)
+                )
+                os.rename(path, new_path)
+        else:
+            exit()
+    else:
+        print('Which revision should I start.')
+        available_revisions = sorted(utils.get_available_revisions(app.config))
+        revision_choice = utils.choice(available_revisions, available_revisions[-1])
+    return revision_choice
+
+
+def startup_hanfor(args, HERE):
+    """ Setup session Variables and parse startup arguments
+
+    :param args:
+    """
+    set_session_config_vars(args, HERE)
+
+    # Create a new revision if requested.
+    if args.revision:
+        user_request_new_revision(args)
+    else:
+        # If there is no session with given tag: Create a new (initial) revision.
+        if not os.path.exists(app.config['SESSION_FOLDER']):
+            create_revision(args, None)
+        # If this is a already existing session, ask the user which revision to start.
+        else:
+            revision_choice = user_choose_start_revision()
+            logging.info('Loading session `{}` at `{}`'.format(app.config['SESSION_TAG'], revision_choice))
+            load_revision(revision_choice)
+
+    app.config['TEMPLATES_FOLDER'] = os.path.join(HERE, 'templates')
+
+    # Initialize variables collection.
+    init_var_collection()
+
+    # Initialize meta settings
+    init_meta_settings()
+
+    # Run consistency checks.
+    varcollection_consistency_check(app, args)
+    requirements_consistency_check(app, args)
+
+
+def get_app_options():
+    """ Returns Flask runtime options.
+
+    :rtype: dict
+    """
+    app_options = {
+        'host': app.config['HOST'],
+        'port': app.config['PORT']
+    }
+
+    if app.config['PYCHARM_DEBUG']:
+        app_options["debug"] = False
+        app_options["use_debugger"] = False
+        app_options["use_reloader"] = False
+
+    return app_options
 
 
 if __name__ == '__main__':
@@ -1157,92 +1283,9 @@ if __name__ == '__main__':
 
     utils.register_assets(app)
 
-    # Parse python args and init session variables.
+    # Parse python args and startup hanfor session.
     args = utils.HanforArgumentParser(app).parse_args()
-    set_session_config_vars(args)
-
-    # Create a new revision if requested.
-    if args.revision:
-        user_request_new_revision(args)
-    # If we should not create a new revision:
-    # Create a new session (== initial revision) or load a existing session revision.
-    else:
-        # If there is no session with given tag: Create a new (initial) revision.
-        if not os.path.exists(app.config['SESSION_FOLDER']):
-            create_revision(args, None)
-
-        # If this is a already existing session, ask the user which revision to start.
-        else:
-            available_revisions = utils.get_available_revisions(app.config)
-            # Start the first revision if there is only one.
-            if len(available_revisions) == 1:
-                revision_choice = available_revisions[0]
-            # If there is no revision it means probably that this is an old hanfor version.
-            # ask the user to migrate.
-            elif len(available_revisions) == 0:
-                print('No revisions found. You might use a deprecated session version without revision support.')
-                print('Is that true and should I migrate this session?')
-                migrate_session = utils.choice(['yes', 'no'], 'no')
-                if migrate_session == 'yes':
-                    revision_choice = 'revision_0'
-                    file_paths = [
-                        path for path in utils.get_filenames_from_dir(app.config['SESSION_FOLDER'])
-                        if path.endswith('.pickle')
-                    ]
-                    revision_folder = os.path.join(
-                        app.config['SESSION_FOLDER'],
-                        revision_choice
-                    )
-                    logging.info('Create revision folder and copy existing data.')
-                    os.makedirs(revision_folder, exist_ok=True)
-                    for path in file_paths:
-                        new_path = os.path.join(
-                            revision_folder,
-                            os.path.basename(path)
-                        )
-                        os.rename(path, new_path)
-                else:
-                    exit()
-            else:
-                print('Which revision should I start.')
-                available_revisions = sorted(utils.get_available_revisions(app.config))
-                revision_choice = utils.choice(available_revisions, available_revisions[-1])
-            logging.info('Loading session `{}` at `{}`'.format(app.config['SESSION_TAG'], revision_choice))
-            load_revision(revision_choice)
-
-    app.config['TEMPLATES_FOLDER'] = os.path.join(HERE, 'templates')
-
-    # Initialize variables collection.
-    if not os.path.exists(app.config['SESSION_VARIABLE_COLLECTION']):
-        var_collection = VariableCollection()
-        utils.pickle_dump_obj_to_file(var_collection, app.config['SESSION_VARIABLE_COLLECTION'])
-
-    # Initialize meta settings
-    app.config['META_SETTTINGS_PATH'] = os.path.join(app.config['SESSION_FOLDER'], 'meta_settings.pickle')
-    if not os.path.exists(app.config['META_SETTTINGS_PATH']):
-        meta_settings = dict()
-        meta_settings['tag_colors'] = dict()
-        utils.pickle_dump_obj_to_file(meta_settings, app.config['META_SETTTINGS_PATH'])
-
-    # Run consistency checks.
-    varcollection_consistency_check(app)
-    requirements_consistency_check(app, args)
+    startup_hanfor(args, HERE)
 
     # Run the app
-    app_options = {
-        'host': app.config['HOST'],
-        'port': app.config['PORT']
-    }
-
-    try:
-        app.config['HANFOR_VERSION'] = subprocess.check_output(['git', 'describe', '--always', '--tags']).decode("utf-8").strip()
-    except Exception as e:
-        logging.info('Could not get Hanfor version. Is git installed and Hanfor run from its repo?: {}'.format(e))
-        app.config['HANFOR_VERSION'] = '?'
-
-    if app.config['PYCHARM_DEBUG']:
-        app_options["debug"] = False
-        app_options["use_debugger"] = False
-        app_options["use_reloader"] = False
-
-    app.run(**app_options)
+    app.run(**get_app_options())
