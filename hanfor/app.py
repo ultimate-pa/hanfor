@@ -1254,6 +1254,18 @@ def startup_hanfor(args, HERE):
     requirements_consistency_check(app, args)
 
 
+def fetch_hanfor_version():
+    """ Get `git describe --always --tags` and store to HANFOR_VERSION
+
+    """
+    try:
+        app.config['HANFOR_VERSION'] = subprocess.check_output(['git', 'describe', '--always', '--tags']).decode(
+            "utf-8").strip()
+    except Exception as e:
+        logging.info('Could not get Hanfor version. Is git installed and Hanfor run from its repo?: {}'.format(e))
+        app.config['HANFOR_VERSION'] = '?'
+
+
 def get_app_options():
     """ Returns Flask runtime options.
 
@@ -1281,6 +1293,7 @@ if __name__ == '__main__':
     if app.config['DEBUG_MODE']:
         toolbar = DebugToolbarExtension(app)
 
+    fetch_hanfor_version()
     utils.register_assets(app)
 
     # Parse python args and startup hanfor session.
