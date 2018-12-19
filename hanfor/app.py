@@ -1064,6 +1064,12 @@ def create_revision(args, base_revision_name):
         new_reqs[rid]['req'].tags = old_reqs[rid]['req'].tags
         new_reqs[rid]['req'].status = old_reqs[rid]['req'].status
 
+        if new_reqs[rid]['req'].csv_row != old_reqs[rid]['req'].csv_row:
+            logging.info(
+                'CSV entry changed. Add `revision_data_changed` tag to `{}`.'.format(rid)
+            )
+            new_reqs[rid]['req'].tags.add('revision_data_changed')
+
         if new_reqs[rid]['req'].description != old_reqs[rid]['req'].description:
             logging.info(
                 'Description changed. Add `description_changed` tag to `{}`.'.format(rid)
@@ -1082,10 +1088,6 @@ def create_revision(args, base_revision_name):
                     'Add `migrated_formalization` tag to `{}`, status to `Todo` since description changed'.format(rid))
                 new_reqs[rid]['req'].tags.add('migrated_formalization')
                 new_reqs[rid]['req'].status = 'Todo'
-        # Handle existing formalizations
-        else:
-            # Todo: Resolve formalization conflicts.
-            raise NotImplementedError
 
         new_reqs[rid]['req'].revision_diff = old_reqs[rid]['req']
 

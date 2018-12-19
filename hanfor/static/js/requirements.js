@@ -575,6 +575,11 @@ function load_requirement(row_idx) {
 
     // Get the requirement data and set the modal.
     $.get( "api/req/get", { id: data['id'], row_idx: row_idx }, function (data) {
+        if (data.success === false) {
+            alert('Could Not load the Requirement: ' + data.errormsg);
+            return;
+        }
+
         // Meta information
         $('#requirement_id').val(data.id);
         $('#modal_associated_row_index').val(row_idx);
@@ -608,8 +613,17 @@ function load_requirement(row_idx) {
                 csv_row_content.append('<p><strong>' + key + ':</strong>' + value + '</p>');
             }
         }
-        if (data.success === false) {
-            alert('Could Not load the Requirement: ' + data.errormsg);
+
+        // Set revision diff data.
+        let revision_diff_content = $('#revision_diff_accordion');
+        revision_diff_content.html('');
+        revision_diff_content.collapse('hide');
+        let revision_diff = data.revision_diff;
+        for(const key in revision_diff){
+            if (revision_diff.hasOwnProperty(key)){
+                const value = revision_diff[key];
+                revision_diff_content.append('<p><strong>' + key + ':</strong><pre>' + value + '</pre></p>');
+            }
         }
     } ).done(function () {
         // Update visible Vars.
