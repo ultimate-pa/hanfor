@@ -1052,6 +1052,7 @@ def create_revision(args, base_revision_name):
                 'req': r,
                 'path': filename
             }
+
     # Compare diff for the requirements.
     for rid in new_reqs.keys():
         # Tag newly introduced requirements.
@@ -1085,6 +1086,8 @@ def create_revision(args, base_revision_name):
         else:
             # Todo: Resolve formalization conflicts.
             raise NotImplementedError
+
+        new_reqs[rid]['req'].revision_diff = old_reqs[rid]['req']
 
     # Store the updated requirements for the new revision.
     logging.info('Store merge changes to revision `{}`'.format(revision_name))

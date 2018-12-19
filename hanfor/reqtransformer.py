@@ -4,7 +4,9 @@
 @licence: GPLv3
 """
 import csv
+import difflib
 from collections import defaultdict
+from typing import Dict
 
 import os
 import re
@@ -142,7 +144,8 @@ class Requirement:
             'pos': self.pos_in_csv,
             'status': self.status,
             'csv_data': self.csv_row,
-            'type_inference_errors': type_inference_errors
+            'type_inference_errors': type_inference_errors,
+            'revision_diff': self.revision_diff
         }
         return d
 
@@ -158,6 +161,27 @@ class Requirement:
         filepath = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(id))
         if os.path.exists(filepath) and os.path.isfile(filepath):
             return utils.pickle_load_from_dump(filepath)
+
+    @property
+    def revision_diff(self) -> Dict[str, str]:
+        if not hasattr(self, '_revision_diff'):
+            self._revision_diff = dict()
+        return self._revision_diff
+
+    @revision_diff.setter
+    def revision_diff(self, other):
+        """ Compute and set diffs based on `other` Requirement
+
+        :param other: Requirement the diff should be based on.
+        """
+        self._revision_diff = dict()
+        for csv_key in self.csv_row.keys():
+            if not csv_key in other.csv_row.keys():
+                self._revision_diff[csv_key] = 'Missing in old revision'
+            else:
+                diff = difflib.ndiff(self.csv_row[csv_key].splitlines(), other.csv_row[csv_key].splitlines())
+                self._revision_diff[csv_key] = '\n'.join(diff)
+
 
     def add_empty_formalization(self):
         """ Add an empty formalization to the formalizations list.
