@@ -127,7 +127,14 @@ class TestMigrations(TestCase):
         # Get available requirements from new revision.
         new_revision_req_gets = self.app.get('api/req/gets')
         self.assertEqual(new_revision_req_gets.json['data'][1]['desc'], 'Mostly look on the bright side of life')
-        self.assertListEqual(new_revision_req_gets.json['data'][1]['tags'], ['description_changed'])
+        self.assertListEqual(
+            new_revision_req_gets.json['data'][1]['tags'],
+            ['description_changed', 'revision_data_changed']
+        )
+        self.assertListEqual(
+            new_revision_req_gets.json['data'][0]['tags'],
+            []
+        )
 
     def tearDown(self):
         # Clean test dir.
