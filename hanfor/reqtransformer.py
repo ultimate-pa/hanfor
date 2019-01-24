@@ -1347,6 +1347,22 @@ class VarImportSession:
                         self.target_var_collection.collection[var_name]
                     )
 
+    def info(self):
+        def get_path_info(path):
+            path, file = os.path.split(path)
+            path, revision = os.path.split(path)
+            path, session = os.path.split(path)
+
+            return file, revision, session
+
+        info = dict()
+
+        info['source'] = get_path_info(self.source_var_collection.my_path)
+        info['target'] = get_path_info(self.target_var_collection.my_path)
+
+        return info
+
+
 class VarImportSessions:
     def __init__(self, path=None):
         self.import_sessions = list()
@@ -1372,3 +1388,15 @@ class VarImportSessions:
         self.store()
         return len(self.import_sessions) - 1
 
+    def info(self):
+        info = dict()
+
+        for i, import_session in enumerate(self.import_sessions):
+            session_info = import_session.info()
+            info[i] = {
+                'id': i,
+                'source': session_info['source'],
+                'target': session_info['target']
+            }
+
+        return info
