@@ -318,9 +318,33 @@ function apply_import(var_import_table) {
     });
 }
 
+
+function delete_this_session() {
+    let body = $('body');
+    body.LoadingOverlay('show');
+
+    $.post( "api/" + session_id + "/delete_me",
+        {
+            id: session_id
+        },
+        // Hop to Hanfor root after successful deletion.
+        function( data ) {
+            body.LoadingOverlay('hide', true);
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                window.location.href = base_url + "variables";
+            }
+    });
+}
+
+
 function apply_tools_action(var_import_table, action) {
     if (action === 'apply-import') {
         apply_import(var_import_table);
+    }
+    if (action === 'delete-session') {
+        delete_this_session();
     }
 }
 
@@ -511,6 +535,11 @@ $(document).ready(function() {
     // Multiselect action buttons
     $('.action-btn').click(function (e) {
         apply_multiselect_action(var_import_table, $(this).attr('data-action'));
+    });
+
+    // Buttons that must be confirmed
+    $('#delete_session_button').confirmation({
+      rootSelector: '#delete_session_button'
     });
 
     // Tools Buttons

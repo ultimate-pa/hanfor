@@ -31,15 +31,29 @@
                     <div class="card-body">
                             <div class="row top-padding">
                                 <div class="col-12">
-                                    <div class="btn-group">
-                                        <button
-                                                class="btn btn-success tools-btn"
-                                                type="button"
-                                                data-action="apply-import"
-                                                data-toggle="modal"
-                                                data-target="#variable_new_enum_modal">
-                                            Apply import
-                                        </button>
+                                    <div class="btn-toolbar">
+                                        <div class="btn-group">
+                                            <button
+                                                    class="btn btn-success tools-btn"
+                                                    type="button"
+                                                    data-action="apply-import"
+                                                    data-toggle="modal"
+                                                    data-target="#variable_new_enum_modal">
+                                                Apply import
+                                            </button>
+                                            <button id="delete_session_button"
+                                                    class="btn btn-danger tools-btn"
+                                                    data-toggle="confirmation"
+                                                    data-action="delete-session"
+                                                    data-btn-ok-label="Yes"
+                                                    data-btn-ok-class="btn-success"
+                                                    data-btn-cancel-label="Nooo Stoooop!"
+                                                    data-btn-cancel-class="btn-danger"
+                                                    data-title="Sure?"
+                                                    data-content="Delete this variable import session?">
+                                                Delete
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -727,13 +727,27 @@ def var_import_session(session_id, command):
             varcollection_consistency_check(app)
             result['success'] = True
         except Exception as e:
-            logging.info('Could apply import: {}'.format(e))
+            logging.info('Could not apply import: {}'.format(e))
             result['success'] = False
-            result['errormsg'] = 'Could apply import: {}'.format(e)
+            result['errormsg'] = 'Could not apply import: {}'.format(e)
 
         return jsonify(result), 200
 
-    return jsonify(result), 404
+    if command == 'delete_me':
+        try:
+            logging.info('Deleting variable import session id: {}'.format(session_id))
+            del var_import_sessions.import_sessions[int(session_id)]
+            var_import_sessions.store()
+            result['success'] = True
+        except Exception as e:
+            error_msg = 'Could not delete session with id {} due to: {}'.format(session_id, e)
+            logging.info(error_msg)
+            result['success'] = False
+            result['errormsg'] = error_msg
+
+        return jsonify(result), 200
+
+    return jsonify(result), 200
 
 @app.route('/<site>')
 def site(site):
