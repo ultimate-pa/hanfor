@@ -24,7 +24,7 @@ import os
 from colorama import Fore, Style
 from flask_assets import Bundle, Environment
 
-from reqtransformer import VarImportSessions
+from reqtransformer import VarImportSessions, VariableCollection
 from svm_pattern_classifier import SvmPatternClassifier
 from terminaltables import DoubleTable
 
@@ -319,7 +319,7 @@ def varcollection_create_new_import_session(app, source_session_name, source_rev
         source_revision_name,
         'session_variable_collection.pickle'
     )
-    source_var_collection = pickle_load_from_dump(source_var_collection_path)
+    source_var_collection = VariableCollection.load(source_var_collection_path)
 
     # load import_sessions
     var_import_sessions_path = os.path.join(app.config['SESSION_BASE_FOLDER'], 'variable_import_sessions.pickle')
@@ -1096,7 +1096,11 @@ def get_stored_session_names(session_folder=None, only_names=False, with_revisio
         session_folder = os.path.join(here, 'data')
 
     try:
-        result = ((os.path.join(session_folder, file_name), file_name) for file_name in os.listdir(session_folder))
+        result = [
+            (os.path.join(session_folder, file_name), file_name)
+            for file_name in os.listdir(session_folder)
+            if os.path.isdir(os.path.join(session_folder, file_name))
+        ]
         if with_revisions:
             result = (
                 {
