@@ -751,7 +751,7 @@ def site(site):
                 only_names=True,
                 with_revisions=True
             )
-            running_import_sessions = utils.load_Import_sessions(app).import_sessions
+            running_import_sessions = utils.load_Import_sessions(app).info()
             return render_template(
                 '{}.html'.format(site),
                 available_sessions=available_sessions,
@@ -829,6 +829,14 @@ def varcollection_consistency_check(app, args=None):
             new_var_collection.collection[var['name']] = Variable(var['name'], var['type'], var['value'])
         new_var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
         logging.info('Migrated old collection.')
+
+    # Check for Import sessions
+    var_import_sessions_path = os.path.join(app.config['SESSION_BASE_FOLDER'], 'variable_import_sessions.pickle')
+    try:
+        VarImportSessions.load(var_import_sessions_path)
+    except FileNotFoundError:
+        var_import_sessions = VarImportSessions(path=var_import_sessions_path)
+        var_import_sessions.store()
 
     # Update usages and constraint type check.
     var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
