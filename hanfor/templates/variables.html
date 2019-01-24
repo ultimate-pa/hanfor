@@ -39,38 +39,64 @@
                 </div>
                 <div class="tab-pane fade" id="import-pane" role="tabpanel" aria-labelledby="import-tab">
                     <div class="card-body">
-                        <div class="row">
-                          <div class="col-12"><h4>Current Session</h4><hr></div>
-                        </div>
-                        <div class="row">
-                                <div class="col-12">
-                                    <h6><code>{{ current_session }}</code> at <code>{{ current_revision }}</code></h6>
-                                </div>
-                        </div>
-                        <div class="row">
-                          <div class="col-12"><h4>Existing Sessions</h4><hr></div>
-                        </div>
-                            {% for ses in available_sessions %}
+                        <div id="accordion">
                             <div class="row">
-                                <div class="col-12">
-                                    <h6><code>{{ ses.name }}</code></h6>
-                                    <ul>
-                                        {% for revision, revision_stats in ses.revisions_stats.items() %}
-                                        <li>
-                                            <a href="#" class="import_link"
-                                               data-name="{{ ses.name }}"
-                                               data-revision="{{ revision }}">
-                                                <code>{{ revision }}</code>
-                                                with {{ revision_stats.num_vars }} variables (Last edit: {{ revision_stats.last_mod }})
-                                            </a>
-                                        </li>
-                                        {% endfor %}
-                                    </ul>
-                                </div>
+                              <div class="col-12">
+                                  <h4><a href="#" data-toggle="collapse" data-target="#collapseExSessions"
+                                         aria-expanded="true" aria-controls="collapseExSessions">
+                                      Existing Hanfor Sessions</a></h4><hr>
+                              </div>
                             </div>
-                            {% endfor %}
+                            <div id="collapseExSessions" class="collapse"
+                                 aria-labelledby="headingOne" data-parent="#accordion">
+                                {% for ses in available_sessions %}
+                                <div class="row">
+                                    <div class="col-12">
+                                        <h6><code>{{ ses.name }}</code></h6>
+                                        <ul>
+                                            {% for revision, revision_stats in ses.revisions_stats.items() %}
+                                            <li>
+                                                <a href="#" class="import_link"
+                                                   data-name="{{ ses.name }}"
+                                                   data-revision="{{ revision }}">
+                                                    <code>{{ revision }}</code>
+                                                    with {{ revision_stats.num_vars }} variables
+                                                    (Last edit: {{ revision_stats.last_mod }})
+                                                </a>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="row">
+                              <div class="col-12">
+                                  <h4><a href="#" class="collapsed" data-toggle="collapse"
+                                         data-target="#collapseAvImportSessions" aria-expanded="false"
+                                         aria-controls="collapseAvImportSessions">Running Import Sessions</a></h4><hr>
+                              </div>
+                            </div>
+                            <div id="collapseAvImportSessions" class="collapse"
+                                 aria-labelledby="headingOne" data-parent="#accordion">
+                                {% for sess_id, ses in running_import_sessions.items() %}
+                                    {% if config.SESSION_TAG == ses.target[2] %}
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <h6><a href="{{ url_for('site', site='/') }}/variable_import/{{ ses.id }}"
+                                                       target="_blank"><code>Session{{ ses.id }}</code></a></h6>
+                                                <ul>
+                                                    <li>Source: <code>{{ ses.source[2] }} - {{ ses.source[1] }}</code></li>
+                                                    <li>Target: <code>{{ ses.target[2] }} - {{ ses.target[1] }}</code></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
+                </div>
                 <div class="tab-pane fade" id="multi-edit-pane" role="tabpanel"
                          aria-labelledby="multi-edit-tab">
                         <div class="card-body">
