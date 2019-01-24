@@ -1329,6 +1329,24 @@ def slugify(s):
     return re.sub(r'(?u)[^-\w.]', '', s)
 
 
+def load_Import_sessions(app):
+    """ Open variable import sessions if existing.
+
+    """
+    try:
+        # load import_sessions
+        var_import_sessions_path = os.path.join(
+            app.config['SESSION_BASE_FOLDER'],
+            'variable_import_sessions.pickle'
+        )
+        var_import_sessions = VarImportSessions.load(var_import_sessions_path)
+    except FileNotFoundError as e:
+        logging.info('Import sessions file does not exist.')
+        raise e
+
+    return var_import_sessions
+
+
 class PrefixMiddleware(object):
     ''' Support for url prefixes. '''
 

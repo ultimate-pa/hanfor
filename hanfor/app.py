@@ -659,25 +659,9 @@ def var_import_session(session_id, command):
         'errormsg': 'Command not found'
     }
 
-    def load_sessions():
-        """ Open variable import sessions if existing.
-
-        """
-        try:
-            # load import_sessions
-            var_import_sessions_path = os.path.join(
-                app.config['SESSION_BASE_FOLDER'],
-                'variable_import_sessions.pickle'
-            )
-            var_import_sessions = VarImportSessions.load(var_import_sessions_path)
-        except FileNotFoundError as e:
-            logging.info('Could not find import session with id:{}'.format(session_id))
-            raise e
-
-        return var_import_sessions
+    var_import_sessions = utils.load_Import_sessions(app)
 
     if command == 'get_var':
-        var_import_sessions = load_sessions()
         result = dict()
         name = request.form.get('name', '')
         which_collection = request.form.get('which_collection', '')
@@ -697,7 +681,6 @@ def var_import_session(session_id, command):
         return jsonify(result), 200
 
     if command == 'get_table_data':
-        var_import_sessions = load_sessions()
         result = dict()
         try:
             result = {'data': var_import_sessions.import_sessions[int(session_id)].to_datatables_data()}
@@ -709,7 +692,6 @@ def var_import_session(session_id, command):
 
     if command == 'store_table':
         rows = json.loads(request.form.get('rows', ''))
-        var_import_sessions = load_sessions()
         try:
             logging.info('Store changes for variable import session: {}'.format(session_id))
             var_import_sessions.import_sessions[int(session_id)].store_changes(rows)
@@ -724,7 +706,6 @@ def var_import_session(session_id, command):
 
     if command == 'store_variable':
         row = json.loads(request.form.get('row', ''))
-        var_import_sessions = load_sessions()
         try:
             logging.info('Store changes for variable "{}" of import session: {}'.format(row['name'], session_id))
             var_import_sessions.import_sessions[int(session_id)].store_variable(row)
@@ -737,7 +718,6 @@ def var_import_session(session_id, command):
         return jsonify(result), 200
 
     if command == 'apply_import':
-        var_import_sessions = load_sessions()
         try:
             logging.info('Apply import for variable import session: {}'.format(session_id))
             var_import_sessions.import_sessions[int(session_id)].apply_constraint_selection()
@@ -771,11 +751,11 @@ def site(site):
                 only_names=True,
                 with_revisions=True
             )
+            running_import_sessions = utils.load_Import_sessions(app).import_sessions
             return render_template(
                 '{}.html'.format(site),
                 available_sessions=available_sessions,
-                current_session=app.config['SESSION_TAG'],
-                current_revision=app.config['USING_REVISION']
+                running_import_sessions=running_import_sessions
             )
         else:
             return render_template('{}.html'.format(site))
