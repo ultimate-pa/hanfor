@@ -1090,6 +1090,9 @@ def create_revision(args, base_revision_name):
                     'Add `migrated_formalization` tag to `{}`, status to `Todo` since description changed'.format(rid))
                 new_reqs[rid]['req'].tags.add('migrated_formalization')
                 new_reqs[rid]['req'].status = 'Todo'
+        elif len(new_reqs[rid]['req'].formalizations) == 0 and len(old_reqs[rid]['req'].formalizations) > 0:
+            logging.error('Parsing of the requirement not supported.')
+            raise NotImplementedError
 
         new_reqs[rid]['req'].revision_diff = old_reqs[rid]['req']
 
