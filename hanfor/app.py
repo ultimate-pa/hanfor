@@ -1077,6 +1077,7 @@ def create_revision(args, base_revision_name):
                 'Description changed. Add `description_changed` tag to `{}`.'.format(rid)
             )
             new_reqs[rid]['req'].tags.add('{}_to_{}_description_changed'.format(base_revision_name, revision_name))
+            new_reqs[rid]['req'].status = 'Todo'
 
         # If the new formalization is empty: just migrate the formalization.
         #  - Tag with `migrated_formalization` if the description changed.
