@@ -621,7 +621,7 @@ function load_requirement(row_idx) {
         } else {
             revision_diff_link.show();
         }
-        console.log(data.revision_diff);
+
         let revision_diff_content = $('#revision_diff_accordion');
         revision_diff_content.html('');
         revision_diff_content.collapse('hide');
