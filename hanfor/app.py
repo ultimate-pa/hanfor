@@ -1269,11 +1269,14 @@ def fetch_hanfor_version():
 
     """
     try:
-        app.config['HANFOR_VERSION'] = subprocess.check_output(['git', 'describe', '--always', '--tags']).decode(
-            "utf-8").strip()
+        app.config['HANFOR_VERSION'] = subprocess.check_output(
+            ['git', 'describe', '--always', '--tags']).decode("utf-8").strip()
+        app.config['HANFOR_COMMIT_HASH'] = subprocess.check_output(
+            ['git', 'rev-parse', 'HEAD']).decode("utf-8").strip()
     except Exception as e:
         logging.info('Could not get Hanfor version. Is git installed and Hanfor run from its repo?: {}'.format(e))
         app.config['HANFOR_VERSION'] = '?'
+        app.config['HANFOR_COMMIT_HASH'] = '?'
 
 
 def get_app_options():

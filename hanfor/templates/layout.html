@@ -41,7 +41,10 @@
           </li>
       </ul>
     <span class="navbar-text" id="runtime-info">
-        Running <code>{{ config.SESSION_TAG }}</code> @ <code>{{ config.USING_REVISION }}</code> - Hanfor {{ config.HANFOR_VERSION }}
+        Running <code>{{ config.SESSION_TAG }}</code> @ <code>{{ config.USING_REVISION }}</code>&nbsp;
+        <a target="_blank" href="https://github.com/ultimate-pa/hanfor/tree/{{ config.HANFOR_COMMIT_HASH }}">
+            Hanfor&nbsp;{{ config.HANFOR_VERSION }}
+        </a>
     </span>
     </div>
   </nav>
