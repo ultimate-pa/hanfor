@@ -121,3 +121,10 @@ pre {
     word-wrap: break-word;       /* Internet Explorer 5.5+ */
     background-color: #dcdbdb;
 }
+
+/**
+* Title Link hover
+ */
+a.title-link:hover {
+    color: #5bc0de;
+}
