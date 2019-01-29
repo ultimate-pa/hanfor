@@ -177,10 +177,12 @@ class Requirement:
         self._revision_diff = dict()
         for csv_key in self.csv_row.keys():
             if not csv_key in other.csv_row.keys():
-                self._revision_diff[csv_key] = 'Missing in old revision'
-            else:
-                diff = difflib.ndiff(self.csv_row[csv_key].splitlines(), other.csv_row[csv_key].splitlines())
-                self._revision_diff[csv_key] = '\n'.join(diff)
+                other.csv_row[csv_key] = ''
+            diff = difflib.ndiff(other.csv_row[csv_key].splitlines(), self.csv_row[csv_key].splitlines())
+            diff = [s for s in diff if not s.startswith('  ')]
+            diff = '\n'.join(diff)
+            if len(diff) > 0:
+                self._revision_diff[csv_key] = diff
 
 
     def add_empty_formalization(self):
