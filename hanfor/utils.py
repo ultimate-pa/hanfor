@@ -337,48 +337,6 @@ def varcollection_create_new_import_session(app, source_session_name, source_rev
     return session_id
 
 
-
-def varcollection_import_collection(app, request):
-    """ Collect diff info of current and requested var collection.
-            * Number of var in the requested var collection
-            * Number of new vars in the requested var collection.
-
-
-        :param request: API request
-        :return: {'tot_vars': int, 'new_vars': int}
-        :rtype: dict
-        """
-    current_var_collection = pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
-    req_path = os.path.join(
-        app.config['SESSION_BASE_FOLDER'],
-        request.form.get('sess_name').strip(),
-        request.form.get('sess_revision').strip(),
-        'session_variable_collection.pickle'
-    )
-    requested_var_collection = pickle_load_from_dump(req_path)
-    import_option = request.form.get('import_option').strip()
-
-    numb_new_vars = len(
-        set(requested_var_collection.collection.keys()).difference(current_var_collection.collection.keys())
-    )
-
-    for key, var in requested_var_collection.collection.items():
-        if import_option == 'keep':
-            if key not in current_var_collection.collection:
-                current_var_collection.collection[key] = deepcopy(var)
-        else:
-            current_var_collection.collection[key] = deepcopy(var)
-
-    result = {
-        'tot_vars': len(requested_var_collection.collection),
-        'new_vars': numb_new_vars
-    }
-
-    current_var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
-
-    return result
-
-
 def get_available_tags(app):
     """ Returns a list of all available tags.
     One list entry is: {

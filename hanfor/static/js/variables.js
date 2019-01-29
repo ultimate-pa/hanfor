@@ -129,35 +129,6 @@ function start_import_session() {
 
 
 /**
- * Import variable collection set in the import modal.
- */
-function import_variables() {
-    let variable_import_modal = $('#variable_import_modal');
-    let sess_name = $('#variable_import_sess_name').val();
-    let sess_revision = $('#variable_import_sess_revision').val();
-    let import_option = $('#import_option').val();
-
-    variable_import_modal.LoadingOverlay('show');
-
-    $.post( "api/var/var_import_collection",
-        {
-            sess_name: sess_name,
-            sess_revision: sess_revision,
-            import_option: import_option
-        },
-        function( data ) {
-            variable_import_modal.LoadingOverlay('hide', true);
-            if (data['success'] === false) {
-                alert(data['errormsg']);
-            } else {
-                variable_import_modal.modal('hide');
-                location.reload();
-            }
-    });
-}
-
-
-/**
  * Open modal for the user to trigger variable import.
  * @param sess_name
  * @param sess_revision
@@ -770,10 +741,6 @@ $(document).ready(function() {
         const sess_revision = $( this ).attr('data-revision');
 
         open_import_modal(sess_name, sess_revision);
-    });
-
-    $('#save_variable_import_modal').click(function ( e ) {
-        import_variables();
     });
 
     $('#start_variable_import_session').click(function ( e ) {

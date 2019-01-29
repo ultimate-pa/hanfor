@@ -115,7 +115,6 @@ def api(resource, command):
         'del_var',
         'multi_update',
         'var_import_info',
-        'var_import_collection',
         'get_available_guesses',
         'add_formalization_from_guess',
         'multi_add_top_guess',
@@ -452,8 +451,6 @@ def api(resource, command):
             result = utils.update_variable_in_collection(app, request)
         elif command == 'var_import_info':
             result = utils.varcollection_diff_info(app, request)
-        elif command == 'var_import_collection':
-            result = utils.varcollection_import_collection(app, request)
             varcollection_consistency_check(app)
         elif command == 'multi_update':
             logging.info('Multi edit Variables.')
