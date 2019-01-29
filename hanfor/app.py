@@ -1060,7 +1060,7 @@ def create_revision(args, base_revision_name):
         # Tag newly introduced requirements.
         if rid not in old_reqs.keys():
             logging.info('Add newly introduced requirement `{}`'.format(rid))
-            new_reqs[rid]['req'].tags.add('new_in_{}'.format(revision_name))
+            new_reqs[rid]['req'].tags.add('{}_to_{}_new_requirement'.format(base_revision_name, revision_name))
             continue
         # Migrate tags and status.
         new_reqs[rid]['req'].tags = old_reqs[rid]['req'].tags
@@ -1070,13 +1070,13 @@ def create_revision(args, base_revision_name):
             logging.info(
                 'CSV entry changed. Add `revision_data_changed` tag to `{}`.'.format(rid)
             )
-            new_reqs[rid]['req'].tags.add('revision_data_changed')
+            new_reqs[rid]['req'].tags.add('{}_to_{}_data_changed'.format(base_revision_name, revision_name))
 
         if new_reqs[rid]['req'].description != old_reqs[rid]['req'].description:
             logging.info(
                 'Description changed. Add `description_changed` tag to `{}`.'.format(rid)
             )
-            new_reqs[rid]['req'].tags.add('description_changed')
+            new_reqs[rid]['req'].tags.add('{}_to_{}_description_changed'.format(base_revision_name, revision_name))
 
         # If the new formalization is empty: just migrate the formalization.
         #  - Tag with `migrated_formalization` if the description changed.
@@ -1088,7 +1088,9 @@ def create_revision(args, base_revision_name):
             if new_reqs[rid]['req'].description != old_reqs[rid]['req'].description:
                 logging.info(
                     'Add `migrated_formalization` tag to `{}`, status to `Todo` since description changed'.format(rid))
-                new_reqs[rid]['req'].tags.add('migrated_formalization')
+                new_reqs[rid]['req'].tags.add(
+                    '{}_to_{}_migrated_formalization'.format(base_revision_name, revision_name)
+                )
                 new_reqs[rid]['req'].status = 'Todo'
         elif len(new_reqs[rid]['req'].formalizations) == 0 and len(old_reqs[rid]['req'].formalizations) > 0:
             logging.error('Parsing of the requirement not supported.')
