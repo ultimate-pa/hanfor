@@ -615,6 +615,13 @@ function load_requirement(row_idx) {
         }
 
         // Set revision diff data.
+        let revision_diff_link = $('#show_revision_diff');
+        if ($.isEmptyObject(data.revision_diff)) {
+            revision_diff_link.hide();
+        } else {
+            revision_diff_link.show();
+        }
+        console.log(data.revision_diff);
         let revision_diff_content = $('#revision_diff_accordion');
         revision_diff_content.html('');
         revision_diff_content.collapse('hide');
