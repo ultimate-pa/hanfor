@@ -144,7 +144,7 @@ class TestMigrations(TestCase):
         self.assertEqual(new_revision_req_gets.json['data'][1]['desc'], 'Mostly look on the bright side of life')
         self.assertListEqual(
             new_revision_req_gets.json['data'][1]['tags'],
-            ['description_changed', 'revision_data_changed']
+            ['revision_0_to_revision_1_data_changed', 'revision_0_to_revision_1_description_changed']
         )
         self.assertListEqual(
             new_revision_req_gets.json['data'][0]['tags'],
@@ -182,7 +182,7 @@ class TestMigrations(TestCase):
             '- 1.2.3\n?     ^\n\n+ 1.2.4\n?     ^\n',
             new_revision_req_gets.json['data'][0]['revision_diff']['FWEPOFKWPFOK'])
         self.assertListEqual(
-            ['revision_data_changed'],
+            ['revision_0_to_revision_1_data_changed'],
             new_revision_req_gets.json['data'][0]['tags']
         )
 
