@@ -7,9 +7,19 @@ from unittest.mock import patch
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 TESTS_BASE_FOLDER = os.path.join(HERE, 'test_sessions')
-TEST_CSV = os.path.join(HERE, 'test_sessions/test_init/simple.csv')
-TEST_CSV_CHANGED_DESCRIPTION = os.path.join(HERE, 'test_sessions/test_init/simple_changed_description.csv')
-TEST_TAG = 'simple'
+
+CSV_FILES = {
+    'simple': os.path.join(HERE, 'test_sessions/test_init/simple.csv'),
+    'simple_changed_desc': os.path.join(HERE, 'test_sessions/test_init/simple_changed_description.csv'),
+    'test_real_rev_0': os.path.join(HERE, 'test_sessions/test_init/simple_real_rev_0.csv'),
+    'test_real_rev_1': os.path.join(HERE, 'test_sessions/test_init/simple_real_rev_1.csv')
+}
+
+
+TEST_TAGS = {
+    'simple': 'simple',
+    'real': 'real'
+}
 
 
 def mock_user_input(*args, **kwargs) -> str:
@@ -71,10 +81,13 @@ desired_reqs = [
              }
         ]
 
+
 class TestMigrations(TestCase):
     def setUp(self):
+        # Clean test folder.
         app.config['SESSION_BASE_FOLDER'] = TESTS_BASE_FOLDER
         utils.register_assets(app)
+        self.clean_folders()
         self.app = app.test_client()
 
     @patch('builtins.input', mock_user_input)
@@ -110,7 +123,7 @@ class TestMigrations(TestCase):
         """
 
         # Create the first initial revision.
-        args = utils.HanforArgumentParser(app).parse_args([TEST_CSV, TEST_TAG])
+        args = utils.HanforArgumentParser(app).parse_args([CSV_FILES['simple'], TEST_TAGS['simple']])
         self.startup_hanfor(args, user_mock_answers=[2, 0, 1, 3])
         # Get the available requirements.
         initial_req_gets = self.app.get('api/req/gets')
@@ -118,11 +131,13 @@ class TestMigrations(TestCase):
         self.assertListEqual(initial_req_gets.json['data'][1]['tags'], [])
 
         # Create the second revision.
-        args = utils.HanforArgumentParser(app).parse_args([TEST_CSV_CHANGED_DESCRIPTION, TEST_TAG, '--revision'])
+        args = utils.HanforArgumentParser(app).parse_args(
+            [CSV_FILES['simple_changed_desc'], TEST_TAGS['simple'], '--revision']
+        )
         self.startup_hanfor(args, user_mock_answers=[0, 0])
 
         # Load the second revision.
-        args = utils.HanforArgumentParser(app).parse_args([TEST_CSV_CHANGED_DESCRIPTION, TEST_TAG])
+        args = utils.HanforArgumentParser(app).parse_args([CSV_FILES['simple_changed_desc'], TEST_TAGS['simple']])
         self.startup_hanfor(args, user_mock_answers=[1])
         # Get available requirements from new revision.
         new_revision_req_gets = self.app.get('api/req/gets')
@@ -136,6 +151,50 @@ class TestMigrations(TestCase):
             []
         )
 
+    def test_created_diff(self):
+        """
+        """
+
+        # Create the first initial revision.
+        args = utils.HanforArgumentParser(app).parse_args([CSV_FILES['test_real_rev_0'], TEST_TAGS['real']])
+        self.startup_hanfor(args, user_mock_answers=[1, 5, 27, 8])
+        # Get the available requirements.
+        initial_req_gets = self.app.get('api/req/gets')
+        self.assertEqual('DySok ASPDOJ_123', initial_req_gets.json['data'][0]['id'])
+        self.assertListEqual([], initial_req_gets.json['data'][0]['tags'])
+
+        # Create the second revision.
+        args = utils.HanforArgumentParser(app).parse_args([CSV_FILES['test_real_rev_1'], TEST_TAGS['real'], '--revision'])
+        self.startup_hanfor(args, user_mock_answers=[0, 0])
+
+        # Load the second revision.
+        args = utils.HanforArgumentParser(app).parse_args([CSV_FILES['test_real_rev_1'], TEST_TAGS['real']])
+        self.startup_hanfor(args, user_mock_answers=[1])
+        # Get available requirements from new revision.
+        new_revision_req_gets = self.app.get('api/req/gets')
+        # Do tests
+        self.assertListEqual(
+            ['FWEPOFKWPFOK'],
+            list(new_revision_req_gets.json['data'][0]['revision_diff'].keys()),
+            'Only a diff with changes at key FWEPOFKWPFOK'
+        )
+        self.assertEqual(
+            '- 1.2.3\n?     ^\n\n+ 1.2.4\n?     ^\n',
+            new_revision_req_gets.json['data'][0]['revision_diff']['FWEPOFKWPFOK'])
+        self.assertListEqual(
+            ['revision_data_changed'],
+            new_revision_req_gets.json['data'][0]['tags']
+        )
+
     def tearDown(self):
         # Clean test dir.
-        shutil.rmtree(os.path.join(TESTS_BASE_FOLDER, TEST_TAG))
+        self.clean_folders()
+
+    def clean_folders(self):
+        for tag in TEST_TAGS.values():
+            path = os.path.join(TESTS_BASE_FOLDER, tag)
+            try:
+                shutil.rmtree(path)
+                print('Cleaned {}'.format(path))
+            except FileNotFoundError:
+                print('{} already clean'.format(path))
