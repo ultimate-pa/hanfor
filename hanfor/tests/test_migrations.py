@@ -191,6 +191,12 @@ class TestMigrations(TestCase):
         self.clean_folders()
 
     def clean_folders(self):
+        print('Clean test env.')
+        try:
+            path = os.path.join(TESTS_BASE_FOLDER, 'variable_import_sessions.pickle')
+            os.remove(path)
+        except FileNotFoundError:
+            pass
         for tag in TEST_TAGS.values():
             path = os.path.join(TESTS_BASE_FOLDER, tag)
             try:
