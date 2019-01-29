@@ -66,7 +66,6 @@ function load_constraints_to_container(data, var_object, constraints_container, 
     let constraints_list_dom = $('#constraints_list');
     let constraints_html = '';
     if (type === 'result') {
-        console.log(data);
         if ((typeof(data.target.constraints) !== 'undefined') && (data.target.constraints.length > 0)) {
             constraints_html += '<h6>From Target</h6>';
             constraints_html += add_constraints(data.available_constraints, true, 'target');
@@ -233,7 +232,6 @@ function store_modal(var_table, target_row) {
     }
     if (changes || global_changes) {
         table_data.action = 'custom';
-        console.log(table_data);
         // Sync with backend.
         var_view_modal.LoadingOverlay('show');
         $.post( "api/" + session_id + "/store_variable",

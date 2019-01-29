@@ -2693,7 +2693,6 @@ textcomplete.register([{
   // Emoji strategy
   match: /(^|\s)(\w+)$/,
   search: function (term, callback) {
-      console.log(term);
       // callback(fuzzy_search(term));
       include_elems = fuzzy_search(term);
       // include_elems = debounce(fuzzy_search(term), 1000);

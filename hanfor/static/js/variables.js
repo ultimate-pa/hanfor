@@ -488,7 +488,6 @@ function load_enumerators_to_modal(var_name) {
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
-                console.log(data['enumerators']);
                 $.each(data['enumerators'], function (index, item) {
                     const stripped_name = item[0].substr(var_name.length + 1);
                     add_enumerator_template(stripped_name, item[1]);
