@@ -1181,6 +1181,9 @@ function init_modal() {
     requirement_modal.on('hidden.bs.modal', function (e) {
         $('#requirement_tag_field').val('');
         $('#requirement_tag_field-tokenfield').val('');
+        $('textarea').each(function(){
+            autosize.destroy($(this));
+        });
     });
 
     // Listener for adding new formalizations.
