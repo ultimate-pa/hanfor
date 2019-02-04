@@ -42,3 +42,22 @@ class TestParseExpressions(TestCase):
     def test_get_var_list(self):
         tree = boogie_parsing.get_parser_instance().parse('(Hello <==> Spam) && (((((b + a) + d) * 23) < 4) && x ==> y )')
         self.assertEqual(boogie_parsing.get_variables_list(tree), ['Hello', 'Spam', 'b', 'a', 'd', 'x', 'y'])
+
+    def test_used_variables(self):
+        expressions = [
+            'false',
+            'true',
+            'true ',
+            'false ',
+            'true == false',
+        ]
+
+        for expr in expressions:
+            parser = boogie_parsing.get_parser_instance()
+            tree = parser.parse(expr)
+            used_variables = set(boogie_parsing.get_variables_list(tree))
+            print('For {} I found {} variables'.format(expr, used_variables))
+            self.assertEqual(
+                set(),
+                used_variables
+            )
