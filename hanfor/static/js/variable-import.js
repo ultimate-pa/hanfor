@@ -165,6 +165,11 @@ function load_modal(data, var_import_table, type) {
 }
 
 
+function redraw_table(var_import_table) {
+    var_import_table.draw('full-hold');
+}
+
+
 function modify_row_by_action(row, action, redraw = true, store = true) {
     let data = row.data();
     if ((action === 'source') && (data.action !== 'source')) {
@@ -189,6 +194,8 @@ function modify_row_by_action(row, action, redraw = true, store = true) {
 
     if (redraw) {
         row.data(data).draw('full-hold');
+    } else {
+       row.data(data);
     }
     if (store) {
         store_changes(data);
@@ -208,8 +215,9 @@ function get_selected_vars(variables_table) {
 
 function apply_multiselect_action(var_import_table, action) {
     var_import_table.rows( {selected:true} ).every( function () {
-        modify_row_by_action(this, action, true, false);
+        modify_row_by_action(this, action, false, false);
     });
+    redraw_table(var_import_table);
     store_changes();
 }
 
