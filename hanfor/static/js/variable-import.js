@@ -408,25 +408,29 @@ $(document).ready(function() {
                 },
                 "targets": [1],
                 "render": function ( data, type, row, meta ) {
-                    console.log('render:');
-                    console.log(row);
                     let result = ``;
-                    if (typeof(data.source.name) !== 'undefined' && typeof(data.target.name) !== 'undefined') {
+                    const has_source = typeof(data.source.name) !== 'undefined';
+                    const has_target = typeof(data.target.name) !== 'undefined';
+
+                    if (has_source && has_target) {
                         result += '<span class="badge badge-info">match_in_source_and_target</span>'
                         if (data.source.type !== data.target.type) {
                             result += '<span class="badge badge-info">unmatched_types</span>'
                         } else {
                             result += '<span class="badge badge-info">same_types</span>'
                         }
-                    } else if (typeof(data.source.type) === 'undefined') {
-                        result += '<span class="badge badge-info">no_match_in_source</span>'
-                    } else if (typeof(data.target.name) === 'undefined') {
-                        result += '<span class="badge badge-info">no_match_in_target</span>'
+                    } else {
+                        if (!has_source) {
+                            result += '<span class="badge badge-info">no_match_in_source</span>'
+                        }
+                        if (!has_target) {
+                            result += '<span class="badge badge-info">no_match_in_target</span>'
+                        }
                     }
-                    if (typeof(data.source.name) !== 'undefined' && data.source.constraints.length > 0) {
+                    if (has_source && data.source.constraints.length > 0) {
                         result += '<span class="badge badge-info">source_has_constraints</span>'
                     }
-                    if (typeof(data.target.name) !== 'undefined' && data.target.constraints.length > 0) {
+                    if (has_target && data.target.constraints.length > 0) {
                         result += '<span class="badge badge-info">target_has_constraints</span>'
                     }
                     return result;
