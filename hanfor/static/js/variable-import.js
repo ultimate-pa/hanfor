@@ -421,6 +421,12 @@ $(document).ready(function() {
                     } else if (typeof(data.target.name) === 'undefined') {
                         result += '<span class="badge badge-info">no_match_in_target</span>'
                     }
+                    if (typeof(data.source.name) !== 'undefined' && data.source.constraints.length > 0) {
+                        result += '<span class="badge badge-info">source_has_constraints</span>'
+                    }
+                    if (typeof(data.target.name) !== 'undefined' && data.target.constraints.length > 0) {
+                        result += '<span class="badge badge-info">target_has_constraints</span>'
+                    }
                     return result;
                 }
             },
