@@ -246,7 +246,7 @@ class Requirement:
         variable_collection.req_var_mapping[self.rid] = set()
 
         for formalization in formalizations.values():
-            logging.debug('Updating formalizatioin No. {}.'.format(formalization['id']))
+            logging.debug('Updating formalization No. {}.'.format(formalization['id']))
             logging.debug('Scope: `{}`, Pattern: `{}`.'.format(formalization['scope'], formalization['pattern']))
             try:
                 self.update_formalization(
