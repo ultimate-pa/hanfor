@@ -195,7 +195,7 @@ function modify_row_by_action(row, action, redraw = true, store = true) {
     if (redraw) {
         row.data(data).draw('full-hold');
     } else {
-       row.data(data);
+        row.data(data);
     }
     if (store) {
         store_changes(data);
@@ -217,7 +217,7 @@ function apply_multiselect_action(var_import_table, action) {
     var_import_table.rows( {selected:true} ).every( function () {
         modify_row_by_action(this, action, false, false);
     });
-    redraw_table(var_import_table);
+    // redraw_table(var_import_table);
     store_changes();
 }
 
@@ -408,6 +408,8 @@ $(document).ready(function() {
                 },
                 "targets": [1],
                 "render": function ( data, type, row, meta ) {
+                    console.log('render:');
+                    console.log(row);
                     let result = ``;
                     if (typeof(data.source.name) !== 'undefined' && typeof(data.target.name) !== 'undefined') {
                         result += '<span class="badge badge-info">match_in_source_and_target</span>'
