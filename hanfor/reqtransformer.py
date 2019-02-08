@@ -358,16 +358,14 @@ class Formalization:
                     )
                 )
                 continue
+            # Update the expression
+            expression.set_expression(expression.raw_expression, variable_collection, None, expression.parent_rid)
 
             # Derive type for variables in expression and update missing or changed types.
             type, type_env = boogie_parsing.infer_variable_types(tree, var_env).derive_type()
             if type not in allowed_types[key]:  # We have derived error, mark this expression as type error.
                 type_inference_errors[key] = type_env
             for name, type in type_env.items():  # Update the hanfor variable types.
-                if name not in variable_collection.collection.keys():
-                    logging.info('Add misssing var `{}`, of type `{}`'.format(name, type.name))
-                    variable_collection.add_var(name)
-                    variable_collection.set_type(name, type.name)
                 if variable_collection.collection[name].type.lower() in ['const', 'enum']:
                     continue
                 if variable_collection.collection[name].type not in boogie_parsing.BoogieType.aliases(type):
@@ -449,7 +447,10 @@ class Expression:
                 variable_collection.add_var(var_name)
 
         variable_collection.map_req_to_vars(parent_rid, self.used_variables)
-        variable_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
+        try:
+            variable_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
+        except:
+            pass
 
     def __str__(self):
         result = '"{}"'.format(self.raw_expression)
