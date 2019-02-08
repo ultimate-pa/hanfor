@@ -530,7 +530,7 @@ def update_variable_in_collection(app, request):
         # Update type.
         if var_type_old != var_type:
             logging.info('Change type from `{}` to `{}`.'.format(var_type_old, var_type))
-            var_collection.collection[var_name].type = var_type
+            var_collection.collection[var_name_old].type = var_type
             result['type_changed'] = True
             reload_type_inference = True
 
