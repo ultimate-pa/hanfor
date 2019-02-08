@@ -818,6 +818,13 @@ def unhandled_exception(exception):
     })
 
 
+def update_var_usage(var_collection):
+    var_collection.refresh_var_usage(app)
+    var_collection.req_var_mapping = var_collection.invert_mapping(var_collection.var_req_mapping)
+    var_collection.refresh_var_constraint_mapping()
+    var_collection.store()
+
+
 def varcollection_consistency_check(app, args=None):
     logging.info('Check Variables for consistency.')
     # Migrate from old Hanfor versions
@@ -853,10 +860,8 @@ def varcollection_consistency_check(app, args=None):
     var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
     if args is not None and args.reload_type_inference:
         var_collection.reload_type_inference_errors_in_constraints()
-    var_collection.refresh_var_usage(app)
-    var_collection.req_var_mapping = var_collection.invert_mapping(var_collection.var_req_mapping)
-    var_collection.refresh_var_constraint_mapping()
-    var_collection.store()
+
+    update_var_usage(var_collection)
 
 
 def requirements_consistency_check(app, args):
@@ -956,6 +961,8 @@ def requirements_consistency_check(app, args):
 
     if count > 0:
         logging.info('Done with consistency check. Repaired {} requirements'.format(count))
+
+    update_var_usage(var_collection)
 
 
 def create_revision(args, base_revision_name):
