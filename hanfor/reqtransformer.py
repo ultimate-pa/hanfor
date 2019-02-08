@@ -1344,7 +1344,7 @@ class VarImportSession:
     def apply_constraint_selection(self):
         used_variables = set()
         for var_name, available_constraints in self.available_constraints.items():
-            if len(available_constraints) > 0:
+            if len(available_constraints) > 0 and var_name in self.result_var_collection.collection.keys():
                 self.result_var_collection.collection[var_name].constraints = []
                 for id, constraint in available_constraints.items():
                     if constraint['to_result']:
