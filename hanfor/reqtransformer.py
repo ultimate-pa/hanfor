@@ -307,6 +307,14 @@ class Formalization:
             + Extract variables. Replace by their ID. Create new Variables if they do not exist.
             + For used variables and update the "used_by_requirements" set.
 
+        :type mapping: dict
+        :param mapping: {'P': 'foo > 0', 'Q': 'expression for Q', ...}
+        :type app: Flask
+        :type variable_collection: VariableCollection
+        :param variable_collection: Currently used VariableCollection.
+        :type rid: str
+        :param rid: associated requirement id
+
         :return: type_inference_errors dict {key: type_env, ...}
         :rtype: dict
         """
@@ -323,23 +331,45 @@ class Formalization:
         self.type_inference_check(variable_collection)
 
     def type_inference_check(self, variable_collection):
+        """ Apply type inference check for the expressions in this formalization.
+        Reload if applied multiple times.
+
+        :param variable_collection: The current VariableCollection
+        """
         type_inference_errors = dict()
         allowed_types = self.scoped_pattern.get_allowed_types()
         var_env = variable_collection.get_boogie_type_env()
 
         for key, expression in self.expressions_mapping.items():
+            # We can only check type inference,
+            # if the pattern has declared allowed types for the current pattern key e.g. `P`
             if key not in allowed_types.keys():
                 continue
-            tree = boogie_parsing.get_parser_instance().parse(expression.raw_expression)
+
+            # Check if the given expression can be parsed by lark.
+            # Else there is a syntax error in the expression.
+            try:
+                tree = boogie_parsing.get_parser_instance().parse(expression.raw_expression)
+            except Exception as e:
+                logging.error(
+                    'Lark could not parse expression `{}`: \n {}. Skipping type inference'.format(
+                        expression.raw_expression,
+                        e
+                    )
+                )
+                continue
+
+            # Derive type for variables in expression and update missing or changed types.
             type, type_env = boogie_parsing.infer_variable_types(tree, var_env).derive_type()
-            if type not in allowed_types[key]:  # We have derived error.
+            if type not in allowed_types[key]:  # We have derived error, mark this expression as type error.
                 type_inference_errors[key] = type_env
             for name, type in type_env.items():  # Update the hanfor variable types.
-                try:
-                    if variable_collection.collection[name].type.lower() in ['const', 'enum']:
-                        continue
-                except:
-                    pass
+                if name not in variable_collection.collection.keys():
+                    logging.info('Add misssing var `{}`, of type `{}`'.format(name, type.name))
+                    variable_collection.add_var(name)
+                    variable_collection.set_type(name, type.name)
+                if variable_collection.collection[name].type.lower() in ['const', 'enum']:
+                    continue
                 if variable_collection.collection[name].type not in boogie_parsing.BoogieType.aliases(type):
                     logging.info('Update variable `{}` with derived type. Old: `{}` => New: `{}`.'.format(
                         name,
