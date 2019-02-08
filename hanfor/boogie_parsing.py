@@ -208,9 +208,13 @@ def get_variables_list(tree):
 
     return result
 
+lark = None
 
 def get_parser_instance():
-    return Lark(hanfor_boogie_grammar, start='exprcommastar')
+    global lark
+    if lark is None:
+        lark = Lark(hanfor_boogie_grammar, start='exprcommastar')
+    return lark
 
 
 def replace_var_in_expression(expression, old_var, new_var, parser=None, matching_terminal_names=('ID')):
