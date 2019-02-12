@@ -1394,7 +1394,7 @@ class GenerateScopedPatternTrainingData(argparse.Action):
                             result[slug][f_key]['formalization'] = formalization.get_string()
                     except AttributeError:
                         continue
-            with open('training_data', mode='w', encoding='utf-8') as f:
+            with open('training_data.json', mode='w', encoding='utf-8') as f:
                 json.dump(result, f)
         exit(0)
 
