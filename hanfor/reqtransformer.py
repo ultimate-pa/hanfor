@@ -563,6 +563,10 @@ class Pattern:
         'ConstrainedTimedExistence':
             'it is always the case that if {R} holds, then {S} holds after at most {T} time units for at least '
             '{U} time units',
+        'Toggle1':
+            'if {R} holds then {S} toggles {T}',
+        'Toggle2':
+            'if {R} holds then {S} toggles {T} at most {U} time units later',
         'NotFormalizable': '// not formalizable'
     }
 
@@ -653,6 +657,17 @@ class Pattern:
             'R': [boogie_parsing.BoogieType.bool],
             'S': [boogie_parsing.BoogieType.bool],
             'T': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
+            'U': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
+        },
+        'Toggle1': {
+            'R': [boogie_parsing.BoogieType.bool],
+            'S': [boogie_parsing.BoogieType.bool],
+            'T': [boogie_parsing.BoogieType.bool],
+        },
+        'Toggle2': {
+            'R': [boogie_parsing.BoogieType.bool],
+            'S': [boogie_parsing.BoogieType.bool],
+            'T': [boogie_parsing.BoogieType.bool],
             'U': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
         },
         'NotFormalizable': {}

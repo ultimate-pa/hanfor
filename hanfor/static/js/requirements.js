@@ -302,6 +302,7 @@ function update_vars() {
             case 'BoundedResponse':
             case 'BoundedInvariance':
             case 'TimeConstrainedInvariant':
+            case 'Toggle1':
                 var_r.show();
                 var_s.show();
                 var_t.show();
@@ -309,6 +310,7 @@ function update_vars() {
             case 'ConstrainedChain':
             case 'TimeConstrainedMinDuration':
             case 'ConstrainedTimedExistence':
+            case 'Toggle2':
                 var_r.show();
                 var_s.show();
                 var_t.show();
