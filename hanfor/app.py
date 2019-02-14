@@ -749,7 +749,6 @@ def var_import_session(session_id, command):
 @app.route('/<site>')
 def site(site):
     available_sites = [
-        'autocomplete',
         'help',
         'statistics',
         'variables',

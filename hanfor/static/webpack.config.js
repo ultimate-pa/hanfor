@@ -3,7 +3,6 @@ const webpack = require('webpack');
 const config = {
     entry: {
         layout_globals: __dirname + '/js/layout-globals.js',
-        autocomplete: __dirname + '/js/autocomplete.js',
         requirements: __dirname + '/js/requirements.js',
         variables: __dirname + '/js/variables.js',
         variable_import: __dirname + '/js/variable-import.js',
