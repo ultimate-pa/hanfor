@@ -366,7 +366,8 @@ class Formalization:
             if type not in allowed_types[key]:  # We have derived error, mark this expression as type error.
                 type_inference_errors[key] = type_env
             for name, type in type_env.items():  # Update the hanfor variable types.
-                if variable_collection.collection[name].type.lower() in ['const', 'enum']:
+                if (variable_collection.collection[name].type is not None
+                        and variable_collection.collection[name].type.lower() in ['const', 'enum']):
                     continue
                 if variable_collection.collection[name].type not in boogie_parsing.BoogieType.aliases(type):
                     logging.info('Update variable `{}` with derived type. Old: `{}` => New: `{}`.'.format(
