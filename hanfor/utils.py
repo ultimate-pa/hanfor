@@ -81,8 +81,8 @@ default_pattern_options = '''
         then {T} holds afterwards</option>
     <option value="ConstrainedTimedExistence">it is always the case that if {R} holds,
         then {S} holds after at most {T} time units for at least {U} time units</option>
-    <option value="Toggle1">if {R} holds then {S} toggles {T}</option>
-    <option value="Toggle2">if {R} holds then {S} toggles {T} at most {U} time units later</option>
+    <option value="Toggle1">it is always the case that if {R} holds then {S} toggles {T}</option>
+    <option value="Toggle2">it is always the case that if {R} holds then {S} toggles {T} at most {U} time units later</option>
     </optgroup>
     <optgroup label="not_formalizable">
     <option value="NotFormalizable">// not formalizable</option>

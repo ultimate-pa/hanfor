@@ -564,9 +564,9 @@ class Pattern:
             'it is always the case that if {R} holds, then {S} holds after at most {T} time units for at least '
             '{U} time units',
         'Toggle1':
-            'if {R} holds then {S} toggles {T}',
+            'it is always the case that if {R} holds then {S} toggles {T}',
         'Toggle2':
-            'if {R} holds then {S} toggles {T} at most {U} time units later',
+            'it is always the case that if {R} holds then {S} toggles {T} at most {U} time units later',
         'NotFormalizable': '// not formalizable'
     }
 
