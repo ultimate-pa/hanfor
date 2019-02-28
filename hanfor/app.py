@@ -418,8 +418,8 @@ def api(resource, command):
                                 else:
                                     raise TypeError('Type: `{}` not supported as guesses'.format(type(tmp_guesses[0])))
                                 if insert_mode == 'override':
-                                    for f_id in range(len(requirement.formalizations)):
-                                        requirement.delete_formalization(0, app)
+                                    for f_id in requirement.formalizations.keys():
+                                        requirement.delete_formalization(f_id, app)
                                 for score, scoped_pattern, mapping in top_guesses:
                                     formalization_id, formalization = requirement.add_empty_formalization()
                                     # Add add content to the formalization.
@@ -824,8 +824,7 @@ def update_var_usage(var_collection):
     var_collection.store()
 
 
-def varcollection_consistency_check(app, args=None):
-    logging.info('Check Variables for consistency.')
+def varcollection_version_migrations(app, args):
     # Migrate from old Hanfor versions
     try:
         VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
@@ -847,6 +846,21 @@ def varcollection_consistency_check(app, args=None):
         new_var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
         logging.info('Migrated old collection.')
 
+    # Migrations to use dicts as constraints collection.
+    var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+    for name, variable in var_collection.collection.items():
+        if variable.hanfor_version == '0.0.0':
+            if hasattr(variable, 'constraints') and type(variable.constraints) is list:
+                constraints = dict(enumerate(variable.constraints))
+                variable.constraints = constraints
+            variable.hanfor_version = '1.0.1'
+
+    var_collection.store()
+
+
+def varcollection_consistency_check(app, args=None):
+    logging.info('Check Variables for consistency.')
+
     # Check for Import sessions
     var_import_sessions_path = os.path.join(app.config['SESSION_BASE_FOLDER'], 'variable_import_sessions.pickle')
     try:
@@ -861,9 +875,10 @@ def varcollection_consistency_check(app, args=None):
         var_collection.reload_type_inference_errors_in_constraints()
 
     update_var_usage(var_collection)
+    var_collection.store()
 
 
-def requirements_consistency_check(app, args):
+def requirements_version_migrations(app, args):
     logging.info('Check requirements consistency.')
     filenames = utils.get_filenames_from_dir(app.config['REVISION_FOLDER'])
     var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
@@ -877,7 +892,7 @@ def requirements_consistency_check(app, args):
             if type(req) == Requirement:
                 changes = False
                 if req.formalizations is None:
-                    req.formalizations = list()
+                    req.formalizations = dict()
                     changes = True
                 if type(req.type_in_csv) is tuple:
                     changes = True
@@ -888,9 +903,16 @@ def requirements_consistency_check(app, args):
                 if type(req.description) is tuple:
                     changes = True
                     req.description = req.description[0]
+                # Migrate list formalizations to use dict
+                if req.hanfor_version == '0.0.0':
+                    req.hanfor_version = '1.0.1'
+                    changes = True
+                    if type(req.formalizations) is list:
+                        formalizations = dict(enumerate(req.formalizations))
+                        req.formalizations = formalizations
                 # Derive type inference errors if not set.
                 try:
-                    for formalization in req.formalizations:
+                    for formalization in req.formalizations.values():
                         tmp = formalization.type_inference_errors
                 except:
                     logging.info('Update type inference results for `{}`'.format(req.rid))
@@ -902,6 +924,7 @@ def requirements_consistency_check(app, args):
                     utils.store_requirement(req, app)
         except ImportError:
             # The "old" requirements before the refactoring.
+            logging.info('Migrate old requirement from `{}`'.format(filename))
             sys.modules['reqtransformer.reqtransformer'] = reqtransformer
             sys.modules['reqtransformer.patterns'] = reqtransformer
             req = utils.pickle_load_from_dump(filename)  # type: Requirement
@@ -952,7 +975,7 @@ def requirements_consistency_check(app, args):
                     app=app,
                     rid=rid
                 )
-                new_requirement.formalizations.append(formalization)
+                new_requirement.add_formalization(formalization)
             new_requirement.status = status
             new_requirement.tags = tags
             utils.pickle_dump_obj_to_file(new_requirement, filename)
@@ -1265,9 +1288,12 @@ def startup_hanfor(args, HERE):
     # Initialize meta settings
     init_meta_settings()
 
+    # Run version migrations
+    varcollection_version_migrations(app, args)
+    requirements_version_migrations(app, args)
+
     # Run consistency checks.
     varcollection_consistency_check(app, args)
-    requirements_consistency_check(app, args)
 
 
 def fetch_hanfor_version():

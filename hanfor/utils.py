@@ -203,7 +203,7 @@ def store_requirement(requirement, app):
 
 def formalizations_to_html(app, formalizations):
     result = ''
-    for index, formalization in enumerate(formalizations):
+    for index, formalization in formalizations.items():
         result += formalization_html(
             app.config['TEMPLATES_FOLDER'],
             index,
@@ -656,7 +656,7 @@ def rename_variable_in_expressions(app, occurences, var_name_old, var_name):
         if os.path.exists(filepath) and os.path.isfile(filepath):
             requirement = pickle_load_from_dump(filepath)  # type: Requirement
             # replace in every formalization
-            for index, formalization in enumerate(requirement.formalizations):
+            for index, formalization in requirement.formalizations.items():
                 for key, expression in formalization.expressions_mapping.items():
                     if var_name_old not in expression.raw_expression:
                         continue
@@ -963,7 +963,7 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
                         boogie_parsing.BoogieType.reverse_alias(var.type).name
                     ))
                 try:
-                    for index, constraint in enumerate(var.constraints):
+                    for index, constraint in var.constraints.items():
                         if constraint.scoped_pattern is None:
                             continue
                         if constraint.scoped_pattern.get_scope_slug().lower() == 'none':
@@ -997,7 +997,7 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
         used_slugs = set()
         for requirement in requirements:  # type: Requirement
             try:
-                for index, formalization in enumerate(requirement.formalizations):
+                for index, formalization in requirement.formalizations.items():
                     slug, used_slugs = clean_identifier_for_ultimate_parser(requirement.rid, used_slugs)
                     if formalization.scoped_pattern is None:
                         continue
@@ -1379,7 +1379,7 @@ class GenerateScopedPatternTrainingData(argparse.Action):
                         slug, used_slugs = clean_identifier_for_ultimate_parser(requirement.rid, used_slugs)
                         result[slug] = dict()
                         result[slug]['desc'] = requirement.description
-                        for index, formalization in enumerate(requirement.formalizations):
+                        for index, formalization in requirement.formalizations.items():
                             if formalization.scoped_pattern is None:
                                 continue
                             if formalization.scoped_pattern.get_scope_slug().lower() == 'none':

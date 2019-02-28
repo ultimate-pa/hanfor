@@ -20,9 +20,27 @@ import utils
 from enum import Enum
 from copy import deepcopy
 
+__version__ = '1.0.1'
 
-class RequirementCollection:
+
+class HanforVersioned:
     def __init__(self):
+        self._hanfor_version = __version__
+
+    @property
+    def hanfor_version(self) -> str:
+        if not hasattr(self, '_hanfor_version'):
+            self._hanfor_version = '0.0.0'
+        return self._hanfor_version
+
+    @hanfor_version.setter
+    def hanfor_version(self, val):
+        self._hanfor_version = val
+
+
+class RequirementCollection(HanforVersioned):
+    def __init__(self):
+        super().__init__()
         self.csv_meta = {
             'dialect': None,
             'fieldnames': None,
@@ -116,10 +134,11 @@ class RequirementCollection:
             self.requirements.append(requirement)
 
 
-class Requirement:
+class Requirement(HanforVersioned):
     def __init__(self, rid, description, type_in_csv, csv_row, pos_in_csv):
+        super().__init__()
         self.rid = rid
-        self.formalizations = list()
+        self.formalizations = dict()
         self.description = description
         self.type_in_csv = type_in_csv
         self.csv_row = csv_row
@@ -129,7 +148,7 @@ class Requirement:
 
     def to_dict(self):
         type_inference_errors = dict()
-        for index, f in enumerate(self.formalizations):
+        for index, f in self.formalizations.items():
             if f.has_type_inference_errors():
                 type_inference_errors[index] = [key.lower() for key in f.type_inference_errors.keys()]
         d = {
@@ -137,7 +156,7 @@ class Requirement:
             'desc': self.description,
             'type': self.type_in_csv if type(self.type_in_csv) is str else self.type_in_csv[0],
             'tags': sorted([tag for tag in self.tags]),
-            'formal': [f.get_string() for f in self.formalizations],
+            'formal': [f.get_string() for f in self.formalizations.values()],
             'scope': 'None',
             'pattern': 'None',
             'vars': dict(),
@@ -184,6 +203,11 @@ class Requirement:
             if len(diff) > 0:
                 self._revision_diff[csv_key] = diff
 
+    def _next_free_formalization_id(self):
+        i = 0
+        while i in self.formalizations.keys():
+            i += 1
+        return i
 
     def add_empty_formalization(self):
         """ Add an empty formalization to the formalizations list.
@@ -191,11 +215,22 @@ class Requirement:
         :return: The id of the requirement (pos in list)
         :rtype: int
         """
-        if self.formalizations is None:
-            self.formalizations = list()
-        self.formalizations.append(Formalization())
+        return self.add_formalization(Formalization())
 
-        return len(self.formalizations) - 1, self.formalizations[-1]
+    def add_formalization(self, formalization):
+        """ Add given formalization to this requirement
+
+        :type formalization: Formalization
+        :param formalization: The Formalization
+        :return: (int, Formalization) The formalization ID and the Formalization itself.
+        """
+        if self.formalizations is None:
+            self.formalizations = dict()
+
+        id = self._next_free_formalization_id()
+        self.formalizations[id] = formalization
+
+        return id, self.formalizations[id]
 
     def delete_formalization(self, formalization_id, app):
         formalization_id = int(formalization_id)
@@ -205,7 +240,7 @@ class Requirement:
         del self.formalizations[formalization_id]
         # Collect remaining vars.
         remaining_vars = set()
-        for formalization in self.formalizations:
+        for formalization in self.formalizations.values():
             for expression in formalization.expressions_mapping.values():
                 if expression.used_variables is not None:
                     remaining_vars = remaining_vars.union(expression.used_variables)
@@ -264,7 +299,7 @@ class Requirement:
     def reload_type_inference(self, var_collection, app):
         logging.info('Reload type inference for `{}`'.format(self.rid))
         self.tags.discard('Type_inference_error')
-        for id in range(len(self.formalizations)):
+        for id in self.formalizations.keys():
             try:
                 self.formalizations[id].type_inference_check(var_collection)
                 if len(self.formalizations[id].type_inference_errors) > 0:
@@ -283,8 +318,9 @@ class Requirement:
         return ''
 
 
-class Formalization:
+class Formalization(HanforVersioned):
     def __init__(self):
+        super().__init__()
         self.scoped_pattern = None
         self.expressions_mapping = dict()
         self.belongs_to_requirement = None
@@ -400,7 +436,7 @@ class Formalization:
         return len(self.type_inference_errors) > 0
 
 
-class Expression:
+class Expression(HanforVersioned):
     """ Representing a Expression in a ScopedPattern.
     For example: Let
        `Globally, {P} is always true.`
@@ -412,6 +448,7 @@ class Expression:
         """ Create an empty new expression.
 
         """
+        super().__init__()
         self.used_variables = None
         self.raw_expression = None
         self.parent_rid = None
@@ -743,8 +780,9 @@ class ScopedPattern:
         return result
 
 
-class VariableCollection:
+class VariableCollection(HanforVersioned):
     def __init__(self):
+        super().__init__()
         self.collection = dict()
         self.req_var_mapping = dict()
         self.var_req_mapping = dict()
@@ -832,16 +870,18 @@ class VariableCollection:
         :param new_name: The new var name.
         :type new_name: str
         """
-        # Store constraints if currently
+        # Store constraints to restore later on.
         tmp_constraints = []
         try:
-            tmp_constraints += self.collection[old_name].get_constraints()
+            tmp_constraints += self.collection[old_name].get_constraints().values()
         except:
             pass
         try:
-            tmp_constraints += self.collection[new_name].get_constraints()
+            tmp_constraints += self.collection[new_name].get_constraints().values()
         except:
             pass
+
+        tmp_constraints = dict(enumerate(tmp_constraints))
 
         # Copy to new location.
         self.collection[new_name] = self.collection.pop(old_name)
@@ -947,7 +987,7 @@ class VariableCollection:
                     return True
                 else:
                     # The variable exists. Now check if var_name occures in one of its constraints.
-                    for constraint in self.collection[constraint_variable_name].get_constraints():
+                    for constraint in self.collection[constraint_variable_name].get_constraints().values():
                         if var_name in constraint.get_string():
                             return False
                     try:
@@ -978,7 +1018,7 @@ class VariableCollection:
         for filename in filenames:
             req = utils.pickle_load_from_dump(filename)  # type: Requirement
             if type(req) is Requirement:
-                for formalization in req.formalizations:
+                for formalization in req.formalizations.values():
                     try:
                         for var_name in formalization.used_variables:
                             if var_name not in mapping.keys():
@@ -992,7 +1032,7 @@ class VariableCollection:
 
         # Add the constraints using this variable.
         for var in self.collection.values():
-            for constraint in var.get_constraints():
+            for constraint in var.get_constraints().values():
                 for constraint_id, expression in enumerate(constraint.expressions_mapping.values()):
                     for var_name in expression.get_used_variables():
                         if var_name not in mapping.keys():
@@ -1010,11 +1050,16 @@ class VariableCollection:
             return True
         return False
 
+    def run_version_migrations(self):
+        for name, variable in self.collection.items():  # type: (str, Variable)
+            variable.run_version_migrations()
 
-class Variable:
+
+class Variable(HanforVersioned):
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
 
     def __init__(self, name, type, value):
+        super().__init__()
         self.name = name
         self.type = type
         self.value = value
@@ -1023,7 +1068,7 @@ class Variable:
     def to_dict(self, var_req_mapping):
         used_by = []
         type_inference_errors = dict()
-        for index, f in enumerate(self.get_constraints()):
+        for index, f in self.get_constraints().items():
             if f.has_type_inference_errors():
                 type_inference_errors[index] = [key.lower() for key in f.type_inference_errors.keys()]
         try:
@@ -1038,7 +1083,7 @@ class Variable:
             'used_by': used_by,
             'tags': list(self.get_tags()),
             'type_inference_errors': type_inference_errors,
-            'constraints': [constraint.get_string() for constraint in self.get_constraints()]
+            'constraints': [constraint.get_string() for constraint in self.get_constraints().values()]
         }
 
         return d
@@ -1061,21 +1106,32 @@ class Variable:
         except AttributeError:
             return set()
 
+    def _next_free_constraint_id(self):
+        i = 0
+        try:
+            while i in self.constraints.keys():
+                i += 1
+        except:
+            pass
+        return i
+
     def add_constraint(self):
         """ Add a new empty constraint
 
         :return: (index: int, The constraint: Formalization)
         """
+        id = self._next_free_constraint_id()
         try:
-            self.constraints.append(Formalization())
+            self.constraints[id] = Formalization()
         except:
-            self.constraints = [Formalization()]
+            self.constraints = dict()
+            self.constraints[id] = Formalization()
 
-        return len(self.constraints) - 1, self.constraints[-1]
+        return id, self.constraints[id]
 
     def del_constraint(self, id):
         try:
-            self.constraints.pop(id)
+            del self.constraints[id]
             return True
         except:
             logging.debug('Constraint id `{}` not found in var `{}`'.format(id, self.name))
@@ -1085,12 +1141,12 @@ class Variable:
         try:
             return self.constraints
         except:
-            return []
+            return dict()
 
     def reload_constraints_type_inference_errors(self, var_collection):
         logging.info('Reload type inference for variable `{}` constraints'.format(self.name))
         self.remove_tag('Type_inference_error')
-        for id in range(len(self.get_constraints())):
+        for id in self.get_constraints().keys():
             try:
                 self.constraints[id].type_inference_check(var_collection)
                 if len(self.constraints[id].type_inference_errors) > 0:
@@ -1149,7 +1205,7 @@ class Variable:
 
         :return: updated VariableCollection
         """
-        logging.debug('Updating constraints for variable.'.format(self.name))
+        logging.debug('Updating constraints for variable `{}`.'.format(self.name))
         self.remove_tag('Type_inference_error')
         if variable_collection is None:
             variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
@@ -1174,7 +1230,7 @@ class Variable:
 
     def rename_var_in_constraints(self, old_name, new_name):
         # replace in every formalization
-        for index, constraint in enumerate(self.get_constraints()):
+        for index, constraint in self.get_constraints().items():
             for key, expression in constraint.expressions_mapping.items():
                 if old_name not in expression.raw_expression:
                     continue
@@ -1224,6 +1280,10 @@ class Variable:
                     break
         return result
 
+    def run_version_migrations(self):
+        if self.hanfor_version == '0.0.0':
+            self.constraints = dict(enumerate(self.get_constraints()))
+            self.hanfor_version = '1.0.1'
 
 # This PatternVariable is here only for compatibility reasons
 # when migrating an old Hanfor session.
@@ -1263,13 +1323,17 @@ class Tag:
         return self.name != other.name
 
 
-class VarImportSession:
+class VarImportSession(HanforVersioned):
     def __init__(self, source_var_collection, target_var_collection):
         """
 
         :type source_var_collection: VariableCollection
         :type target_var_collection: VariableCollection
         """
+        super().__init__()
+        source_var_collection.run_version_migrations()
+        target_var_collection.run_version_migrations()
+
         self.source_var_collection = source_var_collection
         self.target_var_collection = target_var_collection
 
@@ -1286,22 +1350,22 @@ class VarImportSession:
             av_dict = dict()
             i = 0
             if 'source' in vars:
-                for j, c in enumerate(vars['source']['constraints']):
+                for j, c in self.source_var_collection.collection[name].get_constraints().items():
                     i += 1
                     av_dict[i] = {
                         'id': i,
                         'origin_id': j,
-                        'constraint': c,
+                        'constraint': c.get_string(),
                         'origin': 'source',
                         'to_result': False
                     }
             if 'target' in vars:
-                for j, c in enumerate(vars['target']['constraints']):
+                for j, c in self.target_var_collection.collection[name].get_constraints().items():
                     i += 1
                     av_dict[i] = {
                         'id': i,
                         'origin_id': j,
-                        'constraint': c,
+                        'constraint': c.get_string(),
                         'origin': 'target',
                         'to_result': True
                     }
@@ -1412,8 +1476,9 @@ class VarImportSession:
         return info
 
 
-class VarImportSessions:
+class VarImportSessions(HanforVersioned):
     def __init__(self, path=None):
+        super().__init__()
         self.import_sessions = list()
         self.my_path = path
 

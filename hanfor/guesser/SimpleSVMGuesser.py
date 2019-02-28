@@ -84,7 +84,7 @@ class SimpleSVMGuesser(AbstractGuesser):
             if type(req) is Requirement:
                 # Todo: Preprocess the description, like replace vars "s_sdf_56_dodo" by "var_a"
                 # Todo: Preprocess desc: replace := by "assign", etc.
-                for formalization in req.formalizations:
+                for formalization in req.formalizations.values():
                     training_data['data'].append(
                         req.description
                     )
