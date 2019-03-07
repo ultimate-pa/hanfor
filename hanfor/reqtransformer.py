@@ -9,18 +9,18 @@ from collections import defaultdict
 from typing import Dict
 
 import os
+import pickle
 import re
 
 import boogie_parsing
 import logging
-import random
 import string
-import utils
+from static_utils import choice, get_filenames_from_dir
 
 from enum import Enum
 from copy import deepcopy
 
-__version__ = '1.0.1'
+__version__ = '1.0.0'
 
 
 class HanforVersioned:
@@ -31,16 +31,45 @@ class HanforVersioned:
     def hanfor_version(self) -> str:
         if not hasattr(self, '_hanfor_version'):
             self._hanfor_version = '0.0.0'
+
         return self._hanfor_version
 
     @hanfor_version.setter
     def hanfor_version(self, val):
         self._hanfor_version = val
 
+    @property
+    def has_version_mismatch(self) -> bool:
+        return __version__ != self.hanfor_version
 
-class RequirementCollection(HanforVersioned):
+
+class Pickleable:
+    def __init__(self, path):
+        self.my_path = path
+
+    @classmethod
+    def load(self, path):
+        assert os.path.getsize(path) > 0
+        with open(path, mode='rb') as f:
+            me = pickle.load(f)
+            assert isinstance(me, self)
+
+        me.my_path = path
+
+        return me
+
+    def store(self, path=None):
+        if path is not None:
+            self.my_path = path
+
+        with open(self.my_path, mode='wb') as out_file:
+            pickle.dump(self, out_file)
+
+
+class RequirementCollection(HanforVersioned, Pickleable):
     def __init__(self):
-        super().__init__()
+        HanforVersioned.__init__(self)
+        Pickleable.__init__(self, None)
         self.csv_meta = {
             'dialect': None,
             'fieldnames': None,
@@ -96,7 +125,7 @@ class RequirementCollection(HanforVersioned):
         use_old_headers = False
         if base_revision_headers:
             print('Should I use the csv header mapping from base revision?')
-            use_old_headers = utils.choice(['yes', 'no'], 'yes')
+            use_old_headers = choice(['yes', 'no'], 'yes')
         if base_revision_headers and use_old_headers == 'yes':
             self.csv_meta['id_header'] = base_revision_headers['csv_id_header']
             self.csv_meta['desc_header'] = base_revision_headers['csv_desc_header']
@@ -104,19 +133,19 @@ class RequirementCollection(HanforVersioned):
             self.csv_meta['type_header'] = base_revision_headers['csv_type_header']
         else:
             print('Select ID header')
-            self.csv_meta['id_header'] = utils.choice(self.csv_meta['headers'], 'ID')
+            self.csv_meta['id_header'] = choice(self.csv_meta['headers'], 'ID')
             print('Select requirements description header')
-            self.csv_meta['desc_header'] = utils.choice(
+            self.csv_meta['desc_header'] = choice(
                 self.csv_meta['headers'],
                 'System Requirement Specification of Audi Central Connected Getway'
             )
             print('Select formalization header')
-            self.csv_meta['formal_header'] = utils.choice(self.csv_meta['headers'] + ['Add new Formalization'],
+            self.csv_meta['formal_header'] = choice(self.csv_meta['headers'] + ['Add new Formalization'],
                                                           'Formal Req')
             if self.csv_meta['formal_header'] == 'Add new Formalization':
                 self.csv_meta['formal_header'] = 'Hanfor_Formalization'
             print('Select type header.')
-            self.csv_meta['type_header'] = utils.choice(self.csv_meta['headers'], 'RB_Classification')
+            self.csv_meta['type_header'] = choice(self.csv_meta['headers'], 'RB_Classification')
 
     def parse_csv_rows_into_requirements(self):
         """ Parse each row in csv_all_rows into one Requirement.
@@ -134,9 +163,10 @@ class RequirementCollection(HanforVersioned):
             self.requirements.append(requirement)
 
 
-class Requirement(HanforVersioned):
+class Requirement(HanforVersioned, Pickleable):
     def __init__(self, rid, description, type_in_csv, csv_row, pos_in_csv):
-        super().__init__()
+        HanforVersioned.__init__(self)
+        Pickleable.__init__(self, None)
         self.rid = rid
         self.formalizations = dict()
         self.description = description
@@ -177,9 +207,27 @@ class Requirement(HanforVersioned):
         :param app: The flask app.
         :rtype: Requirement
         """
-        filepath = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(id))
-        if os.path.exists(filepath) and os.path.isfile(filepath):
-            return utils.pickle_load_from_dump(filepath)
+        path = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(id))
+        return Requirement.load(path)
+
+    @classmethod
+    def load(self, path):
+        me = Pickleable.load(path)
+        assert isinstance(me, self)
+
+        if me.has_version_mismatch:
+            logging.info('`{}` needs upgrade `{}` -> `{}`'.format(
+                me,
+                me.hanfor_version,
+                __version__
+            ))
+            me.run_version_migrations()
+            me.store()
+
+        return me
+
+    def store(self, path=None):
+        super().store(path)
 
     @property
     def revision_diff(self) -> Dict[str, str]:
@@ -311,12 +359,20 @@ class Requirement(HanforVersioned):
                     id,
                     e
                 ))
-        utils.store_requirement(self, app)
+        self.store()
 
     def get_formalization_string(self):
         # TODO: implement this. (Used to print the whole formalization into the csv).
         return ''
 
+    def run_version_migrations(self):
+        if self.hanfor_version == '0.0.0':
+            # Migrate list formalizations to use dict
+            self.hanfor_version = '1.0.0'
+            if type(self.formalizations) is list:
+                formalizations = dict(enumerate(self.formalizations))
+                self.formalizations = formalizations
+            self.store()
 
 class Formalization(HanforVersioned):
     def __init__(self):
@@ -780,9 +836,10 @@ class ScopedPattern:
         return result
 
 
-class VariableCollection(HanforVersioned):
-    def __init__(self):
-        super().__init__()
+class VariableCollection(HanforVersioned, Pickleable):
+    def __init__(self, path):
+        HanforVersioned.__init__(self)
+        Pickleable.__init__(self, path)
         self.collection = dict()
         self.req_var_mapping = dict()
         self.var_req_mapping = dict()
@@ -793,9 +850,19 @@ class VariableCollection(HanforVersioned):
 
     @classmethod
     def load(self, path) -> 'VariableCollection':
-        vc = utils.pickle_load_from_dump(path)
-        vc.my_path = path
-        return vc
+        me = Pickleable.load(path)
+        assert isinstance(me, self)
+
+        if me.has_version_mismatch:
+            logging.info('`{}` needs upgrade `{}` -> `{}`'.format(
+                me,
+                me.hanfor_version,
+                __version__
+            ))
+            me.run_version_migrations()
+            me.store()
+
+        return me
 
     def get_available_vars_list(self, sort_by=None, used_only=False, exclude_types=frozenset()):
         """ Returns a list of all available var names.
@@ -837,10 +904,8 @@ class VariableCollection(HanforVersioned):
             self.collection[var_name] = Variable(var_name, None, None)
 
     def store(self, path=None):
-        if path is None:
-            path = self.my_path
         self.var_req_mapping = self.invert_mapping(self.req_var_mapping)
-        utils.pickle_dump_obj_to_file(self, path)
+        super().store(path)
 
     def invert_mapping(self, mapping):
         newdict = {}
@@ -1011,27 +1076,31 @@ class VariableCollection(HanforVersioned):
                 self.collection[name] = var
 
     def refresh_var_usage(self, app):
-        filenames = utils.get_filenames_from_dir(app.config['REVISION_FOLDER'])
+        filenames = get_filenames_from_dir(app.config['REVISION_FOLDER'])
         mapping = dict()
 
         # Add the requirements using this variable.
         for filename in filenames:
-            req = utils.pickle_load_from_dump(filename)  # type: Requirement
-            if type(req) is Requirement:
-                for formalization in req.formalizations.values():
-                    try:
-                        for var_name in formalization.used_variables:
-                            if var_name not in mapping.keys():
-                                mapping[var_name] = set()
-                            mapping[var_name].add(req.rid)
-                    except TypeError:
-                        pass
-                    except Exception as e:
-                        logging.info('Could not read formalizations for `{}`: {}'.format(req.rid, e))
-                        raise e
+            try:
+                req = Requirement.load(filename)
+            except AssertionError:
+                continue
+            for formalization in req.formalizations.values():
+                try:
+                    for var_name in formalization.used_variables:
+                        if var_name not in mapping.keys():
+                            mapping[var_name] = set()
+                        mapping[var_name].add(req.rid)
+                except TypeError:
+                    pass
+                except Exception as e:
+                    logging.info('Could not read formalizations for `{}`: {}'.format(req.rid, e))
+                    raise e
 
         # Add the constraints using this variable.
         for var in self.collection.values():
+            if type(var.get_constraints()) is list:
+                print('ohoh')
             for constraint in var.get_constraints().values():
                 for constraint_id, expression in enumerate(constraint.expressions_mapping.values()):
                     for var_name in expression.get_used_variables():
@@ -1051,8 +1120,10 @@ class VariableCollection(HanforVersioned):
         return False
 
     def run_version_migrations(self):
-        for name, variable in self.collection.items():  # type: (str, Variable)
-            variable.run_version_migrations()
+        if self.hanfor_version == '0.0.0':
+            self.hanfor_version = '1.0.0'
+            for name, variable in self.collection.items():  # type: (str, Variable)
+                variable.run_version_migrations()
 
 
 class Variable(HanforVersioned):
@@ -1283,7 +1354,8 @@ class Variable(HanforVersioned):
     def run_version_migrations(self):
         if self.hanfor_version == '0.0.0':
             self.constraints = dict(enumerate(self.get_constraints()))
-            self.hanfor_version = '1.0.1'
+            self.hanfor_version = '1.0.0'
+
 
 # This PatternVariable is here only for compatibility reasons
 # when migrating an old Hanfor session.
@@ -1330,17 +1402,10 @@ class VarImportSession(HanforVersioned):
         :type source_var_collection: VariableCollection
         :type target_var_collection: VariableCollection
         """
-        super().__init__()
-        source_var_collection.run_version_migrations()
-        target_var_collection.run_version_migrations()
-
+        HanforVersioned.__init__(self)
         self.source_var_collection = source_var_collection
         self.target_var_collection = target_var_collection
-
-        self.result_var_collection = VariableCollection()
-        self.result_var_collection.collection = deepcopy(target_var_collection.collection)
-        self.result_var_collection.req_var_mapping = deepcopy(target_var_collection.req_var_mapping)
-        self.result_var_collection.var_req_mapping = deepcopy(target_var_collection.var_req_mapping)
+        self.result_var_collection = deepcopy(target_var_collection)
 
         self.actions = dict()
         self.init_actions()
@@ -1426,23 +1491,25 @@ class VarImportSession(HanforVersioned):
         used_variables = set()
         for var_name, available_constraints in self.available_constraints.items():
             if len(available_constraints) > 0 and var_name in self.result_var_collection.collection.keys():
-                self.result_var_collection.collection[var_name].constraints = []
+                constraints = []
                 for id, constraint in available_constraints.items():
                     if constraint['to_result']:
                         if constraint['origin'] == 'source':
-                            self.result_var_collection.collection[var_name].constraints.append(deepcopy(
+                            constraints.append(deepcopy(
                                 self.source_var_collection.collection[var_name].constraints[constraint['origin_id']]
                             ))
                         else:
-                            self.result_var_collection.collection[var_name].constraints.append(deepcopy(
+                            constraints.append(deepcopy(
                                 self.target_var_collection.collection[var_name].constraints[constraint['origin_id']]
                             ))
+                self.result_var_collection.collection[var_name].constraints = dict(enumerate(constraints))
                 # Collect used variables to auto include missing ones into the target.
                 vars_in_constraint = set()
-                for constraint in self.result_var_collection.collection[var_name].constraints:
+                for constraint in self.result_var_collection.collection[var_name].constraints.values():
                     for var in constraint.used_variables:
                         vars_in_constraint.add(var)
                 used_variables |= vars_in_constraint
+
         # Include missing vars used by constraints.
         for var_name in used_variables:
             if not var_name in self.result_var_collection.collection:
@@ -1475,23 +1542,43 @@ class VarImportSession(HanforVersioned):
 
         return info
 
+    def run_version_migrations(self):
+        if self.hanfor_version == '0.0.0':
+            self.hanfor_version = '1.0.0'
+            self.source_var_collection.run_version_migrations()
+            self.target_var_collection.run_version_migrations()
+            self.result_var_collection.run_version_migrations()
 
-class VarImportSessions(HanforVersioned):
+
+class VarImportSessions(HanforVersioned, Pickleable):
     def __init__(self, path=None):
-        super().__init__()
+        HanforVersioned.__init__(self)
+        Pickleable.__init__(self, path)
         self.import_sessions = list()
-        self.my_path = path
 
     @classmethod
     def load(self, path) -> 'VarImportSessions':
-        vis = utils.pickle_load_from_dump(path)
-        vis.my_path = path
-        return vis
+        me = Pickleable.load(path)
+        assert isinstance(me, self)
 
-    def store(self, path=None):
-        if path is None:
-            path = self.my_path
-        utils.pickle_dump_obj_to_file(self, path)
+        if me.has_version_mismatch:
+            logging.info('`{}` needs upgrade `{}` -> `{}`'.format(
+                me,
+                me.hanfor_version,
+                __version__
+            ))
+            me.run_version_migrations()
+            me.store()
+
+        return me
+
+    @classmethod
+    def load_for_app(self, app):
+        var_import_sessions_path = os.path.join(
+            app.config['SESSION_BASE_FOLDER'],
+            'variable_import_sessions.pickle'
+        )
+        return VarImportSessions.load(var_import_sessions_path)
 
     def create_new_session(self, source_collection, target_collection):
         new_session = VarImportSession(
@@ -1514,3 +1601,9 @@ class VarImportSessions(HanforVersioned):
             }
 
         return info
+
+    def run_version_migrations(self):
+        if self.hanfor_version == '0.0.0':
+            for import_session in self.import_sessions:  # type: VarImportSession
+                import_session.run_version_migrations()
+            self.hanfor_version = '1.0.0'
