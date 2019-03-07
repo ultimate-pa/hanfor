@@ -4,6 +4,7 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.pipeline import Pipeline
 
 import utils
+from static_utils import get_filenames_from_dir
 from guesser.AbstractGuesser import AbstractGuesser
 from guesser.Guess import Guess
 from guesser.guesser_registerer import register_guesser
@@ -77,10 +78,13 @@ class SimpleSVMGuesser(AbstractGuesser):
             'label': list()
         }
         # Load the requirements
-        filenames = utils.get_filenames_from_dir(self.app.config['REVISION_FOLDER'])
+        filenames = get_filenames_from_dir(self.app.config['REVISION_FOLDER'])
         # Check for Requirements with formalizations and add them to the training data.
         for filename in filenames:
-            req = utils.pickle_load_from_dump(filename)  # type: Requirement
+            try:
+                req = Requirement.load(filename)  # type: Requirement
+            except AssertionError:
+                continue
             if type(req) is Requirement:
                 # Todo: Preprocess the description, like replace vars "s_sdf_56_dodo" by "var_a"
                 # Todo: Preprocess desc: replace := by "assign", etc.

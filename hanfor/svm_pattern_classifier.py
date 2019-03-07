@@ -3,13 +3,12 @@
 @copyright: 2017 Samuel Roth <samuel@smel.de>
 @licence: GPLv3
 """
-import utils
-
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.linear_model import SGDClassifier
 from sklearn.pipeline import Pipeline
 
 from reqtransformer import Pattern
+from static_utils import pickle_dump_obj_to_file, pickle_load_from_dump
 
 PATTERN_EXAMPLES = [
     {'label': 'Invariant', 'desc': 'it is always the case that if "{R}" holds, then "{S}" holds as well'},
@@ -120,12 +119,12 @@ class SvmPatternClassifier:
         self.scope_name_mapping = dict((key, value) for value, key in enumerate(self.scope_names))
 
     def load(self, location):
-        self.pattern_pipeline = utils.pickle_load_from_dump(location)
-        self.scope_pipeline = utils.pickle_load_from_dump(location)
+        self.pattern_pipeline = pickle_load_from_dump(location)
+        self.scope_pipeline = pickle_load_from_dump(location)
 
     def store(self, location):
-        utils.pickle_dump_obj_to_file(self.pattern_pipeline, location)
-        utils.pickle_dump_obj_to_file(self.scope_pipeline, location)
+        pickle_dump_obj_to_file(self.pattern_pipeline, location)
+        pickle_dump_obj_to_file(self.scope_pipeline, location)
 
     def load_training_set(self, doc_list, mapping):
         """ Returns a training_data dictionary from a documents list.
