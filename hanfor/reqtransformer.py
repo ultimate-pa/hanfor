@@ -791,7 +791,7 @@ class ScopedPattern:
         self.regex_pattern = None
 
     def get_string(self, expression_mapping: dict):
-        return self.__str__().format(**expression_mapping)
+        return self.__str__().format(**expression_mapping).replace('\n', ' ').replace('\r', ' ')
 
     def instantiate(self, *args):
         return self.pattern.instantiate(self.scope, *args)
