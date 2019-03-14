@@ -1,3 +1,6 @@
+"""
+Test type inferences using boogie_parsing.
+"""
 from unittest import TestCase
 
 from lark import Tree
