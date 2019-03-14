@@ -843,7 +843,6 @@ class VariableCollection(HanforVersioned, Pickleable):
         self.collection = dict()
         self.req_var_mapping = dict()
         self.var_req_mapping = dict()
-        self.my_path = None
 
     def __contains__(self, item):
         return item in self.collection.keys()
