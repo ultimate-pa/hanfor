@@ -62,9 +62,17 @@ class TestHanforVersionMigrations(TestCase):
         mock_results = user_mock_answers
 
         startup_hanfor(args, HERE)
-    
-    def test_migration(self):
-        pass
+
+    def test_migrations(self):
+        for version_slug, version_tag in VERSION_TAGS.items():
+            args = utils.HanforArgumentParser(app).parse_args(
+                [CSV_FILES[version_slug], VERSION_TAGS[version_slug]]
+            )
+            self.startup_hanfor(args, user_mock_answers=[])
+            # Get the available requirements.
+            initial_req_gets = self.app.get('api/req/gets')
+            self.assertEqual(initial_req_gets.json['data'][1]['desc'], 'always look on the bright side of life')
+            self.assertListEqual(initial_req_gets.json['data'][1]['tags'], ['unseen'])
 
     def tearDown(self):
         # Clean test dir.
@@ -82,3 +90,7 @@ class TestHanforVersionMigrations(TestCase):
 
     def clean_folders(self):
         print('Clean test env of test `{}`.'.format(self.__class__.__name__))
+        try:
+            shutil.rmtree(SESSION_BASE_FOLDER)
+        except FileNotFoundError:
+            pass
