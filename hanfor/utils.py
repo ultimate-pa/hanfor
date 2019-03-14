@@ -245,7 +245,7 @@ def get_available_tags(app):
     for filename in filenames:
         try:
             req = Requirement.load(filename)
-        except AssertionError:
+        except TypeError:
             continue
         for tag in req.tags:
             if len(tag) == 0:
@@ -590,7 +590,7 @@ def get_statistics(app):
     for requirement_filename in requirement_filenames:
         try:
             requirement = Requirement.load(requirement_filename)
-        except AssertionError:
+        except TypeError:
             continue
         if hasattr(requirement, 'type_in_csv'):
             data['total'] += 1
@@ -697,7 +697,7 @@ def get_requirements(input_dir, filter_list=None, invert_filter=False):
     for filename in filenames:
         try:
             req = Requirement.load(filename)
-        except AssertionError:
+        except TypeError:
             continue
         if hasattr(req, 'rid'):
             if should_be_in_result(req):

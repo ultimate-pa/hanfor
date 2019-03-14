@@ -873,7 +873,7 @@ def requirements_version_migrations(app, args):
         try:
             try:
                 req = Requirement.load(filename)
-            except AssertionError:
+            except TypeError:
                 continue
             changes = False
             if req.formalizations is None:
@@ -1051,8 +1051,9 @@ def create_revision(args, base_revision_name):
                 'req': r,
                 'path': filename
             }
+        except TypeError:
+            continue
         except Exception as e:
-            # todo skip here since it is valid, that there are non requirements in the folder
             raise e
     new_reqs = dict()
     for filename in get_filenames_from_dir(app.config['REVISION_FOLDER']):
@@ -1062,8 +1063,9 @@ def create_revision(args, base_revision_name):
                 'req': r,
                 'path': filename
             }
+        except TypeError:
+            continue
         except Exception as e:
-            # todo skip here since it is valid, that there are non requirements in the folder
             raise e
 
     # Compare diff for the requirements.

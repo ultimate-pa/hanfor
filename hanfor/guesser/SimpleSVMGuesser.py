@@ -83,7 +83,7 @@ class SimpleSVMGuesser(AbstractGuesser):
         for filename in filenames:
             try:
                 req = Requirement.load(filename)  # type: Requirement
-            except AssertionError:
+            except TypeError:
                 continue
             if type(req) is Requirement:
                 # Todo: Preprocess the description, like replace vars "s_sdf_56_dodo" by "var_a"

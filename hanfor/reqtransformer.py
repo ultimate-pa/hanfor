@@ -52,7 +52,8 @@ class Pickleable:
         assert os.path.getsize(path) > 0
         with open(path, mode='rb') as f:
             me = pickle.load(f)
-            assert isinstance(me, self)
+            if not isinstance(me, self):
+                raise TypeError
 
         me.my_path = path
 
@@ -213,7 +214,8 @@ class Requirement(HanforVersioned, Pickleable):
     @classmethod
     def load(self, path):
         me = Pickleable.load(path)
-        assert isinstance(me, self)
+        if not isinstance(me, self):
+            raise TypeError
 
         if me.has_version_mismatch:
             logging.info('`{}` needs upgrade `{}` -> `{}`'.format(
@@ -850,7 +852,8 @@ class VariableCollection(HanforVersioned, Pickleable):
     @classmethod
     def load(self, path) -> 'VariableCollection':
         me = Pickleable.load(path)
-        assert isinstance(me, self)
+        if not isinstance(me, self):
+            raise TypeError
 
         if me.has_version_mismatch:
             logging.info('`{}` needs upgrade `{}` -> `{}`'.format(
@@ -1082,7 +1085,7 @@ class VariableCollection(HanforVersioned, Pickleable):
         for filename in filenames:
             try:
                 req = Requirement.load(filename)
-            except AssertionError:
+            except TypeError:
                 continue
             for formalization in req.formalizations.values():
                 try:
@@ -1558,7 +1561,8 @@ class VarImportSessions(HanforVersioned, Pickleable):
     @classmethod
     def load(self, path) -> 'VarImportSessions':
         me = Pickleable.load(path)
-        assert isinstance(me, self)
+        if not isinstance(me, self):
+            raise TypeError
 
         if me.has_version_mismatch:
             logging.info('`{}` needs upgrade `{}` -> `{}`'.format(
