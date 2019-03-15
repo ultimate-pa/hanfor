@@ -82,7 +82,7 @@ class TestHanforVersionMigrations(TestCase):
             )
             self.startup_hanfor(args, user_mock_answers=[])
             # Test generated req_file consistency.
-            req_file_content = self.app.get('/api/tools/req_file').data.decode('utf-8')
+            req_file_content = self.app.get('/api/tools/req_file').data.decode('utf-8').replace('\r\n', '\n')
             self.assertEqual(self.expected_req_files[version_slug], req_file_content)
 
     def test_csv_file_after_migrations(self):
@@ -93,7 +93,7 @@ class TestHanforVersionMigrations(TestCase):
             )
             self.startup_hanfor(args, user_mock_answers=[])
             # Test generated req_file consistency.
-            csv_file_content = self.app.get('/api/tools/csv_file').data.decode('utf-8')
+            csv_file_content = self.app.get('/api/tools/csv_file').data.decode('utf-8').replace('\r\n', '\n')
             self.assertEqual(self.expected_csv_files[version_slug], csv_file_content)
 
     def tearDown(self):
