@@ -1,5 +1,9 @@
+CONST spam_egg IS 1
+CONST spam_ham IS 2
+
 Input bar IS unknown
 Input foo IS unknown
+Input spam IS int
 
 SysRS_FooXY_42_0: Globally, it is never the case that "foo != bar" holds
 
