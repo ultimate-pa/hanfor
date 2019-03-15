@@ -2,6 +2,8 @@
 Test the hanfor version migrations.
 
 """
+import json
+
 from app import app, api, set_session_config_vars, create_revision, user_request_new_revision, startup_hanfor
 import os
 import shutil
@@ -61,6 +63,7 @@ class TestHanforVersionMigrations(TestCase):
         mock_results = user_mock_answers
 
         startup_hanfor(args, HERE)
+        app.config['TEMPLATES_FOLDER'] = os.path.join(HERE, '..', 'templates')
 
     def test_migrations(self):
         # Starting each version to trigger migrations.
@@ -71,8 +74,8 @@ class TestHanforVersionMigrations(TestCase):
             self.startup_hanfor(args, user_mock_answers=[])
             # Get the available requirements.
             initial_req_gets = self.app.get('api/req/gets')
-            self.assertEqual(initial_req_gets.json['data'][1]['desc'], 'always look on the bright side of life')
-            self.assertListEqual(initial_req_gets.json['data'][1]['tags'], ['unseen'])
+            self.assertEqual('always look on the bright side of life', initial_req_gets.json['data'][1]['desc'])
+            self.assertListEqual(['unseen'], initial_req_gets.json['data'][1]['tags'])
 
     def test_req_file_after_migrations(self):
         # Starting each version to trigger migrations.
@@ -95,6 +98,101 @@ class TestHanforVersionMigrations(TestCase):
             # Test generated req_file consistency.
             csv_file_content = self.app.get('/api/tools/csv_file').data.decode('utf-8').replace('\r\n', '\n')
             self.assertEqual(self.expected_csv_files[version_slug], csv_file_content)
+
+    def test_adding_formalizations(self):
+        for version_slug, version_tag in VERSION_TAGS.items():
+            args = utils.HanforArgumentParser(app).parse_args(
+                [self.csv_files[version_slug], VERSION_TAGS[version_slug]]
+            )
+            self.startup_hanfor(args, user_mock_answers=[])
+            new_formalization_result = self.app.post('api/req/new_formalization', data={'id': 'SysRS FooXY_42'})
+            self.assertEqual('200 OK', new_formalization_result.status)
+            self.assertEqual('application/json', new_formalization_result.mimetype)
+            update = {
+                "0":{
+                    "id":"0",
+                    "scope":"GLOBALLY",
+                    "pattern":"Absence",
+                    "expression_mapping":{"P":"","Q":"","R":"foo!= bar","S":"","T":"","U":""}
+                },
+                "1":{
+                    "id":"1",
+                    "scope":"BEFORE",
+                    "pattern":"Existence",
+                    "expression_mapping":{"P":"foo","Q":"","R":"something_else","S":"","T":"","U":""}
+                }
+            }
+            add_formalization = self.app.post(
+                'api/req/update',
+                data={
+                    'id': 'SysRS FooXY_42',
+                    'row_idx': '0',
+                    'update_formalization': 'true',
+                    'tags': '',
+                    'status': 'Todo',
+                    'formalizations': json.dumps(update)
+                }
+            )
+            self.assertEqual('200 OK', add_formalization.status)
+            self.assertEqual('application/json', add_formalization.mimetype)
+            updated_reqs = self.app.get('api/req/gets')
+            self.assertEqual(
+                'Before "foo", "something_else" eventually holds',
+                updated_reqs.json['data'][0]['formal'][1]
+            )
+
+    def test_adding_tags(self):
+        for version_slug, version_tag in VERSION_TAGS.items():
+            args = utils.HanforArgumentParser(app).parse_args(
+                [self.csv_files[version_slug], VERSION_TAGS[version_slug]]
+            )
+            self.startup_hanfor(args, user_mock_answers=[])
+            update = {
+                "0":{
+                    "id":"0",
+                    "scope":"GLOBALLY",
+                    "pattern":"Absence",
+                    "expression_mapping":{"P":"","Q":"","R":"foo!= bar","S":"","T":"","U":""}
+                }
+            }
+            add_formalization = self.app.post(
+                'api/req/update',
+                data={
+                    'id': 'SysRS FooXY_42',
+                    'row_idx': '0',
+                    'update_formalization': 'false',
+                    'tags': 'yolo',
+                    'status': 'Todo',
+                    'formalizations': json.dumps(update)
+                }
+            )
+            self.assertEqual('200 OK', add_formalization.status)
+            self.assertEqual('application/json', add_formalization.mimetype)
+            updated_reqs = self.app.get('api/req/gets')
+            self.assertEqual(
+                ['yolo'],
+                updated_reqs.json['data'][0]['tags'],
+            )
+
+    def test_removing_formalization(self):
+        for version_slug, version_tag in VERSION_TAGS.items():
+            args = utils.HanforArgumentParser(app).parse_args(
+                [self.csv_files[version_slug], VERSION_TAGS[version_slug]]
+            )
+            self.startup_hanfor(args, user_mock_answers=[])
+            reqs = self.app.get('api/req/gets')
+            self.assertEqual('Globally, it is never the case that "foo != bar" holds', reqs.json['data'][0]['formal'][0])
+            add_formalization = self.app.post(
+                'api/req/del_formalization',
+                data={
+                    'requirement_id': 'SysRS FooXY_42',
+                    'formalization_id':	0,
+                }
+            )
+            self.assertEqual('200 OK', add_formalization.status)
+            self.assertEqual('application/json', add_formalization.mimetype)
+            reqs = self.app.get('api/req/gets')
+            self.assertEqual([], reqs.json['data'][0]['formal'])
 
     def tearDown(self):
         # Clean test dir.
