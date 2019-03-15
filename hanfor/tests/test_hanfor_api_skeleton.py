@@ -47,7 +47,10 @@ class TestHanforApiSkeleton(TestCase):
     def setUp(self):
         # Clean test folder.
         app.config['SESSION_BASE_FOLDER'] = TESTS_BASE_FOLDER
+        app.config['LOG_TO_FILE'] = False
+        app.config['LOG_LEVEL'] = 'DEBUG'
         utils.register_assets(app)
+        utils.setup_logging(app)
         self.clean_folders()
         self.app = app.test_client()
 

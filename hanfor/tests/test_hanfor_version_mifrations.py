@@ -49,7 +49,10 @@ class TestHanforVersionMigrations(TestCase):
     def setUp(self):
         # Clean test folder.
         app.config['SESSION_BASE_FOLDER'] = SESSION_BASE_FOLDER
+        app.config['LOG_TO_FILE'] = False
+        app.config['LOG_LEVEL'] = 'DEBUG'
         utils.register_assets(app)
+        utils.setup_logging(app)
         self.clean_folders()
         self.create_temp_data()
         self.app = app.test_client()
