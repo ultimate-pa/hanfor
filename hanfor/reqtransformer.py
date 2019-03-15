@@ -369,6 +369,9 @@ class Requirement(HanforVersioned, Pickleable):
 
     def run_version_migrations(self):
         if self.hanfor_version == '0.0.0':
+            logging.info('Migrating `{}`:`{}`, from 0.0.0 -> 1.0.0'.format(
+                self.__class__.__name__, self.rid)
+            )
             # Migrate list formalizations to use dict
             self.hanfor_version = '1.0.0'
             if type(self.formalizations) is list:
@@ -1101,8 +1104,6 @@ class VariableCollection(HanforVersioned, Pickleable):
 
         # Add the constraints using this variable.
         for var in self.collection.values():
-            if type(var.get_constraints()) is list:
-                print('ohoh')
             for constraint in var.get_constraints().values():
                 for constraint_id, expression in enumerate(constraint.expressions_mapping.values()):
                     for var_name in expression.get_used_variables():
@@ -1123,6 +1124,9 @@ class VariableCollection(HanforVersioned, Pickleable):
 
     def run_version_migrations(self):
         if self.hanfor_version == '0.0.0':
+            logging.info('Migrating `{}`:`{}`, from 0.0.0 -> 1.0.0'.format(
+                self.__class__.__name__, self.my_path)
+            )
             self.hanfor_version = '1.0.0'
             for name, variable in self.collection.items():  # type: (str, Variable)
                 variable.run_version_migrations()
@@ -1355,6 +1359,9 @@ class Variable(HanforVersioned):
 
     def run_version_migrations(self):
         if self.hanfor_version == '0.0.0':
+            logging.info('Migrating `{}`:`{}`, from 0.0.0 -> 1.0.0'.format(
+                self.__class__.__name__, self.name)
+            )
             self.constraints = dict(enumerate(self.get_constraints()))
             self.hanfor_version = '1.0.0'
 
@@ -1546,6 +1553,9 @@ class VarImportSession(HanforVersioned):
 
     def run_version_migrations(self):
         if self.hanfor_version == '0.0.0':
+            logging.info('Migrating `{}`:`{}` -> `{}`, from 0.0.0 -> 1.0.0'.format(
+                self.__class__.__name__, self.source_var_collection.my_path, self.target_var_collection.my_path)
+            )
             self.hanfor_version = '1.0.0'
             self.source_var_collection.run_version_migrations()
             self.target_var_collection.run_version_migrations()
@@ -1607,6 +1617,9 @@ class VarImportSessions(HanforVersioned, Pickleable):
 
     def run_version_migrations(self):
         if self.hanfor_version == '0.0.0':
+            logging.info('Migrating `{}`:`{}`, from 0.0.0 -> 1.0.0'.format(
+                self.__class__.__name__, self.my_path)
+            )
             for import_session in self.import_sessions:  # type: VarImportSession
                 import_session.run_version_migrations()
             self.hanfor_version = '1.0.0'
