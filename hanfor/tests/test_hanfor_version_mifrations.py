@@ -24,6 +24,40 @@ VERSION_TAGS = {
     '1_0_0': 'simple_1_0_0',
 }
 
+EXPECTED_REQ_FILES = {
+    '0_0_0': '''CONST spam_egg IS 1
+CONST spam_ham IS 2
+
+Input bar IS unknown
+Input foo IS unknown
+Input spam IS int
+
+SysRS_FooXY_42_0: Globally, it is never the case that "foo != bar" holds
+
+''',
+    '1_0_0': '''CONST spam_egg IS 1
+CONST spam_ham IS 2
+
+Input bar IS unknown
+Input foo IS unknown
+Input spam IS int
+
+SysRS_FooXY_42_0: Globally, it is never the case that "foo != bar" holds
+
+'''
+}
+
+EXPECTED_CSV_FILES = {
+    '0_0_0': '''id_header,desc_header,formal_header,type_header,Hanfor_Tags
+SysRS FooXY_42,"Dont worry, be happy",,req,
+SysRS FooXY_91,always look on the bright side of life,,req,unseen
+''',
+    '1_0_0': '''id_header,desc_header,formal_header,type_header,Hanfor_Tags
+SysRS FooXY_42,"Dont worry, be happy",,req,
+SysRS FooXY_91,always look on the bright side of life,,req,unseen
+'''
+}
+
 
 def mock_user_input(*args, **kwargs) -> str:
     """ Mocks user input. Returns the mock_results entry at position given by the number of calls.
@@ -67,6 +101,7 @@ class TestHanforVersionMigrations(TestCase):
         startup_hanfor(args, HERE)
 
     def test_migrations(self):
+        # Starting each version to trigger migrations.
         for version_slug, version_tag in VERSION_TAGS.items():
             args = utils.HanforArgumentParser(app).parse_args(
                 [CSV_FILES[version_slug], VERSION_TAGS[version_slug]]
@@ -76,6 +111,33 @@ class TestHanforVersionMigrations(TestCase):
             initial_req_gets = self.app.get('api/req/gets')
             self.assertEqual(initial_req_gets.json['data'][1]['desc'], 'always look on the bright side of life')
             self.assertListEqual(initial_req_gets.json['data'][1]['tags'], ['unseen'])
+            req_file_content = self.app.get('/api/tools/req_file').data.decode('utf-8')
+            print(req_file_content)
+            print('#'*80)
+            print(EXPECTED_REQ_FILES[version_slug])
+            self.assertEqual(EXPECTED_REQ_FILES[version_slug], req_file_content)
+
+    def test_req_file_after_migrations(self):
+        # Starting each version to trigger migrations.
+        for version_slug, version_tag in VERSION_TAGS.items():
+            args = utils.HanforArgumentParser(app).parse_args(
+                [CSV_FILES[version_slug], VERSION_TAGS[version_slug]]
+            )
+            self.startup_hanfor(args, user_mock_answers=[])
+            # Test generated req_file consistency.
+            req_file_content = self.app.get('/api/tools/req_file').data.decode('utf-8')
+            self.assertEqual(EXPECTED_REQ_FILES[version_slug], req_file_content)
+
+    def test_csv_file_after_migrations(self):
+        # Starting each version to trigger migrations.
+        for version_slug, version_tag in VERSION_TAGS.items():
+            args = utils.HanforArgumentParser(app).parse_args(
+                [CSV_FILES[version_slug], VERSION_TAGS[version_slug]]
+            )
+            self.startup_hanfor(args, user_mock_answers=[])
+            # Test generated req_file consistency.
+            csv_file_content = self.app.get('/api/tools/csv_file').data.decode('utf-8')
+            self.assertEqual(EXPECTED_CSV_FILES[version_slug], csv_file_content)
 
     def tearDown(self):
         # Clean test dir.

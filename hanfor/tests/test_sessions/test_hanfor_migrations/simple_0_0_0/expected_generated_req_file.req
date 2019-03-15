@@ -1,0 +1,5 @@
+Input bar IS unknown
+Input foo IS unknown
+
+SysRS_FooXY_42_0: Globally, it is never the case that "foo != bar" holds
+
