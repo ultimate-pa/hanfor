@@ -196,10 +196,14 @@ class TestHanforVersionMigrations(TestCase):
 
     def test_generating_a_new_import_session(self):
         for version_slug, version_tag in VERSION_TAGS.items():
+            # Cleanup test_env in each iteration to be consistent.
+            self.clean_folders()
+            self.create_temp_data()
             args = utils.HanforArgumentParser(app).parse_args(
                 [self.csv_files[version_slug], VERSION_TAGS[version_slug]]
             )
             self.startup_hanfor(args, user_mock_answers=[])
+            # Test correct variable import session infos
             import_session_details = self.app.post(
                 'api/var/var_import_info',
                 data={
@@ -211,12 +215,56 @@ class TestHanforVersionMigrations(TestCase):
                 {"new_vars": 6, "tot_vars": 11},
                 import_session_details.json
             )
+            # Start a new import session.
             start_import_session_result = self.app.post(
                 'api/var/start_import_session',
                 data={
-                    'sess_name': 'var_import_mock',
+                    'sess_name': 'simple_0_0_0_var_import_source',
                     'sess_revision': 'revision_0'
                 }
+            )
+            self.assertEqual(
+                {
+                    "errormsg": "",
+                    "session_id": 0,
+                    "success": True
+                },
+                start_import_session_result.json
+            )
+            # Check import session consistency.
+            import_session_data = self.app.post(
+                'variable_import/api/0/get_table_data',
+                data={
+                    'sess_name': 'simple_0_0_0_var_import_source',
+                    'sess_revision': 'revision_0'
+                }
+            )
+
+            self.assertEqual(
+                11,
+                len(import_session_data.json['data'])
+            )
+            # Mark variables to be imported.
+            self.app.post(
+                'variable_import/api/0/store_table',
+                data={'rows': json.dumps({"enum_with_constraint":{"action":"source"}})}
+            )
+            # Mark variables to be imported.
+            self.app.post('variable_import/api/0/apply_import', data={})
+            # Check consistency of for imported variables.
+            new_var_collection_contents = self.app.get('api/var/gets')
+            self.assertIn(
+                {
+                    'used_by': ['Constraint_enum_with_constraint_0'],
+                    'type_inference_errors': {},
+                    'constraints': [
+                        'Globally, it is never the case that "0 < enum_with_constraint && enum_with_constraint  < 3" holds'
+                    ],
+                    'const_val': None,
+                    'tags': [],
+                    'type': 'ENUM',
+                    'name': 'enum_with_constraint'},
+                new_var_collection_contents.json['data']
             )
 
     def tearDown(self):
