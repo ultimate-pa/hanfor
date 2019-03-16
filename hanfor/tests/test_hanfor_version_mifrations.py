@@ -194,6 +194,20 @@ class TestHanforVersionMigrations(TestCase):
             reqs = self.app.get('api/req/gets')
             self.assertEqual([], reqs.json['data'][0]['formal'])
 
+    def test_generating_a_new_import_session(self):
+        for version_slug, version_tag in VERSION_TAGS.items():
+            args = utils.HanforArgumentParser(app).parse_args(
+                [self.csv_files[version_slug], VERSION_TAGS[version_slug]]
+            )
+            self.startup_hanfor(args, user_mock_answers=[])
+            start_import_session_result = self.app.post(
+                'api/var/start_import_session',
+                data={
+                    'sess_name': 'var_import_mock',
+                    'sess_revision': 'revision_0'
+                }
+            )
+
     def tearDown(self):
         # Clean test dir.
         self.clean_folders()
