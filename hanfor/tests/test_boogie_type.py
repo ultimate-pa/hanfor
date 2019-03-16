@@ -6,7 +6,7 @@ class TestBoogieType(TestCase):
 
     def test_alias(self):
         map = {
-            BoogieType.int: {'int', 'ENUMERATOR'},
+            BoogieType.int: {'int', 'ENUMERATOR', 'ENUM'},
             BoogieType.unknown: {'unknown'},
             BoogieType.bool: {'bool'},
             BoogieType.real: {'real'}

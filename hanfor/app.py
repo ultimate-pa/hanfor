@@ -13,6 +13,7 @@ import subprocess
 
 import utils
 
+from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice
 from flask import Flask, render_template, request, jsonify, url_for, make_response, send_file, json, session
 from flask_debugtoolbar import DebugToolbarExtension
 from functools import wraps, update_wrapper
@@ -134,7 +135,7 @@ def api(resource, command):
         # Get a single requirement.
         if command == 'get' and request.method == 'GET':
             id = request.args.get('id', '')
-            requirement = utils.load_requirement_by_id(id, app)  # type: Requirement
+            requirement = Requirement.load_requirement_by_id(id, app)
             var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
 
             result = requirement.to_dict()
@@ -149,19 +150,21 @@ def api(resource, command):
 
         # Get all requirements
         if command == 'gets':
-            filenames = utils.get_filenames_from_dir(app.config['REVISION_FOLDER'])
+            filenames = get_filenames_from_dir(app.config['REVISION_FOLDER'])
             result = dict()
             result['data'] = list()
             for filename in filenames:
-                req = utils.pickle_load_from_dump(filename)  # type: Requirement
-                if type(req) is Requirement:
+                try:
+                    req = Requirement.load(filename)
                     result['data'].append(req.to_dict())
+                except:
+                    continue
             return jsonify(result)
 
         # Update a requirement
         if command == 'update' and request.method == 'POST':
             id = request.form.get('id', '')
-            requirement = utils.load_requirement_by_id(id, app)  # type: Requirement
+            requirement = Requirement.load_requirement_by_id(id, app)
             error = False
             error_msg = ''
 
@@ -220,7 +223,7 @@ def api(resource, command):
                         'errormsg': error_msg
                     })
                 else:
-                    utils.store_requirement(requirement, app)
+                    requirement.store()
                     return jsonify(requirement.to_dict()), 200
 
         # Multi Update Tags or Status.
@@ -277,23 +280,23 @@ def api(resource, command):
                 logging.info(log_msg)
 
                 for rid in rid_list:
-                    requirement = utils.load_requirement_by_id(rid, app)  # type: Requirement
+                    requirement = Requirement.load_requirement_by_id(rid, app)
                     if requirement is not None:
                         logging.info('Updating requirement `{}`'.format(rid))
                         requirement.tags.discard(remove_tag)
                         requirement.tags.add(add_tag)
                         if set_status:
                             requirement.status = set_status
-                        utils.store_requirement(requirement, app)
+                        requirement.store()
 
             return jsonify(result)
 
         # Add a new empty formalization
         if command == 'new_formalization' and request.method == 'POST':
             id = request.form.get('id', '')
-            requirement = utils.load_requirement_by_id(id, app)  # type: Requirement
+            requirement = Requirement.load_requirement_by_id(id, app)  # type: Requirement
             formalization_id, formalization = requirement.add_empty_formalization()
-            utils.store_requirement(requirement, app)
+            requirement.store()
             utils.add_msg_to_flask_session_log(session, 'Added new Formalization to requirement', id)
             result = utils.get_formalization_template(
                 app.config['TEMPLATES_FOLDER'],
@@ -308,9 +311,9 @@ def api(resource, command):
             result = dict()
             formalization_id = request.form.get('formalization_id', '')
             requirement_id = request.form.get('requirement_id', '')
-            requirement = utils.load_requirement_by_id(requirement_id, app)  # type: Requirement
+            requirement = Requirement.load_requirement_by_id(requirement_id, app)
             requirement.delete_formalization(formalization_id, app)
-            utils.store_requirement(requirement, app)
+            requirement.store()
             utils.add_msg_to_flask_session_log(session, 'Deleted formalization from requirement', requirement_id)
             result['html'] = utils.formalizations_to_html(app, requirement.formalizations)
             return jsonify(result)
@@ -319,7 +322,7 @@ def api(resource, command):
         if command == 'get_available_guesses' and request.method == 'POST':
             result = {'success': True}
             requirement_id = request.form.get('requirement_id', '')
-            requirement = utils.load_requirement_by_id(requirement_id, app)  # type: Requirement
+            requirement = Requirement.load_requirement_by_id(requirement_id, app)
             if requirement is None:
                 result['success'] = False
                 result['errormsg'] = 'Requirement `{}` not found'.format(requirement_id)
@@ -366,7 +369,7 @@ def api(resource, command):
             mapping = json.loads(mapping)
 
             # Add an empty Formalization.
-            requirement = utils.load_requirement_by_id(requirement_id, app)  # type: Requirement
+            requirement = Requirement.load_requirement_by_id(requirement_id, app)
             formalization_id, formalization = requirement.add_empty_formalization()
             # Add add content to the formalization.
             requirement.update_formalization(
@@ -376,7 +379,7 @@ def api(resource, command):
                 mapping=mapping,
                 app=app
             )
-            utils.store_requirement(requirement, app)
+            requirement.store()
             utils.add_msg_to_flask_session_log(session, 'Added formalization guess to requirement', requirement_id)
 
             result = utils.get_formalization_template(
@@ -400,7 +403,7 @@ def api(resource, command):
 
             var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
             for req_id in requirement_ids:
-                requirement = utils.load_requirement_by_id(req_id, app)  # type: Requirement
+                requirement = Requirement.load_requirement_by_id(req_id, app)
                 if requirement is not None:
                     logging.info('Add top guess to requirement `{}`'.format(req_id))
                     tmp_guesses = list()
@@ -418,8 +421,8 @@ def api(resource, command):
                                 else:
                                     raise TypeError('Type: `{}` not supported as guesses'.format(type(tmp_guesses[0])))
                                 if insert_mode == 'override':
-                                    for f_id in range(len(requirement.formalizations)):
-                                        requirement.delete_formalization(0, app)
+                                    for f_id in requirement.formalizations.keys():
+                                        requirement.delete_formalization(f_id, app)
                                 for score, scoped_pattern, mapping in top_guesses:
                                     formalization_id, formalization = requirement.add_empty_formalization()
                                     # Add add content to the formalization.
@@ -430,7 +433,7 @@ def api(resource, command):
                                         mapping=mapping,
                                         app=app
                                     )
-                                    utils.store_requirement(requirement, app)
+                                    requirement.store()
                         except ValueError as e:
                             result['success'] = False
                             result['errormsg'] = 'Could not determine a guess: '
@@ -656,7 +659,7 @@ def var_import_session(session_id, command):
         'errormsg': 'Command not found'
     }
 
-    var_import_sessions = utils.load_Import_sessions(app)
+    var_import_sessions = VarImportSessions.load_for_app(app)
 
     if command == 'get_var':
         result = dict()
@@ -761,7 +764,7 @@ def site(site):
                 only_names=True,
                 with_revisions=True
             )
-            running_import_sessions = utils.load_Import_sessions(app).info()
+            running_import_sessions = VarImportSessions.load_for_app(app).info()
             return render_template(
                 '{}.html'.format(site),
                 available_sessions=available_sessions,
@@ -824,8 +827,7 @@ def update_var_usage(var_collection):
     var_collection.store()
 
 
-def varcollection_consistency_check(app, args=None):
-    logging.info('Check Variables for consistency.')
+def varcollection_version_migrations(app, args):
     # Migrate from old Hanfor versions
     try:
         VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
@@ -841,31 +843,27 @@ def varcollection_consistency_check(app, args=None):
         del sys.modules['reqtransformer.reqtransformer']
         del sys.modules['reqtransformer.patterns']
 
-        new_var_collection = VariableCollection()
+        new_var_collection = VariableCollection(path=app.config['SESSION_VARIABLE_COLLECTION'])
         for var in vars_to_collection:
             new_var_collection.collection[var['name']] = Variable(var['name'], var['type'], var['value'])
-        new_var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
+        new_var_collection.store()
         logging.info('Migrated old collection.')
 
-    # Check for Import sessions
-    var_import_sessions_path = os.path.join(app.config['SESSION_BASE_FOLDER'], 'variable_import_sessions.pickle')
-    try:
-        VarImportSessions.load(var_import_sessions_path)
-    except FileNotFoundError:
-        var_import_sessions = VarImportSessions(path=var_import_sessions_path)
-        var_import_sessions.store()
 
+def varcollection_consistency_check(app, args=None):
+    logging.info('Check Variables for consistency.')
     # Update usages and constraint type check.
     var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
     if args is not None and args.reload_type_inference:
         var_collection.reload_type_inference_errors_in_constraints()
 
     update_var_usage(var_collection)
+    var_collection.store()
 
 
-def requirements_consistency_check(app, args):
+def requirements_version_migrations(app, args):
     logging.info('Check requirements consistency.')
-    filenames = utils.get_filenames_from_dir(app.config['REVISION_FOLDER'])
+    filenames = get_filenames_from_dir(app.config['REVISION_FOLDER'])
     var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
     result = dict()
     result['data'] = list()
@@ -873,35 +871,38 @@ def requirements_consistency_check(app, args):
 
     for filename in filenames:
         try:
-            req = utils.pickle_load_from_dump(filename)  # type: Requirement
-            if type(req) == Requirement:
-                changes = False
-                if req.formalizations is None:
-                    req.formalizations = list()
-                    changes = True
-                if type(req.type_in_csv) is tuple:
-                    changes = True
-                    req.type_in_csv = req.type_in_csv[0]
-                if type(req.csv_row) is tuple:
-                    changes = True
-                    req.csv_row = req.csv_row[0]
-                if type(req.description) is tuple:
-                    changes = True
-                    req.description = req.description[0]
-                # Derive type inference errors if not set.
-                try:
-                    for formalization in req.formalizations:
-                        tmp = formalization.type_inference_errors
-                except:
-                    logging.info('Update type inference results for `{}`'.format(req.rid))
-                    req.reload_type_inference(var_collection, app)
-                if args.reload_type_inference:
-                    req.reload_type_inference(var_collection, app)
-                if changes:
-                    count += 1
-                    utils.store_requirement(req, app)
+            try:
+                req = Requirement.load(filename)
+            except TypeError:
+                continue
+            changes = False
+            if req.formalizations is None:
+                req.formalizations = dict()
+                changes = True
+            if type(req.type_in_csv) is tuple:
+                changes = True
+                req.type_in_csv = req.type_in_csv[0]
+            if type(req.csv_row) is tuple:
+                changes = True
+                req.csv_row = req.csv_row[0]
+            if type(req.description) is tuple:
+                changes = True
+                req.description = req.description[0]
+            # Derive type inference errors if not set.
+            try:
+                for formalization in req.formalizations.values():
+                    tmp = formalization.type_inference_errors
+            except:
+                logging.info('Update type inference results for `{}`'.format(req.rid))
+                req.reload_type_inference(var_collection, app)
+            if args.reload_type_inference:
+                req.reload_type_inference(var_collection, app)
+            if changes:
+                count += 1
+                req.store()
         except ImportError:
             # The "old" requirements before the refactoring.
+            logging.info('Migrate old requirement from `{}`'.format(filename))
             sys.modules['reqtransformer.reqtransformer'] = reqtransformer
             sys.modules['reqtransformer.patterns'] = reqtransformer
             req = utils.pickle_load_from_dump(filename)  # type: Requirement
@@ -952,10 +953,11 @@ def requirements_consistency_check(app, args):
                     app=app,
                     rid=rid
                 )
-                new_requirement.formalizations.append(formalization)
+                new_requirement.add_formalization(formalization)
             new_requirement.status = status
             new_requirement.tags = tags
-            utils.pickle_dump_obj_to_file(new_requirement, filename)
+            new_requirement.my_path = filename
+            new_requirement.store()
             count += 1
 
     if count > 0:
@@ -1022,7 +1024,7 @@ def create_revision(args, base_revision_name):
     os.makedirs(app.config['REVISION_FOLDER'], exist_ok=True)
     for index, req in enumerate(requirement_collection.requirements):  # type: Requirement
         filename = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(req.rid))
-        utils.pickle_dump_obj_to_file(req, filename)
+        req.store(filename)
 
     # Generate the session dict: Store some meta information.
     session = dict()
@@ -1033,7 +1035,7 @@ def create_revision(args, base_revision_name):
     session['csv_type_header'] = requirement_collection.csv_meta['type_header']
     session['csv_desc_header'] = requirement_collection.csv_meta['desc_header']
     session['csv_dialect'] = requirement_collection.csv_meta['dialect']
-    utils.pickle_dump_obj_to_file(session, app.config['SESSION_STATUS_PATH'])
+    pickle_dump_obj_to_file(session, app.config['SESSION_STATUS_PATH'])
 
     # No need to merge anything if we created only the base revision
     if revision_name == 'revision_0':
@@ -1042,21 +1044,29 @@ def create_revision(args, base_revision_name):
     # Merge the old revision into the new revision
     logging.info('Merging `{}` into `{}`.'.format(base_revision_name, revision_name))
     old_reqs = dict()
-    for filename in utils.get_filenames_from_dir(base_revision_folder):
-        r = utils.pickle_load_from_dump(filename)  # type: Requirement
-        if type(r) is Requirement:
+    for filename in get_filenames_from_dir(base_revision_folder):
+        try:
+            r = Requirement.load(filename)
             old_reqs[r.rid] = {
                 'req': r,
                 'path': filename
             }
+        except TypeError:
+            continue
+        except Exception as e:
+            raise e
     new_reqs = dict()
-    for filename in utils.get_filenames_from_dir(app.config['REVISION_FOLDER']):
-        r = utils.pickle_load_from_dump(filename)  # type: Requirement
-        if type(r) is Requirement:
+    for filename in get_filenames_from_dir(app.config['REVISION_FOLDER']):
+        try:
+            r = Requirement.load(filename)  # type: Requirement
             new_reqs[r.rid] = {
                 'req': r,
                 'path': filename
             }
+        except TypeError:
+            continue
+        except Exception as e:
+            raise e
 
     # Compare diff for the requirements.
     for rid in new_reqs.keys():
@@ -1105,14 +1115,12 @@ def create_revision(args, base_revision_name):
     # Store the updated requirements for the new revision.
     logging.info('Store merge changes to revision `{}`'.format(revision_name))
     for r in new_reqs.values():
-        utils.pickle_dump_obj_to_file(r['req'], r['path'])
+        r['req'].store(r['path'])
 
     # Store the variables collection in the new revision.
     logging.info('Migrate variables from `{}` to `{}`'.format(base_revision_name, revision_name))
-    utils.pickle_dump_obj_to_file(
-        utils.pickle_load_from_dump(base_revision_var_collectioin_path),
-        app.config['SESSION_VARIABLE_COLLECTION']
-    )
+    base_var_collection = VariableCollection.load(base_revision_var_collectioin_path)
+    base_var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
 
 
 def load_revision(revision_id):
@@ -1159,7 +1167,7 @@ def user_request_new_revision(args):
         logging.error('No base revisions found in `{}`.'.format(app.config['SESSION_FOLDER']))
         raise FileNotFoundError
     print('Which revision should I use as a base?')
-    base_revision_choice = utils.choice(available_revisions, 'revision_0')
+    base_revision_choice = choice(available_revisions, 'revision_0')
     create_revision(args, base_revision_choice)
 
 
@@ -1180,8 +1188,18 @@ def init_var_collection():
 
     """
     if not os.path.exists(app.config['SESSION_VARIABLE_COLLECTION']):
-        var_collection = VariableCollection()
-        utils.pickle_dump_obj_to_file(var_collection, app.config['SESSION_VARIABLE_COLLECTION'])
+        var_collection = VariableCollection(path=app.config['SESSION_VARIABLE_COLLECTION'])
+        var_collection.store()
+
+
+def init_import_sessions():
+    # Check for Import sessions
+    var_import_sessions_path = os.path.join(app.config['SESSION_BASE_FOLDER'], 'variable_import_sessions.pickle')
+    try:
+        VarImportSessions.load(var_import_sessions_path)
+    except FileNotFoundError:
+        var_import_sessions = VarImportSessions(path=var_import_sessions_path)
+        var_import_sessions.store()
 
 
 def init_meta_settings():
@@ -1192,7 +1210,7 @@ def init_meta_settings():
     if not os.path.exists(app.config['META_SETTTINGS_PATH']):
         meta_settings = dict()
         meta_settings['tag_colors'] = dict()
-        utils.pickle_dump_obj_to_file(meta_settings, app.config['META_SETTTINGS_PATH'])
+        pickle_dump_obj_to_file(meta_settings, app.config['META_SETTTINGS_PATH'])
 
 
 def user_choose_start_revision():
@@ -1210,10 +1228,10 @@ def user_choose_start_revision():
     elif len(available_revisions) == 0:
         print('No revisions found. You might use a deprecated session version without revision support.')
         print('Is that true and should I migrate this session?')
-        migrate_session = utils.choice(['yes', 'no'], 'no')
+        migrate_session = choice(['yes', 'no'], 'no')
         if migrate_session == 'yes':
             file_paths = [
-                path for path in utils.get_filenames_from_dir(app.config['SESSION_FOLDER'])
+                path for path in get_filenames_from_dir(app.config['SESSION_FOLDER'])
                 if path.endswith('.pickle')
             ]
             revision_folder = os.path.join(
@@ -1233,7 +1251,7 @@ def user_choose_start_revision():
     else:
         print('Which revision should I start.')
         available_revisions = sorted(utils.get_available_revisions(app.config))
-        revision_choice = utils.choice(available_revisions, available_revisions[-1])
+        revision_choice = choice(available_revisions, available_revisions[-1])
     return revision_choice
 
 
@@ -1259,15 +1277,17 @@ def startup_hanfor(args, HERE):
 
     app.config['TEMPLATES_FOLDER'] = os.path.join(HERE, 'templates')
 
-    # Initialize variables collection.
+    # Initialize variables collection, import session, meta settings.
     init_var_collection()
-
-    # Initialize meta settings
+    init_import_sessions()
     init_meta_settings()
+
+    # Run version migrations
+    varcollection_version_migrations(app, args)
+    requirements_version_migrations(app, args)
 
     # Run consistency checks.
     varcollection_consistency_check(app, args)
-    requirements_consistency_check(app, args)
 
 
 def fetch_hanfor_version():

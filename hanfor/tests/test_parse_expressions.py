@@ -1,3 +1,8 @@
+"""
+Test correct parsing of expressions using the boogie_parser w.r.t the grammar defined in boogie_parsing.
+Test reconstruction from parse trees to expression string.
+"""
+
 import boogie_parsing
 from unittest import TestCase
 from lark.lexer import UnexpectedInput

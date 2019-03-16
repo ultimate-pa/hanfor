@@ -1,3 +1,16 @@
+"""
+Test creating a new hanfor revision using a changed csv.
+
+This test will
+* Create a initial session from ./test_init/simple.csv
+* Creating a revision of this session using ./test_init/simple_changed_description.csv
+* Check if the description is succesfully migrated.
+* Check if the correct migration tags are added to the requirement.
+* Check if the revision diff is correct.
+* Do the checks for ./test_init/simple_real_rev_0.csv -> /test_init/simple_real_rev_1.csv
+  These csv are obfuscated versions of real world data.
+"""
+
 from app import app, api, set_session_config_vars, create_revision, user_request_new_revision, startup_hanfor
 import os
 import shutil
@@ -154,7 +167,6 @@ class TestMigrations(TestCase):
     def test_created_diff(self):
         """
         """
-
         # Create the first initial revision.
         args = utils.HanforArgumentParser(app).parse_args([CSV_FILES['test_real_rev_0'], TEST_TAGS['real']])
         self.startup_hanfor(args, user_mock_answers=[1, 5, 27, 8])

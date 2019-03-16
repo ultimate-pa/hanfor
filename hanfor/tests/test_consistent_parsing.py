@@ -1,3 +1,16 @@
+"""
+Test consistent lark parsing.
+This test regards the issue
+https://github.com/ultimate-pa/hanfor/issues/24
+
+Lark has in a few cases nondeterministic resuts, which leads utimately to false type
+derivations. See this bugs:
+https://github.com/lark-parser/lark/issues/201
+https://github.com/lark-parser/lark/issues/191
+
+As long as this test fails https://github.com/ultimate-pa/hanfor/issues/24 will remain unfixed.
+"""
+
 from lark import Lark
 from lark.lexer import Token
 

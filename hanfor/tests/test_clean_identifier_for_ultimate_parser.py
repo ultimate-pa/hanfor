@@ -1,3 +1,13 @@
+"""
+Test cleaning slugs to be sound identifier to be used in ultimate.
+
+Purpose of clean_identifier_for_ultimate_parser is to translate slugs used as requirement identifier to be sound in
+ultimate.
+Given a set of already used_identifiers, clean_identifier_for_ultimate_parser should return for a new (str) slug:
+* A version of slug not already in used_identifiers by adding _{incrementing int}
+* Preceding ints to ID_, whitespace to _, remove .
+
+"""
 from unittest import TestCase
 
 from utils import clean_identifier_for_ultimate_parser

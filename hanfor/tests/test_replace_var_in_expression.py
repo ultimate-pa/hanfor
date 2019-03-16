@@ -1,11 +1,12 @@
+"""
+Test the replacement of variables in expressions when using boogie_parsing
+"""
 from unittest import TestCase
 import boogie_parsing
 
 
 class TestReplaceVarInExpression(TestCase):
     def test_replace_var_in_expression(self):
-        expression = '!BAR&&DISCARD_SOURCE!=YOLO'
-        replaced_expression = '!FOO&&DISCARD_SOURCE!=YOLO'
         # Replace a var.
         self.assertEqual(
             boogie_parsing.replace_var_in_expression(
@@ -24,7 +25,6 @@ class TestReplaceVarInExpression(TestCase):
             ),
             '!BAR&&DISCARD_SOURCE!=YOLO'
         )
-
         # Replace a var.
         self.assertEqual(
             boogie_parsing.replace_var_in_expression(

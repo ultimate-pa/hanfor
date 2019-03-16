@@ -1,3 +1,10 @@
+"""
+Test initializing a new plain hanfor session from csv.
+
+Init a new session from ./test_sessions/test_init/simple.csv
+Check if API api/req/gets returns correct requirements.
+"""
+
 from app import app, api, set_session_config_vars, create_revision, startup_hanfor
 import os
 import shutil
@@ -73,6 +80,7 @@ class TestInit(TestCase):
              'pattern': 'None',
              'status': 'Todo',
              'pos': 1,
+             'revision_diff': {},
              'vars': {},
              'scope': 'None',
              'tags': [],
@@ -91,6 +99,7 @@ class TestInit(TestCase):
              'status': 'Todo',
              'pattern': 'None',
              'pos': 0,
+             'revision_diff': {},
              'vars': {},
              'scope': 'None',
              'tags': [],

@@ -6,7 +6,6 @@
 import argparse
 from typing import Union, Set
 
-from copy import deepcopy
 from flask import json
 
 import boogie_parsing
@@ -18,15 +17,13 @@ import logging
 import pickle
 import random
 import re
-import shlex
 import os
 
-from colorama import Fore, Style
 from flask_assets import Bundle, Environment
-
-from reqtransformer import VarImportSessions, VariableCollection
-from svm_pattern_classifier import SvmPatternClassifier
+from reqtransformer import VarImportSessions, VariableCollection, Requirement
 from terminaltables import DoubleTable
+from static_utils import pickle_dump_obj_to_file, pickle_load_from_dump, get_filenames_from_dir
+
 
 here = os.path.dirname(os.path.realpath(__file__))
 default_scope_options = '''
@@ -90,56 +87,6 @@ default_pattern_options = '''
     '''
 
 
-def pickle_dump_obj_to_file(obj, filename):
-    """ Pickle-dumps given object to file.
-
-    :param obj: Python object
-    :type obj: object
-    :param filename: Path to output file
-    :type filename: str
-    """
-    with open(filename, mode='wb') as out_file:
-        pickle.dump(obj, out_file)
-
-
-def pickle_load_from_dump(filename):
-    """ Loads python object from pickle dump file.
-
-    :param filename: Path to the pickle dump
-    :type filename: str
-    :return: Object dumped in file
-    :rtype: object
-    """
-    if os.path.getsize(filename) > 0:
-        with open(filename, mode='rb') as f:
-            return pickle.load(f)
-
-
-def get_filenames_from_dir(input_dir):
-    """ Returns the list of filepaths for all files in input_dir.
-
-    :param input_dir: Location of the input directory
-    :type input_dir: str
-    :return: List of file locations [<input_dir>/<filename>, ...]
-    :rtype: list
-    """
-    return [os.path.join(input_dir, f) for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, f))]
-
-
-def load_requirement_by_id(id, app):
-    """ Loads requirement from session folder if it exists.
-
-    :param id: requirement_id
-    :type id: str
-    :param app: The flask app.
-    :rtype: Requirement
-    """
-    filepath = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(id))
-    if os.path.exists(filepath) and os.path.isfile(filepath):
-        return pickle_load_from_dump(filepath)
-    logging.info('Requirement `{}` at `{}` not found'.format(id, filepath))
-
-
 def get_formalization_template(templates_folder, requirement, formalization_id, formalization):
     result = {'success': True}
 
@@ -188,22 +135,9 @@ def formalization_html(templates_folder, formalization_id, scope_options, patter
     return html_template
 
 
-def store_requirement(requirement, app):
-    """ Store a requirement.
-
-    :param requirement: requirement to store
-    :type requirement: Requirement
-    :param app: The flask app.
-    :type app:
-    """
-    filepath = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(requirement.rid))
-    if os.path.exists(filepath) and os.path.isfile(filepath):
-        return pickle_dump_obj_to_file(requirement, filepath)
-
-
 def formalizations_to_html(app, formalizations):
     result = ''
-    for index, formalization in enumerate(formalizations):
+    for index, formalization in formalizations.items():
         result += formalization_html(
             app.config['TEMPLATES_FOLDER'],
             index,
@@ -214,62 +148,8 @@ def formalizations_to_html(app, formalizations):
     return result
 
 
-def choice(choices, default):
-    """ Asks the user which string he wants from a list of strings.
-    Returns the selected string.
-
-    :param choices: List of choices (one choice is a string)
-    :type choices: list
-    :param default: One element from the choices list.
-    :type default: str
-    :return: The choice selected by the user.
-    :rtype: str
-    """
-    idx = 0
-    data = list()
-    for choice in choices:
-        if choice == default:
-            data.append([
-                '{}-> {}{}'.format(Fore.GREEN, idx, Style.RESET_ALL),
-                '{}{}{}'.format(Fore.GREEN, choice, Style.RESET_ALL)
-            ])
-        else:
-            data.append([idx, choice])
-        idx = idx + 1
-
-    table = DoubleTable(data, title='Choices')
-    table.inner_heading_row_border = False
-    print(table.table)
-
-    while True:
-        last_in = input('{}[Choice or Enter for {} -> default{}]> {}'.format(
-            Fore.LIGHTBLUE_EX,
-            Fore.GREEN,
-            Fore.LIGHTBLUE_EX,
-            Style.RESET_ALL))
-
-        if len(last_in) == 0:
-            return default
-
-        choice, *args = shlex.split(last_in)
-        if len(args) > 0:
-            print('What did you mean?')
-            continue
-
-        try:
-            choice = int(choice)
-        except ValueError:
-            print('Illegal choice "' + str(choice) + '", choose again')
-            continue
-
-        if choice >= 0 and choice < idx:
-            return choices[choice]
-
-        print('Illegal choice "' + str(choice) + '", choose again')
-
-
 def get_available_vars(app, full=True):
-    var_collection = pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
+    var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
     result = var_collection.get_available_vars_list(used_only=not full)
 
     return result
@@ -285,14 +165,14 @@ def varcollection_diff_info(app, request):
     :return: {'tot_vars': int, 'new_vars': int}
     :rtype: dict
     """
-    current_var_collection = pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
+    current_var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
     req_path = os.path.join(
         app.config['SESSION_BASE_FOLDER'],
         request.form.get('sess_name').strip(),
         request.form.get('sess_revision').strip(),
         'session_variable_collection.pickle'
     )
-    requested_var_collection = pickle_load_from_dump(req_path)
+    requested_var_collection = VariableCollection.load(req_path)
 
     numb_new_vars = len(
         set(requested_var_collection.collection.keys()).difference(current_var_collection.collection.keys())
@@ -314,7 +194,7 @@ def varcollection_create_new_import_session(app, source_session_name, source_rev
     :param source_session_name:
     :param source_revision_name:
     """
-    current_var_collection = pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
+    current_var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
     source_var_collection_path = os.path.join(
         app.config['SESSION_BASE_FOLDER'],
         source_session_name,
@@ -363,18 +243,20 @@ def get_available_tags(app):
         return col
 
     for filename in filenames:
-        req = pickle_load_from_dump(filename)
-        if type(req).__name__ == 'Requirement':
-            for tag in req.tags:
-                if len(tag) == 0:
-                    continue
-                if tag not in collected_tags.keys():
-                    collected_tags[tag] = {
-                        'name': tag,
-                        'used_by': list(),
-                        'color': get_color(tag)
-                    }
-                collected_tags[tag]['used_by'].append(req.rid)
+        try:
+            req = Requirement.load(filename)
+        except TypeError:
+            continue
+        for tag in req.tags:
+            if len(tag) == 0:
+                continue
+            if tag not in collected_tags.keys():
+                collected_tags[tag] = {
+                    'name': tag,
+                    'used_by': list(),
+                    'color': get_color(tag)
+                }
+            collected_tags[tag]['used_by'].append(req.rid)
 
     return [tag for tag in collected_tags.values()]
 
@@ -449,10 +331,10 @@ def update_tag(app, request, delete=False):
             for rid in occurences:
                 filepath = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(rid))
                 if os.path.exists(filepath) and os.path.isfile(filepath):
-                    requirement = pickle_load_from_dump(filepath)
+                    requirement = Requirement.load(filepath)
                     logging.info('Delete tag `{}` in requirement `{}`'.format(tag_name, requirement.rid))
                     requirement.tags.discard(tag_name)
-                    store_requirement(requirement, app)
+                    requirement.store()
     # Rename the tag.
     elif tag_name_old != tag_name:
         logging.info('Update Tag `{}` to new name `{}`'.format(tag_name_old, tag_name))
@@ -464,11 +346,11 @@ def update_tag(app, request, delete=False):
             for rid in occurences:
                 filepath = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(rid))
                 if os.path.exists(filepath) and os.path.isfile(filepath):
-                    requirement = pickle_load_from_dump(filepath)
+                    requirement = Requirement.load(filepath)
                     logging.info('Update tags in requirement `{}`'.format(requirement.rid))
                     requirement.tags.discard(tag_name_old)
                     requirement.tags.add(tag_name)
-                    store_requirement(requirement, app)
+                    requirement.store()
 
     # Store the color into meta settings.
     meta_settings = MetaSettings(app.config['META_SETTTINGS_PATH'])
@@ -503,9 +385,9 @@ def update_variable_in_collection(app, request):
     var_const_val = request.form.get('const_val', '').strip()
     var_const_val_old = request.form.get('const_val_old', '').strip()
     occurrences = request.form.get('occurrences', '').strip().split(',')
-    enumerators = json.loads(request.form.get('enumerators', ''));
+    enumerators = json.loads(request.form.get('enumerators', ''))
 
-    var_collection = pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
+    var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
     result = {
         'success': True,
         'has_changes': False,
@@ -600,7 +482,7 @@ def update_variable_in_collection(app, request):
         logging.info('Update derived types by parsing affected formalizations.')
         if reload_type_inference and var_name in var_collection.var_req_mapping:
             for rid in var_collection.var_req_mapping[var_name]:
-                requirement = load_requirement_by_id(rid, app)
+                requirement = Requirement.load_requirement_by_id(rid, app)
                 if requirement:
                     requirement.reload_type_inference(var_collection, app)
 
@@ -654,9 +536,9 @@ def rename_variable_in_expressions(app, occurences, var_name_old, var_name):
     for rid in occurences:
         filepath = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(rid))
         if os.path.exists(filepath) and os.path.isfile(filepath):
-            requirement = pickle_load_from_dump(filepath)  # type: Requirement
+            requirement = Requirement.load(filepath)
             # replace in every formalization
-            for index, formalization in enumerate(requirement.formalizations):
+            for index, formalization in requirement.formalizations.items():
                 for key, expression in formalization.expressions_mapping.items():
                     if var_name_old not in expression.raw_expression:
                         continue
@@ -669,7 +551,7 @@ def rename_variable_in_expressions(app, occurences, var_name_old, var_name):
                     requirement.formalizations[index].expressions_mapping[key].used_variables.discard(var_name_old)
                     requirement.formalizations[index].expressions_mapping[key].used_variables.add(var_name)
             logging.debug('Updated variables in requirement id: `{}`.'.format(requirement.rid))
-            store_requirement(requirement, app)
+            requirement.store(filepath)
 
 
 def rename_variable_in_constraints(app, occurences, var_name_old, var_name, variable_collection):
@@ -706,7 +588,10 @@ def get_statistics(app):
     requirement_filenames = get_filenames_from_dir(app.config['REVISION_FOLDER'])
     # Gather requirements statistics
     for requirement_filename in requirement_filenames:
-        requirement = pickle_load_from_dump(requirement_filename)
+        try:
+            requirement = Requirement.load(requirement_filename)
+        except TypeError:
+            continue
         if hasattr(requirement, 'type_in_csv'):
             data['total'] += 1
             if requirement.status == 'Todo':
@@ -734,7 +619,7 @@ def get_statistics(app):
         data['type_colors'].append("#%06x" % random.randint(0, 0xFFFFFF))
 
     # Gather most used variables.
-    var_collection = pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
+    var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
     var_usage = []
     for name, used_by in var_collection.var_req_mapping.items():
         var_usage.append((len(used_by), name))
@@ -810,7 +695,10 @@ def get_requirements(input_dir, filter_list=None, invert_filter=False):
         return (req.rid in filter_list) != invert_filter
 
     for filename in filenames:
-        req = pickle_load_from_dump(filename)  # type: Requirement
+        try:
+            req = Requirement.load(filename)
+        except TypeError:
+            continue
         if hasattr(req, 'rid'):
             if should_be_in_result(req):
                 logging.debug('Adding {} to results.'.format(req.rid))
@@ -920,7 +808,7 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
     # get session status
     session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])  # type: dict
 
-    var_collection = pickle_load_from_dump(app.config['SESSION_VARIABLE_COLLECTION'])
+    var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
     available_vars = []
     if filter_list is not None:
         # Filter the available vars to only include the ones actually used by a requirement.
@@ -963,7 +851,7 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
                         boogie_parsing.BoogieType.reverse_alias(var.type).name
                     ))
                 try:
-                    for index, constraint in enumerate(var.constraints):
+                    for index, constraint in var.constraints.items():
                         if constraint.scoped_pattern is None:
                             continue
                         if constraint.scoped_pattern.get_scope_slug().lower() == 'none':
@@ -997,7 +885,7 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
         used_slugs = set()
         for requirement in requirements:  # type: Requirement
             try:
-                for index, formalization in enumerate(requirement.formalizations):
+                for index, formalization in requirement.formalizations.items():
                     slug, used_slugs = clean_identifier_for_ultimate_parser(requirement.rid, used_slugs)
                     if formalization.scoped_pattern is None:
                         continue
@@ -1102,7 +990,7 @@ def get_revisions_with_stats(session_path):
             'session_variable_collection.pickle'
         )
         try:
-            num_vars = len(pickle_load_from_dump(revision_var_collection_path).collection)
+            num_vars = len(VariableCollection.load(revision_var_collection_path).collection)
         except:
             num_vars = -1
 
@@ -1293,24 +1181,6 @@ def slugify(s):
     return re.sub(r'(?u)[^-\w.]', '', s)
 
 
-def load_Import_sessions(app):
-    """ Open variable import sessions if existing.
-
-    """
-    try:
-        # load import_sessions
-        var_import_sessions_path = os.path.join(
-            app.config['SESSION_BASE_FOLDER'],
-            'variable_import_sessions.pickle'
-        )
-        var_import_sessions = VarImportSessions.load(var_import_sessions_path)
-    except FileNotFoundError as e:
-        logging.info('Import sessions file does not exist.')
-        raise e
-
-    return var_import_sessions
-
-
 class PrefixMiddleware(object):
     ''' Support for url prefixes. '''
 
@@ -1379,7 +1249,7 @@ class GenerateScopedPatternTrainingData(argparse.Action):
                         slug, used_slugs = clean_identifier_for_ultimate_parser(requirement.rid, used_slugs)
                         result[slug] = dict()
                         result[slug]['desc'] = requirement.description
-                        for index, formalization in enumerate(requirement.formalizations):
+                        for index, formalization in requirement.formalizations.items():
                             if formalization.scoped_pattern is None:
                                 continue
                             if formalization.scoped_pattern.get_scope_slug().lower() == 'none':
