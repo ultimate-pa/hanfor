@@ -267,6 +267,33 @@ class TestHanforVersionMigrations(TestCase):
                 new_var_collection_contents.json['data']
             )
 
+    def test_change_var_name(self):
+        for version_slug, version_tag in VERSION_TAGS.items():
+            args = utils.HanforArgumentParser(app).parse_args(
+                [self.csv_files[version_slug], VERSION_TAGS[version_slug]]
+            )
+            self.startup_hanfor(args, user_mock_answers=[])
+            self.app.post(
+                'api/var/update',
+                data={
+                    'name': 'foo_bar',
+                    'name_old': 'foo',
+                    'type': 'bool',
+                    'const_val': '',
+                    'const_val_old': '',
+                    'type_old': 'unknown',
+                    'occurrences': 'SysRS FooXY_42',
+                    'constraints': json.dumps({}),
+                    'updated_constraints': False,
+                    'enumerators': json.dumps([])
+                }
+            )
+            updated_affected_req = self.app.get('api/req/get?id=SysRS FooXY_42&row_idx=0')
+            self.assertEqual(
+                'Globally, it is never the case that "foo_bar!=bar" holds',
+                updated_affected_req.json['formal'][0]
+            )
+
     def tearDown(self):
         # Clean test dir.
         self.clean_folders()
