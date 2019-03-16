@@ -385,7 +385,7 @@ def update_variable_in_collection(app, request):
     var_const_val = request.form.get('const_val', '').strip()
     var_const_val_old = request.form.get('const_val_old', '').strip()
     occurrences = request.form.get('occurrences', '').strip().split(',')
-    enumerators = json.loads(request.form.get('enumerators', ''));
+    enumerators = json.loads(request.form.get('enumerators', ''))
 
     var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
     result = {
