@@ -200,6 +200,17 @@ class TestHanforVersionMigrations(TestCase):
                 [self.csv_files[version_slug], VERSION_TAGS[version_slug]]
             )
             self.startup_hanfor(args, user_mock_answers=[])
+            import_session_details = self.app.post(
+                'api/var/var_import_info',
+                data={
+                    'sess_name': 'simple_0_0_0_var_import_source',
+                    'sess_revision': 'revision_0'
+                }
+            )
+            self.assertEqual(
+                {"new_vars": 6, "tot_vars": 11},
+                import_session_details.json
+            )
             start_import_session_result = self.app.post(
                 'api/var/start_import_session',
                 data={
@@ -214,13 +225,9 @@ class TestHanforVersionMigrations(TestCase):
 
     def create_temp_data(self):
         print('Create tmp Data for `{}`.'.format(self.__class__.__name__))
-        if not os.path.exists(SESSION_BASE_FOLDER):
-            os.makedirs(SESSION_BASE_FOLDER)
-
-        for version in VERSION_TAGS.values():
-            src = os.path.join(HERE, 'test_sessions', 'test_hanfor_migrations', version)
-            dst = os.path.join(SESSION_BASE_FOLDER, version)
-            shutil.copytree(src, dst)
+        src = os.path.join(HERE, 'test_sessions', 'test_hanfor_migrations')
+        dst = os.path.join(SESSION_BASE_FOLDER)
+        shutil.copytree(src, dst)
 
     def clean_folders(self):
         print('Clean test env of test `{}`.'.format(self.__class__.__name__))
