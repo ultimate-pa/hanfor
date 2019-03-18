@@ -10,6 +10,28 @@ require('./bootstrap-tokenfield.js');
 let available_types = ['CONST', 'ENUM'];
 let var_search_string = sessionStorage.getItem('var_search_string');
 let type_inference_errors = [];
+const { SearchNode } = require('./datatables-advanced-search.js');
+let search_tree = undefined;
+let visible_columns = [true, true, true, true];
+
+
+/**
+ * Apply search tree on datatables data.
+ * @param data
+ * @returns {bool|XPathResult}
+ */
+function evaluate_search(data){
+    return search_tree.evaluate(data, visible_columns);
+}
+
+/**
+ * Update the search expression tree.
+ */
+function update_search() {
+    var_search_string = $('#search_bar').val().trim();
+    sessionStorage.setItem('var_search_string', var_search_string);
+    search_tree = SearchNode.fromQuery(var_search_string);
+}
 
 /**
  * Store the currently active (in the modal) variable.
@@ -705,15 +727,30 @@ $(document).ready(function() {
                 event.preventDefault();
                 load_variable(get_rowidx_by_var_name($(this).data('name')));
             });
+
+            update_search();
+
+            // Enable Hanfor specific table filtering.
+            $.fn.dataTable.ext.search.push(
+                function( settings, data, dataIndex ) {
+                    // data contains the row. data[0] is the content of the first column in the actual row.
+                    // Return true to include the row into the data. false to exclude.
+                    return evaluate_search(data);
+                }
+            );
+
+            this.api().draw();
         }
     });
     variables_table.column(3).visible(true);
     variables_table.column(4).visible(false);
 
     // Bind big custom searchbar to search the table.
-    $('#search_bar').keyup(function(){
-      variables_table.search($(this).val()).draw();
-      sessionStorage.setItem('var_search_string', $(this).val());
+    $('#search_bar').keypress(function(e) {
+        if(e.which === 13) { // Search on enter.
+            update_search();
+            variables_table.draw();
+        }
     });
 
     // Add listener for variable link to modal.
