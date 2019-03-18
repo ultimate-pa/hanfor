@@ -242,6 +242,14 @@ def get_available_tags(app):
             pass
         return col
 
+    def get_desc(tag_name):
+        desc = ''
+        try:
+            desc = meta_settings['tag_descriptions'][tag_name]
+        except KeyError:
+            pass
+        return desc
+
     for filename in filenames:
         try:
             req = Requirement.load(filename)
@@ -254,7 +262,8 @@ def get_available_tags(app):
                 collected_tags[tag] = {
                     'name': tag,
                     'used_by': list(),
-                    'color': get_color(tag)
+                    'color': get_color(tag),
+                    'description': get_desc(tag)
                 }
             collected_tags[tag]['used_by'].append(req.rid)
 
@@ -309,6 +318,7 @@ def update_tag(app, request, delete=False):
     tag_name_old = request.form.get('name_old', '').strip()
     occurences = request.form.get('occurences', '').strip().split(',')
     color = request.form.get('color', '#5bc0de').strip()  # Default = #5bc0de
+    description = request.form.get('description', '').strip()
 
     result = {
         'success': True,
@@ -317,7 +327,8 @@ def update_tag(app, request, delete=False):
         'data': {
             'name': tag_name,
             'used_by': occurences,
-            'color': color
+            'color': color,
+            'description': description
         }
     }
 
@@ -357,6 +368,11 @@ def update_tag(app, request, delete=False):
     if 'tag_colors' not in meta_settings:
         meta_settings['tag_colors'] = dict()
     meta_settings['tag_colors'][tag_name] = color
+
+    # Store the tag description into meta settings.
+    if 'tag_descriptions' not in meta_settings:
+        meta_settings['tag_descriptions'] = dict()
+    meta_settings['tag_descriptions'][tag_name] = description
     meta_settings.update_storage()
 
     return result

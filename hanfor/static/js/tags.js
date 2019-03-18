@@ -4,6 +4,7 @@ require('bootstrap-confirmation2');
 require('datatables.net-bs4');
 require('jquery-ui/ui/widgets/autocomplete');
 require('./bootstrap-tokenfield.js');
+const autosize = require('autosize');
 
 let tag_search_string = sessionStorage.getItem('tag_search_string');
 
@@ -12,15 +13,16 @@ let tag_search_string = sessionStorage.getItem('tag_search_string');
  * @param tags_datatable
  */
 function store_tag(tags_datatable) {
-    tag_modal_content = $('.modal-content');
+    let tag_modal_content = $('.modal-content');
     tag_modal_content.LoadingOverlay('show');
 
     // Get data.
-    tag_name = $('#tag_name').val();
-    tag_name_old = $('#tag_name_old').val();
-    occurences = $('#occurences').val();
-    tag_color = $('#tag_color').val();
-    associated_row_id = parseInt($('#modal_associated_row_index').val());
+    let tag_name = $('#tag_name').val();
+    let tag_name_old = $('#tag_name_old').val();
+    let occurences = $('#occurences').val();
+    let tag_color = $('#tag_color').val();
+    let associated_row_id = parseInt($('#modal_associated_row_index').val());
+    let tag_description = $('#tag-description').val();
 
     // Store the tag.
     $.post( "api/tag/update",
@@ -28,7 +30,8 @@ function store_tag(tags_datatable) {
             name: tag_name,
             name_old: tag_name_old,
             occurences: occurences,
-            color: tag_color
+            color: tag_color,
+            description: tag_description
         },
         // Update tag table on success or show an error message.
         function( data ) {
@@ -48,11 +51,11 @@ function store_tag(tags_datatable) {
 
 
 function delete_tag(name) {
-    tag_modal_content = $('.modal-content');
+    let tag_modal_content = $('.modal-content');
     tag_modal_content.LoadingOverlay('show');
 
-    tag_name = $('#tag_name').val();
-    occurences = $('#occurences').val();
+    let tag_name = $('#tag_name').val();
+    let occurences = $('#occurences').val();
     $.post( "api/tag/del_tag",
         {
             name: tag_name,
@@ -76,8 +79,8 @@ function delete_tag(name) {
 
 $(document).ready(function() {
     // Prepare and load the tags table.
-    tags_table = $('#tags_table');
-    tags_datatable = tags_table.DataTable({
+    let tags_table = $('#tags_table');
+    let tags_datatable = tags_table.DataTable({
         "paging": true,
         "stateSave": true,
         "pageLength": 50,
@@ -93,6 +96,14 @@ $(document).ready(function() {
                     result = '<a class="modal-opener" href="#">' + data + '</span></br>';
                     return result;
                 }
+            },
+            {
+                "data": "description",
+                "render": function ( data, type, row, meta ) {
+                    result = data;
+                    return result;
+                }
+
             },
             {
                 "data": "used_by",
@@ -132,7 +143,7 @@ $(document).ready(function() {
             $('#search_bar').val(tag_search_string);
         }
     });
-    tags_datatable.column(2).visible(false);
+    tags_datatable.column(3).visible(false);
 
     // Bind big custom searchbar to search the table.
     $('#search_bar').keyup(function(){
@@ -150,7 +161,7 @@ $(document).ready(function() {
         let row_id = tags_datatable.row($(event.target).parent()).index();
 
         // Prepare tag modal
-        tag_modal_content = $('.modal-content');
+        let tag_modal_content = $('.modal-content');
         $('#tag_modal').modal('show');
         $('#modal_associated_row_index').val(row_id);
 
@@ -162,6 +173,7 @@ $(document).ready(function() {
         $('#tag_modal_title').html('Tag: ' + data.name);
         $('#tag_name').val(data.name);
         $('#tag_color').val(data.color);
+        $('#tag-description').val(data.description);
 
         tag_modal_content.LoadingOverlay('hide');
     });
@@ -176,4 +188,6 @@ $(document).ready(function() {
     }).click(function () {
         delete_tag( $(this).attr('name') );
     });
+
+    autosize($('#tag-description'));
 } );
