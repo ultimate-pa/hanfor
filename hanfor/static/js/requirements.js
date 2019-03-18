@@ -401,7 +401,6 @@ function add_formalization() {
     }).done(function () {
         update_vars();
         update_formalization();
-        bind_expression_buttons();
         bind_var_autocomplete();
         update_logs();
     });
@@ -431,7 +430,6 @@ function add_formalization_from_guess(scope, pattern, mapping) {
     }).done(function () {
         update_vars();
         update_formalization();
-        bind_expression_buttons();
         bind_var_autocomplete();
         update_logs();
     });
@@ -457,20 +455,8 @@ function delete_formalization(formal_id, card) {
     }).done(function () {
         update_vars();
         update_formalization();
-        bind_expression_buttons();
         bind_var_autocomplete();
         update_logs();
-    });
-}
-
-
-function bind_expression_buttons() {
-    $('.formalization_selector').change(function () {
-        update_vars();
-        update_formalization();
-    });
-    $('.reqirement-variable, .req_var_type').change(function () {
-        update_formalization();
     });
 }
 
@@ -635,7 +621,6 @@ function load_requirement(row_idx) {
         // Handle autocompletion for variables.
         bind_var_autocomplete();
         // Update available vars based on the selection of requirement and pattern.
-        bind_expression_buttons();
         // Prevent inserting a token twice on enter
         prevent_double_token_insert();
         $('#requirement_modal').data({
@@ -1453,13 +1438,22 @@ $(document).ready(function() {
     update_logs();
     init_report_generation();
 
-
+    let body = $('body');
     // Bind formalization deletion.
-    $('body').confirmation({
+    body.confirmation({
         rootSelector: '.delete_formalization',
         selector: '.delete_formalization',
         onConfirm: function(value) {
             delete_formalization( $(this).attr('name'), $(this).closest('.card') );
         }
+    });
+
+    // Bind formalization update.
+    body.on('change', '.formalization_selector, .reqirement-variable, .req_var_type', function () {
+        update_formalization();
+    });
+    // Bind formalization variable update.
+    body.on('change', '.formalization_selector', function () {
+        update_vars();
     });
 });
