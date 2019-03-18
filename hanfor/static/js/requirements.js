@@ -438,7 +438,7 @@ function add_formalization_from_guess(scope, pattern, mapping) {
 }
 
 
-function delete_formalization(formal_id) {
+function delete_formalization(formal_id, card) {
     let requirement_modal_content = $('.modal-content');
     requirement_modal_content.LoadingOverlay('show');
     const req_id = $('#requirement_id').val();
@@ -452,7 +452,7 @@ function delete_formalization(formal_id) {
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
-                $('#formalization_accordion').html(data['html']);
+                card.remove();
             }
     }).done(function () {
         update_vars();
@@ -471,11 +471,6 @@ function bind_expression_buttons() {
     });
     $('.reqirement-variable, .req_var_type').change(function () {
         update_formalization();
-    });
-    $('.delete_formalization').confirmation({
-      rootSelector: '.delete_formalization'
-    }).click(function () {
-        delete_formalization( $(this).attr('name') );
     });
 }
 
@@ -1457,4 +1452,14 @@ $(document).ready(function() {
     init_search_autocomplete();
     update_logs();
     init_report_generation();
+
+
+    // Bind formalization deletion.
+    $('body').confirmation({
+        rootSelector: '.delete_formalization',
+        selector: '.delete_formalization',
+        onConfirm: function(value) {
+            delete_formalization( $(this).attr('name'), $(this).closest('.card') );
+        }
+    });
 });
