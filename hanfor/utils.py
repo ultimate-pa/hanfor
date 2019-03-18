@@ -804,7 +804,7 @@ def clean_identifier_for_ultimate_parser(slug: str, used_slugs: Set[str]) -> (st
     return slug, used_slugs
 
 
-def generate_req_file(app, output_file=None, filter_list=None, invert_filter=False):
+def generate_req_file(app, output_file=None, filter_list=None, invert_filter=False, variables_only=False):
     """ Generate the ulltimate requirements file.
 
     :param tag: Session tag
@@ -820,9 +820,6 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
     logging.info('Generating .req file for session {}'.format(app.config['SESSION_TAG']))
     # Get requirements
     requirements = get_requirements(app.config['REVISION_FOLDER'], filter_list=filter_list, invert_filter=invert_filter)
-
-    # get session status
-    session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])  # type: dict
 
     var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
     available_vars = []
@@ -845,10 +842,14 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
 
     # Write to .req file
     if not output_file:
+        file_suffix = 'requirements'
+        if variables_only:
+            file_suffix = 'variables_only'
         output_file = os.path.join(
-            app.config['SESSION_FOLDER'], '{}_{}_formalized_requirements.req'.format(
+            app.config['SESSION_FOLDER'], '{}_{}_formalized_{}.req'.format(
                 app.config['SESSION_TAG'],
-                app.config['USING_REVISION']
+                app.config['USING_REVISION'],
+                file_suffix
             ))
     logging.info('Write to output file: {}'.format(output_file))
 
@@ -898,27 +899,28 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
         content += '\n\n'
 
         # parse requirement formalizations.
-        used_slugs = set()
-        for requirement in requirements:  # type: Requirement
-            try:
-                for index, formalization in requirement.formalizations.items():
-                    slug, used_slugs = clean_identifier_for_ultimate_parser(requirement.rid, used_slugs)
-                    if formalization.scoped_pattern is None:
-                        continue
-                    if formalization.scoped_pattern.get_scope_slug().lower() == 'none':
-                        continue
-                    if formalization.scoped_pattern.get_pattern_slug() in ['NotFormalizable', 'None']:
-                        continue
-                    if len(formalization.get_string()) == 0:
-                        # formalizatioin string is empty if expressions are missing or none set. Ignore in output
-                        continue
-                    content += '{}_{}: {}\n'.format(
-                        slug,
-                        index,
-                        formalization.get_string()
-                    )
-            except AttributeError:
-                continue
+        if not variables_only:
+            used_slugs = set()
+            for requirement in requirements:  # type: Requirement
+                try:
+                    for index, formalization in requirement.formalizations.items():
+                        slug, used_slugs = clean_identifier_for_ultimate_parser(requirement.rid, used_slugs)
+                        if formalization.scoped_pattern is None:
+                            continue
+                        if formalization.scoped_pattern.get_scope_slug().lower() == 'none':
+                            continue
+                        if formalization.scoped_pattern.get_pattern_slug() in ['NotFormalizable', 'None']:
+                            continue
+                        if len(formalization.get_string()) == 0:
+                            # formalizatioin string is empty if expressions are missing or none set. Ignore in output
+                            continue
+                        content += '{}_{}: {}\n'.format(
+                            slug,
+                            index,
+                            formalization.get_string()
+                        )
+                except AttributeError:
+                    continue
         content += '\n'
         out_file.write(content)
 

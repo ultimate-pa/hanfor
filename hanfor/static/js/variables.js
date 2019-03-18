@@ -599,6 +599,7 @@ function delete_enumerator(enum_name, enumerator_name, enum_dom) {
     });
 }
 
+
 $(document).ready(function() {
     // Prepare and load the variables table.
     let variables_table = $('#variables_table').DataTable({
@@ -812,6 +813,9 @@ $(document).ready(function() {
         } else {
             delete_enumerator(enum_name, enumerator_name, enum_dom);
         }
-    })
+    });
 
+    $('#generate_req').click(function () {
+        $('#generate_req_form').submit();
+    });
 } );

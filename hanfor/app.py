@@ -123,7 +123,8 @@ def api(resource, command):
         'del_constraint',
         'add_new_enum',
         'get_enumerators',
-        'start_import_session'
+        'start_import_session',
+        'gen_req'
     ]
     if resource not in resources or command not in commands:
         return jsonify({
@@ -604,6 +605,18 @@ def api(resource, command):
                 result['errormsg'] = 'Could not create the import session.'
 
             return jsonify(result)
+        elif command == 'gen_req':
+            filename = utils.generate_req_file(app, variables_only=True)
+
+            response = make_response(send_file(filename))
+            basename = os.path.basename(filename)
+            response.headers["Content-Disposition"] = \
+                "attachment;" \
+                "filename*=UTF-8''{utf_filename}".format(
+                    utf_filename=basename
+                )
+            os.remove(filename)
+            return response
 
         return jsonify(result)
 
