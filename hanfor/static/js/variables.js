@@ -5,6 +5,7 @@ require('datatables.net-bs4');
 require('datatables.net-select');
 require('jquery-ui/ui/widgets/autocomplete');
 require('./bootstrap-tokenfield.js');
+require('jquery-ui/ui/effects/effect-highlight');
 
 // Globals
 let available_types = ['CONST', 'ENUM'];
@@ -721,6 +722,17 @@ $(document).ready(function() {
                 }
             }
         ],
+        infoCallback: function( settings, start, end, max, total, pre ) {
+            var api = this.api();
+            var pageInfo = api.page.info();
+
+            $('#clear-all-filters-text').html("Showing " + total +"/"+ pageInfo.recordsTotal + ". Clear all.");
+
+            let result = "Showing " + start + " to " + end + " of " + total + " entries";
+            result += " (filtered from " + pageInfo.recordsTotal + " total entries).";
+
+            return result;
+        },
         initComplete : function() {
             $('#search_bar').val(var_search_string);
             $('.variable_link').click(function (event) {
@@ -854,5 +866,12 @@ $(document).ready(function() {
 
     $('#generate_req').click(function () {
         $('#generate_req_form').submit();
+    });
+
+    // Clear all applied searches.
+    $('.clear-all-filters').click(function () {
+        $('#search_bar').val('').effect("highlight", {color: 'green'}, 500);
+        update_search();
+        variables_table.draw();
     });
 } );
