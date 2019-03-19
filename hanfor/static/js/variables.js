@@ -784,6 +784,11 @@ $(document).ready(function() {
         } else {
             show_variable_val_input(revert=true);
         }
+        if ($( this ).val() === 'ENUM') {
+            show_enumerators_in_modal();
+        } else {
+            show_enumerators_in_modal(revert=true);
+        }
     });
 
     // Add listener for importing variables from existing sessions/revisions
