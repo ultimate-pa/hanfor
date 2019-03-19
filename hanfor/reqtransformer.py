@@ -1300,7 +1300,7 @@ class Variable(HanforVersioned):
                     variable_collection=variable_collection
                 )
             except Exception as e:
-                logging.error('Could not update Formalization: {}'.format(e.__str__()))
+                logging.error('Could not update Constraint: {}'.format(e.__str__()))
                 raise e
 
         return variable_collection
