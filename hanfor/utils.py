@@ -267,6 +267,9 @@ def get_available_tags(app):
                 }
             collected_tags[tag]['used_by'].append(req.rid)
 
+    for tag in collected_tags.keys():
+        collected_tags[tag]['used_by'].sort()
+
     return [tag for tag in collected_tags.values()]
 
 
