@@ -687,7 +687,7 @@ $(document).ready(function() {
                                     'data-name="' + constraint_parent + '" >' + name + '</a>' +
                                     '</span> ';
                             } else {
-                                let search_query = '?command=search&col=2&q=' + name;
+                                let search_query = '?command=search&col=2&q=%5C%22' + name + '%5C%22';
                                 result += '<span class="badge badge-info">' +
                                 '<a href="./' + search_query + '" target="_blank">' + name + '</a>' +
                                 '</span> ';

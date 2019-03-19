@@ -111,7 +111,7 @@ $(document).ready(function() {
                     result = '';
                     $(data).each(function (id, name) {
                         if (name.length > 0) {
-                            search_query = '?command=search&col=2&q=' + name;
+                            search_query = '?command=search&col=2&q=%5C%22' + name + '%5C%22';
                             result += '<span class="badge" style="background-color: ' + row.color +'">' +
                                 '<a href="' + base_url + search_query + '" target="_blank">' + name + '</a>' +
                                 '</span>';
