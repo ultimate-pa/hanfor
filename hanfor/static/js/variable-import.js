@@ -7,9 +7,32 @@ require('jquery-ui/ui/widgets/autocomplete');
 require('jquery-ui/ui/effects/effect-highlight');
 require('./bootstrap-tokenfield.js');
 
-let var_search_string = sessionStorage.getItem('var_search_string');
+// Globals
 let available_types = ['bool', 'int', 'real', 'unknown', 'CONST', 'ENUM', 'ENUMERATOR'];
 let global_changes = false;
+const { SearchNode } = require('./datatables-advanced-search.js');
+let var_import_search_string = sessionStorage.getItem('var_import_search_string');
+let search_tree = undefined;
+let visible_columns = [true, true, true, true, true, true];
+
+
+/**
+ * Apply search tree on datatables data.
+ * @param data
+ * @returns {bool|XPathResult}
+ */
+function evaluate_search(data){
+    return search_tree.evaluate(data, visible_columns);
+}
+
+/**
+ * Update the search expression tree.
+ */
+function update_search() {
+    var_import_search_string = $('#search_bar').val().trim();
+    sessionStorage.setItem('var_import_search_string', var_import_search_string);
+    search_tree = SearchNode.fromQuery(var_import_search_string);
+}
 
 function load_enumerators_to_modal(var_name, var_import_table) {
     let enum_div = $('#enumerators');
@@ -490,17 +513,42 @@ $(document).ready(function() {
                 }
             }
         ],
+        infoCallback: function( settings, start, end, max, total, pre ) {
+            var api = this.api();
+            var pageInfo = api.page.info();
+
+            $('#clear-all-filters-text').html("Showing " + total +"/"+ pageInfo.recordsTotal + ". Clear all.");
+
+            let result = "Showing " + start + " to " + end + " of " + total + " entries";
+            result += " (filtered from " + pageInfo.recordsTotal + " total entries).";
+
+            return result;
+        },
         initComplete : function() {
-            $('#search_bar').val(var_search_string);
+            $('#search_bar').val(var_import_search_string);
+
+            update_search();
+
+            // Enable Hanfor specific table filtering.
+            $.fn.dataTable.ext.search.push(
+                function( settings, data, dataIndex ) {
+                    // data contains the row. data[0] is the content of the first column in the actual row.
+                    // Return true to include the row into the data. false to exclude.
+                    return evaluate_search(data);
+                }
+            );
+
+            this.api().draw();
         }
     });
 
     // Bind big custom searchbar to search the table.
-    $('#search_bar').keyup(function(){
-      var_import_table.search($(this).val()).draw();
-      sessionStorage.setItem('var_search_string', $(this).val());
+    $('#search_bar').keypress(function(e) {
+        if(e.which === 13) { // Search on enter.
+            update_search();
+            var_import_table.draw();
+        }
     });
-
 
     let var_import_table_body = $('#var_import_table tbody');
 
@@ -573,4 +621,10 @@ $(document).ready(function() {
         select_buttons.addClass('btn-secondary ');
     });
 
+    // Clear all applied searches.
+    $('.clear-all-filters').click(function () {
+        $('#search_bar').val('').effect("highlight", {color: 'green'}, 500);
+        update_search();
+        var_import_table.draw();
+    });
 } );
