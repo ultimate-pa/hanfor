@@ -1166,7 +1166,7 @@ class VariableCollection(HanforVersioned, Pickleable):
                 with open(script_path, 'rb') as f:
                     script = f.read()
             except Exception as e:
-                logging.error('Could not load `{}` to eval variable scrypt results: `{}`'.format(script, e))
+                logging.error('Could not load `{}` to eval variable scrypt results: `{}`'.format(script_filename, e))
                 continue
             # Apply script for each variable.
             for name, var in self.collection.items():
@@ -1180,7 +1180,9 @@ class VariableCollection(HanforVersioned, Pickleable):
                     ).decode()
                 except subprocess.CalledProcessError as e:
                     result = 'Output: {}'.format(e.output.decode())
-                self.collection[name].script_results += 'Results for `{}` <br> {} <br>'.format(script_filename,result)
+                self.collection[name].script_results += 'Results for `{}` <br> {} <br>'.format(
+                    script_filename,result
+                )
 
     def empty_script_results(self):
         for name, var in self.collection.items():
