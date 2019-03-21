@@ -1,5 +1,6 @@
 [![LGPL License](http://img.shields.io/badge/license-LGPLv3+LE-brightgreen.svg)](https://github.com/ultimate-pa/hanfor/LICENSE)
 [![Waffle.io - Columns and their card count](https://badge.waffle.io/aaa3217f1bcf93d0b14dc512da7cbac3e5b3a4f4a6ed2c939c2dd79c9404482b.svg?columns=all)](https://waffle.io/ultimate-pa/hanfor)
+[![Board](https://img.shields.io/badge/board-github%20project-blue.svg)](https://github.com/orgs/ultimate-pa/projects/1)
 <!--[![Waffle.io](https://img.shields.io/waffle/label/ultimate-pa/hanfor/in%20progress.svg?maxAge=1800)](https://waffle.io/ultimate-pa/hanfor)-->
 
 # Hanfor
