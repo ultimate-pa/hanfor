@@ -1149,6 +1149,10 @@ class VariableCollection(HanforVersioned, Pickleable):
 
         :param app:
         """
+        if 'SCRIPT_EVALUATIONS' not in app.config:
+            logging.info('No SCRIPT_EVALUATIONS settings found in config.py. Skipping variable script evaluations.')
+            return
+
         self.empty_script_results()
         ## Prepare the subprocess to use our environment.
         env = os.environ.copy()
