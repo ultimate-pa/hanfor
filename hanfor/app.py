@@ -873,6 +873,7 @@ def varcollection_consistency_check(app, args=None):
         var_collection.reload_type_inference_errors_in_constraints()
 
     update_var_usage(var_collection)
+    var_collection.reload_script_results(app)
     var_collection.store()
 
 
