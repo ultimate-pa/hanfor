@@ -11,6 +11,28 @@
 SESSION_BASE_FOLDER = None
 
 ################################################################################
+#                         Script results for variables                         #
+################################################################################
+# Settings in this section determine the results in the "Script results" column
+# in the variables table.
+#
+# To add a script evaluation:
+# * The script must be available in the ./script_utils folder.
+# * Add a entry to SCRIPT_EVALUATIONS e.g.
+#     SCRIPT_EVALUATIONS = {
+#         'search_sysrt.sh': ['foo', '$VAR_NAME']
+#     }
+#   Will evaluate search_sysrt.sh once for each variable VAR_NAME
+#   using `foo $VAR_NAME` as input.
+# * The script will be evaluated once at startup and on request (refresh script results)
+#
+# Available placeholders are:
+# * $VAR_NAME -> The variable name.
+SCRIPT_EVALUATIONS = {
+    'search_sysrt.sh': ['', '/abs/path/to/sysrt.csv', '$VAR_NAME']
+}
+
+################################################################################
 #                                DEBUG and logging                             #
 ################################################################################
 
