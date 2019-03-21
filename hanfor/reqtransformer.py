@@ -11,6 +11,7 @@ from typing import Dict
 import os
 import pickle
 import re
+import subprocess
 
 import boogie_parsing
 import logging
@@ -20,7 +21,7 @@ from static_utils import choice, get_filenames_from_dir
 from enum import Enum
 from copy import deepcopy
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 
 class HanforVersioned:
@@ -41,6 +42,9 @@ class HanforVersioned:
     @property
     def has_version_mismatch(self) -> bool:
         return __version__ != self.hanfor_version
+
+    def run_version_migrations(self):
+        self._hanfor_version = __version__
 
 
 class Pickleable:
@@ -378,6 +382,7 @@ class Requirement(HanforVersioned, Pickleable):
                 formalizations = dict(enumerate(self.formalizations))
                 self.formalizations = formalizations
             self.store()
+        super().run_version_migrations()
 
 class Formalization(HanforVersioned):
     def __init__(self):
@@ -1130,7 +1135,52 @@ class VariableCollection(HanforVersioned, Pickleable):
             self.hanfor_version = '1.0.0'
             for name, variable in self.collection.items():  # type: (str, Variable)
                 variable.run_version_migrations()
+        if self.hanfor_version == '1.0.0':
+            logging.info('Migrating `{}`:`{}`, from 1.0.0 -> 1.0.1'.format(
+                self.__class__.__name__, self.my_path)
+            )
+            self.hanfor_version = '1.0.1'
+            for name, variable in self.collection.items():  # type: (str, Variable)
+                variable.run_version_migrations()
+        super().run_version_migrations()
 
+    def reload_script_results(self, app):
+        """ Run the script evaluations for the variables in this collection as set in the config.py
+
+        :param app:
+        """
+        self.empty_script_results()
+        ## Prepare the subprocess to use our environment.
+        env = os.environ.copy()
+        env["PATH"] = "/usr/sbin:/sbin:" + env["PATH"]
+
+        # Eval each script given by the config
+        for script_filename, params in app.config['SCRIPT_EVALUATIONS'].items():
+            # First load the script to prevent permission issues.
+            try:
+                script_path = os.path.join(app.config.root_path, 'script_utils', script_filename)
+                with open(script_path, 'rb') as f:
+                    script = f.read()
+            except Exception as e:
+                logging.error('Could not load `{}` to eval variable scrypt results: `{}`'.format(script, e))
+                continue
+            # Apply script for each variable.
+            for name, var in self.collection.items():
+                params = [param.replace('$VAR_NAME', name) for param in params]
+                try:
+                    result = subprocess.check_output(
+                        [script] + params,
+                        shell=True,
+                        env=env,
+                        stderr=subprocess.DEVNULL
+                    ).decode()
+                except subprocess.CalledProcessError as e:
+                    result = 'Output: {}'.format(e.output.decode())
+                self.collection[name].script_results += 'Results for `{}` <br> {} <br>'.format(script_filename,result)
+
+    def empty_script_results(self):
+        for name, var in self.collection.items():
+            self.collection[name].script_results = ''
 
 class Variable(HanforVersioned):
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
@@ -1141,6 +1191,7 @@ class Variable(HanforVersioned):
         self.type = type
         self.value = value
         self.tags = set()
+        self.script_results = ''
 
     def to_dict(self, var_req_mapping):
         used_by = []
@@ -1160,7 +1211,8 @@ class Variable(HanforVersioned):
             'used_by': used_by,
             'tags': list(self.get_tags()),
             'type_inference_errors': type_inference_errors,
-            'constraints': [constraint.get_string() for constraint in self.get_constraints().values()]
+            'constraints': [constraint.get_string() for constraint in self.get_constraints().values()],
+            'script_results': self.script_results
         }
 
         return d
@@ -1364,6 +1416,13 @@ class Variable(HanforVersioned):
             )
             self.constraints = dict(enumerate(self.get_constraints()))
             self.hanfor_version = '1.0.0'
+        if self.hanfor_version == '1.0.0':
+            logging.info('Migrating `{}`:`{}`, from 1.0.0 -> 1.0.1'.format(
+                self.__class__.__name__, self.name)
+            )
+            self.script_results = ''
+            self.hanfor_version = '1.0.1'
+        super().run_version_migrations()
 
 
 # This PatternVariable is here only for compatibility reasons
@@ -1560,6 +1619,7 @@ class VarImportSession(HanforVersioned):
             self.source_var_collection.run_version_migrations()
             self.target_var_collection.run_version_migrations()
             self.result_var_collection.run_version_migrations()
+        super().run_version_migrations()
 
 
 class VarImportSessions(HanforVersioned, Pickleable):
@@ -1623,3 +1683,4 @@ class VarImportSessions(HanforVersioned, Pickleable):
             for import_session in self.import_sessions:  # type: VarImportSession
                 import_session.run_version_migrations()
             self.hanfor_version = '1.0.0'
+        super().run_version_migrations()
