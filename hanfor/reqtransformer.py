@@ -1162,7 +1162,7 @@ class VariableCollection(HanforVersioned, Pickleable):
         for script_filename, params in app.config['SCRIPT_EVALUATIONS'].items():
             # First load the script to prevent permission issues.
             try:
-                script_path = os.path.join(app.config.root_path, 'script_utils', script_filename)
+                script_path = os.path.join(app.config['SCRIPT_UTILS_PATH'], script_filename)
                 with open(script_path, 'rb') as f:
                     script = f.read()
             except Exception as e:
