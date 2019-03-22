@@ -1159,7 +1159,7 @@ class VariableCollection(HanforVersioned, Pickleable):
         env["PATH"] = "/usr/sbin:/sbin:" + env["PATH"]
 
         # Eval each script given by the config
-        for script_filename, params in app.config['SCRIPT_EVALUATIONS'].items():
+        for script_filename, params_config in app.config['SCRIPT_EVALUATIONS'].items():
             # First load the script to prevent permission issues.
             try:
                 script_path = os.path.join(app.config['SCRIPT_UTILS_PATH'], script_filename)
@@ -1170,7 +1170,7 @@ class VariableCollection(HanforVersioned, Pickleable):
                 continue
             # Apply script for each variable.
             for name, var in self.collection.items():
-                params = [param.replace('$VAR_NAME', name) for param in params]
+                params = [param.replace('$VAR_NAME', name) for param in params_config]
                 try:
                     result = subprocess.check_output(
                         [script] + params,
