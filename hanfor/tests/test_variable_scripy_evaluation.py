@@ -24,13 +24,21 @@ SCRIPT_EVALUATIONS = {
     '0_0_0': {
         'test_00': {
             'script_config': {'simple_script.sh': ['arg0', 'arg1', 'arg2']},
-            'expected_result': {'simple_script.sh': ''}
+            'expected_result': 'Results for `simple_script.sh` <br> arg2\n <br>'
+        },
+        'test_01': {
+            'script_config': {'simple_script.sh': ['arg0', 'arg1', '$VAR_NAME']},
+            'expected_result': 'Results for `simple_script.sh` <br> $VAR_NAME\n <br>'
         }
     },
     '1_0_0': {
         'test_00': {
             'script_config': {'simple_script.sh': ['arg0', 'arg1', 'arg2']},
-            'expected_result': {'simple_script.sh': ''}
+            'expected_result': 'Results for `simple_script.sh` <br> arg2\n <br>'
+        },
+        'test_01': {
+            'script_config': {'simple_script.sh': ['arg0', 'arg1', '$VAR_NAME']},
+            'expected_result': 'Results for `simple_script.sh` <br> $VAR_NAME\n <br>'
         }
     }
 }
@@ -90,9 +98,13 @@ class TestHanforVersionMigrations(TestCase):
                 app.config['SCRIPT_EVALUATIONS'] = settings['script_config']
                 self.startup_hanfor(args, user_mock_answers=[])
                 # Get the available requirements.
-                initial_req_gets = self.app.get('api/req/gets')
-                self.assertEqual('always look on the bright side of life', initial_req_gets.json['data'][1]['desc'])
-                self.assertListEqual(['unseen'], initial_req_gets.json['data'][1]['tags'])
+                var_gets = self.app.get('api/var/gets')
+                self.assertEqual(5, len(var_gets.json['data']))
+                for result in var_gets.json['data']:
+                    self.assertEqual(
+                        settings['expected_result'].replace('$VAR_NAME', result['name']),
+                        result['script_results']
+                    )
 
     def tearDown(self):
         # Clean test dir.
