@@ -873,6 +873,7 @@ def varcollection_consistency_check(app, args=None):
         var_collection.reload_type_inference_errors_in_constraints()
 
     update_var_usage(var_collection)
+    var_collection.reload_script_results(app)
     var_collection.store()
 
 
@@ -1270,12 +1271,18 @@ def user_choose_start_revision():
     return revision_choice
 
 
+def set_app_config_paths(args, HERE):
+    app.config['SCRIPT_UTILS_PATH'] = os.path.join(HERE, 'script_utils')
+    app.config['TEMPLATES_FOLDER'] = os.path.join(HERE, 'templates')
+
+
 def startup_hanfor(args, HERE):
     """ Setup session Variables and parse startup arguments
 
     :param args:
     """
     set_session_config_vars(args, HERE)
+    set_app_config_paths(args, HERE)
 
     # Create a new revision if requested.
     if args.revision:
@@ -1289,8 +1296,6 @@ def startup_hanfor(args, HERE):
             revision_choice = user_choose_start_revision()
             logging.info('Loading session `{}` at `{}`'.format(app.config['SESSION_TAG'], revision_choice))
             load_revision(revision_choice)
-
-    app.config['TEMPLATES_FOLDER'] = os.path.join(HERE, 'templates')
 
     # Initialize variables collection, import session, meta settings.
     init_var_collection()

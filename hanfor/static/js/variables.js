@@ -13,7 +13,7 @@ let var_search_string = sessionStorage.getItem('var_search_string');
 let type_inference_errors = [];
 const { SearchNode } = require('./datatables-advanced-search.js');
 let search_tree = undefined;
-let visible_columns = [true, true, true, true];
+let visible_columns = [true, true, true, true, true];
 
 
 /**
@@ -704,8 +704,15 @@ $(document).ready(function() {
 
             },
             {
-                "data": "used_by",
+                "data": "script_results",
                 "targets": [4],
+                "render": function ( data, type, row, meta ) {
+                    return data;
+                }
+            },
+            {
+                "data": "used_by",
+                "targets": [5],
                 "visible": false,
                 "searchable": false,
                 "render": function ( data, type, row, meta ) {
@@ -754,8 +761,8 @@ $(document).ready(function() {
             this.api().draw();
         }
     });
-    variables_table.column(3).visible(true);
-    variables_table.column(4).visible(false);
+    variables_table.column(4).visible(true);
+    variables_table.column(5).visible(false);
 
     // Bind big custom searchbar to search the table.
     $('#search_bar').keypress(function(e) {
