@@ -11,13 +11,28 @@ import utils
 from unittest import TestCase
 from unittest.mock import patch
 
-HERE = os.path.dirname(os.path.realpath(__file__))
-MOCK_DATA_FOLDER = os.path.join(HERE, 'test_sessions', 'test_variable_script_evaluations')
-SESSION_BASE_FOLDER = os.path.join(HERE, 'test_sessions', 'tmp')
+HERE = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'test_sessions')
+MOCK_DATA_FOLDER = os.path.join(HERE, 'test_variable_script_evaluations')
+SESSION_BASE_FOLDER = os.path.join(HERE, 'tmp')
 
 VERSION_TAGS = {
     '0_0_0': 'simple_0_0_0',
     '1_0_0': 'simple_1_0_0',
+}
+
+SCRIPT_EVALUATIONS = {
+    '0_0_0': {
+        'test_00': {
+            'script_config': {'simple_script.sh': ['arg0', 'arg1', 'arg2']},
+            'expected_result': {'simple_script.sh': ''}
+        }
+    },
+    '1_0_0': {
+        'test_00': {
+            'script_config': {'simple_script.sh': ['arg0', 'arg1', 'arg2']},
+            'expected_result': {'simple_script.sh': ''}
+        }
+    }
 }
 
 
@@ -63,7 +78,7 @@ class TestHanforVersionMigrations(TestCase):
         mock_results = user_mock_answers
 
         startup_hanfor(args, HERE)
-        app.config['TEMPLATES_FOLDER'] = os.path.join(HERE, '..', 'templates')
+        app.config['TEMPLATES_FOLDER'] = os.path.join(HERE, '..', '..', 'templates')
 
     def test_simple_script(self):
         # Starting each version to trigger migrations.
@@ -71,11 +86,13 @@ class TestHanforVersionMigrations(TestCase):
             args = utils.HanforArgumentParser(app).parse_args(
                 [self.csv_files[version_slug], VERSION_TAGS[version_slug]]
             )
-            self.startup_hanfor(args, user_mock_answers=[])
-            # Get the available requirements.
-            initial_req_gets = self.app.get('api/req/gets')
-            self.assertEqual('always look on the bright side of life', initial_req_gets.json['data'][1]['desc'])
-            self.assertListEqual(['unseen'], initial_req_gets.json['data'][1]['tags'])
+            for test_name, settings in SCRIPT_EVALUATIONS[version_slug].items():
+                app.config['SCRIPT_EVALUATIONS'] = settings['script_config']
+                self.startup_hanfor(args, user_mock_answers=[])
+                # Get the available requirements.
+                initial_req_gets = self.app.get('api/req/gets')
+                self.assertEqual('always look on the bright side of life', initial_req_gets.json['data'][1]['desc'])
+                self.assertListEqual(['unseen'], initial_req_gets.json['data'][1]['tags'])
 
     def tearDown(self):
         # Clean test dir.
@@ -83,7 +100,7 @@ class TestHanforVersionMigrations(TestCase):
 
     def create_temp_data(self):
         print('Create tmp Data for `{}`.'.format(self.__class__.__name__))
-        src = os.path.join(HERE, 'test_sessions', 'test_variable_script_evaluations')
+        src = os.path.join(HERE, 'test_variable_script_evaluations')
         dst = os.path.join(SESSION_BASE_FOLDER)
         shutil.copytree(src, dst)
 
