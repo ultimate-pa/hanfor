@@ -1,7 +1,9 @@
 """
-Skeleton to test Hanfor API running the actual flask app.
+Test the hanfor version migrations.
 
 """
+import json
+
 from app import app, api, set_session_config_vars, create_revision, user_request_new_revision, startup_hanfor
 import os
 import shutil
@@ -10,16 +12,12 @@ from unittest import TestCase
 from unittest.mock import patch
 
 HERE = os.path.dirname(os.path.realpath(__file__))
-TESTS_BASE_FOLDER = os.path.join(HERE, 'test_sessions')
+MOCK_DATA_FOLDER = os.path.join(HERE, 'test_sessions', 'test_variable_script_evaluations')
+SESSION_BASE_FOLDER = os.path.join(HERE, 'test_sessions', 'tmp')
 
-CSV_FILES = {
-    'simple': os.path.join(HERE, 'test_sessions/test_init/simple.csv'),
-    'simple_changed_desc': os.path.join(HERE, 'test_sessions/test_init/simple_changed_description.csv'),
-}
-
-
-TEST_TAGS = {
-    'simple': 'simple',
+VERSION_TAGS = {
+    '0_0_0': 'simple_0_0_0',
+    '1_0_0': 'simple_1_0_0',
 }
 
 
@@ -43,16 +41,19 @@ def mock_user_input(*args, **kwargs) -> str:
     return str(result)
 
 
-class TestHanforApiSkeleton(TestCase):
+class TestHanforVersionMigrations(TestCase):
     def setUp(self):
         # Clean test folder.
-        app.config['SESSION_BASE_FOLDER'] = TESTS_BASE_FOLDER
+        app.config['SESSION_BASE_FOLDER'] = SESSION_BASE_FOLDER
         app.config['LOG_TO_FILE'] = False
         app.config['LOG_LEVEL'] = 'DEBUG'
         utils.register_assets(app)
         utils.setup_logging(app)
         self.clean_folders()
+        self.fetch_mock_data()
+        self.create_temp_data()
         self.app = app.test_client()
+        self.load_expected_result_files()
 
     @patch('builtins.input', mock_user_input)
     def startup_hanfor(self, args, user_mock_answers):
@@ -62,35 +63,49 @@ class TestHanforApiSkeleton(TestCase):
         mock_results = user_mock_answers
 
         startup_hanfor(args, HERE)
+        app.config['TEMPLATES_FOLDER'] = os.path.join(HERE, '..', 'templates')
 
-    def test_new_session_from_csv(self):
-        """
-        Creates a new session.
-        """
-
-        # Create the first initial revision.
-        args = utils.HanforArgumentParser(app).parse_args([CSV_FILES['simple'], TEST_TAGS['simple']])
-        self.startup_hanfor(args, user_mock_answers=[2, 0, 1, 3])
-        # Get the available requirements.
-        initial_req_gets = self.app.get('api/req/gets')
-        self.assertEqual(initial_req_gets.json['data'][1]['desc'], 'always look on the bright side of life')
-        self.assertListEqual(initial_req_gets.json['data'][1]['tags'], [])
+    def test_simple_script(self):
+        # Starting each version to trigger migrations.
+        for version_slug, version_tag in VERSION_TAGS.items():
+            args = utils.HanforArgumentParser(app).parse_args(
+                [self.csv_files[version_slug], VERSION_TAGS[version_slug]]
+            )
+            self.startup_hanfor(args, user_mock_answers=[])
+            # Get the available requirements.
+            initial_req_gets = self.app.get('api/req/gets')
+            self.assertEqual('always look on the bright side of life', initial_req_gets.json['data'][1]['desc'])
+            self.assertListEqual(['unseen'], initial_req_gets.json['data'][1]['tags'])
 
     def tearDown(self):
         # Clean test dir.
         self.clean_folders()
 
+    def create_temp_data(self):
+        print('Create tmp Data for `{}`.'.format(self.__class__.__name__))
+        src = os.path.join(HERE, 'test_sessions', 'test_variable_script_evaluations')
+        dst = os.path.join(SESSION_BASE_FOLDER)
+        shutil.copytree(src, dst)
+
     def clean_folders(self):
         print('Clean test env of test `{}`.'.format(self.__class__.__name__))
         try:
-            path = os.path.join(TESTS_BASE_FOLDER, 'variable_import_sessions.pickle')
-            os.remove(path)
+            shutil.rmtree(SESSION_BASE_FOLDER)
         except FileNotFoundError:
             pass
-        for tag in TEST_TAGS.values():
-            path = os.path.join(TESTS_BASE_FOLDER, tag)
-            try:
-                shutil.rmtree(path)
-                print('Cleaned {}'.format(path))
-            except FileNotFoundError:
-                print('{} already clean'.format(path))
+
+    def load_expected_result_files(self):
+        self.expected_req_files = dict()
+        self.expected_csv_files = dict()
+
+        for version_slug, version_tag in VERSION_TAGS.items():
+            with open(os.path.join(MOCK_DATA_FOLDER, version_tag, 'expected_generated_csv.csv')) as f:
+                self.expected_csv_files[version_slug] = f.read()
+            with open(os.path.join(MOCK_DATA_FOLDER, version_tag, 'expected_generated_req_file.req')) as f:
+                self.expected_req_files[version_slug] = f.read()
+
+    def fetch_mock_data(self):
+        self.csv_files = dict()
+
+        for version_slug, version_tag in VERSION_TAGS.items():
+            self.csv_files[version_slug] = os.path.join(MOCK_DATA_FOLDER, version_tag, 'simple.csv')
