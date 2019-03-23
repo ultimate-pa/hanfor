@@ -65,7 +65,36 @@ class TestHanforVersionMigrations(TestCase):
         self.startup_hanfor(args, user_mock_answers=[])
         # Get the available requirements.
         var_gets = self.app.get('api/var/gets')
-        self.assertEqual(5, len(var_gets.json['data']))
+        self.assertIn(
+            {
+                'name': 'ham',
+                'constraints': ['Globally, it is never the case that "ham != foo" holds'],
+                'type_inference_errors': {},
+                'script_results': '',
+                'used_by': ['Constraint_ham_0'],
+                'const_val': None,
+                'tags': [], 'type': 'bool'
+            },
+            var_gets.json['data']
+        )
+        self.assertEqual(
+            {'spam', 'spam_ham', 'foo', 'egg', 'spam_egg', 'spam', 'bar', 'ham'},
+            {var[key] for var in var_gets.json['data'] for key in var if key == 'name'}
+        )
+        del_ham_result = self.app.post(
+            'api/var/multi_update',
+            data={
+                'change_type': '',
+                'selected_vars': json.dumps(["ham"]),
+                'del': 'true'
+            }
+        )
+        self.assertEqual(True, del_ham_result.json['success'])
+        var_gets = self.app.get('api/var/gets')
+        self.assertEqual(
+            {'spam', 'spam_ham', 'foo', 'egg', 'spam_egg', 'spam', 'bar'},
+            {var[key] for var in var_gets.json['data'] for key in var if key == 'name'}
+        )
 
     def tearDown(self):
         # Clean test dir.
@@ -73,7 +102,8 @@ class TestHanforVersionMigrations(TestCase):
 
     def create_temp_data(self):
         print('Create tmp Data for `{}`.'.format(self.__class__.__name__))
-        shutil.copytree(MOCK_DATA_FOLDER, SESSION_BASE_FOLDER)
+        dest = os.path.join(SESSION_BASE_FOLDER, 'test_delete_variable')
+        shutil.copytree(MOCK_DATA_FOLDER, dest)
 
     def clean_folders(self):
         print('Clean test env of test `{}`.'.format(self.__class__.__name__))
