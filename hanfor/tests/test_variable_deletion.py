@@ -122,6 +122,32 @@ class TestHanforVersionMigrations(TestCase):
             {var[key] for var in var_gets.json['data'] for key in var if key == 'name'}
         )
 
+    def test_no_affect_of_deleting_used_variable(self):
+        args = utils.HanforArgumentParser(app).parse_args(
+            ['simple.csv', 'test_delete_variable']
+        )
+        self.startup_hanfor(args, user_mock_answers=[])
+        # Get the available requirements.
+        var_gets = self.app.get('api/var/gets')
+        self.assertEqual(
+            {'spam', 'spam_ham', 'foo', 'egg', 'spam_egg', 'spam', 'bar', 'ham'},
+            {var[key] for var in var_gets.json['data'] for key in var if key == 'name'}
+        )
+        del_ham_result = self.app.post(
+            'api/var/multi_update',
+            data={
+                'change_type': '',
+                'selected_vars': json.dumps(["foo"]),
+                'del': 'true'
+            }
+        )
+        self.assertEqual(True, del_ham_result.json['success'])
+        var_gets = self.app.get('api/var/gets')
+        self.assertEqual(
+            {'spam', 'spam_ham', 'foo', 'egg', 'spam_egg', 'spam', 'bar', 'ham'},
+            {var[key] for var in var_gets.json['data'] for key in var if key == 'name'}
+        )
+
     def tearDown(self):
         # Clean test dir.
         self.clean_folders()
