@@ -1208,7 +1208,7 @@ class Variable(HanforVersioned):
         try:
             used_by = sorted(list(var_req_mapping[self.name]))
         except:
-            logging.debug('Variable `{}` is not used.'.format(self.name))
+            pass
 
         d = {
             'name': self.name,
