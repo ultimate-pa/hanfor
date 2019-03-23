@@ -488,7 +488,7 @@ def api(resource, command):
                     var_collection.store()
 
                 if delete == 'true':
-                    logging.debug('Deleting variables.\nAffected Vars:\n{}'.format(change_type, '\n'.join(var_list)))
+                    logging.info('Deleting variables.\nAffected Vars:\n{}'.format('\n'.join(var_list)))
                     var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
                     for var_name in var_list:
                         try:
