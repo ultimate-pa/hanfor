@@ -1118,10 +1118,23 @@ class VariableCollection(HanforVersioned, Pickleable):
 
         self.var_req_mapping = mapping
 
-    def del_var(self, var_name):
-        if var_name not in self.var_req_mapping \
-                or len(self.var_req_mapping[var_name]) == 0:
-            # Delete if var not used.
+    def del_var(self, var_name) -> bool:
+        """ Delete a variable if it is not used, or only used by its own constraints.
+
+        :param var_name:
+        :return: True on deletion else False.
+        """
+        deletable = False
+        if var_name not in self.var_req_mapping:
+            deletable = True
+        else:
+            constrainr_pref = 'Constraint_{}'.format(var_name)
+            affected_constraints = len([f for f in self.var_req_mapping[var_name] if constrainr_pref in f])
+            total_usages = len(self.var_req_mapping[var_name])
+            if affected_constraints == total_usages:
+                deletable = True
+
+        if deletable:
             self.collection.pop(var_name, None)
             self.var_req_mapping.pop(var_name, None)
             return True
