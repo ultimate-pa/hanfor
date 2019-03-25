@@ -13,7 +13,7 @@ import subprocess
 
 import utils
 
-from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice
+from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump
 from flask import Flask, render_template, request, jsonify, url_for, make_response, send_file, json, session
 from flask_debugtoolbar import DebugToolbarExtension
 from functools import wraps, update_wrapper
@@ -1296,6 +1296,11 @@ def startup_hanfor(args, HERE):
             revision_choice = user_choose_start_revision()
             logging.info('Loading session `{}` at `{}`'.format(app.config['SESSION_TAG'], revision_choice))
             load_revision(revision_choice)
+
+    # Set used csv entry into config.
+    session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])  # type: dict
+    app.config['CSV_INPUT_FILE'] = os.path.basename(session_dict['csv_input_file'])
+    app.config['CSV_INPUT_FILE_path'] = session_dict['csv_input_file']
 
     # Initialize variables collection, import session, meta settings.
     init_var_collection()
