@@ -40,14 +40,34 @@
             <a class="nav-link" href="{{ url_for('site', site='/help') }}">Help</a>
           </li>
       </ul>
-    <span class="navbar-text" id="runtime-info">
+      <span class="navbar-text" id="runtime-info">
         Running <code>{{ config.SESSION_TAG }}</code> @ <code>{{ config.USING_REVISION }}</code>&nbsp;
-        <a class="title-link" target="_blank"
-           href="https://github.com/ultimate-pa/hanfor/tree/{{ config.HANFOR_COMMIT_HASH }}">
-            Hanfor&nbsp;{{ config.HANFOR_VERSION }}
-        </a>
-    </span>
+      </span>
     </div>
+    <ul class="navbar-nav flex-row ml-md-auto d-none d-md-flex">
+        <li class="nav-item dropdown">
+          <a class="nav-item nav-link text-nowrap" href="#" id="bd-versions" data-toggle="dropdown"
+             aria-haspopup="true"
+             aria-expanded="false">
+            About &#x25BC;
+          </a>
+          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="bd-versions">
+            <h6 class="dropdown-header">Session Information</h6>
+            <span class="dropdown-item">
+                Running: <code>{{ config.SESSION_TAG }}</code> @ <code>{{ config.USING_REVISION }}</code>
+            </span>
+            <span class="dropdown-item">
+                CSV input: <code>{{ config.CSV_INPUT_FILE }}</code>
+            </span>
+            <div class="dropdown-divider"></div>
+            <h6 class="dropdown-header">Hanfor Version</h6>
+            <a class="dropdown-item title-link" target="_blank"
+                href="https://github.com/ultimate-pa/hanfor/tree/{{ config.HANFOR_COMMIT_HASH }}">
+                Hanfor&nbsp;{{ config.HANFOR_VERSION }}
+            </a>
+          </div>
+        </li>
+    </ul>
   </nav>
     {% endblock %}
     <main role="main">
