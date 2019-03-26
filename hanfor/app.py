@@ -10,7 +10,7 @@ import sys
 
 import re
 import subprocess
-
+import uuid
 import utils
 
 from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump
@@ -176,7 +176,7 @@ def api(resource, command):
                 if requirement.status != new_status:
                     requirement.status = new_status
                     utils.add_msg_to_flask_session_log(
-                        session, 'Set status to `{}` for requirement'.format(new_status), id
+                        app, 'Set status to `{}` for requirement'.format(new_status), id
                     )
                     logging.debug('Requirement status set to `{}`'.format(requirement.status))
 
@@ -187,14 +187,14 @@ def api(resource, command):
                     requirement.tags = new_tag_set
                     if added_tags:
                         utils.add_msg_to_flask_session_log(
-                            session, 'Added tags `{}` to requirement'.format(', '.join(added_tags)), id
+                            app, 'Added tags `{}` to requirement'.format(', '.join(added_tags)), id
                         )
                         logging.debug(
                             'Added tags `{}` to requirement `{}`'.format(', '.join(added_tags), requirement.tags)
                         )
                     if removed_tags:
                         utils.add_msg_to_flask_session_log(
-                            session, 'Removed tags `{}` from requirement'.format(', '.join(removed_tags)), id
+                            app, 'Removed tags `{}` from requirement'.format(', '.join(removed_tags)), id
                         )
                         logging.debug(
                             'Removed tags `{}` from requirement `{}`'.format(', '.join(removed_tags), requirement.tags)
@@ -206,7 +206,7 @@ def api(resource, command):
                     logging.debug('Updated Formalizations: {}'.format(formalizations))
                     try:
                         requirement.update_formalizations(formalizations, app)
-                        utils.add_msg_to_flask_session_log(session, 'Updated requirement formalization', id)
+                        utils.add_msg_to_flask_session_log(app, 'Updated requirement formalization', id)
                     except KeyError as e:
                         error = True
                         error_msg = 'Could not set formalization: Missing expression/variable for {}'.format(e)
@@ -257,7 +257,7 @@ def api(resource, command):
                 if len(add_tag) > 0:
                     log_msg += ' Adding tag `{}`'.format(add_tag)
                     utils.add_msg_to_flask_session_log(
-                        session, 'Adding tag `{}` to requirements.'.format(
+                        app, 'Adding tag `{}` to requirements.'.format(
                             add_tag
                         ),
                         rid_list=rid_list
@@ -265,7 +265,7 @@ def api(resource, command):
                 if len(remove_tag) > 0:
                     log_msg += ', removing Tag `{}` (is present)'.format(remove_tag)
                     utils.add_msg_to_flask_session_log(
-                        session, 'Removing tag `{}` from requirements.'.format(
+                        app, 'Removing tag `{}` from requirements.'.format(
                             remove_tag
                         ),
                         rid_list=rid_list
@@ -273,7 +273,7 @@ def api(resource, command):
                 if len(set_status) > 0:
                     log_msg += ', set Status=`{}`.'.format(set_status)
                     utils.add_msg_to_flask_session_log(
-                        session, 'Set status to `{}` for requirements. '.format(
+                        app, 'Set status to `{}` for requirements. '.format(
                             set_status
                         ),
                         rid_list=rid_list
@@ -298,7 +298,7 @@ def api(resource, command):
             requirement = Requirement.load_requirement_by_id(id, app)  # type: Requirement
             formalization_id, formalization = requirement.add_empty_formalization()
             requirement.store()
-            utils.add_msg_to_flask_session_log(session, 'Added new Formalization to requirement', id)
+            utils.add_msg_to_flask_session_log(app, 'Added new Formalization to requirement', id)
             result = utils.get_formalization_template(
                 app.config['TEMPLATES_FOLDER'],
                 requirement,
@@ -315,7 +315,7 @@ def api(resource, command):
             requirement = Requirement.load_requirement_by_id(requirement_id, app)
             requirement.delete_formalization(formalization_id, app)
             requirement.store()
-            utils.add_msg_to_flask_session_log(session, 'Deleted formalization from requirement', requirement_id)
+            utils.add_msg_to_flask_session_log(app, 'Deleted formalization from requirement', requirement_id)
             result['html'] = utils.formalizations_to_html(app, requirement.formalizations)
             return jsonify(result)
 
@@ -381,7 +381,7 @@ def api(resource, command):
                 app=app
             )
             requirement.store()
-            utils.add_msg_to_flask_session_log(session, 'Added formalization guess to requirement', requirement_id)
+            utils.add_msg_to_flask_session_log(app, 'Added formalization guess to requirement', requirement_id)
 
             result = utils.get_formalization_template(
                 app.config['TEMPLATES_FOLDER'],
@@ -439,7 +439,7 @@ def api(resource, command):
                             result['success'] = False
                             result['errormsg'] = 'Could not determine a guess: '
                             result['errormsg'] += e.__str__()
-            utils.add_msg_to_flask_session_log(session, 'Added top guess to requirements', rid_list=requirement_ids)
+            utils.add_msg_to_flask_session_log(app, 'Added top guess to requirements', rid_list=requirement_ids)
 
             return jsonify(result)
 
@@ -643,7 +643,7 @@ def api(resource, command):
 
     if resource == 'logs':
         if command == 'get':
-            return utils.get_flask_session_log(session, html=True)
+            return utils.get_flask_session_log(app, html=True)
 
     if resource == 'req_search':
         if command == 'update':
@@ -1229,6 +1229,17 @@ def init_meta_settings():
         pickle_dump_obj_to_file(meta_settings, app.config['META_SETTTINGS_PATH'])
 
 
+def init_frontend_logs():
+    """ Initializes FRONTEND_LOGS_PATH and creates a new frontend_logs dict, if none is existent.
+
+        """
+    app.config['FRONTEND_LOGS_PATH'] = os.path.join(app.config['SESSION_FOLDER'], 'frontend_logs.pickle')
+    if not os.path.exists(app.config['FRONTEND_LOGS_PATH']):
+        frontend_logs = dict()
+        frontend_logs['hanfor_log'] = list()
+        pickle_dump_obj_to_file(frontend_logs, app.config['FRONTEND_LOGS_PATH'])
+
+
 def user_choose_start_revision():
     """ Asks the user which revision should be loaded if there is more than one revision.
     :rtype: str
@@ -1306,6 +1317,7 @@ def startup_hanfor(args, HERE):
     init_var_collection()
     init_import_sessions()
     init_meta_settings()
+    init_frontend_logs()
 
     # Run version migrations
     varcollection_version_migrations(app, args)

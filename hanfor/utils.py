@@ -1134,19 +1134,17 @@ def get_datatable_additional_cols(app):
     return {'col_defs': result}
 
 
-def add_msg_to_flask_session_log(session, msg, rid=None, rid_list=None, clear=False, max_msg=50) -> None:
-    """ Add a log message for the frontend to the flask session.
+def add_msg_to_flask_session_log(app, msg, rid=None, rid_list=None, clear=False, max_msg=50) -> None:
+    """ Add a log message for the frontend_logs.
 
     :param max_msg: Max number of messages to keep in the log.
     :param rid_list: A list of affected requirement IDs
     :param rid: Affected requirement id
-    :param session: The flask session
+    :param app: The flask app
     :param msg: Log message string
     :param clear: Turncate the logs if set to true (false on default).
     """
-    if clear or 'hanfor_log' not in session:
-        session['hanfor_log'] = list()
-
+    session = pickle_load_from_dump(app.config['FRONTEND_LOGS_PATH'])  # type: dict
     template = '[{timestamp}] {message}'
 
     if rid is not None:
@@ -1163,20 +1161,21 @@ def add_msg_to_flask_session_log(session, msg, rid=None, rid_list=None, clear=Fa
             rid=rid)
     )
 
-    session.modified = True
-
     # Remove oldest logs until threshold
     while len(session['hanfor_log']) > max_msg:
         session['hanfor_log'].pop(0)
 
+    pickle_dump_obj_to_file(session, app.config['FRONTEND_LOGS_PATH'])
 
-def get_flask_session_log(session, html=False) -> Union[list, str]:
-    """ Get the frontent log messages from flask session.
 
-    :param session: The flask session
+def get_flask_session_log(app, html=False) -> Union[list, str]:
+    """ Get the frontent log messages from frontend_logs.
+
+    :param app: The flask app
     :param html: Return formatted html version.
     :return: list of messages or html string in case `html == True`
     """
+    session = pickle_load_from_dump(app.config['FRONTEND_LOGS_PATH'])  # type: dict
     result = list()
     if 'hanfor_log' in session:
         result = session['hanfor_log']
