@@ -437,6 +437,12 @@ def update_variable_in_collection(app, request):
             result['type_changed'] = True
             reload_type_inference = True
 
+        # Update const value.
+        if var_const_val_old != var_const_val:
+            logging.info('Change value from `{}` to `{}`.'.format(var_const_val_old, var_const_val))
+            var_collection.collection[var_name].value = var_const_val
+            result['val_changed'] = True
+
         # Update constraints.
         if request.form.get('updated_constraints') == 'true':
             constraints = json.loads(request.form.get('constraints', ''))
@@ -488,12 +494,6 @@ def update_variable_in_collection(app, request):
                 rename_variable_in_expressions(app, occurrences, var_name_old, var_name)
 
             result['name_changed'] = True
-
-        # Update const value.
-        if var_const_val_old != var_const_val:
-            logging.info('Change value from `{}` to `{}`.'.format(var_const_val_old, var_const_val))
-            var_collection.collection[var_name].value = var_const_val
-            result['val_changed'] = True
 
         logging.info('Store updated variables.')
         var_collection.refresh_var_constraint_mapping()
