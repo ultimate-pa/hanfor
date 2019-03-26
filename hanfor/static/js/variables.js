@@ -864,6 +864,51 @@ $(document).ready(function() {
         add_enumerator_template('');
     });
 
+    /**
+     * Test if pasted_text has the form:
+     * foo<TAB>12
+     * bar<TAB>42
+     *
+     * @param pasted_text
+     * @returns {boolean}
+     */
+    function has_smart_input_form(pasted_text){
+        const array_of_lines = pasted_text.match(/[^\r\n]+/g);
+        if (array_of_lines.length <= 0) {
+            return false;
+        }
+
+        for (const line of array_of_lines) {
+            const line_splits = line.match(/[^\t]+/g);
+            if (line_splits.length !== 2) {
+                return false;
+            }
+            if (isNaN(line_splits[1])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Create a 2D array from input like
+     *   foo<TAB>12
+     *   bar<TAB>42
+     *
+     *  -> [[foo, 12], [bar, 42]]
+     * @param pasted_text
+     * @returns {Array}
+     */
+    function get_smart_input_array(pasted_text){
+        const array_of_lines = pasted_text.match(/[^\r\n]+/g);
+        let result = [];
+        for (const line of array_of_lines) {
+            const line_splits = line.match(/[^\t]+/g);
+            result.push([line_splits[0], line_splits[1]]);
+        }
+        return result;
+    }
+
     // Delete enumerator via the enum modal.
     $('#enumerators').on('click', '.del_enum', function(e) {
         const enumerator_name = $(this).attr('data-name');
@@ -873,6 +918,18 @@ $(document).ready(function() {
             enum_dom.remove();
         } else {
             delete_enumerator(enum_name, enumerator_name, enum_dom);
+        }
+    }).on('paste', '.enum_name_input', function (e) {
+        let pasted_text = e.originalEvent.clipboardData.getData('text');
+
+        if (has_smart_input_form(pasted_text)) {
+            console.log('has smart input form');
+            const smart_input_array = get_smart_input_array(pasted_text);
+            console.log(smart_input_array);
+            for (const line of smart_input_array) {
+                add_enumerator_template(line[0], line[1]);
+            }
+            e.preventDefault();
         }
     });
 
