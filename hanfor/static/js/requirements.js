@@ -396,12 +396,15 @@ function add_formalization() {
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
-                $('#formalization_accordion').append(data['html']);
+                let formalization = $(data['html']);
+                formalization.find('.reqirement-variable').each(function () {
+                   add_var_autocomplete(this);
+                });
+                formalization.appendTo('#formalization_accordion');
             }
     }).done(function () {
         update_vars();
         update_formalization();
-        bind_var_autocomplete();
         update_logs();
     });
 }
@@ -455,7 +458,6 @@ function delete_formalization(formal_id, card) {
     }).done(function () {
         update_vars();
         update_formalization();
-        bind_var_autocomplete();
         update_logs();
     });
 }
@@ -491,39 +493,47 @@ function fuzzy_search(term) {
 
 
 /**
- * Bind autocomplete trigger to formalization input fields.
- * Implement autocomplete.
+ * Adds the variable autocompletion to a textarea given by dom_obj.
+ * @param dom_obj
+ */
+function add_var_autocomplete(dom_obj){
+    let editor = new Textarea(dom_obj);
+    let textcomplete = new Textcomplete(editor, {
+      dropdown: {
+          maxCount: 10
+      }
+    });
+    textcomplete.register([{
+      match: /(^|\s|[!=&\|>]+)(\w+)$/,
+      search: function (term, callback) {
+          include_elems = fuzzy_search(term);
+
+          result = [];
+          for (let i = 0; i < Math.min(10, include_elems.length); i++) {
+                result.push(available_vars[include_elems[i]]);
+          }
+          callback(result);
+      },
+      replace: function (value) {
+        return '$1' + value + ' ';
+      }
+    }]);
+    // Close dropdown if textarea is no longer focused.
+    $(dom_obj).on('blur click', function (e) {
+        textcomplete.dropdown.deactivate();
+        e.preventDefault();
+    })
+}
+
+
+/**
+ * Bind autocomplete trigger to all formalization input textareas.
  *
  */
 function bind_var_autocomplete() {
-    $( ".reqirement-variable" ).each(function ( index ) {
-        let editor = new Textarea(this);
-        let textcomplete = new Textcomplete(editor, {
-          dropdown: {
-              maxCount: 10
-          }
-        });
-        textcomplete.register([{
-          match: /(^|\s|[!=&\|>]+)(\w+)$/,
-          search: function (term, callback) {
-              include_elems = fuzzy_search(term);
-
-              result = [];
-              for (let i = 0; i < Math.min(10, include_elems.length); i++) {
-                    result.push(available_vars[include_elems[i]]);
-              }
-              callback(result);
-          },
-          replace: function (value) {
-            return '$1' + value + ' ';
-          }
-        }]);
-        // Close dropdown if textarea is no longer focused.
-        $(this).on('blur click', function (e) {
-            textcomplete.dropdown.deactivate();
-            e.preventDefault();
-        })
-    })
+    $( ".reqirement-variable" ).each(function () {
+        add_var_autocomplete(this);
+    });
 }
 
 
