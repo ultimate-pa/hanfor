@@ -585,7 +585,7 @@ def api(resource, command):
                         and other_var.type == 'ENUMERATOR'):
                     enumerators.append((other_var_name, other_var.value))
 
-            enumerators.sort(key=lambda x: int(x[1]))
+            enumerators.sort(key=lambda x: float(x[1]))
 
             result['enumerators'] = enumerators
 
