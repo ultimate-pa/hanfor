@@ -17,7 +17,7 @@ import logging
 import pickle
 import random
 import re
-import os
+from ast import literal_eval
 
 from flask_assets import Bundle, Environment
 from reqtransformer import VarImportSessions, VariableCollection, Requirement
@@ -511,19 +511,20 @@ def update_variable_in_collection(app, request):
                 continue
             if len(enumerator_name) == 0 or not re.match('^[a-zA-Z0-9_-]+$', enumerator_name):
                 result = {
-                    'success': False,
+                    'success':  False,
                     'errormsg': 'Enumerator name `{}` not valid'.format(enumerator_name)
-                }
+                    }
                 break
             try:
-                int(enumerator_value)
+                if not string_is_integer_or_float(enumerator_value):
+                    raise TypeError(f'Enumerator value {enumerator_value} is not int or float.')
             except:
                 result = {
-                    'success': False,
+                    'success':  False,
                     'errormsg': 'Enumerator value `{}` for enumerator `{}` not valid'.format(
-                        enumerator_value, enumerator_name
-                    )
-                }
+                            enumerator_value, enumerator_name
+                            )
+                    }
                 break
 
             enumerator_name = '{}_{}'.format(var_name, enumerator_name)
@@ -537,6 +538,14 @@ def update_variable_in_collection(app, request):
         var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
 
     return result
+
+
+def string_is_integer_or_float(string: str) -> bool:
+    """
+    Function which evaluates a string to a value, and then checks if it is INT or FLOAT.
+    """
+    val = literal_eval(string)
+    return isinstance(val, int) or isinstance(val, float)
 
 
 def rename_variable_in_expressions(app, occurences, var_name_old, var_name):
