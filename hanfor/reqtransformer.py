@@ -1184,6 +1184,11 @@ class VariableCollection(HanforVersioned, Pickleable):
             # Apply script for each variable.
             for name, var in self.collection.items():
                 params = [param.replace('$VAR_NAME', name) for param in params_config]
+                logging.debug('Eval script: `{}` using params `{}` for var `{}`'.format(
+                    script_filename,
+                    params,
+                    name
+                ))
                 try:
                     result = subprocess.check_output(
                         [script] + params,
