@@ -598,7 +598,7 @@ function add_enumerator_template(name, value) {
             <span class="input-group-addon">Name</span>
             <input class="form-control enum_name_input" type="text" value="${name}">
             <span class="input-group-addon">Value</span>
-            <input class="form-control enum_value_input" type="number" value="${value}">
+            <input class="form-control enum_value_input" type="number" step="any" value="${value}">
             <buttton type="button" class="btn btn-danger input-group-addon del_enum" data-name="${name}">Delete</buttton>
         </div>`;
     $('#enumerators').append(enumerator_template);
