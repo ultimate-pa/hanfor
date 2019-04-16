@@ -584,8 +584,11 @@ def api(resource, command):
                     and other_var_name.startswith(enum_name)
                         and other_var.type == 'ENUMERATOR'):
                     enumerators.append((other_var_name, other_var.value))
+            try:
+                enumerators.sort(key=lambda x: float(x[1]))
+            except Exception as e:
+                logging.info('Cloud not sort ENUMERATORS: {}'.format(e))
 
-            enumerators.sort(key=lambda x: float(x[1]))
 
             result['enumerators'] = enumerators
 
