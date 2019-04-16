@@ -21,7 +21,7 @@ from static_utils import choice, get_filenames_from_dir
 from enum import Enum
 from copy import deepcopy
 
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 
 class HanforVersioned:
@@ -1141,20 +1141,16 @@ class VariableCollection(HanforVersioned, Pickleable):
         return False
 
     def run_version_migrations(self):
-        if self.hanfor_version == '0.0.0':
-            logging.info('Migrating `{}`:`{}`, from 0.0.0 -> 1.0.0'.format(
-                self.__class__.__name__, self.my_path)
+        logging.info(
+            'Migrating `{}`:`{}`, from {} -> {}'.format(
+                self.__class__.__name__,
+                self.my_path,
+                self.hanfor_version,
+                __version__
             )
-            self.hanfor_version = '1.0.0'
-            for name, variable in self.collection.items():  # type: (str, Variable)
-                variable.run_version_migrations()
-        if self.hanfor_version == '1.0.0':
-            logging.info('Migrating `{}`:`{}`, from 1.0.0 -> 1.0.1'.format(
-                self.__class__.__name__, self.my_path)
-            )
-            self.hanfor_version = '1.0.1'
-            for name, variable in self.collection.items():  # type: (str, Variable)
-                variable.run_version_migrations()
+        )
+        for name, variable in self.collection.items():  # type: (str, Variable)
+            variable.run_version_migrations()
         super().run_version_migrations()
 
     def reload_script_results(self, app):
@@ -1635,14 +1631,18 @@ class VarImportSession(HanforVersioned):
         return info
 
     def run_version_migrations(self):
-        if self.hanfor_version == '0.0.0':
-            logging.info('Migrating `{}`:`{}` -> `{}`, from 0.0.0 -> 1.0.0'.format(
-                self.__class__.__name__, self.source_var_collection.my_path, self.target_var_collection.my_path)
+        logging.info(
+            'Migrating `{}`:`{}` -> `{}`, from {} -> {}'.format(
+                self.__class__.__name__,
+                self.source_var_collection.my_path,
+                self.target_var_collection.my_path,
+                self.hanfor_version,
+                __version__
             )
-            self.hanfor_version = '1.0.0'
-            self.source_var_collection.run_version_migrations()
-            self.target_var_collection.run_version_migrations()
-            self.result_var_collection.run_version_migrations()
+        )
+        self.source_var_collection.run_version_migrations()
+        self.target_var_collection.run_version_migrations()
+        self.result_var_collection.run_version_migrations()
         super().run_version_migrations()
 
 
@@ -1700,11 +1700,14 @@ class VarImportSessions(HanforVersioned, Pickleable):
         return info
 
     def run_version_migrations(self):
-        if self.hanfor_version == '0.0.0':
-            logging.info('Migrating `{}`:`{}`, from 0.0.0 -> 1.0.0'.format(
-                self.__class__.__name__, self.my_path)
+        logging.info(
+            'Migrating `{}`:`{}`, from {} -> {}'.format(
+                self.__class__.__name__,
+                self.my_path,
+                self.hanfor_version,
+                __version__
             )
-            for import_session in self.import_sessions:  # type: VarImportSession
-                import_session.run_version_migrations()
-            self.hanfor_version = '1.0.0'
+        )
+        for import_session in self.import_sessions:  # type: VarImportSession
+            import_session.run_version_migrations()
         super().run_version_migrations()
