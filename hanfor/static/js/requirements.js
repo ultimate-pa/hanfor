@@ -1466,4 +1466,8 @@ $(document).ready(function() {
     body.on('change', '.formalization_selector', function () {
         update_vars();
     });
+    body.on('focus', 'textarea', function () {
+        autosize($(this));
+        autosize.update($(this));
+    })
 });
