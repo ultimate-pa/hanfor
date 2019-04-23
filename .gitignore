@@ -120,3 +120,4 @@ package-lock.json
 
 # Local test files
 loctest_*
+test_results.xml
