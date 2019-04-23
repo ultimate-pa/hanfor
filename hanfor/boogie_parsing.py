@@ -381,6 +381,8 @@ def infer_variable_types(tree: Tree, type_env: dict):
                 t = child_types.pop()
             elif len(child_types) == 0:
                 t = BoogieType.unknown
+            # elif child_types == {BoogieType.real, BoogieType.int}:  # real + int gets casted to real.
+            #     t = BoogieType.real
             else:
                 t = BoogieType.error
             if next_op not in ["EQ", "GREATER", "GTEQ", "LESS", "LTEQ", "NEQ", "DIVIDE", "MINUS", "MOD", "PLUS",
