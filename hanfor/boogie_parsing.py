@@ -378,7 +378,7 @@ def infer_variable_types(tree: Tree, type_env: dict):
                 child_types |= {type}
             child_types -= {BoogieType.unknown}
             if len(child_types) == 1:
-                t = list(child_types)[0]
+                t = child_types.pop()
             elif len(child_types) == 0:
                 t = BoogieType.unknown
             else:
