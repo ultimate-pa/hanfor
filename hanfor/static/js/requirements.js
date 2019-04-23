@@ -371,7 +371,7 @@ function update_formalization() {
             formalization = formalization.replace(/{U}/g, var_u);
         }
 
-        formalization_textarea.val(formalization);
+        formalization_textarea.val(formalization).change();
         autosize.update(formalization_textarea);
     });
     $('#requirement_modal').data({
@@ -582,8 +582,8 @@ function load_requirement(row_idx) {
 
         // Visible information
         $('#requirement_modal_title').html(data.id + ': ' + data.type);
-        $('#description_textarea').text(data.desc);
-        $('#add_guess_description').text(data.desc);
+        $('#description_textarea').text(data.desc).change();
+        $('#add_guess_description').text(data.desc).change();
 
         // Parse the formalizations
         $('#formalization_accordion').html(data.formalizations_html);
@@ -636,10 +636,6 @@ function load_requirement(row_idx) {
         $('#requirement_modal').data({
             'unsaved_changes': false,
             'updated_formalization': false
-        });
-        $('textarea').each(function(){
-            autosize($(this));
-            autosize.update($(this));
         });
         requirement_modal_content.LoadingOverlay('hide', true);
     });
@@ -979,7 +975,6 @@ function fetch_available_guesses() {
         $('.add_guess').click(function () {
             add_formalization_from_guess($(this).data('scope'), $(this).data('pattern'), $(this).data('mapping'));
         });
-        autosize.update($('#add_guess_description'));
         modal_content.LoadingOverlay('hide', true);
     });
 }
@@ -1173,9 +1168,6 @@ function init_modal() {
     requirement_modal.on('hidden.bs.modal', function (e) {
         $('#requirement_tag_field').val('');
         $('#requirement_tag_field-tokenfield').val('');
-        $('textarea').each(function(){
-            autosize.destroy($(this));
-        });
     });
 
     // Listener for adding new formalizations.
@@ -1191,6 +1183,8 @@ function init_modal() {
     $(".modal").on('hidden.bs.modal', function (event) {
         if ($('.modal:visible').length) {
             $('body').addClass('modal-open');
+        } else {
+            $('textarea').each(function(){autosize.destroy($(this));});
         }
     });
 
@@ -1325,7 +1319,7 @@ function evaluate_report() {
             let result = reqTable.page.info();
             results += `Eval of query No. ${id} => ${result.recordsDisplay} results.\n`;
         });
-        $('#report_results_textarea').val(results);
+        $('#report_results_textarea').val(results).change();
         update_search();
         reqTable.draw();
     }
@@ -1408,8 +1402,8 @@ function open_report_modal(source=false){
         queries = available_reports[report_id].queries;
         results = available_reports[report_id].results;
     }
-    query_textarea.val(queries);
-    results_textarea.val(results);
+    query_textarea.val(queries).change();
+    results_textarea.val(results).change();
     $('#save_report').attr('data-id', report_id);
     report_modal.modal('show');
 }
@@ -1466,8 +1460,14 @@ $(document).ready(function() {
     body.on('change', '.formalization_selector', function () {
         update_vars();
     });
-    body.on('focus', 'textarea', function () {
+    body.on('shown.bs.modal', '#requirement_modal', function (e) {
+        $( this ).find( 'textarea').each(function ( index ) {
+            autosize($(this));
+            autosize.update($(this));
+        });
+    });
+    body.on('change focus', 'textarea', function (e) {
         autosize($(this));
         autosize.update($(this));
-    })
+    });
 });
