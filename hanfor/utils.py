@@ -15,7 +15,7 @@ import re
 from flask import json
 from flask_assets import Bundle, Environment
 from reqtransformer import VarImportSessions, VariableCollection, Requirement
-from static_utils import pickle_dump_obj_to_file, pickle_load_from_dump, get_filenames_from_dir
+from static_utils import pickle_dump_obj_to_file, pickle_load_from_dump
 from typing import Union, Set
 from terminaltables import DoubleTable
 
