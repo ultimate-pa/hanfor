@@ -8,10 +8,8 @@ import boogie_parsing
 import csv
 import datetime
 import html
-import itertools
 import logging
 import os
-import random
 import re
 
 from flask import json
