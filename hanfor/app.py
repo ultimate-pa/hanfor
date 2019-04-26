@@ -23,7 +23,7 @@ from reqtransformer import RequirementCollection, Requirement, VariableCollectio
     ScopedPattern, Pattern, VarImportSession, VarImportSessions
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 
-from ressources import Report, Tag
+from ressources import Report, Tag, Statistics
 
 
 # Create the app
@@ -627,10 +627,7 @@ def api(resource, command):
         return jsonify(result)
 
     if resource == 'stats':
-        # Get all stats
-        if command == 'gets':
-            data = utils.get_statistics(app)
-            return jsonify(data)
+        return Statistics(app, request).apply_request()
 
     if resource == 'tag':
         return Tag(app, request).apply_request()
