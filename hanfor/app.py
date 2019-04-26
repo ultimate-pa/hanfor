@@ -23,9 +23,10 @@ from reqtransformer import RequirementCollection, Requirement, VariableCollectio
     ScopedPattern, Pattern, VarImportSession, VarImportSessions
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 
-# Create the app
-from ressources import Report
+from ressources import Report, Tag
 
+
+# Create the app
 app = Flask(__name__)
 app.config.from_object('config')
 
@@ -632,13 +633,7 @@ def api(resource, command):
             return jsonify(data)
 
     if resource == 'tag':
-        # Get all tags
-        if command == 'gets':
-            return jsonify({'data': utils.get_available_tags(app)})
-        if command == 'update':
-            return jsonify(utils.update_tag(app, request))
-        if command == 'del_tag':
-            return jsonify(utils.update_tag(app, request, delete=True))
+        return Tag(app, request).apply_request()
 
     if resource == 'meta':
         if command == 'get':

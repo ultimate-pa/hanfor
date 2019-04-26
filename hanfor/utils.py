@@ -4,26 +4,22 @@
 @licence: GPLv3
 """
 import argparse
-import os
-from typing import Union, Set
-
-from flask import json
-
 import boogie_parsing
 import csv
 import datetime
 import html
 import itertools
 import logging
-import pickle
+import os
 import random
 import re
-from ast import literal_eval
 
+from flask import json
 from flask_assets import Bundle, Environment
 from reqtransformer import VarImportSessions, VariableCollection, Requirement
-from terminaltables import DoubleTable
 from static_utils import pickle_dump_obj_to_file, pickle_load_from_dump, get_filenames_from_dir
+from typing import Union, Set
+from terminaltables import DoubleTable
 
 
 here = os.path.dirname(os.path.realpath(__file__))
@@ -89,15 +85,13 @@ default_pattern_options = '''
 
 
 def get_formalization_template(templates_folder, requirement, formalization_id, formalization):
-    result = {'success': True}
-
-    result['html'] = formalization_html(
+    result = {'success': True, 'html': formalization_html(
         templates_folder,
         formalization_id,
         default_scope_options,
         default_pattern_options,
         formalization
-    )
+    )}
 
     return result
 
@@ -220,60 +214,6 @@ def varcollection_create_new_import_session(app, source_session_name, source_rev
     return session_id
 
 
-def get_available_tags(app):
-    """ Returns a list of all available tags.
-    One list entry is: {
-        'name': <tag_name>
-        'used_by': [rids of requirement using this tag]
-    }
-
-    :rtype: list
-    """
-    # For each requirement:
-
-    filenames = get_filenames_from_dir(app.config['REVISION_FOLDER'])
-    collected_tags = dict()
-    meta_settings = MetaSettings(app.config['META_SETTTINGS_PATH'])
-
-    def get_color(tag_name):
-        col = '#5bc0de'
-        try:
-            col = meta_settings['tag_colors'][tag_name]
-        except KeyError:
-            pass
-        return col
-
-    def get_desc(tag_name):
-        desc = ''
-        try:
-            desc = meta_settings['tag_descriptions'][tag_name]
-        except KeyError:
-            pass
-        return desc
-
-    for filename in filenames:
-        try:
-            req = Requirement.load(filename)
-        except TypeError:
-            continue
-        for tag in req.tags:
-            if len(tag) == 0:
-                continue
-            if tag not in collected_tags.keys():
-                collected_tags[tag] = {
-                    'name': tag,
-                    'used_by': list(),
-                    'color': get_color(tag),
-                    'description': get_desc(tag)
-                }
-            collected_tags[tag]['used_by'].append(req.rid)
-
-    for tag in collected_tags.keys():
-        collected_tags[tag]['used_by'].sort()
-
-    return [tag for tag in collected_tags.values()]
-
-
 def update_req_search(app, request, delete=False):
     """ Update a search query.
     A search query will be used as presets for requirements search in the frontend.
@@ -300,87 +240,6 @@ def update_req_search(app, request, delete=False):
 
     return result
 
-def update_tag(app, request, delete=False):
-    """ Update a tag.
-    The request should contain a form:
-        name -> the new tag name
-        name_old -> the name of the tag before.
-        occurences -> Ids of requirements using this tag.
-
-        :param delete: Should the tag be just deleted? (Default false).
-        :type delete: bool
-        :param app: the running flask app
-        :type app: Flask
-        :param request: A form request
-        :type request: flask.Request
-        :return: Dictionary containing changed data and request status information.
-        :rtype: dict
-        """
-
-    # Get properties from request
-    tag_name = request.form.get('name', '').strip()
-    tag_name_old = request.form.get('name_old', '').strip()
-    occurences = request.form.get('occurences', '').strip().split(',')
-    color = request.form.get('color', '#5bc0de').strip()  # Default = #5bc0de
-    description = request.form.get('description', '').strip()
-
-    result = {
-        'success': True,
-        'has_changes': False,
-        'rebuild_table': False,
-        'data': {
-            'name': tag_name,
-            'used_by': occurences,
-            'color': color,
-            'description': description
-        }
-    }
-
-    # Delete the tag.
-    if delete:
-        logging.info('Delete Tag `{}`'.format(tag_name_old, tag_name))
-        result['has_changes'] = True
-
-        if len(occurences) > 0:
-            result['rebuild_table'] = True
-            for rid in occurences:
-                filepath = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(rid))
-                if os.path.exists(filepath) and os.path.isfile(filepath):
-                    requirement = Requirement.load(filepath)
-                    logging.info('Delete tag `{}` in requirement `{}`'.format(tag_name, requirement.rid))
-                    requirement.tags.discard(tag_name)
-                    requirement.store()
-    # Rename the tag.
-    elif tag_name_old != tag_name:
-        logging.info('Update Tag `{}` to new name `{}`'.format(tag_name_old, tag_name))
-        result['has_changes'] = True
-
-        if len(occurences) > 0:
-            # Todo: only rebuild if we have a merge.
-            result['rebuild_table'] = True
-            for rid in occurences:
-                filepath = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(rid))
-                if os.path.exists(filepath) and os.path.isfile(filepath):
-                    requirement = Requirement.load(filepath)
-                    logging.info('Update tags in requirement `{}`'.format(requirement.rid))
-                    requirement.tags.discard(tag_name_old)
-                    requirement.tags.add(tag_name)
-                    requirement.store()
-
-    # Store the color into meta settings.
-    meta_settings = MetaSettings(app.config['META_SETTTINGS_PATH'])
-    if 'tag_colors' not in meta_settings:
-        meta_settings['tag_colors'] = dict()
-    meta_settings['tag_colors'][tag_name] = color
-
-    # Store the tag description into meta settings.
-    if 'tag_descriptions' not in meta_settings:
-        meta_settings['tag_descriptions'] = dict()
-    meta_settings['tag_descriptions'][tag_name] = description
-    meta_settings.update_storage()
-
-    return result
-
 
 def update_variable_in_collection(app, request):
     """ Update a single variable. The request should contain a form:
@@ -388,7 +247,8 @@ def update_variable_in_collection(app, request):
         name_old -> the name of the var before.
         type -> the new type of the var.
         type_old -> the old type of the var.
-        occurences -> Ids of requirements using this variable.
+        occurrences -> Ids of requirements using this variable.
+        enumerators -> The dict of enumerators
 
     :param app: the running flask app
     :type app: Flask
@@ -512,20 +372,19 @@ def update_variable_in_collection(app, request):
                 continue
             if len(enumerator_name) == 0 or not re.match('^[a-zA-Z0-9_-]+$', enumerator_name):
                 result = {
-                    'success':  False,
+                    'success': False,
                     'errormsg': 'Enumerator name `{}` not valid'.format(enumerator_name)
-                    }
+                }
                 break
             try:
-                if not string_is_integer_or_float(enumerator_value):
-                    raise TypeError(f'Enumerator value {enumerator_value} is not int or float.')
+                float(enumerator_value)
             except:
                 result = {
                     'success':  False,
                     'errormsg': 'Enumerator value `{}` for enumerator `{}` not valid'.format(
-                            enumerator_value, enumerator_name
-                            )
-                    }
+                        enumerator_value, enumerator_name
+                    )
+                }
                 break
 
             enumerator_name = '{}_{}'.format(var_name, enumerator_name)
@@ -539,14 +398,6 @@ def update_variable_in_collection(app, request):
         var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
 
     return result
-
-
-def string_is_integer_or_float(string: str) -> bool:
-    """
-    Function which evaluates a string to a value, and then checks if it is INT or FLOAT.
-    """
-    val = literal_eval(string)
-    return isinstance(val, int) or isinstance(val, float)
 
 
 def rename_variable_in_expressions(app, occurences, var_name_old, var_name):
@@ -594,7 +445,6 @@ def rename_variable_in_constraints(app, occurences, var_name_old, var_name, vari
     """
     if var_name_old in variable_collection.collection.keys():
         pass
-
 
 
 def get_statistics(app):

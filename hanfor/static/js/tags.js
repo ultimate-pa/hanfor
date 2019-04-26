@@ -56,14 +56,12 @@ function delete_tag(name) {
 
     let tag_name = $('#tag_name').val();
     let occurences = $('#occurences').val();
-    $.post( "api/tag/del_tag",
-        {
-            name: tag_name,
-            occurences: occurences
-        },
-        // Update tag table on success or show an error message.
-        function( data ) {
-            tag_modal_content.LoadingOverlay('hide', true);
+    $.ajax({
+      type: "DELETE",
+      url: "api/tag/del_tag",
+      data: {name: tag_name, occurences: occurences},
+      success: function (data) {
+        tag_modal_content.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
@@ -74,6 +72,7 @@ function delete_tag(name) {
                     $('#tag_modal').modal('hide');
                 }
             }
+      }
     });
 }
 
