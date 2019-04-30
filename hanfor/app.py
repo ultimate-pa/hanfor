@@ -10,25 +10,33 @@ import sys
 
 import re
 import subprocess
-import uuid
 import utils
 
 from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump
-from flask import Flask, render_template, request, jsonify, url_for, make_response, send_file, json, session
+from flask import Flask, render_template, request, jsonify, make_response, send_file, json
 from flask_debugtoolbar import DebugToolbarExtension
 from functools import wraps, update_wrapper
 import reqtransformer
 from guesser.Guess import Guess
 from reqtransformer import RequirementCollection, Requirement, VariableCollection, Formalization, Variable, Scope, \
-    ScopedPattern, Pattern, VarImportSession, VarImportSessions
+    ScopedPattern, Pattern, VarImportSessions
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 
 from ressources import Report, Tag, Statistics
 
-
 # Create the app
 app = Flask(__name__)
 app.config.from_object('config')
+
+if 'USE_SENTRY' in app.config and app.config['USE_SENTRY']:
+    import sentry_sdk
+    from sentry_sdk.integrations.flask import FlaskIntegration
+
+    sentry_sdk.init(
+        dsn=app.config['SENTRY_DSN'],
+        integrations=[FlaskIntegration()]
+    )
+
 
 def nocache(view):
     """ Decorator for a flask view. If applied this will prevent caching.
