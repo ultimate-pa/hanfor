@@ -5,7 +5,7 @@ Test reconstruction from parse trees to expression string.
 
 import boogie_parsing
 from unittest import TestCase
-from lark.lexer import UnexpectedInput
+from lark.exceptions import UnexpectedInput
 
 
 class TestParseExpressions(TestCase):
