@@ -3,23 +3,22 @@
 @copyright: 2018 Samuel Roth <samuel@smel.de>
 @licence: GPLv3
 """
+import boogie_parsing
 import csv
 import difflib
-from collections import defaultdict
-from typing import Dict
-
+import logging
 import os
 import pickle
 import re
+import string
 import subprocess
 
-import boogie_parsing
-import logging
-import string
-from static_utils import choice, get_filenames_from_dir
-
-from enum import Enum
+from collections import defaultdict
 from copy import deepcopy
+from enum import Enum
+from static_utils import choice, get_filenames_from_dir
+from threading import Thread
+from typing import Dict
 
 __version__ = '1.0.2'
 
@@ -53,7 +52,11 @@ class Pickleable:
 
     @classmethod
     def load(self, path):
-        assert os.path.getsize(path) > 0
+        path_size = os.path.getsize(path)
+        if not path_size > 0:
+            raise AssertionError('Could not load object from `{}`. (path size is {})'.format(
+                path, path_size
+            ))
         with open(path, mode='rb') as f:
             me = pickle.load(f)
             if not isinstance(me, self):
@@ -546,9 +549,14 @@ class Expression(HanforVersioned):
 
         self.used_variables = set(boogie_parsing.get_variables_list(tree))
 
+        new_vars = []
         for var_name in self.used_variables:
             if var_name not in variable_collection:
                 variable_collection.add_var(var_name)
+                new_vars.append(var_name)
+
+        if len(new_vars) > 0:
+            variable_collection.reload_script_results(app, new_vars)
 
         variable_collection.map_req_to_vars(parent_rid, self.used_variables)
         try:
@@ -908,10 +916,12 @@ class VariableCollection(HanforVersioned, Pickleable):
     def var_name_exists(self, name):
         return name in self.collection.keys()
 
-    def add_var(self, var_name):
+    def add_var(self, var_name, variable=None):
         if not self.var_name_exists(var_name):
+            if variable is None:
+                variable = Variable(var_name, None, None)
             logging.debug('Adding variable `{}` to collection.'.format(var_name))
-            self.collection[var_name] = Variable(var_name, None, None)
+            self.collection[variable.name] = variable
 
     def store(self, path=None):
         self.var_req_mapping = self.invert_mapping(self.req_var_mapping)
@@ -992,6 +1002,9 @@ class VariableCollection(HanforVersioned, Pickleable):
 
         # Update the req -> var mapping.
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
+
+        # Update the variable script results.
+        self.reload_script_results(app, [new_name])
 
     def get_boogie_type_env(self):
         mapping = {
@@ -1153,32 +1166,10 @@ class VariableCollection(HanforVersioned, Pickleable):
             variable.run_version_migrations()
         super().run_version_migrations()
 
-    def reload_script_results(self, app):
-        """ Run the script evaluations for the variables in this collection as set in the config.py
-
-        :param app:
-        """
-        if 'SCRIPT_EVALUATIONS' not in app.config:
-            logging.info('No SCRIPT_EVALUATIONS settings found in config.py. Skipping variable script evaluations.')
-            return
-
-        self.empty_script_results()
-        ## Prepare the subprocess to use our environment.
-        env = os.environ.copy()
-        env["PATH"] = "/usr/sbin:/sbin:" + env["PATH"]
-
-        # Eval each script given by the config
-        for script_filename, params_config in app.config['SCRIPT_EVALUATIONS'].items():
-            # First load the script to prevent permission issues.
-            try:
-                script_path = os.path.join(app.config['SCRIPT_UTILS_PATH'], script_filename)
-                with open(script_path, 'rb') as f:
-                    script = f.read()
-            except Exception as e:
-                logging.error('Could not load `{}` to eval variable scrypt results: `{}`'.format(script_filename, e))
-                continue
-            # Apply script for each variable.
-            for name, var in self.collection.items():
+    def script_eval(self, env, script_filename, script, params_config, var_names, app):
+        with app.app_context():
+            results = dict()
+            for name in var_names:
                 params = [param.replace('$VAR_NAME', name) for param in params_config]
                 logging.debug('Eval script: `{}` using params `{}` for var `{}`'.format(
                     script_filename,
@@ -1194,13 +1185,69 @@ class VariableCollection(HanforVersioned, Pickleable):
                     ).decode()
                 except subprocess.CalledProcessError as e:
                     result = 'Output: {}'.format(e.output.decode())
-                self.collection[name].script_results += 'Results for `{}` <br> {} <br>'.format(
-                    script_filename,result
+                results[name] = 'Results for `{}` <br> {} <br>'.format(
+                    script_filename, result
                 )
+            logging.info('Store script eval for script: {}'.format(script_filename))
 
-    def empty_script_results(self):
-        for name, var in self.collection.items():
+            # Reload VarCollection and store updated script_results.
+            vc = self.load(self.my_path)
+            for name in var_names:
+                try:
+                    vc.collection[name].script_results += results[name]
+                except KeyError:
+                    logging.debug('Could not update script_results for {}. Variable not found.'.format(name))
+            vc.store()
+
+    def start_script_eval_thread(self, env, script_filename, script, params_config, var_names, app):
+        Thread(
+            target=self.script_eval,
+            args=(env, script_filename, script, params_config, var_names, app)
+        ).start()
+
+    def reload_script_results(self, app, var_names=None):
+        """ Run the script evaluations for the variables in this collection as set in the config.py
+
+        :param var_names: Iterable object of variable names the script should be reevaluated. Uses all if None
+        :param app: Hanfor flask app for context.
+        """
+        logging.info('Start variable script evaluations.')
+        if var_names is None:
+            var_names = self.collection.keys()
+
+        if 'SCRIPT_EVALUATIONS' not in app.config:
+            logging.info('No SCRIPT_EVALUATIONS settings found in config.py. Skipping variable script evaluations.')
+            return
+
+        self.empty_script_results(var_names)
+
+        # Prepare the subprocess to use our environment.
+        env = os.environ.copy()
+        env["PATH"] = "/usr/sbin:/sbin:" + env["PATH"]
+
+        # Eval each script given by the config
+        for script_filename, params_config in app.config['SCRIPT_EVALUATIONS'].items():
+            # First load the script to prevent permission issues.
+            try:
+                script_path = os.path.join(app.config['SCRIPT_UTILS_PATH'], script_filename)
+                with open(script_path, 'rb') as f:
+                    script = f.read()
+            except Exception as e:
+                logging.error('Could not load `{}` to eval variable scrypt results: `{}`'.format(script_filename, e))
+                continue
+            self.start_script_eval_thread(
+                env=env,
+                script_filename=script_filename,
+                script=script,
+                params_config=params_config,
+                var_names=var_names,
+                app=app
+            )
+
+    def empty_script_results(self, var_names):
+        for name in var_names:
             self.collection[name].script_results = ''
+
 
 class Variable(HanforVersioned):
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"

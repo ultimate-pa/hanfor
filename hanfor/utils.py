@@ -365,6 +365,7 @@ def update_variable_in_collection(app, request):
                     requirement.reload_type_inference(var_collection, app)
 
     if var_type == 'ENUM':
+        new_enumerators = []
         for enumerator_name, enumerator_value in enumerators:
             if len(enumerator_name) == 0 and len(enumerator_value) == 0:
                 continue
@@ -389,11 +390,15 @@ def update_variable_in_collection(app, request):
             # Add new enumerators to the var_collection
             if not var_collection.var_name_exists(enumerator_name):
                 var_collection.add_var(enumerator_name)
+                new_enumerators.append(enumerator_name)
 
             var_collection.collection[enumerator_name].type = 'ENUMERATOR'
             var_collection.collection[enumerator_name].value = enumerator_value
 
         var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
+
+        if len(new_enumerators) > 0:
+            var_collection.reload_script_results(app, new_enumerators)
 
     return result
 

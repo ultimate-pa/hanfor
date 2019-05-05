@@ -577,10 +577,11 @@ def api(resource, command):
                     'errormsg': '`{}` is already existing.'.format(enum_name)
                 }
             else:
-                new_enum = Variable(enum_name, 'ENUM', None)
                 logging.debug('Adding new Enum `{}` to Variable collection.'.format(enum_name))
-                var_collection.collection[enum_name] = new_enum
+                new_enum = Variable(enum_name, 'ENUM', None)
+                var_collection.add_var(enum_name, new_enum)
                 var_collection.store()
+                var_collection.reload_script_results(app, [enum_name])
                 return jsonify(result)
         elif command == 'get_enumerators':
             result = {'success': True, 'errormsg': ''}
