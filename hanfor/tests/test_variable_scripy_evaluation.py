@@ -3,6 +3,7 @@ Test the hanfor version migrations.
 
 """
 import json
+import time
 
 from app import app, api, set_session_config_vars, create_revision, user_request_new_revision, startup_hanfor
 import os
@@ -64,7 +65,7 @@ def mock_user_input(*args, **kwargs) -> str:
     return str(result)
 
 
-class TestHanforVersionMigrations(TestCase):
+class TestVariableScriptEvaluation(TestCase):
     def setUp(self):
         # Clean test folder.
         app.config['SESSION_BASE_FOLDER'] = SESSION_BASE_FOLDER
@@ -97,6 +98,8 @@ class TestHanforVersionMigrations(TestCase):
             for test_name, settings in SCRIPT_EVALUATIONS[version_slug].items():
                 app.config['SCRIPT_EVALUATIONS'] = settings['script_config']
                 self.startup_hanfor(args, user_mock_answers=[])
+                # Let the background task do its work.
+                time.sleep(1)
                 # Get the available requirements.
                 var_gets = self.app.get('api/var/gets')
                 self.assertEqual(5, len(var_gets.json['data']))
