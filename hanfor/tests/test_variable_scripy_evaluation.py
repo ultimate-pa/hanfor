@@ -3,7 +3,10 @@ Test the hanfor version migrations.
 
 """
 import json
+import sys
 import time
+
+import logging
 
 from app import app, api, set_session_config_vars, create_revision, user_request_new_revision, startup_hanfor
 import os
@@ -73,6 +76,7 @@ class TestVariableScriptEvaluation(TestCase):
         app.config['LOG_LEVEL'] = 'DEBUG'
         utils.register_assets(app)
         utils.setup_logging(app)
+        logging.StreamHandler(sys.stdout)
         self.clean_folders()
         self.fetch_mock_data()
         self.create_temp_data()
@@ -99,7 +103,7 @@ class TestVariableScriptEvaluation(TestCase):
                 app.config['SCRIPT_EVALUATIONS'] = settings['script_config']
                 self.startup_hanfor(args, user_mock_answers=[])
                 # Let the background task do its work.
-                time.sleep(1)
+                time.sleep(5)
                 # Get the available requirements.
                 var_gets = self.app.get('api/var/gets')
                 self.assertEqual(5, len(var_gets.json['data']))
