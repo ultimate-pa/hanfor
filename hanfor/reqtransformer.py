@@ -216,7 +216,8 @@ class Requirement(HanforVersioned, Pickleable):
         :rtype: Requirement
         """
         path = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(id))
-        return Requirement.load(path)
+        if os.path.exists(path) and os.path.isfile(path):
+            return Requirement.load(path)
 
     @classmethod
     def load(self, path):
