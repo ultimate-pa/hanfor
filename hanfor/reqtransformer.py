@@ -827,7 +827,7 @@ class ScopedPattern:
         fields.remove(None)
 
         for f in fields:
-            literal_str = literal_str.replace('"{{{}}}"'.format(f), '"([\d\w\s"-]*)"')
+            literal_str = literal_str.replace('"{{{}}}"'.format(f), r'"([\d\w\s"-]*)"')
 
         self.regex_pattern = literal_str
         return self.regex_pattern
