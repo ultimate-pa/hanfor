@@ -459,7 +459,7 @@ def api(resource, command):
             'errormsg': 'sorry, request not supported.'
         }
         if command == 'gets':
-            result = {'data': utils.get_available_vars(app, full=True)}
+            result = {'data': utils.get_available_vars(app, full=True, fetch_evals=True)}
         elif command == 'update':
             result = utils.update_variable_in_collection(app, request)
         elif command == 'var_import_info':
@@ -1244,6 +1244,13 @@ def init_frontend_logs():
         pickle_dump_obj_to_file(frontend_logs, app.config['FRONTEND_LOGS_PATH'])
 
 
+def init_script_eval_results():
+    app.config['SCRIPT_EVAL_RESULTS_PATH'] = os.path.join(app.config['SESSION_FOLDER'], 'script_eval_results.pickle')
+    if not os.path.exists(app.config['SCRIPT_EVAL_RESULTS_PATH']):
+        script_eval_results = reqtransformer.ScriptEvals(path=app.config['SCRIPT_EVAL_RESULTS_PATH'])
+        script_eval_results.store()
+
+
 def user_choose_start_revision():
     """ Asks the user which revision should be loaded if there is more than one revision.
     :rtype: str
@@ -1318,6 +1325,7 @@ def startup_hanfor(args, HERE):
     app.config['CSV_INPUT_FILE_path'] = session_dict['csv_input_file']
 
     # Initialize variables collection, import session, meta settings.
+    init_script_eval_results()
     init_var_collection()
     init_import_sessions()
     init_meta_settings()

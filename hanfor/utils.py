@@ -14,7 +14,7 @@ import re
 
 from flask import json
 from flask_assets import Bundle, Environment
-from reqtransformer import VarImportSessions, VariableCollection, Requirement
+from reqtransformer import VarImportSessions, VariableCollection, Requirement, ScriptEvals
 from static_utils import pickle_dump_obj_to_file, pickle_load_from_dump
 from typing import Union, Set
 from terminaltables import DoubleTable
@@ -141,9 +141,15 @@ def formalizations_to_html(app, formalizations):
     return result
 
 
-def get_available_vars(app, full=True):
+def get_available_vars(app, full=True, fetch_evals=False):
     var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
     result = var_collection.get_available_vars_list(used_only=not full)
+
+    if fetch_evals:
+        script_results = ScriptEvals.load(path=app.config['SCRIPT_EVAL_RESULTS_PATH']).get_concatenated_evals()
+        for variable_data in result:
+            if variable_data['name'] in script_results:
+                variable_data['script_results'] = script_results[variable_data['name']]
 
     return result
 

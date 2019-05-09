@@ -1191,14 +1191,10 @@ class VariableCollection(HanforVersioned, Pickleable):
                 )
             logging.info('Store script eval for script: {}'.format(script_filename))
 
-            # Reload VarCollection and store updated script_results.
-            vc = self.load(self.my_path)
-            for name in var_names:
-                try:
-                    vc.collection[name].script_results += results[name]
-                except KeyError:
-                    logging.debug('Could not update script_results for {}. Variable not found.'.format(name))
-            vc.store()
+            # Update script_results.
+            script_results = ScriptEvals.load(path=app.config['SCRIPT_EVAL_RESULTS_PATH'])
+            script_results.update_evals(results, script_filename)
+            script_results.store()
 
     def start_script_eval_thread(self, env, script_filename, script, params_config, var_names, app):
         Thread(
@@ -1219,8 +1215,6 @@ class VariableCollection(HanforVersioned, Pickleable):
         if 'SCRIPT_EVALUATIONS' not in app.config:
             logging.info('No SCRIPT_EVALUATIONS settings found in config.py. Skipping variable script evaluations.')
             return
-
-        self.empty_script_results(var_names)
 
         # Prepare the subprocess to use our environment.
         env = os.environ.copy()
@@ -1244,10 +1238,6 @@ class VariableCollection(HanforVersioned, Pickleable):
                 var_names=var_names,
                 app=app
             )
-
-    def empty_script_results(self, var_names):
-        for name in var_names:
-            self.collection[name].script_results = ''
 
 
 class Variable(HanforVersioned):
@@ -1759,3 +1749,20 @@ class VarImportSessions(HanforVersioned, Pickleable):
         for import_session in self.import_sessions:  # type: VarImportSession
             import_session.run_version_migrations()
         super().run_version_migrations()
+
+
+class ScriptEvals(Pickleable):
+    def __init__(self, path=None):
+        self.evals = defaultdict(defaultdict)
+        Pickleable.__init__(self, path)
+
+    def update_evals(self, results: dict, script_name):
+        for name, eval in results.items():
+            self.evals[name].update({script_name: eval})
+
+    def get_concatenated_evals(self):
+        result = dict()
+        for name, evals in self.evals.items():
+            result[name] = ' '.join(sorted(evals.values()))
+
+        return result
