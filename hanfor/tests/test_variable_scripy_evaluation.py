@@ -103,7 +103,7 @@ class TestVariableScriptEvaluation(TestCase):
                 app.config['SCRIPT_EVALUATIONS'] = settings['script_config']
                 self.startup_hanfor(args, user_mock_answers=[])
                 # Let the background task do its work.
-                time.sleep(5)
+                time.sleep(0.5)
                 # Get the available requirements.
                 var_gets = self.app.get('api/var/gets')
                 self.assertEqual(5, len(var_gets.json['data']))
