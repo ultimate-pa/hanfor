@@ -28,9 +28,12 @@ SESSION_BASE_FOLDER = None
 #
 # Available placeholders are:
 # * $VAR_NAME -> The variable name.
-SCRIPT_EVALUATIONS = {
-    'search_sysrt.sh': ['', '/abs/path/to/sysrt.csv', '$VAR_NAME']
-}
+#
+# Example:
+# SCRIPT_EVALUATIONS = {
+#     'search_sysrt.sh': ['', '/abs/path/to/sysrt.csv', '$VAR_NAME']
+# }
+SCRIPT_EVALUATIONS = {}
 
 ################################################################################
 #                                DEBUG and logging                             #
