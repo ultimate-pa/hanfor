@@ -1117,7 +1117,10 @@ def user_request_new_revision(args):
 
 
 def set_session_config_vars(args, HERE):
-    """ Initialize variables for current session.
+    """ Initialize config vars:
+    SESSION_TAG,
+    SESSION_FOLDER
+    for current session.
 
     :param args: Parsed arguments.
     """
@@ -1224,7 +1227,12 @@ def set_app_config_paths(args, HERE):
 
 
 def startup_hanfor(args, HERE):
-    """ Setup session Variables and parse startup arguments
+    """ Setup session config Variables.
+     Trigger:
+     Revision creation/loading.
+     Variable script evaluation.
+     Version migrations.
+     Consistency checks.
 
     :param args:
     """
@@ -1244,10 +1252,10 @@ def startup_hanfor(args, HERE):
             logging.info('Loading session `{}` at `{}`'.format(app.config['SESSION_TAG'], revision_choice))
             load_revision(revision_choice)
 
-    # Set used csv entry into config.
+    # Store used csv entry in config.
     session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])  # type: dict
     app.config['CSV_INPUT_FILE'] = os.path.basename(session_dict['csv_input_file'])
-    app.config['CSV_INPUT_FILE_path'] = session_dict['csv_input_file']
+    app.config['CSV_INPUT_FILE_PATH'] = session_dict['csv_input_file']
 
     # Initialize variables collection, import session, meta settings.
     init_script_eval_results()
@@ -1265,7 +1273,7 @@ def startup_hanfor(args, HERE):
 
 
 def fetch_hanfor_version():
-    """ Get `git describe --always --tags` and store to HANFOR_VERSION
+    """ Get `git describe --always --tags` and store to config at HANFOR_VERSION
 
     """
     try:
