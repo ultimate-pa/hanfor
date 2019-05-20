@@ -263,13 +263,17 @@ class BoogieType(Enum):
     @staticmethod
     def get_alias_mapping():
         mapping = defaultdict(lambda: BoogieType.unknown)
-        for t in BoogieType:
+        for t in BoogieType.get_valid_types():
             mapping[t.name] = t
 
         mapping['ENUMERATOR'] = BoogieType.int
         mapping['ENUM'] = BoogieType.int
 
         return mapping
+
+    @staticmethod
+    def get_valid_type_names():
+        return BoogieType.get_alias_mapping().keys()
 
     @staticmethod
     def aliases(type):
