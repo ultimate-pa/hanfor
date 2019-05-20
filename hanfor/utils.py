@@ -298,7 +298,7 @@ def update_variable_in_collection(app, request):
         # Update type.
         if var_type_old != var_type:
             logging.info('Change type from `{}` to `{}`.'.format(var_type_old, var_type))
-            var_collection.collection[var_name_old].type = var_type
+            var_collection.collection[var_name_old].set_type(var_type)
             result['type_changed'] = True
             reload_type_inference = True
 
@@ -398,7 +398,7 @@ def update_variable_in_collection(app, request):
                 var_collection.add_var(enumerator_name)
                 new_enumerators.append(enumerator_name)
 
-            var_collection.collection[enumerator_name].type = 'ENUMERATOR'
+            var_collection.collection[enumerator_name].set_type('ENUMERATOR')
             var_collection.collection[enumerator_name].value = enumerator_value
 
         var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])

@@ -483,7 +483,7 @@ def api(resource, command):
                                 change_type,
                                 var_collection.collection[var_name].type
                             ))
-                            var_collection.collection[var_name].type = change_type
+                            var_collection.collection[var_name].set_type(change_type)
                         except KeyError:
                             logging.debug('Variable `{}` not found'.format(var_list))
                     var_collection.store()

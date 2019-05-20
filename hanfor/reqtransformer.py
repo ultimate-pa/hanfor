@@ -388,6 +388,7 @@ class Requirement(HanforVersioned, Pickleable):
             self.store()
         super().run_version_migrations()
 
+
 class Formalization(HanforVersioned):
     def __init__(self):
         super().__init__()
@@ -1043,7 +1044,7 @@ class VariableCollection(HanforVersioned, Pickleable):
         return type_env
 
     def set_type(self, name, type):
-        self.collection[name].type = type
+        self.collection[name].set_type(type)
 
     def add_new_constraint(self, var_name):
         """ Add a new empty constraint to var_name variable.
@@ -1292,6 +1293,15 @@ class Variable(HanforVersioned):
             return self.tags
         except AttributeError:
             return set()
+
+    def set_type(self, new_type):
+        allowed_types = ['CONST']
+        allowed_types += boogie_parsing.BoogieType.get_valid_type_names()
+        # return True
+        if new_type not in allowed_types:
+            raise ValueError('Illegal variable type: `{}`. Allowed types are: `{}`'.format(new_type, allowed_types))
+
+        self.type = new_type
 
     def _next_free_constraint_id(self):
         i = 0
@@ -1605,7 +1615,7 @@ class VarImportSession(HanforVersioned):
 
     def store_variable(self, row):
         self.actions[row['name']] = row['action']
-        self.result_var_collection.collection[row['name']].type = row['result']['type']
+        self.result_var_collection.collection[row['name']].set_type(row['result']['type'])
         self.available_constraints[row['name']] = row['available_constraints']
         try:
             const_val = int(row['result']['const_val'])
