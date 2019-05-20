@@ -64,9 +64,7 @@ def tools_api(command):
     else:
         filter_list = None
 
-    if command == 'req_file':
-        filename = utils.generate_req_file(app, filter_list=filter_list)
-
+    def file_response(filename):
         response = make_response(send_file(filename))
         basename = os.path.basename(filename)
         response.headers["Content-Disposition"] = \
@@ -76,20 +74,14 @@ def tools_api(command):
             )
         os.remove(filename)
         return response
+
+    if command == 'req_file':
+        filename = utils.generate_req_file(app, filter_list=filter_list)
+        return file_response(filename)
 
     if command == 'csv_file':
         filename = utils.generate_csv_file(app, filter_list=filter_list)
-
-        response = make_response(send_file(filename))
-        basename = os.path.basename(filename)
-        response.headers["Content-Disposition"] = \
-            "attachment;" \
-            "filename*=UTF-8''{utf_filename}".format(
-                utf_filename=basename
-            )
-        os.remove(filename)
-        return response
-
+        return file_response(filename)
 
 @app.route('/api/table/colum_defs', methods=['GET'])
 @nocache
