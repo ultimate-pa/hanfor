@@ -1493,26 +1493,6 @@ class Variable(HanforVersioned):
         super().run_version_migrations()
 
 
-# This PatternVariable is here only for compatibility reasons
-# when migrating an old Hanfor session.
-class PatternVariable:
-    TYPES = ['bool', 'int']
-
-    def __init__(self, name, type=None):
-        self.name = name
-        self.type = type
-        self.value = None
-
-    def __str__(self):
-        return self.name
-
-    def __hash__(self):
-        return hash((self.name, self.type))
-
-    def __eq__(self, other):
-        return self.__hash__() == other.__hash__()
-
-
 class Tag:
     def __init__(self, name, color='#5bc0de'):
         self.name = name
