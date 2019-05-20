@@ -877,103 +877,36 @@ def requirements_version_migrations(app, args):
     logging.info('Check requirements consistency.')
     filenames = get_filenames_from_dir(app.config['REVISION_FOLDER'])
     var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
-    result = dict()
-    result['data'] = list()
-    count = 0
 
     for filename in filenames:
         try:
-            try:
-                req = Requirement.load(filename)
-            except TypeError:
-                continue
-            changes = False
-            if req.formalizations is None:
-                req.formalizations = dict()
-                changes = True
-            if type(req.type_in_csv) is tuple:
-                changes = True
-                req.type_in_csv = req.type_in_csv[0]
-            if type(req.csv_row) is tuple:
-                changes = True
-                req.csv_row = req.csv_row[0]
-            if type(req.description) is tuple:
-                changes = True
-                req.description = req.description[0]
-            # Derive type inference errors if not set.
-            try:
-                for formalization in req.formalizations.values():
-                    tmp = formalization.type_inference_errors
-            except:
-                logging.info('Update type inference results for `{}`'.format(req.rid))
-                req.reload_type_inference(var_collection, app)
-            if args.reload_type_inference:
-                req.reload_type_inference(var_collection, app)
-            if changes:
-                count += 1
-                req.store()
-        except ImportError:
-            # The "old" requirements before the refactoring.
-            logging.info('Migrate old requirement from `{}`'.format(filename))
-            sys.modules['reqtransformer.reqtransformer'] = reqtransformer
-            sys.modules['reqtransformer.patterns'] = reqtransformer
-            req = utils.pickle_load_from_dump(filename)  # type: Requirement
-
-            # gather data from old requirement.
-            rid = req.rid
-            csv_row = req.csv_row
-            description = req.description
-            formalization = req.formalization
-            expressions = dict()
-            if req.pattern_variables is not None:
-                for key, var in req.pattern_variables.items():
-                    expressions[key] = var.name
-            pos_in_csv = req.position_in_csv_row
-            scoped_pattern = req.scoped_pattern
-            if scoped_pattern is not None:
-                scope = str(scoped_pattern.scope.name)
-                pattern = str(scoped_pattern.pattern)
-                pattern_name = scoped_pattern.pattern.name
-            status = req.status
-            tags = req.tags
-            type_in_csv = req.type_in_csv
-
-            # Remove the modules hack so the next picke dump will use the correct module.
-            del sys.modules['reqtransformer.reqtransformer']
-            del sys.modules['reqtransformer.patterns']
-
-            # Create the corresponding new Requirement
-            new_requirement = Requirement(
-                rid=rid,
-                description=description,
-                type_in_csv=type_in_csv,
-                csv_row=csv_row,
-                pos_in_csv=pos_in_csv
-            )
-            if scoped_pattern is not None:
-                # Create Formalization
-                formalization = Formalization()
-                formalization.scoped_pattern = ScopedPattern(
-                    Scope[scope], Pattern(name=pattern_name)
-                )
-                # set parent
-                formalization.belongs_to_requirement = rid
-                # Parse and set the expressions.
-                formalization.set_expressions_mapping(
-                    mapping=expressions,
-                    variable_collection=var_collection,
-                    app=app,
-                    rid=rid
-                )
-                new_requirement.add_formalization(formalization)
-            new_requirement.status = status
-            new_requirement.tags = tags
-            new_requirement.my_path = filename
-            new_requirement.store()
-            count += 1
-
-    if count > 0:
-        logging.info('Done with consistency check. Repaired {} requirements'.format(count))
+            req = Requirement.load(filename)
+        except TypeError:
+            continue
+        changes = False
+        if req.formalizations is None:
+            req.formalizations = dict()
+            changes = True
+        if type(req.type_in_csv) is tuple:
+            changes = True
+            req.type_in_csv = req.type_in_csv[0]
+        if type(req.csv_row) is tuple:
+            changes = True
+            req.csv_row = req.csv_row[0]
+        if type(req.description) is tuple:
+            changes = True
+            req.description = req.description[0]
+        # Derive type inference errors if not set.
+        try:
+            for formalization in req.formalizations.values():
+                tmp = formalization.type_inference_errors
+        except:
+            logging.info('Update type inference results for `{}`'.format(req.rid))
+            req.reload_type_inference(var_collection, app)
+        if args.reload_type_inference:
+            req.reload_type_inference(var_collection, app)
+        if changes:
+            req.store()
 
     update_var_usage(var_collection)
 
