@@ -42,7 +42,6 @@ def nocache(view):
     """ Decorator for a flask view. If applied this will prevent caching.
 
     """
-
     @wraps(view)
     def no_cache(*args, **kwargs):
         response = make_response(view(*args, **kwargs))
@@ -82,6 +81,7 @@ def tools_api(command):
     if command == 'csv_file':
         filename = utils.generate_csv_file(app, filter_list=filter_list)
         return file_response(filename)
+
 
 @app.route('/api/table/colum_defs', methods=['GET'])
 @nocache
@@ -591,7 +591,6 @@ def api(resource, command):
             except Exception as e:
                 logging.info('Cloud not sort ENUMERATORS: {}'.format(e))
 
-
             result['enumerators'] = enumerators
 
             return jsonify(result)
@@ -759,6 +758,7 @@ def var_import_session(session_id, command):
         return jsonify(result), 200
 
     return jsonify(result), 200
+
 
 @app.route('/<site>')
 def site(site):
