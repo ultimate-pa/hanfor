@@ -1,3 +1,4 @@
+import hashlib
 import os
 import pickle
 import shlex
@@ -94,3 +95,22 @@ def choice(choices, default):
             return choices[choice]
 
         print('Illegal choice "' + str(choice) + '", choose again')
+
+
+def hash_csv_md5(path, encoding='utf-8'):
+    """ Returns md5 hash for a csv (text etc.) file.
+
+    :param path: Path to file to hash.
+    :param encoding: Defaults to utf-8
+    :return: md5 hash (hex formatted).
+    """
+    md5 = hashlib.md5()
+
+    with open(path, 'r') as f:
+        while True:
+            data = f.readline().encode(encoding=encoding)
+            if not data:
+                break
+            md5.update(data)
+
+    return md5.hexdigest()
