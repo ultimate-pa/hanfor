@@ -1012,8 +1012,10 @@ class VariableCollection(HanforVersioned, Pickleable):
         mapping = {
             'bool': boogie_parsing.BoogieType.bool,
             'int': boogie_parsing.BoogieType.int,
-            'enum': boogie_parsing.BoogieType.int,
-            'enumerator': boogie_parsing.BoogieType.int,
+            'enum_int': boogie_parsing.BoogieType.int,
+            'enum_real': boogie_parsing.BoogieType.real,
+            'enumerator_int': boogie_parsing.BoogieType.int,
+            'enumerator_real': boogie_parsing.BoogieType.real,
             'real': boogie_parsing.BoogieType.real,
             'unknown': boogie_parsing.BoogieType.unknown,
             'error': boogie_parsing.BoogieType.error
@@ -1027,8 +1029,8 @@ class VariableCollection(HanforVersioned, Pickleable):
             elif var.type == 'CONST':
                 # Check for int, real or unknown based on value.
                 try:
-                    x = float(var.value)
-                except ValueError:
+                    float(var.value)
+                except Exception as e:
                     type_env[name] = mapping['unknown']
                     continue
 
