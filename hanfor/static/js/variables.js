@@ -864,6 +864,11 @@ $(document).ready(function() {
         } else {
             show_variable_val_input(revert=true);
         }
+        if ($( this ).val() === 'ENUMERATOR_INT' || $( this ).val() === 'ENUMERATOR_REAL') {
+            show_belongs_to_enum_input();
+        } else {
+            show_belongs_to_enum_input(true)
+        }
         if ($( this ).val() === 'ENUM_INT' || $( this ).val() === 'ENUM_REAL' ) {
             show_enumerators_in_modal();
         } else {
