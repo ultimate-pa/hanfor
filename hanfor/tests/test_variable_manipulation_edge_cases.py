@@ -74,7 +74,8 @@ class TestHanforVersionMigrations(TestCase):
                 'used_by': ['SysRS FooXY_91'],
                 'const_val': None,
                 'tags': [],
-                'type': 'bool'
+                'type': 'bool',
+                'belongs_to_enum': ''
             },
             var_gets.json['data']
         )
@@ -88,7 +89,7 @@ class TestHanforVersionMigrations(TestCase):
             data={
                 'name': 'egg',
                 'name_old': 'egg',
-                'type': 'ENUM',
+                'type': 'ENUM_INT',
                 'const_val': '',
                 'const_val_old': '',
                 'type_old': 'bool',
@@ -117,8 +118,9 @@ class TestHanforVersionMigrations(TestCase):
                 'tags': [],
                 'type_inference_errors': {},
                 'const_val': None,
-                'type': 'ENUM',
-                'script_results': ''
+                'type': 'ENUM_INT',
+                'script_results': '',
+                'belongs_to_enum': ''
             },
             var_gets.json['data']
         )

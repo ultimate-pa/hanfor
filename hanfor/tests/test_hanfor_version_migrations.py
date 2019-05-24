@@ -262,9 +262,10 @@ class TestHanforVersionMigrations(TestCase):
                     ],
                     'const_val': None,
                     'tags': [],
-                    'type': 'ENUM',
+                    'type': 'ENUM_INT',
                     'name': 'enum_with_constraint',
-                    'script_results': ''
+                    'script_results': '',
+                    'belongs_to_enum': ''
                 },
                 new_var_collection_contents.json['data']
             )

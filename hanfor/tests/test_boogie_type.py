@@ -6,10 +6,10 @@ class TestBoogieType(TestCase):
 
     def test_alias(self):
         map = {
-            BoogieType.int: {'int', 'ENUMERATOR', 'ENUM'},
+            BoogieType.int: {'int', 'ENUMERATOR_INT', 'ENUM_INT'},
             BoogieType.unknown: {'unknown'},
             BoogieType.bool: {'bool'},
-            BoogieType.real: {'real'}
+            BoogieType.real: {'real', 'ENUMERATOR_REAL', 'ENUM_REAL'}
         }
 
         for type, aliases in map.items():
@@ -17,7 +17,10 @@ class TestBoogieType(TestCase):
 
     def test_reverse_alias(self):
         map = {
-            'ENUMERATOR': BoogieType.int,
+            'ENUMERATOR_INT': BoogieType.int,
+            'ENUM_INT': BoogieType.int,
+            'ENUMERATOR_REAL': BoogieType.real,
+            'ENUM_REAL': BoogieType.real,
             'Fancy': BoogieType.unknown,
             BoogieType.int.name: BoogieType.int,
             BoogieType.bool.name: BoogieType.bool,

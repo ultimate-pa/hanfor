@@ -73,7 +73,9 @@ class TestHanforVersionMigrations(TestCase):
                 'script_results': '',
                 'used_by': ['Constraint_ham_0'],
                 'const_val': None,
-                'tags': [], 'type': 'bool'
+                'tags': [],
+                'type': 'bool',
+                'belongs_to_enum': ''
             },
             var_gets.json['data']
         )
