@@ -11,13 +11,24 @@
                     <h5>Properties</h5>
                     <div class="row form-inline">
                         <div class="input-group col-md-12">
-                            <span class="input-group-addon" id="type-addon" style="width: 5em">Name</span>
+                            <span class="input-group-addon" id="name-addon" style="width: 5em">Name</span>
                             <input type="text"
                                    class="form-control"
                                    id="enum_name"
-                                   aria-describedby="type-addon"
-                                   aria-label="type"
-                                   title="type">
+                                   aria-describedby="name-addon"
+                                   aria-label="name"
+                                   title="name">
+                        </div>
+                        <div class="input-group col-md-12 top-padding">
+                            <span class="input-group-addon" id="type-addon" style="width: 5em">Type</span>
+                            <select class="form-control"
+                                    id="enum_type"
+                                    aria-describedby="type-addon"
+                                    aria-label="type"
+                                    title="type">
+                              <option selected value="ENUM_INT">INT</option>
+                              <option value="ENUM_REAL">REAL</option>
+                            </select>
                         </div>
                     </div>
                 </div>

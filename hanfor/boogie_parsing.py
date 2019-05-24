@@ -266,8 +266,10 @@ class BoogieType(Enum):
         for t in BoogieType.get_valid_types():
             mapping[t.name] = t
 
-        mapping['ENUMERATOR'] = BoogieType.int
-        mapping['ENUM'] = BoogieType.int
+        mapping['ENUMERATOR_INT'] = BoogieType.int
+        mapping['ENUMERATOR_REAL'] = BoogieType.real
+        mapping['ENUM_INT'] = BoogieType.int
+        mapping['ENUM_REAL'] = BoogieType.real
 
         return mapping
 

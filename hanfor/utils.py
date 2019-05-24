@@ -370,7 +370,7 @@ def update_variable_in_collection(app, request):
                 if requirement:
                     requirement.reload_type_inference(var_collection, app)
 
-    if var_type == 'ENUM':
+    if var_type in ['ENUM_INT', 'ENUM_REAL']:
         new_enumerators = []
         for enumerator_name, enumerator_value in enumerators:
             if len(enumerator_name) == 0 and len(enumerator_value) == 0:
@@ -382,7 +382,10 @@ def update_variable_in_collection(app, request):
                 }
                 break
             try:
-                float(enumerator_value)
+                if var_type == 'ENUM_INT':
+                    int(enumerator_value)
+                if var_type == 'ENUM_REAL':
+                    float(enumerator_value)
             except Exception as e:
                 result = {
                     'success':  False,
@@ -398,7 +401,7 @@ def update_variable_in_collection(app, request):
                 var_collection.add_var(enumerator_name)
                 new_enumerators.append(enumerator_name)
 
-            var_collection.collection[enumerator_name].set_type('ENUMERATOR')
+            var_collection.collection[enumerator_name].set_type('ENUMERATOR_{}'.format(var_type[5:]))
             var_collection.collection[enumerator_name].value = enumerator_value
 
         var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])

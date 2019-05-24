@@ -556,6 +556,7 @@ def api(resource, command):
         elif command == 'add_new_enum':
             result = {'success': True, 'errormsg': ''}
             enum_name = request.form.get('name', '').strip()
+            enum_type = request.form.get('type', '').strip()
             var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
 
             if len(enum_name) == 0 or not re.match('^[a-zA-Z0-9_-]+$', enum_name):
@@ -568,9 +569,14 @@ def api(resource, command):
                     'success': False,
                     'errormsg': '`{}` is already existing.'.format(enum_name)
                 }
+            elif enum_type not in ['ENUM_INT', 'ENUM_REAL']:
+                result = {
+                    'success': False,
+                    'errormsg': '`{}` Is not a valid enum type.'.format(enum_type)
+                }
             else:
                 logging.debug('Adding new Enum `{}` to Variable collection.'.format(enum_name))
-                new_enum = Variable(enum_name, 'ENUM', None)
+                new_enum = Variable(enum_name, enum_type, None)
                 var_collection.add_var(enum_name, new_enum)
                 var_collection.store()
                 var_collection.reload_script_results(app, [enum_name])
@@ -584,7 +590,7 @@ def api(resource, command):
             for other_var_name, other_var in var_collection.collection.items():
                 if (len(other_var_name) > len(enum_name)
                     and other_var_name.startswith(enum_name)
-                        and other_var.type == 'ENUMERATOR'):
+                        and other_var.type in ['ENUMERATOR_INT', 'ENUMERATOR_REAL']):
                     enumerators.append((other_var_name, other_var.value))
             try:
                 enumerators.sort(key=lambda x: float(x[1]))

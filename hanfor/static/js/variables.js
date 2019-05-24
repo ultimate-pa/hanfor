@@ -85,7 +85,7 @@ function store_variable(variables_table) {
 
     // Process enumerators in case we have an enum
     let enumerators = [];
-    if (var_type === 'ENUM') {
+    if ((var_type === 'ENUM_INT') || (var_type === 'ENUM_REAL')) {
         // Fetch enumerators.
         $('.enumerator-input').each(function (index, elem) {
             let enum_name = $(this).find('.enum_name_input').val();
@@ -513,6 +513,7 @@ function load_enumerators_to_modal(var_name) {
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
+                // Remove prefix from Enumerators for display.
                 $.each(data['enumerators'], function (index, item) {
                     const stripped_name = item[0].substr(var_name.length + 1);
                     add_enumerator_template(stripped_name, item[1]);
@@ -558,7 +559,7 @@ function load_variable(row_idx) {
         show_variable_val_input();
         variable_value.val(data.const_val);
         variable_value_old.val(data.const_val);
-    } else if (data.type === 'ENUM') {
+    } else if (data.type === 'ENUM_REAL' || data.type === 'ENUM_INT') {
         show_enumerators_in_modal();
         $('#enumerators').html('');
         load_enumerators_to_modal(data.name);
@@ -578,9 +579,11 @@ function load_variable(row_idx) {
 
 function add_enum_via_modal() {
     const enum_name = $('#enum_name').val();
+    const enum_type = $('#enum_type').val();
     $.post( "api/var/add_new_enum",
     {
-        name: enum_name
+        name: enum_name,
+        type: enum_type
     },
     function( data ) {
         if (data['success'] === false) {
