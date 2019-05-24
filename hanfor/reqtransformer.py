@@ -17,7 +17,7 @@ from collections import defaultdict
 from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
-from static_utils import choice, get_filenames_from_dir
+from static_utils import choice, get_filenames_from_dir, replace_prefix
 from threading import Thread
 from typing import Dict
 
@@ -1046,7 +1046,17 @@ class VariableCollection(HanforVersioned, Pickleable):
         # Todo: Store this so we can reuse and update on collection change.
         return type_env
 
+    def enum_type_mismatch(self, enum, type):
+        enum_type = self.collection[enum].type
+        accepted_type = replace_prefix(enum_type, 'ENUM', 'ENUMERATOR')
+
+        return not type == accepted_type
+
     def set_type(self, name, type):
+        if type in ['ENUMERATOR_INT', 'ENUMERATOR_REAL']:
+            if self.enum_type_mismatch(self.collection[name].belongs_to_enum, type):
+                raise TypeError('ENUM type mismatch')
+
         self.collection[name].set_type(type)
 
     def add_new_constraint(self, var_name):

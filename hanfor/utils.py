@@ -303,12 +303,32 @@ def update_variable_in_collection(app, request):
         # Update type.
         if var_type_old != var_type:
             logging.info('Change type from `{}` to `{}`.'.format(var_type_old, var_type))
-            var_collection.collection[var_name_old].set_type(var_type)
+            try:
+                var_collection.set_type(var_name_old, var_type)
+            except TypeError as e:
+                result = {
+                    'success': False,
+                    'errormsg': str(e)
+                }
+                return result
             result['type_changed'] = True
             reload_type_inference = True
 
         # Update const value.
         if var_const_val_old != var_const_val:
+            try:
+                if var_type == 'ENUMERATOR_INT':
+                    int(var_const_val)
+                if var_type in ['ENUMERATOR_REAL']:
+                    float(var_const_val)
+            except Exception as e:
+                result = {
+                    'success':  False,
+                    'errormsg': 'Enumerator value `{}` for {} `{}` not valid: {}'.format(
+                        var_const_val, var_type, var_name, e
+                    )
+                }
+                return result
             logging.info('Change value from `{}` to `{}`.'.format(var_const_val_old, var_const_val))
             var_collection.collection[var_name].value = var_const_val
             result['val_changed'] = True
