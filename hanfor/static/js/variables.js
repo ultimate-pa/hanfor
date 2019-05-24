@@ -8,7 +8,7 @@ require('./bootstrap-tokenfield.js');
 require('jquery-ui/ui/effects/effect-highlight');
 
 // Globals
-let available_types = ['CONST', 'ENUM'];
+let available_types = ['CONST', 'ENUM_INT', 'ENUM_REAL'];
 let var_search_string = sessionStorage.getItem('var_search_string');
 let type_inference_errors = [];
 const { SearchNode } = require('./datatables-advanced-search.js');
@@ -555,7 +555,7 @@ function load_variable(row_idx) {
     variable_value.val('');
     variable_value_old.val('');
 
-    if (data.type === 'CONST' || data.type === 'ENUMERATOR') {
+    if (data.type === 'CONST' || data.type === 'ENUMERATOR_INT' || data.type === 'ENUMERATOR_REAL') {
         show_variable_val_input();
         variable_value.val(data.const_val);
         variable_value_old.val(data.const_val);
@@ -841,7 +841,7 @@ $(document).ready(function() {
         } else {
             show_variable_val_input(revert=true);
         }
-        if ($( this ).val() === 'ENUM') {
+        if ($( this ).val() === 'ENUM_INT' || $( this ).val() === 'ENUM_REAL' ) {
             show_enumerators_in_modal();
         } else {
             show_enumerators_in_modal(revert=true);
