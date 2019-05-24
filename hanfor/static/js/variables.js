@@ -565,12 +565,14 @@ function load_variable(row_idx) {
     let variable_value_old = $('#variable_value_old');
     let belongs_to_enum = $('#belongs_to_enum');
     let belongs_to_enum_old = $('#belongs_to_enum_old');
+    let enumerators = $('#enumerators');
 
     type_input.val(data.type);
     variable_value.val('');
     variable_value_old.val('');
     belongs_to_enum.val('');
     belongs_to_enum_old.val('');
+    enumerators.html('');
 
     if (data.type === 'CONST' || data.type === 'ENUMERATOR_INT' || data.type === 'ENUMERATOR_REAL') {
         show_variable_val_input();
@@ -584,7 +586,6 @@ function load_variable(row_idx) {
     }
     if (data.type === 'ENUM_REAL' || data.type === 'ENUM_INT') {
         show_enumerators_in_modal();
-        $('#enumerators').html('');
         load_enumerators_to_modal(data.name);
     }
 
