@@ -666,7 +666,7 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
         # Parse variables and variable constraints.
         for var in var_collection.collection.values():
             if var.name in available_vars:
-                if var.type in ['CONST', 'ENUMERATOR']:
+                if var.type in ['CONST', 'ENUMERATOR_INT', 'ENUMERATOR_REAL']:
                     constants_list.append('CONST {} IS {}'.format(var.name, var.value))
                 else:
                     content_list.append('Input {} IS {}'.format(
