@@ -114,3 +114,17 @@ def hash_csv_md5(path, encoding='utf-8'):
             md5.update(data)
 
     return md5.hexdigest()
+
+
+def replace_prefix(string: str, prefix_old: str, prefix_new: str):
+    """ Replace the prefix (prefix_old) of a string with (prefix_new).
+    String remains unchanged if prefix_old is not matched.
+
+    :param string: To be changed.
+    :param prefix_old: Existing prefix of the string.
+    :param prefix_new: Replacement prefix.
+    :return: String with prefix_old replaced by prefix_new.
+    """
+    if string.startswith(prefix_old):
+        string = ''.join((prefix_new, string[len(prefix_old):]))
+    return string
