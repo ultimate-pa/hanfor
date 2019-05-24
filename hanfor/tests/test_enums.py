@@ -80,7 +80,7 @@ class TestEnums(TestCase):
         )
         self.assertCountEqual(updated_vars, expected_updated_vars)
 
-    def test_new_enumerator_generation(self):
+    def test_new_int_enumerator_generation(self):
         self.mock_hanfor.startup_hanfor('simple.csv', 'simple_enum', [])
 
         # Fetch the initial vars.
@@ -156,3 +156,80 @@ class TestEnums(TestCase):
         req_file_content = self.mock_hanfor.app.get('/api/tools/req_file').data.decode('utf-8').replace('\r\n', '\n')
         self.assertIn('CONST my_first_enum_bar IS 11', req_file_content)
         self.assertIn('CONST my_first_enum_foo IS 12', req_file_content)
+
+    def test_new_real_enumerator_generation(self):
+        self.mock_hanfor.startup_hanfor('simple.csv', 'simple_enum', [])
+
+        # Fetch the initial vars.
+        initial_vars = self.mock_hanfor.app.get('api/var/gets').json['data']  # type: list
+
+        # We create a new ENUM "my_first_enum"
+        response = self.mock_hanfor.app.post(
+            'api/var/add_new_enum', data={'name': 'my_first_enum', 'type': 'ENUM_REAL'}
+        )
+        self.assertEqual(response.json['success'], True)
+        # We add 2 enumerators for "my_first_enum".
+        response = self.mock_hanfor.app.post(
+            'api/var/update',
+            data={
+                'name': 'my_first_enum',
+                'name_old': 'my_first_enum',
+                'type': 'ENUM_REAL',
+                'const_val': '',
+                'const_val_old': '',
+                'type_old': 'ENUM_REAL',
+                'occurrences': '',
+                'constraints': json.dumps({}),
+                'updated_constraints': False,
+                'enumerators': json.dumps([["foo", "12.123"],["bar", "11.123"]])
+            }
+        )
+        self.assertEqual(response.json['success'], True)
+        # We expect there is an ENUM "my_first_enum" and the 2 enumerators with the correct value.
+        updated_vars = self.mock_hanfor.app.get('api/var/gets').json['data']
+        expected_updated_vars = deepcopy(initial_vars)
+        expected_updated_vars.append(
+            {
+                'name': 'my_first_enum',
+                'tags': [],
+                'constraints': [],
+                'type_inference_errors': {},
+                'used_by': [],
+                'script_results': '',
+                'type': 'ENUM_REAL',
+                'const_val': None,
+                'belongs_to_enum': ''
+            }
+        )
+        expected_updated_vars.append(
+            {
+                'name': 'my_first_enum_foo',
+                'used_by': [],
+                'type_inference_errors': {},
+                'const_val': '12.123',
+                'type': 'ENUMERATOR_REAL',
+                'tags': [],
+                'constraints': [],
+                'script_results': '',
+                'belongs_to_enum': 'my_first_enum'
+            }
+        )
+        expected_updated_vars.append(
+            {
+                'name': 'my_first_enum_bar',
+                'used_by': [],
+                'type_inference_errors': {},
+                'const_val': '11.123',
+                'type': 'ENUMERATOR_REAL',
+                'tags': [],
+                'constraints': [],
+                'script_results': '',
+                'belongs_to_enum': 'my_first_enum'
+            }
+        )
+        self.assertCountEqual(updated_vars, expected_updated_vars)
+
+        # We expect the introduced ENUMERATORS are now also in the generated .req file.
+        req_file_content = self.mock_hanfor.app.get('/api/tools/req_file').data.decode('utf-8').replace('\r\n', '\n')
+        self.assertIn('CONST my_first_enum_bar IS 11.123', req_file_content)
+        self.assertIn('CONST my_first_enum_foo IS 12.123', req_file_content)
