@@ -583,21 +583,15 @@ def api(resource, command):
                 return jsonify(result)
         elif command == 'get_enumerators':
             result = {'success': True, 'errormsg': ''}
-            enumerators = []
             enum_name = request.form.get('name', '').strip()
             var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
-
-            for other_var_name, other_var in var_collection.collection.items():
-                if (len(other_var_name) > len(enum_name)
-                    and other_var_name.startswith(enum_name)
-                        and other_var.type in ['ENUMERATOR_INT', 'ENUMERATOR_REAL']):
-                    enumerators.append((other_var_name, other_var.value))
+            enumerators = var_collection.get_enumerators(enum_name)
+            enum_results = [(enumerator.name, enumerator.value) for enumerator in enumerators]
             try:
-                enumerators.sort(key=lambda x: float(x[1]))
+                enum_results.sort(key=lambda x: float(x[1]))
             except Exception as e:
                 logging.info('Cloud not sort ENUMERATORS: {}'.format(e))
-
-            result['enumerators'] = enumerators
+            result['enumerators'] = enum_results
 
             return jsonify(result)
         elif command == 'start_import_session':

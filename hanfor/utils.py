@@ -15,7 +15,7 @@ import re
 from flask import json
 from flask_assets import Bundle, Environment
 from reqtransformer import VarImportSessions, VariableCollection, Requirement, ScriptEvals
-from static_utils import pickle_dump_obj_to_file, pickle_load_from_dump
+from static_utils import pickle_dump_obj_to_file, pickle_load_from_dump, replace_prefix
 from typing import Union, Set
 from terminaltables import DoubleTable
 
@@ -268,6 +268,8 @@ def update_variable_in_collection(app, request):
     var_type_old = request.form.get('type_old', '').strip()
     var_const_val = request.form.get('const_val', '').strip()
     var_const_val_old = request.form.get('const_val_old', '').strip()
+    belongs_to_enum = request.form.get('belongs_to_enum', '').strip()
+    belongs_to_enum_old = request.form.get('belongs_to_enum_old', '').strip()
     occurrences = request.form.get('occurrences', '').strip().split(',')
     enumerators = json.loads(request.form.get('enumerators', ''))
 
@@ -287,10 +289,13 @@ def update_variable_in_collection(app, request):
     }
 
     # Check for changes
-    if (var_type_old != var_type
+    if (
+        var_type_old != var_type
         or var_name_old != var_name
         or var_const_val_old != var_const_val
-            or request.form.get('updated_constraints') == 'true'):
+        or request.form.get('updated_constraints') == 'true'
+        or belongs_to_enum != belongs_to_enum_old
+    ):
         logging.info('Update Variable `{}`'.format(var_name_old))
         result['has_changes'] = True
         reload_type_inference = False
@@ -360,6 +365,35 @@ def update_variable_in_collection(app, request):
 
             result['name_changed'] = True
 
+        # Change ENUM parent.
+        if belongs_to_enum != belongs_to_enum_old and var_type in ['ENUMERATOR_INT', 'ENUMERATOR_REAL']:
+            logging.debug('Change enum parent of enumerator `{}` to `{}`'.format(var_name, belongs_to_enum))
+            if belongs_to_enum not in var_collection:
+                result['success'] = False
+                result['errormsg'] = 'The new ENUM parent `{}` does not exist.'.format(
+                    belongs_to_enum
+                )
+                return result
+            if var_collection.collection[belongs_to_enum].type != replace_prefix(var_type, 'ENUMERATOR', 'ENUM'):
+                result['success'] = False
+                result['errormsg'] = 'The new ENUM parent `{}` is not an {} (is `{}`).'.format(
+                    belongs_to_enum,
+                    replace_prefix(var_type, 'ENUMERATOR', 'ENUM'),
+                    var_collection.collection[belongs_to_enum].type
+                )
+                return result
+            new_enumerator_name = replace_prefix(var_name, belongs_to_enum_old, belongs_to_enum)
+            if new_enumerator_name in var_collection:
+                result['success'] = False
+                result['errormsg'] = 'The new ENUM parent `{}` already has a ENUMERATOR `{}`.'.format(
+                    belongs_to_enum,
+                    new_enumerator_name
+                )
+                return result
+
+            var_collection.collection[var_name].belongs_to_enum = belongs_to_enum
+            var_collection.rename(var_name, new_enumerator_name, app)
+
         logging.info('Store updated variables.')
         var_collection.refresh_var_constraint_mapping()
         var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
@@ -403,6 +437,7 @@ def update_variable_in_collection(app, request):
 
             var_collection.collection[enumerator_name].set_type('ENUMERATOR_{}'.format(var_type[5:]))
             var_collection.collection[enumerator_name].value = enumerator_value
+            var_collection.collection[enumerator_name].belongs_to_enum = var_name
 
         var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
 

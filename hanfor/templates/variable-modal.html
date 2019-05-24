@@ -11,6 +11,7 @@
                     <input type="hidden" id="variable_name_old" hidden />
                     <input type="hidden" id="variable_type_old" hidden />
                     <input type="hidden" id="variable_value_old" hidden />
+                    <input type="hidden" id="belongs_to_enum_old" hidden />
                     <input type="hidden" id="occurences" hidden />
                     <input type="hidden" id="modal_associated_row_index" hidden />
                     <input type="hidden" id="variable_constraint_updated"
@@ -57,6 +58,20 @@
                                            aria-describedby="value-addon"
                                            aria-label="value"
                                            title="value">
+                                </div>
+                            </div>
+                    </div>
+                    <div id="variable_belongs_to_form_group" class="form-group">
+                            <div class="row form-inline">
+                                <div class="input-group col-md-12">
+                                    <span class="input-group-addon" id="belongs_to-addon"
+                                          style="width: 10em">Belongs to Enum</span>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="belongs_to_enum"
+                                           aria-describedby="belongs_to-addon"
+                                           aria-label="belongs_to"
+                                           title="belongs_to">
                                 </div>
                             </div>
                     </div>

@@ -15,12 +15,13 @@ import subprocess
 
 from collections import defaultdict
 from copy import deepcopy
+from distutils.version import StrictVersion
 from enum import Enum
 from static_utils import choice, get_filenames_from_dir
 from threading import Thread
 from typing import Dict
 
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 
 
 class HanforVersioned:
@@ -1157,6 +1158,13 @@ class VariableCollection(HanforVersioned, Pickleable):
             return True
         return False
 
+    def get_enumerators(self, enum_name):
+        enumerators = []
+        for other_var in self.collection.values():
+            if other_var.belongs_to_enum == enum_name:
+                enumerators.append(other_var)
+        return enumerators
+
     def run_version_migrations(self):
         logging.info(
             'Migrating `{}`:`{}`, from {} -> {}'.format(
@@ -1168,6 +1176,35 @@ class VariableCollection(HanforVersioned, Pickleable):
         )
         for name, variable in self.collection.items():  # type: (str, Variable)
             variable.run_version_migrations()
+        if StrictVersion(self.hanfor_version) < StrictVersion('1.0.3'):
+            # Migrate for introduction of ENUM_INT and ENUM_REAL.
+            for name, variable in self.collection.items():  # type: (str, Variable)
+                if variable.type == 'ENUM':
+                    logging.info('Migrate old ENUM `{}` to new ENUM_INT, ENUM_REAL'.format(variable.name))
+                    enumerators = []
+                    for other_var_name, other_var in self.collection.items():  # type: str, Variable
+                        if (len(other_var_name) > len(variable.name)
+                                and other_var_name.startswith(variable.name)
+                                and other_var.type == 'ENUMERATOR'):
+                            enumerators.append(other_var_name)
+                            # Set newly introduced belongs_to_enum.
+                            other_var.belongs_to_enum = variable.name
+                    # Determine the new type from the ENUMERATOR values.
+                    new_type = 'INT'
+                    for enumerator_name in enumerators:
+                        try:
+                            int(self.collection[enumerator_name].value)
+                        except:
+                            new_type = 'REAL'
+                    # Set new types.
+                    variable.type = 'ENUM_{}'.format(new_type)
+                    logging.info('Set type of `{}` to `{}`'.format(variable.name, variable.type))
+                    for enumerator_name in enumerators:
+                        self.collection[enumerator_name].type = 'ENUMERATOR_{}'.format(new_type)
+                        logging.info('Set type of `{}` to `{}`'.format(
+                            enumerator_name,
+                            self.collection[enumerator_name].type
+                        ))
         super().run_version_migrations()
 
     def script_eval(self, env, script_filename, script, params_config, var_names, app):
@@ -1253,6 +1290,7 @@ class Variable(HanforVersioned):
         self.value = value
         self.tags = set()
         self.script_results = ''
+        self.belongs_to_enum = ''
 
     def to_dict(self, var_req_mapping):
         used_by = []
@@ -1273,7 +1311,8 @@ class Variable(HanforVersioned):
             'tags': list(self.get_tags()),
             'type_inference_errors': type_inference_errors,
             'constraints': [constraint.get_string() for constraint in self.get_constraints().values()],
-            'script_results': self.script_results
+            'script_results': self.script_results,
+            'belongs_to_enum': self.belongs_to_enum
         }
 
         return d
@@ -1492,6 +1531,15 @@ class Variable(HanforVersioned):
             )
             self.script_results = ''
             self.hanfor_version = '1.0.1'
+        if self.hanfor_version in ['1.0.1', '1.0.2']:
+            logging.info('Migrating `{}`:`{}`, from {} -> 1.0.3'.format(
+                self.__class__.__name__, self.name, self.hanfor_version)
+            )
+            self.belongs_to_enum = ''
+            self.hanfor_version = '1.0.3'
+            if self.type == 'ENUM':
+                logging.info('Migrate old ENUM `{}` to new ENUM_INT, ENUM_REAL'.format(self.name))
+
         super().run_version_migrations()
 
 

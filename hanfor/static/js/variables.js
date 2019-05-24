@@ -52,6 +52,8 @@ function store_variable(variables_table) {
     const const_val = $('#variable_value').val();
     const const_val_old = $('#variable_value_old').val();
     const updated_constraints = $('#variable_constraint_updated').val();
+    const belongs_to_enum = $('#belongs_to_enum').val();
+    const belongs_to_enum_old = $('#belongs_to_enum_old').val();
 
     // Fetch the constraints
     let constraints = {};
@@ -106,7 +108,9 @@ function store_variable(variables_table) {
             occurrences: occurrences,
             constraints: JSON.stringify(constraints),
             updated_constraints: updated_constraints,
-            enumerators: JSON.stringify(enumerators)
+            enumerators: JSON.stringify(enumerators),
+            belongs_to_enum: belongs_to_enum,
+            belongs_to_enum_old: belongs_to_enum_old
         },
         // Update var table on success or show an error message.
         function( data ) {
@@ -181,19 +185,6 @@ function open_import_modal(sess_name, sess_revision) {
                 $('#import_new_number').html('New:\t' + data['new_vars'] + ' Variables.');
             }
     });
-}
-
-
-/**
- * Show / Hide Value CONST value input for variables.
- * @param revert
- */
-function show_variable_val_input(revert) {
-    if (revert === true) {
-        $('#variable_value_form_group').hide();
-    } else {
-        $('#variable_value_form_group').show();
-    }
 }
 
 
@@ -495,6 +486,27 @@ function get_rowidx_by_var_name(name) {
 }
 
 
+/**
+ * Show / Hide Value CONST value input for variables.
+ * @param revert
+ */
+function show_variable_val_input(revert) {
+    if (revert === true) {
+        $('#variable_value_form_group').hide();
+    } else {
+        $('#variable_value_form_group').show();
+    }
+}
+
+
+function show_belongs_to_enum_input(revert=false) {
+    if (revert === true) {
+        $('#variable_belongs_to_form_group').hide();
+    } else {
+        $('#variable_belongs_to_form_group').show();
+    }
+}
+
 function show_enumerators_in_modal(revert=false) {
     if (revert === true) {
         $('.enum-controls').hide();
@@ -535,6 +547,7 @@ function load_variable(row_idx) {
     let var_modal_content = $('.modal-content');
     show_variable_val_input(true);
     show_enumerators_in_modal(true);
+    show_belongs_to_enum_input(true);
     $('#variable_modal').modal('show');
 
     // Meta information
@@ -550,16 +563,26 @@ function load_variable(row_idx) {
     let type_input = $('#variable_type');
     let variable_value = $('#variable_value');
     let variable_value_old = $('#variable_value_old');
+    let belongs_to_enum = $('#belongs_to_enum');
+    let belongs_to_enum_old = $('#belongs_to_enum_old');
 
     type_input.val(data.type);
     variable_value.val('');
     variable_value_old.val('');
+    belongs_to_enum.val('');
+    belongs_to_enum_old.val('');
 
     if (data.type === 'CONST' || data.type === 'ENUMERATOR_INT' || data.type === 'ENUMERATOR_REAL') {
         show_variable_val_input();
         variable_value.val(data.const_val);
         variable_value_old.val(data.const_val);
-    } else if (data.type === 'ENUM_REAL' || data.type === 'ENUM_INT') {
+    }
+    if (data.type === 'ENUMERATOR_INT' || data.type === 'ENUMERATOR_REAL') {
+        show_belongs_to_enum_input();
+        belongs_to_enum.val(data.belongs_to_enum);
+        belongs_to_enum_old.val(data.belongs_to_enum);
+    }
+    if (data.type === 'ENUM_REAL' || data.type === 'ENUM_INT') {
         show_enumerators_in_modal();
         $('#enumerators').html('');
         load_enumerators_to_modal(data.name);
