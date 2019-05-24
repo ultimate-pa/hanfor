@@ -867,6 +867,7 @@ $(document).ready(function() {
         }
         if ($( this ).val() === 'ENUMERATOR_INT' || $( this ).val() === 'ENUMERATOR_REAL') {
             show_belongs_to_enum_input();
+            show_variable_val_input();
         } else {
             show_belongs_to_enum_input(true)
         }
