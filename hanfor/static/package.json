@@ -14,6 +14,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "autosize": "^4.0.2",
+    "awesomplete": "^1.1.4",
     "bootstrap": "4.1.0",
     "bootstrap-confirmation2": "^4.0.0",
     "chart.js": "^2.7.2",
@@ -29,6 +30,8 @@
     "textcomplete": "^0.17.1"
   },
   "devDependencies": {
+    "css-loader": "^2.1.1",
+    "style-loader": "^0.23.1",
     "webpack": "^4.8.3",
     "webpack-cli": "^2.1.3"
   }

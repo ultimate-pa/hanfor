@@ -6,9 +6,20 @@ require('datatables.net-select');
 require('jquery-ui/ui/widgets/autocomplete');
 require('./bootstrap-tokenfield.js');
 require('jquery-ui/ui/effects/effect-highlight');
+require('awesomplete');
+require('awesomplete/awesomplete.css');
 
 // Globals
 let available_types = ['CONST', 'ENUM_INT', 'ENUM_REAL'];
+let search_autocomplete = [
+    ":AND:",
+    ":OR:",
+    ":NOT:",
+    ":COL_INDEX_01:",
+    ":COL_INDEX_02:",
+    ":COL_INDEX_03:",
+    ":COL_INDEX_04:"
+];
 let var_search_string = sessionStorage.getItem('var_search_string');
 let type_inference_errors = [];
 const { SearchNode } = require('./datatables-advanced-search.js');
@@ -838,8 +849,34 @@ $(document).ready(function() {
     variables_table.column(4).visible(true);
     variables_table.column(5).visible(false);
 
+    let search_bar = $('#search_bar');
+    // Init search Bar Autocomplete
+    new Awesomplete(search_bar[0], {
+            filter: function(text, input) {
+                let result = false;
+                // If we have an uneven number of ":"
+                // We check if we have a match in the input tail starting from the last ":"
+                if ((input.split(":").length-1)%2 === 1) {
+                    result = Awesomplete.FILTER_CONTAINS(text, input.match(/[^:]*$/)[0]);
+                }
+		        return result;
+		    },
+            item: function(text, input) {
+                // Match inside ":" enclosed item.
+		        return Awesomplete.ITEM(text, input.match(/(:)([\S]*$)/)[2]);
+	        },
+            replace: function(text) {
+                // Cut of the tail starting from the last ":" and replace by item text.
+                const before = this.input.value.match(/(.*)(:(?!.*:).*$)/)[1];
+		        this.input.value = before + text;
+	        },
+            list: search_autocomplete,
+            minChars: 1,
+            autoFirst: true
+    });
+
     // Bind big custom searchbar to search the table.
-    $('#search_bar').keypress(function(e) {
+    search_bar.keypress(function(e) {
         if(e.which === 13) { // Search on enter.
             update_search();
             variables_table.draw();
@@ -847,7 +884,7 @@ $(document).ready(function() {
     });
 
     // Add listener for variable link to modal.
-    $('#variables_table').find('tbody').on('click', 'a.modal-opener', function (event) {
+    variables_table.find('tbody').on('click', 'a.modal-opener', function (event) {
         // prevent body to be scrolled to the top.
         event.preventDefault();
         let row_idx = variables_table.row($(event.target).parent()).index();

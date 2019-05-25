@@ -17,6 +17,17 @@ const config = {
     resolve: {
         extensions: ['.js', '.jsx', '.css']
     },
+    module: {
+      rules: [
+        {
+          test: /\.css$/,
+          use: [
+            'style-loader',
+            'css-loader'
+          ]
+        }
+      ]
+    },
     optimization: {
         splitChunks: {
             cacheGroups: {

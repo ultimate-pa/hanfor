@@ -6,6 +6,9 @@ require('datatables.net-select');
 require('jquery-ui/ui/widgets/autocomplete');
 require('jquery-ui/ui/effects/effect-highlight');
 require('./bootstrap-tokenfield.js');
+require('awesomplete');
+require('awesomplete/awesomplete.css');
+
 let Cookies = require('js-cookie');
 const autosize = require('autosize');
 
@@ -17,6 +20,18 @@ let fuse = new Fuse([], {});
 
 let available_tags = ['', 'has_formalization'];
 let available_status = ['', 'Todo', 'Review', 'Done'];
+let search_autocomplete = [
+    ":AND:",
+    ":OR:",
+    ":NOT:",
+    ":COL_INDEX_01:",
+    ":COL_INDEX_02:",
+    ":COL_INDEX_03:",
+    ":COL_INDEX_04:",
+    ":COL_INDEX_05:",
+    ":COL_INDEX_06:",
+    ":COL_INDEX_07:"
+];
 let available_types = [''];
 let available_vars = [''];
 let available_reports = [];
@@ -1208,8 +1223,28 @@ function load_meta_settings() {
         tag_colors = data['tag_colors'];
         available_search_strings = data['available_search_strings'];
         let search_bar = $( "#search_bar" );
-        search_bar.autocomplete({
-          source: available_search_strings
+        new Awesomplete(search_bar[0], {
+            filter: function(text, input) {
+                let result = false;
+                // If we have an uneven number of ":"
+                // We check if we have a match in the input tail starting from the last ":"
+                if ((input.split(":").length-1)%2 === 1) {
+                    result = Awesomplete.FILTER_CONTAINS(text, input.match(/[^:]*$/)[0]);
+                }
+		        return result;
+		    },
+            item: function(text, input) {
+                // Match inside ":" enclosed item.
+		        return Awesomplete.ITEM(text, input.match(/(:)([\S]*$)/)[2]);
+	        },
+            replace: function(text) {
+                // Cut of the tail starting from the last ":" and replace by item text.
+                const before = this.input.value.match(/(.*)(:(?!.*:).*$)/)[1];
+		        this.input.value = before + text;
+	        },
+            list: search_autocomplete,
+            minChars: 1,
+            autoFirst: true
         });
     });
 }
