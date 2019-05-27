@@ -884,7 +884,7 @@ $(document).ready(function() {
     });
 
     // Add listener for variable link to modal.
-    variables_table.find('tbody').on('click', 'a.modal-opener', function (event) {
+    $('#variables_table  tbody').on('click', 'a.modal-opener', function (event) {
         // prevent body to be scrolled to the top.
         event.preventDefault();
         let row_idx = variables_table.row($(event.target).parent()).index();
