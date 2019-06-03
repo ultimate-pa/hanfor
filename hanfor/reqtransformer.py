@@ -389,6 +389,19 @@ class Requirement(HanforVersioned, Pickleable):
             self.store()
         super().run_version_migrations()
 
+    def uses_var(self, var_name):
+        """ Test is var_name is used in one of the requirements formalizations.
+
+        :param var_name: The variable name.
+        :return: True if var_name occurs at least once.
+        """
+        result = False
+        for formalization in self.formalizations.values():  # type: Formalization
+            if var_name in formalization.used_variables:
+                result = True
+                break
+        return result
+
 
 class Formalization(HanforVersioned):
     def __init__(self):
@@ -958,6 +971,7 @@ class VariableCollection(HanforVersioned, Pickleable):
         :param new_name: The new var name.
         :type new_name: str
         """
+        logging.info('Rename `{}` -> `{}`'.format(old_name, new_name))
         # Store constraints to restore later on.
         tmp_constraints = []
         try:
@@ -1008,6 +1022,18 @@ class VariableCollection(HanforVersioned, Pickleable):
 
         # Update the variable script results.
         self.reload_script_results(app, [new_name])
+
+        # Rename the enumerators in case this renaming affects a enum.
+        if self.collection[new_name].type in ['ENUM_INT', 'ENUM_REAL']:
+            affected_enumerators = []
+            for var in self.collection.values():
+                if var.belongs_to_enum == old_name:
+                    var.belongs_to_enum = new_name
+                    old_enumerator_name = var.name
+                    new_enumerator_name = replace_prefix(var.name, old_name, new_name)
+                    affected_enumerators.append((old_enumerator_name, new_enumerator_name))
+                    self.rename(old_enumerator_name, new_enumerator_name, app)
+            return affected_enumerators
 
     def get_boogie_type_env(self):
         mapping = {

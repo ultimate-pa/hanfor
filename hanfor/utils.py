@@ -245,6 +245,21 @@ def update_req_search(app, request, delete=False):
     return result
 
 
+def get_requirements_using_var(requirements: list, var_name: str):
+    """ Return a list of requirement ids where var_name is used in at least one formalization.
+
+    :param requirements: list of Requirement.
+    :param var_name: Variable name to search for.
+    :return: List of affected Requirement ids.
+    """
+    result_rids = []
+    for requirement in requirements:  # type: Requirement
+        if requirement.uses_var(var_name):
+            result_rids.append(requirement.rid)
+
+    return result_rids
+
+
 def update_variable_in_collection(app, request):
     """ Update a single variable. The request should contain a form:
         name -> the new name of the var.
@@ -355,6 +370,7 @@ def update_variable_in_collection(app, request):
 
         # update name.
         if var_name_old != var_name:
+            affected_enumerators = []
             logging.debug('Change name of var `{}` to `{}`'.format(var_name_old, var_name))
             #  Case: New name which does not exist -> remove the old var and replace in reqs ocurring.
             if var_name not in var_collection:
@@ -362,7 +378,7 @@ def update_variable_in_collection(app, request):
                     var_name
                 ))
                 # Rename the var (Copy to new name and remove the old item. Rename it)
-                var_collection.rename(var_name_old, var_name, app)
+                affected_enumerators = var_collection.rename(var_name_old, var_name, app)
 
             else:  # Case: New name exists. -> Merge the two vars into one. -> Complete rebuild.
                 if var_collection.collection[var_name_old].type != var_collection.collection[var_name].type:
@@ -374,14 +390,25 @@ def update_variable_in_collection(app, request):
                     return result
                 logging.debug('`{}` is an existing var name. Merging the two vars. '.format(var_name))
                 # var_collection.merge_vars(var_name_old, var_name, app)
-                var_collection.rename(var_name_old, var_name, app)
+                affected_enumerators = var_collection.rename(var_name_old, var_name, app)
                 result['rebuild_table'] = True
                 reload_type_inference = True
 
-            # delete the old.
             # Update the requirements using this var.
             if len(occurrences) > 0:
                 rename_variable_in_expressions(app, occurrences, var_name_old, var_name)
+
+            for (old_enumerator_name, new_enumerator_name) in affected_enumerators:
+                # Todo: Implement this more eff.
+                # Todo: Refactor Formalizations to use hashes as vars and fetch them in __str__ from the var collection.
+                requirements = get_requirements(app.config['REVISION_FOLDER'])
+                affected_requirements = get_requirements_using_var(requirements, old_enumerator_name)
+                rename_variable_in_expressions(
+                    app,
+                    affected_requirements,
+                    old_enumerator_name,
+                    new_enumerator_name
+                )
 
             result['name_changed'] = True
 
