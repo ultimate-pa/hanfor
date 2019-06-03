@@ -988,43 +988,39 @@ def create_revision(args, base_revision_name):
 
     # Merge the old revision into the new revision
     logging.info('Merging `{}` into `{}`.'.format(base_revision_name, revision_name))
-    old_reqs = dict()
-    for filename in get_filenames_from_dir(base_revision_folder):
-        try:
-            r = Requirement.load(filename)
-            old_reqs[r.rid] = {
-                'req': r,
-                'path': filename
-            }
-        except TypeError:
-            continue
-        except Exception as e:
-            raise e
-    new_reqs = dict()
-    for filename in get_filenames_from_dir(app.config['REVISION_FOLDER']):
-        try:
-            r = Requirement.load(filename)  # type: Requirement
-            new_reqs[r.rid] = {
-                'req': r,
-                'path': filename
-            }
-        except TypeError:
-            continue
-        except Exception as e:
-            raise e
 
-    # Compare diff for the requirements.
+    def get_requirements_in_folder(folder_path):
+        result = dict()
+        for filename in get_filenames_from_dir(folder_path):
+            try:
+                r = Requirement.load(filename)
+                result[r.rid] = {
+                    'req': r,
+                    'path': filename
+                }
+            except TypeError:
+                continue
+            except Exception as e:
+                raise e
+        return result
+
+    old_reqs = get_requirements_in_folder(base_revision_folder)
+    new_reqs = get_requirements_in_folder(app.config['REVISION_FOLDER'])
+
+    # Diff the new requirements against the old ones.
     for rid in new_reqs.keys():
         # Tag newly introduced requirements.
         if rid not in old_reqs.keys():
             logging.info('Add newly introduced requirement `{}`'.format(rid))
             new_reqs[rid]['req'].tags.add('{}_to_{}_new_requirement'.format(base_revision_name, revision_name))
             continue
+
         # Migrate tags and status.
         new_reqs[rid]['req'].tags = old_reqs[rid]['req'].tags
         new_reqs[rid]['req'].status = old_reqs[rid]['req'].status
+        new_reqs[rid]['req'].revision_diff = old_reqs[rid]['req']
 
-        if new_reqs[rid]['req'].csv_row != old_reqs[rid]['req'].csv_row:
+        if len(new_reqs[rid]['req'].revision_diff) > 0:
             logging.info(
                 'CSV entry changed. Add `revision_data_changed` tag to `{}`.'.format(rid)
             )
@@ -1054,8 +1050,6 @@ def create_revision(args, base_revision_name):
         elif len(new_reqs[rid]['req'].formalizations) == 0 and len(old_reqs[rid]['req'].formalizations) > 0:
             logging.error('Parsing of the requirement not supported.')
             raise NotImplementedError
-
-        new_reqs[rid]['req'].revision_diff = old_reqs[rid]['req']
 
     # Store the updated requirements for the new revision.
     logging.info('Store merge changes to revision `{}`'.format(revision_name))
