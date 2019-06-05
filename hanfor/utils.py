@@ -1145,8 +1145,8 @@ class HanforArgumentParser(argparse.ArgumentParser):
     def __init__(self, app):
         super().__init__()
         self.app = app
-        self.add_argument("input_csv", help="Path to the csv to be processed.")
         self.add_argument("tag", help="A tag for the session. Session will be reloaded, if tag exists.")
+        self.add_argument("-c", "--input_csv", help="Path to the csv to be processed.")
         self.add_argument(
             "-r", "--revision",
             action="store_true",
