@@ -12,7 +12,7 @@ import re
 import subprocess
 import utils
 
-from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump
+from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, hash_file_sha1
 from flask import Flask, render_template, request, jsonify, make_response, send_file, json
 from flask_debugtoolbar import DebugToolbarExtension
 from functools import wraps, update_wrapper
@@ -918,7 +918,9 @@ def create_revision(args, base_revision_name):
     :param base_revision_name: Name of revision the created will be based on. Creates initial revision_0 if none given.
     :return: None
     """
+    logging.info('Hanfor starts creating a revision.')
     if not base_revision_name:
+        logging.info('No revisions for `{}`. Creating initial revision.'.format(args.tag))
         revision_name = 'revision_0'
         base_revision_settings = None
     # Revision based on a existing revision
@@ -958,6 +960,8 @@ def create_revision(args, base_revision_name):
         'session_status.pickle'
     )
     # Load requirements from .csv file and store them into separate requirements.
+    if args.input_csv is None:
+        utils.HanforArgumentParser(app).error('Creating an (initial) revision requires -c INPUT_CSV')
     requirement_collection = RequirementCollection()
     requirement_collection.create_from_csv(
         csv_file=args.input_csv,
@@ -980,6 +984,7 @@ def create_revision(args, base_revision_name):
     session['csv_type_header'] = requirement_collection.csv_meta['type_header']
     session['csv_desc_header'] = requirement_collection.csv_meta['desc_header']
     session['csv_dialect'] = requirement_collection.csv_meta['dialect']
+    session['csv_hash'] = hash_file_sha1(args.input_csv)
     pickle_dump_obj_to_file(session, app.config['SESSION_STATUS_PATH'])
 
     # No need to merge anything if we created only the base revision
@@ -1235,6 +1240,8 @@ def startup_hanfor(args, HERE):
 
     # Create a new revision if requested.
     if args.revision:
+        if args.input_csv is None:
+            utils.HanforArgumentParser(app).error('--revision requires a Input CSV -c INPUT_CSV.')
         user_request_new_revision(args)
     else:
         # If there is no session with given tag: Create a new (initial) revision.
@@ -1250,6 +1257,20 @@ def startup_hanfor(args, HERE):
     session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])  # type: dict
     app.config['CSV_INPUT_FILE'] = os.path.basename(session_dict['csv_input_file'])
     app.config['CSV_INPUT_FILE_PATH'] = session_dict['csv_input_file']
+
+    # Check CSV file change.
+    if 'csv_hash' not in session_dict and args.input_csv is not None:
+        session_dict['csv_hash'] = hash_file_sha1(args.input_csv)
+    elif args.input_csv is not None:
+        logging.info('Check CSV integrity.')
+        current_hash = hash_file_sha1(args.input_csv)
+        if current_hash != session_dict['csv_hash']:
+            print('The CSV sha1 hash changed from {} to {}.\n'.format(session_dict['csv_input_file'], args.input_csv))
+            print('Consider starting a new revision.\nShould I stop loading?')
+            if choice(['Yes', 'No'], default='Yes') == 'Yes':
+                exit(0)
+
+    pickle_dump_obj_to_file(session_dict, app.config['SESSION_STATUS_PATH'])
 
     # Initialize variables collection, import session, meta settings.
     init_script_eval_results()
