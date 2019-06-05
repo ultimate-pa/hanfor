@@ -97,23 +97,23 @@ def choice(choices, default):
         print('Illegal choice "' + str(choice) + '", choose again')
 
 
-def hash_csv_md5(path, encoding='utf-8'):
+def hash_file_sha1(path, encoding='utf-8'):
     """ Returns md5 hash for a csv (text etc.) file.
 
     :param path: Path to file to hash.
     :param encoding: Defaults to utf-8
     :return: md5 hash (hex formatted).
     """
-    md5 = hashlib.md5()
+    sha1sum = hashlib.sha1()
 
     with open(path, 'r') as f:
         while True:
             data = f.readline().encode(encoding=encoding)
             if not data:
                 break
-            md5.update(data)
+            sha1sum.update(data)
 
-    return md5.hexdigest()
+    return sha1sum.hexdigest()
 
 
 def replace_prefix(string: str, prefix_old: str, prefix_new: str):
