@@ -18,13 +18,15 @@ Edit the `config.py` according your needs.
  * Do not forget to enable the python virtual environment by `source hanfor_python/bin/activate`.
 Start the app by running
 
-    python app.py <path_to_input_csv>.csv <tag>
+    python app.py <tag>
 
 You can see all available tags using the ''-L'' switch:
 
     python app.py -L
 
-If you use a new tag fresh session using this tag will be created.
+To start a fresh session use
+
+    python app.py <tag> -c <path_to_input_csv>.csv
     
 Point your browser to `localhost:<port in config.py>`
 
