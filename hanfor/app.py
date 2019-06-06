@@ -1253,22 +1253,29 @@ def startup_hanfor(args, HERE):
             logging.info('Loading session `{}` at `{}`'.format(app.config['SESSION_TAG'], revision_choice))
             load_revision(revision_choice)
 
-    # Store used csv entry in config.
-    session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])  # type: dict
-    app.config['CSV_INPUT_FILE'] = os.path.basename(session_dict['csv_input_file'])
-    app.config['CSV_INPUT_FILE_PATH'] = session_dict['csv_input_file']
 
     # Check CSV file change.
+    session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])  # type: dict
     if 'csv_hash' not in session_dict and args.input_csv is not None:
         session_dict['csv_hash'] = hash_file_sha1(args.input_csv)
     elif args.input_csv is not None:
         logging.info('Check CSV integrity.')
         current_hash = hash_file_sha1(args.input_csv)
         if current_hash != session_dict['csv_hash']:
-            print('The CSV sha1 hash changed from {} to {}.\n'.format(session_dict['csv_input_file'], args.input_csv))
+            print('Sha-1 hash mismatch between: \n`{}`\nand\n`{}`.'.format(
+                session_dict['csv_input_file'],
+                args.input_csv))
             print('Consider starting a new revision.\nShould I stop loading?')
             if choice(['Yes', 'No'], default='Yes') == 'Yes':
                 exit(0)
+            else:
+                session_dict['csv_hash'] = current_hash
+
+    # Store used csv entry in config.
+    if args.input_csv is not None:
+        session_dict['csv_input_file'] = args.input_csv
+    app.config['CSV_INPUT_FILE'] = os.path.basename(session_dict['csv_input_file'])
+    app.config['CSV_INPUT_FILE_PATH'] = session_dict['csv_input_file']
 
     pickle_dump_obj_to_file(session_dict, app.config['SESSION_STATUS_PATH'])
 
