@@ -1,6 +1,7 @@
 import hashlib
 import os
 import pickle
+import re
 import shlex
 
 from colorama import Style, Fore
@@ -128,3 +129,22 @@ def replace_prefix(string: str, prefix_old: str, prefix_new: str):
     if string.startswith(prefix_old):
         string = ''.join((prefix_new, string[len(prefix_old):]))
     return string
+
+
+def get_valid_filename(ugly_string, collision_candidates=()):
+    """
+    Return the given string converted to a string that can be used for a clean
+    filename. Remove leading and trailing spaces; convert other spaces to
+    underscores; and remove anything that is not an alphanumeric, dash,
+    underscore, or dot. Match against collision_candidates to return an unique string.
+    >>> get_valid_filename("john's portrait in 2004.jpg")
+    'johns_portrait_in_2004.jpg'
+    """
+    result = str(ugly_string).strip().replace(' ', '_')
+    result = re.sub(r'(?u)[^-\w.]', '', result)
+    prefix = ''
+    counter = 0
+    while result + prefix in collision_candidates:
+        prefix = '_' + str(counter)
+        counter += 1
+    return result + prefix
