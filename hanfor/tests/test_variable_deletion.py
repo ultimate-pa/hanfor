@@ -60,7 +60,7 @@ class TestHanforVersionMigrations(TestCase):
 
     def test_variable_with_constraint_deletion(self):
         args = utils.HanforArgumentParser(app).parse_args(
-            ['simple.csv', 'test_delete_variable']
+            ['test_delete_variable']
         )
         self.startup_hanfor(args, user_mock_answers=[])
         # Get the available requirements.
@@ -100,7 +100,7 @@ class TestHanforVersionMigrations(TestCase):
 
     def test_deleting_simple_variable(self):
         args = utils.HanforArgumentParser(app).parse_args(
-            ['simple.csv', 'test_delete_variable']
+            ['test_delete_variable']
         )
         self.startup_hanfor(args, user_mock_answers=[])
         # Get the available requirements.
@@ -126,7 +126,7 @@ class TestHanforVersionMigrations(TestCase):
 
     def test_no_affect_of_deleting_used_variable(self):
         args = utils.HanforArgumentParser(app).parse_args(
-            ['simple.csv', 'test_delete_variable']
+            ['test_delete_variable']
         )
         self.startup_hanfor(args, user_mock_answers=[])
         # Get the available requirements.

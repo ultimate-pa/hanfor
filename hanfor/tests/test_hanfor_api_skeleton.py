@@ -69,7 +69,7 @@ class TestHanforApiSkeleton(TestCase):
         """
 
         # Create the first initial revision.
-        args = utils.HanforArgumentParser(app).parse_args([CSV_FILES['simple'], TEST_TAGS['simple']])
+        args = utils.HanforArgumentParser(app).parse_args([TEST_TAGS['simple'], '-c', CSV_FILES['simple']])
         self.startup_hanfor(args, user_mock_answers=[2, 0, 1, 3])
         # Get the available requirements.
         initial_req_gets = self.app.get('api/req/gets')

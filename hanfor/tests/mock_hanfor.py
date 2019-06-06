@@ -59,7 +59,8 @@ class MockHanfor:
         global count
         count = -1
 
-        args = utils.HanforArgumentParser(app).parse_args([csv_file, session_tag])
+        csv_file = os.path.join(self.test_session_base_folder, session_tag, csv_file)
+        args = utils.HanforArgumentParser(app).parse_args([session_tag, '-c', csv_file])
         mock_results = user_mock_answers
 
         startup_hanfor(args, self.here)

@@ -97,7 +97,7 @@ class TestVariableScriptEvaluation(TestCase):
         # Starting each version to trigger migrations.
         for version_slug, version_tag in VERSION_TAGS.items():
             args = utils.HanforArgumentParser(app).parse_args(
-                [self.csv_files[version_slug], VERSION_TAGS[version_slug]]
+                [VERSION_TAGS[version_slug], '-c', self.csv_files[version_slug]]
             )
             for test_name, settings in SCRIPT_EVALUATIONS[version_slug].items():
                 app.config['SCRIPT_EVALUATIONS'] = settings['script_config']

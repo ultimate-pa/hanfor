@@ -60,7 +60,7 @@ class TestHanforVersionMigrations(TestCase):
 
     def test_variable_add_constraint_and_change_type_at_the_same_time(self):
         args = utils.HanforArgumentParser(app).parse_args(
-            ['simple.csv', 'test_variable_manipulation_edge_cases']
+            ['test_variable_manipulation_edge_cases']
         )
         self.startup_hanfor(args, user_mock_answers=[])
         # Get the available requirements.

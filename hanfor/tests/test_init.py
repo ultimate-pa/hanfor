@@ -52,7 +52,7 @@ class TestInit(TestCase):
         startup_hanfor(args, HERE)
 
     def test_1_init_from_csv(self):
-        args = utils.HanforArgumentParser(app).parse_args([TEST_CSV, TEST_TAG])
+        args = utils.HanforArgumentParser(app).parse_args([TEST_TAG, '-c', TEST_CSV])
         self.startup_hanfor(args)
         self.assertTrue(
             os.path.isdir(os.path.join(TESTS_BASE_FOLDER, TEST_TAG)),
@@ -71,7 +71,7 @@ class TestInit(TestCase):
             )
 
     def test_2_get_requirements(self):
-        args = utils.HanforArgumentParser(app).parse_args([TEST_CSV, TEST_TAG])
+        args = utils.HanforArgumentParser(app).parse_args([TEST_TAG, '-c', TEST_CSV])
         self.startup_hanfor(args)
         result = self.app.get('api/req/gets')
         self.maxDiff = None

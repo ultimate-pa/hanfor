@@ -69,7 +69,7 @@ class TestHanforVersionMigrations(TestCase):
         # Starting each version to trigger migrations.
         for version_slug, version_tag in VERSION_TAGS.items():
             args = utils.HanforArgumentParser(app).parse_args(
-                [self.csv_files[version_slug], VERSION_TAGS[version_slug]]
+                [VERSION_TAGS[version_slug], '-c', self.csv_files[version_slug]]
             )
             self.startup_hanfor(args, user_mock_answers=[])
             # Get the available requirements.
@@ -81,7 +81,7 @@ class TestHanforVersionMigrations(TestCase):
         # Starting each version to trigger migrations.
         for version_slug, version_tag in VERSION_TAGS.items():
             args = utils.HanforArgumentParser(app).parse_args(
-                [self.csv_files[version_slug], VERSION_TAGS[version_slug]]
+                [VERSION_TAGS[version_slug], '-c', self.csv_files[version_slug]]
             )
             self.startup_hanfor(args, user_mock_answers=[])
             # Test generated req_file consistency.
@@ -92,7 +92,7 @@ class TestHanforVersionMigrations(TestCase):
         # Starting each version to trigger migrations.
         for version_slug, version_tag in VERSION_TAGS.items():
             args = utils.HanforArgumentParser(app).parse_args(
-                [self.csv_files[version_slug], VERSION_TAGS[version_slug]]
+                [VERSION_TAGS[version_slug], '-c', self.csv_files[version_slug]]
             )
             self.startup_hanfor(args, user_mock_answers=[])
             # Test generated req_file consistency.
@@ -102,7 +102,7 @@ class TestHanforVersionMigrations(TestCase):
     def test_adding_formalizations(self):
         for version_slug, version_tag in VERSION_TAGS.items():
             args = utils.HanforArgumentParser(app).parse_args(
-                [self.csv_files[version_slug], VERSION_TAGS[version_slug]]
+                [VERSION_TAGS[version_slug], '-c', self.csv_files[version_slug]]
             )
             self.startup_hanfor(args, user_mock_answers=[])
             new_formalization_result = self.app.post('api/req/new_formalization', data={'id': 'SysRS FooXY_42'})
@@ -144,7 +144,7 @@ class TestHanforVersionMigrations(TestCase):
     def test_adding_tags(self):
         for version_slug, version_tag in VERSION_TAGS.items():
             args = utils.HanforArgumentParser(app).parse_args(
-                [self.csv_files[version_slug], VERSION_TAGS[version_slug]]
+                [VERSION_TAGS[version_slug], '-c', self.csv_files[version_slug]]
             )
             self.startup_hanfor(args, user_mock_answers=[])
             update = {
@@ -177,7 +177,7 @@ class TestHanforVersionMigrations(TestCase):
     def test_removing_formalization(self):
         for version_slug, version_tag in VERSION_TAGS.items():
             args = utils.HanforArgumentParser(app).parse_args(
-                [self.csv_files[version_slug], VERSION_TAGS[version_slug]]
+                [VERSION_TAGS[version_slug], '-c', self.csv_files[version_slug]]
             )
             self.startup_hanfor(args, user_mock_answers=[])
             reqs = self.app.get('api/req/gets')
@@ -200,7 +200,7 @@ class TestHanforVersionMigrations(TestCase):
             self.clean_folders()
             self.create_temp_data()
             args = utils.HanforArgumentParser(app).parse_args(
-                [self.csv_files[version_slug], VERSION_TAGS[version_slug]]
+                [VERSION_TAGS[version_slug], '-c', self.csv_files[version_slug]]
             )
             self.startup_hanfor(args, user_mock_answers=[])
             # Test correct variable import session infos
@@ -273,7 +273,7 @@ class TestHanforVersionMigrations(TestCase):
     def test_change_var_name(self):
         for version_slug, version_tag in VERSION_TAGS.items():
             args = utils.HanforArgumentParser(app).parse_args(
-                [self.csv_files[version_slug], VERSION_TAGS[version_slug]]
+                [VERSION_TAGS[version_slug], '-c', self.csv_files[version_slug]]
             )
             self.startup_hanfor(args, user_mock_answers=[])
             self.app.post(
