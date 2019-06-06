@@ -695,13 +695,12 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
 
     # Write to .req file
     if not output_file:
-        file_suffix = 'requirements'
+        file_suffix = ''
         if variables_only:
             file_suffix = 'variables_only'
         output_file = os.path.join(
-            app.config['SESSION_FOLDER'], '{}_{}_formalized_{}.req'.format(
-                app.config['SESSION_TAG'],
-                app.config['USING_REVISION'],
+            app.config['SESSION_FOLDER'], '{}{}.req'.format(
+                app.config['CSV_INPUT_FILE'][:-4],
                 file_suffix
             ))
     logging.info('Write to output file: {}'.format(output_file))
