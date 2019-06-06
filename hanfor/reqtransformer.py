@@ -974,6 +974,8 @@ class VariableCollection(HanforVersioned, Pickleable):
         :type old_name: str
         :param new_name: The new var name.
         :type new_name: str
+        :returns affected_enumerators List [(old_enumerator_name, new_enumerator_name)] of potentially affected
+        enumerators.
         """
         logging.info('Rename `{}` -> `{}`'.format(old_name, new_name))
         # Store constraints to restore later on.
@@ -1028,8 +1030,8 @@ class VariableCollection(HanforVersioned, Pickleable):
         self.reload_script_results(app, [new_name])
 
         # Rename the enumerators in case this renaming affects a enum.
+        affected_enumerators = []
         if self.collection[new_name].type in ['ENUM_INT', 'ENUM_REAL']:
-            affected_enumerators = []
             for var in self.collection.values():
                 if var.belongs_to_enum == old_name:
                     var.belongs_to_enum = new_name
@@ -1037,7 +1039,7 @@ class VariableCollection(HanforVersioned, Pickleable):
                     new_enumerator_name = replace_prefix(var.name, old_name, new_name)
                     affected_enumerators.append((old_enumerator_name, new_enumerator_name))
                     self.rename(old_enumerator_name, new_enumerator_name, app)
-            return affected_enumerators
+        return affected_enumerators
 
     def get_boogie_type_env(self):
         mapping = {
