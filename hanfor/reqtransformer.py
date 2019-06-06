@@ -184,6 +184,7 @@ class Requirement(HanforVersioned, Pickleable):
         self.pos_in_csv = pos_in_csv
         self.tags = set()
         self.status = 'Todo'
+        self._revision_diff = dict()
 
     def to_dict(self):
         type_inference_errors = dict()
