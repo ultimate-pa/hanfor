@@ -256,6 +256,9 @@ class Requirement(HanforVersioned, Pickleable):
         for csv_key in self.csv_row.keys():
             if not csv_key in other.csv_row.keys():
                 other.csv_row[csv_key] = ''
+            if self.csv_row[csv_key] is None:
+                # This can happen if we revision with an CSV that is missing the csv_key now.
+                self.csv_row[csv_key] = ''
             diff = difflib.ndiff(other.csv_row[csv_key].splitlines(), self.csv_row[csv_key].splitlines())
             diff = [s for s in diff if not s.startswith('  ')]
             diff = '\n'.join(diff)
