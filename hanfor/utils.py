@@ -319,6 +319,7 @@ def update_variable_in_collection(app, request):
         if var_type_old != var_type:
             logging.info('Change type from `{}` to `{}`.'.format(var_type_old, var_type))
             try:
+                var_collection.collection[var_name_old].belongs_to_enum = belongs_to_enum
                 var_collection.set_type(var_name_old, var_type)
             except TypeError as e:
                 result = {
@@ -429,7 +430,9 @@ def update_variable_in_collection(app, request):
                     var_collection.collection[belongs_to_enum].type
                 )
                 return result
-            new_enumerator_name = replace_prefix(var_name, belongs_to_enum_old, belongs_to_enum)
+            new_enumerator_name = replace_prefix(var_name, belongs_to_enum_old, '')
+            new_enumerator_name = replace_prefix(new_enumerator_name, '_', '')
+            new_enumerator_name = replace_prefix(new_enumerator_name, '', belongs_to_enum + '_')
             if new_enumerator_name in var_collection:
                 result['success'] = False
                 result['errormsg'] = 'The new ENUM parent `{}` already has a ENUMERATOR `{}`.'.format(
