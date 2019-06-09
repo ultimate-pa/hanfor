@@ -732,8 +732,10 @@ def var_import_session(session_id, command):
             logging.info('Apply import for variable import session: {}'.format(session_id))
             var_import_sessions.import_sessions[int(session_id)].apply_constraint_selection()
             var_import_sessions.store()
-            new_collection = var_import_sessions.import_sessions[int(session_id)].result_var_collection
-            new_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
+            var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+            import_collection = var_import_sessions.import_sessions[int(session_id)].result_var_collection
+            var_collection.import_session(import_collection)
+            var_collection.store()
             varcollection_consistency_check(app)
             result['success'] = True
         except Exception as e:

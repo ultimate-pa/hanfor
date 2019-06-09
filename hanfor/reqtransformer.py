@@ -1321,6 +1321,17 @@ class VariableCollection(HanforVersioned, Pickleable):
                 app=app
             )
 
+    def import_session(self, import_collection):
+        """ Import another VariableCollection into this.
+
+        :param import_session: The other VariableCollection
+        """
+        for var_name, variable in import_collection.collection.items():
+            if var_name in self.collection:
+                pass
+            else:
+                self.collection[var_name] = variable
+
 
 class Variable(HanforVersioned):
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
