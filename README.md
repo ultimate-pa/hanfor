@@ -16,7 +16,7 @@
 
 # Usage
 **Note:** 
- * Do not forget to enable the python virtual environment by `source hanfor_python/bin/activate`.
+Do not forget to enable the python virtual environment by `source hanfor_python/bin/activate`.
 
 Start the app by running
 
