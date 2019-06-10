@@ -8,10 +8,11 @@
 
 
 # Setup 
-We recommend using a virtual environment `virtualenv hanfor_python`. 
-Use `pip install -r requirements.txt` to install dependencies. 
-Copy `config.dist.py` to `config.py`.
-Edit the `config.py` according your needs.
+ * Hanfor is only tested with Python 3.6.x and requires Python.
+ * We recommend using a virtual environment, e.g., `virtualenv hanfor_python` followed by `source hanfor_python/bin/activate`. 
+ * Use `pip install -r requirements.txt` to install dependencies. 
+ * Copy `config.dist.py` to `config.py`.
+ * Edit the `config.py` according your needs.
 
 # Usage
 **Note:** 
