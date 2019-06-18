@@ -1127,9 +1127,8 @@ def set_session_config_vars(args, HERE):
     """
     app.config['SESSION_TAG'] = args.tag
     if app.config['SESSION_BASE_FOLDER'] is None:
-        app.config['SESSION_FOLDER'] = os.path.join(HERE, 'data', app.config['SESSION_TAG'])
-    else:
-        app.config['SESSION_FOLDER'] = os.path.join(app.config['SESSION_BASE_FOLDER'], app.config['SESSION_TAG'])
+        app.config['SESSION_BASE_FOLDER'] = os.path.join(HERE, 'data')
+    app.config['SESSION_FOLDER'] = os.path.join(app.config['SESSION_BASE_FOLDER'], app.config['SESSION_TAG'])
 
 
 def init_var_collection():
