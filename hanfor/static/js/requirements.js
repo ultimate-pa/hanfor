@@ -50,6 +50,21 @@ let filter_tree = undefined;
 
 
 /**
+ * Escape a HTML string for display as a raw string.
+ * @param unsafe
+ * @returns {string}
+ */
+function escapeHtml(unsafe) {
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+ }
+
+
+/**
  * Update the search expression tree.
  */
 function update_search() {
@@ -1017,13 +1032,16 @@ function load_datatable(){
             "targets": [2],
             "data": "id",
             "render": function (data, type, row, meta) {
-                result = '<a href="#">' + data + '</a>';
+                result = '<a href="#">' + escapeHtml(data) + '</a>';
                 return result;
             }
         },
         {
             "targets": [3],
-            "data": "desc"
+            "data": "desc",
+            "render": function (data, type, row, meta) {
+                return escapeHtml(data);
+            }
         },
         {
             "targets": [4],
@@ -1032,7 +1050,7 @@ function load_datatable(){
                 if (available_types.indexOf(data) <= -1) {
                     available_types.push(data);
                 }
-                return data;
+                return escapeHtml(data);
             }
         },
         {
@@ -1043,7 +1061,7 @@ function load_datatable(){
                 $(data).each(function (id, tag) {
                     if (tag.length > 0) {
                         result += '<span class="badge" style="background-color: ' + get_tag_color(tag) + '">' +
-                            tag + '</span></br>';
+                            escapeHtml(tag) + '</span></br>';
                         // Add tag to available tags
                         if (available_tags.indexOf(tag) <= -1) {
                             available_tags.push(tag);
@@ -1089,7 +1107,7 @@ function load_datatable(){
                 if (row.formal.length > 0) {
                     $(data).each(function (id, formalization) {
                         if (formalization.length > 0) {
-                            result += '<p>' + formalization + '</p>';
+                            result += '<p>' + escapeHtml(formalization) + '</p>';
                         }
                     });
                 }
