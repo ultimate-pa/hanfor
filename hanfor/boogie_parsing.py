@@ -297,7 +297,6 @@ class BoogieType(Enum):
         return BoogieType.get_alias_mapping()[name]
 
 
-
 def infer_variable_types(tree: Tree, type_env: dict):
     class TypeNode:
 
