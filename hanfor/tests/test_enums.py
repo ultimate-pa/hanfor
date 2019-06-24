@@ -25,7 +25,7 @@ class TestEnums(TestCase):
 
         # We create a new ENUM "my_first_enum"
         response = self.mock_hanfor.app.post(
-            'api/var/add_new_enum',
+            'api/var/add_new_variable',
             data={'name': 'my_first_enum', 'type': 'ENUM_INT'}
         )
         # We expect the creation to be successful.
@@ -57,7 +57,7 @@ class TestEnums(TestCase):
 
         # We create a new ENUM "my_first_enum"
         response = self.mock_hanfor.app.post(
-            'api/var/add_new_enum',
+            'api/var/add_new_variable',
             data={'name': 'my_first_enum', 'type': 'ENUM_REAL'}
         )
         # We expect the creation to be successful.
@@ -88,7 +88,7 @@ class TestEnums(TestCase):
 
         # We create a new ENUM "my_first_enum"
         response = self.mock_hanfor.app.post(
-            'api/var/add_new_enum', data={'name': 'my_first_enum', 'type': 'ENUM_INT'}
+            'api/var/add_new_variable', data={'name': 'my_first_enum', 'type': 'ENUM_INT'}
         )
         self.assertEqual(response.json['success'], True)
         # We add 2 enumerators for "my_first_enum".
@@ -165,7 +165,7 @@ class TestEnums(TestCase):
 
         # We create a new ENUM "my_first_enum"
         response = self.mock_hanfor.app.post(
-            'api/var/add_new_enum', data={'name': 'my_first_enum', 'type': 'ENUM_REAL'}
+            'api/var/add_new_variable', data={'name': 'my_first_enum', 'type': 'ENUM_REAL'}
         )
         self.assertEqual(response.json['success'], True)
         # We add 2 enumerators for "my_first_enum".

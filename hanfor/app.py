@@ -122,7 +122,7 @@ def api(resource, command):
         'multi_add_top_guess',
         'get_constraints_html',
         'del_constraint',
-        'add_new_enum',
+        'add_new_variable',
         'get_enumerators',
         'start_import_session',
         'gen_req'
@@ -553,33 +553,46 @@ def api(resource, command):
                 logging.debug('Variable `{}` not found'.format(var_name))
                 result = {'success': False, 'errormsg': 'Variable not found.'}
             return jsonify(result)
-        elif command == 'add_new_enum':
+        elif command == 'add_new_variable':
             result = {'success': True, 'errormsg': ''}
-            enum_name = request.form.get('name', '').strip()
-            enum_type = request.form.get('type', '').strip()
+            variable_name = request.form.get('name', '').strip()
+            variable_type = request.form.get('type', '').strip()
+            variable_value = request.form.get('value', '').strip()
             var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
 
-            if len(enum_name) == 0 or not re.match('^[a-zA-Z0-9_-]+$', enum_name):
+            # Apply some tests if the new Variable is legal.
+            if len(variable_name) == 0 or not re.match('^[a-zA-Z0-9_-]+$', variable_name):
                 result = {
                     'success': False,
-                    'errormsg': 'Illegal enum name. Must Be at least 1 Char and only alphanum + { -, _}'
+                    'errormsg': 'Illegal Variable name. Must Be at least 1 Char and only alphanum + { -, _}'
                 }
-            elif var_collection.var_name_exists(enum_name):
+            elif var_collection.var_name_exists(variable_name):
                 result = {
                     'success': False,
-                    'errormsg': '`{}` is already existing.'.format(enum_name)
+                    'errormsg': '`{}` is already existing.'.format(variable_name)
                 }
-            elif enum_type not in ['ENUM_INT', 'ENUM_REAL']:
+            elif variable_type not in ['ENUM_INT', 'ENUM_REAL', 'REAL', 'INT', 'BOOL', 'CONST']:
                 result = {
                     'success': False,
-                    'errormsg': '`{}` Is not a valid enum type.'.format(enum_type)
+                    'errormsg': '`{}` Is not a valid Variable type.'.format(variable_type)
                 }
-            else:
-                logging.debug('Adding new Enum `{}` to Variable collection.'.format(enum_name))
-                new_enum = Variable(enum_name, enum_type, None)
-                var_collection.add_var(enum_name, new_enum)
+            if variable_type == 'CONST':
+                try:
+                    float(variable_value)
+                except Exception as e:
+                    result = {
+                        'success': False,
+                        'errormsg': 'Const value not valid.'
+                    }
+            # We passed all tests, so add the new variable.
+            if result['success']:
+                logging.debug('Adding new Variable `{}` to Variable collection.'.format(variable_name))
+                new_variable = Variable(variable_name, variable_type, None)
+                var_collection.add_var(variable_name, new_variable)
+                if variable_type == 'CONST':
+                    var_collection.collection[variable_name].value = variable_value
                 var_collection.store()
-                var_collection.reload_script_results(app, [enum_name])
+                var_collection.reload_script_results(app, [variable_name])
                 return jsonify(result)
         elif command == 'get_enumerators':
             result = {'success': True, 'errormsg': ''}

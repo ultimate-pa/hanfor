@@ -612,13 +612,15 @@ function load_variable(row_idx) {
 }
 
 
-function add_enum_via_modal() {
-    const enum_name = $('#enum_name').val();
-    const enum_type = $('#enum_type').val();
-    $.post( "api/var/add_new_enum",
+function add_variable_via_modal() {
+    const new_variable_name = $('#new_variable_name').val();
+    const new_variable_type = $('#new_variable_type').val();
+    const new_variable_value = $('#new_variable_const_value').val();
+    $.post( "api/var/add_new_variable",
     {
-        name: enum_name,
-        type: enum_type
+        name: new_variable_name,
+        type: new_variable_type,
+        value: new_variable_value
     },
     function( data ) {
         if (data['success'] === false) {
@@ -705,6 +707,16 @@ function get_smart_input_array(pasted_text){
         result.push([line_splits[0], line_splits[1]]);
     }
     return result;
+}
+
+
+/**
+ * Show the value input for new consts if type CONST is selected.
+ */
+function update_new_var_const_value_input(){
+    const current_type = $('#new_variable_type').val();
+    let value_input = $('#new_variable_const_input');
+    current_type === 'CONST' ? value_input.show() : value_input.hide();
 }
 
 
@@ -971,9 +983,9 @@ $(document).ready(function() {
         add_constraint();
     });
 
-    // Add new enum via modal.
-    $('#save_new_enum_modal').click(function () {
-        add_enum_via_modal();
+    // Add new variable via modal.
+    $('#save_new_variable_modal').click(function () {
+        add_variable_via_modal();
     });
 
     // Add new enumerator from emum modal
@@ -1015,4 +1027,8 @@ $(document).ready(function() {
         update_search();
         variables_table.draw();
     });
+
+    $('#variable_new_vaiable_modal').on('show.bs.modal change', function (e) {
+        update_new_var_const_value_input();
+    })
 } );
