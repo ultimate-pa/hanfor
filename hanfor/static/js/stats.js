@@ -192,22 +192,22 @@ $(document).ready(function () {
             container: $('#cy'),
 
             layout: {
-                    name: 'cose',
-                    idealEdgeLength: 100,
-                    nodeOverlap: 20,
-                    refresh: 20,
-                    fit: true,
-                    padding: 30,
-                    randomize: false,
-                    componentSpacing: 100,
-                    nodeRepulsion: 400000,
-                    edgeElasticity: 100,
-                    nestingFactor: 5,
-                    gravity: 80,
-                    numIter: 1000,
-                    initialTemp: 200,
-                    coolingFactor: 0.95,
-                    minTemp: 1.0
+                name: 'cose',
+                idealEdgeLength: 50,
+                nodeOverlap: 20,
+                refresh: 20,
+                fit: true,
+                padding: 30,
+                randomize: false,
+                componentSpacing: 100,
+                nodeRepulsion: 400000,
+                edgeElasticity: 100,
+                nestingFactor: 5,
+                gravity: 80,
+                numIter: 1000,
+                initialTemp: 200,
+                coolingFactor: 0.95,
+                minTemp: 1.0
             },
 
              elements: data.variable_graph,
@@ -221,6 +221,7 @@ $(document).ready(function () {
                     'background-color': '#666',
                     'label': 'data(id)',
                       'height': 'data(size)',
+                      'font-size': 13,
                       'width': 'data(size)'
                   }
                 },
@@ -228,9 +229,12 @@ $(document).ready(function () {
                 {
                   selector: 'edge',
                   style: {
-                    'line-color': '#ccc',
-                    'target-arrow-color': '#ccc',
-                    'target-arrow-shape': 'triangle'
+                    "curve-style": "bezier",
+                    "haystack-radius": "0.5",
+                    "opacity": "0.4",
+                    "line-color": "#bbb",
+                    "width": "mapData(weight, 0, 1, 1, 8)",
+                    "overlay-padding": "3px"
                   }
                 }
               ]
