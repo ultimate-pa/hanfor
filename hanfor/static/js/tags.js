@@ -176,6 +176,7 @@ $(document).ready(function() {
                     return evaluate_search(data);
                 }
             );
+            this.api().draw();
         }
     });
     tags_datatable.column(3).visible(false);
