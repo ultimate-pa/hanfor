@@ -112,7 +112,6 @@ function evaluate_search(data){
 
 /**
  * Apply a URL search query to the requirements table.
- * @param requirements_table
  * @param get_query
  */
 function process_url_query(get_query) {

@@ -28,6 +28,7 @@ body.modal-open{
     width: 100%;
 }
 
+#tags_table .badge-info a,
 #variables_table .badge-info a,
 #requirements_table td a {
     color: #000;

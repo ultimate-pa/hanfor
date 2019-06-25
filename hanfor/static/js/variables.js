@@ -769,6 +769,7 @@ $(document).ready(function() {
                 "targets": [3],
                 "render": function ( data, type, row, meta ) {
                     let result = '';
+                    let search_all = '';
                     if ($.inArray('Type_inference_error', row.tags) > -1) {
                         result += '<span class="badge badge-danger">' +
                                     '<a href="#" class="variable_link" ' +
@@ -786,8 +787,13 @@ $(document).ready(function() {
                             } else {
                                 let search_query = '?command=search&col=2&q=%5C%22' + name + '%5C%22';
                                 result += '<span class="badge badge-info">' +
-                                '<a href="./' + search_query + '" target="_blank">' + name + '</a>' +
-                                '</span> ';
+                                    '<a href="./' + search_query + '" target="_blank">' + name + '</a>' +
+                                    '</span> ';
+                                if (search_all.length > 0) {
+                                    search_all += '%3AOR%3A%5C%22' + name + '%5C%22';
+                                } else {
+                                    search_all += '?command=search&col=2&q=%5C%22' + name + '%5C%22';
+                                }
                             }
                         }
                     });
@@ -795,6 +801,12 @@ $(document).ready(function() {
                         result += '<span class="badge badge-warning">' +
                             '<a href="#">Not used</a>' +
                             '</span></br>';
+                    } else {
+                        if (data.length > 1) {
+                            result += '<span class="badge badge-info" style="background-color: #4275d8">' +
+                                '<a href="./' + search_all + '" target="_blank">Show all</a>' +
+                                '</span> ';
+                        }
                     }
                     return result;
                 }
