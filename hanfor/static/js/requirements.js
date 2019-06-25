@@ -1039,7 +1039,7 @@ function load_datatable(){
             "targets": [3],
             "data": "desc",
             "render": function (data, type, row, meta) {
-                return escapeHtml(data);
+                return '<div class="white-space-pre">' + escapeHtml(data) + '</div>';
             }
         },
         {
@@ -1106,7 +1106,7 @@ function load_datatable(){
                 if (row.formal.length > 0) {
                     $(data).each(function (id, formalization) {
                         if (formalization.length > 0) {
-                            result += '<p>' + escapeHtml(formalization) + '</p>';
+                            result += '<div class="white-space-pre">' + escapeHtml(formalization) + '</div>';
                         }
                     });
                 }
