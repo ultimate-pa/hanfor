@@ -189,4 +189,8 @@ $(document).ready(function() {
     });
 
     autosize($('#tag-description'));
+
+    $('#tag_modal').on('shown.bs.modal', function (e) {
+        autosize.update($('#tag-description'));
+    })
 } );
