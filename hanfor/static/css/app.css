@@ -174,3 +174,7 @@ div.awesomplete .form-control {
 .input-group .awesomplete:not(:first-child):not(:last-child) .form-control {
     border-radius: 0;
 }
+
+.white-space-pre {
+    white-space: pre-wrap;
+}

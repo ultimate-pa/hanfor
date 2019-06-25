@@ -99,7 +99,7 @@ $(document).ready(function() {
             {
                 "data": "description",
                 "render": function ( data, type, row, meta ) {
-                    result = data;
+                    result = '<div class="white-space-pre">' + data + '</div>';
                     return result;
                 }
 
