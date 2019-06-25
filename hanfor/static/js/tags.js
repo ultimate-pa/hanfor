@@ -4,9 +4,35 @@ require('bootstrap-confirmation2');
 require('datatables.net-bs4');
 require('jquery-ui/ui/widgets/autocomplete');
 require('./bootstrap-tokenfield.js');
-const autosize = require('autosize');
+require('awesomplete');
+require('awesomplete/awesomplete.css');
 
+const autosize = require('autosize');
+const { SearchNode } = require('./datatables-advanced-search.js');
 let tag_search_string = sessionStorage.getItem('tag_search_string');
+let search_autocomplete = [
+    ":AND:",
+    ":OR:",
+    ":NOT:",
+    ":COL_INDEX_00:",
+    ":COL_INDEX_01:",
+    ":COL_INDEX_02:",
+];
+
+/**
+ * Update the search expression tree.
+ */
+function update_search() {
+    tag_search_string = $('#search_bar').val().trim();
+    sessionStorage.setItem('tag_search_string', tag_search_string);
+    search_tree = SearchNode.fromQuery(tag_search_string);
+}
+
+
+function evaluate_search(data){
+    return search_tree.evaluate(data, [true, true, true]);
+}
+
 
 /**
  * Store the currently active (in the modal) tag.
@@ -140,14 +166,51 @@ $(document).ready(function() {
         ],
         initComplete : function() {
             $('#search_bar').val(tag_search_string);
+            update_search();
+
+            // Enable Hanfor specific table filtering.
+            $.fn.dataTable.ext.search.push(
+                function( settings, data, dataIndex ) {
+                    // data contains the row. data[0] is the content of the first column in the actual row.
+                    // Return true to include the row into the data. false to exclude.
+                    return evaluate_search(data);
+                }
+            );
         }
     });
     tags_datatable.column(3).visible(false);
 
+    let search_bar = $( "#search_bar" );
     // Bind big custom searchbar to search the table.
-    $('#search_bar').keyup(function(){
-      tags_datatable.search($(this).val()).draw();
-      sessionStorage.setItem('tag_search_string', $(this).val());
+    search_bar.keypress(function(e){
+        if(e.which === 13) { // Search on enter.
+            update_search();
+            tags_datatable.draw();
+        }
+    });
+
+    new Awesomplete(search_bar[0], {
+        filter: function(text, input) {
+            let result = false;
+            // If we have an uneven number of ":"
+            // We check if we have a match in the input tail starting from the last ":"
+            if ((input.split(":").length-1)%2 === 1) {
+                result = Awesomplete.FILTER_CONTAINS(text, input.match(/[^:]*$/)[0]);
+            }
+            return result;
+        },
+        item: function(text, input) {
+            // Match inside ":" enclosed item.
+            return Awesomplete.ITEM(text, input.match(/(:)([\S]*$)/)[2]);
+        },
+        replace: function(text) {
+            // Cut of the tail starting from the last ":" and replace by item text.
+            const before = this.input.value.match(/(.*)(:(?!.*:).*$)/)[1];
+            this.input.value = before + text;
+        },
+        list: search_autocomplete,
+        minChars: 1,
+        autoFirst: true
     });
 
     // Add listener for tag link to modal.
