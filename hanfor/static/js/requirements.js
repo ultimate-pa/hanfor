@@ -116,7 +116,7 @@ function evaluate_search(data){
  */
 function process_url_query(get_query) {
     // Apply search if we have one.
-    if (get_query.q.length > 0) {
+    if (get_query.length > 0 && typeof(get_query.q) !== "undefined") {
         function pad(num) {
             let s = "00" + num;
             return s.substr(s.length-2);
