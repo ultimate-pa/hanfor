@@ -1285,17 +1285,16 @@ function load_meta_settings() {
 function get_rowidx_by_reqid(rid) {
     let requirement_table = $('#requirements_table').DataTable();
     let result = -1;
-    let filteredData = requirement_table
+    requirement_table
         .column( 2 )
         .data()
         .filter( function ( value, index ) {
-            if (value === rid) {
+            if (String(value) === String(rid)) {
                 result = index;
                 return true;
             }
             return false;
         } );
-
     return result;
 }
 
