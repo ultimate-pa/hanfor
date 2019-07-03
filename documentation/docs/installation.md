@@ -1,5 +1,10 @@
 # Installation
 ## Preliminaries
+Clone the repository:
+```bash
+$ git clone https://github.com/ultimate-pa/hanfor.git -b master --single-branch /your/hanfor/destination 
+```
+
 Hanfor requires [Python](https://www.python.org/) and is only tested with Python 3.6.x.
 You can check if you have python already installed from the command line:
 ```bash
@@ -19,7 +24,7 @@ $ source hanfor_python/bin/activate
 Now the python dependencies needed to be installed into the virtual environment.
 Inside the repository run:
 ```bash
-pip install -r requirements.txt
+$ pip install -r requirements.txt
 ```
 
 ## Configure
