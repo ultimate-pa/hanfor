@@ -1,0 +1,8 @@
+site_name: 'Hanfor Docs'
+repo_url: 'https://github.com/ultimate-pa/hanfor'
+site_url: 'https://ultimate-pa.github.io/hanfor/'
+repo_name: 'GitHub'
+theme:
+  name: 'material'
+extra_css:
+  - 'stylesheets/extra.css'
