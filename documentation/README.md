@@ -1,5 +1,5 @@
 These are the source files for the [Hanfor Documentation](https://ultimate-pa.github.io/hanfor/).
-# Contribute to this Doku
+# Contribute to this Documentation.
 1. Install [MkDocs](https://www.mkdocs.org/).
 ```bash
 $ pip install mkdocs
