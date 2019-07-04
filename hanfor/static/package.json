@@ -15,7 +15,7 @@
   "dependencies": {
     "autosize": "^4.0.2",
     "awesomplete": "^1.1.4",
-    "bootstrap": "4.1.0",
+    "bootstrap": ">=4.3.1",
     "bootstrap-confirmation2": "^4.0.0",
     "chart.js": "^2.7.2",
     "cytoscape": "^3.2.12",
