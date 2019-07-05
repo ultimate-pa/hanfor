@@ -8,6 +8,7 @@ require('jquery-ui/ui/effects/effect-highlight');
 require('./bootstrap-tokenfield.js');
 require('awesomplete');
 require('awesomplete/awesomplete.css');
+require('./colResizable-1.6.min.js');
 
 let Cookies = require('js-cookie');
 const autosize = require('autosize');
@@ -691,7 +692,7 @@ function bind_requirement_id_to_modals(requirements_table) {
     $('#requirements_table').find('tbody').on('click', 'a', function (event) {
         // prevent body to be scrolled to the top.
         event.preventDefault();
-        let row_idx = requirements_table.row($(event.target).parent()).index();
+        let row_idx = requirements_table.row($(this).closest('tr')).index();
         load_requirement(row_idx);
     } );
 }
@@ -887,7 +888,7 @@ function init_datatable_manipulators(requirements_table) {
  * @param columnDefs predefined columDefs (https://datatables.net/reference/option/columnDefs)
  */
 function init_datatable(columnDefs) {
-    let requirements_table = $('#requirements_table').DataTable({
+    $('#requirements_table').DataTable({
         "language": {
           "emptyTable": "Loading data."
         },
@@ -934,6 +935,7 @@ function init_datatable(columnDefs) {
             $('#tag-filter-input').val(filter_tag_string);
             $('#status-filter-input').val(filter_status_string);
 
+            let requirements_table = this.api();
             bind_requirement_id_to_modals(requirements_table);
             init_datatable_manipulators(requirements_table);
 
@@ -951,6 +953,10 @@ function init_datatable(columnDefs) {
             );
 
             this.api().draw();
+            $('#requirements_table').colResizable({
+                liveDrag:true,
+                postbackSafe: true
+            });
         }
     });
 }

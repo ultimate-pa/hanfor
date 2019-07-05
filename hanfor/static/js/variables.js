@@ -8,6 +8,7 @@ require('./bootstrap-tokenfield.js');
 require('jquery-ui/ui/effects/effect-highlight');
 require('awesomplete');
 require('awesomplete/awesomplete.css');
+require('./colResizable-1.6.min.js');
 
 // Globals
 let available_types = ['CONST', 'ENUM_INT', 'ENUM_REAL'];
@@ -868,6 +869,10 @@ $(document).ready(function() {
             );
 
             this.api().draw();
+            $('#variables_table').colResizable({
+                liveDrag:true,
+                postbackSafe: true
+            });
         }
     });
     variables_table.column(4).visible(true);
