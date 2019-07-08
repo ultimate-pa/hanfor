@@ -6,6 +6,8 @@
 # Hanfor
 **Hanfor** **h**elps **an**alyzing **an**d **for**malizing **r**equirements.
 
+**Visit our [documentation](https://ultimate-pa.github.io/hanfor)!**
+
 
 # Setup 
  * Hanfor is only tested with Python 3.6.x and requires Python.
