@@ -1,4 +1,4 @@
-# Usage
+# FAQ
 ## Change the text of Description or field in requirements table.
 Currently there is only one way to achieve this: “Creating a new revision”:
 

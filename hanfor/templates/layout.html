@@ -36,8 +36,8 @@
           <li class="nav-item{% if request.path == '/statistics' %} active{% endif %}">
             <a class="nav-link" href="{{ url_for('site', site='statistics') }}">Statistics</a>
           </li>
-          <li class="nav-item{% if request.path == '/help' %} active{% endif %}">
-            <a class="nav-link" href="{{ url_for('site', site='/help') }}">Help</a>
+          <li class="nav-item">
+            <a class="nav-link" href="https://ultimate-pa.github.io/hanfor/" target="_blank">Help</a>
           </li>
       </ul>
       <span class="navbar-text" id="runtime-info">
