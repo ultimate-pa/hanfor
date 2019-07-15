@@ -79,11 +79,15 @@
           
             <li class="toctree-l1">
 		
-    <span class="caption-text">FAQ</span>
+    <span class="caption-text">Usage</span>
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="../FAQ/usage/">Usage</a>
+    <a class="" href="../Usage/FAQ/">FAQ</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../Usage/Requirements/">Requirements</a>
                 </li>
     </ul>
 	    </li>
@@ -126,18 +130,23 @@
                 <h1 id="installation">Installation</h1>
 <h2 id="preliminaries">Preliminaries</h2>
 <p>Clone the repository:
-<pre class="highlight"><code class="language-bash">$ git clone https://github.com/ultimate-pa/hanfor.git -b master --single-branch /your/hanfor/destination </code></pre></p>
+<div class="highlight"><pre><span></span>$ git clone https://github.com/ultimate-pa/hanfor.git -b master --single-branch /your/hanfor/destination 
+</pre></div></p>
 <p>Hanfor requires <a href="https://www.python.org/">Python</a> and is only tested with Python 3.6.x.
 You can check if you have python already installed from the command line:
-<pre class="highlight"><code class="language-bash">$ python -- version
-Python 3.5.2</code></pre></p>
+<div class="highlight"><pre><span></span>$ python -- version
+Python <span class="m">3</span>.5.2
+</pre></div></p>
 <p>We recommend using a <a href="https://virtualenv.pypa.io/en/latest/installation/">virtual environment</a>. Create a new virtual environment with: 
-<pre class="highlight"><code class="language-bash">$ virtualenv hanfor_python </code></pre>
+<div class="highlight"><pre><span></span>$ virtualenv hanfor_python 
+</pre></div>
 And activate it by sourcing:
-<pre class="highlight"><code class="language-bash">$ source hanfor_python/bin/activate</code></pre></p>
+<div class="highlight"><pre><span></span>$ <span class="nb">source</span> hanfor_python/bin/activate
+</pre></div></p>
 <p>Now the python dependencies needed to be installed into the virtual environment.
 Inside the repository run:
-<pre class="highlight"><code class="language-bash">$ pip install -r requirements.txt</code></pre></p>
+<div class="highlight"><pre><span></span>$ pip install -r requirements.txt
+</pre></div></p>
 <h2 id="configure">Configure</h2>
 <ul>
 <li>Copy <code>./hanfor/config.dist.py</code> to <code>./hanfor/config.py</code>.</li>
@@ -145,12 +154,15 @@ Inside the repository run:
 </ul>
 <h2 id="start">Start</h2>
 <p>To start a fresh session use
-<pre class="highlight"><code class="language-bash">$ python app.py &lt;tag&gt; -c &lt;path_to_input_csv&gt;.csv</code></pre></p>
+<div class="highlight"><pre><span></span>$ python app.py &lt;tag&gt; -c &lt;path_to_input_csv&gt;.csv
+</pre></div></p>
 <p>Point your browser to <a href="http://127.0.0.1:5000"><code>http://127.0.0.1:&lt;port in config.py&gt;</code></a></p>
 <p>Start an existing session:
-<pre class="highlight"><code class="language-bash">$ python app.py &lt;tag&gt;</code></pre></p>
+<div class="highlight"><pre><span></span>$ python app.py &lt;tag&gt;
+</pre></div></p>
 <p>You can see all available tags using the ''-L'' switch:
-<pre class="highlight"><code class="language-bash">$ python app.py -L</code></pre></p>
+<div class="highlight"><pre><span></span>$ python app.py -L
+</pre></div></p>
 <h2 id="how-it-works">How it works</h2>
 <p>The app will create a <em>session</em> naming it by the given <code>&lt;tag&gt;</code> argument.
 A session creation process has the following steps:</p>
@@ -171,7 +183,7 @@ A session creation process has the following steps:</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../FAQ/usage/" class="btn btn-neutral float-right" title="Usage">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../Usage/FAQ/" class="btn btn-neutral float-right" title="FAQ">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
         <a href=".." class="btn btn-neutral" title="Overview"><span class="icon icon-circle-arrow-left"></span> Previous</a>
@@ -205,7 +217,7 @@ A session creation process has the following steps:</p>
         <span><a href=".." style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../FAQ/usage/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../Usage/FAQ/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

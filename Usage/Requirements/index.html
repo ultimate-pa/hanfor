@@ -8,7 +8,7 @@
   
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>Usage - Hanfor Docs</title>
+  <title>Requirements - Hanfor Docs</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
@@ -18,9 +18,9 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Usage";
-    var mkdocs_page_input_path = "FAQ\\usage.md";
-    var mkdocs_page_url = "/hanfor/FAQ/usage/";
+    var mkdocs_page_name = "Requirements";
+    var mkdocs_page_input_path = "Usage/Requirements.md";
+    var mkdocs_page_url = "/hanfor/Usage/Requirements/";
   </script>
   
   <script src="../../js/jquery-2.1.1.min.js" defer></script>
@@ -61,18 +61,24 @@
           
             <li class="toctree-l1">
 		
-    <span class="caption-text">FAQ</span>
+    <span class="caption-text">Usage</span>
     <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../FAQ/">FAQ</a>
+                </li>
                 <li class=" current">
                     
-    <a class="current" href="./">Usage</a>
+    <a class="current" href="./">Requirements</a>
     <ul class="subnav">
             
-    <li class="toctree-l3"><a href="#usage">Usage</a></li>
+    <li class="toctree-l3"><a href="#requirements">Requirements</a></li>
     
         <ul>
         
-            <li><a class="toctree-l4" href="#change-the-text-of-description-or-field-in-requirements-table">Change the text of Description or field in requirements table.</a></li>
+            <li><a class="toctree-l4" href="#search-in-requirements-table">Search in requirements table.</a></li>
+        
+            <li><a class="toctree-l4" href="#mass-edit-requirements">Mass edit requirements</a></li>
         
         </ul>
     
@@ -104,14 +110,14 @@
     
       
         
-          <li>FAQ &raquo;</li>
+          <li>Usage &raquo;</li>
         
       
     
-    <li>Usage</li>
+    <li>Requirements</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/FAQ/usage.md"
+        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/Usage/Requirements.md"
           class="icon icon-github"> Edit on GitHub</a>
       
     </li>
@@ -121,15 +127,32 @@
           <div role="main">
             <div class="section">
               
-                <h1 id="usage">Usage</h1>
-<h2 id="change-the-text-of-description-or-field-in-requirements-table">Change the text of Description or field in requirements table.</h2>
-<p>Currently there is only one way to achieve this: “Creating a new revision”:</p>
+                <h1 id="requirements">Requirements</h1>
+<h2 id="search-in-requirements-table">Search in requirements table.</h2>
+<p>Searching in the requirements table is accessible via the <code>search</code> tab. 
+Typing in the search input supports autocomplete for extended search triggered by <code>:</code>. </p>
+<h3 id="search-operators">Search Operators.</h3>
+<p>You can concatenate search queries by</p>
 <ul>
-<li>Edit the Description in the CSV -&gt; <em>edited.csv</em>.</li>
-<li>Create a revision with the edited CSV as baseline:<br>
-  <code>python app.py TAG_NAME -c path/to/edited.csv --revision</code></li>
+<li><code>search_1:OR:search_2</code> yields the union of search_1 and search_2.</li>
+<li><code>search_1:AND:search_2</code> yields the intersection of search_1 and search_2.</li>
+<li><code>:AND:</code> binds stronger than <code>:OR:</code>.</li>
 </ul>
-<p>This will check for changes in the CSV against the old one and create a new “Version” aka. “Revision”.</p>
+<p>To <strong>invert the result</strong> use <code>:NOT:</code> before your search string.</p>
+<h3 id="exact-searches">Exact searches.</h3>
+<p>You can get exact search results by using <code>"</code> to indicate the beginning or end of a sequence.</p>
+<ul>
+<li><code>"fast</code> Includes faster but not breakfast.</li>
+<li><code>fast"</code> Includes breakfast but not faster.</li>
+<li><code>"fast"</code> Includes only exact matches of fast.</li>
+</ul>
+<h3 id="search-target-column">Search Target column.</h3>
+<p>To target a specific column use <code>:COL_INDEX_02:</code> to target column 2.
+The column indexes are appended in the requirements table header in parentheses.</p>
+<h2 id="mass-edit-requirements">Mass edit requirements</h2>
+<p>You can mass edit requirements. Select requirements by clicking on the requirement checkbox in the table.
+Hold shift for multi select and Ctrl to toggle a single selection.
+Click on <code>Edit Selected</code>, fill out the form. Empty fields will have no effect.</p>
               
             </div>
           </div>
@@ -138,7 +161,7 @@
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="../../installation/" class="btn btn-neutral" title="Installation"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../FAQ/" class="btn btn-neutral" title="FAQ"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -166,7 +189,7 @@
           <a href="https://github.com/ultimate-pa/hanfor/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
       
-        <span><a href="../../installation/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../FAQ/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
     </span>

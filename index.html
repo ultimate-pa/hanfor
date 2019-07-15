@@ -75,11 +75,15 @@
           
             <li class="toctree-l1">
 		
-    <span class="caption-text">FAQ</span>
+    <span class="caption-text">Usage</span>
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="FAQ/usage/">Usage</a>
+    <a class="" href="Usage/FAQ/">FAQ</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="Usage/Requirements/">Requirements</a>
                 </li>
     </ul>
 	    </li>
@@ -138,7 +142,7 @@
 <p>In this method we use a simple pattern language. The requirements expressed in the pattern language look like English sentences. Everything you can express in this patterns is then translated in the background into logical formulas. You could also easily translate them into German, Chinese, or other languages.</p>
 <h3 id="grammar-of-the-specification-language">Grammar of the Specification Language</h3>
 <p>The grammar is the following:
-<pre class="highlight"><code>REQ      ::= ID: SCOPE, PATTERN .
+<div class="highlight"><pre><span></span>REQ      ::= ID: SCOPE, PATTERN .
 SCOPE    ::= Globally  | Before EXPR  | After EXPR | Between EXPR and EXPR  | After EXPR until EXPR
 PATTERN  ::= It is never the case that EXPR holds
            | It is always the case that EXPR holds
@@ -164,7 +168,8 @@ REALTIME ::= Once EXPR becomes satisfied, it holds for at least DURATION
            | If EXPR holds, then EXPR holds for at least DURATION
            | If EXPR holds, then there is at least one execution sequence such that EXPR holds after at most DURATION
            | After EXPR holds for DURATION, then EXPR holds
-           | If EXPR holds, then EXPR toggles EXPR at most DURATION later</code></pre>
+           | If EXPR holds, then EXPR toggles EXPR at most DURATION later
+</pre></div>
 <code>EXPR</code> is an expression (e.g. <code>vehicleSpeed&lt;10 &amp;&amp; Terminal15==ON</code>).</p>
 <p>Thus, in a first step the informal requirements are translated into requirements in the specification language shown above. This is done manually.</p>
 <p>In the background the tool translates the requirements in specification language then into logical formulas.
@@ -290,7 +295,7 @@ There are several reasons to do so:</p>
 </ul>
 <div class="admonition note">
 <p class="admonition-title"><strong>Output</strong> of the Test Generator Tool</p>
-<pre class="highlight"><code>Case SystemTest:
+<div class="highlight"><pre><span></span>Case SystemTest:
 TestGeneratorResult:
 Found Test for: [O]
 Test Vector:
@@ -311,7 +316,8 @@ H == true (req1)
 Wait for at most 10 for:
 I == true (req2)
 Wait for at most 20 for:
-O == true, (req3)</code></pre>
+O == true, (req3)
+</pre></div>
 
 </div>
               
@@ -364,5 +370,5 @@ O == true, (req3)</code></pre>
 
 <!--
 MkDocs version : 1.0.4
-Build Date UTC : 2019-07-08 16:11:50
+Build Date UTC : 2019-07-15 08:49:48
 -->
