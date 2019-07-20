@@ -9,6 +9,17 @@
   `python app.py <tag> -c path/to/input.csv`
 * Point your browser to [`http://127.0.0.1:<port in config.py>`](http://127.0.0.1:5000).
 ## Introduction
+
+If you have many requirements it gets difficult to check that all of them are, e.g., consistent. No human can manually check >1000 requirements for consistency -- so we do our best with reviews.
+
+Also in new projects, what we often see, is that it takes a long time before there is a high test coverage on the requirements -- as the number of requirements increases over the releases, and thus also the test specifications have to cover more and more requirements. However, many defects are found by experience-based testing -- but these technique is often used quite late, as the first priority is to get a reasonable requirement-based coverage.
+
+To tackle that problem, Hanfor provides a method that consists of 3 steps:  
+1. The Requirements Formalization
+2. The Requirements Check (on the formalized requirements)
+3. The Test Generation (on the formalized requirements)
+
+
 ![Example Picture 1](img/image001.png "Example picture 1")
 
 To make it possible for a computer to check a set of requirements for quality criteria, as e.g. consistency, it has to "understand" the semantics of the requirements.
