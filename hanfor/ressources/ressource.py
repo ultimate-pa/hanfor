@@ -40,7 +40,7 @@ class Response(dict):
 
     @success.setter
     def success(self, val):
-        if val == False:
+        if not val and len(self.errormsg) == 0:
             self['errormsg'] = 'Sorry, could not parse your request.'
         self['success'] = val
 
