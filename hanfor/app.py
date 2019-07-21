@@ -22,7 +22,7 @@ from reqtransformer import RequirementCollection, Requirement, VariableCollectio
     ScopedPattern, Pattern, VarImportSessions
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 
-from ressources import Report, Tag, Statistics
+from ressources import Report, Tag, Statistics, QueryAPI
 
 # Create the app
 app = Flask(__name__)
@@ -89,6 +89,12 @@ def table_api():
     result = utils.get_datatable_additional_cols(app)
 
     return jsonify(result)
+
+
+@app.route('/api/query', methods=['GET', 'POST', 'DELETE'])
+@nocache
+def api_query():
+    return QueryAPI(app, request).apply_request()
 
 
 @app.route('/api/<resource>/<command>', methods=['GET', 'POST', 'DELETE'])
@@ -837,7 +843,7 @@ def unhandled_exception(exception):
 
     return jsonify({
         'success': False,
-        'errormsg': 'Unhandled Exception: {}'.format(exception)
+        'errormsg': repr(exception)
     })
 
 
