@@ -1,4 +1,3 @@
-# Overview
 **Hanfor** **h**elps **an**alyzing **an**d **for**malizing **r**equirements.
 ## Quickstart
 * Use Python 3.6.x
@@ -14,7 +13,8 @@ If you have many requirements it gets difficult to check that all of them are, e
 
 Also in new projects, what we often see, is that it takes a long time before there is a high test coverage on the requirements -- as the number of requirements increases over the releases, and thus also the test specifications have to cover more and more requirements. However, many defects are found by experience-based testing -- but these technique is often used quite late, as the first priority is to get a reasonable requirement-based coverage.
 
-To tackle that problem, Hanfor provides a method that consists of 3 steps:  
+To tackle that problem, Hanfor provides a method that consists of 3 steps:
+
 1. The Requirements Formalization
 2. The Requirements Check (on the formalized requirements)
 3. The Test Generation (on the formalized requirements)
@@ -68,6 +68,7 @@ In the background the tool translates the requirements in specification language
 
 ### Tool Support
 The tool to assist this step is called Hanfor.It looks a little bit like Doors. It takes as input a csv-Export from Doors, and then stores the requirements. There are two IDs, the Hanfor ID and the Doors ID, so that you can synchronize the two databases, and can easily identify changes.
+
 ![Example Picture 3](img/image004.jpg "Example picture 3")
 
 Clicking on a requirements you can then specify the requirement in the specification language as visible in the next screenshot. The tool provides both patterns and also a signal database, so that you have a auto-complete function when filling out the variables.

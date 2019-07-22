@@ -1,25 +1,21 @@
-# API Queries
 To generate reports or search for requirements not using the frontend Hanfor can be queried with HTTP requests at 
 `http(s)://{{your host}}/{{your URL_PREFIX}}/api/query`
 
 ## Show stored queries
-#### Show all
 `GET /api/query`
-##### URL Argument Options:
-* `reload` (bool | optional | default=false): Reevaluates all stored queries.
-#### Example
-```bash
-$ curl http://localhost:5000/api/query
-```
-#### Show specific
-`GET /api/query`
-##### URL Argument Options:
+
+### Arguments 
 * `name` (string): The name of the query.
 * `reload` (bool | optional | default=false): Reevaluates all stored queries.
-#### Example
+
+### Examples
 ```bash
+# Show all stored queries
+$ curl http://localhost:5000/api/query
+
+# Show only queries which are named 'MyQuery' and re-evaluate the stored query 
 $ curl http://localhost:5000/api/query?name=MyQuery&reload=true
-``` 
+```
 
 ## Adding queries
 #### Add new query
@@ -62,7 +58,7 @@ $ curl -X DELETE -H 'Content-Type: application/json' \
 Much like in the frontend the query syntax supports operators, nesting, exact- exclusive matches and targeting 
 specific attributes.
 
-### Search Operators.
+### Search Operators
 You can concatenate search queries by
 
 * `search_1:OR:search_2` yields the union of search_1 and search_2.
@@ -73,14 +69,14 @@ To **invert the result** use `:NOT:` before your search string.
 
 To change the precedence and for nesting you query use `(` and `)`.
 
-### Exact searches.
+### Exact searches
 You can get exact search results by using `"` to indicate the beginning or end of a sequence.
 
 * `"fast` Includes faster but not breakfast.
 * `fast"` Includes breakfast but not faster.
 * `"fast"` Includes only exact matches of fast.
 
-### Target specific target attributes.
+### Target specific target attributes
 To limit a part of the search query use the syntax
 
     :DATA_TARGET:`<the target attribute name>`

@@ -10,3 +10,6 @@ extra_css:
 markdown_extensions:
   - admonition
   - pymdownx.superfences
+  - toc:
+      permalink: '#'
+  - sane_lists
