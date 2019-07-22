@@ -79,6 +79,10 @@
     <ul class="subnav">
                 <li class="">
                     
+    <a class="" href="Usage/API Queries/">API Queries</a>
+                </li>
+                <li class="">
+                    
     <a class="" href="Usage/FAQ/">FAQ</a>
                 </li>
                 <li class="">
@@ -136,6 +140,12 @@
 <li>Point your browser to <a href="http://127.0.0.1:5000"><code>http://127.0.0.1:&lt;port in config.py&gt;</code></a>.</li>
 </ul>
 <h2 id="introduction">Introduction</h2>
+<p>If you have many requirements it gets difficult to check that all of them are, e.g., consistent. No human can manually check &gt;1000 requirements for consistency -- so we do our best with reviews.</p>
+<p>Also in new projects, what we often see, is that it takes a long time before there is a high test coverage on the requirements -- as the number of requirements increases over the releases, and thus also the test specifications have to cover more and more requirements. However, many defects are found by experience-based testing -- but these technique is often used quite late, as the first priority is to get a reasonable requirement-based coverage.</p>
+<p>To tackle that problem, Hanfor provides a method that consists of 3 steps:<br />
+1. The Requirements Formalization
+2. The Requirements Check (on the formalized requirements)
+3. The Test Generation (on the formalized requirements)</p>
 <p><img alt="Example Picture 1" src="img/image001.png" title="Example picture 1" /></p>
 <p>To make it possible for a computer to check a set of requirements for quality criteria, as e.g. consistency, it has to "understand" the semantics of the requirements.</p>
 <p>This could be achieved by using formal languages to express the requirements. However, they are rarely understandable for humans, so we would get requirements that the computer understands - but nearly no stakeholder.</p>
@@ -370,5 +380,5 @@ O == true, (req3)
 
 <!--
 MkDocs version : 1.0.4
-Build Date UTC : 2019-07-15 08:49:48
+Build Date UTC : 2019-07-22 11:30:05
 -->
