@@ -17,6 +17,7 @@ from collections import defaultdict
 from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
+from flask import current_app
 from static_utils import choice, get_filenames_from_dir, replace_prefix
 from threading import Thread
 from typing import Dict
@@ -209,7 +210,7 @@ class Requirement(HanforVersioned, Pickleable):
         return d
 
     @classmethod
-    def load_requirement_by_id(self, id, app) -> 'Requirement':
+    def load_requirement_by_id(cls, id, app) -> 'Requirement':
         """ Loads requirement from session folder if it exists.
 
         :param id: requirement_id
@@ -222,9 +223,9 @@ class Requirement(HanforVersioned, Pickleable):
             return Requirement.load(path)
 
     @classmethod
-    def load(self, path):
+    def load(cls, path):
         me = Pickleable.load(path)
-        if not isinstance(me, self):
+        if not isinstance(me, cls):
             raise TypeError
 
         if me.has_version_mismatch:
@@ -237,6 +238,18 @@ class Requirement(HanforVersioned, Pickleable):
             me.store()
 
         return me
+
+    @classmethod
+    def requirements(cls):
+        """ Iterator for all requirements.
+
+        """
+        filenames = get_filenames_from_dir(current_app.config['REVISION_FOLDER'])
+        for filename in filenames:
+            try:
+                yield cls.load(filename)
+            except:
+                continue
 
     def store(self, path=None):
         super().store(path)
