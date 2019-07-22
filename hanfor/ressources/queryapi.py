@@ -21,17 +21,20 @@ class SearchNode:
         self.update_target()
 
     def update_target(self):
-        col_string_index = self.value.find(':COL_INDEX_')
-        if col_string_index >= 0:
-            part = self.value[col_string_index + 11:col_string_index + 13]
-            target_index = int(part)
-            if target_index >= 0:
-                self.value = self.value[col_string_index + 14:]
-                self.data_target = target_index
+        """ Updates the data target if it is set in the string:
+             :DATA_TARGET:`the target name`
 
-    def evaluate(self, data, visible_columns):
-        raise NotImplementedError
-        # return evaluateSearchExpressionTree(self, data, visible_columns)
+        """
+        target_index = self.value.find(':DATA_TARGET:')
+        if target_index >= 0:
+            sub_string = self.value[target_index + 13:]
+            match = re.match(r'`(.+)`', sub_string)
+            if match:
+                self.data_target = sub_string[match.span()[0] + 1: match.span()[1] - 1]
+                self.value = sub_string[match.span()[1]:]
+
+    def evaluate(self, data):
+        return SearchNode.evaluate_tree(self, data)
 
     @staticmethod
     def is_search_string(token):
@@ -204,10 +207,10 @@ class SearchNode:
 class Query(dict):
     def __init__(self, name, query='', result=None):
         super().__init__()
-        self['name'] = name
-        self['query'] = query
+        self.name = name
+        self.query = query
         if result is None:
-            self['result'] = dict()
+            self.result = list()
 
     @property
     def name(self):
@@ -238,11 +241,23 @@ class QueryAPI(Ressource):
     def __init__(self, app, request):
         super().__init__(app, request)
         if 'queries' not in self.meta_settings:
-            self.turncate_query_storage()
+            self.truncate_query_storage()
+        self._requirement_data = None
+
+    @property
+    def requirement_data(self):
+        if self._requirement_data is None:
+            self._requirement_data = dict()
+            for req in Requirement.requirements():
+                self._requirement_data[req.rid] = QueryAPI.req_dict_to_search_dict(req.to_dict())
+        return self._requirement_data
 
     @property
     def queries(self):
         return self.meta_settings['queries']
+
+    def store(self):
+        self.meta_settings.update_storage()
 
     def get_query(self, name):
         """ Get a single query. Returns None is not found.
@@ -257,7 +272,7 @@ class QueryAPI(Ressource):
 
     def add_query(self, query: Query):
         self.queries[query.name] = query
-        self.meta_settings.update_storage()
+        self.store()
 
     def update_query(self, name):
         """ Update a existing query.
@@ -268,39 +283,60 @@ class QueryAPI(Ressource):
         self.response.errormsg = "Only json data supported."
         self.response.success = False
 
-    def get_requirement_data(self):
-        filenames = get_filenames_from_dir(current_app.config['REVISION_FOLDER'])
-        result = dict()
-        for filename in filenames:
-            try:
-                req = Requirement.load(filename)
-                result[req.rid] = req.to_dict()
-            except:
-                continue
+    @staticmethod
+    def req_dict_to_search_dict(req_dict):
+        result = {
+            'Id': req_dict['id'],
+            'Description': req_dict['desc'],
+            'Type': req_dict['type'],
+            'Tags': ' '.join(req_dict['tags']),
+            **req_dict['csv_data'],
+            'Formalization': ' '.join(req_dict['formal']),
+            'Status': req_dict['status']
+        }
+
         return result
 
-    def turncate_query_storage(self):
+    @staticmethod
+    def get_target_names():
+        result = list()
+        for req in Requirement.requirements():
+            result = [key for key in QueryAPI.req_dict_to_search_dict(req.to_dict()).keys()]
+            result = sorted(result)
+            break
+        return result
+
+    def truncate_query_storage(self):
         self.meta_settings['queries'] = dict()
-        self.meta_settings.update_storage()
+        self.store()
 
     def eval_query(self, name):
         query = self.get_query(name)
         if query is not None:
             tree = SearchNode.from_query(query.query)
-            req_data = self.get_requirement_data()
-            for rid, data in req_data.items():
-                if SearchNode.evaluate_tree(tree, data['csv_data']):
-                    query.result[rid] = data
-            self.meta_settings.update_storage()
+            for rid, data in self.requirement_data.items():
+                if SearchNode.evaluate_tree(tree, data):
+                    query.result.append(rid)
 
     def GET(self):
         """ Returns the `name` associated query. Or all stored queries if no name is given.
         """
         name = self.request.args.get('name', '').strip()
-        if name:
-            self.eval_query(name)
+        show = self.request.args.get('show', '').strip()
+        reload = self.request.args.get('reload', '').strip()
+        if show:
+            if show == 'targets':
+                self.response.data = QueryAPI.get_target_names()
+        elif name:
+            if reload:
+                self.eval_query(name)
+                self.store()
             self.response.data = self.get_query(name)
         else:
+            if reload:
+                for name in self.queries.keys():
+                    self.eval_query(name)
+                self.store()
             self.response.data = self.queries
 
     def POST(self):
@@ -315,10 +351,16 @@ class QueryAPI(Ressource):
         else:
             name = self.request.json.get('name', '').__str__().strip()
             query = self.request.json.get('query', '').__str__().strip()
+            store = self.request.json.get('store', True)
+
             if not name:
                 name = str(id(query))
             self.add_query(Query(name, query))
+            self.eval_query(name)
             self.response.data = self.get_query(name)
+            if not store:
+                self.queries.pop(name)
+            self.store()
 
     def DELETE(self):
         """ Delete one or multiple queries by name
@@ -343,4 +385,4 @@ class QueryAPI(Ressource):
                 for name in names:
                     if name in self.queries:
                         self.queries.pop(name)
-            self.meta_settings.update_storage()
+            self.store()
