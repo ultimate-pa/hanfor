@@ -8,7 +8,7 @@
   <meta name="description" content="None">
   
   <link rel="shortcut icon" href="img/favicon.ico">
-  <title>Overview - Hanfor Docs</title>
+  <title>Home - Hanfor Docs</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="css/theme.css" type="text/css" />
@@ -18,7 +18,7 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Overview";
+    var mkdocs_page_name = "Home";
     var mkdocs_page_input_path = "index.md";
     var mkdocs_page_url = "/hanfor/";
   </script>
@@ -51,16 +51,21 @@
           
             <li class="toctree-l1 current">
 		
-    <a class="current" href=".">Overview</a>
+    <a class="current" href=".">Home</a>
     <ul class="subnav">
             
-    <li class="toctree-l2"><a href="#overview">Overview</a></li>
+    <li class="toctree-l2"><a href="#quickstart">Quickstart</a></li>
+    
+
+    <li class="toctree-l2"><a href="#introduction">Introduction</a></li>
     
         <ul>
         
-            <li><a class="toctree-l3" href="#quickstart">Quickstart</a></li>
+            <li><a class="toctree-l3" href="#grammar-of-the-specification-language">Grammar of the Specification Language</a></li>
         
-            <li><a class="toctree-l3" href="#introduction">Introduction</a></li>
+            <li><a class="toctree-l3" href="#tool-support">Tool Support</a></li>
+        
+            <li><a class="toctree-l3" href="#system-test-case-generation">System test case generation</a></li>
         
         </ul>
     
@@ -114,7 +119,7 @@
     
       
     
-    <li>Overview</li>
+    <li>Home</li>
     <li class="wy-breadcrumbs-aside">
       
         <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/index.md"
@@ -127,9 +132,10 @@
           <div role="main">
             <div class="section">
               
-                <h1 id="overview">Overview</h1>
+                <h1>Hanfor Docs</h1>
+
 <p><strong>Hanfor</strong> <strong>h</strong>elps <strong>an</strong>alyzing <strong>an</strong>d <strong>for</strong>malizing <strong>r</strong>equirements.</p>
-<h2 id="quickstart">Quickstart</h2>
+<h2 id="quickstart">Quickstart<a class="headerlink" href="#quickstart" title="Permanent link">#</a></h2>
 <ul>
 <li>Use Python 3.6.x</li>
 <li>Install dependencies: <code>pip install -r requirements.txt</code></li>
@@ -139,18 +145,20 @@
   <code>python app.py &lt;tag&gt; -c path/to/input.csv</code></li>
 <li>Point your browser to <a href="http://127.0.0.1:5000"><code>http://127.0.0.1:&lt;port in config.py&gt;</code></a>.</li>
 </ul>
-<h2 id="introduction">Introduction</h2>
+<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">#</a></h2>
 <p>If you have many requirements it gets difficult to check that all of them are, e.g., consistent. No human can manually check &gt;1000 requirements for consistency -- so we do our best with reviews.</p>
 <p>Also in new projects, what we often see, is that it takes a long time before there is a high test coverage on the requirements -- as the number of requirements increases over the releases, and thus also the test specifications have to cover more and more requirements. However, many defects are found by experience-based testing -- but these technique is often used quite late, as the first priority is to get a reasonable requirement-based coverage.</p>
-<p>To tackle that problem, Hanfor provides a method that consists of 3 steps:<br />
-1. The Requirements Formalization
-2. The Requirements Check (on the formalized requirements)
-3. The Test Generation (on the formalized requirements)</p>
+<p>To tackle that problem, Hanfor provides a method that consists of 3 steps:</p>
+<ol>
+<li>The Requirements Formalization</li>
+<li>The Requirements Check (on the formalized requirements)</li>
+<li>The Test Generation (on the formalized requirements)</li>
+</ol>
 <p><img alt="Example Picture 1" src="img/image001.png" title="Example picture 1" /></p>
 <p>To make it possible for a computer to check a set of requirements for quality criteria, as e.g. consistency, it has to "understand" the semantics of the requirements.</p>
 <p>This could be achieved by using formal languages to express the requirements. However, they are rarely understandable for humans, so we would get requirements that the computer understands - but nearly no stakeholder.</p>
 <p>In this method we use a simple pattern language. The requirements expressed in the pattern language look like English sentences. Everything you can express in this patterns is then translated in the background into logical formulas. You could also easily translate them into German, Chinese, or other languages.</p>
-<h3 id="grammar-of-the-specification-language">Grammar of the Specification Language</h3>
+<h3 id="grammar-of-the-specification-language">Grammar of the Specification Language<a class="headerlink" href="#grammar-of-the-specification-language" title="Permanent link">#</a></h3>
 <p>The grammar is the following:
 <div class="highlight"><pre><span></span>REQ      ::= ID: SCOPE, PATTERN .
 SCOPE    ::= Globally  | Before EXPR  | After EXPR | Between EXPR and EXPR  | After EXPR until EXPR
@@ -184,9 +192,9 @@ REALTIME ::= Once EXPR becomes satisfied, it holds for at least DURATION
 <p>Thus, in a first step the informal requirements are translated into requirements in the specification language shown above. This is done manually.</p>
 <p>In the background the tool translates the requirements in specification language then into logical formulas.
 <img alt="Example Picture 2" src="img/image003.jpg" title="Example picture 2" /></p>
-<h3 id="tool-support">Tool Support</h3>
-<p>The tool to assist this step is called Hanfor.It looks a little bit like Doors. It takes as input a csv-Export from Doors, and then stores the requirements. There are two IDs, the Hanfor ID and the Doors ID, so that you can synchronize the two databases, and can easily identify changes.
-<img alt="Example Picture 3" src="img/image004.jpg" title="Example picture 3" /></p>
+<h3 id="tool-support">Tool Support<a class="headerlink" href="#tool-support" title="Permanent link">#</a></h3>
+<p>The tool to assist this step is called Hanfor.It looks a little bit like Doors. It takes as input a csv-Export from Doors, and then stores the requirements. There are two IDs, the Hanfor ID and the Doors ID, so that you can synchronize the two databases, and can easily identify changes.</p>
+<p><img alt="Example Picture 3" src="img/image004.jpg" title="Example picture 3" /></p>
 <p>Clicking on a requirements you can then specify the requirement in the specification language as visible in the next screenshot. The tool provides both patterns and also a signal database, so that you have a auto-complete function when filling out the variables.</p>
 <p><img alt="Example Picture 4" src="img/image005.jpg" title="Example picture 4" />
 <img alt="Example Picture 5" src="img/image006.jpg" title="Example picture 5" /></p>
@@ -228,7 +236,7 @@ REALTIME ::= Once EXPR becomes satisfied, it holds for at least DURATION
 <li>Change <code>Req2</code> to <code>Req2': Before "Startup", it is never the case that "Signal-A" holds.</code></li>
 </ul>
 </div>
-<h4 id="realtime-consistency-rt-consistency">Realtime-Consistency (rt-consistency)</h4>
+<h4 id="realtime-consistency-rt-consistency">Realtime-Consistency (rt-consistency)<a class="headerlink" href="#realtime-consistency-rt-consistency" title="Permanent link">#</a></h4>
 <p>A set of requirements is rt-inconsistent, if there are conflicts between requirements that arise after a certain time.</p>
 <div class="admonition note">
 <p class="admonition-title">Example</p>
@@ -250,10 +258,10 @@ Req2: It is always the case that if „IRTest“ holds, then „NOT(IRLampsOn)�
 <p>Or add
 Req3: Once IRTest appears, it holds for at most 3 seconds.</p>
 <p>Req4: Once IRTest disappears, it is absent for at least 10 seconds</p>
-<h3 id="system-test-case-generation">System test case generation</h3>
+<h3 id="system-test-case-generation">System test case generation<a class="headerlink" href="#system-test-case-generation" title="Permanent link">#</a></h3>
 <p>When having the requirements formalized in the specification language, it makes sense to also automatically generate test specifications out of them.
 There are several reasons to do so:</p>
-<p><img alt="Example Picture 7" src="img/image008.jpg" title="Example picture 7" /></p>
+<p><img alt="Example Picture 7" src="img/image008.png" title="Example picture 7" /></p>
 <p>Thus the algorithm has to:</p>
 <ul>
 <li>Automatically generate system tests only using requirements</li>
@@ -334,14 +342,6 @@ O == true, (req3)
             </div>
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="installation/" class="btn btn-neutral float-right" title="Installation">Next <span class="icon icon-circle-arrow-right"></span></a>
-      
-      
-    </div>
-  
 
   <hr/>
 
@@ -350,7 +350,7 @@ O == true, (req3)
     
   </div>
 
-  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
       
         </div>
@@ -360,15 +360,9 @@ O == true, (req3)
 
   </div>
 
-  <div class="rst-versions" role="note" style="cursor: pointer">
+  <div class="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
-      
           <a href="https://github.com/ultimate-pa/hanfor/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
-      
-      
-      
-        <span style="margin-left: 15px"><a href="installation/" style="color: #fcfcfc">Next &raquo;</a></span>
-      
     </span>
 </div>
     <script>var base_url = '.';</script>
@@ -380,5 +374,5 @@ O == true, (req3)
 
 <!--
 MkDocs version : 1.0.4
-Build Date UTC : 2019-07-22 11:30:05
+Build Date UTC : 2019-07-29 13:55:13
 -->

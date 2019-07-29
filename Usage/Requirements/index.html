@@ -51,7 +51,7 @@
           
             <li class="toctree-l1">
 		
-    <a class="" href="../..">Overview</a>
+    <a class="" href="../..">Home</a>
 	    </li>
           
             <li class="toctree-l1">
@@ -76,15 +76,10 @@
     <a class="current" href="./">Requirements</a>
     <ul class="subnav">
             
-    <li class="toctree-l3"><a href="#requirements">Requirements</a></li>
+    <li class="toctree-l3"><a href="#search-in-requirements-table">Search in requirements table</a></li>
     
-        <ul>
-        
-            <li><a class="toctree-l4" href="#search-in-requirements-table">Search in requirements table.</a></li>
-        
-            <li><a class="toctree-l4" href="#mass-edit-requirements">Mass edit requirements</a></li>
-        
-        </ul>
+
+    <li class="toctree-l3"><a href="#mass-edit-requirements">Mass edit requirements</a></li>
     
 
     </ul>
@@ -131,11 +126,13 @@
           <div role="main">
             <div class="section">
               
-                <h1 id="requirements">Requirements</h1>
-<h2 id="search-in-requirements-table">Search in requirements table.</h2>
+                <h1>Requirements</h1>
+
+<h2 id="search-in-requirements-table">Search in requirements table<a class="headerlink" href="#search-in-requirements-table" title="Permanent link">#</a></h2>
 <p>Searching in the requirements table is accessible via the <code>search</code> tab. 
 Typing in the search input supports autocomplete for extended search triggered by <code>:</code>. </p>
-<h3 id="search-operators">Search Operators.</h3>
+<h5>Search Operators</h5>
+
 <p>You can concatenate search queries by</p>
 <ul>
 <li><code>search_1:OR:search_2</code> yields the union of search_1 and search_2.</li>
@@ -143,17 +140,19 @@ Typing in the search input supports autocomplete for extended search triggered b
 <li><code>:AND:</code> binds stronger than <code>:OR:</code>.</li>
 </ul>
 <p>To <strong>invert the result</strong> use <code>:NOT:</code> before your search string.</p>
-<h3 id="exact-searches">Exact searches.</h3>
+<h5>Exact searches</h5>
+
 <p>You can get exact search results by using <code>"</code> to indicate the beginning or end of a sequence.</p>
 <ul>
 <li><code>"fast</code> Includes faster but not breakfast.</li>
 <li><code>fast"</code> Includes breakfast but not faster.</li>
 <li><code>"fast"</code> Includes only exact matches of fast.</li>
 </ul>
-<h3 id="search-target-column">Search Target column.</h3>
+<h5>Search Target column</h5>
+
 <p>To target a specific column use <code>:COL_INDEX_02:</code> to target column 2.
 The column indexes are appended in the requirements table header in parentheses.</p>
-<h2 id="mass-edit-requirements">Mass edit requirements</h2>
+<h2 id="mass-edit-requirements">Mass edit requirements<a class="headerlink" href="#mass-edit-requirements" title="Permanent link">#</a></h2>
 <p>You can mass edit requirements. Select requirements by clicking on the requirement checkbox in the table.
 Hold shift for multi select and Ctrl to toggle a single selection.
 Click on <code>Edit Selected</code>, fill out the form. Empty fields will have no effect.</p>
@@ -161,14 +160,6 @@ Click on <code>Edit Selected</code>, fill out the form. Empty fields will have n
             </div>
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-      
-        <a href="../FAQ/" class="btn btn-neutral" title="FAQ"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-      
-    </div>
-  
 
   <hr/>
 
@@ -177,7 +168,7 @@ Click on <code>Edit Selected</code>, fill out the form. Empty fields will have n
     
   </div>
 
-  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
       
         </div>
@@ -187,15 +178,9 @@ Click on <code>Edit Selected</code>, fill out the form. Empty fields will have n
 
   </div>
 
-  <div class="rst-versions" role="note" style="cursor: pointer">
+  <div class="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
-      
           <a href="https://github.com/ultimate-pa/hanfor/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
-      
-      
-        <span><a href="../FAQ/" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      
-      
     </span>
 </div>
     <script>var base_url = '../..';</script>

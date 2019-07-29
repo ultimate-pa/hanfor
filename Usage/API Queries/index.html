@@ -51,7 +51,7 @@
           
             <li class="toctree-l1">
 		
-    <a class="" href="../..">Overview</a>
+    <a class="" href="../..">Home</a>
 	    </li>
           
             <li class="toctree-l1">
@@ -68,19 +68,16 @@
     <a class="current" href="./">API Queries</a>
     <ul class="subnav">
             
-    <li class="toctree-l3"><a href="#api-queries">API Queries</a></li>
+    <li class="toctree-l3"><a href="#show-stored-queries">Show stored Queries</a></li>
     
-        <ul>
-        
-            <li><a class="toctree-l4" href="#show-stored-queries">Show stored queries</a></li>
-        
-            <li><a class="toctree-l4" href="#adding-queries">Adding queries</a></li>
-        
-            <li><a class="toctree-l4" href="#deleting-queries">Deleting Queries</a></li>
-        
-            <li><a class="toctree-l4" href="#query-syntax">Query syntax</a></li>
-        
-        </ul>
+
+    <li class="toctree-l3"><a href="#adding-new-queries">Adding new Queries</a></li>
+    
+
+    <li class="toctree-l3"><a href="#deleting-queries">Deleting Queries</a></li>
+    
+
+    <li class="toctree-l3"><a href="#query-syntax">Query syntax</a></li>
     
 
     </ul>
@@ -135,36 +132,14 @@
           <div role="main">
             <div class="section">
               
-                <h1 id="api-queries">API Queries</h1>
+                <h1>API Queries</h1>
+
 <p>To generate reports or search for requirements not using the frontend Hanfor can be queried with HTTP requests at 
 <code>http(s)://{{your host}}/{{your URL_PREFIX}}/api/query</code></p>
-<h2 id="show-stored-queries">Show stored queries</h2>
-<h4 id="show-all">Show all</h4>
+<h2 id="show-stored-queries">Show stored Queries<a class="headerlink" href="#show-stored-queries" title="Permanent link">#</a></h2>
 <p><code>GET /api/query</code></p>
-<h5 id="url-argument-options">URL Argument Options:</h5>
-<ul>
-<li><code>reload</code> (bool | optional | default=false): Reevaluates all stored queries.</li>
-</ul>
-<h4 id="example">Example</h4>
-<div class="highlight"><pre><span></span>$ curl http://localhost:5000/api/query
-</pre></div>
+<h5>URL Arguments</h5>
 
-<h4 id="show-specific">Show specific</h4>
-<p><code>GET /api/query</code></p>
-<h5 id="url-argument-options_1">URL Argument Options:</h5>
-<ul>
-<li><code>name</code> (string): The name of the query.</li>
-<li><code>reload</code> (bool | optional | default=false): Reevaluates all stored queries.</li>
-</ul>
-<h4 id="example_1">Example</h4>
-<div class="highlight"><pre><span></span>$ curl http://localhost:5000/api/query?name<span class="o">=</span>MyQuery<span class="p">&amp;</span><span class="nv">reload</span><span class="o">=</span><span class="nb">true</span>
-</pre></div>
-
-<h2 id="adding-queries">Adding queries</h2>
-<h4 id="add-new-query">Add new query</h4>
-<p><code>POST /api/query</code>
-Creates and evaluates a new query. </p>
-<h5 id="json-body-parameters">JSON body parameters:</h5>
 <table>
 <thead>
 <tr>
@@ -177,24 +152,62 @@ Creates and evaluates a new query. </p>
 <tr>
 <td>name</td>
 <td>string</td>
-<td>Name for the query. Existing ones will be overridden.</td>
+<td>Name of the Query to retrieve a single Query.</td>
+</tr>
+<tr>
+<td>reload</td>
+<td>bool, optional</td>
+<td>Reevaluates all stored Queries.</td>
+</tr>
+</tbody>
+</table>
+<h5>Examples</h5>
+
+<div class="highlight"><pre><span></span><span class="c1"># Show all stored Queries</span>
+$ curl http://localhost:5000/api/query
+
+<span class="c1"># Show only Queries which are named &#39;MyQuery&#39; and re-evaluate the stored Query </span>
+$ curl http://localhost:5000/api/query?name<span class="o">=</span>MyQuery<span class="p">&amp;</span><span class="nv">reload</span><span class="o">=</span><span class="nb">true</span>
+
+<span class="c1"># Using jq to parse the JSON response. Show only the name of the query with associated hits.</span>
+$ curl http://localhost:5000/api/query<span class="se">\?</span>reload<span class="se">\=</span><span class="nb">true</span> <span class="p">|</span> jq -r <span class="s1">&#39;.data[] | {name: .name, hits: .hits}&#39;</span>
+</pre></div>
+
+<h2 id="adding-new-queries">Adding new Queries<a class="headerlink" href="#adding-new-queries" title="Permanent link">#</a></h2>
+<p><code>POST /api/query Content-Type: application/json</code></p>
+<h5>JSON body parameters</h5>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td>string</td>
+<td>Name for the Query. Existing ones will be overridden.</td>
 </tr>
 <tr>
 <td>query</td>
 <td>string</td>
-<td>The search query.</td>
+<td>The search Query.</td>
 </tr>
 </tbody>
 </table>
-<h4 id="example_2">Example</h4>
+<h5>Example</h5>
+
 <div class="highlight"><pre><span></span>$ curl -X POST -H <span class="s1">&#39;Content-Type: application/json&#39;</span> <span class="se">\</span>
  --data <span class="s1">&#39;{&quot;name&quot;: &quot;MyQuery&quot;, &quot;query&quot;: &quot;foo:AND:bar&quot;}&#39;</span> http://localhost:5000/api/query
 </pre></div>
 
-<h2 id="deleting-queries">Deleting Queries</h2>
-<h4 id="delete-a-single-or-multiple-queries">Delete a single or multiple queries.</h4>
+<h2 id="deleting-queries">Deleting Queries<a class="headerlink" href="#deleting-queries" title="Permanent link">#</a></h2>
 <p><code>DELETE /api/query</code></p>
-<h5 id="json-body-parameters_1">JSON body parameters:</h5>
+<h5>JSON body parameters</h5>
+
 <table>
 <thead>
 <tr>
@@ -207,7 +220,7 @@ Creates and evaluates a new query. </p>
 <tr>
 <td>name</td>
 <td>string</td>
-<td>Name for the query to be deleted.</td>
+<td>Name for the Query to be deleted.</td>
 </tr>
 <tr>
 <td>names</td>
@@ -216,46 +229,55 @@ Creates and evaluates a new query. </p>
 </tr>
 </tbody>
 </table>
-<h4 id="example_3">Example</h4>
-<p>Delete a single query:
-<div class="highlight"><pre><span></span>$ curl -X DELETE -H <span class="s1">&#39;Content-Type: application/json&#39;</span> <span class="se">\</span>
+<h5>Examples</h5>
+
+<div class="highlight"><pre><span></span><span class="c1"># Delete a single Query:</span>
+$ curl -X DELETE -H <span class="s1">&#39;Content-Type: application/json&#39;</span> <span class="se">\</span>
  --data <span class="s1">&#39;{&quot;name&quot;: &quot;MyQuery&quot;}&#39;</span> http://localhost:5000/api/query
-</pre></div>
-Delete multiple queries:
-<div class="highlight"><pre><span></span>$ curl -X DELETE -H <span class="s1">&#39;Content-Type: application/json&#39;</span> <span class="se">\</span>
+
+<span class="c1"># Delete multiple Queries:</span>
+$ curl -X DELETE -H <span class="s1">&#39;Content-Type: application/json&#39;</span> <span class="se">\</span>
  --data <span class="s1">&#39;{&quot;names&quot;: [&quot;MyQuery&quot;, &quot;Another&quot;]&#39;</span> http://localhost:5000/api/query
-</pre></div></p>
-<h2 id="query-syntax">Query syntax</h2>
-<p>Much like in the frontend the query syntax supports operators, nesting, exact- exclusive matches and targeting 
+</pre></div>
+
+<h2 id="query-syntax">Query syntax<a class="headerlink" href="#query-syntax" title="Permanent link">#</a></h2>
+<p>Much <a href="../Requirements/#Search in requirements table">like in the frontend</a> the Query syntax supports operators, nesting, exact- exclusive matches 
+and targeting 
 specific attributes.</p>
-<h3 id="search-operators">Search Operators.</h3>
-<p>You can concatenate search queries by</p>
+<h5>Search Operators</h5>
+
+<p>You can concatenate search Queries by</p>
 <ul>
 <li><code>search_1:OR:search_2</code> yields the union of search_1 and search_2.</li>
 <li><code>search_1:AND:search_2</code> yields the intersection of search_1 and search_2.</li>
 <li><code>:AND:</code> binds stronger than <code>:OR:</code>.</li>
 </ul>
 <p>To <strong>invert the result</strong> use <code>:NOT:</code> before your search string.</p>
-<p>To change the precedence and for nesting you query use <code>(</code> and <code>)</code>.</p>
-<h3 id="exact-searches">Exact searches.</h3>
+<p>To change the precedence or to nest a Query <code>(</code> and <code>)</code>.</p>
+<h5>Exact searches</h5>
+
 <p>You can get exact search results by using <code>"</code> to indicate the beginning or end of a sequence.</p>
 <ul>
 <li><code>"fast</code> Includes faster but not breakfast.</li>
 <li><code>fast"</code> Includes breakfast but not faster.</li>
 <li><code>"fast"</code> Includes only exact matches of fast.</li>
 </ul>
-<h3 id="target-specific-target-attributes">Target specific target attributes.</h3>
-<p>To limit a part of the search query use the syntax</p>
-<pre><code>:DATA_TARGET:`&lt;the target attribute name&gt;`
+<h5>Target specific attributes</h5>
+
+<p>To limit a part of the search Query to one attribute use the syntax</p>
+<pre><code>:DATA_TARGET:`&lt;the attribute name&gt;`
 </code></pre>
-<p><strong>Note:</strong> the target attribute name must be enclosed with backticks. </p>
-<h4 id="get-available-attributes">Get available attributes</h4>
+<p><strong>Note:</strong> the attribute name must be enclosed with backticks. </p>
+<h5>Get available attributes</h5>
+
 <p><code>GET /api/quer?show=targets</code></p>
-<h4 id="example_4">Example</h4>
-<div class="highlight"><pre><span></span>$ curl http://localhost:5000/api/query?show<span class="o">=</span>targets
+<h5>Example</h5>
+
+<div class="highlight"><pre><span></span><span class="c1"># Show attribute names available for specific search.</span>
+$ curl http://localhost:5000/api/query?show<span class="o">=</span>targets
 </pre></div>
 
-<h4 id="default-targets">Default targets</h4>
+<p><strong>Default targets:</strong></p>
 <p>The available targets are composed of
 <div class="highlight"><pre><span></span><span class="p">[</span>
     <span class="s2">&quot;Description&quot;</span><span class="p">,</span>
@@ -271,16 +293,6 @@ Plus the fields available in the associated CSV file the requirements origin fro
             </div>
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="../FAQ/" class="btn btn-neutral float-right" title="FAQ">Next <span class="icon icon-circle-arrow-right"></span></a>
-      
-      
-        <a href="../../installation/" class="btn btn-neutral" title="Installation"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-      
-    </div>
-  
 
   <hr/>
 
@@ -289,7 +301,7 @@ Plus the fields available in the associated CSV file the requirements origin fro
     
   </div>
 
-  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
       
         </div>
@@ -299,17 +311,9 @@ Plus the fields available in the associated CSV file the requirements origin fro
 
   </div>
 
-  <div class="rst-versions" role="note" style="cursor: pointer">
+  <div class="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
-      
           <a href="https://github.com/ultimate-pa/hanfor/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
-      
-      
-        <span><a href="../../installation/" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      
-      
-        <span style="margin-left: 15px"><a href="../FAQ/" style="color: #fcfcfc">Next &raquo;</a></span>
-      
     </span>
 </div>
     <script>var base_url = '../..';</script>

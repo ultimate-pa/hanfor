@@ -51,7 +51,7 @@
           
             <li class="toctree-l1">
 		
-    <a class="" href="..">Overview</a>
+    <a class="" href="..">Home</a>
 	    </li>
           
             <li class="toctree-l1 current">
@@ -59,19 +59,16 @@
     <a class="current" href="./">Installation</a>
     <ul class="subnav">
             
-    <li class="toctree-l2"><a href="#installation">Installation</a></li>
+    <li class="toctree-l2"><a href="#preliminaries">Preliminaries</a></li>
     
-        <ul>
-        
-            <li><a class="toctree-l3" href="#preliminaries">Preliminaries</a></li>
-        
-            <li><a class="toctree-l3" href="#configure">Configure</a></li>
-        
-            <li><a class="toctree-l3" href="#start">Start</a></li>
-        
-            <li><a class="toctree-l3" href="#how-it-works">How it works</a></li>
-        
-        </ul>
+
+    <li class="toctree-l2"><a href="#configure">Configure</a></li>
+    
+
+    <li class="toctree-l2"><a href="#start">Start</a></li>
+    
+
+    <li class="toctree-l2"><a href="#how-it-works">How it works</a></li>
     
 
     </ul>
@@ -131,8 +128,9 @@
           <div role="main">
             <div class="section">
               
-                <h1 id="installation">Installation</h1>
-<h2 id="preliminaries">Preliminaries</h2>
+                <h1>Installation</h1>
+
+<h2 id="preliminaries">Preliminaries<a class="headerlink" href="#preliminaries" title="Permanent link">#</a></h2>
 <p>Clone the repository:
 <div class="highlight"><pre><span></span>$ git clone https://github.com/ultimate-pa/hanfor.git -b master --single-branch /your/hanfor/destination 
 </pre></div></p>
@@ -151,12 +149,12 @@ And activate it by sourcing:
 Inside the repository run:
 <div class="highlight"><pre><span></span>$ pip install -r requirements.txt
 </pre></div></p>
-<h2 id="configure">Configure</h2>
+<h2 id="configure">Configure<a class="headerlink" href="#configure" title="Permanent link">#</a></h2>
 <ul>
 <li>Copy <code>./hanfor/config.dist.py</code> to <code>./hanfor/config.py</code>.</li>
 <li>Edit the <code>config.py</code> according your needs.</li>
 </ul>
-<h2 id="start">Start</h2>
+<h2 id="start">Start<a class="headerlink" href="#start" title="Permanent link">#</a></h2>
 <p>To start a fresh session use
 <div class="highlight"><pre><span></span>$ python app.py &lt;tag&gt; -c &lt;path_to_input_csv&gt;.csv
 </pre></div></p>
@@ -167,7 +165,7 @@ Inside the repository run:
 <p>You can see all available tags using the ''-L'' switch:
 <div class="highlight"><pre><span></span>$ python app.py -L
 </pre></div></p>
-<h2 id="how-it-works">How it works</h2>
+<h2 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link">#</a></h2>
 <p>The app will create a <em>session</em> naming it by the given <code>&lt;tag&gt;</code> argument.
 A session creation process has the following steps:</p>
 <ol>
@@ -184,16 +182,6 @@ A session creation process has the following steps:</p>
             </div>
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="../Usage/API Queries/" class="btn btn-neutral float-right" title="API Queries">Next <span class="icon icon-circle-arrow-right"></span></a>
-      
-      
-        <a href=".." class="btn btn-neutral" title="Overview"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-      
-    </div>
-  
 
   <hr/>
 
@@ -202,7 +190,7 @@ A session creation process has the following steps:</p>
     
   </div>
 
-  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
       
         </div>
@@ -212,17 +200,9 @@ A session creation process has the following steps:</p>
 
   </div>
 
-  <div class="rst-versions" role="note" style="cursor: pointer">
+  <div class="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
-      
           <a href="https://github.com/ultimate-pa/hanfor/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
-      
-      
-        <span><a href=".." style="color: #fcfcfc;">&laquo; Previous</a></span>
-      
-      
-        <span style="margin-left: 15px"><a href="../Usage/API Queries/" style="color: #fcfcfc">Next &raquo;</a></span>
-      
     </span>
 </div>
     <script>var base_url = '..';</script>
