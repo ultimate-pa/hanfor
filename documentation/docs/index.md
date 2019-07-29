@@ -146,7 +146,7 @@ Req4: Once IRTest disappears, it is absent for at least 10 seconds
 When having the requirements formalized in the specification language, it makes sense to also automatically generate test specifications out of them.
 There are several reasons to do so:
 
-![Example Picture 7](img/image008.jpg "Example picture 7")
+![Example Picture 7](img/image008.png "Example picture 7")
 
 Thus the algorithm has to:
 
