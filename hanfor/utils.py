@@ -231,7 +231,7 @@ def update_req_search(app, request, delete=False):
     }
 
     if len(search_query) > 0:
-        meta_settings = MetaSettings(app.config['META_SETTTINGS_PATH'])
+        meta_settings = MetaSettings(app.config['META_SETTINGS_PATH'])
         if not delete:
             # Store the search query into meta settings.
             if 'available_search_strings' not in meta_settings:

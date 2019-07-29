@@ -7,7 +7,7 @@ class Ressource:
         self.app = app
         self.request = request
         self.response = Response()
-        self._meta_settings = MetaSettings(self.app.config['META_SETTTINGS_PATH'])
+        self._meta_settings = MetaSettings(self.app.config['META_SETTINGS_PATH'])
 
     @property
     def meta_settings(self):

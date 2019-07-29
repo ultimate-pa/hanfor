@@ -653,7 +653,7 @@ def api(resource, command):
 
     if resource == 'meta':
         if command == 'get':
-            return jsonify(utils.MetaSettings(app.config['META_SETTTINGS_PATH']).__dict__)
+            return jsonify(utils.MetaSettings(app.config['META_SETTINGS_PATH']).__dict__)
 
     if resource == 'logs':
         if command == 'get':
@@ -1165,14 +1165,14 @@ def init_import_sessions():
 
 
 def init_meta_settings():
-    """ Initializes META_SETTTINGS_PATH and creates a new meta_settings dict, if none is existent.
+    """ Initializes META_SETTINGS_PATH and creates a new meta_settings dict, if none is existent.
 
     """
-    app.config['META_SETTTINGS_PATH'] = os.path.join(app.config['SESSION_FOLDER'], 'meta_settings.pickle')
-    if not os.path.exists(app.config['META_SETTTINGS_PATH']):
+    app.config['META_SETTINGS_PATH'] = os.path.join(app.config['SESSION_FOLDER'], 'meta_settings.pickle')
+    if not os.path.exists(app.config['META_SETTINGS_PATH']):
         meta_settings = dict()
         meta_settings['tag_colors'] = dict()
-        pickle_dump_obj_to_file(meta_settings, app.config['META_SETTTINGS_PATH'])
+        pickle_dump_obj_to_file(meta_settings, app.config['META_SETTINGS_PATH'])
 
 
 def init_frontend_logs():
