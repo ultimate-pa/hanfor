@@ -1,5 +1,6 @@
-# FAQ
-## Change the text of Description or field in requirements table.
+<h1>FAQ</h1>
+
+## Change description or a field text in requirements table.
 Currently there is only one way to achieve this: “Creating a new revision”:
 
 * Edit the Description in the CSV -> _edited.csv_.

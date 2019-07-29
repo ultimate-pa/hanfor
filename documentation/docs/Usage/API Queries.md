@@ -60,7 +60,8 @@ $ curl -X DELETE -H 'Content-Type: application/json' \
 ```
 
 ## Query syntax
-Much like in the frontend the Query syntax supports operators, nesting, exact- exclusive matches and targeting 
+Much [like in the frontend](Requirements.md#Search in requirements table) the Query syntax supports operators, nesting, exact- exclusive matches 
+and targeting 
 specific attributes.
 
 <h5>Search Operators</h5>

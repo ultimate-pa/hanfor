@@ -1,8 +1,10 @@
-# Requirements
-## Search in requirements table.
+<h1>Requirements</h1>
+
+## Search in requirements table
 Searching in the requirements table is accessible via the `search` tab. 
 Typing in the search input supports autocomplete for extended search triggered by `:`. 
-### Search Operators.
+
+<h5>Search Operators</h5>
 You can concatenate search queries by
 
 * `search_1:OR:search_2` yields the union of search_1 and search_2.
@@ -11,14 +13,14 @@ You can concatenate search queries by
 
 To **invert the result** use `:NOT:` before your search string.
 
-### Exact searches.
+<h5>Exact searches</h5>
 You can get exact search results by using `"` to indicate the beginning or end of a sequence.
 
 * `"fast` Includes faster but not breakfast.
 * `fast"` Includes breakfast but not faster.
 * `"fast"` Includes only exact matches of fast.
 
-### Search Target column.
+<h5>Search Target column</h5>
 To target a specific column use `:COL_INDEX_02:` to target column 2.
 The column indexes are appended in the requirements table header in parentheses.
 

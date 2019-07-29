@@ -1,4 +1,5 @@
-# Installation
+<h1>Installation</h1>
+
 ## Preliminaries
 Clone the repository:
 ```bash
