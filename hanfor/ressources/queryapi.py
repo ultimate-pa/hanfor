@@ -213,6 +213,10 @@ class Query(dict):
             self.result = list()
 
     @property
+    def hits(self):
+        return len(self.result)
+
+    @property
     def name(self):
         return self['name']
 
@@ -267,6 +271,7 @@ class QueryAPI(Ressource):
         """
         result = None
         if name in self.queries:
+            self.queries[name]['hits'] = self.queries[name].hits
             result = self.queries[name]
         return result
 
@@ -285,6 +290,9 @@ class QueryAPI(Ressource):
 
     @staticmethod
     def req_dict_to_search_dict(req_dict):
+        if len(req_dict['formal']) > 0:
+            req_dict['tags'].append('has_formalization')
+
         result = {
             'Id': req_dict['id'],
             'Description': req_dict['desc'],
@@ -296,6 +304,7 @@ class QueryAPI(Ressource):
         }
 
         return result
+
 
     @staticmethod
     def get_target_names():
@@ -312,6 +321,7 @@ class QueryAPI(Ressource):
 
     def eval_query(self, name):
         query = self.get_query(name)
+        query.result = []
         if query is not None:
             tree = SearchNode.from_query(query.query)
             for rid, data in self.requirement_data.items():
