@@ -2,17 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
      <loc>https://ultimate-pa.github.io/hanfor/</loc>
-     <lastmod>2019-07-03</lastmod>
+     <lastmod>2019-08-02</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://ultimate-pa.github.io/hanfor/installation/</loc>
-     <lastmod>2019-07-03</lastmod>
+     <lastmod>2019-08-02</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://ultimate-pa.github.io/hanfor/FAQ/usage/</loc>
-     <lastmod>2019-07-03</lastmod>
+     <loc>https://ultimate-pa.github.io/hanfor/Usage/API Queries/</loc>
+     <lastmod>2019-08-02</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://ultimate-pa.github.io/hanfor/Usage/FAQ/</loc>
+     <lastmod>2019-08-02</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://ultimate-pa.github.io/hanfor/Usage/Requirements/</loc>
+     <lastmod>2019-08-02</lastmod>
      <changefreq>daily</changefreq>
     </url>
 </urlset>

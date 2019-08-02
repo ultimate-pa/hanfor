@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>API Queries - Hanfor Docs</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  <link href="../../stylesheets/extra.css" rel="stylesheet">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "API Queries";
+    var mkdocs_page_input_path = "Usage\\API Queries.md";
+    var mkdocs_page_url = "/hanfor/Usage/API Queries/";
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> Hanfor Docs</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../..">Home</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../installation/">Installation</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Usage</span>
+    <ul class="subnav">
+                <li class=" current">
+                    
+    <a class="current" href="./">API Queries</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#show-stored-queries">Show stored Queries</a></li>
+    
+
+    <li class="toctree-l3"><a href="#adding-new-queries">Adding new Queries</a></li>
+    
+
+    <li class="toctree-l3"><a href="#deleting-queries">Deleting Queries</a></li>
+    
+
+    <li class="toctree-l3"><a href="#query-syntax">Query syntax</a></li>
+    
+
+    </ul>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../FAQ/">FAQ</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../Requirements/">Requirements</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">Hanfor Docs</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Usage &raquo;</li>
+        
+      
+    
+    <li>API Queries</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/Usage/API Queries.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1>API Queries</h1>
+
+<p>To generate reports or search for requirements not using the frontend Hanfor can be queried with HTTP requests at 
+<code>http(s)://{{your host}}/{{your URL_PREFIX}}/api/query</code></p>
+<h2 id="show-stored-queries">Show stored Queries<a class="headerlink" href="#show-stored-queries" title="Permanent link">#</a></h2>
+<p><code>GET /api/query</code></p>
+<h5>URL Arguments</h5>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td>string</td>
+<td>Name of the Query to retrieve a single Query.</td>
+</tr>
+<tr>
+<td>reload</td>
+<td>bool, optional</td>
+<td>Reevaluates all stored Queries.</td>
+</tr>
+</tbody>
+</table>
+<h5>Examples</h5>
+
+<div class="highlight"><pre><span></span><span class="c1"># Show all stored Queries</span>
+$ curl http://localhost:5000/api/query
+
+<span class="c1"># Show only Queries which are named &#39;MyQuery&#39; and re-evaluate the stored Query </span>
+$ curl http://localhost:5000/api/query?name<span class="o">=</span>MyQuery<span class="p">&amp;</span><span class="nv">reload</span><span class="o">=</span><span class="nb">true</span>
+
+<span class="c1"># Using jq to parse the JSON response. Show only the name of the query with associated hits.</span>
+$ curl http://localhost:5000/api/query<span class="se">\?</span>reload<span class="se">\=</span><span class="nb">true</span> <span class="p">|</span> jq -r <span class="s1">&#39;.data[] | {name: .name, hits: .hits}&#39;</span>
+</pre></div>
+
+<h2 id="adding-new-queries">Adding new Queries<a class="headerlink" href="#adding-new-queries" title="Permanent link">#</a></h2>
+<p><code>POST /api/query Content-Type: application/json</code></p>
+<h5>JSON body parameters</h5>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td>string</td>
+<td>Name for the Query. Existing ones will be overridden.</td>
+</tr>
+<tr>
+<td>query</td>
+<td>string</td>
+<td>The search Query.</td>
+</tr>
+</tbody>
+</table>
+<h5>Example</h5>
+
+<div class="highlight"><pre><span></span>$ curl -X POST -H <span class="s1">&#39;Content-Type: application/json&#39;</span> <span class="se">\</span>
+ --data <span class="s1">&#39;{&quot;name&quot;: &quot;MyQuery&quot;, &quot;query&quot;: &quot;foo:AND:bar&quot;}&#39;</span> http://localhost:5000/api/query
+</pre></div>
+
+<h2 id="deleting-queries">Deleting Queries<a class="headerlink" href="#deleting-queries" title="Permanent link">#</a></h2>
+<p><code>DELETE /api/query</code></p>
+<h5>JSON body parameters</h5>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td>string</td>
+<td>Name for the Query to be deleted.</td>
+</tr>
+<tr>
+<td>names</td>
+<td>list of strings</td>
+<td>Queries by name to be deleted.</td>
+</tr>
+</tbody>
+</table>
+<h5>Examples</h5>
+
+<div class="highlight"><pre><span></span><span class="c1"># Delete a single Query:</span>
+$ curl -X DELETE -H <span class="s1">&#39;Content-Type: application/json&#39;</span> <span class="se">\</span>
+ --data <span class="s1">&#39;{&quot;name&quot;: &quot;MyQuery&quot;}&#39;</span> http://localhost:5000/api/query
+
+<span class="c1"># Delete multiple Queries:</span>
+$ curl -X DELETE -H <span class="s1">&#39;Content-Type: application/json&#39;</span> <span class="se">\</span>
+ --data <span class="s1">&#39;{&quot;names&quot;: [&quot;MyQuery&quot;, &quot;Another&quot;]&#39;</span> http://localhost:5000/api/query
+</pre></div>
+
+<h2 id="query-syntax">Query syntax<a class="headerlink" href="#query-syntax" title="Permanent link">#</a></h2>
+<p>Much <a href="../Requirements/#Search in requirements table">like in the frontend</a> the Query syntax supports operators, nesting, exact- exclusive matches 
+and targeting 
+specific attributes.</p>
+<h5>Search Operators</h5>
+
+<p>You can concatenate search Queries by</p>
+<ul>
+<li><code>search_1:OR:search_2</code> yields the union of search_1 and search_2.</li>
+<li><code>search_1:AND:search_2</code> yields the intersection of search_1 and search_2.</li>
+<li><code>:AND:</code> binds stronger than <code>:OR:</code>.</li>
+</ul>
+<p>To <strong>invert the result</strong> use <code>:NOT:</code> before your search string.</p>
+<p>To change the precedence or to nest a Query <code>(</code> and <code>)</code>.</p>
+<h5>Exact searches</h5>
+
+<p>You can get exact search results by using <code>"</code> to indicate the beginning or end of a sequence.</p>
+<ul>
+<li><code>"fast</code> Includes faster but not breakfast.</li>
+<li><code>fast"</code> Includes breakfast but not faster.</li>
+<li><code>"fast"</code> Includes only exact matches of fast.</li>
+</ul>
+<h5>Target specific attributes</h5>
+
+<p>To limit a part of the search Query to one attribute use the syntax</p>
+<pre><code>:DATA_TARGET:`&lt;the attribute name&gt;`
+</code></pre>
+<p><strong>Note:</strong> the attribute name must be enclosed with backticks. </p>
+<h5>Get available attributes</h5>
+
+<p><code>GET /api/quer?show=targets</code></p>
+<h5>Example</h5>
+
+<div class="highlight"><pre><span></span><span class="c1"># Show attribute names available for specific search.</span>
+$ curl http://localhost:5000/api/query?show<span class="o">=</span>targets
+</pre></div>
+
+<p><strong>Default targets:</strong></p>
+<p>The available targets are composed of
+<div class="highlight"><pre><span></span><span class="p">[</span>
+    <span class="s2">&quot;Description&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Formalization&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Id&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Status&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Tags&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Type&quot;</span>
+<span class="p">]</span>
+</pre></div>
+Plus the fields available in the associated CSV file the requirements origin from.</p>
+              
+            </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+          <a href="https://github.com/ultimate-pa/hanfor/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+
+</body>
+</html>
