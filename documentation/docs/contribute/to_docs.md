@@ -32,5 +32,3 @@ $ mkdocs gh-deploy
 ```
 This will build the Documentation and commit them to the `gh-pages` branch and push the `gh-pages` branch to GitHub.
 They will then be immediately available to the world at https://ultimate-pa.github.io/hanfor.
-
- ever created.
