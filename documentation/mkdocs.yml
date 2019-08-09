@@ -14,5 +14,5 @@ markdown_extensions:
   - footnotes
   - toc:
       permalink: ' #'
-      toc_depth: 1
+      toc_depth: 2
   - sane_lists
