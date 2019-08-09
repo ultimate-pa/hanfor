@@ -1,6 +1,3 @@
-# Documentation
-In this section we explain how you can contribute to the documentation.
-
 # Contribute to this Documentation.
 1. Install [MkDocs](https://www.mkdocs.org/).
 ```bash
