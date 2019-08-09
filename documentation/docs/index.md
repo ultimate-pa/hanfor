@@ -1,4 +1,4 @@
-## What is Hanfor?
+# What is Hanfor?
 **Hanfor** **h**elps **an**alyzing **an**d **for**malizing **r**equirements.
 
 If you have many requirements it gets difficult to check that all of them are, e.g., consistent. No human can manually check >1000 requirements for consistency -- so we do our best with reviews.
