@@ -16,3 +16,17 @@ markdown_extensions:
       permalink: ' #'
       toc_depth: 2
   - sane_lists
+
+nav:
+  - Home: 'index.md'
+  - Installation:
+      - 'Preliminaries': 'installation/preliminaries.md'
+      - 'Configuration': 'installation/configuration.md'
+      - 'Deployment': 'installation/deployment.md'
+  - Usage:
+      - 'API Queries': 'usage/api_queries.md'
+      - 'FAQ': 'usage/faq.md'
+      - 'Requirements': 'usage/requirements.md'
+  - Contribute:
+      - 'To Hanfor': 'contribute/to_docs.md'
+      - 'to Docs': 'contribute/to_hanfor.md'
