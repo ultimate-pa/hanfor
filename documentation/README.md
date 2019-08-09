@@ -4,9 +4,9 @@ These are the source files for the [Hanfor Documentation](https://ultimate-pa.gi
 ```bash
 $ pip install mkdocs
 ```
-1.2 (Optional) Install the mkdocs `material` theme:
+1.2 Install the mkdocs `mkdocs-rtd-dropdown` theme:
 ```bash
-$ pip install mkdocs-material
+$ pip install mkdocs-rtd-dropdown
 ``` 
 
 2. Serve this Documentation locally to track your changes.
