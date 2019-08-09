@@ -1,4 +1,4 @@
-<h1>FAQ</h1>
+# FAQ
 
 ## Change description or a field text in requirements table.
 Currently there is only one way to achieve this: “Creating a new revision”:

@@ -1,4 +1,4 @@
-<h1>API Queries</h1>
+# API Queries
 
 To generate reports or search for requirements not using the frontend Hanfor can be queried with HTTP requests at 
 `http(s)://{{your host}}/{{your URL_PREFIX}}/api/query`
@@ -6,13 +6,14 @@ To generate reports or search for requirements not using the frontend Hanfor can
 ## Show stored Queries
 `GET /api/query`
 
-<h5>URL Arguments</h5>
-| Name| Type | Description |
-|---|---|---|
-| name | string | Name of the Query to retrieve a single Query. |
-| reload | bool, optional |  Reevaluates all stored Queries. |
+### URL Arguments
 
-<h5>Examples</h5>
+Name    | Type           | Description
+------- | --------------- | ------
+name   | string         | Name of the Query to retrieve a single Query. 
+reload | bool, optional |  Reevaluates all stored Queries. 
+
+### Examples
 ```bash
 # Show all stored Queries
 $ curl http://localhost:5000/api/query
@@ -27,13 +28,14 @@ $ curl http://localhost:5000/api/query\?reload\=true | jq -r '.data[] | {name: .
 ## Adding new Queries
 `POST /api/query Content-Type: application/json`
 
-<h5>JSON body parameters</h5>
-| Name| Type | Description |
-|---|---|---|
-| name | string | Name for the Query. Existing ones will be overridden. |
-| query | string | The search Query. |
+### JSON body parameters
 
-<h5>Example</h5>
+Name | Type   | Description
+----- | -------- | -----------
+name | string | Name for the Query. Existing ones will be overridden.
+query | string | The search Query.
+
+## Examples
 ```bash
 $ curl -X POST -H 'Content-Type: application/json' \
  --data '{"name": "MyQuery", "query": "foo:AND:bar"}' http://localhost:5000/api/query
@@ -42,13 +44,14 @@ $ curl -X POST -H 'Content-Type: application/json' \
 ## Deleting Queries
 `DELETE /api/query`
 
-<h5>JSON body parameters</h5>
-| Name| Type | Description |
-|---|---|---|
-| name | string | Name for the Query to be deleted.|
-| names | list of strings | Queries by name to be deleted. |
+### JSON body parameters
 
-<h5>Examples</h5>
+ Name| Type | Description 
+---  | ---   |---
+name | string | Name for the Query to be deleted.
+names | list of strings | Queries by name to be deleted. 
+
+### Examples
 ```bash
 # Delete a single Query:
 $ curl -X DELETE -H 'Content-Type: application/json' \
@@ -60,11 +63,11 @@ $ curl -X DELETE -H 'Content-Type: application/json' \
 ```
 
 ## Query syntax
-Much [like in the frontend](Requirements.md#Search in requirements table) the Query syntax supports operators, nesting, exact- exclusive matches 
+Much [like in the frontend](requirements.md#Search in requirements table) the Query syntax supports operators, nesting, exact- exclusive matches 
 and targeting 
 specific attributes.
 
-<h5>Search Operators</h5>
+### Search Operators
 You can concatenate search Queries by
 
 * `search_1:OR:search_2` yields the union of search_1 and search_2.
@@ -75,24 +78,23 @@ To **invert the result** use `:NOT:` before your search string.
 
 To change the precedence or to nest a Query `(` and `)`.
 
-<h5>Exact searches</h5>
+###  Exact searches
 You can get exact search results by using `"` to indicate the beginning or end of a sequence.
 
 * `"fast` Includes faster but not breakfast.
 * `fast"` Includes breakfast but not faster.
 * `"fast"` Includes only exact matches of fast.
 
-<h5>Target specific attributes</h5>
+### Target specific attributes
 To limit a part of the search Query to one attribute use the syntax
-
-    :DATA_TARGET:`<the attribute name>`
+`:DATA_TARGET:<the attribute name>`
 
 **Note:** the attribute name must be enclosed with backticks. 
 
-<h5>Get available attributes</h5>
+### Get available attributes
 `GET /api/quer?show=targets`
 
-<h5>Example</h5>
+### Example
 ```bash
 # Show attribute names available for specific search.
 $ curl http://localhost:5000/api/query?show=targets

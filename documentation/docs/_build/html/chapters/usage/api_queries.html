@@ -1,0 +1,386 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>API Queries &mdash; Hanfor  documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.png"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/custom_theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="FAQ" href="faq.html" />
+    <link rel="prev" title="Deployment" href="../installation/deployment.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Hanfor
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/what.html">What is Hanfor?</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation/preliminaries.html">Preliminaries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation/deployment.html">Deployment</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Usage</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Queries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="requirements.html">Requirements</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Contribute</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contribute/to_hanfor.html">Hanfor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contribute/to_docs.html">Documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Hanfor</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>API Queries</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            
+              <a href="https://github.com/ultimate-pa/hanfor/blob/sphinx-docs/documentation/docs/chapters/usage/api_queries.md" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="api-queries">
+<h1>API Queries<a class="headerlink" href="#api-queries" title="Permalink to this headline">¶</a></h1>
+<p>To generate reports or search for requirements not using the frontend Hanfor can be queried with HTTP requests at
+<code class="docutils literal notranslate"><span class="pre">http(s)://{{your</span> <span class="pre">host}}/{{your</span> <span class="pre">URL_PREFIX}}/api/query</span></code></p>
+<div class="section" id="show-stored-queries">
+<h2>Show stored Queries<a class="headerlink" href="#show-stored-queries" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/api/query</span></code></p>
+<div class="section" id="url-arguments">
+<h3>URL Arguments<a class="headerlink" href="#url-arguments" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td>string</td>
+<td>Name of the Query to retrieve a single Query.</td>
+</tr>
+<tr>
+<td>reload</td>
+<td>bool, optional</td>
+<td>Reevaluates all stored Queries.</td>
+</tr>
+</tbody>
+</table></div>
+<div class="section" id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Show all stored Queries</span>
+$ curl http://localhost:5000/api/query
+
+<span class="c1"># Show only Queries which are named &#39;MyQuery&#39; and re-evaluate the stored Query </span>
+$ curl http://localhost:5000/api/query?name<span class="o">=</span>MyQuery<span class="p">&amp;</span><span class="nv">reload</span><span class="o">=</span><span class="nb">true</span>
+
+<span class="c1"># Using jq to parse the JSON response. Show only the name of the query with associated hits.</span>
+$ curl http://localhost:5000/api/query<span class="se">\?</span>reload<span class="se">\=</span><span class="nb">true</span> <span class="p">|</span> jq -r <span class="s1">&#39;.data[] | {name: .name, hits: .hits}&#39;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="adding-new-queries">
+<h2>Adding new Queries<a class="headerlink" href="#adding-new-queries" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/query</span> <span class="pre">Content-Type:</span> <span class="pre">application/json</span></code></p>
+<div class="section" id="json-body-parameters">
+<h3>JSON body parameters<a class="headerlink" href="#json-body-parameters" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td>string</td>
+<td>Name for the Query. Existing ones will be overridden.</td>
+</tr>
+<tr>
+<td>query</td>
+<td>string</td>
+<td>The search Query.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="section" id="id1">
+<h2>Examples<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ curl -X POST -H <span class="s1">&#39;Content-Type: application/json&#39;</span> <span class="se">\</span>
+ --data <span class="s1">&#39;{&quot;name&quot;: &quot;MyQuery&quot;, &quot;query&quot;: &quot;foo:AND:bar&quot;}&#39;</span> http://localhost:5000/api/query
+</pre></div>
+</div>
+</div>
+<div class="section" id="deleting-queries">
+<h2>Deleting Queries<a class="headerlink" href="#deleting-queries" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">DELETE</span> <span class="pre">/api/query</span></code></p>
+<div class="section" id="id2">
+<h3>JSON body parameters<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td>string</td>
+<td>Name for the Query to be deleted.</td>
+</tr>
+<tr>
+<td>names</td>
+<td>list of strings</td>
+<td>Queries by name to be deleted.</td>
+</tr>
+</tbody>
+</table></div>
+<div class="section" id="id3">
+<h3>Examples<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Delete a single Query:</span>
+$ curl -X DELETE -H <span class="s1">&#39;Content-Type: application/json&#39;</span> <span class="se">\</span>
+ --data <span class="s1">&#39;{&quot;name&quot;: &quot;MyQuery&quot;}&#39;</span> http://localhost:5000/api/query
+
+<span class="c1"># Delete multiple Queries:</span>
+$ curl -X DELETE -H <span class="s1">&#39;Content-Type: application/json&#39;</span> <span class="se">\</span>
+ --data <span class="s1">&#39;{&quot;names&quot;: [&quot;MyQuery&quot;, &quot;Another&quot;]&#39;</span> http://localhost:5000/api/query
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="query-syntax">
+<h2>Query syntax<a class="headerlink" href="#query-syntax" title="Permalink to this headline">¶</a></h2>
+<p>Much [like in the frontend](requirements.md#Search in requirements table) the Query syntax supports operators, nesting, exact- exclusive matches
+and targeting
+specific attributes.</p>
+<div class="section" id="search-operators">
+<h3>Search Operators<a class="headerlink" href="#search-operators" title="Permalink to this headline">¶</a></h3>
+<p>You can concatenate search Queries by</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">search_1:OR:search_2</span></code> yields the union of search_1 and search_2.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">search_1:AND:search_2</span></code> yields the intersection of search_1 and search_2.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:AND:</span></code> binds stronger than <code class="docutils literal notranslate"><span class="pre">:OR:</span></code>.</p></li>
+</ul>
+<p>To <strong>invert the result</strong> use <code class="docutils literal notranslate"><span class="pre">:NOT:</span></code> before your search string.</p>
+<p>To change the precedence or to nest a Query <code class="docutils literal notranslate"><span class="pre">(</span></code> and <code class="docutils literal notranslate"><span class="pre">)</span></code>.</p>
+</div>
+<div class="section" id="exact-searches">
+<h3>Exact searches<a class="headerlink" href="#exact-searches" title="Permalink to this headline">¶</a></h3>
+<p>You can get exact search results by using <code class="docutils literal notranslate"><span class="pre">&quot;</span></code> to indicate the beginning or end of a sequence.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;fast</span></code> Includes faster but not breakfast.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fast&quot;</span></code> Includes breakfast but not faster.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;fast&quot;</span></code> Includes only exact matches of fast.</p></li>
+</ul>
+</div>
+<div class="section" id="target-specific-attributes">
+<h3>Target specific attributes<a class="headerlink" href="#target-specific-attributes" title="Permalink to this headline">¶</a></h3>
+<p>To limit a part of the search Query to one attribute use the syntax
+<code class="docutils literal notranslate"><span class="pre">:DATA_TARGET:&lt;the</span> <span class="pre">attribute</span> <span class="pre">name&gt;</span></code></p>
+<p><strong>Note:</strong> the attribute name must be enclosed with backticks.</p>
+</div>
+<div class="section" id="get-available-attributes">
+<h3>Get available attributes<a class="headerlink" href="#get-available-attributes" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/api/quer?show=targets</span></code></p>
+</div>
+<div class="section" id="example">
+<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Show attribute names available for specific search.</span>
+$ curl http://localhost:5000/api/query?show<span class="o">=</span>targets
+</pre></div>
+</div>
+<p><strong>Default targets:</strong></p>
+<p>The available targets are composed of</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+    <span class="s2">&quot;Description&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Formalization&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Id&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Status&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Tags&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Type&quot;</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>Plus the fields available in the associated CSV file the requirements origin from.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Hanfor Team
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
