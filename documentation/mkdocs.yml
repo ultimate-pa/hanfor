@@ -4,7 +4,7 @@ site_url: 'https://ultimate-pa.github.io/hanfor/'
 edit_uri: 'edit/master/documentation/docs'
 repo_name: 'GitHub'
 theme:
-  name: 'readthedocs'
+  name: 'rtd-dropdown'
   custom_dir: custom_theme/
 extra_css:
   - 'stylesheets/extra.css'
@@ -13,5 +13,6 @@ markdown_extensions:
   - pymdownx.superfences
   - footnotes
   - toc:
-      permalink: '#'
+      permalink: ' #'
+      toc_depth: 1
   - sane_lists
