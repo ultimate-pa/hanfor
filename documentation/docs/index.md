@@ -12,7 +12,7 @@ To tackle that problem, Hanfor provides a method that consists of 3 steps:
 3. The Test Generation (on the formalized requirements)
 
 
-![Example Picture 1](../../img/image001.png "Example picture 1")
+![Example Picture 1](img/image001.png "Example picture 1")
 
 To make it possible for a computer to check a set of requirements for quality criteria, as e.g. consistency, it has to "understand" the semantics of the requirements.
 
@@ -56,17 +56,17 @@ REALTIME ::= Once EXPR becomes satisfied, it holds for at least DURATION
 Thus, in a first step the informal requirements are translated into requirements in the specification language shown above. This is done manually.
 
 In the background the tool translates the requirements in specification language then into logical formulas.
-![Example Picture 2](../../img/image003.jpg "Example picture 2")
+![Example Picture 2](img/image003.jpg "Example picture 2")
 
 ### Tool Support
 The tool to assist this step is called Hanfor.It looks a little bit like Doors. It takes as input a csv-Export from Doors, and then stores the requirements. There are two IDs, the Hanfor ID and the Doors ID, so that you can synchronize the two databases, and can easily identify changes.
 
-![Example Picture 3](../../img/image004.jpg "Example picture 3")
+![Example Picture 3](img/image004.jpg "Example picture 3")
 
 Clicking on a requirements you can then specify the requirement in the specification language as visible in the next screenshot. The tool provides both patterns and also a signal database, so that you have a auto-complete function when filling out the variables.
 
-![Example Picture 4](../../img/image005.jpg "Example picture 4")
-![Example Picture 5](../../img/image006.jpg "Example picture 5")
+![Example Picture 4](img/image005.jpg "Example picture 4")
+![Example Picture 5](img/image006.jpg "Example picture 5")
 
 The tool checks for the following correctness criteria: 
   
@@ -116,7 +116,7 @@ A set of requirements is rt-inconsistent, if there are conflicts between require
 
 is consistent, **but** there are assignments with a conflict as shown in the following example.
 
-![Example Picture 6](../../img/image007.png "Example picture 6")
+![Example Picture 6](img/image007.png "Example picture 6")
 
 As IRTest gets valid in timepoint t=4, req1 requires, that in the time interval ``t=[4...14]`` ``IRLampsOn`` gets true as well.
 
@@ -141,7 +141,7 @@ Req4: Once IRTest disappears, it is absent for at least 10 seconds
 When having the requirements formalized in the specification language, it makes sense to also automatically generate test specifications out of them.
 There are several reasons to do so:
 
-![Example Picture 7](../../img/image008.png "Example picture 7")
+![Example Picture 7](img/image008.png "Example picture 7")
 
 Thus the algorithm has to:
 
@@ -161,7 +161,7 @@ Thus the algorithm has to:
 
 (No seq. of Inputs deterministically causes the output)
 
-![Example Picture 8](../../img/image009.png "Example picture 8")
+![Example Picture 8](img/image009.png "Example picture 8")
 
 !!! example "Requirements to be tested"
     * ``req1: Globally, it is always the case that if ‘A’ holds then ‘H’ holds after at most ‘10’ time units.``
