@@ -77,10 +77,10 @@ The tool checks for the following correctness criteria:
 
 #### Consistency
 A set of requirements is inconsistent, if there exists no system satisfying all requirements in the set.
-``` note:: 
+!!! example 
     * ``Req1: It is always the case that "IRTest" holds.``
     * ``Req2: It is never the case that "IRTest" holds.``
-```
+
 
 Inconsistency can be resolved by  
 
@@ -90,10 +90,10 @@ Inconsistency can be resolved by
 
 #### Vacuity
 A set if requirements is vacuous, if there is no system satisfying all requirements in a meaningful way, i.e., there are "dead" requirements.
-``` note:: 
-    * ``Req1: It is always the case that if "Signal-A" holds then "Signal-B" holds after at most 10 ms.``
-    * ``Req2: It is never the case that "Signal-A" holds.``
-```
+!!! example
+ * ``Req1: It is always the case that if "Signal-A" holds then "Signal-B" holds after at most 10 ms.``
+ * ``Req2: It is never the case that "Signal-A" holds.``
+
 These requirements are consistent, **but** the precondition of ``Req1`` is never true, i.e., ``Req1`` is vacuously satisfied in this set of requirements. 
 
 Vacuity can be resolved by 
@@ -101,18 +101,18 @@ Vacuity can be resolved by
   * erasing requirements, or
   * changing requirements
 
-``` note:: 
+!!! example
     * Erase ``Req2`` or make it less restrictive
     * Change ``Req2`` to ``Req2': Before "Startup", it is never the case that "Signal-A" holds.``
-```
+
 
 #### Realtime-Consistency (rt-consistency)
 A set of requirements is rt-inconsistent, if there are conflicts between requirements that arise after a certain time.
 
-``` note:: 
-    ``Req1: It is always the case that if „IRTest“ holds, then „IRLampsOn“ holds after at most 10 seconds``
-    ``Req2: It is always the case that if „IRTest“ holds, then „NOT(IRLampsOn)“ holds for at least 6 seconds.``
-```
+!!! example
+    * ``Req1: It is always the case that if „IRTest“ holds, then „IRLampsOn“ holds after at most 10 seconds``
+    * ``Req2: It is always the case that if „IRTest“ holds, then „NOT(IRLampsOn)“ holds for at least 6 seconds.``
+
 
 is consistent, **but** there are assignments with a conflict as shown in the following example.
 
@@ -163,13 +163,11 @@ Thus the algorithm has to:
 
 ![Example Picture 8](../../img/image009.png "Example picture 8")
 
-``` note:: 
-    Requirements to be tested:
+!!! example "Requirements to be tested"
+    * ``req1: Globally, it is always the case that if ‘A’ holds then ‘H’ holds after at most ‘10’ time units.``
+    * ``req2: Globally, it is always the case that if ‘B’ holds then ‘I’ holds after at most ‘10’ time units.``
+    * ``req3: Globally, it is always the case that if ‘H AND I’ holds then ‘O’ holds after at most ‘10’ time units.``
 
-    ``req1: Globally, it is always the case that if ‘A’ holds then ‘H’ holds after at most ‘10’ time units.``
-    ``req2: Globally, it is always the case that if ‘B’ holds then ‘I’ holds after at most ‘10’ time units.``
-    ``req3: Globally, it is always the case that if ‘H AND I’ holds then ‘O’ holds after at most ‘10’ time units.``
-```
 Testing requires information about observability. Thus, we need to categorize the variables into Input, Output, and Hidden (i.e. internal variables):
 
   * Inputs: A, B
@@ -181,8 +179,8 @@ In the Test Generator Tool you can choose the following options:
   * generate System Test (i.e. the tests only speak about system inputs and outputs, but no internal variables)
   * generate System Integration Test (i.e., the tests speak about system input, system outputs and internal variables)
 
-The output of the test generation tool looks as follows:
-```    
+!!! example "output of the test generation tool"
+  ```
     Case SystemTest:
     TestGeneratorResult:
     Found Test for: [O]
@@ -205,4 +203,4 @@ The output of the test generation tool looks as follows:
     I == true (req2)
     Wait for at most 20 for:
     O == true, (req3)
-```
+  ```
