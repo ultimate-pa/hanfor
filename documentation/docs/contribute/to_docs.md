@@ -1,39 +1,36 @@
 # Documentation
 In this section we explain how you can contribute to the documentation.
 
-## Structure of the Documentation
-Hanfors documentation section is located in the directory `documentation/docs` and looks as follows:
+# Contribute to this Documentation.
+1. Install [MkDocs](https://www.mkdocs.org/).
+```bash
+$ pip install mkdocs
 ```
-|-docs
- |- chapters/  # The chapters directory contains the different sections of our documentation.
- |- img/       # In this directory we store images.
- |- conf.py    # The sphinx configuration file.
- |- index.rst  # The index file, it defines the outline of the documentation.
+1.2 (Optional) Install the mkdocs `material` theme:
+```bash
+$ pip install mkdocs-material
+``` 
+
+2. Serve this Documentation locally to track your changes.
+```bash
+$ cd to_here
+$ mkdocs serve
 ```
+Open your Browser at [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
 
-### Chapters
-- Every chapter is a directory in `documentation/docs/chapters`.
-- If you want to **add a new chapter**, you must **create a new directory** and also add it to `index.rst`
-- Inside a chapter-directory you create `.md` or `.rst` files.
-## Contribute
-
-Head over to [Hanfor's Git repository](https://github.com/ultimate-pa/hanfor) and fork it, 
-create to edit existing chapters and when you are done, simply PR.
-
-
-## Sphinx and Sphinx Autobuild
-
-This documentation is made with [sphinx](https://www.sphinx-doc.org/en/master/).
+3. Publish your changes to the staging directory.
+```bash
+$ mkdocs gh-deploy --remote-branch gh-pages-staging
 ```
-python3 -m pip install sphinx sphinx-autobuild recommonmark sphinx_rtd_theme dhubbard-sphinx-markdown-tables
-```
-You can now use ``make html`` or ``./make.bat html`` to build your documentation. 
+This will build the Documentation and commit them to the `gh-pages-staging` branch and push the `gh-pages-staging` branch to GitHub.
+If you have the necessary rights, you can then see the results on https://struebli.informatik.uni-freiburg.de/hanfor-docs-staging.
 
-You can also live preview your changes in the browser.
-We just use [autobuild](https://pypi.org/project/sphinx-autobuild/) to automagically build the docs and show them in a web-browser.
-To build a classical Sphinx documentation set, issue the following command in the directory  `documentation`:
+4. Publish your changes to the live directory
+ory.
+```bash
+$ mkdocs gh-deploy
 ```
-sphinx-autobuild -E docs docs/_build/html
-```
-This will create a directory  `_build` which contains generated HTML files.
-Then head to `http://127.0.0.1:8000/` and witness the most beautiful documentation ever created.
+This will build the Documentation and commit them to the `gh-pages` branch and push the `gh-pages` branch to GitHub.
+They will then be immediately available to the world at https://ultimate-pa.github.io/hanfor.
+
+ ever created.
