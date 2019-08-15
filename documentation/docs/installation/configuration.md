@@ -1,3 +1,5 @@
+toc_depth: 2
+
 # Configuration
 
 ## Hanfor 

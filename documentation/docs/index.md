@@ -1,3 +1,5 @@
+toc_depth: 4
+
 # What is Hanfor?
 **Hanfor** **h**elps **an**alyzing **an**d **for**malizing **r**equirements.
 
@@ -20,7 +22,7 @@ This could be achieved by using formal languages to express the requirements. Ho
 
 In this method we use a simple pattern language. The requirements expressed in the pattern language look like English sentences. Everything you can express in this patterns is then translated in the background into logical formulas. You could also easily translate them into German, Chinese, or other languages.
 
-### Grammar of the Specification Language
+## Grammar of the Specification Language
 The grammar is the following:
 ````
 REQ      ::= ID: SCOPE, PATTERN .
@@ -88,7 +90,7 @@ Inconsistency can be resolved by
   * changing requirements
 
 
-#### Vacuity
+## Vacuity
 A set if requirements is vacuous, if there is no system satisfying all requirements in a meaningful way, i.e., there are "dead" requirements.
 !!! example
  * ``Req1: It is always the case that if "Signal-A" holds then "Signal-B" holds after at most 10 ms.``
@@ -106,7 +108,7 @@ Vacuity can be resolved by
     * Change ``Req2`` to ``Req2': Before "Startup", it is never the case that "Signal-A" holds.``
 
 
-#### Realtime-Consistency (rt-consistency)
+## Realtime-Consistency (rt-consistency)
 A set of requirements is rt-inconsistent, if there are conflicts between requirements that arise after a certain time.
 
 !!! example
@@ -137,7 +139,7 @@ Req3: Once IRTest appears, it holds for at most 3 seconds.
 Req4: Once IRTest disappears, it is absent for at least 10 seconds
 
 
-### System test case generation
+## System test case generation
 When having the requirements formalized in the specification language, it makes sense to also automatically generate test specifications out of them.
 There are several reasons to do so:
 

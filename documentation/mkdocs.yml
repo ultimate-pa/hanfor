@@ -14,11 +14,10 @@ markdown_extensions:
   - footnotes
   - toc:
       permalink: ' #'
-      toc_depth: 2
   - sane_lists
-
 nav:
-  - Home: 'index.md'
+  - Introduction:
+      - 'What is Hanfor?': 'index.md'
   - Installation:
       - 'Preliminaries': 'installation/preliminaries.md'
       - 'Configuration': 'installation/configuration.md'
@@ -28,5 +27,5 @@ nav:
       - 'FAQ': 'usage/faq.md'
       - 'Requirements': 'usage/requirements.md'
   - Contribute:
-      - 'To Hanfor': 'contribute/to_docs.md'
-      - 'to Docs': 'contribute/to_hanfor.md'
+      - 'To Hanfor': 'contribute/to_hanfor.md'
+      - 'To Docs': 'contribute/to_docs.md'
