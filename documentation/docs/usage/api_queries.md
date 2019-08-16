@@ -1,3 +1,5 @@
+toc_depth: 2
+
 # API Queries
 
 To generate reports or search for requirements not using the frontend Hanfor can be queried with HTTP requests at 
@@ -35,7 +37,7 @@ Name | Type   | Description
 name | string | Name for the Query. Existing ones will be overridden.
 query | string | The search Query.
 
-## Examples
+### Examples
 ```bash
 $ curl -X POST -H 'Content-Type: application/json' \
  --data '{"name": "MyQuery", "query": "foo:AND:bar"}' http://localhost:5000/api/query

@@ -1,13 +1,9 @@
 These are the source files for the [Hanfor Documentation](https://ultimate-pa.github.io/hanfor/).
 # Contribute to this Documentation.
-1. Install [MkDocs](https://www.mkdocs.org/).
+1. Install [MkDocs](https://www.mkdocs.org/) and all dependencies.
 ```bash
-$ pip install mkdocs
+$ pip install mkdocs mkdocs-rtd-dropdown pymdown-extensions
 ```
-1.2 Install the mkdocs `mkdocs-rtd-dropdown` theme:
-```bash
-$ pip install mkdocs-rtd-dropdown
-``` 
 
 2. Serve this Documentation locally to track your changes.
 ```bash
