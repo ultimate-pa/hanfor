@@ -1,3 +1,5 @@
+toc_depth: 1
+
 # Contribute to this Documentation.
 1. Install [MkDocs](https://www.mkdocs.org/).
 ```bash

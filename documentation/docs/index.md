@@ -22,7 +22,7 @@ This could be achieved by using formal languages to express the requirements. Ho
 
 In this method we use a simple pattern language. The requirements expressed in the pattern language look like English sentences. Everything you can express in this patterns is then translated in the background into logical formulas. You could also easily translate them into German, Chinese, or other languages.
 
-## Grammar of the Specification Language
+## Grammar of the specification language
 The grammar is the following:
 ````
 REQ      ::= ID: SCOPE, PATTERN .
@@ -60,7 +60,7 @@ Thus, in a first step the informal requirements are translated into requirements
 In the background the tool translates the requirements in specification language then into logical formulas.
 ![Example Picture 2](img/image003.jpg "Example picture 2")
 
-### Tool Support
+### Tool support
 The tool to assist this step is called Hanfor.It looks a little bit like Doors. It takes as input a csv-Export from Doors, and then stores the requirements. There are two IDs, the Hanfor ID and the Doors ID, so that you can synchronize the two databases, and can easily identify changes.
 
 ![Example Picture 3](img/image004.jpg "Example picture 3")
@@ -108,7 +108,7 @@ Vacuity can be resolved by
     * Change ``Req2`` to ``Req2': Before "Startup", it is never the case that "Signal-A" holds.``
 
 
-## Realtime-Consistency (rt-consistency)
+## Realtime-consistency (rt-consistency)
 A set of requirements is rt-inconsistent, if there are conflicts between requirements that arise after a certain time.
 
 !!! example

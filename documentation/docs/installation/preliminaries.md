@@ -28,4 +28,4 @@ $ pip install -r requirements.txt
 ```
 
 ## Install ReqAnalyzer
-*Comming soon*
+*Coming soon*

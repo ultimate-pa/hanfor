@@ -1,3 +1,5 @@
+toc_depth: 1
+
 # Hanfor
 
 You know the drill, 

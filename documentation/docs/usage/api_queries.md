@@ -1,14 +1,14 @@
 toc_depth: 2
 
-# API Queries
+# API queries
 
 To generate reports or search for requirements not using the frontend Hanfor can be queried with HTTP requests at 
 `http(s)://{{your host}}/{{your URL_PREFIX}}/api/query`
 
-## Show stored Queries
+## Show stored queries
 `GET /api/query`
 
-### URL Arguments
+### URL arguments
 
 Name    | Type           | Description
 ------- | --------------- | ------
@@ -27,7 +27,7 @@ $ curl http://localhost:5000/api/query?name=MyQuery&reload=true
 $ curl http://localhost:5000/api/query\?reload\=true | jq -r '.data[] | {name: .name, hits: .hits}'
 ```
 
-## Adding new Queries
+## Adding new queries
 `POST /api/query Content-Type: application/json`
 
 ### JSON body parameters
@@ -43,7 +43,7 @@ $ curl -X POST -H 'Content-Type: application/json' \
  --data '{"name": "MyQuery", "query": "foo:AND:bar"}' http://localhost:5000/api/query
 ```
 
-## Deleting Queries
+## Deleting queries
 `DELETE /api/query`
 
 ### JSON body parameters
@@ -69,7 +69,7 @@ Much [like in the frontend](requirements.md#Search in requirements table) the Qu
 and targeting 
 specific attributes.
 
-### Search Operators
+### Search operators
 You can concatenate search Queries by
 
 * `search_1:OR:search_2` yields the union of search_1 and search_2.
