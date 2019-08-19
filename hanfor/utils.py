@@ -1079,12 +1079,19 @@ class ListStoredSessions(argparse.Action):
             option_strings=option_strings, dest=dest, *args, **kwargs)
 
     def __call__(self, *args, **kwargs):
-        entries = get_stored_session_names(self.app.config['SESSION_BASE_FOLDER'])
-        data = []
-        data.append(['Tag', 'Created'])
+        entries = get_stored_session_names(self.app.config['SESSION_BASE_FOLDER'], with_revisions=True)
+        data = [['Tag', 'Revision', 'Last Modified']]
         for entry in entries:
-            date_string = datetime.datetime.fromtimestamp(entry[0].st_mtime).strftime("%A %d. %B %Y at %X")
-            data.append([entry[1], date_string])
+            revisions = list()
+            for name, values in entry['revisions_stats'].items():
+                revisions.append((name, values['last_mod']))
+            revisions.sort()
+            if len(revisions) > 0:
+                data.append([entry['name'], revisions[0][0], revisions[0][1]])
+                for i in range(1, len(revisions)):
+                    data.append(['', revisions[i][0], revisions[i][1]])
+            else:
+                data.append([entry['name'], '', ''])
         print('Stored sessions: ')
         if len(data) > 1:
             print(DoubleTable(data).table)
