@@ -121,3 +121,5 @@ package-lock.json
 # Local test files
 loctest_*
 test_results.xml
+http-client.env.json
+

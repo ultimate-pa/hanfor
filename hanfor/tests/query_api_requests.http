@@ -1,0 +1,62 @@
+# This HTTP request collection can be used for API developement when using pyCharm.
+# Copy the file `.http-client.env.json.dist` to `.http-client.env.json` and edit it to your needs.
+
+### Fetch all stored queries.
+# ASD
+GET http://{{host}}/hanfor/api/query
+Authorization: Basic {{username}} {{password}}
+Accept: application/json
+###
+
+### Show available targets.
+GET http://{{host}}/hanfor/api/query?show=targets
+Authorization: Basic {{username}} {{password}}
+Accept: application/json
+###
+
+### Get a single query.
+GET http://{{host}}/hanfor/api/query?name=total&reload=true
+Authorization: Basic {{username}} {{password}}
+Accept: application/json
+###
+
+
+### New query.
+POST http://{{host}}/hanfor/api/query
+Authorization: Basic {{username}} {{password}}
+Content-Type: application/json
+
+{
+  "name": "test_2",
+  "query": ":DATA_TARGET:`Tags`has_formalization"
+}
+###
+
+### New query.
+POST http://{{host}}/hanfor/api/query
+Authorization: Basic {{username}} {{password}}
+Content-Type: application/json
+
+{"name": "all", "query": ""}
+###
+
+
+### Delete a query
+DELETE http://{{host}}/hanfor/api/query
+Authorization: Basic {{username}} {{password}}
+Content-Type: application/json
+
+{
+  "name": "dodo"
+}
+###
+
+### Delete multiple queries
+DELETE http://{{host}}/hanfor/api/query
+Authorization: Basic {{username}} {{password}}
+Content-Type: application/json
+
+{
+  "names": ["test_1", "test_2"]
+}
+###
