@@ -26,7 +26,7 @@ class TestEnums(TestCase):
             '/api/query',
             json={'name': 'MyQuery', 'query': ':DATA_TARGET:`Tags`has_formalization'}
         ).json['data']
-        self.assertEqual(
+        self.assertDictEqual(
             simple_query,
             {
                 'query': ':DATA_TARGET:`Tags`has_formalization',
@@ -41,13 +41,8 @@ class TestEnums(TestCase):
             '/api/query',
             json={'name': 'MyQuery_no_2', 'query': ''}
         ).json['data']
-        self.assertEqual(
-            simple_query,
-            {
-                'query': '',
-                'hits': 2,
-                'result': ['SysRS FooXY_42', 'SysRS FooXY_91'],
-                'name': 'MyQuery_no_2'
-            }
+        self.assertListEqual(
+            sorted(simple_query['result']),
+            sorted(['SysRS FooXY_42', 'SysRS FooXY_91'])
         )
         print(simple_query)
