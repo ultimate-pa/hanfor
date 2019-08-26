@@ -29,18 +29,7 @@
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="search-pane" role="tabpanel"
                      aria-labelledby="search-tab">
-                    <div class="input-group top-padding">
-                        <span class="input-group-addon" id="basic-addon1">
-                            <img src="{{ url_for('static', filename='img/icons/magnifying-glass.svg') }}">
-                        </span>
-                        <input id="search_bar" type="text" class="form-control" placeholder="Search table"
-                                aria-describedby="basic-addon1">
-                        <span class="input-group-btn">
-                            <button class="btn btn-secondary clear-all-filters" type="button">
-                                <div id="clear-all-filters-text">Clear all.</div>
-                            </button>
-                        </span>
-                    </div>
+                    {% include 'search-bar.html' %}
                 </div>
                 <div class="tab-pane fade" id="import-pane" role="tabpanel" aria-labelledby="import-tab">
                     <div class="card-body">
@@ -106,7 +95,7 @@
                          aria-labelledby="multi-edit-tab">
                         <div class="card-body">
                             <div class="input-group top-padding">
-                                <span class="input-group-addon" id="multi-change-type" style="width: 7em">To Type</span>
+                                <span class="input-group-prepend input-group-text" id="multi-change-type" style="width: 7em">To Type</span>
                                 <input type="text" class="form-control" id="multi-change-type-input"
                                        aria-describedby="multi-change-type">
                             </div>

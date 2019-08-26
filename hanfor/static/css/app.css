@@ -59,7 +59,6 @@ body.modal-open{
     max-width: 90%;
 }
 
-
 /**
  Textcomplete styling.
  */
@@ -178,4 +177,12 @@ div.awesomplete .form-control {
 
 .white-space-pre {
     white-space: pre-wrap;
+}
+
+.search-input-clear-span {
+    width: 240px;
+}
+
+.clear-all-filters {
+    width: inherit;
 }

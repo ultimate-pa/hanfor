@@ -2,7 +2,7 @@ require('gasparesganga-jquery-loading-overlay');
 require('bootstrap');
 require('bootstrap-confirmation2');
 require('datatables.net-bs4');
-require('datatables.net-select');
+require('datatables.net-select-bs4');
 require('jquery-ui/ui/widgets/autocomplete');
 require('jquery-ui/ui/effects/effect-highlight');
 require('./bootstrap-tokenfield.js');

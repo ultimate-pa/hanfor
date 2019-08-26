@@ -950,19 +950,7 @@ def setup_logging(app):
 
 def register_assets(app):
     bundles = {
-        'css': Bundle(
-            'css/bootstrap.css',
-            'css/bootstrap-grid.css',
-            'css/bootstrap-reboot.css',
-            'css/dataTables.bootstrap4.css',
-            'css/select.bootstrap4.css',
-            'css/tether.css',
-            'css/jquery-ui.css',
-            'css/bootstrap-tokenfield.css',
-            'css/app.css',
-            filters='cssutils',
-            output='gen/style.css'
-        )
+
     }
 
     assets = Environment(app)

@@ -38,39 +38,23 @@
     <div class="tab-content">
         <div class="tab-pane fade show active" id="search-pane" role="tabpanel"
              aria-labelledby="search-tab">
-            <div class="input-group top-padding">
-                <span class="input-group-addon" id="basic-addon1">
-                    <img src="{{ url_for('static', filename='img/icons/magnifying-glass.svg') }}">
-                </span>
-                <input id="search_bar" type="text" class="form-control"
-                       placeholder="Search table" aria-describedby="basic-addon1">
-                <!-- TODO: remove search storage.
-                <span class="input-group-btn">
-                    <button id="store_search" class="btn btn-secondary" type="button">Store</button>
-                </span>
-                -->
-                <span class="input-group-btn">
-                    <button class="btn btn-secondary clear-all-filters" type="button">
-                        <div id="clear-all-filters-text">Clear all filters.</div>
-                    </button>
-                </span>
-            </div>
+            {% include 'search-bar.html' %}
         </div>
         <div class="tab-pane fade" id="filter-pane" role="tabpanel" aria-labelledby="filter-tab">
             <div class="card-body">
                 <div class="input-group top-padding">
-                    <span class="input-group-addon" id="status-filter" style="width: 5em">
+                    <span class="input-group-prepend input-group-text" id="status-filter" style="width: 5em">
                         Status</span>
                     <input type="text" class="form-control" id="status-filter-input"
                            aria-describedby="status-filter">
                 </div>
                 <div class="input-group top-padding">
-                    <span class="input-group-addon" id="tag-filter" style="width: 5em">Tags</span>
+                    <span class="input-group-prepend input-group-text" id="tag-filter" style="width: 5em">Tags</span>
                     <input type="text" class="form-control" id="tag-filter-input"
                            aria-describedby="tag-filter">
                 </div>
                 <div class="input-group top-padding">
-                    <span class="input-group-addon" id="type-filter" style="width: 5em">Type</span>
+                    <span class="input-group-prepend input-group-text" id="type-filter" style="width: 5em">Type</span>
                     <input type="text" class="form-control" id="type-filter-input"
                            aria-describedby="type-filter">
                 </div>
@@ -105,18 +89,18 @@
             <div class="card-block">
                 <h5>Change Meta Attributes.</h5>
                 <div class="input-group">
-                    <span class="input-group-addon" id="multi-add-tag" style="width: 7em">Add tag</span>
+                    <span class="input-group-prepend input-group-text" id="multi-add-tag" style="width: 7em">Add tag</span>
                     <input type="text" class="form-control" id="multi-add-tag-input"
                            aria-describedby="multi-add-tag">
                 </div>
                 <div class="input-group top-padding">
-                    <span class="input-group-addon" id="multi-remove-tag" style="width: 7em">Remove
+                    <span class="input-group-prepend input-group-text" id="multi-remove-tag" style="width: 7em">Remove
                         tag</span>
                     <input type="text" class="form-control" id="multi-remove-tag-input"
                            aria-describedby="multi-remove-tag">
                 </div>
                 <div class="input-group top-padding">
-                    <span class="input-group-addon" id="multi-set-status" style="width: 7em">Set
+                    <span class="input-group-prepend input-group-text" id="multi-set-status" style="width: 7em">Set
                         Status</span>
                     <input type="text" class="form-control" id="multi-set-status-input"
                            aria-describedby="type-filter">

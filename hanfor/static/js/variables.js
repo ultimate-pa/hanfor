@@ -636,11 +636,11 @@ function add_variable_via_modal() {
 function add_enumerator_template(name, value) {
     const enumerator_template = `
         <div class="input-group enumerator-input">
-            <span class="input-group-addon">Name</span>
+            <span class="input-group-prepend input-group-text">Name</span>
             <input class="form-control enum_name_input" type="text" value="${name}">
-            <span class="input-group-addon">Value</span>
+            <span class="input-group-prepend input-group-text">Value</span>
             <input class="form-control enum_value_input" type="number" step="any" value="${value}">
-            <buttton type="button" class="btn btn-danger input-group-addon del_enum" data-name="${name}">Delete</buttton>
+            <buttton type="button" class="btn btn-danger input-group-append del_enum" data-name="${name}">Delete</buttton>
         </div>`;
     $('#enumerators').append(enumerator_template);
 }
