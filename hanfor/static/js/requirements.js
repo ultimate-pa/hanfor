@@ -1379,12 +1379,19 @@ function evaluate_report() {
     const report_querys = $('#report_query_textarea').val().split('\n');
     let reqTable = $('#requirements_table').DataTable();
     let results = '';
+    const regex = /^(:NAME:)(`(\w+)`)(.*)/;
     try {
         $.each(report_querys, function (id, report_query) {
+            // Test if there is a named query.
+            let match = regex.exec(report_query);
+            if (match != null) {
+                report_query = match[4];
+                id = match[3];
+            }
             search_tree = SearchNode.fromQuery(report_query);
             reqTable.draw();
             let result = reqTable.page.info();
-            results += `Eval of query No. ${id} => ${result.recordsDisplay} results.\n`;
+            results += `"${id}":\t${result.recordsDisplay}\n`;
         });
         $('#report_results_textarea').val(results).change();
         update_search();
@@ -1407,10 +1414,10 @@ function load_reports() {
             $.each(data.data, function (id, report) {
                 result += `<div class="card border-primary">
                               <div class="card-body">
-                                <h5 class="card-title">Report ${id}</h5>
+                                <h5 class="card-title">${report.name}</h5>
                                 <h6 class="card-subtitle mb-2 text-muted">Query</h6>
                                 <p class="card-text report-results">${report.queries}</p>
-                                <h6 class="card-subtitle mb-2 text-muted">Results</h6>
+                                <h6 class="card-subtitle mb-2 text-muted">Matches for queries</h6>
                                 <p class="card-text report-results">${report.results}</p>
                                 <a href="#" class="card-link open-report" data-id="${id}">
                                     Edit (reevaluate) Report.
@@ -1432,6 +1439,7 @@ function save_report() {
     {
         report_querys: $('#report_query_textarea').val(),
         report_results: $('#report_results_textarea').val(),
+        report_name: $('#report_name').val(),
         report_id: $('#save_report').attr('data-id')
     },
     function( data ) {
@@ -1460,17 +1468,23 @@ function delete_report(id) {
 function open_report_modal(source=false){
     let query_textarea = $('#report_query_textarea');
     let results_textarea = $('#report_results_textarea');
+    let report_title = $('#report_modal_title');
+    let report_name = $('#report_name');
     let queries = '';
     let results = '';
+    let name = '';
     let report_id = -1;
     let report_modal = $('#report_modal');
     if (source !== false) {
         report_id = source.attr('data-id');
         queries = available_reports[report_id].queries;
         results = available_reports[report_id].results;
+        name = available_reports[report_id].name;
     }
     query_textarea.val(queries).change();
     results_textarea.val(results).change();
+    report_name.val(name).change();
+    report_title.html(name);
     $('#save_report').attr('data-id', report_id);
     report_modal.modal('show');
 }
@@ -1494,6 +1508,9 @@ function init_report_generation() {
     });
     av_reports.on('click', '.delete-report', function (event) {
         delete_report($(this).attr('data-id'));
+    });
+    $('#report_name').change(function () {
+        $('#report_modal_title').html($(this).val());
     });
     load_reports();
 }
