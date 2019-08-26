@@ -186,3 +186,8 @@ div.awesomplete .form-control {
 .clear-all-filters {
     width: inherit;
 }
+
+tr.selected > td {
+    color: white !important;
+    background-color: #1d00d8 !important;
+}
