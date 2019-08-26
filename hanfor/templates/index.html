@@ -65,7 +65,7 @@
                 </div>
             </div>
         </div>
-        <div class="tab-pane fade" id="colums-pane" role="tabpanel" aria-labelledby="colums-tab">
+        <div class="tab-pane fade card-body" id="colums-pane" role="tabpanel" aria-labelledby="colums-tab">
             <h5>Click on a button to toggle a column.</h5>
             {% for col in default_cols %}
             <button id="col_toggle_button_{{ col.target }}"
@@ -85,54 +85,52 @@
             {% endfor %}
             <button class="btn btn-danger btn-sm reset-colum-toggle">Reset</button>
         </div>
-        <div class="tab-pane fade card" id="selected-pane" role="tabpanel" aria-labelledby="tools-tab">
-            <div class="card-block">
-                <h5>Change Meta Attributes.</h5>
-                <div class="input-group">
-                    <span class="input-group-prepend input-group-text" id="multi-add-tag" style="width: 7em">Add tag</span>
-                    <input type="text" class="form-control" id="multi-add-tag-input"
-                           aria-describedby="multi-add-tag">
-                </div>
-                <div class="input-group top-padding">
-                    <span class="input-group-prepend input-group-text" id="multi-remove-tag" style="width: 7em">Remove
-                        tag</span>
-                    <input type="text" class="form-control" id="multi-remove-tag-input"
-                           aria-describedby="multi-remove-tag">
-                </div>
-                <div class="input-group top-padding">
-                    <span class="input-group-prepend input-group-text" id="multi-set-status" style="width: 7em">Set
-                        Status</span>
-                    <input type="text" class="form-control" id="multi-set-status-input"
-                           aria-describedby="type-filter">
-                </div>
-                <div class="input-group top-padding">
-                    <button class="btn btn-primary apply-multi-edit" type="button">
-                                Apply changes to selected requirements.
-                    </button>
-                </div>
-                <h5 class="top-padding">Add top formalization guess to selected requirements.</h5>
-                <div class="input-group">
-                    <select class="custom-select" id="top_guess_append_mode">
-                      <option selected value="append">Append guess to existing formalizations.</option>
-                        <option value="override">Override existing formalizations.</option>
-                    </select>
-                </div>
-                <div class="input-group top-padding">
-                    <button name="add-top-guess"
-                                class="add_top_guess_button btn btn-primary"
-                                data-toggle="confirmation"
-                                data-btn-ok-label="Yes"
-                                data-btn-ok-class="btn-success"
-                                data-btn-cancel-label="Nooo Stoooop!"
-                                data-btn-cancel-class="btn-danger"
-                                data-title="Sure?"
-                                data-content="Add top ranked guess to all selected requirements?">
-                              Add top guess to selected.
-                    </button>
-                </div>
+        <div class="tab-pane fade card-body" id="selected-pane" role="tabpanel" aria-labelledby="tools-tab">
+            <h5>Change Meta Attributes.</h5>
+            <div class="input-group">
+                <span class="input-group-prepend input-group-text" id="multi-add-tag" style="width: 7em">Add tag</span>
+                <input type="text" class="form-control" id="multi-add-tag-input"
+                       aria-describedby="multi-add-tag">
+            </div>
+            <div class="input-group top-padding">
+                <span class="input-group-prepend input-group-text" id="multi-remove-tag" style="width: 7em">Remove
+                    tag</span>
+                <input type="text" class="form-control" id="multi-remove-tag-input"
+                       aria-describedby="multi-remove-tag">
+            </div>
+            <div class="input-group top-padding">
+                <span class="input-group-prepend input-group-text" id="multi-set-status" style="width: 7em">Set
+                    Status</span>
+                <input type="text" class="form-control" id="multi-set-status-input"
+                       aria-describedby="type-filter">
+            </div>
+            <div class="input-group top-padding">
+                <button class="btn btn-primary apply-multi-edit" type="button">
+                            Apply changes to selected requirements.
+                </button>
+            </div>
+            <h5 class="top-padding">Add top formalization guess to selected requirements.</h5>
+            <div class="input-group">
+                <select class="custom-select" id="top_guess_append_mode">
+                  <option selected value="append">Append guess to existing formalizations.</option>
+                    <option value="override">Override existing formalizations.</option>
+                </select>
+            </div>
+            <div class="input-group top-padding">
+                <button name="add-top-guess"
+                            class="add_top_guess_button btn btn-primary"
+                            data-toggle="confirmation"
+                            data-btn-ok-label="Yes"
+                            data-btn-ok-class="btn-success"
+                            data-btn-cancel-label="Nooo Stoooop!"
+                            data-btn-cancel-class="btn-danger"
+                            data-title="Sure?"
+                            data-content="Add top ranked guess to all selected requirements?">
+                          Add top guess to selected.
+                </button>
             </div>
         </div>
-        <div class="tab-pane fade" id="tools-pane" role="tabpanel" aria-labelledby="tools-tab">
+        <div class="tab-pane fade card-body" id="tools-pane" role="tabpanel" aria-labelledby="tools-tab">
             <form id="generate_req_form" method="post"
                   action="{{ url_for('tools_api', command='req_file') }}"
                   target="_blank">
@@ -159,7 +157,7 @@
                 </button>
             </div>
         </div>
-        <div class="tab-pane fade" id="reports-pane" role="tabpanel" aria-labelledby="tools-tab">
+        <div class="tab-pane fade card-body" id="reports-pane" role="tabpanel" aria-labelledby="tools-tab">
             <div class="input-group top-padding">
                 <button id="add-new-report"
                         class="btn btn-secondary btn-block"
