@@ -30,13 +30,13 @@ future==0.17.1
 isodate==0.6.0
 itsdangerous==0.24
 jdcal==1.4
-Jinja2>=2.10.1
+Jinja2==2.10.1
 jsmin==2.2.2
 lark-parser==0.7.0
 leather==0.3.3
 MarkupSafe==1.0
 more-itertools==7.0.0
-nltk==3.4
+nltk==3.4.5
 numpy==1.14.5
 openpyxl==2.6.1
 pandas==0.24.2
@@ -63,6 +63,6 @@ terminaltables==3.1.0
 text-unidecode==1.2
 urllib3==1.25
 webassets==0.12.1
-Werkzeug==0.14.1
+Werkzeug==0.15.5
 WTForms==2.2.1
 xlrd==1.2.0
