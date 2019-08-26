@@ -11,13 +11,12 @@ require('awesomplete/awesomplete.css');
 require('./colResizable-1.6.min.js');
 
 let utils = require('./hanfor-utils');
-let Cookies = require('js-cookie');
 const autosize = require('autosize');
 
 // Globals
-const { SearchNode } = require('./datatables-advanced-search.js');
+const {SearchNode} = require('./datatables-advanced-search.js');
 let Fuse = require('fuse.js');
-let { Textcomplete, Textarea } = require('textcomplete');
+let {Textcomplete, Textarea} = require('textcomplete');
 let fuse = new Fuse([], {});
 
 let available_tags = ['', 'has_formalization'];
@@ -65,9 +64,11 @@ function update_search() {
  */
 function update_filter() {
     filter_search_array = [];
+
     function pad_with_parantheses(array) {
         return ["("].concat(array, [")"]);
     }
+
     function add_query(array, query, target) {
         if (query.length > 0) {
             if (array.length > 0) {
@@ -77,6 +78,7 @@ function update_filter() {
         }
         return array
     }
+
     filter_status_string = $('#status-filter-input').val();
     filter_tag_string = $('#tag-filter-input').val();
     filter_type_string = $('#type-filter-input').val();
@@ -93,7 +95,7 @@ function update_filter() {
 }
 
 
-function evaluate_search(data){
+function evaluate_search(data) {
     return search_tree.evaluate(data, visible_columns) && filter_tree.evaluate(data, visible_columns);
 }
 
@@ -103,7 +105,7 @@ function evaluate_search(data){
  */
 function process_url_query(get_query) {
     // Apply search if we have one.
-    if (typeof(get_query.q) !== "undefined") {
+    if (typeof (get_query.q) !== "undefined") {
         /**
          * Pad a Number string with 0 prefix (max length is 2).
          * Examples: 2 -> 02, '' -> 00, 12 -> 12, 123 -> 23
@@ -112,8 +114,9 @@ function process_url_query(get_query) {
          */
         function pad(num) {
             let s = "00" + num;
-            return s.substr(s.length-2);
+            return s.substr(s.length - 2);
         }
+
         // Clear filters.
         $('#status-filter-input').val('');
         $('#tag-filter-input').val('');
@@ -121,7 +124,7 @@ function process_url_query(get_query) {
 
         // Create the search string.
         let s = get_query.q;
-        if (typeof(get_query.col) !== "undefined") {
+        if (typeof (get_query.col) !== "undefined") {
             s = ':COL_INDEX_' + pad(get_query.col).toString() + ':' + s;
         }
         // Apply the search string
@@ -145,31 +148,31 @@ function store_requirement(requirements_table) {
 
     // Fetch the formalizations
     let formalizations = {};
-    $('.formalization_card').each(function ( index ) {
+    $('.formalization_card').each(function () {
         // Scope and Pattern
         let formalization = {};
         formalization['id'] = $(this).attr('title');
-        $( this ).find( 'select').each( function () {
-            if ($( this ).hasClass('scope_selector')) {
-                formalization['scope'] = $( this ).val();
+        $(this).find('select').each(function () {
+            if ($(this).hasClass('scope_selector')) {
+                formalization['scope'] = $(this).val();
             }
-            if ($( this ).hasClass('pattern_selector')) {
-                formalization['pattern'] = $( this ).val();
+            if ($(this).hasClass('pattern_selector')) {
+                formalization['pattern'] = $(this).val();
             }
         });
 
         // Expressions
         formalization['expression_mapping'] = {};
-        $( this ).find( "textarea.reqirement-variable" ).each(function () {
+        $(this).find("textarea.reqirement-variable").each(function () {
             if ($(this).attr('title') !== '')
-            formalization['expression_mapping'][$(this).attr('title')] = $(this).val();
+                formalization['expression_mapping'][$(this).attr('title')] = $(this).val();
         });
 
         formalizations[formalization['id']] = formalization;
     });
 
     // Store the requirement.
-    $.post( "api/req/update",
+    $.post("api/req/update",
         {
             id: req_id,
             row_idx: associated_row_id,
@@ -179,7 +182,7 @@ function store_requirement(requirements_table) {
             formalizations: JSON.stringify(formalizations)
         },
         // Update requirements table on success or show an error message.
-        function( data ) {
+        function (data) {
             requirement_modal_content.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
@@ -187,7 +190,7 @@ function store_requirement(requirements_table) {
                 requirements_table.row(associated_row_id).data(data);
                 $('#requirement_modal').data('unsaved_changes', false).modal('hide');
             }
-    }).done(function () {
+        }).done(function () {
         update_logs();
     });
 }
@@ -200,10 +203,10 @@ function store_requirement(requirements_table) {
  */
 function get_selected_requirement_ids(requirements_table) {
     let selected_ids = [];
-    requirements_table.rows( {selected:true} ).every( function () {
+    requirements_table.rows({selected: true}).every(function () {
         let d = this.data();
         selected_ids.push(d['id']);
-    } );
+    });
 
     return selected_ids
 }
@@ -217,7 +220,7 @@ function apply_multi_edit(requirements_table) {
     let set_status = $('#multi-set-status-input').val().trim();
     let selected_ids = get_selected_requirement_ids(requirements_table);
 
-    $.post( "api/req/multi_update",
+    $.post("api/req/multi_update",
         {
             add_tag: add_tag,
             remove_tag: remove_tag,
@@ -225,14 +228,14 @@ function apply_multi_edit(requirements_table) {
             selected_ids: JSON.stringify(selected_ids)
         },
         // Update requirements table on success or show an error message.
-        function( data ) {
+        function (data) {
             page.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
                 location.reload();
             }
-    });
+        });
 }
 
 
@@ -242,20 +245,20 @@ function add_top_guess_to_selected_requirements(requirements_table) {
     let selected_ids = get_selected_requirement_ids(requirements_table);
     let insert_mode = $('#top_guess_append_mode').val();
 
-    $.post( "api/req/multi_add_top_guess",
+    $.post("api/req/multi_add_top_guess",
         {
             selected_ids: JSON.stringify(selected_ids),
             insert_mode: insert_mode
         },
         // Update requirements table on success or show an error message.
-        function( data ) {
+        function (data) {
             page.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
                 location.reload();
             }
-    });
+        });
 }
 
 /**
@@ -263,11 +266,11 @@ function add_top_guess_to_selected_requirements(requirements_table) {
  */
 function update_vars() {
     $('.requirement_var_group').each(function () {
-        $( this ).hide();
-        $( this ).removeClass('type-error');
+        $(this).hide();
+        $(this).removeClass('type-error');
     });
 
-    $('.formalization_card').each(function ( index ) {
+    $('.formalization_card').each(function () {
         // Fetch attributes
         const formalization_id = $(this).attr('title');
         const selected_scope = $('#requirement_scope' + formalization_id).val();
@@ -291,7 +294,7 @@ function update_vars() {
             header.removeClass('type-error-head');
         }
 
-        switch(selected_scope) {
+        switch (selected_scope) {
             case 'BEFORE':
             case 'AFTER':
                 var_p.show();
@@ -305,7 +308,7 @@ function update_vars() {
                 break;
         }
 
-        switch(selected_pattern) {
+        switch (selected_pattern) {
             case 'Absence':
             case 'Universality':
             case 'Existence':
@@ -357,7 +360,7 @@ function update_vars() {
  * Updates the formalization textarea based on the selected scope and expressions in P, Q, R, S, T.
  */
 function update_formalization() {
-    $('.formalization_card').each(function ( index ) {
+    $('.formalization_card').each(function () {
         // Fetch attributes
         const formalization_id = $(this).attr('title');
 
@@ -413,22 +416,22 @@ function add_formalization() {
     requirement_modal_content.LoadingOverlay('show');
 
     const req_id = $('#requirement_id').val();
-    $.post( "api/req/new_formalization",
+    $.post("api/req/new_formalization",
         {
             id: req_id
         },
-        function( data ) {
+        function (data) {
             requirement_modal_content.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
                 let formalization = $(data['html']);
                 formalization.find('.reqirement-variable').each(function () {
-                   add_var_autocomplete(this);
+                    add_var_autocomplete(this);
                 });
                 formalization.appendTo('#formalization_accordion');
             }
-    }).done(function () {
+        }).done(function () {
         update_vars();
         update_formalization();
         update_logs();
@@ -442,21 +445,21 @@ function add_formalization_from_guess(scope, pattern, mapping) {
     requirement_modal_content.LoadingOverlay('show');
 
     let requirement_id = $('#requirement_id').val();
-    $.post( "api/req/add_formalization_from_guess",
+    $.post("api/req/add_formalization_from_guess",
         {
             requirement_id: requirement_id,
             scope: scope,
             pattern: pattern,
             mapping: JSON.stringify(mapping)
         },
-        function( data ) {
+        function (data) {
             requirement_modal_content.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
                 $('#formalization_accordion').append(data['html']);
             }
-    }).done(function () {
+        }).done(function () {
         update_vars();
         update_formalization();
         bind_var_autocomplete();
@@ -469,19 +472,19 @@ function delete_formalization(formal_id, card) {
     let requirement_modal_content = $('.modal-content');
     requirement_modal_content.LoadingOverlay('show');
     const req_id = $('#requirement_id').val();
-    $.post( "api/req/del_formalization",
+    $.post("api/req/del_formalization",
         {
             requirement_id: req_id,
             formalization_id: formal_id
         },
-        function( data ) {
+        function (data) {
             requirement_modal_content.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
                 card.remove();
             }
-    }).done(function () {
+        }).done(function () {
         update_vars();
         update_formalization();
         update_logs();
@@ -495,13 +498,13 @@ function delete_formalization(formal_id, card) {
  */
 function update_fuse() {
     let options = {
-      shouldSort: true,
-      threshold: 0.6,
-      location: 0,
-      distance: 100,
-      maxPatternLength: 12,
-      minMatchCharLength: 1,
-      keys: undefined
+        shouldSort: true,
+        threshold: 0.6,
+        location: 0,
+        distance: 100,
+        maxPatternLength: 12,
+        minMatchCharLength: 1,
+        keys: undefined
     };
 
     fuse = new Fuse(available_vars, options);
@@ -522,27 +525,27 @@ function fuzzy_search(term) {
  * Adds the variable autocompletion to a textarea given by dom_obj.
  * @param dom_obj
  */
-function add_var_autocomplete(dom_obj){
+function add_var_autocomplete(dom_obj) {
     let editor = new Textarea(dom_obj);
     let textcomplete = new Textcomplete(editor, {
-      dropdown: {
-          maxCount: 10
-      }
+        dropdown: {
+            maxCount: 10
+        }
     });
     textcomplete.register([{
-      match: /(^|\s|[!=&\|>]+)(\w+)$/,
-      search: function (term, callback) {
-          include_elems = fuzzy_search(term);
+        match: /(^|\s|[!=&\|>]+)(\w+)$/,
+        search: function (term, callback) {
+            let include_elems = fuzzy_search(term);
 
-          result = [];
-          for (let i = 0; i < Math.min(10, include_elems.length); i++) {
+            let result = [];
+            for (let i = 0; i < Math.min(10, include_elems.length); i++) {
                 result.push(available_vars[include_elems[i]]);
-          }
-          callback(result);
-      },
-      replace: function (value) {
-        return '$1' + value + ' ';
-      }
+            }
+            callback(result);
+        },
+        replace: function (value) {
+            return '$1' + value + ' ';
+        }
     }]);
     // Close dropdown if textarea is no longer focused.
     $(dom_obj).on('blur click', function (e) {
@@ -557,7 +560,7 @@ function add_var_autocomplete(dom_obj){
  *
  */
 function bind_var_autocomplete() {
-    $( ".reqirement-variable" ).each(function () {
+    $(".reqirement-variable").each(function () {
         add_var_autocomplete(this);
     });
 }
@@ -566,7 +569,7 @@ function bind_var_autocomplete() {
 function prevent_double_token_insert() {
     $('#requirement_tag_field').on('tokenfield:createtoken', function (event) {
         let existingTokens = $(this).tokenfield('getTokens');
-        $.each(existingTokens, function(index, token) {
+        $.each(existingTokens, function (index, token) {
             if (token.value === event.attrs.value)
                 event.preventDefault();
         });
@@ -593,7 +596,7 @@ function load_requirement(row_idx) {
     $('#requirement_tag_field').data('bs.tokenfield').$input.autocomplete({source: available_tags});
 
     // Get the requirement data and set the modal.
-    $.get( "api/req/get", { id: data['id'], row_idx: row_idx }, function (data) {
+    $.get("api/req/get", {id: data['id'], row_idx: row_idx}, function (data) {
         if (data.success === false) {
             alert('Could Not load the Requirement: ' + data.errormsg);
             return;
@@ -626,8 +629,8 @@ function load_requirement(row_idx) {
         csv_row_content.html('');
         csv_row_content.collapse('hide');
         let csv_data = data.csv_data;
-        for(const key in csv_data){
-            if (csv_data.hasOwnProperty(key)){
+        for (const key in csv_data) {
+            if (csv_data.hasOwnProperty(key)) {
                 const value = csv_data[key];
                 csv_row_content.append('<p><strong>' + key + ':</strong>' + value + '</p>');
             }
@@ -645,13 +648,13 @@ function load_requirement(row_idx) {
         revision_diff_content.html('');
         revision_diff_content.collapse('hide');
         let revision_diff = data.revision_diff;
-        for(const key in revision_diff){
-            if (revision_diff.hasOwnProperty(key)){
+        for (const key in revision_diff) {
+            if (revision_diff.hasOwnProperty(key)) {
                 const value = revision_diff[key];
                 revision_diff_content.append('<p><strong>' + key + ':</strong><pre>' + value + '</pre></p>');
             }
         }
-    } ).done(function () {
+    }).done(function () {
         // Update visible Vars.
         update_vars();
         // Handle autocompletion for variables.
@@ -680,7 +683,7 @@ function bind_requirement_id_to_modals(requirements_table) {
         event.preventDefault();
         let row_idx = requirements_table.row($(this).closest('tr')).index();
         load_requirement(row_idx);
-    } );
+    });
 }
 
 
@@ -693,8 +696,8 @@ function bind_requirement_id_to_modals(requirements_table) {
 function update_visible_columns_information() {
     let requirements_table = $('#requirements_table').DataTable();
     let new_visible_columns = [];
-    $.each(requirements_table.columns().visible(), function(key, value) {
-        if(value === false){
+    $.each(requirements_table.columns().visible(), function (key, value) {
+        if (value === false) {
             $('#col_toggle_button_' + key).removeClass('btn-info').addClass('btn-secondary');
             new_visible_columns.push(false);
         } else {
@@ -725,9 +728,9 @@ function clear_all_search_filter_inputs() {
  */
 function init_datatable_manipulators(requirements_table) {
     // Headers extension: Add index to address in search.
-    requirements_table.columns().every( function ( index ) {
-        if (index > 0) requirements_table.column( index ).header().append(' (' + index + ')');
-    } );
+    requirements_table.columns().every(function (index) {
+        if (index > 0) requirements_table.column(index).header().append(' (' + index + ')');
+    });
 
     // Save button
     $('#save_requirement_modal').click(function () {
@@ -736,8 +739,8 @@ function init_datatable_manipulators(requirements_table) {
 
     // Table Search related stuff.
     // Bind big custom searchbar to search the table.
-    $('#search_bar').keypress(function(e) {
-        if(e.which === 13) { // Search on enter.
+    $('#search_bar').keypress(function (e) {
+        if (e.which === 13) { // Search on enter.
             update_search();
             requirements_table.draw();
         }
@@ -763,7 +766,9 @@ function init_datatable_manipulators(requirements_table) {
     });
 
     $('#tag-filter-input, #status-filter-input, #type-filter-input')
-        .on('focus', function() { $(this).keydown(); })
+        .on('focus', function () {
+            $(this).keydown();
+        })
         .on('keypress', function (e) {
             if (e.which === 13) { // Search on Enter.
                 update_filter();
@@ -785,59 +790,58 @@ function init_datatable_manipulators(requirements_table) {
     // Listen for tool section triggers.
     $('#gen-req-from-selection').click(function () {
         let req_ids = [];
-        requirements_table.rows( {search:'applied'} ).every( function () {
+        requirements_table.rows({search: 'applied'}).every(function () {
             let d = this.data();
             req_ids.push(d['id']);
-         } );
+        });
         $('#selected_requirement_ids').val(JSON.stringify(req_ids));
         $('#generate_req_form').submit();
     });
 
     $('#gen-csv-from-selection').click(function () {
         let req_ids = [];
-        requirements_table.rows( {search:'applied'} ).every( function () {
+        requirements_table.rows({search: 'applied'}).every(function () {
             let d = this.data();
             req_ids.push(d['id']);
-         } );
+        });
         $('#selected_csv_requirement_ids').val(JSON.stringify(req_ids));
         $('#generate_csv_form').submit();
     });
 
     // Column toggling
-    $('.colum-toggle-button').on( 'click', function (e) {
+    $('.colum-toggle-button').on('click', function (e) {
         e.preventDefault();
 
         // Get the column API object
         let column = requirements_table.column($(this).attr('data-column'));
 
         // Toggle the visibility
-        column.visible( ! column.visible() );
+        column.visible(!column.visible());
         update_visible_columns_information();
-    } );
+    });
 
     $('.reset-colum-toggle').on('click', function (e) {
         e.preventDefault();
-        requirements_table.columns( '.default-col' ).visible( true );
-        requirements_table.columns( '.extra-col' ).visible( false );
+        requirements_table.columns('.default-col').visible(true);
+        requirements_table.columns('.extra-col').visible(false);
         update_visible_columns_information();
     });
     update_visible_columns_information();
 
     // Select rows
-    $('.select-all-button').on('click', function (e) {
+    $('.select-all-button').on('click', function () {
         // Toggle selection on
-        if ($( this ).hasClass('btn-secondary')) {
-            requirements_table.rows( {page:'current'} ).select();
-        }
-        else { // Toggle selection off
-            requirements_table.rows( {page:'current'} ).deselect();
+        if ($(this).hasClass('btn-secondary')) {
+            requirements_table.rows({page: 'current'}).select();
+        } else { // Toggle selection off
+            requirements_table.rows({page: 'current'}).deselect();
         }
         // Toggle button state.
         $('.select-all-button').toggleClass('btn-secondary btn-primary');
     });
 
     // Toggle "Select all rows to `off` on user specific selection."
-    requirements_table.on( 'user-select', function ( ) {
+    requirements_table.on('user-select', function () {
         let select_buttons = $('.select-all-button');
         select_buttons.removeClass('btn-primary');
         select_buttons.addClass('btn-secondary ');
@@ -848,20 +852,24 @@ function init_datatable_manipulators(requirements_table) {
         minLength: 0,
         source: available_tags,
         delay: 100
-    }).on('focus', function() { $(this).keydown(); }).val('');
+    }).on('focus', function () {
+        $(this).keydown();
+    }).val('');
 
     $('#multi-set-status-input').autocomplete({
         minLength: 0,
         source: available_status,
         delay: 100
-    }).on('focus', function() { $(this).keydown(); }).val('');
+    }).on('focus', function () {
+        $(this).keydown();
+    }).val('');
 
     $('.apply-multi-edit').click(function () {
         apply_multi_edit(requirements_table);
     });
 
     $('.add_top_guess_button').confirmation({
-      rootSelector: '.add_top_guess_button'
+        rootSelector: '.add_top_guess_button'
     }).click(function () {
         add_top_guess_to_selected_requirements(requirements_table);
     });
@@ -876,12 +884,12 @@ function init_datatable_manipulators(requirements_table) {
 function init_datatable(columnDefs) {
     $('#requirements_table').DataTable({
         "language": {
-          "emptyTable": "Loading data."
+            "emptyTable": "Loading data."
         },
         "paging": true,
         "stateSave": true,
         "select": {
-            style:    'os',
+            style: 'os',
             selector: 'td:first-child'
         },
         "pageLength": 50,
@@ -890,32 +898,32 @@ function init_datatable(columnDefs) {
         "ajax": "api/req/gets",
         "deferRender": true,
         "columnDefs": columnDefs,
-        "createdRow": function( row, data, dataIndex ) {
+        "createdRow": function (row, data) {
             if (data['type'] === 'Heading') {
-                $(row).addClass( 'bg-primary' );
+                $(row).addClass('bg-primary');
             }
             if (data['type'] === 'Information') {
-                $(row).addClass( 'table-info' );
+                $(row).addClass('table-info');
             }
             if (data['type'] === 'Requirement') {
-                $(row).addClass( 'table-warning' );
+                $(row).addClass('table-warning');
             }
             if (data['type'] === 'not set') {
-                $(row).addClass( 'table-light');
+                $(row).addClass('table-light');
             }
         },
-        "infoCallback": function( settings, start, end, max, total, pre ) {
-            var api = this.api();
-            var pageInfo = api.page.info();
+        "infoCallback": function (settings, start, end, max, total) {
+            let api = this.api();
+            let pageInfo = api.page.info();
 
-            $('#clear-all-filters-text').html("Showing " + total +"/"+ pageInfo.recordsTotal + ". Clear all.");
+            $('#clear-all-filters-text').html("Showing " + total + "/" + pageInfo.recordsTotal + ". Clear all.");
 
             let result = "Showing " + start + " to " + end + " of " + total + " entries";
             result += " (filtered from " + pageInfo.recordsTotal + " total entries).";
 
             return result;
         },
-        "initComplete" : function() {
+        "initComplete": function () {
             $('#search_bar').val(req_search_string);
             $('#type-filter-input').val(filter_type_string);
             $('#tag-filter-input').val(filter_tag_string);
@@ -931,7 +939,7 @@ function init_datatable(columnDefs) {
 
             // Enable Hanfor specific requirements table filtering.
             $.fn.dataTable.ext.search.push(
-                function( settings, data, dataIndex ) {
+                function (settings, data) {
                     // data contains the row. data[0] is the content of the first column in the actual row.
                     // Return true to include the row into the data. false to exclude.
                     return evaluate_search(data);
@@ -940,7 +948,7 @@ function init_datatable(columnDefs) {
 
             this.api().draw();
             $('#requirements_table').colResizable({
-                liveDrag:true,
+                liveDrag: true,
                 postbackSafe: true
             });
         }
@@ -951,7 +959,7 @@ function init_datatable(columnDefs) {
 /**
  * Get the color for a tag
  */
-function get_tag_color(tag_name){
+function get_tag_color(tag_name) {
     return tag_colors.hasOwnProperty(tag_name) ? tag_colors[tag_name] : '#5bc0de';
 }
 
@@ -975,7 +983,7 @@ function fetch_available_guesses() {
     function add_available_guess(guess) {
         let template = '<div class="card">' +
             '                    <div class="pl-1 pr-1">' +
-            '                        <p>'+
+            '                        <p>' +
             guess['string'] +
             '                        </p>' +
             '                    </div>' +
@@ -990,7 +998,7 @@ function fetch_available_guesses() {
         available_guesses_cards.append(template);
     }
 
-    $.post( "api/req/get_available_guesses",
+    $.post("api/req/get_available_guesses",
         {
             requirement_id: requirement_id
         },
@@ -1002,7 +1010,7 @@ function fetch_available_guesses() {
                     add_available_guess(data['available_guesses'][i]);
                 }
             }
-    }).done(function () {
+        }).done(function () {
         $('.add_guess').click(function () {
             add_formalization_from_guess($(this).data('scope'), $(this).data('pattern'), $(this).data('mapping'));
         });
@@ -1014,7 +1022,7 @@ function fetch_available_guesses() {
 /**
  * Load requirements datatable definitions. Trigger build of a fresh requirement datatable.
  */
-function load_datatable(){
+function load_datatable() {
     // Initialize the Column defs.
     // First set the static colum definitions.
     let columnDefs = [
@@ -1032,22 +1040,21 @@ function load_datatable(){
         {
             "targets": [2],
             "data": "id",
-            "render": function (data, type, row, meta) {
-                result = '<a href="#">' + utils.escapeHtml(data) + '</a>';
-                return result;
+            "render": function (data) {
+                return '<a href="#">' + utils.escapeHtml(data) + '</a>';
             }
         },
         {
             "targets": [3],
             "data": "desc",
-            "render": function (data, type, row, meta) {
+            "render": function (data) {
                 return '<div class="white-space-pre">' + utils.escapeHtml(data) + '</div>';
             }
         },
         {
             "targets": [4],
             "data": "type",
-            "render": function (data, type, row, meta) {
+            "render": function (data) {
                 if (available_types.indexOf(data) <= -1) {
                     available_types.push(data);
                 }
@@ -1057,8 +1064,8 @@ function load_datatable(){
         {
             "targets": [5],
             "data": "tags",
-            "render": function (data, type, row, meta) {
-                result = '';
+            "render": function (data, type, row) {
+                let result = '';
                 $(data).each(function (id, tag) {
                     if (tag.length > 0) {
                         result += '<span class="badge" style="background-color: ' + get_tag_color(tag) + '">' +
@@ -1095,16 +1102,15 @@ function load_datatable(){
         {
             "targets": [6],
             "data": "status",
-            "render": function (data, type, row, meta) {
-                result = '<span class="badge badge-info">' + data + '</span></br>';
-                return result;
+            "render": function (data) {
+                return '<span class="badge badge-info">' + data + '</span></br>';
             }
         },
         {
             "targets": [7],
             "data": "formal",
-            "render": function (data, type, row, meta) {
-                result = '';
+            "render": function (data, type, row) {
+                let result = '';
                 if (row.formal.length > 0) {
                     $(data).each(function (id, formalization) {
                         if (formalization.length > 0) {
@@ -1117,19 +1123,19 @@ function load_datatable(){
         }
     ];
     // Load generic colums.
-    $.get( "api/table/colum_defs", '', function (data) {
+    $.get("api/table/colum_defs", '', function (data) {
         const dataLength = data['col_defs'].length;
         for (let i = 0; i < dataLength; i++) {
             columnDefs.push(
-            {
-                "targets": [parseInt(data['col_defs'][i]['target'])],
-                "data": data['col_defs'][i]['csv_name'],
-                "visible": false,
-                "searchable": true
-            });
+                {
+                    "targets": [parseInt(data['col_defs'][i]['target'])],
+                    "data": data['col_defs'][i]['csv_name'],
+                    "visible": false,
+                    "searchable": true
+                });
         }
     }).done(function () {
-            init_datatable(columnDefs);
+        init_datatable(columnDefs);
     });
 }
 
@@ -1162,11 +1168,11 @@ function init_modal() {
             },
             showAutocompleteOnFocus: true
         })
-        .change(function (e) {
+        .change(function () {
             requirement_modal.data('unsaved_changes', true);
         });
 
-    $('#requirement_status').change(function() {
+    $('#requirement_status').change(function () {
         $('#requirement_modal').data('unsaved_changes', true);
     });
 
@@ -1175,22 +1181,22 @@ function init_modal() {
     });
 
     // Handle ESC key
-    $(document).keyup(function(e) {
+    $(document).keyup(function (e) {
         // If modal is open and ESC pressed (ESC maps to keyCode "27")
-        if ($('.modal:visible').length && e.keyCode === 27){
+        if ($('.modal:visible').length && e.keyCode === 27) {
             let focused_input = $('input[type=text], textarea, select').filter(":focus");
             // If no input elements in focus => Close modal.
             if (focused_input.length === 0) {
                 // First hide the autoguess modal
-                if($('#requirement_guess_modal:visible').length){
+                if ($('#requirement_guess_modal:visible').length) {
                     $('#requirement_guess_modal').modal('hide');
                 } else {
                     $('#requirement_modal').modal('hide');
                 }
             } else {
                 // Defocus input elements.
-                focused_input.each(function( index ) {
-                    $( this ).blur();
+                focused_input.each(function () {
+                    $(this).blur();
                 });
             }
         }
@@ -1199,7 +1205,7 @@ function init_modal() {
     // Clear the Modal after closing modal.
     // In case of stacked modals and on modal closing:
     // Prevent removal of modal-open class from body if a modal remains. This will keep the scrollbar intact.
-    requirement_modal.on('hidden.bs.modal', function (e) {
+    requirement_modal.on('hidden.bs.modal', function () {
         $('#requirement_tag_field').val('');
         $('#requirement_tag_field-tokenfield').val('');
     });
@@ -1214,16 +1220,18 @@ function init_modal() {
         fetch_available_guesses();
     });
 
-    $(".modal").on('hidden.bs.modal', function (event) {
+    $(".modal").on('hidden.bs.modal', function () {
         if ($('.modal:visible').length) {
             $('body').addClass('modal-open');
         } else {
-            $('textarea').each(function(){autosize.destroy($(this));});
+            $('textarea').each(function () {
+                autosize.destroy($(this));
+            });
         }
     });
 
-    $('#formalization_accordion').on('shown.bs.collapse', '.card', function (e) {
-        $(this).find('textarea').each(function() {
+    $('#formalization_accordion').on('shown.bs.collapse', '.card', function () {
+        $(this).find('textarea').each(function () {
             autosize($(this));
             autosize.update($(this));
         });
@@ -1238,29 +1246,29 @@ function init_modal() {
  * Load the hanfor frontend meta settings.
  */
 function load_meta_settings() {
-    $.get( "api/meta/get", '', function (data) {
+    $.get("api/meta/get", '', function (data) {
         tag_colors = data['tag_colors'];
         available_search_strings = data['available_search_strings'];
-        let search_bar = $( "#search_bar" );
+        let search_bar = $("#search_bar");
         new Awesomplete(search_bar[0], {
-            filter: function(text, input) {
+            filter: function (text, input) {
                 let result = false;
                 // If we have an uneven number of ":"
                 // We check if we have a match in the input tail starting from the last ":"
-                if ((input.split(":").length-1)%2 === 1) {
+                if ((input.split(":").length - 1) % 2 === 1) {
                     result = Awesomplete.FILTER_CONTAINS(text, input.match(/[^:]*$/)[0]);
                 }
-		        return result;
-		    },
-            item: function(text, input) {
+                return result;
+            },
+            item: function (text, input) {
                 // Match inside ":" enclosed item.
-		        return Awesomplete.ITEM(text, input.match(/(:)([\S]*$)/)[2]);
-	        },
-            replace: function(text) {
+                return Awesomplete.ITEM(text, input.match(/(:)([\S]*$)/)[2]);
+            },
+            replace: function (text) {
                 // Cut of the tail starting from the last ":" and replace by item text.
                 const before = this.input.value.match(/(.*)(:(?!.*:).*$)/)[1];
-		        this.input.value = before + text;
-	        },
+                this.input.value = before + text;
+            },
             list: search_autocomplete,
             minChars: 1,
             autoFirst: true
@@ -1278,15 +1286,15 @@ function get_rowidx_by_reqid(rid) {
     let requirement_table = $('#requirements_table').DataTable();
     let result = -1;
     requirement_table
-        .column( 2 )
+        .column(2)
         .data()
-        .filter( function ( value, index ) {
+        .filter(function (value, index) {
             if (String(value) === String(rid)) {
                 result = index;
                 return true;
             }
             return false;
-        } );
+        });
     return result;
 }
 
@@ -1295,14 +1303,14 @@ function get_rowidx_by_reqid(rid) {
  * Refresh the hanfor frontend logs.
  */
 function update_logs() {
-    $.get( "api/logs/get", '', function (data) {
+    $.get("api/logs/get", '', function (data) {
         $('#log_textarea').html(data);
     }).done(function () {
         // Bind direct requirement links to load the modal.
-        $('.req_direct_link').click( function () {
+        $('.req_direct_link').click(function () {
             load_requirement(get_rowidx_by_reqid($(this).data("rid")));
         });
-        $('#log_textarea').scrollTop( 100000 );
+        $('#log_textarea').scrollTop(100000);
     });
 }
 
@@ -1337,23 +1345,22 @@ function evaluate_report() {
         $('#report_results_textarea').val(results).change();
         update_search();
         reqTable.draw();
-    }
-    catch(err) {
+    } catch (err) {
         alert(err);
     }
     body.LoadingOverlay('hide', true);
 }
 
 function load_reports() {
-    $.get( "api/report/get", {},
-    function( data ) {
-        if (data['success'] === false) {
-            alert(data['errormsg']);
-        } else {
-            let result = '';
-            available_reports = data.data;
-            $.each(data.data, function (id, report) {
-                result += `<div class="card border-primary">
+    $.get("api/report/get", {},
+        function (data) {
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                let result = '';
+                available_reports = data.data;
+                $.each(data.data, function (id, report) {
+                    result += `<div class="card border-primary">
                               <div class="card-body">
                                 <h5 class="card-title">${report.name}</h5>
                                 <h6 class="card-subtitle mb-2 text-muted">Query</h6>
@@ -1366,47 +1373,47 @@ function load_reports() {
                                 <a href="#" class="card-link delete-report" data-id="${id}">Delete Report.</a>
                               </div>
                             </div>`;
-            });
-            $('#available_reports').html(result);
-        }
-    });
+                });
+                $('#available_reports').html(result);
+            }
+        });
 }
 
 function save_report() {
     let body = $('body');
     body.LoadingOverlay('show');
 
-    $.post( "api/report/set",
-    {
-        report_querys: $('#report_query_textarea').val(),
-        report_results: $('#report_results_textarea').val(),
-        report_name: $('#report_name').val(),
-        report_id: $('#save_report').attr('data-id')
-    },
-    function( data ) {
-        body.LoadingOverlay('hide', true);
-        if (data['success'] === false) {
-            alert(data['errormsg']);
-        }
-        load_reports();
-    });
+    $.post("api/report/set",
+        {
+            report_querys: $('#report_query_textarea').val(),
+            report_results: $('#report_results_textarea').val(),
+            report_name: $('#report_name').val(),
+            report_id: $('#save_report').attr('data-id')
+        },
+        function (data) {
+            body.LoadingOverlay('hide', true);
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            }
+            load_reports();
+        });
 }
 
 function delete_report(id) {
     $.ajax({
-      type: "DELETE",
-      url: "api/report/delete",
-      data: {report_id: id},
-      success: function (data) {
-        if (data['success'] === false) {
-            alert(data['errormsg']);
+        type: "DELETE",
+        url: "api/report/delete",
+        data: {report_id: id},
+        success: function (data) {
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            }
+            load_reports();
         }
-        load_reports();
-      }
     });
 }
 
-function open_report_modal(source=false){
+function open_report_modal(source = false) {
     let query_textarea = $('#report_query_textarea');
     let results_textarea = $('#report_results_textarea');
     let report_title = $('#report_modal_title');
@@ -1444,10 +1451,10 @@ function init_report_generation() {
         save_report();
     });
     let av_reports = $('#available_reports');
-    av_reports.on('click', '.open-report', function (event) {
+    av_reports.on('click', '.open-report', function () {
         open_report_modal($(this));
     });
-    av_reports.on('click', '.delete-report', function (event) {
+    av_reports.on('click', '.delete-report', function () {
         delete_report($(this).attr('data-id'));
     });
     $('#report_name').change(function () {
@@ -1459,7 +1466,7 @@ function init_report_generation() {
 /**
  * Start the app.
  */
-$(document).ready(function() {
+$(document).ready(function () {
     load_meta_settings();
     load_datatable();
     init_modal();
@@ -1471,8 +1478,8 @@ $(document).ready(function() {
     body.confirmation({
         rootSelector: '.delete_formalization',
         selector: '.delete_formalization',
-        onConfirm: function(value) {
-            delete_formalization( $(this).attr('name'), $(this).closest('.card') );
+        onConfirm: function () {
+            delete_formalization($(this).attr('name'), $(this).closest('.card'));
         }
     });
 
@@ -1484,13 +1491,13 @@ $(document).ready(function() {
     body.on('change', '.formalization_selector', function () {
         update_vars();
     });
-    body.on('shown.bs.modal', '#requirement_modal', function (e) {
-        $( this ).find( 'textarea').each(function ( index ) {
+    body.on('shown.bs.modal', '#requirement_modal', function () {
+        $(this).find('textarea').each(function () {
             autosize($(this));
             autosize.update($(this));
         });
     });
-    body.on('change focus', 'textarea', function (e) {
+    body.on('change focus', 'textarea', function () {
         autosize($(this));
         autosize.update($(this));
     });
