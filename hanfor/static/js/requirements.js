@@ -10,6 +10,7 @@ require('awesomplete');
 require('awesomplete/awesomplete.css');
 require('./colResizable-1.6.min.js');
 
+let utils = require('./hanfor-utils');
 let Cookies = require('js-cookie');
 const autosize = require('autosize');
 
@@ -48,21 +49,6 @@ let filter_tag_string = sessionStorage.getItem('filter_tag_string');
 let filter_type_string = sessionStorage.getItem('filter_type_string');
 let search_tree = undefined;
 let filter_tree = undefined;
-
-
-/**
- * Escape a HTML string for display as a raw string.
- * @param unsafe
- * @returns {string}
- */
-function escapeHtml(unsafe) {
-    return unsafe
-         .replace(/&/g, "&amp;")
-         .replace(/</g, "&lt;")
-         .replace(/>/g, "&gt;")
-         .replace(/"/g, "&quot;")
-         .replace(/'/g, "&#039;");
- }
 
 
 /**
@@ -1047,7 +1033,7 @@ function load_datatable(){
             "targets": [2],
             "data": "id",
             "render": function (data, type, row, meta) {
-                result = '<a href="#">' + escapeHtml(data) + '</a>';
+                result = '<a href="#">' + utils.escapeHtml(data) + '</a>';
                 return result;
             }
         },
@@ -1055,7 +1041,7 @@ function load_datatable(){
             "targets": [3],
             "data": "desc",
             "render": function (data, type, row, meta) {
-                return '<div class="white-space-pre">' + escapeHtml(data) + '</div>';
+                return '<div class="white-space-pre">' + utils.escapeHtml(data) + '</div>';
             }
         },
         {
@@ -1065,7 +1051,7 @@ function load_datatable(){
                 if (available_types.indexOf(data) <= -1) {
                     available_types.push(data);
                 }
-                return escapeHtml(data);
+                return utils.escapeHtml(data);
             }
         },
         {
@@ -1076,7 +1062,7 @@ function load_datatable(){
                 $(data).each(function (id, tag) {
                     if (tag.length > 0) {
                         result += '<span class="badge" style="background-color: ' + get_tag_color(tag) + '">' +
-                            escapeHtml(tag) + '</span></br>';
+                            utils.escapeHtml(tag) + '</span></br>';
                         // Add tag to available tags
                         if (available_tags.indexOf(tag) <= -1) {
                             available_tags.push(tag);
@@ -1122,7 +1108,7 @@ function load_datatable(){
                 if (row.formal.length > 0) {
                     $(data).each(function (id, formalization) {
                         if (formalization.length > 0) {
-                            result += '<div class="white-space-pre">' + escapeHtml(formalization) + '</div>';
+                            result += '<div class="white-space-pre">' + utils.escapeHtml(formalization) + '</div>';
                         }
                     });
                 }
