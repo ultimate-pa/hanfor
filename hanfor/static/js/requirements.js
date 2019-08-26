@@ -1321,51 +1321,6 @@ function update_logs() {
 }
 
 
-function init_search_autocomplete() {
-    let search_bar = $( "#search_bar" );
-
-    $('#store_search').click(function () {
-        let body = $('body');
-        body.LoadingOverlay('show');
-        const new_search_string = search_bar.val();
-        $.post( "api/req_search/update",
-        {
-            query: new_search_string
-        },
-        function( data ) {
-            body.LoadingOverlay('hide', true);
-            if (data['success'] === false) {
-                alert(data['errormsg']);
-            } else {
-                search_bar.effect("highlight", {color: 'green'}, 500);
-                load_meta_settings();
-            }
-        });
-    });
-
-    search_bar.on('keypress', function (e) {
-        if (e.originalEvent.key === 'Delete') {
-            const current_search = search_bar.val();
-            if (available_search_strings.includes(current_search)) {
-                let body = $('body');
-                $.post( "api/req_search/delete",
-                {
-                    query: current_search
-                },
-                function( data ) {
-                    body.LoadingOverlay('hide', true);
-                    if (data['success'] === false) {
-                        alert(data['errormsg']);
-                    } else {
-                        search_bar.effect("highlight", {color: 'green'}, 500);
-                        load_meta_settings();
-                    }
-                });
-            }
-        }
-    });
-}
-
 /**
  * Evaluate the report queries given by the report_query_textarea.
  * Paste the result into the report_results_textarea.
@@ -1522,7 +1477,6 @@ $(document).ready(function() {
     load_meta_settings();
     load_datatable();
     init_modal();
-    init_search_autocomplete();
     update_logs();
     init_report_generation();
 
