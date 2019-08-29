@@ -187,11 +187,16 @@ class Requirement(HanforVersioned, Pickleable):
         self.status = 'Todo'
         self._revision_diff = dict()
 
-    def to_dict(self):
+    def to_dict(self, include_used_vars=False):
         type_inference_errors = dict()
-        for index, f in self.formalizations.items():
+        used_variables = set()
+        for index, f in self.formalizations.items():  # type: Formalization
             if f.has_type_inference_errors():
                 type_inference_errors[index] = [key.lower() for key in f.type_inference_errors.keys()]
+            if include_used_vars:
+                for name in f.used_variables:
+                    used_variables.add(name)
+
         d = {
             'id': self.rid,
             'desc': self.description,
@@ -200,7 +205,7 @@ class Requirement(HanforVersioned, Pickleable):
             'formal': [f.get_string() for f in self.formalizations.values()],
             'scope': 'None',
             'pattern': 'None',
-            'vars': dict(),
+            'vars': sorted([name for name in used_variables]),
             'pos': self.pos_in_csv,
             'status': self.status,
             'csv_data': self.csv_row,
@@ -426,7 +431,6 @@ class Formalization(HanforVersioned):
         self.scoped_pattern = None
         self.expressions_mapping = dict()
         self.belongs_to_requirement = None
-        self.used_variables = None
         self.type_inference_errors = dict()
 
     @property
@@ -435,10 +439,6 @@ class Formalization(HanforVersioned):
         for exp in self.expressions_mapping.values():  # type: Expression
             result += exp.get_used_variables()
         return list(set(result))
-
-    @used_variables.setter
-    def used_variables(self, value):
-        self._used_variables = value
 
     def set_expressions_mapping(self, mapping, variable_collection, app, rid):
         """ Parse expression mapping.

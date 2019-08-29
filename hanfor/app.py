@@ -145,7 +145,7 @@ def api(resource, command):
             requirement = Requirement.load_requirement_by_id(id, app)
             var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
 
-            result = requirement.to_dict()
+            result = requirement.to_dict(include_used_vars=True)
             result['formalizations_html'] = utils.formalizations_to_html(app, requirement.formalizations)
             result['available_vars'] = var_collection.get_available_var_names_list(
                 used_only=False,
