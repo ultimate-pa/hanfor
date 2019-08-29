@@ -4,7 +4,7 @@ from tests.mock_hanfor import MockHanfor
 from unittest import TestCase
 
 
-class TestEnums(TestCase):
+class TestQueryAPI(TestCase):
     def setUp(self) -> None:
         self.mock_hanfor = MockHanfor(
             session_tags=['simple'],
