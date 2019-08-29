@@ -93,8 +93,22 @@ body.modal-open{
     overflow: hidden;
 }
 
+.card-header .btn-link {
+    text-align: left;
+    white-space: nowrap;
+}
+
 .report-results{
     white-space:pre-wrap;
+}
+
+/* Lower default space usage for  formalizations */
+#formalization_accordion .card {
+    margin-top: 0.25rem;
+}
+
+#formalization_accordion .card-header {
+    padding: 0.25rem 0.25rem;
 }
 
 /**
