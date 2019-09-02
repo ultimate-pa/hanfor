@@ -39,7 +39,7 @@ let available_reports = [];
 let available_search_strings = [''];
 let visible_columns = [true, true, true, true, true, true];
 let filter_search_array = [];
-let get_query = JSON.parse(search_query); // search_query is set in index.html
+let get_query = JSON.parse(search_query); // search_query is set in layout.html
 let tag_colors = {};
 let type_inference_errors = [];
 let req_search_string = sessionStorage.getItem('req_search_string');
@@ -97,39 +97,6 @@ function update_filter() {
 
 function evaluate_search(data) {
     return search_tree.evaluate(data, visible_columns) && filter_tree.evaluate(data, visible_columns);
-}
-
-/**
- * Apply a URL search query to the requirements table.
- * @param get_query
- */
-function process_url_query(get_query) {
-    // Apply search if we have one.
-    if (typeof (get_query.q) !== "undefined") {
-        /**
-         * Pad a Number string with 0 prefix (max length is 2).
-         * Examples: 2 -> 02, '' -> 00, 12 -> 12, 123 -> 23
-         * @param num
-         * @returns {string}
-         */
-        function pad(num) {
-            let s = "00" + num;
-            return s.substr(s.length - 2);
-        }
-
-        // Clear filters.
-        $('#status-filter-input').val('');
-        $('#tag-filter-input').val('');
-        $('#type-filter-input').val('');
-
-        // Create the search string.
-        let s = get_query.q;
-        if (typeof (get_query.col) !== "undefined") {
-            s = ':COL_INDEX_' + pad(get_query.col).toString() + ':' + s;
-        }
-        // Apply the search string
-        $('#search_bar').val(s);
-    }
 }
 
 /**
@@ -357,6 +324,27 @@ function update_vars() {
 
 
 /**
+ * Variables in a formalization pattern variable into links to that variable.
+ * Example: foo || bar -> <a href ...>foo</a> || <a href ...>bar</a>
+ * @param variable
+ * @returns {string}
+ */
+function parse_vars_to_link(variable) {
+    let result = '';
+    variable.split(' ').forEach(function (chunk) {
+        if ( available_vars.includes(chunk) ) {
+            let search_query = '?command=search&col=1&q=%5C%22' + chunk + '%5C%22';
+            result += '<a href="./variables' + search_query + '" target="_blank"' +
+                '  title="Go to declaration of ' + chunk + '" class="alert-link">' + chunk + '</a>';
+        } else {
+            result += chunk;
+        }
+    });
+    return result;
+}
+
+
+/**
  * Updates the formalization textarea based on the selected scope and expressions in P, Q, R, S, T.
  */
 function update_formalization() {
@@ -382,25 +370,25 @@ function update_formalization() {
         let var_u = $('#formalization_var_u' + formalization_id).val();
 
         if (var_p.length > 0) {
-            formalization = formalization.replace(/{P}/g, var_p);
+            formalization = formalization.replace(/{P}/g, parse_vars_to_link(var_p));
         }
         if (var_q.length > 0) {
-            formalization = formalization.replace(/{Q}/g, var_q);
+            formalization = formalization.replace(/{Q}/g, parse_vars_to_link(var_q));
         }
         if (var_r.length > 0) {
-            formalization = formalization.replace(/{R}/g, var_r);
+            formalization = formalization.replace(/{R}/g, parse_vars_to_link(var_r));
         }
         if (var_s.length > 0) {
-            formalization = formalization.replace(/{S}/g, var_s);
+            formalization = formalization.replace(/{S}/g, parse_vars_to_link(var_s));
         }
         if (var_t.length > 0) {
-            formalization = formalization.replace(/{T}/g, var_t);
+            formalization = formalization.replace(/{T}/g, parse_vars_to_link(var_t));
         }
         if (var_u.length > 0) {
-            formalization = formalization.replace(/{U}/g, var_u);
+            formalization = formalization.replace(/{U}/g, parse_vars_to_link(var_u));
         }
 
-        formalization_textarea.val(formalization).change();
+        formalization_textarea.html(formalization);
         autosize.update(formalization_textarea);
     });
     $('#requirement_modal').data({
@@ -654,6 +642,19 @@ function load_requirement(row_idx) {
                 revision_diff_content.append('<p><strong>' + key + ':</strong><pre>' + value + '</pre></p>');
             }
         }
+
+        // Set used variables data.
+        let used_variables_accordion = $('#used_variables_accordion');
+        used_variables_accordion.html('');
+        used_variables_accordion.collapse('hide');
+        data.vars.forEach(function (var_name) {
+          used_variables_accordion.append(
+              '<span class="badge badge-info">' +
+              '<a href="./?command=search&amp;col=" target="_blank">' + var_name + '</a>' +
+              '</span>&numsp;'
+          );
+        });
+
     }).done(function () {
         // Update visible Vars.
         update_vars();
@@ -666,6 +667,7 @@ function load_requirement(row_idx) {
             'unsaved_changes': false,
             'updated_formalization': false
         });
+        update_formalization();
         requirement_modal_content.LoadingOverlay('hide', true);
     });
 }
@@ -933,7 +935,7 @@ function init_datatable(columnDefs) {
             bind_requirement_id_to_modals(requirements_table);
             init_datatable_manipulators(requirements_table);
 
-            process_url_query(get_query);
+            utils.process_url_query(get_query);
             update_search();
             update_filter();
 

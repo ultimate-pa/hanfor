@@ -30,6 +30,7 @@ body.modal-open{
 
 #tags_table .badge-info a,
 #variables_table .badge-info a,
+#used_variables_accordion .badge-info a,
 #requirements_table td a {
     color: #000;
 }
@@ -109,6 +110,10 @@ body.modal-open{
 
 #formalization_accordion .card-header {
     padding: 0.25rem 0.25rem;
+}
+
+.formalization-preview {
+    white-space: pre-line;
 }
 
 /**

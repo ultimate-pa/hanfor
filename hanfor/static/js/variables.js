@@ -9,6 +9,7 @@ require('jquery-ui/ui/effects/effect-highlight');
 require('awesomplete');
 require('awesomplete/awesomplete.css');
 require('./colResizable-1.6.min.js');
+let utils = require('./hanfor-utils');
 
 // Globals
 let available_types = ['CONST', 'ENUM_INT', 'ENUM_REAL'];
@@ -26,6 +27,7 @@ let type_inference_errors = [];
 const {SearchNode} = require('./datatables-advanced-search.js');
 let search_tree = undefined;
 let visible_columns = [true, true, true, true, true];
+let get_query = JSON.parse(search_query); // search_query is set in layout.html
 
 
 /**
@@ -856,6 +858,7 @@ $(document).ready(function () {
                 load_variable(get_rowidx_by_var_name($(this).data('name')));
             });
 
+            utils.process_url_query(get_query);
             update_search();
 
             // Enable Hanfor specific table filtering.
