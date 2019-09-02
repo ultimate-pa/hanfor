@@ -75,6 +75,9 @@
     </main>
     <script type="text/javascript" src="{{ url_for('static', filename='dist/commons-bundle.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='dist/layout_globals-bundle.js') }}"></script>
+    <script type="text/javascript">
+        let search_query = '{{ query|tojson }}';
+    </script>
     {% block scripts %}
     {% endblock %}
     </body>
