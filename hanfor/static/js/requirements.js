@@ -333,8 +333,8 @@ function parse_vars_to_link(variable) {
     let result = '';
     variable.split(' ').forEach(function (chunk) {
         if ( available_vars.includes(chunk) ) {
-            let search_query = '?command=search&col=1&q=%5C%22' + chunk + '%5C%22';
-            result += '<a href="./variables' + search_query + '" target="_blank"' +
+            let query = '?command=search&col=1&q=%5C%22' + chunk + '%5C%22';
+            result += '<a href="./variables' + query + '" target="_blank"' +
                 '  title="Go to declaration of ' + chunk + '" class="alert-link">' + chunk + '</a>';
         } else {
             result += chunk;
@@ -648,11 +648,12 @@ function load_requirement(row_idx) {
         used_variables_accordion.html('');
         used_variables_accordion.collapse('hide');
         data.vars.forEach(function (var_name) {
-          used_variables_accordion.append(
+            let query = '?command=search&col=1&q=%5C%22' + var_name + '%5C%22';
+            used_variables_accordion.append(
               '<span class="badge badge-info">' +
-              '<a href="./?command=search&amp;col=" target="_blank">' + var_name + '</a>' +
+              '<a href="./variables' + query + '" target="_blank">' + var_name + '</a>' +
               '</span>&numsp;'
-          );
+            );
         });
 
     }).done(function () {
