@@ -64,6 +64,7 @@ class MockHanfor:
         mock_results = user_mock_answers
 
         startup_hanfor(args, self.here)
+        app.config['TEMPLATES_FOLDER'] = os.path.join(self.here, '..', 'templates')
 
     def tearDown(self):
         # Clean test dir.

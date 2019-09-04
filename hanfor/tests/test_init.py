@@ -81,7 +81,7 @@ class TestInit(TestCase):
              'status': 'Todo',
              'pos': 1,
              'revision_diff': {},
-             'vars': {},
+             'vars': [],
              'scope': 'None',
              'tags': [],
              'desc': 'Dont worry, be happy',
@@ -100,7 +100,7 @@ class TestInit(TestCase):
              'pattern': 'None',
              'pos': 0,
              'revision_diff': {},
-             'vars': {},
+             'vars': [],
              'scope': 'None',
              'tags': [],
              'desc': 'always look on the bright side of life',
@@ -116,6 +116,31 @@ class TestInit(TestCase):
              }
         ]
         self.assertListEqual(result.json['data'], desired_reqs)
+
+        result = self.app.get('api/req/get?id=SysRS FooXY_42')
+        desired_req = {
+            'id': 'SysRS FooXY_42',
+            'type_inference_errors': {},
+            'csv_data': {
+                'type_header': 'req',
+                'id_header': 'SysRS FooXY_42',
+                'desc_header': 'Dont worry, be happy',
+                'formal_header': 'Globally, it is never the case, that WORRY holds; Globally, it is always the case, that HAPPY holds.'
+            },
+            'status': 'Todo',
+            'available_vars': [],
+            'desc': 'Dont worry, be happy',
+            'formal': [],
+            'vars': [],
+            'tags': [],
+            'pattern': 'None',
+            'pos': 1,
+            'scope': 'None',
+            'type': 'req',
+            'formalizations_html': '',
+            'revision_diff': {}
+        }
+        self.assertDictEqual(result.json, desired_req)
 
     def tearDown(self):
         # Clean test dir.

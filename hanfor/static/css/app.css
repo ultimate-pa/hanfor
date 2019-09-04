@@ -30,6 +30,7 @@ body.modal-open{
 
 #tags_table .badge-info a,
 #variables_table .badge-info a,
+#used_variables_accordion .badge-info a,
 #requirements_table td a {
     color: #000;
 }
@@ -58,7 +59,6 @@ body.modal-open{
 #report_modal .modal-lg {
     max-width: 90%;
 }
-
 
 /**
  Textcomplete styling.
@@ -94,8 +94,26 @@ body.modal-open{
     overflow: hidden;
 }
 
+.card-header .btn-link {
+    text-align: left;
+    white-space: nowrap;
+}
+
 .report-results{
     white-space:pre-wrap;
+}
+
+/* Lower default space usage for  formalizations */
+#formalization_accordion .card {
+    margin-top: 0.25rem;
+}
+
+#formalization_accordion .card-header {
+    padding: 0.25rem 0.25rem;
+}
+
+.formalization-preview {
+    white-space: pre-line;
 }
 
 /**
@@ -178,4 +196,17 @@ div.awesomplete .form-control {
 
 .white-space-pre {
     white-space: pre-wrap;
+}
+
+.search-input-clear-span {
+    width: 240px;
+}
+
+.clear-all-filters {
+    width: inherit;
+}
+
+tr.selected > td {
+    color: white !important;
+    background-color: #1d00d8 !important;
 }

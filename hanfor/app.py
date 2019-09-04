@@ -107,7 +107,6 @@ def api(resource, command):
         'tag',
         'meta',
         'logs',
-        'req_search',
         'report'
     ]
     commands = [
@@ -146,7 +145,7 @@ def api(resource, command):
             requirement = Requirement.load_requirement_by_id(id, app)
             var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
 
-            result = requirement.to_dict()
+            result = requirement.to_dict(include_used_vars=True)
             result['formalizations_html'] = utils.formalizations_to_html(app, requirement.formalizations)
             result['available_vars'] = var_collection.get_available_var_names_list(
                 used_only=False,
@@ -659,12 +658,6 @@ def api(resource, command):
         if command == 'get':
             return utils.get_flask_session_log(app, html=True)
 
-    if resource == 'req_search':
-        if command == 'update':
-            return jsonify(utils.update_req_search(app, request)), 200
-        if command == 'delete':
-            return jsonify(utils.update_req_search(app, request, delete=True)), 200
-
     if resource == 'report':
             return Report(app, request).apply_request()
 
@@ -677,7 +670,7 @@ def api(resource, command):
 @app.route('/variable_import/<id>', methods=['GET'])
 @nocache
 def variable_import(id):
-    return render_template('variable-import-session.html', id=id)
+    return render_template('variable-import-session.html', id=id, query=request.args)
 
 
 @app.route('/variable_import/api/<session_id>/<command>', methods=['GET', 'POST'])
@@ -800,12 +793,13 @@ def site(site):
             return render_template(
                 '{}.html'.format(site),
                 available_sessions=available_sessions,
-                running_import_sessions=running_import_sessions
+                running_import_sessions=running_import_sessions,
+                query=request.args
             )
         else:
-            return render_template('{}.html'.format(site))
+            return render_template('{}.html'.format(site), query=request.args)
     else:
-        return render_template('404.html'), 404
+        return render_template('404.html', query=request.args), 404
 
 
 @app.route('/')

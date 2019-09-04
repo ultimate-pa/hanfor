@@ -12,8 +12,15 @@
                     </button>
                 </div>
                 <div class="modal-body">
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text" id="report_name_label">Report Name</span>
+                      </div>
+                      <input id="report_name" type="text" class="form-control" placeholder="Report Name"
+                             aria-label="ReportName" aria-describedby="report_name_label">
+                    </div>
                     <h5>Report Query.</h5>
-                    <p>Add one search query per line.</p>
+                    <p>Add one search query per line. Name a query by starting it with <code>:NAME:`foo`</code>.</p>
                     <div class="row form-inline">
                         <div class="input-group col-md-12">
                             <textarea rows="6" type="text" class="form-control" id="report_query_textarea"></textarea>

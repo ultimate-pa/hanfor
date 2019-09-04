@@ -3,6 +3,7 @@ require('bootstrap');
 require('bootstrap-confirmation2');
 require('datatables.net-bs4');
 require('jquery-ui/ui/widgets/autocomplete');
+require('jquery-ui/ui/effects/effect-highlight');
 require('./bootstrap-tokenfield.js');
 require('awesomplete');
 require('awesomplete/awesomplete.css');
@@ -266,5 +267,11 @@ $(document).ready(function() {
 
     $('#tag_modal').on('shown.bs.modal', function (e) {
         autosize.update($('#tag-description'));
-    })
+    });
+
+    $('.clear-all-filters').click(function () {
+        $('#search_bar').val('').effect("highlight", {color: 'green'}, 500);
+        update_search();
+        tags_datatable.draw();
+    });
 } );

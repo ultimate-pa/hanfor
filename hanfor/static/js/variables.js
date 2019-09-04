@@ -9,6 +9,7 @@ require('jquery-ui/ui/effects/effect-highlight');
 require('awesomplete');
 require('awesomplete/awesomplete.css');
 require('./colResizable-1.6.min.js');
+let utils = require('./hanfor-utils');
 
 // Globals
 let available_types = ['CONST', 'ENUM_INT', 'ENUM_REAL'];
@@ -23,9 +24,10 @@ let search_autocomplete = [
 ];
 let var_search_string = sessionStorage.getItem('var_search_string');
 let type_inference_errors = [];
-const { SearchNode } = require('./datatables-advanced-search.js');
+const {SearchNode} = require('./datatables-advanced-search.js');
 let search_tree = undefined;
 let visible_columns = [true, true, true, true, true];
+let get_query = JSON.parse(search_query); // search_query is set in layout.html
 
 
 /**
@@ -33,7 +35,7 @@ let visible_columns = [true, true, true, true, true];
  * @param data
  * @returns {bool|XPathResult}
  */
-function evaluate_search(data){
+function evaluate_search(data) {
     return search_tree.evaluate(data, visible_columns);
 }
 
@@ -69,24 +71,24 @@ function store_variable(variables_table) {
 
     // Fetch the constraints
     let constraints = {};
-    $('.formalization_card').each(function ( index ) {
+    $('.formalization_card').each(function () {
         // Scope and Pattern
         let constraint = {};
         constraint['id'] = $(this).attr('title');
-        $( this ).find( 'select').each( function () {
-            if ($( this ).hasClass('scope_selector')) {
-                constraint['scope'] = $( this ).val();
+        $(this).find('select').each(function () {
+            if ($(this).hasClass('scope_selector')) {
+                constraint['scope'] = $(this).val();
             }
-            if ($( this ).hasClass('pattern_selector')) {
-                constraint['pattern'] = $( this ).val();
+            if ($(this).hasClass('pattern_selector')) {
+                constraint['pattern'] = $(this).val();
             }
         });
 
         // Expressions
         constraint['expression_mapping'] = {};
-        $( this ).find( "textarea.reqirement-variable" ).each(function () {
+        $(this).find("textarea.reqirement-variable").each(function () {
             if ($(this).attr('title') !== '')
-            constraint['expression_mapping'][$(this).attr('title')] = $(this).val();
+                constraint['expression_mapping'][$(this).attr('title')] = $(this).val();
         });
 
         constraints[constraint['id']] = constraint;
@@ -101,7 +103,7 @@ function store_variable(variables_table) {
     let enumerators = [];
     if ((var_type === 'ENUM_INT') || (var_type === 'ENUM_REAL')) {
         // Fetch enumerators.
-        $('.enumerator-input').each(function (index, elem) {
+        $('.enumerator-input').each(function () {
             let enum_name = $(this).find('.enum_name_input').val();
             let enum_value = $(this).find('.enum_value_input').val();
             enumerators.push([enum_name, enum_value]);
@@ -109,7 +111,7 @@ function store_variable(variables_table) {
     }
 
     // Store the variable.
-    $.post( "api/var/update",
+    $.post("api/var/update",
         {
             name: var_name,
             name_old: var_name_old,
@@ -125,7 +127,7 @@ function store_variable(variables_table) {
             belongs_to_enum_old: belongs_to_enum_old
         },
         // Update var table on success or show an error message.
-        function( data ) {
+        function (data) {
             var_modal_content.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
@@ -137,7 +139,7 @@ function store_variable(variables_table) {
                     $('#variable_modal').modal('hide');
                 }
             }
-    });
+        });
 }
 
 /**
@@ -147,23 +149,22 @@ function start_import_session() {
     let variable_import_modal = $('#variable_import_modal');
     let sess_name = $('#variable_import_sess_name').val();
     let sess_revision = $('#variable_import_sess_revision').val();
-    let import_option = $('#import_option').val();
 
     variable_import_modal.LoadingOverlay('show');
 
-    $.post( "api/var/start_import_session",
+    $.post("api/var/start_import_session",
         {
             sess_name: sess_name,
             sess_revision: sess_revision
         },
-        function( data ) {
+        function (data) {
             variable_import_modal.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
                 window.location.href = base_url + "variable_import/" + data['session_id'];
             }
-    });
+        });
 }
 
 
@@ -183,12 +184,12 @@ function open_import_modal(sess_name, sess_revision) {
 
     // Load informations about selected var collection
     variable_import_modal.LoadingOverlay('show');
-    $.post( "api/var/var_import_info",
+    $.post("api/var/var_import_info",
         {
             sess_name: sess_name,
             sess_revision: sess_revision
         },
-        function( data ) {
+        function (data) {
             variable_import_modal.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
@@ -196,7 +197,7 @@ function open_import_modal(sess_name, sess_revision) {
                 $('#import_tot_number').html('Total:\t' + data['tot_vars'] + ' Variables.');
                 $('#import_new_number').html('New:\t' + data['new_vars'] + ' Variables.');
             }
-    });
+        });
 }
 
 
@@ -205,32 +206,32 @@ function open_import_modal(sess_name, sess_revision) {
  * @param variables_table
  * @param del
  */
-function apply_multi_edit(variables_table, del=false) {
+function apply_multi_edit(variables_table, del = false) {
     let page = $('body');
     page.LoadingOverlay('show');
     let change_type = $('#multi-change-type-input').val().trim();
     let selected_vars = [];
-    variables_table.rows( {selected:true} ).every( function () {
+    variables_table.rows({selected: true}).every(function () {
         let d = this.data();
         selected_vars.push(d['name']);
-    } );
+    });
 
     // Update selected vars.
-    $.post( "api/var/multi_update",
+    $.post("api/var/multi_update",
         {
             change_type: change_type,
             selected_vars: JSON.stringify(selected_vars),
             del: del
         },
         // Update requirements table on success or show an error message.
-        function( data ) {
+        function (data) {
             page.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
                 location.reload();
             }
-    });
+        });
 }
 
 
@@ -239,10 +240,10 @@ function apply_multi_edit(variables_table, del=false) {
  */
 function update_displayed_constraint_inputs() {
     $('.requirement_var_group').each(function () {
-        $( this ).hide();
+        $(this).hide();
     });
 
-    $('.formalization_card').each(function ( index ) {
+    $('.formalization_card').each(function () {
         // Fetch attributes
         const formalization_id = $(this).attr('title');
         const selected_scope = $('#requirement_scope' + formalization_id).val();
@@ -254,7 +255,7 @@ function update_displayed_constraint_inputs() {
         let var_t = $('#requirement_var_group_t' + formalization_id);
         let var_u = $('#requirement_var_group_u' + formalization_id);
 
-        switch(selected_scope) {
+        switch (selected_scope) {
             case 'BEFORE':
             case 'AFTER':
                 var_p.show();
@@ -268,7 +269,7 @@ function update_displayed_constraint_inputs() {
                 break;
         }
 
-        switch(selected_pattern) {
+        switch (selected_pattern) {
             case 'Absence':
             case 'Universality':
             case 'Existence':
@@ -320,7 +321,7 @@ function update_displayed_constraint_inputs() {
  * Updates the formalization textarea based on the selected scope and expressions in P, Q, R, S, T.
  */
 function update_formalization() {
-    $('.formalization_card').each(function ( index ) {
+    $('.formalization_card').each(function () {
         // Fetch attributes
         const formalization_id = $(this).attr('title');
 
@@ -381,19 +382,19 @@ function delete_constraint(constraint_id) {
     let requirement_modal_content = $('.modal-content');
     requirement_modal_content.LoadingOverlay('show');
     const var_name = $('#variable_name').val();
-    $.post( "api/var/del_constraint",
+    $.post("api/var/del_constraint",
         {
             name: var_name,
             constraint_id: constraint_id
         },
-        function( data ) {
+        function (data) {
             requirement_modal_content.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
                 $('#formalization_accordion').html(data['html']);
             }
-    }).done(function () {
+        }).done(function () {
         update_displayed_constraint_inputs();
         update_formalization();
         bind_expression_buttons();
@@ -410,9 +411,9 @@ function bind_expression_buttons() {
         update_formalization();
     });
     $('.delete_formalization').confirmation({
-      rootSelector: '.delete_formalization'
+        rootSelector: '.delete_formalization'
     }).click(function () {
-        delete_constraint( $(this).attr('name') );
+        delete_constraint($(this).attr('name'));
     });
 }
 
@@ -424,22 +425,21 @@ function add_constraint() {
 
     // Get data.
     const var_name = $('#variable_name').val();
-    const associated_row_id = parseInt($('#modal_associated_row_index').val());
 
     // Store the variable.
-    $.post( "api/var/new_constraint",
+    $.post("api/var/new_constraint",
         {
             name: var_name
         },
         // Update var table on success or show an error message.
-        function( data ) {
+        function (data) {
             var_modal_content.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
                 $('#formalization_accordion').html(data['html']);
             }
-    }).done(function () {
+        }).done(function () {
         update_displayed_constraint_inputs();
         update_formalization();
         bind_expression_buttons();
@@ -448,18 +448,18 @@ function add_constraint() {
 
 
 function get_variable_constraints_html(var_name) {
-    $.post( "api/var/get_constraints_html",
+    $.post("api/var/get_constraints_html",
         {
             name: var_name
         },
-        function( data ) {
+        function (data) {
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
                 type_inference_errors = data.type_inference_errors;
                 $('#formalization_accordion').html(data['html']);
             }
-    }).done(function () {
+        }).done(function () {
         update_displayed_constraint_inputs();
         update_formalization();
         bind_expression_buttons();
@@ -473,7 +473,7 @@ function is_constraint_link(name) {
     let match = regex.exec(name);
 
     if (match !== null) {
-      result = match[2];
+        result = match[2];
     }
 
     return result
@@ -488,7 +488,7 @@ function get_rowidx_by_var_name(name) {
     let variables_table = $('#variables_table').DataTable();
     let result = -1;
     variables_table
-        .row( function ( idx, data, node ) {
+        .row(function (idx, data) {
             if (data.name === name) {
                 result = idx;
             }
@@ -511,7 +511,7 @@ function show_variable_val_input(revert) {
 }
 
 
-function show_belongs_to_enum_input(revert=false) {
+function show_belongs_to_enum_input(revert = false) {
     if (revert === true) {
         $('#variable_belongs_to_form_group').hide();
     } else {
@@ -519,7 +519,7 @@ function show_belongs_to_enum_input(revert=false) {
     }
 }
 
-function show_enumerators_in_modal(revert=false) {
+function show_enumerators_in_modal(revert = false) {
     if (revert === true) {
         $('.enum-controls').hide();
     } else {
@@ -529,11 +529,11 @@ function show_enumerators_in_modal(revert=false) {
 
 
 function load_enumerators_to_modal(var_name) {
-    $.post( "api/var/get_enumerators",
+    $.post("api/var/get_enumerators",
         {
             name: var_name
         },
-        function( data ) {
+        function (data) {
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
@@ -543,7 +543,7 @@ function load_enumerators_to_modal(var_name) {
                     add_enumerator_template(stripped_name, item[1]);
                 })
             }
-    }).done(function () {
+        }).done(function () {
         update_displayed_constraint_inputs();
         update_formalization();
         bind_expression_buttons();
@@ -604,7 +604,9 @@ function load_variable(row_idx) {
     type_input.autocomplete({
         minLength: 0,
         source: available_types
-    }).on('focus', function() { $(this).keydown(); });
+    }).on('focus', function () {
+        $(this).keydown();
+    });
 
     // Load constraints
     get_variable_constraints_html(data.name);
@@ -617,30 +619,30 @@ function add_variable_via_modal() {
     const new_variable_name = $('#new_variable_name').val();
     const new_variable_type = $('#new_variable_type').val();
     const new_variable_value = $('#new_variable_const_value').val();
-    $.post( "api/var/add_new_variable",
-    {
-        name: new_variable_name,
-        type: new_variable_type,
-        value: new_variable_value
-    },
-    function( data ) {
-        if (data['success'] === false) {
-            alert(data['errormsg']);
-        } else {
-            location.reload();
-        }
-    });
+    $.post("api/var/add_new_variable",
+        {
+            name: new_variable_name,
+            type: new_variable_type,
+            value: new_variable_value
+        },
+        function (data) {
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                location.reload();
+            }
+        });
 }
 
 
 function add_enumerator_template(name, value) {
     const enumerator_template = `
         <div class="input-group enumerator-input">
-            <span class="input-group-addon">Name</span>
+            <span class="input-group-prepend input-group-text">Name</span>
             <input class="form-control enum_name_input" type="text" value="${name}">
-            <span class="input-group-addon">Value</span>
+            <span class="input-group-prepend input-group-text">Value</span>
             <input class="form-control enum_value_input" type="number" step="any" value="${value}">
-            <buttton type="button" class="btn btn-danger input-group-addon del_enum" data-name="${name}">Delete</buttton>
+            <buttton type="button" class="btn btn-danger input-group-append del_enum" data-name="${name}">Delete</buttton>
         </div>`;
     $('#enumerators').append(enumerator_template);
 }
@@ -649,18 +651,18 @@ function add_enumerator_template(name, value) {
 function delete_enumerator(enum_name, enumerator_name, enum_dom) {
     let var_modal = $('#variable_modal');
     var_modal.LoadingOverlay('show');
-    $.post( "api/var/del_var",
-    {
-        name: enum_name + '_' + enumerator_name
-    },
-    function( data ) {
-        var_modal.LoadingOverlay('hide', true);
-        if (data['success'] === false) {
-            alert(data['errormsg']);
-        } else {
-            enum_dom.remove();
-        }
-    });
+    $.post("api/var/del_var",
+        {
+            name: enum_name + '_' + enumerator_name
+        },
+        function (data) {
+            var_modal.LoadingOverlay('hide', true);
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                enum_dom.remove();
+            }
+        });
 }
 
 
@@ -672,7 +674,7 @@ function delete_enumerator(enum_name, enumerator_name, enum_dom) {
  * @param pasted_text
  * @returns {boolean}
  */
-function has_smart_input_form(pasted_text){
+function has_smart_input_form(pasted_text) {
     const array_of_lines = pasted_text.match(/[^\r\n]+/g);
     if (array_of_lines.length <= 0) {
         return false;
@@ -700,7 +702,7 @@ function has_smart_input_form(pasted_text){
  * @param pasted_text
  * @returns {Array}
  */
-function get_smart_input_array(pasted_text){
+function get_smart_input_array(pasted_text) {
     const array_of_lines = pasted_text.match(/[^\r\n]+/g);
     let result = [];
     for (const line of array_of_lines) {
@@ -714,20 +716,20 @@ function get_smart_input_array(pasted_text){
 /**
  * Show the value input for new consts if type CONST is selected.
  */
-function update_new_var_const_value_input(){
+function update_new_var_const_value_input() {
     const current_type = $('#new_variable_type').val();
     let value_input = $('#new_variable_const_input');
     current_type === 'CONST' ? value_input.show() : value_input.hide();
 }
 
 
-$(document).ready(function() {
+$(document).ready(function () {
     // Prepare and load the variables table.
     let variables_table = $('#variables_table').DataTable({
         "paging": true,
         "stateSave": true,
         "select": {
-            style:    'os',
+            style: 'os',
             selector: 'td:first-child'
         },
         "pageLength": 50,
@@ -747,15 +749,14 @@ $(document).ready(function() {
             {
                 "data": "name",
                 "targets": [1],
-                "render": function ( data, type, row, meta ) {
-                    result = '<a class="modal-opener" href="#">' + data + '</span></br>';
-                    return result;
+                "render": function (data) {
+                    return '<a class="modal-opener" href="#">' + data + '</span></br>';
                 }
             },
             {
                 "data": "type",
                 "targets": [2],
-                "render": function ( data, type, row, meta ) {
+                "render": function (data, type, row) {
                     if (data !== null && available_types.indexOf(data) <= -1) {
                         available_types.push(data);
                     }
@@ -768,14 +769,14 @@ $(document).ready(function() {
             {
                 "data": "used_by",
                 "targets": [3],
-                "render": function ( data, type, row, meta ) {
+                "render": function (data, type, row) {
                     let result = '';
                     let search_all = '';
                     if ($.inArray('Type_inference_error', row.tags) > -1) {
                         result += '<span class="badge badge-danger">' +
-                                    '<a href="#" class="variable_link" ' +
-                                    'data-name="' + row.name + '" >Has type inference error</a>' +
-                                    '</span> ';
+                            '<a href="#" class="variable_link" ' +
+                            'data-name="' + row.name + '" >Has type inference error</a>' +
+                            '</span> ';
                     }
                     $(data).each(function (id, name) {
                         if (name.length > 0) {
@@ -816,7 +817,7 @@ $(document).ready(function() {
             {
                 "data": "script_results",
                 "targets": [4],
-                "render": function ( data, type, row, meta ) {
+                "render": function (data) {
                     return data;
                 }
             },
@@ -825,8 +826,8 @@ $(document).ready(function() {
                 "targets": [5],
                 "visible": false,
                 "searchable": false,
-                "render": function ( data, type, row, meta ) {
-                    result = '';
+                "render": function (data) {
+                    let result = '';
                     $(data).each(function (id, name) {
                         if (name.length > 0) {
                             if (result.length > 1) {
@@ -839,29 +840,30 @@ $(document).ready(function() {
                 }
             }
         ],
-        infoCallback: function( settings, start, end, max, total, pre ) {
-            var api = this.api();
-            var pageInfo = api.page.info();
+        infoCallback: function (settings, start, end, max, total) {
+            let api = this.api();
+            let pageInfo = api.page.info();
 
-            $('#clear-all-filters-text').html("Showing " + total +"/"+ pageInfo.recordsTotal + ". Clear all.");
+            $('#clear-all-filters-text').html("Showing " + total + "/" + pageInfo.recordsTotal + ". Clear all.");
 
             let result = "Showing " + start + " to " + end + " of " + total + " entries";
             result += " (filtered from " + pageInfo.recordsTotal + " total entries).";
 
             return result;
         },
-        initComplete : function() {
+        initComplete: function () {
             $('#search_bar').val(var_search_string);
             $('.variable_link').click(function (event) {
                 event.preventDefault();
                 load_variable(get_rowidx_by_var_name($(this).data('name')));
             });
 
+            utils.process_url_query(get_query);
             update_search();
 
             // Enable Hanfor specific table filtering.
             $.fn.dataTable.ext.search.push(
-                function( settings, data, dataIndex ) {
+                function (settings, data) {
                     // data contains the row. data[0] is the content of the first column in the actual row.
                     // Return true to include the row into the data. false to exclude.
                     return evaluate_search(data);
@@ -870,7 +872,7 @@ $(document).ready(function() {
 
             this.api().draw();
             $('#variables_table').colResizable({
-                liveDrag:true,
+                liveDrag: true,
                 postbackSafe: true
             });
         }
@@ -881,32 +883,32 @@ $(document).ready(function() {
     let search_bar = $('#search_bar');
     // Init search Bar Autocomplete
     new Awesomplete(search_bar[0], {
-            filter: function(text, input) {
-                let result = false;
-                // If we have an uneven number of ":"
-                // We check if we have a match in the input tail starting from the last ":"
-                if ((input.split(":").length-1)%2 === 1) {
-                    result = Awesomplete.FILTER_CONTAINS(text, input.match(/[^:]*$/)[0]);
-                }
-		        return result;
-		    },
-            item: function(text, input) {
-                // Match inside ":" enclosed item.
-		        return Awesomplete.ITEM(text, input.match(/(:)([\S]*$)/)[2]);
-	        },
-            replace: function(text) {
-                // Cut of the tail starting from the last ":" and replace by item text.
-                const before = this.input.value.match(/(.*)(:(?!.*:).*$)/)[1];
-		        this.input.value = before + text;
-	        },
-            list: search_autocomplete,
-            minChars: 1,
-            autoFirst: true
+        filter: function (text, input) {
+            let result = false;
+            // If we have an uneven number of ":"
+            // We check if we have a match in the input tail starting from the last ":"
+            if ((input.split(":").length - 1) % 2 === 1) {
+                result = Awesomplete.FILTER_CONTAINS(text, input.match(/[^:]*$/)[0]);
+            }
+            return result;
+        },
+        item: function (text, input) {
+            // Match inside ":" enclosed item.
+            return Awesomplete.ITEM(text, input.match(/(:)([\S]*$)/)[2]);
+        },
+        replace: function (text) {
+            // Cut of the tail starting from the last ":" and replace by item text.
+            const before = this.input.value.match(/(.*)(:(?!.*:).*$)/)[1];
+            this.input.value = before + text;
+        },
+        list: search_autocomplete,
+        minChars: 1,
+        autoFirst: true
     });
 
     // Bind big custom searchbar to search the table.
-    search_bar.keypress(function(e) {
-        if(e.which === 13) { // Search on enter.
+    search_bar.keypress(function (e) {
+        if (e.which === 13) { // Search on enter.
             update_search();
             variables_table.draw();
         }
@@ -926,52 +928,51 @@ $(document).ready(function() {
     });
 
     $('#variable_type').on('keyup change autocompleteclose', function () {
-        if ($( this ).val() === 'CONST') {
+        if ($(this).val() === 'CONST') {
             show_variable_val_input();
         } else {
-            show_variable_val_input(revert=true);
+            show_variable_val_input(true);
         }
-        if ($( this ).val() === 'ENUMERATOR_INT' || $( this ).val() === 'ENUMERATOR_REAL') {
+        if ($(this).val() === 'ENUMERATOR_INT' || $(this).val() === 'ENUMERATOR_REAL') {
             show_belongs_to_enum_input();
             show_variable_val_input();
         } else {
             show_belongs_to_enum_input(true)
         }
-        if ($( this ).val() === 'ENUM_INT' || $( this ).val() === 'ENUM_REAL' ) {
+        if ($(this).val() === 'ENUM_INT' || $(this).val() === 'ENUM_REAL') {
             show_enumerators_in_modal();
         } else {
-            show_enumerators_in_modal(revert=true);
+            show_enumerators_in_modal(true);
         }
     });
 
     // Add listener for importing variables from existing sessions/revisions
     $('.import_link').on('click', function () {
-        const sess_name = $( this ).attr('data-name');
-        const sess_revision = $( this ).attr('data-revision');
+        const sess_name = $(this).attr('data-name');
+        const sess_revision = $(this).attr('data-revision');
 
         open_import_modal(sess_name, sess_revision);
     });
 
-    $('#start_variable_import_session').click(function ( e ) {
+    $('#start_variable_import_session').click(function () {
         start_import_session();
     });
 
     // Multiselect.
     // Select single rows
-    $('.select-all-button').on('click', function (e) {
+    $('.select-all-button').on('click', function () {
         // Toggle selection on
-        if ($( this ).hasClass('btn-secondary')) {
-            variables_table.rows( {page:'current'} ).select();
-        }
-        else { // Toggle selection off
-            variables_table.rows( {page:'current'} ).deselect();
+        if ($(this).hasClass('btn-secondary')) {
+            variables_table.rows({page: 'current'}).select();
+        } else { // Toggle selection off
+            variables_table.rows({page: 'current'}).deselect();
         }
         // Toggle button state.
         $('.select-all-button').toggleClass('btn-secondary btn-primary');
     });
 
     // Toggle "Select all rows to `off` on user specific selection."
-    variables_table.on( 'user-select', function ( ) {
+    variables_table.on('user-select', function () {
         let select_buttons = $('.select-all-button');
         select_buttons.removeClass('btn-primary');
         select_buttons.addClass('btn-secondary ');
@@ -982,7 +983,9 @@ $(document).ready(function() {
         minLength: 0,
         source: available_types,
         delay: 100
-    }).on('focus', function() { $(this).keydown(); }).val('');
+    }).on('focus', function () {
+        $(this).keydown();
+    }).val('');
 
     $('.apply-multi-edit').click(function () {
         apply_multi_edit(variables_table);
@@ -992,7 +995,7 @@ $(document).ready(function() {
     $('.delete_button').confirmation({
         rootSelector: '.delete_button'
     }).click(function () {
-        apply_multi_edit(variables_table, del=true);
+        apply_multi_edit(variables_table, true);
     });
 
     // Add new Constraint
@@ -1011,7 +1014,7 @@ $(document).ready(function() {
     });
 
     // Delete enumerator via the enum modal.
-    $('#enumerators').on('click', '.del_enum', function(e) {
+    $('#enumerators').on('click', '.del_enum', function () {
         const enumerator_name = $(this).attr('data-name');
         const enum_name = $('#variable_name_old').val();
         let enum_dom = $(this).parent('.enumerator-input');
@@ -1045,7 +1048,7 @@ $(document).ready(function() {
         variables_table.draw();
     });
 
-    $('#variable_new_vaiable_modal').on('show.bs.modal change', function (e) {
+    $('#variable_new_vaiable_modal').on('show.bs.modal change', function () {
         update_new_var_const_value_input();
     })
-} );
+});

@@ -6,23 +6,20 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <meta name="description" content="Requirements transformer web frontend.">
-        {% assets "css" %}
-            <link rel="stylesheet" href="{{ ASSET_URL }}" />
-        {% endassets %}
         <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
         <title>{% block title %}{% endblock %} | Hanfor.</title>
     {% endblock %}
     </head>
     <body>
     {% block navbar %}
-        <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse">
-    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbar_main" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
     <a class="navbar-brand" href="{{ url_for('site', site='/') }}"
        title="Hanfor helps analyzing and formalizing requirements.">Hanfor</a>
 
-    <div class="collapse navbar-collapse" id="navbarColor01">
+    <div class="collapse navbar-collapse" id="navbar_main">
       <ul class="navbar-nav mr-auto">
           <li class="nav-item{% if request.path == '/' %} active{% endif %}">
             <a class="nav-link" href="{{ url_for('site', site='/') }}">Start</a>
@@ -78,6 +75,9 @@
     </main>
     <script type="text/javascript" src="{{ url_for('static', filename='dist/commons-bundle.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='dist/layout_globals-bundle.js') }}"></script>
+    <script type="text/javascript">
+        let search_query = '{{ query|tojson }}';
+    </script>
     {% block scripts %}
     {% endblock %}
     </body>
