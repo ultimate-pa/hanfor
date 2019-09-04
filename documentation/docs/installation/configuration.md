@@ -1,10 +1,10 @@
-toc_depth: 2
+toc_depth: 3
 
 # Configuration
 
-## Hanfor 
-* Copy `./hanfor/config.dist.py` to `./hanfor/config.py`.
-* Edit the file `/hanfor/config.py` according your needs.
+## Hanfor
+- Copy `./hanfor/config.dist.py` to `./hanfor/config.py`.
+- Edit the file `/hanfor/config.py` according your needs.
 
 ### Hanfor config file:
 A config file looks as follows: 

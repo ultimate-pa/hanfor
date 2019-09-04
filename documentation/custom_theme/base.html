@@ -17,13 +17,13 @@
   {%- endblock %}
 
   {%- block styles %}
-  <link href="{{ 'css/roboslap.css'|url }}" rel='stylesheet' type='text/css'>
-  <link href="{{ 'css/font-awesome.min.css'|url }}" rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+  <link href='https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="{{ 'css/theme.css'|url }}" type="text/css" />
   <link rel="stylesheet" href="{{ 'css/theme_extra.css'|url }}" type="text/css" />
   {%- if config.theme.highlightjs %}
-  <link rel="stylesheet" href="{{ 'css/github.min.css'|url }}" type="text/css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
   {%- endif %}
   {%- for path in config['extra_css'] %}
   <link href="{{ path|url }}" rel="stylesheet">
@@ -39,10 +39,10 @@
     var mkdocs_page_url = {{ page.abs_url|tojson|safe }};
   </script>
   {% endif %}
-  <script src="{{ 'js/jquery-2.1.1.min.js'|url }}" defer></script>
+  <script src="{{ 'js/jquery-3.4.1.min.js'|url }}" defer></script>
   <script src="{{ 'js/modernizr-2.8.3.min.js'|url }}" defer></script>
   {%- if config.theme.highlightjs %}
-  <script src="{{ 'js/highlight.min.js'|url }}" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
   {%- for lang in config.theme.hljs_languages %}
   <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/{{lang}}.min.js"></script>
   {%- endfor %}
@@ -84,7 +84,7 @@
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
   {%- block site_nav %}
-	<ul class="tocbase current">
+	<ul class="tocbase current" id="navigation_bar">
     {% set navlevel = 1 %}
     {% for nav_item in nav %}
       {% include 'nav.html' %}
