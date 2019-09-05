@@ -1,47 +1,22 @@
-{# Root level label for a group of root level children (folder > files) #}
-{%- if nav_item.is_section %}
-    <li class="navtree toctree-l{{ navlevel }} label">
-        <p class="caption">{{ nav_item.title }}</p>
-    </li>
+<a class="{% if not nav_item.is_link %}reference internal{% endif %}{% if nav_item.active%} current{%endif%}" href="{% if not nav_item.is_section %}{{ nav_item.url|url }}{% else %}#{% endif %}">{{ nav_item.title }}</a>
+{%- set navlevel = navlevel + 1 %}
+{%- if ((page.meta and navlevel <= page.meta.toc_depth|int))
+    and ((nav_item.is_page and nav_item.toc.items
+    and (not config.theme.titles_only
+    and (nav_item == page or not config.theme.collapse_navigation)))
+    or (nav_item.is_section and nav_item.children)) %}
+    <ul{% if nav_item.active %} class="current"{% endif %}>
+        {%- if nav_item.is_page %}
+            {#- Skip first level of toc which is page title. #}
+            {%- set toc_item = nav_item.toc.items[0] %}
+            {%- include 'toc.html' %}
+        {%- elif nav_item.is_section %}
+            {%- for nav_item in nav_item.children %}
+                <li class="toctree-l{{ navlevel }}{% if nav_item.active%} current{%endif%}">
+                    {%- include 'nav.html' %}
+                </li>
+            {%- endfor %}
+        {%- endif %}
+    </ul>
 {%- endif %}
-
-{# Root level links to pages that are not currently active #}
-{%- if nav_item != page and not nav_item.children %}
-    <li class="navtree toctree-l{{ navlevel }} inactive">
-        <a class="{% if nav_item.active %}current{% endif %}" href="{{ nav_item.url|url }}">{{ nav_item.title }}</a>
-    </li>
-{%- endif %}
-
-{%- if nav_item == page or nav_item.children %}
-    {# Root level pages #}
-    {%- if nav_item == page %}
-        {# Label for currently active root level page #}
-        <li class="navtree toctree-l{{ navlevel }} page current">
-            <a class="current" href="{{ nav_item.url|url }}">
-                {{ nav_item.title }}
-                {%- if nav_item.children or navlevel == 2 %}
-                    <span class="toctree-expand"></span>
-                {%- endif %}
-            </a>
-        </li>
-        {% for toc_item in page.toc %}
-            {%- set toc_first_loop = loop.first %}
-            {% include 'toc.html' %}
-        {%- endfor %}
-    {%- endif %}
-
-    {# Group of pages in a root level folder #}
-    {%- if nav_item.children %}
-        <li class="navtree toctree-l{{ navlevel }} group">
-            <ul class="navtree subnav-l{{ navlevel }} current">
-                {%- set navlevel = navlevel + 1 %}
-                {% if page and (not page.meta.toc_depth or navlevel <= 1 + page.meta.toc_depth|int) %}
-                    {%- for nav_item in nav_item.children %}
-                        {% include 'nav.html' %}
-                    {% endfor %}
-                {% endif %}
-                {%- set navlevel = navlevel - 1 %}
-            </ul>
-        </li>
-    {%- endif %}
-{%- endif %}
+{%- set navlevel = navlevel - 1 %}
