@@ -1,4 +1,4 @@
-toc_depth: 3
+toc_depth: 2
 
 # Configuration
 
@@ -8,7 +8,8 @@ toc_depth: 3
 
 ### Hanfor config file:
 A config file looks as follows: 
-``` python
+
+```python
 ################################################################################
 #                               Storage and folders                            #
 ################################################################################

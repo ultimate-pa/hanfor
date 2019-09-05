@@ -1,3 +1,5 @@
+toc_depth: 2
+
 # Preliminaries
 ## Install Hanfor 
 Clone the repository:

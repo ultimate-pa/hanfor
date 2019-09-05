@@ -1,3 +1,5 @@
+toc_depth: 2
+
 # Deployment
 To start a fresh session use
 ```bash

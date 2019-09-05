@@ -1,3 +1,5 @@
+toc_depth: 2
+
 # FAQ
 
 ## Change description or a field text in requirements table.

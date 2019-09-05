@@ -5,16 +5,16 @@ toc_depth: 3
 ## Example input
 Consider a CSV file `example_input.csv` with the following content:
 
-``` 
-ID,Description,Formalized Requirement,Type
-META1,This is an example for some requirements,,meta
-META2,Next we define some requirements,,meta
-REQ1,var1 is always greater than 5,,requirement
-REQ2,var2 is always smaller than 10,,requirement
-REQ3,constraint1 always holds,,requirement
-REQ4,constraint2 always holds,,requirement
-REQ5,var1 is always smaller than 5,,requirement
-REQ6,constraint1 and constraint2 never hold at the same time,,requirement
+``` bash
+ID,Description,Type
+META1,This is an example for some requirements,meta
+META2,Next we define some requirements,meta
+REQ1,var1 is always greater than 5,requirement
+REQ2,var2 is always smaller than 10,requirement
+REQ3,constraint1 always holds,requirement
+REQ4,constraint2 always holds,requirement
+REQ5,var1 is always smaller than 5,requirement
+REQ6,constraint1 and constraint2 never hold at the same time,requirement
 ```
 In this case every row consists of the fields `ID`, `Description`, `Formalized Requirement` and `Type`.
 
@@ -27,7 +27,7 @@ and rows with type `requirement` contain actual requirements of the module you w
 ## Fire up Hanfor
 1. Configure Hanfor as explained in [Configuration](/installation/configuration)
 2. Start Hanfor: 
-``` 
+```bash
 cd hanfor
 python3 app.py -c example_input.csv example_tag
 ```
