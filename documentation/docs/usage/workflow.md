@@ -57,7 +57,8 @@ To accomplish this we use the [Search Query Language](/usage/requirements/#searc
 Order your requirement overview by **Pos** by clicking on the table column.
 ### REQ1
 To formalize this requirement, we click on the ID **REQ1** to open then formalization-modal:
-![Example: Formalization modal](../img/hanfor02.png "This is how Hanfor looks like after you started it")
+
+![Formalization modal](../img/hanfor02.png "This is how a formalization modal looks like")
 
 1. Click on **+** to add a new formalization and then on **..(click to open)**
 2. We now have to select a *Scope* and a *Pattern*.
@@ -67,13 +68,14 @@ To formalize this requirement, we click on the ID **REQ1** to open then formaliz
 If you save a requirement, Hanfor will automatically create the used variables and derive their type.
 You can examine and even alter them in the section **Variables**, for the case that Hanfor did not derive a variable-type correctly.
 
-![Example: Definition of Scope and Pattern](../img/hanfor_req1_formalization.png "This is how Hanfor looks like after you started it")
+![Definition of Scope and Pattern](../img/hanfor_req1_formalization.png "This is how we formalize REQ1")
 
 The same procedure can be applied to REQ2 - REQ6
 
 ### REQ7 and REQ8
 REQ7 and REQ8 are different.
 Consider REQ7: `if var3 = True then var4 := True`.
+
 - The scope is still **Globally** 
 - The pattern is **it is always the case that if "{R}" holds, then "{S}" holds after at most "{T}" time units**, because in a realtime-system a variable assignment does not happen instantly, there can be delays.
 - For **{R}** we insert `var3`, because the variable type is boolean.
@@ -93,4 +95,4 @@ formalized requirement. To fix that, to go the **Variables** section and open th
 You see that Hanfor derived the type `bool`, but we actually want it to be of type `CONST` as the variable represents time units. Change the type and
 also assign a value, for example `50`.
 
-![Hanfor_Example_Formalization_Modal](../img/hanfor_var_maxtime.png "This is how Hanfor looks like after you started it")
+![Example for the `MAX_TIME` variable](../img/hanfor_var_maxtime.png "This is how you should edit the MAX_TIME variable")

@@ -58,6 +58,7 @@ REALTIME ::= Once EXPR becomes satisfied, it holds for at least DURATION
 Thus, in a first step the informal requirements are translated into requirements in the specification language shown above. This is done manually.
 
 In the background the tool translates the requirements in specification language then into logical formulas.
+
 ![Example Picture 2](img/image003.jpg "Example picture 2")
 
 ### Tool support
@@ -68,6 +69,7 @@ The tool to assist this step is called Hanfor.It looks a little bit like Doors. 
 Clicking on a requirements you can then specify the requirement in the specification language as visible in the next screenshot. The tool provides both patterns and also a signal database, so that you have a auto-complete function when filling out the variables.
 
 ![Example Picture 4](img/image005.jpg "Example picture 4")
+
 ![Example Picture 5](img/image006.jpg "Example picture 5")
 
 The tool checks for the following correctness criteria: 
@@ -182,27 +184,27 @@ In the Test Generator Tool you can choose the following options:
   * generate System Integration Test (i.e., the tests speak about system input, system outputs and internal variables)
 
 !!! example "output of the test generation tool"
-  ```
-    Case SystemTest:
-    TestGeneratorResult:
-    Found Test for: [O]
-    Test Vector:
-    Set inputs:
-    A := true, B := true
-    Wait for at most 20 for:
-    O == true, (req3)
-    
-    Case System Integration Test:
-    ------| Test: req3 |-----------------------
-    TestGeneratorResult:
-    Found Test for: [O]
-    Test Vector:
-    Set inputs:
-    A := true, B := true
-    Wait for at most 10 for:
-    H == true (req1)
-    Wait for at most 10 for:
-    I == true (req2)
-    Wait for at most 20 for:
-    O == true, (req3)
-  ```
+```
+Case SystemTest:
+TestGeneratorResult:
+Found Test for: [O]
+Test Vector:
+Set inputs:
+A := true, B := true
+Wait for at most 20 for:
+O == true, (req3)
+
+Case System Integration Test:
+------| Test: req3 |-----------------------
+TestGeneratorResult:
+Found Test for: [O]
+Test Vector:
+Set inputs:
+A := true, B := true
+Wait for at most 10 for:
+H == true (req1)
+Wait for at most 10 for:
+I == true (req2)
+Wait for at most 20 for:
+O == true, (req3)
+```
