@@ -2,7 +2,8 @@ These are the source files for the [Hanfor Documentation](https://ultimate-pa.gi
 # Contribute to this Documentation.
 1. Install [MkDocs](https://www.mkdocs.org/) and all dependencies.
 ```bash
-$ pip install mkdocs mkdocs-rtd-dropdown pymdown-extensions
+$ pip install mkdocs pymdown-extensions
+$ pip install -e git+https://github.com/jdittrich/figureAltCaption#egg=figureAltCaption
 ```
 
 2. Serve this Documentation locally to track your changes.

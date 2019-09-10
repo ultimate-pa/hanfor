@@ -1,14 +1,12 @@
 toc_depth: 1
 
+These are the source files for the [Hanfor Documentation](https://ultimate-pa.github.io/hanfor/).
 # Contribute to this Documentation.
-1. Install [MkDocs](https://www.mkdocs.org/).
+1. Install [MkDocs](https://www.mkdocs.org/) and all dependencies.
 ```bash
-$ pip install mkdocs
+$ pip install mkdocs pymdown-extensions
+$ pip install -e git+https://github.com/jdittrich/figureAltCaption#egg=figureAltCaption
 ```
-1.2 Install the mkdocs `mkdocs-rtd-dropdown` theme:
-```bash
-$ pip install mkdocs-rtd-dropdown
-``` 
 
 2. Serve this Documentation locally to track your changes.
 ```bash
@@ -31,3 +29,4 @@ $ mkdocs gh-deploy
 ```
 This will build the Documentation and commit them to the `gh-pages` branch and push the `gh-pages` branch to GitHub.
 They will then be immediately available to the world at https://ultimate-pa.github.io/hanfor.
+

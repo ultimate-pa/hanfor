@@ -38,7 +38,7 @@ If you start hanfor later with the same tag, you'll start exactly this session.
 
 you can now reach Hanfor by visiting [http://127.0.0.1:5000](http://127.0.0.1:5000)
 
-![Hanfor_Example](../img/hanfor01.png "This is how Hanfor looks like after you started it")
+![Hanfor requirement overview](../img/hanfor01.png "This is how Hanfor looks like after you started it")
 
 ## Preprocessing
 By default, all rows now have the status **Todo**. 
@@ -57,7 +57,7 @@ To accomplish this we use the [Search Query Language](/usage/requirements/#searc
 Order your requirement overview by **Pos** by clicking on the table column.
 ### REQ1
 To formalize this requirement, we click on the ID **REQ1** to open then formalization-modal:
-![Hanfor_Example_Formalization_Modal](../img/hanfor02.png "This is how Hanfor looks like after you started it")
+![Example: Formalization modal](../img/hanfor02.png "This is how Hanfor looks like after you started it")
 
 1. Click on **+** to add a new formalization and then on **..(click to open)**
 2. We now have to select a *Scope* and a *Pattern*.
@@ -67,7 +67,7 @@ To formalize this requirement, we click on the ID **REQ1** to open then formaliz
 If you save a requirement, Hanfor will automatically create the used variables and derive their type.
 You can examine and even alter them in the section **Variables**, for the case that Hanfor did not derive a variable-type correctly.
 
-![Hanfor_Example_Formalization_Modal](../img/hanfor_req1_formalization.png "This is how Hanfor looks like after you started it")
+![Example: Definition of Scope and Pattern](../img/hanfor_req1_formalization.png "This is how Hanfor looks like after you started it")
 
 The same procedure can be applied to REQ2 - REQ6
 
