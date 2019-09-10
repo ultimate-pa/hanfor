@@ -22,6 +22,8 @@ markdown_extensions:
       permalink: ' #'
   - sane_lists
   - figureAltCaption
+  - lightbox
+  - extra
 nav:
   - Introduction:
       - 'What is Hanfor?': 'index.md'

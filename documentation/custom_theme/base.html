@@ -30,6 +30,7 @@
 
         <link rel="stylesheet" href="{{ 'css/theme.css'|url }}"/>
         <link rel="stylesheet" href="{{ 'css/theme_extra.css'|url }}"/>
+        <link rel="stylesheet" href="{{ 'css/lightbox.min.css'|url }}"/>
         {%- if config.theme.highlightjs %}
             <link rel="stylesheet" href="{{ 'css/github.min.css'|url }}"/>
         {%- endif %}
@@ -55,6 +56,7 @@
             <script src="{{ 'js/bash.min.js'|url }}"></script>
             <script>hljs.initHighlightingOnLoad();</script>
         {%- endif %}
+        <script src="{{ 'js/lightbox.min.js'|url }}" defer></script>
     {%- endblock %}
 
     {%- block extrahead %} {% endblock %}

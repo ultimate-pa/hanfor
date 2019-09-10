@@ -6,6 +6,7 @@ These are the source files for the [Hanfor Documentation](https://ultimate-pa.gi
 ```bash
 $ pip install mkdocs pymdown-extensions
 $ pip install -e git+https://github.com/jdittrich/figureAltCaption#egg=figureAltCaption
+$ pip install -e git+https://github.com/MrLeeh/markdown-lightbox.git#egg=markdown-lightbox
 ```
 
 2. Serve this Documentation locally to track your changes.
