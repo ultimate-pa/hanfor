@@ -150,7 +150,7 @@ First of all you need [Ultimate](https://github.com/ultimate-pa/ultimate)
 1. Install `Java JDK (1.8)` and `Maven (>3.0)`
 2. Clone the repository: `git clone https://github.com/ultimate-pa/ultimate`.
 3. Navigate to the release scripts `cd ultimate/releaseScripts/default/`
-4. Generate a fresh binary `./make_fresh.sh`
+4. Generate a fresh binary `./makeFresh.sh`
 
 You have now successfully forged binaries, which are located in `UAutomizer-linux/`.
 
@@ -626,3 +626,57 @@ This will fire up Ultimate and run an analysis. The analysis checks for rt-incon
 - `hanfor/example/example_input.req.testgen.log`
 - `hanfor/example/logs/example_input/example_input.req.relevant.log`
 - `hanfor/example/logs/example_input/example_input.req.testgen.log`
+
+### Evaluate
+
+In `hanfor/example/example_input.req.log` we can see that Ultimate reports: 
+``` 
+ --- Results ---
+ * Results from de.uni_freiburg.informatik.ultimate.pea2boogie:
+  - RequirementInconsistentErrorResult: Requirements set is inconsistent.
+    Requirements set is inconsistent. Some invariants are already infeasible. Responsible requirements: REQ6_0, REQ3_0, REQ4_0
+```
+Now, if we investigate REQ3, REQ4 and REQ6:
+
+``` 
+REQ3_0: Globally, it is always the case that "constraint1" holds
+REQ4_0: Globally, it is always the case that "constraint2" holds
+REQ6_0: Globally, it is never the case that "constraint1 && constraint2 " holds
+```
+We directly see what the problem is: On one hand, our invariants demand that `constraint1` and `constraint2` always holds,
+but on the other hand there is another invariant which demands that `constraint1` and `constraint2` never hold at the same time.
+Think about this as:
+```
+constraint1 && constraint2 && ((constraint1 && !constraint2) || (!constraint1 && constraint2))
+```
+this is clearly unsatisfiable.
+
+### Alter your requirements
+We now found an inconsistency in our requirements, that has to be fixed. 
+Let's assume you review your requirements and you recognize `REQ4` was defined wrong in the csv,
+where `REQ4,constraint2 always holds,requirement` should be `REQ4,constraint2 never holds,requirement`.
+While reading over the requirements, you also recognize that `REQ1` and `REQ5` collide and you find out that `REQ5` shall be deleted.
+
+When we apply this changes, we end up with the following changes: 
+
+ - alter `REQ4,constraint2 always holds,requirement` to `REQ4,constraint2 never holds,requirement`
+ - remove `REQ5`
+ 
+and our csv file now looks as follows: 
+
+``` bash
+ID,Description,Type
+META1,This is an example for some requirements,meta
+META2,Next we define some requirements,meta
+REQ1,var1 is always greater than 5,requirement
+REQ2,var2 is always smaller than 10,requirement
+REQ3,constraint1 always holds,requirement
+REQ4,constraint2 never holds,requirement
+REQ6,constraint1 and constraint2 never hold at the same time,requirement
+REQ7,if var1 = True then var3 = True,requirement
+REQ8,if var1 = True then var3 = False,requirement
+```
+
+### Time for a new revision.
+
+TODO
