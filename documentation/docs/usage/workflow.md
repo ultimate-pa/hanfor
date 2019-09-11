@@ -678,5 +678,30 @@ REQ8,if var1 = True then var3 = False,requirement
 ```
 
 ### Time for a new revision.
+We altered our requirements, we now need to create a new revision in Hanfor and change our formalizations.
+Execute: 
 
-TODO
+``` 
+$ cd hanfor
+$ python3 app.py -r -c example/example_input.csv example_tag
+```
+
+- Hanfor will then ask: **"Which revision should I use as a base?"**,
+we choose `revision_0` (as it is the only one, usually you want your latest revision).
+
+- Then, Hanfor asks **Should I use the csv header mapping from base revision?**,
+as we did not change the csv header, we just keep the current one.
+
+A quick recap what happens when creating a revision:
+- New requirements get the tag `revision_0_to_revision_1_new_requirement`
+- Changed requirements get the tag `revision_0_to_revision_1_data_changed` and `revision_0_to_revision_1_description_changed`
+- Requirements where the formalization migrated to the new revision get the tag `revision_0_to_revision_1_migrated_formalized`
+
+We now have to alter the requirements which have changed, that's only `REQ4`. 
+Open the formalization of `REQ4` and correct it to `Globally, it is never the case that "constraint2" holds`.
+
+### Ultimate Analysis #2
+1. Export your requirements as before
+2. Run Ultimate on them
+
+TODO.
