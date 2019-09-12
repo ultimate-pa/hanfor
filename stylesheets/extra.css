@@ -5,3 +5,30 @@
 .wy-nav-content {
     max-width: 1000px;
 }
+
+.rst-content .section ol p, 
+.rst-content .section ul p {
+    margin-bottom: 0px;
+}
+
+
+figure {
+    #display: inline-block;
+    #border: 1px solid gray;
+    margin: 20px; /* adjust as needed */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+figure img {
+    vertical-align: top;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+figure figcaption {
+    #border-top: 1px solid gray;
+    #border: 1px solid gray;
+    text-align: center;
+    font-weight: bold;
+}

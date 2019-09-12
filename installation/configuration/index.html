@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/installation/configuration/">
+        
+            <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Configuration
+            - Hanfor Docs</title>
+        <link rel="stylesheet"
+              href="../../css/stupid_fonts.css"/>
+
+        <link rel="stylesheet" href="../../css/theme.css"/>
+        <link rel="stylesheet" href="../../css/theme_extra.css"/>
+        <link rel="stylesheet" href="../../css/lightbox.min.css"/>
+            <link rel="stylesheet" href="../../css/github.min.css"/>
+            <link href="../../stylesheets/extra.css" rel="stylesheet"/>
+        
+            <script>
+                // Current page data
+                var mkdocs_page_name = "Configuration";
+                var mkdocs_page_input_path = "installation\\configuration.md";
+                var mkdocs_page_url = "/hanfor/installation/configuration/";
+            </script>
+        
+        <script src="../../js/jquery-2.1.1.min.js" defer></script>
+        <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+            <script src="../../js/highlight.min.js"></script>
+            <script src="../../js/python.min.js"></script>
+            <script src="../../js/bash.min.js"></script>
+            <script>hljs.initHighlightingOnLoad();</script>
+        <script src="../../js/lightbox.min.js" defer></script> 
+        
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+<div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+        <div class="wy-side-scroll">
+            <div class="wy-side-nav-search">
+                    <a href="../.." class="icon icon-home"> Hanfor Docs</a>
+                    <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+            </div>
+
+            <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                            <p class="caption"><span class="caption-text">Introduction</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../..">What is Hanfor?</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../..#grammar-of-the-specification-language">Grammar of the specification language</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../..#realtime-consistency-rt-consistency">Realtime-consistency (rt-consistency)</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../..#system-test-case-generation">System test case generation</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Installation</span></p>
+                            <ul class="current">
+                                    <li class="toctree-l1"><a class="reference internal" href="../preliminaries/">Preliminaries</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../preliminaries/#install-hanfor">Install Hanfor</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../preliminaries/#install-reqanalyzer">Install ReqAnalyzer</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Configuration</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#hanfor">Hanfor</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#reqanalyzer">ReqAnalyzer</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../deployment/">Deployment</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../deployment/#how-it-works">How it works</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Usage</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../usage/api_queries/">API Queries</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../usage/api_queries/#show-stored-queries">Show stored queries</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../usage/api_queries/#adding-new-queries">Adding new queries</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../usage/api_queries/#deleting-queries">Deleting queries</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../usage/api_queries/#query-syntax">Query syntax</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../usage/faq/">FAQ</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../usage/faq/#change-description-or-a-field-text-in-requirements-table">Change description or a field text in requirements table.</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../usage/requirements/">Requirements</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../usage/requirements/#search-in-requirements-table">Search in requirements table</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../usage/requirements/#mass-edit-requirements">Mass edit requirements</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../usage/workflow/">Workflow</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../usage/workflow/#example-input">Example input</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../usage/workflow/#fire-up-hanfor">Fire up Hanfor</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../usage/workflow/#preprocessing">Preprocessing</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../usage/workflow/#formalization">Formalization</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../usage/workflow/#exporting-the-formalized-requirements">Exporting the formalized requirements.</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../usage/workflow/#analysis-using-ultimate">Analysis using Ultimate.</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Contribute</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../contribute/to_hanfor/">To Hanfor</a>
+    <ul>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../contribute/to_docs/">To Docs</a>
+    <ul>
+    </ul>
+                                    </li>
+                            </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+        
+        <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+            <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+            <a href="../..">Hanfor Docs</a>
+        </nav>
+
+        
+        <div class="wy-nav-content">
+            <div class="rst-content">
+                <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Installation &raquo;</li>
+        
+      
+    
+    <li>Configuration</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/installation/configuration.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+                <div role="main">
+                    <div class="section">
+                        
+                            <h1 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link"> #</a></h1>
+<h2 id="hanfor">Hanfor<a class="headerlink" href="#hanfor" title="Permanent link"> #</a></h2>
+<ul>
+<li>Copy <code>./hanfor/config.dist.py</code> to <code>./hanfor/config.py</code>.</li>
+<li>Edit the file <code>/hanfor/config.py</code> according your needs.</li>
+</ul>
+<h3 id="hanfor-config-file">Hanfor config file:<a class="headerlink" href="#hanfor-config-file" title="Permanent link"> #</a></h3>
+<p>A config file looks as follows: </p>
+<pre><code class="python">################################################################################
+#                               Storage and folders                            #
+################################################################################
+# Set the SESSION_BASE_FOLDER to a path hanfor will store/load sessions.
+# If set to None, hanfor will store its sessions in ./data
+SESSION_BASE_FOLDER = './data'
+
+################################################################################
+#                                DEBUG and logging                             #
+################################################################################
+
+# Set DEBUG_MODE to true if you want to run the flask app in debug mode.
+# In Production this should be set to False.
+DEBUG_MODE = False
+
+# If ASSETS_DEBUG True, Bundles will output their individual source files.
+# This will significantly slow down performance.
+ASSETS_DEBUG = False
+
+# Set this to false if you want to use DEBUG toolbar with a URL_PREFIX
+DEBUG_TB_INTERCEPT_REDIRECTS = False
+
+# Set the log level to increase or decrease the logging sensitivity.
+# You can set LOG_LEVEL (in decreasing sensitivity to):
+# 'DEBUG', 'INFO', 'WARNING', 'ERROR'
+LOG_LEVEL = 'DEBUG'
+
+# Set LOG_TO_FILE to True if vou want to log to the file
+# you specified in LOG_FILE
+LOG_TO_FILE = True
+LOG_FILE = 'hanfor.log'
+
+# Set PYCHARM_DEBUG to True to supresss the flask debugging so it
+# won't interfere with the pycharm debugger.
+PYCHARM_DEBUG = False
+
+################################################################################
+#                         App and web server section                           #
+################################################################################
+
+# If you are running the app with a url prefix set URL_PREFIX like
+# URL_PREFIX = '/hanfor'
+URL_PREFIX = ''
+
+# set a 'SECRET_KEY' to enable the Flask session cookies
+SECRET_KEY = 'somesecretkeythatisonlyknowntoyou'
+
+# Specify the PORT the app should be running at
+PORT = 5000
+
+# Set the host
+HOST = '127.0.0.1'
+</code></pre>
+
+<h2 id="reqanalyzer">ReqAnalyzer<a class="headerlink" href="#reqanalyzer" title="Permanent link"> #</a></h2>
+<p><em>Coming soon</em></p>
+                        
+                    </div>
+                </div>
+                    <footer>
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a custom theme</a>.
+</footer>
+                
+            </div>
+        </div>
+
+    </section>
+
+</div>
+
+<div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/ultimate-pa/hanfor/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js" defer></script>
+        <script src="../../search/main.js" defer></script>
+    <script type="text/javascript" defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(false);
+        };
+    </script>
+
+</body>
+</html>

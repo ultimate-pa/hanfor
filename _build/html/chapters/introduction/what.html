@@ -1,0 +1,428 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>What is Hanfor? &mdash; Hanfor  documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.png"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/custom_theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Preliminaries" href="../installation/preliminaries.html" />
+    <link rel="prev" title="Welcome to Hanfor’s documentation!" href="../../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Hanfor
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">What is Hanfor?</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#grammar-of-the-specification-language">Grammar of the Specification Language</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tool-support">Tool Support</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#consistency">Consistency</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#vacuity">Vacuity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#realtime-consistency-rt-consistency">Realtime-Consistency (rt-consistency)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#system-test-case-generation">System test case generation</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation/preliminaries.html">Preliminaries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation/deployment.html">Deployment</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../usage/api_queries.html">API Queries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/requirements.html">Requirements</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Contribute</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contribute/to_hanfor.html">Hanfor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contribute/to_docs.html">Documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Hanfor</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>What is Hanfor?</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            
+              <a href="https://github.com/ultimate-pa/hanfor/blob/sphinx-docs/documentation/docs/chapters/introduction/what.md" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="what-is-hanfor">
+<h1>What is Hanfor?<a class="headerlink" href="#what-is-hanfor" title="Permalink to this headline">¶</a></h1>
+<p><strong>Hanfor</strong> <strong>h</strong>elps <strong>an</strong>alyzing <strong>an</strong>d <strong>for</strong>malizing <strong>r</strong>equirements.</p>
+<p>If you have many requirements it gets difficult to check that all of them are, e.g., consistent. No human can manually check &gt;1000 requirements for consistency – so we do our best with reviews.</p>
+<p>Also in new projects, what we often see, is that it takes a long time before there is a high test coverage on the requirements – as the number of requirements increases over the releases, and thus also the test specifications have to cover more and more requirements. However, many defects are found by experience-based testing – but these technique is often used quite late, as the first priority is to get a reasonable requirement-based coverage.</p>
+<p>To tackle that problem, Hanfor provides a method that consists of 3 steps:</p>
+<ol class="simple">
+<li><p>The Requirements Formalization</p></li>
+<li><p>The Requirements Check (on the formalized requirements)</p></li>
+<li><p>The Test Generation (on the formalized requirements)</p></li>
+</ol>
+<p><img alt="Example picture 1" src="../../_images/image001.png" />Example Picture 1</p>
+<p>To make it possible for a computer to check a set of requirements for quality criteria, as e.g. consistency, it has to “understand” the semantics of the requirements.</p>
+<p>This could be achieved by using formal languages to express the requirements. However, they are rarely understandable for humans, so we would get requirements that the computer understands - but nearly no stakeholder.</p>
+<p>In this method we use a simple pattern language. The requirements expressed in the pattern language look like English sentences. Everything you can express in this patterns is then translated in the background into logical formulas. You could also easily translate them into German, Chinese, or other languages.</p>
+<div class="section" id="grammar-of-the-specification-language">
+<h2>Grammar of the Specification Language<a class="headerlink" href="#grammar-of-the-specification-language" title="Permalink to this headline">¶</a></h2>
+<p>The grammar is the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">REQ</span>      <span class="p">::</span><span class="o">=</span> <span class="n">ID</span><span class="p">:</span> <span class="n">SCOPE</span><span class="p">,</span> <span class="n">PATTERN</span> <span class="o">.</span>
+<span class="n">SCOPE</span>    <span class="p">::</span><span class="o">=</span> <span class="n">Globally</span>  <span class="o">|</span> <span class="n">Before</span> <span class="n">EXPR</span>  <span class="o">|</span> <span class="n">After</span> <span class="n">EXPR</span> <span class="o">|</span> <span class="n">Between</span> <span class="n">EXPR</span> <span class="ow">and</span> <span class="n">EXPR</span>  <span class="o">|</span> <span class="n">After</span> <span class="n">EXPR</span> <span class="n">until</span> <span class="n">EXPR</span>
+<span class="n">PATTERN</span>  <span class="p">::</span><span class="o">=</span> <span class="n">It</span> <span class="ow">is</span> <span class="n">never</span> <span class="n">the</span> <span class="n">case</span> <span class="n">that</span> <span class="n">EXPR</span> <span class="n">holds</span>
+           <span class="o">|</span> <span class="n">It</span> <span class="ow">is</span> <span class="n">always</span> <span class="n">the</span> <span class="n">case</span> <span class="n">that</span> <span class="n">EXPR</span> <span class="n">holds</span>
+           <span class="o">|</span> <span class="n">It</span> <span class="ow">is</span> <span class="n">always</span> <span class="n">the</span> <span class="n">case</span> <span class="n">that</span> <span class="k">if</span> <span class="n">EXPR</span> <span class="n">holds</span><span class="p">,</span> <span class="n">then</span> <span class="n">EXPR</span> <span class="n">holds</span> <span class="k">as</span> <span class="n">well</span>
+           <span class="o">|</span> <span class="n">Transition</span> <span class="n">to</span> <span class="n">states</span> <span class="ow">in</span> <span class="n">which</span> <span class="n">EXPR</span> <span class="n">holds</span> <span class="n">occur</span> <span class="n">at</span> <span class="n">most</span> <span class="n">twice</span>
+           <span class="o">|</span> <span class="n">It</span> <span class="ow">is</span> <span class="n">always</span> <span class="n">the</span> <span class="n">case</span> <span class="n">that</span> <span class="n">ORDER</span>
+           <span class="o">|</span> <span class="n">It</span> <span class="ow">is</span> <span class="n">always</span> <span class="n">the</span> <span class="n">case</span> <span class="n">that</span> <span class="n">REALTIME</span>
+<span class="n">ORDER</span>    <span class="p">::</span><span class="o">=</span>
+           <span class="o">|</span> <span class="n">If</span> <span class="n">EXPR</span> <span class="n">holds</span><span class="p">,</span> <span class="n">then</span> <span class="n">EXPR</span> <span class="n">previously</span> <span class="n">held</span>
+           <span class="o">|</span> <span class="n">If</span> <span class="n">EXPR</span> <span class="n">holds</span> <span class="ow">and</span> <span class="ow">is</span> <span class="n">succeded</span> <span class="n">by</span> <span class="n">EXPR</span><span class="p">,</span> <span class="n">then</span> <span class="n">EXPR</span> <span class="n">previously</span> <span class="n">held</span>
+           <span class="o">|</span> <span class="n">If</span> <span class="n">EXPR</span> <span class="n">holds</span><span class="p">,</span> <span class="n">then</span> <span class="n">EXPR</span> <span class="n">previously</span> <span class="n">held</span> <span class="ow">and</span> <span class="n">was</span> <span class="n">preceeded</span> <span class="n">by</span> <span class="n">EXPR</span>
+           <span class="o">|</span> <span class="n">If</span> <span class="n">EXPR</span> <span class="n">holds</span><span class="p">,</span> <span class="n">then</span> <span class="n">EXPR</span> <span class="n">eventually</span> <span class="n">holds</span> <span class="ow">and</span> <span class="ow">is</span> <span class="n">succeeded</span> <span class="n">by</span> <span class="n">EXPR</span>
+           <span class="o">|</span> <span class="n">If</span> <span class="n">EXPR</span> <span class="n">holds</span> <span class="ow">and</span> <span class="ow">is</span> <span class="n">succeeded</span> <span class="n">by</span> <span class="n">EXPR</span><span class="p">,</span> <span class="n">then</span> <span class="n">EXPR</span> <span class="n">eventually</span> <span class="n">holds</span> <span class="n">after</span> <span class="n">EXPR</span>
+           <span class="o">|</span> <span class="n">If</span> <span class="n">EXPR</span> <span class="n">holds</span><span class="p">,</span> <span class="n">then</span> <span class="n">EXPR</span> <span class="n">eventually</span> <span class="n">holds</span> <span class="ow">and</span> <span class="ow">is</span> <span class="n">succeeded</span> <span class="n">by</span> <span class="n">EXPR</span> <span class="n">where</span> <span class="n">EXPR</span> <span class="n">does</span> <span class="ow">not</span> <span class="n">hold</span> <span class="n">between</span> <span class="n">EXPR</span> <span class="ow">and</span> <span class="n">EXPR</span>
+           <span class="o">|</span> <span class="n">If</span> <span class="n">EXPR</span> <span class="n">holds</span><span class="p">,</span> <span class="n">then</span> <span class="n">EXPR</span> <span class="n">toggles</span> <span class="n">EXPR</span>
+<span class="n">REALTIME</span> <span class="p">::</span><span class="o">=</span> <span class="n">Once</span> <span class="n">EXPR</span> <span class="n">becomes</span> <span class="n">satisfied</span><span class="p">,</span> <span class="n">it</span> <span class="n">holds</span> <span class="k">for</span> <span class="n">at</span> <span class="n">least</span> <span class="n">DURATION</span>
+           <span class="o">|</span> <span class="n">Once</span> <span class="n">EXPR</span> <span class="n">becomes</span> <span class="n">satisfied</span><span class="p">,</span> <span class="n">it</span> <span class="n">holds</span> <span class="k">for</span> <span class="n">less</span> <span class="n">than</span> <span class="n">DURATION</span>
+           <span class="o">|</span> <span class="n">EXPR</span> <span class="n">holds</span> <span class="n">at</span> <span class="n">least</span> <span class="n">every</span> <span class="n">DURATION</span>
+           <span class="o">|</span> <span class="n">If</span> <span class="n">EXPR</span> <span class="n">holds</span><span class="p">,</span> <span class="n">then</span> <span class="n">EXPR</span> <span class="n">holds</span> <span class="n">after</span> <span class="n">at</span> <span class="n">most</span> <span class="n">DURATION</span>
+           <span class="o">|</span> <span class="n">If</span> <span class="n">EXPR</span> <span class="n">holds</span> <span class="k">for</span> <span class="n">at</span> <span class="n">least</span> <span class="n">DURATION</span><span class="p">,</span> <span class="n">then</span> <span class="n">EXPR</span> <span class="n">holds</span> <span class="n">afterwards</span> <span class="k">for</span> <span class="n">at</span> <span class="n">least</span> <span class="n">DURATION</span>
+           <span class="o">|</span> <span class="n">If</span> <span class="n">EXPR</span> <span class="n">holds</span> <span class="k">for</span> <span class="n">at</span> <span class="n">least</span> <span class="n">DURATION</span><span class="p">,</span> <span class="n">then</span> <span class="n">EXPR</span> <span class="n">holds</span> <span class="n">afterwards</span>
+           <span class="o">|</span> <span class="n">If</span> <span class="n">EXPR</span> <span class="n">holds</span><span class="p">,</span> <span class="n">then</span> <span class="n">EXPR</span> <span class="n">holds</span> <span class="n">after</span> <span class="n">at</span> <span class="n">most</span> <span class="n">DURATION</span> <span class="k">for</span> <span class="n">at</span> <span class="n">least</span> <span class="n">DURATION</span>
+           <span class="o">|</span> <span class="n">If</span> <span class="n">EXPR</span> <span class="n">holds</span><span class="p">,</span> <span class="n">then</span> <span class="n">EXPR</span> <span class="n">holds</span> <span class="k">for</span> <span class="n">at</span> <span class="n">least</span> <span class="n">DURATION</span>
+           <span class="o">|</span> <span class="n">If</span> <span class="n">EXPR</span> <span class="n">holds</span><span class="p">,</span> <span class="n">then</span> <span class="n">there</span> <span class="ow">is</span> <span class="n">at</span> <span class="n">least</span> <span class="n">one</span> <span class="n">execution</span> <span class="n">sequence</span> <span class="n">such</span> <span class="n">that</span> <span class="n">EXPR</span> <span class="n">holds</span> <span class="n">after</span> <span class="n">at</span> <span class="n">most</span> <span class="n">DURATION</span>
+           <span class="o">|</span> <span class="n">After</span> <span class="n">EXPR</span> <span class="n">holds</span> <span class="k">for</span> <span class="n">DURATION</span><span class="p">,</span> <span class="n">then</span> <span class="n">EXPR</span> <span class="n">holds</span>
+           <span class="o">|</span> <span class="n">If</span> <span class="n">EXPR</span> <span class="n">holds</span><span class="p">,</span> <span class="n">then</span> <span class="n">EXPR</span> <span class="n">toggles</span> <span class="n">EXPR</span> <span class="n">at</span> <span class="n">most</span> <span class="n">DURATION</span> <span class="n">later</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">EXPR</span></code> is an expression (e.g. <code class="docutils literal notranslate"><span class="pre">vehicleSpeed&lt;10</span> <span class="pre">&amp;&amp;</span> <span class="pre">Terminal15==ON</span></code>).</p>
+<p>Thus, in a first step the informal requirements are translated into requirements in the specification language shown above. This is done manually.</p>
+<p>In the background the tool translates the requirements in specification language then into logical formulas.
+<img alt="Example picture 2" src="../../_images/image003.jpg" />Example Picture 2</p>
+</div>
+<div class="section" id="tool-support">
+<h2>Tool Support<a class="headerlink" href="#tool-support" title="Permalink to this headline">¶</a></h2>
+<p>The tool to assist this step is called Hanfor.It looks a little bit like Doors. It takes as input a csv-Export from Doors, and then stores the requirements. There are two IDs, the Hanfor ID and the Doors ID, so that you can synchronize the two databases, and can easily identify changes.</p>
+<p><img alt="Example picture 3" src="../../_images/image004.jpg" />Example Picture 3</p>
+<p>Clicking on a requirements you can then specify the requirement in the specification language as visible in the next screenshot. The tool provides both patterns and also a signal database, so that you have a auto-complete function when filling out the variables.</p>
+<p><img alt="Example picture 4" src="../../_images/image005.jpg" />Example Picture 4
+<img alt="Example picture 5" src="../../_images/image006.jpg" />Example Picture 5</p>
+<p>The tool checks for the following correctness criteria:</p>
+<ul class="simple">
+<li><p>Consistency</p></li>
+<li><p>Vacuity</p></li>
+<li><p>rt-Consistency</p></li>
+</ul>
+<div class="section" id="consistency">
+<h3>Consistency<a class="headerlink" href="#consistency" title="Permalink to this headline">¶</a></h3>
+<p>A set of requirements is inconsistent, if there exists no system satisfying all requirements in the set.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Req1:</span> <span class="pre">It</span> <span class="pre">is</span> <span class="pre">always</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">that</span> <span class="pre">&quot;IRTest&quot;</span> <span class="pre">holds.</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Req2:</span> <span class="pre">It</span> <span class="pre">is</span> <span class="pre">never</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">that</span> <span class="pre">&quot;IRTest&quot;</span> <span class="pre">holds.</span></code></p></li>
+</ul>
+</div>
+<p>Inconsistency can be resolved by</p>
+<ul class="simple">
+<li><p>erasing requirements</p></li>
+<li><p>changing requirements</p></li>
+</ul>
+</div>
+<div class="section" id="vacuity">
+<h3>Vacuity<a class="headerlink" href="#vacuity" title="Permalink to this headline">¶</a></h3>
+<p>A set if requirements is vacuous, if there is no system satisfying all requirements in a meaningful way, i.e., there are “dead” requirements.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Req1:</span> <span class="pre">It</span> <span class="pre">is</span> <span class="pre">always</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">that</span> <span class="pre">if</span> <span class="pre">&quot;Signal-A&quot;</span> <span class="pre">holds</span> <span class="pre">then</span> <span class="pre">&quot;Signal-B&quot;</span> <span class="pre">holds</span> <span class="pre">after</span> <span class="pre">at</span> <span class="pre">most</span> <span class="pre">10</span> <span class="pre">ms.</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Req2:</span> <span class="pre">It</span> <span class="pre">is</span> <span class="pre">never</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">that</span> <span class="pre">&quot;Signal-A&quot;</span> <span class="pre">holds.</span></code></p></li>
+</ul>
+</div>
+<p>These requirements are consistent, <strong>but</strong> the precondition of <code class="docutils literal notranslate"><span class="pre">Req1</span></code> is never true, i.e., <code class="docutils literal notranslate"><span class="pre">Req1</span></code> is vacuously satisfied in this set of requirements.</p>
+<p>Vacuity can be resolved by</p>
+<ul class="simple">
+<li><p>erasing requirements, or</p></li>
+<li><p>changing requirements</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p>Erase <code class="docutils literal notranslate"><span class="pre">Req2</span></code> or make it less restrictive</p></li>
+<li><p>Change <code class="docutils literal notranslate"><span class="pre">Req2</span></code> to <code class="docutils literal notranslate"><span class="pre">Req2':</span> <span class="pre">Before</span> <span class="pre">&quot;Startup&quot;,</span> <span class="pre">it</span> <span class="pre">is</span> <span class="pre">never</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">that</span> <span class="pre">&quot;Signal-A&quot;</span> <span class="pre">holds.</span></code></p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="realtime-consistency-rt-consistency">
+<h3>Realtime-Consistency (rt-consistency)<a class="headerlink" href="#realtime-consistency-rt-consistency" title="Permalink to this headline">¶</a></h3>
+<p>A set of requirements is rt-inconsistent, if there are conflicts between requirements that arise after a certain time.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">Req1:</span> <span class="pre">It</span> <span class="pre">is</span> <span class="pre">always</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">that</span> <span class="pre">if</span> <span class="pre">„IRTest“</span> <span class="pre">holds,</span> <span class="pre">then</span> <span class="pre">„IRLampsOn“</span> <span class="pre">holds</span> <span class="pre">after</span> <span class="pre">at</span> <span class="pre">most</span> <span class="pre">10</span> <span class="pre">seconds</span></code>
+<code class="docutils literal notranslate"><span class="pre">Req2:</span> <span class="pre">It</span> <span class="pre">is</span> <span class="pre">always</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">that</span> <span class="pre">if</span> <span class="pre">„IRTest“</span> <span class="pre">holds,</span> <span class="pre">then</span> <span class="pre">„NOT(IRLampsOn)“</span> <span class="pre">holds</span> <span class="pre">for</span> <span class="pre">at</span> <span class="pre">least</span> <span class="pre">6</span> <span class="pre">seconds.</span></code></p>
+</div>
+<p>is consistent, <strong>but</strong> there are assignments with a conflict as shown in the following example.</p>
+<p><img alt="Example picture 6" src="../../_images/image007.png" />Example Picture 6</p>
+<p>As IRTest gets valid in timepoint t=4, req1 requires, that in the time interval <code class="docutils literal notranslate"><span class="pre">t=[4...14]</span></code> <code class="docutils literal notranslate"><span class="pre">IRLampsOn</span></code> gets true as well.</p>
+<p>As IRTest is still valid in timepoint t=10, req2 requires, that IRLampsOn stays “false” until at least t=16. Thus, in t=14 we have a conflict - however the system reacts, one requirement will be violated.</p>
+<p>Resolve rt-inconsistency by</p>
+<ul class="simple">
+<li><p>erasing requirements, or</p></li>
+<li><p>changing requirements, or</p></li>
+<li><p>adding requirements</p></li>
+</ul>
+<p>Erase Req2, or make it less restrictive
+–Req2‘: It is always the case that if IRTest holds and it did not hold in the last 10 s, then NOT(IRLampsOn) holds for at least 6 s.</p>
+<p>Or add
+Req3: Once IRTest appears, it holds for at most 3 seconds.</p>
+<p>Req4: Once IRTest disappears, it is absent for at least 10 seconds</p>
+</div>
+</div>
+<div class="section" id="system-test-case-generation">
+<h2>System test case generation<a class="headerlink" href="#system-test-case-generation" title="Permalink to this headline">¶</a></h2>
+<p>When having the requirements formalized in the specification language, it makes sense to also automatically generate test specifications out of them.
+There are several reasons to do so:</p>
+<p><img alt="Example picture 7" src="../../_images/image008.png" />Example Picture 7</p>
+<p>Thus the algorithm has to:</p>
+<ul class="simple">
+<li><p>Automatically generate system tests only using requirements</p></li>
+<li><p>Generate small set of tests (test suite)</p>
+<ul>
+<li><p>Generate one test case per output variable</p></li>
+<li><p>Generate so many tests that every requirement is tested</p></li>
+</ul>
+</li>
+<li><p>Generate tests that may not lead to false positives</p></li>
+<li><p>Ensure traceability to the requirements (i.e. indicate what requirements are tested by the test)</p></li>
+<li><p>The generated Test (case) consists of</p>
+<ul>
+<li><p>Sequence of inputs (Initial state of system, Inputs for steps 1…n)</p></li>
+<li><p>Expected outcome (oracle for step n)</p></li>
+<li><p>Link to the tested requirement</p></li>
+</ul>
+</li>
+<li><p>Generate a feedback if there are untestable requirements</p>
+<ul>
+<li><p>Output: Set of untestable requirements</p></li>
+</ul>
+</li>
+</ul>
+<p>(No seq. of Inputs deterministically causes the output)</p>
+<p><img alt="Example picture 8" src="../../_images/image009.png" />Example Picture 8</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Requirements to be tested:</p>
+<p><code class="docutils literal notranslate"><span class="pre">req1:</span> <span class="pre">Globally,</span> <span class="pre">it</span> <span class="pre">is</span> <span class="pre">always</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">that</span> <span class="pre">if</span> <span class="pre">‘A’</span> <span class="pre">holds</span> <span class="pre">then</span> <span class="pre">‘H’</span> <span class="pre">holds</span> <span class="pre">after</span> <span class="pre">at</span> <span class="pre">most</span> <span class="pre">‘10’</span> <span class="pre">time</span> <span class="pre">units.</span></code>
+<code class="docutils literal notranslate"><span class="pre">req2:</span> <span class="pre">Globally,</span> <span class="pre">it</span> <span class="pre">is</span> <span class="pre">always</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">that</span> <span class="pre">if</span> <span class="pre">‘B’</span> <span class="pre">holds</span> <span class="pre">then</span> <span class="pre">‘I’</span> <span class="pre">holds</span> <span class="pre">after</span> <span class="pre">at</span> <span class="pre">most</span> <span class="pre">‘10’</span> <span class="pre">time</span> <span class="pre">units.</span></code>
+<code class="docutils literal notranslate"><span class="pre">req3:</span> <span class="pre">Globally,</span> <span class="pre">it</span> <span class="pre">is</span> <span class="pre">always</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">that</span> <span class="pre">if</span> <span class="pre">‘H</span> <span class="pre">AND</span> <span class="pre">I’</span> <span class="pre">holds</span> <span class="pre">then</span> <span class="pre">‘O’</span> <span class="pre">holds</span> <span class="pre">after</span> <span class="pre">at</span> <span class="pre">most</span> <span class="pre">‘10’</span> <span class="pre">time</span> <span class="pre">units.</span></code></p>
+</div>
+<p>Testing requires information about observability. Thus, we need to categorize the variables into Input, Output, and Hidden (i.e. internal variables):</p>
+<ul class="simple">
+<li><p>Inputs: A, B</p></li>
+<li><p>Outputs: O</p></li>
+<li><p>Hidden: H, I</p></li>
+</ul>
+<p>In the Test Generator Tool you can choose the following options:</p>
+<ul class="simple">
+<li><p>generate System Test (i.e. the tests only speak about system inputs and outputs, but no internal variables)</p></li>
+<li><p>generate System Integration Test (i.e., the tests speak about system input, system outputs and internal variables)</p></li>
+</ul>
+<p>The output of the test generation tool looks as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="n">Case</span> <span class="n">SystemTest</span><span class="p">:</span>
+    <span class="n">TestGeneratorResult</span><span class="p">:</span>
+    <span class="n">Found</span> <span class="n">Test</span> <span class="k">for</span><span class="p">:</span> <span class="p">[</span><span class="n">O</span><span class="p">]</span>
+    <span class="n">Test</span> <span class="n">Vector</span><span class="p">:</span>
+    <span class="n">Set</span> <span class="n">inputs</span><span class="p">:</span>
+    <span class="n">A</span> <span class="p">:</span><span class="o">=</span> <span class="n">true</span><span class="p">,</span> <span class="n">B</span> <span class="p">:</span><span class="o">=</span> <span class="n">true</span>
+    <span class="n">Wait</span> <span class="k">for</span> <span class="n">at</span> <span class="n">most</span> <span class="mi">20</span> <span class="k">for</span><span class="p">:</span>
+    <span class="n">O</span> <span class="o">==</span> <span class="n">true</span><span class="p">,</span> <span class="p">(</span><span class="n">req3</span><span class="p">)</span>
+    
+    <span class="n">Case</span> <span class="n">System</span> <span class="n">Integration</span> <span class="n">Test</span><span class="p">:</span>
+    <span class="o">------|</span> <span class="n">Test</span><span class="p">:</span> <span class="n">req3</span> <span class="o">|-----------------------</span>
+    <span class="n">TestGeneratorResult</span><span class="p">:</span>
+    <span class="n">Found</span> <span class="n">Test</span> <span class="k">for</span><span class="p">:</span> <span class="p">[</span><span class="n">O</span><span class="p">]</span>
+    <span class="n">Test</span> <span class="n">Vector</span><span class="p">:</span>
+    <span class="n">Set</span> <span class="n">inputs</span><span class="p">:</span>
+    <span class="n">A</span> <span class="p">:</span><span class="o">=</span> <span class="n">true</span><span class="p">,</span> <span class="n">B</span> <span class="p">:</span><span class="o">=</span> <span class="n">true</span>
+    <span class="n">Wait</span> <span class="k">for</span> <span class="n">at</span> <span class="n">most</span> <span class="mi">10</span> <span class="k">for</span><span class="p">:</span>
+    <span class="n">H</span> <span class="o">==</span> <span class="n">true</span> <span class="p">(</span><span class="n">req1</span><span class="p">)</span>
+    <span class="n">Wait</span> <span class="k">for</span> <span class="n">at</span> <span class="n">most</span> <span class="mi">10</span> <span class="k">for</span><span class="p">:</span>
+    <span class="n">I</span> <span class="o">==</span> <span class="n">true</span> <span class="p">(</span><span class="n">req2</span><span class="p">)</span>
+    <span class="n">Wait</span> <span class="k">for</span> <span class="n">at</span> <span class="n">most</span> <span class="mi">20</span> <span class="k">for</span><span class="p">:</span>
+    <span class="n">O</span> <span class="o">==</span> <span class="n">true</span><span class="p">,</span> <span class="p">(</span><span class="n">req3</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Hanfor Team
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

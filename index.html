@@ -1,125 +1,254 @@
 <!DOCTYPE html>
 <!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en"> <!--<![endif]-->
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="None">
-  
-  <link rel="shortcut icon" href="img/favicon.ico">
-  <title>Home - Hanfor Docs</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/">
+        
+            <link rel="shortcut icon" href="img/favicon.ico">
+        <title>What is Hanfor?
+            - Hanfor Docs</title>
+        <link rel="stylesheet"
+              href="css/stupid_fonts.css"/>
 
-  <link rel="stylesheet" href="css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="css/theme_extra.css" type="text/css" />
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
-  <link href="stylesheets/extra.css" rel="stylesheet">
-  
-  <script>
-    // Current page data
-    var mkdocs_page_name = "Home";
-    var mkdocs_page_input_path = "index.md";
-    var mkdocs_page_url = "/hanfor/";
-  </script>
-  
-  <script src="js/jquery-2.1.1.min.js" defer></script>
-  <script src="js/modernizr-2.8.3.min.js" defer></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script> 
-  
+        <link rel="stylesheet" href="css/theme.css"/>
+        <link rel="stylesheet" href="css/theme_extra.css"/>
+        <link rel="stylesheet" href="css/lightbox.min.css"/>
+            <link rel="stylesheet" href="css/github.min.css"/>
+            <link href="stylesheets/extra.css" rel="stylesheet"/>
+        
+            <script>
+                // Current page data
+                var mkdocs_page_name = "What is Hanfor?";
+                var mkdocs_page_input_path = "index.md";
+                var mkdocs_page_url = "/hanfor/";
+            </script>
+        
+        <script src="js/jquery-2.1.1.min.js" defer></script>
+        <script src="js/modernizr-2.8.3.min.js" defer></script>
+            <script src="js/highlight.min.js"></script>
+            <script src="js/python.min.js"></script>
+            <script src="js/bash.min.js"></script>
+            <script>hljs.initHighlightingOnLoad();</script>
+        <script src="js/lightbox.min.js" defer></script> 
+        
 </head>
 
 <body class="wy-body-for-nav" role="document">
 
-  <div class="wy-grid-for-nav">
+<div class="wy-grid-for-nav">
 
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
-      <div class="wy-side-nav-search">
-        <a href="." class="icon icon-home"> Hanfor Docs</a>
-        <div role="search">
+        <div class="wy-side-scroll">
+            <div class="wy-side-nav-search">
+                    <a href="." class="icon icon-home"> Hanfor Docs</a>
+                    <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
   </form>
 </div>
-      </div>
+            </div>
 
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-	<ul class="current">
-	  
-          
-            <li class="toctree-l1 current">
-		
-    <a class="current" href=".">Home</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l2"><a href="#quickstart">Quickstart</a></li>
-    
-
-    <li class="toctree-l2"><a href="#introduction">Introduction</a></li>
-    
+            <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                            <p class="caption"><span class="caption-text">Introduction</span></p>
+                            <ul class="current">
+                                    <li class="toctree-l1 current"><a class="reference internal current" href=".">What is Hanfor?</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#grammar-of-the-specification-language">Grammar of the specification language</a>
         <ul>
-        
-            <li><a class="toctree-l3" href="#grammar-of-the-specification-language">Grammar of the Specification Language</a></li>
-        
-            <li><a class="toctree-l3" href="#tool-support">Tool Support</a></li>
-        
-            <li><a class="toctree-l3" href="#system-test-case-generation">System test case generation</a></li>
-        
+    <li class="toctree-l3"><a class="reference internal" href="#tool-support">Tool support</a>
+    </li>
         </ul>
-    
-
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#realtime-consistency-rt-consistency">Realtime-consistency (rt-consistency)</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#system-test-case-generation">System test case generation</a>
+    </li>
     </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="installation/">Installation</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Usage</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="Usage/API Queries/">API Queries</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="Usage/FAQ/">FAQ</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="Usage/Requirements/">Requirements</a>
-                </li>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Installation</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="installation/preliminaries/">Preliminaries</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="installation/preliminaries/#install-hanfor">Install Hanfor</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="installation/preliminaries/#install-reqanalyzer">Install ReqAnalyzer</a>
+    </li>
     </ul>
-	    </li>
-          
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="installation/configuration/">Configuration</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="installation/configuration/#hanfor">Hanfor</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="installation/configuration/#hanfor-config-file">Hanfor config file:</a>
+    </li>
         </ul>
-      </div>
-      &nbsp;
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="installation/configuration/#reqanalyzer">ReqAnalyzer</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="installation/deployment/">Deployment</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="installation/deployment/#how-it-works">How it works</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Usage</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="usage/api_queries/">API Queries</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="usage/api_queries/#show-stored-queries">Show stored queries</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="usage/api_queries/#url-arguments">URL arguments</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="usage/api_queries/#examples">Examples</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="usage/api_queries/#adding-new-queries">Adding new queries</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="usage/api_queries/#json-body-parameters">JSON body parameters</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="usage/api_queries/#examples_1">Examples</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="usage/api_queries/#deleting-queries">Deleting queries</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="usage/api_queries/#json-body-parameters_1">JSON body parameters</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="usage/api_queries/#examples_2">Examples</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="usage/api_queries/#query-syntax">Query syntax</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="usage/api_queries/#search-operators">Search operators</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="usage/api_queries/#exact-searches">Exact searches</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="usage/api_queries/#target-specific-attributes">Target specific attributes</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="usage/api_queries/#get-available-attributes">Get available attributes</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="usage/api_queries/#example">Example</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="usage/faq/">FAQ</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="usage/faq/#change-description-or-a-field-text-in-requirements-table">Change description or a field text in requirements table.</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="usage/requirements/">Requirements</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="usage/requirements/#search-in-requirements-table">Search in requirements table</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="usage/requirements/#search-operators">Search Operators</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="usage/requirements/#exact-searches">Exact searches</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="usage/requirements/#mass-edit-requirements">Mass edit requirements</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="usage/workflow/">Workflow</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="usage/workflow/#example-input">Example input</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="usage/workflow/#fire-up-hanfor">Fire up Hanfor</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="usage/workflow/#preprocessing">Preprocessing</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="usage/workflow/#formalization">Formalization</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="usage/workflow/#req1">REQ1</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="usage/workflow/#req7-and-req8">REQ7 and REQ8</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="usage/workflow/#exporting-the-formalized-requirements">Exporting the formalized requirements.</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="usage/workflow/#preparing-the-export">Preparing the export.</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="usage/workflow/#export">Export</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="usage/workflow/#analysis-using-ultimate">Analysis using Ultimate.</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="usage/workflow/#get-ultimate">Get Ultimate</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="usage/workflow/#scripts-to-perform-the-complete-analysis">Scripts to perform the complete analysis.</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="usage/workflow/#use-ultimate">Use Ultimate</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="usage/workflow/#evaluate">Evaluate</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="usage/workflow/#alter-your-requirements">Alter your requirements</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="usage/workflow/#time-for-a-new-revision">Time for a new revision.</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="usage/workflow/#ultimate-analysis-2">Ultimate Analysis #2</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Contribute</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="contribute/to_hanfor/">To Hanfor</a>
+    <ul>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="contribute/to_docs/">To Docs</a>
+    <ul>
+    </ul>
+                                    </li>
+                            </ul>
+            </div>
+        </div>
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href=".">Hanfor Docs</a>
-      </nav>
+        
+        <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+            <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+            <a href=".">Hanfor Docs</a>
+        </nav>
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
+        
+        <div class="wy-nav-content">
+            <div class="rst-content">
+                <div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href=".">Docs</a> &raquo;</li>
     
       
+        
+          <li>Introduction &raquo;</li>
+        
+      
     
-    <li>Home</li>
+    <li>What is Hanfor?</li>
     <li class="wy-breadcrumbs-aside">
       
         <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/index.md"
@@ -129,23 +258,11 @@
   </ul>
   <hr/>
 </div>
-          <div role="main">
-            <div class="section">
-              
-                <h1>Hanfor Docs</h1>
-
+                <div role="main">
+                    <div class="section">
+                        
+                            <h1 id="what-is-hanfor">What is Hanfor?<a class="headerlink" href="#what-is-hanfor" title="Permanent link"> #</a></h1>
 <p><strong>Hanfor</strong> <strong>h</strong>elps <strong>an</strong>alyzing <strong>an</strong>d <strong>for</strong>malizing <strong>r</strong>equirements.</p>
-<h2 id="quickstart">Quickstart<a class="headerlink" href="#quickstart" title="Permanent link">#</a></h2>
-<ul>
-<li>Use Python 3.6.x</li>
-<li>Install dependencies: <code>pip install -r requirements.txt</code></li>
-<li>Copy <code>./hanfor/config.dist.py</code> to <code>./hanfor/config.py</code>.</li>
-<li>Edit the <code>config.py</code> according your needs.</li>
-<li>Start the app for a fresh session created from <code>input.csv</code>:<br>
-  <code>python app.py &lt;tag&gt; -c path/to/input.csv</code></li>
-<li>Point your browser to <a href="http://127.0.0.1:5000"><code>http://127.0.0.1:&lt;port in config.py&gt;</code></a>.</li>
-</ul>
-<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">#</a></h2>
 <p>If you have many requirements it gets difficult to check that all of them are, e.g., consistent. No human can manually check &gt;1000 requirements for consistency -- so we do our best with reviews.</p>
 <p>Also in new projects, what we often see, is that it takes a long time before there is a high test coverage on the requirements -- as the number of requirements increases over the releases, and thus also the test specifications have to cover more and more requirements. However, many defects are found by experience-based testing -- but these technique is often used quite late, as the first priority is to get a reasonable requirement-based coverage.</p>
 <p>To tackle that problem, Hanfor provides a method that consists of 3 steps:</p>
@@ -154,13 +271,14 @@
 <li>The Requirements Check (on the formalized requirements)</li>
 <li>The Test Generation (on the formalized requirements)</li>
 </ol>
-<p><img alt="Example Picture 1" src="img/image001.png" title="Example picture 1" /></p>
+<figure><a data-lightbox="all_images" data-title="Example Picture 1" href="img/image001.png"><img alt="Example Picture 1" src="img/image001.png" title="Example picture 1" /></a><figcaption>Example Picture 1</figcaption>
+</figure>
 <p>To make it possible for a computer to check a set of requirements for quality criteria, as e.g. consistency, it has to "understand" the semantics of the requirements.</p>
 <p>This could be achieved by using formal languages to express the requirements. However, they are rarely understandable for humans, so we would get requirements that the computer understands - but nearly no stakeholder.</p>
 <p>In this method we use a simple pattern language. The requirements expressed in the pattern language look like English sentences. Everything you can express in this patterns is then translated in the background into logical formulas. You could also easily translate them into German, Chinese, or other languages.</p>
-<h3 id="grammar-of-the-specification-language">Grammar of the Specification Language<a class="headerlink" href="#grammar-of-the-specification-language" title="Permanent link">#</a></h3>
-<p>The grammar is the following:
-<div class="highlight"><pre><span></span>REQ      ::= ID: SCOPE, PATTERN .
+<h2 id="grammar-of-the-specification-language">Grammar of the specification language<a class="headerlink" href="#grammar-of-the-specification-language" title="Permanent link"> #</a></h2>
+<p>The grammar is the following:</p>
+<pre><code>REQ      ::= ID: SCOPE, PATTERN .
 SCOPE    ::= Globally  | Before EXPR  | After EXPR | Between EXPR and EXPR  | After EXPR until EXPR
 PATTERN  ::= It is never the case that EXPR holds
            | It is always the case that EXPR holds
@@ -187,24 +305,29 @@ REALTIME ::= Once EXPR becomes satisfied, it holds for at least DURATION
            | If EXPR holds, then there is at least one execution sequence such that EXPR holds after at most DURATION
            | After EXPR holds for DURATION, then EXPR holds
            | If EXPR holds, then EXPR toggles EXPR at most DURATION later
-</pre></div>
-<code>EXPR</code> is an expression (e.g. <code>vehicleSpeed&lt;10 &amp;&amp; Terminal15==ON</code>).</p>
+</code></pre>
+
+<p><code>EXPR</code> is an expression (e.g. <code>vehicleSpeed&lt;10 &amp;&amp; Terminal15==ON</code>).</p>
 <p>Thus, in a first step the informal requirements are translated into requirements in the specification language shown above. This is done manually.</p>
-<p>In the background the tool translates the requirements in specification language then into logical formulas.
-<img alt="Example Picture 2" src="img/image003.jpg" title="Example picture 2" /></p>
-<h3 id="tool-support">Tool Support<a class="headerlink" href="#tool-support" title="Permanent link">#</a></h3>
+<p>In the background the tool translates the requirements in specification language then into logical formulas.</p>
+<figure><a data-lightbox="all_images" data-title="Example Picture 2" href="img/image003.jpg"><img alt="Example Picture 2" src="img/image003.jpg" title="Example picture 2" /></a><figcaption>Example Picture 2</figcaption>
+</figure>
+<h3 id="tool-support">Tool support<a class="headerlink" href="#tool-support" title="Permanent link"> #</a></h3>
 <p>The tool to assist this step is called Hanfor.It looks a little bit like Doors. It takes as input a csv-Export from Doors, and then stores the requirements. There are two IDs, the Hanfor ID and the Doors ID, so that you can synchronize the two databases, and can easily identify changes.</p>
-<p><img alt="Example Picture 3" src="img/image004.jpg" title="Example picture 3" /></p>
+<figure><a data-lightbox="all_images" data-title="Example Picture 3" href="img/image004.jpg"><img alt="Example Picture 3" src="img/image004.jpg" title="Example picture 3" /></a><figcaption>Example Picture 3</figcaption>
+</figure>
 <p>Clicking on a requirements you can then specify the requirement in the specification language as visible in the next screenshot. The tool provides both patterns and also a signal database, so that you have a auto-complete function when filling out the variables.</p>
-<p><img alt="Example Picture 4" src="img/image005.jpg" title="Example picture 4" />
-<img alt="Example Picture 5" src="img/image006.jpg" title="Example picture 5" /></p>
+<figure><a data-lightbox="all_images" data-title="Example Picture 4" href="img/image005.jpg"><img alt="Example Picture 4" src="img/image005.jpg" title="Example picture 4" /></a><figcaption>Example Picture 4</figcaption>
+</figure>
+<figure><a data-lightbox="all_images" data-title="Example Picture 5" href="img/image006.jpg"><img alt="Example Picture 5" src="img/image006.jpg" title="Example picture 5" /></a><figcaption>Example Picture 5</figcaption>
+</figure>
 <p>The tool checks for the following correctness criteria: </p>
 <ul>
 <li>Consistency</li>
 <li>Vacuity</li>
 <li>rt-Consistency</li>
 </ul>
-<div class="admonition note">
+<div class="admonition example">
 <p class="admonition-title">Example</p>
 <ul>
 <li><code>Req1: It is always the case that "IRTest" holds.</code></li>
@@ -216,35 +339,38 @@ REALTIME ::= Once EXPR becomes satisfied, it holds for at least DURATION
 <li>erasing requirements </li>
 <li>changing requirements</li>
 </ul>
-<div class="admonition note">
+<div class="admonition example">
 <p class="admonition-title">Example</p>
+</div>
 <ul>
 <li><code>Req1: It is always the case that if "Signal-A" holds then "Signal-B" holds after at most 10 ms.</code></li>
 <li><code>Req2: It is never the case that "Signal-A" holds.</code></li>
 </ul>
-</div>
 <p>These requirements are consistent, <strong>but</strong> the precondition of <code>Req1</code> is never true, i.e., <code>Req1</code> is vacuously satisfied in this set of requirements. </p>
 <p>Vacuity can be resolved by </p>
 <ul>
 <li>erasing requirements, or</li>
 <li>changing requirements</li>
 </ul>
-<div class="admonition note">
+<div class="admonition example">
 <p class="admonition-title">Example</p>
 <ul>
 <li>Erase <code>Req2</code> or make it less restrictive</li>
 <li>Change <code>Req2</code> to <code>Req2': Before "Startup", it is never the case that "Signal-A" holds.</code></li>
 </ul>
 </div>
-<h4 id="realtime-consistency-rt-consistency">Realtime-Consistency (rt-consistency)<a class="headerlink" href="#realtime-consistency-rt-consistency" title="Permanent link">#</a></h4>
+<h2 id="realtime-consistency-rt-consistency">Realtime-consistency (rt-consistency)<a class="headerlink" href="#realtime-consistency-rt-consistency" title="Permanent link"> #</a></h2>
 <p>A set of requirements is rt-inconsistent, if there are conflicts between requirements that arise after a certain time.</p>
-<div class="admonition note">
+<div class="admonition example">
 <p class="admonition-title">Example</p>
-<p>Req1: It is always the case that if „IRTest“ holds, then „IRLampsOn“ holds after at most 10 seconds
-Req2: It is always the case that if „IRTest“ holds, then „NOT(IRLampsOn)“ holds for at least 6 seconds.</p>
+<ul>
+<li><code>Req1: It is always the case that if „IRTest“ holds, then „IRLampsOn“ holds after at most 10 seconds</code></li>
+<li><code>Req2: It is always the case that if „IRTest“ holds, then „NOT(IRLampsOn)“ holds for at least 6 seconds.</code></li>
+</ul>
 </div>
 <p>is consistent, <strong>but</strong> there are assignments with a conflict as shown in the following example.</p>
-<p><img alt="Example Picture 6" src="img/image007.png" title="Example picture 6" /></p>
+<figure><a data-lightbox="all_images" data-title="Example Picture 6" href="img/image007.png"><img alt="Example Picture 6" src="img/image007.png" title="Example picture 6" /></a><figcaption>Example Picture 6</figcaption>
+</figure>
 <p>As IRTest gets valid in timepoint t=4, req1 requires, that in the time interval <code>t=[4...14]</code> <code>IRLampsOn</code> gets true as well.</p>
 <p>As IRTest is still valid in timepoint t=10, req2 requires, that IRLampsOn stays "false" until at least t=16. Thus, in t=14 we have a conflict - however the system reacts, one requirement will be violated.</p>
 <p>Resolve rt-inconsistency by</p>
@@ -258,10 +384,11 @@ Req2: It is always the case that if „IRTest“ holds, then „NOT(IRLampsOn)�
 <p>Or add
 Req3: Once IRTest appears, it holds for at most 3 seconds.</p>
 <p>Req4: Once IRTest disappears, it is absent for at least 10 seconds</p>
-<h3 id="system-test-case-generation">System test case generation<a class="headerlink" href="#system-test-case-generation" title="Permanent link">#</a></h3>
+<h2 id="system-test-case-generation">System test case generation<a class="headerlink" href="#system-test-case-generation" title="Permanent link"> #</a></h2>
 <p>When having the requirements formalized in the specification language, it makes sense to also automatically generate test specifications out of them.
 There are several reasons to do so:</p>
-<p><img alt="Example Picture 7" src="img/image008.png" title="Example picture 7" /></p>
+<figure><a data-lightbox="all_images" data-title="Example Picture 7" href="img/image008.png"><img alt="Example Picture 7" src="img/image008.png" title="Example picture 7" /></a><figcaption>Example Picture 7</figcaption>
+</figure>
 <p>Thus the algorithm has to:</p>
 <ul>
 <li>Automatically generate system tests only using requirements</li>
@@ -288,17 +415,15 @@ There are several reasons to do so:</p>
 </li>
 </ul>
 <p>(No seq. of Inputs deterministically causes the output)</p>
-<div class="admonition note">
-<p class="admonition-title"><strong>Example</strong></p>
-<p>System to be tested:</p>
-<p><img alt="Example Picture 8" src="img/image009.png" title="Example picture 8" /></p>
-</div>
-<div class="admonition note">
-<p class="admonition-title"><strong>Input</strong></p>
-<p>Requirements to be tested:<br>
-<code>req1: Globally, it is always the case that if ‘A’ holds then ‘H’ holds after at most ‘10’ time units.</code><br>
-<code>req2: Globally, it is always the case that if ‘B’ holds then ‘I’ holds after at most ‘10’ time units.</code><br>
-<code>req3: Globally, it is always the case that if ‘H AND I’ holds then ‘O’ holds after at most ‘10’ time units.</code><br></p>
+<figure><a data-lightbox="all_images" data-title="Example Picture 8" href="img/image009.png"><img alt="Example Picture 8" src="img/image009.png" title="Example picture 8" /></a><figcaption>Example Picture 8</figcaption>
+</figure>
+<div class="admonition example">
+<p class="admonition-title">Requirements to be tested</p>
+<ul>
+<li><code>req1: Globally, it is always the case that if ‘A’ holds then ‘H’ holds after at most ‘10’ time units.</code></li>
+<li><code>req2: Globally, it is always the case that if ‘B’ holds then ‘I’ holds after at most ‘10’ time units.</code></li>
+<li><code>req3: Globally, it is always the case that if ‘H AND I’ holds then ‘O’ holds after at most ‘10’ time units.</code></li>
+</ul>
 </div>
 <p>Testing requires information about observability. Thus, we need to categorize the variables into Input, Output, and Hidden (i.e. internal variables):</p>
 <ul>
@@ -311,9 +436,10 @@ There are several reasons to do so:</p>
 <li>generate System Test (i.e. the tests only speak about system inputs and outputs, but no internal variables)</li>
 <li>generate System Integration Test (i.e., the tests speak about system input, system outputs and internal variables)</li>
 </ul>
-<div class="admonition note">
-<p class="admonition-title"><strong>Output</strong> of the Test Generator Tool</p>
-<div class="highlight"><pre><span></span>Case SystemTest:
+<div class="admonition example">
+<p class="admonition-title">output of the test generation tool</p>
+</div>
+<pre><code>Case SystemTest:
 TestGeneratorResult:
 Found Test for: [O]
 Test Vector:
@@ -335,14 +461,11 @@ Wait for at most 10 for:
 I == true (req2)
 Wait for at most 20 for:
 O == true, (req3)
-</pre></div>
-
-</div>
-              
-            </div>
-          </div>
-          <footer>
-
+</code></pre>
+                        
+                    </div>
+                </div>
+                    <footer>
   <hr/>
 
   <div role="contentinfo">
@@ -350,29 +473,31 @@ O == true, (req3)
     
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a custom theme</a>.
 </footer>
-      
+                
+            </div>
         </div>
-      </div>
 
     </section>
 
-  </div>
+</div>
 
-  <div class="rst-versions" role="note" aria-label="versions">
+<div class="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
+      
           <a href="https://github.com/ultimate-pa/hanfor/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
     </span>
 </div>
     <script>var base_url = '.';</script>
     <script src="js/theme.js" defer></script>
-      <script src="search/main.js" defer></script>
+        <script src="search/main.js" defer></script>
+    <script type="text/javascript" defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(false);
+        };
+    </script>
 
 </body>
 </html>
-
-<!--
-MkDocs version : 1.0.4
-Build Date UTC : 2019-08-02 08:14:27
--->
