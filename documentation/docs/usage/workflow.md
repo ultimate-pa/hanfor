@@ -4,7 +4,7 @@ toc_depth: 2
 This example and everything that belongs to it is located in `hanfor/example`.
 
 ## Example input
-Consider a CSV file `example_input.csv` which contains requirements of a realtime-system:
+Consider a CSV file `example_input.csv` which contains requirements:
 ``` bash
 ID,Description,Type
 META1,This is an example for some requirements,meta
@@ -15,8 +15,8 @@ REQ3,constraint1 always holds,requirement
 REQ4,constraint2 always holds,requirement
 REQ5,var1 is always smaller than 5,requirement
 REQ6,constraint1 and constraint2 never hold at the same time,requirement
-REQ7,if var1 = True then var3 = True,requirement
-REQ8,if var1 = True then var3 = False,requirement
+REQ7,if var1 = True then var3 := 1,requirement
+REQ8,if var1 = True then var3 := 0,requirement
 ```
 In this case every row consists of the fields `ID`, `Description`, `Formalized Requirement` and `Type`.
 
@@ -673,8 +673,8 @@ REQ2,var2 is always smaller than 10,requirement
 REQ3,constraint1 always holds,requirement
 REQ4,constraint2 never holds,requirement
 REQ6,constraint1 and constraint2 never hold at the same time,requirement
-REQ7,if var1 = True then var3 = True,requirement
-REQ8,if var1 = True then var3 = False,requirement
+REQ7,if var1 = True then var3 = 0,requirement
+REQ8,if var1 = True then var3 = 1,requirement
 ```
 
 ### Time for a new revision.
@@ -701,7 +701,35 @@ We now have to alter the requirements which have changed, that's only `REQ4`.
 Open the formalization of `REQ4` and correct it to `Globally, it is never the case that "constraint2" holds`.
 
 ### Ultimate Analysis #2
-1. Export your requirements as before
-2. Run Ultimate on them
+1. Export your requirements as before with the name `example_input_revision1.req`
+2. Run Ultimate on the new requirements file.
 
-TODO.
+You can now examine the log created in `hanfor/example/logs/example_input/example_input.req.relevant.log`,
+which contains the following:
+``` 
+- ReqCheckFailResult [Line: -1]: Requirements REQ8_0, REQ7_0 are rt-inconsistent
+```
+
+A `ReqCheckFailResult` usually implies that something is broken, 
+Ultimate found that requirements `REQ7` and `REQ8` are rt-inconsistent, let's analyze this result:
+
+``` 
+REQ7,if var1 = True then var3 = 0,requirement
+REQ8,if var1 = True then var3 = 1,requirement
+```
+
+These two requirements collide, because they assign different values to `var3` when `var1` holds.
+This is especially bad in a realtime system, because it can happen that `var3 == 0` holds after a certain amount of time, 
+and `var3 == 1` holds at a later point of time or vice versa. Why is this bad? - because it can cause unexpected behaviour when a change propagates through the system.
+
+
+### Conclusion
+You are now able to:
+ 
+ 1. Setup hanfor, 
+ 2. Formalize requirements, 
+ 3. Filter requirements, 
+ 4. Export them to a .req file
+ 5. Run Ultimate on a .req file
+ 6. Interpret the results of Ultimate
+ 7. Create new revisions in hanfor to fix mistakes in requirements.

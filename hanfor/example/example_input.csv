@@ -1,11 +1,10 @@
 ID,Description,Type
-META1,This is an example for some meta information,meta
+META1,This is an example for some requirements,meta
 META2,Next we define some requirements,meta
 REQ1,var1 is always greater than 5,requirement
 REQ2,var2 is always smaller than 10,requirement
 REQ3,constraint1 always holds,requirement
-REQ4,constraint2 always holds,requirement
-REQ5,var1 is always smaller than 5,requirement
-REQ6, constraint1 and constraint2 never hold at the same time,requirement
-REQ7,if var3 = True then var4 = True,requirement
-REQ8,if var3 = True then var4 = False,requirement
+REQ4,constraint2 never holds,requirement
+REQ6,constraint1 and constraint2 never hold at the same time,requirement
+REQ7,if var1 = True then var3 = 0,requirement
+REQ8,if var1 = True then var3 = 1,requirement
