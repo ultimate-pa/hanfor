@@ -15,8 +15,8 @@ REQ3,constraint1 always holds,requirement
 REQ4,constraint2 always holds,requirement
 REQ5,var1 is always smaller than 5,requirement
 REQ6,constraint1 and constraint2 never hold at the same time,requirement
-REQ7,if var1 = True then var3 := 1,requirement
-REQ8,if var1 = True then var3 := 0,requirement
+REQ7,if var3 = True then var4 := 1,requirement
+REQ8,if var3 = True then var4 := 0,requirement
 ```
 In this case every row consists of the fields `ID`, `Description`, `Formalized Requirement` and `Type`.
 
@@ -76,18 +76,18 @@ The same procedure can be applied to REQ2 - REQ6
 
 ### REQ7 and REQ8
 REQ7 and REQ8 are different.
-Consider REQ7: `if var3 = True then var4 := True`.
+Consider REQ7: `if var3 = True then var4 := 1`.
 
 - The scope is still **Globally** 
 - The pattern is **it is always the case that if "{R}" holds, then "{S}" holds after at most "{T}" time units**, because in a realtime-system a variable assignment does not happen instantly, there can be delays.
 - For **{R}** we insert `var3`, because the variable type is boolean.
-- For **{S}** insert `var4`,
+- For **{S}** insert `var3 == 1`,
 - For **{T}** we need a certain amount of time units, for example 50. We do not want to hardcode values, 
 we introduce a new variable and insert `MAX_TIME`.
 
 We end up with the following: 
 ``` 
-Globally, it is always the case that if "var3" holds, then "var4" holds after at most "MAX_TIME" time units.
+Globally, it is always the case that if "var3" holds, then "var4 == 1" holds after at most "MAX_TIME" time units.
 ```
 Save the formalization. 
 
@@ -101,7 +101,7 @@ also assign a value, for example `50`.
 
 For REQ8 you should have: 
 ``` 
-Globally, it is always the case that if "var3" holds, then "!var4" holds after at most "MAX_TIME" time units.
+Globally, it is always the case that if "var3" holds, then "var4 == 0" holds after at most "MAX_TIME" time units.
 ```
 
 ## Exporting the formalized requirements.
@@ -130,7 +130,8 @@ Input constraint2 IS bool
 Input var1 IS int
 Input var2 IS int
 Input var3 IS bool
-Input var4 IS bool
+Input var4 IS int
+
 
 REQ1_0: Globally, it is always the case that "var1 > 5" holds
 REQ2_0: Globally, it is always the case that "var2 < 10" holds
@@ -138,8 +139,8 @@ REQ3_0: Globally, it is always the case that "constraint1" holds
 REQ4_0: Globally, it is always the case that "constraint2" holds
 REQ5_0: Globally, it is always the case that "var1 < 5" holds
 REQ6_0: Globally, it is never the case that "constraint1 && constraint2 " holds
-REQ7_0: Globally, it is always the case that if "var3" holds, then "var4" holds after at most "MAX_TIME" time units
-REQ8_0: Globally, it is always the case that if "var3" holds, then "!var4" holds after at most "MAX_TIME " time units
+REQ7_0: Globally, it is always the case that if "var3" holds, then "var4 == 1" holds after at most "MAX_TIME" time units
+REQ8_0: Globally, it is always the case that if "var3" holds, then "var4 == 0" holds after at most "MAX_TIME " time units
 ```
 
 ## Analysis using Ultimate.
@@ -673,8 +674,8 @@ REQ2,var2 is always smaller than 10,requirement
 REQ3,constraint1 always holds,requirement
 REQ4,constraint2 never holds,requirement
 REQ6,constraint1 and constraint2 never hold at the same time,requirement
-REQ7,if var1 = True then var3 = 0,requirement
-REQ8,if var1 = True then var3 = 1,requirement
+REQ7,if var3 = True then var4 = 0,requirement
+REQ8,if var3 = True then var4 = 1,requirement
 ```
 
 ### Time for a new revision.
@@ -714,13 +715,13 @@ A `ReqCheckFailResult` usually implies that something is broken,
 Ultimate found that requirements `REQ7` and `REQ8` are rt-inconsistent, let's analyze this result:
 
 ``` 
-REQ7,if var1 = True then var3 = 0,requirement
-REQ8,if var1 = True then var3 = 1,requirement
+REQ7,if var3 = True then var4 = 0,requirement
+REQ8,if var3 = True then var4 = 1,requirement
 ```
 
-These two requirements collide, because they assign different values to `var3` when `var1` holds.
-This is especially bad in a realtime system, because it can happen that `var3 == 0` holds after a certain amount of time, 
-and `var3 == 1` holds at a later point of time or vice versa. Why is this bad? - because it can cause unexpected behaviour when a change propagates through the system.
+These two requirements collide, because they assign different values to `var4` when `var3` holds.
+This is especially bad in a realtime system, because it can happen that `var4 == 0` holds after a certain amount of time, 
+and `var4 == 1` holds at a later point of time or vice versa. Why is this bad? - because it can cause unexpected behaviour when a change propagates through the system.
 
 
 ### Conclusion
