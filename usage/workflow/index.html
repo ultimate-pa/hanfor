@@ -26,7 +26,7 @@
             <script>
                 // Current page data
                 var mkdocs_page_name = "Workflow";
-                var mkdocs_page_input_path = "usage\\workflow.md";
+                var mkdocs_page_input_path = "usage/workflow.md";
                 var mkdocs_page_url = "/hanfor/usage/workflow/";
             </script>
         
@@ -192,7 +192,7 @@
                             <h1 id="workflow">Workflow<a class="headerlink" href="#workflow" title="Permanent link"> #</a></h1>
 <p>This example and everything that belongs to it is located in <code>hanfor/example</code>.</p>
 <h2 id="example-input">Example input<a class="headerlink" href="#example-input" title="Permanent link"> #</a></h2>
-<p>Consider a CSV file <code>example_input.csv</code> which contains requirements of a realtime-system:</p>
+<p>Consider a CSV file <code>example_input.csv</code> which contains requirements:</p>
 <pre><code class="bash">ID,Description,Type
 META1,This is an example for some requirements,meta
 META2,Next we define some requirements,meta
@@ -202,8 +202,8 @@ REQ3,constraint1 always holds,requirement
 REQ4,constraint2 always holds,requirement
 REQ5,var1 is always smaller than 5,requirement
 REQ6,constraint1 and constraint2 never hold at the same time,requirement
-REQ7,if var1 = True then var3 = True,requirement
-REQ8,if var1 = True then var3 = False,requirement
+REQ7,if var1 = True then var3 := 1,requirement
+REQ8,if var1 = True then var3 := 0,requirement
 </code></pre>
 
 <p>In this case every row consists of the fields <code>ID</code>, <code>Description</code>, <code>Formalized Requirement</code> and <code>Type</code>.</p>
@@ -845,8 +845,8 @@ REQ2,var2 is always smaller than 10,requirement
 REQ3,constraint1 always holds,requirement
 REQ4,constraint2 never holds,requirement
 REQ6,constraint1 and constraint2 never hold at the same time,requirement
-REQ7,if var1 = True then var3 = True,requirement
-REQ8,if var1 = True then var3 = False,requirement
+REQ7,if var1 = True then var3 = 0,requirement
+REQ8,if var1 = True then var3 = 1,requirement
 </code></pre>
 
 <h3 id="time-for-a-new-revision">Time for a new revision.<a class="headerlink" href="#time-for-a-new-revision" title="Permanent link"> #</a></h3>
@@ -874,10 +874,34 @@ as we did not change the csv header, we just keep the current one.</p>
 Open the formalization of <code>REQ4</code> and correct it to <code>Globally, it is never the case that "constraint2" holds</code>.</p>
 <h3 id="ultimate-analysis-2">Ultimate Analysis #2<a class="headerlink" href="#ultimate-analysis-2" title="Permanent link"> #</a></h3>
 <ol>
-<li>Export your requirements as before</li>
-<li>Run Ultimate on them</li>
+<li>Export your requirements as before with the name <code>example_input_revision1.req</code></li>
+<li>Run Ultimate on the new requirements file.</li>
 </ol>
-<p>TODO.</p>
+<p>You can now examine the log created in <code>hanfor/example/logs/example_input/example_input.req.relevant.log</code>,
+which contains the following:</p>
+<pre><code>- ReqCheckFailResult [Line: -1]: Requirements REQ8_0, REQ7_0 are rt-inconsistent
+</code></pre>
+
+<p>A <code>ReqCheckFailResult</code> usually implies that something is broken, 
+Ultimate found that requirements <code>REQ7</code> and <code>REQ8</code> are rt-inconsistent, let's analyze this result:</p>
+<pre><code>REQ7,if var1 = True then var3 = 0,requirement
+REQ8,if var1 = True then var3 = 1,requirement
+</code></pre>
+
+<p>These two requirements collide, because they assign different values to <code>var3</code> when <code>var1</code> holds.
+This is especially bad in a realtime system, because it can happen that <code>var3 == 0</code> holds after a certain amount of time, 
+and <code>var3 == 1</code> holds at a later point of time or vice versa. Why is this bad? - because it can cause unexpected behaviour when a change propagates through the system.</p>
+<h3 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link"> #</a></h3>
+<p>You are now able to:</p>
+<ol>
+<li>Setup hanfor, </li>
+<li>Formalize requirements, </li>
+<li>Filter requirements, </li>
+<li>Export them to a .req file</li>
+<li>Run Ultimate on a .req file</li>
+<li>Interpret the results of Ultimate</li>
+<li>Create new revisions in hanfor to fix mistakes in requirements.</li>
+</ol>
                         
                     </div>
                 </div>
