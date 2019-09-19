@@ -202,8 +202,8 @@ REQ3,constraint1 always holds,requirement
 REQ4,constraint2 always holds,requirement
 REQ5,var1 is always smaller than 5,requirement
 REQ6,constraint1 and constraint2 never hold at the same time,requirement
-REQ7,if var1 = True then var3 := 1,requirement
-REQ8,if var1 = True then var3 := 0,requirement
+REQ7,if var3 = True then var4 := 1,requirement
+REQ8,if var3 = True then var4 := 0,requirement
 </code></pre>
 
 <p>In this case every row consists of the fields <code>ID</code>, <code>Description</code>, <code>Formalized Requirement</code> and <code>Type</code>.</p>
@@ -263,17 +263,17 @@ You can examine and even alter them in the section <strong>Variables</strong>, f
 <p>The same procedure can be applied to REQ2 - REQ6</p>
 <h3 id="req7-and-req8">REQ7 and REQ8<a class="headerlink" href="#req7-and-req8" title="Permanent link"> #</a></h3>
 <p>REQ7 and REQ8 are different.
-Consider REQ7: <code>if var3 = True then var4 := True</code>.</p>
+Consider REQ7: <code>if var3 = True then var4 := 1</code>.</p>
 <ul>
 <li>The scope is still <strong>Globally</strong> </li>
 <li>The pattern is <strong>it is always the case that if "{R}" holds, then "{S}" holds after at most "{T}" time units</strong>, because in a realtime-system a variable assignment does not happen instantly, there can be delays.</li>
 <li>For <strong>{R}</strong> we insert <code>var3</code>, because the variable type is boolean.</li>
-<li>For <strong>{S}</strong> insert <code>var4</code>,</li>
+<li>For <strong>{S}</strong> insert <code>var3 == 1</code>,</li>
 <li>For <strong>{T}</strong> we need a certain amount of time units, for example 50. We do not want to hardcode values, 
 we introduce a new variable and insert <code>MAX_TIME</code>.</li>
 </ul>
 <p>We end up with the following: </p>
-<pre><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4&quot; holds after at most &quot;MAX_TIME&quot; time units.
+<pre><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 1&quot; holds after at most &quot;MAX_TIME&quot; time units.
 </code></pre>
 
 <p>Save the formalization. </p>
@@ -284,7 +284,7 @@ also assign a value, for example <code>50</code>.</p>
 <figure><a data-lightbox="all_images" data-title="Example for the MAX_TIME variable" href="../../img/hanfor_var_maxtime.png"><img alt="Example for the MAX_TIME variable" src="../../img/hanfor_var_maxtime.png" title="This is how you should edit the MAX_TIME variable" /></a><figcaption>Example for the <code>MAX_TIME</code> variable</figcaption>
 </figure>
 <p>For REQ8 you should have: </p>
-<pre><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;!var4&quot; holds after at most &quot;MAX_TIME&quot; time units.
+<pre><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 0&quot; holds after at most &quot;MAX_TIME&quot; time units.
 </code></pre>
 
 <h2 id="exporting-the-formalized-requirements">Exporting the formalized requirements.<a class="headerlink" href="#exporting-the-formalized-requirements" title="Permanent link"> #</a></h2>
@@ -308,7 +308,8 @@ Input constraint2 IS bool
 Input var1 IS int
 Input var2 IS int
 Input var3 IS bool
-Input var4 IS bool
+Input var4 IS int
+
 
 REQ1_0: Globally, it is always the case that &quot;var1 &gt; 5&quot; holds
 REQ2_0: Globally, it is always the case that &quot;var2 &lt; 10&quot; holds
@@ -316,8 +317,8 @@ REQ3_0: Globally, it is always the case that &quot;constraint1&quot; holds
 REQ4_0: Globally, it is always the case that &quot;constraint2&quot; holds
 REQ5_0: Globally, it is always the case that &quot;var1 &lt; 5&quot; holds
 REQ6_0: Globally, it is never the case that &quot;constraint1 &amp;&amp; constraint2 &quot; holds
-REQ7_0: Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4&quot; holds after at most &quot;MAX_TIME&quot; time units
-REQ8_0: Globally, it is always the case that if &quot;var3&quot; holds, then &quot;!var4&quot; holds after at most &quot;MAX_TIME &quot; time units
+REQ7_0: Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 1&quot; holds after at most &quot;MAX_TIME&quot; time units
+REQ8_0: Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 0&quot; holds after at most &quot;MAX_TIME &quot; time units
 </code></pre>
 
 <h2 id="analysis-using-ultimate">Analysis using Ultimate.<a class="headerlink" href="#analysis-using-ultimate" title="Permanent link"> #</a></h2>
@@ -845,8 +846,8 @@ REQ2,var2 is always smaller than 10,requirement
 REQ3,constraint1 always holds,requirement
 REQ4,constraint2 never holds,requirement
 REQ6,constraint1 and constraint2 never hold at the same time,requirement
-REQ7,if var1 = True then var3 = 0,requirement
-REQ8,if var1 = True then var3 = 1,requirement
+REQ7,if var3 = True then var4 = 0,requirement
+REQ8,if var3 = True then var4 = 1,requirement
 </code></pre>
 
 <h3 id="time-for-a-new-revision">Time for a new revision.<a class="headerlink" href="#time-for-a-new-revision" title="Permanent link"> #</a></h3>
@@ -884,13 +885,13 @@ which contains the following:</p>
 
 <p>A <code>ReqCheckFailResult</code> usually implies that something is broken, 
 Ultimate found that requirements <code>REQ7</code> and <code>REQ8</code> are rt-inconsistent, let's analyze this result:</p>
-<pre><code>REQ7,if var1 = True then var3 = 0,requirement
-REQ8,if var1 = True then var3 = 1,requirement
+<pre><code>REQ7,if var3 = True then var4 = 0,requirement
+REQ8,if var3 = True then var4 = 1,requirement
 </code></pre>
 
-<p>These two requirements collide, because they assign different values to <code>var3</code> when <code>var1</code> holds.
-This is especially bad in a realtime system, because it can happen that <code>var3 == 0</code> holds after a certain amount of time, 
-and <code>var3 == 1</code> holds at a later point of time or vice versa. Why is this bad? - because it can cause unexpected behaviour when a change propagates through the system.</p>
+<p>These two requirements collide, because they assign different values to <code>var4</code> when <code>var3</code> holds.
+This is especially bad in a realtime system, because it can happen that <code>var4 == 0</code> holds after a certain amount of time, 
+and <code>var4 == 1</code> holds at a later point of time or vice versa. Why is this bad? - because it can cause unexpected behaviour when a change propagates through the system.</p>
 <h3 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link"> #</a></h3>
 <p>You are now able to:</p>
 <ol>
