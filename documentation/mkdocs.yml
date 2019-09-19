@@ -24,6 +24,8 @@ markdown_extensions:
   - figureAltCaption
   - lightbox
   - extra
+  - markdown_include.include:
+      base_path: docs
 nav:
   - Introduction:
       - 'What is Hanfor?': 'index.md'
