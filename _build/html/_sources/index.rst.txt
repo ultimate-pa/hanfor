@@ -1,0 +1,42 @@
+Welcome to Hanfor's documentation!
+==================================
+
+.. toctree::
+    :caption: Introduction
+    :maxdepth: 1
+    :glob:
+
+    chapters/introduction/what.md
+
+.. toctree::
+    :caption: Installation
+    :maxdepth: 1
+    :glob:
+
+    chapters/installation/preliminaries.md
+    chapters/installation/configuration.md
+    chapters/installation/deployment.md
+
+.. toctree::
+    :caption: Usage
+    :titlesonly:
+    :maxdepth: 1
+    :glob:
+
+    chapters/usage/api_queries.md
+    chapters/usage/faq.md
+    chapters/usage/requirements.md
+
+.. toctree::
+    :caption: Contribute
+    :titlesonly:
+    :maxdepth: 1
+    :glob:
+
+    chapters/contribute/to_hanfor.md
+    chapters/contribute/to_docs.md
+
+Indices and tables
+==================
+
+* :ref:`genindex`

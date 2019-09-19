@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/usage/workflow/">
+        
+            <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Workflow
+            - Hanfor Docs</title>
+        <link rel="stylesheet"
+              href="../../css/stupid_fonts.css"/>
+
+        <link rel="stylesheet" href="../../css/theme.css"/>
+        <link rel="stylesheet" href="../../css/theme_extra.css"/>
+        <link rel="stylesheet" href="../../css/lightbox.min.css"/>
+            <link rel="stylesheet" href="../../css/github.min.css"/>
+            <link href="../../stylesheets/extra.css" rel="stylesheet"/>
+        
+            <script>
+                // Current page data
+                var mkdocs_page_name = "Workflow";
+                var mkdocs_page_input_path = "usage/workflow.md";
+                var mkdocs_page_url = "/hanfor/usage/workflow/";
+            </script>
+        
+        <script src="../../js/jquery-2.1.1.min.js" defer></script>
+        <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+            <script src="../../js/highlight.min.js"></script>
+            <script src="../../js/python.min.js"></script>
+            <script src="../../js/bash.min.js"></script>
+            <script>hljs.initHighlightingOnLoad();</script>
+        <script src="../../js/lightbox.min.js" defer></script> 
+        
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+<div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+        <div class="wy-side-scroll">
+            <div class="wy-side-nav-search">
+                    <a href="../.." class="icon icon-home"> Hanfor Docs</a>
+                    <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+            </div>
+
+            <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                            <p class="caption"><span class="caption-text">Introduction</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../..">What is Hanfor?</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../..#grammar-of-the-specification-language">Grammar of the specification language</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../..#realtime-consistency-rt-consistency">Realtime-consistency (rt-consistency)</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../..#system-test-case-generation">System test case generation</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Installation</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../installation/preliminaries/">Preliminaries</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../installation/preliminaries/#install-hanfor">Install Hanfor</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../installation/preliminaries/#install-reqanalyzer">Install ReqAnalyzer</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../installation/configuration/">Configuration</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../installation/configuration/#hanfor">Hanfor</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../installation/configuration/#reqanalyzer">ReqAnalyzer</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../installation/deployment/">Deployment</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../installation/deployment/#how-it-works">How it works</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Usage</span></p>
+                            <ul class="current">
+                                    <li class="toctree-l1"><a class="reference internal" href="../api_queries/">API Queries</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../api_queries/#show-stored-queries">Show stored queries</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../api_queries/#adding-new-queries">Adding new queries</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../api_queries/#deleting-queries">Deleting queries</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../api_queries/#query-syntax">Query syntax</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../faq/">FAQ</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../faq/#change-description-or-a-field-text-in-requirements-table">Change description or a field text in requirements table.</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../requirements/">Requirements</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../requirements/#search-in-requirements-table">Search in requirements table</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../requirements/#mass-edit-requirements">Mass edit requirements</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Workflow</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#example-input">Example input</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#fire-up-hanfor">Fire up Hanfor</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#preprocessing">Preprocessing</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#formalization">Formalization</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#exporting-the-formalized-requirements">Exporting the formalized requirements.</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#analysis-using-ultimate">Analysis using Ultimate.</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Contribute</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../contribute/to_hanfor/">To Hanfor</a>
+    <ul>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../contribute/to_docs/">To Docs</a>
+    <ul>
+    </ul>
+                                    </li>
+                            </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+        
+        <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+            <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+            <a href="../..">Hanfor Docs</a>
+        </nav>
+
+        
+        <div class="wy-nav-content">
+            <div class="rst-content">
+                <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Usage &raquo;</li>
+        
+      
+    
+    <li>Workflow</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/usage/workflow.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+                <div role="main">
+                    <div class="section">
+                        
+                            <h1 id="workflow">Workflow<a class="headerlink" href="#workflow" title="Permanent link"> #</a></h1>
+<p>This example and everything that belongs to it is located in <code>hanfor/example</code>.</p>
+<h2 id="example-input">Example input<a class="headerlink" href="#example-input" title="Permanent link"> #</a></h2>
+<p>Consider a CSV file <code>example_input.csv</code> which contains requirements:</p>
+<pre><code class="bash">ID,Description,Type
+META1,This is an example for some requirements,meta
+META2,Next we define some requirements,meta
+REQ1,var1 is always greater than 5,requirement
+REQ2,var2 is always smaller than 10,requirement
+REQ3,constraint1 always holds,requirement
+REQ4,constraint2 always holds,requirement
+REQ5,var1 is always smaller than 5,requirement
+REQ6,constraint1 and constraint2 never hold at the same time,requirement
+REQ7,if var1 = True then var3 := 1,requirement
+REQ8,if var1 = True then var3 := 0,requirement
+</code></pre>
+
+<p>In this case every row consists of the fields <code>ID</code>, <code>Description</code>, <code>Formalized Requirement</code> and <code>Type</code>.</p>
+<ul>
+<li><code>ID</code> is a unique identifier, </li>
+<li><code>Description</code> is the description ,</li>
+<li><code>Formalized Requirement</code>, is the formalization,  </li>
+<li><code>Type</code>, is a type, in this example <code>meta</code> or <code>requirement</code>, where rows with type <code>meta</code> contain some meta-information
+and rows with type <code>requirement</code> contain actual requirements of the module you want to formalize.</li>
+</ul>
+<h2 id="fire-up-hanfor">Fire up Hanfor<a class="headerlink" href="#fire-up-hanfor" title="Permanent link"> #</a></h2>
+<ol>
+<li>Configure Hanfor as explained in <a href="/installation/configuration">Configuration</a></li>
+<li>Start Hanfor: </li>
+</ol>
+<pre><code class="bash">cd hanfor
+python3 app.py -c example_input.csv example_tag
+</code></pre>
+
+<ul>
+<li><code>-c example_input.csv</code> specifies the csv input file we pass.</li>
+<li><code>example_tag</code> is some meaningful tag you want to give this session.
+If you start hanfor later with the same tag, you'll start exactly this session.</li>
+</ul>
+<p>you can now reach Hanfor by visiting <a href="http://127.0.0.1:5000">http://127.0.0.1:5000</a></p>
+<figure><a data-lightbox="all_images" data-title="Hanfor requirement overview" href="../../img/hanfor01.png"><img alt="Hanfor requirement overview" src="../../img/hanfor01.png" title="This is how Hanfor looks like after you started it" /></a><figcaption>Hanfor requirement overview</figcaption>
+</figure>
+<h2 id="preprocessing">Preprocessing<a class="headerlink" href="#preprocessing" title="Permanent link"> #</a></h2>
+<p>By default, all rows now have the status <strong>Todo</strong>. 
+It might be the case that you want to change this for a certain set of rows to another status.</p>
+<p>In this example we want to set every row of type <code>meta</code> to the status <strong>Done</strong>. </p>
+<p>To accomplish this we use the <a href="/usage/requirements/#search-in-requirements-table">Search Query Language</a>. </p>
+<ol>
+<li>In Hanfor, search  <code>:COL_INDEX_04:meta</code>. This will search for rows which match "meta" in the 4. coloumn (Type). You should now only see the rows of type <code>meta</code>.</li>
+<li>Select all rows by clicking  <strong>All</strong>.</li>
+<li>Click <strong>Edit selected</strong> and select <strong>Done</strong> in the field <strong>Set status</strong>.</li>
+<li>Finally, click <strong>Apply changes to selected requirements</strong></li>
+</ol>
+<h2 id="formalization">Formalization<a class="headerlink" href="#formalization" title="Permanent link"> #</a></h2>
+<p>Order your requirement overview by <strong>Pos</strong> by clicking on the table column.</p>
+<h3 id="req1">REQ1<a class="headerlink" href="#req1" title="Permanent link"> #</a></h3>
+<p>To formalize this requirement, we click on the ID <strong>REQ1</strong> to open then formalization-modal:</p>
+<figure><a data-lightbox="all_images" data-title="Formalization modal" href="../../img/hanfor02.png"><img alt="Formalization modal" src="../../img/hanfor02.png" title="This is how a formalization modal looks like" /></a><figcaption>Formalization modal</figcaption>
+</figure>
+<ol>
+<li>Click on <strong>+</strong> to add a new formalization and then on <strong>..(click to open)</strong></li>
+<li>We now have to select a <em>Scope</em> and a <em>Pattern</em>.
+- The scope is <strong>Globally</strong>, because the requirement states that "var1 is <strong>always</strong> greater than 5".
+- The pattern is <strong>it is always the case that {R} holds</strong>.
+- For <strong>{R}</strong> we insert the condition: <code>var1 &gt; 5</code> 
+- Set the status to <strong>Review</strong> and then press <strong>save changes</strong>.
+If you save a requirement, Hanfor will automatically create the used variables and derive their type.
+You can examine and even alter them in the section <strong>Variables</strong>, for the case that Hanfor did not derive a variable-type correctly.</li>
+</ol>
+<figure><a data-lightbox="all_images" data-title="Definition of Scope and Pattern" href="../../img/hanfor_req1_formalization.png"><img alt="Definition of Scope and Pattern" src="../../img/hanfor_req1_formalization.png" title="This is how we formalize REQ1" /></a><figcaption>Definition of Scope and Pattern</figcaption>
+</figure>
+<p>The same procedure can be applied to REQ2 - REQ6</p>
+<h3 id="req7-and-req8">REQ7 and REQ8<a class="headerlink" href="#req7-and-req8" title="Permanent link"> #</a></h3>
+<p>REQ7 and REQ8 are different.
+Consider REQ7: <code>if var3 = True then var4 := True</code>.</p>
+<ul>
+<li>The scope is still <strong>Globally</strong> </li>
+<li>The pattern is <strong>it is always the case that if "{R}" holds, then "{S}" holds after at most "{T}" time units</strong>, because in a realtime-system a variable assignment does not happen instantly, there can be delays.</li>
+<li>For <strong>{R}</strong> we insert <code>var3</code>, because the variable type is boolean.</li>
+<li>For <strong>{S}</strong> insert <code>var4</code>,</li>
+<li>For <strong>{T}</strong> we need a certain amount of time units, for example 50. We do not want to hardcode values, 
+we introduce a new variable and insert <code>MAX_TIME</code>.</li>
+</ul>
+<p>We end up with the following: </p>
+<pre><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4&quot; holds after at most &quot;MAX_TIME&quot; time units.
+</code></pre>
+
+<p>Save the formalization. </p>
+<p>You will now recognize that Hanfor automatically added a new <em>Tag</em> <strong>Type_inference_error</strong> to your freshly
+formalized requirement. To fix that, to go the <strong>Variables</strong> section and open the <code>MAX_TIME</code> variable.
+You see that Hanfor derived the type <code>bool</code>, but we actually want it to be of type <code>CONST</code> as the variable represents time units. Change the type and
+also assign a value, for example <code>50</code>.</p>
+<figure><a data-lightbox="all_images" data-title="Example for the MAX_TIME variable" href="../../img/hanfor_var_maxtime.png"><img alt="Example for the MAX_TIME variable" src="../../img/hanfor_var_maxtime.png" title="This is how you should edit the MAX_TIME variable" /></a><figcaption>Example for the <code>MAX_TIME</code> variable</figcaption>
+</figure>
+<p>For REQ8 you should have: </p>
+<pre><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;!var4&quot; holds after at most &quot;MAX_TIME&quot; time units.
+</code></pre>
+
+<h2 id="exporting-the-formalized-requirements">Exporting the formalized requirements.<a class="headerlink" href="#exporting-the-formalized-requirements" title="Permanent link"> #</a></h2>
+<p>Once you are done with all requirements, it is time to analyze them using a tool like Ultimate (TODO:ref to git).</p>
+<h3 id="preparing-the-export">Preparing the export.<a class="headerlink" href="#preparing-the-export" title="Permanent link"> #</a></h3>
+<p>You might want to filter out some rows, for example, all of type <code>meta</code> or all that have a certain tag.
+Again, use the <a href="/usage/requirements/#search-in-requirements-table">Search Query Language</a> to select only the requirements you want.
+For example, if we only rows of type <code>requirement</code> which are not on status <strong>Todo</strong> we search:</p>
+<pre><code>:COL_INDEX_04:requirement:AND::COL_INDEX_06::NOT:Todo
+</code></pre>
+
+<h3 id="export">Export<a class="headerlink" href="#export" title="Permanent link"> #</a></h3>
+<p>To export requirements, press <strong>Tools</strong>, then choose either <code>.req</code> or <code>.csv</code>.
+If you want to analyze the requirements using Ultimate, choose <strong>Generate .req file from (filtered) requirements table</strong>
+and then save it.</p>
+<p>You should end up with the following:</p>
+<pre><code class="plain">CONST MAX_TIME IS 50.0
+
+Input constraint1 IS bool
+Input constraint2 IS bool
+Input var1 IS int
+Input var2 IS int
+Input var3 IS bool
+Input var4 IS bool
+
+REQ1_0: Globally, it is always the case that &quot;var1 &gt; 5&quot; holds
+REQ2_0: Globally, it is always the case that &quot;var2 &lt; 10&quot; holds
+REQ3_0: Globally, it is always the case that &quot;constraint1&quot; holds
+REQ4_0: Globally, it is always the case that &quot;constraint2&quot; holds
+REQ5_0: Globally, it is always the case that &quot;var1 &lt; 5&quot; holds
+REQ6_0: Globally, it is never the case that &quot;constraint1 &amp;&amp; constraint2 &quot; holds
+REQ7_0: Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4&quot; holds after at most &quot;MAX_TIME&quot; time units
+REQ8_0: Globally, it is always the case that if &quot;var3&quot; holds, then &quot;!var4&quot; holds after at most &quot;MAX_TIME &quot; time units
+</code></pre>
+
+<h2 id="analysis-using-ultimate">Analysis using Ultimate.<a class="headerlink" href="#analysis-using-ultimate" title="Permanent link"> #</a></h2>
+<h3 id="get-ultimate">Get Ultimate<a class="headerlink" href="#get-ultimate" title="Permanent link"> #</a></h3>
+<p>First of all you need <a href="https://github.com/ultimate-pa/ultimate">Ultimate</a></p>
+<ol>
+<li>Install <code>Java JDK (1.8)</code> and <code>Maven (&gt;3.0)</code></li>
+<li>Clone the repository: <code>git clone https://github.com/ultimate-pa/ultimate</code>.</li>
+<li>Navigate to the release scripts <code>cd ultimate/releaseScripts/default/</code></li>
+<li>Generate a fresh binary <code>./makeFresh.sh</code></li>
+</ol>
+<p>You have now successfully forged binaries, which are located in <code>UAutomizer-linux/</code>.</p>
+<h3 id="scripts-to-perform-the-complete-analysis">Scripts to perform the complete analysis.<a class="headerlink" href="#scripts-to-perform-the-complete-analysis" title="Permanent link"> #</a></h3>
+<p>We wrote scripts, which perform a complete anaylsis, including the extraction of relevant stuff.
+Just copy the following three scripts, and change the directories in the head of the files where it is necessary.</p>
+<ul>
+<li><code>explode_script.py</code>:</li>
+</ul>
+<pre><code class="python">#!/usr/bin/env python3
+
+import argparse
+import re
+import sys
+
+def get_top_operands(s):
+    operands = []
+    pstack = []
+    last_space = None
+
+    for i, c in enumerate(s):
+        if c == '(':
+            pstack.append(i)
+        elif c == ')':
+            if len(pstack) == 0:
+                print(s)
+                raise IndexError(&quot;No matching closing parens at: &quot; + str(i))
+            j = pstack.pop()
+            last_space = None 
+            if len(pstack) == 0:
+                operands.append(s[j:i + 1])
+        elif c == ' ':
+            if not last_space:
+                last_space = i
+            else:
+                if len(pstack) == 0:
+                    # we have a top level operand without parenthesis
+                    operands.append(s[last_space:i + 1])
+                last_space = i
+
+    if len(pstack) &gt; 0:
+        print(s)
+        raise IndexError(&quot;No matching opening parens at: &quot; + str(pstack.pop()))
+    return operands
+
+
+def split_and(s):
+    if s.startswith('(and'):
+        rtr = []
+        for operand in get_top_operands(s[5:len(s) - 1]):
+            rtr = rtr + split_and(operand)
+        return rtr
+    else:
+        return [s]
+
+
+parser = argparse.ArgumentParser(description='Convert (assert (and o1 o2 ...)) to (assert o1) (assert o2) (assert ...)')
+parser.add_argument('-i', '--input', nargs=1, metavar='&lt;file&gt;', required=True, help='Specify input file')
+parser.add_argument('-o', '--output', nargs=1, metavar='&lt;file&gt;', required=True, help='Specify output file')
+
+try:
+    args, extras = parser.parse_known_args()
+except argparse.ArgumentError as exc:
+    print(exc.message + '\n' + exc.argument)
+    sys.exit(1)
+
+input_script = args.input[0]
+output_script = args.output[0]
+if input_script == output_script:
+    print('Input and output file must be different')
+    sys.exit(1)
+
+try:
+    with open(input_script, encoding='utf-8') as f, open(output_script, 'w', encoding='utf-8') as o:
+        for line in f.readlines():
+            if line.startswith(&quot;(assert (!&quot;):
+                m = re.search('\(assert \(! (.*?) :named (.*?)\)\)', line)
+                formula = m.group(1)
+                if formula == 'true':
+                    continue
+                name = m.group(2)
+                asserts = split_and(formula)
+                if len(asserts) == 1:
+                    o.write('(assert (! {} :named {}))\n'.format(asserts[0], name))
+                else:
+                    i = 0
+                    for sub in asserts:
+                        o.write('(assert (! {} :named {}))\n'.format(sub, name + '_' + str(i)))
+                        i = i + 1
+            else:
+                o.write(line)
+except FileNotFoundError as exc: 
+    print('Did not find ' + input_script)
+    print('Arguments were '+ str(args))
+    sys.exit(1)
+</code></pre>
+
+<ul>
+<li><code>extract_vac_reasons.sh</code>,  used to extract reasons why a requirement is vacuous.</li>
+</ul>
+<pre><code class="bash">#!/bin/bash
+# script that prepares a .req file with the reasons for vacuity for a known vacuous requirement
+# start it from the initial dump directory
+
+orig_req_file=&quot;${1}&quot;
+ultimate_log=&quot;${2}&quot;
+
+# This is what you have to change:
+requirement_repo=&quot;/storage/repos/your_requirement_repo&quot;
+ultimate_repo=&quot;/storage/repos/ultimate&quot;
+explode=&quot;${requirement_repo}/explode_script.py&quot;
+ultimate_dir=&quot;${ultimate_repo}/releaseScripts/default/UAutomizer-linux&quot;
+
+# Below here you do not have to change anything, except you know what you are doing.
+tmp_dump_dir=&quot;dump-ss&quot;
+dump_dir=&quot;dump&quot;
+
+function check_params(){
+    if [[ $PWD != *&quot;$dump_dir&quot; ]]; then
+        echo &quot;Not in directory $dump_dir&quot;
+        exit 1;
+    fi
+}
+
+function parse_results(){
+    mapfile -t results &lt; &lt;( grep -oP ' - .*Result.*' &quot;$ultimate_log&quot; | grep 'is vacuous' | grep -oP 'Requirement .* is' | cut -d ' ' -f 2 )
+}
+
+function print_results(){
+    if [ ${#results[@]} -eq 0 ]; then
+        echo &quot;No vacuous requirements remaining! This is unexpected. Check $reduced_req_file and $ultimate_log&quot;
+        return 1
+    else
+        echo &quot;${#results[@]} requirements still vacuous: ${results[@]}&quot;
+        return 0
+    fi
+}
+
+
+function get_involved_reqs(){
+    local reason_file=&quot;$req_id.vac&quot;
+    local tmp_file=&quot;$req_id.tmp&quot;
+    local regexpr=&quot;&quot;
+
+    if readlink -e &quot;$tmp_file&quot; &gt; /dev/null ; then
+        echo &quot;$tmp_file still exists&quot;
+        exit 1
+    fi
+
+    for smt_file in $smt_file_pref
+    do
+        echo &quot;Considering $smt_file&quot;
+        tmp_smt_file=&quot;${smt_file}.lbe&quot;
+        eval &quot;$explode -i $smt_file -o $tmp_smt_file&quot;
+        if ! readlink -e &quot;$tmp_smt_file&quot; &gt; /dev/null ; then
+            echo &quot;$explode -i $smt_file -o $tmp_smt_file did not produce the expected output, something is wrong&quot;
+            echo &quot;The current folder is $PWD&quot;
+            exit 1
+        fi
+        sed -i 's/(get-interpolants.*/(get-unsat-core)/g' &quot;$tmp_smt_file&quot;
+        sed -i '/\:interpolant-check-mode/d' &quot;$tmp_smt_file&quot;
+        sed -i '/\:proof-transformation/d' &quot;$tmp_smt_file&quot;
+        sed -i '/\:array-interpolation/d' &quot;$tmp_smt_file&quot;
+        # You can check if z3 complains about something in the file
+        #../z3 &quot;$tmp_smt_file&quot;
+        for i in `&quot;$ultimate_dir/z3&quot; &quot;$tmp_smt_file&quot; | grep -A 1 -P ^unsat$ | tail -n +2 | sed 's/(//g' | sed 's/)//g'`; do grep &quot;$i&quot; &quot;$tmp_smt_file&quot;; done | grep -oP 'SysRS_\w+_\d+_\d+' | sort | uniq &gt;&gt; &quot;$tmp_file&quot;
+        rm &quot;$tmp_smt_file&quot;
+    done
+
+    sort &quot;$tmp_file&quot; | uniq &gt; &quot;$reason_file&quot;
+    rm &quot;$tmp_file&quot;
+
+    if ! grep -q &quot;$req_id&quot; &quot;$reason_file&quot; ; then
+        echo &quot;TODO: if the tmp_file does not contain the req_id in the unsat core, we need to remove reasons for infeasibility and try again&quot;
+        return 1
+    fi
+
+    echo &quot;Found `wc -l $reason_file | cut -d &quot; &quot; -f 1` involved reqs&quot;
+    tr '[:space:]' ' ' &lt; &quot;$reason_file&quot;
+    echo &quot;&quot;
+
+    for i in `cat $reason_file` ; do regexpr+=&quot;\|$i.*$&quot;; done
+    rm &quot;$reason_file&quot;
+    sed &quot;/CONST.*$\|Input.*$&quot;&quot;$regexpr/!d&quot; &quot;$orig_req_file&quot; &gt; &quot;$reduced_req_file&quot;
+    return 0
+}
+
+function run_ultimate_ss(){
+    rm -r &quot;$tmp_dump_dir&quot;
+    mkdir &quot;$tmp_dump_dir&quot;
+    ultimate_log=`readlink -f &quot;${tmp_dump_dir}/ultimate.log&quot;`
+    echo &quot;Running Ultimate&quot;
+    java -Dosgi.configuration.area=config/ \
+    -Xmx10G \
+    -jar plugins/org.eclipse.equinox.launcher_1.3.100.v20150511-1540.jar \
+    -tc &quot;${ultimate_repo}/trunk/examples/toolchains/ReqCheck.xml&quot; \
+    -s &quot;${requirement_repo}/reqanalyzer-nonlin.epf&quot; \
+    -i &quot;${dump_dir}/$reduced_req_file&quot; \
+    --pea2boogie.check.consistency false \
+    --pea2boogie.check.rt-inconsistency false \
+    --traceabstraction.dump.smt.script.to.file true \
+    --traceabstraction.to.the.following.directory=&quot;${tmp_dump_dir}/&quot; \
+    &gt; &quot;$ultimate_log&quot;
+}
+
+check_params
+parse_results
+initial_results=&quot;${results[@]}&quot;
+echo &quot;Processing ${#results[@]} vacuous requirements&quot;
+for i in ${initial_results[@]}
+do
+    req_id=&quot;$i&quot;
+    reduced_req_file=&quot;$req_id.vac.req&quot;
+    echo &quot;----&quot;
+    echo &quot;Processing $req_id&quot;
+    smt_file_pref=&quot;*VAC*_&quot;`echo &quot;$req_id&quot; | cut -d &quot;_&quot; -f 3-`&quot;_*.smt2&quot;
+
+    if ! get_involved_reqs ; then
+      continue
+    fi
+
+    pushd &quot;$ultimate_dir&quot; &gt; /dev/null
+
+    run_ultimate_ss
+    parse_results
+    if print_results ; then
+      pushd &quot;$tmp_dump_dir&quot; &gt; /dev/null
+      get_involved_reqs
+      echo &quot;Writing $reduced_req_file&quot;
+      cp &quot;$reduced_req_file&quot; &quot;../${dump_dir}/&quot;
+      cp &quot;$reduced_req_file&quot; &quot;../&quot;
+      popd &gt; /dev/null
+    fi
+
+    popd &gt; /dev/null
+
+    echo &quot;Finished $req_id&quot;
+    echo &quot;&quot;
+done
+</code></pre>
+
+<ul>
+<li><code>run_complete_analysis.sh</code>, used to run the complete analysis.</li>
+</ul>
+<pre><code class="bash">#!/bin/bash
+# script that runs all the various requirement analysis scripts and moves files around in the matching directories
+
+
+### Default settings
+# The requirement file is an argument passed to this script.
+req_file=&quot;$1&quot;
+# This is the path to the repository, which contains the requirements-folder
+req_repo_folder=&quot;/path/to/req/repo&quot;
+# This is the path to the requirements-folder
+req_folder=&quot;${req_repo_folder}/reqs&quot;
+# Path to the vacuity extractor script.
+vac_extractor=&quot;${req_repo_folder}/extract_vac_reasons.sh&quot;
+# Path to the Ultimate repository.
+ultimate_repo_folder=&quot;/storage/repos/ultimate&quot;
+# Path to Ultimate Automizer (remember those binaries we created earlier? that's what you want!).
+automizer_folder=&quot;${ultimate_repo_folder}/releaseScripts/default/UAutomizer-linux&quot;
+# Don't touch this, unless you know what you are doing.
+reqcheck_toolchain=&quot;${ultimate_repo_folder}/trunk/examples/toolchains/ReqCheck.xml&quot;
+reqcheck_settings=&quot;${ultimate_repo_folder}/trunk/examples/settings/reqanalyzer/reqanalyzer-nonlin.epf&quot;
+testgen_toolchain=&quot;${ultimate_repo_folder}/trunk/examples/toolchains/ReqToTest.xml&quot;
+testgen_settings=&quot;${ultimate_repo_folder}/trunk/examples/settings/ReqToTest.epf&quot;
+# The time how long a single assertion is checked.
+timeout_per_assertion=900
+# The amount of requirements which are checked together for RT-inconsistency.
+# Careful with this parameter, it will blow up the amount of checks really fast.
+rt_inconsistency_range=2
+
+### Functions
+function prompt {
+  read -p &quot;${1} [y/N]&quot; -n 1 -r
+  echo &quot;&quot;
+  if [[ $REPLY =~ ^[Yy]$ ]] ; then
+      return 0
+  fi
+  return 1
+}
+
+function test_if_cmd_is_available {
+  local cmd_path=`command -v &quot;$@&quot;`
+  [ $? -eq 0 ] || { echo &gt;&amp;2 &quot;I require $@ but it's not installed. Aborting.&quot;; exit 1; }
+  if ! [[ -f &quot;$cmd_path&quot; &amp;&amp; -x $(realpath &quot;$cmd_path&quot;) ]]; then
+    echo &gt;&amp;2 &quot;I require $@ but it's not executable. Aborting.&quot;; exit 1;
+  fi
+}
+
+function exitOnFail {
+  &quot;$@&quot;
+  local status=$?
+  if [ $status -ne 0 ]; then
+              echo &quot;$@ failed with $1&quot;
+              exit $status
+  fi
+  return $status
+}
+
+function run_reqcheck {
+  pushd &quot;$automizer_folder&quot; &gt; /dev/null
+
+  local dump_folder=&quot;$PWD&quot;&quot;/dump-&quot;`basename $req_file`
+
+  if ! readlink -e &quot;$PWD/plugins/org.eclipse.equinox.launcher_1.3.100.v20150511-1540.jar&quot; &gt; /dev/null ; then
+    echo &quot;$PWD does not contain Ultimate binaries&quot;
+    exit 1
+  fi
+
+  if readlink -e &quot;$dump_folder&quot; &gt; /dev/null ; then
+    echo &quot;Found old dump directory $dump_folder&quot;
+    if prompt &quot;Should I delete the directory?&quot; ; then
+      rm -r &quot;$dump_folder&quot;
+    else
+      exit 1
+    fi
+  fi
+
+  if readlink -e &quot;$reqcheck_log&quot; &gt; /dev/null ; then
+    echo &quot;Logfile $reqcheck_log already exists&quot;
+    if prompt &quot;Overwrite?&quot; ; then
+        rm &quot;$reqcheck_log&quot;
+    else
+        exit 1
+    fi
+  fi
+
+  echo &quot;Analyzing $req_file&quot;
+  echo &quot;Using log file $reqcheck_log&quot;
+  mkdir &quot;$dump_folder&quot;
+
+  java \
+  -Dosgi.configuration.area=config/ \
+  -Xmx100G \
+  -Xss4m \
+  -jar plugins/org.eclipse.equinox.launcher_1.3.100.v20150511-1540.jar \
+  -tc &quot;$reqcheck_toolchain&quot; \
+  -s &quot;$reqcheck_settings&quot; \
+  -i &quot;$req_file&quot; \
+  --core.print.statistic.results false \
+  --traceabstraction.dump.smt.script.to.file true \
+  --traceabstraction.to.the.following.directory=&quot;$dump_folder&quot; \
+  --traceabstraction.limit.analysis.time $timeout_per_assertion \
+  --pea2boogie.always.use.all.invariants.during.rt-inconsistency.checks true \
+  --pea2boogie.check.vacuity true \
+  --pea2boogie.check.consistency true \
+  --pea2boogie.check.rt-inconsistency true \
+  --pea2boogie.report.trivial.rt-consistency false \
+  --pea2boogie.rt-inconsistency.range $rt_inconsistency_range \
+  &gt; &quot;$reqcheck_log&quot;
+
+  popd &gt; /dev/null
+
+
+  ### Postprocess results with vacuity extractor
+  if [ ! -f &quot;$reqcheck_log&quot; ]; then
+    echo &quot;File $reqcheck_log was not created; aborting.&quot;
+    exit 1
+  fi
+
+  echo &quot;Extracting results to $reqcheck_relevant_log&quot;
+  grep &quot;  -&quot; &quot;$reqcheck_log&quot; | grep -v &quot;StatisticsResult&quot; | grep -v &quot;ReqCheckSuccessResult&quot; \
+  &gt; &quot;$reqcheck_relevant_log&quot;
+
+  if grep -q &quot;vacuous&quot; &quot;$reqcheck_relevant_log&quot; ; then
+    echo &quot;Analyzing reasons for vacuity&quot;
+    pushd &quot;$dump_folder&quot; &gt; /dev/null
+    exitOnFail ${vac_extractor} &quot;$req_file&quot; &quot;$reqcheck_log&quot;
+    mv *.vac.req &quot;$log_folder&quot;&quot;/&quot;
+    popd &gt; /dev/null
+  else
+    echo &quot;No vacuities found&quot;
+  fi
+}
+
+function run_testgen {
+  echo &quot;Using log file $testgen_log&quot;
+
+  pushd &quot;${automizer_folder}&quot; &gt; /dev/null
+  if ! readlink -e &quot;$PWD/plugins/org.eclipse.equinox.launcher_1.3.100.v20150511-1540.jar&quot; &gt; /dev/null ; then
+    echo &quot;$PWD does not contain Ultimate binaries&quot;
+    exit 1
+  fi
+
+  java \
+  -Dosgi.configuration.area=config/ \
+  -Xmx100G \
+  -Xss4m \
+  -jar plugins/org.eclipse.equinox.launcher_1.3.100.v20150511-1540.jar \
+  -tc &quot;$testgen_toolchain&quot; \
+  -s &quot;$testgen_settings&quot; \
+  -i &quot;$req_file&quot; \
+  --core.print.statistic.results false \
+  --rcfgbuilder.simplify.code.blocks false \
+  --rcfgbuilder.size.of.a.code.block LoopFreeBlock \
+  --traceabstraction.limit.analysis.time $timeout_per_assertion \
+  --rcfgbuilder.add.additional.assume.for.each.assert false \
+  &gt; &quot;$testgen_log&quot;
+
+  sed -ne '/--- Results ---/,$p' &quot;$testgen_log&quot; &gt; &quot;$testgen_relevant_log&quot;
+
+  popd &gt; /dev/null
+}
+
+### Check parameters
+for i in &quot;$ultimate_repo_folder&quot; &quot;$automizer_folder&quot; &quot;$req_folder&quot; ; do
+  if [ ! -d &quot;$i&quot; ]; then
+    echo &quot;Folder $i does not exist&quot;
+    exit 1
+  fi
+done
+
+for i in &quot;$req_file&quot; &quot;$reqcheck_toolchain&quot; &quot;$reqcheck_settings&quot; &quot;$testgen_toolchain&quot; &quot;$testgen_settings&quot; ; do
+  if [ ! -f &quot;$i&quot; ]; then
+    echo &quot;File $i does not exist&quot;
+    exit 1
+  fi
+done
+
+test_if_cmd_is_available ${vac_extractor}
+
+req_file=`readlink -f &quot;$req_file&quot;`
+reqcheck_log=&quot;$req_folder&quot;&quot;/&quot;`basename $req_file`&quot;.log&quot;
+testgen_log=&quot;$req_folder&quot;&quot;/&quot;`basename $req_file`&quot;.testgen.log&quot;
+
+req_file_name=$(basename -- &quot;$req_file&quot;)
+req_file_name=&quot;${req_file_name%.*}&quot;
+
+log_folder=&quot;$req_folder&quot;&quot;/logs/&quot;&quot;$req_file_name&quot;
+reqcheck_relevant_log=&quot;$log_folder&quot;&quot;/&quot;&quot;$req_file_name&quot;&quot;.req.relevant.log&quot;
+testgen_relevant_log=&quot;$log_folder&quot;&quot;/&quot;&quot;$req_file_name&quot;&quot;.req.testgen.log&quot;
+
+
+### Prepare folders
+if [ ! -d &quot;$log_folder&quot; ]; then
+  if prompt &quot;$log_folder does not exist, should I create it?&quot; ; then
+    mkdir -p &quot;$log_folder&quot;
+  else
+    exit 2
+  fi
+fi
+
+
+### Start running actual tools
+echo &quot;Running ReqChecker&quot;
+exitOnFail run_reqcheck
+
+echo &quot;Running TestGen&quot;
+exitOnFail run_testgen
+
+
+### Print result summary
+cat&lt;&lt;EOF
+Results for $1
+Test-cases:            $testgen_relevant_log
+ReqChecker results:    $reqcheck_relevant_log
+Reasons for vacuity:   `grep -q &quot;vacuous&quot; &quot;$reqcheck_relevant_log&quot; &amp;&amp; ls ${log_folder}/*.vac.req`
+Full ReqCheck logfile  $reqcheck_log
+Full TestGen logfile   $testgen_log
+EOF
+
+exit 0
+</code></pre>
+
+<h3 id="use-ultimate">Use Ultimate<a class="headerlink" href="#use-ultimate" title="Permanent link"> #</a></h3>
+<p>We now simply execute the <code>run_complete_analysis.sh</code> script.</p>
+<pre><code class="bash">$ cd hanfor/example
+$ ./run_complete_analysis.sh example_input.req
+</code></pre>
+
+<p>This will fire up Ultimate and run an analysis. The analysis checks for rt-inconsistency and vacuity and logs are be generated: </p>
+<ul>
+<li><code>hanfor/example/example_input.req.log</code></li>
+<li><code>hanfor/example/example_input.req.testgen.log</code></li>
+<li><code>hanfor/example/logs/example_input/example_input.req.relevant.log</code></li>
+<li><code>hanfor/example/logs/example_input/example_input.req.testgen.log</code></li>
+</ul>
+<h3 id="evaluate">Evaluate<a class="headerlink" href="#evaluate" title="Permanent link"> #</a></h3>
+<p>In <code>hanfor/example/example_input.req.log</code> we can see that Ultimate reports: </p>
+<pre><code> --- Results ---
+ * Results from de.uni_freiburg.informatik.ultimate.pea2boogie:
+  - RequirementInconsistentErrorResult: Requirements set is inconsistent.
+    Requirements set is inconsistent. Some invariants are already infeasible. Responsible requirements: REQ6_0, REQ3_0, REQ4_0
+</code></pre>
+
+<p>Now, if we investigate REQ3, REQ4 and REQ6:</p>
+<pre><code>REQ3_0: Globally, it is always the case that &quot;constraint1&quot; holds
+REQ4_0: Globally, it is always the case that &quot;constraint2&quot; holds
+REQ6_0: Globally, it is never the case that &quot;constraint1 &amp;&amp; constraint2 &quot; holds
+</code></pre>
+
+<p>We directly see what the problem is: On one hand, our invariants demand that <code>constraint1</code> and <code>constraint2</code> always holds,
+but on the other hand there is another invariant which demands that <code>constraint1</code> and <code>constraint2</code> never hold at the same time.
+Think about this as:</p>
+<pre><code>constraint1 &amp;&amp; constraint2 &amp;&amp; ((constraint1 &amp;&amp; !constraint2) || (!constraint1 &amp;&amp; constraint2))
+</code></pre>
+
+<p>this is clearly unsatisfiable.</p>
+<h3 id="alter-your-requirements">Alter your requirements<a class="headerlink" href="#alter-your-requirements" title="Permanent link"> #</a></h3>
+<p>We now found an inconsistency in our requirements, that has to be fixed. 
+Let's assume you review your requirements and you recognize <code>REQ4</code> was defined wrong in the csv,
+where <code>REQ4,constraint2 always holds,requirement</code> should be <code>REQ4,constraint2 never holds,requirement</code>.
+While reading over the requirements, you also recognize that <code>REQ1</code> and <code>REQ5</code> collide and you find out that <code>REQ5</code> shall be deleted.</p>
+<p>When we apply this changes, we end up with the following changes: </p>
+<ul>
+<li>alter <code>REQ4,constraint2 always holds,requirement</code> to <code>REQ4,constraint2 never holds,requirement</code></li>
+<li>remove <code>REQ5</code></li>
+</ul>
+<p>and our csv file now looks as follows: </p>
+<pre><code class="bash">ID,Description,Type
+META1,This is an example for some requirements,meta
+META2,Next we define some requirements,meta
+REQ1,var1 is always greater than 5,requirement
+REQ2,var2 is always smaller than 10,requirement
+REQ3,constraint1 always holds,requirement
+REQ4,constraint2 never holds,requirement
+REQ6,constraint1 and constraint2 never hold at the same time,requirement
+REQ7,if var1 = True then var3 = 0,requirement
+REQ8,if var1 = True then var3 = 1,requirement
+</code></pre>
+
+<h3 id="time-for-a-new-revision">Time for a new revision.<a class="headerlink" href="#time-for-a-new-revision" title="Permanent link"> #</a></h3>
+<p>We altered our requirements, we now need to create a new revision in Hanfor and change our formalizations.
+Execute: </p>
+<pre><code>$ cd hanfor
+$ python3 app.py -r -c example/example_input.csv example_tag
+</code></pre>
+
+<ul>
+<li>
+<p>Hanfor will then ask: <strong>"Which revision should I use as a base?"</strong>,
+we choose <code>revision_0</code> (as it is the only one, usually you want your latest revision).</p>
+</li>
+<li>
+<p>Then, Hanfor asks <strong>Should I use the csv header mapping from base revision?</strong>,
+as we did not change the csv header, we just keep the current one.</p>
+</li>
+</ul>
+<p>A quick recap what happens when creating a revision:
+- New requirements get the tag <code>revision_0_to_revision_1_new_requirement</code>
+- Changed requirements get the tag <code>revision_0_to_revision_1_data_changed</code> and <code>revision_0_to_revision_1_description_changed</code>
+- Requirements where the formalization migrated to the new revision get the tag <code>revision_0_to_revision_1_migrated_formalized</code></p>
+<p>We now have to alter the requirements which have changed, that's only <code>REQ4</code>. 
+Open the formalization of <code>REQ4</code> and correct it to <code>Globally, it is never the case that "constraint2" holds</code>.</p>
+<h3 id="ultimate-analysis-2">Ultimate Analysis #2<a class="headerlink" href="#ultimate-analysis-2" title="Permanent link"> #</a></h3>
+<ol>
+<li>Export your requirements as before with the name <code>example_input_revision1.req</code></li>
+<li>Run Ultimate on the new requirements file.</li>
+</ol>
+<p>You can now examine the log created in <code>hanfor/example/logs/example_input/example_input.req.relevant.log</code>,
+which contains the following:</p>
+<pre><code>- ReqCheckFailResult [Line: -1]: Requirements REQ8_0, REQ7_0 are rt-inconsistent
+</code></pre>
+
+<p>A <code>ReqCheckFailResult</code> usually implies that something is broken, 
+Ultimate found that requirements <code>REQ7</code> and <code>REQ8</code> are rt-inconsistent, let's analyze this result:</p>
+<pre><code>REQ7,if var1 = True then var3 = 0,requirement
+REQ8,if var1 = True then var3 = 1,requirement
+</code></pre>
+
+<p>These two requirements collide, because they assign different values to <code>var3</code> when <code>var1</code> holds.
+This is especially bad in a realtime system, because it can happen that <code>var3 == 0</code> holds after a certain amount of time, 
+and <code>var3 == 1</code> holds at a later point of time or vice versa. Why is this bad? - because it can cause unexpected behaviour when a change propagates through the system.</p>
+<h3 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link"> #</a></h3>
+<p>You are now able to:</p>
+<ol>
+<li>Setup hanfor, </li>
+<li>Formalize requirements, </li>
+<li>Filter requirements, </li>
+<li>Export them to a .req file</li>
+<li>Run Ultimate on a .req file</li>
+<li>Interpret the results of Ultimate</li>
+<li>Create new revisions in hanfor to fix mistakes in requirements.</li>
+</ol>
+                        
+                    </div>
+                </div>
+                    <footer>
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a custom theme</a>.
+</footer>
+                
+            </div>
+        </div>
+
+    </section>
+
+</div>
+
+<div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/ultimate-pa/hanfor/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js" defer></script>
+        <script src="../../search/main.js" defer></script>
+    <script type="text/javascript" defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(false);
+        };
+    </script>
+
+</body>
+</html>

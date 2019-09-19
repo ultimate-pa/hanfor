@@ -1,0 +1,39 @@
+# Documentation
+In this section we explain how you can contribute to the documentation.
+
+## Structure of the Documentation
+Hanfors documentation section is located in the directory `documentation/docs` and looks as follows:
+```
+|-docs
+ |- chapters/  # The chapters directory contains the different sections of our documentation.
+ |- img/       # In this directory we store images.
+ |- conf.py    # The sphinx configuration file.
+ |- index.rst  # The index file, it defines the outline of the documentation.
+```
+
+### Chapters
+- Every chapter is a directory in `documentation/docs/chapters`.
+- If you want to **add a new chapter**, you must **create a new directory** and also add it to `index.rst`
+- Inside a chapter-directory you create `.md` or `.rst` files.
+## Contribute
+
+Head over to [Hanfor's Git repository](https://github.com/ultimate-pa/hanfor) and fork it, 
+create to edit existing chapters and when you are done, simply PR.
+
+
+## Sphinx and Sphinx Autobuild
+
+This documentation is made with [sphinx](https://www.sphinx-doc.org/en/master/).
+```
+python3 -m pip install sphinx sphinx-autobuild recommonmark sphinx_rtd_theme dhubbard-sphinx-markdown-tables
+```
+You can now use ``make html`` or ``./make.bat html`` to build your documentation. 
+
+You can also live preview your changes in the browser.
+We just use [autobuild](https://pypi.org/project/sphinx-autobuild/) to automagically build the docs and show them in a web-browser.
+To build a classical Sphinx documentation set, issue the following command in the directory  `documentation`:
+```
+sphinx-autobuild -E docs docs/_build/html
+```
+This will create a directory  `_build` which contains generated HTML files.
+Then head to `http://127.0.0.1:8000/` and witness the most beautiful documentation ever created.
