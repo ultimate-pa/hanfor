@@ -26,19 +26,24 @@ markdown_extensions:
   - extra
   - markdown_include.include:
       base_path: docs
-nav:
-  - Introduction:
-      - 'What is Hanfor?': 'index.md'
-  - Installation:
-      - 'Preliminaries': 'installation/preliminaries.md'
-      - 'Configuration': 'installation/configuration.md'
-      - 'Deployment': 'installation/deployment.md'
-  - Usage:
-      - 'API Queries': 'usage/api_queries.md'
-      - 'FAQ': 'usage/faq.md'
-      - 'Requirements': 'usage/requirements.md'
-      - 'Workflow': 'usage/workflow.md'
-      - 'Patterns': 'usage/patterns.md'
-  - Contribute:
-      - 'To Hanfor': 'contribute/to_hanfor.md'
-      - 'To Docs': 'contribute/to_docs.md'
+
+plugins:
+#  - search
+  - awesome-pages
+
+#nav:
+#  - Introduction:
+#      - 'What is Hanfor?': 'index.md'
+#  - Installation:
+#      - 'Preliminaries': 'installation/preliminaries.md'
+#      - 'Configuration': 'installation/configuration.md'
+#      - 'Deployment': 'installation/deployment.md'
+#  - Usage:
+#      - 'API Queries': 'usage/api_queries.md'
+#      - 'FAQ': 'usage/faq.md'
+#      - 'Requirements': 'usage/requirements.md'
+#      - 'Workflow': 'usage/workflow.md'
+#      - 'Patterns': 'usage/patterns.md'
+#  - Contribute:
+#      - 'To Hanfor': 'contribute/to_hanfor.md'
+#      - 'To Docs': 'contribute/to_docs.md'
