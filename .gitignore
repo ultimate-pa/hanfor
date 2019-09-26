@@ -123,3 +123,5 @@ loctest_*
 test_results.xml
 http-client.env.json
 
+
+documentation/docs_venv/

@@ -2,7 +2,7 @@ These are the source files for the [Hanfor Documentation](https://ultimate-pa.gi
 # Contribute to this Documentation.
 1. Install [MkDocs](https://www.mkdocs.org/) and all dependencies.
 ```bash
-$ pip install mkdocs pymdown-extensions markdown-include
+$ pip install mkdocs pymdown-extensions markdown-include mkdocs-awesome-pages-plugin
 $ pip install -e git+https://github.com/jdittrich/figureAltCaption#egg=figureAltCaption
 $ pip install -e git+https://github.com/MrLeeh/markdown-lightbox.git#egg=markdown-lightbox
 ```
