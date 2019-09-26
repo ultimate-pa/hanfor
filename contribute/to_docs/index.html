@@ -127,34 +127,29 @@
                         
                             <p>These are the source files for the <a href="https://ultimate-pa.github.io/hanfor/">Hanfor Documentation</a>.</p>
 <h1 id="contribute-to-this-documentation">Contribute to this Documentation.<a class="headerlink" href="#contribute-to-this-documentation" title="Permanent link"> #</a></h1>
-<ol>
-<li>Install <a href="https://www.mkdocs.org/">MkDocs</a> and all dependencies.</li>
-</ol>
-<pre><code class="bash">$ pip install mkdocs pymdown-extensions markdown-include mkdocs-awesome-pages-plugin
-$ pip install -e git+https://github.com/jdittrich/figureAltCaption#egg=figureAltCaption
-$ pip install -e git+https://github.com/MrLeeh/markdown-lightbox.git#egg=markdown-lightbox
+<h4 id="0-optional-setup-a-virtual-environment">0. (Optional) setup a virtual environment<a class="headerlink" href="#0-optional-setup-a-virtual-environment" title="Permanent link"> #</a></h4>
+<pre><code>$ cd hanfor/documentation
+$ python3 -m venv docs_venv
+$ source docs_venv/bin/activate
 </code></pre>
 
-<ol>
-<li>Serve this Documentation locally to track your changes.</li>
-</ol>
+<h4 id="1-install-mkdocs-and-all-dependencies">1. Install <a href="https://www.mkdocs.org/">MkDocs</a> and all dependencies.<a class="headerlink" href="#1-install-mkdocs-and-all-dependencies" title="Permanent link"> #</a></h4>
+<pre><code class="bash">$ pip install -r requirements_docs.txt
+</code></pre>
+
+<h4 id="2-serve-this-documentation-locally-to-track-your-changes">2. Serve this Documentation locally to track your changes.<a class="headerlink" href="#2-serve-this-documentation-locally-to-track-your-changes" title="Permanent link"> #</a></h4>
 <pre><code class="bash">$ cd to_here
 $ mkdocs serve
 </code></pre>
 
 <p>Open your Browser at <a href="http://127.0.0.1:8000/">http://127.0.0.1:8000/</a>.</p>
-<ol>
-<li>Publish your changes to the staging directory.</li>
-</ol>
+<h4 id="3-publish-your-changes-to-the-staging-directory">3. Publish your changes to the staging directory.<a class="headerlink" href="#3-publish-your-changes-to-the-staging-directory" title="Permanent link"> #</a></h4>
 <pre><code class="bash">$ mkdocs gh-deploy --remote-branch gh-pages-staging
 </code></pre>
 
 <p>This will build the Documentation and commit them to the <code>gh-pages-staging</code> branch and push the <code>gh-pages-staging</code> branch to GitHub.
 If you have the necessary rights, you can then see the results on https://struebli.informatik.uni-freiburg.de/hanfor-docs-staging.</p>
-<ol>
-<li>Publish your changes to the live directory
-ory.</li>
-</ol>
+<h4 id="4-publish-your-changes-to-the-live-directory">4. Publish your changes to the live directory<a class="headerlink" href="#4-publish-your-changes-to-the-live-directory" title="Permanent link"> #</a></h4>
 <pre><code class="bash">$ mkdocs gh-deploy
 </code></pre>
 
