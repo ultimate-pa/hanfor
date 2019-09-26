@@ -1,0 +1,6 @@
+mkdocs
+pymdown-extensions
+markdown-include
+mkdocs-awesome-pages-plugin
+git+https://github.com/jdittrich/figureAltCaption#egg=figureAltCaption
+git+https://github.com/MrLeeh/markdown-lightbox.git#egg=markdown-lightbox
