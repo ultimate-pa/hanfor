@@ -12,7 +12,7 @@
             <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/contribute/to_docs/">
         
             <link rel="shortcut icon" href="../../img/favicon.ico">
-        <title>To Docs
+        <title>To docs
             - Hanfor Docs</title>
         <link rel="stylesheet"
               href="../../css/stupid_fonts.css"/>
@@ -25,7 +25,7 @@
         
             <script>
                 // Current page data
-                var mkdocs_page_name = "To Docs";
+                var mkdocs_page_name = "To docs";
                 var mkdocs_page_input_path = "contribute/to_docs.md";
                 var mkdocs_page_url = "/hanfor/contribute/to_docs/";
             </script>
@@ -49,17 +49,13 @@
         <div class="wy-side-scroll">
             <div class="wy-side-nav-search">
                     <a href="../.." class="icon icon-home"> Hanfor Docs</a>
-                    <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
-  </form>
-</div>
+                    
             </div>
 
             <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
                             <p class="caption"><span class="caption-text">Introduction</span></p>
                             <ul>
-                                    <li class="toctree-l1"><a class="reference internal" href="../..">What is Hanfor?</a>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../introduction/">What is Hanfor?</a>
                                     </li>
                             </ul>
                             <p class="caption"><span class="caption-text">Installation</span></p>
@@ -73,7 +69,7 @@
                             </ul>
                             <p class="caption"><span class="caption-text">Usage</span></p>
                             <ul>
-                                    <li class="toctree-l1"><a class="reference internal" href="../../usage/api_queries/">API Queries</a>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../usage/api_queries/">API queries</a>
                                     </li>
                                     <li class="toctree-l1"><a class="reference internal" href="../../usage/faq/">FAQ</a>
                                     </li>
@@ -81,12 +77,14 @@
                                     </li>
                                     <li class="toctree-l1"><a class="reference internal" href="../../usage/workflow/">Workflow</a>
                                     </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../usage/patterns/">Patterns</a>
+                                    </li>
                             </ul>
                             <p class="caption"><span class="caption-text">Contribute</span></p>
                             <ul class="current">
-                                    <li class="toctree-l1"><a class="reference internal" href="../to_hanfor/">To Hanfor</a>
+                                    <li class="toctree-l1"><a class="reference internal" href="../to_hanfor/">Hanfor</a>
                                     </li>
-                                    <li class="toctree-l1 current"><a class="reference internal current" href="./">To Docs</a>
+                                    <li class="toctree-l1 current"><a class="reference internal current" href="./">To docs</a>
                                     </li>
                             </ul>
             </div>
@@ -114,7 +112,7 @@
         
       
     
-    <li>To Docs</li>
+    <li>To docs</li>
     <li class="wy-breadcrumbs-aside">
       
         <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/contribute/to_docs.md"
@@ -129,34 +127,29 @@
                         
                             <p>These are the source files for the <a href="https://ultimate-pa.github.io/hanfor/">Hanfor Documentation</a>.</p>
 <h1 id="contribute-to-this-documentation">Contribute to this Documentation.<a class="headerlink" href="#contribute-to-this-documentation" title="Permanent link"> #</a></h1>
-<ol>
-<li>Install <a href="https://www.mkdocs.org/">MkDocs</a> and all dependencies.</li>
-</ol>
-<pre><code class="bash">$ pip install mkdocs pymdown-extensions
-$ pip install -e git+https://github.com/jdittrich/figureAltCaption#egg=figureAltCaption
-$ pip install -e git+https://github.com/MrLeeh/markdown-lightbox.git#egg=markdown-lightbox
+<h4 id="0-optional-setup-a-virtual-environment">0. (Optional) setup a virtual environment<a class="headerlink" href="#0-optional-setup-a-virtual-environment" title="Permanent link"> #</a></h4>
+<pre><code>$ cd hanfor/documentation
+$ python3 -m venv docs_venv
+$ source docs_venv/bin/activate
 </code></pre>
 
-<ol>
-<li>Serve this Documentation locally to track your changes.</li>
-</ol>
+<h4 id="1-install-mkdocs-and-all-dependencies">1. Install <a href="https://www.mkdocs.org/">MkDocs</a> and all dependencies.<a class="headerlink" href="#1-install-mkdocs-and-all-dependencies" title="Permanent link"> #</a></h4>
+<pre><code class="bash">$ pip install -r requirements_docs.txt
+</code></pre>
+
+<h4 id="2-serve-this-documentation-locally-to-track-your-changes">2. Serve this Documentation locally to track your changes.<a class="headerlink" href="#2-serve-this-documentation-locally-to-track-your-changes" title="Permanent link"> #</a></h4>
 <pre><code class="bash">$ cd to_here
 $ mkdocs serve
 </code></pre>
 
 <p>Open your Browser at <a href="http://127.0.0.1:8000/">http://127.0.0.1:8000/</a>.</p>
-<ol>
-<li>Publish your changes to the staging directory.</li>
-</ol>
+<h4 id="3-publish-your-changes-to-the-staging-directory">3. Publish your changes to the staging directory.<a class="headerlink" href="#3-publish-your-changes-to-the-staging-directory" title="Permanent link"> #</a></h4>
 <pre><code class="bash">$ mkdocs gh-deploy --remote-branch gh-pages-staging
 </code></pre>
 
 <p>This will build the Documentation and commit them to the <code>gh-pages-staging</code> branch and push the <code>gh-pages-staging</code> branch to GitHub.
 If you have the necessary rights, you can then see the results on https://struebli.informatik.uni-freiburg.de/hanfor-docs-staging.</p>
-<ol>
-<li>Publish your changes to the live directory
-ory.</li>
-</ol>
+<h4 id="4-publish-your-changes-to-the-live-directory">4. Publish your changes to the live directory<a class="headerlink" href="#4-publish-your-changes-to-the-live-directory" title="Permanent link"> #</a></h4>
 <pre><code class="bash">$ mkdocs gh-deploy
 </code></pre>
 
@@ -192,7 +185,6 @@ They will then be immediately available to the world at https://ultimate-pa.gith
 </div>
     <script>var base_url = '../..';</script>
     <script src="../../js/theme.js" defer></script>
-        <script src="../../search/main.js" defer></script>
     <script type="text/javascript" defer>
         window.onload = function () {
             SphinxRtdTheme.Navigation.enable(false);

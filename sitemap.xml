@@ -1,53 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-     <loc>https://ultimate-pa.github.io/hanfor/</loc>
-     <lastmod>2019-09-19</lastmod>
+     <loc>https://ultimate-pa.github.io/hanfor/introduction/</loc>
+     <lastmod>2019-09-26</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://ultimate-pa.github.io/hanfor/installation/preliminaries/</loc>
-     <lastmod>2019-09-19</lastmod>
+     <lastmod>2019-09-26</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://ultimate-pa.github.io/hanfor/installation/configuration/</loc>
-     <lastmod>2019-09-19</lastmod>
+     <lastmod>2019-09-26</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://ultimate-pa.github.io/hanfor/installation/deployment/</loc>
-     <lastmod>2019-09-19</lastmod>
+     <lastmod>2019-09-26</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://ultimate-pa.github.io/hanfor/usage/api_queries/</loc>
-     <lastmod>2019-09-19</lastmod>
+     <lastmod>2019-09-26</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://ultimate-pa.github.io/hanfor/usage/faq/</loc>
-     <lastmod>2019-09-19</lastmod>
+     <lastmod>2019-09-26</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://ultimate-pa.github.io/hanfor/usage/requirements/</loc>
-     <lastmod>2019-09-19</lastmod>
+     <lastmod>2019-09-26</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://ultimate-pa.github.io/hanfor/usage/workflow/</loc>
-     <lastmod>2019-09-19</lastmod>
+     <lastmod>2019-09-26</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://ultimate-pa.github.io/hanfor/usage/patterns/</loc>
+     <lastmod>2019-09-26</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://ultimate-pa.github.io/hanfor/contribute/to_hanfor/</loc>
-     <lastmod>2019-09-19</lastmod>
+     <lastmod>2019-09-26</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://ultimate-pa.github.io/hanfor/contribute/to_docs/</loc>
-     <lastmod>2019-09-19</lastmod>
+     <lastmod>2019-09-26</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://ultimate-pa.github.io/hanfor/</loc>
+     <lastmod>2019-09-26</lastmod>
      <changefreq>daily</changefreq>
     </url>
 </urlset>

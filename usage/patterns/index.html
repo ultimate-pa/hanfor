@@ -9,10 +9,10 @@
         
         
         
-            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/usage/requirements/">
+            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/usage/patterns/">
         
             <link rel="shortcut icon" href="../../img/favicon.ico">
-        <title>Requirements
+        <title>Patterns
             - Hanfor Docs</title>
         <link rel="stylesheet"
               href="../../css/stupid_fonts.css"/>
@@ -25,9 +25,9 @@
         
             <script>
                 // Current page data
-                var mkdocs_page_name = "Requirements";
-                var mkdocs_page_input_path = "usage/requirements.md";
-                var mkdocs_page_url = "/hanfor/usage/requirements/";
+                var mkdocs_page_name = "Patterns";
+                var mkdocs_page_input_path = "usage/patterns.md";
+                var mkdocs_page_url = "/hanfor/usage/patterns/";
             </script>
         
         <script src="../../js/jquery-2.1.1.min.js" defer></script>
@@ -111,11 +111,11 @@
     </li>
     </ul>
                                     </li>
-                                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Requirements</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#search-in-requirements-table">Search in requirements table</a>
+                                    <li class="toctree-l1"><a class="reference internal" href="../requirements/">Requirements</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../requirements/#search-in-requirements-table">Search in requirements table</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#mass-edit-requirements">Mass edit requirements</a>
+    <li class="toctree-l2"><a class="reference internal" href="../requirements/#mass-edit-requirements">Mass edit requirements</a>
     </li>
     </ul>
                                     </li>
@@ -135,9 +135,9 @@
     </li>
     </ul>
                                     </li>
-                                    <li class="toctree-l1"><a class="reference internal" href="../patterns/">Patterns</a>
-    <ul>
-    <li class="toctree-l2"><a class="reference internal" href="../patterns/#bnddelayedresponsepatternut_glob">BndDelayedResponsePatternUT_Glob</a>
+                                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Patterns</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#bnddelayedresponsepatternut_glob">BndDelayedResponsePatternUT_Glob</a>
     </li>
     </ul>
                                     </li>
@@ -188,10 +188,10 @@
         
       
     
-    <li>Requirements</li>
+    <li>Patterns</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/usage/requirements.md"
+        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/usage/patterns.md"
           class="icon icon-github"> Edit on GitHub</a>
       
     </li>
@@ -201,33 +201,11 @@
                 <div role="main">
                     <div class="section">
                         
-                            <h1 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link"> #</a></h1>
-<h2 id="search-in-requirements-table">Search in requirements table<a class="headerlink" href="#search-in-requirements-table" title="Permanent link"> #</a></h2>
-<p>Searching in the requirements table is accessible via the <code>search</code> tab. 
-Typing in the search input supports autocomplete for extended search triggered by <code>:</code>. </p>
-<h3 id="search-operators">Search Operators<a class="headerlink" href="#search-operators" title="Permanent link"> #</a></h3>
-<p>You can concatenate search queries by</p>
-<ul>
-<li><code>search_1:OR:search_2</code> yields the union of search_1 and search_2.</li>
-<li><code>search_1:AND:search_2</code> yields the intersection of search_1 and search_2.</li>
-<li><code>:AND:</code> binds stronger than <code>:OR:</code>.</li>
-</ul>
-<p>To <strong>invert the result</strong> use <code>:NOT:</code> before your search string.</p>
-<h3 id="exact-searches">Exact searches<a class="headerlink" href="#exact-searches" title="Permanent link"> #</a></h3>
-<p>You can get exact search results by using <code>"</code> to indicate the beginning or end of a sequence.</p>
-<ul>
-<li><code>"fast</code> Includes faster but not breakfast.</li>
-<li><code>fast"</code> Includes breakfast but not faster.</li>
-<li><code>"fast"</code> Includes only exact matches of fast.</li>
-</ul>
-<h5>Search Target column</h5>
-
-<p>To target a specific column use <code>:COL_INDEX_02:</code> to target column 2.
-The column indexes are appended in the requirements table header in parentheses.</p>
-<h2 id="mass-edit-requirements">Mass edit requirements<a class="headerlink" href="#mass-edit-requirements" title="Permanent link"> #</a></h2>
-<p>You can mass edit requirements. Select requirements by clicking on the requirement checkbox in the table.
-Hold shift for multi select and Ctrl to toggle a single selection.
-Click on <code>Edit Selected</code>, fill out the form. Empty fields will have no effect.</p>
+                            <h1 id="patterns">Patterns<a class="headerlink" href="#patterns" title="Permanent link"> #</a></h1>
+<h2 id="bnddelayedresponsepatternut_glob">BndDelayedResponsePatternUT_Glob<a class="headerlink" href="#bnddelayedresponsepatternut_glob" title="Permanent link"> #</a></h2>
+<p>Globally, it is always the case that if "R" holds, then "Q" holds after at most "c0" time units for at least "c1" time units</p>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndDelayedResponsePatternUT_Glob.dot.svg"><img alt="" src="../img/patterns/BndDelayedResponsePatternUT_Glob.dot.svg" title="BndDelayedResponsePatternUT_Glob" /></a><figcaption></figcaption>
+</figure>
                         
                     </div>
                 </div>
