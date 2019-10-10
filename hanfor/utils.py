@@ -1141,6 +1141,12 @@ class HanforArgumentParser(argparse.ArgumentParser):
             action=GenerateScopedPatternTrainingData,
             app=self.app
         )
+        self.add_argument(
+            '-hd', '--headers',
+            type=str,
+            help='Header Definition of the form --header=\'{ "csv_id_header": "ID", "csv_desc_header": "Description", "csv_formal_header": "Hanfor_Formalization", "csv_type_header" : "Type"}\', must be valid json.',
+            default=None
+        )
 
 
 class MetaSettings():
