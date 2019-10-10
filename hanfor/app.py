@@ -976,7 +976,8 @@ def create_revision(args, base_revision_name):
     requirement_collection.create_from_csv(
         csv_file=args.input_csv,
         input_encoding='utf8',
-        base_revision_headers=base_revision_settings
+        base_revision_headers=base_revision_settings,
+        user_provided_headers=(json.loads(args.headers) if args.headers else None)
     )
 
     # Store Requirements as pickeled objects to the session dir.

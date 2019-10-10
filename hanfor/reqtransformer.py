@@ -92,7 +92,7 @@ class RequirementCollection(HanforVersioned, Pickleable):
         self.csv_all_rows = None
         self.requirements = list()
 
-    def create_from_csv(self, csv_file, input_encoding='utf8', base_revision_headers=None):
+    def create_from_csv(self, csv_file, input_encoding='utf8', base_revision_headers=None, user_provided_headers=None):
         """ Create a RequirementCollection from a csv file, containing one requirement per line.
         Ask the user which csv fields corresponds to which requirement data.
 
@@ -102,7 +102,7 @@ class RequirementCollection(HanforVersioned, Pickleable):
         :type input_encoding:
         """
         self.load_csv(csv_file, input_encoding)
-        self.select_headers(base_revision_headers)
+        self.select_headers(base_revision_headers, user_provided_headers)
         self.parse_csv_rows_into_requirements()
 
     def load_csv(self, csv_file, input_encoding):
@@ -128,15 +128,22 @@ class RequirementCollection(HanforVersioned, Pickleable):
             self.csv_meta['fieldnames'] = reader.fieldnames
             self.csv_meta['headers'] = sorted(list(self.csv_all_rows[0].keys()))
 
-    def select_headers(self, base_revision_headers=None):
-        """ Ask the users, which of the csv headers correspond to our needed data.
+    def select_headers(self, base_revision_headers=None, user_provided_headers=None):
+        """ Determines which of the csv headers correspond to our needed data.
 
         """
         use_old_headers = False
         if base_revision_headers:
             print('Should I use the csv header mapping from base revision?')
             use_old_headers = choice(['yes', 'no'], 'yes')
-        if base_revision_headers and use_old_headers == 'yes':
+
+        if user_provided_headers:
+            print(user_provided_headers)
+            self.csv_meta['id_header'] = user_provided_headers['csv_id_header']
+            self.csv_meta['desc_header'] = user_provided_headers['csv_desc_header']
+            self.csv_meta['formal_header'] = user_provided_headers['csv_formal_header']
+            self.csv_meta['type_header'] = user_provided_headers['csv_type_header']
+        elif base_revision_headers and use_old_headers == 'yes':
             self.csv_meta['id_header'] = base_revision_headers['csv_id_header']
             self.csv_meta['desc_header'] = base_revision_headers['csv_desc_header']
             self.csv_meta['formal_header'] = base_revision_headers['csv_formal_header']
