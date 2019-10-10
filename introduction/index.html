@@ -285,7 +285,7 @@
 <li>The Requirements Check (on the formalized requirements)</li>
 <li>The Test Generation (on the formalized requirements)</li>
 </ol>
-<figure><a data-lightbox="all_images" data-title="Example Picture 1" href="/img/image001.png"><img alt="Example Picture 1" src="/img/image001.png" title="Example picture 1" /></a><figcaption>Example Picture 1</figcaption>
+<figure><a data-lightbox="all_images" data-title="Example Picture 1" href="img/image001.png"><img alt="Example Picture 1" src="img/image001.png" title="Example picture 1" /></a><figcaption>Example Picture 1</figcaption>
 </figure>
 <p>To make it possible for a computer to check a set of requirements for quality criteria, as e.g. consistency, it has to "understand" the semantics of the requirements.</p>
 <p>This could be achieved by using formal languages to express the requirements. However, they are rarely understandable for humans, so we would get requirements that the computer understands - but nearly no stakeholder.</p>
@@ -324,16 +324,16 @@ REALTIME ::= Once EXPR becomes satisfied, it holds for at least DURATION
 <p><code>EXPR</code> is an expression (e.g. <code>vehicleSpeed&lt;10 &amp;&amp; Terminal15==ON</code>).</p>
 <p>Thus, in a first step the informal requirements are translated into requirements in the specification language shown above. This is done manually.</p>
 <p>In the background the tool translates the requirements in specification language then into logical formulas.</p>
-<figure><a data-lightbox="all_images" data-title="Example Picture 2" href="/img/image003.jpg"><img alt="Example Picture 2" src="/img/image003.jpg" title="Example picture 2" /></a><figcaption>Example Picture 2</figcaption>
+<figure><a data-lightbox="all_images" data-title="Example Picture 2" href="img/image003.jpg"><img alt="Example Picture 2" src="img/image003.jpg" title="Example picture 2" /></a><figcaption>Example Picture 2</figcaption>
 </figure>
 <h3 id="tool-support">Tool support<a class="headerlink" href="#tool-support" title="Permanent link"> #</a></h3>
 <p>The tool to assist this step is called Hanfor.It looks a little bit like Doors. It takes as input a csv-Export from Doors, and then stores the requirements. There are two IDs, the Hanfor ID and the Doors ID, so that you can synchronize the two databases, and can easily identify changes.</p>
-<figure><a data-lightbox="all_images" data-title="Example Picture 3" href="/img/image004.jpg"><img alt="Example Picture 3" src="/img/image004.jpg" title="Example picture 3" /></a><figcaption>Example Picture 3</figcaption>
+<figure><a data-lightbox="all_images" data-title="Example Picture 3" href="img/image004.jpg"><img alt="Example Picture 3" src="img/image004.jpg" title="Example picture 3" /></a><figcaption>Example Picture 3</figcaption>
 </figure>
 <p>Clicking on a requirements you can then specify the requirement in the specification language as visible in the next screenshot. The tool provides both patterns and also a signal database, so that you have a auto-complete function when filling out the variables.</p>
-<figure><a data-lightbox="all_images" data-title="Example Picture 4" href="/img/image005.jpg"><img alt="Example Picture 4" src="/img/image005.jpg" title="Example picture 4" /></a><figcaption>Example Picture 4</figcaption>
+<figure><a data-lightbox="all_images" data-title="Example Picture 4" href="img/image005.jpg"><img alt="Example Picture 4" src="img/image005.jpg" title="Example picture 4" /></a><figcaption>Example Picture 4</figcaption>
 </figure>
-<figure><a data-lightbox="all_images" data-title="Example Picture 5" href="/img/image006.jpg"><img alt="Example Picture 5" src="/img/image006.jpg" title="Example picture 5" /></a><figcaption>Example Picture 5</figcaption>
+<figure><a data-lightbox="all_images" data-title="Example Picture 5" href="img/image006.jpg"><img alt="Example Picture 5" src="img/image006.jpg" title="Example picture 5" /></a><figcaption>Example Picture 5</figcaption>
 </figure>
 <p>The tool checks for the following correctness criteria: </p>
 <ul>
@@ -383,7 +383,7 @@ REALTIME ::= Once EXPR becomes satisfied, it holds for at least DURATION
 </ul>
 </div>
 <p>is consistent, <strong>but</strong> there are assignments with a conflict as shown in the following example.</p>
-<figure><a data-lightbox="all_images" data-title="Example Picture 6" href="/img/image007.png"><img alt="Example Picture 6" src="/img/image007.png" title="Example picture 6" /></a><figcaption>Example Picture 6</figcaption>
+<figure><a data-lightbox="all_images" data-title="Example Picture 6" href="img/image007.png"><img alt="Example Picture 6" src="img/image007.png" title="Example picture 6" /></a><figcaption>Example Picture 6</figcaption>
 </figure>
 <p>As IRTest gets valid in timepoint t=4, req1 requires, that in the time interval <code>t=[4...14]</code> <code>IRLampsOn</code> gets true as well.</p>
 <p>As IRTest is still valid in timepoint t=10, req2 requires, that IRLampsOn stays "false" until at least t=16. Thus, in t=14 we have a conflict - however the system reacts, one requirement will be violated.</p>
@@ -401,7 +401,7 @@ Req3: Once IRTest appears, it holds for at most 3 seconds.</p>
 <h2 id="system-test-case-generation">System test case generation<a class="headerlink" href="#system-test-case-generation" title="Permanent link"> #</a></h2>
 <p>When having the requirements formalized in the specification language, it makes sense to also automatically generate test specifications out of them.
 There are several reasons to do so:</p>
-<figure><a data-lightbox="all_images" data-title="Example Picture 7" href="/img/image008.png"><img alt="Example Picture 7" src="/img/image008.png" title="Example picture 7" /></a><figcaption>Example Picture 7</figcaption>
+<figure><a data-lightbox="all_images" data-title="Example Picture 7" href="img/image008.png"><img alt="Example Picture 7" src="img/image008.png" title="Example picture 7" /></a><figcaption>Example Picture 7</figcaption>
 </figure>
 <p>Thus the algorithm has to:</p>
 <ul>
@@ -429,7 +429,7 @@ There are several reasons to do so:</p>
 </li>
 </ul>
 <p>(No seq. of Inputs deterministically causes the output)</p>
-<figure><a data-lightbox="all_images" data-title="Example Picture 8" href="/img/image009.png"><img alt="Example Picture 8" src="/img/image009.png" title="Example picture 8" /></a><figcaption>Example Picture 8</figcaption>
+<figure><a data-lightbox="all_images" data-title="Example Picture 8" href="img/image009.png"><img alt="Example Picture 8" src="img/image009.png" title="Example picture 8" /></a><figcaption>Example Picture 8</figcaption>
 </figure>
 <div class="admonition example">
 <p class="admonition-title">Requirements to be tested</p>
