@@ -1,6 +1,8 @@
-mkdocs
-pymdown-extensions
-markdown-include
+pymdown-extensions==6.0
+-e git+https://github.com/jdittrich/figureAltCaption@2c867c0ae7170b522cdc49da7de1e5b5a3fb4802#egg=figureAltCaption
+Markdown==2.6.11
+markdown-include==0.5.1
+-e git+https://github.com/MrLeeh/markdown-lightbox.git@e6f20e6374db168b601fb434b3987a413786b946#egg=markdown_lightbox
+-e git+https://github.com/helderco/markdown-figures@e03c4c0791151b70767e09ed90a870254fcfabc6#egg=mdx_figcaption
+mkdocs==1.0.4
 mkdocs-awesome-pages-plugin
-git+https://github.com/jdittrich/figureAltCaption#egg=figureAltCaption
-git+https://github.com/MrLeeh/markdown-lightbox.git#egg=markdown-lightbox
