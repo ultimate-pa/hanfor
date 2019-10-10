@@ -1,8 +1,16 @@
-pymdown-extensions==6.0
+Click==7.0
 -e git+https://github.com/jdittrich/figureAltCaption@2c867c0ae7170b522cdc49da7de1e5b5a3fb4802#egg=figureAltCaption
+Jinja2==2.10.3
+livereload==2.6.1
 Markdown==2.6.11
 markdown-include==0.5.1
 -e git+https://github.com/MrLeeh/markdown-lightbox.git@e6f20e6374db168b601fb434b3987a413786b946#egg=markdown_lightbox
+MarkupSafe==1.1.1
 -e git+https://github.com/helderco/markdown-figures@e03c4c0791151b70767e09ed90a870254fcfabc6#egg=mdx_figcaption
 mkdocs==1.0.4
-mkdocs-awesome-pages-plugin
+mkdocs-awesome-pages-plugin==2.1.0
+pkg-resources==0.0.0
+pymdown-extensions==6.0
+PyYAML==5.1.2
+six==1.12.0
+tornado==6.0.3
