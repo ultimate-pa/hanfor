@@ -3,6 +3,9 @@
 @copyright: 2017 Samuel Roth <samuel@smel.de>
 @licence: GPLv3
 """
+
+import os
+
 ################################################################################
 #                               Storage and folders                            #
 ################################################################################
@@ -44,7 +47,7 @@ USE_SENTRY = False
 SENTRY_DSN = '<add_your_sentry_dsn>'
 
 # Set DEBUG_MODE to true if you want to run the flask app in debug mode.
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 # If ASSETS_DEBUG True, Bundles will output their individual source files.
 # This will significantly slow down performance.
@@ -76,10 +79,11 @@ PYCHARM_DEBUG = False
 URL_PREFIX = ''
 
 # set a 'SECRET_KEY' to enable the Flask session cookies
-SECRET_KEY = 'weguiwhwfpoqijwefgpwoejfqpwofej'
+# generate one for production with, for example, openssl rand -base64 64
+SECRET_KEY = os.environ.get('HANFOR_SECRET_KEY', default='tRKGzHAD3NHfk0u6jV7rMb42RBo/ldFIePPG2tgXrEZhAyOwQ/3aN0Uekt+mXmV2JGzMtiKSZBDhYKiO1fgu7A==')
 
 # Specify the PORT the app should be running at
-PORT = 5000
+PORT = os.environ.get('HANFOR_PORT', default=5000)
 
 # Set the host
-HOST = '127.0.0.1'
+HOST = os.environ.get('HANFOR_HOST',default='127.0.0.1')
