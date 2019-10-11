@@ -11,7 +11,7 @@ services:
       - "HANFOR_HOST=0.0.0.0"
       - "HANFOR_PORT=5000"
     volumes:
+      - ./entrypoint.sh:/usr/src/app/entrypoint.sh
       - ./hanfor/settings.py:/usr/src/app/settings.py
       - ./volumes/data:/usr/src/app/data
       - ./example_input/:/usr/src/app/example_input
-

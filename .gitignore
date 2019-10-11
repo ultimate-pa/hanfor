@@ -127,3 +127,5 @@ http-client.env.json
 documentation/docs_venv/
 
 volumes/
+
+docker-compose\.yml
