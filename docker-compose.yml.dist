@@ -13,4 +13,5 @@ services:
     volumes:
       - ./hanfor/settings.py:/usr/src/app/settings.py
       - ./volumes/data:/usr/src/app/data
+      - ./example_input/:/usr/src/app/example_input
 
