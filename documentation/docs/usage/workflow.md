@@ -1,7 +1,7 @@
 toc_depth: 2
 
 # Workflow
-This example and everything that belongs to it is located in `hanfor/example`.
+This example and everything that belongs to it is located in `example_input`.
 
 ## Example input
 Consider a CSV file `example_input.csv` which contains requirements:
@@ -18,11 +18,10 @@ REQ6,constraint1 and constraint2 never hold at the same time,requirement
 REQ7,if var3 = True then var4 := 1,requirement
 REQ8,if var3 = True then var4 := 0,requirement
 ```
-In this case every row consists of the fields `ID`, `Description`, `Formalized Requirement` and `Type`.
+In this case every row consists of the fields `ID`, `Description`, and `Type`.
 
 - `ID` is a unique identifier, 
 - `Description` is the description ,
-- `Formalized Requirement`, is the formalization,  
 - `Type`, is a type, in this example `meta` or `requirement`, where rows with type `meta` contain some meta-information
 and rows with type `requirement` contain actual requirements of the module you want to formalize.
 
@@ -31,11 +30,55 @@ and rows with type `requirement` contain actual requirements of the module you w
 2. Start Hanfor: 
 ```bash
 cd hanfor
-python3 app.py -c example_input.csv example_tag
+python3 app.py -c ../example_input/example_input.csv awesome_tag_by_bree
 ```
 - `-c example_input.csv` specifies the csv input file we pass.
 - `example_tag` is some meaningful tag you want to give this session.
 If you start hanfor later with the same tag, you'll start exactly this session.
+
+Currently the startup of Hanfor is interactive and looks like this:
+```shell
+(venv) bree@titan:~/repos/hanfor/hanfor$ python3 app.py -c ../example_input/example_input.csv awesome_tag_by_bree
+2019-10-10 13:55:17,845: [DEBUG]: Enabled logging.
+2019-10-10 13:55:17,858: [INFO]: Hanfor starts creating a revision.
+2019-10-10 13:55:17,858: [INFO]: No revisions for `awesome_tag_by_bree`. Creating initial revision.
+2019-10-10 13:55:17,858: [INFO]: Load Input : example/example_input.csv
+2019-10-10 13:55:17,862: [INFO]: Could not guess .csv dialect, assuming defaults
+Select ID header
+╔Choices═════════════╗
+║ 0    ║ Description ║
+║ -> 1 ║ ID          ║
+║ 2    ║ Type        ║
+╚══════╩═════════════╝
+[Choice or Enter for  -> default]> 1
+Select requirements description header
+╔Choices══════════╗
+║ 0 ║ Description ║
+║ 1 ║ ID          ║
+║ 2 ║ Type        ║
+╚═══╩═════════════╝
+[Choice or Enter for  -> default]> 0
+Select formalization header
+╔Choices════════════════════╗
+║ 0 ║ Description           ║
+║ 1 ║ ID                    ║
+║ 2 ║ Type                  ║
+║ 3 ║ Add new Formalization ║
+╚═══╩═══════════════════════╝
+[Choice or Enter for  -> default]> 3
+Select type header.
+╔Choices══════════╗
+║ 0 ║ Description ║
+║ 1 ║ ID          ║
+║ 2 ║ Type        ║
+╚═══╩═════════════╝
+[Choice or Enter for  -> default]> 2
+```
+
+Alternatively you can directly pass the header definition, using `--header`: 
+``` 
+python3 app.py -c example_input/example_input.csv --headers='{"csv_id_header": "ID", "csv_desc_header": "Description", "csv_formal_header": "Hanfor_Formalization", "csv_type_header" : "Type"}' awesome_tag
+```
 
 you can now reach Hanfor by visiting [http://127.0.0.1:5000](http://127.0.0.1:5000)
 
