@@ -1,0 +1,17 @@
+CONST MAX_TIME IS 50.0
+
+Input constraint1 IS bool
+Input constraint2 IS bool
+Input var1 IS int
+Input var2 IS int
+Input var3 IS bool
+Input var4 IS int
+
+REQ1_0: Globally, it is always the case that "var1 > 5" holds
+REQ2_0: Globally, it is always the case that "var2 < 10" holds
+REQ3_0: Globally, it is always the case that "constraint1" holds
+REQ4_0: Globally, it is never the case that "constraint2" holds
+REQ6_0: Globally, it is never the case that "constraint1 && constraint2" holds
+REQ7_0: Globally, it is always the case that if "var3" holds, then "var4 == 0" holds after at most "MAX_TIME" time units
+REQ8_0: Globally, it is always the case that if "var3" holds, then "var4 == 1" holds after at most "MAX_TIME" time units
+
