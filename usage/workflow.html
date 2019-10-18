@@ -202,7 +202,7 @@
                     <div class="section">
                         
                             <h1 id="workflow">Workflow<a class="headerlink" href="#workflow" title="Permanent link"> #</a></h1>
-<p>This example and everything that belongs to it is located in <code>hanfor/example</code>.</p>
+<p>This example and everything that belongs to it is located in <code>example_input</code>.</p>
 <h2 id="example-input">Example input<a class="headerlink" href="#example-input" title="Permanent link"> #</a></h2>
 <p>Consider a CSV file <code>example_input.csv</code> which contains requirements:</p>
 <pre><code class="bash">ID,Description,Type
@@ -218,11 +218,10 @@ REQ7,if var3 = True then var4 := 1,requirement
 REQ8,if var3 = True then var4 := 0,requirement
 </code></pre>
 
-<p>In this case every row consists of the fields <code>ID</code>, <code>Description</code>, <code>Formalized Requirement</code> and <code>Type</code>.</p>
+<p>In this case every row consists of the fields <code>ID</code>, <code>Description</code>, and <code>Type</code>.</p>
 <ul>
 <li><code>ID</code> is a unique identifier, </li>
 <li><code>Description</code> is the description ,</li>
-<li><code>Formalized Requirement</code>, is the formalization,  </li>
 <li><code>Type</code>, is a type, in this example <code>meta</code> or <code>requirement</code>, where rows with type <code>meta</code> contain some meta-information
 and rows with type <code>requirement</code> contain actual requirements of the module you want to formalize.</li>
 </ul>
@@ -232,7 +231,7 @@ and rows with type <code>requirement</code> contain actual requirements of the m
 <li>Start Hanfor: </li>
 </ol>
 <pre><code class="bash">cd hanfor
-python3 app.py -c example_input.csv example_tag
+python3 app.py -c ../example_input/example_input.csv awesome_tag_by_bree
 </code></pre>
 
 <ul>
@@ -240,6 +239,48 @@ python3 app.py -c example_input.csv example_tag
 <li><code>example_tag</code> is some meaningful tag you want to give this session.
 If you start hanfor later with the same tag, you'll start exactly this session.</li>
 </ul>
+<p>Currently the startup of Hanfor is interactive and looks like this:</p>
+<pre><code class="shell">(venv) bree@titan:~/repos/hanfor/hanfor$ python3 app.py -c ../example_input/example_input.csv awesome_tag_by_bree
+2019-10-10 13:55:17,845: [DEBUG]: Enabled logging.
+2019-10-10 13:55:17,858: [INFO]: Hanfor starts creating a revision.
+2019-10-10 13:55:17,858: [INFO]: No revisions for `awesome_tag_by_bree`. Creating initial revision.
+2019-10-10 13:55:17,858: [INFO]: Load Input : example/example_input.csv
+2019-10-10 13:55:17,862: [INFO]: Could not guess .csv dialect, assuming defaults
+Select ID header
+╔Choices═════════════╗
+║ 0    ║ Description ║
+║ -&gt; 1 ║ ID          ║
+║ 2    ║ Type        ║
+╚══════╩═════════════╝
+[Choice or Enter for  -&gt; default]&gt; 1
+Select requirements description header
+╔Choices══════════╗
+║ 0 ║ Description ║
+║ 1 ║ ID          ║
+║ 2 ║ Type        ║
+╚═══╩═════════════╝
+[Choice or Enter for  -&gt; default]&gt; 0
+Select formalization header
+╔Choices════════════════════╗
+║ 0 ║ Description           ║
+║ 1 ║ ID                    ║
+║ 2 ║ Type                  ║
+║ 3 ║ Add new Formalization ║
+╚═══╩═══════════════════════╝
+[Choice or Enter for  -&gt; default]&gt; 3
+Select type header.
+╔Choices══════════╗
+║ 0 ║ Description ║
+║ 1 ║ ID          ║
+║ 2 ║ Type        ║
+╚═══╩═════════════╝
+[Choice or Enter for  -&gt; default]&gt; 2
+</code></pre>
+
+<p>Alternatively you can directly pass the header definition, using <code>--header</code>: </p>
+<pre><code>python3 app.py -c example_input/example_input.csv --headers='{&quot;csv_id_header&quot;: &quot;ID&quot;, &quot;csv_desc_header&quot;: &quot;Description&quot;, &quot;csv_formal_header&quot;: &quot;Hanfor_Formalization&quot;, &quot;csv_type_header&quot; : &quot;Type&quot;}' awesome_tag
+</code></pre>
+
 <p>you can now reach Hanfor by visiting <a href="http://127.0.0.1:5000">http://127.0.0.1:5000</a></p>
 <figure><a data-lightbox="all_images" data-title="Hanfor requirement overview" href="../img/hanfor01.png"><img alt="Hanfor requirement overview" src="../img/hanfor01.png" title="This is how Hanfor looks like after you started it" /></a><figcaption>Hanfor requirement overview</figcaption>
 </figure>
