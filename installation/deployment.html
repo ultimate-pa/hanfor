@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/installation/deployment.html">
+        
+            <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Deployment
+            - Hanfor Docs</title>
+        <link rel="stylesheet"
+              href="../css/stupid_fonts.css"/>
+
+        <link rel="stylesheet" href="../css/theme.css"/>
+        <link rel="stylesheet" href="../css/theme_extra.css"/>
+        <link rel="stylesheet" href="../css/lightbox.min.css"/>
+            <link rel="stylesheet" href="../css/github.min.css"/>
+            <link href="../stylesheets/extra.css" rel="stylesheet"/>
+        
+            <script>
+                // Current page data
+                var mkdocs_page_name = "Deployment";
+                var mkdocs_page_input_path = "installation/deployment.md";
+                var mkdocs_page_url = "/hanfor/installation/deployment.html";
+            </script>
+        
+        <script src="../js/jquery-2.1.1.min.js" defer></script>
+        <script src="../js/modernizr-2.8.3.min.js" defer></script>
+            <script src="../js/highlight.min.js"></script>
+            <script src="../js/python.min.js"></script>
+            <script src="../js/bash.min.js"></script>
+            <script>hljs.initHighlightingOnLoad();</script>
+        <script src="../js/lightbox.min.js" defer></script> 
+        
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+<div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+        <div class="wy-side-scroll">
+            <div class="wy-side-nav-search">
+                    <a href="../index.html" class="icon icon-home"> Hanfor Docs</a>
+                    
+            </div>
+
+            <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                            <p class="caption"><span class="caption-text">Introduction</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../introduction/index.html">What is Hanfor?</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#requirement-formalization">Requirement Formalization</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#requirement-check">Requirement Check</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#test-generation">Test Generation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#tool-support">Tool support</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Installation</span></p>
+                            <ul class="current">
+                                    <li class="toctree-l1"><a class="reference internal" href="preliminaries.html">Preliminaries</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="preliminaries.html#install-hanfor">Install Hanfor</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="preliminaries.html#install-reqanalyzer">Install ReqAnalyzer</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="configuration.html#hanfor">Hanfor</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="configuration.html#reqanalyzer">ReqAnalyzer</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1 current"><a class="reference internal current" href="deployment.html">Deployment</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#how-it-works">How it works</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Usage</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../usage/api_queries.html">API queries</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../usage/api_queries.html#show-stored-queries">Show stored queries</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../usage/api_queries.html#adding-new-queries">Adding new queries</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../usage/api_queries.html#deleting-queries">Deleting queries</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../usage/api_queries.html#query-syntax">Query syntax</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../usage/faq.html">FAQ</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../usage/faq.html#change-description-or-a-field-text-in-requirements-table">Change description or a field text in requirements table.</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../usage/requirements.html">Requirements</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../usage/requirements.html#search-in-requirements-table">Search in requirements table</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../usage/requirements.html#mass-edit-requirements">Mass edit requirements</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../usage/workflow.html">Workflow</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../usage/workflow.html#example-input">Example input</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../usage/workflow.html#fire-up-hanfor">Fire up Hanfor</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../usage/workflow.html#preprocessing">Preprocessing</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../usage/workflow.html#formalization">Formalization</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../usage/workflow.html#exporting-the-formalized-requirements">Exporting the formalized requirements.</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../usage/workflow.html#analysis-using-ultimate">Analysis using Ultimate.</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../usage/patterns.html">Patterns</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../usage/patterns.html#bnddelayedresponsepatternut_glob">BndDelayedResponsePatternUT_Glob</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Contribute</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../contribute/to_hanfor.html">Hanfor</a>
+    <ul>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../contribute/to_docs.html">To docs</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../contribute/to_docs.html#0-optional-setup-a-virtual-environment">0. (Optional) setup a virtual environment</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../contribute/to_docs.html#1-install-mkdocs-and-all-dependencies">1. Install MkDocs and all dependencies.</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../contribute/to_docs.html#2-serve-this-documentation-locally-to-track-your-changes">2. Serve this Documentation locally to track your changes.</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../contribute/to_docs.html#3-publish-your-changes-to-the-staging-directory">3. Publish your changes to the staging directory.</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../contribute/to_docs.html#4-publish-your-changes-to-the-live-directory">4. Publish your changes to the live directory</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+        
+        <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+            <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+            <a href="../index.html">Hanfor Docs</a>
+        </nav>
+
+        
+        <div class="wy-nav-content">
+            <div class="rst-content">
+                <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Installation &raquo;</li>
+        
+      
+    
+    <li>Deployment</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/installation/deployment.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+                <div role="main">
+                    <div class="section">
+                        
+                            <h1 id="deployment">Deployment<a class="headerlink" href="#deployment" title="Permanent link"> #</a></h1>
+<p>To start a fresh session use</p>
+<pre><code class="bash">$ python app.py &lt;tag&gt; -c &lt;path_to_input_csv&gt;.csv
+</code></pre>
+
+<p>Point your browser to <a href="http://127.0.0.1:5000"><code>http://127.0.0.1:&lt;port in config.py&gt;</code></a></p>
+<p>If you want to start an existing session, use</p>
+<pre><code class="bash">$ python app.py &lt;tag&gt;
+</code></pre>
+
+<p>You can see all available tags using the ''-L'' switch:</p>
+<pre><code class="bash">$ python app.py -L
+</code></pre>
+
+<h2 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link"> #</a></h2>
+<p>The app will create a <em>session</em> naming it by the given <code>&lt;tag&gt;</code> argument.
+A session creation process has the following steps:</p>
+<ol>
+<li>Create a session in a folder <code>config.py_SESSION_BASE_FOLDER/&lt;tag&gt;</code>.</li>
+<li>Read the given .csv file containing one requirement each row.</li>
+<li>Ask the user about a mapping of the csv-header-names for:<ul>
+<li>"ID", </li>
+<li>"Description", </li>
+<li>"Formalized Requirement", </li>
+<li>"Type"</li>
+</ul>
+</li>
+<li>Create a Hanfor-Requirement for each row in the csv and store it to the session folder.</li>
+<li>Provide the Web-interface on the port specified in config.py</li>
+</ol>
+                        
+                    </div>
+                </div>
+                    <footer>
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a custom theme</a>.
+</footer>
+                
+            </div>
+        </div>
+
+    </section>
+
+</div>
+
+<div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/ultimate-pa/hanfor/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+    <script type="text/javascript" defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(false);
+        };
+    </script>
+
+</body>
+</html>
