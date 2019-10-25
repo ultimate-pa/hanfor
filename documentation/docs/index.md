@@ -1,30 +1,32 @@
 toc_depth: 4
 
 # What is Hanfor?
-**Hanfor** **h**elps **an**alyzing **an**d **for**malizing **r**equirements.
+**Hanfor** is a tool that **h**elps **an**alyzing and **fo**rmalizing **r**equirements.
 
-If you have many requirements it gets difficult to check that all of them are, e.g., consistent. No human can manually check >1000 requirements for consistency -- so we do our best with reviews.
+The specification of requirements is a critical activity in software and system development. A defect in a requirement specification can result in a situation where a software or system is delivered that fullfills the given requirements, but does not satisfy the customer's needs due to erroneous requirments.
 
-Also in new projects, what we often see, is that it takes a long time before there is a high test coverage on the requirements -- as the number of requirements increases over the releases, and thus also the test specifications have to cover more and more requirements. However, many defects are found by experience-based testing -- but these technique is often used quite late, as the first priority is to get a reasonable requirement-based coverage.
+Requirement analysis, as a human activity, is error-prone. Especially for large sets of requirements, it is difficult and time consuming to manually check whether a given property is satisfied or not.
 
-To tackle that problem, Hanfor provides a method that consists of 3 steps:
+Requirement based testing is helpful to increase the efficiency during development. Obtaining a high test coverage on requirements often takes a long time. As the number of requirements increases over the releases, the test specifications have to cover more and more requirements. 
 
-1. The Requirements Formalization
-2. The Requirements Check (on the formalized requirements)
-3. The Test Generation (on the formalized requirements)
+Hanfor is developed to ease the process of requirement analysis. Its method consists of three major steps to discover requirement defects and obtain test specifications based on a set of informal requirements (Figure 1):
+
+1. Requirement Formalization
+2. Requirement Check
+3. Test Generation
+
+![Figure 1: The Hanfor tool discovers requirement defects and derives test specifications from a given set of informal requirements.](/img/hanfor_method.svg "Figure 1")
 
 
-![Example Picture 1](img/image001.png "Example picture 1")
+## Requirement Formalization
+To make it possible for a computer to check a set of requirements for a given criteria, it has to "understand" the semantics of the requirements. This could be achieved by using formal languages, which usually share the fact that they are rarely understandable for humans.
 
-To make it possible for a computer to check a set of requirements for quality criteria, as e.g. consistency, it has to "understand" the semantics of the requirements.
+In this method we make use of a simple pattern language. The language is based on a restricted English grammar and hence looks like natural language. Requirements formalized in this specification language can automatically be translated into logics.
 
-This could be achieved by using formal languages to express the requirements. However, they are rarely understandable for humans, so we would get requirements that the computer understands - but nearly no stakeholder.
 
-In this method we use a simple pattern language. The requirements expressed in the pattern language look like English sentences. Everything you can express in this patterns is then translated in the background into logical formulas. You could also easily translate them into German, Chinese, or other languages.
-
-## Grammar of the specification language
-The grammar is the following:
-````
+### Specification language
+The grammar of the specification language is given below. A requirement is defined by an ID, a scope and a pattern. Scope and pattern are parameterised by expressions over system observables and durations. Some patterns require a more detailed description concerning the order or the realtime occurence of events.
+```
 REQ      ::= ID: SCOPE, PATTERN .
 SCOPE    ::= Globally  | Before EXPR  | After EXPR | Between EXPR and EXPR  | After EXPR until EXPR
 PATTERN  ::= It is never the case that EXPR holds
@@ -52,159 +54,141 @@ REALTIME ::= Once EXPR becomes satisfied, it holds for at least DURATION
            | If EXPR holds, then there is at least one execution sequence such that EXPR holds after at most DURATION
            | After EXPR holds for DURATION, then EXPR holds
            | If EXPR holds, then EXPR toggles EXPR at most DURATION later
-````
-``EXPR`` is an expression (e.g. ``vehicleSpeed<10 && Terminal15==ON``).
+```
 
-Thus, in a first step the informal requirements are translated into requirements in the specification language shown above. This is done manually.
+Figure 2 shows the toolchain for the translation of an informal requirement into a formalized version. In the first step, the informal requirement, given in natural language, is translated into the specification language. This process is done manually. The requirement expressed in the specification language is then automatically translated into a formula in realtime logic (the Duration Calculus).
 
-In the background the tool translates the requirements in specification language then into logical formulas.
+![Figure 2: A specification language for real-time requirements is used as an intermediate step in the translation from informal to formalized requirements.](/img/toolchain_language.svg "Figure 2")
 
-![Example Picture 2](img/image003.jpg "Example picture 2")
 
-### Tool support
-The tool to assist this step is called Hanfor.It looks a little bit like Doors. It takes as input a csv-Export from Doors, and then stores the requirements. There are two IDs, the Hanfor ID and the Doors ID, so that you can synchronize the two databases, and can easily identify changes.
-
-![Example Picture 3](img/image004.jpg "Example picture 3")
-
-Clicking on a requirements you can then specify the requirement in the specification language as visible in the next screenshot. The tool provides both patterns and also a signal database, so that you have a auto-complete function when filling out the variables.
-
-![Example Picture 4](img/image005.jpg "Example picture 4")
-
-![Example Picture 5](img/image006.jpg "Example picture 5")
-
-The tool checks for the following correctness criteria: 
+## Requirement Check
+The **Hanfor** tool chain checks requirements for the following three correctness properties: 
   
   * Consistency
+  * Realtime-consistency
   * Vacuity
-  * rt-Consistency
 
-
-#### Consistency
+### Consistency
 A set of requirements is inconsistent, if there exists no system satisfying all requirements in the set.
-!!! example 
-    * ``Req1: It is always the case that "IRTest" holds.``
-    * ``Req2: It is never the case that "IRTest" holds.``
+
+Consider the two requirements in the specification language given below. This set of requirements is obviously not consistent as there is no interpretation where the observable 'A' evaluates both to *true* and to *false* at each point in time.
+
+!!! example "Example 1: Inconsistent requirements"
+    * ``Req1: Globally, it is never the case that 'A' holds.``
+    * ``Req2: Globally, it is always the case that 'A' holds.``
+
+Inconsistency in a set of requirements can be resolved by erasing or changing requirements. 
 
 
-Inconsistency can be resolved by  
-
-  * erasing requirements 
-  * changing requirements
-
-
-## Vacuity
-A set if requirements is vacuous, if there is no system satisfying all requirements in a meaningful way, i.e., there are "dead" requirements.
-!!! example
- * ``Req1: It is always the case that if "Signal-A" holds then "Signal-B" holds after at most 10 ms.``
- * ``Req2: It is never the case that "Signal-A" holds.``
-
-These requirements are consistent, **but** the precondition of ``Req1`` is never true, i.e., ``Req1`` is vacuously satisfied in this set of requirements. 
-
-Vacuity can be resolved by 
-
-  * erasing requirements, or
-  * changing requirements
-
-!!! example
-    * Erase ``Req2`` or make it less restrictive
-    * Change ``Req2`` to ``Req2': Before "Startup", it is never the case that "Signal-A" holds.``
-
-
-## Realtime-consistency (rt-consistency)
+### Realtime-consistency (rt-consistency)
 A set of requirements is rt-inconsistent, if there are conflicts between requirements that arise after a certain time.
 
-!!! example
-    * ``Req1: It is always the case that if „IRTest“ holds, then „IRLampsOn“ holds after at most 10 seconds``
-    * ``Req2: It is always the case that if „IRTest“ holds, then „NOT(IRLampsOn)“ holds for at least 6 seconds.``
+!!! example "Example 2: Rt-inconsistent requirements"
+    * ``Req3: Globally, it is always the case that if 'B' holds then 'C' holds after at most '5' time units.``
+    * ``Req4: Globally, it is always the case that if 'A' holds then '!C' holds for at least '2' time units.``
+
+Consider the two real-time requirements given above. The set of the two requirements is consistent. Figure 3 gives an example of an interpretation of 'A', 'B', and 'C' (in form of a timing diagram) that satisfies both requirments.
+
+![Figure 3: Consistency of the set of requirements {Req3, Req4}. 'A' and 'B' occur at the same point in time for one time unit, then '!C' for two time units satisfies Req4, and 'C' occurring at time 5 satisfies Req3.](/img/example_consistency.svg "Figure 3")
+
+However, there are assignments for which the requirements are in conflict, as depicted in the example trace (Figure 4). If 'A' and 'B'change values as shown in the figure, than at time 5, Req4 would only be satisfied if 'C' remained *false* while Req3 would only be satisfied if 'C' changed to *true*.
+
+![Figure 4: Witness for the rt-inconsistency of the set of requirements {Req3, Req4}. From time 4 on, the system steers toward inevitable rt-inconsistency.](/img/example_rtinconsistency.svg "Figure 4")
 
 
-is consistent, **but** there are assignments with a conflict as shown in the following example.
+There are several possibilities to resolve the rt-inconsistency in a set of requirements, e.g. by erasing, changing or adding requirements.
 
-![Example Picture 6](img/image007.png "Example picture 6")
+!!! example "Example 2 (Cont.): Resolving rt-inconsistency"
+    * Erasing requirements
+        * e.g. Erase Req4
+    * Changing requirements
+        * e.g. Make Req4 less restrictive:
 
-As IRTest gets valid in timepoint t=4, req1 requires, that in the time interval ``t=[4...14]`` ``IRLampsOn`` gets true as well.
+            ``Req4': Globally, it is always the case that if 'A' holds and 'B' did not hold in the last 5 time units, then '!C' holds for at least '2' time units.``
 
-As IRTest is still valid in timepoint t=10, req2 requires, that IRLampsOn stays "false" until at least t=16. Thus, in t=14 we have a conflict - however the system reacts, one requirement will be violated.
-
-Resolve rt-inconsistency by
-
-  * erasing requirements, or
-  * changing requirements, or
-  * adding requirements
-
-Erase Req2, or make it less restrictive
-–Req2‘: It is always the case that if IRTest holds and it did not hold in the last 10 s, then NOT(IRLampsOn) holds for at least 6 s.
-
-Or add
-Req3: Once IRTest appears, it holds for at most 3 seconds.
-
-Req4: Once IRTest disappears, it is absent for at least 10 seconds
+    * Adding requirements
+        * e.g. Add the following requirement:
+        
+            ``Req5: Globally, it is always the case that if 'B' holds, '!A' holds for at least 5 time units.``
 
 
-## System test case generation
-When having the requirements formalized in the specification language, it makes sense to also automatically generate test specifications out of them.
-There are several reasons to do so:
+### Vacuity
+A set of requirements is vacuous, if the behaviour specified by the requirements cannot be triggered in a system satisfying all requirements. More intuitively spoken, a vacuous requirement can be imagined as dead code in an implementation: Both a vacouous requirement as well as dead code can be removed without changing the meaning of the remaining part.
 
-![Example Picture 7](img/image008.png "Example picture 7")
+Consider again the requirements Req1 and Req4 given below. The set of requirements is consistent. However, the precondition of Req4 is never true as this would violate Req1. Req4 is therefore vacuously satisfied in this set of requirements.
 
-Thus the algorithm has to:
+!!! example "Example 3: Vacuous requirements"
+    * ``Req1: Globally, it is never the case that 'A' holds.``
+    * ``Req4: Globally, it is always the case that if 'A' holds then '!C' holds for at least '2' time units.``
 
-  * Automatically generate system tests only using requirements
-  * Generate small set of tests (test suite)
-    * Generate one test case per output variable
-    * Generate so many tests that every requirement is tested
-  * Generate tests that may not lead to false positives
-  * Ensure traceability to the requirements (i.e. indicate what requirements are tested by the test)
 
-  * The generated Test (case) consists of
-    * Sequence of inputs (Initial state of system, Inputs for steps 1...n)
-    * Expected outcome (oracle for step n)
-    * Link to the tested requirement
-  * Generate a feedback if there are untestable requirements
-    * Output: Set of untestable requirements
+There are several possibilities to resolve vacuity in a set of requirements. 
 
-(No seq. of Inputs deterministically causes the output)
+!!! example "Example 3 (cont.): Resolving vacuity"
+    * Erasing requirements
+        * e.g. Erase Req1
+    * Changing requirements
+        * e.g. Make Req1 less restrictive:
+            
+            ``Req2': Before "Startup", it is never the case that 'A'holds.``
 
-![Example Picture 8](img/image009.png "Example picture 8")
+## Test Generation
+Formalized requirements can be used to automatically generate test specifications. An automatic test generation helps to reduce the time needed to write test specifications with a high coverage rate. The efficiency during development can be increased and the maintainability costs can be reduced.
 
-!!! example "Requirements to be tested"
-    * ``req1: Globally, it is always the case that if ‘A’ holds then ‘H’ holds after at most ‘10’ time units.``
-    * ``req2: Globally, it is always the case that if ‘B’ holds then ‘I’ holds after at most ‘10’ time units.``
-    * ``req3: Globally, it is always the case that if ‘H AND I’ holds then ‘O’ holds after at most ‘10’ time units.``
 
-Testing requires information about observability. Thus, we need to categorize the variables into Input, Output, and Hidden (i.e. internal variables):
 
-  * Inputs: A, B
-  * Outputs: O
-  * Hidden: H, I
+### Algorithm
+Testing requires information about observability. The system variables are therefore categorized into input, output, and hidden (i.e. internal) variables. A sequence of inputs deterministically causes the valuation of the output variable. Figure 5 shows an abstract view of a two-input system with the variables *A*, *B* and *C*. 
 
-In the Test Generator Tool you can choose the following options:
+![Figure 5: System *S* with input variables *A*, *B*, and output variable *C*.](/img/hanfor_testing_system.svg "Figure 5")
 
-  * generate System Test (i.e. the tests only speak about system inputs and outputs, but no internal variables)
-  * generate System Integration Test (i.e., the tests speak about system input, system outputs and internal variables)
+The test generation algorithm automatically generates system tests that are based only on the formalized requirements (i.e. do not depend on an additional system model). It generates at least one test case per output variable, but as most as many test cases such that every requirement is tested. Each generated test indicates the requirements that it is based on.
 
-!!! example "output of the test generation tool"
+It is ensured that the generated tests may not lead to false positives (i.e. the test case fails, although the system state is conform with the requirements).
+In case that there exist untestable requirements, the algorithm lists the set of untestable requirements.
+
+
+### Test Cases
+The test cases generated by Hanfor contain three sorts of information:
+
+  1. A sequence of *n* inputs: The initial state of the system, as well as the inputs for steps *1* to *n*.
+  2. The expected outcome: The expected valuation of the tested output variable. 
+  3. The indication on which requirements the test is based on.
+
+
+Consider the set of requirements given below. The variables *A*, *B* are considered to be inputs of the system (Figure 5), *H* and *I* are hidden variables, and *C* represents the output of the system.
+
+!!! example "Example 4: Requirements to be tested"
+    * ``Req1: Globally, it is always the case that if ‘A’ holds then ‘H’ holds after at most ‘10’ time units.``
+    * ``Req2: Globally, it is always the case that if ‘B’ holds then ‘I’ holds after at most ‘10’ time units.``
+    * ``Req3: Globally, it is always the case that if ‘H AND I’ holds then ‘C’ holds after at most ‘10’ time units.``
+
+
+The test generation tool outputs the following test case:
+
 ```
 Case SystemTest:
 TestGeneratorResult:
-Found Test for: [O]
+Found Test for: [C]
 Test Vector:
 Set inputs:
 A := true, B := true
 Wait for at most 20 for:
-O == true, (req3)
-
-Case System Integration Test:
-------| Test: req3 |-----------------------
-TestGeneratorResult:
-Found Test for: [O]
-Test Vector:
-Set inputs:
-A := true, B := true
-Wait for at most 10 for:
-H == true (req1)
-Wait for at most 10 for:
-I == true (req2)
-Wait for at most 20 for:
-O == true, (req3)
+C == true, (req3)
 ```
+
+The given test case tests the output variable *C* based on the third requirment. The input sequence is specified by an initial state only, in which both input variables *A* and *B* are set to *true*. The output variable *C* is expected to evaluate to *true* after at most 20 time units.
+
+
+## Tool support
+
+Hanfor takes as input a csv-export from Doors and stores the requirements. Figure 7 shows a screenshot of requirements imported into a Hanfor session.
+There are two IDs, the Hanfor ID and the Doors ID, so that the two databases can be synchronized. The informal requirements are listed in the column 'Description'. Once a requirement is formalized in the specification language, it is listed in the column 'Formalization'. 
+
+![Figure 6: Requirements exported into a Hanfor session.](/img/screenshot_hanfor_session.png "Figure 6")
+
+Clicking on a requirement opens the modification page of the requirement (Figure 8). The requirement can be formalized in the specification language by using the drop-down lists for both scopes and patterns. The variables can be specified manually by using the autocomplete function of the signal database.
+
+![Figure 7: Modification window of a single requirement.](/img/screenshot_hanfor_req.png "Figure 7")
+
+For more information about the usage of Hanfor, please have a look at the usage section.
