@@ -31,7 +31,7 @@ markdown_extensions:
 
 plugins:
 #  - search
-#  - awesome-pages
+  - awesome-pages
 
 #nav:
 #  - Introduction:
@@ -45,7 +45,9 @@ plugins:
 #      - 'FAQ': 'usage/faq.md'
 #      - 'Requirements': 'usage/requirements.md'
 #      - 'Workflow': 'usage/workflow.md'
-#      - 'Patterns': 'usage/patterns.md'
+#      - 'Patterns':
+#           - ... .md
+#           - ... .md
 #  - Contribute:
 #      - 'To Hanfor': 'contribute/to_hanfor.md'
 #      - 'To Docs': 'contribute/to_docs.md'
