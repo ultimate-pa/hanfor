@@ -1,3 +1,5 @@
+toc_depth: 3
+
 ### MaxDurationPattern Globally
 
 Globally, it is always the case that once "Q" becomes satisfied, it holds for less than "c0" time units

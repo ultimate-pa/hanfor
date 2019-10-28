@@ -1,3 +1,5 @@
+toc_depth: 3
+
 ### BndReccurrencePattern Globally
 
 Globally, it is always the case that "Q" holds at least every "c0" time units

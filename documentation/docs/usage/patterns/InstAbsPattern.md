@@ -1,3 +1,5 @@
+toc_depth: 3
+
 ### InstAbsPattern Globally
 
 Globally, it is never the case that "Q" holds

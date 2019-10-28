@@ -1,3 +1,5 @@
+toc_depth: 3
+
 ### TogglePattern Globally
 
 Globally, it is always the case that if "Q" holds then "R" toggles "S"

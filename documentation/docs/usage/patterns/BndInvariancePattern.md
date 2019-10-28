@@ -1,3 +1,5 @@
+toc_depth: 3
+
 ### BndInvariancePattern Globally
 
 Globally, it is always the case that if "R" holds, then "Q" holds for at least "c0" time units

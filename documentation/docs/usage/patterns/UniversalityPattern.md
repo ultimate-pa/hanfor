@@ -1,3 +1,5 @@
+toc_depth: 3
+
 ### UniversalityPattern Globally
 
 Globally, it is always the case that "Q" holds

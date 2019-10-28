@@ -1,3 +1,5 @@
+toc_depth: 3
+
 ### BndExistencePattern Globally
 
 Globally, transitions to states in which "Q" holds occur at most twice

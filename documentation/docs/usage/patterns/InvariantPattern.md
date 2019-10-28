@@ -1,3 +1,5 @@
+toc_depth: 3
+
 ### InvariantPattern Globally
 
 Globally, it is always the case that if "R" holds, then "Q" holds as well
