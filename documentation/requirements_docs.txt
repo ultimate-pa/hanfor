@@ -9,7 +9,6 @@ MarkupSafe==1.1.1
 -e git+https://github.com/helderco/markdown-figures@e03c4c0791151b70767e09ed90a870254fcfabc6#egg=mdx_figcaption
 mkdocs==1.0.4
 mkdocs-awesome-pages-plugin==2.1.0
-pkg-resources==0.0.0
 pymdown-extensions==6.0
 PyYAML==5.1.2
 six==1.12.0
