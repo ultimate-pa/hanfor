@@ -31,7 +31,26 @@ markdown_extensions:
 
 plugins:
 #  - search
-  - awesome-pages
+#  - awesome-pages
+
+pages:
+  - Introduction:
+    - 'What is Hanfor?': 'introduction/index.md'
+  - Installation:
+    - 'Preliminaries': 'installation/preliminaries.md'
+    - 'Configuration': 'installation/configuration.md'
+    - 'Deployment': 'installation/deployment.md'
+  - Usage:
+    - 'API Queries': 'usage/api_queries.md'
+    - 'FAQ': 'usage/faq.md'
+    - 'Requirements': 'usage/requirements.md'
+    - 'Workflow': 'usage/workflow.md'
+    - PatternsTest:
+      - 'pattern1': 'usage/patterns/BndDelayedResponsePatternUT.md'
+      - 'pattern2': 'usage/patterns/TogglePatternDelayed.md'
+  - Contribute:
+    - 'To Hanfor': 'contribute/to_hanfor.md'
+    - 'To Docs': 'contribute/to_docs.md'
 
 #nav:
 #  - Introduction:

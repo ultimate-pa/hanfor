@@ -1,0 +1,25 @@
+### BndReccurrencePattern Globally
+
+Globally, it is always the case that "Q" holds at least every "c0" time units
+
+![](/img/patterns/BndReccurrencePattern_Globally.svg)
+### BndReccurrencePattern Before
+
+Before "Q", it is always the case that "R" holds at least every "c0" time units
+
+![](/img/patterns/BndReccurrencePattern_Before.svg)
+### BndReccurrencePattern After
+
+After "Q", it is always the case that "R" holds at least every "c0" time units
+
+![](/img/patterns/BndReccurrencePattern_After.svg)
+### BndReccurrencePattern Between
+
+Between "Q" and "R", it is always the case that "S" holds at least every "c0" time units
+
+![](/img/patterns/BndReccurrencePattern_Between.svg)
+### BndReccurrencePattern AfterUntil
+
+After "Q" until "R", it is always the case that "S" holds at least every "c0" time units
+
+![](/img/patterns/BndReccurrencePattern_AfterUntil.svg)
