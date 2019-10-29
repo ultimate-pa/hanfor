@@ -1,5 +1,7 @@
 toc_depth: 2
 
+<!-- Auto generated file, do not make changes here. -->
+
 ## MaxDurationPattern Globally
 ```
 Globally, it is always the case that once "Q" becomes satisfied, it holds for less than "c0" time units
@@ -8,7 +10,6 @@ Globally, it is always the case that once "Q" becomes satisfied, it holds for le
 true;⌈Q⌉ ∧ ℓ ≥ 50;true
 ```
 ![](/img/patterns/MaxDurationPattern_Globally.svg)
-
 ## MaxDurationPattern Before
 ```
 Before "Q", it is always the case that once "R" becomes satisfied, it holds for less than "c0" time units
@@ -17,7 +18,6 @@ Before "Q", it is always the case that once "R" becomes satisfied, it holds for 
 ⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ 50;true
 ```
 ![](/img/patterns/MaxDurationPattern_Before.svg)
-
 ## MaxDurationPattern After
 ```
 After "Q", it is always the case that once "R" becomes satisfied, it holds for less than "c0" time units
@@ -26,7 +26,6 @@ After "Q", it is always the case that once "R" becomes satisfied, it holds for l
 true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ ≥ 50;true
 ```
 ![](/img/patterns/MaxDurationPattern_After.svg)
-
 ## MaxDurationPattern Between
 ```
 Between "Q" and "R", it is always the case that once "S" becomes satisfied, it holds for less than "c0" time units
@@ -35,7 +34,6 @@ Between "Q" and "R", it is always the case that once "S" becomes satisfied, it h
 true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉ ∧ ℓ ≥ 50;⌈!R⌉;⌈R⌉;true
 ```
 ![](/img/patterns/MaxDurationPattern_Between.svg)
-
 ## MaxDurationPattern AfterUntil
 ```
 After "Q" until "R", it is always the case that once "S" becomes satisfied, it holds for less than "c0" time units
@@ -44,4 +42,3 @@ After "Q" until "R", it is always the case that once "S" becomes satisfied, it h
 true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉ ∧ ℓ ≥ 50;true
 ```
 ![](/img/patterns/MaxDurationPattern_AfterUntil.svg)
-

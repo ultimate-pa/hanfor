@@ -1,5 +1,7 @@
 toc_depth: 2
 
+<!-- Auto generated file, do not make changes here. -->
+
 ## PrecedencePattern Globally
 ```
 Globally, it is always the case that if "R" holds, then "Q" previously held
@@ -8,7 +10,6 @@ Globally, it is always the case that if "R" holds, then "Q" previously held
 ⌈!Q⌉;⌈R⌉;true
 ```
 ![](/img/patterns/PrecedencePattern_Globally.svg)
-
 ## PrecedencePattern Before
 ```
 Before "Q", it is always the case that if "S" holds, then "R" previously held
@@ -17,7 +18,6 @@ Before "Q", it is always the case that if "S" holds, then "R" previously held
 ⌈(!Q && !R)⌉;⌈(!Q && S)⌉;true
 ```
 ![](/img/patterns/PrecedencePattern_Before.svg)
-
 ## PrecedencePattern After
 ```
 After "Q", it is always the case that if "S" holds, then "R" previously held
@@ -26,7 +26,6 @@ After "Q", it is always the case that if "S" holds, then "R" previously held
 true;⌈(Q && !R)⌉;⌈!R⌉;⌈S⌉;true
 ```
 ![](/img/patterns/PrecedencePattern_After.svg)
-
 ## PrecedencePattern Between
 ```
 Between "Q" and "R", it is always the case that if "T" holds, then "S" previously held
@@ -35,7 +34,6 @@ Between "Q" and "R", it is always the case that if "T" holds, then "S" previousl
 true;⌈(Q && (!R && !S))⌉;⌈(!R && !S)⌉;⌈(!R && (!S && T))⌉;⌈!R⌉;⌈R⌉;true
 ```
 ![](/img/patterns/PrecedencePattern_Between.svg)
-
 ## PrecedencePattern AfterUntil
 ```
 After "Q" until "R", it is always the case that if "T" holds, then "S" previously held
@@ -44,4 +42,3 @@ After "Q" until "R", it is always the case that if "T" holds, then "S" previousl
 true;⌈(Q && (!R && !S))⌉;⌈(!R && !S)⌉;⌈(!R && T)⌉;true
 ```
 ![](/img/patterns/PrecedencePattern_AfterUntil.svg)
-
