@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/usage/patterns/ResponsePattern.html">
+        
+            <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>ResponsePattern
+            - Hanfor Docs</title>
+        <link rel="stylesheet"
+              href="../../css/stupid_fonts.css"/>
+
+        <link rel="stylesheet" href="../../css/theme.css"/>
+        <link rel="stylesheet" href="../../css/theme_extra.css"/>
+        <link rel="stylesheet" href="../../css/lightbox.min.css"/>
+            <link rel="stylesheet" href="../../css/github.min.css"/>
+            <link href="../../stylesheets/extra.css" rel="stylesheet"/>
+        
+            <script>
+                // Current page data
+                var mkdocs_page_name = "ResponsePattern";
+                var mkdocs_page_input_path = "usage\\patterns\\ResponsePattern.md";
+                var mkdocs_page_url = "/hanfor/usage/patterns/ResponsePattern.html";
+            </script>
+        
+        <script src="../../js/jquery-2.1.1.min.js" defer></script>
+        <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+            <script src="../../js/highlight.min.js"></script>
+            <script src="../../js/python.min.js"></script>
+            <script src="../../js/bash.min.js"></script>
+            <script>hljs.initHighlightingOnLoad();</script>
+        <script src="../../js/lightbox.min.js" defer></script> 
+        
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+<div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+        <div class="wy-side-scroll">
+            <div class="wy-side-nav-search">
+                    <a href="../../index.html" class="icon icon-home"> Hanfor Docs</a>
+                    <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+            </div>
+
+            <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                            <p class="caption"><span class="caption-text">Introduction</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../introduction/index.html">What is Hanfor?</a>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Installation</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../installation/preliminaries.html">Preliminaries</a>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../installation/configuration.html">Configuration</a>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../installation/deployment.html">Deployment</a>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Usage</span></p>
+                            <ul class="current">
+                                    <li class="toctree-l1"><a class="reference internal" href="../api_queries.html">API queries</a>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../requirements.html">Requirements</a>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../workflow.html">Workflow</a>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../patterns.html">Patterns</a>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Contribute</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../contribute/to_hanfor.html">Hanfor</a>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../contribute/to_docs.html">To docs</a>
+                                    </li>
+                            </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+        
+        <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+            <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+            <a href="../../index.html">Hanfor Docs</a>
+        </nav>
+
+        
+        <div class="wy-nav-content">
+            <div class="rst-content">
+                <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Patterns &raquo;</li>
+        
+      
+        
+          <li>Usage &raquo;</li>
+        
+      
+    
+    <li>ResponsePattern</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/usage/patterns/ResponsePattern.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+                <div role="main">
+                    <div class="section">
+                        
+                            <!-- Auto generated file, do not make any changes here. -->
+
+<h2 id="responsepattern">ResponsePattern<a class="headerlink" href="#responsepattern" title="Permanent link"> #</a></h2>
+<h3 id="responsepattern-globally">ResponsePattern Globally<a class="headerlink" href="#responsepattern-globally" title="Permanent link"> #</a></h3>
+<pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; eventually holds
+</code></pre>
+
+<pre><code>true;⌈(!Q &amp;&amp; R)⌉;⌈!Q⌉;true
+</code></pre>
+
+<figure><a data-lightbox="all_images" data-title="" href="/img/patterns/ResponsePattern_Globally.svg"><img alt="" src="/img/patterns/ResponsePattern_Globally.svg" /></a><figcaption></figcaption>
+</figure>
+<h3 id="responsepattern-before">ResponsePattern Before<a class="headerlink" href="#responsepattern-before" title="Permanent link"> #</a></h3>
+<pre><code>Before &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; eventually holds
+</code></pre>
+
+<pre><code>⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈(!Q &amp;&amp; !R)⌉;⌈Q⌉;true
+</code></pre>
+
+<figure><a data-lightbox="all_images" data-title="" href="/img/patterns/ResponsePattern_Before.svg"><img alt="" src="/img/patterns/ResponsePattern_Before.svg" /></a><figcaption></figcaption>
+</figure>
+<h3 id="responsepattern-between">ResponsePattern Between<a class="headerlink" href="#responsepattern-between" title="Permanent link"> #</a></h3>
+<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; eventually holds
+</code></pre>
+
+<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉;⌈R⌉;true
+</code></pre>
+
+<figure><a data-lightbox="all_images" data-title="" href="/img/patterns/ResponsePattern_Between.svg"><img alt="" src="/img/patterns/ResponsePattern_Between.svg" /></a><figcaption></figcaption>
+</figure>
+                        
+                    </div>
+                </div>
+                    <footer>
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a custom theme</a>.
+</footer>
+                
+            </div>
+        </div>
+
+    </section>
+
+</div>
+
+<div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/ultimate-pa/hanfor/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js" defer></script>
+        <script src="../../search/main.js" defer></script>
+    <script type="text/javascript" defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(false);
+        };
+    </script>
+
+</body>
+</html>

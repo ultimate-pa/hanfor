@@ -1,57 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-     <loc>https://ultimate-pa.github.io/hanfor/introduction/</loc>
+     <loc>https://ultimate-pa.github.io/hanfor/introduction/index.html</loc>
      <lastmod>2019-10-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://ultimate-pa.github.io/hanfor/installation/preliminaries/</loc>
+     <loc>https://ultimate-pa.github.io/hanfor/installation/preliminaries.html</loc>
      <lastmod>2019-10-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://ultimate-pa.github.io/hanfor/installation/configuration/</loc>
+     <loc>https://ultimate-pa.github.io/hanfor/installation/configuration.html</loc>
      <lastmod>2019-10-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://ultimate-pa.github.io/hanfor/installation/deployment/</loc>
+     <loc>https://ultimate-pa.github.io/hanfor/installation/deployment.html</loc>
      <lastmod>2019-10-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://ultimate-pa.github.io/hanfor/usage/api_queries/</loc>
+     <loc>https://ultimate-pa.github.io/hanfor/usage/api_queries.html</loc>
      <lastmod>2019-10-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://ultimate-pa.github.io/hanfor/usage/faq/</loc>
+     <loc>https://ultimate-pa.github.io/hanfor/usage/faq.html</loc>
      <lastmod>2019-10-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://ultimate-pa.github.io/hanfor/usage/requirements/</loc>
+     <loc>https://ultimate-pa.github.io/hanfor/usage/requirements.html</loc>
      <lastmod>2019-10-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://ultimate-pa.github.io/hanfor/usage/workflow/</loc>
+     <loc>https://ultimate-pa.github.io/hanfor/usage/workflow.html</loc>
      <lastmod>2019-10-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://ultimate-pa.github.io/hanfor/contribute/to_hanfor/</loc>
+     <loc>https://ultimate-pa.github.io/hanfor/usage/patterns.html</loc>
      <lastmod>2019-10-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://ultimate-pa.github.io/hanfor/contribute/to_docs/</loc>
+     <loc>https://ultimate-pa.github.io/hanfor/contribute/to_hanfor.html</loc>
      <lastmod>2019-10-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://ultimate-pa.github.io/hanfor/</loc>
+     <loc>https://ultimate-pa.github.io/hanfor/contribute/to_docs.html</loc>
+     <lastmod>2019-10-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://ultimate-pa.github.io/hanfor/index.html</loc>
      <lastmod>2019-10-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
