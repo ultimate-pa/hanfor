@@ -200,7 +200,7 @@
                             <h1 id="workflow">Workflow<a class="headerlink" href="#workflow" title="Permanent link"> #</a></h1>
 <p>This example and everything that belongs to it is located in <code>example_input</code>.</p>
 <h2 id="example-input">Example input<a class="headerlink" href="#example-input" title="Permanent link"> #</a></h2>
-<p>Consider a CSV file <code>example_input.csv</code> which contains requirements:</p>
+<p>The CSV file <code>example_intput/example_input.csv</code> contains requirements:</p>
 <pre><code class="bash">ID,Description,Type
 META1,This is an example for some requirements,meta
 META2,Next we define some requirements,meta
@@ -312,17 +312,17 @@ You can examine and even alter them in the section <strong>Variables</strong>, f
 <p>The same procedure can be applied to REQ2 - REQ6</p>
 <h3 id="req7-and-req8">REQ7 and REQ8<a class="headerlink" href="#req7-and-req8" title="Permanent link"> #</a></h3>
 <p>REQ7 and REQ8 are different.
-Consider REQ7: <code>if var3 = True then var4 := 1</code>.</p>
+Consider REQ7: <code>if var3 = True then var4 := 0</code>.</p>
 <ul>
 <li>The scope is still <strong>Globally</strong> </li>
 <li>The pattern is <strong>it is always the case that if "{R}" holds, then "{S}" holds after at most "{T}" time units</strong>, because in a realtime-system a variable assignment does not happen instantly, there can be delays.</li>
 <li>For <strong>{R}</strong> we insert <code>var3</code>, because the variable type is boolean.</li>
-<li>For <strong>{S}</strong> insert <code>var3 == 1</code>,</li>
+<li>For <strong>{S}</strong> insert <code>var4 == 0</code>,</li>
 <li>For <strong>{T}</strong> we need a certain amount of time units, for example 50. We do not want to hardcode values, 
 we introduce a new variable and insert <code>MAX_TIME</code>.</li>
 </ul>
 <p>We end up with the following: </p>
-<pre><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 1&quot; holds after at most &quot;MAX_TIME&quot; time units.
+<pre><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 0&quot; holds after at most &quot;MAX_TIME&quot; time units.
 </code></pre>
 
 <p>Save the formalization. </p>
@@ -333,7 +333,7 @@ also assign a value, for example <code>50</code>.</p>
 <figure><a data-lightbox="all_images" data-title="Example for the MAX_TIME variable" href="../../img/hanfor_var_maxtime.png"><img alt="Example for the MAX_TIME variable" src="../../img/hanfor_var_maxtime.png" title="This is how you should edit the MAX_TIME variable" /></a><figcaption>Example for the <code>MAX_TIME</code> variable</figcaption>
 </figure>
 <p>For REQ8 you should have: </p>
-<pre><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 0&quot; holds after at most &quot;MAX_TIME&quot; time units.
+<pre><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 1&quot; holds after at most &quot;MAX_TIME&quot; time units.
 </code></pre>
 
 <h2 id="exporting-the-formalized-requirements">Exporting the formalized requirements.<a class="headerlink" href="#exporting-the-formalized-requirements" title="Permanent link"> #</a></h2>
