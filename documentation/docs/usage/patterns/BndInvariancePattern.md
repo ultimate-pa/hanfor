@@ -1,8 +1,8 @@
-toc_depth: 2
+<!-- Auto generated file, do not make any changes here. -->
 
-<!-- Auto generated file, do not make changes here. -->
+## BndInvariancePattern
 
-## BndInvariancePattern Globally
+### BndInvariancePattern Globally
 ```
 Globally, it is always the case that if "R" holds, then "Q" holds for at least "c0" time units
 ```
@@ -10,7 +10,7 @@ Globally, it is always the case that if "R" holds, then "Q" holds for at least "
 true;⌈R⌉;⌈true⌉ ∧ ℓ < 50;⌈!Q⌉;true
 ```
 ![](/img/patterns/BndInvariancePattern_Globally.svg)
-## BndInvariancePattern Before
+### BndInvariancePattern Before
 ```
 Before "Q", it is always the case that if "S" holds, then "R" holds for at least "c0" time units
 ```
@@ -18,7 +18,7 @@ Before "Q", it is always the case that if "S" holds, then "R" holds for at least
 ⌈!Q⌉;⌈(!Q && S)⌉;⌈!Q⌉ ∧ ℓ < 50;⌈(!Q && !R)⌉;true
 ```
 ![](/img/patterns/BndInvariancePattern_Before.svg)
-## BndInvariancePattern After
+### BndInvariancePattern After
 ```
 After "Q", it is always the case that if "S" holds, then "R" holds for at least "c0" time units
 ```
@@ -26,7 +26,7 @@ After "Q", it is always the case that if "S" holds, then "R" holds for at least 
 true;⌈Q⌉;true;⌈S⌉;⌈true⌉ ∧ ℓ < 50;⌈!R⌉;true
 ```
 ![](/img/patterns/BndInvariancePattern_After.svg)
-## BndInvariancePattern Between
+### BndInvariancePattern Between
 ```
 Between "Q" and "R", it is always the case that if "T" holds, then "S" holds for at least "c0" time units
 ```
@@ -34,7 +34,7 @@ Between "Q" and "R", it is always the case that if "T" holds, then "S" holds for
 true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉;⌈!R⌉ ∧ ℓ < 50;⌈(!R && !S)⌉;⌈!R⌉;⌈R⌉;true
 ```
 ![](/img/patterns/BndInvariancePattern_Between.svg)
-## BndInvariancePattern AfterUntil
+### BndInvariancePattern AfterUntil
 ```
 After "Q" until "R", it is always the case that if "T" holds, then "S" holds for at least "c0" time units
 ```

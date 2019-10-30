@@ -1,8 +1,8 @@
-toc_depth: 2
+<!-- Auto generated file, do not make any changes here. -->
 
-<!-- Auto generated file, do not make changes here. -->
+## TogglePattern
 
-## TogglePattern Globally
+### TogglePattern Globally
 ```
 Globally, it is always the case that if "Q" holds then "R" toggles "S"
 ```

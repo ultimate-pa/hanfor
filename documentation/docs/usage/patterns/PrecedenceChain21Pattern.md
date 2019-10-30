@@ -1,8 +1,8 @@
-toc_depth: 2
+<!-- Auto generated file, do not make any changes here. -->
 
-<!-- Auto generated file, do not make changes here. -->
+## PrecedenceChain21Pattern
 
-## PrecedenceChain21Pattern Globally
+### PrecedenceChain21Pattern Globally
 ```
 Globally, it is always the case that if "S" holds, then "R" previously held and was preceded by "Q"
 ```

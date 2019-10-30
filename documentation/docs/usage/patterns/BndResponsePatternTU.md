@@ -1,8 +1,8 @@
-toc_depth: 2
+<!-- Auto generated file, do not make any changes here. -->
 
-<!-- Auto generated file, do not make changes here. -->
+## BndResponsePatternTU
 
-## BndResponsePatternTU Globally
+### BndResponsePatternTU Globally
 ```
 Globally, it is always the case that if "R" holds for at least "c0" time units, then "Q" holds afterwards
 ```

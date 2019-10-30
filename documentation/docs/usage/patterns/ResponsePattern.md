@@ -1,8 +1,8 @@
-toc_depth: 2
+<!-- Auto generated file, do not make any changes here. -->
 
-<!-- Auto generated file, do not make changes here. -->
+## ResponsePattern
 
-## ResponsePattern Globally
+### ResponsePattern Globally
 ```
 Globally, it is always the case that if "R" holds, then "Q" eventually holds
 ```
@@ -10,7 +10,7 @@ Globally, it is always the case that if "R" holds, then "Q" eventually holds
 true;⌈(!Q && R)⌉;⌈!Q⌉;true
 ```
 ![](/img/patterns/ResponsePattern_Globally.svg)
-## ResponsePattern Before
+### ResponsePattern Before
 ```
 Before "Q", it is always the case that if "S" holds, then "R" eventually holds
 ```
@@ -18,7 +18,7 @@ Before "Q", it is always the case that if "S" holds, then "R" eventually holds
 ⌈!Q⌉;⌈(!Q && (!R && S))⌉;⌈(!Q && !R)⌉;⌈Q⌉;true
 ```
 ![](/img/patterns/ResponsePattern_Before.svg)
-## ResponsePattern Between
+### ResponsePattern Between
 ```
 Between "Q" and "R", it is always the case that if "T" holds, then "S" eventually holds
 ```

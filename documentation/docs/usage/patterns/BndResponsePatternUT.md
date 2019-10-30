@@ -1,8 +1,8 @@
-toc_depth: 2
+<!-- Auto generated file, do not make any changes here. -->
 
-<!-- Auto generated file, do not make changes here. -->
+## BndResponsePatternUT
 
-## BndResponsePatternUT Globally
+### BndResponsePatternUT Globally
 ```
 Globally, it is always the case that if "R" holds, then "Q" holds after at most "c0" time units
 ```
@@ -10,7 +10,7 @@ Globally, it is always the case that if "R" holds, then "Q" holds after at most 
 true;⌈(!Q && R)⌉;⌈!Q⌉ ∧ ℓ > 50;true
 ```
 ![](/img/patterns/BndResponsePatternUT_Globally.svg)
-## BndResponsePatternUT Before
+### BndResponsePatternUT Before
 ```
 Before "Q", it is always the case that if "S" holds, then "R" holds after at most "c0" time units
 ```
@@ -18,7 +18,7 @@ Before "Q", it is always the case that if "S" holds, then "R" holds after at mos
 ⌈!Q⌉;⌈(!Q && (!R && S))⌉;⌈(!Q && !R)⌉ ∧ ℓ ≥ 50;true
 ```
 ![](/img/patterns/BndResponsePatternUT_Before.svg)
-## BndResponsePatternUT After
+### BndResponsePatternUT After
 ```
 After "Q", it is always the case that if "S" holds, then "R" holds after at most "c0" time units
 ```
@@ -26,7 +26,7 @@ After "Q", it is always the case that if "S" holds, then "R" holds after at most
 true;⌈Q⌉;true;⌈(!R && S)⌉;⌈!R⌉ ∧ ℓ ≥ 50;true
 ```
 ![](/img/patterns/BndResponsePatternUT_After.svg)
-## BndResponsePatternUT Between
+### BndResponsePatternUT Between
 ```
 Between "Q" and "R", it is always the case that if "T" holds, then "S" holds after at most "c0" time units
 ```
@@ -34,7 +34,7 @@ Between "Q" and "R", it is always the case that if "T" holds, then "S" holds aft
 true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ ≥ 50;⌈!R⌉;⌈R⌉;true
 ```
 ![](/img/patterns/BndResponsePatternUT_Between.svg)
-## BndResponsePatternUT AfterUntil
+### BndResponsePatternUT AfterUntil
 ```
 After "Q" until "R", it is always the case that if "T" holds, then "S" holds after at most "c0" time units
 ```
