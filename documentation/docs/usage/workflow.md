@@ -77,7 +77,7 @@ Select type header.
 
 Alternatively you can directly pass the header definition, using `--header`: 
 ``` 
-python3 app.py -c example_input/example_input.csv --headers='{"csv_id_header": "ID", "csv_desc_header": "Description", "csv_formal_header": "Hanfor_Formalization", "csv_type_header" : "Type"}' awesome_tag
+python3 app.py -c example_input/example_input.csv --header='{"csv_id_header": "ID", "csv_desc_header": "Description", "csv_formal_header": "Hanfor_Formalization", "csv_type_header" : "Type"}' awesome_tag
 ```
 
 you can now reach Hanfor by visiting [http://127.0.0.1:5000](http://127.0.0.1:5000)
@@ -106,10 +106,10 @@ To formalize this requirement, we click on the ID **REQ1** to open then formaliz
 
 1. Click on **+** to add a new formalization and then on **..(click to open)**
 2. We now have to select a *Scope* and a *Pattern*.
-- The scope is **Globally**, because the requirement states that "var1 is **always** greater than 5".
-- The pattern is **it is always the case that {R} holds**.
-- For **{R}** we insert the condition: `var1 > 5` 
-- Set the status to **Review** and then press **save changes**.
+* The scope is **Globally**, because the requirement states that "var1 is **always** greater than 5".
+* The pattern is **it is always the case that {R} holds**.
+* For **{R}** we insert the condition: `var1 > 5` 
+* Set the status to **Review** and then press **save changes**.
 If you save a requirement, Hanfor will automatically create the used variables and derive their type.
 You can examine and even alter them in the section **Variables**, for the case that Hanfor did not derive a variable-type correctly.
 
@@ -121,11 +121,11 @@ The same procedure can be applied to REQ2 - REQ6
 REQ7 and REQ8 are different.
 Consider REQ7: `if var3 = True then var4 := 1`.
 
-- The scope is still **Globally** 
-- The pattern is **it is always the case that if "{R}" holds, then "{S}" holds after at most "{T}" time units**, because in a realtime-system a variable assignment does not happen instantly, there can be delays.
-- For **{R}** we insert `var3`, because the variable type is boolean.
-- For **{S}** insert `var3 == 1`,
-- For **{T}** we need a certain amount of time units, for example 50. We do not want to hardcode values, 
+* The scope is still **Globally** 
+* The pattern is **it is always the case that if "{R}" holds, then "{S}" holds after at most "{T}" time units**, because in a realtime-system a variable assignment does not happen instantly, there can be delays.
+* For **{R}** we insert `var3`, because the variable type is boolean.
+* For **{S}** insert `var3 == 1`,
+* For **{T}** we need a certain amount of time units, for example 50. We do not want to hardcode values, 
 we introduce a new variable and insert `MAX_TIME`.
 
 We end up with the following: 
@@ -218,16 +218,18 @@ Careful with this parameter, it will blow up the amount of checks really fast.
 
 ### Use Ultimate
 We now simply execute the `run_complete_analysis.sh` script.
+
 ``` bash
 $ cd /path/to/ultimate/releaseScripts/default/UReqCheck-linux
 $ ./run_complete_analysis.sh path/to/repo/example_input/example_input.req path/to/repo/example_input path/to/repo/example_input
- ```
+```
+
 This will fire up Ultimate and run an analysis. The analysis checks for rt-inconsistency and vacuity and logs are be generated: 
 
-- `hanfor/example/example_input.req.log`
-- `hanfor/example/example_input.req.testgen.log`
-- `hanfor/example/logs/example_input/example_input.req.relevant.log`
-- `hanfor/example/logs/example_input/example_input.req.testgen.log`
+* `hanfor/example/example_input.req.log`
+* `hanfor/example/example_input.req.testgen.log`
+* `hanfor/example/logs/example_input/example_input.req.relevant.log`
+* `hanfor/example/logs/example_input/example_input.req.testgen.log`
 
 ### Evaluate
 
@@ -238,6 +240,7 @@ In `hanfor/example/example_input.req.log` we can see that Ultimate reports:
   - RequirementInconsistentErrorResult: Requirements set is inconsistent.
     Requirements set is inconsistent. Some invariants are already infeasible. Responsible requirements: REQ6_0, REQ3_0, REQ4_0
 ```
+
 Now, if we investigate REQ3, REQ4 and REQ6:
 
 ``` 
@@ -295,9 +298,9 @@ we choose `revision_0` (as it is the only one, usually you want your latest revi
 as we did not change the csv header, we just keep the current one.
 
 A quick recap what happens when creating a revision:
-- New requirements get the tag `revision_0_to_revision_1_new_requirement`
-- Changed requirements get the tag `revision_0_to_revision_1_data_changed` and `revision_0_to_revision_1_description_changed`
-- Requirements where the formalization migrated to the new revision get the tag `revision_0_to_revision_1_migrated_formalized`
+* New requirements get the tag `revision_0_to_revision_1_new_requirement`
+* Changed requirements get the tag `revision_0_to_revision_1_data_changed` and `revision_0_to_revision_1_description_changed`
+* Requirements where the formalization migrated to the new revision get the tag `revision_0_to_revision_1_migrated_formalized`
 
 We now have to alter the requirements which have changed, that's only `REQ4`. 
 Open the formalization of `REQ4` and correct it to `Globally, it is never the case that "constraint2" holds`.
