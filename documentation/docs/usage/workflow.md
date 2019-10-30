@@ -193,45 +193,35 @@ First of all you need [Ultimate](https://github.com/ultimate-pa/ultimate)
 
 1. Install `Java JDK (1.8)` and `Maven (>3.0)`
 2. Clone the repository: `git clone https://github.com/ultimate-pa/ultimate`.
-3. Navigate to the release scripts `cd ultimate/releaseScripts/default/`
+3. Navigate to the release scripts `cd ultimate/releaseScripts/default`
 4. Generate a fresh binary `./makeFresh.sh`
 
-You have now successfully forged binaries, which are located in `UAutomizer-linux/`.
+You have now successfully forged binaries, which are located in `UReqCheck-linux`.
 
 ### Scripts to perform the complete analysis.
 We wrote a script, which perform a complete anaylsis, including the extraction of relevant stuff.
-The script is located in `/path/to/ultimate/releaseScripts/default/ReqChecker`.
+The script is located in `/path/to/ultimate/releaseScripts/default/UReqCheck-linux`.
 
 - You have to configure `run_complete_analysis.sh`, which is used to run the complete analysis.
-In the header of the file you see multiple variables:
-```bash
-### Default settings
-
-# This is the path to the repository, which contains the requirements-folder
-req_repo_folder="/path/to/hanfor/example"
-
-# This is the path to the requirements-folder
-req_folder="/path/to/hanfor/example"
-
-# Path to the Ultimate repository.
-ultimate_repo_folder="/path/to/ultimate"
-
-# The amount of requirements which are checked together for RT-inconsistency.
-# Careful with this parameter, it will blow up the amount of checks really fast.
-rt_inconsistency_range=2
-
-# The time how long a singles assertion is checked.
-timeout_per_assertion=900
+The script takes several arguments:
+``` 
+run_complete_analysis.sh <req_file> <req_repo_folder> <req_folder> [<rt_inconsistency_range> <timeout_per_assertion>]
 ```
-your job is to set `req_repo_folder`, `req_folder` and `ultimate_repo_folder`.
 
+Where:
+* `req_file` is the Requirements file you generated using Hanfor.
+* `req_repo_folder` is the path to the repository, which contains the requirements-folder
+* `req_folder` is the path to the requirements-folder
+* `rt_inconsistency_range` (default: 2) is the amount of requirements which are checked together for RT-inconsistency. 
+Careful with this parameter, it will blow up the amount of checks really fast.
+* `timeout_per_assertion` (default: 900) The time how long a singles assertion is checked.
 
 ### Use Ultimate
 We now simply execute the `run_complete_analysis.sh` script.
 ``` bash
-$ cd /path/to/ultimate/releaseScripts/default/ReqChecker
-$ ./run_complete_analysis.sh path/to/input/example_input.req
-```
+$ cd /path/to/ultimate/releaseScripts/default/UReqCheck-linux
+$ ./run_complete_analysis.sh path/to/repo/example_input/example_input.req path/to/repo/example_input path/to/repo/example_input
+ ```
 This will fire up Ultimate and run an analysis. The analysis checks for rt-inconsistency and vacuity and logs are be generated: 
 
 - `hanfor/example/example_input.req.log`
