@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/usage/api_queries/">
+        
+            <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>API queries
+            - Hanfor Docs</title>
+        <link rel="stylesheet"
+              href="../../css/stupid_fonts.css"/>
+
+        <link rel="stylesheet" href="../../css/theme.css"/>
+        <link rel="stylesheet" href="../../css/theme_extra.css"/>
+        <link rel="stylesheet" href="../../css/lightbox.min.css"/>
+            <link rel="stylesheet" href="../../css/github.min.css"/>
+            <link href="../../stylesheets/extra.css" rel="stylesheet"/>
+        
+            <script>
+                // Current page data
+                var mkdocs_page_name = "API queries";
+                var mkdocs_page_input_path = "usage/api_queries.md";
+                var mkdocs_page_url = "/hanfor/usage/api_queries/";
+            </script>
+        
+        <script src="../../js/jquery-2.1.1.min.js" defer></script>
+        <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+            <script src="../../js/highlight.min.js"></script>
+            <script src="../../js/python.min.js"></script>
+            <script src="../../js/bash.min.js"></script>
+            <script>hljs.initHighlightingOnLoad();</script>
+        <script src="../../js/lightbox.min.js" defer></script> 
+        
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+<div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+        <div class="wy-side-scroll">
+            <div class="wy-side-nav-search">
+                    <a href="../.." class="icon icon-home"> Hanfor Docs</a>
+                    
+            </div>
+
+            <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                            <p class="caption"><span class="caption-text">Introduction</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../introduction/">What is Hanfor?</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../introduction/#requirement-formalization">Requirement Formalization</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../introduction/#requirement-check">Requirement Check</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../introduction/#test-generation">Test Generation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../introduction/#tool-support">Tool support</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Installation</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../installation/preliminaries/">Preliminaries</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../installation/preliminaries/#install-hanfor">Install Hanfor</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../installation/preliminaries/#install-reqanalyzer">Install ReqAnalyzer</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../installation/configuration/">Configuration</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../installation/configuration/#hanfor">Hanfor</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../installation/configuration/#reqanalyzer">ReqAnalyzer</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../installation/deployment/">Deployment</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../installation/deployment/#how-it-works">How it works</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Usage</span></p>
+                            <ul class="current">
+                                    <li class="toctree-l1 current"><a class="reference internal current" href="./">API queries</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#show-stored-queries">Show stored queries</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#adding-new-queries">Adding new queries</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#deleting-queries">Deleting queries</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#query-syntax">Query syntax</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../faq/">FAQ</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../faq/#change-description-or-a-field-text-in-requirements-table">Change description or a field text in requirements table.</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../requirements/">Requirements</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../requirements/#search-in-requirements-table">Search in requirements table</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../requirements/#mass-edit-requirements">Mass edit requirements</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../workflow/">Workflow</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../workflow/#example-input">Example input</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../workflow/#fire-up-hanfor">Fire up Hanfor</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../workflow/#preprocessing">Preprocessing</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../workflow/#formalization">Formalization</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../workflow/#exporting-the-formalized-requirements">Exporting the formalized requirements.</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../workflow/#analysis-using-ultimate">Analysis using Ultimate.</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Contribute</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../contribute/to_hanfor/">Hanfor</a>
+    <ul>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../contribute/to_docs/">To docs</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../contribute/to_docs/#0-optional-setup-a-virtual-environment">0. (Optional) setup a virtual environment</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../contribute/to_docs/#1-install-mkdocs-and-all-dependencies">1. Install MkDocs and all dependencies.</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../contribute/to_docs/#2-serve-this-documentation-locally-to-track-your-changes">2. Serve this Documentation locally to track your changes.</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../contribute/to_docs/#3-publish-your-changes-to-the-staging-directory">3. Publish your changes to the staging directory.</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../contribute/to_docs/#4-publish-your-changes-to-the-live-directory">4. Publish your changes to the live directory</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+        
+        <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+            <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+            <a href="../..">Hanfor Docs</a>
+        </nav>
+
+        
+        <div class="wy-nav-content">
+            <div class="rst-content">
+                <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Usage &raquo;</li>
+        
+      
+    
+    <li>API queries</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/usage/api_queries.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+                <div role="main">
+                    <div class="section">
+                        
+                            <h1 id="api-queries">API queries<a class="headerlink" href="#api-queries" title="Permanent link"> #</a></h1>
+<p>To generate reports or search for requirements not using the frontend Hanfor can be queried with HTTP requests at 
+<code>http(s)://{{your host}}/{{your URL_PREFIX}}/api/query</code></p>
+<h2 id="show-stored-queries">Show stored queries<a class="headerlink" href="#show-stored-queries" title="Permanent link"> #</a></h2>
+<p><code>GET /api/query</code></p>
+<h3 id="url-arguments">URL arguments<a class="headerlink" href="#url-arguments" title="Permanent link"> #</a></h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td>string</td>
+<td>Name of the Query to retrieve a single Query.</td>
+</tr>
+<tr>
+<td>reload</td>
+<td>bool, optional</td>
+<td>Reevaluates all stored Queries.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link"> #</a></h3>
+<pre><code class="bash"># Show all stored Queries
+$ curl http://localhost:5000/api/query
+
+# Show only Queries which are named 'MyQuery' and re-evaluate the stored Query 
+$ curl http://localhost:5000/api/query?name=MyQuery&amp;reload=true
+
+# Using jq to parse the JSON response. Show only the name of the query with associated hits.
+$ curl http://localhost:5000/api/query\?reload\=true | jq -r '.data[] | {name: .name, hits: .hits}'
+</code></pre>
+
+<h2 id="adding-new-queries">Adding new queries<a class="headerlink" href="#adding-new-queries" title="Permanent link"> #</a></h2>
+<p><code>POST /api/query Content-Type: application/json</code></p>
+<h3 id="json-body-parameters">JSON body parameters<a class="headerlink" href="#json-body-parameters" title="Permanent link"> #</a></h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td>string</td>
+<td>Name for the Query. Existing ones will be overridden.</td>
+</tr>
+<tr>
+<td>query</td>
+<td>string</td>
+<td>The search Query.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="examples_1">Examples<a class="headerlink" href="#examples_1" title="Permanent link"> #</a></h3>
+<pre><code class="bash">$ curl -X POST -H 'Content-Type: application/json' \
+ --data '{&quot;name&quot;: &quot;MyQuery&quot;, &quot;query&quot;: &quot;foo:AND:bar&quot;}' http://localhost:5000/api/query
+</code></pre>
+
+<h2 id="deleting-queries">Deleting queries<a class="headerlink" href="#deleting-queries" title="Permanent link"> #</a></h2>
+<p><code>DELETE /api/query</code></p>
+<h3 id="json-body-parameters_1">JSON body parameters<a class="headerlink" href="#json-body-parameters_1" title="Permanent link"> #</a></h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td>string</td>
+<td>Name for the Query to be deleted.</td>
+</tr>
+<tr>
+<td>names</td>
+<td>list of strings</td>
+<td>Queries by name to be deleted.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="examples_2">Examples<a class="headerlink" href="#examples_2" title="Permanent link"> #</a></h3>
+<pre><code class="bash"># Delete a single Query:
+$ curl -X DELETE -H 'Content-Type: application/json' \
+ --data '{&quot;name&quot;: &quot;MyQuery&quot;}' http://localhost:5000/api/query
+
+# Delete multiple Queries:
+$ curl -X DELETE -H 'Content-Type: application/json' \
+ --data '{&quot;names&quot;: [&quot;MyQuery&quot;, &quot;Another&quot;]' http://localhost:5000/api/query
+</code></pre>
+
+<h2 id="query-syntax">Query syntax<a class="headerlink" href="#query-syntax" title="Permanent link"> #</a></h2>
+<p>Much <a href="../requirements/#Search in requirements table">like in the frontend</a> the Query syntax supports operators, nesting, exact- exclusive matches 
+and targeting 
+specific attributes.</p>
+<h3 id="search-operators">Search operators<a class="headerlink" href="#search-operators" title="Permanent link"> #</a></h3>
+<p>You can concatenate search Queries by</p>
+<ul>
+<li><code>search_1:OR:search_2</code> yields the union of search_1 and search_2.</li>
+<li><code>search_1:AND:search_2</code> yields the intersection of search_1 and search_2.</li>
+<li><code>:AND:</code> binds stronger than <code>:OR:</code>.</li>
+</ul>
+<p>To <strong>invert the result</strong> use <code>:NOT:</code> before your search string.</p>
+<p>To change the precedence or to nest a Query <code>(</code> and <code>)</code>.</p>
+<h3 id="exact-searches">Exact searches<a class="headerlink" href="#exact-searches" title="Permanent link"> #</a></h3>
+<p>You can get exact search results by using <code>"</code> to indicate the beginning or end of a sequence.</p>
+<ul>
+<li><code>"fast</code> Includes faster but not breakfast.</li>
+<li><code>fast"</code> Includes breakfast but not faster.</li>
+<li><code>"fast"</code> Includes only exact matches of fast.</li>
+</ul>
+<h3 id="target-specific-attributes">Target specific attributes<a class="headerlink" href="#target-specific-attributes" title="Permanent link"> #</a></h3>
+<p>To limit a part of the search Query to one attribute use the syntax
+<code>:DATA_TARGET:&lt;the attribute name&gt;</code></p>
+<p><strong>Note:</strong> the attribute name must be enclosed with backticks. </p>
+<h3 id="get-available-attributes">Get available attributes<a class="headerlink" href="#get-available-attributes" title="Permanent link"> #</a></h3>
+<p><code>GET /api/quer?show=targets</code></p>
+<h3 id="example">Example<a class="headerlink" href="#example" title="Permanent link"> #</a></h3>
+<pre><code class="bash"># Show attribute names available for specific search.
+$ curl http://localhost:5000/api/query?show=targets
+</code></pre>
+
+<p><strong>Default targets:</strong></p>
+<p>The available targets are composed of</p>
+<pre><code class="json">[
+    &quot;Description&quot;,
+    &quot;Formalization&quot;,
+    &quot;Id&quot;,
+    &quot;Status&quot;,
+    &quot;Tags&quot;,
+    &quot;Type&quot;
+]
+</code></pre>
+
+<p>Plus the fields available in the associated CSV file the requirements origin from.</p>
+                        
+                    </div>
+                </div>
+                    <footer>
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a custom theme</a>.
+</footer>
+                
+            </div>
+        </div>
+
+    </section>
+
+</div>
+
+<div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/ultimate-pa/hanfor/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js" defer></script>
+    <script type="text/javascript" defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(false);
+        };
+    </script>
+
+</body>
+</html>

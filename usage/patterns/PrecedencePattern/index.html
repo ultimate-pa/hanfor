@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/usage/patterns/PrecedencePattern/">
+        
+            <link rel="shortcut icon" href="../../../img/favicon.ico">
+        <title>PrecedencePattern
+            - Hanfor Docs</title>
+        <link rel="stylesheet"
+              href="../../../css/stupid_fonts.css"/>
+
+        <link rel="stylesheet" href="../../../css/theme.css"/>
+        <link rel="stylesheet" href="../../../css/theme_extra.css"/>
+        <link rel="stylesheet" href="../../../css/lightbox.min.css"/>
+            <link rel="stylesheet" href="../../../css/github.min.css"/>
+            <link href="../../../stylesheets/extra.css" rel="stylesheet"/>
+        
+            <script>
+                // Current page data
+                var mkdocs_page_name = "PrecedencePattern";
+                var mkdocs_page_input_path = "usage/patterns/PrecedencePattern.md";
+                var mkdocs_page_url = "/hanfor/usage/patterns/PrecedencePattern/";
+            </script>
+        
+        <script src="../../../js/jquery-2.1.1.min.js" defer></script>
+        <script src="../../../js/modernizr-2.8.3.min.js" defer></script>
+            <script src="../../../js/highlight.min.js"></script>
+            <script src="../../../js/python.min.js"></script>
+            <script src="../../../js/bash.min.js"></script>
+            <script>hljs.initHighlightingOnLoad();</script>
+        <script src="../../../js/lightbox.min.js" defer></script> 
+        
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+<div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+        <div class="wy-side-scroll">
+            <div class="wy-side-nav-search">
+                    <a href="../../.." class="icon icon-home"> Hanfor Docs</a>
+                    
+            </div>
+
+            <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                            <p class="caption"><span class="caption-text">Introduction</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../../introduction/">What is Hanfor?</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../../introduction/#requirement-formalization">Requirement Formalization</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../../introduction/#requirement-check">Requirement Check</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../../introduction/#test-generation">Test Generation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../../introduction/#tool-support">Tool support</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Installation</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../../installation/preliminaries/">Preliminaries</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../../installation/preliminaries/#install-hanfor">Install Hanfor</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../../installation/preliminaries/#install-reqanalyzer">Install ReqAnalyzer</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../../installation/configuration/">Configuration</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../../installation/configuration/#hanfor">Hanfor</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../../installation/configuration/#reqanalyzer">ReqAnalyzer</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../../installation/deployment/">Deployment</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../../installation/deployment/#how-it-works">How it works</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Usage</span></p>
+                            <ul class="current">
+                                    <li class="toctree-l1"><a class="reference internal" href="../../api_queries/">API queries</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../api_queries/#show-stored-queries">Show stored queries</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../api_queries/#adding-new-queries">Adding new queries</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../api_queries/#deleting-queries">Deleting queries</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../api_queries/#query-syntax">Query syntax</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../faq/">FAQ</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../faq/#change-description-or-a-field-text-in-requirements-table">Change description or a field text in requirements table.</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../requirements/">Requirements</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../requirements/#search-in-requirements-table">Search in requirements table</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../requirements/#mass-edit-requirements">Mass edit requirements</a>
+    </li>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../workflow/">Workflow</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../workflow/#example-input">Example input</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../workflow/#fire-up-hanfor">Fire up Hanfor</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../workflow/#preprocessing">Preprocessing</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../workflow/#formalization">Formalization</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../workflow/#exporting-the-formalized-requirements">Exporting the formalized requirements.</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../workflow/#analysis-using-ultimate">Analysis using Ultimate.</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+                            <p class="caption"><span class="caption-text">Contribute</span></p>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../../contribute/to_hanfor/">Hanfor</a>
+    <ul>
+    </ul>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../../../contribute/to_docs/">To docs</a>
+    <ul>
+    <li class="toctree-l2"><a class="reference internal" href="../../../contribute/to_docs/#0-optional-setup-a-virtual-environment">0. (Optional) setup a virtual environment</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../../contribute/to_docs/#1-install-mkdocs-and-all-dependencies">1. Install MkDocs and all dependencies.</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../../contribute/to_docs/#2-serve-this-documentation-locally-to-track-your-changes">2. Serve this Documentation locally to track your changes.</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../../contribute/to_docs/#3-publish-your-changes-to-the-staging-directory">3. Publish your changes to the staging directory.</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="../../../contribute/to_docs/#4-publish-your-changes-to-the-live-directory">4. Publish your changes to the live directory</a>
+    </li>
+    </ul>
+                                    </li>
+                            </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+        
+        <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+            <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+            <a href="../../..">Hanfor Docs</a>
+        </nav>
+
+        
+        <div class="wy-nav-content">
+            <div class="rst-content">
+                <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Patterns &raquo;</li>
+        
+      
+        
+          <li>Usage &raquo;</li>
+        
+      
+    
+    <li>PrecedencePattern</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/usage/patterns/PrecedencePattern.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+                <div role="main">
+                    <div class="section">
+                        
+                            <!-- Auto generated file, do not make changes here. -->
+
+<h2 id="precedencepattern-globally">PrecedencePattern Globally<a class="headerlink" href="#precedencepattern-globally" title="Permanent link"> #</a></h2>
+<pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; previously held
+</code></pre>
+
+<pre><code>⌈!Q⌉;⌈R⌉;true
+</code></pre>
+
+<figure><a data-lightbox="all_images" data-title="" href="/img/patterns/PrecedencePattern_Globally.svg"><img alt="" src="/img/patterns/PrecedencePattern_Globally.svg" /></a><figcaption></figcaption>
+</figure>
+<h2 id="precedencepattern-before">PrecedencePattern Before<a class="headerlink" href="#precedencepattern-before" title="Permanent link"> #</a></h2>
+<pre><code>Before &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; previously held
+</code></pre>
+
+<pre><code>⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; S)⌉;true
+</code></pre>
+
+<figure><a data-lightbox="all_images" data-title="" href="/img/patterns/PrecedencePattern_Before.svg"><img alt="" src="/img/patterns/PrecedencePattern_Before.svg" /></a><figcaption></figcaption>
+</figure>
+<h2 id="precedencepattern-after">PrecedencePattern After<a class="headerlink" href="#precedencepattern-after" title="Permanent link"> #</a></h2>
+<pre><code>After &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; previously held
+</code></pre>
+
+<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈S⌉;true
+</code></pre>
+
+<figure><a data-lightbox="all_images" data-title="" href="/img/patterns/PrecedencePattern_After.svg"><img alt="" src="/img/patterns/PrecedencePattern_After.svg" /></a><figcaption></figcaption>
+</figure>
+<h2 id="precedencepattern-between">PrecedencePattern Between<a class="headerlink" href="#precedencepattern-between" title="Permanent link"> #</a></h2>
+<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; previously held
+</code></pre>
+
+<pre><code>true;⌈(Q &amp;&amp; (!R &amp;&amp; !S))⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈!R⌉;⌈R⌉;true
+</code></pre>
+
+<figure><a data-lightbox="all_images" data-title="" href="/img/patterns/PrecedencePattern_Between.svg"><img alt="" src="/img/patterns/PrecedencePattern_Between.svg" /></a><figcaption></figcaption>
+</figure>
+<h2 id="precedencepattern-afteruntil">PrecedencePattern AfterUntil<a class="headerlink" href="#precedencepattern-afteruntil" title="Permanent link"> #</a></h2>
+<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; previously held
+</code></pre>
+
+<pre><code>true;⌈(Q &amp;&amp; (!R &amp;&amp; !S))⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; T)⌉;true
+</code></pre>
+
+<figure><a data-lightbox="all_images" data-title="" href="/img/patterns/PrecedencePattern_AfterUntil.svg"><img alt="" src="/img/patterns/PrecedencePattern_AfterUntil.svg" /></a><figcaption></figcaption>
+</figure>
+                        
+                    </div>
+                </div>
+                    <footer>
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a custom theme</a>.
+</footer>
+                
+            </div>
+        </div>
+
+    </section>
+
+</div>
+
+<div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/ultimate-pa/hanfor/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+    </span>
+</div>
+    <script>var base_url = '../../..';</script>
+    <script src="../../../js/theme.js" defer></script>
+    <script type="text/javascript" defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(false);
+        };
+    </script>
+
+</body>
+</html>
