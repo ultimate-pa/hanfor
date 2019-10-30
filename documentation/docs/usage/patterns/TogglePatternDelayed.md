@@ -9,4 +9,4 @@ Globally, it is always the case that if "Q" holds then "R" toggles "S" at most "
 ```
 true;⌈(Q && R)⌉;⌈!R⌉ ∧ ℓ ≥ 50;⌈(!R && !S)⌉;true
 ```
-![](../img/patterns/TogglePatternDelayed_Globally.svg)
+![](../../img/patterns/TogglePatternDelayed_Globally.svg)
