@@ -9,4 +9,4 @@ Globally, it is always the case that if "S" holds, then "R" previously held and 
 ```
 ⌈!R⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈S⌉;true
 ```
-![](img/patterns/PrecedenceChain21Pattern_Globally.svg)
+![](../img/patterns/PrecedenceChain21Pattern_Globally.svg)
