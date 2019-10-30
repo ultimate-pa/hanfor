@@ -30,7 +30,7 @@ markdown_extensions:
       base_path: docs
 
 plugins:
-#  - search
+  - search
   - awesome-pages
 
 #nav:
