@@ -9,4 +9,4 @@ Globally, it is always the case that if "R" holds, then "Q" holds after at most 
 ```
 true;⌈R⌉;⌈true⌉ ∧ ℓ ≥ 50;⌈Q⌉ ∧ ℓ < 50;⌈!Q⌉;true
 ```
-![](/img/patterns/BndDelayedResponsePatternUT_Globally.svg)
+![](img/patterns/BndDelayedResponsePatternUT_Globally.svg)

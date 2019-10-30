@@ -9,4 +9,4 @@ Globally, it is always the case that if "R" holds for at least "c0" time units, 
 ```
 true;⌈R⌉ ∧ ℓ ≥ 50;⌈!Q⌉;true
 ```
-![](/img/patterns/BndResponsePatternTU_Globally.svg)
+![](img/patterns/BndResponsePatternTU_Globally.svg)
