@@ -4,9 +4,9 @@
 
 ### BndResponsePatternTT Globally
 ```
-Globally, it is always the case that if "R" holds for at least "c0" time units, then "Q" holds afterwards for at least "c1" time units
+Globally, it is always the case that if "R" holds for at least "5" time units, then "Q" holds afterwards for at least "10" time units
 ```
 ```
-true;⌈R⌉ ∧ ℓ ≥ 50;⌈Q⌉ ∧ ℓ < 50;⌈!Q⌉;true
+true;⌈R⌉ ∧ ℓ ≥ 5;⌈Q⌉ ∧ ℓ < 10;⌈!Q⌉;true
 ```
 ![](../../img/patterns/BndResponsePatternTT_Globally.svg)

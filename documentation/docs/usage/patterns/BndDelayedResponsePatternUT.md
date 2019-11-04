@@ -4,9 +4,9 @@
 
 ### BndDelayedResponsePatternUT Globally
 ```
-Globally, it is always the case that if "R" holds, then "Q" holds after at most "c0" time units for at least "c1" time units
+Globally, it is always the case that if "R" holds, then "Q" holds after at most "5" time units for at least "10" time units
 ```
 ```
-true;⌈R⌉;⌈true⌉ ∧ ℓ ≥ 50;⌈Q⌉ ∧ ℓ < 50;⌈!Q⌉;true
+true;⌈R⌉;⌈true⌉ ∧ ℓ ≥ 5;⌈Q⌉ ∧ ℓ < 10;⌈!Q⌉;true
 ```
 ![](../../img/patterns/BndDelayedResponsePatternUT_Globally.svg)

@@ -52,7 +52,7 @@
 <polygon fill="none" stroke="#000000" points="957,-232 829,-232 829,-182 957,-182 957,-232"/>
 <text text-anchor="start" x="863" y="-217.8" font-family="arial" font-weight="bold" font-size="14.00" fill="#000000">st0123W</text>
 <text text-anchor="start" x="837" y="-203.8" font-family="arial" font-size="14.00" fill="#984ea3">(Q &amp;&amp; (!R &amp;&amp; !S))</text>
-<text text-anchor="start" x="864.5" y="-189.8" font-family="arial" font-size="14.00" fill="#ff7f00">c0 &lt;= 50</text>
+<text text-anchor="start" x="868.5" y="-189.8" font-family="arial" font-size="14.00" fill="#ff7f00">c0 &lt;= 5</text>
 </g>
 <!-- st0&#45;&gt;st0123W -->
 <g id="edge6" class="edge">
@@ -112,7 +112,7 @@
 <polygon fill="none" stroke="#000000" points="549,-202 418,-202 418,-152 549,-152 549,-202"/>
 <text text-anchor="start" x="457.5" y="-187.8" font-family="arial" font-weight="bold" font-size="14.00" fill="#000000">st023W</text>
 <text text-anchor="start" x="426" y="-173.8" font-family="arial" font-size="14.00" fill="#984ea3">(!Q &amp;&amp; (!R &amp;&amp; !S))</text>
-<text text-anchor="start" x="455" y="-159.8" font-family="arial" font-size="14.00" fill="#ff7f00">c0 &lt;= 50</text>
+<text text-anchor="start" x="459" y="-159.8" font-family="arial" font-size="14.00" fill="#ff7f00">c0 &lt;= 5</text>
 </g>
 <!-- st012&#45;&gt;st023W -->
 <g id="edge14" class="edge">
@@ -148,7 +148,7 @@
 <title>st0123W&#45;&gt;st0123W</title>
 <path fill="none" stroke="#000000" d="M873.9497,-232.1756C873.103,-241.9095 879.4531,-250 893,-250 901.4668,-250 907.1224,-246.8397 909.9667,-242.093"/>
 <polygon fill="#000000" stroke="#000000" points="913.4193,-242.6816 912.0503,-232.1756 906.5689,-241.2423 913.4193,-242.6816"/>
-<text text-anchor="start" x="868.5" y="-253.8" font-family="arial" font-size="14.00" fill="#377eb8">c0 &lt; 50</text>
+<text text-anchor="start" x="873" y="-253.8" font-family="arial" font-size="14.00" fill="#377eb8">c0 &lt; 5</text>
 </g>
 <!-- st0123W&#45;&gt;st02 -->
 <g id="edge23" class="edge">
@@ -162,7 +162,7 @@
 <title>st0123W&#45;&gt;st023W</title>
 <path fill="none" stroke="#000000" d="M828.7201,-202.2909C755.7821,-196.9474 636.9278,-188.2401 559.4683,-182.5654"/>
 <polygon fill="#000000" stroke="#000000" points="559.5223,-179.0601 549.2933,-181.82 559.0108,-186.0414 559.5223,-179.0601"/>
-<text text-anchor="start" x="664.5" y="-200.8" font-family="arial" font-size="14.00" fill="#377eb8">c0 &lt; 50</text>
+<text text-anchor="start" x="669" y="-200.8" font-family="arial" font-size="14.00" fill="#377eb8">c0 &lt; 5</text>
 </g>
 <!-- st02&#45;&gt;st0 -->
 <g id="edge7" class="edge">
@@ -220,7 +220,7 @@
 <title>st023W&#45;&gt;st0123W</title>
 <path fill="none" stroke="#000000" d="M549.1044,-170.9788C555.1505,-170.5814 561.1861,-170.2433 567,-170 649.5944,-166.544 671.0222,-159.35 753,-170 774.7373,-172.824 797.9079,-178.0164 819.0138,-183.6363"/>
 <polygon fill="#000000" stroke="#000000" points="818.3033,-187.0704 828.8723,-186.3309 820.1489,-180.3181 818.3033,-187.0704"/>
-<text text-anchor="start" x="664.5" y="-173.8" font-family="arial" font-size="14.00" fill="#377eb8">c0 &lt; 50</text>
+<text text-anchor="start" x="669" y="-173.8" font-family="arial" font-size="14.00" fill="#377eb8">c0 &lt; 5</text>
 </g>
 <!-- st023W&#45;&gt;st02 -->
 <g id="edge18" class="edge">
@@ -234,7 +234,7 @@
 <title>st023W&#45;&gt;st023W</title>
 <path fill="none" stroke="#000000" d="M464.4497,-202.1756C463.603,-211.9095 469.9531,-220 483.5,-220 491.9668,-220 497.6224,-216.8397 500.4667,-212.093"/>
 <polygon fill="#000000" stroke="#000000" points="503.9193,-212.6816 502.5503,-202.1756 497.0689,-211.2423 503.9193,-212.6816"/>
-<text text-anchor="start" x="459" y="-223.8" font-family="arial" font-size="14.00" fill="#377eb8">c0 &lt; 50</text>
+<text text-anchor="start" x="463.5" y="-223.8" font-family="arial" font-size="14.00" fill="#377eb8">c0 &lt; 5</text>
 </g>
 </g>
 </svg>
