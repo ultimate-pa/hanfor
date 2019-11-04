@@ -11,6 +11,7 @@ toc_depth: 2
 {!usage/patterns/BndResponsePatternTT.md!}
 {!usage/patterns/BndResponsePatternTU.md!}
 {!usage/patterns/BndResponsePatternUT.md!}
+{!usage/patterns/BndTriggeredEntryConditionPattern.md!}
 {!usage/patterns/InstAbsPattern.md!}
 {!usage/patterns/InvariantPattern.md!}
 {!usage/patterns/MaxDurationPattern.md!}
