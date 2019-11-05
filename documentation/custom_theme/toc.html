@@ -1,6 +1,9 @@
 {% if (page.meta and navlevel <= page.meta.toc_depth|int) %}
 {%- for toc_item in toc_item.children %}
-    <li class="toctree-l{{ navlevel}}"><a class="reference internal" href="{% if not nav_item == page %}{{ nav_item.url|url }}{% endif %}{{ toc_item.url }}">{{ toc_item.title }}</a>
+	{# hacked by EvilTeen4g3erH4ck0R ... feel free to revert if u don't like this feature #}
+    <li class="toctree-l{{ navlevel}}"><a class="reference internal" href="{% if not nav_item == page %}{{ nav_item.url|url }}{% endif %}{{ toc_item.url }}">
+    {% if nav_item.title == "Patterns" and toc_item.title.split(" ")|length == 2 %} {{ toc_item.title.split(" ")[1] }} {% else %} {{ toc_item.title }} {% endif %}</a>
+    
     {%- set navlevel = navlevel + 1 %}
     {%- if ((page.meta and navlevel <= page.meta.toc_depth|int) or navlevel <= config.theme.navigation_depth) and toc_item.children %}
         <ul>
