@@ -7,7 +7,7 @@
 Globally, it is always the case that if "R" holds, then "Q" previously held
 ```
 ```
-⌈!Q⌉;⌈R⌉;true
+Counterexample: ⌈!Q⌉;⌈R⌉;true
 ```
 ![](../../img/patterns/PrecedencePattern_Globally.svg)
 ### PrecedencePattern Before
@@ -15,7 +15,7 @@ Globally, it is always the case that if "R" holds, then "Q" previously held
 Before "Q", it is always the case that if "S" holds, then "R" previously held
 ```
 ```
-⌈(!Q && !R)⌉;⌈(!Q && S)⌉;true
+Counterexample: ⌈(!Q && !R)⌉;⌈(!Q && S)⌉;true
 ```
 ![](../../img/patterns/PrecedencePattern_Before.svg)
 ### PrecedencePattern After
@@ -23,7 +23,7 @@ Before "Q", it is always the case that if "S" holds, then "R" previously held
 After "Q", it is always the case that if "S" holds, then "R" previously held
 ```
 ```
-true;⌈(Q && !R)⌉;⌈!R⌉;⌈S⌉;true
+Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈S⌉;true
 ```
 ![](../../img/patterns/PrecedencePattern_After.svg)
 ### PrecedencePattern Between
@@ -31,7 +31,7 @@ true;⌈(Q && !R)⌉;⌈!R⌉;⌈S⌉;true
 Between "Q" and "R", it is always the case that if "T" holds, then "S" previously held
 ```
 ```
-true;⌈(Q && (!R && !S))⌉;⌈(!R && !S)⌉;⌈(!R && (!S && T))⌉;⌈!R⌉;⌈R⌉;true
+Counterexample: true;⌈(Q && (!R && !S))⌉;⌈(!R && !S)⌉;⌈(!R && (!S && T))⌉;⌈!R⌉;⌈R⌉;true
 ```
 ![](../../img/patterns/PrecedencePattern_Between.svg)
 ### PrecedencePattern AfterUntil
@@ -39,6 +39,6 @@ true;⌈(Q && (!R && !S))⌉;⌈(!R && !S)⌉;⌈(!R && (!S && T))⌉;⌈!R⌉;�
 After "Q" until "R", it is always the case that if "T" holds, then "S" previously held
 ```
 ```
-true;⌈(Q && (!R && !S))⌉;⌈(!R && !S)⌉;⌈(!R && T)⌉;true
+Counterexample: true;⌈(Q && (!R && !S))⌉;⌈(!R && !S)⌉;⌈(!R && T)⌉;true
 ```
 ![](../../img/patterns/PrecedencePattern_AfterUntil.svg)

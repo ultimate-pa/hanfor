@@ -7,7 +7,7 @@
 Globally, it is always the case that "Q" holds
 ```
 ```
-true;⌈!Q⌉;true
+Counterexample: true;⌈!Q⌉;true
 ```
 ![](../../img/patterns/UniversalityPattern_Globally.svg)
 ### UniversalityPattern Before
@@ -15,7 +15,7 @@ true;⌈!Q⌉;true
 Before "Q", it is always the case that "R" holds
 ```
 ```
-⌈!Q⌉;⌈(!Q && !R)⌉;true
+Counterexample: ⌈!Q⌉;⌈(!Q && !R)⌉;true
 ```
 ![](../../img/patterns/UniversalityPattern_Before.svg)
 ### UniversalityPattern After
@@ -23,7 +23,7 @@ Before "Q", it is always the case that "R" holds
 After "Q", it is always the case that "R" holds
 ```
 ```
-true;⌈Q⌉;true;⌈!R⌉;true
+Counterexample: true;⌈Q⌉;true;⌈!R⌉;true
 ```
 ![](../../img/patterns/UniversalityPattern_After.svg)
 ### UniversalityPattern Between
@@ -31,7 +31,7 @@ true;⌈Q⌉;true;⌈!R⌉;true
 Between "Q" and "R", it is always the case that "S" holds
 ```
 ```
-true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈!R⌉;⌈R⌉;true
+Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈!R⌉;⌈R⌉;true
 ```
 ![](../../img/patterns/UniversalityPattern_Between.svg)
 ### UniversalityPattern AfterUntil
@@ -39,6 +39,6 @@ true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈!R⌉;⌈R⌉;true
 After "Q" until "R", it is always the case that "S" holds
 ```
 ```
-true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;true
+Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;true
 ```
 ![](../../img/patterns/UniversalityPattern_AfterUntil.svg)

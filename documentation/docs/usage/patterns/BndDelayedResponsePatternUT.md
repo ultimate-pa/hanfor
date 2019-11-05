@@ -7,6 +7,6 @@
 Globally, it is always the case that if "R" holds, then "Q" holds after at most "5" time units for at least "10" time units
 ```
 ```
-true;⌈R⌉;⌈true⌉ ∧ ℓ ≥ 5;⌈Q⌉ ∧ ℓ < 10;⌈!Q⌉;true
+Counterexample: true;⌈R⌉;⌈true⌉ ∧ ℓ ≥ 5;⌈Q⌉ ∧ ℓ < 10;⌈!Q⌉;true
 ```
 ![](../../img/patterns/BndDelayedResponsePatternUT_Globally.svg)

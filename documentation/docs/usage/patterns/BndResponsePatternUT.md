@@ -7,7 +7,7 @@
 Globally, it is always the case that if "R" holds, then "Q" holds after at most "5" time units
 ```
 ```
-true;⌈(!Q && R)⌉;⌈!Q⌉ ∧ ℓ > 5;true
+Counterexample: true;⌈(!Q && R)⌉;⌈!Q⌉ ∧ ℓ > 5;true
 ```
 ![](../../img/patterns/BndResponsePatternUT_Globally.svg)
 ### BndResponsePatternUT Before
@@ -15,7 +15,7 @@ true;⌈(!Q && R)⌉;⌈!Q⌉ ∧ ℓ > 5;true
 Before "Q", it is always the case that if "S" holds, then "R" holds after at most "5" time units
 ```
 ```
-⌈!Q⌉;⌈(!Q && (!R && S))⌉;⌈(!Q && !R)⌉ ∧ ℓ ≥ 5;true
+Counterexample: ⌈!Q⌉;⌈(!Q && (!R && S))⌉;⌈(!Q && !R)⌉ ∧ ℓ ≥ 5;true
 ```
 ![](../../img/patterns/BndResponsePatternUT_Before.svg)
 ### BndResponsePatternUT After
@@ -23,7 +23,7 @@ Before "Q", it is always the case that if "S" holds, then "R" holds after at mos
 After "Q", it is always the case that if "S" holds, then "R" holds after at most "5" time units
 ```
 ```
-true;⌈Q⌉;true;⌈(!R && S)⌉;⌈!R⌉ ∧ ℓ ≥ 5;true
+Counterexample: true;⌈Q⌉;true;⌈(!R && S)⌉;⌈!R⌉ ∧ ℓ ≥ 5;true
 ```
 ![](../../img/patterns/BndResponsePatternUT_After.svg)
 ### BndResponsePatternUT Between
@@ -31,7 +31,7 @@ true;⌈Q⌉;true;⌈(!R && S)⌉;⌈!R⌉ ∧ ℓ ≥ 5;true
 Between "Q" and "R", it is always the case that if "T" holds, then "S" holds after at most "5" time units
 ```
 ```
-true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ ≥ 5;⌈!R⌉;⌈R⌉;true
+Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ ≥ 5;⌈!R⌉;⌈R⌉;true
 ```
 ![](../../img/patterns/BndResponsePatternUT_Between.svg)
 ### BndResponsePatternUT AfterUntil
@@ -39,6 +39,6 @@ true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ �
 After "Q" until "R", it is always the case that if "T" holds, then "S" holds after at most "5" time units
 ```
 ```
-true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ ≥ 5;true
+Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ ≥ 5;true
 ```
 ![](../../img/patterns/BndResponsePatternUT_AfterUntil.svg)
