@@ -9,4 +9,4 @@ Globally, it is always the case that after "Q" holds for at least "5" time units
 ```
 Counterexample: true;⌈Q⌉ ∧ ℓ > 5;⌈(Q && (R && !S))⌉;true
 ```
-![](../../img/patterns/BndTriggeredEntryConditionPattern_Globally.svg)
+![](../img/patterns/BndTriggeredEntryConditionPattern_Globally.svg)
