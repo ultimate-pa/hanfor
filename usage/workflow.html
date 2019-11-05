@@ -49,7 +49,11 @@
         <div class="wy-side-scroll">
             <div class="wy-side-nav-search">
                     <a href="../index.html" class="icon icon-home"> Hanfor Docs</a>
-                    
+                    <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
             </div>
 
             <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
@@ -139,7 +143,47 @@
                                     </li>
                                     <li class="toctree-l1"><a class="reference internal" href="patterns.html">Patterns</a>
     <ul>
-    <li class="toctree-l2"><a class="reference internal" href="patterns.html#bnddelayedresponsepatternut_glob">BndDelayedResponsePatternUT_Glob</a>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#bnddelayedresponsepatternut">BndDelayedResponsePatternUT</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#bndentryconditionpattern">BndEntryConditionPattern</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#bndexistencepattern">BndExistencePattern</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#bndinvariancepattern">BndInvariancePattern</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#bndreccurrencepattern">BndReccurrencePattern</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#bndresponsepatterntt">BndResponsePatternTT</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#bndresponsepatterntu">BndResponsePatternTU</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#bndresponsepatternut">BndResponsePatternUT</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#bndtriggeredentryconditionpattern">BndTriggeredEntryConditionPattern</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#instabspattern">InstAbsPattern</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#invariantpattern">InvariantPattern</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#maxdurationpattern">MaxDurationPattern</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#mindurationpattern">MinDurationPattern</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#precedencechain12pattern">PrecedenceChain12Pattern</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#precedencechain21pattern">PrecedenceChain21Pattern</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#precedencepattern">PrecedencePattern</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#responsechain21pattern">ResponseChain21Pattern</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#responsepattern">ResponsePattern</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#togglepattern">TogglePattern</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#togglepatterndelayed">TogglePatternDelayed</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="patterns.html#universalitypattern">UniversalityPattern</a>
     </li>
     </ul>
                                     </li>
@@ -206,7 +250,7 @@
                             <h1 id="workflow">Workflow<a class="headerlink" href="#workflow" title="Permanent link"> #</a></h1>
 <p>This example and everything that belongs to it is located in <code>example_input</code>.</p>
 <h2 id="example-input">Example input<a class="headerlink" href="#example-input" title="Permanent link"> #</a></h2>
-<p>Consider a CSV file <code>example_input.csv</code> which contains requirements:</p>
+<p>The CSV file <code>example_intput/example_input.csv</code> contains requirements:</p>
 <pre><code class="bash">ID,Description,Type
 META1,This is an example for some requirements,meta
 META2,Next we define some requirements,meta
@@ -280,7 +324,7 @@ Select type header.
 </code></pre>
 
 <p>Alternatively you can directly pass the header definition, using <code>--header</code>: </p>
-<pre><code>python3 app.py -c example_input/example_input.csv --headers='{&quot;csv_id_header&quot;: &quot;ID&quot;, &quot;csv_desc_header&quot;: &quot;Description&quot;, &quot;csv_formal_header&quot;: &quot;Hanfor_Formalization&quot;, &quot;csv_type_header&quot; : &quot;Type&quot;}' awesome_tag
+<pre><code>python3 app.py -c example_input/example_input.csv --header='{&quot;csv_id_header&quot;: &quot;ID&quot;, &quot;csv_desc_header&quot;: &quot;Description&quot;, &quot;csv_formal_header&quot;: &quot;Hanfor_Formalization&quot;, &quot;csv_type_header&quot; : &quot;Type&quot;}' awesome_tag
 </code></pre>
 
 <p>you can now reach Hanfor by visiting <a href="http://127.0.0.1:5000">http://127.0.0.1:5000</a></p>
@@ -306,10 +350,10 @@ It might be the case that you want to change this for a certain set of rows to a
 <ol>
 <li>Click on <strong>+</strong> to add a new formalization and then on <strong>..(click to open)</strong></li>
 <li>We now have to select a <em>Scope</em> and a <em>Pattern</em>.
-- The scope is <strong>Globally</strong>, because the requirement states that "var1 is <strong>always</strong> greater than 5".
-- The pattern is <strong>it is always the case that {R} holds</strong>.
-- For <strong>{R}</strong> we insert the condition: <code>var1 &gt; 5</code> 
-- Set the status to <strong>Review</strong> and then press <strong>save changes</strong>.
+<em> The scope is <strong>Globally</strong>, because the requirement states that "var1 is <strong>always</strong> greater than 5".
+</em> The pattern is <strong>it is always the case that {R} holds</strong>.
+<em> For <strong>{R}</strong> we insert the condition: <code>var1 &gt; 5</code> 
+</em> Set the status to <strong>Review</strong> and then press <strong>save changes</strong>.
 If you save a requirement, Hanfor will automatically create the used variables and derive their type.
 You can examine and even alter them in the section <strong>Variables</strong>, for the case that Hanfor did not derive a variable-type correctly.</li>
 </ol>
@@ -318,17 +362,17 @@ You can examine and even alter them in the section <strong>Variables</strong>, f
 <p>The same procedure can be applied to REQ2 - REQ6</p>
 <h3 id="req7-and-req8">REQ7 and REQ8<a class="headerlink" href="#req7-and-req8" title="Permanent link"> #</a></h3>
 <p>REQ7 and REQ8 are different.
-Consider REQ7: <code>if var3 = True then var4 := 1</code>.</p>
+Consider REQ7: <code>if var3 = True then var4 := 0</code>.</p>
 <ul>
 <li>The scope is still <strong>Globally</strong> </li>
 <li>The pattern is <strong>it is always the case that if "{R}" holds, then "{S}" holds after at most "{T}" time units</strong>, because in a realtime-system a variable assignment does not happen instantly, there can be delays.</li>
 <li>For <strong>{R}</strong> we insert <code>var3</code>, because the variable type is boolean.</li>
-<li>For <strong>{S}</strong> insert <code>var3 == 1</code>,</li>
+<li>For <strong>{S}</strong> insert <code>var4 == 0</code>,</li>
 <li>For <strong>{T}</strong> we need a certain amount of time units, for example 50. We do not want to hardcode values, 
 we introduce a new variable and insert <code>MAX_TIME</code>.</li>
 </ul>
 <p>We end up with the following: </p>
-<pre><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 1&quot; holds after at most &quot;MAX_TIME&quot; time units.
+<pre><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 0&quot; holds after at most &quot;MAX_TIME&quot; time units.
 </code></pre>
 
 <p>Save the formalization. </p>
@@ -339,7 +383,7 @@ also assign a value, for example <code>50</code>.</p>
 <figure><a data-lightbox="all_images" data-title="Example for the MAX_TIME variable" href="../img/hanfor_var_maxtime.png"><img alt="Example for the MAX_TIME variable" src="../img/hanfor_var_maxtime.png" title="This is how you should edit the MAX_TIME variable" /></a><figcaption>Example for the <code>MAX_TIME</code> variable</figcaption>
 </figure>
 <p>For REQ8 you should have: </p>
-<pre><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 0&quot; holds after at most &quot;MAX_TIME&quot; time units.
+<pre><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 1&quot; holds after at most &quot;MAX_TIME&quot; time units.
 </code></pre>
 
 <h2 id="exporting-the-formalized-requirements">Exporting the formalized requirements.<a class="headerlink" href="#exporting-the-formalized-requirements" title="Permanent link"> #</a></h2>
@@ -382,41 +426,31 @@ REQ8_0: Globally, it is always the case that if &quot;var3&quot; holds, then &qu
 <ol>
 <li>Install <code>Java JDK (1.8)</code> and <code>Maven (&gt;3.0)</code></li>
 <li>Clone the repository: <code>git clone https://github.com/ultimate-pa/ultimate</code>.</li>
-<li>Navigate to the release scripts <code>cd ultimate/releaseScripts/default/</code></li>
+<li>Navigate to the release scripts <code>cd ultimate/releaseScripts/default</code></li>
 <li>Generate a fresh binary <code>./makeFresh.sh</code></li>
 </ol>
-<p>You have now successfully forged binaries, which are located in <code>UAutomizer-linux/</code>.</p>
+<p>You have now successfully forged binaries, which are located in <code>UReqCheck-linux</code>.</p>
 <h3 id="scripts-to-perform-the-complete-analysis">Scripts to perform the complete analysis.<a class="headerlink" href="#scripts-to-perform-the-complete-analysis" title="Permanent link"> #</a></h3>
 <p>We wrote a script, which perform a complete anaylsis, including the extraction of relevant stuff.
-The script is located in <code>/path/to/ultimate/releaseScripts/default/ReqChecker</code>.</p>
+The script is located in <code>/path/to/ultimate/releaseScripts/default/UReqCheck-linux</code>.</p>
 <ul>
 <li>You have to configure <code>run_complete_analysis.sh</code>, which is used to run the complete analysis.
-In the header of the file you see multiple variables:</li>
+The script takes several arguments:</li>
 </ul>
-<pre><code class="bash">### Default settings
-
-# This is the path to the repository, which contains the requirements-folder
-req_repo_folder=&quot;/path/to/hanfor/example&quot;
-
-# This is the path to the requirements-folder
-req_folder=&quot;/path/to/hanfor/example&quot;
-
-# Path to the Ultimate repository.
-ultimate_repo_folder=&quot;/path/to/ultimate&quot;
-
-# The amount of requirements which are checked together for RT-inconsistency.
-# Careful with this parameter, it will blow up the amount of checks really fast.
-rt_inconsistency_range=2
-
-# The time how long a singles assertion is checked.
-timeout_per_assertion=900
+<pre><code>run_complete_analysis.sh &lt;req_file&gt; &lt;req_repo_folder&gt; &lt;req_folder&gt; [&lt;rt_inconsistency_range&gt; &lt;timeout_per_assertion&gt;]
 </code></pre>
 
-<p>your job is to set <code>req_repo_folder</code>, <code>req_folder</code> and <code>ultimate_repo_folder</code>.</p>
+<p>Where:
+<em> <code>req_file</code> is the Requirements file you generated using Hanfor.
+</em> <code>req_repo_folder</code> is the path to the repository, which contains the requirements-folder
+<em> <code>req_folder</code> is the path to the requirements-folder
+</em> <code>rt_inconsistency_range</code> (default: 2) is the amount of requirements which are checked together for RT-inconsistency. 
+Careful with this parameter, it will blow up the amount of checks really fast.
+* <code>timeout_per_assertion</code> (default: 900) The time how long a singles assertion is checked.</p>
 <h3 id="use-ultimate">Use Ultimate<a class="headerlink" href="#use-ultimate" title="Permanent link"> #</a></h3>
 <p>We now simply execute the <code>run_complete_analysis.sh</code> script.</p>
-<pre><code class="bash">$ cd /path/to/ultimate/releaseScripts/default/ReqChecker
-$ ./run_complete_analysis.sh path/to/input/example_input.req
+<pre><code class="bash">$ cd /path/to/ultimate/releaseScripts/default/UReqCheck-linux
+$ ./run_complete_analysis.sh path/to/repo/example_input/example_input.req path/to/repo/example_input path/to/repo/example_input
 </code></pre>
 
 <p>This will fire up Ultimate and run an analysis. The analysis checks for rt-inconsistency and vacuity and logs are be generated: </p>
@@ -488,9 +522,9 @@ as we did not change the csv header, we just keep the current one.</p>
 </li>
 </ul>
 <p>A quick recap what happens when creating a revision:
-- New requirements get the tag <code>revision_0_to_revision_1_new_requirement</code>
-- Changed requirements get the tag <code>revision_0_to_revision_1_data_changed</code> and <code>revision_0_to_revision_1_description_changed</code>
-- Requirements where the formalization migrated to the new revision get the tag <code>revision_0_to_revision_1_migrated_formalized</code></p>
+<em> New requirements get the tag <code>revision_0_to_revision_1_new_requirement</code>
+</em> Changed requirements get the tag <code>revision_0_to_revision_1_data_changed</code> and <code>revision_0_to_revision_1_description_changed</code>
+* Requirements where the formalization migrated to the new revision get the tag <code>revision_0_to_revision_1_migrated_formalized</code></p>
 <p>We now have to alter the requirements which have changed, that's only <code>REQ4</code>. 
 Open the formalization of <code>REQ4</code> and correct it to <code>Globally, it is never the case that "constraint2" holds</code>.</p>
 <h3 id="ultimate-analysis-2">Ultimate Analysis #2<a class="headerlink" href="#ultimate-analysis-2" title="Permanent link"> #</a></h3>
@@ -553,6 +587,7 @@ and <code>var4 == 1</code> holds at a later point of time or vice versa. Why is 
 </div>
     <script>var base_url = '..';</script>
     <script src="../js/theme.js" defer></script>
+        <script src="../search/main.js" defer></script>
     <script type="text/javascript" defer>
         window.onload = function () {
             SphinxRtdTheme.Navigation.enable(false);

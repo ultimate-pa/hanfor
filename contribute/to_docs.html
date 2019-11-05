@@ -49,7 +49,11 @@
         <div class="wy-side-scroll">
             <div class="wy-side-nav-search">
                     <a href="../index.html" class="icon icon-home"> Hanfor Docs</a>
-                    
+                    <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
             </div>
 
             <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
@@ -134,7 +138,7 @@ $ source docs_venv/bin/activate
 </code></pre>
 
 <h4 id="1-install-mkdocs-and-all-dependencies">1. Install <a href="https://www.mkdocs.org/">MkDocs</a> and all dependencies.<a class="headerlink" href="#1-install-mkdocs-and-all-dependencies" title="Permanent link"> #</a></h4>
-<pre><code class="bash">$ pip install -r requirements_docs.txt
+<pre><code class="bash">$ pip3 install -r requirements_docs.txt
 </code></pre>
 
 <h4 id="2-serve-this-documentation-locally-to-track-your-changes">2. Serve this Documentation locally to track your changes.<a class="headerlink" href="#2-serve-this-documentation-locally-to-track-your-changes" title="Permanent link"> #</a></h4>
@@ -185,6 +189,7 @@ They will then be immediately available to the world at https://ultimate-pa.gith
 </div>
     <script>var base_url = '..';</script>
     <script src="../js/theme.js" defer></script>
+        <script src="../search/main.js" defer></script>
     <script type="text/javascript" defer>
         window.onload = function () {
             SphinxRtdTheme.Navigation.enable(false);
