@@ -26,7 +26,7 @@
             <script>
                 // Current page data
                 var mkdocs_page_name = "Patterns";
-                var mkdocs_page_input_path = "usage\\patterns.md";
+                var mkdocs_page_input_path = "usage/patterns.md";
                 var mkdocs_page_url = "/hanfor/usage/patterns.html";
             </script>
         
@@ -159,6 +159,8 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#bndresponsepatternut">BndResponsePatternUT</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#bndtriggeredentryconditionpattern">BndTriggeredEntryConditionPattern</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#instabspattern">InstAbsPattern</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#invariantpattern">InvariantPattern</a>
@@ -252,653 +254,663 @@
 
 <h2 id="bnddelayedresponsepatternut">BndDelayedResponsePatternUT<a class="headerlink" href="#bnddelayedresponsepatternut" title="Permanent link"> #</a></h2>
 <h3 id="bnddelayedresponsepatternut-globally">BndDelayedResponsePatternUT Globally<a class="headerlink" href="#bnddelayedresponsepatternut-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; holds after at most &quot;c0&quot; time units for at least &quot;c1&quot; time units
+<pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; holds after at most &quot;5&quot; time units for at least &quot;10&quot; time units
 </code></pre>
 
-<pre><code>true;⌈R⌉;⌈true⌉ ∧ ℓ ≥ 50;⌈Q⌉ ∧ ℓ &lt; 50;⌈!Q⌉;true
+<pre><code>Counterexample: true;⌈R⌉;⌈true⌉ ∧ ℓ ≤ 5;⌈Q⌉ ∧ ℓ &lt; 10;⌈!Q⌉;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/BndDelayedResponsePatternUT_Globally.svg"><img alt="" src="../img/patterns/BndDelayedResponsePatternUT_Globally.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndDelayedResponsePatternUT_Globally.svg"><img alt="" src="../../img/patterns/BndDelayedResponsePatternUT_Globally.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="bndentryconditionpattern">BndEntryConditionPattern<a class="headerlink" href="#bndentryconditionpattern" title="Permanent link"> #</a></h2>
 <h3 id="bndentryconditionpattern-globally">BndEntryConditionPattern Globally<a class="headerlink" href="#bndentryconditionpattern-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that after &quot;R&quot; holds for &quot;c0&quot; time units, then &quot;Q&quot; holds
+<pre><code>Globally, it is always the case that after &quot;R&quot; holds for at least &quot;5&quot; time units, then &quot;Q&quot; holds
 </code></pre>
 
-<pre><code>true;⌈R⌉ ∧ ℓ &gt; 50;⌈!Q⌉;true
+<pre><code>Counterexample: true;⌈R⌉ ∧ ℓ &gt; 5;⌈!Q⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_Globally.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndEntryConditionPattern_Globally.svg"><img alt="" src="../../img/patterns/BndEntryConditionPattern_Globally.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndentryconditionpattern-before">BndEntryConditionPattern Before<a class="headerlink" href="#bndentryconditionpattern-before" title="Permanent link"> #</a></h3>
-<pre><code>Before &quot;Q&quot;, it is always the case that after &quot;S&quot; holds for &quot;c0&quot; time units, then &quot;R&quot; holds
+<pre><code>Before &quot;Q&quot;, it is always the case that after &quot;S&quot; holds for at least &quot;5&quot; time units, then &quot;R&quot; holds
 </code></pre>
 
-<pre><code>⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉ ∧ ℓ &gt; 50;⌈(!Q &amp;&amp; !R)⌉;true
+<pre><code>Counterexample: ⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉ ∧ ℓ &gt; 5;⌈(!Q &amp;&amp; !R)⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_Before.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_Before.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndEntryConditionPattern_Before.svg"><img alt="" src="../../img/patterns/BndEntryConditionPattern_Before.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndentryconditionpattern-after">BndEntryConditionPattern After<a class="headerlink" href="#bndentryconditionpattern-after" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot;, it is always the case that after &quot;S&quot; holds for &quot;c0&quot; time units, then &quot;R&quot; holds
+<pre><code>After &quot;Q&quot;, it is always the case that after &quot;S&quot; holds for at least &quot;5&quot; time units, then &quot;R&quot; holds
 </code></pre>
 
-<pre><code>true;⌈Q⌉;true;⌈S⌉ ∧ ℓ &gt; 50;⌈!R⌉;true
+<pre><code>Counterexample: true;⌈Q⌉;true;⌈S⌉ ∧ ℓ &gt; 5;⌈!R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_After.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_After.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndEntryConditionPattern_After.svg"><img alt="" src="../../img/patterns/BndEntryConditionPattern_After.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndentryconditionpattern-between">BndEntryConditionPattern Between<a class="headerlink" href="#bndentryconditionpattern-between" title="Permanent link"> #</a></h3>
-<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that after &quot;T&quot; holds for &quot;c0&quot; time units, then &quot;S&quot; holds
+<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that after &quot;T&quot; holds for at least &quot;5&quot; time units, then &quot;S&quot; holds
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ &gt; 50;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ &gt; 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_Between.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_Between.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndEntryConditionPattern_Between.svg"><img alt="" src="../../img/patterns/BndEntryConditionPattern_Between.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndentryconditionpattern-afteruntil">BndEntryConditionPattern AfterUntil<a class="headerlink" href="#bndentryconditionpattern-afteruntil" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that after &quot;T&quot; holds for &quot;c0&quot; time units, then &quot;S&quot; holds
+<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that after &quot;T&quot; holds for at least &quot;5&quot; time units, then &quot;S&quot; holds
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ &gt; 50;⌈(!R &amp;&amp; !S)⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ &gt; 5;⌈(!R &amp;&amp; !S)⌉;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_AfterUntil.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_AfterUntil.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndEntryConditionPattern_AfterUntil.svg"><img alt="" src="../../img/patterns/BndEntryConditionPattern_AfterUntil.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="bndexistencepattern">BndExistencePattern<a class="headerlink" href="#bndexistencepattern" title="Permanent link"> #</a></h2>
 <h3 id="bndexistencepattern-globally">BndExistencePattern Globally<a class="headerlink" href="#bndexistencepattern-globally" title="Permanent link"> #</a></h3>
 <pre><code>Globally, transitions to states in which &quot;Q&quot; holds occur at most twice
 </code></pre>
 
-<pre><code>true;⌈Q⌉;⌈!Q⌉;⌈Q⌉;⌈!Q⌉;⌈Q⌉;true
+<pre><code>Counterexample: true;⌈Q⌉;⌈!Q⌉;⌈Q⌉;⌈!Q⌉;⌈Q⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndExistencePattern_Globally.svg"><img alt="" src="../img/patterns/BndExistencePattern_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndExistencePattern_Globally.svg"><img alt="" src="../../img/patterns/BndExistencePattern_Globally.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndexistencepattern-before">BndExistencePattern Before<a class="headerlink" href="#bndexistencepattern-before" title="Permanent link"> #</a></h3>
 <pre><code>Before &quot;Q&quot;, transitions to states in which &quot;R&quot; holds occur at most twice
 </code></pre>
 
-<pre><code>⌈!Q⌉;⌈(!Q &amp;&amp; R)⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉;true
+<pre><code>Counterexample: ⌈!Q⌉;⌈(!Q &amp;&amp; R)⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndExistencePattern_Before.svg"><img alt="" src="../img/patterns/BndExistencePattern_Before.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndExistencePattern_Before.svg"><img alt="" src="../../img/patterns/BndExistencePattern_Before.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndexistencepattern-after">BndExistencePattern After<a class="headerlink" href="#bndexistencepattern-after" title="Permanent link"> #</a></h3>
 <pre><code>After &quot;Q&quot;, transitions to states in which &quot;R&quot; holds occur at most twice
 </code></pre>
 
-<pre><code>true;⌈Q⌉;true;⌈R⌉;⌈!R⌉;⌈R⌉;⌈!R⌉;⌈R⌉;true
+<pre><code>Counterexample: true;⌈Q⌉;true;⌈R⌉;⌈!R⌉;⌈R⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndExistencePattern_After.svg"><img alt="" src="../img/patterns/BndExistencePattern_After.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndExistencePattern_After.svg"><img alt="" src="../../img/patterns/BndExistencePattern_After.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndexistencepattern-between">BndExistencePattern Between<a class="headerlink" href="#bndexistencepattern-between" title="Permanent link"> #</a></h3>
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, transitions to states in which &quot;S&quot; holds occur at most twice
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;⌈R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndExistencePattern_Between.svg"><img alt="" src="../img/patterns/BndExistencePattern_Between.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndExistencePattern_Between.svg"><img alt="" src="../../img/patterns/BndExistencePattern_Between.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndexistencepattern-afteruntil">BndExistencePattern AfterUntil<a class="headerlink" href="#bndexistencepattern-afteruntil" title="Permanent link"> #</a></h3>
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, transitions to states in which &quot;S&quot; holds occur at most twice
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/BndExistencePattern_AfterUntil.svg"><img alt="" src="../img/patterns/BndExistencePattern_AfterUntil.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndExistencePattern_AfterUntil.svg"><img alt="" src="../../img/patterns/BndExistencePattern_AfterUntil.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="bndinvariancepattern">BndInvariancePattern<a class="headerlink" href="#bndinvariancepattern" title="Permanent link"> #</a></h2>
 <h3 id="bndinvariancepattern-globally">BndInvariancePattern Globally<a class="headerlink" href="#bndinvariancepattern-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; holds for at least &quot;c0&quot; time units
+<pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈R⌉;⌈true⌉ ∧ ℓ &lt; 50;⌈!Q⌉;true
+<pre><code>Counterexample: true;⌈R⌉;⌈true⌉ ∧ ℓ &lt; 5;⌈!Q⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndInvariancePattern_Globally.svg"><img alt="" src="../img/patterns/BndInvariancePattern_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndInvariancePattern_Globally.svg"><img alt="" src="../../img/patterns/BndInvariancePattern_Globally.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndinvariancepattern-before">BndInvariancePattern Before<a class="headerlink" href="#bndinvariancepattern-before" title="Permanent link"> #</a></h3>
-<pre><code>Before &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds for at least &quot;c0&quot; time units
+<pre><code>Before &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉;⌈!Q⌉ ∧ ℓ &lt; 50;⌈(!Q &amp;&amp; !R)⌉;true
+<pre><code>Counterexample: ⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉;⌈!Q⌉ ∧ ℓ &lt; 5;⌈(!Q &amp;&amp; !R)⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndInvariancePattern_Before.svg"><img alt="" src="../img/patterns/BndInvariancePattern_Before.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndInvariancePattern_Before.svg"><img alt="" src="../../img/patterns/BndInvariancePattern_Before.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndinvariancepattern-after">BndInvariancePattern After<a class="headerlink" href="#bndinvariancepattern-after" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds for at least &quot;c0&quot; time units
+<pre><code>After &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈Q⌉;true;⌈S⌉;⌈true⌉ ∧ ℓ &lt; 50;⌈!R⌉;true
+<pre><code>Counterexample: true;⌈Q⌉;true;⌈S⌉;⌈true⌉ ∧ ℓ &lt; 5;⌈!R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndInvariancePattern_After.svg"><img alt="" src="../img/patterns/BndInvariancePattern_After.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndInvariancePattern_After.svg"><img alt="" src="../../img/patterns/BndInvariancePattern_After.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndinvariancepattern-between">BndInvariancePattern Between<a class="headerlink" href="#bndinvariancepattern-between" title="Permanent link"> #</a></h3>
-<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; holds for at least &quot;c0&quot; time units
+<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉;⌈!R⌉ ∧ ℓ &lt; 50;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉;⌈!R⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndInvariancePattern_Between.svg"><img alt="" src="../img/patterns/BndInvariancePattern_Between.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndInvariancePattern_Between.svg"><img alt="" src="../../img/patterns/BndInvariancePattern_Between.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndinvariancepattern-afteruntil">BndInvariancePattern AfterUntil<a class="headerlink" href="#bndinvariancepattern-afteruntil" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; holds for at least &quot;c0&quot; time units
+<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉;⌈!R⌉ ∧ ℓ &lt; 50;⌈(!R &amp;&amp; !S)⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉;⌈!R⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/BndInvariancePattern_AfterUntil.svg"><img alt="" src="../img/patterns/BndInvariancePattern_AfterUntil.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndInvariancePattern_AfterUntil.svg"><img alt="" src="../../img/patterns/BndInvariancePattern_AfterUntil.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="bndreccurrencepattern">BndReccurrencePattern<a class="headerlink" href="#bndreccurrencepattern" title="Permanent link"> #</a></h2>
 <h3 id="bndreccurrencepattern-globally">BndReccurrencePattern Globally<a class="headerlink" href="#bndreccurrencepattern-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that &quot;Q&quot; holds at least every &quot;c0&quot; time units
+<pre><code>Globally, it is always the case that &quot;Q&quot; holds at least every &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈!Q⌉ ∧ ℓ &gt; 10;true
+<pre><code>Counterexample: true;⌈!Q⌉ ∧ ℓ &gt; 5;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndReccurrencePattern_Globally.svg"><img alt="" src="../img/patterns/BndReccurrencePattern_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndReccurrencePattern_Globally.svg"><img alt="" src="../../img/patterns/BndReccurrencePattern_Globally.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndreccurrencepattern-before">BndReccurrencePattern Before<a class="headerlink" href="#bndreccurrencepattern-before" title="Permanent link"> #</a></h3>
-<pre><code>Before &quot;Q&quot;, it is always the case that &quot;R&quot; holds at least every &quot;c0&quot; time units
+<pre><code>Before &quot;Q&quot;, it is always the case that &quot;R&quot; holds at least every &quot;5&quot; time units
 </code></pre>
 
-<pre><code>⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉ ∧ ℓ &gt; 50;true
+<pre><code>Counterexample: ⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉ ∧ ℓ &gt; 5;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndReccurrencePattern_Before.svg"><img alt="" src="../img/patterns/BndReccurrencePattern_Before.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndReccurrencePattern_Before.svg"><img alt="" src="../../img/patterns/BndReccurrencePattern_Before.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndreccurrencepattern-after">BndReccurrencePattern After<a class="headerlink" href="#bndreccurrencepattern-after" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot;, it is always the case that &quot;R&quot; holds at least every &quot;c0&quot; time units
+<pre><code>After &quot;Q&quot;, it is always the case that &quot;R&quot; holds at least every &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈Q⌉;true;⌈!R⌉ ∧ ℓ &gt; 50;true
+<pre><code>Counterexample: true;⌈Q⌉;true;⌈!R⌉ ∧ ℓ &gt; 5;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndReccurrencePattern_After.svg"><img alt="" src="../img/patterns/BndReccurrencePattern_After.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndReccurrencePattern_After.svg"><img alt="" src="../../img/patterns/BndReccurrencePattern_After.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndreccurrencepattern-between">BndReccurrencePattern Between<a class="headerlink" href="#bndreccurrencepattern-between" title="Permanent link"> #</a></h3>
-<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that &quot;S&quot; holds at least every &quot;c0&quot; time units
+<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that &quot;S&quot; holds at least every &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ &gt; 50;⌈!R⌉;⌈R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ &gt; 5;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndReccurrencePattern_Between.svg"><img alt="" src="../img/patterns/BndReccurrencePattern_Between.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndReccurrencePattern_Between.svg"><img alt="" src="../../img/patterns/BndReccurrencePattern_Between.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndreccurrencepattern-afteruntil">BndReccurrencePattern AfterUntil<a class="headerlink" href="#bndreccurrencepattern-afteruntil" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that &quot;S&quot; holds at least every &quot;c0&quot; time units
+<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that &quot;S&quot; holds at least every &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ &gt; 50;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ &gt; 5;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/BndReccurrencePattern_AfterUntil.svg"><img alt="" src="../img/patterns/BndReccurrencePattern_AfterUntil.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndReccurrencePattern_AfterUntil.svg"><img alt="" src="../../img/patterns/BndReccurrencePattern_AfterUntil.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="bndresponsepatterntt">BndResponsePatternTT<a class="headerlink" href="#bndresponsepatterntt" title="Permanent link"> #</a></h2>
 <h3 id="bndresponsepatterntt-globally">BndResponsePatternTT Globally<a class="headerlink" href="#bndresponsepatterntt-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that if &quot;R&quot; holds for at least &quot;c0&quot; time units, then &quot;Q&quot; holds afterwards for at least &quot;c1&quot; time units
+<pre><code>Globally, it is always the case that if &quot;R&quot; holds for at least &quot;5&quot; time units, then &quot;Q&quot; holds afterwards for at least &quot;10&quot; time units
 </code></pre>
 
-<pre><code>true;⌈R⌉ ∧ ℓ ≥ 50;⌈Q⌉ ∧ ℓ &lt; 50;⌈!Q⌉;true
+<pre><code>Counterexample: true;⌈R⌉ ∧ ℓ ≥ 5;⌈Q⌉ ∧ ℓ &lt; 10;⌈!Q⌉;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/BndResponsePatternTT_Globally.svg"><img alt="" src="../img/patterns/BndResponsePatternTT_Globally.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndResponsePatternTT_Globally.svg"><img alt="" src="../../img/patterns/BndResponsePatternTT_Globally.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="bndresponsepatterntu">BndResponsePatternTU<a class="headerlink" href="#bndresponsepatterntu" title="Permanent link"> #</a></h2>
 <h3 id="bndresponsepatterntu-globally">BndResponsePatternTU Globally<a class="headerlink" href="#bndresponsepatterntu-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that if &quot;R&quot; holds for at least &quot;c0&quot; time units, then &quot;Q&quot; holds afterwards
+<pre><code>Globally, it is always the case that if &quot;R&quot; holds for at least &quot;5&quot; time units, then &quot;Q&quot; holds afterwards
 </code></pre>
 
-<pre><code>true;⌈R⌉ ∧ ℓ ≥ 50;⌈!Q⌉;true
+<pre><code>Counterexample: true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/BndResponsePatternTU_Globally.svg"><img alt="" src="../img/patterns/BndResponsePatternTU_Globally.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndResponsePatternTU_Globally.svg"><img alt="" src="../../img/patterns/BndResponsePatternTU_Globally.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="bndresponsepatternut">BndResponsePatternUT<a class="headerlink" href="#bndresponsepatternut" title="Permanent link"> #</a></h2>
 <h3 id="bndresponsepatternut-globally">BndResponsePatternUT Globally<a class="headerlink" href="#bndresponsepatternut-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; holds after at most &quot;c0&quot; time units
+<pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; holds after at most &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈(!Q &amp;&amp; R)⌉;⌈!Q⌉ ∧ ℓ &gt; 50;true
+<pre><code>Counterexample: true;⌈(!Q &amp;&amp; R)⌉;⌈!Q⌉ ∧ ℓ &gt; 5;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndResponsePatternUT_Globally.svg"><img alt="" src="../img/patterns/BndResponsePatternUT_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndResponsePatternUT_Globally.svg"><img alt="" src="../../img/patterns/BndResponsePatternUT_Globally.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndresponsepatternut-before">BndResponsePatternUT Before<a class="headerlink" href="#bndresponsepatternut-before" title="Permanent link"> #</a></h3>
-<pre><code>Before &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds after at most &quot;c0&quot; time units
+<pre><code>Before &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds after at most &quot;5&quot; time units
 </code></pre>
 
-<pre><code>⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈(!Q &amp;&amp; !R)⌉ ∧ ℓ ≥ 50;true
+<pre><code>Counterexample: ⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈(!Q &amp;&amp; !R)⌉ ∧ ℓ ≥ 5;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndResponsePatternUT_Before.svg"><img alt="" src="../img/patterns/BndResponsePatternUT_Before.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndResponsePatternUT_Before.svg"><img alt="" src="../../img/patterns/BndResponsePatternUT_Before.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndresponsepatternut-after">BndResponsePatternUT After<a class="headerlink" href="#bndresponsepatternut-after" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds after at most &quot;c0&quot; time units
+<pre><code>After &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds after at most &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈Q⌉;true;⌈(!R &amp;&amp; S)⌉;⌈!R⌉ ∧ ℓ ≥ 50;true
+<pre><code>Counterexample: true;⌈Q⌉;true;⌈(!R &amp;&amp; S)⌉;⌈!R⌉ ∧ ℓ ≥ 5;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndResponsePatternUT_After.svg"><img alt="" src="../img/patterns/BndResponsePatternUT_After.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndResponsePatternUT_After.svg"><img alt="" src="../../img/patterns/BndResponsePatternUT_After.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndresponsepatternut-between">BndResponsePatternUT Between<a class="headerlink" href="#bndresponsepatternut-between" title="Permanent link"> #</a></h3>
-<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; holds after at most &quot;c0&quot; time units
+<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; holds after at most &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ ≥ 50;⌈!R⌉;⌈R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ ≥ 5;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndResponsePatternUT_Between.svg"><img alt="" src="../img/patterns/BndResponsePatternUT_Between.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndResponsePatternUT_Between.svg"><img alt="" src="../../img/patterns/BndResponsePatternUT_Between.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndresponsepatternut-afteruntil">BndResponsePatternUT AfterUntil<a class="headerlink" href="#bndresponsepatternut-afteruntil" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; holds after at most &quot;c0&quot; time units
+<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; holds after at most &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ ≥ 50;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ ≥ 5;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/BndResponsePatternUT_AfterUntil.svg"><img alt="" src="../img/patterns/BndResponsePatternUT_AfterUntil.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndResponsePatternUT_AfterUntil.svg"><img alt="" src="../../img/patterns/BndResponsePatternUT_AfterUntil.svg" /></a>
+<!-- Auto generated file, do not make any changes here. --></p>
+<h2 id="bndtriggeredentryconditionpattern">BndTriggeredEntryConditionPattern<a class="headerlink" href="#bndtriggeredentryconditionpattern" title="Permanent link"> #</a></h2>
+<h3 id="bndtriggeredentryconditionpattern-globally">BndTriggeredEntryConditionPattern Globally<a class="headerlink" href="#bndtriggeredentryconditionpattern-globally" title="Permanent link"> #</a></h3>
+<pre><code>Globally, it is always the case that after &quot;Q&quot; holds for at least &quot;5&quot; time units and &quot;R&quot; holds, then &quot;S&quot; holds
+</code></pre>
+
+<pre><code>Counterexample: true;⌈Q⌉ ∧ ℓ &gt; 5;⌈(Q &amp;&amp; (R &amp;&amp; !S))⌉;true
+</code></pre>
+
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndTriggeredEntryConditionPattern_Globally.svg"><img alt="" src="../../img/patterns/BndTriggeredEntryConditionPattern_Globally.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="instabspattern">InstAbsPattern<a class="headerlink" href="#instabspattern" title="Permanent link"> #</a></h2>
 <h3 id="instabspattern-globally">InstAbsPattern Globally<a class="headerlink" href="#instabspattern-globally" title="Permanent link"> #</a></h3>
 <pre><code>Globally, it is never the case that &quot;Q&quot; holds
 </code></pre>
 
-<pre><code>true;⌈Q⌉;true
+<pre><code>Counterexample: true;⌈Q⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/InstAbsPattern_Globally.svg"><img alt="" src="../img/patterns/InstAbsPattern_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/InstAbsPattern_Globally.svg"><img alt="" src="../../img/patterns/InstAbsPattern_Globally.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="instabspattern-after">InstAbsPattern After<a class="headerlink" href="#instabspattern-after" title="Permanent link"> #</a></h3>
 <pre><code>After &quot;Q&quot;, it is never the case that &quot;R&quot; holds
 </code></pre>
 
-<pre><code>true;⌈Q⌉;true;⌈R⌉;true
+<pre><code>Counterexample: true;⌈Q⌉;true;⌈R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/InstAbsPattern_After.svg"><img alt="" src="../img/patterns/InstAbsPattern_After.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/InstAbsPattern_After.svg"><img alt="" src="../../img/patterns/InstAbsPattern_After.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="instabspattern-between">InstAbsPattern Between<a class="headerlink" href="#instabspattern-between" title="Permanent link"> #</a></h3>
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is never the case that &quot;S&quot; holds
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;⌈R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/InstAbsPattern_Between.svg"><img alt="" src="../img/patterns/InstAbsPattern_Between.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/InstAbsPattern_Between.svg"><img alt="" src="../../img/patterns/InstAbsPattern_Between.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="instabspattern-afteruntil">InstAbsPattern AfterUntil<a class="headerlink" href="#instabspattern-afteruntil" title="Permanent link"> #</a></h3>
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is never the case that &quot;S&quot; holds
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/InstAbsPattern_AfterUntil.svg"><img alt="" src="../img/patterns/InstAbsPattern_AfterUntil.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/InstAbsPattern_AfterUntil.svg"><img alt="" src="../../img/patterns/InstAbsPattern_AfterUntil.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="invariantpattern">InvariantPattern<a class="headerlink" href="#invariantpattern" title="Permanent link"> #</a></h2>
 <h3 id="invariantpattern-globally">InvariantPattern Globally<a class="headerlink" href="#invariantpattern-globally" title="Permanent link"> #</a></h3>
 <pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; holds as well
 </code></pre>
 
-<pre><code>true;⌈(!Q &amp;&amp; R)⌉;true
+<pre><code>Counterexample: true;⌈(!Q &amp;&amp; R)⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/InvariantPattern_Globally.svg"><img alt="" src="../img/patterns/InvariantPattern_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/InvariantPattern_Globally.svg"><img alt="" src="../../img/patterns/InvariantPattern_Globally.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="invariantpattern-before">InvariantPattern Before<a class="headerlink" href="#invariantpattern-before" title="Permanent link"> #</a></h3>
 <pre><code>Before &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds as well
 </code></pre>
 
-<pre><code>⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈!Q⌉;true
+<pre><code>Counterexample: ⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈!Q⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/InvariantPattern_Before.svg"><img alt="" src="../img/patterns/InvariantPattern_Before.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/InvariantPattern_Before.svg"><img alt="" src="../../img/patterns/InvariantPattern_Before.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="invariantpattern-after">InvariantPattern After<a class="headerlink" href="#invariantpattern-after" title="Permanent link"> #</a></h3>
 <pre><code>After &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds as well
 </code></pre>
 
-<pre><code>true;⌈Q⌉;true;⌈(!R &amp;&amp; S)⌉;true
+<pre><code>Counterexample: true;⌈Q⌉;true;⌈(!R &amp;&amp; S)⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/InvariantPattern_After.svg"><img alt="" src="../img/patterns/InvariantPattern_After.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/InvariantPattern_After.svg"><img alt="" src="../../img/patterns/InvariantPattern_After.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="invariantpattern-between">InvariantPattern Between<a class="headerlink" href="#invariantpattern-between" title="Permanent link"> #</a></h3>
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; holds as well
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈!R⌉;⌈R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/InvariantPattern_Between.svg"><img alt="" src="../img/patterns/InvariantPattern_Between.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/InvariantPattern_Between.svg"><img alt="" src="../../img/patterns/InvariantPattern_Between.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="invariantpattern-afteruntil">InvariantPattern AfterUntil<a class="headerlink" href="#invariantpattern-afteruntil" title="Permanent link"> #</a></h3>
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; holds as well
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/InvariantPattern_AfterUntil.svg"><img alt="" src="../img/patterns/InvariantPattern_AfterUntil.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/InvariantPattern_AfterUntil.svg"><img alt="" src="../../img/patterns/InvariantPattern_AfterUntil.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="maxdurationpattern">MaxDurationPattern<a class="headerlink" href="#maxdurationpattern" title="Permanent link"> #</a></h2>
 <h3 id="maxdurationpattern-globally">MaxDurationPattern Globally<a class="headerlink" href="#maxdurationpattern-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that once &quot;Q&quot; becomes satisfied, it holds for less than &quot;c0&quot; time units
+<pre><code>Globally, it is always the case that once &quot;Q&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈Q⌉ ∧ ℓ ≥ 50;true
+<pre><code>Counterexample: true;⌈Q⌉ ∧ ℓ ≥ 5;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_Globally.svg"><img alt="" src="../img/patterns/MaxDurationPattern_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/MaxDurationPattern_Globally.svg"><img alt="" src="../../img/patterns/MaxDurationPattern_Globally.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="maxdurationpattern-before">MaxDurationPattern Before<a class="headerlink" href="#maxdurationpattern-before" title="Permanent link"> #</a></h3>
-<pre><code>Before &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for less than &quot;c0&quot; time units
+<pre><code>Before &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
 </code></pre>
 
-<pre><code>⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉ ∧ ℓ ≥ 50;true
+<pre><code>Counterexample: ⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉ ∧ ℓ ≥ 5;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_Before.svg"><img alt="" src="../img/patterns/MaxDurationPattern_Before.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/MaxDurationPattern_Before.svg"><img alt="" src="../../img/patterns/MaxDurationPattern_Before.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="maxdurationpattern-after">MaxDurationPattern After<a class="headerlink" href="#maxdurationpattern-after" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for less than &quot;c0&quot; time units
+<pre><code>After &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ ≥ 50;true
+<pre><code>Counterexample: true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ ≥ 5;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_After.svg"><img alt="" src="../img/patterns/MaxDurationPattern_After.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/MaxDurationPattern_After.svg"><img alt="" src="../../img/patterns/MaxDurationPattern_After.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="maxdurationpattern-between">MaxDurationPattern Between<a class="headerlink" href="#maxdurationpattern-between" title="Permanent link"> #</a></h3>
-<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for less than &quot;c0&quot; time units
+<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ ≥ 50;⌈!R⌉;⌈R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ ≥ 5;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_Between.svg"><img alt="" src="../img/patterns/MaxDurationPattern_Between.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/MaxDurationPattern_Between.svg"><img alt="" src="../../img/patterns/MaxDurationPattern_Between.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="maxdurationpattern-afteruntil">MaxDurationPattern AfterUntil<a class="headerlink" href="#maxdurationpattern-afteruntil" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for less than &quot;c0&quot; time units
+<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ ≥ 50;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ ≥ 5;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_AfterUntil.svg"><img alt="" src="../img/patterns/MaxDurationPattern_AfterUntil.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/MaxDurationPattern_AfterUntil.svg"><img alt="" src="../../img/patterns/MaxDurationPattern_AfterUntil.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="mindurationpattern">MinDurationPattern<a class="headerlink" href="#mindurationpattern" title="Permanent link"> #</a></h2>
 <h3 id="mindurationpattern-globally">MinDurationPattern Globally<a class="headerlink" href="#mindurationpattern-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that once &quot;Q&quot; becomes satisfied, it holds for at least &quot;c0&quot; time units
+<pre><code>Globally, it is always the case that once &quot;Q&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈!Q⌉;⌈Q⌉ ∧ ℓ &lt; 50;⌈!Q⌉;true
+<pre><code>Counterexample: true;⌈!Q⌉;⌈Q⌉ ∧ ℓ &lt; 5;⌈!Q⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MinDurationPattern_Globally.svg"><img alt="" src="../img/patterns/MinDurationPattern_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/MinDurationPattern_Globally.svg"><img alt="" src="../../img/patterns/MinDurationPattern_Globally.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="mindurationpattern-before">MinDurationPattern Before<a class="headerlink" href="#mindurationpattern-before" title="Permanent link"> #</a></h3>
-<pre><code>Before &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for at least &quot;c0&quot; time units
+<pre><code>Before &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉ ∧ ℓ &lt; 50;⌈(!Q &amp;&amp; !R)⌉;true
+<pre><code>Counterexample: ⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉ ∧ ℓ &lt; 5;⌈(!Q &amp;&amp; !R)⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MinDurationPattern_Before.svg"><img alt="" src="../img/patterns/MinDurationPattern_Before.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/MinDurationPattern_Before.svg"><img alt="" src="../../img/patterns/MinDurationPattern_Before.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="mindurationpattern-after">MinDurationPattern After<a class="headerlink" href="#mindurationpattern-after" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for at least &quot;c0&quot; time units
+<pre><code>After &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ &lt; 50;⌈!R⌉;true
+<pre><code>Counterexample: true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ &lt; 5;⌈!R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MinDurationPattern_After.svg"><img alt="" src="../img/patterns/MinDurationPattern_After.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/MinDurationPattern_After.svg"><img alt="" src="../../img/patterns/MinDurationPattern_After.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="mindurationpattern-between">MinDurationPattern Between<a class="headerlink" href="#mindurationpattern-between" title="Permanent link"> #</a></h3>
-<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for at least &quot;c0&quot; time units
+<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ &lt; 50;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MinDurationPattern_Between.svg"><img alt="" src="../img/patterns/MinDurationPattern_Between.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/MinDurationPattern_Between.svg"><img alt="" src="../../img/patterns/MinDurationPattern_Between.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="mindurationpattern-afteruntil">MinDurationPattern AfterUntil<a class="headerlink" href="#mindurationpattern-afteruntil" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for at least &quot;c0&quot; time units
+<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ &lt; 50;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/MinDurationPattern_AfterUntil.svg"><img alt="" src="../img/patterns/MinDurationPattern_AfterUntil.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/MinDurationPattern_AfterUntil.svg"><img alt="" src="../../img/patterns/MinDurationPattern_AfterUntil.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="precedencechain12pattern">PrecedenceChain12Pattern<a class="headerlink" href="#precedencechain12pattern" title="Permanent link"> #</a></h2>
 <h3 id="precedencechain12pattern-globally">PrecedenceChain12Pattern Globally<a class="headerlink" href="#precedencechain12pattern-globally" title="Permanent link"> #</a></h3>
 <pre><code>Globally, it is always the case that if &quot;S&quot; holds and is succeeded by &quot;R&quot;, then &quot;Q&quot; previously held
 </code></pre>
 
-<pre><code>⌈!S⌉;⌈R⌉;true;⌈Q⌉;true
+<pre><code>Counterexample: ⌈!S⌉;⌈R⌉;true;⌈Q⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_Globally.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/PrecedenceChain12Pattern_Globally.svg"><img alt="" src="../../img/patterns/PrecedenceChain12Pattern_Globally.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="precedencechain12pattern-before">PrecedenceChain12Pattern Before<a class="headerlink" href="#precedencechain12pattern-before" title="Permanent link"> #</a></h3>
 <pre><code>Before &quot;Q&quot;, it is always the case that if &quot;T&quot; holds and is succeeded by &quot;S&quot;, then &quot;R&quot; previously held
 </code></pre>
 
-<pre><code>⌈(!Q &amp;&amp; !T)⌉;⌈(!Q &amp;&amp; (S &amp;&amp; !T))⌉;⌈!Q⌉;⌈(!Q &amp;&amp; R)⌉;true
+<pre><code>Counterexample: ⌈(!Q &amp;&amp; !T)⌉;⌈(!Q &amp;&amp; (S &amp;&amp; !T))⌉;⌈!Q⌉;⌈(!Q &amp;&amp; R)⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_Before.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_Before.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/PrecedenceChain12Pattern_Before.svg"><img alt="" src="../../img/patterns/PrecedenceChain12Pattern_Before.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="precedencechain12pattern-after">PrecedenceChain12Pattern After<a class="headerlink" href="#precedencechain12pattern-after" title="Permanent link"> #</a></h3>
 <pre><code>After &quot;Q&quot;, it is always the case that if &quot;T&quot; holds and is succeeded by &quot;S&quot;, then &quot;R&quot; previously held
 </code></pre>
 
-<pre><code>⌈!T⌉;⌈(Q &amp;&amp; !T)⌉;⌈!T⌉;⌈(S &amp;&amp; !T)⌉;true;⌈R⌉;true
+<pre><code>Counterexample: ⌈!T⌉;⌈(Q &amp;&amp; !T)⌉;⌈!T⌉;⌈(S &amp;&amp; !T)⌉;true;⌈R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_After.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_After.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/PrecedenceChain12Pattern_After.svg"><img alt="" src="../../img/patterns/PrecedenceChain12Pattern_After.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="precedencechain12pattern-between">PrecedenceChain12Pattern Between<a class="headerlink" href="#precedencechain12pattern-between" title="Permanent link"> #</a></h3>
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;U&quot; holds and is succeeded by &quot;T&quot;, then &quot;S&quot; previously held
 </code></pre>
 
-<pre><code>⌈!U⌉;⌈(Q &amp;&amp; (!R &amp;&amp; !U))⌉;⌈(!R &amp;&amp; !U)⌉;⌈(!R &amp;&amp; (T &amp;&amp; !U))⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;⌈R⌉;true
+<pre><code>Counterexample: ⌈!U⌉;⌈(Q &amp;&amp; (!R &amp;&amp; !U))⌉;⌈(!R &amp;&amp; !U)⌉;⌈(!R &amp;&amp; (T &amp;&amp; !U))⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_Between.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_Between.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/PrecedenceChain12Pattern_Between.svg"><img alt="" src="../../img/patterns/PrecedenceChain12Pattern_Between.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="precedencechain12pattern-afteruntil">PrecedenceChain12Pattern AfterUntil<a class="headerlink" href="#precedencechain12pattern-afteruntil" title="Permanent link"> #</a></h3>
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;U&quot; holds and is succeeded by &quot;T&quot;, then &quot;S&quot; previously held
 </code></pre>
 
-<pre><code>⌈!U⌉;⌈(Q &amp;&amp; (!R &amp;&amp; !U))⌉;⌈(!R &amp;&amp; !U)⌉;⌈(!R &amp;&amp; (T &amp;&amp; !U))⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;true
+<pre><code>Counterexample: ⌈!U⌉;⌈(Q &amp;&amp; (!R &amp;&amp; !U))⌉;⌈(!R &amp;&amp; !U)⌉;⌈(!R &amp;&amp; (T &amp;&amp; !U))⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_AfterUntil.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_AfterUntil.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/PrecedenceChain12Pattern_AfterUntil.svg"><img alt="" src="../../img/patterns/PrecedenceChain12Pattern_AfterUntil.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="precedencechain21pattern">PrecedenceChain21Pattern<a class="headerlink" href="#precedencechain21pattern" title="Permanent link"> #</a></h2>
 <h3 id="precedencechain21pattern-globally">PrecedenceChain21Pattern Globally<a class="headerlink" href="#precedencechain21pattern-globally" title="Permanent link"> #</a></h3>
 <pre><code>Globally, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; previously held and was preceded by &quot;Q&quot;
 </code></pre>
 
-<pre><code>⌈!R⌉;⌈(!Q &amp;&amp; R)⌉;⌈!Q⌉;⌈S⌉;true
+<pre><code>Counterexample: ⌈!R⌉;⌈(!Q &amp;&amp; R)⌉;⌈!Q⌉;⌈S⌉;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_Globally.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_Globally.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/PrecedenceChain21Pattern_Globally.svg"><img alt="" src="../../img/patterns/PrecedenceChain21Pattern_Globally.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="precedencepattern">PrecedencePattern<a class="headerlink" href="#precedencepattern" title="Permanent link"> #</a></h2>
 <h3 id="precedencepattern-globally">PrecedencePattern Globally<a class="headerlink" href="#precedencepattern-globally" title="Permanent link"> #</a></h3>
 <pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; previously held
 </code></pre>
 
-<pre><code>⌈!Q⌉;⌈R⌉;true
+<pre><code>Counterexample: ⌈!Q⌉;⌈R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedencePattern_Globally.svg"><img alt="" src="../img/patterns/PrecedencePattern_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/PrecedencePattern_Globally.svg"><img alt="" src="../../img/patterns/PrecedencePattern_Globally.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="precedencepattern-before">PrecedencePattern Before<a class="headerlink" href="#precedencepattern-before" title="Permanent link"> #</a></h3>
 <pre><code>Before &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; previously held
 </code></pre>
 
-<pre><code>⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; S)⌉;true
+<pre><code>Counterexample: ⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; S)⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedencePattern_Before.svg"><img alt="" src="../img/patterns/PrecedencePattern_Before.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/PrecedencePattern_Before.svg"><img alt="" src="../../img/patterns/PrecedencePattern_Before.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="precedencepattern-after">PrecedencePattern After<a class="headerlink" href="#precedencepattern-after" title="Permanent link"> #</a></h3>
 <pre><code>After &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; previously held
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈S⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈S⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedencePattern_After.svg"><img alt="" src="../img/patterns/PrecedencePattern_After.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/PrecedencePattern_After.svg"><img alt="" src="../../img/patterns/PrecedencePattern_After.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="precedencepattern-between">PrecedencePattern Between<a class="headerlink" href="#precedencepattern-between" title="Permanent link"> #</a></h3>
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; previously held
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; (!R &amp;&amp; !S))⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈!R⌉;⌈R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; (!R &amp;&amp; !S))⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedencePattern_Between.svg"><img alt="" src="../img/patterns/PrecedencePattern_Between.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/PrecedencePattern_Between.svg"><img alt="" src="../../img/patterns/PrecedencePattern_Between.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="precedencepattern-afteruntil">PrecedencePattern AfterUntil<a class="headerlink" href="#precedencepattern-afteruntil" title="Permanent link"> #</a></h3>
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; previously held
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; (!R &amp;&amp; !S))⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; T)⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; (!R &amp;&amp; !S))⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; T)⌉;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedencePattern_AfterUntil.svg"><img alt="" src="../img/patterns/PrecedencePattern_AfterUntil.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/PrecedencePattern_AfterUntil.svg"><img alt="" src="../../img/patterns/PrecedencePattern_AfterUntil.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="responsechain21pattern">ResponseChain21Pattern<a class="headerlink" href="#responsechain21pattern" title="Permanent link"> #</a></h2>
 <h3 id="responsechain21pattern-before">ResponseChain21Pattern Before<a class="headerlink" href="#responsechain21pattern-before" title="Permanent link"> #</a></h3>
 <pre><code>Before &quot;Q&quot;, it is always the case that if &quot;U&quot; holds and is succeeded by &quot;T&quot;, then &quot;S&quot; eventually holds after &quot;R&quot;
 </code></pre>
 
-<pre><code>⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈!Q⌉;⌈(!Q &amp;&amp; R)⌉;⌈(!Q &amp;&amp; !T)⌉;⌈Q⌉;true
+<pre><code>Counterexample: ⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈!Q⌉;⌈(!Q &amp;&amp; R)⌉;⌈(!Q &amp;&amp; !T)⌉;⌈Q⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/ResponseChain21Pattern_Before.svg"><img alt="" src="../img/patterns/ResponseChain21Pattern_Before.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/ResponseChain21Pattern_Before.svg"><img alt="" src="../../img/patterns/ResponseChain21Pattern_Before.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="responsechain21pattern-between">ResponseChain21Pattern Between<a class="headerlink" href="#responsechain21pattern-between" title="Permanent link"> #</a></h3>
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;V&quot; holds and is succeeded by &quot;U&quot;, then &quot;T&quot; eventually holds after &quot;S&quot;
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !U)⌉;⌈R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !U)⌉;⌈R⌉;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/ResponseChain21Pattern_Between.svg"><img alt="" src="../img/patterns/ResponseChain21Pattern_Between.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/ResponseChain21Pattern_Between.svg"><img alt="" src="../../img/patterns/ResponseChain21Pattern_Between.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="responsepattern">ResponsePattern<a class="headerlink" href="#responsepattern" title="Permanent link"> #</a></h2>
 <h3 id="responsepattern-globally">ResponsePattern Globally<a class="headerlink" href="#responsepattern-globally" title="Permanent link"> #</a></h3>
 <pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; eventually holds
 </code></pre>
 
-<pre><code>true;⌈(!Q &amp;&amp; R)⌉;⌈!Q⌉;true
+<pre><code>Counterexample: true;⌈(!Q &amp;&amp; R)⌉;⌈!Q⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/ResponsePattern_Globally.svg"><img alt="" src="../img/patterns/ResponsePattern_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/ResponsePattern_Globally.svg"><img alt="" src="../../img/patterns/ResponsePattern_Globally.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="responsepattern-before">ResponsePattern Before<a class="headerlink" href="#responsepattern-before" title="Permanent link"> #</a></h3>
 <pre><code>Before &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; eventually holds
 </code></pre>
 
-<pre><code>⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈(!Q &amp;&amp; !R)⌉;⌈Q⌉;true
+<pre><code>Counterexample: ⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈(!Q &amp;&amp; !R)⌉;⌈Q⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/ResponsePattern_Before.svg"><img alt="" src="../img/patterns/ResponsePattern_Before.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/ResponsePattern_Before.svg"><img alt="" src="../../img/patterns/ResponsePattern_Before.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="responsepattern-between">ResponsePattern Between<a class="headerlink" href="#responsepattern-between" title="Permanent link"> #</a></h3>
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; eventually holds
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉;⌈R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉;⌈R⌉;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/ResponsePattern_Between.svg"><img alt="" src="../img/patterns/ResponsePattern_Between.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/ResponsePattern_Between.svg"><img alt="" src="../../img/patterns/ResponsePattern_Between.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="togglepattern">TogglePattern<a class="headerlink" href="#togglepattern" title="Permanent link"> #</a></h2>
 <h3 id="togglepattern-globally">TogglePattern Globally<a class="headerlink" href="#togglepattern-globally" title="Permanent link"> #</a></h3>
 <pre><code>Globally, it is always the case that if &quot;Q&quot; holds then &quot;R&quot; toggles &quot;S&quot;
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/TogglePattern_Globally.svg"><img alt="" src="../img/patterns/TogglePattern_Globally.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/TogglePattern_Globally.svg"><img alt="" src="../../img/patterns/TogglePattern_Globally.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="togglepatterndelayed">TogglePatternDelayed<a class="headerlink" href="#togglepatterndelayed" title="Permanent link"> #</a></h2>
 <h3 id="togglepatterndelayed-globally">TogglePatternDelayed Globally<a class="headerlink" href="#togglepatterndelayed-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that if &quot;Q&quot; holds then &quot;R&quot; toggles &quot;S&quot; at most &quot;c0&quot; time units later
+<pre><code>Globally, it is always the case that if &quot;Q&quot; holds then &quot;R&quot; toggles &quot;S&quot; at most &quot;5&quot; time units later
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; R)⌉;⌈!R⌉ ∧ ℓ ≥ 50;⌈(!R &amp;&amp; !S)⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; R)⌉;⌈!R⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;true
 </code></pre>
 
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/TogglePatternDelayed_Globally.svg"><img alt="" src="../img/patterns/TogglePatternDelayed_Globally.svg" /></a>
+<p><a data-lightbox="all_images" data-title="" href="../../img/patterns/TogglePatternDelayed_Globally.svg"><img alt="" src="../../img/patterns/TogglePatternDelayed_Globally.svg" /></a>
 <!-- Auto generated file, do not make any changes here. --></p>
 <h2 id="universalitypattern">UniversalityPattern<a class="headerlink" href="#universalitypattern" title="Permanent link"> #</a></h2>
 <h3 id="universalitypattern-globally">UniversalityPattern Globally<a class="headerlink" href="#universalitypattern-globally" title="Permanent link"> #</a></h3>
 <pre><code>Globally, it is always the case that &quot;Q&quot; holds
 </code></pre>
 
-<pre><code>true;⌈!Q⌉;true
+<pre><code>Counterexample: true;⌈!Q⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_Globally.svg"><img alt="" src="../img/patterns/UniversalityPattern_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/UniversalityPattern_Globally.svg"><img alt="" src="../../img/patterns/UniversalityPattern_Globally.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="universalitypattern-before">UniversalityPattern Before<a class="headerlink" href="#universalitypattern-before" title="Permanent link"> #</a></h3>
 <pre><code>Before &quot;Q&quot;, it is always the case that &quot;R&quot; holds
 </code></pre>
 
-<pre><code>⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉;true
+<pre><code>Counterexample: ⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_Before.svg"><img alt="" src="../img/patterns/UniversalityPattern_Before.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/UniversalityPattern_Before.svg"><img alt="" src="../../img/patterns/UniversalityPattern_Before.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="universalitypattern-after">UniversalityPattern After<a class="headerlink" href="#universalitypattern-after" title="Permanent link"> #</a></h3>
 <pre><code>After &quot;Q&quot;, it is always the case that &quot;R&quot; holds
 </code></pre>
 
-<pre><code>true;⌈Q⌉;true;⌈!R⌉;true
+<pre><code>Counterexample: true;⌈Q⌉;true;⌈!R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_After.svg"><img alt="" src="../img/patterns/UniversalityPattern_After.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/UniversalityPattern_After.svg"><img alt="" src="../../img/patterns/UniversalityPattern_After.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="universalitypattern-between">UniversalityPattern Between<a class="headerlink" href="#universalitypattern-between" title="Permanent link"> #</a></h3>
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that &quot;S&quot; holds
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_Between.svg"><img alt="" src="../img/patterns/UniversalityPattern_Between.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/UniversalityPattern_Between.svg"><img alt="" src="../../img/patterns/UniversalityPattern_Between.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="universalitypattern-afteruntil">UniversalityPattern AfterUntil<a class="headerlink" href="#universalitypattern-afteruntil" title="Permanent link"> #</a></h3>
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that &quot;S&quot; holds
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_AfterUntil.svg"><img alt="" src="../img/patterns/UniversalityPattern_AfterUntil.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/UniversalityPattern_AfterUntil.svg"><img alt="" src="../../img/patterns/UniversalityPattern_AfterUntil.svg" /></a><figcaption></figcaption>
 </figure>
                         
                     </div>

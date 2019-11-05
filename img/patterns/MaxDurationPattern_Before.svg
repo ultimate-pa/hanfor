@@ -117,7 +117,7 @@
 <polygon fill="none" stroke="#000000" points="466,-103 388,-103 388,-53 466,-53 466,-103"/>
 <text text-anchor="start" x="407" y="-88.8" font-family="arial" font-weight="bold" font-size="14.00" fill="#000000">st02X</text>
 <text text-anchor="start" x="396" y="-74.8" font-family="arial" font-size="14.00" fill="#984ea3">(!Q &amp;&amp; R)</text>
-<text text-anchor="start" x="402.5" y="-60.8" font-family="arial" font-size="14.00" fill="#ff7f00">c0 &lt; 50</text>
+<text text-anchor="start" x="407" y="-60.8" font-family="arial" font-size="14.00" fill="#ff7f00">c0 &lt; 5</text>
 </g>
 <!-- st01&#45;&gt;st02X -->
 <g id="edge11" class="edge">

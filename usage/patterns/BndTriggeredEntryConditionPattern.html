@@ -9,10 +9,10 @@
         
         
         
-            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/usage/patterns/TogglePattern.html">
+            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/usage/patterns/BndTriggeredEntryConditionPattern.html">
         
             <link rel="shortcut icon" href="../../img/favicon.ico">
-        <title>TogglePattern
+        <title>BndTriggeredEntryConditionPattern
             - Hanfor Docs</title>
         <link rel="stylesheet"
               href="../../css/stupid_fonts.css"/>
@@ -25,9 +25,9 @@
         
             <script>
                 // Current page data
-                var mkdocs_page_name = "TogglePattern";
-                var mkdocs_page_input_path = "usage/patterns/TogglePattern.md";
-                var mkdocs_page_url = "/hanfor/usage/patterns/TogglePattern.html";
+                var mkdocs_page_name = "BndTriggeredEntryConditionPattern";
+                var mkdocs_page_input_path = "usage/patterns/BndTriggeredEntryConditionPattern.md";
+                var mkdocs_page_url = "/hanfor/usage/patterns/BndTriggeredEntryConditionPattern.html";
             </script>
         
         <script src="../../js/jquery-2.1.1.min.js" defer></script>
@@ -120,10 +120,10 @@
         
       
     
-    <li>TogglePattern</li>
+    <li>BndTriggeredEntryConditionPattern</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/usage/patterns/TogglePattern.md"
+        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/usage/patterns/BndTriggeredEntryConditionPattern.md"
           class="icon icon-github"> Edit on GitHub</a>
       
     </li>
@@ -135,15 +135,15 @@
                         
                             <!-- Auto generated file, do not make any changes here. -->
 
-<h2 id="togglepattern">TogglePattern<a class="headerlink" href="#togglepattern" title="Permanent link"> #</a></h2>
-<h3 id="togglepattern-globally">TogglePattern Globally<a class="headerlink" href="#togglepattern-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that if &quot;Q&quot; holds then &quot;R&quot; toggles &quot;S&quot;
+<h2 id="bndtriggeredentryconditionpattern">BndTriggeredEntryConditionPattern<a class="headerlink" href="#bndtriggeredentryconditionpattern" title="Permanent link"> #</a></h2>
+<h3 id="bndtriggeredentryconditionpattern-globally">BndTriggeredEntryConditionPattern Globally<a class="headerlink" href="#bndtriggeredentryconditionpattern-globally" title="Permanent link"> #</a></h3>
+<pre><code>Globally, it is always the case that after &quot;Q&quot; holds for at least &quot;5&quot; time units and &quot;R&quot; holds, then &quot;S&quot; holds
 </code></pre>
 
-<pre><code>Counterexample: true;⌈(Q &amp;&amp; R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;true
+<pre><code>Counterexample: true;⌈Q⌉ ∧ ℓ &gt; 5;⌈(Q &amp;&amp; (R &amp;&amp; !S))⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/TogglePattern_Globally.svg"><img alt="" src="../../img/patterns/TogglePattern_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndTriggeredEntryConditionPattern_Globally.svg"><img alt="" src="../../img/patterns/BndTriggeredEntryConditionPattern_Globally.svg" /></a><figcaption></figcaption>
 </figure>
                         
                     </div>

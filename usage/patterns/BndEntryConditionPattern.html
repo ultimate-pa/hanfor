@@ -26,7 +26,7 @@
             <script>
                 // Current page data
                 var mkdocs_page_name = "BndEntryConditionPattern";
-                var mkdocs_page_input_path = "usage\\patterns\\BndEntryConditionPattern.md";
+                var mkdocs_page_input_path = "usage/patterns/BndEntryConditionPattern.md";
                 var mkdocs_page_url = "/hanfor/usage/patterns/BndEntryConditionPattern.html";
             </script>
         
@@ -137,49 +137,49 @@
 
 <h2 id="bndentryconditionpattern">BndEntryConditionPattern<a class="headerlink" href="#bndentryconditionpattern" title="Permanent link"> #</a></h2>
 <h3 id="bndentryconditionpattern-globally">BndEntryConditionPattern Globally<a class="headerlink" href="#bndentryconditionpattern-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that after &quot;R&quot; holds for &quot;c0&quot; time units, then &quot;Q&quot; holds
+<pre><code>Globally, it is always the case that after &quot;R&quot; holds for at least &quot;5&quot; time units, then &quot;Q&quot; holds
 </code></pre>
 
-<pre><code>true;⌈R⌉ ∧ ℓ &gt; 50;⌈!Q⌉;true
+<pre><code>Counterexample: true;⌈R⌉ ∧ ℓ &gt; 5;⌈!Q⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_Globally.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndEntryConditionPattern_Globally.svg"><img alt="" src="../../img/patterns/BndEntryConditionPattern_Globally.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndentryconditionpattern-before">BndEntryConditionPattern Before<a class="headerlink" href="#bndentryconditionpattern-before" title="Permanent link"> #</a></h3>
-<pre><code>Before &quot;Q&quot;, it is always the case that after &quot;S&quot; holds for &quot;c0&quot; time units, then &quot;R&quot; holds
+<pre><code>Before &quot;Q&quot;, it is always the case that after &quot;S&quot; holds for at least &quot;5&quot; time units, then &quot;R&quot; holds
 </code></pre>
 
-<pre><code>⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉ ∧ ℓ &gt; 50;⌈(!Q &amp;&amp; !R)⌉;true
+<pre><code>Counterexample: ⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉ ∧ ℓ &gt; 5;⌈(!Q &amp;&amp; !R)⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_Before.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_Before.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndEntryConditionPattern_Before.svg"><img alt="" src="../../img/patterns/BndEntryConditionPattern_Before.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndentryconditionpattern-after">BndEntryConditionPattern After<a class="headerlink" href="#bndentryconditionpattern-after" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot;, it is always the case that after &quot;S&quot; holds for &quot;c0&quot; time units, then &quot;R&quot; holds
+<pre><code>After &quot;Q&quot;, it is always the case that after &quot;S&quot; holds for at least &quot;5&quot; time units, then &quot;R&quot; holds
 </code></pre>
 
-<pre><code>true;⌈Q⌉;true;⌈S⌉ ∧ ℓ &gt; 50;⌈!R⌉;true
+<pre><code>Counterexample: true;⌈Q⌉;true;⌈S⌉ ∧ ℓ &gt; 5;⌈!R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_After.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_After.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndEntryConditionPattern_After.svg"><img alt="" src="../../img/patterns/BndEntryConditionPattern_After.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndentryconditionpattern-between">BndEntryConditionPattern Between<a class="headerlink" href="#bndentryconditionpattern-between" title="Permanent link"> #</a></h3>
-<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that after &quot;T&quot; holds for &quot;c0&quot; time units, then &quot;S&quot; holds
+<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that after &quot;T&quot; holds for at least &quot;5&quot; time units, then &quot;S&quot; holds
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ &gt; 50;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ &gt; 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_Between.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_Between.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndEntryConditionPattern_Between.svg"><img alt="" src="../../img/patterns/BndEntryConditionPattern_Between.svg" /></a><figcaption></figcaption>
 </figure>
 <h3 id="bndentryconditionpattern-afteruntil">BndEntryConditionPattern AfterUntil<a class="headerlink" href="#bndentryconditionpattern-afteruntil" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that after &quot;T&quot; holds for &quot;c0&quot; time units, then &quot;S&quot; holds
+<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that after &quot;T&quot; holds for at least &quot;5&quot; time units, then &quot;S&quot; holds
 </code></pre>
 
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ &gt; 50;⌈(!R &amp;&amp; !S)⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ &gt; 5;⌈(!R &amp;&amp; !S)⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_AfterUntil.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_AfterUntil.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndEntryConditionPattern_AfterUntil.svg"><img alt="" src="../../img/patterns/BndEntryConditionPattern_AfterUntil.svg" /></a><figcaption></figcaption>
 </figure>
                         
                     </div>

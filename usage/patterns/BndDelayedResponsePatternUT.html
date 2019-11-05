@@ -26,7 +26,7 @@
             <script>
                 // Current page data
                 var mkdocs_page_name = "BndDelayedResponsePatternUT";
-                var mkdocs_page_input_path = "usage\\patterns\\BndDelayedResponsePatternUT.md";
+                var mkdocs_page_input_path = "usage/patterns/BndDelayedResponsePatternUT.md";
                 var mkdocs_page_url = "/hanfor/usage/patterns/BndDelayedResponsePatternUT.html";
             </script>
         
@@ -137,13 +137,13 @@
 
 <h2 id="bnddelayedresponsepatternut">BndDelayedResponsePatternUT<a class="headerlink" href="#bnddelayedresponsepatternut" title="Permanent link"> #</a></h2>
 <h3 id="bnddelayedresponsepatternut-globally">BndDelayedResponsePatternUT Globally<a class="headerlink" href="#bnddelayedresponsepatternut-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; holds after at most &quot;c0&quot; time units for at least &quot;c1&quot; time units
+<pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; holds after at most &quot;5&quot; time units for at least &quot;10&quot; time units
 </code></pre>
 
-<pre><code>true;⌈R⌉;⌈true⌉ ∧ ℓ ≥ 50;⌈Q⌉ ∧ ℓ &lt; 50;⌈!Q⌉;true
+<pre><code>Counterexample: true;⌈R⌉;⌈true⌉ ∧ ℓ ≤ 5;⌈Q⌉ ∧ ℓ &lt; 10;⌈!Q⌉;true
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndDelayedResponsePatternUT_Globally.svg"><img alt="" src="../img/patterns/BndDelayedResponsePatternUT_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../../img/patterns/BndDelayedResponsePatternUT_Globally.svg"><img alt="" src="../../img/patterns/BndDelayedResponsePatternUT_Globally.svg" /></a><figcaption></figcaption>
 </figure>
                         
                     </div>

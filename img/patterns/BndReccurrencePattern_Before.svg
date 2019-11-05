@@ -74,7 +74,7 @@
 <polygon fill="none" stroke="#000000" points="327,-97 245,-97 245,-47 327,-47 327,-97"/>
 <text text-anchor="start" x="264.5" y="-82.8" font-family="arial" font-weight="bold" font-size="14.00" fill="#000000">st01W</text>
 <text text-anchor="start" x="253" y="-68.8" font-family="arial" font-size="14.00" fill="#984ea3">(!Q &amp;&amp; !R)</text>
-<text text-anchor="start" x="257.5" y="-54.8" font-family="arial" font-size="14.00" fill="#ff7f00">c0 &lt;= 50</text>
+<text text-anchor="start" x="261.5" y="-54.8" font-family="arial" font-size="14.00" fill="#ff7f00">c0 &lt;= 5</text>
 </g>
 <!-- st0&#45;&gt;st01W -->
 <g id="edge9" class="edge">
@@ -110,7 +110,7 @@
 <title>st01W&#45;&gt;st01W</title>
 <path fill="none" stroke="#000000" d="M272.9263,-97.1756C272.3452,-106.9095 276.7031,-115 286,-115 291.8105,-115 295.6918,-111.8397 297.6438,-107.093"/>
 <polygon fill="#000000" stroke="#000000" points="301.1107,-107.5728 299.0737,-97.1756 294.1824,-106.5738 301.1107,-107.5728"/>
-<text text-anchor="start" x="261.5" y="-118.8" font-family="arial" font-size="14.00" fill="#377eb8">c0 &lt; 50</text>
+<text text-anchor="start" x="266" y="-118.8" font-family="arial" font-size="14.00" fill="#377eb8">c0 &lt; 5</text>
 </g>
 <!-- st01W&#45;&gt;st -->
 <g id="edge10" class="edge">
