@@ -10,7 +10,7 @@ If you are new to Hanfor, begin with the installation guide and have a look at t
 
 ### Using Hanfor
 The usage section provides some information about the [workflow](usage/workflow.md "Workflow") of Hanfor, [API queries](usage/api_queries.md "API Queries") and the handling of [requirements](usage/requirements.md "Requirements").
-If you wish to find out more about the different patterns that are supported by Hanfor, have a look at the [pattern](usage/patterns.md "Patterns") section.
+If you wish to find out more about the different patterns that are supported by Hanfor, have a look at the [pattern](references/patterns.md "Patterns") section.
 
 ### Contact
 If you have open questions or any kind of feedback/suggestions feel free to contact us via [E-mail](mailto:dietsch@informatik.uni-freiburg.de "E-mail") or open a new [issue](https://github.com/ultimate-pa/hanfor/issues "Open an Issue") on our [github page](https://github.com/ultimate-pa/hanfor "Hanfor at Github").
@@ -28,6 +28,9 @@ If you have open questions or any kind of feedback/suggestions feel free to cont
 	* [Requirements](usage/requirements.md "Requirements")
 	* [Workflow](usage/workflow.md "Workflow")
 	* [Patterns](usage/patterns.md "Patterns")
+  * References
+	* [Duration Calculus](references/duration_calculus.md "Duration Calculus")
+	* [Patterns](references/patterns.md "Patterns")
   * Contribute
 	* [Hanfor](contribute/to_hanfor.md "Contribute To Hanfor")
 	* [Docs](contribute/to_docs.md "Contribute To Docs")
