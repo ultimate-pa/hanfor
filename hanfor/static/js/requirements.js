@@ -275,50 +275,14 @@ function update_vars() {
                 break;
         }
 
-        switch (selected_pattern) {
-            case 'Absence':
-            case 'Universality':
-            case 'Existence':
-            case 'BoundedExistence':
-                var_r.show();
-                break;
-            case 'Invariant':
-            case 'Precedence':
-            case 'Response':
-            case 'MinDuration':
-            case 'MaxDuration':
-            case 'BoundedRecurrence':
-                var_r.show();
-                var_s.show();
-                break;
-            case 'PrecedenceChain1-2':
-            case 'PrecedenceChain2-1':
-            case 'ResponseChain1-2':
-            case 'ResponseChain2-1':
-            case 'BoundedResponse':
-            case 'BoundedInvariance':
-            case 'TimeConstrainedInvariant':
-            case 'Toggle1':
-                var_r.show();
-                var_s.show();
-                var_t.show();
-                break;
-            case 'ConstrainedChain':
-            case 'TimeConstrainedMinDuration':
-            case 'ConstrainedTimedExistence':
-            case 'Toggle2':
-                var_r.show();
-                var_s.show();
-                var_t.show();
-                var_u.show();
-                break;
-            case 'NotFormalizable':
-                var_p.hide();
-                var_q.hide();
-                break;
-            default:
-                break;
-        }
+        Object.keys(_PATTERNS[selected_pattern]['env']).forEach(function (key) {
+            switch (key) {
+                case 'R': var_r.show(); break;
+                case 'S': var_s.show(); break;
+                case 'T': var_t.show(); break;
+                case 'U': var_u.show(); break;
+            }
+        });
     });
 }
 

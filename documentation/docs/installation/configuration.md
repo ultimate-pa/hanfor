@@ -62,6 +62,64 @@ PORT = 5000
 
 # Set the host
 HOST = '127.0.0.1'
+
+
+################################################################################
+#                             Available patterns                               #
+################################################################################
+
+""" Add available pattern to the PATTERNS dict.
+* A single pattern should look like:
+'pattern_name': {
+    'pattern': 'if {R} then for {S} min nothing works.', # You can use [R, S, T, U]
+    'env': {  # The allowed types for the variables/expressions.
+              # Must cover all placeholders used in 'pattern'
+        'R': ['bool'],        # Must be a sublist of ['bool', 'int', 'real']
+        'S': ['int', 'real']  # Must be a sublist of ['bool', 'int', 'real']
+    },
+    'group': 'Your Group Name',  # Cluster the patterns in the hanfor frontend.
+                                 # Must be appear in config PATTERNS_GROUP_ORDER
+                                 # else it wont show up in the frontend.
+    'pattern_order': 3  # Place the pattern appears in the frontend within its group.
+}
+"""
+PATTERNS = {
+    'Response': {
+        'pattern': 'it is always the case that if {R} holds then {S} eventually holds',
+        'env': {
+            'R': ['bool'],
+            'S': ['bool'],
+        },
+        'group': 'Order',
+        'pattern_order': 0
+    },
+    'Absence': {
+        'pattern': 'it is never the case that {R} holds',
+        'env': {
+            'R': ['bool']
+        },
+        'group': 'Occurence',
+        'pattern_order': 4
+    },
+    'Toggle1': {
+        'pattern': 'it is always the case that if {R} holds then {S} toggles {T}',
+        'env': {
+            'R': ['bool'],
+            'S': ['bool'],
+            'T': ['bool']
+        },
+        'group': 'Real-time',
+        'pattern_order': 0
+    },
+}
+
+# Define the ordering for pattern grouping in the pattern selection of hanfors frontent.
+# All groups used in PATTERNS must be covered.
+PATTERNS_GROUP_ORDER = [
+    'Occurence',
+    'Order',
+    'Real-time'
+]
 ```
 
 ## ReqAnalyzer

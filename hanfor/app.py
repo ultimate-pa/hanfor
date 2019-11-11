@@ -1295,6 +1295,7 @@ def startup_hanfor(args, HERE):
     init_import_sessions()
     init_meta_settings()
     init_frontend_logs()
+    utils.config_check(app.config)
 
     # Run version migrations
     varcollection_version_migrations(app, args)

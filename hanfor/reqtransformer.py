@@ -18,6 +18,8 @@ from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
 from flask import current_app
+
+from config import PATTERNS
 from static_utils import choice, get_filenames_from_dir, replace_prefix
 from threading import Thread
 from typing import Dict
@@ -670,176 +672,23 @@ class Scope(Enum):
 
 
 class Pattern:
-    name_mapping = {
-        'Invariant':
-            'it is always the case that if {R} holds, then {S} holds as well',
-        'Absence':
-            'it is never the case that {R} holds',
-        'Universality':
-            'it is always the case that {R} holds',
-        'Existence':
-            '{R} eventually holds',
-        'BoundedExistence':
-            'transitions to states in which {R} holds occur at most twice',
-        'Precedence':
-            'it is always the case that if {R} holds then {S} previously held',
-        'PrecedenceChain1-2':
-            'it is always the case that if {R} holds and is succeeded by {S}, then {T} previously held',
-        'PrecedenceChain2-1':
-            'it is always the case that if {R} holds then {S} previously held and was preceded by {T}',
-        'Response':
-            'it is always the case that if {R} holds then {S} eventually holds',
-        'ResponseChain1-2':
-            'it is always the case that if {R} holds then {S} eventually holds and is succeeded by {T}',
-        'ResponseChain2-1':
-            'it is always the case that if {R} holds and is succeeded by {S}, '
-            'then {T} eventually holds after {S}',
-        'ConstrainedChain':
-            'it is always the case that if {R} holds then {S} eventually holds and is succeeded by {T}, '
-            'where {U} does not hold between {S} and {T}',
-        'MinDuration':
-            'it is always the case that once {R} becomes satisfied, it holds for at least {S} time units',
-        'MaxDuration':
-            'it is always the case that once {R} becomes satisfied, it holds for less than {S} time units',
-        'BoundedRecurrence':
-            'it is always the case that {R} holds at least every {S} time units',
-        'BoundedResponse':
-            'it is always the case that if {R} holds, then {S} holds after at most {T} time units',
-        'BoundedInvariance':
-            'it is always the case that if {R} holds, then {S} holds for at least {T} time units',
-        'TimeConstrainedMinDuration':
-            'it is always the case that if {R} holds for at least {S} time units, then {T} holds afterwards for '
-            'at least {U} time units',
-        'TimeConstrainedInvariant':
-            'it is always the case that if {R} holds for at least {S} time units, then {T} holds afterwards',
-        'ConstrainedTimedExistence':
-            'it is always the case that if {R} holds, then {S} holds after at most {T} time units for at least '
-            '{U} time units',
-        'Toggle1':
-            'it is always the case that if {R} holds then {S} toggles {T}',
-        'Toggle2':
-            'it is always the case that if {R} holds then {S} toggles {T} at most {U} time units later',
-        'NotFormalizable': '// not formalizable'
-    }
-
-    pattern_env = {
-        'Invariant': {
-            'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.bool]
-        },
-        'Absence': {
-            'R': [boogie_parsing.BoogieType.bool]
-        },
-        'Universality': {
-            'R': [boogie_parsing.BoogieType.bool]
-        },
-        'Existence': {
-            'R': [boogie_parsing.BoogieType.bool]
-        },
-        'BoundedExistence': {
-            'R': [boogie_parsing.BoogieType.bool]
-        },
-        'Precedence': {
-            'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.bool]
-        },
-        'PrecedenceChain1-2': {
-            'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.bool],
-            'T': [boogie_parsing.BoogieType.bool]
-        },
-        'PrecedenceChain2-1': {
-            'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.bool],
-            'T': [boogie_parsing.BoogieType.bool]
-        },
-        'Response': {
-            'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.bool]
-        },
-        'ResponseChain1-2': {
-            'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.bool],
-            'T': [boogie_parsing.BoogieType.bool]
-        },
-        'ResponseChain2-1': {
-            'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.bool],
-            'T': [boogie_parsing.BoogieType.bool]
-        },
-        'ConstrainedChain': {
-            'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.bool],
-            'T': [boogie_parsing.BoogieType.bool]
-        },
-        'MinDuration': {
-            'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
-        },
-        'MaxDuration': {
-            'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
-        },
-        'BoundedRecurrence': {
-            'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
-        },
-        'BoundedResponse': {
-            'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.bool],
-            'T': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
-        },
-        'BoundedInvariance': {
-            'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.bool],
-            'T': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
-        },
-        'TimeConstrainedMinDuration': {
-            'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
-            'T': [boogie_parsing.BoogieType.bool],
-            'U': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
-        },
-        'TimeConstrainedInvariant': {
-            'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
-            'T': [boogie_parsing.BoogieType.bool],
-        },
-        'ConstrainedTimedExistence': {
-            'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.bool],
-            'T': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
-            'U': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
-        },
-        'Toggle1': {
-            'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.bool],
-            'T': [boogie_parsing.BoogieType.bool],
-        },
-        'Toggle2': {
-            'R': [boogie_parsing.BoogieType.bool],
-            'S': [boogie_parsing.BoogieType.bool],
-            'T': [boogie_parsing.BoogieType.bool],
-            'U': [boogie_parsing.BoogieType.real, boogie_parsing.BoogieType.int],
-        },
-        'NotFormalizable': {}
-    }
-
     def __init__(self, name, pattern=None):
         self.name = name
         if pattern is None:
-            self.pattern = Pattern.name_mapping[name]
+            self.pattern = PATTERNS[name]['pattern']
         else:
             self.pattern = pattern
 
     def instantiate(self, scope, *args):
-        return scope + ', ' + Pattern.name_mapping[self.name].format(*args)
+        return scope + ', ' + self.pattern.format(*args)
 
     def __str__(self):
-        return Pattern.name_mapping[self.name]
+        return self.pattern
 
     def get_allowed_types(self):
-        return self.pattern_env[self.name]
+        return boogie_parsing.BoogieType.alias_env_to_instanciated_env(
+            PATTERNS[self.name]['env']
+        )
 
 
 class ScopedPattern:

@@ -4,6 +4,8 @@
 @licence: GPLv3
 """
 import argparse
+from collections import defaultdict
+
 import boogie_parsing
 import csv
 import datetime
@@ -14,11 +16,12 @@ import re
 
 from flask import json
 from flask_assets import Bundle, Environment
+
+from config import PATTERNS, PATTERNS_GROUP_ORDER
 from reqtransformer import VarImportSessions, VariableCollection, Requirement, ScriptEvals
 from static_utils import pickle_dump_obj_to_file, pickle_load_from_dump, replace_prefix
 from typing import Union, Set
 from terminaltables import DoubleTable
-
 
 here = os.path.dirname(os.path.realpath(__file__))
 default_scope_options = '''
@@ -29,57 +32,64 @@ default_scope_options = '''
     <option value="BETWEEN">Between "{P}" and "{Q}"</option>
     <option value="AFTER_UNTIL">After "{P}" until "{Q}"</option>
     '''
-default_pattern_options = '''
-    <option value="NotFormalizable">None</option>
-    <optgroup label="Occurence">
-    <option value="Invariant">it is always the case that if "{R}" holds, then "{S}"
-        holds as well</option>
-    <option value="Absence">it is never the case that "{R}" holds</option>
-    <option value="Universality">it is always the case that "{R}" holds</option>
-    <option value="Existence">"{R}" eventually holds</option>
-    <option value="BoundedExistence">transitions to states in which "{R}" holds
-        occur at most twice</option>
-    </optgroup>
-    <optgroup label="Order">
-    <option value="Precedence">it is always the case that if "{R}" holds then "{S}"
-        previously held</option>
-    <option value="PrecedenceChain1-2">it is always the case that if "{R}" holds
-        and is succeeded by "{S}", then "{T}" previously held</option>
-    <option value="PrecedenceChain2-1">it is always the case that if "{R}" holds then "{S}"
-        previously held and was preceded by "{T}"</option>
-    <option value="Response">it is always the case that if "{R}" holds then "{S}"
-        eventually holds</option>
-    <option value="ResponseChain1-2">it is always the case that if "{R}" holds then "{S}"
-        eventually holds and is succeeded by "{T}"</option>
-    <option value="ResponseChain2-1">it is always the case that if "{R}" holds and is
-        succeeded by "{S}", then "{T}" eventually holds after "{S}"</option>
-    <option value="ConstrainedChain">it is always the case that if "{R}" holds then "{S}"
-        eventually holds and is succeeded by "{T}", where "{U}" does not hold between "{S}" and "{T}"</option>
-    </optgroup>
-    <optgroup label="Real-time">
-    <option value="MinDuration">it is always the case that once "{R}" becomes satisfied,
-        it holds for at least "{S}" time units</option>
-    <option value="MaxDuration">it is always the case that once "{R}" becomes satisfied,
-        it holds for less than "{S}" time units</option>
-    <option value="BoundedRecurrence">it is always the case that "{R}" holds at least every
-        "{S}" time units</option>
-    <option value="BoundedResponse">it is always the case that if "{R}" holds, then "{S}"
-        holds after at most "{T}" time units</option>
-    <option value="BoundedInvariance">it is always the case that if "{R}" holds, then "{S}"
-        holds for at least "{T}" time units</option>
-    <option value="TimeConstrainedMinDuration">it is always the case that if {R} holds for at least {S} time units,
-        then {T} holds afterwards for at least {U} time units</option>
-    <option value="TimeConstrainedInvariant">it is always the case that if {R} holds for at least {S} time units,
-        then {T} holds afterwards</option>
-    <option value="ConstrainedTimedExistence">it is always the case that if {R} holds,
-        then {S} holds after at most {T} time units for at least {U} time units</option>
-    <option value="Toggle1">it is always the case that if {R} holds then {S} toggles {T}</option>
-    <option value="Toggle2">it is always the case that if {R} holds then {S} toggles {T} at most {U} time units later</option>
-    </optgroup>
-    <optgroup label="not_formalizable">
-    <option value="NotFormalizable">// not formalizable</option>
-    </optgroup>
-    '''
+
+
+def config_check(app_config):
+    to_ensure_configs = [
+        'PATTERNS',
+        'PATTERNS_GROUP_ORDER'
+    ]
+    for to_ensure_config in to_ensure_configs:
+        if to_ensure_config not in app_config:
+            raise SyntaxError('Could not find {} in config.'.format(to_ensure_config))
+
+    # Check pattern groups set correctly.
+    pattern_groups_used = set((pattern['group'] for pattern in app_config['PATTERNS'].values()))
+    pattern_groups_set = set((group for group in app_config['PATTERNS_GROUP_ORDER']))
+
+    if not pattern_groups_used == pattern_groups_set:
+        if len(pattern_groups_used - pattern_groups_set) > 0:
+            raise SyntaxError('No group order set in config for pattern groups {}'.format(
+                pattern_groups_used - pattern_groups_set
+            ))
+
+    try:
+        get_default_pattern_options()
+    except Exception as e:
+        raise SyntaxError('Could not parse pattern config. Please check your config.py: {}.'.format(e))
+
+
+def get_default_pattern_options():
+    """ Parse the pattern config into the dropdown list options for the frontend
+
+    Returns (str): Options for pattern selection in HTML.
+
+    """
+    result = '<option value="NotFormalizable">None</option>'
+    opt_group_lists = defaultdict(list)
+    opt_groups = defaultdict(str)
+    # Collect pattern in groups.
+    for name, pattern_dict in PATTERNS.items():
+        opt_group_lists[pattern_dict['group']].append(
+            (pattern_dict['pattern_order'], name, pattern_dict['pattern'])
+        )
+
+    # Sort groups and concatenate pattern options
+    for group_name, opt_list in opt_group_lists.items():
+        for _, name, pattern in sorted(opt_list):
+            option = '<option value="{name}">{pattern}</option>'.format(
+                name=name,
+                pattern=pattern
+            ).replace('{', '"{').replace('}', '}"')
+            opt_groups[group_name] += option
+
+    # Enclose pattern options by their groups.
+    for group_name in PATTERNS_GROUP_ORDER:
+        result += '<optgroup label="{}">'.format(group_name)
+        result += opt_groups[group_name]
+        result += '</optgroup>'
+
+    return result
 
 
 def get_formalization_template(templates_folder, requirement, formalization_id, formalization):
@@ -87,7 +97,7 @@ def get_formalization_template(templates_folder, requirement, formalization_id, 
         templates_folder,
         formalization_id,
         default_scope_options,
-        default_pattern_options,
+        get_default_pattern_options(),
         formalization
     )}
 
@@ -135,7 +145,7 @@ def formalizations_to_html(app, formalizations):
             app.config['TEMPLATES_FOLDER'],
             index,
             default_scope_options,
-            default_pattern_options,
+            get_default_pattern_options(),
             formalization
         )
     return result

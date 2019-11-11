@@ -278,6 +278,24 @@ class BoogieType(Enum):
         return BoogieType.get_alias_mapping().keys()
 
     @staticmethod
+    def alias_env_to_instanciated_env(alias_env):
+        """ Return a copy of a Boogie type alias environment to a instanciated one
+
+        Args:
+            alias_env (dict): {'R': ['bool']}
+
+        Returns (dict): {'R': [BoogieType.bool]}
+
+        """
+        result = dict()
+        alias_mapping = BoogieType.get_alias_mapping()
+        for position in alias_env.keys():
+            result[position] = [alias_mapping[alias] for alias in alias_env[position]]
+
+        return result
+
+
+    @staticmethod
     def aliases(type):
         """ Get allowed name aliases for type
 
