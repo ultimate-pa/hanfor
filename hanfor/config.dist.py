@@ -316,6 +316,17 @@ PATTERNS = {
         'group': 'Real-time',
         'pattern_order': 0
     },
+    'BndTriggeredEntryConditionPattern': {
+        'pattern': 'it is always the case that after {R} holds for at least {S} time units and {T} holds, then {U} holds',
+        'env': {
+            'R': ['bool'],
+            'S': ['real', 'int'],
+            'T': ['bool'],
+            'U': ['bool']
+        },
+        'group': 'Real-time',
+        'pattern_order': 0
+    },
     'NotFormalizable': {
         'pattern': '// not formalizable',
         'env': {
