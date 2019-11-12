@@ -88,6 +88,10 @@
                                     </li>
                                     <li class="toctree-l1"><a class="reference internal" href="../patterns.html">Patterns</a>
                                     </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../intro.html">Intro</a>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../phase_event_automata.html">Phase Event Automata</a>
+                                    </li>
                             </ul>
                             <p class="caption"><span class="caption-text">Contribute</span></p>
                             <ul>
@@ -154,7 +158,7 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds after at most &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Counterexample: ⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈(!Q &amp;&amp; !R)⌉ ∧ ℓ ≥ 5;true
+<pre><code>Counterexample: ⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈(!Q &amp;&amp; !R)⌉ ∧ ℓ &gt; 5;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndResponsePatternUT_Before.svg"><img alt="" src="../img/patterns/BndResponsePatternUT_Before.svg" /></a><figcaption></figcaption>
@@ -163,7 +167,7 @@
 <pre><code>After &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds after at most &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Counterexample: true;⌈Q⌉;true;⌈(!R &amp;&amp; S)⌉;⌈!R⌉ ∧ ℓ ≥ 5;true
+<pre><code>Counterexample: true;⌈Q⌉;true;⌈(!R &amp;&amp; S)⌉;⌈!R⌉ ∧ ℓ &gt; 5;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndResponsePatternUT_After.svg"><img alt="" src="../img/patterns/BndResponsePatternUT_After.svg" /></a><figcaption></figcaption>
@@ -172,7 +176,7 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; holds after at most &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ ≥ 5;⌈!R⌉;⌈R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ &gt; 5;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndResponsePatternUT_Between.svg"><img alt="" src="../img/patterns/BndResponsePatternUT_Between.svg" /></a><figcaption></figcaption>
@@ -181,7 +185,7 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; holds after at most &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ ≥ 5;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ &gt; 5;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndResponsePatternUT_AfterUntil.svg"><img alt="" src="../img/patterns/BndResponsePatternUT_AfterUntil.svg" /></a><figcaption></figcaption>

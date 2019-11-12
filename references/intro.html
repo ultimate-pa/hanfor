@@ -9,10 +9,10 @@
         
         
         
-            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/references/duration_calculus.html">
+            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/references/intro.html">
         
             <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>Duration Calculus
+        <title>Intro
             - Hanfor Docs</title>
         <link rel="stylesheet"
               href="../css/stupid_fonts.css"/>
@@ -25,9 +25,9 @@
         
             <script>
                 // Current page data
-                var mkdocs_page_name = "Duration Calculus";
-                var mkdocs_page_input_path = "references/duration_calculus.md";
-                var mkdocs_page_url = "/hanfor/references/duration_calculus.html";
+                var mkdocs_page_name = "Intro";
+                var mkdocs_page_input_path = "references/intro.md";
+                var mkdocs_page_url = "/hanfor/references/intro.html";
             </script>
         
         <script src="../js/jquery-2.1.1.min.js" defer></script>
@@ -348,10 +348,10 @@
                             </ul>
                             <p class="caption"><span class="caption-text">References</span></p>
                             <ul class="current">
-                                    <li class="toctree-l1 current"><a class="reference internal current" href="duration_calculus.html">Duration Calculus</a>
-    <ul class="current">
+                                    <li class="toctree-l1"><a class="reference internal" href="duration_calculus.html">Duration Calculus</a>
+    <ul>
 	
-    <li class="toctree-l2"><a class="reference internal" href="#examples">
+    <li class="toctree-l2"><a class="reference internal" href="duration_calculus.html#examples">
      Examples </a>
     </li>
     </ul>
@@ -770,8 +770,8 @@
     </li>
     </ul>
                                     </li>
-                                    <li class="toctree-l1"><a class="reference internal" href="intro.html">Intro</a>
-    <ul>
+                                    <li class="toctree-l1 current"><a class="reference internal current" href="intro.html">Intro</a>
+    <ul class="current">
     </ul>
                                     </li>
                                     <li class="toctree-l1"><a class="reference internal" href="phase_event_automata.html">Phase Event Automata</a>
@@ -835,10 +835,10 @@
         
       
     
-    <li>Duration Calculus</li>
+    <li>Intro</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/references/duration_calculus.md"
+        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/references/intro.md"
           class="icon icon-github"> Edit on GitHub</a>
       
     </li>
@@ -848,62 +848,7 @@
                 <div role="main">
                     <div class="section">
                         
-                            <h1 id="duration-calculus">Duration Calculus<a class="headerlink" href="#duration-calculus" title="Permanent link"> #</a></h1>
-<p>Hanfor automatically translates requirements, that are given in the natural-language-style <a href="../introduction/index.html#specification-language" title="Specification Language">specification language</a>, into Duration Calculus (DC).</p>
-<p>This short guide should enable you to read and interpret the Duration Calculus formulae provided within this documentation. It aims to give you an intuitive insight into the small fragment of Duration Calculus that we use in our tool.</p>
-<p>Duration Calculus uses time intervalls to concisely express sequential behavior. Assuming that you are familiar with the basic concept of Boolean logic, there are only three additional operators that need to be introduced.</p>
-<div class="admonition note">
-<p class="admonition-title">Everywhere-Operator: ⌈ ⌉</p>
-<p>The everywhere-operator ⌈ ⌉ applied to an expression describes an interval of arbitrary length (length &gt; 0) in which the embraced expression holds. 
-If the operator is kept empty, it describes a point interval (length = 0).</p>
-<p>Consider the DC-formula: <code>⌈A⌉</code></p>
-<p>It describes an interval of arbitrary length (length &gt; 0) in which 'A' holds.<br/></p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Length-Operator: l</p>
-<p>The length-operator l is used to measure the length of an interval.<br/></p>
-<p>Consider the DC-formula: <code>⌈A⌉ &amp;&amp; l = 5</code></p>
-<p>It describes an interval with a length of 5 time units in which expression 'A' holds.<br/></p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Chop-Operator: ;</p>
-<p>The chop-operator ; "chops" larger time intervals into smaller subintervals.<br/></p>
-<p>Consider the DC-formula: <code>⌈A⌉; ⌈B⌉; ⌈C⌉</code></p>
-<p>It describes a behavior where first 'A' holds , then 'B' holds, and finally 'C' holds.<br/>
-Note: All intervals may have an arbitrary length &gt; 0 time units, as there is no explicit  constraint on their duration.</p>
-</div>
-<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link"> #</a></h2>
-<p>In the following, you find some examples. In each we give a property in the natural-language-style specification language, the DC-formula describing the undesired behavior (counterexample traces), and a short explanation.</p>
-<div class="admonition example">
-<p class="admonition-title">Example 1:</p>
-<ul>
-<li>Globally, it is always the case that 'Q' holds.
-<br/><br/></li>
-<li>Counterexample: <code>(true; ⌈!Q⌉; true)</code>
-<br/><br/></li>
-<li>The counterexample DC-formula describes all behaviors that violate the given specification. In this example, the requirement is violated if there is an interval in which 'Q' does not hold.</li>
-</ul>
-</div>
-<div class="admonition example">
-<p class="admonition-title">Example 2:</p>
-<ul>
-<li>Before 'Q', it is always the case that 'R' holds at least every '5' time units
-<br/><br/></li>
-<li>Counterexample: <code>(⌈!Q⌉; ⌈(!Q &amp;&amp; !R)⌉ ∧ ℓ &gt; 5; true)</code>
-<br/><br/></li>
-<li>The requirement can only be violated within its scope. All countertraces therefore have in common that '!Q' holds until the violation occured. The requirement is violated if '!R' holds longer than 5 time units.</li>
-</ul>
-</div>
-<div class="admonition example">
-<p class="admonition-title">Example 3:</p>
-<ul>
-<li>After 'Q', it is always the case that once 'R' becomes satisfied, it holds for less than '5' time units.
-<br/><br/></li>
-<li>Counterexample: <code>(true; ⌈Q⌉; true; ⌈!R⌉; ⌈R⌉ ∧ ℓ ≥ 5; true)</code>
-<br/><br/></li>
-<li>The requirement can only be violated within its scope. All countertraces therefore have in common that 'Q' must hold before the violation occurs. 'R' becomes satisfied, when it toggles from <em>false</em> to <em>true</em>. The requirement is violated if 'R' holds for at least 5 time units.</li>
-</ul>
-</div>
+                            <h1 id="intro">Intro<a class="headerlink" href="#intro" title="Permanent link"> #</a></h1>
                         
                     </div>
                 </div>
