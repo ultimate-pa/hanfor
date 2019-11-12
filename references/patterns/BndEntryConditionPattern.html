@@ -88,6 +88,10 @@
                                     </li>
                                     <li class="toctree-l1"><a class="reference internal" href="../patterns.html">Patterns</a>
                                     </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../intro.html">Intro</a>
+                                    </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../phase_event_automata.html">Phase Event Automata</a>
+                                    </li>
                             </ul>
                             <p class="caption"><span class="caption-text">Contribute</span></p>
                             <ul>
@@ -145,7 +149,7 @@
 <pre><code>Globally, it is always the case that after &quot;R&quot; holds for at least &quot;5&quot; time units, then &quot;Q&quot; holds
 </code></pre>
 
-<pre><code>Counterexample: true;⌈R⌉ ∧ ℓ &gt; 5;⌈!Q⌉;true
+<pre><code>Counterexample: true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_Globally.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_Globally.svg" /></a><figcaption></figcaption>
@@ -154,7 +158,7 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that after &quot;S&quot; holds for at least &quot;5&quot; time units, then &quot;R&quot; holds
 </code></pre>
 
-<pre><code>Counterexample: ⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉ ∧ ℓ &gt; 5;⌈(!Q &amp;&amp; !R)⌉;true
+<pre><code>Counterexample: ⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉ ∧ ℓ ≥ 5;⌈(!Q &amp;&amp; !R)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_Before.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_Before.svg" /></a><figcaption></figcaption>
@@ -163,7 +167,7 @@
 <pre><code>After &quot;Q&quot;, it is always the case that after &quot;S&quot; holds for at least &quot;5&quot; time units, then &quot;R&quot; holds
 </code></pre>
 
-<pre><code>Counterexample: true;⌈Q⌉;true;⌈S⌉ ∧ ℓ &gt; 5;⌈!R⌉;true
+<pre><code>Counterexample: true;⌈Q⌉;true;⌈S⌉ ∧ ℓ ≥ 5;⌈!R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_After.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_After.svg" /></a><figcaption></figcaption>
@@ -172,7 +176,7 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that after &quot;T&quot; holds for at least &quot;5&quot; time units, then &quot;S&quot; holds
 </code></pre>
 
-<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ &gt; 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_Between.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_Between.svg" /></a><figcaption></figcaption>
@@ -181,7 +185,7 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that after &quot;T&quot; holds for at least &quot;5&quot; time units, then &quot;S&quot; holds
 </code></pre>
 
-<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ &gt; 5;⌈(!R &amp;&amp; !S)⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_AfterUntil.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_AfterUntil.svg" /></a><figcaption></figcaption>
