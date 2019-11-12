@@ -7,7 +7,7 @@ toc_depth: 3
 {!references/patterns/BndEntryConditionPattern.md!}
 {!references/patterns/BndExistencePattern.md!}
 {!references/patterns/BndInvariancePattern.md!}
-{!references/patterns/BndReccurrencePattern.md!}
+{!references/patterns/BndRecurrencePattern.md!}
 {!references/patterns/BndResponsePatternTT.md!}
 {!references/patterns/BndResponsePatternTU.md!}
 {!references/patterns/BndResponsePatternUT.md!}
