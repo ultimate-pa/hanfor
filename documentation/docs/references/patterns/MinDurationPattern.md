@@ -39,6 +39,6 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉ �
 After "Q" until "R", it is always the case that once "S" becomes satisfied, it holds for at least "5" time units
 ```
 ```
-Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉ ∧ ℓ < 5;⌈(!R && !S)⌉;⌈!R⌉;true
+Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉ ∧ ℓ < 5;⌈(!R && !S)⌉;true
 ```
 ![](../img/patterns/MinDurationPattern_AfterUntil.svg)

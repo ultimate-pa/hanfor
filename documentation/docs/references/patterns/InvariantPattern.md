@@ -15,7 +15,7 @@ Counterexample: true;⌈(!Q && R)⌉;true
 Before "Q", it is always the case that if "S" holds, then "R" holds as well
 ```
 ```
-Counterexample: ⌈!Q⌉;⌈(!Q && (!R && S))⌉;⌈!Q⌉;true
+Counterexample: ⌈!Q⌉;⌈(!Q && (!R && S))⌉;true
 ```
 ![](../img/patterns/InvariantPattern_Before.svg)
 ### InvariantPattern After
