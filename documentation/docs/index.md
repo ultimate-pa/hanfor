@@ -27,7 +27,6 @@ If you have open questions or any kind of feedback/suggestions feel free to cont
 	* [FAQ](usage/faq.md "FAQ")
 	* [Requirements](usage/requirements.md "Requirements")
 	* [Workflow](usage/workflow.md "Workflow")
-	* [Patterns](usage/patterns.md "Patterns")
   * References
 	* [Duration Calculus](references/duration_calculus.md "Duration Calculus")
 	* [Patterns](references/patterns.md "Patterns")
