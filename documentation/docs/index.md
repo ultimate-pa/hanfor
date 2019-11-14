@@ -13,7 +13,7 @@ The usage section provides some information about the [workflow](usage/workflow.
 If you wish to find out more about the different patterns that are supported by Hanfor, have a look at the [pattern](references/patterns.md "Patterns") section.
 
 ### Contact
-If you have open questions or any kind of feedback/suggestions feel free to contact us via [E-mail](mailto:dietsch@informatik.uni-freiburg.de "E-mail") or open a new [issue](https://github.com/ultimate-pa/hanfor/issues "Open an Issue") on our [github page](https://github.com/ultimate-pa/hanfor "Hanfor at Github").
+If you have open questions or any kind of feedback/suggestions feel free to contact us via [E-mail](mailto:dietsch@informatik.uni-freiburg.de "E-mail") or open a new [issue](https://github.com/ultimate-pa/hanfor/issues "Open an Issue") on our [GitHub page](https://github.com/ultimate-pa/hanfor "Hanfor at GitHub").
 
 ### Contents
   * Introduction
