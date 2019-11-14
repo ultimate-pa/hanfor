@@ -239,7 +239,7 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, transitions to states in which &quot;S&quot; holds occur at most twice
 </code></pre>
 
-<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;true
 </code></pre>
 
 <p><a data-lightbox="all_images" data-title="" href="../img/patterns/BndExistencePattern_AfterUntil.svg"><img alt="" src="../img/patterns/BndExistencePattern_AfterUntil.svg" /></a>
@@ -407,7 +407,7 @@
 <pre><code>Globally, it is always the case that after &quot;Q&quot; holds for at least &quot;5&quot; time units and &quot;R&quot; holds, then &quot;S&quot; holds
 </code></pre>
 
-<pre><code>Counterexample: true;⌈Q⌉ ∧ ℓ &gt; 5;⌈(Q &amp;&amp; (R &amp;&amp; !S))⌉;true
+<pre><code>Counterexample: true;⌈Q⌉ ∧ ℓ ≥ 5;⌈(Q &amp;&amp; (R &amp;&amp; !S))⌉;true
 </code></pre>
 
 <p><a data-lightbox="all_images" data-title="" href="../img/patterns/BndTriggeredEntryConditionPattern_Globally.svg"><img alt="" src="../img/patterns/BndTriggeredEntryConditionPattern_Globally.svg" /></a>
@@ -463,7 +463,7 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds as well
 </code></pre>
 
-<pre><code>Counterexample: ⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈!Q⌉;true
+<pre><code>Counterexample: ⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/InvariantPattern_Before.svg"><img alt="" src="../img/patterns/InvariantPattern_Before.svg" /></a><figcaption></figcaption>
@@ -582,7 +582,7 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;true
+<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;true
 </code></pre>
 
 <p><a data-lightbox="all_images" data-title="" href="../img/patterns/MinDurationPattern_AfterUntil.svg"><img alt="" src="../img/patterns/MinDurationPattern_AfterUntil.svg" /></a>
