@@ -2,14 +2,6 @@
 
 ## ResponsePattern
 
-### ResponsePattern Globally
-```
-Globally, it is always the case that if "R" holds, then "Q" eventually holds
-```
-```
-Counterexample: true;⌈(!Q && R)⌉;⌈!Q⌉;true
-```
-![](../img/patterns/ResponsePattern_Globally.svg)
 ### ResponsePattern Before
 ```
 Before "Q", it is always the case that if "S" holds, then "R" eventually holds
