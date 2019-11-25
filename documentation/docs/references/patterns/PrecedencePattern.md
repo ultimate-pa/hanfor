@@ -31,7 +31,7 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈S⌉;true
 Between "Q" and "R", it is always the case that if "T" holds, then "S" previously held
 ```
 ```
-Counterexample: true;⌈(Q && (!R && !S))⌉;⌈(!R && !S)⌉;⌈(!R && (!S && T))⌉;⌈!R⌉;⌈R⌉;true
+Counterexample: true;⌈(Q && (!R && !S))⌉;⌈(!R && !S)⌉;⌈(!R && T)⌉;⌈!R⌉;⌈R⌉;true
 ```
 ![](../img/patterns/PrecedencePattern_Between.svg)
 ### PrecedencePattern AfterUntil
