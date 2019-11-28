@@ -191,6 +191,8 @@ REQ8_0: Globally, it is always the case that if "var3" holds, then "var4 == 0" h
 ### Get Ultimate
 First of all you need [Ultimate](https://github.com/ultimate-pa/ultimate)
 
+#### Variant 1: Build the latest dev-version
+
 1. Install `Java JDK (1.8)` and `Maven (>3.0)`
 2. Clone the repository: `git clone https://github.com/ultimate-pa/ultimate`.
 3. Navigate to the release scripts `cd ultimate/releaseScripts/default`
@@ -198,9 +200,16 @@ First of all you need [Ultimate](https://github.com/ultimate-pa/ultimate)
 
 You have now successfully forged binaries, which are located in `UReqCheck-linux`.
 
+#### Variant 2: Use the latest release
+
+1. Install `Java JDK (1.8)`
+
+Download the latest [Release](https://github.com/ultimate-pa/ultimate/releases).
+The asset you need is called `UReqCheck-linux.zip`. 
+
 ### Scripts to perform the complete analysis.
-We wrote a script, which perform a complete anaylsis, including the extraction of relevant stuff.
-The script is located in `/path/to/ultimate/releaseScripts/default/UReqCheck-linux`.
+We wrote a script, which perform a complete anaylsis, including the extraction of relevant information.
+The script is located in `UReqCheck-linux`.
 
 - You have to configure `run_complete_analysis.sh`, which is used to run the complete analysis.
 The script takes several arguments:
@@ -220,7 +229,7 @@ Careful with this parameter, it will blow up the amount of checks really fast.
 We now simply execute the `run_complete_analysis.sh` script.
 
 ``` bash
-$ cd /path/to/ultimate/releaseScripts/default/UReqCheck-linux
+$ cd /path/to/UReqCheck-linux
 $ ./run_complete_analysis.sh path/to/repo/example_input/example_input.req path/to/repo/example_input path/to/repo/example_input
 ```
 
