@@ -11,28 +11,28 @@ Duration Calculus uses time intervalls to concisely express sequential behavior.
 
 
 !!! note "Everywhere-Operator: ⌈ ⌉"
-    The everywhere-operator ⌈ ⌉ applied to an expression describes an interval of arbitrary length (length > 0) in which the embraced expression holds. 
+    The everywhere-operator applied to an expression describes an interval of arbitrary length (length > 0) in which the embraced expression holds. 
     If the operator is kept empty, it describes a point interval (length = 0).
 
-    Consider the DC-formula: `⌈A⌉`
+    Let 'A' be an expression. Consider the DC-formula: `⌈A⌉`
 
-    It describes an interval of arbitrary length (length > 0) in which 'A' holds.<br/>
+    It describes an interval of arbitrary length (length > 0) in which expression 'A' holds.<br/>
 
 
 !!! note "Length-Operator: l"
-    The length-operator l is used to measure the length of an interval.<br/>
+    The length-operator is used to measure the length of an interval.<br/>
 
-    Consider the DC-formula: `⌈A⌉ && l = 5`
+    Let 'A' be an expression. Consider the DC-formula: `⌈A⌉ ∧ l = 5`
 
     It describes an interval with a length of 5 time units in which expression 'A' holds.<br/>
 
 
 !!! note "Chop-Operator: ;"
-    The chop-operator ; "chops" larger time intervals into smaller subintervals.<br/>
+    The chop-operator "chops" larger time intervals into smaller subintervals.<br/>
 
-    Consider the DC-formula: `⌈A⌉; ⌈B⌉; ⌈C⌉`
+    Let 'A', 'B', and 'C' be expressions. Consider the DC-formula: `⌈A⌉; ⌈B⌉; ⌈C⌉`
 
-    It describes a behavior where first 'A' holds , then 'B' holds, and finally 'C' holds.<br/>
+    It describes a behavior where first expression 'A' holds , then exprression 'B' holds, and finally expression 'C' holds.<br/>
     Note: All intervals may have an arbitrary length > 0 time units, as there is no explicit  constraint on their duration.
 
 
