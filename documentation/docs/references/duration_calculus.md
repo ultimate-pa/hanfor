@@ -6,7 +6,7 @@ Hanfor automatically translates requirements, that are given in the natural-lang
 
 This short guide should enable you to read and interpret the Duration Calculus formulae provided within this documentation. It aims to give you an intuitive insight into the small fragment of Duration Calculus that we use in our tool.
 
-Duration Calculus uses time intervalls to concisely express sequential behavior. Assuming that you are familiar with the basic concept of Boolean logic, there are only three additional operators that need to be introduced.
+Duration Calculus uses time intervalls to express sequential behavior. Assuming that you are familiar with the basic concept of Boolean logic, there are only three additional operators that need to be introduced.
 
 
 
@@ -36,6 +36,18 @@ Duration Calculus uses time intervalls to concisely express sequential behavior.
     Note: All intervals may have an arbitrary length > 0 time units, as there is no explicit  constraint on their duration.
 
 
+## Counterexample Formulas
+In Hanfor, Duration Calculus is used to describe counterexample formulas.
+
+!!! note "Counterexample Formula"
+    Formally, a counterexample formula Ψ is a DC-formula of the form:
+    ` Ψ = (⌈e1⌉ ∧ ℓ = t1); ... ;(⌈ek⌉ ∧ ℓ = tk); true ` , <br/>
+    where `e1` to `ek` represent state expressions and `t1` to `tk` are non-empty time intervals.
+
+Besides the formal definition, we can imagine a counterexmaple formula in a more intuitive fashion. Let us assume that the DC-formula ϕ is the formal representation of a given requirement. The counterexample formula Ψ covers all behavior that is not described by ϕ. In other words, the counterexample formula exactly describes the undesired behavior relative to the given requirement. 
+
+
+ 
 ## Examples
 In the following, you find some examples. In each we give a property in the natural-language-style specification language, the DC-formula describing the undesired behavior (counterexample traces), and a short explanation.
 
