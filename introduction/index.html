@@ -873,13 +873,13 @@ SCOPE    ::= Globally  | Before EXPR  | After EXPR | Between EXPR and EXPR  | Af
 PATTERN  ::= It is never the case that EXPR holds
            | It is always the case that EXPR holds
            | It is always the case that if EXPR holds, then EXPR holds as well
-           | Transition to states in which EXPR holds occur at most twice
+           | Transitions to states in which EXPR holds occur at most twice
            | It is always the case that ORDER
            | It is always the case that REALTIME
 ORDER    ::=
            | If EXPR holds, then EXPR previously held
            | If EXPR holds and is succeded by EXPR, then EXPR previously held
-           | If EXPR holds, then EXPR previously held and was preceeded by EXPR
+           | If EXPR holds, then EXPR previously held and was preceded by EXPR
            | If EXPR holds, then EXPR eventually holds and is succeeded by EXPR
            | If EXPR holds and is succeeded by EXPR, then EXPR eventually holds after EXPR
            | If EXPR holds, then EXPR eventually holds and is succeeded by EXPR where EXPR does not hold between EXPR and EXPR
@@ -893,8 +893,8 @@ REALTIME ::= Once EXPR becomes satisfied, it holds for at least DURATION
            | If EXPR holds, then EXPR holds after at most DURATION for at least DURATION
            | If EXPR holds, then EXPR holds for at least DURATION
            | If EXPR holds, then there is at least one execution sequence such that EXPR holds after at most DURATION
-           | After EXPR holds for DURATION, then EXPR holds
-           | After EXPR holds for DURATION and EXPR holds, then EXPR holds
+           | After EXPR holds for at least DURATION, then EXPR holds
+           | After EXPR holds for at least DURATION and EXPR holds, then EXPR holds
            | If EXPR holds, then EXPR toggles EXPR at most DURATION later
 </code></pre>
 
