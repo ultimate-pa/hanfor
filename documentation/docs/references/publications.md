@@ -6,7 +6,7 @@ toc_depth: 1
   <dd>
     Vincent Langenfeld, Daniel Dietsch, Bernd Westphal, Jochen Hoenicke, and Amalinda Post.
     <em>Scalable Analysis of Real-Time Requirements</em>.
-    [<a href="http://dx.doi.org/">doi</a> | <a href="publications/scalable-analysis.pdf">pdf</a>]
+    [<a href="publications/scalable-analysis.pdf">pdf</a>]
   </dd><br>
 
 
