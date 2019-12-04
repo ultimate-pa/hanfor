@@ -53,6 +53,7 @@ REALTIME ::= Once EXPR becomes satisfied, it holds for at least DURATION
            | If EXPR holds, then EXPR holds for at least DURATION
            | If EXPR holds, then there is at least one execution sequence such that EXPR holds after at most DURATION
            | After EXPR holds for DURATION, then EXPR holds
+	       | After EXPR holds for DURATION and EXPR holds, then EXPR holds
            | If EXPR holds, then EXPR toggles EXPR at most DURATION later
 ```
 
