@@ -19,10 +19,10 @@ Duration Calculus uses time intervalls to concisely express sequential behavior.
     It describes an interval of arbitrary length (length > 0) in which expression 'A' holds.<br/>
 
 
-!!! note "Length-Operator: l"
+!!! note "Length-Operator: ℓ"
     The length-operator is used to measure the length of an interval.<br/>
 
-    Let 'A' be an expression. Consider the DC-formula: `⌈A⌉ ∧ l = 5`
+    Let 'A' be an expression. Consider the DC-formula: `⌈A⌉ ∧ ℓ = 5`
 
     It describes an interval with a length of 5 time units in which expression 'A' holds.<br/>
 
