@@ -26,7 +26,7 @@
             <script>
                 // Current page data
                 var mkdocs_page_name = "Workflow";
-                var mkdocs_page_input_path = "usage/workflow.md";
+                var mkdocs_page_input_path = "usage\\workflow.md";
                 var mkdocs_page_url = "/hanfor/usage/workflow.html";
             </script>
         
@@ -292,6 +292,10 @@
     </li>
     </ul>
                                     </li>
+                                    <li class="toctree-l1"><a class="reference internal" href="../references/publications.html">Publications</a>
+    <ul>
+    </ul>
+                                    </li>
                             </ul>
                             <p class="caption"><span class="caption-text">Contribute</span></p>
                             <ul>
@@ -538,6 +542,7 @@ REQ8_0: Globally, it is always the case that if &quot;var3&quot; holds, then &qu
 <h2 id="analysis-using-ultimate">Analysis using Ultimate.<a class="headerlink" href="#analysis-using-ultimate" title="Permanent link"> #</a></h2>
 <h3 id="get-ultimate">Get Ultimate<a class="headerlink" href="#get-ultimate" title="Permanent link"> #</a></h3>
 <p>First of all you need <a href="https://github.com/ultimate-pa/ultimate">Ultimate</a></p>
+<h4 id="variant-1-build-the-latest-dev-version">Variant 1: Build the latest dev-version<a class="headerlink" href="#variant-1-build-the-latest-dev-version" title="Permanent link"> #</a></h4>
 <ol>
 <li>Install <code>Java JDK (1.8)</code> and <code>Maven (&gt;3.0)</code></li>
 <li>Clone the repository: <code>git clone https://github.com/ultimate-pa/ultimate</code>.</li>
@@ -545,9 +550,15 @@ REQ8_0: Globally, it is always the case that if &quot;var3&quot; holds, then &qu
 <li>Generate a fresh binary <code>./makeFresh.sh</code></li>
 </ol>
 <p>You have now successfully forged binaries, which are located in <code>UReqCheck-linux</code>.</p>
+<h4 id="variant-2-use-the-latest-release">Variant 2: Use the latest release<a class="headerlink" href="#variant-2-use-the-latest-release" title="Permanent link"> #</a></h4>
+<ol>
+<li>Install <code>Java JDK (1.8)</code></li>
+</ol>
+<p>Download the latest <a href="https://github.com/ultimate-pa/ultimate/releases">Release</a>.
+The asset you need is called <code>UReqCheck-linux.zip</code>. </p>
 <h3 id="scripts-to-perform-the-complete-analysis">Scripts to perform the complete analysis.<a class="headerlink" href="#scripts-to-perform-the-complete-analysis" title="Permanent link"> #</a></h3>
-<p>We wrote a script, which perform a complete anaylsis, including the extraction of relevant stuff.
-The script is located in <code>/path/to/ultimate/releaseScripts/default/UReqCheck-linux</code>.</p>
+<p>We wrote a script, which perform a complete anaylsis, including the extraction of relevant information.
+The script is located in <code>UReqCheck-linux</code>.</p>
 <ul>
 <li>You have to configure <code>run_complete_analysis.sh</code>, which is used to run the complete analysis.
 The script takes several arguments:</li>
@@ -564,7 +575,7 @@ Careful with this parameter, it will blow up the amount of checks really fast.
 * <code>timeout_per_assertion</code> (default: 900) The time how long a singles assertion is checked.</p>
 <h3 id="use-ultimate">Use Ultimate<a class="headerlink" href="#use-ultimate" title="Permanent link"> #</a></h3>
 <p>We now simply execute the <code>run_complete_analysis.sh</code> script.</p>
-<pre><code class="bash">$ cd /path/to/ultimate/releaseScripts/default/UReqCheck-linux
+<pre><code class="bash">$ cd /path/to/UReqCheck-linux
 $ ./run_complete_analysis.sh path/to/repo/example_input/example_input.req path/to/repo/example_input path/to/repo/example_input
 </code></pre>
 

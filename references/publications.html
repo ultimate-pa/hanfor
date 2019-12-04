@@ -9,10 +9,10 @@
         
         
         
-            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/contribute/to_docs.html">
+            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/references/publications.html">
         
             <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>To docs
+        <title>Publications
             - Hanfor Docs</title>
         <link rel="stylesheet"
               href="../css/stupid_fonts.css"/>
@@ -25,9 +25,9 @@
         
             <script>
                 // Current page data
-                var mkdocs_page_name = "To docs";
-                var mkdocs_page_input_path = "contribute\\to_docs.md";
-                var mkdocs_page_url = "/hanfor/contribute/to_docs.html";
+                var mkdocs_page_name = "Publications";
+                var mkdocs_page_input_path = "references\\publications.md";
+                var mkdocs_page_url = "/hanfor/references/publications.html";
             </script>
         
         <script src="../js/jquery-2.1.1.min.js" defer></script>
@@ -83,19 +83,19 @@
                                     </li>
                             </ul>
                             <p class="caption"><span class="caption-text">References</span></p>
-                            <ul>
-                                    <li class="toctree-l1"><a class="reference internal" href="../references/duration_calculus.html">Duration Calculus</a>
+                            <ul class="current">
+                                    <li class="toctree-l1"><a class="reference internal" href="duration_calculus.html">Duration Calculus</a>
                                     </li>
-                                    <li class="toctree-l1"><a class="reference internal" href="../references/patterns.html">Patterns</a>
+                                    <li class="toctree-l1"><a class="reference internal" href="patterns.html">Patterns</a>
                                     </li>
-                                    <li class="toctree-l1"><a class="reference internal" href="../references/publications.html">Publications</a>
+                                    <li class="toctree-l1 current"><a class="reference internal current" href="publications.html">Publications</a>
                                     </li>
                             </ul>
                             <p class="caption"><span class="caption-text">Contribute</span></p>
-                            <ul class="current">
-                                    <li class="toctree-l1"><a class="reference internal" href="to_hanfor.html">Hanfor</a>
+                            <ul>
+                                    <li class="toctree-l1"><a class="reference internal" href="../contribute/to_hanfor.html">Hanfor</a>
                                     </li>
-                                    <li class="toctree-l1 current"><a class="reference internal current" href="to_docs.html">To docs</a>
+                                    <li class="toctree-l1"><a class="reference internal" href="../contribute/to_docs.html">To docs</a>
                                     </li>
                             </ul>
             </div>
@@ -119,14 +119,14 @@
     
       
         
-          <li>Contribute &raquo;</li>
+          <li>References &raquo;</li>
         
       
     
-    <li>To docs</li>
+    <li>Publications</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/contribute/to_docs.md"
+        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/references/publications.md"
           class="icon icon-github"> Edit on GitHub</a>
       
     </li>
@@ -136,36 +136,53 @@
                 <div role="main">
                     <div class="section">
                         
-                            <p>These are the source files for the <a href="https://ultimate-pa.github.io/hanfor/">Hanfor Documentation</a>.</p>
-<h1 id="contribute-to-this-documentation">Contribute to this Documentation.<a class="headerlink" href="#contribute-to-this-documentation" title="Permanent link"> #</a></h1>
-<h4 id="0-optional-setup-a-virtual-environment">0. (Optional) setup a virtual environment<a class="headerlink" href="#0-optional-setup-a-virtual-environment" title="Permanent link"> #</a></h4>
-<pre><code>$ cd hanfor/documentation
-$ python3 -m venv docs_venv
-$ source docs_venv/bin/activate
-</code></pre>
+                            <h1 id="publications">Publications<a class="headerlink" href="#publications" title="Permanent link"> #</a></h1>
+<dl>
+  <dd>
+    Vincent Langenfeld, Daniel Dietsch, Bernd Westphal, Jochen Hoenicke, and Amalinda Post.
+    <em>Scalable Analysis of Real-Time Requirements</em>.
+    [<a href="http://dx.doi.org/">doi</a> | <a href="publications/scalable-analysis.pdf">pdf</a>]
+  </dd><br>
 
-<h4 id="1-install-mkdocs-and-all-dependencies">1. Install <a href="https://www.mkdocs.org/">MkDocs</a> and all dependencies.<a class="headerlink" href="#1-install-mkdocs-and-all-dependencies" title="Permanent link"> #</a></h4>
-<pre><code class="bash">$ pip3 install -r requirements_docs.txt
-</code></pre>
+  <dd>
+    Amalinda Post and Jochen Hoenicke.
+    <em>Formalization and Analysis of Real-Time Requirements: a Feasibility Study at BOSCH</em>.
+          In
+        <em>VSTTE 12</em>, pp.  225&ndash;240.
+      Springer,
+    2012.
+    [<a href="http://dx.doi.org/10.1007/978-3-642-27705-4_18">doi</a> | <a href="publications/formalization-analysis-rtrequirements.pdf">pdf</a>]
+  </dd><br>
 
-<h4 id="2-serve-this-documentation-locally-to-track-your-changes">2. Serve this Documentation locally to track your changes.<a class="headerlink" href="#2-serve-this-documentation-locally-to-track-your-changes" title="Permanent link"> #</a></h4>
-<pre><code class="bash">$ cd to_here
-$ mkdocs serve
-</code></pre>
 
-<p>Open your Browser at <a href="http://127.0.0.1:8000/">http://127.0.0.1:8000/</a>.</p>
-<h4 id="3-publish-your-changes-to-the-staging-directory">3. Publish your changes to the staging directory.<a class="headerlink" href="#3-publish-your-changes-to-the-staging-directory" title="Permanent link"> #</a></h4>
-<pre><code class="bash">$ mkdocs gh-deploy --remote-branch gh-pages-staging
-</code></pre>
+  <dd>
+    Amalinda Post, Jochen Hoenicke, and Andreas Podelski.
+    <em>Vacuous real-time requirements</em>.
+          In
+        <em>RE 11</em>, pp. 153&ndash;162.
+      IEEE,
+    2011.
+    [<a href="http://dx.doi.org/10.1109/RE.2011.6051657">doi</a> | <a href="publications/vacuous-consistency.pdf">pdf</a>]
+  </dd><br>
 
-<p>This will build the Documentation and commit them to the <code>gh-pages-staging</code> branch and push the <code>gh-pages-staging</code> branch to GitHub.
-If you have the necessary rights, you can then see the results on https://struebli.informatik.uni-freiburg.de/hanfor-docs-staging.</p>
-<h4 id="4-publish-your-changes-to-the-live-directory">4. Publish your changes to the live directory<a class="headerlink" href="#4-publish-your-changes-to-the-live-directory" title="Permanent link"> #</a></h4>
-<pre><code class="bash">$ mkdocs gh-deploy
-</code></pre>
 
-<p>This will build the Documentation and commit them to the <code>gh-pages</code> branch and push the <code>gh-pages</code> branch to GitHub.
-They will then be immediately available to the world at https://ultimate-pa.github.io/hanfor.</p>
+  <dd>
+    Amalinda Post, Jochen Hoenicke, and Andreas Podelski.
+    <em>rt-Inconsistency: A New Property for Real-Time Requirements</em>.
+          In
+        <em>FASE 2011</em>, volume 6603 in LNCS, pp. 34&ndash;49.
+      Springer,
+    2011.
+    [<a href="http://dx.doi.org/10.1007/978-3-642-19811-3_4">doi</a> | <a href="publications/rt-inconsistency.pdf">pdf</a>]
+  </dd><br>
+
+
+  <dd>
+    Amalinda Post, Igor Menzel, and Andreas Podelski.
+    <em>Applying Restricted English Grammar on Automotive Requirements—Does it Work? A Case Study</em>.
+          In<em>REFSQ 2011</em>, volume 6606 in LNCS, pp. 166&ndash;180. Springer, 2011.
+    [<a href="http://dx.doi.org/10.1007/978-3-642-19858-8_17">doi</a> | <a href="publications/applying-restricted-grammar.pdf">pdf</a>]
+  </dd>
                         
                     </div>
                 </div>
