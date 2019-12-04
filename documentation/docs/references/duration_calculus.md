@@ -2,7 +2,7 @@ toc_depth: 4
 
 # Duration Calculus
 
-Hanfor automatically translates requirements, that are given in the natural-language-style [specification language](../introduction/index.md#specification-language "Specification Language"), into Duration Calculus (DC).
+Hanfor automatically translates requirements, that are given in the natural-language-style [specification language](../introduction/index.md#specification-language "Specification Language"), into Counterexample Formulae, a small and comprehensible subset of Duration Calculus (DC).
 
 This short guide should enable you to read and interpret the Duration Calculus formulae provided within this documentation. It aims to give you an intuitive insight into the small fragment of Duration Calculus that we use in our tool.
 
@@ -37,19 +37,16 @@ Duration Calculus uses time intervalls to express sequential behavior. Assuming 
 
 
 ## Counterexample Formulas
-In Hanfor, Duration Calculus is used to describe counterexample formulas.
+Now that we have looked at some necessary building blocks of DC, we can look at counterexample formulas. 
 
 !!! note "Counterexample Formula"
     Formally, a counterexample formula Ψ is a DC-formula of the form:
-    ` Ψ = (⌈e1⌉ ∧ ℓ = t1); ... ;(⌈ek⌉ ∧ ℓ = tk); true ` , <br/>
-    where `e1` to `ek` represent state expressions and `t1` to `tk` are non-empty time intervals.
+    ` Ψ = (⌈e1⌉ ∧ ℓ ~ t1); ... ;(⌈ek⌉ ∧ ℓ ~ tk); true ` , <br/>
+    where `e1` to `ek` represent state expressions, `t1` to `tk` are non-zero durations, and `~ ∊ [≤,≥]`.
 
-Besides the formal definition, we can imagine a counterexmaple formula in a more intuitive fashion. Let us assume that the DC-formula ϕ is the formal representation of a given requirement. The counterexample formula Ψ covers all behavior that is not described by ϕ. In other words, the counterexample formula exactly describes the undesired behavior relative to the given requirement. 
+In other words, the counterexample formula exactly describes the undesired behavior relative to the given requirement. 
 
-
- 
-## Examples
-In the following, you find some examples. In each we give a property in the natural-language-style specification language, the DC-formula describing the undesired behavior (counterexample traces), and a short explanation.
+In the following, you find some examples. In each we give a property in the natural-language-style specification language, the counterexample DC-formula describing the undesired behavior, and a short explanation.
 
 !!! example "Example 1:"
     * Globally, it is always the case that 'Q' holds.
