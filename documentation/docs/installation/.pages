@@ -1,4 +1,2 @@
 arrange:
-  - preliminaries.md
-  - configuration.md
-  - deployment.md
+  - installation.md

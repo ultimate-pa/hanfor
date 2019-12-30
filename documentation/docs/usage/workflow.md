@@ -1,7 +1,6 @@
 toc_depth: 2
 
 # Workflow
-This example and everything that belongs to it is located in `example_input`.
 
 ## Example input
 The CSV file `example_intput/example_input.csv` contains requirements:
@@ -25,23 +24,23 @@ In this case every row consists of the fields `ID`, `Description`, and `Type`.
 - `Type`, is a type, in this example `meta` or `requirement`, where rows with type `meta` contain some meta-information
 and rows with type `requirement` contain actual requirements of the module you want to formalize.
 
-## Fire up Hanfor
+## Start Hanfor
 1. Configure Hanfor as explained in [Configuration](/installation/configuration)
 2. Start Hanfor: 
 ```bash
 cd hanfor
-python3 app.py -c ../example_input/example_input.csv awesome_tag_by_bree
+python3 app.py -c ../example_input/example_input.csv awesome_tag
 ```
 - `-c example_input.csv` specifies the csv input file we pass.
 - `example_tag` is some meaningful tag you want to give this session.
-If you start hanfor later with the same tag, you'll start exactly this session.
+If you start Hanfor later with the same tag, you'll start exactly this session.
 
 Currently the startup of Hanfor is interactive and looks like this:
 ```shell
-(venv) bree@titan:~/repos/hanfor/hanfor$ python3 app.py -c ../example_input/example_input.csv awesome_tag_by_bree
+(venv) bree@titan:~/repos/hanfor/hanfor$ python3 app.py -c ../example_input/example_input.csv awesome_tag
 2019-10-10 13:55:17,845: [DEBUG]: Enabled logging.
 2019-10-10 13:55:17,858: [INFO]: Hanfor starts creating a revision.
-2019-10-10 13:55:17,858: [INFO]: No revisions for `awesome_tag_by_bree`. Creating initial revision.
+2019-10-10 13:55:17,858: [INFO]: No revisions for `awesome_tag`. Creating initial revision.
 2019-10-10 13:55:17,858: [INFO]: Load Input : example/example_input.csv
 2019-10-10 13:55:17,862: [INFO]: Could not guess .csv dialect, assuming defaults
 Select ID header
@@ -92,13 +91,14 @@ In this example we want to set every row of type `meta` to the status **Done**.
 
 To accomplish this we use the [Search Query Language](/usage/requirements/#search-in-requirements-table). 
 
-1. In Hanfor, search  `:COL_INDEX_04:meta`. This will search for rows which match "meta" in the 4. coloumn (Type). You should now only see the rows of type `meta`.
+1. In Hanfor, search  `:COL_INDEX_04:meta`. This will search for rows which match "meta" in the 4. coloumn (Type). 
+You should now only see the rows of type `meta`.
 2. Select all rows by clicking  **All**.
 3. Click **Edit selected** and select **Done** in the field **Set status**.
 4. Finally, click **Apply changes to selected requirements**
 
 ## Formalization
-Order your requirement overview by **Pos** by clicking on the table column.
+Order your requirement overview by **Pos**, by clicking on the table column.
 ### REQ1
 To formalize this requirement, we click on the ID **REQ1** to open then formalization-modal:
 
@@ -202,7 +202,7 @@ You have now successfully forged binaries, which are located in `UReqCheck-linux
 
 #### Variant 2: Use the latest release
 
-1. Install `Java JDK (1.8)`
+1. Install `Java JRE (1.8)`
 
 Download the latest [Release](https://github.com/ultimate-pa/ultimate/releases).
 The asset you need is called `UReqCheck-linux.zip`. 
