@@ -25,7 +25,7 @@ In this case every row consists of the fields `ID`, `Description`, and `Type`.
 and rows with type `requirement` contain actual requirements of the module you want to formalize.
 
 ## Start Hanfor
-1. Configure Hanfor as explained in [Configuration](/installation/configuration)
+1. Configure Hanfor as explained in [Installation](/installation/installation.html)
 2. Start Hanfor: 
 ```bash
 cd hanfor
@@ -188,27 +188,13 @@ REQ8_0: Globally, it is always the case that if "var3" holds, then "var4 == 0" h
 
 ## Analysis using Ultimate.
 
-### Get Ultimate
-First of all you need [Ultimate](https://github.com/ultimate-pa/ultimate)
+### Get ReqAnalyzer
+First of all you need the [Ultimate](https://github.com/ultimate-pa/ultimate) tool **ReqAnalyzer**.
+See how in the [ReqAnalyzer](/installation/installation.html#reqanalyzer) section.
 
-#### Variant 1: Build the latest dev-version
 
-1. Install `Java JDK (1.8)` and `Maven (>3.0)`
-2. Clone the repository: `git clone https://github.com/ultimate-pa/ultimate`.
-3. Navigate to the release scripts `cd ultimate/releaseScripts/default`
-4. Generate a fresh binary `./makeFresh.sh`
-
-You have now successfully forged binaries, which are located in `UReqCheck-linux`.
-
-#### Variant 2: Use the latest release
-
-1. Install `Java JRE (1.8)`
-
-Download the latest [Release](https://github.com/ultimate-pa/ultimate/releases).
-The asset you need is called `UReqCheck-linux.zip`. 
-
-### Scripts to perform the complete analysis.
-We wrote a script, which perform a complete anaylsis, including the extraction of relevant information.
+### Perform the complete analysis.
+We wrote a script, which perform a complete analysis, including the extraction of relevant information.
 The script is located in `UReqCheck-linux`.
 
 - You have to configure `run_complete_analysis.sh`, which is used to run the complete analysis.

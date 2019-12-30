@@ -1,6 +1,8 @@
 toc_depth: 2
 
-# Preliminaries
+# Installation
+
+## Preliminaries
 Clone the repository:
 ```bash
 $ git clone https://github.com/ultimate-pa/hanfor.git -b master --single-branch /your/hanfor/destination 
@@ -28,7 +30,7 @@ Inside the repository run:
 $ pip install -r requirements.txt
 ```
 
-# Configuration
+## Configuration
 - Copy `./hanfor/config.dist.py` to `./hanfor/config.py`.
 - Edit the file `/hanfor/config.py` according your needs.
 A config file looks as follows: 
@@ -147,28 +149,7 @@ PATTERNS_GROUP_ORDER = [
 ]
 ```
 
-## ReqAnalyzer
-You can formalize requirements using hanfor and export them. 
-The ReqAnalyzer is a tool to analyze the formalized requirements and part of the released tools of [Ultimate](https://github.com/ultimate-pa/ultimate).
-
-#### Variant 1: Use the latest release
-
-1. Install `Java JRE (1.8)`
-
-Download the latest [Release](https://github.com/ultimate-pa/ultimate/releases).
-The asset you need is called `UReqCheck-linux.zip`. 
-
-
-#### Variant 2: Build the latest dev-version
-
-1. Install `Java JDK (1.8)` and `Maven (>3.0)`
-2. Clone the repository: `git clone https://github.com/ultimate-pa/ultimate`.
-3. Navigate to the release scripts `cd ultimate/releaseScripts/default`
-4. Generate a fresh binary `./makeFresh.sh`
-
-You have now successfully forged binaries, which are located in `UReqCheck-linux`.
-
-# Quick start
+## Quick start
 To start a fresh session use
 ```bash
 $ python app.py <tag> -c <path_to_input_csv>.csv
@@ -198,3 +179,28 @@ A session creation process has the following steps:
     * "Type"
  4. Create a Hanfor-Requirement for each row in the csv and store it to the session folder.
  5. Serve the Web-interface on the port specified in config.py
+ 
+ 
+## ReqAnalyzer
+With Hanfor you can formalize requirements and export them. 
+The ReqAnalyzer is a tool to analyze the formalized requirements and part of the released tools of [Ultimate](https://github.com/ultimate-pa/ultimate).
+
+#### Variant 1: Use the latest release
+
+1. Install `Java JRE (1.8)`
+
+Download the latest [Release](https://github.com/ultimate-pa/ultimate/releases).
+The asset you need is called `UReqCheck-linux.zip`. 
+
+
+#### Variant 2: Build the latest dev-version
+
+1. Install `Java JDK (1.8)` and `Maven (>3.0)`
+2. Clone the repository: `git clone https://github.com/ultimate-pa/ultimate`.
+3. Navigate to the release scripts `cd ultimate/releaseScripts/default`
+4. Generate a fresh binary `./makeFresh.sh`
+
+The binaries are located in `UReqCheck-linux`.
+
+In the [Workflow](/usage/workflow.html) section we explain how to use the tool.
+
