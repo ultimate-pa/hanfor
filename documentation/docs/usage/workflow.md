@@ -212,14 +212,14 @@ Careful with this parameter, it will blow up the amount of checks really fast.
 * `timeout_per_assertion` (default: 900) The time how long a singles assertion is checked.
 
 ### Use Ultimate
-We now simply execute the `run_complete_analysis.sh` script.
+Execute the `run_complete_analysis.sh` script.
 
 ``` bash
 $ cd /path/to/UReqCheck-linux
 $ ./run_complete_analysis.sh path/to/repo/example_input/example_input.req path/to/repo/example_input path/to/repo/example_input
 ```
 
-This will fire up Ultimate and run an analysis. The analysis checks for rt-inconsistency and vacuity and logs are be generated: 
+This will start Ultimate and run an analysis. The analysis checks for rt-inconsistency and vacuity and logs are be generated: 
 
 * `hanfor/example/example_input.req.log`
 * `hanfor/example/example_input.req.testgen.log`
@@ -252,15 +252,15 @@ constraint1 && constraint2 && ((constraint1 && !constraint2) || (!constraint1 &&
 this is clearly unsatisfiable.
 
 ### Alter your requirements
-We now found an inconsistency in our requirements, that has to be fixed. 
+We found an inconsistency in our requirements, that has to be fixed. 
 Let's assume you review your requirements and you recognize `REQ4` was defined wrong in the csv,
 where `REQ4,constraint2 always holds,requirement` should be `REQ4,constraint2 never holds,requirement`.
 While reading over the requirements, you also recognize that `REQ1` and `REQ5` collide and you find out that `REQ5` shall be deleted.
 
 When we apply this changes, we end up with the following changes: 
 
- - alter `REQ4,constraint2 always holds,requirement` to `REQ4,constraint2 never holds,requirement`
- - remove `REQ5`
+ - Alter `REQ4,constraint2 always holds,requirement` to `REQ4,constraint2 never holds,requirement`
+ - Remove `REQ5`
  
 and our csv file now looks as follows: 
 
