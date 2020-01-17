@@ -30,6 +30,7 @@ If you have open questions or any kind of feedback/suggestions feel free to cont
   * References
 	* [Duration Calculus](references/duration_calculus.md "Duration Calculus")
 	* [Patterns](references/patterns.md "Patterns")
+	* [Publications](references/publications.md "Publications")
   * Contribute
 	* [Hanfor](contribute/to_hanfor.md "Contribute To Hanfor")
 	* [Docs](contribute/to_docs.md "Contribute To Docs")
