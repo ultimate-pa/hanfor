@@ -565,19 +565,18 @@ def get_requirements(input_dir, filter_list=None, invert_filter=False):
 def generate_csv_file(app, output_file=None, filter_list=None, invert_filter=False):
     """ Generates the csv file for a session by tag.
 
-    :param tag: Session tag
-    :type tag: str
+    :param app: Current hanfor app for context.
+    :type app: Flaskapp
     :param output_file: Where to store the file
     :type output_file: str
-    :param filter: A list of requirement IDs to be included in the result. All if not set.
-    :type filter: list (of strings)
+    :param filter_list: (Optional) A list of requirement IDs to be included in the result. All if not set.
+    :type filter_list: list (of strings)
     :param invert_filter: Exclude filter
     :type invert_filter: bool
     :return: Output file location on success.
     :rtype: str
     """
     # Get requirements
-    tag_col_name = 'Hanfor_Tags'
     requirements = get_requirements(app.config['REVISION_FOLDER'], filter_list=filter_list, invert_filter=invert_filter)
 
     # get session status
@@ -596,14 +595,18 @@ def generate_csv_file(app, output_file=None, filter_list=None, invert_filter=Fal
             session_dict['csv_fieldnames'].append(csv_key)
 
     # Add Hanfor Tag col to csv.
-    while tag_col_name in session_dict['csv_fieldnames']:
-        tag_col_name += '_1'
-    session_dict['csv_fieldnames'].append(tag_col_name)
+    # TODO: remove static column names and replace with config via user startup config dialog.
+    tag_col_name = 'Hanfor_Tags'
+    status_col_name = 'Hanfor_Status'
+    for col_name in [tag_col_name, status_col_name]:
+        if col_name not in session_dict['csv_fieldnames']:
+            session_dict['csv_fieldnames'].append(col_name)
 
-    # Collect data.
+    # Update csv row of requirements to use their latest formalization and tags.
     for requirement in requirements:
-        requirement.csv_row[session_dict['csv_formal_header']] = requirement.get_formalization_string()
+        requirement.csv_row[session_dict['csv_formal_header']] = requirement.get_formalizations_json()
         requirement.csv_row[tag_col_name] = ', '.join(requirement.tags)
+        requirement.csv_row[status_col_name] = requirement.status
 
     # Write data to file.
     rows = [r.csv_row for r in requirements]

@@ -6,6 +6,7 @@
 import boogie_parsing
 import csv
 import difflib
+import json
 import logging
 import os
 import pickle
@@ -212,8 +213,8 @@ class Requirement(HanforVersioned, Pickleable):
             'type': self.type_in_csv if type(self.type_in_csv) is str else self.type_in_csv[0],
             'tags': sorted([tag for tag in self.tags]),
             'formal': [f.get_string() for f in self.formalizations.values()],
-            'scope': 'None',
-            'pattern': 'None',
+            'scope': 'None',  # TODO: remove: This is obsolete since a requirement can hold multiple Formalizations.
+            'pattern': 'None',  # TODO: remove: This is obsolete since a requirement can hold multiple Formalizations.
             'vars': sorted([name for name in used_variables]),
             'pos': self.pos_in_csv,
             'status': self.status,
@@ -407,6 +408,19 @@ class Requirement(HanforVersioned, Pickleable):
         # TODO: implement this. (Used to print the whole formalization into the csv).
         return ''
 
+    def get_formalizations_json(self):
+        """ Fetch all formalizations in json format. Used to reload formalizations.
+
+        Returns:
+            str: The json formatted version of the formalizations.
+
+        """
+        result = dict()
+        for key, formalization in self.formalizations.items():
+            result[str(key)] = formalization.to_dict()
+
+        return json.dumps(result)
+
     def run_version_migrations(self):
         if self.hanfor_version == '0.0.0':
             logging.info('Migrating `{}`:`{}`, from 0.0.0 -> 1.0.0'.format(
@@ -528,9 +542,9 @@ class Formalization(HanforVersioned):
 
     def to_dict(self):
         d = {
-            'scope': None,
-            'pattern': None,
-            'expressions': None
+            'scope': self.scoped_pattern.scope.name,
+            'pattern': self.scoped_pattern.pattern.name,
+            'expressions': {key: exp.raw_expression for key, exp in self.expressions_mapping.items()}
         }
 
         return d
