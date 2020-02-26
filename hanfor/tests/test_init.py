@@ -45,15 +45,15 @@ class TestInit(TestCase):
         self.app = app.test_client()
 
     @patch('builtins.input', mock_user_input)
-    def startup_hanfor(self, args):
+    def startup_hanfor(self, args, user_inputs):
         global mock_results
-        mock_results = [2, 0, 1, 3]
+        mock_results = user_inputs
 
         startup_hanfor(args, HERE)
 
     def test_1_init_from_csv(self):
         args = utils.HanforArgumentParser(app).parse_args([TEST_TAG, '-c', TEST_CSV])
-        self.startup_hanfor(args)
+        self.startup_hanfor(args, [2, 0, 1, 3, 0])
         self.assertTrue(
             os.path.isdir(os.path.join(TESTS_BASE_FOLDER, TEST_TAG)),
             msg='No session folder created.'
@@ -72,7 +72,7 @@ class TestInit(TestCase):
 
     def test_2_get_requirements(self):
         args = utils.HanforArgumentParser(app).parse_args([TEST_TAG, '-c', TEST_CSV])
-        self.startup_hanfor(args)
+        self.startup_hanfor(args, [2, 0, 1, 3, 0])
         result = self.app.get('api/req/gets')
         self.maxDiff = None
         desired_reqs = [

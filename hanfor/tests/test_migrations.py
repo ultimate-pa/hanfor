@@ -169,7 +169,7 @@ class TestMigrations(TestCase):
         """
         # Create the first initial revision.
         args = utils.HanforArgumentParser(app).parse_args([TEST_TAGS['real'], '-c', CSV_FILES['test_real_rev_0']])
-        self.startup_hanfor(args, user_mock_answers=[1, 5, 27, 8])
+        self.startup_hanfor(args, user_mock_answers=[1, 5, 27, 8, 0])
         # Get the available requirements.
         initial_req_gets = self.app.get('api/req/gets')
         self.assertEqual('DySok ASPDOJ_123', initial_req_gets.json['data'][0]['id'])

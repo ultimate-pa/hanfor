@@ -498,7 +498,7 @@ class Requirement(HanforVersioned, Pickleable):
         for key, formalization in self.formalizations.items():
             result[str(key)] = formalization.to_dict()
 
-        return json.dumps(result)
+        return json.dumps(result, sort_keys=True)
 
     def run_version_migrations(self):
         if self.hanfor_version == '0.0.0':
