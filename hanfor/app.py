@@ -6,13 +6,14 @@
 import datetime
 import logging
 import os
-import sys
-
 import re
+import shutil
 import subprocess
+import sys
 import utils
 
-from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, hash_file_sha1
+from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, \
+    hash_file_sha1
 from flask import Flask, render_template, request, jsonify, make_response, send_file, json
 from flask_debugtoolbar import DebugToolbarExtension
 from functools import wraps, update_wrapper
@@ -969,19 +970,39 @@ def create_revision(args, base_revision_name):
         app.config['REVISION_FOLDER'],
         'session_status.pickle'
     )
+
+    # Create the session folder and initial variable collection.
+    available_sessions = utils.get_stored_session_names(
+        app.config['SESSION_BASE_FOLDER'],
+        with_revisions=True
+    )
+    os.makedirs(app.config['REVISION_FOLDER'], exist_ok=True)
+    if revision_name == 'revision_0':
+        init_var_collection()
+
     # Load requirements from .csv file and store them into separate requirements.
     if args.input_csv is None:
         utils.HanforArgumentParser(app).error('Creating an (initial) revision requires -c INPUT_CSV')
     requirement_collection = RequirementCollection()
-    requirement_collection.create_from_csv(
-        csv_file=args.input_csv,
-        input_encoding='utf8',
-        base_revision_headers=base_revision_settings,
-        user_provided_headers=(json.loads(args.headers) if args.headers else None)
-    )
+    try:
+        requirement_collection.create_from_csv(
+            csv_file=args.input_csv,
+            app=app,
+            input_encoding='utf8',
+            base_revision_headers=base_revision_settings,
+            user_provided_headers=(json.loads(args.headers) if args.headers else None),
+            available_sessions=available_sessions
+        )
+    except KeyboardInterrupt as e:
+        if revision_name == 'revision_0':
+            logging.debug('Revert initialized session folder. Deleting `{}`'.format(app.config['SESSION_FOLDER']))
+            shutil.rmtree(app.config['SESSION_FOLDER'])
+        else:
+            logging.debug('Revert initialized revision folder. Deleting `{}`'.format(app.config['REVISION_FOLDER']))
+            shutil.rmtree(app.config['REVISION_FOLDER'])
+        raise e
 
     # Store Requirements as pickeled objects to the session dir.
-    os.makedirs(app.config['REVISION_FOLDER'], exist_ok=True)
     for index, req in enumerate(requirement_collection.requirements):  # type: Requirement
         filename = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(req.rid))
         req.store(filename)
@@ -1262,7 +1283,6 @@ def startup_hanfor(args, HERE):
             revision_choice = user_choose_start_revision()
             logging.info('Loading session `{}` at `{}`'.format(app.config['SESSION_TAG'], revision_choice))
             load_revision(revision_choice)
-
 
     # Check CSV file change.
     session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])  # type: dict
