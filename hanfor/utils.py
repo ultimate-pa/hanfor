@@ -768,7 +768,7 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
     return output_file
 
 
-def get_stored_session_names(session_folder=None, only_names=False, with_revisions=False) -> tuple:
+def get_stored_session_names(session_folder, only_names=False, with_revisions=False) -> tuple:
     """ Get stored session tags (folder names) including os.stat.
     Returned tuple is (
         (os.stat(), name),
@@ -793,10 +793,13 @@ def get_stored_session_names(session_folder=None, only_names=False, with_revisio
         ...
     )
 
-    :param session_folder: path to folder
-    :type session_folder: str
-    :return: tuple  of folder names or stats with names
-    :rtype: tuple
+    Args:
+        session_folder (str): path to hanfor data folder.
+        only_names (bool): Only return the names (tags).
+        with_revisions (bool): Recurse also into the available revisions.
+
+    Returns:
+        tuple: Only folder names or stats with names.
     """
     result = ()
     if not session_folder:
