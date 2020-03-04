@@ -288,20 +288,25 @@ function update_vars() {
 
 
 /**
- * Variables in a formalization pattern variable into links to that variable.
+ * Replace variables in a formalization string by links to that variable.
+ * Only if variable is available in the global "available_vars" array.
  * Example: foo || bar -> <a href ...>foo</a> || <a href ...>bar</a>
- * @param variable
+ * @param formal_string
  * @returns {string}
  */
-function parse_vars_to_link(variable) {
+function parse_vars_to_link(formal_string) {
     let result = '';
-    variable.split(' ').forEach(function (chunk) {
+
+    // Split the formalization string on possible variable delimiters given by the boogie grammar.
+    // We enclose the regular expression by /()/g to yield the delimiters itself: We want to keep them in the result.
+    formal_string.split(/([\s&<>!()=:\[\]{}\-|+*,])/g).forEach(function (chunk) {
         if ( available_vars.includes(chunk) ) {
             let query = '?command=search&col=1&q=%5C%22' + chunk + '%5C%22';
             result += '<a href="./variables' + query + '" target="_blank"' +
                 '  title="Go to declaration of ' + chunk + '" class="alert-link">' + chunk + '</a>';
         } else {
-            result += chunk;
+            // We need to escape potential HTML special chars to prevent a broken display.
+            result += utils.escapeHtml(chunk);
         }
     });
     return result;
