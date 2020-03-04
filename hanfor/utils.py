@@ -529,6 +529,7 @@ def rename_variable_in_constraints(app, occurences, var_name_old, var_name, vari
 
 def get_requirements(input_dir, filter_list=None, invert_filter=False):
     """ Load all requirements from session folder and return in a list.
+    Orders the requirements based on their position in the CSV used to create the session (pos_in_csv).
 
     :param tag: Session tag
     :type tag: str
@@ -541,14 +542,13 @@ def get_requirements(input_dir, filter_list=None, invert_filter=False):
         os.path.join(input_dir, f) for f in os.listdir(input_dir)
         if os.path.isfile(os.path.join(input_dir, f))
     ]
-    filenames.sort()
-    requirements = list()
 
     def should_be_in_result(req) -> bool:
         if filter_list is None:
             return True
         return (req.rid in filter_list) != invert_filter
 
+    requirements = list()
     for filename in filenames:
         try:
             req = Requirement.load(filename)
@@ -558,6 +558,9 @@ def get_requirements(input_dir, filter_list=None, invert_filter=False):
             if should_be_in_result(req):
                 logging.debug('Adding {} to results.'.format(req.rid))
                 requirements.append(req)
+
+    # We want to preserve the order of the generated CSV relative to the origin CSV.
+    requirements.sort(key=lambda x: x.pos_in_csv)
 
     return requirements
 
