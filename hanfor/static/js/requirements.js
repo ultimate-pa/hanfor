@@ -628,11 +628,11 @@ function load_requirement(row_idx) {
         // Update available vars based on the selection of requirement and pattern.
         // Prevent inserting a token twice on enter
         prevent_double_token_insert();
+        update_formalization();
         $('#requirement_modal').data({
             'unsaved_changes': false,
             'updated_formalization': false
         });
-        update_formalization();
         requirement_modal_content.LoadingOverlay('hide', true);
     });
 }
