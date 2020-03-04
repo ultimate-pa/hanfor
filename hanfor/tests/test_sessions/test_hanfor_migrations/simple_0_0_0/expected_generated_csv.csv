@@ -1,3 +1,3 @@
 id_header,desc_header,formal_header,type_header,Hanfor_Tags,Hanfor_Status
-SysRS FooXY_42,"Dont worry, be happy","{""0"": {""expressions"": {""R"": ""foo != bar""}, ""pattern"": ""Absence"", ""scope"": ""GLOBALLY""}}",req,,Todo
 SysRS FooXY_91,always look on the bright side of life,{},req,unseen,Todo
+SysRS FooXY_42,"Dont worry, be happy","{""0"": {""expressions"": {""R"": ""foo != bar""}, ""pattern"": ""Absence"", ""scope"": ""GLOBALLY""}}",req,,Todo
