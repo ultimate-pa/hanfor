@@ -12,5 +12,8 @@ Counterexample: true;⌈(Q && R)⌉;⌈!R⌉;⌈(!R && !S)⌉;true
 
 ![](../img/patterns/TogglePattern_Globally.svg)
 
-![](../img/failure_paths/TogglePattern_Globally_0.svg)
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+| ![](../img/failure_paths/TogglePattern_Globally_0.svg) | |
 

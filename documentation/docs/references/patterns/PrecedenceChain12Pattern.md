@@ -45,7 +45,10 @@ Counterexample: ⌈!U⌉;⌈(Q && (!R && !U))⌉;⌈(!R && !U)⌉;⌈(!R && (T &
 
 ![](../img/patterns/PrecedenceChain12Pattern_Between.svg)
 
-![](../img/failure_paths/PrecedenceChain12Pattern_Between_0.svg)
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+| ![](../img/failure_paths/PrecedenceChain12Pattern_Between_0.svg) | |
 
 
 ### PrecedenceChain12Pattern AfterUntil

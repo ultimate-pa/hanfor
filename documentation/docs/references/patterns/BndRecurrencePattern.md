@@ -12,7 +12,10 @@ Counterexample: true;⌈!Q⌉ ∧ ℓ > 5;true
 
 ![](../img/patterns/BndRecurrencePattern_Globally.svg)
 
-![](../img/failure_paths/BndRecurrencePattern_Globally_0.svg)
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+| ![](../img/failure_paths/BndRecurrencePattern_Globally_0.svg) | |
 
 
 ### BndRecurrencePattern Before
@@ -25,7 +28,10 @@ Counterexample: ⌈!Q⌉;⌈(!Q && !R)⌉ ∧ ℓ > 5;true
 
 ![](../img/patterns/BndRecurrencePattern_Before.svg)
 
-![](../img/failure_paths/BndRecurrencePattern_Before_0.svg)
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+| ![](../img/failure_paths/BndRecurrencePattern_Before_0.svg) | |
 
 
 ### BndRecurrencePattern After
@@ -38,7 +44,10 @@ Counterexample: true;⌈Q⌉;true;⌈!R⌉ ∧ ℓ > 5;true
 
 ![](../img/patterns/BndRecurrencePattern_After.svg)
 
-![](../img/failure_paths/BndRecurrencePattern_After_0.svg)
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+| ![](../img/failure_paths/BndRecurrencePattern_After_0.svg) | |
 
 
 ### BndRecurrencePattern Between
@@ -62,5 +71,8 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;true
 
 ![](../img/patterns/BndRecurrencePattern_AfterUntil.svg)
 
-![](../img/failure_paths/BndRecurrencePattern_AfterUntil_0.svg)
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+| ![](../img/failure_paths/BndRecurrencePattern_AfterUntil_0.svg) | |
 

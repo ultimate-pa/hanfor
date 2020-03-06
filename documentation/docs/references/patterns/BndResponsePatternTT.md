@@ -12,5 +12,8 @@ Counterexample: true;⌈R⌉ ∧ ℓ ≥ 5;⌈Q⌉ ∧ ℓ < 10;⌈!Q⌉;true
 
 ![](../img/patterns/BndResponsePatternTT_Globally.svg)
 
-![](../img/failure_paths/BndResponsePatternTT_Globally_0.svg)
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+| ![](../img/failure_paths/BndResponsePatternTT_Globally_0.svg) | |
 

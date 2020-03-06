@@ -34,7 +34,10 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;⌈!R⌉;⌈R⌉;t
 
 ![](../img/patterns/InstAbsPattern_Between.svg)
 
-![](../img/failure_paths/InstAbsPattern_Between_0.svg)
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+| ![](../img/failure_paths/InstAbsPattern_Between_0.svg) | |
 
 
 ### InstAbsPattern AfterUntil
