@@ -9,4 +9,8 @@ Globally, it is always the case that if "R" holds for at least "5" time units, t
 ```
 Counterexample: true;⌈R⌉ ∧ ℓ > 5;⌈!Q⌉;true
 ```
+
 ![](../img/patterns/BndResponsePatternTU_Globally.svg)
+
+![](../img/failure_paths/BndResponsePatternTU_Globally_0.svg)
+

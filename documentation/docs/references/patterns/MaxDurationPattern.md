@@ -9,7 +9,12 @@ Globally, it is always the case that once "Q" becomes satisfied, it holds for le
 ```
 Counterexample: true;⌈Q⌉ ∧ ℓ ≥ 5;true
 ```
+
 ![](../img/patterns/MaxDurationPattern_Globally.svg)
+
+![](../img/failure_paths/MaxDurationPattern_Globally_0.svg)
+
+
 ### MaxDurationPattern Before
 ```
 Before "Q", it is always the case that once "R" becomes satisfied, it holds for less than "5" time units
@@ -17,7 +22,12 @@ Before "Q", it is always the case that once "R" becomes satisfied, it holds for 
 ```
 Counterexample: ⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ 5;true
 ```
+
 ![](../img/patterns/MaxDurationPattern_Before.svg)
+
+![](../img/failure_paths/MaxDurationPattern_Before_0.svg)
+
+
 ### MaxDurationPattern After
 ```
 After "Q", it is always the case that once "R" becomes satisfied, it holds for less than "5" time units
@@ -25,7 +35,12 @@ After "Q", it is always the case that once "R" becomes satisfied, it holds for l
 ```
 Counterexample: true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ ≥ 5;true
 ```
+
 ![](../img/patterns/MaxDurationPattern_After.svg)
+
+![](../img/failure_paths/MaxDurationPattern_After_0.svg)
+
+
 ### MaxDurationPattern Between
 ```
 Between "Q" and "R", it is always the case that once "S" becomes satisfied, it holds for less than "5" time units
@@ -33,7 +48,10 @@ Between "Q" and "R", it is always the case that once "S" becomes satisfied, it h
 ```
 Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉ ∧ ℓ ≥ 5;⌈!R⌉;⌈R⌉;true
 ```
+
 ![](../img/patterns/MaxDurationPattern_Between.svg)
+
+
 ### MaxDurationPattern AfterUntil
 ```
 After "Q" until "R", it is always the case that once "S" becomes satisfied, it holds for less than "5" time units
@@ -41,4 +59,8 @@ After "Q" until "R", it is always the case that once "S" becomes satisfied, it h
 ```
 Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉ ∧ ℓ ≥ 5;true
 ```
+
 ![](../img/patterns/MaxDurationPattern_AfterUntil.svg)
+
+![](../img/failure_paths/MaxDurationPattern_AfterUntil_0.svg)
+

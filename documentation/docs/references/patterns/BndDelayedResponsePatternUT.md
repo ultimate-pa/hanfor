@@ -9,4 +9,8 @@ Globally, it is always the case that if "R" holds, then "Q" holds after at most 
 ```
 Counterexample: true;⌈R⌉;⌈true⌉ ∧ ℓ ≤ 5;⌈Q⌉ ∧ ℓ < 10;⌈!Q⌉;true
 ```
+
 ![](../img/patterns/BndDelayedResponsePatternUT_Globally.svg)
+
+![](../img/failure_paths/BndDelayedResponsePatternUT_Globally_0.svg)
+
