@@ -121,6 +121,25 @@ form .search-query {
 }
 
 td, th {
-   border: 1px solid #e1e4e5 !important; /* csslint allow: important */
-   border-collapse: collapse;
+    border: 1px solid #e1e4e5; /* csslint allow: important */
+    border-collapse: collapse;
 }
+
+
+table.pattern_examples {
+  border-collapse: separate;
+  border-spacing: 10px 0;
+}
+
+table.pattern_examples td, table.pattern_examples th {
+    border: none;
+    border-collapse: collapse;
+}
+
+table.pattern_examples th {
+    align:left;
+    background-color: #6ab0de;
+    color: #fff;
+    width: 50%;
+}
+
