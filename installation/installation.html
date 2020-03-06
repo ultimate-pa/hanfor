@@ -9,10 +9,10 @@
         
         
         
-            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/installation/deployment.html">
+            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/installation/installation.html">
         
             <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>Deployment
+        <title>Installation
             - Hanfor Docs</title>
         <link rel="stylesheet"
               href="../css/stupid_fonts.css"/>
@@ -25,9 +25,9 @@
         
             <script>
                 // Current page data
-                var mkdocs_page_name = "Deployment";
-                var mkdocs_page_input_path = "installation/deployment.md";
-                var mkdocs_page_url = "/hanfor/installation/deployment.html";
+                var mkdocs_page_name = "Installation";
+                var mkdocs_page_input_path = "installation/installation.md";
+                var mkdocs_page_url = "/hanfor/installation/installation.html";
             </script>
         
         <script src="../js/jquery-2.1.1.min.js" defer></script>
@@ -82,35 +82,23 @@
                             </ul>
                             <p class="caption"><span class="caption-text">Installation</span></p>
                             <ul class="current">
-                                    <li class="toctree-l1"><a class="reference internal" href="preliminaries.html">Preliminaries</a>
-    <ul>
-	
-    <li class="toctree-l2"><a class="reference internal" href="preliminaries.html#install-hanfor">
-     Install Hanfor </a>
-    </li>
-	
-    <li class="toctree-l2"><a class="reference internal" href="preliminaries.html#install-reqanalyzer">
-     Install ReqAnalyzer </a>
-    </li>
-    </ul>
-                                    </li>
-                                    <li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a>
-    <ul>
-	
-    <li class="toctree-l2"><a class="reference internal" href="configuration.html#hanfor">
-     Hanfor </a>
-    </li>
-	
-    <li class="toctree-l2"><a class="reference internal" href="configuration.html#reqanalyzer">
-     ReqAnalyzer </a>
-    </li>
-    </ul>
-                                    </li>
-                                    <li class="toctree-l1 current"><a class="reference internal current" href="deployment.html">Deployment</a>
+                                    <li class="toctree-l1 current"><a class="reference internal current" href="installation.html">Installation</a>
     <ul class="current">
 	
-    <li class="toctree-l2"><a class="reference internal" href="#how-it-works">
-     How it works </a>
+    <li class="toctree-l2"><a class="reference internal" href="#preliminaries">
+     Preliminaries </a>
+    </li>
+	
+    <li class="toctree-l2"><a class="reference internal" href="#configuration">
+     Configuration </a>
+    </li>
+	
+    <li class="toctree-l2"><a class="reference internal" href="#quick-start">
+     Quick start </a>
+    </li>
+	
+    <li class="toctree-l2"><a class="reference internal" href="#reqanalyzer">
+     ReqAnalyzer </a>
     </li>
     </ul>
                                     </li>
@@ -172,8 +160,8 @@
      Example input </a>
     </li>
 	
-    <li class="toctree-l2"><a class="reference internal" href="../usage/workflow.html#fire-up-hanfor">
-     Fire up Hanfor </a>
+    <li class="toctree-l2"><a class="reference internal" href="../usage/workflow.html#start-hanfor">
+     Start Hanfor </a>
     </li>
 	
     <li class="toctree-l2"><a class="reference internal" href="../usage/workflow.html#preprocessing">
@@ -353,10 +341,10 @@
         
       
     
-    <li>Deployment</li>
+    <li>Installation</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/installation/deployment.md"
+        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/installation/installation.md"
           class="icon icon-github"> Edit on GitHub</a>
       
     </li>
@@ -366,7 +354,150 @@
                 <div role="main">
                     <div class="section">
                         
-                            <h1 id="deployment">Deployment<a class="headerlink" href="#deployment" title="Permanent link"> #</a></h1>
+                            <h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link"> #</a></h1>
+<h2 id="preliminaries">Preliminaries<a class="headerlink" href="#preliminaries" title="Permanent link"> #</a></h2>
+<p>Clone the repository:</p>
+<pre><code class="bash">$ git clone https://github.com/ultimate-pa/hanfor.git -b master --single-branch /your/hanfor/destination 
+</code></pre>
+
+<p>Hanfor requires <a href="https://www.python.org/">Python</a> and is only tested with Python 3.6.x.
+You can check if you have python already installed from the command line:</p>
+<pre><code class="bash">$ python -- version
+Python 3.6.2
+</code></pre>
+
+<p>We recommend using a <a href="https://virtualenv.pypa.io/en/latest/installation/">virtual environment</a>. Create a new virtual environment with: </p>
+<pre><code class="bash">$ virtualenv hanfor_python 
+</code></pre>
+
+<p>And activate it by sourcing:</p>
+<pre><code class="bash">$ source hanfor_python/bin/activate
+</code></pre>
+
+<p>Now the python dependencies needed to be installed into the virtual environment.
+Inside the repository run:</p>
+<pre><code class="bash">$ pip install -r requirements.txt
+</code></pre>
+
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link"> #</a></h2>
+<ul>
+<li>Copy <code>./hanfor/config.dist.py</code> to <code>./hanfor/config.py</code>.</li>
+<li>Edit the file <code>/hanfor/config.py</code> according your needs.
+A config file looks as follows: </li>
+</ul>
+<pre><code class="python">################################################################################
+#                               Storage and folders                            #
+################################################################################
+# Set the SESSION_BASE_FOLDER to a path hanfor will store/load sessions.
+# If set to None, hanfor will store its sessions in ./data
+SESSION_BASE_FOLDER = './data'
+
+################################################################################
+#                                DEBUG and logging                             #
+################################################################################
+
+# Set DEBUG_MODE to true if you want to run the flask app in debug mode.
+# In Production this should be set to False.
+DEBUG_MODE = False
+
+# If ASSETS_DEBUG True, Bundles will output their individual source files.
+# This will significantly slow down performance.
+ASSETS_DEBUG = False
+
+# Set this to false if you want to use DEBUG toolbar with a URL_PREFIX
+DEBUG_TB_INTERCEPT_REDIRECTS = False
+
+# Set the log level to increase or decrease the logging sensitivity.
+# You can set LOG_LEVEL (in decreasing sensitivity to):
+# 'DEBUG', 'INFO', 'WARNING', 'ERROR'
+LOG_LEVEL = 'DEBUG'
+
+# Set LOG_TO_FILE to True if vou want to log to the file
+# you specified in LOG_FILE
+LOG_TO_FILE = True
+LOG_FILE = 'hanfor.log'
+
+# Set PYCHARM_DEBUG to True to supresss the flask debugging so it
+# won't interfere with the pycharm debugger.
+PYCHARM_DEBUG = False
+
+################################################################################
+#                         App and web server section                           #
+################################################################################
+
+# If you are running the app with a url prefix set URL_PREFIX like
+# URL_PREFIX = '/hanfor'
+URL_PREFIX = ''
+
+# set a 'SECRET_KEY' to enable the Flask session cookies
+SECRET_KEY = 'somesecretkeythatisonlyknowntoyou'
+
+# Specify the PORT the app should be running at
+PORT = 5000
+
+# Set the host
+HOST = '127.0.0.1'
+
+
+################################################################################
+#                             Available patterns                               #
+################################################################################
+
+&quot;&quot;&quot; Add available pattern to the PATTERNS dict.
+* A single pattern should look like:
+'pattern_name': {
+    'pattern': 'if {R} then for {S} min nothing works.', # You can use [R, S, T, U]
+    'env': {  # The allowed types for the variables/expressions.
+              # Must cover all placeholders used in 'pattern'
+        'R': ['bool'],        # Must be a sublist of ['bool', 'int', 'real']
+        'S': ['int', 'real']  # Must be a sublist of ['bool', 'int', 'real']
+    },
+    'group': 'Your Group Name',  # Cluster the patterns in the hanfor frontend.
+                                 # Must be appear in config PATTERNS_GROUP_ORDER
+                                 # else it wont show up in the frontend.
+    'pattern_order': 3  # Place the pattern appears in the frontend within its group.
+}
+&quot;&quot;&quot;
+PATTERNS = {
+    'Response': {
+        'pattern': 'it is always the case that if {R} holds then {S} eventually holds',
+        'env': {
+            'R': ['bool'],
+            'S': ['bool'],
+        },
+        'group': 'Order',
+        'pattern_order': 0
+    },
+    'Absence': {
+        'pattern': 'it is never the case that {R} holds',
+        'env': {
+            'R': ['bool']
+        },
+        'group': 'Occurence',
+        'pattern_order': 4
+    },
+    'Toggle1': {
+        'pattern': 'it is always the case that if {R} holds then {S} toggles {T}',
+        'env': {
+            'R': ['bool'],
+            'S': ['bool'],
+            'T': ['bool']
+        },
+        'group': 'Real-time',
+        'pattern_order': 0
+    },
+}
+
+# Define the ordering for pattern grouping in the pattern selection of hanfors frontent.
+# All groups used in PATTERNS must be covered.
+PATTERNS_GROUP_ORDER = [
+    'Occurence',
+    'Order',
+    'Real-time'
+]
+</code></pre>
+
+<h2 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link"> #</a></h2>
 <p>To start a fresh session use</p>
 <pre><code class="bash">$ python app.py &lt;tag&gt; -c &lt;path_to_input_csv&gt;.csv
 </code></pre>
@@ -376,11 +507,10 @@
 <pre><code class="bash">$ python app.py &lt;tag&gt;
 </code></pre>
 
-<p>You can see all available tags using the ''-L'' switch:</p>
+<p>You can see all available tags using the <code>-L</code> switch:</p>
 <pre><code class="bash">$ python app.py -L
 </code></pre>
 
-<h2 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link"> #</a></h2>
 <p>The app will create a <em>session</em> naming it by the given <code>&lt;tag&gt;</code> argument.
 A session creation process has the following steps:</p>
 <ol>
@@ -394,8 +524,26 @@ A session creation process has the following steps:</p>
 </ul>
 </li>
 <li>Create a Hanfor-Requirement for each row in the csv and store it to the session folder.</li>
-<li>Provide the Web-interface on the port specified in config.py</li>
+<li>Serve the Web-interface on the port specified in config.py</li>
 </ol>
+<h2 id="reqanalyzer">ReqAnalyzer<a class="headerlink" href="#reqanalyzer" title="Permanent link"> #</a></h2>
+<p>With Hanfor you can formalize requirements and export them. 
+The ReqAnalyzer is a tool to analyze the formalized requirements and part of the released tools of <a href="https://github.com/ultimate-pa/ultimate">Ultimate</a>.</p>
+<h4 id="variant-1-use-the-latest-release">Variant 1: Use the latest release<a class="headerlink" href="#variant-1-use-the-latest-release" title="Permanent link"> #</a></h4>
+<ol>
+<li>Install <code>Java JRE (1.8)</code></li>
+</ol>
+<p>Download the latest <a href="https://github.com/ultimate-pa/ultimate/releases">Release</a>.
+The asset you need is called <code>UReqCheck-linux.zip</code>. </p>
+<h4 id="variant-2-build-the-latest-dev-version">Variant 2: Build the latest dev-version<a class="headerlink" href="#variant-2-build-the-latest-dev-version" title="Permanent link"> #</a></h4>
+<ol>
+<li>Install <code>Java JDK (1.8)</code> and <code>Maven (&gt;3.0)</code></li>
+<li>Clone the repository: <code>git clone https://github.com/ultimate-pa/ultimate</code>.</li>
+<li>Navigate to the release scripts <code>cd ultimate/releaseScripts/default</code></li>
+<li>Generate a fresh binary <code>./makeFresh.sh</code></li>
+</ol>
+<p>The binaries are located in <code>UReqCheck-linux</code>.</p>
+<p>In the <a href="/usage/workflow.html">Workflow</a> section we explain how to use the tool.</p>
                         
                     </div>
                 </div>
