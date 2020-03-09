@@ -29,6 +29,7 @@ If you have open questions or any kind of feedback/suggestions feel free to cont
 	* [Workflow](usage/workflow.md "Workflow")
   * References
 	* [Duration Calculus](references/duration_calculus.md "Duration Calculus")
+	* [Phase Event Automata](references/pea.md "Phase Event Automata")
 	* [Patterns](references/patterns.md "Patterns")
 	* [Publications](references/publications.md "Publications")
   * Contribute
