@@ -48,6 +48,7 @@ Counterexample: true;⌈Q⌉;true;⌈!R⌉;true
 | Positive example | Negative example |
 | --- | --- |
 | ![](../img/failure_paths/UniversalityPattern_After_0.svg) | |
+| ![](../img/failure_paths/UniversalityPattern_After_1.svg) | |
 
 
 ### UniversalityPattern Between
@@ -75,4 +76,5 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;true
 | Positive example | Negative example |
 | --- | --- |
 | ![](../img/failure_paths/UniversalityPattern_AfterUntil_0.svg) | |
+| ![](../img/failure_paths/UniversalityPattern_AfterUntil_1.svg) | |
 

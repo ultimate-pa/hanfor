@@ -16,4 +16,6 @@ Counterexample: true;⌈R⌉;⌈true⌉ ∧ ℓ ≤ 5;⌈Q⌉ ∧ ℓ < 10;⌈!Q
 | Positive example | Negative example |
 | --- | --- |
 | ![](../img/failure_paths/BndDelayedResponsePatternUT_Globally_0.svg) | |
+| ![](../img/failure_paths/BndDelayedResponsePatternUT_Globally_1.svg) | |
+| ![](../img/failure_paths/BndDelayedResponsePatternUT_Globally_2.svg) | |
 

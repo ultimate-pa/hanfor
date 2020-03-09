@@ -48,6 +48,7 @@ Counterexample: true;⌈Q⌉;true;⌈!R⌉ ∧ ℓ > 5;true
 | Positive example | Negative example |
 | --- | --- |
 | ![](../img/failure_paths/BndRecurrencePattern_After_0.svg) | |
+| ![](../img/failure_paths/BndRecurrencePattern_After_1.svg) | |
 
 
 ### BndRecurrencePattern Between
@@ -75,4 +76,5 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;true
 | Positive example | Negative example |
 | --- | --- |
 | ![](../img/failure_paths/BndRecurrencePattern_AfterUntil_0.svg) | |
+| ![](../img/failure_paths/BndRecurrencePattern_AfterUntil_1.svg) | |
 

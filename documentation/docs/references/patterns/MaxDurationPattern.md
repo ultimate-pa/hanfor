@@ -48,6 +48,7 @@ Counterexample: true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ ≥ 5;true
 | Positive example | Negative example |
 | --- | --- |
 | ![](../img/failure_paths/MaxDurationPattern_After_0.svg) | |
+| ![](../img/failure_paths/MaxDurationPattern_After_1.svg) | |
 
 
 ### MaxDurationPattern Between
@@ -75,4 +76,5 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉ ∧ ℓ ≥ 5;true
 | Positive example | Negative example |
 | --- | --- |
 | ![](../img/failure_paths/MaxDurationPattern_AfterUntil_0.svg) | |
+| ![](../img/failure_paths/MaxDurationPattern_AfterUntil_1.svg) | |
 

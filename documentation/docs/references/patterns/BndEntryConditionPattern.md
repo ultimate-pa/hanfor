@@ -48,6 +48,7 @@ Counterexample: true;⌈Q⌉;true;⌈S⌉ ∧ ℓ ≥ 5;⌈!R⌉;true
 | Positive example | Negative example |
 | --- | --- |
 | ![](../img/failure_paths/BndEntryConditionPattern_After_0.svg) | |
+| ![](../img/failure_paths/BndEntryConditionPattern_After_1.svg) | |
 
 
 ### BndEntryConditionPattern Between
@@ -75,4 +76,5 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉ ∧ ℓ ≥ 5;⌈(
 | Positive example | Negative example |
 | --- | --- |
 | ![](../img/failure_paths/BndEntryConditionPattern_AfterUntil_0.svg) | |
+| ![](../img/failure_paths/BndEntryConditionPattern_AfterUntil_1.svg) | |
 

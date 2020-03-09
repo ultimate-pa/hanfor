@@ -16,6 +16,7 @@ Counterexample: true;⌈R⌉;⌈true⌉ ∧ ℓ < 5;⌈!Q⌉;true
 | Positive example | Negative example |
 | --- | --- |
 | ![](../img/failure_paths/BndInvariancePattern_Globally_0.svg) | |
+| ![](../img/failure_paths/BndInvariancePattern_Globally_1.svg) | |
 
 
 ### BndInvariancePattern Before
@@ -32,6 +33,7 @@ Counterexample: ⌈!Q⌉;⌈(!Q && S)⌉;⌈!Q⌉ ∧ ℓ < 5;⌈(!Q && !R)⌉;t
 | Positive example | Negative example |
 | --- | --- |
 | ![](../img/failure_paths/BndInvariancePattern_Before_0.svg) | |
+| ![](../img/failure_paths/BndInvariancePattern_Before_1.svg) | |
 
 
 ### BndInvariancePattern After
@@ -48,6 +50,9 @@ Counterexample: true;⌈Q⌉;true;⌈S⌉;⌈true⌉ ∧ ℓ < 5;⌈!R⌉;true
 | Positive example | Negative example |
 | --- | --- |
 | ![](../img/failure_paths/BndInvariancePattern_After_0.svg) | |
+| ![](../img/failure_paths/BndInvariancePattern_After_1.svg) | |
+| ![](../img/failure_paths/BndInvariancePattern_After_2.svg) | |
+| ![](../img/failure_paths/BndInvariancePattern_After_3.svg) | |
 
 
 ### BndInvariancePattern Between
@@ -75,4 +80,7 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉;⌈!R⌉ ∧ ℓ <
 | Positive example | Negative example |
 | --- | --- |
 | ![](../img/failure_paths/BndInvariancePattern_AfterUntil_0.svg) | |
+| ![](../img/failure_paths/BndInvariancePattern_AfterUntil_1.svg) | |
+| ![](../img/failure_paths/BndInvariancePattern_AfterUntil_2.svg) | |
+| ![](../img/failure_paths/BndInvariancePattern_AfterUntil_3.svg) | |
 
