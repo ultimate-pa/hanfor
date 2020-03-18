@@ -15,14 +15,14 @@ Counterexample: ⌈!Q⌉;⌈(!Q && U)⌉;⌈!Q⌉;⌈(!Q && T)⌉;⌈!Q⌉;⌈(!
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/ResponseChain21Pattern_Before_0.svg) | |
-| ![](../img/failure_paths/ResponseChain21Pattern_Before_1.svg) | |
-| ![](../img/failure_paths/ResponseChain21Pattern_Before_2.svg) | |
-| ![](../img/failure_paths/ResponseChain21Pattern_Before_3.svg) | |
-| ![](../img/failure_paths/ResponseChain21Pattern_Before_4.svg) | |
-| ![](../img/failure_paths/ResponseChain21Pattern_Before_5.svg) | |
-| ![](../img/failure_paths/ResponseChain21Pattern_Before_6.svg) | |
-| ![](../img/failure_paths/ResponseChain21Pattern_Before_7.svg) | |
+| ![](../img/failure_paths/positive/ResponseChain21Pattern_Before_0.svg) |  |
+| ![](../img/failure_paths/positive/ResponseChain21Pattern_Before_1.svg) |  |
+| ![](../img/failure_paths/positive/ResponseChain21Pattern_Before_2.svg) |  |
+| ![](../img/failure_paths/positive/ResponseChain21Pattern_Before_3.svg) |  |
+| ![](../img/failure_paths/positive/ResponseChain21Pattern_Before_4.svg) |  |
+| ![](../img/failure_paths/positive/ResponseChain21Pattern_Before_5.svg) |  |
+| ![](../img/failure_paths/positive/ResponseChain21Pattern_Before_6.svg) |  |
+| ![](../img/failure_paths/positive/ResponseChain21Pattern_Before_7.svg) |  |
 
 
 ### ResponseChain21Pattern Between

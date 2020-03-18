@@ -48,11 +48,11 @@ Counterexample: ⌈!U⌉;⌈(Q && (!R && !U))⌉;⌈(!R && !U)⌉;⌈(!R && (T &
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/PrecedenceChain12Pattern_Between_0.svg) | |
-| ![](../img/failure_paths/PrecedenceChain12Pattern_Between_1.svg) | |
-| ![](../img/failure_paths/PrecedenceChain12Pattern_Between_2.svg) | |
-| ![](../img/failure_paths/PrecedenceChain12Pattern_Between_3.svg) | |
-| ![](../img/failure_paths/PrecedenceChain12Pattern_Between_4.svg) | |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_0.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_1.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_2.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_3.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_4.svg) |  |
 
 
 ### PrecedenceChain12Pattern AfterUntil

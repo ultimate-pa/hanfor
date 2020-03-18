@@ -15,7 +15,8 @@ Counterexample: true;⌈!Q⌉;true
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/UniversalityPattern_Globally_0.svg) | |
+| ![](../img/failure_paths/positive/UniversalityPattern_Globally_0.svg) | ![](../img/failure_paths/negative/UniversalityPattern_Globally_0.svg) |
+|  | ![](../img/failure_paths/negative/UniversalityPattern_Globally_1.svg) |
 
 
 ### UniversalityPattern Before
@@ -31,7 +32,7 @@ Counterexample: ⌈!Q⌉;⌈(!Q && !R)⌉;true
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/UniversalityPattern_Before_0.svg) | |
+| ![](../img/failure_paths/positive/UniversalityPattern_Before_0.svg) | ![](../img/failure_paths/negative/UniversalityPattern_Before_0.svg) |
 
 
 ### UniversalityPattern After
@@ -47,8 +48,8 @@ Counterexample: true;⌈Q⌉;true;⌈!R⌉;true
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/UniversalityPattern_After_0.svg) | |
-| ![](../img/failure_paths/UniversalityPattern_After_1.svg) | |
+| ![](../img/failure_paths/positive/UniversalityPattern_After_0.svg) | ![](../img/failure_paths/negative/UniversalityPattern_After_0.svg) |
+| ![](../img/failure_paths/positive/UniversalityPattern_After_1.svg) |  |
 
 
 ### UniversalityPattern Between
@@ -60,6 +61,11 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈!R⌉;⌈R⌉;
 ```
 
 ![](../img/patterns/UniversalityPattern_Between.svg)
+
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/UniversalityPattern_Between_0.svg) |
 
 
 ### UniversalityPattern AfterUntil
@@ -75,6 +81,6 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;true
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/UniversalityPattern_AfterUntil_0.svg) | |
-| ![](../img/failure_paths/UniversalityPattern_AfterUntil_1.svg) | |
+| ![](../img/failure_paths/positive/UniversalityPattern_AfterUntil_0.svg) | ![](../img/failure_paths/negative/UniversalityPattern_AfterUntil_0.svg) |
+| ![](../img/failure_paths/positive/UniversalityPattern_AfterUntil_1.svg) |  |
 

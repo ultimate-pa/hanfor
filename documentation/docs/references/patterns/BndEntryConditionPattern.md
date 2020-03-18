@@ -15,7 +15,7 @@ Counterexample: true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/BndEntryConditionPattern_Globally_0.svg) | |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_Globally_0.svg) |  |
 
 
 ### BndEntryConditionPattern Before
@@ -31,7 +31,7 @@ Counterexample: ⌈!Q⌉;⌈(!Q && S)⌉ ∧ ℓ ≥ 5;⌈(!Q && !R)⌉;true
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/BndEntryConditionPattern_Before_0.svg) | |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_Before_0.svg) |  |
 
 
 ### BndEntryConditionPattern After
@@ -47,8 +47,8 @@ Counterexample: true;⌈Q⌉;true;⌈S⌉ ∧ ℓ ≥ 5;⌈!R⌉;true
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/BndEntryConditionPattern_After_0.svg) | |
-| ![](../img/failure_paths/BndEntryConditionPattern_After_1.svg) | |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_After_0.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_After_1.svg) |  |
 
 
 ### BndEntryConditionPattern Between
@@ -75,6 +75,6 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉ ∧ ℓ ≥ 5;⌈(
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/BndEntryConditionPattern_AfterUntil_0.svg) | |
-| ![](../img/failure_paths/BndEntryConditionPattern_AfterUntil_1.svg) | |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_AfterUntil_0.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_AfterUntil_1.svg) |  |
 
