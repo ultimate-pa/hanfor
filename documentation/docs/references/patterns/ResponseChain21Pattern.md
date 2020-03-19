@@ -12,6 +12,11 @@ Counterexample: ⌈!Q⌉;⌈(!Q && U)⌉;⌈!Q⌉;⌈(!Q && T)⌉;⌈!Q⌉;⌈(!
 
 ![](../img/patterns/ResponseChain21Pattern_Before.svg)
 
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/ResponseChain21Pattern_Before_0.svg) |
+
 
 ### ResponseChain21Pattern Between
 ```
@@ -22,4 +27,9 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && V)⌉;⌈!R⌉;⌈(!R &&
 ```
 
 ![](../img/patterns/ResponseChain21Pattern_Between.svg)
+
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/ResponseChain21Pattern_Between_0.svg) |
 
