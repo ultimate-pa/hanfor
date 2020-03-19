@@ -12,3 +12,9 @@ Counterexample: true;⌈Q⌉ ∧ ℓ ≥ 5;⌈(Q && (R && !S))⌉;true
 
 ![](../img/patterns/BndTriggeredEntryConditionPattern_Globally.svg)
 
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/BndTriggeredEntryConditionPattern_Globally_0.svg) |
+|  | ![](../img/failure_paths/negative/BndTriggeredEntryConditionPattern_Globally_1.svg) |
+
