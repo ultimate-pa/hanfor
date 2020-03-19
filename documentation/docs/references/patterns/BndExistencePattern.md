@@ -12,6 +12,11 @@ Counterexample: true;⌈Q⌉;⌈!Q⌉;⌈Q⌉;⌈!Q⌉;⌈Q⌉;true
 
 ![](../img/patterns/BndExistencePattern_Globally.svg)
 
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/BndExistencePattern_Globally_0.svg) |
+
 
 ### BndExistencePattern Before
 ```
@@ -22,6 +27,11 @@ Counterexample: ⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;⌈(!Q
 ```
 
 ![](../img/patterns/BndExistencePattern_Before.svg)
+
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/BndExistencePattern_Before_0.svg) |
 
 
 ### BndExistencePattern After
@@ -34,6 +44,11 @@ Counterexample: true;⌈Q⌉;true;⌈R⌉;⌈!R⌉;⌈R⌉;⌈!R⌉;⌈R⌉;true
 
 ![](../img/patterns/BndExistencePattern_After.svg)
 
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/BndExistencePattern_After_0.svg) |
+
 
 ### BndExistencePattern Between
 ```
@@ -45,6 +60,11 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;�
 
 ![](../img/patterns/BndExistencePattern_Between.svg)
 
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/BndExistencePattern_Between_0.svg) |
+
 
 ### BndExistencePattern AfterUntil
 ```
@@ -55,4 +75,9 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;�
 ```
 
 ![](../img/patterns/BndExistencePattern_AfterUntil.svg)
+
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/BndExistencePattern_AfterUntil_0.svg) |
 
