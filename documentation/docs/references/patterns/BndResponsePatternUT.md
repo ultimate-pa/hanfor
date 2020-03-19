@@ -12,6 +12,11 @@ Counterexample: true;⌈(!Q && R)⌉;⌈!Q⌉ ∧ ℓ > 5;true
 
 ![](../img/patterns/BndResponsePatternUT_Globally.svg)
 
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/BndResponsePatternUT_Globally_0.svg) |
+
 
 ### BndResponsePatternUT Before
 ```
@@ -22,6 +27,11 @@ Counterexample: ⌈!Q⌉;⌈(!Q && (!R && S))⌉;⌈(!Q && !R)⌉ ∧ ℓ > 5;tr
 ```
 
 ![](../img/patterns/BndResponsePatternUT_Before.svg)
+
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/BndResponsePatternUT_Before_0.svg) |
 
 
 ### BndResponsePatternUT After
@@ -34,6 +44,11 @@ Counterexample: true;⌈Q⌉;true;⌈(!R && S)⌉;⌈!R⌉ ∧ ℓ > 5;true
 
 ![](../img/patterns/BndResponsePatternUT_After.svg)
 
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/BndResponsePatternUT_After_0.svg) |
+
 
 ### BndResponsePatternUT Between
 ```
@@ -45,6 +60,11 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && 
 
 ![](../img/patterns/BndResponsePatternUT_Between.svg)
 
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/BndResponsePatternUT_Between_0.svg) |
+
 
 ### BndResponsePatternUT AfterUntil
 ```
@@ -55,4 +75,9 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && 
 ```
 
 ![](../img/patterns/BndResponsePatternUT_AfterUntil.svg)
+
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/BndResponsePatternUT_AfterUntil_0.svg) |
 
