@@ -15,7 +15,7 @@ Counterexample: true;⌈R⌉;⌈true⌉ ∧ ℓ ≤ 5;⌈Q⌉ ∧ ℓ < 10;⌈!Q
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_0.svg) |  |
-| ![](../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_1.svg) |  |
+| ![](../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_0.svg) | ![](../img/failure_paths/negative/BndDelayedResponsePatternUT_Globally_0.svg) |
+| ![](../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_1.svg) | ![](../img/failure_paths/negative/BndDelayedResponsePatternUT_Globally_1.svg) |
 | ![](../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_2.svg) |  |
 
