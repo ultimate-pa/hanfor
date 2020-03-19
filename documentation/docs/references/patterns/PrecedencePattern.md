@@ -12,6 +12,12 @@ Counterexample: ⌈!Q⌉;⌈R⌉;true
 
 ![](../img/patterns/PrecedencePattern_Globally.svg)
 
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/PrecedencePattern_Globally_0.svg) |
+|  | ![](../img/failure_paths/negative/PrecedencePattern_Globally_1.svg) |
+
 
 ### PrecedencePattern Before
 ```
@@ -22,6 +28,11 @@ Counterexample: ⌈(!Q && !R)⌉;⌈(!Q && S)⌉;true
 ```
 
 ![](../img/patterns/PrecedencePattern_Before.svg)
+
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/PrecedencePattern_Before_0.svg) |
 
 
 ### PrecedencePattern After
@@ -34,6 +45,11 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈S⌉;true
 
 ![](../img/patterns/PrecedencePattern_After.svg)
 
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/PrecedencePattern_After_0.svg) |
+
 
 ### PrecedencePattern Between
 ```
@@ -45,6 +61,11 @@ Counterexample: true;⌈(Q && (!R && !S))⌉;⌈(!R && !S)⌉;⌈(!R && T)⌉;�
 
 ![](../img/patterns/PrecedencePattern_Between.svg)
 
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/PrecedencePattern_Between_0.svg) |
+
 
 ### PrecedencePattern AfterUntil
 ```
@@ -55,4 +76,9 @@ Counterexample: true;⌈(Q && (!R && !S))⌉;⌈(!R && !S)⌉;⌈(!R && T)⌉;tr
 ```
 
 ![](../img/patterns/PrecedencePattern_AfterUntil.svg)
+
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/PrecedencePattern_AfterUntil_0.svg) |
 
