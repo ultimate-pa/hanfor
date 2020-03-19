@@ -12,6 +12,12 @@ Counterexample: true;⌈Q⌉;true
 
 ![](../img/patterns/InstAbsPattern_Globally.svg)
 
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/InstAbsPattern_Globally_0.svg) |
+|  | ![](../img/failure_paths/negative/InstAbsPattern_Globally_1.svg) |
+
 
 ### InstAbsPattern After
 ```
@@ -22,6 +28,12 @@ Counterexample: true;⌈Q⌉;true;⌈R⌉;true
 ```
 
 ![](../img/patterns/InstAbsPattern_After.svg)
+
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/InstAbsPattern_After_0.svg) |
+|  | ![](../img/failure_paths/negative/InstAbsPattern_After_1.svg) |
 
 
 ### InstAbsPattern Between
@@ -37,7 +49,7 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;⌈!R⌉;⌈R⌉;t
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/positive/InstAbsPattern_Between_0.svg) |  |
+| ![](../img/failure_paths/positive/InstAbsPattern_Between_0.svg) | ![](../img/failure_paths/negative/InstAbsPattern_Between_0.svg) |
 | ![](../img/failure_paths/positive/InstAbsPattern_Between_1.svg) |  |
 
 
@@ -50,4 +62,9 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;true
 ```
 
 ![](../img/patterns/InstAbsPattern_AfterUntil.svg)
+
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/InstAbsPattern_AfterUntil_0.svg) |
 
