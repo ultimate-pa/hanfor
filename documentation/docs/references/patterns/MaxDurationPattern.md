@@ -15,7 +15,7 @@ Counterexample: true;⌈Q⌉ ∧ ℓ ≥ 5;true
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/positive/MaxDurationPattern_Globally_0.svg) |  |
+| ![](../img/failure_paths/positive/MaxDurationPattern_Globally_0.svg) | ![](../img/failure_paths/negative/MaxDurationPattern_Globally_0.svg) |
 
 
 ### MaxDurationPattern Before
@@ -31,7 +31,7 @@ Counterexample: ⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ 5;true
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/positive/MaxDurationPattern_Before_0.svg) |  |
+| ![](../img/failure_paths/positive/MaxDurationPattern_Before_0.svg) | ![](../img/failure_paths/negative/MaxDurationPattern_Before_0.svg) |
 
 
 ### MaxDurationPattern After
@@ -47,7 +47,7 @@ Counterexample: true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ ≥ 5;true
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/positive/MaxDurationPattern_After_0.svg) |  |
+| ![](../img/failure_paths/positive/MaxDurationPattern_After_0.svg) | ![](../img/failure_paths/negative/MaxDurationPattern_After_0.svg) |
 | ![](../img/failure_paths/positive/MaxDurationPattern_After_1.svg) |  |
 
 
@@ -60,6 +60,11 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉ ∧ ℓ ≥ 5;⌈!
 ```
 
 ![](../img/patterns/MaxDurationPattern_Between.svg)
+
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/MaxDurationPattern_Between_0.svg) |
 
 
 ### MaxDurationPattern AfterUntil
@@ -75,6 +80,6 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉ ∧ ℓ ≥ 5;true
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/positive/MaxDurationPattern_AfterUntil_0.svg) |  |
+| ![](../img/failure_paths/positive/MaxDurationPattern_AfterUntil_0.svg) | ![](../img/failure_paths/negative/MaxDurationPattern_AfterUntil_0.svg) |
 | ![](../img/failure_paths/positive/MaxDurationPattern_AfterUntil_1.svg) |  |
 
