@@ -15,7 +15,7 @@ Counterexample: true;⌈R⌉;⌈true⌉ ∧ ℓ < 5;⌈!Q⌉;true
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/positive/BndInvariancePattern_Globally_0.svg) |  |
+| ![](../img/failure_paths/positive/BndInvariancePattern_Globally_0.svg) | ![](../img/failure_paths/negative/BndInvariancePattern_Globally_0.svg) |
 | ![](../img/failure_paths/positive/BndInvariancePattern_Globally_1.svg) |  |
 
 
@@ -32,7 +32,7 @@ Counterexample: ⌈!Q⌉;⌈(!Q && S)⌉;⌈!Q⌉ ∧ ℓ < 5;⌈(!Q && !R)⌉;t
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/positive/BndInvariancePattern_Before_0.svg) |  |
+| ![](../img/failure_paths/positive/BndInvariancePattern_Before_0.svg) | ![](../img/failure_paths/negative/BndInvariancePattern_Before_0.svg) |
 | ![](../img/failure_paths/positive/BndInvariancePattern_Before_1.svg) |  |
 
 
@@ -49,7 +49,7 @@ Counterexample: true;⌈Q⌉;true;⌈S⌉;⌈true⌉ ∧ ℓ < 5;⌈!R⌉;true
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/positive/BndInvariancePattern_After_0.svg) |  |
+| ![](../img/failure_paths/positive/BndInvariancePattern_After_0.svg) | ![](../img/failure_paths/negative/BndInvariancePattern_After_0.svg) |
 | ![](../img/failure_paths/positive/BndInvariancePattern_After_1.svg) |  |
 | ![](../img/failure_paths/positive/BndInvariancePattern_After_2.svg) |  |
 | ![](../img/failure_paths/positive/BndInvariancePattern_After_3.svg) |  |
@@ -65,6 +65,11 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉;⌈!R⌉ ∧ ℓ <
 
 ![](../img/patterns/BndInvariancePattern_Between.svg)
 
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/BndInvariancePattern_Between_0.svg) |
+
 
 ### BndInvariancePattern AfterUntil
 ```
@@ -79,7 +84,7 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉;⌈!R⌉ ∧ ℓ <
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/positive/BndInvariancePattern_AfterUntil_0.svg) |  |
+| ![](../img/failure_paths/positive/BndInvariancePattern_AfterUntil_0.svg) | ![](../img/failure_paths/negative/BndInvariancePattern_AfterUntil_0.svg) |
 | ![](../img/failure_paths/positive/BndInvariancePattern_AfterUntil_1.svg) |  |
 | ![](../img/failure_paths/positive/BndInvariancePattern_AfterUntil_2.svg) |  |
 | ![](../img/failure_paths/positive/BndInvariancePattern_AfterUntil_3.svg) |  |
