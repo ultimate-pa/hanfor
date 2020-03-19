@@ -12,6 +12,11 @@ Counterexample: true;⌈!Q⌉;⌈Q⌉ ∧ ℓ < 5;⌈!Q⌉;true
 
 ![](../img/patterns/MinDurationPattern_Globally.svg)
 
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/MinDurationPattern_Globally_0.svg) |
+
 
 ### MinDurationPattern Before
 ```
@@ -22,6 +27,11 @@ Counterexample: ⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ < 5;⌈(!Q && 
 ```
 
 ![](../img/patterns/MinDurationPattern_Before.svg)
+
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/MinDurationPattern_Before_0.svg) |
 
 
 ### MinDurationPattern After
@@ -34,6 +44,11 @@ Counterexample: true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ < 5;⌈!R⌉;true
 
 ![](../img/patterns/MinDurationPattern_After.svg)
 
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/MinDurationPattern_After_0.svg) |
+
 
 ### MinDurationPattern Between
 ```
@@ -45,6 +60,11 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉ �
 
 ![](../img/patterns/MinDurationPattern_Between.svg)
 
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/MinDurationPattern_Between_0.svg) |
+
 
 ### MinDurationPattern AfterUntil
 ```
@@ -55,4 +75,9 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉ �
 ```
 
 ![](../img/patterns/MinDurationPattern_AfterUntil.svg)
+
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/MinDurationPattern_AfterUntil_0.svg) |
 
