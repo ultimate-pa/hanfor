@@ -12,11 +12,6 @@ Counterexample: true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true
 
 ![](../img/patterns/BndEntryConditionPattern_Globally.svg)
 
-<div class="pattern-examples"></div>
-| Positive example | Negative example |
-| --- | --- |
-| ![](../img/failure_paths/positive/BndEntryConditionPattern_Globally_0.svg) |  |
-
 
 ### BndEntryConditionPattern Before
 ```
@@ -43,12 +38,6 @@ Counterexample: true;⌈Q⌉;true;⌈S⌉ ∧ ℓ ≥ 5;⌈!R⌉;true
 ```
 
 ![](../img/patterns/BndEntryConditionPattern_After.svg)
-
-<div class="pattern-examples"></div>
-| Positive example | Negative example |
-| --- | --- |
-| ![](../img/failure_paths/positive/BndEntryConditionPattern_After_0.svg) |  |
-| ![](../img/failure_paths/positive/BndEntryConditionPattern_After_1.svg) |  |
 
 
 ### BndEntryConditionPattern Between
