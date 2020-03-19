@@ -15,7 +15,7 @@ Counterexample: true;⌈!Q⌉ ∧ ℓ > 5;true
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/positive/BndRecurrencePattern_Globally_0.svg) |  |
+| ![](../img/failure_paths/positive/BndRecurrencePattern_Globally_0.svg) | ![](../img/failure_paths/negative/BndRecurrencePattern_Globally_0.svg) |
 
 
 ### BndRecurrencePattern Before
@@ -31,7 +31,7 @@ Counterexample: ⌈!Q⌉;⌈(!Q && !R)⌉ ∧ ℓ > 5;true
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/positive/BndRecurrencePattern_Before_0.svg) |  |
+| ![](../img/failure_paths/positive/BndRecurrencePattern_Before_0.svg) | ![](../img/failure_paths/negative/BndRecurrencePattern_Before_0.svg) |
 
 
 ### BndRecurrencePattern After
@@ -47,7 +47,7 @@ Counterexample: true;⌈Q⌉;true;⌈!R⌉ ∧ ℓ > 5;true
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/positive/BndRecurrencePattern_After_0.svg) |  |
+| ![](../img/failure_paths/positive/BndRecurrencePattern_After_0.svg) | ![](../img/failure_paths/negative/BndRecurrencePattern_After_0.svg) |
 | ![](../img/failure_paths/positive/BndRecurrencePattern_After_1.svg) |  |
 
 
@@ -60,6 +60,11 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;⌈!R
 ```
 
 ![](../img/patterns/BndRecurrencePattern_Between.svg)
+
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/BndRecurrencePattern_Between_0.svg) |
 
 
 ### BndRecurrencePattern AfterUntil
@@ -75,6 +80,6 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;true
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/positive/BndRecurrencePattern_AfterUntil_0.svg) |  |
+| ![](../img/failure_paths/positive/BndRecurrencePattern_AfterUntil_0.svg) | ![](../img/failure_paths/negative/BndRecurrencePattern_AfterUntil_0.svg) |
 | ![](../img/failure_paths/positive/BndRecurrencePattern_AfterUntil_1.svg) |  |
 
