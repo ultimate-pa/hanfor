@@ -12,6 +12,12 @@ Counterexample: true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true
 
 ![](../img/patterns/BndEntryConditionPattern_Globally.svg)
 
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/BndEntryConditionPattern_Globally_0.svg) |
+|  | ![](../img/failure_paths/negative/BndEntryConditionPattern_Globally_1.svg) |
+
 
 ### BndEntryConditionPattern Before
 ```
@@ -26,7 +32,7 @@ Counterexample: ⌈!Q⌉;⌈(!Q && S)⌉ ∧ ℓ ≥ 5;⌈(!Q && !R)⌉;true
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/positive/BndEntryConditionPattern_Before_0.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_Before_0.svg) | ![](../img/failure_paths/negative/BndEntryConditionPattern_Before_0.svg) |
 
 
 ### BndEntryConditionPattern After
@@ -39,6 +45,11 @@ Counterexample: true;⌈Q⌉;true;⌈S⌉ ∧ ℓ ≥ 5;⌈!R⌉;true
 
 ![](../img/patterns/BndEntryConditionPattern_After.svg)
 
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/BndEntryConditionPattern_After_0.svg) |
+
 
 ### BndEntryConditionPattern Between
 ```
@@ -49,6 +60,11 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉ ∧ ℓ ≥ 5;⌈(
 ```
 
 ![](../img/patterns/BndEntryConditionPattern_Between.svg)
+
+<div class="pattern-examples"></div>
+| Positive example | Negative example |
+| --- | --- |
+|  | ![](../img/failure_paths/negative/BndEntryConditionPattern_Between_0.svg) |
 
 
 ### BndEntryConditionPattern AfterUntil
@@ -64,6 +80,6 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉ ∧ ℓ ≥ 5;⌈(
 <div class="pattern-examples"></div>
 | Positive example | Negative example |
 | --- | --- |
-| ![](../img/failure_paths/positive/BndEntryConditionPattern_AfterUntil_0.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_AfterUntil_0.svg) | ![](../img/failure_paths/negative/BndEntryConditionPattern_AfterUntil_0.svg) |
 | ![](../img/failure_paths/positive/BndEntryConditionPattern_AfterUntil_1.svg) |  |
 
