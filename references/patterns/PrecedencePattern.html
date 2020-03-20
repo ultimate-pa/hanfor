@@ -145,7 +145,7 @@
 <pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; previously held
 </code></pre>
 
-<pre><code>Counterexample: ⌈!Q⌉;⌈R⌉;true
+<pre><code>Countertraces: ⌈!Q⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedencePattern_Globally.svg"><img alt="" src="../img/patterns/PrecedencePattern_Globally.svg" /></a><figcaption></figcaption>
@@ -155,8 +155,8 @@
 <table>
 <thead>
 <tr>
-<th>Positive example</th>
-<th>Negative example</th>
+<th>Positive Example</th>
+<th>Negative Example</th>
 </tr>
 </thead>
 <tbody>
@@ -174,7 +174,7 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; previously held
 </code></pre>
 
-<pre><code>Counterexample: ⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; S)⌉;true
+<pre><code>Countertraces: ⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; S)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedencePattern_Before.svg"><img alt="" src="../img/patterns/PrecedencePattern_Before.svg" /></a><figcaption></figcaption>
@@ -184,8 +184,8 @@
 <table>
 <thead>
 <tr>
-<th>Positive example</th>
-<th>Negative example</th>
+<th>Positive Example</th>
+<th>Negative Example</th>
 </tr>
 </thead>
 <tbody>
@@ -199,7 +199,7 @@
 <pre><code>After &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; previously held
 </code></pre>
 
-<pre><code>Counterexample: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈S⌉;true
+<pre><code>Countertraces: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈S⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedencePattern_After.svg"><img alt="" src="../img/patterns/PrecedencePattern_After.svg" /></a><figcaption></figcaption>
@@ -209,8 +209,8 @@
 <table>
 <thead>
 <tr>
-<th>Positive example</th>
-<th>Negative example</th>
+<th>Positive Example</th>
+<th>Negative Example</th>
 </tr>
 </thead>
 <tbody>
@@ -224,7 +224,7 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; previously held
 </code></pre>
 
-<pre><code>Counterexample: true;⌈(Q &amp;&amp; (!R &amp;&amp; !S))⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; T)⌉;⌈!R⌉;⌈R⌉;true
+<pre><code>Countertraces: true;⌈(Q &amp;&amp; (!R &amp;&amp; !S))⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; T)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedencePattern_Between.svg"><img alt="" src="../img/patterns/PrecedencePattern_Between.svg" /></a><figcaption></figcaption>
@@ -234,8 +234,8 @@
 <table>
 <thead>
 <tr>
-<th>Positive example</th>
-<th>Negative example</th>
+<th>Positive Example</th>
+<th>Negative Example</th>
 </tr>
 </thead>
 <tbody>
@@ -249,7 +249,7 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; previously held
 </code></pre>
 
-<pre><code>Counterexample: true;⌈(Q &amp;&amp; (!R &amp;&amp; !S))⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; T)⌉;true
+<pre><code>Countertraces: true;⌈(Q &amp;&amp; (!R &amp;&amp; !S))⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; T)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedencePattern_AfterUntil.svg"><img alt="" src="../img/patterns/PrecedencePattern_AfterUntil.svg" /></a><figcaption></figcaption>
@@ -259,8 +259,8 @@
 <table>
 <thead>
 <tr>
-<th>Positive example</th>
-<th>Negative example</th>
+<th>Positive Example</th>
+<th>Negative Example</th>
 </tr>
 </thead>
 <tbody>

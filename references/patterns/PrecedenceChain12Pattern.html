@@ -145,7 +145,7 @@
 <pre><code>Globally, it is always the case that if &quot;S&quot; holds and is succeeded by &quot;R&quot;, then &quot;Q&quot; previously held
 </code></pre>
 
-<pre><code>Counterexample: ⌈!S⌉;⌈R⌉;true;⌈Q⌉;true
+<pre><code>Countertraces: ⌈!S⌉;⌈R⌉;true;⌈Q⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_Globally.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_Globally.svg" /></a><figcaption></figcaption>
@@ -154,7 +154,7 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that if &quot;T&quot; holds and is succeeded by &quot;S&quot;, then &quot;R&quot; previously held
 </code></pre>
 
-<pre><code>Counterexample: ⌈(!Q &amp;&amp; !T)⌉;⌈(!Q &amp;&amp; (S &amp;&amp; !T))⌉;⌈!Q⌉;⌈(!Q &amp;&amp; R)⌉;true
+<pre><code>Countertraces: ⌈(!Q &amp;&amp; !T)⌉;⌈(!Q &amp;&amp; (S &amp;&amp; !T))⌉;⌈!Q⌉;⌈(!Q &amp;&amp; R)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_Before.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_Before.svg" /></a><figcaption></figcaption>
@@ -163,7 +163,7 @@
 <pre><code>After &quot;Q&quot;, it is always the case that if &quot;T&quot; holds and is succeeded by &quot;S&quot;, then &quot;R&quot; previously held
 </code></pre>
 
-<pre><code>Counterexample: ⌈!T⌉;⌈(Q &amp;&amp; !T)⌉;⌈!T⌉;⌈(S &amp;&amp; !T)⌉;true;⌈R⌉;true
+<pre><code>Countertraces: ⌈!T⌉;⌈(Q &amp;&amp; !T)⌉;⌈!T⌉;⌈(S &amp;&amp; !T)⌉;true;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_After.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_After.svg" /></a><figcaption></figcaption>
@@ -172,7 +172,7 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;U&quot; holds and is succeeded by &quot;T&quot;, then &quot;S&quot; previously held
 </code></pre>
 
-<pre><code>Counterexample: ⌈!U⌉;⌈(Q &amp;&amp; (!R &amp;&amp; !U))⌉;⌈(!R &amp;&amp; !U)⌉;⌈(!R &amp;&amp; (T &amp;&amp; !U))⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;⌈R⌉;true
+<pre><code>Countertraces: ⌈!U⌉;⌈(Q &amp;&amp; (!R &amp;&amp; !U))⌉;⌈(!R &amp;&amp; !U)⌉;⌈(!R &amp;&amp; (T &amp;&amp; !U))⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_Between.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_Between.svg" /></a><figcaption></figcaption>
@@ -182,8 +182,8 @@
 <table>
 <thead>
 <tr>
-<th>Positive example</th>
-<th>Negative example</th>
+<th>Positive Example</th>
+<th>Negative Example</th>
 </tr>
 </thead>
 <tbody>
@@ -213,7 +213,7 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;U&quot; holds and is succeeded by &quot;T&quot;, then &quot;S&quot; previously held
 </code></pre>
 
-<pre><code>Counterexample: ⌈!U⌉;⌈(Q &amp;&amp; (!R &amp;&amp; !U))⌉;⌈(!R &amp;&amp; !U)⌉;⌈(!R &amp;&amp; (T &amp;&amp; !U))⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;true
+<pre><code>Countertraces: ⌈!U⌉;⌈(Q &amp;&amp; (!R &amp;&amp; !U))⌉;⌈(!R &amp;&amp; !U)⌉;⌈(!R &amp;&amp; (T &amp;&amp; !U))⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_AfterUntil.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_AfterUntil.svg" /></a><figcaption></figcaption>
