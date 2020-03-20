@@ -82,4 +82,6 @@ Countertraces: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉ ∧ ℓ ≥ 5;true
 | --- | --- |
 | ![](../img/failure_paths/positive/MaxDurationPattern_AfterUntil_0.svg) | ![](../img/failure_paths/negative/MaxDurationPattern_AfterUntil_0.svg) |
 | ![](../img/failure_paths/positive/MaxDurationPattern_AfterUntil_1.svg) |  |
+| ![](../img/failure_paths/positive/MaxDurationPattern_AfterUntil_2.svg) |  |
+| ![](../img/failure_paths/positive/MaxDurationPattern_AfterUntil_3.svg) |  |
 

@@ -48,8 +48,7 @@ Countertraces: true;⌈Q⌉;true;⌈!R⌉;true
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
 | --- | --- |
-| ![](../img/failure_paths/positive/UniversalityPattern_After_0.svg) | ![](../img/failure_paths/negative/UniversalityPattern_After_0.svg) |
-| ![](../img/failure_paths/positive/UniversalityPattern_After_1.svg) |  |
+|  | ![](../img/failure_paths/negative/UniversalityPattern_After_0.svg) |
 
 
 ### UniversalityPattern Between

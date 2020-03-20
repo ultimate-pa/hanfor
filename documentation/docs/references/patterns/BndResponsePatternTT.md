@@ -17,5 +17,4 @@ Countertraces: true;⌈R⌉ ∧ ℓ ≥ 5;⌈Q⌉ ∧ ℓ < 10;⌈!Q⌉;true
 | --- | --- |
 | ![](../img/failure_paths/positive/BndResponsePatternTT_Globally_0.svg) | ![](../img/failure_paths/negative/BndResponsePatternTT_Globally_0.svg) |
 | ![](../img/failure_paths/positive/BndResponsePatternTT_Globally_1.svg) | ![](../img/failure_paths/negative/BndResponsePatternTT_Globally_1.svg) |
-| ![](../img/failure_paths/positive/BndResponsePatternTT_Globally_2.svg) |  |
 
