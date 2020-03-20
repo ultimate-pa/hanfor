@@ -7,13 +7,13 @@
 Globally, it is always the case that if "R" holds for at least "5" time units, then "Q" holds afterwards
 ```
 ```
-Counterexample: true;⌈R⌉ ∧ ℓ > 5;⌈!Q⌉;true
+Countertraces: true;⌈R⌉ ∧ ℓ > 5;⌈!Q⌉;true
 ```
 
 ![](../img/patterns/BndResponsePatternTU_Globally.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 |  | ![](../img/failure_paths/negative/BndResponsePatternTU_Globally_0.svg) |
 |  | ![](../img/failure_paths/negative/BndResponsePatternTU_Globally_1.svg) |

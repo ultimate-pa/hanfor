@@ -7,7 +7,7 @@
 Globally, it is always the case that if "S" holds and is succeeded by "R", then "Q" previously held
 ```
 ```
-Counterexample: ⌈!S⌉;⌈R⌉;true;⌈Q⌉;true
+Countertraces: ⌈!S⌉;⌈R⌉;true;⌈Q⌉;true
 ```
 
 ![](../img/patterns/PrecedenceChain12Pattern_Globally.svg)
@@ -18,7 +18,7 @@ Counterexample: ⌈!S⌉;⌈R⌉;true;⌈Q⌉;true
 Before "Q", it is always the case that if "T" holds and is succeeded by "S", then "R" previously held
 ```
 ```
-Counterexample: ⌈(!Q && !T)⌉;⌈(!Q && (S && !T))⌉;⌈!Q⌉;⌈(!Q && R)⌉;true
+Countertraces: ⌈(!Q && !T)⌉;⌈(!Q && (S && !T))⌉;⌈!Q⌉;⌈(!Q && R)⌉;true
 ```
 
 ![](../img/patterns/PrecedenceChain12Pattern_Before.svg)
@@ -29,7 +29,7 @@ Counterexample: ⌈(!Q && !T)⌉;⌈(!Q && (S && !T))⌉;⌈!Q⌉;⌈(!Q && R)�
 After "Q", it is always the case that if "T" holds and is succeeded by "S", then "R" previously held
 ```
 ```
-Counterexample: ⌈!T⌉;⌈(Q && !T)⌉;⌈!T⌉;⌈(S && !T)⌉;true;⌈R⌉;true
+Countertraces: ⌈!T⌉;⌈(Q && !T)⌉;⌈!T⌉;⌈(S && !T)⌉;true;⌈R⌉;true
 ```
 
 ![](../img/patterns/PrecedenceChain12Pattern_After.svg)
@@ -40,13 +40,13 @@ Counterexample: ⌈!T⌉;⌈(Q && !T)⌉;⌈!T⌉;⌈(S && !T)⌉;true;⌈R⌉;t
 Between "Q" and "R", it is always the case that if "U" holds and is succeeded by "T", then "S" previously held
 ```
 ```
-Counterexample: ⌈!U⌉;⌈(Q && (!R && !U))⌉;⌈(!R && !U)⌉;⌈(!R && (T && !U))⌉;⌈!R⌉;⌈(!R && S)⌉;⌈!R⌉;⌈R⌉;true
+Countertraces: ⌈!U⌉;⌈(Q && (!R && !U))⌉;⌈(!R && !U)⌉;⌈(!R && (T && !U))⌉;⌈!R⌉;⌈(!R && S)⌉;⌈!R⌉;⌈R⌉;true
 ```
 
 ![](../img/patterns/PrecedenceChain12Pattern_Between.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 | ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_0.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_1.svg) |  |
@@ -60,7 +60,7 @@ Counterexample: ⌈!U⌉;⌈(Q && (!R && !U))⌉;⌈(!R && !U)⌉;⌈(!R && (T &
 After "Q" until "R", it is always the case that if "U" holds and is succeeded by "T", then "S" previously held
 ```
 ```
-Counterexample: ⌈!U⌉;⌈(Q && (!R && !U))⌉;⌈(!R && !U)⌉;⌈(!R && (T && !U))⌉;⌈!R⌉;⌈(!R && S)⌉;true
+Countertraces: ⌈!U⌉;⌈(Q && (!R && !U))⌉;⌈(!R && !U)⌉;⌈(!R && (T && !U))⌉;⌈!R⌉;⌈(!R && S)⌉;true
 ```
 
 ![](../img/patterns/PrecedenceChain12Pattern_AfterUntil.svg)

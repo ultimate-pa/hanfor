@@ -7,13 +7,13 @@
 Globally, it is always the case that if "R" holds, then "Q" holds as well
 ```
 ```
-Counterexample: true;⌈(!Q && R)⌉;true
+Countertraces: true;⌈(!Q && R)⌉;true
 ```
 
 ![](../img/patterns/InvariantPattern_Globally.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 |  | ![](../img/failure_paths/negative/InvariantPattern_Globally_0.svg) |
 
@@ -23,13 +23,13 @@ Counterexample: true;⌈(!Q && R)⌉;true
 Before "Q", it is always the case that if "S" holds, then "R" holds as well
 ```
 ```
-Counterexample: ⌈!Q⌉;⌈(!Q && (!R && S))⌉;true
+Countertraces: ⌈!Q⌉;⌈(!Q && (!R && S))⌉;true
 ```
 
 ![](../img/patterns/InvariantPattern_Before.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 |  | ![](../img/failure_paths/negative/InvariantPattern_Before_0.svg) |
 
@@ -39,13 +39,13 @@ Counterexample: ⌈!Q⌉;⌈(!Q && (!R && S))⌉;true
 After "Q", it is always the case that if "S" holds, then "R" holds as well
 ```
 ```
-Counterexample: true;⌈Q⌉;true;⌈(!R && S)⌉;true
+Countertraces: true;⌈Q⌉;true;⌈(!R && S)⌉;true
 ```
 
 ![](../img/patterns/InvariantPattern_After.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 |  | ![](../img/failure_paths/negative/InvariantPattern_After_0.svg) |
 
@@ -55,13 +55,13 @@ Counterexample: true;⌈Q⌉;true;⌈(!R && S)⌉;true
 Between "Q" and "R", it is always the case that if "T" holds, then "S" holds as well
 ```
 ```
-Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈!R⌉;⌈R⌉;true
+Countertraces: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈!R⌉;⌈R⌉;true
 ```
 
 ![](../img/patterns/InvariantPattern_Between.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 |  | ![](../img/failure_paths/negative/InvariantPattern_Between_0.svg) |
 
@@ -71,13 +71,13 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈!R⌉;�
 After "Q" until "R", it is always the case that if "T" holds, then "S" holds as well
 ```
 ```
-Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;true
+Countertraces: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;true
 ```
 
 ![](../img/patterns/InvariantPattern_AfterUntil.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 |  | ![](../img/failure_paths/negative/InvariantPattern_AfterUntil_0.svg) |
 

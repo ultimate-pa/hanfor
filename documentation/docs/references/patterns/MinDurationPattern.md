@@ -7,13 +7,13 @@
 Globally, it is always the case that once "Q" becomes satisfied, it holds for at least "5" time units
 ```
 ```
-Counterexample: true;⌈!Q⌉;⌈Q⌉ ∧ ℓ < 5;⌈!Q⌉;true
+Countertraces: true;⌈!Q⌉;⌈Q⌉ ∧ ℓ < 5;⌈!Q⌉;true
 ```
 
 ![](../img/patterns/MinDurationPattern_Globally.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 |  | ![](../img/failure_paths/negative/MinDurationPattern_Globally_0.svg) |
 
@@ -23,13 +23,13 @@ Counterexample: true;⌈!Q⌉;⌈Q⌉ ∧ ℓ < 5;⌈!Q⌉;true
 Before "Q", it is always the case that once "R" becomes satisfied, it holds for at least "5" time units
 ```
 ```
-Counterexample: ⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ < 5;⌈(!Q && !R)⌉;true
+Countertraces: ⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ < 5;⌈(!Q && !R)⌉;true
 ```
 
 ![](../img/patterns/MinDurationPattern_Before.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 |  | ![](../img/failure_paths/negative/MinDurationPattern_Before_0.svg) |
 
@@ -39,13 +39,13 @@ Counterexample: ⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ < 5;⌈(!Q && 
 After "Q", it is always the case that once "R" becomes satisfied, it holds for at least "5" time units
 ```
 ```
-Counterexample: true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ < 5;⌈!R⌉;true
+Countertraces: true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ < 5;⌈!R⌉;true
 ```
 
 ![](../img/patterns/MinDurationPattern_After.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 |  | ![](../img/failure_paths/negative/MinDurationPattern_After_0.svg) |
 
@@ -55,13 +55,13 @@ Counterexample: true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ < 5;⌈!R⌉;true
 Between "Q" and "R", it is always the case that once "S" becomes satisfied, it holds for at least "5" time units
 ```
 ```
-Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉ ∧ ℓ < 5;⌈(!R && !S)⌉;⌈!R⌉;⌈R⌉;true
+Countertraces: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉ ∧ ℓ < 5;⌈(!R && !S)⌉;⌈!R⌉;⌈R⌉;true
 ```
 
 ![](../img/patterns/MinDurationPattern_Between.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 |  | ![](../img/failure_paths/negative/MinDurationPattern_Between_0.svg) |
 
@@ -71,13 +71,13 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉ �
 After "Q" until "R", it is always the case that once "S" becomes satisfied, it holds for at least "5" time units
 ```
 ```
-Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉ ∧ ℓ < 5;⌈(!R && !S)⌉;true
+Countertraces: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉ ∧ ℓ < 5;⌈(!R && !S)⌉;true
 ```
 
 ![](../img/patterns/MinDurationPattern_AfterUntil.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 |  | ![](../img/failure_paths/negative/MinDurationPattern_AfterUntil_0.svg) |
 

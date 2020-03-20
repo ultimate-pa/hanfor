@@ -7,13 +7,13 @@
 Globally, it is never the case that "Q" holds
 ```
 ```
-Counterexample: true;⌈Q⌉;true
+Countertraces: true;⌈Q⌉;true
 ```
 
 ![](../img/patterns/InstAbsPattern_Globally.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 |  | ![](../img/failure_paths/negative/InstAbsPattern_Globally_0.svg) |
 |  | ![](../img/failure_paths/negative/InstAbsPattern_Globally_1.svg) |
@@ -24,13 +24,13 @@ Counterexample: true;⌈Q⌉;true
 After "Q", it is never the case that "R" holds
 ```
 ```
-Counterexample: true;⌈Q⌉;true;⌈R⌉;true
+Countertraces: true;⌈Q⌉;true;⌈R⌉;true
 ```
 
 ![](../img/patterns/InstAbsPattern_After.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 |  | ![](../img/failure_paths/negative/InstAbsPattern_After_0.svg) |
 |  | ![](../img/failure_paths/negative/InstAbsPattern_After_1.svg) |
@@ -41,13 +41,13 @@ Counterexample: true;⌈Q⌉;true;⌈R⌉;true
 Between "Q" and "R", it is never the case that "S" holds
 ```
 ```
-Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;⌈!R⌉;⌈R⌉;true
+Countertraces: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;⌈!R⌉;⌈R⌉;true
 ```
 
 ![](../img/patterns/InstAbsPattern_Between.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 | ![](../img/failure_paths/positive/InstAbsPattern_Between_0.svg) | ![](../img/failure_paths/negative/InstAbsPattern_Between_0.svg) |
 | ![](../img/failure_paths/positive/InstAbsPattern_Between_1.svg) |  |
@@ -58,13 +58,13 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;⌈!R⌉;⌈R⌉;t
 After "Q" until "R", it is never the case that "S" holds
 ```
 ```
-Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;true
+Countertraces: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;true
 ```
 
 ![](../img/patterns/InstAbsPattern_AfterUntil.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 |  | ![](../img/failure_paths/negative/InstAbsPattern_AfterUntil_0.svg) |
 

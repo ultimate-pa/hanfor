@@ -7,13 +7,13 @@
 Globally, it is always the case that "Q" holds
 ```
 ```
-Counterexample: true;⌈!Q⌉;true
+Countertraces: true;⌈!Q⌉;true
 ```
 
 ![](../img/patterns/UniversalityPattern_Globally.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 | ![](../img/failure_paths/positive/UniversalityPattern_Globally_0.svg) | ![](../img/failure_paths/negative/UniversalityPattern_Globally_0.svg) |
 |  | ![](../img/failure_paths/negative/UniversalityPattern_Globally_1.svg) |
@@ -24,13 +24,13 @@ Counterexample: true;⌈!Q⌉;true
 Before "Q", it is always the case that "R" holds
 ```
 ```
-Counterexample: ⌈!Q⌉;⌈(!Q && !R)⌉;true
+Countertraces: ⌈!Q⌉;⌈(!Q && !R)⌉;true
 ```
 
 ![](../img/patterns/UniversalityPattern_Before.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 | ![](../img/failure_paths/positive/UniversalityPattern_Before_0.svg) | ![](../img/failure_paths/negative/UniversalityPattern_Before_0.svg) |
 
@@ -40,13 +40,13 @@ Counterexample: ⌈!Q⌉;⌈(!Q && !R)⌉;true
 After "Q", it is always the case that "R" holds
 ```
 ```
-Counterexample: true;⌈Q⌉;true;⌈!R⌉;true
+Countertraces: true;⌈Q⌉;true;⌈!R⌉;true
 ```
 
 ![](../img/patterns/UniversalityPattern_After.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 | ![](../img/failure_paths/positive/UniversalityPattern_After_0.svg) | ![](../img/failure_paths/negative/UniversalityPattern_After_0.svg) |
 | ![](../img/failure_paths/positive/UniversalityPattern_After_1.svg) |  |
@@ -57,13 +57,13 @@ Counterexample: true;⌈Q⌉;true;⌈!R⌉;true
 Between "Q" and "R", it is always the case that "S" holds
 ```
 ```
-Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈!R⌉;⌈R⌉;true
+Countertraces: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈!R⌉;⌈R⌉;true
 ```
 
 ![](../img/patterns/UniversalityPattern_Between.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 |  | ![](../img/failure_paths/negative/UniversalityPattern_Between_0.svg) |
 
@@ -73,13 +73,13 @@ Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈!R⌉;⌈R⌉;
 After "Q" until "R", it is always the case that "S" holds
 ```
 ```
-Counterexample: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;true
+Countertraces: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;true
 ```
 
 ![](../img/patterns/UniversalityPattern_AfterUntil.svg)
 
 <div class="pattern-examples"></div>
-| Positive example | Negative example |
+| Positive Example | Negative Example |
 | --- | --- |
 | ![](../img/failure_paths/positive/UniversalityPattern_AfterUntil_0.svg) | ![](../img/failure_paths/negative/UniversalityPattern_AfterUntil_0.svg) |
 | ![](../img/failure_paths/positive/UniversalityPattern_AfterUntil_1.svg) |  |
