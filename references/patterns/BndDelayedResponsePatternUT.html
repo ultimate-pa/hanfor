@@ -145,10 +145,12 @@
 <pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; holds after at most &quot;5&quot; time units for at least &quot;10&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: true;⌈R⌉;⌈true⌉ ∧ ℓ ≤ 5;⌈Q⌉ ∧ ℓ &lt; 10;⌈!Q⌉;true
+<pre><code>Countertraces: (true;⌈R⌉;⌈!Q⌉ ∧ ℓ &gt; 5;true), (true;⌈R⌉;⌈!Q⌉ ∧ ℓ ≤ 5;⌈Q⌉ ∧ ℓ &lt; 10;⌈!Q⌉;true)
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndDelayedResponsePatternUT_Globally.svg"><img alt="" src="../img/patterns/BndDelayedResponsePatternUT_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndDelayedResponsePatternUT_Globally_0.svg"><img alt="" src="../img/patterns/BndDelayedResponsePatternUT_Globally_0.svg" /></a><figcaption></figcaption>
+</figure>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndDelayedResponsePatternUT_Globally_1.svg"><img alt="" src="../img/patterns/BndDelayedResponsePatternUT_Globally_1.svg" /></a><figcaption></figcaption>
 </figure>
 <div class="pattern-examples"></div>
 
@@ -161,12 +163,20 @@
 </thead>
 <tbody>
 <tr>
-<td></td>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_0.svg"><img alt="" src="../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_0.svg" /></a></td>
 <td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/BndDelayedResponsePatternUT_Globally_0.svg"><img alt="" src="../img/failure_paths/negative/BndDelayedResponsePatternUT_Globally_0.svg" /></a></td>
 </tr>
 <tr>
-<td></td>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_1.svg"><img alt="" src="../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_1.svg" /></a></td>
 <td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/BndDelayedResponsePatternUT_Globally_1.svg"><img alt="" src="../img/failure_paths/negative/BndDelayedResponsePatternUT_Globally_1.svg" /></a></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_2.svg"><img alt="" src="../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_2.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_3.svg"><img alt="" src="../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_3.svg" /></a></td>
+<td></td>
 </tr>
 </tbody>
 </table>

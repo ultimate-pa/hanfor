@@ -145,10 +145,10 @@
 <pre><code>Globally, it is always the case that once &quot;Q&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: true;⌈Q⌉ ∧ ℓ ≥ 5;true
+<pre><code>Countertraces: (true;⌈Q⌉ ∧ ℓ ≥ 5;true)
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_Globally.svg"><img alt="" src="../img/patterns/MaxDurationPattern_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_Globally_0.svg"><img alt="" src="../img/patterns/MaxDurationPattern_Globally_0.svg" /></a><figcaption></figcaption>
 </figure>
 <div class="pattern-examples"></div>
 
@@ -161,7 +161,7 @@
 </thead>
 <tbody>
 <tr>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_Globally_0.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_Globally_0.svg" /></a></td>
+<td></td>
 <td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/MaxDurationPattern_Globally_0.svg"><img alt="" src="../img/failure_paths/negative/MaxDurationPattern_Globally_0.svg" /></a></td>
 </tr>
 </tbody>
@@ -170,10 +170,10 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: ⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉ ∧ ℓ ≥ 5;true
+<pre><code>Countertraces: (⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉ ∧ ℓ ≥ 5;true)
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_Before.svg"><img alt="" src="../img/patterns/MaxDurationPattern_Before.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_Before_0.svg"><img alt="" src="../img/patterns/MaxDurationPattern_Before_0.svg" /></a><figcaption></figcaption>
 </figure>
 <div class="pattern-examples"></div>
 
@@ -186,7 +186,7 @@
 </thead>
 <tbody>
 <tr>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_Before_0.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_Before_0.svg" /></a></td>
+<td></td>
 <td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/MaxDurationPattern_Before_0.svg"><img alt="" src="../img/failure_paths/negative/MaxDurationPattern_Before_0.svg" /></a></td>
 </tr>
 </tbody>
@@ -195,10 +195,10 @@
 <pre><code>After &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ ≥ 5;true
+<pre><code>Countertraces: (true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ ≥ 5;true)
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_After.svg"><img alt="" src="../img/patterns/MaxDurationPattern_After.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_After_0.svg"><img alt="" src="../img/patterns/MaxDurationPattern_After_0.svg" /></a><figcaption></figcaption>
 </figure>
 <div class="pattern-examples"></div>
 
@@ -211,12 +211,8 @@
 </thead>
 <tbody>
 <tr>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_After_0.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_After_0.svg" /></a></td>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/MaxDurationPattern_After_0.svg"><img alt="" src="../img/failure_paths/negative/MaxDurationPattern_After_0.svg" /></a></td>
-</tr>
-<tr>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_After_1.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_After_1.svg" /></a></td>
 <td></td>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/MaxDurationPattern_After_0.svg"><img alt="" src="../img/failure_paths/negative/MaxDurationPattern_After_0.svg" /></a></td>
 </tr>
 </tbody>
 </table>
@@ -224,10 +220,10 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ ≥ 5;⌈!R⌉;⌈R⌉;true
+<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ ≥ 5;⌈!R⌉;⌈R⌉;true)
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_Between.svg"><img alt="" src="../img/patterns/MaxDurationPattern_Between.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_Between_0.svg"><img alt="" src="../img/patterns/MaxDurationPattern_Between_0.svg" /></a><figcaption></figcaption>
 </figure>
 <div class="pattern-examples"></div>
 
@@ -249,10 +245,10 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ ≥ 5;true
+<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ ≥ 5;true)
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_AfterUntil.svg"><img alt="" src="../img/patterns/MaxDurationPattern_AfterUntil.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/MaxDurationPattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
 </figure>
 <div class="pattern-examples"></div>
 
@@ -265,20 +261,8 @@
 </thead>
 <tbody>
 <tr>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_AfterUntil_0.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_AfterUntil_0.svg" /></a></td>
+<td></td>
 <td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/MaxDurationPattern_AfterUntil_0.svg"><img alt="" src="../img/failure_paths/negative/MaxDurationPattern_AfterUntil_0.svg" /></a></td>
-</tr>
-<tr>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_AfterUntil_1.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_AfterUntil_1.svg" /></a></td>
-<td></td>
-</tr>
-<tr>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_AfterUntil_2.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_AfterUntil_2.svg" /></a></td>
-<td></td>
-</tr>
-<tr>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_AfterUntil_3.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_AfterUntil_3.svg" /></a></td>
-<td></td>
 </tr>
 </tbody>
 </table>

@@ -145,10 +145,10 @@
 <pre><code>Globally, it is always the case that after &quot;R&quot; holds for at least &quot;5&quot; time units, then &quot;Q&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true
+<pre><code>Countertraces: (true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true)
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_Globally.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_Globally_0.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_Globally_0.svg" /></a><figcaption></figcaption>
 </figure>
 <div class="pattern-examples"></div>
 
@@ -161,11 +161,11 @@
 </thead>
 <tbody>
 <tr>
-<td></td>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndEntryConditionPattern_Globally_0.svg"><img alt="" src="../img/failure_paths/positive/BndEntryConditionPattern_Globally_0.svg" /></a></td>
 <td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/BndEntryConditionPattern_Globally_0.svg"><img alt="" src="../img/failure_paths/negative/BndEntryConditionPattern_Globally_0.svg" /></a></td>
 </tr>
 <tr>
-<td></td>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndEntryConditionPattern_Globally_1.svg"><img alt="" src="../img/failure_paths/positive/BndEntryConditionPattern_Globally_1.svg" /></a></td>
 <td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/BndEntryConditionPattern_Globally_1.svg"><img alt="" src="../img/failure_paths/negative/BndEntryConditionPattern_Globally_1.svg" /></a></td>
 </tr>
 </tbody>
@@ -174,10 +174,10 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that after &quot;S&quot; holds for at least &quot;5&quot; time units, then &quot;R&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: ⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉ ∧ ℓ ≥ 5;⌈(!Q &amp;&amp; !R)⌉;true
+<pre><code>Countertraces: (⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉ ∧ ℓ ≥ 5;⌈(!Q &amp;&amp; !R)⌉;true)
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_Before.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_Before.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_Before_0.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_Before_0.svg" /></a><figcaption></figcaption>
 </figure>
 <div class="pattern-examples"></div>
 
@@ -199,10 +199,10 @@
 <pre><code>After &quot;Q&quot;, it is always the case that after &quot;S&quot; holds for at least &quot;5&quot; time units, then &quot;R&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: true;⌈Q⌉;true;⌈S⌉ ∧ ℓ ≥ 5;⌈!R⌉;true
+<pre><code>Countertraces: (true;⌈Q⌉;true;⌈S⌉ ∧ ℓ ≥ 5;⌈!R⌉;true)
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_After.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_After.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_After_0.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_After_0.svg" /></a><figcaption></figcaption>
 </figure>
 <div class="pattern-examples"></div>
 
@@ -215,8 +215,20 @@
 </thead>
 <tbody>
 <tr>
-<td></td>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndEntryConditionPattern_After_0.svg"><img alt="" src="../img/failure_paths/positive/BndEntryConditionPattern_After_0.svg" /></a></td>
 <td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/BndEntryConditionPattern_After_0.svg"><img alt="" src="../img/failure_paths/negative/BndEntryConditionPattern_After_0.svg" /></a></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndEntryConditionPattern_After_1.svg"><img alt="" src="../img/failure_paths/positive/BndEntryConditionPattern_After_1.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndEntryConditionPattern_After_2.svg"><img alt="" src="../img/failure_paths/positive/BndEntryConditionPattern_After_2.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndEntryConditionPattern_After_3.svg"><img alt="" src="../img/failure_paths/positive/BndEntryConditionPattern_After_3.svg" /></a></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -224,10 +236,10 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that after &quot;T&quot; holds for at least &quot;5&quot; time units, then &quot;S&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
+<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true)
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_Between.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_Between.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_Between_0.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_Between_0.svg" /></a><figcaption></figcaption>
 </figure>
 <div class="pattern-examples"></div>
 
@@ -249,10 +261,10 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that after &quot;T&quot; holds for at least &quot;5&quot; time units, then &quot;S&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;true
+<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;true)
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_AfterUntil.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_AfterUntil.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
 </figure>
 <div class="pattern-examples"></div>
 
