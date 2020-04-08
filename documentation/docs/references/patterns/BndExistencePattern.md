@@ -6,11 +6,12 @@
 ```
 Globally, transitions to states in which "Q" holds occur at most twice
 ```
+
 ```
-Countertraces: true;⌈Q⌉;⌈!Q⌉;⌈Q⌉;⌈!Q⌉;⌈Q⌉;true
+Countertraces: (true;⌈Q⌉;⌈!Q⌉;⌈Q⌉;⌈!Q⌉;⌈Q⌉;true)
 ```
 
-![](../img/patterns/BndExistencePattern_Globally.svg)
+![](../img/patterns/BndExistencePattern_Globally_0.svg)
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -22,11 +23,12 @@ Countertraces: true;⌈Q⌉;⌈!Q⌉;⌈Q⌉;⌈!Q⌉;⌈Q⌉;true
 ```
 Before "Q", transitions to states in which "R" holds occur at most twice
 ```
+
 ```
-Countertraces: ⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;true
+Countertraces: (⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;true)
 ```
 
-![](../img/patterns/BndExistencePattern_Before.svg)
+![](../img/patterns/BndExistencePattern_Before_0.svg)
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -38,11 +40,12 @@ Countertraces: ⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;⌈(!Q 
 ```
 After "Q", transitions to states in which "R" holds occur at most twice
 ```
+
 ```
-Countertraces: true;⌈Q⌉;true;⌈R⌉;⌈!R⌉;⌈R⌉;⌈!R⌉;⌈R⌉;true
+Countertraces: (true;⌈Q⌉;true;⌈R⌉;⌈!R⌉;⌈R⌉;⌈!R⌉;⌈R⌉;true)
 ```
 
-![](../img/patterns/BndExistencePattern_After.svg)
+![](../img/patterns/BndExistencePattern_After_0.svg)
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -54,11 +57,12 @@ Countertraces: true;⌈Q⌉;true;⌈R⌉;⌈!R⌉;⌈R⌉;⌈!R⌉;⌈R⌉;true
 ```
 Between "Q" and "R", transitions to states in which "S" holds occur at most twice
 ```
+
 ```
-Countertraces: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;⌈!R⌉;⌈R⌉;true
+Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;⌈!R⌉;⌈R⌉;true)
 ```
 
-![](../img/patterns/BndExistencePattern_Between.svg)
+![](../img/patterns/BndExistencePattern_Between_0.svg)
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -70,11 +74,12 @@ Countertraces: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;�
 ```
 After "Q" until "R", transitions to states in which "S" holds occur at most twice
 ```
+
 ```
-Countertraces: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;true
+Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;true)
 ```
 
-![](../img/patterns/BndExistencePattern_AfterUntil.svg)
+![](../img/patterns/BndExistencePattern_AfterUntil_0.svg)
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |

@@ -6,27 +6,30 @@
 ```
 Globally, it is always the case that if "R" holds, then "Q" holds after at most "5" time units
 ```
+
 ```
-Countertraces: true;⌈(!Q && R)⌉;⌈!Q⌉ ∧ ℓ > 5;true
+Countertraces: (true;⌈(!Q && R)⌉;⌈!Q⌉ ∧ ℓ > 5;true)
 ```
 
-![](../img/patterns/BndResponsePatternUT_Globally.svg)
+![](../img/patterns/BndResponsePatternUT_Globally_0.svg)
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
 | --- | --- |
-|  | ![](../img/failure_paths/negative/BndResponsePatternUT_Globally_0.svg) |
+| ![](../img/failure_paths/positive/BndResponsePatternUT_Globally_0.svg) | ![](../img/failure_paths/negative/BndResponsePatternUT_Globally_0.svg) |
+| ![](../img/failure_paths/positive/BndResponsePatternUT_Globally_1.svg) |  |
 
 
 ### BndResponsePatternUT Before
 ```
 Before "Q", it is always the case that if "S" holds, then "R" holds after at most "5" time units
 ```
+
 ```
-Countertraces: ⌈!Q⌉;⌈(!Q && (!R && S))⌉;⌈(!Q && !R)⌉ ∧ ℓ > 5;true
+Countertraces: (⌈!Q⌉;⌈(!Q && (!R && S))⌉;⌈(!Q && !R)⌉ ∧ ℓ > 5;true)
 ```
 
-![](../img/patterns/BndResponsePatternUT_Before.svg)
+![](../img/patterns/BndResponsePatternUT_Before_0.svg)
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -38,27 +41,32 @@ Countertraces: ⌈!Q⌉;⌈(!Q && (!R && S))⌉;⌈(!Q && !R)⌉ ∧ ℓ > 5;tru
 ```
 After "Q", it is always the case that if "S" holds, then "R" holds after at most "5" time units
 ```
+
 ```
-Countertraces: true;⌈Q⌉;true;⌈(!R && S)⌉;⌈!R⌉ ∧ ℓ > 5;true
+Countertraces: (true;⌈Q⌉;true;⌈(!R && S)⌉;⌈!R⌉ ∧ ℓ > 5;true)
 ```
 
-![](../img/patterns/BndResponsePatternUT_After.svg)
+![](../img/patterns/BndResponsePatternUT_After_0.svg)
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
 | --- | --- |
-|  | ![](../img/failure_paths/negative/BndResponsePatternUT_After_0.svg) |
+| ![](../img/failure_paths/positive/BndResponsePatternUT_After_0.svg) | ![](../img/failure_paths/negative/BndResponsePatternUT_After_0.svg) |
+| ![](../img/failure_paths/positive/BndResponsePatternUT_After_1.svg) |  |
+| ![](../img/failure_paths/positive/BndResponsePatternUT_After_2.svg) |  |
+| ![](../img/failure_paths/positive/BndResponsePatternUT_After_3.svg) |  |
 
 
 ### BndResponsePatternUT Between
 ```
 Between "Q" and "R", it is always the case that if "T" holds, then "S" holds after at most "5" time units
 ```
+
 ```
-Countertraces: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;⌈!R⌉;⌈R⌉;true
+Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;⌈!R⌉;⌈R⌉;true)
 ```
 
-![](../img/patterns/BndResponsePatternUT_Between.svg)
+![](../img/patterns/BndResponsePatternUT_Between_0.svg)
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -70,11 +78,12 @@ Countertraces: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !
 ```
 After "Q" until "R", it is always the case that if "T" holds, then "S" holds after at most "5" time units
 ```
+
 ```
-Countertraces: true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;true
+Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;true)
 ```
 
-![](../img/patterns/BndResponsePatternUT_AfterUntil.svg)
+![](../img/patterns/BndResponsePatternUT_AfterUntil_0.svg)
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
