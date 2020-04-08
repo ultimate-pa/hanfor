@@ -145,10 +145,10 @@
 <pre><code>Globally, it is always the case that &quot;Q&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: true;⌈!Q⌉;true
+<pre><code>Countertraces: (true;⌈!Q⌉;true)
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_Globally.svg"><img alt="" src="../img/patterns/UniversalityPattern_Globally.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_Globally_0.svg"><img alt="" src="../img/patterns/UniversalityPattern_Globally_0.svg" /></a><figcaption></figcaption>
 </figure>
 <div class="pattern-examples"></div>
 
@@ -174,10 +174,10 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that &quot;R&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: ⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉;true
+<pre><code>Countertraces: (⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉;true)
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_Before.svg"><img alt="" src="../img/patterns/UniversalityPattern_Before.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_Before_0.svg"><img alt="" src="../img/patterns/UniversalityPattern_Before_0.svg" /></a><figcaption></figcaption>
 </figure>
 <div class="pattern-examples"></div>
 
@@ -190,7 +190,7 @@
 </thead>
 <tbody>
 <tr>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/UniversalityPattern_Before_0.svg"><img alt="" src="../img/failure_paths/positive/UniversalityPattern_Before_0.svg" /></a></td>
+<td></td>
 <td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/UniversalityPattern_Before_0.svg"><img alt="" src="../img/failure_paths/negative/UniversalityPattern_Before_0.svg" /></a></td>
 </tr>
 </tbody>
@@ -199,10 +199,10 @@
 <pre><code>After &quot;Q&quot;, it is always the case that &quot;R&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: true;⌈Q⌉;true;⌈!R⌉;true
+<pre><code>Countertraces: (true;⌈Q⌉;true;⌈!R⌉;true)
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_After.svg"><img alt="" src="../img/patterns/UniversalityPattern_After.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_After_0.svg"><img alt="" src="../img/patterns/UniversalityPattern_After_0.svg" /></a><figcaption></figcaption>
 </figure>
 <div class="pattern-examples"></div>
 
@@ -215,8 +215,12 @@
 </thead>
 <tbody>
 <tr>
-<td></td>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/UniversalityPattern_After_0.svg"><img alt="" src="../img/failure_paths/positive/UniversalityPattern_After_0.svg" /></a></td>
 <td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/UniversalityPattern_After_0.svg"><img alt="" src="../img/failure_paths/negative/UniversalityPattern_After_0.svg" /></a></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/UniversalityPattern_After_1.svg"><img alt="" src="../img/failure_paths/positive/UniversalityPattern_After_1.svg" /></a></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -224,10 +228,10 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that &quot;S&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
+<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true)
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_Between.svg"><img alt="" src="../img/patterns/UniversalityPattern_Between.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_Between_0.svg"><img alt="" src="../img/patterns/UniversalityPattern_Between_0.svg" /></a><figcaption></figcaption>
 </figure>
 <div class="pattern-examples"></div>
 
@@ -240,8 +244,20 @@
 </thead>
 <tbody>
 <tr>
-<td></td>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/UniversalityPattern_Between_0.svg"><img alt="" src="../img/failure_paths/positive/UniversalityPattern_Between_0.svg" /></a></td>
 <td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/UniversalityPattern_Between_0.svg"><img alt="" src="../img/failure_paths/negative/UniversalityPattern_Between_0.svg" /></a></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/UniversalityPattern_Between_1.svg"><img alt="" src="../img/failure_paths/positive/UniversalityPattern_Between_1.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/UniversalityPattern_Between_2.svg"><img alt="" src="../img/failure_paths/positive/UniversalityPattern_Between_2.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/UniversalityPattern_Between_3.svg"><img alt="" src="../img/failure_paths/positive/UniversalityPattern_Between_3.svg" /></a></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -249,10 +265,10 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that &quot;S&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;true
+<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;true)
 </code></pre>
 
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_AfterUntil.svg"><img alt="" src="../img/patterns/UniversalityPattern_AfterUntil.svg" /></a><figcaption></figcaption>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/UniversalityPattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
 </figure>
 <div class="pattern-examples"></div>
 
