@@ -213,7 +213,7 @@ lark = None
 def get_parser_instance():
     global lark
     if lark is None:
-        lark = Lark(hanfor_boogie_grammar, start='exprcommastar')
+        lark = Lark(hanfor_boogie_grammar, start='exprcommastar', parser='lalr')
     return lark
 
 

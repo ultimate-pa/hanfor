@@ -46,9 +46,9 @@ class TestParseExpressions(TestCase):
 
     def test_get_var_list(self):
         tree = boogie_parsing.get_parser_instance().parse('(Hello <==> Spam) && (((((b + a) + d) * 23) < 4) && x ==> y )')
-        self.assertEqual(boogie_parsing.get_variables_list(tree), ['Hello', 'Spam', 'b', 'a', 'd', 'x', 'y'])
+        self.assertEqual(set(boogie_parsing.get_variables_list(tree)), {'Hello', 'Spam', 'b', 'a', 'd', 'x', 'y'})
 
-    def test_used_variables(self):
+    def test_true_false_should_be_terminals(self):
         expressions = [
             'false',
             'true',
@@ -62,9 +62,31 @@ class TestParseExpressions(TestCase):
             tree = parser.parse(expr)
             used_variables = set(boogie_parsing.get_variables_list(tree))
             print('For {} I found {} variables'.format(expr, used_variables))
-            # TODO: let this test test again when https://github.com/lark-parser/lark/issues/191 is closed.
-            continue
             self.assertEqual(
                 set(),
                 used_variables
             )
+
+    def test_if_else_expressions(self):
+        expressions = [
+            'if foo==bar then bar==true else spam==false',
+            'if(if foo==bar then bar==true else spam==false)then bar==foo else spam==false',
+            'if(if foo==bar then bar==true else spam==false)then(if foo==bar then bar==foo else spam==false)else '
+            'spam==false',
+        ]
+
+        for expr in expressions:
+            parser = boogie_parsing.get_parser_instance()
+            tree = parser.parse(expr)
+            used_variables = set(boogie_parsing.get_variables_list(tree))
+            print('For {} I found {} variables'.format(expr, used_variables))
+            self.assertEqual(
+                {'foo', 'bar', 'spam'},
+                used_variables
+            )
+            reconstructed_expression = boogie_parsing.Reconstructor(parser).reconstruct(tree)
+            self.assertEqual(
+                expr,
+                reconstructed_expression
+            )
+

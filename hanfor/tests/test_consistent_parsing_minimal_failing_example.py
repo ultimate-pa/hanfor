@@ -36,7 +36,7 @@ TRUE.1: "true"
 class TestParseExpressions(TestCase):
     def test_used_variables(self):
         parsers = [
-            Lark(grammar, start='expr') for _ in range(100)
+            Lark(grammar, start='expr', parser='lalr') for _ in range(100)
         ]
 
         for parser in parsers:
@@ -45,8 +45,6 @@ class TestParseExpressions(TestCase):
                 for child in node.children:
                     # Variables are called ID in the grammar.
                     if isinstance(child, Token):
-                        # TODO: let this test test again when https://github.com/lark-parser/lark/issues/191 is closed.
-                        continue
                         self.assertTrue(
                             child.type == 'TRUE',
                             'Token `{}` has false type `{}`'.format(child.value, child.type)
