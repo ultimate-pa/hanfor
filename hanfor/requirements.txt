@@ -34,7 +34,7 @@ Jinja2==2.10.1
 jsmin==2.2.2
 lark-parser==0.7.0
 leather==0.3.3
-MarkupSafe==1.0
+MarkupSafe==1.1.1
 more-itertools==7.0.0
 nltk==3.4.5
 numpy==1.14.5
