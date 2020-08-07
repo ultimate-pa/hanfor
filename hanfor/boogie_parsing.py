@@ -74,6 +74,7 @@ expr9: FALSE
     | IF expr THEN expr ELSE expr 
     | LBRC idsexprcommaplus RBRC
     | LPAR expr RPAR
+    | function
 
 // expressions  without if-then-else
 
@@ -137,6 +138,7 @@ expr9ni: FALSE
     | OLD LPAR expr RPAR
     | LBRC idsexprcommaplus RBRC
     | LPAR expr RPAR
+    | function
 
 quant: FORALL 
     | EXISTS
@@ -144,8 +146,25 @@ quant: FORALL
 idsexprcommaplus: ID COLON expr
     | idsexprcommaplus COMMA ID COLON expr
 
+function: abs_function
+
+abs_function: ABS LPAR numeric RPAR
+
+numeric: ID
+    | NUMBER
+    | numeric numeric_operator numeric
+    | MINUS numeric
+    | PLUS numeric
+    | abs_function
+
+numeric_operator: PLUS
+    | MINUS
+    | TIMES
+    | DIVIDE
+
 // Terminals
 
+ABS: "abs"
 AND: "&&"
 COLON: ":"
 COLONEQUALS: ":="
@@ -333,6 +352,9 @@ def infer_variable_types(tree: Tree, type_env: dict):
                                         "PLUS", "TIMES", "DIVIDE", "MINUS", "MOD", "PLUS", "TIMES"]:
                         op = RealIntOperator(child.type)
                         father.children.append(op)
+                    elif child.type in ["ABS"]:
+                        op = FunctionOperator(child.type)
+                        father.children.append(op)
             if op is None:
                 op = father
             for child in tree.children:
@@ -357,9 +379,48 @@ def infer_variable_types(tree: Tree, type_env: dict):
                 op_type_env[id] = t
             return t, op_type_env
 
+    class FunctionOperator(TypeNode):
+        def __init__(self, op_type):
+            super().__init__()
+            self.op_type = op_type
+            self.return_type = BoogieType.error
+
+        def derive_type(self, next_op):
+            op_type_env = {}
+            child_types = set()
+            locals = set()
+            # Get child types and locals for function argument.
+            for child in self.children:
+                type, local, type_env = child.derive_type(self.op_type)
+                op_type_env.update(type_env)
+                locals |= local
+                child_types |= {type}
+
+            # Derive argument type
+            child_types -= {BoogieType.unknown}
+            if len(child_types) == 1:
+                t = child_types.pop()
+            elif len(child_types) == 0 and self.op_type in ["ABS"]:
+                # Assume type `int` for ABS function in case of still free argument type.
+                t = BoogieType.int
+            elif len(child_types) == 0:
+                t = BoogieType.unknown
+            else:
+                t = BoogieType.error
+
+            # Set derived types for locals.
+            if t is not BoogieType.unknown:
+                for id in locals:
+                    op_type_env[id] = t if t is not BoogieType.error else BoogieType.unknown
+                locals = set()
+
+            # Handle wrong argument type.
+            if self.op_type in ["ABS"] and t is not BoogieType.int:
+                t = BoogieType.error
+
+            return t, locals, op_type_env
 
     class LogicOperator(TypeNode):
-
         def __init__(self, op_type):
             super().__init__()
             self.op_type = op_type
@@ -384,7 +445,6 @@ def infer_variable_types(tree: Tree, type_env: dict):
             return t, set(), op_type_env
 
     class RealIntOperator(TypeNode):
-
         def __init__(self, op_type):
             super().__init__()
             self.op_type = op_type

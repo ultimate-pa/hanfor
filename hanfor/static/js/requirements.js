@@ -563,6 +563,7 @@ function load_requirement(row_idx) {
         $('#requirement_id').val(data.id);
         $('#modal_associated_row_index').val(row_idx);
         available_vars = data.available_vars;
+        available_vars = available_vars.concat(data.additional_static_available_vars);
         type_inference_errors = data.type_inference_errors;
         update_fuse();
 

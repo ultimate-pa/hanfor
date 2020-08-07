@@ -89,6 +89,14 @@ PORT = os.environ.get('HANFOR_PORT', default=5000)
 HOST = os.environ.get('HANFOR_HOST',default='127.0.0.1')
 
 ################################################################################
+#                               Miscellaneous                                  #
+################################################################################
+# Additional static terms to be included into the autocomplete field.
+VARIABLE_AUTOCOMPLETE_EXTENSION = [
+    'abs()'
+]
+
+################################################################################
 #                             Available patterns                               #
 ################################################################################
 

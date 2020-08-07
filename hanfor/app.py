@@ -153,6 +153,10 @@ def api(resource, command):
                 exclude_types={'ENUM'}
             )
 
+            result['additional_static_available_vars'] = []
+            if app.config.get('VARIABLE_AUTOCOMPLETE_EXTENSION'):
+                result['additional_static_available_vars'] = app.config.get('VARIABLE_AUTOCOMPLETE_EXTENSION')
+
             if requirement:
                 return jsonify(result)
 
