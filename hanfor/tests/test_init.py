@@ -129,6 +129,7 @@ class TestInit(TestCase):
             },
             'status': 'Todo',
             'available_vars': [],
+            'additional_static_available_vars': ['abs()'],
             'desc': 'Dont worry, be happy',
             'formal': [],
             'vars': [],
