@@ -142,7 +142,7 @@
 
 <h2 id="mindurationpattern">MinDurationPattern<a class="headerlink" href="#mindurationpattern" title="Permanent link"> #</a></h2>
 <h3 id="mindurationpattern-globally">MinDurationPattern Globally<a class="headerlink" href="#mindurationpattern-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that once &quot;Q&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
+<pre><code>Globally, it is always the case that &quot;Q&quot; holds for at least &quot;5&quot; time units
 </code></pre>
 
 <pre><code>Countertraces: (true;⌈!Q⌉;⌈Q⌉ ∧ ℓ &lt; 5;⌈!Q⌉;true)
@@ -167,7 +167,7 @@
 </tbody>
 </table>
 <h3 id="mindurationpattern-before">MinDurationPattern Before<a class="headerlink" href="#mindurationpattern-before" title="Permanent link"> #</a></h3>
-<pre><code>Before &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
+<pre><code>Before &quot;Q&quot;, it is always the case that &quot;R&quot; holds for at least &quot;5&quot; time units
 </code></pre>
 
 <pre><code>Countertraces: (⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉ ∧ ℓ &lt; 5;⌈(!Q &amp;&amp; !R)⌉;true)
@@ -192,7 +192,7 @@
 </tbody>
 </table>
 <h3 id="mindurationpattern-after">MinDurationPattern After<a class="headerlink" href="#mindurationpattern-after" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
+<pre><code>After &quot;Q&quot;, it is always the case that &quot;R&quot; holds for at least &quot;5&quot; time units
 </code></pre>
 
 <pre><code>Countertraces: (true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ &lt; 5;⌈!R⌉;true)
@@ -217,7 +217,7 @@
 </tbody>
 </table>
 <h3 id="mindurationpattern-between">MinDurationPattern Between<a class="headerlink" href="#mindurationpattern-between" title="Permanent link"> #</a></h3>
-<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
+<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that &quot;S&quot; holds for at least &quot;5&quot; time units
 </code></pre>
 
 <pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true)
@@ -242,10 +242,10 @@
 </tbody>
 </table>
 <h3 id="mindurationpattern-afteruntil">MinDurationPattern AfterUntil<a class="headerlink" href="#mindurationpattern-afteruntil" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
+<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that &quot;S&quot; holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;true)
+<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;true)
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MinDurationPattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/MinDurationPattern_AfterUntil_0.svg" /></a><figcaption></figcaption>

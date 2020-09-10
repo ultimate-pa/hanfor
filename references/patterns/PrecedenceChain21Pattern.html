@@ -145,10 +145,110 @@
 <pre><code>Globally, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; previously held and was preceded by &quot;Q&quot;
 </code></pre>
 
-<pre><code>Countertraces: (⌈!R⌉;⌈(!Q &amp;&amp; R)⌉;⌈!Q⌉;⌈S⌉;true)
+<pre><code>Countertraces: (⌈!Q⌉;⌈S⌉;true), (⌈!R⌉;⌈S⌉;true), (⌈!Q⌉;⌈(!Q &amp;&amp; R)⌉;⌈!Q⌉;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈S⌉;true)
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_Globally_0.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_Globally_0.svg" /></a><figcaption></figcaption>
+</figure>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_Globally_1.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_Globally_1.svg" /></a><figcaption></figcaption>
+</figure>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_Globally_2.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_Globally_2.svg" /></a><figcaption></figcaption>
+</figure>
+<div class="pattern-examples"></div>
+
+<table>
+<thead>
+<tr>
+<th>Positive Example</th>
+<th>Negative Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain21Pattern_Globally_0.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain21Pattern_Globally_0.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain21Pattern_Globally_1.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain21Pattern_Globally_1.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain21Pattern_Globally_2.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain21Pattern_Globally_2.svg" /></a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="precedencechain21pattern-before">PrecedenceChain21Pattern Before<a class="headerlink" href="#precedencechain21pattern-before" title="Permanent link"> #</a></h3>
+<pre><code>Before &quot;Q&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; previously held and was preceded by &quot;R&quot;
+</code></pre>
+
+<pre><code>Countertraces: (⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; T)⌉;true), (⌈(!Q &amp;&amp; !S)⌉;⌈(!Q &amp;&amp; T)⌉;true), (⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; (R &amp;&amp; !S))⌉;⌈(!Q &amp;&amp; !S)⌉;⌈(!Q &amp;&amp; T)⌉;true)
+</code></pre>
+
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_Before_0.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_Before_0.svg" /></a><figcaption></figcaption>
+</figure>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_Before_1.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_Before_1.svg" /></a><figcaption></figcaption>
+</figure>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_Before_2.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_Before_2.svg" /></a><figcaption></figcaption>
+</figure>
+<div class="pattern-examples"></div>
+
+<table>
+<thead>
+<tr>
+<th>Positive Example</th>
+<th>Negative Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain21Pattern_Before_0.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain21Pattern_Before_0.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain21Pattern_Before_1.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain21Pattern_Before_1.svg" /></a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="precedencechain21pattern-after">PrecedenceChain21Pattern After<a class="headerlink" href="#precedencechain21pattern-after" title="Permanent link"> #</a></h3>
+<pre><code>After &quot;Q&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; previously held and was preceded by &quot;R&quot;
+</code></pre>
+
+<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈T⌉;true), (true;⌈Q⌉;⌈!S⌉;⌈T⌉;true), (true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;⌈(R &amp;&amp; !S)⌉;⌈!S⌉;⌈T⌉;true)
+</code></pre>
+
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_After_0.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_After_0.svg" /></a><figcaption></figcaption>
+</figure>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_After_1.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_After_1.svg" /></a><figcaption></figcaption>
+</figure>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_After_2.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_After_2.svg" /></a><figcaption></figcaption>
+</figure>
+<h3 id="precedencechain21pattern-between">PrecedenceChain21Pattern Between<a class="headerlink" href="#precedencechain21pattern-between" title="Permanent link"> #</a></h3>
+<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;U&quot; holds, then &quot;T&quot; previously held and was preceded by &quot;S&quot;
+</code></pre>
+
+<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈R⌉;true), (true;⌈(Q &amp;&amp; !R)⌉;⌈(!R &amp;&amp; !T)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈R⌉;true), (true;⌈(Q &amp;&amp; !R)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; (S &amp;&amp; !T))⌉;⌈(!R &amp;&amp; !T)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈R⌉;true)
+</code></pre>
+
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_Between_0.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_Between_0.svg" /></a><figcaption></figcaption>
+</figure>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_Between_1.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_Between_1.svg" /></a><figcaption></figcaption>
+</figure>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_Between_2.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_Between_2.svg" /></a><figcaption></figcaption>
+</figure>
+<h3 id="precedencechain21pattern-afteruntil">PrecedenceChain21Pattern AfterUntil<a class="headerlink" href="#precedencechain21pattern-afteruntil" title="Permanent link"> #</a></h3>
+<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;U&quot; holds, then &quot;T&quot; previously held and was preceded by &quot;S&quot;
+</code></pre>
+
+<pre><code>Countertraces: (true;⌈Q⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; U)⌉;true), (true;⌈Q⌉;⌈(!R &amp;&amp; !T)⌉;⌈(!R &amp;&amp; U)⌉;true), (true;⌈Q⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; (S &amp;&amp; !T))⌉;⌈(!R &amp;&amp; !T)⌉;⌈(!R &amp;&amp; U)⌉;true)
+</code></pre>
+
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
+</figure>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_AfterUntil_1.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_AfterUntil_1.svg" /></a><figcaption></figcaption>
+</figure>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_AfterUntil_2.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_AfterUntil_2.svg" /></a><figcaption></figcaption>
 </figure>
                         
                     </div>
