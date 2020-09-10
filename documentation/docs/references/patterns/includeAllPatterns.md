@@ -16,8 +16,6 @@
 {!references/patterns/PrecedenceChain12Pattern.md!}
 {!references/patterns/PrecedenceChain21Pattern.md!}
 {!references/patterns/PrecedencePattern.md!}
-{!references/patterns/ResponseChain21Pattern.md!}
 {!references/patterns/ResponsePattern.md!}
-{!references/patterns/TogglePattern.md!}
-{!references/patterns/TogglePatternDelayed.md!}
 {!references/patterns/UniversalityPattern.md!}
+{!references/patterns/UniversalityPatternDelayed.md!}

@@ -55,6 +55,10 @@ Countertraces: (true;⌈Q⌉;true;⌈(!R && S)⌉;⌈!R⌉ ∧ ℓ > 5;true)
 | ![](../img/failure_paths/positive/BndResponsePatternUT_After_1.svg) |  |
 | ![](../img/failure_paths/positive/BndResponsePatternUT_After_2.svg) |  |
 | ![](../img/failure_paths/positive/BndResponsePatternUT_After_3.svg) |  |
+| ![](../img/failure_paths/positive/BndResponsePatternUT_After_4.svg) |  |
+| ![](../img/failure_paths/positive/BndResponsePatternUT_After_5.svg) |  |
+| ![](../img/failure_paths/positive/BndResponsePatternUT_After_6.svg) |  |
+| ![](../img/failure_paths/positive/BndResponsePatternUT_After_7.svg) |  |
 
 
 ### BndResponsePatternUT Between
@@ -80,7 +84,7 @@ After "Q" until "R", it is always the case that if "T" holds, then "S" holds aft
 ```
 
 ```
-Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;true)
+Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;true)
 ```
 
 ![](../img/patterns/BndResponsePatternUT_AfterUntil_0.svg)

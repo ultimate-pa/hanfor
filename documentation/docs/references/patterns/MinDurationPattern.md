@@ -4,7 +4,7 @@
 
 ### MinDurationPattern Globally
 ```
-Globally, it is always the case that once "Q" becomes satisfied, it holds for at least "5" time units
+Globally, it is always the case that "Q" holds for at least "5" time units
 ```
 
 ```
@@ -21,7 +21,7 @@ Countertraces: (true;⌈!Q⌉;⌈Q⌉ ∧ ℓ < 5;⌈!Q⌉;true)
 
 ### MinDurationPattern Before
 ```
-Before "Q", it is always the case that once "R" becomes satisfied, it holds for at least "5" time units
+Before "Q", it is always the case that "R" holds for at least "5" time units
 ```
 
 ```
@@ -38,7 +38,7 @@ Countertraces: (⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ < 5;⌈(!Q && 
 
 ### MinDurationPattern After
 ```
-After "Q", it is always the case that once "R" becomes satisfied, it holds for at least "5" time units
+After "Q", it is always the case that "R" holds for at least "5" time units
 ```
 
 ```
@@ -55,7 +55,7 @@ Countertraces: (true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ < 5;⌈!R⌉;true)
 
 ### MinDurationPattern Between
 ```
-Between "Q" and "R", it is always the case that once "S" becomes satisfied, it holds for at least "5" time units
+Between "Q" and "R", it is always the case that "S" holds for at least "5" time units
 ```
 
 ```
@@ -72,11 +72,11 @@ Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉ �
 
 ### MinDurationPattern AfterUntil
 ```
-After "Q" until "R", it is always the case that once "S" becomes satisfied, it holds for at least "5" time units
+After "Q" until "R", it is always the case that "S" holds for at least "5" time units
 ```
 
 ```
-Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉ ∧ ℓ < 5;⌈(!R && !S)⌉;true)
+Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉ ∧ ℓ < 5;⌈(!R && !S)⌉;true)
 ```
 
 ![](../img/patterns/MinDurationPattern_AfterUntil_0.svg)

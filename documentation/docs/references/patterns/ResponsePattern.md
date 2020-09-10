@@ -16,7 +16,8 @@ Countertraces: (⌈!Q⌉;⌈(!Q && (!R && S))⌉;⌈(!Q && !R)⌉;⌈Q⌉;true)
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
 | --- | --- |
-|  | ![](../img/failure_paths/negative/ResponsePattern_Before_0.svg) |
+| ![](../img/failure_paths/positive/ResponsePattern_Before_0.svg) | ![](../img/failure_paths/negative/ResponsePattern_Before_0.svg) |
+| ![](../img/failure_paths/positive/ResponsePattern_Before_1.svg) |  |
 
 
 ### ResponsePattern Between
@@ -37,4 +38,24 @@ Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && 
 | ![](../img/failure_paths/positive/ResponsePattern_Between_1.svg) |  |
 | ![](../img/failure_paths/positive/ResponsePattern_Between_2.svg) |  |
 | ![](../img/failure_paths/positive/ResponsePattern_Between_3.svg) |  |
+
+
+### ResponsePattern AfterUntil
+```
+After "Q" until "R", it is always the case that if "T" holds, then "S" eventually holds
+```
+
+```
+Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;⌈R⌉;true)
+```
+
+![](../img/patterns/ResponsePattern_AfterUntil_0.svg)
+
+<div class="pattern-examples"></div>
+| Positive Example | Negative Example |
+| --- | --- |
+| ![](../img/failure_paths/positive/ResponsePattern_AfterUntil_0.svg) |  |
+| ![](../img/failure_paths/positive/ResponsePattern_AfterUntil_1.svg) |  |
+| ![](../img/failure_paths/positive/ResponsePattern_AfterUntil_2.svg) |  |
+| ![](../img/failure_paths/positive/ResponsePattern_AfterUntil_3.svg) |  |
 

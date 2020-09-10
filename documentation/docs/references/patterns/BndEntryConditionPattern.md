@@ -18,6 +18,7 @@ Countertraces: (true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true)
 | --- | --- |
 | ![](../img/failure_paths/positive/BndEntryConditionPattern_Globally_0.svg) | ![](../img/failure_paths/negative/BndEntryConditionPattern_Globally_0.svg) |
 | ![](../img/failure_paths/positive/BndEntryConditionPattern_Globally_1.svg) | ![](../img/failure_paths/negative/BndEntryConditionPattern_Globally_1.svg) |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_Globally_2.svg) |  |
 
 
 ### BndEntryConditionPattern Before
@@ -35,6 +36,7 @@ Countertraces: (⌈!Q⌉;⌈(!Q && S)⌉ ∧ ℓ ≥ 5;⌈(!Q && !R)⌉;true)
 | Positive Example | Negative Example |
 | --- | --- |
 | ![](../img/failure_paths/positive/BndEntryConditionPattern_Before_0.svg) | ![](../img/failure_paths/negative/BndEntryConditionPattern_Before_0.svg) |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_Before_1.svg) |  |
 
 
 ### BndEntryConditionPattern After
@@ -55,6 +57,10 @@ Countertraces: (true;⌈Q⌉;true;⌈S⌉ ∧ ℓ ≥ 5;⌈!R⌉;true)
 | ![](../img/failure_paths/positive/BndEntryConditionPattern_After_1.svg) |  |
 | ![](../img/failure_paths/positive/BndEntryConditionPattern_After_2.svg) |  |
 | ![](../img/failure_paths/positive/BndEntryConditionPattern_After_3.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_After_4.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_After_5.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_After_6.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_After_7.svg) |  |
 
 
 ### BndEntryConditionPattern Between
@@ -80,7 +86,7 @@ After "Q" until "R", it is always the case that after "T" holds for at least "5"
 ```
 
 ```
-Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉ ∧ ℓ ≥ 5;⌈(!R && !S)⌉;true)
+Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R && T)⌉ ∧ ℓ ≥ 5;⌈(!R && !S)⌉;true)
 ```
 
 ![](../img/patterns/BndEntryConditionPattern_AfterUntil_0.svg)
@@ -90,4 +96,6 @@ Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉ ∧ ℓ ≥ 5;⌈(
 | --- | --- |
 | ![](../img/failure_paths/positive/BndEntryConditionPattern_AfterUntil_0.svg) | ![](../img/failure_paths/negative/BndEntryConditionPattern_AfterUntil_0.svg) |
 | ![](../img/failure_paths/positive/BndEntryConditionPattern_AfterUntil_1.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_AfterUntil_2.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_AfterUntil_3.svg) |  |
 

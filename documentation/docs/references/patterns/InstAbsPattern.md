@@ -64,7 +64,7 @@ After "Q" until "R", it is never the case that "S" holds
 ```
 
 ```
-Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;true)
+Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R && S)⌉;true)
 ```
 
 ![](../img/patterns/InstAbsPattern_AfterUntil_0.svg)

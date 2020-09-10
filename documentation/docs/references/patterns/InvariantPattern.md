@@ -33,7 +33,7 @@ Countertraces: (⌈!Q⌉;⌈(!Q && (!R && S))⌉;true)
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
 | --- | --- |
-|  | ![](../img/failure_paths/negative/InvariantPattern_Before_0.svg) |
+| ![](../img/failure_paths/positive/InvariantPattern_Before_0.svg) | ![](../img/failure_paths/negative/InvariantPattern_Before_0.svg) |
 
 
 ### InvariantPattern After
@@ -80,7 +80,7 @@ After "Q" until "R", it is always the case that if "T" holds, then "S" holds as 
 ```
 
 ```
-Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;true)
+Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;true)
 ```
 
 ![](../img/patterns/InvariantPattern_AfterUntil_0.svg)

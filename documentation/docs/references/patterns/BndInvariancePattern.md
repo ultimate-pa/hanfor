@@ -81,7 +81,7 @@ After "Q" until "R", it is always the case that if "T" holds, then "S" holds for
 ```
 
 ```
-Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉;⌈!R⌉ ∧ ℓ < 5;⌈(!R && !S)⌉;true)
+Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R && T)⌉;⌈!R⌉ ∧ ℓ < 5;⌈(!R && !S)⌉;true)
 ```
 
 ![](../img/patterns/BndInvariancePattern_AfterUntil_0.svg)

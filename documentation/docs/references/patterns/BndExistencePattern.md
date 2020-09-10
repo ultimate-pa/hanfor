@@ -76,7 +76,7 @@ After "Q" until "R", transitions to states in which "S" holds occur at most twic
 ```
 
 ```
-Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;true)
+Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;true)
 ```
 
 ![](../img/patterns/BndExistencePattern_AfterUntil_0.svg)

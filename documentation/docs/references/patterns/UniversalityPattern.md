@@ -34,7 +34,7 @@ Countertraces: (⌈!Q⌉;⌈(!Q && !R)⌉;true)
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
 | --- | --- |
-|  | ![](../img/failure_paths/negative/UniversalityPattern_Before_0.svg) |
+| ![](../img/failure_paths/positive/UniversalityPattern_Before_0.svg) | ![](../img/failure_paths/negative/UniversalityPattern_Before_0.svg) |
 
 
 ### UniversalityPattern After
@@ -81,7 +81,7 @@ After "Q" until "R", it is always the case that "S" holds
 ```
 
 ```
-Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;true)
+Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R && !S)⌉;true)
 ```
 
 ![](../img/patterns/UniversalityPattern_AfterUntil_0.svg)
