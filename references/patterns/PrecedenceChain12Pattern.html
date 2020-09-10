@@ -150,6 +150,50 @@
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_Globally_0.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_Globally_0.svg" /></a><figcaption></figcaption>
 </figure>
+<div class="pattern-examples"></div>
+
+<table>
+<thead>
+<tr>
+<th>Positive Example</th>
+<th>Negative Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_0.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_0.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_1.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_1.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_2.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_2.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_3.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_3.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_4.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_4.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_5.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_5.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_6.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_6.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_7.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_7.svg" /></a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 <h3 id="precedencechain12pattern-before">PrecedenceChain12Pattern Before<a class="headerlink" href="#precedencechain12pattern-before" title="Permanent link"> #</a></h3>
 <pre><code>Before &quot;Q&quot;, it is always the case that if &quot;T&quot; holds and is succeeded by &quot;S&quot;, then &quot;R&quot; previously held
 </code></pre>
@@ -159,20 +203,136 @@
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_Before_0.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_Before_0.svg" /></a><figcaption></figcaption>
 </figure>
+<div class="pattern-examples"></div>
+
+<table>
+<thead>
+<tr>
+<th>Positive Example</th>
+<th>Negative Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_Before_0.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_Before_0.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_Before_1.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_Before_1.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_Before_2.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_Before_2.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_Before_3.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_Before_3.svg" /></a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 <h3 id="precedencechain12pattern-after">PrecedenceChain12Pattern After<a class="headerlink" href="#precedencechain12pattern-after" title="Permanent link"> #</a></h3>
 <pre><code>After &quot;Q&quot;, it is always the case that if &quot;T&quot; holds and is succeeded by &quot;S&quot;, then &quot;R&quot; previously held
 </code></pre>
 
-<pre><code>Countertraces: (⌈!T⌉;⌈(Q &amp;&amp; !T)⌉;⌈!T⌉;⌈(S &amp;&amp; !T)⌉;true;⌈R⌉;true)
+<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈T⌉;true;⌈S⌉;true)
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_After_0.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_After_0.svg" /></a><figcaption></figcaption>
 </figure>
+<div class="pattern-examples"></div>
+
+<table>
+<thead>
+<tr>
+<th>Positive Example</th>
+<th>Negative Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_0.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_0.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_1.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_1.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_2.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_2.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_3.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_3.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_4.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_4.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_5.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_5.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_6.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_6.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_7.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_7.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_8.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_8.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_9.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_9.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_10.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_10.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_11.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_11.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_12.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_12.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_13.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_13.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_14.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_14.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_15.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_15.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_16.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_16.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_17.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_17.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_After_18.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_After_18.svg" /></a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 <h3 id="precedencechain12pattern-between">PrecedenceChain12Pattern Between<a class="headerlink" href="#precedencechain12pattern-between" title="Permanent link"> #</a></h3>
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;U&quot; holds and is succeeded by &quot;T&quot;, then &quot;S&quot; previously held
 </code></pre>
 
-<pre><code>Countertraces: (⌈!U⌉;⌈(Q &amp;&amp; (!R &amp;&amp; !U))⌉;⌈(!R &amp;&amp; !U)⌉;⌈(!R &amp;&amp; (T &amp;&amp; !U))⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;⌈R⌉;true)
+<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉;⌈!R⌉;⌈R⌉;true)
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_Between_0.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_Between_0.svg" /></a><figcaption></figcaption>
@@ -181,11 +341,55 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;U&quot; holds and is succeeded by &quot;T&quot;, then &quot;S&quot; previously held
 </code></pre>
 
-<pre><code>Countertraces: (⌈!U⌉;⌈(Q &amp;&amp; (!R &amp;&amp; !U))⌉;⌈(!R &amp;&amp; !U)⌉;⌈(!R &amp;&amp; (T &amp;&amp; !U))⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;true)
+<pre><code>Countertraces: (true;⌈Q⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉;true)
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
 </figure>
+<div class="pattern-examples"></div>
+
+<table>
+<thead>
+<tr>
+<th>Positive Example</th>
+<th>Negative Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_0.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_0.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_1.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_1.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_2.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_2.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_3.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_3.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_4.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_4.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_5.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_5.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_6.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_6.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_7.svg"><img alt="" src="../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_7.svg" /></a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
                         
                     </div>
                 </div>

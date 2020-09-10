@@ -142,7 +142,7 @@
 
 <h2 id="maxdurationpattern">MaxDurationPattern<a class="headerlink" href="#maxdurationpattern" title="Permanent link"> #</a></h2>
 <h3 id="maxdurationpattern-globally">MaxDurationPattern Globally<a class="headerlink" href="#maxdurationpattern-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that once &quot;Q&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
+<pre><code>Globally, it is always the case that &quot;Q&quot; holds for less than &quot;5&quot; time units
 </code></pre>
 
 <pre><code>Countertraces: (true;⌈Q⌉ ∧ ℓ ≥ 5;true)
@@ -161,16 +161,16 @@
 </thead>
 <tbody>
 <tr>
-<td></td>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_Globally_0.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_Globally_0.svg" /></a></td>
 <td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/MaxDurationPattern_Globally_0.svg"><img alt="" src="../img/failure_paths/negative/MaxDurationPattern_Globally_0.svg" /></a></td>
 </tr>
 </tbody>
 </table>
 <h3 id="maxdurationpattern-before">MaxDurationPattern Before<a class="headerlink" href="#maxdurationpattern-before" title="Permanent link"> #</a></h3>
-<pre><code>Before &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
+<pre><code>Before &quot;Q&quot;, it is always the case that &quot;R&quot; holds for less than &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉ ∧ ℓ ≥ 5;true)
+<pre><code>Countertraces: (⌈!Q⌉;⌈(!Q &amp;&amp; R)⌉ ∧ ℓ ≥ 5;true)
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_Before_0.svg"><img alt="" src="../img/patterns/MaxDurationPattern_Before_0.svg" /></a><figcaption></figcaption>
@@ -186,16 +186,16 @@
 </thead>
 <tbody>
 <tr>
-<td></td>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_Before_0.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_Before_0.svg" /></a></td>
 <td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/MaxDurationPattern_Before_0.svg"><img alt="" src="../img/failure_paths/negative/MaxDurationPattern_Before_0.svg" /></a></td>
 </tr>
 </tbody>
 </table>
 <h3 id="maxdurationpattern-after">MaxDurationPattern After<a class="headerlink" href="#maxdurationpattern-after" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
+<pre><code>After &quot;Q&quot;, it is always the case that &quot;R&quot; holds for less than &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ ≥ 5;true)
+<pre><code>Countertraces: (true;⌈Q⌉;true;⌈R⌉ ∧ ℓ ≥ 5;true)
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_After_0.svg"><img alt="" src="../img/patterns/MaxDurationPattern_After_0.svg" /></a><figcaption></figcaption>
@@ -211,13 +211,17 @@
 </thead>
 <tbody>
 <tr>
-<td></td>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_After_0.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_After_0.svg" /></a></td>
 <td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/MaxDurationPattern_After_0.svg"><img alt="" src="../img/failure_paths/negative/MaxDurationPattern_After_0.svg" /></a></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_After_1.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_After_1.svg" /></a></td>
+<td></td>
 </tr>
 </tbody>
 </table>
 <h3 id="maxdurationpattern-between">MaxDurationPattern Between<a class="headerlink" href="#maxdurationpattern-between" title="Permanent link"> #</a></h3>
-<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
+<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that &quot;S&quot; holds for less than &quot;5&quot; time units
 </code></pre>
 
 <pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ ≥ 5;⌈!R⌉;⌈R⌉;true)
@@ -236,16 +240,36 @@
 </thead>
 <tbody>
 <tr>
-<td></td>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_Between_0.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_Between_0.svg" /></a></td>
 <td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/MaxDurationPattern_Between_0.svg"><img alt="" src="../img/failure_paths/negative/MaxDurationPattern_Between_0.svg" /></a></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_Between_1.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_Between_1.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_Between_2.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_Between_2.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_Between_3.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_Between_3.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_Between_4.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_Between_4.svg" /></a></td>
+<td></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_Between_5.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_Between_5.svg" /></a></td>
+<td></td>
 </tr>
 </tbody>
 </table>
 <h3 id="maxdurationpattern-afteruntil">MaxDurationPattern AfterUntil<a class="headerlink" href="#maxdurationpattern-afteruntil" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
+<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that &quot;S&quot; holds for less than &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ ≥ 5;true)
+<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ ≥ 5;true)
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/MaxDurationPattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
@@ -261,8 +285,12 @@
 </thead>
 <tbody>
 <tr>
-<td></td>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_AfterUntil_0.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_AfterUntil_0.svg" /></a></td>
 <td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/MaxDurationPattern_AfterUntil_0.svg"><img alt="" src="../img/failure_paths/negative/MaxDurationPattern_AfterUntil_0.svg" /></a></td>
+</tr>
+<tr>
+<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/MaxDurationPattern_AfterUntil_1.svg"><img alt="" src="../img/failure_paths/positive/MaxDurationPattern_AfterUntil_1.svg" /></a></td>
+<td></td>
 </tr>
 </tbody>
 </table>
