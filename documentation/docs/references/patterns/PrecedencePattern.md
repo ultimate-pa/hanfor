@@ -8,7 +8,8 @@ Globally, it is always the case that if "R" holds, then "Q" previously held
 ```
 
 ```
-Countertraces: (⌈!Q⌉;⌈R⌉;true)
+Countertraces:
+⌈!Q⌉;⌈R⌉;true
 ```
 
 ![](../img/patterns/PrecedencePattern_Globally_0.svg)
@@ -26,7 +27,8 @@ Before "Q", it is always the case that if "S" holds, then "R" previously held
 ```
 
 ```
-Countertraces: (⌈(!Q && !R)⌉;⌈(!Q && S)⌉;true)
+Countertraces:
+⌈(!Q && !R)⌉;⌈(!Q && S)⌉;true
 ```
 
 ![](../img/patterns/PrecedencePattern_Before_0.svg)
@@ -43,7 +45,8 @@ After "Q", it is always the case that if "S" holds, then "R" previously held
 ```
 
 ```
-Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈S⌉;true)
+Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈S⌉;true
 ```
 
 ![](../img/patterns/PrecedencePattern_After_0.svg)
@@ -63,7 +66,8 @@ Between "Q" and "R", it is always the case that if "T" holds, then "S" previousl
 ```
 
 ```
-Countertraces: (true;⌈(Q && (!R && !S))⌉;⌈(!R && !S)⌉;⌈(!R && T)⌉;⌈!R⌉;⌈R⌉;true)
+Countertraces:
+true;⌈(Q && (!R && !S))⌉;⌈(!R && !S)⌉;⌈(!R && T)⌉;⌈!R⌉;⌈R⌉;true
 ```
 
 ![](../img/patterns/PrecedencePattern_Between_0.svg)
@@ -85,7 +89,8 @@ After "Q" until "R", it is always the case that if "T" holds, then "S" previousl
 ```
 
 ```
-Countertraces: (true;⌈Q⌉;⌈(!R && !S)⌉;⌈(!R && T)⌉;true)
+Countertraces:
+true;⌈Q⌉;⌈(!R && !S)⌉;⌈(!R && T)⌉;true
 ```
 
 ![](../img/patterns/PrecedencePattern_AfterUntil_0.svg)

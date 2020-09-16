@@ -8,7 +8,10 @@ Globally, it is always the case that if "S" holds, then "R" previously held and 
 ```
 
 ```
-Countertraces: (⌈!Q⌉;⌈S⌉;true), (⌈!R⌉;⌈S⌉;true), (⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(Q && !R)⌉;⌈!R⌉;⌈S⌉;true)
+Countertraces:
+⌈!Q⌉;⌈S⌉;true
+⌈!R⌉;⌈S⌉;true
+⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(Q && !R)⌉;⌈!R⌉;⌈S⌉;true
 ```
 
 ![](../img/patterns/PrecedenceChain21Pattern_Globally_0.svg)
@@ -31,7 +34,10 @@ Before "Q", it is always the case that if "T" holds, then "S" previously held an
 ```
 
 ```
-Countertraces: (⌈(!Q && !R)⌉;⌈(!Q && T)⌉;true), (⌈(!Q && !S)⌉;⌈(!Q && T)⌉;true), (⌈(!Q && !R)⌉;⌈(!Q && (!R && S))⌉;⌈(!Q && !R)⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉;⌈(!Q && T)⌉;true)
+Countertraces:
+⌈(!Q && !R)⌉;⌈(!Q && T)⌉;true
+⌈(!Q && !S)⌉;⌈(!Q && T)⌉;true
+⌈(!Q && !R)⌉;⌈(!Q && (!R && S))⌉;⌈(!Q && !R)⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉;⌈(!Q && T)⌉;true
 ```
 
 ![](../img/patterns/PrecedenceChain21Pattern_Before_0.svg)
@@ -53,7 +59,10 @@ After "Q", it is always the case that if "T" holds, then "S" previously held and
 ```
 
 ```
-Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈T⌉;true), (true;⌈Q⌉;⌈!S⌉;⌈T⌉;true), (true;⌈Q⌉;⌈!R⌉;⌈(!R && S)⌉;⌈!R⌉;⌈(R && !S)⌉;⌈!S⌉;⌈T⌉;true)
+Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈T⌉;true
+true;⌈Q⌉;⌈!S⌉;⌈T⌉;true
+true;⌈Q⌉;⌈!R⌉;⌈(!R && S)⌉;⌈!R⌉;⌈(R && !S)⌉;⌈!S⌉;⌈T⌉;true
 ```
 
 ![](../img/patterns/PrecedenceChain21Pattern_After_0.svg)
@@ -69,7 +78,10 @@ Between "Q" and "R", it is always the case that if "U" holds, then "T" previousl
 ```
 
 ```
-Countertraces: (true;⌈(Q && !R)⌉;⌈(!R && !S)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈R⌉;true), (true;⌈(Q && !R)⌉;⌈(!R && !T)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈R⌉;true), (true;⌈(Q && !R)⌉;⌈(!R && !S)⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;⌈(!R && (S && !T))⌉;⌈(!R && !T)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈R⌉;true)
+Countertraces:
+true;⌈(Q && !R)⌉;⌈(!R && !S)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈R⌉;true
+true;⌈(Q && !R)⌉;⌈(!R && !T)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈R⌉;true
+true;⌈(Q && !R)⌉;⌈(!R && !S)⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;⌈(!R && (S && !T))⌉;⌈(!R && !T)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈R⌉;true
 ```
 
 ![](../img/patterns/PrecedenceChain21Pattern_Between_0.svg)
@@ -85,7 +97,10 @@ After "Q" until "R", it is always the case that if "U" holds, then "T" previousl
 ```
 
 ```
-Countertraces: (true;⌈Q⌉;⌈(!R && !S)⌉;⌈(!R && U)⌉;true), (true;⌈Q⌉;⌈(!R && !T)⌉;⌈(!R && U)⌉;true), (true;⌈Q⌉;⌈(!R && !S)⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;⌈(!R && (S && !T))⌉;⌈(!R && !T)⌉;⌈(!R && U)⌉;true)
+Countertraces:
+true;⌈Q⌉;⌈(!R && !S)⌉;⌈(!R && U)⌉;true
+true;⌈Q⌉;⌈(!R && !T)⌉;⌈(!R && U)⌉;true
+true;⌈Q⌉;⌈(!R && !S)⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;⌈(!R && (S && !T))⌉;⌈(!R && !T)⌉;⌈(!R && U)⌉;true
 ```
 
 ![](../img/patterns/PrecedenceChain21Pattern_AfterUntil_0.svg)

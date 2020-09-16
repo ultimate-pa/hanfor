@@ -8,7 +8,8 @@ Globally, it is always the case that if "R" holds, then "Q" holds after at most 
 ```
 
 ```
-Countertraces: (true;⌈(!Q && R)⌉;⌈!Q⌉ ∧ ℓ > 5;true)
+Countertraces:
+true;⌈(!Q && R)⌉;⌈!Q⌉ ∧ ℓ > 5;true
 ```
 
 ![](../img/patterns/BndResponsePatternUT_Globally_0.svg)
@@ -26,7 +27,8 @@ Before "Q", it is always the case that if "S" holds, then "R" holds after at mos
 ```
 
 ```
-Countertraces: (⌈!Q⌉;⌈(!Q && (!R && S))⌉;⌈(!Q && !R)⌉ ∧ ℓ > 5;true)
+Countertraces:
+⌈!Q⌉;⌈(!Q && (!R && S))⌉;⌈(!Q && !R)⌉ ∧ ℓ > 5;true
 ```
 
 ![](../img/patterns/BndResponsePatternUT_Before_0.svg)
@@ -43,7 +45,8 @@ After "Q", it is always the case that if "S" holds, then "R" holds after at most
 ```
 
 ```
-Countertraces: (true;⌈Q⌉;true;⌈(!R && S)⌉;⌈!R⌉ ∧ ℓ > 5;true)
+Countertraces:
+true;⌈Q⌉;true;⌈(!R && S)⌉;⌈!R⌉ ∧ ℓ > 5;true
 ```
 
 ![](../img/patterns/BndResponsePatternUT_After_0.svg)
@@ -67,7 +70,8 @@ Between "Q" and "R", it is always the case that if "T" holds, then "S" holds aft
 ```
 
 ```
-Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;⌈!R⌉;⌈R⌉;true)
+Countertraces:
+true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;⌈!R⌉;⌈R⌉;true
 ```
 
 ![](../img/patterns/BndResponsePatternUT_Between_0.svg)
@@ -84,7 +88,8 @@ After "Q" until "R", it is always the case that if "T" holds, then "S" holds aft
 ```
 
 ```
-Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;true)
+Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;true
 ```
 
 ![](../img/patterns/BndResponsePatternUT_AfterUntil_0.svg)

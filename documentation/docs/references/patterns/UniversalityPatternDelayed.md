@@ -8,7 +8,8 @@ Globally, it is always the case that "Q" holds at most "5" time units later
 ```
 
 ```
-Countertraces: (⌈true⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true)
+Countertraces:
+⌈true⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true
 ```
 
 ![](../img/patterns/UniversalityPatternDelayed_Globally_0.svg)
@@ -26,7 +27,8 @@ Before "Q", it is always the case that "R" holds at most "5" time units later
 ```
 
 ```
-Countertraces: (⌈!Q⌉ ∧ ℓ ≥ 5;⌈(!Q && !R)⌉;true)
+Countertraces:
+⌈!Q⌉ ∧ ℓ ≥ 5;⌈(!Q && !R)⌉;true
 ```
 
 ![](../img/patterns/UniversalityPatternDelayed_Before_0.svg)
@@ -44,7 +46,8 @@ After "Q", it is always the case that "R" holds at most "5" time units later
 ```
 
 ```
-Countertraces: (true;⌈Q⌉;⌈true⌉ ∧ ℓ ≥ 5;⌈!R⌉;true)
+Countertraces:
+true;⌈Q⌉;⌈true⌉ ∧ ℓ ≥ 5;⌈!R⌉;true
 ```
 
 ![](../img/patterns/UniversalityPatternDelayed_After_0.svg)
@@ -62,7 +65,8 @@ Between "Q" and "R", it is always the case that "S" holds at most "5" time units
 ```
 
 ```
-Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉ ∧ ℓ ≥ 5;⌈(!R && !S)⌉;true;⌈R⌉;true)
+Countertraces:
+true;⌈(Q && !R)⌉;⌈!R⌉ ∧ ℓ ≥ 5;⌈(!R && !S)⌉;true;⌈R⌉;true
 ```
 
 ![](../img/patterns/UniversalityPatternDelayed_Between_0.svg)
@@ -82,7 +86,8 @@ After "Q" until "R", it is always the case that "S" holds at most "5" time units
 ```
 
 ```
-Countertraces: (true;⌈Q⌉;⌈!R⌉ ∧ ℓ ≥ 5;⌈(!R && !S)⌉;true)
+Countertraces:
+true;⌈Q⌉;⌈!R⌉ ∧ ℓ ≥ 5;⌈(!R && !S)⌉;true
 ```
 
 ![](../img/patterns/UniversalityPatternDelayed_AfterUntil_0.svg)

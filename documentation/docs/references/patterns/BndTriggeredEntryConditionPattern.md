@@ -8,7 +8,8 @@ Globally, it is always the case that after "S" holds for at least "5" time units
 ```
 
 ```
-Countertraces: (true;⌈Q⌉ ∧ ℓ ≥ 5;⌈(Q && (R && !S))⌉;true)
+Countertraces:
+true;⌈Q⌉ ∧ ℓ ≥ 5;⌈(Q && (R && !S))⌉;true
 ```
 
 ![](../img/patterns/BndTriggeredEntryConditionPattern_Globally_0.svg)

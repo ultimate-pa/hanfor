@@ -8,7 +8,8 @@ Globally, it is always the case that after "R" holds for at least "5" time units
 ```
 
 ```
-Countertraces: (true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true)
+Countertraces:
+true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true
 ```
 
 ![](../img/patterns/BndEntryConditionPattern_Globally_0.svg)
@@ -27,7 +28,8 @@ Before "Q", it is always the case that after "S" holds for at least "5" time uni
 ```
 
 ```
-Countertraces: (⌈!Q⌉;⌈(!Q && S)⌉ ∧ ℓ ≥ 5;⌈(!Q && !R)⌉;true)
+Countertraces:
+⌈!Q⌉;⌈(!Q && S)⌉ ∧ ℓ ≥ 5;⌈(!Q && !R)⌉;true
 ```
 
 ![](../img/patterns/BndEntryConditionPattern_Before_0.svg)
@@ -45,7 +47,8 @@ After "Q", it is always the case that after "S" holds for at least "5" time unit
 ```
 
 ```
-Countertraces: (true;⌈Q⌉;true;⌈S⌉ ∧ ℓ ≥ 5;⌈!R⌉;true)
+Countertraces:
+true;⌈Q⌉;true;⌈S⌉ ∧ ℓ ≥ 5;⌈!R⌉;true
 ```
 
 ![](../img/patterns/BndEntryConditionPattern_After_0.svg)
@@ -69,7 +72,8 @@ Between "Q" and "R", it is always the case that after "T" holds for at least "5"
 ```
 
 ```
-Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉ ∧ ℓ ≥ 5;⌈(!R && !S)⌉;⌈!R⌉;⌈R⌉;true)
+Countertraces:
+true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉ ∧ ℓ ≥ 5;⌈(!R && !S)⌉;⌈!R⌉;⌈R⌉;true
 ```
 
 ![](../img/patterns/BndEntryConditionPattern_Between_0.svg)
@@ -86,7 +90,8 @@ After "Q" until "R", it is always the case that after "T" holds for at least "5"
 ```
 
 ```
-Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R && T)⌉ ∧ ℓ ≥ 5;⌈(!R && !S)⌉;true)
+Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈(!R && T)⌉ ∧ ℓ ≥ 5;⌈(!R && !S)⌉;true
 ```
 
 ![](../img/patterns/BndEntryConditionPattern_AfterUntil_0.svg)

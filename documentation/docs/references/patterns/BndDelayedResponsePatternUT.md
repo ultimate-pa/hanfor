@@ -8,7 +8,9 @@ Globally, it is always the case that if "R" holds, then "Q" holds after at most 
 ```
 
 ```
-Countertraces: (true;⌈R⌉;⌈!Q⌉ ∧ ℓ > 5;true), (true;⌈R⌉;⌈!Q⌉ ∧ ℓ ≤ 5;⌈Q⌉ ∧ ℓ < 10;⌈!Q⌉;true)
+Countertraces:
+true;⌈R⌉;⌈!Q⌉ ∧ ℓ > 5;true
+true;⌈R⌉;⌈!Q⌉ ∧ ℓ ≤ 5;⌈Q⌉ ∧ ℓ < 10;⌈!Q⌉;true
 ```
 
 ![](../img/patterns/BndDelayedResponsePatternUT_Globally_0.svg)

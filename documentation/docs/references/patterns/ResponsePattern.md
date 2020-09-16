@@ -8,7 +8,8 @@ Before "Q", it is always the case that if "S" holds, then "R" eventually holds
 ```
 
 ```
-Countertraces: (⌈!Q⌉;⌈(!Q && (!R && S))⌉;⌈(!Q && !R)⌉;⌈Q⌉;true)
+Countertraces:
+⌈!Q⌉;⌈(!Q && (!R && S))⌉;⌈(!Q && !R)⌉;⌈Q⌉;true
 ```
 
 ![](../img/patterns/ResponsePattern_Before_0.svg)
@@ -26,7 +27,8 @@ Between "Q" and "R", it is always the case that if "T" holds, then "S" eventuall
 ```
 
 ```
-Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;⌈R⌉;true)
+Countertraces:
+true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;⌈R⌉;true
 ```
 
 ![](../img/patterns/ResponsePattern_Between_0.svg)
@@ -46,7 +48,8 @@ After "Q" until "R", it is always the case that if "T" holds, then "S" eventuall
 ```
 
 ```
-Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;⌈R⌉;true)
+Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;⌈R⌉;true
 ```
 
 ![](../img/patterns/ResponsePattern_AfterUntil_0.svg)

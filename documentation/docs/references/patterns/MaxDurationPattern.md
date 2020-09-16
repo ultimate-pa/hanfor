@@ -4,11 +4,12 @@
 
 ### MaxDurationPattern Globally
 ```
-Globally, it is always the case that "Q" holds for less than "5" time units
+Globally, it is always the case that once "Q" becomes satisfied, it holds for less than "5" time units
 ```
 
 ```
-Countertraces: (true;⌈Q⌉ ∧ ℓ ≥ 5;true)
+Countertraces:
+true;⌈Q⌉ ∧ ℓ ≥ 5;true
 ```
 
 ![](../img/patterns/MaxDurationPattern_Globally_0.svg)
@@ -21,11 +22,12 @@ Countertraces: (true;⌈Q⌉ ∧ ℓ ≥ 5;true)
 
 ### MaxDurationPattern Before
 ```
-Before "Q", it is always the case that "R" holds for less than "5" time units
+Before "Q", it is always the case that once "R" becomes satisfied, it holds for less than "5" time units
 ```
 
 ```
-Countertraces: (⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ 5;true)
+Countertraces:
+⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ 5;true
 ```
 
 ![](../img/patterns/MaxDurationPattern_Before_0.svg)
@@ -38,11 +40,12 @@ Countertraces: (⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ 5;true)
 
 ### MaxDurationPattern After
 ```
-After "Q", it is always the case that "R" holds for less than "5" time units
+After "Q", it is always the case that once "R" becomes satisfied, it holds for less than "5" time units
 ```
 
 ```
-Countertraces: (true;⌈Q⌉;true;⌈R⌉ ∧ ℓ ≥ 5;true)
+Countertraces:
+true;⌈Q⌉;true;⌈R⌉ ∧ ℓ ≥ 5;true
 ```
 
 ![](../img/patterns/MaxDurationPattern_After_0.svg)
@@ -56,11 +59,12 @@ Countertraces: (true;⌈Q⌉;true;⌈R⌉ ∧ ℓ ≥ 5;true)
 
 ### MaxDurationPattern Between
 ```
-Between "Q" and "R", it is always the case that "S" holds for less than "5" time units
+Between "Q" and "R", it is always the case that once "S" becomes satisfied, it holds for less than "5" time units
 ```
 
 ```
-Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉ ∧ ℓ ≥ 5;⌈!R⌉;⌈R⌉;true)
+Countertraces:
+true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉ ∧ ℓ ≥ 5;⌈!R⌉;⌈R⌉;true
 ```
 
 ![](../img/patterns/MaxDurationPattern_Between_0.svg)
@@ -78,11 +82,12 @@ Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉ ∧ ℓ ≥ 5;⌈!
 
 ### MaxDurationPattern AfterUntil
 ```
-After "Q" until "R", it is always the case that "S" holds for less than "5" time units
+After "Q" until "R", it is always the case that once "S" becomes satisfied, it holds for less than "5" time units
 ```
 
 ```
-Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R && S)⌉ ∧ ℓ ≥ 5;true)
+Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈(!R && S)⌉ ∧ ℓ ≥ 5;true
 ```
 
 ![](../img/patterns/MaxDurationPattern_AfterUntil_0.svg)

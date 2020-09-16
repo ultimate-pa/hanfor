@@ -8,7 +8,8 @@ Globally, it is always the case that if "S" holds and is succeeded by "R", then 
 ```
 
 ```
-Countertraces: (⌈!Q⌉;⌈S⌉;true;⌈R⌉;true)
+Countertraces:
+⌈!Q⌉;⌈S⌉;true;⌈R⌉;true
 ```
 
 ![](../img/patterns/PrecedenceChain12Pattern_Globally_0.svg)
@@ -32,7 +33,8 @@ Before "Q", it is always the case that if "T" holds and is succeeded by "S", the
 ```
 
 ```
-Countertraces: (⌈(!Q && !R)⌉;⌈(!Q && T)⌉;⌈!Q⌉;⌈(!Q && S)⌉;true)
+Countertraces:
+⌈(!Q && !R)⌉;⌈(!Q && T)⌉;⌈!Q⌉;⌈(!Q && S)⌉;true
 ```
 
 ![](../img/patterns/PrecedenceChain12Pattern_Before_0.svg)
@@ -52,7 +54,8 @@ After "Q", it is always the case that if "T" holds and is succeeded by "S", then
 ```
 
 ```
-Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈T⌉;true;⌈S⌉;true)
+Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈T⌉;true;⌈S⌉;true
 ```
 
 ![](../img/patterns/PrecedenceChain12Pattern_After_0.svg)
@@ -87,7 +90,8 @@ Between "Q" and "R", it is always the case that if "U" holds and is succeeded by
 ```
 
 ```
-Countertraces: (true;⌈(Q && !R)⌉;⌈(!R && !S)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈(!R && T)⌉;⌈!R⌉;⌈R⌉;true)
+Countertraces:
+true;⌈(Q && !R)⌉;⌈(!R && !S)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈(!R && T)⌉;⌈!R⌉;⌈R⌉;true
 ```
 
 ![](../img/patterns/PrecedenceChain12Pattern_Between_0.svg)
@@ -99,7 +103,8 @@ After "Q" until "R", it is always the case that if "U" holds and is succeeded by
 ```
 
 ```
-Countertraces: (true;⌈Q⌉;⌈(!R && !S)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈(!R && T)⌉;true)
+Countertraces:
+true;⌈Q⌉;⌈(!R && !S)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈(!R && T)⌉;true
 ```
 
 ![](../img/patterns/PrecedenceChain12Pattern_AfterUntil_0.svg)

@@ -8,7 +8,8 @@ Globally, it is always the case that "Q" holds at least every "5" time units
 ```
 
 ```
-Countertraces: (true;⌈!Q⌉ ∧ ℓ > 5;true)
+Countertraces:
+true;⌈!Q⌉ ∧ ℓ > 5;true
 ```
 
 ![](../img/patterns/BndRecurrencePattern_Globally_0.svg)
@@ -25,7 +26,8 @@ Before "Q", it is always the case that "R" holds at least every "5" time units
 ```
 
 ```
-Countertraces: (⌈!Q⌉;⌈(!Q && !R)⌉ ∧ ℓ > 5;true)
+Countertraces:
+⌈!Q⌉;⌈(!Q && !R)⌉ ∧ ℓ > 5;true
 ```
 
 ![](../img/patterns/BndRecurrencePattern_Before_0.svg)
@@ -42,7 +44,8 @@ After "Q", it is always the case that "R" holds at least every "5" time units
 ```
 
 ```
-Countertraces: (true;⌈Q⌉;true;⌈!R⌉ ∧ ℓ > 5;true)
+Countertraces:
+true;⌈Q⌉;true;⌈!R⌉ ∧ ℓ > 5;true
 ```
 
 ![](../img/patterns/BndRecurrencePattern_After_0.svg)
@@ -59,7 +62,8 @@ Between "Q" and "R", it is always the case that "S" holds at least every "5" tim
 ```
 
 ```
-Countertraces: (true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;⌈!R⌉;⌈R⌉;true)
+Countertraces:
+true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;⌈!R⌉;⌈R⌉;true
 ```
 
 ![](../img/patterns/BndRecurrencePattern_Between_0.svg)
@@ -81,7 +85,8 @@ After "Q" until "R", it is always the case that "S" holds at least every "5" tim
 ```
 
 ```
-Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;true)
+Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;true
 ```
 
 ![](../img/patterns/BndRecurrencePattern_AfterUntil_0.svg)
