@@ -871,7 +871,9 @@
 <pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; holds after at most &quot;5&quot; time units for at least &quot;10&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈R⌉;⌈!Q⌉ ∧ ℓ &gt; 5;true), (true;⌈R⌉;⌈!Q⌉ ∧ ℓ ≤ 5;⌈Q⌉ ∧ ℓ &lt; 10;⌈!Q⌉;true)
+<pre><code>Countertraces:
+true;⌈R⌉;⌈!Q⌉ ∧ ℓ &gt; 5;true
+true;⌈R⌉;⌈!Q⌉ ∧ ℓ ≤ 5;⌈Q⌉ ∧ ℓ &lt; 10;⌈!Q⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndDelayedResponsePatternUT_Globally_0.svg"><img alt="" src="../img/patterns/BndDelayedResponsePatternUT_Globally_0.svg" /></a><figcaption></figcaption>
@@ -905,7 +907,8 @@
 <pre><code>Globally, it is always the case that after &quot;R&quot; holds for at least &quot;5&quot; time units, then &quot;Q&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true)
+<pre><code>Countertraces:
+true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_Globally_0.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_Globally_0.svg" /></a><figcaption></figcaption>
@@ -938,7 +941,8 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that after &quot;S&quot; holds for at least &quot;5&quot; time units, then &quot;R&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: (⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉ ∧ ℓ ≥ 5;⌈(!Q &amp;&amp; !R)⌉;true)
+<pre><code>Countertraces:
+⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉ ∧ ℓ ≥ 5;⌈(!Q &amp;&amp; !R)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_Before_0.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_Before_0.svg" /></a><figcaption></figcaption>
@@ -967,7 +971,8 @@
 <pre><code>After &quot;Q&quot;, it is always the case that after &quot;S&quot; holds for at least &quot;5&quot; time units, then &quot;R&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;true;⌈S⌉ ∧ ℓ ≥ 5;⌈!R⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;true;⌈S⌉ ∧ ℓ ≥ 5;⌈!R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_After_0.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_After_0.svg" /></a><figcaption></figcaption>
@@ -1020,7 +1025,8 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that after &quot;T&quot; holds for at least &quot;5&quot; time units, then &quot;S&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true)
+<pre><code>Countertraces:
+true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_Between_0.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_Between_0.svg" /></a><figcaption></figcaption>
@@ -1045,7 +1051,8 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that after &quot;T&quot; holds for at least &quot;5&quot; time units, then &quot;S&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndEntryConditionPattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/BndEntryConditionPattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
@@ -1085,7 +1092,8 @@
 <pre><code>Globally, transitions to states in which &quot;Q&quot; holds occur at most twice
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈!Q⌉;⌈Q⌉;⌈!Q⌉;⌈Q⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈!Q⌉;⌈Q⌉;⌈!Q⌉;⌈Q⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndExistencePattern_Globally_0.svg"><img alt="" src="../img/patterns/BndExistencePattern_Globally_0.svg" /></a><figcaption></figcaption>
@@ -1110,7 +1118,8 @@
 <pre><code>Before &quot;Q&quot;, transitions to states in which &quot;R&quot; holds occur at most twice
 </code></pre>
 
-<pre><code>Countertraces: (⌈!Q⌉;⌈(!Q &amp;&amp; R)⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉;true)
+<pre><code>Countertraces:
+⌈!Q⌉;⌈(!Q &amp;&amp; R)⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndExistencePattern_Before_0.svg"><img alt="" src="../img/patterns/BndExistencePattern_Before_0.svg" /></a><figcaption></figcaption>
@@ -1135,7 +1144,8 @@
 <pre><code>After &quot;Q&quot;, transitions to states in which &quot;R&quot; holds occur at most twice
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;true;⌈R⌉;⌈!R⌉;⌈R⌉;⌈!R⌉;⌈R⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;true;⌈R⌉;⌈!R⌉;⌈R⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndExistencePattern_After_0.svg"><img alt="" src="../img/patterns/BndExistencePattern_After_0.svg" /></a><figcaption></figcaption>
@@ -1160,7 +1170,8 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, transitions to states in which &quot;S&quot; holds occur at most twice
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;⌈R⌉;true)
+<pre><code>Countertraces:
+true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndExistencePattern_Between_0.svg"><img alt="" src="../img/patterns/BndExistencePattern_Between_0.svg" /></a><figcaption></figcaption>
@@ -1185,7 +1196,8 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, transitions to states in which &quot;S&quot; holds occur at most twice
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndExistencePattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/BndExistencePattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
@@ -1213,7 +1225,8 @@
 <pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈R⌉;⌈true⌉ ∧ ℓ &lt; 5;⌈!Q⌉;true)
+<pre><code>Countertraces:
+true;⌈R⌉;⌈true⌉ ∧ ℓ &lt; 5;⌈!Q⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndInvariancePattern_Globally_0.svg"><img alt="" src="../img/patterns/BndInvariancePattern_Globally_0.svg" /></a><figcaption></figcaption>
@@ -1242,7 +1255,8 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉;⌈!Q⌉ ∧ ℓ &lt; 5;⌈(!Q &amp;&amp; !R)⌉;true)
+<pre><code>Countertraces:
+⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉;⌈!Q⌉ ∧ ℓ &lt; 5;⌈(!Q &amp;&amp; !R)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndInvariancePattern_Before_0.svg"><img alt="" src="../img/patterns/BndInvariancePattern_Before_0.svg" /></a><figcaption></figcaption>
@@ -1271,7 +1285,8 @@
 <pre><code>After &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;true;⌈S⌉;⌈true⌉ ∧ ℓ &lt; 5;⌈!R⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;true;⌈S⌉;⌈true⌉ ∧ ℓ &lt; 5;⌈!R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndInvariancePattern_After_0.svg"><img alt="" src="../img/patterns/BndInvariancePattern_After_0.svg" /></a><figcaption></figcaption>
@@ -1308,7 +1323,8 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉;⌈!R⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true)
+<pre><code>Countertraces:
+true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉;⌈!R⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndInvariancePattern_Between_0.svg"><img alt="" src="../img/patterns/BndInvariancePattern_Between_0.svg" /></a><figcaption></figcaption>
@@ -1333,7 +1349,8 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉;⌈!R⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉;⌈!R⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndInvariancePattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/BndInvariancePattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
@@ -1373,7 +1390,8 @@
 <pre><code>Globally, it is always the case that &quot;Q&quot; holds at least every &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈!Q⌉ ∧ ℓ &gt; 5;true)
+<pre><code>Countertraces:
+true;⌈!Q⌉ ∧ ℓ &gt; 5;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndRecurrencePattern_Globally_0.svg"><img alt="" src="../img/patterns/BndRecurrencePattern_Globally_0.svg" /></a><figcaption></figcaption>
@@ -1398,7 +1416,8 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that &quot;R&quot; holds at least every &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉ ∧ ℓ &gt; 5;true)
+<pre><code>Countertraces:
+⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉ ∧ ℓ &gt; 5;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndRecurrencePattern_Before_0.svg"><img alt="" src="../img/patterns/BndRecurrencePattern_Before_0.svg" /></a><figcaption></figcaption>
@@ -1423,7 +1442,8 @@
 <pre><code>After &quot;Q&quot;, it is always the case that &quot;R&quot; holds at least every &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;true;⌈!R⌉ ∧ ℓ &gt; 5;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;true;⌈!R⌉ ∧ ℓ &gt; 5;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndRecurrencePattern_After_0.svg"><img alt="" src="../img/patterns/BndRecurrencePattern_After_0.svg" /></a><figcaption></figcaption>
@@ -1448,7 +1468,8 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that &quot;S&quot; holds at least every &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ &gt; 5;⌈!R⌉;⌈R⌉;true)
+<pre><code>Countertraces:
+true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ &gt; 5;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndRecurrencePattern_Between_0.svg"><img alt="" src="../img/patterns/BndRecurrencePattern_Between_0.svg" /></a><figcaption></figcaption>
@@ -1493,7 +1514,8 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that &quot;S&quot; holds at least every &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ &gt; 5;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ &gt; 5;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndRecurrencePattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/BndRecurrencePattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
@@ -1521,7 +1543,8 @@
 <pre><code>Globally, it is always the case that if &quot;R&quot; holds for at least &quot;5&quot; time units, then &quot;Q&quot; holds afterwards for at least &quot;10&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈R⌉ ∧ ℓ ≥ 5;⌈Q⌉ ∧ ℓ &lt; 10;⌈!Q⌉;true)
+<pre><code>Countertraces:
+true;⌈R⌉ ∧ ℓ ≥ 5;⌈Q⌉ ∧ ℓ &lt; 10;⌈!Q⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndResponsePatternTT_Globally_0.svg"><img alt="" src="../img/patterns/BndResponsePatternTT_Globally_0.svg" /></a><figcaption></figcaption>
@@ -1557,7 +1580,8 @@
 <pre><code>Globally, it is always the case that if &quot;R&quot; holds for at least &quot;5&quot; time units, then &quot;Q&quot; holds afterwards
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true)
+<pre><code>Countertraces:
+true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndResponsePatternTU_Globally_0.svg"><img alt="" src="../img/patterns/BndResponsePatternTU_Globally_0.svg" /></a><figcaption></figcaption>
@@ -1593,7 +1617,8 @@
 <pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; holds after at most &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(!Q &amp;&amp; R)⌉;⌈!Q⌉ ∧ ℓ &gt; 5;true)
+<pre><code>Countertraces:
+true;⌈(!Q &amp;&amp; R)⌉;⌈!Q⌉ ∧ ℓ &gt; 5;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndResponsePatternUT_Globally_0.svg"><img alt="" src="../img/patterns/BndResponsePatternUT_Globally_0.svg" /></a><figcaption></figcaption>
@@ -1622,7 +1647,8 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds after at most &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈(!Q &amp;&amp; !R)⌉ ∧ ℓ &gt; 5;true)
+<pre><code>Countertraces:
+⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈(!Q &amp;&amp; !R)⌉ ∧ ℓ &gt; 5;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndResponsePatternUT_Before_0.svg"><img alt="" src="../img/patterns/BndResponsePatternUT_Before_0.svg" /></a><figcaption></figcaption>
@@ -1647,7 +1673,8 @@
 <pre><code>After &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds after at most &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;true;⌈(!R &amp;&amp; S)⌉;⌈!R⌉ ∧ ℓ &gt; 5;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;true;⌈(!R &amp;&amp; S)⌉;⌈!R⌉ ∧ ℓ &gt; 5;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndResponsePatternUT_After_0.svg"><img alt="" src="../img/patterns/BndResponsePatternUT_After_0.svg" /></a><figcaption></figcaption>
@@ -1700,7 +1727,8 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; holds after at most &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ &gt; 5;⌈!R⌉;⌈R⌉;true)
+<pre><code>Countertraces:
+true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ &gt; 5;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndResponsePatternUT_Between_0.svg"><img alt="" src="../img/patterns/BndResponsePatternUT_Between_0.svg" /></a><figcaption></figcaption>
@@ -1725,7 +1753,8 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; holds after at most &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ &gt; 5;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ &gt; 5;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndResponsePatternUT_AfterUntil_0.svg"><img alt="" src="../img/patterns/BndResponsePatternUT_AfterUntil_0.svg" /></a><figcaption></figcaption>
@@ -1753,7 +1782,8 @@
 <pre><code>Globally, it is always the case that after &quot;S&quot; holds for at least &quot;5&quot; time units and &quot;R&quot; holds, then &quot;Q&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉ ∧ ℓ ≥ 5;⌈(Q &amp;&amp; (R &amp;&amp; !S))⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉ ∧ ℓ ≥ 5;⌈(Q &amp;&amp; (R &amp;&amp; !S))⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndTriggeredEntryConditionPattern_Globally_0.svg"><img alt="" src="../img/patterns/BndTriggeredEntryConditionPattern_Globally_0.svg" /></a><figcaption></figcaption>
@@ -1785,7 +1815,8 @@
 <pre><code>Globally, it is never the case that &quot;Q&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/InstAbsPattern_Globally_0.svg"><img alt="" src="../img/patterns/InstAbsPattern_Globally_0.svg" /></a><figcaption></figcaption>
@@ -1814,7 +1845,8 @@
 <pre><code>After &quot;Q&quot;, it is never the case that &quot;R&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;true;⌈R⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;true;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/InstAbsPattern_After_0.svg"><img alt="" src="../img/patterns/InstAbsPattern_After_0.svg" /></a><figcaption></figcaption>
@@ -1843,7 +1875,8 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is never the case that &quot;S&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;⌈R⌉;true)
+<pre><code>Countertraces:
+true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/InstAbsPattern_Between_0.svg"><img alt="" src="../img/patterns/InstAbsPattern_Between_0.svg" /></a><figcaption></figcaption>
@@ -1880,7 +1913,8 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is never the case that &quot;S&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/InstAbsPattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/InstAbsPattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
@@ -1912,7 +1946,8 @@
 <pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; holds as well
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(!Q &amp;&amp; R)⌉;true)
+<pre><code>Countertraces:
+true;⌈(!Q &amp;&amp; R)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/InvariantPattern_Globally_0.svg"><img alt="" src="../img/patterns/InvariantPattern_Globally_0.svg" /></a><figcaption></figcaption>
@@ -1937,7 +1972,8 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds as well
 </code></pre>
 
-<pre><code>Countertraces: (⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;true)
+<pre><code>Countertraces:
+⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/InvariantPattern_Before_0.svg"><img alt="" src="../img/patterns/InvariantPattern_Before_0.svg" /></a><figcaption></figcaption>
@@ -1962,7 +1998,8 @@
 <pre><code>After &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; holds as well
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;true;⌈(!R &amp;&amp; S)⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;true;⌈(!R &amp;&amp; S)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/InvariantPattern_After_0.svg"><img alt="" src="../img/patterns/InvariantPattern_After_0.svg" /></a><figcaption></figcaption>
@@ -1991,7 +2028,8 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; holds as well
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈!R⌉;⌈R⌉;true)
+<pre><code>Countertraces:
+true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/InvariantPattern_Between_0.svg"><img alt="" src="../img/patterns/InvariantPattern_Between_0.svg" /></a><figcaption></figcaption>
@@ -2028,7 +2066,8 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; holds as well
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/InvariantPattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/InvariantPattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
@@ -2057,10 +2096,11 @@
 
 <h2 id="maxdurationpattern">MaxDurationPattern<a class="headerlink" href="#maxdurationpattern" title="Permanent link"> #</a></h2>
 <h3 id="maxdurationpattern-globally">MaxDurationPattern Globally<a class="headerlink" href="#maxdurationpattern-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that &quot;Q&quot; holds for less than &quot;5&quot; time units
+<pre><code>Globally, it is always the case that once &quot;Q&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉ ∧ ℓ ≥ 5;true)
+<pre><code>Countertraces:
+true;⌈Q⌉ ∧ ℓ ≥ 5;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_Globally_0.svg"><img alt="" src="../img/patterns/MaxDurationPattern_Globally_0.svg" /></a><figcaption></figcaption>
@@ -2082,10 +2122,11 @@
 </tbody>
 </table>
 <h3 id="maxdurationpattern-before">MaxDurationPattern Before<a class="headerlink" href="#maxdurationpattern-before" title="Permanent link"> #</a></h3>
-<pre><code>Before &quot;Q&quot;, it is always the case that &quot;R&quot; holds for less than &quot;5&quot; time units
+<pre><code>Before &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (⌈!Q⌉;⌈(!Q &amp;&amp; R)⌉ ∧ ℓ ≥ 5;true)
+<pre><code>Countertraces:
+⌈!Q⌉;⌈(!Q &amp;&amp; R)⌉ ∧ ℓ ≥ 5;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_Before_0.svg"><img alt="" src="../img/patterns/MaxDurationPattern_Before_0.svg" /></a><figcaption></figcaption>
@@ -2107,10 +2148,11 @@
 </tbody>
 </table>
 <h3 id="maxdurationpattern-after">MaxDurationPattern After<a class="headerlink" href="#maxdurationpattern-after" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot;, it is always the case that &quot;R&quot; holds for less than &quot;5&quot; time units
+<pre><code>After &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;true;⌈R⌉ ∧ ℓ ≥ 5;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;true;⌈R⌉ ∧ ℓ ≥ 5;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_After_0.svg"><img alt="" src="../img/patterns/MaxDurationPattern_After_0.svg" /></a><figcaption></figcaption>
@@ -2136,10 +2178,11 @@
 </tbody>
 </table>
 <h3 id="maxdurationpattern-between">MaxDurationPattern Between<a class="headerlink" href="#maxdurationpattern-between" title="Permanent link"> #</a></h3>
-<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that &quot;S&quot; holds for less than &quot;5&quot; time units
+<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ ≥ 5;⌈!R⌉;⌈R⌉;true)
+<pre><code>Countertraces:
+true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ ≥ 5;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_Between_0.svg"><img alt="" src="../img/patterns/MaxDurationPattern_Between_0.svg" /></a><figcaption></figcaption>
@@ -2181,10 +2224,11 @@
 </tbody>
 </table>
 <h3 id="maxdurationpattern-afteruntil">MaxDurationPattern AfterUntil<a class="headerlink" href="#maxdurationpattern-afteruntil" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that &quot;S&quot; holds for less than &quot;5&quot; time units
+<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for less than &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ ≥ 5;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ ≥ 5;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MaxDurationPattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/MaxDurationPattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
@@ -2213,10 +2257,11 @@
 
 <h2 id="mindurationpattern">MinDurationPattern<a class="headerlink" href="#mindurationpattern" title="Permanent link"> #</a></h2>
 <h3 id="mindurationpattern-globally">MinDurationPattern Globally<a class="headerlink" href="#mindurationpattern-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that &quot;Q&quot; holds for at least &quot;5&quot; time units
+<pre><code>Globally, it is always the case that once &quot;Q&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈!Q⌉;⌈Q⌉ ∧ ℓ &lt; 5;⌈!Q⌉;true)
+<pre><code>Countertraces:
+true;⌈!Q⌉;⌈Q⌉ ∧ ℓ &lt; 5;⌈!Q⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MinDurationPattern_Globally_0.svg"><img alt="" src="../img/patterns/MinDurationPattern_Globally_0.svg" /></a><figcaption></figcaption>
@@ -2238,10 +2283,11 @@
 </tbody>
 </table>
 <h3 id="mindurationpattern-before">MinDurationPattern Before<a class="headerlink" href="#mindurationpattern-before" title="Permanent link"> #</a></h3>
-<pre><code>Before &quot;Q&quot;, it is always the case that &quot;R&quot; holds for at least &quot;5&quot; time units
+<pre><code>Before &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉ ∧ ℓ &lt; 5;⌈(!Q &amp;&amp; !R)⌉;true)
+<pre><code>Countertraces:
+⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉ ∧ ℓ &lt; 5;⌈(!Q &amp;&amp; !R)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MinDurationPattern_Before_0.svg"><img alt="" src="../img/patterns/MinDurationPattern_Before_0.svg" /></a><figcaption></figcaption>
@@ -2263,10 +2309,11 @@
 </tbody>
 </table>
 <h3 id="mindurationpattern-after">MinDurationPattern After<a class="headerlink" href="#mindurationpattern-after" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot;, it is always the case that &quot;R&quot; holds for at least &quot;5&quot; time units
+<pre><code>After &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ &lt; 5;⌈!R⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ &lt; 5;⌈!R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MinDurationPattern_After_0.svg"><img alt="" src="../img/patterns/MinDurationPattern_After_0.svg" /></a><figcaption></figcaption>
@@ -2288,10 +2335,11 @@
 </tbody>
 </table>
 <h3 id="mindurationpattern-between">MinDurationPattern Between<a class="headerlink" href="#mindurationpattern-between" title="Permanent link"> #</a></h3>
-<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that &quot;S&quot; holds for at least &quot;5&quot; time units
+<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true)
+<pre><code>Countertraces:
+true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MinDurationPattern_Between_0.svg"><img alt="" src="../img/patterns/MinDurationPattern_Between_0.svg" /></a><figcaption></figcaption>
@@ -2313,10 +2361,11 @@
 </tbody>
 </table>
 <h3 id="mindurationpattern-afteruntil">MinDurationPattern AfterUntil<a class="headerlink" href="#mindurationpattern-afteruntil" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that &quot;S&quot; holds for at least &quot;5&quot; time units
+<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MinDurationPattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/MinDurationPattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
@@ -2344,7 +2393,8 @@
 <pre><code>Globally, it is always the case that if &quot;S&quot; holds and is succeeded by &quot;R&quot;, then &quot;Q&quot; previously held
 </code></pre>
 
-<pre><code>Countertraces: (⌈!Q⌉;⌈S⌉;true;⌈R⌉;true)
+<pre><code>Countertraces:
+⌈!Q⌉;⌈S⌉;true;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_Globally_0.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_Globally_0.svg" /></a><figcaption></figcaption>
@@ -2397,7 +2447,8 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that if &quot;T&quot; holds and is succeeded by &quot;S&quot;, then &quot;R&quot; previously held
 </code></pre>
 
-<pre><code>Countertraces: (⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; T)⌉;⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉;true)
+<pre><code>Countertraces:
+⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; T)⌉;⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_Before_0.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_Before_0.svg" /></a><figcaption></figcaption>
@@ -2434,7 +2485,8 @@
 <pre><code>After &quot;Q&quot;, it is always the case that if &quot;T&quot; holds and is succeeded by &quot;S&quot;, then &quot;R&quot; previously held
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈T⌉;true;⌈S⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈T⌉;true;⌈S⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_After_0.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_After_0.svg" /></a><figcaption></figcaption>
@@ -2531,7 +2583,8 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;U&quot; holds and is succeeded by &quot;T&quot;, then &quot;S&quot; previously held
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉;⌈!R⌉;⌈R⌉;true)
+<pre><code>Countertraces:
+true;⌈(Q &amp;&amp; !R)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_Between_0.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_Between_0.svg" /></a><figcaption></figcaption>
@@ -2540,7 +2593,8 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;U&quot; holds and is succeeded by &quot;T&quot;, then &quot;S&quot; previously held
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain12Pattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/PrecedenceChain12Pattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
@@ -2596,7 +2650,10 @@
 <pre><code>Globally, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; previously held and was preceded by &quot;Q&quot;
 </code></pre>
 
-<pre><code>Countertraces: (⌈!Q⌉;⌈S⌉;true), (⌈!R⌉;⌈S⌉;true), (⌈!Q⌉;⌈(!Q &amp;&amp; R)⌉;⌈!Q⌉;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈S⌉;true)
+<pre><code>Countertraces:
+⌈!Q⌉;⌈S⌉;true
+⌈!R⌉;⌈S⌉;true
+⌈!Q⌉;⌈(!Q &amp;&amp; R)⌉;⌈!Q⌉;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈S⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_Globally_0.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_Globally_0.svg" /></a><figcaption></figcaption>
@@ -2633,7 +2690,10 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; previously held and was preceded by &quot;R&quot;
 </code></pre>
 
-<pre><code>Countertraces: (⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; T)⌉;true), (⌈(!Q &amp;&amp; !S)⌉;⌈(!Q &amp;&amp; T)⌉;true), (⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; (R &amp;&amp; !S))⌉;⌈(!Q &amp;&amp; !S)⌉;⌈(!Q &amp;&amp; T)⌉;true)
+<pre><code>Countertraces:
+⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; T)⌉;true
+⌈(!Q &amp;&amp; !S)⌉;⌈(!Q &amp;&amp; T)⌉;true
+⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; (R &amp;&amp; !S))⌉;⌈(!Q &amp;&amp; !S)⌉;⌈(!Q &amp;&amp; T)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_Before_0.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_Before_0.svg" /></a><figcaption></figcaption>
@@ -2666,7 +2726,10 @@
 <pre><code>After &quot;Q&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; previously held and was preceded by &quot;R&quot;
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈T⌉;true), (true;⌈Q⌉;⌈!S⌉;⌈T⌉;true), (true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;⌈(R &amp;&amp; !S)⌉;⌈!S⌉;⌈T⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈T⌉;true
+true;⌈Q⌉;⌈!S⌉;⌈T⌉;true
+true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; S)⌉;⌈!R⌉;⌈(R &amp;&amp; !S)⌉;⌈!S⌉;⌈T⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_After_0.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_After_0.svg" /></a><figcaption></figcaption>
@@ -2679,7 +2742,10 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;U&quot; holds, then &quot;T&quot; previously held and was preceded by &quot;S&quot;
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈R⌉;true), (true;⌈(Q &amp;&amp; !R)⌉;⌈(!R &amp;&amp; !T)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈R⌉;true), (true;⌈(Q &amp;&amp; !R)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; (S &amp;&amp; !T))⌉;⌈(!R &amp;&amp; !T)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈R⌉;true)
+<pre><code>Countertraces:
+true;⌈(Q &amp;&amp; !R)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈R⌉;true
+true;⌈(Q &amp;&amp; !R)⌉;⌈(!R &amp;&amp; !T)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈R⌉;true
+true;⌈(Q &amp;&amp; !R)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; (S &amp;&amp; !T))⌉;⌈(!R &amp;&amp; !T)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_Between_0.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_Between_0.svg" /></a><figcaption></figcaption>
@@ -2692,7 +2758,10 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;U&quot; holds, then &quot;T&quot; previously held and was preceded by &quot;S&quot;
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; U)⌉;true), (true;⌈Q⌉;⌈(!R &amp;&amp; !T)⌉;⌈(!R &amp;&amp; U)⌉;true), (true;⌈Q⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; (S &amp;&amp; !T))⌉;⌈(!R &amp;&amp; !T)⌉;⌈(!R &amp;&amp; U)⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; U)⌉;true
+true;⌈Q⌉;⌈(!R &amp;&amp; !T)⌉;⌈(!R &amp;&amp; U)⌉;true
+true;⌈Q⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; (S &amp;&amp; !T))⌉;⌈(!R &amp;&amp; !T)⌉;⌈(!R &amp;&amp; U)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedenceChain21Pattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/PrecedenceChain21Pattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
@@ -2708,7 +2777,8 @@
 <pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; previously held
 </code></pre>
 
-<pre><code>Countertraces: (⌈!Q⌉;⌈R⌉;true)
+<pre><code>Countertraces:
+⌈!Q⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedencePattern_Globally_0.svg"><img alt="" src="../img/patterns/PrecedencePattern_Globally_0.svg" /></a><figcaption></figcaption>
@@ -2737,7 +2807,8 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; previously held
 </code></pre>
 
-<pre><code>Countertraces: (⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; S)⌉;true)
+<pre><code>Countertraces:
+⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; S)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedencePattern_Before_0.svg"><img alt="" src="../img/patterns/PrecedencePattern_Before_0.svg" /></a><figcaption></figcaption>
@@ -2762,7 +2833,8 @@
 <pre><code>After &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; previously held
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈S⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈S⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedencePattern_After_0.svg"><img alt="" src="../img/patterns/PrecedencePattern_After_0.svg" /></a><figcaption></figcaption>
@@ -2799,7 +2871,8 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; previously held
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(Q &amp;&amp; (!R &amp;&amp; !S))⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; T)⌉;⌈!R⌉;⌈R⌉;true)
+<pre><code>Countertraces:
+true;⌈(Q &amp;&amp; (!R &amp;&amp; !S))⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; T)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedencePattern_Between_0.svg"><img alt="" src="../img/patterns/PrecedencePattern_Between_0.svg" /></a><figcaption></figcaption>
@@ -2844,7 +2917,8 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; previously held
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; T)⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; T)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/PrecedencePattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/PrecedencePattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
@@ -2876,7 +2950,8 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that if &quot;S&quot; holds, then &quot;R&quot; eventually holds
 </code></pre>
 
-<pre><code>Countertraces: (⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈(!Q &amp;&amp; !R)⌉;⌈Q⌉;true)
+<pre><code>Countertraces:
+⌈!Q⌉;⌈(!Q &amp;&amp; (!R &amp;&amp; S))⌉;⌈(!Q &amp;&amp; !R)⌉;⌈Q⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/ResponsePattern_Before_0.svg"><img alt="" src="../img/patterns/ResponsePattern_Before_0.svg" /></a><figcaption></figcaption>
@@ -2905,7 +2980,8 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; eventually holds
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉;⌈R⌉;true)
+<pre><code>Countertraces:
+true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/ResponsePattern_Between_0.svg"><img alt="" src="../img/patterns/ResponsePattern_Between_0.svg" /></a><figcaption></figcaption>
@@ -2942,7 +3018,8 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;T&quot; holds, then &quot;S&quot; eventually holds
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉;⌈R⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; (!S &amp;&amp; T))⌉;⌈(!R &amp;&amp; !S)⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/ResponsePattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/ResponsePattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
@@ -2982,7 +3059,8 @@
 <pre><code>Globally, it is always the case that &quot;Q&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈!Q⌉;true)
+<pre><code>Countertraces:
+true;⌈!Q⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_Globally_0.svg"><img alt="" src="../img/patterns/UniversalityPattern_Globally_0.svg" /></a><figcaption></figcaption>
@@ -3011,7 +3089,8 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that &quot;R&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: (⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉;true)
+<pre><code>Countertraces:
+⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_Before_0.svg"><img alt="" src="../img/patterns/UniversalityPattern_Before_0.svg" /></a><figcaption></figcaption>
@@ -3036,7 +3115,8 @@
 <pre><code>After &quot;Q&quot;, it is always the case that &quot;R&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;true;⌈!R⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;true;⌈!R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_After_0.svg"><img alt="" src="../img/patterns/UniversalityPattern_After_0.svg" /></a><figcaption></figcaption>
@@ -3065,7 +3145,8 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that &quot;S&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true)
+<pre><code>Countertraces:
+true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_Between_0.svg"><img alt="" src="../img/patterns/UniversalityPattern_Between_0.svg" /></a><figcaption></figcaption>
@@ -3102,7 +3183,8 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that &quot;S&quot; holds
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/UniversalityPattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
@@ -3134,7 +3216,8 @@
 <pre><code>Globally, it is always the case that &quot;Q&quot; holds at most &quot;5&quot; time units later
 </code></pre>
 
-<pre><code>Countertraces: (⌈true⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true)
+<pre><code>Countertraces:
+⌈true⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPatternDelayed_Globally_0.svg"><img alt="" src="../img/patterns/UniversalityPatternDelayed_Globally_0.svg" /></a><figcaption></figcaption>
@@ -3163,7 +3246,8 @@
 <pre><code>Before &quot;Q&quot;, it is always the case that &quot;R&quot; holds at most &quot;5&quot; time units later
 </code></pre>
 
-<pre><code>Countertraces: (⌈!Q⌉ ∧ ℓ ≥ 5;⌈(!Q &amp;&amp; !R)⌉;true)
+<pre><code>Countertraces:
+⌈!Q⌉ ∧ ℓ ≥ 5;⌈(!Q &amp;&amp; !R)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPatternDelayed_Before_0.svg"><img alt="" src="../img/patterns/UniversalityPatternDelayed_Before_0.svg" /></a><figcaption></figcaption>
@@ -3192,7 +3276,8 @@
 <pre><code>After &quot;Q&quot;, it is always the case that &quot;R&quot; holds at most &quot;5&quot; time units later
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈true⌉ ∧ ℓ ≥ 5;⌈!R⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈true⌉ ∧ ℓ ≥ 5;⌈!R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPatternDelayed_After_0.svg"><img alt="" src="../img/patterns/UniversalityPatternDelayed_After_0.svg" /></a><figcaption></figcaption>
@@ -3221,7 +3306,8 @@
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that &quot;S&quot; holds at most &quot;5&quot; time units later
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;true;⌈R⌉;true)
+<pre><code>Countertraces:
+true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;true;⌈R⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPatternDelayed_Between_0.svg"><img alt="" src="../img/patterns/UniversalityPatternDelayed_Between_0.svg" /></a><figcaption></figcaption>
@@ -3258,7 +3344,8 @@
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that &quot;S&quot; holds at most &quot;5&quot; time units later
 </code></pre>
 
-<pre><code>Countertraces: (true;⌈Q⌉;⌈!R⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;true)
+<pre><code>Countertraces:
+true;⌈Q⌉;⌈!R⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;true
 </code></pre>
 
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/UniversalityPatternDelayed_AfterUntil_0.svg"><img alt="" src="../img/patterns/UniversalityPatternDelayed_AfterUntil_0.svg" /></a><figcaption></figcaption>
