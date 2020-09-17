@@ -129,6 +129,8 @@ td, th {
 div.pattern-examples + table {
   border-collapse: separate;
   border-spacing: 10px 0;
+  margin-left: -10px;
+  margin-right: -10px;
 }
 
 div.pattern-examples + table th {
