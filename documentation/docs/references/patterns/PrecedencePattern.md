@@ -7,12 +7,15 @@
 Globally, it is always the case that if "R" holds, then "Q" previously held
 ```
 
+#### Countertraces
 ```
-Countertraces:
 ⌈!Q⌉;⌈R⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/PrecedencePattern_Globally_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -26,12 +29,15 @@ Countertraces:
 Before "Q", it is always the case that if "S" holds, then "R" previously held
 ```
 
+#### Countertraces
 ```
-Countertraces:
 ⌈(!Q && !R)⌉;⌈(!Q && S)⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/PrecedencePattern_Before_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -44,12 +50,15 @@ Countertraces:
 After "Q", it is always the case that if "S" holds, then "R" previously held
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉;⌈!R⌉;⌈S⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/PrecedencePattern_After_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -65,12 +74,15 @@ true;⌈Q⌉;⌈!R⌉;⌈S⌉;true
 Between "Q" and "R", it is always the case that if "T" holds, then "S" previously held
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈(Q && (!R && !S))⌉;⌈(!R && !S)⌉;⌈(!R && T)⌉;⌈!R⌉;⌈R⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/PrecedencePattern_Between_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -88,12 +100,15 @@ true;⌈(Q && (!R && !S))⌉;⌈(!R && !S)⌉;⌈(!R && T)⌉;⌈!R⌉;⌈R⌉;t
 After "Q" until "R", it is always the case that if "T" holds, then "S" previously held
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉;⌈(!R && !S)⌉;⌈(!R && T)⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/PrecedencePattern_AfterUntil_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |

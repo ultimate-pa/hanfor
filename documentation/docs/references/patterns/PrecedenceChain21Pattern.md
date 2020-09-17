@@ -7,18 +7,19 @@
 Globally, it is always the case that if "S" holds, then "R" previously held and was preceded by "Q"
 ```
 
+#### Countertraces
 ```
-Countertraces:
 ⌈!Q⌉;⌈S⌉;true
 ⌈!R⌉;⌈S⌉;true
 ⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(Q && !R)⌉;⌈!R⌉;⌈S⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/PrecedenceChain21Pattern_Globally_0.svg)
-
 ![](../img/patterns/PrecedenceChain21Pattern_Globally_1.svg)
-
 ![](../img/patterns/PrecedenceChain21Pattern_Globally_2.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -33,18 +34,19 @@ Countertraces:
 Before "Q", it is always the case that if "T" holds, then "S" previously held and was preceded by "R"
 ```
 
+#### Countertraces
 ```
-Countertraces:
 ⌈(!Q && !R)⌉;⌈(!Q && T)⌉;true
 ⌈(!Q && !S)⌉;⌈(!Q && T)⌉;true
 ⌈(!Q && !R)⌉;⌈(!Q && (!R && S))⌉;⌈(!Q && !R)⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉;⌈(!Q && T)⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/PrecedenceChain21Pattern_Before_0.svg)
-
 ![](../img/patterns/PrecedenceChain21Pattern_Before_1.svg)
-
 ![](../img/patterns/PrecedenceChain21Pattern_Before_2.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -58,18 +60,20 @@ Countertraces:
 After "Q", it is always the case that if "T" holds, then "S" previously held and was preceded by "R"
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉;⌈!R⌉;⌈T⌉;true
 true;⌈Q⌉;⌈!S⌉;⌈T⌉;true
 true;⌈Q⌉;⌈!R⌉;⌈(!R && S)⌉;⌈!R⌉;⌈(R && !S)⌉;⌈!S⌉;⌈T⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/PrecedenceChain21Pattern_After_0.svg)
-
 ![](../img/patterns/PrecedenceChain21Pattern_After_1.svg)
-
 ![](../img/patterns/PrecedenceChain21Pattern_After_2.svg)
+
+#### Examples
+
 
 
 ### PrecedenceChain21Pattern Between
@@ -77,18 +81,20 @@ true;⌈Q⌉;⌈!R⌉;⌈(!R && S)⌉;⌈!R⌉;⌈(R && !S)⌉;⌈!S⌉;⌈T⌉;
 Between "Q" and "R", it is always the case that if "U" holds, then "T" previously held and was preceded by "S"
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈(Q && !R)⌉;⌈(!R && !S)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈R⌉;true
 true;⌈(Q && !R)⌉;⌈(!R && !T)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈R⌉;true
 true;⌈(Q && !R)⌉;⌈(!R && !S)⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;⌈(!R && (S && !T))⌉;⌈(!R && !T)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈R⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/PrecedenceChain21Pattern_Between_0.svg)
-
 ![](../img/patterns/PrecedenceChain21Pattern_Between_1.svg)
-
 ![](../img/patterns/PrecedenceChain21Pattern_Between_2.svg)
+
+#### Examples
+
 
 
 ### PrecedenceChain21Pattern AfterUntil
@@ -96,16 +102,18 @@ true;⌈(Q && !R)⌉;⌈(!R && !S)⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;�
 After "Q" until "R", it is always the case that if "U" holds, then "T" previously held and was preceded by "S"
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉;⌈(!R && !S)⌉;⌈(!R && U)⌉;true
 true;⌈Q⌉;⌈(!R && !T)⌉;⌈(!R && U)⌉;true
 true;⌈Q⌉;⌈(!R && !S)⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;⌈(!R && (S && !T))⌉;⌈(!R && !T)⌉;⌈(!R && U)⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/PrecedenceChain21Pattern_AfterUntil_0.svg)
-
 ![](../img/patterns/PrecedenceChain21Pattern_AfterUntil_1.svg)
-
 ![](../img/patterns/PrecedenceChain21Pattern_AfterUntil_2.svg)
+
+#### Examples
+
 

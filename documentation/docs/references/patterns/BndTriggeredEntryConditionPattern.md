@@ -7,12 +7,15 @@
 Globally, it is always the case that after "S" holds for at least "5" time units and "R" holds, then "Q" holds
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉ ∧ ℓ ≥ 5;⌈(Q && (R && !S))⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndTriggeredEntryConditionPattern_Globally_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |

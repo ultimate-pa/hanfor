@@ -7,12 +7,15 @@
 Globally, it is always the case that after "R" holds for at least "5" time units, then "Q" holds
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndEntryConditionPattern_Globally_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -27,12 +30,15 @@ true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true
 Before "Q", it is always the case that after "S" holds for at least "5" time units, then "R" holds
 ```
 
+#### Countertraces
 ```
-Countertraces:
 ⌈!Q⌉;⌈(!Q && S)⌉ ∧ ℓ ≥ 5;⌈(!Q && !R)⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndEntryConditionPattern_Before_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -46,12 +52,15 @@ Countertraces:
 After "Q", it is always the case that after "S" holds for at least "5" time units, then "R" holds
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉;true;⌈S⌉ ∧ ℓ ≥ 5;⌈!R⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndEntryConditionPattern_After_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -71,12 +80,15 @@ true;⌈Q⌉;true;⌈S⌉ ∧ ℓ ≥ 5;⌈!R⌉;true
 Between "Q" and "R", it is always the case that after "T" holds for at least "5" time units, then "S" holds
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉ ∧ ℓ ≥ 5;⌈(!R && !S)⌉;⌈!R⌉;⌈R⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndEntryConditionPattern_Between_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -89,12 +101,15 @@ true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉ ∧ ℓ ≥ 5;⌈(!R && !S)⌉;⌈
 After "Q" until "R", it is always the case that after "T" holds for at least "5" time units, then "S" holds
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉;⌈!R⌉;⌈(!R && T)⌉ ∧ ℓ ≥ 5;⌈(!R && !S)⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndEntryConditionPattern_AfterUntil_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |

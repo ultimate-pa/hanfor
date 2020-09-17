@@ -7,12 +7,15 @@
 Before "Q", it is always the case that if "S" holds, then "R" eventually holds
 ```
 
+#### Countertraces
 ```
-Countertraces:
 ⌈!Q⌉;⌈(!Q && (!R && S))⌉;⌈(!Q && !R)⌉;⌈Q⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/ResponsePattern_Before_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -26,12 +29,15 @@ Countertraces:
 Between "Q" and "R", it is always the case that if "T" holds, then "S" eventually holds
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;⌈R⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/ResponsePattern_Between_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -47,12 +53,15 @@ true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;⌈R⌉;t
 After "Q" until "R", it is always the case that if "T" holds, then "S" eventually holds
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;⌈R⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/ResponsePattern_AfterUntil_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |

@@ -7,12 +7,15 @@
 Globally, it is always the case that once "Q" becomes satisfied, it holds for less than "5" time units
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉ ∧ ℓ ≥ 5;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/MaxDurationPattern_Globally_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -25,12 +28,15 @@ true;⌈Q⌉ ∧ ℓ ≥ 5;true
 Before "Q", it is always the case that once "R" becomes satisfied, it holds for less than "5" time units
 ```
 
+#### Countertraces
 ```
-Countertraces:
 ⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ 5;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/MaxDurationPattern_Before_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -43,12 +49,15 @@ Countertraces:
 After "Q", it is always the case that once "R" becomes satisfied, it holds for less than "5" time units
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉;true;⌈R⌉ ∧ ℓ ≥ 5;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/MaxDurationPattern_After_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -62,12 +71,15 @@ true;⌈Q⌉;true;⌈R⌉ ∧ ℓ ≥ 5;true
 Between "Q" and "R", it is always the case that once "S" becomes satisfied, it holds for less than "5" time units
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉ ∧ ℓ ≥ 5;⌈!R⌉;⌈R⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/MaxDurationPattern_Between_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -85,12 +97,15 @@ true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉ ∧ ℓ ≥ 5;⌈!R⌉;⌈R⌉;tru
 After "Q" until "R", it is always the case that once "S" becomes satisfied, it holds for less than "5" time units
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉;⌈!R⌉;⌈(!R && S)⌉ ∧ ℓ ≥ 5;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/MaxDurationPattern_AfterUntil_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |

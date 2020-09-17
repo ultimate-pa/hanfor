@@ -7,12 +7,15 @@
 Globally, transitions to states in which "Q" holds occur at most twice
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉;⌈!Q⌉;⌈Q⌉;⌈!Q⌉;⌈Q⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndExistencePattern_Globally_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -25,12 +28,15 @@ true;⌈Q⌉;⌈!Q⌉;⌈Q⌉;⌈!Q⌉;⌈Q⌉;true
 Before "Q", transitions to states in which "R" holds occur at most twice
 ```
 
+#### Countertraces
 ```
-Countertraces:
 ⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndExistencePattern_Before_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -43,12 +49,15 @@ Countertraces:
 After "Q", transitions to states in which "R" holds occur at most twice
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉;true;⌈R⌉;⌈!R⌉;⌈R⌉;⌈!R⌉;⌈R⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndExistencePattern_After_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -61,12 +70,15 @@ true;⌈Q⌉;true;⌈R⌉;⌈!R⌉;⌈R⌉;⌈!R⌉;⌈R⌉;true
 Between "Q" and "R", transitions to states in which "S" holds occur at most twice
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;⌈!R⌉;⌈R⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndExistencePattern_Between_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -79,12 +91,15 @@ true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;�
 After "Q" until "R", transitions to states in which "S" holds occur at most twice
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉;⌈!R⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndExistencePattern_AfterUntil_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |

@@ -7,12 +7,15 @@
 Globally, it is always the case that if "R" holds, then "Q" holds after at most "5" time units
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈(!Q && R)⌉;⌈!Q⌉ ∧ ℓ > 5;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndResponsePatternUT_Globally_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -26,12 +29,15 @@ true;⌈(!Q && R)⌉;⌈!Q⌉ ∧ ℓ > 5;true
 Before "Q", it is always the case that if "S" holds, then "R" holds after at most "5" time units
 ```
 
+#### Countertraces
 ```
-Countertraces:
 ⌈!Q⌉;⌈(!Q && (!R && S))⌉;⌈(!Q && !R)⌉ ∧ ℓ > 5;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndResponsePatternUT_Before_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -44,12 +50,15 @@ Countertraces:
 After "Q", it is always the case that if "S" holds, then "R" holds after at most "5" time units
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉;true;⌈(!R && S)⌉;⌈!R⌉ ∧ ℓ > 5;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndResponsePatternUT_After_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -69,12 +78,15 @@ true;⌈Q⌉;true;⌈(!R && S)⌉;⌈!R⌉ ∧ ℓ > 5;true
 Between "Q" and "R", it is always the case that if "T" holds, then "S" holds after at most "5" time units
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;⌈!R⌉;⌈R⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndResponsePatternUT_Between_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -87,12 +99,15 @@ true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ >
 After "Q" until "R", it is always the case that if "T" holds, then "S" holds after at most "5" time units
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndResponsePatternUT_AfterUntil_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |

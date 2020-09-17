@@ -7,12 +7,15 @@
 Globally, it is always the case that if "R" holds, then "Q" holds for at least "5" time units
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈R⌉;⌈true⌉ ∧ ℓ < 5;⌈!Q⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndInvariancePattern_Globally_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -26,12 +29,15 @@ true;⌈R⌉;⌈true⌉ ∧ ℓ < 5;⌈!Q⌉;true
 Before "Q", it is always the case that if "S" holds, then "R" holds for at least "5" time units
 ```
 
+#### Countertraces
 ```
-Countertraces:
 ⌈!Q⌉;⌈(!Q && S)⌉;⌈!Q⌉ ∧ ℓ < 5;⌈(!Q && !R)⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndInvariancePattern_Before_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -45,12 +51,15 @@ Countertraces:
 After "Q", it is always the case that if "S" holds, then "R" holds for at least "5" time units
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉;true;⌈S⌉;⌈true⌉ ∧ ℓ < 5;⌈!R⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndInvariancePattern_After_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -66,12 +75,15 @@ true;⌈Q⌉;true;⌈S⌉;⌈true⌉ ∧ ℓ < 5;⌈!R⌉;true
 Between "Q" and "R", it is always the case that if "T" holds, then "S" holds for at least "5" time units
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉;⌈!R⌉ ∧ ℓ < 5;⌈(!R && !S)⌉;⌈!R⌉;⌈R⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndInvariancePattern_Between_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -84,12 +96,15 @@ true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉;⌈!R⌉ ∧ ℓ < 5;⌈(!R && !S)
 After "Q" until "R", it is always the case that if "T" holds, then "S" holds for at least "5" time units
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉;⌈!R⌉;⌈(!R && T)⌉;⌈!R⌉ ∧ ℓ < 5;⌈(!R && !S)⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/BndInvariancePattern_AfterUntil_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |

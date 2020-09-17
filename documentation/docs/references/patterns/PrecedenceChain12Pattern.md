@@ -7,12 +7,15 @@
 Globally, it is always the case that if "S" holds and is succeeded by "R", then "Q" previously held
 ```
 
+#### Countertraces
 ```
-Countertraces:
 ⌈!Q⌉;⌈S⌉;true;⌈R⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/PrecedenceChain12Pattern_Globally_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -32,12 +35,15 @@ Countertraces:
 Before "Q", it is always the case that if "T" holds and is succeeded by "S", then "R" previously held
 ```
 
+#### Countertraces
 ```
-Countertraces:
 ⌈(!Q && !R)⌉;⌈(!Q && T)⌉;⌈!Q⌉;⌈(!Q && S)⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/PrecedenceChain12Pattern_Before_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -53,12 +59,15 @@ Countertraces:
 After "Q", it is always the case that if "T" holds and is succeeded by "S", then "R" previously held
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉;⌈!R⌉;⌈T⌉;true;⌈S⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/PrecedenceChain12Pattern_After_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
@@ -89,12 +98,16 @@ true;⌈Q⌉;⌈!R⌉;⌈T⌉;true;⌈S⌉;true
 Between "Q" and "R", it is always the case that if "U" holds and is succeeded by "T", then "S" previously held
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈(Q && !R)⌉;⌈(!R && !S)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈(!R && T)⌉;⌈!R⌉;⌈R⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/PrecedenceChain12Pattern_Between_0.svg)
+
+#### Examples
+
 
 
 ### PrecedenceChain12Pattern AfterUntil
@@ -102,12 +115,15 @@ true;⌈(Q && !R)⌉;⌈(!R && !S)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈(!R && T)⌉;�
 After "Q" until "R", it is always the case that if "U" holds and is succeeded by "T", then "S" previously held
 ```
 
+#### Countertraces
 ```
-Countertraces:
 true;⌈Q⌉;⌈(!R && !S)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈(!R && T)⌉;true
 ```
 
+#### Phase Event Automata
 ![](../img/patterns/PrecedenceChain12Pattern_AfterUntil_0.svg)
+
+#### Examples
 
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
