@@ -145,12 +145,14 @@
 <pre><code>Globally, it is always the case that once &quot;Q&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces:
-true;⌈!Q⌉;⌈Q⌉ ∧ ℓ &lt; 5;⌈!Q⌉;true
+<h4 id="countertraces">Countertraces<a class="headerlink" href="#countertraces" title="Permanent link"> #</a></h4>
+<pre><code>true;⌈!Q⌉;⌈Q⌉ ∧ ℓ &lt; 5;⌈!Q⌉;true
 </code></pre>
 
+<h4 id="phase-event-automata">Phase Event Automata<a class="headerlink" href="#phase-event-automata" title="Permanent link"> #</a></h4>
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MinDurationPattern_Globally_0.svg"><img alt="" src="../img/patterns/MinDurationPattern_Globally_0.svg" /></a><figcaption></figcaption>
 </figure>
+<h4 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link"> #</a></h4>
 <div class="pattern-examples"></div>
 
 <table>
@@ -171,12 +173,14 @@ true;⌈!Q⌉;⌈Q⌉ ∧ ℓ &lt; 5;⌈!Q⌉;true
 <pre><code>Before &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces:
-⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉ ∧ ℓ &lt; 5;⌈(!Q &amp;&amp; !R)⌉;true
+<h4 id="countertraces_1">Countertraces<a class="headerlink" href="#countertraces_1" title="Permanent link"> #</a></h4>
+<pre><code>⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; R)⌉ ∧ ℓ &lt; 5;⌈(!Q &amp;&amp; !R)⌉;true
 </code></pre>
 
+<h4 id="phase-event-automata_1">Phase Event Automata<a class="headerlink" href="#phase-event-automata_1" title="Permanent link"> #</a></h4>
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MinDurationPattern_Before_0.svg"><img alt="" src="../img/patterns/MinDurationPattern_Before_0.svg" /></a><figcaption></figcaption>
 </figure>
+<h4 id="examples_1">Examples<a class="headerlink" href="#examples_1" title="Permanent link"> #</a></h4>
 <div class="pattern-examples"></div>
 
 <table>
@@ -197,12 +201,14 @@ true;⌈!Q⌉;⌈Q⌉ ∧ ℓ &lt; 5;⌈!Q⌉;true
 <pre><code>After &quot;Q&quot;, it is always the case that once &quot;R&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces:
-true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ &lt; 5;⌈!R⌉;true
+<h4 id="countertraces_2">Countertraces<a class="headerlink" href="#countertraces_2" title="Permanent link"> #</a></h4>
+<pre><code>true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ &lt; 5;⌈!R⌉;true
 </code></pre>
 
+<h4 id="phase-event-automata_2">Phase Event Automata<a class="headerlink" href="#phase-event-automata_2" title="Permanent link"> #</a></h4>
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MinDurationPattern_After_0.svg"><img alt="" src="../img/patterns/MinDurationPattern_After_0.svg" /></a><figcaption></figcaption>
 </figure>
+<h4 id="examples_2">Examples<a class="headerlink" href="#examples_2" title="Permanent link"> #</a></h4>
 <div class="pattern-examples"></div>
 
 <table>
@@ -223,12 +229,14 @@ true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ &lt; 5;⌈!R⌉;true
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces:
-true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
+<h4 id="countertraces_3">Countertraces<a class="headerlink" href="#countertraces_3" title="Permanent link"> #</a></h4>
+<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
 </code></pre>
 
+<h4 id="phase-event-automata_3">Phase Event Automata<a class="headerlink" href="#phase-event-automata_3" title="Permanent link"> #</a></h4>
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MinDurationPattern_Between_0.svg"><img alt="" src="../img/patterns/MinDurationPattern_Between_0.svg" /></a><figcaption></figcaption>
 </figure>
+<h4 id="examples_3">Examples<a class="headerlink" href="#examples_3" title="Permanent link"> #</a></h4>
 <div class="pattern-examples"></div>
 
 <table>
@@ -249,12 +257,14 @@ true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp;
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that once &quot;S&quot; becomes satisfied, it holds for at least &quot;5&quot; time units
 </code></pre>
 
-<pre><code>Countertraces:
-true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;true
+<h4 id="countertraces_4">Countertraces<a class="headerlink" href="#countertraces_4" title="Permanent link"> #</a></h4>
+<pre><code>true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; S)⌉ ∧ ℓ &lt; 5;⌈(!R &amp;&amp; !S)⌉;true
 </code></pre>
 
+<h4 id="phase-event-automata_4">Phase Event Automata<a class="headerlink" href="#phase-event-automata_4" title="Permanent link"> #</a></h4>
 <figure><a data-lightbox="all_images" data-title="" href="../img/patterns/MinDurationPattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/MinDurationPattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
 </figure>
+<h4 id="examples_4">Examples<a class="headerlink" href="#examples_4" title="Permanent link"> #</a></h4>
 <div class="pattern-examples"></div>
 
 <table>
