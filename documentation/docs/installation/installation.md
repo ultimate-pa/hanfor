@@ -3,39 +3,37 @@ toc_depth: 2
 # Installation
 
 ## Preliminaries
-Clone the repository:
+Hanfor requires [Python](https://www.python.org/) and is only tested with **Python 3.6.x**.
+If python is already installed, you can check the version from command line.
+```bash
+$ python --version
+Python 3.6.2
+```
+
+Clone the hanfor repository.
 ```bash
 $ git clone https://github.com/ultimate-pa/hanfor.git -b master --single-branch /your/hanfor/destination 
 ```
 
-Hanfor requires [Python](https://www.python.org/) and is only tested with Python 3.6.x.
-You can check if you have python already installed from the command line:
+Setup a virtual environment.
 ```bash
-$ python -- version
-Python 3.6.2
+$ cd hanfor/hanfor
+$ python3 -m venv hanfor_venv
+$ source hanfor_venv/bin/activate
 ```
 
-We recommend using a [virtual environment](https://virtualenv.pypa.io/en/latest/installation/). Create a new virtual environment with: 
+Install dependencies.
 ```bash
-$ virtualenv hanfor_python 
-```
-And activate it by sourcing:
-```bash
-$ source hanfor_python/bin/activate
-```
-
-Now the python dependencies needed to be installed into the virtual environment.
-Inside the repository run:
-```bash
-$ pip install -r requirements.txt
+$ pip3 install -r requirements.txt
 ```
 
 ## Configuration
-- Copy `./hanfor/config.dist.py` to `./hanfor/config.py`.
-- Edit the file `/hanfor/config.py` according your needs.
-A config file looks as follows: 
-
-
+Copy the default config file `hanfor/config.dist.py` and modify the copy according to your needs.
+```bash
+$ cp config.dist.py config.py
+$ nano config.py
+```
+A config file looks as follows:
 ```python
 ################################################################################
 #                               Storage and folders                            #
@@ -152,19 +150,19 @@ PATTERNS_GROUP_ORDER = [
 ## Quick start
 To start a fresh session use
 ```bash
-$ python app.py <tag> -c <path_to_input_csv>.csv
+$ python3 app.py <tag> -c <path_to_input_csv>.csv
 ```
     
 Point your browser to [`http://127.0.0.1:<port in config.py>`](http://127.0.0.1:5000)
 
 If you want to start an existing session, use
 ```bash
-$ python app.py <tag>
+$ python3 app.py <tag>
 ```
 
 You can see all available tags using the `-L` switch:
 ```bash
-$ python app.py -L
+$ python3 app.py -L
 ```
 
 The app will create a *session* naming it by the given `<tag>` argument.

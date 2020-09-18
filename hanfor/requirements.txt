@@ -37,7 +37,7 @@ leather==0.3.3
 MarkupSafe==1.1.1
 more-itertools==7.0.0
 nltk==3.4.5
-numpy==1.14.5
+numpy==1.19.2
 openpyxl==2.6.1
 pandas==0.24.2
 parsedatetime==2.4
@@ -52,8 +52,8 @@ pytimeparse==1.1.8
 pytz==2018.5
 redis==3.2.1
 rq==1.0
-scikit-learn==0.19.2
-scipy==1.1.0
+scikit-learn==0.23.2
+scipy==1.5.2
 sentry-sdk==0.7.11
 singledispatch==3.4.0.3
 six==1.11.0

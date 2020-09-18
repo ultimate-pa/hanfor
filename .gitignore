@@ -94,9 +94,7 @@ celerybeat-schedule
 .env
 
 # virtualenv
-.venv
-venv/
-ENV/
+*venv/
 
 # Spyder project settings
 .spyderproject
@@ -122,9 +120,6 @@ package-lock.json
 loctest_*
 test_results.xml
 http-client.env.json
-
-
-documentation/docs_venv/
 
 volumes/
 
