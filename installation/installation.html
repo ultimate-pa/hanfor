@@ -364,35 +364,33 @@
                         
                             <h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link"> #</a></h1>
 <h2 id="preliminaries">Preliminaries<a class="headerlink" href="#preliminaries" title="Permanent link"> #</a></h2>
-<p>Clone the repository:</p>
-<pre><code class="bash">$ git clone https://github.com/ultimate-pa/hanfor.git -b master --single-branch /your/hanfor/destination 
-</code></pre>
-
-<p>Hanfor requires <a href="https://www.python.org/">Python</a> and is only tested with Python 3.6.x.
-You can check if you have python already installed from the command line:</p>
-<pre><code class="bash">$ python -- version
+<p>Hanfor requires <a href="https://www.python.org/">Python</a> and is only tested with <strong>Python 3.6.x</strong>.
+If python is already installed, you can check the version from command line.</p>
+<pre><code class="bash">$ python --version
 Python 3.6.2
 </code></pre>
 
-<p>We recommend using a <a href="https://virtualenv.pypa.io/en/latest/installation/">virtual environment</a>. Create a new virtual environment with: </p>
-<pre><code class="bash">$ virtualenv hanfor_python 
+<p>Clone the hanfor repository.</p>
+<pre><code class="bash">$ git clone https://github.com/ultimate-pa/hanfor.git -b master --single-branch /your/hanfor/destination 
 </code></pre>
 
-<p>And activate it by sourcing:</p>
-<pre><code class="bash">$ source hanfor_python/bin/activate
+<p>Setup a virtual environment.</p>
+<pre><code class="bash">$ cd hanfor/hanfor
+$ python3 -m venv hanfor_venv
+$ source hanfor_venv/bin/activate
 </code></pre>
 
-<p>Now the python dependencies needed to be installed into the virtual environment.
-Inside the repository run:</p>
-<pre><code class="bash">$ pip install -r requirements.txt
+<p>Install dependencies.</p>
+<pre><code class="bash">$ pip3 install -r requirements.txt
 </code></pre>
 
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link"> #</a></h2>
-<ul>
-<li>Copy <code>./hanfor/config.dist.py</code> to <code>./hanfor/config.py</code>.</li>
-<li>Edit the file <code>/hanfor/config.py</code> according your needs.
-A config file looks as follows: </li>
-</ul>
+<p>Copy the default config file <code>hanfor/config.dist.py</code> and modify the copy according to your needs.</p>
+<pre><code class="bash">$ cp config.dist.py config.py
+$ nano config.py
+</code></pre>
+
+<p>A config file looks as follows:</p>
 <pre><code class="python">################################################################################
 #                               Storage and folders                            #
 ################################################################################
@@ -507,16 +505,16 @@ PATTERNS_GROUP_ORDER = [
 
 <h2 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link"> #</a></h2>
 <p>To start a fresh session use</p>
-<pre><code class="bash">$ python app.py &lt;tag&gt; -c &lt;path_to_input_csv&gt;.csv
+<pre><code class="bash">$ python3 app.py &lt;tag&gt; -c &lt;path_to_input_csv&gt;.csv
 </code></pre>
 
 <p>Point your browser to <a href="http://127.0.0.1:5000"><code>http://127.0.0.1:&lt;port in config.py&gt;</code></a></p>
 <p>If you want to start an existing session, use</p>
-<pre><code class="bash">$ python app.py &lt;tag&gt;
+<pre><code class="bash">$ python3 app.py &lt;tag&gt;
 </code></pre>
 
 <p>You can see all available tags using the <code>-L</code> switch:</p>
-<pre><code class="bash">$ python app.py -L
+<pre><code class="bash">$ python3 app.py -L
 </code></pre>
 
 <p>The app will create a <em>session</em> naming it by the given <code>&lt;tag&gt;</code> argument.
