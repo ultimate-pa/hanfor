@@ -1,3 +1,37 @@
+const api = {
+    ultimate: {
+        run: {
+            url: 'api/ultimate/run',
+            task_payload: {
+                new_run: {
+                    task: 'new_run',
+                    req_ids: []
+                },
+                get_run: {
+                    task: 'get_run',
+                    run_id: ''
+                }
+            }
+        },
+        runs: {
+            url: 'api/ultimate/runs',
+            task_payload: {
+                get_all: {
+                    task: 'get_all_runs'
+                }
+            }
+        },
+        api_version: {
+            url: 'api/ultimate/version',
+            task_payload: {
+                get_version: {
+                    task: 'get_version'
+                }
+            }
+        }
+    }
+};
+
 /**
  * Escape a HTML string for display as a raw string.
  * @param unsafe
@@ -48,3 +82,4 @@ function process_url_query(get_query) {
 
 module.exports.escapeHtml = escapeHtml;
 module.exports.process_url_query = process_url_query;
+module.exports.api = api;

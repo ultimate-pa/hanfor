@@ -7,21 +7,23 @@ import datetime
 import logging
 import os
 import re
+import shutil
 import subprocess
 import sys
-
 import utils
 
 from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, \
     hash_file_sha1
-from flask import Flask, render_template, request, jsonify, make_response, json
+from flask import Flask, render_template, request, jsonify, make_response, send_file, json
 from flask_debugtoolbar import DebugToolbarExtension
 from functools import wraps, update_wrapper
 import reqtransformer
 from guesser.Guess import Guess
-from reqtransformer import Requirement, VariableCollection, Variable, VarImportSessions
+from reqtransformer import RequirementCollection, Requirement, VariableCollection, Formalization, Variable, Scope, \
+    ScopedPattern, Pattern, VarImportSessions
 from guesser.guesser_registerer import REGISTERED_GUESSERS
-from ressources import Report, Tag, Statistics, QueryAPI
+
+from ressources import Report, Tag, Statistics, QueryAPI, UltimateAPI
 
 # Create the app
 app = Flask(__name__)
@@ -88,6 +90,12 @@ def table_api():
 @nocache
 def api_query():
     return QueryAPI(app, request).apply_request()
+
+
+@app.route('/api/ultimate/<ressource>', methods=['GET', 'POST', 'DELETE'])
+@nocache
+def api_ultimate(ressource):
+    return UltimateAPI(app, request, ressource).apply_request()
 
 
 @app.route('/api/<resource>/<command>', methods=['GET', 'POST', 'DELETE'])

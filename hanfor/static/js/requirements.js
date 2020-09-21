@@ -710,8 +710,28 @@ function clear_all_search_filter_inputs() {
     update_search();
 }
 
-function get_selected_rows() {
 
+function add_ultimate_run(req_ids) {
+    let data = utils.api.ultimate.run.task_payload.new_run;
+    data.req_ids = req_ids;
+
+    $.ajax({
+        url: utils.api.ultimate.run.url,
+        type: 'POST',
+        data: JSON.stringify(data),
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                alert('Queued new ultimate run.')
+            } else {
+                alert('Something went wrong: ' + response.errormsg);
+            }
+        },
+        error: function (jq_XHR, text_status, error_thrown) {
+            alert('Could not initiate ultimate run: ' + text_status + '\n' + error_thrown);
+        }
+    });
 }
 
 /**
@@ -782,20 +802,20 @@ function init_datatable_manipulators(requirements_table) {
 
     // Listen for tool section triggers.
     $('#gen-req-from-selection').click(function () {
-        const ids = JSON.stringify(get_displayed_requirement_ids(requirements_table));
-        $('#selected_requirement_ids').val(JSON.stringify(ids));
+        let req_ids = get_displayed_requirement_ids(requirements_table);
+        $('#selected_requirement_ids').val(JSON.stringify(req_ids));
         $('#generate_req_form').submit();
     });
 
     $('#gen-csv-from-selection').click(function () {
-        const ids = JSON.stringify(get_displayed_requirement_ids(requirements_table));
-        $('#selected_csv_requirement_ids').val(ids);
+        let req_ids = get_displayed_requirement_ids(requirements_table);
+        $('#selected_csv_requirement_ids').val(JSON.stringify(req_ids));
         $('#generate_csv_form').submit();
     });
 
     $('#start-ultimate-run').click(function () {
-        const ids = JSON.stringify(get_displayed_requirement_ids(requirements_table));
-        console.log(ids);
+        let req_ids = get_displayed_requirement_ids(requirements_table);
+        add_ultimate_run(req_ids);
     });
 
     // Column toggling
