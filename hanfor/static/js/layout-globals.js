@@ -9,11 +9,18 @@ require('../css/app.css');
 
 // Dark theme switch.
 function update_color_theme() {
+  let theme_switch = $('#dark_theme_switch');
   const theme_is_dark =
     localStorage.getItem('color_mode') !== null &&
     localStorage.getItem('color_mode') === 'dark';
-  theme_is_dark ? document.body.setAttribute('data-theme', 'dark') :
+
+  if (theme_is_dark) {
+    document.body.setAttribute('data-theme', 'dark');
+    theme_switch.prop('checked', true);
+  } else {
     document.body.removeAttribute('data-theme');
+    theme_switch.prop('checked', false);
+  }
 }
 
 $('#dark_theme_switch').on('change', function() {
