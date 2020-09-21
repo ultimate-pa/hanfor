@@ -57,6 +57,11 @@
                 CSV input: <code>{{ config.CSV_INPUT_FILE }}</code>
             </span>
             <div class="dropdown-divider"></div>
+            <div class="mx-4 custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="dark_theme_switch">
+                <label class="custom-control-label" for="dark_theme_switch">Dark Mode</label>
+            </div>
+            <div class="dropdown-divider"></div>
             <h6 class="dropdown-header">Hanfor Version</h6>
             <a class="dropdown-item title-link" target="_blank"
                 href="https://github.com/ultimate-pa/hanfor/tree/{{ config.HANFOR_COMMIT_HASH }}">
