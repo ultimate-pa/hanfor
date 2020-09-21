@@ -14,14 +14,11 @@ class UltimateAPI(Ressource):
         self.load_runs()
 
     def GET(self):
-        self.response.data = {
-            'runs': [run.to_dict() for run in self._runs.values()]
-        }
+        self.response.data = [run.to_dict() for run in self._runs.values()]
 
     def POST(self):
         self.add_new_run()
         self.store()
-        self.response.data = {'msg': 'asdasdasd'}
 
     def DELETE(self):
         pass

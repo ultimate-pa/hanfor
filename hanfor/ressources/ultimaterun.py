@@ -1,8 +1,10 @@
+import datetime
 import uuid
 
 
 class UltimateRun:
     def __init__(self, req_ids):
+        self._queue_time = datetime.datetime.now()
         self._id = None
         self._status = None
         self._req_ids = req_ids
@@ -23,9 +25,11 @@ class UltimateRun:
         pass
 
     def queue(self):
+        self._queue_time = datetime.datetime.now()
         self._id = uuid.uuid1()
 
     def to_dict(self):
         return {
-            'id': self.id
+            'id': self.id,
+            'queued_human': self._queue_time.strftime("%d %b %Y - %H:%M:%S")
         }
