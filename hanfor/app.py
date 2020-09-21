@@ -772,7 +772,8 @@ def site(site):
         'help',
         'statistics',
         'variables',
-        'tags'
+        'tags',
+        'ultimate-runs'
     ]
     if site in available_sites:
         if site == 'variables':

@@ -30,6 +30,9 @@
           <li class="nav-item{% if request.path == '/tags' %} active{% endif %}">
             <a class="nav-link" href="{{ url_for('site', site='tags') }}">Tags</a>
           </li>
+          <li class="nav-item{% if request.path == '/ultimate-runs' %} active{% endif %}">
+            <a class="nav-link" href="{{ url_for('site', site='ultimate-runs') }}">Ultimate runs</a>
+          </li>
           <li class="nav-item{% if request.path == '/statistics' %} active{% endif %}">
             <a class="nav-link" href="{{ url_for('site', site='statistics') }}">Statistics</a>
           </li>

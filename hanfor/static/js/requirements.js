@@ -179,6 +179,22 @@ function get_selected_requirement_ids(requirements_table) {
 }
 
 
+/***
+ *
+ * @param requirements_table
+ * @returns {Array} Currently displayed requirement ids (after search is applied).
+ */
+function get_displayed_requirement_ids(requirements_table) {
+    let selected_ids = [];
+    requirements_table.rows({search: 'applied'}).every(function () {
+        const d = this.data();
+        selected_ids.push(d['id']);
+    });
+
+    return selected_ids
+}
+
+
 function apply_multi_edit(requirements_table) {
     let page = $('body');
     page.LoadingOverlay('show');
@@ -694,6 +710,10 @@ function clear_all_search_filter_inputs() {
     update_search();
 }
 
+function get_selected_rows() {
+
+}
+
 /**
  * Bind the requirements table manipulators to the table.
  * Initialize manipulators behaviour.
@@ -762,23 +782,20 @@ function init_datatable_manipulators(requirements_table) {
 
     // Listen for tool section triggers.
     $('#gen-req-from-selection').click(function () {
-        let req_ids = [];
-        requirements_table.rows({search: 'applied'}).every(function () {
-            let d = this.data();
-            req_ids.push(d['id']);
-        });
-        $('#selected_requirement_ids').val(JSON.stringify(req_ids));
+        const ids = JSON.stringify(get_displayed_requirement_ids(requirements_table));
+        $('#selected_requirement_ids').val(JSON.stringify(ids));
         $('#generate_req_form').submit();
     });
 
     $('#gen-csv-from-selection').click(function () {
-        let req_ids = [];
-        requirements_table.rows({search: 'applied'}).every(function () {
-            let d = this.data();
-            req_ids.push(d['id']);
-        });
-        $('#selected_csv_requirement_ids').val(JSON.stringify(req_ids));
+        const ids = JSON.stringify(get_displayed_requirement_ids(requirements_table));
+        $('#selected_csv_requirement_ids').val(ids);
         $('#generate_csv_form').submit();
+    });
+
+    $('#start-ultimate-run').click(function () {
+        const ids = JSON.stringify(get_displayed_requirement_ids(requirements_table));
+        console.log(ids);
     });
 
     // Column toggling
