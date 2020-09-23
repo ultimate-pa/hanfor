@@ -1,5 +1,6 @@
 import pickle
 import os
+import requests
 
 from ressources import Ressource
 from ressources.ultimaterun import UltimateRun
@@ -39,3 +40,5 @@ class UltimateAPI(Ressource):
         with open(self._storage_path, mode='wb') as out_file:
             pickle.dump(self._runs, out_file)
 
+    def fetch_ultimate_api_version(self):
+        response = requests.get(self.app.config['ULTIMATE_API_URL'])

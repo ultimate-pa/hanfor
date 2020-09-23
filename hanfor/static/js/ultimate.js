@@ -38,7 +38,7 @@ $(document).ready(function() {
 
             },
             {
-                "data": "description",
+                "data": "status",
                 "render": function ( data, type, row, meta ) {
                     result = '<div class="white-space-pre">' + data + '</div>';
                     return result;
@@ -48,5 +48,42 @@ $(document).ready(function() {
         ],
         initComplete : function() {
         }
+    });
+
+    // Add listener for tag link to modal.
+    runs_table.find('tbody').on('click', 'a.modal-opener', function (event) {
+        // prevent body to be scrolled to the top.
+        event.preventDefault();
+
+        // Get row data
+        let data = runs_datatable.row($(event.target).parent()).data();
+        let row_id = runs_datatable.row($(event.target).parent()).index();
+
+        // Prepare modal
+        let modal_content = $('.modal-content');
+        $('#ultimate_run_modal').modal('show');
+        // modal_content.LoadingOverlay('show');
+        $('#modal_associated_row_index').val(row_id);
+
+        // Meta information
+        $('#tag_name_old').val(data.name);
+        $('#occurences').val(data.used_by);
+
+        // Visible information
+        $('#tag_modal_title').html('Ultimate run: ' + data.id);
+
+        modal_content.LoadingOverlay('hide');
+    });
+
+    $('#stop_ultimate_run').confirmation({
+      rootSelector: '#stop_ultimate_run'
+    }).click(function () {
+        alert('stopping ultimate run not implemented yet.')
+    });
+
+    $('#delete_ultimate_run').confirmation({
+      rootSelector: '#delete_ultimate_run'
+    }).click(function () {
+        alert('deleting ultimate run not implemented yet.')
     });
 });

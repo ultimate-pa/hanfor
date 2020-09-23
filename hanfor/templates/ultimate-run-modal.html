@@ -7,6 +7,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 id="tag_modal_title" class="modal-title"></h5>
+                <input type="hidden" id="modal_associated_row_index" hidden />
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -17,21 +18,23 @@
             </div>
             <div class="modal-footer">
                 <button name="stop_run"
-                        class="delete_tag btn btn-large btn-danger"
+                        id="stop_ultimate_run"
+                        class="btn btn-large btn-danger"
                         data-toggle="confirmation"
-                        data-btn-ok-label="Yes"
+                        data-btn-ok-label="Yes!"
                         data-btn-ok-class="btn-success"
-                        data-btn-cancel-label="Nooo Stoooop!"
+                        data-btn-cancel-label="No"
                         data-btn-cancel-class="btn-danger"
                         data-title="Sure?" data-content="Stop this Run?">
                       Stop Run
                 </button>
                 <button name="delete_run"
-                        class="delete_tag btn btn-large btn-danger"
+                        id="delete_ultimate_run"
+                        class="btn btn-large btn-danger"
                         data-toggle="confirmation"
-                        data-btn-ok-label="Yes"
+                        data-btn-ok-label="Yes!"
                         data-btn-ok-class="btn-success"
-                        data-btn-cancel-label="Nooo Stoooop!"
+                        data-btn-cancel-label="No"
                         data-btn-cancel-class="btn-danger"
                         data-title="Sure?" data-content="Delete this Run?">
                       Delete Run
