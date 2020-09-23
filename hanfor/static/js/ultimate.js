@@ -9,6 +9,60 @@ require('awesomplete');
 require('awesomplete/awesomplete.css');
 require('./colResizable-1.6.min.js');
 
+let utils = require('./hanfor-utils');
+
+function ping_ultimate_api() {
+    let badge = $('#ultimate_api_connection_badge');
+
+    const badge_status = {
+        fetching: 0,
+        established: 1,
+        error: 2
+    };
+
+    function set_badge_status(status) {
+        // Remove all styling
+        badge.attr('class', function(i, c){
+            return c.replace(/(^|\s)badge-\S+/g, '');
+        });
+        switch (status) {
+            case badge_status.fetching:
+                badge.addClass('badge-info');
+                badge.html('Fetching ...');
+                break;
+            case badge_status.established:
+                badge.addClass('badge-success');
+                badge.html('Established');
+                break;
+            case badge_status.error:
+                badge.addClass('badge-danger');
+                badge.html('Error');
+                break;
+        }
+    }
+
+    set_badge_status(badge_status.fetching);
+
+    $.ajax({
+        url: utils.api.ultimate.api_version.url,
+        type: 'GET',
+        data: JSON.stringify(utils.api.ultimate.api_version.task_payload.get_version),
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                set_badge_status(badge_status.established);
+            } else {
+                set_badge_status(badge_status.error);
+            }
+        },
+        error: function (jq_XHR, text_status, error_thrown) {
+            alert('Could not ping ultimate API: ' + text_status + '\n' + error_thrown);
+            set_badge_status(badge_status.error);
+        }
+    });
+}
+
 $(document).ready(function() {
     let runs_table = $('#ultimate_runs_table');
     let runs_datatable = runs_table.DataTable({
@@ -85,5 +139,9 @@ $(document).ready(function() {
       rootSelector: '#delete_ultimate_run'
     }).click(function () {
         alert('deleting ultimate run not implemented yet.')
+    });
+
+    $('#api-info-tab').on('click', function (event){
+        ping_ultimate_api();
     });
 });

@@ -1,6 +1,7 @@
 import pickle
 import os
 import requests
+from requests import HTTPError
 
 from ressources import Ressource
 from ressources.ultimaterun import UltimateRun
@@ -15,11 +16,18 @@ class UltimateAPI(Ressource):
         self.load_runs()
 
     def GET(self):
-        self.response.data = [run.to_dict() for run in self._runs.values()]
+        if self._ressource == 'version':
+            if self.ping_ultimate_api():
+                self.fetch_ultimate_api_version()
+                self.response.data = {'ultimate_api_version': ''}
+            else:
+                self.response.success = False
+        else:
+            self.response.data = [run.to_dict() for run in self._runs.values()]
 
     def POST(self):
         self.add_new_run()
-        self.store()
+        self.store_runs()
 
     def DELETE(self):
         pass
@@ -36,9 +44,19 @@ class UltimateAPI(Ressource):
         with open(self._storage_path, mode='rb') as f:
             self._runs = pickle.load(f)
 
-    def store(self):
+    def store_runs(self):
         with open(self._storage_path, mode='wb') as out_file:
             pickle.dump(self._runs, out_file)
 
     def fetch_ultimate_api_version(self):
-        response = requests.get(self.app.config['ULTIMATE_API_URL'])
+        response = requests.get(self.app.config['ULTIMATE_API_URL'] + '/api/version')
+        print(response)
+
+    def ping_ultimate_api(self) -> bool:
+        success = True
+        try:
+            requests.get(self.app.config['ULTIMATE_API_URL'] + '/api').raise_for_status()
+        except HTTPError:
+            success = False
+
+        return success

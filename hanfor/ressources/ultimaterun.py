@@ -1,6 +1,5 @@
 import datetime
 import uuid
-import requests
 
 
 class UltimateRun:

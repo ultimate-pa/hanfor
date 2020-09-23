@@ -95,6 +95,7 @@ celerybeat-schedule
 
 # virtualenv
 *venv/
+venv*/
 
 # Spyder project settings
 .spyderproject
@@ -122,5 +123,5 @@ test_results.xml
 http-client.env.json
 
 volumes/
-
+hanfor-data/
 docker-compose\.yml
