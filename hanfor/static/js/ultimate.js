@@ -125,6 +125,7 @@ $(document).ready(function() {
 
         // Visible information
         $('#tag_modal_title').html('Ultimate run: ' + data.id);
+        $('#req_file_accordion').html(data.req_file_content);
 
         modal_content.LoadingOverlay('hide');
     });
