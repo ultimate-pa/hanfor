@@ -4,7 +4,7 @@ const api = {
             url: 'api/ultimate/run',
             task_payload: {
                 new_run: {
-                    task: 'new_run',
+                    task: 'add_new_run',
                     req_ids: []
                 },
                 get_run: {
@@ -17,7 +17,7 @@ const api = {
             url: 'api/ultimate/runs',
             task_payload: {
                 get_all: {
-                    task: 'get_all_runs'
+                    task: 'get_runs'
                 }
             }
         },
