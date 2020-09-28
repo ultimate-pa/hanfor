@@ -12,6 +12,7 @@ class UltimateRun:
         self._status = None
         self._req_ids = req_ids
         self._req_file_content = None
+        self.ultimate_run_id = None
         self.generate_req_file_content(app)
 
     @property
@@ -31,7 +32,7 @@ class UltimateRun:
 
     def queue(self):
         self._queue_time = datetime.datetime.now()
-        self._id = uuid.uuid1()
+        self._id = str(uuid.uuid1())
 
     def generate_req_file_content(self, app):
         self._req_file_content = generate_req_file_content(app, self._req_ids)
@@ -41,5 +42,6 @@ class UltimateRun:
             'id': self.id,
             'queued_human': self._queue_time.strftime("%d %b %Y - %H:%M:%S"),
             'status': self._status,
-            'req_file_content': self._req_file_content
+            'req_file_content': self._req_file_content,
+            'ultimate_run_id': self.ultimate_run_id
         }

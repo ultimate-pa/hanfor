@@ -1,13 +1,18 @@
 import logging
 import pickle
 import os
+from typing import Dict
+
 import requests
+from typing import Dict
 
 from ressources import Ressource
 from ressources.ultimaterun import UltimateRun
 
 
 class UltimateAPI(Ressource):
+    _runs: Dict[str, UltimateRun]
+
     def __init__(self, app, request, ressource):
         super().__init__(app, request)
         self._runs = dict()
@@ -26,7 +31,8 @@ class UltimateAPI(Ressource):
 
     def POST(self):
         tasks = {
-            'add_new_run': self.add_new_run
+            'add_new_run': self.add_new_run,
+            'set_ultimate_job_id': self.set_ultimate_job_id
         }
 
         task = tasks.get(self._get_task(), self.task_not_supported)
@@ -52,6 +58,19 @@ class UltimateAPI(Ressource):
             self.response.success = False
             self.response.errormsg = 'Ultimate API unreachable.'
 
+    def set_ultimate_job_id(self):
+        run_id = self.request.get_json()['run_id']
+        ultimate_job_id = self.request.get_json()['ultimate_job_id']
+
+        if run_id not in self._runs:
+            self.response.success = False
+            self.response.errormsg = f'Could not find run by id: {run_id}'
+            return
+
+        self._runs[run_id].ultimate_run_id = ultimate_job_id
+        self.response.data = self._runs[run_id].to_dict()
+        self._store_runs()
+
     def add_new_run(self):
         if self.ping_ultimate_api():
             ultimate_run = UltimateRun(self.request.get_json()['req_ids'], self.app)
@@ -61,7 +80,6 @@ class UltimateAPI(Ressource):
         else:
             self.response.success = False
             self.response.errormsg = 'Ultimate API not reachable.'
-
 
     def fetch_ultimate_api_version(self):
         version = 'Unknown'

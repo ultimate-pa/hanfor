@@ -92,7 +92,7 @@ HOST = os.environ.get('HANFOR_HOST',default='127.0.0.1')
 #                               Ultimate API                                   #
 ################################################################################
 
-ULTIMATE_API_URL = 'http://localhost:8080'
+ULTIMATE_API_URL = 'http://localhost:8080/api'
 
 ################################################################################
 #                               Miscellaneous                                  #

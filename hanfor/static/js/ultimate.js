@@ -10,6 +10,7 @@ require('awesomplete/awesomplete.css');
 require('./colResizable-1.6.min.js');
 
 let utils = require('./hanfor-utils');
+let _ULTIMATE_TOOLCHAIN_XML = null
 
 function ping_ultimate_api() {
     let badge = $('#ultimate_api_connection_badge');
@@ -63,6 +64,84 @@ function ping_ultimate_api() {
     });
 }
 
+
+function fetch_ultimate_toolchain_xml() {
+    return $.get('static/configs/ultimate/toolchain.xml', function (response) {
+        _ULTIMATE_TOOLCHAIN_XML = (new XMLSerializer()).serializeToString(response);
+    }).fail(function () {
+        alert("Could not fetch ultimate toolchain xml. Config error.");
+    });
+}
+
+
+function update_ultimate_job_id(associated_row_id, run_id, ultimate_job_id) {
+    let requirements_table = $('#ultimate_runs_table').DataTable();
+
+    let data = utils.api.ultimate.run.task_payload.set_ultimate_job_id;
+    data.ultimate_job_id = ultimate_job_id;
+    data.run_id = run_id;
+
+    $.ajax({
+        url: utils.api.ultimate.run.url,
+        type: 'POST',
+        data: JSON.stringify(data),
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        success: function(response) {
+            if (response['success'] === false) {
+                alert(response['errormsg']);
+            } else {
+                requirements_table.row(associated_row_id).data(response.data);
+            }
+        }
+    });
+}
+
+function initiate_ultimate_run() {
+    const settings = {
+        action: 'execute',
+        code: $('#req_file_accordion').html(),
+        toolchain: {
+          id: 'reqChecker'
+        },
+        job_id: $('#modal_run_id').val(),
+        code_file_extension: '.req',
+        user_settings: "",
+        ultimate_toolchain_xml: _ULTIMATE_TOOLCHAIN_XML
+    };
+
+    $.post(_ULTIMATE_API_URL, settings, function (response) {
+        console.log(response);
+        update_ultimate_job_id(
+          $('#modal_associated_row_index').val(),
+          $('#modal_run_job_id').val(),
+          response.requestId
+        );
+    }).fail(function () {
+        alert("Could not initiate run. Server error.");
+    });
+}
+
+
+function start_ultimate_run() {
+    if (_ULTIMATE_TOOLCHAIN_XML === null) {
+        let xhr = fetch_ultimate_toolchain_xml();
+        xhr.done(function () {
+            initiate_ultimate_run();
+        });
+    } else {
+        initiate_ultimate_run();
+    }
+}
+
+function fetch_ultimate_results() {
+    const ultimate_job_id = $('#modal_run_ultimate_job_id').val();
+    $.getJSON(_ULTIMATE_API_URL + '/job/get/' + ultimate_job_id, null, function (data) {
+        console.log(data);
+        $('#results_accordion').html(JSON.stringify(data.results));
+    });
+}
+
 $(document).ready(function() {
     let runs_table = $('#ultimate_runs_table');
     let runs_datatable = runs_table.DataTable({
@@ -78,15 +157,14 @@ $(document).ready(function() {
             {
                 "data": "id",
                 "render": function ( data, type, row, meta ) {
-                  console.log(data);
-                    result = '<a class="modal-opener" href="#">' + data + '</span></br>';
+                    let result = '<a class="modal-opener" href="#">' + data + '</span></br>';
                     return result;
                 }
             },
             {
                 "data": "queued_human",
                 "render": function ( data, type, row, meta ) {
-                    result = '<div class="white-space-pre">' + data + '</div>';
+                    let result = '<div class="white-space-pre">' + data + '</div>';
                     return result;
                 }
 
@@ -94,7 +172,7 @@ $(document).ready(function() {
             {
                 "data": "status",
                 "render": function ( data, type, row, meta ) {
-                    result = '<div class="white-space-pre">' + data + '</div>';
+                    let result = '<div class="white-space-pre">' + data + '</div>';
                     return result;
                 }
 
@@ -120,14 +198,21 @@ $(document).ready(function() {
         $('#modal_associated_row_index').val(row_id);
 
         // Meta information
-        $('#tag_name_old').val(data.name);
-        $('#occurences').val(data.used_by);
+        $('#modal_run_job_id').val(data.id);
+        $('#modal_run_ultimate_job_id').val(data.ultimate_run_id);
 
         // Visible information
-        $('#tag_modal_title').html('Ultimate run: ' + data.id);
+        $('#modal_title').html('Ultimate run: ' + data.id);
         $('#req_file_accordion').html(data.req_file_content);
-
+        fetch_ultimate_results();
+        console.log(data);
         modal_content.LoadingOverlay('hide');
+    });
+
+    $('#start_ultimate_run').confirmation({
+      rootSelector: '#start_ultimate_run'
+    }).click(function () {
+        start_ultimate_run();
     });
 
     $('#stop_ultimate_run').confirmation({

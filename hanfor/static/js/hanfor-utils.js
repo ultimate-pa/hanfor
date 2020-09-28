@@ -9,7 +9,12 @@ const api = {
                 },
                 get_run: {
                     task: 'get_run',
-                    run_id: ''
+                    run_id: ''  // Hanfor internal ID
+                },
+                set_ultimate_job_id: {
+                    task: 'set_ultimate_job_id',
+                    run_id: '', // Hanfor internal ID
+                    ultimate_job_id: ''  // Ultimate internal ID
                 }
             }
         },
