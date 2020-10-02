@@ -3,8 +3,9 @@ import os
 import pickle
 import re
 import shlex
+import colorama
 
-from colorama import Style, Fore
+from colorama import Style, Fore, Back
 from terminaltables import DoubleTable
 
 
@@ -57,12 +58,15 @@ def choice(choices, default):
     """
     idx = 0
     data = list()
+    colorama.init()
+    default_idx = 0
     for choice in choices:
         if choice == default:
             data.append([
                 '{}-> {}{}'.format(Fore.GREEN, idx, Style.RESET_ALL),
                 '{}{}{}'.format(Fore.GREEN, choice, Style.RESET_ALL)
             ])
+            default_idx = idx
         else:
             data.append([idx, choice])
         idx = idx + 1
@@ -72,11 +76,15 @@ def choice(choices, default):
     print(table.table)
 
     while True:
-        last_in = input('{}[Choice or Enter for {} -> default{}]> {}'.format(
+        input_msg = '{}[Choice or Enter for {} -> default ({}){}]> {}'.format(
             Fore.LIGHTBLUE_EX,
             Fore.GREEN,
+            default_idx,
             Fore.LIGHTBLUE_EX,
-            Style.RESET_ALL))
+            Style.RESET_ALL
+        )
+        print(input_msg, end='')
+        last_in = input()
 
         if len(last_in) == 0:
             return default
