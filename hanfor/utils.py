@@ -17,7 +17,14 @@ import re
 from flask import json
 from flask_assets import Bundle, Environment
 
-from config import PATTERNS, PATTERNS_GROUP_ORDER
+# Here is the first time we use config. Check existence and raise a meaningful exception if not found.
+try:
+    from config import PATTERNS, PATTERNS_GROUP_ORDER
+except ModuleNotFoundError:
+    msg = 'Missing a config file. See README.md -> #Setup on how to create one.'
+    logging.error(msg)
+    raise FileNotFoundError(msg)
+
 from reqtransformer import VarImportSessions, VariableCollection, Requirement, ScriptEvals
 from static_utils import pickle_dump_obj_to_file, pickle_load_from_dump, replace_prefix
 from typing import Union, Set
