@@ -4,12 +4,17 @@
 @licence: GPLv3
 """
 import datetime
+import io
 import logging
 import os
 import re
 import shutil
 import subprocess
 import sys
+from io import StringIO
+
+import flask
+
 import utils
 
 from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, \
@@ -64,24 +69,18 @@ def tools_api(command):
     else:
         filter_list = None
 
-    def file_response(filename):
-        response = make_response(send_file(filename))
-        basename = os.path.basename(filename)
-        response.headers["Content-Disposition"] = \
-            "attachment;" \
-            "filename*=UTF-8''{utf_filename}".format(
-                utf_filename=basename
-            )
-        os.remove(filename)
-        return response
-
     if command == 'req_file':
-        filename = utils.generate_req_file(app, filter_list=filter_list)
-        return file_response(filename)
+        content = utils.generate_req_file_content(app, filter_list=filter_list)
+        name = app.config['CSV_INPUT_FILE'][:-4] + '.req'
+        return utils.generate_file_response(content, name)
 
     if command == 'csv_file':
-        filename = utils.generate_csv_file(app, filter_list=filter_list)
-        return file_response(filename)
+        filename = utils.generate_csv_file_content(app, filter_list=filter_list)
+        name = '{}_{}_out.csv'.format(
+            app.config['SESSION_TAG'],
+            app.config['USING_REVISION']
+        )
+        return utils.generate_file_response(filename, name)
 
 
 @app.route('/api/table/colum_defs', methods=['GET'])
@@ -635,17 +634,12 @@ def api(resource, command):
 
             return jsonify(result)
         elif command == 'gen_req':
-            filename = utils.generate_req_file(app, variables_only=True)
+            content = utils.generate_req_file_content(app, variables_only=True)
+            name = '{}_variables_only.req'.format(
+                app.config['CSV_INPUT_FILE'][:-4]
+            )
 
-            response = make_response(send_file(filename))
-            basename = os.path.basename(filename)
-            response.headers["Content-Disposition"] = \
-                "attachment;" \
-                "filename*=UTF-8''{utf_filename}".format(
-                    utf_filename=basename
-                )
-            os.remove(filename)
-            return response
+            return utils.generate_file_response(content, name)
 
         return jsonify(result)
 

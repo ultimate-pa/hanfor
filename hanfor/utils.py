@@ -5,6 +5,7 @@
 """
 import argparse
 from collections import defaultdict
+from io import StringIO
 
 import boogie_parsing
 import csv
@@ -14,8 +15,8 @@ import logging
 import os
 import re
 
-from flask import json
-from flask_assets import Bundle, Environment
+from flask import json, Response
+from flask_assets import Environment
 
 # Here is the first time we use config. Check existence and raise a meaningful exception if not found.
 try:
@@ -572,8 +573,8 @@ def get_requirements(input_dir, filter_list=None, invert_filter=False):
     return requirements
 
 
-def generate_csv_file(app, output_file=None, filter_list=None, invert_filter=False):
-    """ Generates the csv file for a session by tag.
+def generate_csv_file_content(app, filter_list=None, invert_filter=False):
+    """ Generates the csv file content for a session.
 
     :param app: Current hanfor app for context.
     :type app: Flaskapp
@@ -583,7 +584,7 @@ def generate_csv_file(app, output_file=None, filter_list=None, invert_filter=Fal
     :type filter_list: list (of strings)
     :param invert_filter: Exclude filter
     :type invert_filter: bool
-    :return: Output file location on success.
+    :return: CSV content
     :rtype: str
     """
     # Get requirements
@@ -591,13 +592,6 @@ def generate_csv_file(app, output_file=None, filter_list=None, invert_filter=Fal
 
     # get session status
     session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])  # type: dict
-
-    # Generate Output filename.
-    if not output_file:
-        output_file = os.path.join(app.config['SESSION_FOLDER'], '{}_{}_out.csv'.format(
-            app.config['SESSION_TAG'],
-            app.config['USING_REVISION']
-        ))
 
     # Add Formalization col if not existent in input CSV.
     for csv_key in [session_dict['csv_formal_header']]:
@@ -620,13 +614,14 @@ def generate_csv_file(app, output_file=None, filter_list=None, invert_filter=Fal
 
     # Write data to file.
     rows = [r.csv_row for r in requirements]
-    with open(output_file, mode='w') as out_csv:
+    with StringIO() as out_csv:
         csv.register_dialect('ultimate', delimiter=',')
         writer = csv.DictWriter(out_csv, session_dict['csv_fieldnames'], dialect=session_dict['csv_dialect'])
         writer.writeheader()
         writer.writerows(rows)
+        result = out_csv.getvalue()
 
-    return output_file
+    return result
 
 
 def clean_identifier_for_ultimate_parser(slug: str, used_slugs: Set[str]) -> (str, Set[str]):
@@ -656,20 +651,20 @@ def clean_identifier_for_ultimate_parser(slug: str, used_slugs: Set[str]) -> (st
     return slug, used_slugs
 
 
-def generate_req_file(app, output_file=None, filter_list=None, invert_filter=False, variables_only=False):
-    """ Generate the ulltimate requirements file.
-
-    :param tag: Session tag
-    :type tag: str
-    :type output_file: str
-    :param filter: A list of requirement IDs to be included in the result. All if not set.
-    :type filter: list (of strings)
-    :param invert_filter: Exclude filter
-    :type invert_filter: bool
-    :return: Output file location on success.
-    :rtype: str
-    """
-    logging.info('Generating .req file for session {}'.format(app.config['SESSION_TAG']))
+def generate_req_file_content(app, filter_list=None, invert_filter=False, variables_only=False):
+    """ Generate the content (string) for the ultimate requirements file.
+        :param app: Current app.
+        :type app: FlaskApp
+        :param filter_list: A list of requirement IDs to be included in the result. All if not set.
+        :type filter_list: list (of strings)
+        :param invert_filter: Exclude filter
+        :type invert_filter: bool
+        :type invert_filter: bool
+        :param variables_only: If true, only variables and no requirements will be included.
+        :return: Content for the req file.
+        :rtype: str
+        """
+    logging.info('Generating .req file content for session {}'.format(app.config['SESSION_TAG']))
     # Get requirements
     requirements = get_requirements(app.config['REVISION_FOLDER'], filter_list=filter_list, invert_filter=invert_filter)
 
@@ -692,90 +687,77 @@ def generate_req_file(app, output_file=None, filter_list=None, invert_filter=Fal
 
     available_vars = [var['name'] for var in available_vars]
 
-    # Write to .req file
-    if not output_file:
-        file_suffix = ''
-        if variables_only:
-            file_suffix = 'variables_only'
-        output_file = os.path.join(
-            app.config['SESSION_FOLDER'], '{}{}.req'.format(
-                app.config['CSV_INPUT_FILE'][:-4],
-                file_suffix
-            ))
-    logging.info('Write to output file: {}'.format(output_file))
-
     content_list = []
     constants_list = []
     constraints_list = []
-    with open(output_file, mode='w') as out_file:
-        # Parse variables and variable constraints.
-        for var in var_collection.collection.values():
-            if var.name in available_vars:
-                if var.type in ['CONST', 'ENUMERATOR_INT', 'ENUMERATOR_REAL']:
-                    constants_list.append('CONST {} IS {}'.format(var.name, var.value))
-                else:
-                    content_list.append('Input {} IS {}'.format(
-                        var.name,
-                        boogie_parsing.BoogieType.reverse_alias(var.type).name
+
+    # Parse variables and variable constraints.
+    for var in var_collection.collection.values():
+        if var.name in available_vars:
+            if var.type in ['CONST', 'ENUMERATOR_INT', 'ENUMERATOR_REAL']:
+                constants_list.append('CONST {} IS {}'.format(var.name, var.value))
+            else:
+                content_list.append('Input {} IS {}'.format(
+                    var.name,
+                    boogie_parsing.BoogieType.reverse_alias(var.type).name
+                ))
+            try:
+                for index, constraint in var.constraints.items():
+                    if constraint.scoped_pattern is None:
+                        continue
+                    if constraint.scoped_pattern.get_scope_slug().lower() == 'none':
+                        continue
+                    if constraint.scoped_pattern.get_pattern_slug() in ['NotFormalizable', 'None']:
+                        continue
+                    if len(constraint.get_string()) == 0:
+                        continue
+                    constraints_list.append('Constraint_{}_{}: {}'.format(
+                        re.sub(r"\s+", '_', var.name),
+                        index,
+                        constraint.get_string()
                     ))
-                try:
-                    for index, constraint in var.constraints.items():
-                        if constraint.scoped_pattern is None:
-                            continue
-                        if constraint.scoped_pattern.get_scope_slug().lower() == 'none':
-                            continue
-                        if constraint.scoped_pattern.get_pattern_slug() in ['NotFormalizable', 'None']:
-                            continue
-                        if len(constraint.get_string()) == 0:
-                            continue
-                        constraints_list.append('Constraint_{}_{}: {}'.format(
-                            re.sub(r"\s+", '_', var.name),
-                            index,
-                            constraint.get_string()
-                        ))
-                except:
-                    pass
-        content_list.sort()
-        constants_list.sort()
-        constraints_list.sort()
+            except:
+                pass
+    content_list.sort()
+    constants_list.sort()
+    constraints_list.sort()
 
-        content = '\n'.join(content_list)
-        constants = '\n'.join(constants_list)
-        constraints = '\n'.join(constraints_list)
+    content = '\n'.join(content_list)
+    constants = '\n'.join(constants_list)
+    constraints = '\n'.join(constraints_list)
 
-        if len(constants) > 0:
-            content = '\n\n'.join([constants, content])
-        if len(constraints) > 0:
-            content = '\n\n'.join([content, constraints])
-        content += '\n\n'
+    if len(constants) > 0:
+        content = '\n\n'.join([constants, content])
+    if len(constraints) > 0:
+        content = '\n\n'.join([content, constraints])
+    content += '\n\n'
 
-        # parse requirement formalizations.
-        if not variables_only:
-            used_slugs = set()
-            for requirement in requirements:  # type: Requirement
-                try:
-                    for index, formalization in requirement.formalizations.items():
-                        slug, used_slugs = clean_identifier_for_ultimate_parser(requirement.rid, used_slugs)
-                        if formalization.scoped_pattern is None:
-                            continue
-                        if formalization.scoped_pattern.get_scope_slug().lower() == 'none':
-                            continue
-                        if formalization.scoped_pattern.get_pattern_slug() in ['NotFormalizable', 'None']:
-                            continue
-                        if len(formalization.get_string()) == 0:
-                            # formalizatioin string is empty if expressions are missing or none set. Ignore in output
-                            continue
-                        content += '{}_{}: {}\n'.format(
-                            slug,
-                            index,
-                            formalization.get_string()
-                        )
-                except AttributeError:
-                    continue
-        content += '\n'
-        out_file.write(content)
+    # parse requirement formalizations.
+    if not variables_only:
+        used_slugs = set()
+        for requirement in requirements:  # type: Requirement
+            try:
+                for index, formalization in requirement.formalizations.items():
+                    slug, used_slugs = clean_identifier_for_ultimate_parser(requirement.rid, used_slugs)
+                    if formalization.scoped_pattern is None:
+                        continue
+                    if formalization.scoped_pattern.get_scope_slug().lower() == 'none':
+                        continue
+                    if formalization.scoped_pattern.get_pattern_slug() in ['NotFormalizable', 'None']:
+                        continue
+                    if len(formalization.get_string()) == 0:
+                        # formalizatioin string is empty if expressions are missing or none set. Ignore in output
+                        continue
+                    content += '{}_{}: {}\n'.format(
+                        slug,
+                        index,
+                        formalization.get_string()
+                    )
+            except AttributeError:
+                continue
+    content += '\n'
 
-    return output_file
+    return content
 
 
 def get_stored_session_names(session_folder, only_names=False, with_revisions=False) -> tuple:
@@ -1038,6 +1020,20 @@ def slugify(s):
     """
     s = str(s).strip().replace(' ', '_')
     return re.sub(r'(?u)[^-\w.]', '', s)
+
+
+def generate_file_response(content, name, mimetype='text/plain'):
+    response = Response(
+        content,
+        mimetype='text/csv'
+    )
+    response.headers["Content-Disposition"] = \
+        "attachment;" \
+        "filename*=UTF-8''{utf_filename}".format(
+            utf_filename=name
+        )
+
+    return response
 
 
 class PrefixMiddleware(object):
