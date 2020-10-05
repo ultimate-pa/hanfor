@@ -87,7 +87,7 @@ def choice(choices, default):
         last_in = input()
 
         if len(last_in) == 0:
-            return default
+            return choices[default_idx]
 
         choice, *args = shlex.split(last_in)
         if len(args) > 0:
