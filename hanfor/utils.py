@@ -4,6 +4,7 @@
 @licence: GPLv3
 """
 import argparse
+import shutil
 from collections import defaultdict
 from io import StringIO
 
@@ -26,8 +27,9 @@ except ModuleNotFoundError:
     logging.error(msg)
     raise FileNotFoundError(msg)
 
-from reqtransformer import VarImportSessions, VariableCollection, Requirement, ScriptEvals
-from static_utils import pickle_dump_obj_to_file, pickle_load_from_dump, replace_prefix
+from reqtransformer import VarImportSessions, VariableCollection, Requirement, ScriptEvals, RequirementCollection
+from static_utils import pickle_dump_obj_to_file, pickle_load_from_dump, replace_prefix, get_filenames_from_dir, \
+    hash_file_sha1
 from typing import Union, Set
 from terminaltables import DoubleTable
 
@@ -1036,6 +1038,31 @@ def generate_file_response(content, name, mimetype='text/plain'):
     return response
 
 
+def get_requirements_in_folder(folder_path):
+        result = dict()
+        for filename in get_filenames_from_dir(folder_path):
+            try:
+                r = Requirement.load(filename)
+                result[r.rid] = {
+                    'req': r,
+                    'path': filename
+                }
+            except TypeError:
+                continue
+            except Exception as e:
+                raise e
+        return result
+
+
+def init_var_collection(app):
+    """ Creates a new empty VariableCollection if non is existent for current session.
+
+    """
+    if not os.path.exists(app.config['SESSION_VARIABLE_COLLECTION']):
+        var_collection = VariableCollection(path=app.config['SESSION_VARIABLE_COLLECTION'])
+        var_collection.store()
+
+
 class PrefixMiddleware(object):
     ''' Support for url prefixes. '''
 
@@ -1188,3 +1215,234 @@ class MetaSettings():
 
     def __getitem__(self, item):
         return self.__dict__.__getitem__(item)
+
+
+class Revision:
+    def __init__(self, app, args, base_revision_name):
+        self.app = app
+        self.args = args
+        self.base_revision_name = base_revision_name
+        self.is_initial_revision = True
+        self.base_revision_folder = None
+        self.base_revision_settings = None
+        self.base_revision_var_collectioin_path = None
+        self.available_sessions = None
+        self.requirement_collection = None
+
+        self._set_is_initial_revision()
+        self._set_revision_name()
+        self._set_base_revision_folder()
+        self._set_base_revision_settings()
+        self._set_base_revision_var_collection_path()
+
+    def create_revision(self):
+        self._check_base_revision_available()
+        self._set_config_vars()
+        self._set_available_sessions()
+        if self.is_initial_revision:
+            init_var_collection(self.app)
+        self._create_revision_folder()
+        try:
+            self._load_from_csv()
+        except Exception as e:
+            logging.error('Could not read CSV: {}'.format(e))
+            self._revert_and_cleanup()
+            raise e
+        try:
+            self._store_requirements()
+        except Exception as e:
+            logging.error('Abort creating revision. Could not store requirements: {}'.format(type(e)))
+            self._revert_and_cleanup()
+            raise e
+        try:
+            self._generate_session_dict()
+        except Exception as e:
+            logging.error('Abort creating revision. Could not generate session: {}'.format(type(e)))
+            self._revert_and_cleanup()
+            raise e
+        if not self.is_initial_revision:
+            try:
+                self._merge_with_base_revision()
+            except Exception as e:
+                logging.error('Abort creating revision. Could not merge with base session: {}'.format(type(e)))
+                self._revert_and_cleanup()
+                raise e
+
+    def _set_revision_name(self):
+        if not self.base_revision_name:
+            logging.info('No revisions for `{}`. Creating initial revision.'.format(self.args.tag))
+            self.revision_name = 'revision_0'
+        # Revision based on a existing revision
+        else:
+            new_revision_count = max(
+                [int(name.split('_')[1]) for name in get_available_revisions(self.app.config)]) + 1
+            self.revision_name = 'revision_{}'.format(new_revision_count)
+
+    def _set_base_revision_settings(self):
+        if not self.is_initial_revision:
+            self.base_revision_settings = pickle_load_from_dump(
+                os.path.join(
+                    self.base_revision_folder,
+                    'session_status.pickle'
+                )
+            )
+
+    def _set_base_revision_folder(self):
+        if not self.is_initial_revision:
+            self.base_revision_folder = os.path.join(
+                self.app.config['SESSION_FOLDER'],
+                self.base_revision_name
+            )
+
+    def _set_is_initial_revision(self):
+        if self.base_revision_name:
+            self.is_initial_revision = False
+
+    def _set_base_revision_var_collection_path(self):
+        if not self.is_initial_revision:
+            self.base_revision_var_collectioin_path = os.path.join(
+                self.base_revision_folder,
+                'session_variable_collection.pickle'
+            )
+
+    def _set_config_vars(self):
+        self.app.config['USING_REVISION'] = self.revision_name
+        self.app.config['REVISION_FOLDER'] = os.path.join(
+            self.app.config['SESSION_FOLDER'],
+            self.revision_name
+        )
+        self.app.config['SESSION_VARIABLE_COLLECTION'] = os.path.join(
+            self.app.config['REVISION_FOLDER'],
+            'session_variable_collection.pickle'
+        )
+        self.app.config['SESSION_STATUS_PATH'] = os.path.join(
+            self.app.config['REVISION_FOLDER'],
+            'session_status.pickle'
+        )
+
+    def _check_base_revision_available(self):
+        if not self.is_initial_revision and self.base_revision_name not in get_available_revisions(self.app.config):
+            logging.error(
+                'Base revision `{}` not found in `{}`'.format(
+                    self.base_revision_name, self.app.config['SESSION_FOLDER']
+                )
+            )
+            raise FileNotFoundError
+
+    def _set_available_sessions(self):
+        self.available_sessions = get_stored_session_names(
+            self.app.config['SESSION_BASE_FOLDER'],
+            with_revisions=True
+        )
+
+    def _load_from_csv(self):
+        # Load requirements from .csv file and store them into separate requirements.
+        if self.args.input_csv is None:
+            HanforArgumentParser(self.app).error('Creating an (initial) revision requires -c INPUT_CSV')
+        self.requirement_collection = RequirementCollection()
+        self.requirement_collection.create_from_csv(
+            csv_file=self.args.input_csv,
+            app=self.app,
+            input_encoding='utf8',
+            base_revision_headers=self.base_revision_settings,
+            user_provided_headers=(json.loads(self.args.headers) if self.args.headers else None),
+            available_sessions=self.available_sessions
+        )
+
+    def _create_revision_folder(self):
+        os.makedirs(self.app.config['REVISION_FOLDER'], exist_ok=True)
+
+    def _revert_and_cleanup(self):
+        logging.info('Reverting revision creation.')
+        if self.is_initial_revision:
+            logging.debug(
+                'Revert initialized session folder. Deleting: `{}`'.format(self.app.config['SESSION_FOLDER']))
+            shutil.rmtree(self.app.config['SESSION_FOLDER'])
+        else:
+            logging.debug(
+                'Revert initialized revision folder. Deleting: `{}`'.format(self.app.config['REVISION_FOLDER']))
+            shutil.rmtree(self.app.config['REVISION_FOLDER'])
+
+    def _store_requirements(self):
+        for index, req in enumerate(self.requirement_collection.requirements):  # type: Requirement
+            filename = os.path.join(self.app.config['REVISION_FOLDER'], '{}.pickle'.format(req.rid))
+            req.store(filename)
+
+    def _generate_session_dict(self):
+        # Generate the session dict: Store some meta information.
+        session = dict()
+        session['csv_input_file'] = self.args.input_csv
+        session['csv_fieldnames'] = self.requirement_collection.csv_meta['fieldnames']
+        session['csv_id_header'] = self.requirement_collection.csv_meta['id_header']
+        session['csv_formal_header'] = self.requirement_collection.csv_meta['formal_header']
+        session['csv_type_header'] = self.requirement_collection.csv_meta['type_header']
+        session['csv_desc_header'] = self.requirement_collection.csv_meta['desc_header']
+        session['csv_dialect'] = self.requirement_collection.csv_meta['dialect']
+        session['csv_hash'] = hash_file_sha1(self.args.input_csv)
+        pickle_dump_obj_to_file(session, self.app.config['SESSION_STATUS_PATH'])
+
+    def _merge_with_base_revision(self):
+        # Merge the old revision into the new revision
+        logging.info('Merging `{}` into `{}`.'.format(self.base_revision_name, self.revision_name))
+        old_reqs = get_requirements_in_folder(self.base_revision_folder)
+        new_reqs = get_requirements_in_folder(self.app.config['REVISION_FOLDER'])
+
+        # Diff the new requirements against the old ones.
+        for rid in new_reqs.keys():
+            # Tag newly introduced requirements.
+            if rid not in old_reqs.keys():
+                logging.info('Add newly introduced requirement `{}`'.format(rid))
+                new_reqs[rid]['req'].tags.add(
+                    '{}_to_{}_new_requirement'.format(self.base_revision_name, self.revision_name)
+                )
+                continue
+
+            # Migrate tags and status.
+            new_reqs[rid]['req'].tags = old_reqs[rid]['req'].tags
+            new_reqs[rid]['req'].status = old_reqs[rid]['req'].status
+            new_reqs[rid]['req'].revision_diff = old_reqs[rid]['req']
+
+            if len(new_reqs[rid]['req'].revision_diff) > 0:
+                logging.info(
+                    'CSV entry changed. Add `revision_data_changed` tag to `{}`.'.format(rid)
+                )
+                new_reqs[rid]['req'].tags.add(
+                    '{}_to_{}_data_changed'.format(self.base_revision_name, self.revision_name)
+                )
+
+            if new_reqs[rid]['req'].description != old_reqs[rid]['req'].description:
+                logging.info(
+                    'Description changed. Add `description_changed` tag to `{}`.'.format(rid)
+                )
+                new_reqs[rid]['req'].tags.add(
+                    '{}_to_{}_description_changed'.format(self.base_revision_name, self.revision_name))
+                new_reqs[rid]['req'].status = 'Todo'
+
+            # If the new formalization is empty: just migrate the formalization.
+            #  - Tag with `migrated_formalization` if the description changed.
+            if len(new_reqs[rid]['req'].formalizations) == 0 and len(old_reqs[rid]['req'].formalizations) == 0:
+                pass
+            elif len(new_reqs[rid]['req'].formalizations) == 0 and len(old_reqs[rid]['req'].formalizations) > 0:
+                logging.info('Migrate formalization for `{}`'.format(rid))
+                new_reqs[rid]['req'].formalizations = old_reqs[rid]['req'].formalizations
+                if new_reqs[rid]['req'].description != old_reqs[rid]['req'].description:
+                    logging.info(
+                        'Add `migrated_formalization` tag to `{}`, status to `Todo` since description changed'.format(
+                            rid))
+                    new_reqs[rid]['req'].tags.add(
+                        '{}_to_{}_migrated_formalization'.format(self.base_revision_name, self.revision_name)
+                    )
+                    new_reqs[rid]['req'].status = 'Todo'
+            elif len(new_reqs[rid]['req'].formalizations) == 0 and len(old_reqs[rid]['req'].formalizations) > 0:
+                logging.error('Parsing of the requirement not supported.')
+                raise NotImplementedError
+
+        # Store the updated requirements for the new revision.
+        logging.info('Store merge changes to revision `{}`'.format(self.revision_name))
+        for r in new_reqs.values():
+            r['req'].store(r['path'])
+
+        # Store the variables collection in the new revision.
+        logging.info('Migrate variables from `{}` to `{}`'.format(self.base_revision_name, self.revision_name))
+        base_var_collection = VariableCollection.load(self.base_revision_var_collectioin_path)
+        base_var_collection.store(self.app.config['SESSION_VARIABLE_COLLECTION'])
