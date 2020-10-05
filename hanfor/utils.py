@@ -1239,34 +1239,36 @@ class Revision:
         self._check_base_revision_available()
         self._set_config_vars()
         self._set_available_sessions()
-        if self.is_initial_revision:
-            init_var_collection(self.app)
         self._create_revision_folder()
-        try:
-            self._load_from_csv()
-        except Exception as e:
-            logging.error('Could not read CSV: {}'.format(e))
-            self._revert_and_cleanup()
-            raise e
-        try:
-            self._store_requirements()
-        except Exception as e:
-            logging.error('Abort creating revision. Could not store requirements: {}'.format(type(e)))
-            self._revert_and_cleanup()
-            raise e
-        try:
-            self._generate_session_dict()
-        except Exception as e:
-            logging.error('Abort creating revision. Could not generate session: {}'.format(type(e)))
-            self._revert_and_cleanup()
-            raise e
-        if not self.is_initial_revision:
+        if self.is_initial_revision:
             try:
-                self._merge_with_base_revision()
+                init_var_collection(self.app)
             except Exception as e:
-                logging.error('Abort creating revision. Could not merge with base session: {}'.format(type(e)))
+                logging.error('Could not create initial variable Collection: {}'.format(e))
                 self._revert_and_cleanup()
                 raise e
+        self._try_save(self._load_from_csv, 'Could not read CSV')
+        self._try_save(self._store_requirements, 'Could not store requirements')
+        self._try_save(self._generate_session_dict, 'Could not generate session')
+        if not self.is_initial_revision:
+            self._try_save(self._merge_with_base_revision, ' Could not merge with base session')
+
+    def _try_save(self, what, error_msg):
+        """ Safely run a method. Cleanup the revision in case of a exception.
+
+        Args:
+            what: Method to run.
+            error_msg: Message in case of failure.
+        """
+        try:
+            what()
+        except Exception as e:
+            logging.error('Abort creating revision. {msg}: {error}'.format(
+                msg=error_msg,
+                error=type(e)
+            ))
+            self._revert_and_cleanup()
+            raise e
 
     def _set_revision_name(self):
         if not self.base_revision_name:
