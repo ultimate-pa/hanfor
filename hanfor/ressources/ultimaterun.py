@@ -6,6 +6,7 @@ from utils import generate_req_file_content
 
 class UltimateRun:
     def __init__(self, req_ids, app):
+        self.results = None
         self._queue_time = datetime.datetime.now()
         self._id = None
         self._api_job_id = None
@@ -30,7 +31,7 @@ class UltimateRun:
     def _fetch_api(self):
         pass
 
-    def queue(self):
+    def queue(self, app):
         self._queue_time = datetime.datetime.now()
         self._id = str(uuid.uuid1())
 
@@ -43,5 +44,6 @@ class UltimateRun:
             'queued_human': self._queue_time.strftime("%d %b %Y - %H:%M:%S"),
             'status': self._status,
             'req_file_content': self._req_file_content,
-            'ultimate_run_id': self.ultimate_run_id
+            'ultimate_run_id': self.ultimate_run_id,
+            'results': self.results
         }

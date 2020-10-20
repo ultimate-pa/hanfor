@@ -1,3 +1,66 @@
+class APITask {
+    constructor() {
+        this.url = "";
+        this.data_json = null;
+        this.method = 'GET';
+    }
+
+    run() {
+        return $.ajax({
+            url: this.url,
+            type: this.method,
+            data: JSON.stringify(this.data_json),
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json'
+        });
+    }
+}
+
+class UltimateAPITaskGetVersion extends APITask {
+    constructor() {
+        super();
+        this.method = "GET";
+        this.url = "api/ultimate/version";
+        this.data_json = {task: 'get_version'}
+    }
+}
+
+class UltimateAPITaskPingUltimate extends APITask {
+    constructor() {
+        super();
+        this.method = "GET";
+        this.url = "api/ultimate/ping";
+        this.data_json = {task: 'ping_ultimate'}
+    }
+}
+
+class UltimateAPITaskReloadRun extends APITask {
+    constructor(id) {
+        super();
+        this.method = "POST";
+        this.url = "api/ultimate/run";
+        this.data_json = {
+            task: 'reload_run',
+            run_id: id // Hanfor internal ID
+        }
+    }
+}
+
+class UltimateAPITaskStartRun extends APITask {
+    constructor(id, user_settings, toolchain_xml) {
+        super();
+        this.method = "POST";
+        this.url = "api/ultimate/run";
+        this.data_json = {
+            task: 'start_run',
+            user_settings: user_settings,
+            toolchain_xml: toolchain_xml,
+            run_id: id // Hanfor internal ID
+        }
+
+    }
+}
+
 const api = {
     ultimate: {
         run: {
@@ -15,6 +78,10 @@ const api = {
                     task: 'set_ultimate_job_id',
                     run_id: '', // Hanfor internal ID
                     ultimate_job_id: ''  // Ultimate internal ID
+                },
+                start_run: {
+                    task: 'start_run',
+                    run_id: ''
                 }
             }
         },
@@ -23,14 +90,6 @@ const api = {
             task_payload: {
                 get_all: {
                     task: 'get_runs'
-                }
-            }
-        },
-        api_version: {
-            url: 'api/ultimate/version',
-            task_payload: {
-                get_version: {
-                    task: 'get_version'
                 }
             }
         }
@@ -88,3 +147,7 @@ function process_url_query(get_query) {
 module.exports.escapeHtml = escapeHtml;
 module.exports.process_url_query = process_url_query;
 module.exports.api = api;
+module.exports.UltimateAPITaskGetVersion = UltimateAPITaskGetVersion;
+module.exports.UltimateAPITaskPingUltimate = UltimateAPITaskPingUltimate;
+module.exports.UltimateAPITaskReloadRun = UltimateAPITaskReloadRun;
+module.exports.UltimateAPITaskStartRun = UltimateAPITaskStartRun;

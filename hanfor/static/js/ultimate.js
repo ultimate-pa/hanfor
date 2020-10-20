@@ -44,21 +44,11 @@ function ping_ultimate_api() {
 
     set_badge_status(badge_status.fetching);
 
-    $.ajax({
-        url: utils.api.ultimate.api_version.url,
-        type: 'GET',
-        data: JSON.stringify(utils.api.ultimate.api_version.task_payload.get_version),
-        contentType: 'application/json; charset=utf-8',
-        dataType: 'json',
-        success: function(response) {
-            if (response.success) {
-                set_badge_status(badge_status.established);
-            } else {
-                set_badge_status(badge_status.error);
-            }
-        },
-        error: function (jq_XHR, text_status, error_thrown) {
-            alert('Could not ping ultimate API: ' + text_status + '\n' + error_thrown);
+    let task = new utils.UltimateAPITaskPingUltimate().run();
+    task.done(function (response) {
+        if (response.success) {
+            set_badge_status(badge_status.established);
+        } else {
             set_badge_status(badge_status.error);
         }
     });
@@ -97,31 +87,46 @@ function update_ultimate_job_id(associated_row_id, run_id, ultimate_job_id) {
     });
 }
 
-function initiate_ultimate_run() {
-    const settings = {
-        action: 'execute',
-        code: $('#req_file_accordion').html(),
-        toolchain: {
-          id: 'reqChecker'
-        },
-        job_id: $('#modal_run_id').val(),
-        code_file_extension: '.req',
-        user_settings: "",
-        ultimate_toolchain_xml: _ULTIMATE_TOOLCHAIN_XML
-    };
+function populate_modal_with_data(data) {
+    // Meta information.
+    $('#modal_run_job_id').val(data.id);
+    $('#modal_run_ultimate_job_id').val(data.ultimate_run_id);
 
-    $.post(_ULTIMATE_API_URL, settings, function (response) {
-        console.log(response);
-        update_ultimate_job_id(
-          $('#modal_associated_row_index').val(),
-          $('#modal_run_job_id').val(),
-          response.requestId
-        );
-    }).fail(function () {
-        alert("Could not initiate run. Server error.");
-    });
+    // Visible information.
+    $('#modal_title').html('Ultimate run: ' + data.id);
+    $('#req_file_accordion').html(data.req_file_content);
+    let results = $('#results_accordion');
+    if (data.status === 'done') {
+        results.html(JSON.stringify(data.results.results));
+    } else {
+        results.html('No results so far...');
+    }
 }
 
+function initiate_ultimate_run() {
+    loading_overlay('show');
+    let requirements_table = $('#ultimate_runs_table').DataTable();
+    const row_id = $('#modal_associated_row_index').val();
+    const run_id = $('#modal_run_job_id').val();
+    const user_settings = [];
+
+    let task = new utils.UltimateAPITaskStartRun(
+      run_id,
+      JSON.stringify({user_settings}),
+      _ULTIMATE_TOOLCHAIN_XML
+    ).run();
+    task.done(function (response) {
+        if (response['success'] === false) {
+            alert(response['errormsg']);
+        } else {
+            populate_modal_with_data(response.data);
+            requirements_table.row(row_id).data(response.data);
+        }
+    });
+    task.always(function () {
+        loading_overlay('hide');
+    });
+}
 
 function start_ultimate_run() {
     if (_ULTIMATE_TOOLCHAIN_XML === null) {
@@ -134,11 +139,27 @@ function start_ultimate_run() {
     }
 }
 
-function fetch_ultimate_results() {
-    const ultimate_job_id = $('#modal_run_ultimate_job_id').val();
-    $.getJSON(_ULTIMATE_API_URL + '/job/get/' + ultimate_job_id, null, function (data) {
-        console.log(data);
-        $('#results_accordion').html(JSON.stringify(data.results));
+function loading_overlay(overlay_state) {
+    let modal_content = $('.modal-content');
+    modal_content.LoadingOverlay(overlay_state);
+}
+
+function fetch_ultimate_results(row_id) {
+    loading_overlay('show');
+    let requirements_table = $('#ultimate_runs_table').DataTable();
+    const hanfor_job_id = $('#modal_run_job_id').val();
+    let task = new utils.UltimateAPITaskReloadRun(hanfor_job_id).run();
+
+    task.done(function (response) {
+        if (response['success'] === false) {
+            alert(response['errormsg']);
+        } else {
+            populate_modal_with_data(response.data);
+            requirements_table.row(row_id).data(response.data);
+        }
+    });
+    task.always(function (){
+        loading_overlay('hide');
     });
 }
 
@@ -172,7 +193,25 @@ $(document).ready(function() {
             {
                 "data": "status",
                 "render": function ( data, type, row, meta ) {
-                    let result = '<div class="white-space-pre">' + data + '</div>';
+                    let result = '';
+                    switch (data) {
+                        case 'done': {
+                            result = '<span class="badge badge-success">Done</span>';
+                            break;
+                        }
+                        case 'waiting': {
+                            result = '<span class="badge badge-info">Waiting</span>';
+                            break
+                        }
+                        case 'scheduled': {
+                            result = '<div class="spinner-border text-success" role="status">' +
+                                '<span class="sr-only">Running</span></div>';
+                            break
+                        }
+                        default: {
+                            result = '<span class="badge badge-danger">Error</span>';
+                        }
+                    }
                     return result;
                 }
 
@@ -192,21 +231,11 @@ $(document).ready(function() {
         let row_id = runs_datatable.row($(event.target).parent()).index();
 
         // Prepare modal
-        let modal_content = $('.modal-content');
         $('#ultimate_run_modal').modal('show');
-        // modal_content.LoadingOverlay('show');
         $('#modal_associated_row_index').val(row_id);
 
-        // Meta information
-        $('#modal_run_job_id').val(data.id);
-        $('#modal_run_ultimate_job_id').val(data.ultimate_run_id);
-
-        // Visible information
-        $('#modal_title').html('Ultimate run: ' + data.id);
-        $('#req_file_accordion').html(data.req_file_content);
-        fetch_ultimate_results();
-        console.log(data);
-        modal_content.LoadingOverlay('hide');
+        populate_modal_with_data(data);
+        fetch_ultimate_results(row_id);
     });
 
     $('#start_ultimate_run').confirmation({
