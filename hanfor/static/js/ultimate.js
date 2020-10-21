@@ -71,10 +71,32 @@ function populate_modal_with_data(data) {
     $('#modal_title').html('Ultimate run: ' + data.id);
     $('#req_file_accordion').html(data.req_file_content);
     let results = $('#results_accordion');
-    if (data.status === 'done') {
-        results.html(JSON.stringify(data.results.results));
-    } else {
-        results.html('No results so far...');
+    let start_button = $('#start_ultimate_run');
+    let stop_button = $('#stop_ultimate_run');
+    let delete_button = $('#delete_ultimate_run');
+    start_button.hide();
+    stop_button.hide();
+    delete_button.hide();
+
+    switch (data.status) {
+        case 'done': {
+            results.html(JSON.stringify(data.results.results));
+            delete_button.show();
+            start_button.show();
+            break
+        }
+        case 'waiting': {
+            delete_button.show();
+            start_button.show();
+            break
+        }
+        case 'scheduled': {
+            stop_button.show();
+            break
+        }
+        default: {
+            delete_button.show();
+        }
     }
 }
 
