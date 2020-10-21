@@ -61,6 +61,21 @@ class UltimateAPITaskStartRun extends APITask {
     }
 }
 
+class UltimateAPITaskDeleteRun extends APITask {
+    constructor(id) {
+        super();
+        this.method = "POST";
+        this.url = "api/ultimate/run";
+        this.data_json = {
+            task: 'delete_run',
+            run_id: id // Hanfor internal ID
+        }
+
+    }
+}
+
+
+
 const api = {
     ultimate: {
         run: {
@@ -151,3 +166,4 @@ module.exports.UltimateAPITaskGetVersion = UltimateAPITaskGetVersion;
 module.exports.UltimateAPITaskPingUltimate = UltimateAPITaskPingUltimate;
 module.exports.UltimateAPITaskReloadRun = UltimateAPITaskReloadRun;
 module.exports.UltimateAPITaskStartRun = UltimateAPITaskStartRun;
+module.exports.UltimateAPITaskDeleteRun = UltimateAPITaskDeleteRun;

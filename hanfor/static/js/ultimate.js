@@ -102,7 +102,7 @@ function populate_modal_with_data(data) {
 
 function initiate_ultimate_run() {
     loading_overlay('show');
-    let requirements_table = $('#ultimate_runs_table').DataTable();
+    let runs_table = $('#ultimate_runs_table').DataTable();
     const row_id = $('#modal_associated_row_index').val();
     const run_id = $('#modal_run_job_id').val();
     const user_settings = [];
@@ -113,11 +113,9 @@ function initiate_ultimate_run() {
       _ULTIMATE_TOOLCHAIN_XML
     ).run();
     task.done(function (response) {
-        if (response['success'] === false) {
-            alert(response['errormsg']);
-        } else {
+        if (response_has_no_error(response)) {
             populate_modal_with_data(response.data);
-            requirements_table.row(row_id).data(response.data);
+            runs_table.row(row_id).data(response.data);
         }
     });
     task.always(function () {
@@ -144,16 +142,14 @@ function loading_overlay(overlay_state) {
 function fetch_ultimate_results(row_id) {
     loading_overlay('show');
     console.log(row_id);
-    let requirements_table = $('#ultimate_runs_table').DataTable();
+    let runs_table = $('#ultimate_runs_table').DataTable();
     const hanfor_job_id = $('#modal_run_job_id').val();
     let task = new utils.UltimateAPITaskReloadRun(hanfor_job_id).run();
 
     task.done(function (response) {
-        if (response['success'] === false) {
-            alert(response['errormsg']);
-        } else {
+        if (response_has_no_error(response)) {
             populate_modal_with_data(response.data);
-            requirements_table.row(row_id).data(response.data);
+            runs_table.row(row_id).data(response.data);
         }
     });
     task.always(function (){
@@ -164,6 +160,42 @@ function fetch_ultimate_results(row_id) {
 function reload_run() {
     const row_id = $('modal_associated_row_index').val();
     fetch_ultimate_results(row_id);
+}
+
+function delete_run(row_id) {
+    let runs_table = $('#ultimate_runs_table').DataTable();
+    const data = runs_table.row(row_id).data();
+    let task = new utils.UltimateAPITaskDeleteRun(data.id).run();
+
+    task.done(function (response) {
+        if (response_has_no_error(response)) {
+            runs_table.row(row_id).remove().draw();
+            $('#ultimate_run_modal').modal('hide');
+        }
+    });
+    task.always(function (response) {
+        loading_overlay('hide');
+    });
+}
+
+function stop_run(row_id) {
+    let task = new utils.UltimateAPITaskDeleteRun(data.id).run();
+
+    task.done(function (response) {
+        if (response_has_no_error(response)) {
+            runs_table.row(row_id).remove().draw();
+            $('#ultimate_run_modal').modal('hide');
+        }
+    });
+}
+
+function response_has_no_error(response) {
+    if (response['success'] === false) {
+        alert(response['errormsg']);
+        return false;
+    } else {
+        return true;
+    }
 }
 
 $(document).ready(function() {
@@ -250,13 +282,17 @@ $(document).ready(function() {
     $('#stop_ultimate_run').confirmation({
       rootSelector: '#stop_ultimate_run'
     }).click(function () {
-        alert('stopping ultimate run not implemented yet.')
+        const row_id = $('#modal_associated_row_index').val();
+        loading_overlay('show');
+        stop_run(row_id);
     });
 
     $('#delete_ultimate_run').confirmation({
       rootSelector: '#delete_ultimate_run'
     }).click(function () {
-        alert('deleting ultimate run not implemented yet.')
+        const row_id = $('#modal_associated_row_index').val();
+        loading_overlay('show');
+        delete_run(row_id);
     });
 
     $('#api-info-tab').on('click', function (event){

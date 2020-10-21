@@ -34,7 +34,8 @@ class UltimateAPI(Ressource):
         tasks = {
             'add_new_run': self.add_new_run,
             'reload_run': self.reload_run,
-            'start_run': self.start_run
+            'start_run': self.start_run,
+            'delete_run': self.delete_run
         }
 
         task = tasks.get(self._get_requested_task(), self.task_not_supported)
@@ -45,6 +46,41 @@ class UltimateAPI(Ressource):
 
     def task_not_supported(self):
         self.response.success = False
+
+    def stop_run(self):
+        run_id = self._get_request_runid()
+        if not run_id:
+            self.response.success = False
+            self.response.errormsg = "Could not stop run. Missing vaild run id."
+            return
+
+        try:
+            ultimate_run_id = self._runs[run_id].ultimate_run_id
+            result = requests.get(f'{self.app.config["ULTIMATE_API_URL"]}/job/delete/{ultimate_run_id}').json()
+            if result['status'] == 'SUCCESS':
+                self._runs[run_id].status = 'waiting'
+                self._store_runs()
+        except Exception as e:
+            logging.debug(f'Could not ping ultimate API: {e}')
+            self.response.success = False
+            self.response.errormsg = "Could not reload run from ultimate backend."
+
+        self.response.data = self._runs[run_id].to_dict()
+
+    def delete_run(self):
+        run_id = self._get_request_runid()
+        if not run_id:
+            self.response.success = False
+            self.response.errormsg = "Could not delete run. Missing vaild run id."
+            return
+
+        if self._runs[run_id].status == 'scheduled':
+            self.response.success = False
+            self.response.errormsg = "Can not delete scheduled run. Stop it first."
+            return
+
+        del self._runs[run_id]
+        self._store_runs()
 
     def reload_run(self):
         run_id = self._get_request_runid()
@@ -60,7 +96,7 @@ class UltimateAPI(Ressource):
                 self._runs[run_id].status = result['status']
                 self._store_runs()
         except Exception as e:
-            logging.debug(f'Could not ping ultimate API: {e}')
+            logging.debug(f'Could not reload run from ultimate API: {e}')
             self.response.success = False
             self.response.errormsg = "Could not reload run from ultimate backend."
 
