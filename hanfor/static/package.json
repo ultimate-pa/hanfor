@@ -13,6 +13,7 @@
   "author": "Samuel Roth",
   "license": "UNLICENSED",
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.15.1",
     "autosize": "^4.0.2",
     "awesomplete": "^1.1.4",
     "bootstrap": ">=4.3.1",

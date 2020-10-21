@@ -6,6 +6,7 @@ require('jquery-ui/themes/base/all.css');
 require('../css/bootstrap-tokenfield.css');
 require('../css/tether.css');
 require('../css/app.css');
+require('@fortawesome/fontawesome-free/js/all.min.js');
 
 // Dark theme switch.
 function update_color_theme() {
