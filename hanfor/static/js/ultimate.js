@@ -54,36 +54,11 @@ function ping_ultimate_api() {
     });
 }
 
-
 function fetch_ultimate_toolchain_xml() {
     return $.get('static/configs/ultimate/toolchain.xml', function (response) {
         _ULTIMATE_TOOLCHAIN_XML = (new XMLSerializer()).serializeToString(response);
     }).fail(function () {
         alert("Could not fetch ultimate toolchain xml. Config error.");
-    });
-}
-
-
-function update_ultimate_job_id(associated_row_id, run_id, ultimate_job_id) {
-    let requirements_table = $('#ultimate_runs_table').DataTable();
-
-    let data = utils.api.ultimate.run.task_payload.set_ultimate_job_id;
-    data.ultimate_job_id = ultimate_job_id;
-    data.run_id = run_id;
-
-    $.ajax({
-        url: utils.api.ultimate.run.url,
-        type: 'POST',
-        data: JSON.stringify(data),
-        contentType: 'application/json; charset=utf-8',
-        dataType: 'json',
-        success: function(response) {
-            if (response['success'] === false) {
-                alert(response['errormsg']);
-            } else {
-                requirements_table.row(associated_row_id).data(response.data);
-            }
-        }
     });
 }
 
@@ -146,6 +121,7 @@ function loading_overlay(overlay_state) {
 
 function fetch_ultimate_results(row_id) {
     loading_overlay('show');
+    console.log(row_id);
     let requirements_table = $('#ultimate_runs_table').DataTable();
     const hanfor_job_id = $('#modal_run_job_id').val();
     let task = new utils.UltimateAPITaskReloadRun(hanfor_job_id).run();
@@ -161,6 +137,11 @@ function fetch_ultimate_results(row_id) {
     task.always(function (){
         loading_overlay('hide');
     });
+}
+
+function reload_run() {
+    const row_id = $('modal_associated_row_index').val();
+    fetch_ultimate_results(row_id);
 }
 
 $(document).ready(function() {
@@ -259,4 +240,8 @@ $(document).ready(function() {
     $('#api-info-tab').on('click', function (event){
         ping_ultimate_api();
     });
+
+    $('#reload_run').on('click', function (event) {
+        reload_run();
+    })
 });
