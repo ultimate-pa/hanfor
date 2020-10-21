@@ -72,6 +72,7 @@ function populate_modal_with_data(data) {
     $('#modal_title').html('Ultimate run: ' + data.meta_infos.name);
     $('#req_file_accordion').html(data.req_file_content);
     $('#run_name_input').val(data.meta_infos.name);
+    let run_state_badge = $('#run_state_badge');
     let results = $('#results_accordion');
     let start_button = $('#start_ultimate_run');
     let stop_button = $('#stop_ultimate_run');
@@ -79,25 +80,36 @@ function populate_modal_with_data(data) {
     start_button.hide();
     stop_button.hide();
     delete_button.hide();
+    run_state_badge.removeClass(function (index, name) {
+        return name;  // removes all classes.
+    });
 
     switch (data.status) {
         case 'done': {
             results.html(JSON.stringify(data.results.results));
             delete_button.show();
             start_button.show();
+            run_state_badge.addClass('badge badge-success');
+            run_state_badge.html('Done');
             break
         }
         case 'waiting': {
             delete_button.show();
             start_button.show();
+            run_state_badge.addClass('badge badge-info');
+            run_state_badge.html('Waiting');
             break
         }
         case 'scheduled': {
             stop_button.show();
+            run_state_badge.addClass('badge badge-warning');
+            run_state_badge.html('Running');
             break
         }
         default: {
             delete_button.show();
+            run_state_badge.addClass('badge badge-danger');
+            run_state_badge.html('Error');
         }
     }
 }
@@ -141,25 +153,21 @@ function loading_overlay(overlay_state) {
 }
 
 function fetch_ultimate_results(row_id) {
-    console.log('Fetching for row id:' + row_id);
     const hanfor_job_id = $('#modal_run_job_id').val();
     let task = new utils.UltimateAPITaskReloadRun(hanfor_job_id).run();
 
     task.done(function (response) {
-        console.log('Done triggered.');
         if (response_has_no_error(response)) {
             populate_modal_with_data(response.data);
             runs_datatable.row(row_id).data(response.data);
         }
     });
     task.always(function (){
-        console.log('Always triggered.');
         loading_overlay('hide');
     });
 }
 
 function reload_run(row_id) {
-    console.log('Reloading for row id:' + row_id);
     fetch_ultimate_results(row_id);
 }
 
@@ -256,8 +264,6 @@ $(document).ready(function() {
             {
                 "data": "status",
                 "render": function ( data, type, row, meta ) {
-                    console.log('set status to ' + data);
-                    console.log(row);
                     switch (data) {
                         case 'done': {
                             result = '<span class="badge badge-success">Done</span>';
