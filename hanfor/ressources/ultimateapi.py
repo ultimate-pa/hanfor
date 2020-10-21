@@ -35,7 +35,9 @@ class UltimateAPI(Ressource):
             'add_new_run': self.add_new_run,
             'reload_run': self.reload_run,
             'start_run': self.start_run,
-            'delete_run': self.delete_run
+            'delete_run': self.delete_run,
+            'stop_run': self.stop_run,
+            'update_run': self.update_run,
         }
 
         task = tasks.get(self._get_requested_task(), self.task_not_supported)
@@ -46,6 +48,17 @@ class UltimateAPI(Ressource):
 
     def task_not_supported(self):
         self.response.success = False
+
+    def update_run(self):
+        run_id = self._get_request_runid()
+        try:
+            self._runs[run_id].meta_infos = self.request.get_json()['meta_infos']
+            self._store_runs()
+            self.response.data = self._runs[run_id].to_dict()
+        except Exception as e:
+            logging.error(f'Could not update run {run_id}: {e}.')
+            self.response.success = False
+            self.response.errormsg = f"Could not update run: {e}"
 
     def stop_run(self):
         run_id = self._get_request_runid()
@@ -60,6 +73,8 @@ class UltimateAPI(Ressource):
             if result['status'] == 'SUCCESS':
                 self._runs[run_id].status = 'waiting'
                 self._store_runs()
+            else:
+                self.reload_run()
         except Exception as e:
             logging.debug(f'Could not ping ultimate API: {e}')
             self.response.success = False

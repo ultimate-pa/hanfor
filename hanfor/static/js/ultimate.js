@@ -11,6 +11,7 @@ require('./colResizable-1.6.min.js');
 
 let utils = require('./hanfor-utils');
 let _ULTIMATE_TOOLCHAIN_XML = null
+let runs_datatable;
 
 function ping_ultimate_api() {
     let badge = $('#ultimate_api_connection_badge');
@@ -68,8 +69,9 @@ function populate_modal_with_data(data) {
     $('#modal_run_ultimate_job_id').val(data.ultimate_run_id);
 
     // Visible information.
-    $('#modal_title').html('Ultimate run: ' + data.id);
+    $('#modal_title').html('Ultimate run: ' + data.meta_infos.name);
     $('#req_file_accordion').html(data.req_file_content);
+    $('#run_name_input').val(data.meta_infos.name);
     let results = $('#results_accordion');
     let start_button = $('#start_ultimate_run');
     let stop_button = $('#stop_ultimate_run');
@@ -102,7 +104,6 @@ function populate_modal_with_data(data) {
 
 function initiate_ultimate_run() {
     loading_overlay('show');
-    let runs_table = $('#ultimate_runs_table').DataTable();
     const row_id = $('#modal_associated_row_index').val();
     const run_id = $('#modal_run_job_id').val();
     const user_settings = [];
@@ -115,7 +116,7 @@ function initiate_ultimate_run() {
     task.done(function (response) {
         if (response_has_no_error(response)) {
             populate_modal_with_data(response.data);
-            runs_table.row(row_id).data(response.data);
+            runs_datatable.row(row_id).data(response.data);
         }
     });
     task.always(function () {
@@ -140,36 +141,35 @@ function loading_overlay(overlay_state) {
 }
 
 function fetch_ultimate_results(row_id) {
-    loading_overlay('show');
-    console.log(row_id);
-    let runs_table = $('#ultimate_runs_table').DataTable();
+    console.log('Fetching for row id:' + row_id);
     const hanfor_job_id = $('#modal_run_job_id').val();
     let task = new utils.UltimateAPITaskReloadRun(hanfor_job_id).run();
 
     task.done(function (response) {
+        console.log('Done triggered.');
         if (response_has_no_error(response)) {
             populate_modal_with_data(response.data);
-            runs_table.row(row_id).data(response.data);
+            runs_datatable.row(row_id).data(response.data);
         }
     });
     task.always(function (){
+        console.log('Always triggered.');
         loading_overlay('hide');
     });
 }
 
-function reload_run() {
-    const row_id = $('modal_associated_row_index').val();
+function reload_run(row_id) {
+    console.log('Reloading for row id:' + row_id);
     fetch_ultimate_results(row_id);
 }
 
 function delete_run(row_id) {
-    let runs_table = $('#ultimate_runs_table').DataTable();
-    const data = runs_table.row(row_id).data();
+    const data = runs_datatable.row(row_id).data();
     let task = new utils.UltimateAPITaskDeleteRun(data.id).run();
 
     task.done(function (response) {
         if (response_has_no_error(response)) {
-            runs_table.row(row_id).remove().draw();
+            runs_datatable.row(row_id).remove().draw();
             $('#ultimate_run_modal').modal('hide');
         }
     });
@@ -179,14 +179,35 @@ function delete_run(row_id) {
 }
 
 function stop_run(row_id) {
-    let task = new utils.UltimateAPITaskDeleteRun(data.id).run();
+    const data = runs_datatable.row(row_id).data();
+    let task = new utils.UltimateAPITaskStopRun(data.id).run();
 
     task.done(function (response) {
         if (response_has_no_error(response)) {
-            runs_table.row(row_id).remove().draw();
-            $('#ultimate_run_modal').modal('hide');
+            if ($('#ultimate_run_modal').hasClass('show')) {
+                populate_modal_with_data(response.data);
+            }
+            runs_datatable.row(row_id).data(response.data);
         }
     });
+    task.always(function (response) {
+        loading_overlay('hide');
+    });
+}
+
+function update_run(row_id) {
+    const data = runs_datatable.row(row_id).data();
+    data.meta_infos.name = $('#run_name_input').val();
+    let task = new utils.UltimateAPITaskUpdateRun(data.id, data.meta_infos).run();
+    task.done(function (response) {
+        if (response_has_no_error(response)) {
+            populate_modal_with_data(response.data);
+            runs_datatable.row(row_id).data(response.data);
+        }
+    });
+    task.always(function (response) {
+        loading_overlay('hide');
+    })
 }
 
 function response_has_no_error(response) {
@@ -200,7 +221,7 @@ function response_has_no_error(response) {
 
 $(document).ready(function() {
     let runs_table = $('#ultimate_runs_table');
-    let runs_datatable = runs_table.DataTable({
+    runs_datatable = runs_table.DataTable({
         "paging": true,
         "stateSave": true,
         "pageLength": 50,
@@ -218,6 +239,13 @@ $(document).ready(function() {
                 }
             },
             {
+                "data": "meta_infos",
+                "render": function ( data, type, row, meta ) {
+                    let result = '<a class="modal-opener" href="#">' + data.name + '</span></br>';
+                    return result;
+                }
+            },
+            {
                 "data": "queued_human",
                 "render": function ( data, type, row, meta ) {
                     let result = '<div class="white-space-pre">' + data + '</div>';
@@ -228,7 +256,8 @@ $(document).ready(function() {
             {
                 "data": "status",
                 "render": function ( data, type, row, meta ) {
-                    let result = '';
+                    console.log('set status to ' + data);
+                    console.log(row);
                     switch (data) {
                         case 'done': {
                             result = '<span class="badge badge-success">Done</span>';
@@ -300,6 +329,18 @@ $(document).ready(function() {
     });
 
     $('#reload_run').on('click', function (event) {
-        reload_run();
+        const row_id = $('#modal_associated_row_index').val();
+        loading_overlay('show');
+        reload_run(row_id);
+    })
+
+    $('.run-updater').on('click', function (event) {
+        const row_id = $('#modal_associated_row_index').val();
+        loading_overlay('show');
+        update_run(row_id);
+    });
+
+    $('#ultimate_run_modal').on('hidden.bs.modal', function (e) {
+        runs_datatable.draw();
     })
 });

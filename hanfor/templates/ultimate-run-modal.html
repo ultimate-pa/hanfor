@@ -15,7 +15,32 @@
                 </button>
             </div>
             <div class="modal-body">
-                <h5>Info</h5>
+                <h5>
+                    <a id="show_info_accordion"
+                       data-toggle="collapse"
+                       href="#info_accordion"
+                       role="button"
+                       aria-expanded="false">
+                        Info
+                    </a>
+                </h5>
+                <div id="info_accordion" class="collapse">
+                    <div class="form-group">
+                        <label for="run_name_input">Run name</label>
+                        <div class="input-group mb-3">
+                          <input id="run_name_input" type="text" class="form-control" placeholder="Enter name."
+                                 aria-describedby="input_name_help">
+                          <div class="input-group-append">
+                              <button class="btn btn-success run-updater" type="button">
+                                  <i class="fas fa-save"></i>
+                              </button>
+                          </div>
+                        </div>
+                        <small id="input_name_help" class="form-text text-muted">
+                            A descriptive name for this run (optional).
+                        </small>
+                    </div>
+                </div>
                 <h5>
                     <a id="show_results_accordion"
                        data-toggle="collapse"
