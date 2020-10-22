@@ -89,7 +89,6 @@ function add_results_to_modal(results) {
                 result.fa_icon = "question-circle";
             }
         }
-        console.log(result);
         const content = `<div class="toast ${result.toast_classes}" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">` +
           '<div class="toast-header">' +
           `<strong class="mr-auto"><i class="fas fa-${result.fa_icon}"></i> ${result.shortDesc}</strong>` +
@@ -124,10 +123,10 @@ function populate_modal_with_data(data) {
     run_state_badge.removeClass(function (index, name) {
         return name;  // removes all classes.
     });
+    $('#results_accordion').html('');
 
     switch (data.status) {
         case 'done': {
-            // results.html(JSON.stringify(data.results.results));
             add_results_to_modal(data.results.results)
             delete_button.show();
             start_button.show();
@@ -390,5 +389,9 @@ $(document).ready(function() {
 
     $('#ultimate_run_modal').on('hidden.bs.modal', function (e) {
         runs_datatable.draw();
+    })
+
+    $('.modal-content-collapse').click(function (){
+        $(this).find('svg').toggleClass('fa-caret-square-down fa-caret-square-up');
     })
 });
