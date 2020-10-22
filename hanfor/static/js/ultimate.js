@@ -63,6 +63,48 @@ function fetch_ultimate_toolchain_xml() {
     });
 }
 
+function add_results_to_modal(results) {
+    let messages_container = $('#results_accordion');
+    messages_container.html('');
+
+    results.forEach(function (result) {
+        switch (result.logLvl) {
+            case "error": {
+                result.toast_classes = "border border-danger";
+                result.fa_icon = "bomb";
+                break;
+            }
+            case "warning": {
+                result.toast_classes = "border border-warning";
+                result.fa_icon = "exclamation-triangle";
+                break;
+            }
+            case "info": {
+                result.toast_classes = "border border-info";
+                result.fa_icon = "info-circle";
+                break;
+            }
+            default: {
+                result.toast_classes = "border border-info";
+                result.fa_icon = "question-circle";
+            }
+        }
+        console.log(result);
+        const content = `<div class="toast ${result.toast_classes}" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">` +
+          '<div class="toast-header">' +
+          `<strong class="mr-auto"><i class="fas fa-${result.fa_icon}"></i> ${result.shortDesc}</strong>` +
+          `<small>${result.type}</small>` +
+          '<button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">' +
+          '<span aria-hidden="true">&times;</span>' +
+          '</button>' +
+          '</div>' +
+          `<div class="toast-body">${result.longDesc}</div>` +
+          '</div>';
+        messages_container.append(content);
+    });
+    $('.toast').toast('show');
+}
+
 function populate_modal_with_data(data) {
     // Meta information.
     $('#modal_run_job_id').val(data.id);
@@ -73,7 +115,6 @@ function populate_modal_with_data(data) {
     $('#req_file_accordion').html(data.req_file_content);
     $('#run_name_input').val(data.meta_infos.name);
     let run_state_badge = $('#run_state_badge');
-    let results = $('#results_accordion');
     let start_button = $('#start_ultimate_run');
     let stop_button = $('#stop_ultimate_run');
     let delete_button = $('#delete_ultimate_run');
@@ -86,7 +127,8 @@ function populate_modal_with_data(data) {
 
     switch (data.status) {
         case 'done': {
-            results.html(JSON.stringify(data.results.results));
+            // results.html(JSON.stringify(data.results.results));
+            add_results_to_modal(data.results.results)
             delete_button.show();
             start_button.show();
             run_state_badge.addClass('badge badge-success');

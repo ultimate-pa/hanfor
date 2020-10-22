@@ -116,6 +116,10 @@ body.modal-open{
     white-space: pre-line;
 }
 
+.toast {
+    max-width: 100%;
+}
+
 /**
 * graph
  */
