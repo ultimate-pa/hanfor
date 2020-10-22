@@ -142,6 +142,7 @@ class UltimateAPI(Ressource):
             ultimate_run.status = 'waiting'
             self._runs[ultimate_run.id] = ultimate_run
             self._store_runs()
+            self.response.data = ultimate_run.to_dict()
         else:
             self.response.success = False
             self.response.errormsg = 'Ultimate API not reachable.'

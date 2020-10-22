@@ -712,25 +712,56 @@ function clear_all_search_filter_inputs() {
 
 
 function add_ultimate_run(req_ids) {
-    let data = utils.api.ultimate.run.task_payload.new_run;
-    data.req_ids = req_ids;
+    let task = new utils.UltimateAPITaskAddRun(req_ids).run();
+    let modal = $('#ultimate-run-initiate-modal');
+    let add_button = $('#start_ultimate_run');
+    let messages_container = $('#ultimate-run-messages');
+    messages_container.html('');
 
-    $.ajax({
-        url: utils.api.ultimate.run.url,
-        type: 'POST',
-        data: JSON.stringify(data),
-        contentType: 'application/json; charset=utf-8',
-        dataType: 'json',
-        success: function(response) {
-            if (response.success) {
-                alert('Queued new ultimate run.')
-            } else {
-                alert('Something went wrong: ' + response.errormsg);
-            }
-        },
-        error: function (jq_XHR, text_status, error_thrown) {
-            alert('Could not initiate ultimate run: ' + text_status + '\n' + error_thrown);
+    task.done(function (response) {
+        let message = {};
+        if (response.success) {
+            message.toast_classes = 'border border-success';
+            message.fa_icon = 'info-circle';
+            message.title = 'Added new run.';
+            message.description = `A new run with id "${response.data.id}" was added. Go to "ultimate-runs" to start it.`;
+            add_button.hide();
+        } else {
+            message.toast_classes = 'border border-danger';
+            message.fa_icon = 'bomb';
+            message.title = 'Error adding new run.';
+            message.description = `Could not add new run: ${response.errormsg}.`;
         }
+        const toast = `<div class="toast ${message.toast_classes}" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">` +
+            '<div class="toast-header">' +
+            `<strong class="mr-auto"><i class="fas fa-${message.fa_icon}"></i> ${message.title}</strong>` +
+            '<button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">' +
+            '<span aria-hidden="true">&times;</span>' +
+            '</button>' +
+            '</div>' +
+            `<div class="toast-body">${message.description}</div>` +
+            '</div>';
+        messages_container.append(toast);
+        $('.toast').toast('show');
+    });
+    task.always(function () {
+        modal.LoadingOverlay('hide');
+    });
+}
+
+
+function show_ultimate_run_modal(requirements_table) {
+    let modal = $('#ultimate-run-initiate-modal');
+    let add_button = $('#start_ultimate_run');
+    let messages = $('#ultimate-run-messages');
+    messages.html('')
+    add_button.show();
+    modal.modal('show');
+    let req_ids = get_displayed_requirement_ids(requirements_table);
+    $('#ultimate_run_affected_requirements').html(`Add a new ultimate run (${req_ids.length} affected requirements).`);
+    add_button.on('click', function () {
+        modal.LoadingOverlay('show');
+        add_ultimate_run(req_ids);
     });
 }
 
@@ -814,8 +845,7 @@ function init_datatable_manipulators(requirements_table) {
     });
 
     $('#start-ultimate-run').click(function () {
-        let req_ids = get_displayed_requirement_ids(requirements_table);
-        add_ultimate_run(req_ids);
+        show_ultimate_run_modal(requirements_table);
     });
 
     // Column toggling

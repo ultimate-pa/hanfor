@@ -34,6 +34,18 @@ class UltimateAPITaskPingUltimate extends APITask {
     }
 }
 
+class UltimateAPITaskAddRun extends APITask {
+    constructor(req_ids) {
+        super();
+        this.method = "POST";
+        this.url = "api/ultimate/run";
+        this.data_json = {
+            task: 'add_new_run',
+            req_ids: req_ids
+        }
+    }
+}
+
 class UltimateAPITaskReloadRun extends APITask {
     constructor(id) {
         super();
@@ -193,3 +205,4 @@ module.exports.UltimateAPITaskStartRun = UltimateAPITaskStartRun;
 module.exports.UltimateAPITaskDeleteRun = UltimateAPITaskDeleteRun;
 module.exports.UltimateAPITaskStopRun = UltimateAPITaskStopRun;
 module.exports.UltimateAPITaskUpdateRun = UltimateAPITaskUpdateRun;
+module.exports.UltimateAPITaskAddRun = UltimateAPITaskAddRun;
