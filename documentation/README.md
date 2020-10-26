@@ -11,7 +11,7 @@ $ source docs_venv/bin/activate
 
 #### 1. Install [MkDocs](https://www.mkdocs.org/) and all dependencies.
 ```bash
-$ pip3 install -r requirements_docs.txt
+$ pip3 install -r requirements.txt
 ```
 
 #### 2. Serve this Documentation locally to track your changes.
