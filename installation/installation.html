@@ -89,12 +89,20 @@
      Preliminaries </a>
     </li>
 	
+    <li class="toctree-l2"><a class="reference internal" href="#install-hanfor">
+     Install Hanfor </a>
+    </li>
+	
+    <li class="toctree-l2"><a class="reference internal" href="#install-dependencies">
+     Install dependencies </a>
+    </li>
+	
     <li class="toctree-l2"><a class="reference internal" href="#configuration">
      Configuration </a>
     </li>
 	
-    <li class="toctree-l2"><a class="reference internal" href="#quick-start">
-     Quick start </a>
+    <li class="toctree-l2"><a class="reference internal" href="#launch-a-hanfor-session">
+     Launch a Hanfor session </a>
     </li>
 	
     <li class="toctree-l2"><a class="reference internal" href="#reqanalyzer">
@@ -364,174 +372,94 @@
                         
                             <h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link"> #</a></h1>
 <h2 id="preliminaries">Preliminaries<a class="headerlink" href="#preliminaries" title="Permanent link"> #</a></h2>
-<p>Hanfor requires <a href="https://www.python.org/">Python</a> and is only tested with <strong>Python 3.6.x</strong>.
-If python is already installed, you can check the version from command line.</p>
-<pre><code class="bash">$ python --version
-Python 3.6.2
+<ul>
+<li><a href="https://www.python.org/">Python</a> - Hanfor is only tested with <strong>Python 3.6.x</strong>.</li>
+<li><a href="https://pypi.org/project/pip/">pip</a> - Used to install all required dependencies.</li>
+</ul>
+<p>If python and pip are installed, their version can be checked from command line.</p>
+<pre><code class="bash">python --version
+
+pip --version
 </code></pre>
 
-<p>Clone the hanfor repository.</p>
-<pre><code class="bash">$ git clone https://github.com/ultimate-pa/hanfor.git -b master --single-branch /your/hanfor/destination 
+<h2 id="install-hanfor">Install Hanfor<a class="headerlink" href="#install-hanfor" title="Permanent link"> #</a></h2>
+<p>To get Hanfor either download the .zip file or clone the repository.</p>
+<h3 id="download-zip-file">Download .zip file<a class="headerlink" href="#download-zip-file" title="Permanent link"> #</a></h3>
+<p>Download <a href="https://github.com/ultimate-pa/hanfor/archive/master.zip">Hanfor</a> and unzip it.<br />
+Rename the root folder <code>hanfor-master</code> to <code>hanfor</code>.</p>
+<pre><code class="bash"># Linux
+mv hanfor-master hanfor
+
+# Windows
+move hanfor-master hanfor
 </code></pre>
 
-<p>Setup a virtual environment.</p>
-<pre><code class="bash">$ cd hanfor/hanfor
-$ python3 -m venv hanfor_venv
-$ source hanfor_venv/bin/activate
+<h3 id="clone-the-repository">Clone the repository<a class="headerlink" href="#clone-the-repository" title="Permanent link"> #</a></h3>
+<pre><code class="bash">$ git clone https://github.com/ultimate-pa/hanfor.git -b master --single-branch 
 </code></pre>
 
-<p>Install dependencies.</p>
-<pre><code class="bash">$ pip3 install -r requirements.txt
+<h2 id="install-dependencies">Install dependencies<a class="headerlink" href="#install-dependencies" title="Permanent link"> #</a></h2>
+<p>We recommend to use a <a href="https://docs.python.org/3/tutorial/venv.html">virtual environment</a>.</p>
+<pre><code class="bash"># Linux
+cd hanfor/hanfor
+python -m venv hanfor_venv
+source hanfor_venv/bin/activate
+
+# Windows
+cd hanfor\hanfor
+python -m venv hanfor_venv
+hanfor_venv\Scripts\activate.bat
+</code></pre>
+
+<p>error: Microsoft Visual C++ 14.0 is required.
+Workloads &gt; C++ build tools
+Installation details &gt; Optional &gt; MSVC v142 - VS 2019 C++ x64/x86 build tools &amp;&amp; Windows 10 SDK</p>
+<p>Use <a href="https://pypi.org/project/pip/">pip</a> to install all required dependencies listed in <code>requirements.txt</code>.</p>
+<pre><code class="bash">$ pip install -r requirements.txt
 </code></pre>
 
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link"> #</a></h2>
-<p>Copy the default config file <code>hanfor/config.dist.py</code> and modify the copy according to your needs.</p>
-<pre><code class="bash">$ cp config.dist.py config.py
-$ nano config.py
+<p>Copy the default config file <code>config.dist.py</code> to <code>config.py</code>.</p>
+<pre><code class="bash"># Linux
+$ cp config.dist.py config.py
+
+# Windows
+$ copy config.dist.py config.py
 </code></pre>
 
-<p>A config file looks as follows:</p>
-<pre><code class="python">################################################################################
-#                               Storage and folders                            #
-################################################################################
-# Set the SESSION_BASE_FOLDER to a path hanfor will store/load sessions.
-# If set to None, hanfor will store its sessions in ./data
-SESSION_BASE_FOLDER = './data'
-
-################################################################################
-#                                DEBUG and logging                             #
-################################################################################
-
-# Set DEBUG_MODE to true if you want to run the flask app in debug mode.
-# In Production this should be set to False.
-DEBUG_MODE = False
-
-# If ASSETS_DEBUG True, Bundles will output their individual source files.
-# This will significantly slow down performance.
-ASSETS_DEBUG = False
-
-# Set this to false if you want to use DEBUG toolbar with a URL_PREFIX
-DEBUG_TB_INTERCEPT_REDIRECTS = False
-
-# Set the log level to increase or decrease the logging sensitivity.
-# You can set LOG_LEVEL (in decreasing sensitivity to):
-# 'DEBUG', 'INFO', 'WARNING', 'ERROR'
-LOG_LEVEL = 'DEBUG'
-
-# Set LOG_TO_FILE to True if vou want to log to the file
-# you specified in LOG_FILE
-LOG_TO_FILE = True
-LOG_FILE = 'hanfor.log'
-
-# Set PYCHARM_DEBUG to True to supresss the flask debugging so it
-# won't interfere with the pycharm debugger.
-PYCHARM_DEBUG = False
-
-################################################################################
-#                         App and web server section                           #
-################################################################################
-
-# If you are running the app with a url prefix set URL_PREFIX like
-# URL_PREFIX = '/hanfor'
-URL_PREFIX = ''
-
-# set a 'SECRET_KEY' to enable the Flask session cookies
-SECRET_KEY = 'somesecretkeythatisonlyknowntoyou'
-
-# Specify the PORT the app should be running at
-PORT = 5000
-
-# Set the host
-HOST = '127.0.0.1'
-
-
-################################################################################
-#                             Available patterns                               #
-################################################################################
-
-&quot;&quot;&quot; Add available pattern to the PATTERNS dict.
-* A single pattern should look like:
-'pattern_name': {
-    'pattern': 'if {R} then for {S} min nothing works.', # You can use [R, S, T, U]
-    'env': {  # The allowed types for the variables/expressions.
-              # Must cover all placeholders used in 'pattern'
-        'R': ['bool'],        # Must be a sublist of ['bool', 'int', 'real']
-        'S': ['int', 'real']  # Must be a sublist of ['bool', 'int', 'real']
-    },
-    'group': 'Your Group Name',  # Cluster the patterns in the hanfor frontend.
-                                 # Must be appear in config PATTERNS_GROUP_ORDER
-                                 # else it wont show up in the frontend.
-    'pattern_order': 3  # Place the pattern appears in the frontend within its group.
-}
-&quot;&quot;&quot;
-PATTERNS = {
-    'Response': {
-        'pattern': 'it is always the case that if {R} holds then {S} eventually holds',
-        'env': {
-            'R': ['bool'],
-            'S': ['bool'],
-        },
-        'group': 'Order',
-        'pattern_order': 0
-    },
-    'Absence': {
-        'pattern': 'it is never the case that {R} holds',
-        'env': {
-            'R': ['bool']
-        },
-        'group': 'Occurence',
-        'pattern_order': 4
-    },
-    'Toggle1': {
-        'pattern': 'it is always the case that if {R} holds then {S} toggles {T}',
-        'env': {
-            'R': ['bool'],
-            'S': ['bool'],
-            'T': ['bool']
-        },
-        'group': 'Real-time',
-        'pattern_order': 0
-    },
-}
-
-# Define the ordering for pattern grouping in the pattern selection of hanfors frontent.
-# All groups used in PATTERNS must be covered.
-PATTERNS_GROUP_ORDER = [
-    'Occurence',
-    'Order',
-    'Real-time'
-]
+<p>The config file <code>config.py</code> allows to change parameters like ...</p>
+<ul>
+<li><code>SESSION_BASE_FOLDER</code> where Hanfor sessions are stored</li>
+<li><code>HOST</code> and <code>PORT</code> of Hanfor's web interface</li>
+<li>...</li>
+</ul>
+<h2 id="launch-a-hanfor-session">Launch a Hanfor session<a class="headerlink" href="#launch-a-hanfor-session" title="Permanent link"> #</a></h2>
+<h3 id="launch-a-new-session">Launch a new session<a class="headerlink" href="#launch-a-new-session" title="Permanent link"> #</a></h3>
+<pre><code class="bash">$ python app.py &lt;tag&gt; -c &lt;path_to_input_csv&gt;
 </code></pre>
 
-<h2 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link"> #</a></h2>
-<p>To start a fresh session use</p>
-<pre><code class="bash">$ python3 app.py &lt;tag&gt; -c &lt;path_to_input_csv&gt;.csv
-</code></pre>
-
-<p>Point your browser to <a href="http://127.0.0.1:5000"><code>http://127.0.0.1:&lt;port in config.py&gt;</code></a></p>
-<p>If you want to start an existing session, use</p>
-<pre><code class="bash">$ python3 app.py &lt;tag&gt;
-</code></pre>
-
-<p>You can see all available tags using the <code>-L</code> switch:</p>
-<pre><code class="bash">$ python3 app.py -L
-</code></pre>
-
-<p>The app will create a <em>session</em> naming it by the given <code>&lt;tag&gt;</code> argument.
-A session creation process has the following steps:</p>
 <ol>
-<li>Create a session in a folder <code>config.py_SESSION_BASE_FOLDER/&lt;tag&gt;</code>.</li>
-<li>Read the given .csv file containing one requirement each row.</li>
-<li>Ask the user about a mapping of the csv-header-names for:<ul>
-<li>"ID", </li>
-<li>"Description", </li>
-<li>"Formalized Requirement", </li>
+<li>This creates a new session named by <code>&lt;tag&gt;</code> in the <code>SESSION_BASE_FOLDER</code>.</li>
+<li>It asks the user for a mapping of the the following csv header names.<ul>
+<li>"ID"</li>
+<li>"Description"</li>
+<li>"Formalized Requirement"</li>
 <li>"Type"</li>
 </ul>
 </li>
-<li>Create a Hanfor-Requirement for each row in the csv and store it to the session folder.</li>
-<li>Serve the Web-interface on the port specified in config.py</li>
+<li>It reads requirements from the .csv file and stores them in separate files in the <code>SESSION_BASE_FOLDER</code>.</li>
+<li>It serves the web interface on <code>HOST</code> and <code>PORT</code>.</li>
 </ol>
+<p>Open the web interface in your web browser at <a href="http://127.0.0.1:5000"><code>http://&lt;HOST&gt;:&lt;PORT&gt;</code></a>.</p>
+<h3 id="launch-an-existing-session">Launch an existing session<a class="headerlink" href="#launch-an-existing-session" title="Permanent link"> #</a></h3>
+<pre><code class="bash">$ python app.py &lt;tag&gt;
+</code></pre>
+
+<p>To see all available tags use the <code>-L</code> switch.</p>
+<pre><code class="bash">$ python app.py -L
+</code></pre>
+
+<p>Open the web interface in your web browser at <a href="http://127.0.0.1:5000"><code>http://&lt;HOST&gt;:&lt;PORT&gt;</code></a>.</p>
 <h2 id="reqanalyzer">ReqAnalyzer<a class="headerlink" href="#reqanalyzer" title="Permanent link"> #</a></h2>
 <p>With Hanfor you can formalize requirements and export them. 
 The ReqAnalyzer is a tool to analyze the formalized requirements and part of the released tools of <a href="https://github.com/ultimate-pa/ultimate">Ultimate</a>.</p>
@@ -539,9 +467,10 @@ The ReqAnalyzer is a tool to analyze the formalized requirements and part of the
 <ol>
 <li>Install <code>Java JRE (1.8)</code></li>
 </ol>
-<p>Download the latest <a href="https://github.com/ultimate-pa/ultimate/releases">Release</a>.
+<p>Download the latest <a href="https://monteverdi.informatik.uni-freiburg.de/ultimate-nightly/">Release</a>.
 The asset you need is called <code>UReqCheck-linux.zip</code>. </p>
 <h4 id="variant-2-build-the-latest-dev-version">Variant 2: Build the latest dev-version<a class="headerlink" href="#variant-2-build-the-latest-dev-version" title="Permanent link"> #</a></h4>
+<p>https://github.com/ultimate-pa/ultimate/wiki/Usage</p>
 <ol>
 <li>Install <code>Java JDK (1.8)</code> and <code>Maven (&gt;3.0)</code></li>
 <li>Clone the repository: <code>git clone https://github.com/ultimate-pa/ultimate</code>.</li>
@@ -549,7 +478,7 @@ The asset you need is called <code>UReqCheck-linux.zip</code>. </p>
 <li>Generate a fresh binary <code>./makeFresh.sh</code></li>
 </ol>
 <p>The binaries are located in <code>UReqCheck-linux</code>.</p>
-<p>In the <a href="/usage/workflow.html">Workflow</a> section we explain how to use the tool.</p>
+<p>In the <a href="../usage/workflow.html">Workflow</a> section we explain how to use the tool.</p>
                         
                     </div>
                 </div>
