@@ -4,7 +4,7 @@
 
 ### UniversalityPatternDelayed Globally
 ```
-Globally, it is always the case that "Q" holds at most "5" time units later
+Globally, it is always the case that "Q" holds after at most "5" time units
 ```
 
 #### Countertraces
@@ -26,7 +26,7 @@ Globally, it is always the case that "Q" holds at most "5" time units later
 
 ### UniversalityPatternDelayed Before
 ```
-Before "Q", it is always the case that "R" holds at most "5" time units later
+Before "Q", it is always the case that "R" holds after at most "5" time units
 ```
 
 #### Countertraces
@@ -48,7 +48,7 @@ Before "Q", it is always the case that "R" holds at most "5" time units later
 
 ### UniversalityPatternDelayed After
 ```
-After "Q", it is always the case that "R" holds at most "5" time units later
+After "Q", it is always the case that "R" holds after at most "5" time units
 ```
 
 #### Countertraces
@@ -70,7 +70,7 @@ true;⌈Q⌉;⌈true⌉ ∧ ℓ ≥ 5;⌈!R⌉;true
 
 ### UniversalityPatternDelayed Between
 ```
-Between "Q" and "R", it is always the case that "S" holds at most "5" time units later
+Between "Q" and "R", it is always the case that "S" holds after at most "5" time units
 ```
 
 #### Countertraces
@@ -94,7 +94,7 @@ true;⌈(Q && !R)⌉;⌈!R⌉ ∧ ℓ ≥ 5;⌈(!R && !S)⌉;true;⌈R⌉;true
 
 ### UniversalityPatternDelayed AfterUntil
 ```
-After "Q" until "R", it is always the case that "S" holds at most "5" time units later
+After "Q" until "R", it is always the case that "S" holds after at most "5" time units
 ```
 
 #### Countertraces

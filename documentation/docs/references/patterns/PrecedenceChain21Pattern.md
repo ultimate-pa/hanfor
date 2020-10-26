@@ -27,6 +27,8 @@ Globally, it is always the case that if "S" holds, then "R" previously held and 
 | ![](../img/failure_paths/positive/PrecedenceChain21Pattern_Globally_0.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain21Pattern_Globally_1.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain21Pattern_Globally_2.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_Globally_3.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_Globally_4.svg) |  |
 
 
 ### PrecedenceChain21Pattern Before
@@ -53,6 +55,8 @@ Before "Q", it is always the case that if "T" holds, then "S" previously held an
 | --- | --- |
 | ![](../img/failure_paths/positive/PrecedenceChain21Pattern_Before_0.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain21Pattern_Before_1.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_Before_2.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_Before_3.svg) |  |
 
 
 ### PrecedenceChain21Pattern After
@@ -116,4 +120,17 @@ true;⌈Q⌉;⌈(!R && !S)⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;⌈(!R &&
 
 #### Examples
 
+<div class="pattern-examples"></div>
+| Positive Example | Negative Example |
+| --- | --- |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_AfterUntil_0.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_AfterUntil_1.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_AfterUntil_2.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_AfterUntil_3.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_AfterUntil_4.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_AfterUntil_5.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_AfterUntil_6.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_AfterUntil_7.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_AfterUntil_8.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_AfterUntil_9.svg) |  |
 

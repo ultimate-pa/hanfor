@@ -108,6 +108,25 @@ true;⌈(Q && !R)⌉;⌈(!R && !S)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈(!R && T)⌉;�
 
 #### Examples
 
+<div class="pattern-examples"></div>
+| Positive Example | Negative Example |
+| --- | --- |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_0.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_1.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_2.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_3.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_4.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_5.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_6.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_7.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_8.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_9.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_10.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_11.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_12.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_13.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_14.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_15.svg) |  |
 
 
 ### PrecedenceChain12Pattern AfterUntil
