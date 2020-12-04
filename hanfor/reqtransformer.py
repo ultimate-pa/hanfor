@@ -496,6 +496,8 @@ class Requirement(HanforVersioned, Pickleable):
         """
         result = dict()
         for key, formalization in self.formalizations.items():
+            if formalization.scoped_pattern is None:
+                continue
             result[str(key)] = formalization.to_dict()
 
         return json.dumps(result, sort_keys=True)
