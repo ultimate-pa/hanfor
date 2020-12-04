@@ -32,8 +32,8 @@ class TestClean_identifier_for_ultimate_parser(TestCase):
         slug = '0This is a Test'
         used_slugs = set()
         new_slug, new_used_slugs = clean_identifier_for_ultimate_parser(slug, used_slugs)
-        self.assertEqual('ID_This_is_a_Test', new_slug)
-        self.assertEqual({'ID_This_is_a_Test'}, new_used_slugs)
+        self.assertEqual('ID_0This_is_a_Test', new_slug)
+        self.assertEqual({'ID_0This_is_a_Test'}, new_used_slugs)
 
     def test_clean_identifier_for_ultimate_parser_illegal_chars(self):
         slug = '\n\nThis . - . is.a-Test   '
