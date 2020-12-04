@@ -118,7 +118,7 @@ class RequirementCollection(HanforVersioned, Pickleable):
             base_revision_headers=base_revision_headers,
             user_provided_headers=user_provided_headers
         )
-        self.process_formalization_import(available_sessions=available_sessions, app=app)
+        self.process_csv_hanfor_data_import(available_sessions=available_sessions, app=app)
         self.parse_csv_rows_into_requirements(app)
 
     def load_csv(self, csv_file, input_encoding):
@@ -168,55 +168,67 @@ class RequirementCollection(HanforVersioned, Pickleable):
             self.csv_meta['formal_header'] = base_revision_headers['csv_formal_header']
             self.csv_meta['type_header'] = base_revision_headers['csv_type_header']
         else:
+            available_headers = set(self.csv_meta['headers'])
+            available_headers.discard('Hanfor_Tags')
+            available_headers.discard('Hanfor_Status')
+            available_headers = sorted(available_headers)
+
             print('Select ID header')
-            self.csv_meta['id_header'] = choice(self.csv_meta['headers'], 'ID')
+            self.csv_meta['id_header'] = choice(available_headers, 'ID')
             print('Select requirements description header')
-            self.csv_meta['desc_header'] = choice(self.csv_meta['headers'], 'Object Text')
+            self.csv_meta['desc_header'] = choice(available_headers, 'Object Text')
             print('Select formalization header')
             self.csv_meta['formal_header'] = choice(
-                self.csv_meta['headers'] + ['Add new Formalization'], 'Hanfor_Formalization'
+                available_headers + ['Add new Formalization'], 'Hanfor_Formalization'
             )
             if self.csv_meta['formal_header'] == 'Add new Formalization':
                 self.csv_meta['formal_header'] = 'Hanfor_Formalization'
             print('Select type header.')
-            self.csv_meta['type_header'] = choice(self.csv_meta['headers'], 'RB_Classification')
+            self.csv_meta['type_header'] = choice(available_headers, 'RB_Classification')
 
-    def process_formalization_import(self, available_sessions, app):
+    def process_csv_hanfor_data_import(self, available_sessions, app):
         if app.config['USING_REVISION'] != 'revision_0':  # We only support importing formalizations for base revisions
             return
-        print('Are there existing formalizations in the CSV you want to import?')
+
+        print('Do you want to import existing data from CSV?')
+        if choice(['no', 'yes'], 'no') == 'no':
+            return
+
+        print('Do you want to import Formalizations from CSV?')
         import_formalizations = choice(['no', 'yes'], 'no')
         if import_formalizations == 'yes':
             self.csv_meta['import_formalizations'] = True
-            print('Do you want to import Hanfor tags and status?')
-            if choice(['no', 'yes'], 'no') == 'yes':
-                print('Select the Hanfor Tags header.')
-                self.csv_meta['tags_header'] = choice(self.csv_meta['headers'], 'Hanfor_Tags')
-                print('Select the Hanfor Status header.')
-                self.csv_meta['status_header'] = choice(self.csv_meta['headers'], 'Hanfor_Status')
-            print('Do you want to import a base Variable collection?')
-            if choice(['no', 'yes'], 'yes') == 'yes':
-                available_sessions = [s for s in available_sessions]
-                available_sessions_names = [s['name'] for s in available_sessions]
-                if len(available_sessions_names) > 0:
-                    print('Choose the Variable Collection to import.')
-                    choosen_session = choice(available_sessions_names, available_sessions_names[0])
-                    print('Choose the revision for session {}'.format(choosen_session))
-                    available_revisions = [r for r in available_sessions[
-                        available_sessions_names.index(choosen_session)
-                    ]['revisions']]
-                    revision_choice = choice(available_revisions, available_revisions[0])
-                    imported_var_collection = VariableCollection.load(
-                        os.path.join(
-                            app.config['SESSION_BASE_FOLDER'],
-                            choosen_session,
-                            revision_choice,
-                            'session_variable_collection.pickle'
-                        )
+
+        print('Do you want to import Hanfor tags and status from CSV?')
+        if choice(['no', 'yes'], 'no') == 'yes':
+            print('Select the Hanfor Tags header.')
+            self.csv_meta['tags_header'] = choice(self.csv_meta['headers'], 'Hanfor_Tags')
+            print('Select the Hanfor Status header.')
+            self.csv_meta['status_header'] = choice(self.csv_meta['headers'], 'Hanfor_Status')
+
+        print('Do you want to import a base Variable collection?')
+        if choice(['no', 'yes'], 'yes') == 'yes':
+            available_sessions = [s for s in available_sessions]
+            available_sessions_names = [s['name'] for s in available_sessions]
+            if len(available_sessions_names) > 0:
+                print('Choose the Variable Collection to import.')
+                choosen_session = choice(available_sessions_names, available_sessions_names[0])
+                print('Choose the revision for session {}'.format(choosen_session))
+                available_revisions = [r for r in available_sessions[
+                    available_sessions_names.index(choosen_session)
+                ]['revisions']]
+                revision_choice = choice(available_revisions, available_revisions[0])
+                imported_var_collection = VariableCollection.load(
+                    os.path.join(
+                        app.config['SESSION_BASE_FOLDER'],
+                        choosen_session,
+                        revision_choice,
+                        'session_variable_collection.pickle'
                     )
-                    imported_var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
-                else:
-                    print('No sessions available. Skipping')
+                )
+                imported_var_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
+            else:
+                print('No sessions available. Skipping')
 
     def parse_csv_rows_into_requirements(self, app):
         """ Parse each row in csv_all_rows into one Requirement.
