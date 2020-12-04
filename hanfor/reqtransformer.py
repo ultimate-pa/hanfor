@@ -176,7 +176,7 @@ class RequirementCollection(HanforVersioned, Pickleable):
             self.csv_meta['formal_header'] = choice(
                 self.csv_meta['headers'] + ['Add new Formalization'], 'Hanfor_Formalization'
             )
-            if self.csv_meta['formal_header'] == 'Add new Formalization Column':
+            if self.csv_meta['formal_header'] == 'Add new Formalization':
                 self.csv_meta['formal_header'] = 'Hanfor_Formalization'
             print('Select type header.')
             self.csv_meta['type_header'] = choice(self.csv_meta['headers'], 'RB_Classification')
