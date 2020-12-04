@@ -636,8 +636,8 @@ def clean_identifier_for_ultimate_parser(slug: str, used_slugs: Set[str]) -> (st
     # Replace any occurence of [whitespace, `.`, `-`] with `_`
     slug = re.sub(r"[\s+.-]+", '_', slug.strip())
 
-    # Resolve illegal start
-    slug = re.sub(r"^[^a-zA-Z]", 'ID_', slug)
+    # Resolve illegal start by prepending the slug with ID_ in case it does not start with a letter.
+    slug = re.sub(r"^([^a-zA-Z])", r'ID_\1', slug)
 
     # Resolve duplicates
     # search for the first free suffix.
