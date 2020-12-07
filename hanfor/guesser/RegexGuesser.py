@@ -1,5 +1,4 @@
 import re
-from functools import reduce
 
 from guesser.AbstractGuesser import AbstractGuesser
 from guesser.Guess import Guess

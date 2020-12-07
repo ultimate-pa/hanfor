@@ -2,8 +2,6 @@ import re
 
 from reqtransformer import Requirement
 from ressources import Ressource
-from static_utils import get_filenames_from_dir
-from flask import current_app
 
 
 class SearchNode:
