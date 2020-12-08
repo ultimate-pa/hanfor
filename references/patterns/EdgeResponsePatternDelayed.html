@@ -9,10 +9,10 @@
         
         
         
-            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/references/patterns/BndDelayedResponsePatternUT.html">
+            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/references/patterns/EdgeResponsePatternDelayed.html">
         
             <link rel="shortcut icon" href="../../img/favicon.ico">
-        <title>BndDelayedResponsePatternUT
+        <title>EdgeResponsePatternDelayed
             - Hanfor Docs</title>
         <link rel="stylesheet"
               href="../../css/stupid_fonts.css"/>
@@ -25,9 +25,9 @@
         
             <script>
                 // Current page data
-                var mkdocs_page_name = "BndDelayedResponsePatternUT";
-                var mkdocs_page_input_path = "references/patterns/BndDelayedResponsePatternUT.md";
-                var mkdocs_page_url = "/hanfor/references/patterns/BndDelayedResponsePatternUT.html";
+                var mkdocs_page_name = "EdgeResponsePatternDelayed";
+                var mkdocs_page_input_path = "references/patterns/EdgeResponsePatternDelayed.md";
+                var mkdocs_page_url = "/hanfor/references/patterns/EdgeResponsePatternDelayed.html";
             </script>
         
         <script src="../../js/jquery-2.1.1.min.js" defer></script>
@@ -125,10 +125,10 @@
         
       
     
-    <li>BndDelayedResponsePatternUT</li>
+    <li>EdgeResponsePatternDelayed</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/references/patterns/BndDelayedResponsePatternUT.md"
+        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/references/patterns/EdgeResponsePatternDelayed.md"
           class="icon icon-github"> Edit on GitHub</a>
       
     </li>
@@ -140,44 +140,19 @@
                         
                             <!-- Auto generated file, do not make any changes here. -->
 
-<h2 id="bnddelayedresponsepatternut">BndDelayedResponsePatternUT<a class="headerlink" href="#bnddelayedresponsepatternut" title="Permanent link"> #</a></h2>
-<h3 id="bnddelayedresponsepatternut-globally">BndDelayedResponsePatternUT Globally<a class="headerlink" href="#bnddelayedresponsepatternut-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that if &quot;R&quot; holds, then &quot;Q&quot; holds after at most &quot;5&quot; time units for at least &quot;10&quot; time units
+<h2 id="edgeresponsepatterndelayed">EdgeResponsePatternDelayed<a class="headerlink" href="#edgeresponsepatterndelayed" title="Permanent link"> #</a></h2>
+<h3 id="edgeresponsepatterndelayed-globally">EdgeResponsePatternDelayed Globally<a class="headerlink" href="#edgeresponsepatterndelayed-globally" title="Permanent link"> #</a></h3>
+<pre><code>Globally, it is always the case that once &quot;R&quot; becomes satisfied, &quot;Q&quot; holds after at most &quot;5&quot; time units
 </code></pre>
 
 <h4 id="countertraces">Countertraces<a class="headerlink" href="#countertraces" title="Permanent link"> #</a></h4>
-<pre><code>true;⌈R⌉;⌈!Q⌉ ∧ ℓ &gt; 5;true
-true;⌈R⌉;⌈!Q⌉ ∧ ℓ ≤ 5;⌈Q⌉ ∧ ℓ &lt; 10;⌈!Q⌉;true
+<pre><code>true;⌈!R⌉;⌈(!Q &amp;&amp; R)⌉;⌈!Q⌉ ∧ ℓ &gt; 5;true
 </code></pre>
 
 <h4 id="phase-event-automata">Phase Event Automata<a class="headerlink" href="#phase-event-automata" title="Permanent link"> #</a></h4>
-<p><a data-lightbox="all_images" data-title="" href="../img/patterns/BndDelayedResponsePatternUT_Globally_0.svg"><img alt="" src="../img/patterns/BndDelayedResponsePatternUT_Globally_0.svg" /></a>
-<a data-lightbox="all_images" data-title="" href="../img/patterns/BndDelayedResponsePatternUT_Globally_1.svg"><img alt="" src="../img/patterns/BndDelayedResponsePatternUT_Globally_1.svg" /></a></p>
+<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/EdgeResponsePatternDelayed_Globally_0.svg"><img alt="" src="../img/patterns/EdgeResponsePatternDelayed_Globally_0.svg" /></a><figcaption></figcaption>
+</figure>
 <h4 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link"> #</a></h4>
-<div class="pattern-examples"></div>
-
-<table>
-<thead>
-<tr>
-<th>Positive Example</th>
-<th>Negative Example</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_0.svg"><img alt="" src="../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_0.svg" /></a></td>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/BndDelayedResponsePatternUT_Globally_0.svg"><img alt="" src="../img/failure_paths/negative/BndDelayedResponsePatternUT_Globally_0.svg" /></a></td>
-</tr>
-<tr>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_1.svg"><img alt="" src="../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_1.svg" /></a></td>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/BndDelayedResponsePatternUT_Globally_1.svg"><img alt="" src="../img/failure_paths/negative/BndDelayedResponsePatternUT_Globally_1.svg" /></a></td>
-</tr>
-<tr>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_2.svg"><img alt="" src="../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_2.svg" /></a></td>
-<td></td>
-</tr>
-</tbody>
-</table>
                         
                     </div>
                 </div>
