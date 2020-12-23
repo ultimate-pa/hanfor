@@ -2,7 +2,7 @@
 if [ -d "venv" ]; then rm -r venv ; fi
 mkdir venv
 cd venv || exit 1
-virtualenv -p python3.7 .
+virtualenv -p python3 .
 source ./bin/activate
 cd ..
 pip install -r requirements.txt
