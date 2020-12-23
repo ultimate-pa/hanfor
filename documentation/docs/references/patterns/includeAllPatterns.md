@@ -3,7 +3,10 @@
 Ultimate revision on Github that corresponds to this documention: 
 [689b4c6c146ae2067a40cecc05d9e02ae31035ef](https://github.com/ultimate-pa/ultimate/tree/689b4c6c146ae2067a40cecc05d9e02ae31035ef "689b4c6c146ae2067a40cecc05d9e02ae31035ef")
 
+{!references/patterns/BndDelayedResponsePatternTU.md!}
 {!references/patterns/BndDelayedResponsePatternUT.md!}
+{!references/patterns/BndEdgeResponsePattern.md!}
+{!references/patterns/BndEdgeResponsePatternDelayed.md!}
 {!references/patterns/BndEntryConditionPattern.md!}
 {!references/patterns/BndExistencePattern.md!}
 {!references/patterns/BndInvariancePattern.md!}
@@ -12,6 +15,8 @@ Ultimate revision on Github that corresponds to this documention:
 {!references/patterns/BndResponsePatternTU.md!}
 {!references/patterns/BndResponsePatternUT.md!}
 {!references/patterns/BndTriggeredEntryConditionPattern.md!}
+{!references/patterns/BndTriggeredEntryConditionPatternDelayed.md!}
+{!references/patterns/EdgeResponsePatternDelayed.md!}
 {!references/patterns/InstAbsPattern.md!}
 {!references/patterns/InvariantPattern.md!}
 {!references/patterns/MaxDurationPattern.md!}
