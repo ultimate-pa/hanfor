@@ -12,9 +12,6 @@ If you are new to Hanfor, begin with the installation guide and have a look at t
 The usage section provides some information about the [workflow](usage/workflow.md "Workflow") of Hanfor, [API queries](usage/api_queries.md "API Queries") and the handling of [requirements](usage/requirements.md "Requirements").
 If you wish to find out more about the different patterns that are supported by Hanfor, have a look at the [patterns](references/patterns.md "Patterns") section.
 
-### Contact
-If you have open questions or any kind of feedback/suggestions feel free to contact us via [E-mail](mailto:dietsch@informatik.uni-freiburg.de "E-mail") or open a new [issue](https://github.com/ultimate-pa/hanfor/issues "Open an Issue") on our [GitHub page](https://github.com/ultimate-pa/hanfor "Hanfor at GitHub").
-
 ### Contents
   * Introduction
     * [What is Hanfor?](introduction/index.md "What is Hanfor?")
@@ -35,3 +32,5 @@ If you have open questions or any kind of feedback/suggestions feel free to cont
   * Contribute
 	* [Hanfor](contribute/to_hanfor.md "Contribute To Hanfor")
 	* [Docs](contribute/to_docs.md "Contribute To Docs")
+  * Contact
+    * [Contact](contact/contact.md "Contact")
