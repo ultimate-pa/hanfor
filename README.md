@@ -37,13 +37,13 @@ Point your browser to `localhost:<port in config.py>`
 
 # How it works
 
-The app will create a *session* naming it by the given `<tag>` argument.
+Initially the app will create a *session* naming it after the `<tag>` argument given by the user.
 A session creation process has the following steps:
 
- 1. Create a session in a folder `config.py_SESSION_BASE_FOLDER/<tag>`.
+ 1. Create a session folder named `<tag>` in the `SESSION_BASE_FOLDER` which is set in `config.py`.
  2. Read the given .csv file containing one requirement each row.
  3. Ask the user about a mapping of the csv-header-names for:
     * "ID", "Description", "Formalized Requirement", "Type"
- 4. Create a Hanfor-Requirement for each row in the csv and store it to the session folder.
- 5. Provide the Web-interface on the port specified in config.py
+ 4. Create one Hanfor-Requirement for each row in the csv and store it to the session folder.
+ 5. Provide the Web-interface on the port specified in `config.py`
  
