@@ -254,6 +254,7 @@ function update_displayed_constraint_inputs() {
         let var_s = $('#requirement_var_group_s' + formalization_id);
         let var_t = $('#requirement_var_group_t' + formalization_id);
         let var_u = $('#requirement_var_group_u' + formalization_id);
+        let var_v = $('#requirement_var_group_v' + formalization_id);
 
         switch (selected_scope) {
             case 'BEFORE':
@@ -275,6 +276,7 @@ function update_displayed_constraint_inputs() {
                 case 'S': var_s.show(); break;
                 case 'T': var_t.show(); break;
                 case 'U': var_u.show(); break;
+                case 'V': var_v.show(); break;
             }
         });
     });
@@ -282,7 +284,7 @@ function update_displayed_constraint_inputs() {
 
 
 /**
- * Updates the formalization textarea based on the selected scope and expressions in P, Q, R, S, T.
+ * Updates the formalization textarea based on the selected scope and expressions in P, Q, R, S, T, U, V.
  */
 function update_formalization() {
     $('.formalization_card').each(function () {
@@ -304,6 +306,7 @@ function update_formalization() {
         let var_s = $('#formalization_var_s' + formalization_id).val();
         let var_t = $('#formalization_var_t' + formalization_id).val();
         let var_u = $('#formalization_var_u' + formalization_id).val();
+        let var_v = $('#formalization_var_v' + formalization_id).val();
 
         if (var_p.length > 0) {
             formalization = formalization.replace(/{P}/g, var_p);
@@ -322,6 +325,9 @@ function update_formalization() {
         }
         if (var_u.length > 0) {
             formalization = formalization.replace(/{U}/g, var_u);
+        }
+        if (var_v.length > 0) {
+            formalization = formalization.replace(/{V}/g, var_v);
         }
 
         $('#current_formalization_textarea' + formalization_id).val(formalization);

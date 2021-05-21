@@ -13,10 +13,12 @@
   "author": "Samuel Roth",
   "license": "UNLICENSED",
   "dependencies": {
+    "@popperjs/core": "^2.9.2",
     "autosize": "^4.0.2",
     "awesomplete": "^1.1.4",
-    "bootstrap": ">=4.3.1",
+    "bootstrap": "^4.6.0",
     "bootstrap-confirmation2": "^4.1.0",
+    "bootstrapjs": "^2.0.0",
     "chart.js": "^2.7.2",
     "cytoscape": "^3.2.12",
     "datatables.net-bs4": "^1.10.16",
@@ -27,8 +29,9 @@
     "jquery": "^3.3.1",
     "jquery-ui": "^1.12.1",
     "js-cookie": "^2.2.0",
-    "popper.js": "^1.14.3",
-    "textcomplete": "^0.17.1"
+    "popper.js": "^1.16.1",
+    "textcomplete": "^0.17.1",
+    "yargs": "^17.0.1"
   },
   "devDependencies": {
     "autoprefixer": "^9.6.1",
@@ -39,7 +42,7 @@
     "precss": "^4.0.0",
     "sass-loader": "^7.3.1",
     "style-loader": "^0.23.1",
-    "webpack": "^4.8.3",
-    "webpack-cli": "^3.1.1"
+    "webpack": "^4.46.0",
+    "webpack-cli": "^3.3.12"
   }
 }

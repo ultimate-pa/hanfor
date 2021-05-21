@@ -324,6 +324,16 @@ PATTERNS = {
         'group': 'Real-time',
         'pattern_order': 0
     },
+    'BndEntryConditionPattern': {
+        'pattern': 'it is always the case that after {R} holds for at least {S}  time units, then {T} holds',
+        'env': {
+            'R': ['bool'],
+            'S': ['real', 'int'],
+            'T': ['bool']
+        },
+        'group': 'Real-time',
+        'pattern_order': 0
+    },
     'BndTriggeredEntryConditionPattern': {
         'pattern': 'it is always the case that after {R} holds for at least {S} time units and {T} holds, then {U} holds',
         'env': {
@@ -331,6 +341,18 @@ PATTERNS = {
             'S': ['real', 'int'],
             'T': ['bool'],
             'U': ['bool']
+        },
+        'group': 'Real-time',
+        'pattern_order': 0
+    },
+    'BndTriggeredEntryConditionPatternDelayed': {
+        'pattern': 'it is always the case that after {R} holds for at least {S}  time units and {T} holds, then {U} holds after at most {V}  time units',
+        'env': {
+            'R': ['bool'],
+            'S': ['real', 'int'],
+            'T': ['bool'],
+            'U': ['bool'],
+            'V': ['real', 'int'],
         },
         'group': 'Real-time',
         'pattern_order': 0
