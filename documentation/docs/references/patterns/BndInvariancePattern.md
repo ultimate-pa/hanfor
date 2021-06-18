@@ -88,7 +88,14 @@ true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉;⌈!R⌉ ∧ ℓ < 5;⌈(!R && !S)
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
 | --- | --- |
-|  | ![](../img/failure_paths/negative/BndInvariancePattern_Between_0.svg) |
+| ![](../img/failure_paths/positive/BndInvariancePattern_Between_0.svg) | ![](../img/failure_paths/negative/BndInvariancePattern_Between_0.svg) |
+| ![](../img/failure_paths/positive/BndInvariancePattern_Between_1.svg) |  |
+| ![](../img/failure_paths/positive/BndInvariancePattern_Between_2.svg) |  |
+| ![](../img/failure_paths/positive/BndInvariancePattern_Between_3.svg) |  |
+| ![](../img/failure_paths/positive/BndInvariancePattern_Between_4.svg) |  |
+| ![](../img/failure_paths/positive/BndInvariancePattern_Between_5.svg) |  |
+| ![](../img/failure_paths/positive/BndInvariancePattern_Between_6.svg) |  |
+| ![](../img/failure_paths/positive/BndInvariancePattern_Between_7.svg) |  |
 
 
 ### BndInvariancePattern AfterUntil

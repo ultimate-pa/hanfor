@@ -93,7 +93,18 @@ true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && T)⌉ ∧ ℓ ≥ 5;⌈(!R && !S)⌉;⌈
 <div class="pattern-examples"></div>
 | Positive Example | Negative Example |
 | --- | --- |
-|  | ![](../img/failure_paths/negative/BndEntryConditionPattern_Between_0.svg) |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_Between_0.svg) | ![](../img/failure_paths/negative/BndEntryConditionPattern_Between_0.svg) |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_Between_1.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_Between_2.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_Between_3.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_Between_4.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_Between_5.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_Between_6.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_Between_7.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_Between_8.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_Between_9.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_Between_10.svg) |  |
+| ![](../img/failure_paths/positive/BndEntryConditionPattern_Between_11.svg) |  |
 
 
 ### BndEntryConditionPattern AfterUntil

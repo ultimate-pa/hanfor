@@ -25,4 +25,5 @@ true;⌈R⌉;⌈!Q⌉ ∧ ℓ ≤₀ 5;⌈Q⌉ ∧ ℓ < 10;⌈!Q⌉;true
 | ![](../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_0.svg) | ![](../img/failure_paths/negative/BndDelayedResponsePatternUT_Globally_0.svg) |
 | ![](../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_1.svg) | ![](../img/failure_paths/negative/BndDelayedResponsePatternUT_Globally_1.svg) |
 | ![](../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_2.svg) |  |
+| ![](../img/failure_paths/positive/BndDelayedResponsePatternUT_Globally_3.svg) |  |
 

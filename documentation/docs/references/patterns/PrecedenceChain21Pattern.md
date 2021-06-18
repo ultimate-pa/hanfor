@@ -78,6 +78,28 @@ true;⌈Q⌉;⌈!R⌉;⌈(!R && S)⌉;⌈!R⌉;⌈(R && !S)⌉;⌈!S⌉;⌈T⌉;
 
 #### Examples
 
+<div class="pattern-examples"></div>
+| Positive Example | Negative Example |
+| --- | --- |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_0.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_1.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_2.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_3.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_4.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_5.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_6.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_7.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_8.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_9.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_10.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_11.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_12.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_13.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_14.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_15.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_16.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_17.svg) |  |
+| ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_18.svg) |  |
 
 
 ### PrecedenceChain21Pattern Between
