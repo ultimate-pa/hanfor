@@ -4,7 +4,7 @@ Jinja2==2.11.3
 livereload==2.6.1
 Markdown==2.6.11
 markdown-include==0.5.1
--e git+https://github.com/MrLeeh/markdown-lightbox.git@e6f20e6374db168b601fb434b3987a413786b946#egg=markdown_lightbox
+-e git+https://github.com/colinbourassa/markdown-lightbox.git@f1130e920d104346b688bf589e8a0429c39aa5c1#egg=markdown_lightbox
 MarkupSafe==1.1.1
 -e git+https://github.com/helderco/markdown-figures@e03c4c0791151b70767e09ed90a870254fcfabc6#egg=mdx_figcaption
 mkdocs==1.0.4
