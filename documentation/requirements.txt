@@ -1,12 +1,11 @@
 Click==7.0
--e git+https://github.com/jdittrich/figureAltCaption@2c867c0ae7170b522cdc49da7de1e5b5a3fb4802#egg=figureAltCaption
+-e git+https://github.com/grandgeorg/figureAltCaption@7c1853e864ad753c41bbbbc49b3be9234681bd8e#egg=mdx-figurealtcaption
 Jinja2==2.11.3
 livereload==2.6.1
-Markdown==2.6.11
+Markdown==3.3.4
 markdown-include==0.5.1
--e git+https://github.com/colinbourassa/markdown-lightbox.git@f1130e920d104346b688bf589e8a0429c39aa5c1#egg=markdown_lightbox
+-e git+https://github.com/aleksan4eg/markdown-lightbox@7dbf517cbb208179046237eb157e84e8826fda67#egg=markdown_lightbox
 MarkupSafe==1.1.1
--e git+https://github.com/helderco/markdown-figures@e03c4c0791151b70767e09ed90a870254fcfabc6#egg=mdx_figcaption
 mkdocs==1.0.4
 mkdocs-awesome-pages-plugin==2.3.1
 pymdown-extensions==6.0

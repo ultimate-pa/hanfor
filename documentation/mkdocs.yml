@@ -24,7 +24,7 @@ markdown_extensions:
       permalink: ' #'
   - sane_lists
   - figureAltCaption
-  - lightbox
+  - mdlightbox
   - extra
   - markdown_include.include:
       base_path: docs
