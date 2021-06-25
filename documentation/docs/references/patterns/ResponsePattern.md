@@ -16,10 +16,8 @@ Before "Q", it is always the case that if "S" holds, then "R" eventually holds
 ![](../img/patterns/ResponsePattern_Before_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/ResponsePattern_Before_0.svg) | ![](../img/failure_paths/negative/ResponsePattern_Before_0.svg) |
 | ![](../img/failure_paths/positive/ResponsePattern_Before_1.svg) |  |
 
@@ -38,10 +36,8 @@ true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;⌈R⌉;t
 ![](../img/patterns/ResponsePattern_Between_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/ResponsePattern_Between_0.svg) | ![](../img/failure_paths/negative/ResponsePattern_Between_0.svg) |
 | ![](../img/failure_paths/positive/ResponsePattern_Between_1.svg) |  |
 | ![](../img/failure_paths/positive/ResponsePattern_Between_2.svg) |  |
@@ -62,10 +58,8 @@ true;⌈Q⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;⌈R⌉;true
 ![](../img/patterns/ResponsePattern_AfterUntil_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/ResponsePattern_AfterUntil_0.svg) |  |
 | ![](../img/failure_paths/positive/ResponsePattern_AfterUntil_1.svg) |  |
 | ![](../img/failure_paths/positive/ResponsePattern_AfterUntil_2.svg) |  |

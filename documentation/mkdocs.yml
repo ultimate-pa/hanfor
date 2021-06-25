@@ -1,53 +1,38 @@
 site_name: 'Hanfor Docs'
 repo_url: 'https://github.com/ultimate-pa/hanfor'
+repo_name: 'ultimate-pa/hanfor'
 site_url: 'https://ultimate-pa.github.io/hanfor/'
 edit_uri: 'edit/master/documentation/docs'
-repo_name: 'GitHub'
 use_directory_urls: false
 
 theme:
-  name: 'readthedocs'
-  custom_dir: custom_theme/
-  navigation_depth: 2
-  highlightjs: true
-  hljs_languages:
-    - python
-    - bash
+  name: 'material'
+  features:
+    - navigation.top
+    - navigation.tracking
+    - navigation.sections
+    - toc.integrate
+    - search.share
+
 extra_css:
   - 'stylesheets/extra.css'
 
 markdown_extensions:
-  - admonition
-  - footnotes
-  - meta
-  - toc:
-      permalink: ' #'
-  - sane_lists
-  - figureAltCaption
-  - mdlightbox
-  - extra
   - markdown_include.include:
       base_path: docs
+  - toc:
+      toc_depth: 2
+      permalink: ' #'
+  - admonition
+  - attr_list
+  - footnotes
+  - meta
+  - sane_lists
+  - figureAltCaption
+  #- mdlightbox
+  - extra
 
 plugins:
-  - search
   - awesome-pages
+  - search
 
-#nav:
-#  - Introduction:
-#      - 'What is Hanfor?': 'index.md'
-#  - Installation:
-#      - 'Preliminaries': 'installation/preliminaries.md'
-#      - 'Configuration': 'installation/configuration.md'
-#      - 'Deployment': 'installation/deployment.md'
-#  - Usage:
-#      - 'API Queries': 'usage/api_queries.md'
-#      - 'FAQ': 'usage/faq.md'
-#      - 'Requirements': 'usage/requirements.md'
-#      - 'Workflow': 'usage/workflow.md'
-#      - 'Patterns':
-#           - ... .md
-#           - ... .md
-#  - Contribute:
-#      - 'To Hanfor': 'contribute/to_hanfor.md'
-#      - 'To Docs': 'contribute/to_docs.md'

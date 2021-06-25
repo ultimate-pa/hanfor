@@ -16,10 +16,8 @@ true;⌈(!Q && R)⌉;⌈!Q⌉ ∧ ℓ > 5;true
 ![](../img/patterns/BndResponsePatternUT_Globally_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/BndResponsePatternUT_Globally_0.svg) | ![](../img/failure_paths/negative/BndResponsePatternUT_Globally_0.svg) |
 | ![](../img/failure_paths/positive/BndResponsePatternUT_Globally_1.svg) |  |
 
@@ -38,10 +36,8 @@ Before "Q", it is always the case that if "S" holds, then "R" holds after at mos
 ![](../img/patterns/BndResponsePatternUT_Before_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 |  | ![](../img/failure_paths/negative/BndResponsePatternUT_Before_0.svg) |
 
 
@@ -59,10 +55,8 @@ true;⌈Q⌉;true;⌈(!R && S)⌉;⌈!R⌉ ∧ ℓ > 5;true
 ![](../img/patterns/BndResponsePatternUT_After_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/BndResponsePatternUT_After_0.svg) | ![](../img/failure_paths/negative/BndResponsePatternUT_After_0.svg) |
 | ![](../img/failure_paths/positive/BndResponsePatternUT_After_1.svg) |  |
 | ![](../img/failure_paths/positive/BndResponsePatternUT_After_2.svg) |  |
@@ -87,10 +81,8 @@ true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ >
 ![](../img/patterns/BndResponsePatternUT_Between_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 |  | ![](../img/failure_paths/negative/BndResponsePatternUT_Between_0.svg) |
 
 
@@ -108,9 +100,7 @@ true;⌈Q⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉ ∧ ℓ > 5;true
 ![](../img/patterns/BndResponsePatternUT_AfterUntil_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 |  | ![](../img/failure_paths/negative/BndResponsePatternUT_AfterUntil_0.svg) |
 

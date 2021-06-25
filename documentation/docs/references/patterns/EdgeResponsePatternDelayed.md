@@ -16,10 +16,8 @@ true;⌈!R⌉;⌈(!Q && R)⌉;⌈!Q⌉ ∧ ℓ > 5;true
 ![](../img/patterns/EdgeResponsePatternDelayed_Globally_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/EdgeResponsePatternDelayed_Globally_0.svg) |  |
 | ![](../img/failure_paths/positive/EdgeResponsePatternDelayed_Globally_1.svg) |  |
 | ![](../img/failure_paths/positive/EdgeResponsePatternDelayed_Globally_2.svg) |  |

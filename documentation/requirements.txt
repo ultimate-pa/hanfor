@@ -6,9 +6,9 @@ Markdown==3.3.4
 markdown-include==0.5.1
 -e git+https://github.com/aleksan4eg/markdown-lightbox@7dbf517cbb208179046237eb157e84e8826fda67#egg=markdown_lightbox
 MarkupSafe==1.1.1
-mkdocs==1.0.4
-mkdocs-awesome-pages-plugin==2.3.1
-pymdown-extensions==6.0
+mkdocs==1.1
+mkdocs-material==7.1.8
+mkdocs-awesome-pages-plugin==2.5.0
 PyYAML==5.4
 six==1.12.0
 tornado==6.0.3

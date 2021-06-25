@@ -20,10 +20,8 @@ Globally, it is always the case that if "S" holds, then "R" previously held and 
 ![](../img/patterns/PrecedenceChain21Pattern_Globally_2.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/PrecedenceChain21Pattern_Globally_0.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain21Pattern_Globally_1.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain21Pattern_Globally_2.svg) |  |
@@ -49,10 +47,8 @@ Before "Q", it is always the case that if "T" holds, then "S" previously held an
 ![](../img/patterns/PrecedenceChain21Pattern_Before_2.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/PrecedenceChain21Pattern_Before_0.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain21Pattern_Before_1.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain21Pattern_Before_2.svg) |  |
@@ -77,10 +73,8 @@ true;⌈Q⌉;⌈!R⌉;⌈(!R && S)⌉;⌈!R⌉;⌈(R && !S)⌉;⌈!S⌉;⌈T⌉;
 ![](../img/patterns/PrecedenceChain21Pattern_After_2.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_0.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_1.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain21Pattern_After_2.svg) |  |
@@ -141,10 +135,8 @@ true;⌈Q⌉;⌈(!R && !S)⌉;⌈(!R && (!S && T))⌉;⌈(!R && !S)⌉;⌈(!R &&
 ![](../img/patterns/PrecedenceChain21Pattern_AfterUntil_2.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/PrecedenceChain21Pattern_AfterUntil_0.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain21Pattern_AfterUntil_1.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain21Pattern_AfterUntil_2.svg) |  |

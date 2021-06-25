@@ -16,10 +16,8 @@ true;⌈Q⌉;true
 ![](../img/patterns/InstAbsPattern_Globally_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/InstAbsPattern_Globally_0.svg) | ![](../img/failure_paths/negative/InstAbsPattern_Globally_0.svg) |
 |  | ![](../img/failure_paths/negative/InstAbsPattern_Globally_1.svg) |
 
@@ -38,10 +36,8 @@ true;⌈Q⌉;true;⌈R⌉;true
 ![](../img/patterns/InstAbsPattern_After_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/InstAbsPattern_After_0.svg) | ![](../img/failure_paths/negative/InstAbsPattern_After_0.svg) |
 | ![](../img/failure_paths/positive/InstAbsPattern_After_1.svg) | ![](../img/failure_paths/negative/InstAbsPattern_After_1.svg) |
 
@@ -60,10 +56,8 @@ true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;⌈!R⌉;⌈R⌉;true
 ![](../img/patterns/InstAbsPattern_Between_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/InstAbsPattern_Between_0.svg) | ![](../img/failure_paths/negative/InstAbsPattern_Between_0.svg) |
 | ![](../img/failure_paths/positive/InstAbsPattern_Between_1.svg) |  |
 | ![](../img/failure_paths/positive/InstAbsPattern_Between_2.svg) |  |
@@ -84,10 +78,8 @@ true;⌈Q⌉;⌈!R⌉;⌈(!R && S)⌉;true
 ![](../img/patterns/InstAbsPattern_AfterUntil_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/InstAbsPattern_AfterUntil_0.svg) | ![](../img/failure_paths/negative/InstAbsPattern_AfterUntil_0.svg) |
 | ![](../img/failure_paths/positive/InstAbsPattern_AfterUntil_1.svg) |  |
 

@@ -16,10 +16,8 @@ Globally, it is always the case that "Q" holds after at most "5" time units
 ![](../img/patterns/UniversalityPatternDelayed_Globally_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/UniversalityPatternDelayed_Globally_0.svg) |  |
 | ![](../img/failure_paths/positive/UniversalityPatternDelayed_Globally_1.svg) |  |
 
@@ -38,10 +36,8 @@ Before "Q", it is always the case that "R" holds after at most "5" time units
 ![](../img/patterns/UniversalityPatternDelayed_Before_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/UniversalityPatternDelayed_Before_0.svg) |  |
 | ![](../img/failure_paths/positive/UniversalityPatternDelayed_Before_1.svg) |  |
 
@@ -60,10 +56,8 @@ true;⌈Q⌉;⌈true⌉ ∧ ℓ ≥ 5;⌈!R⌉;true
 ![](../img/patterns/UniversalityPatternDelayed_After_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/UniversalityPatternDelayed_After_0.svg) |  |
 | ![](../img/failure_paths/positive/UniversalityPatternDelayed_After_1.svg) |  |
 
@@ -82,10 +76,8 @@ true;⌈(Q && !R)⌉;⌈!R⌉ ∧ ℓ ≥ 5;⌈(!R && !S)⌉;true;⌈R⌉;true
 ![](../img/patterns/UniversalityPatternDelayed_Between_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/UniversalityPatternDelayed_Between_0.svg) |  |
 | ![](../img/failure_paths/positive/UniversalityPatternDelayed_Between_1.svg) |  |
 | ![](../img/failure_paths/positive/UniversalityPatternDelayed_Between_2.svg) |  |
@@ -106,10 +98,8 @@ true;⌈Q⌉;⌈!R⌉ ∧ ℓ ≥ 5;⌈(!R && !S)⌉;true
 ![](../img/patterns/UniversalityPatternDelayed_AfterUntil_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/UniversalityPatternDelayed_AfterUntil_0.svg) |  |
 | ![](../img/failure_paths/positive/UniversalityPatternDelayed_AfterUntil_1.svg) |  |
 | ![](../img/failure_paths/positive/UniversalityPatternDelayed_AfterUntil_2.svg) |  |

@@ -18,10 +18,8 @@ true;⌈!R⌉;⌈(!Q && R)⌉;true
 ![](../img/patterns/BndEdgeResponsePattern_Globally_1.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/BndEdgeResponsePattern_Globally_0.svg) |  |
 | ![](../img/failure_paths/positive/BndEdgeResponsePattern_Globally_1.svg) |  |
 | ![](../img/failure_paths/positive/BndEdgeResponsePattern_Globally_2.svg) |  |

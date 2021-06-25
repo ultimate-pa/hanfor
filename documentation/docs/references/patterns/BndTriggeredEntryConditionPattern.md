@@ -16,10 +16,8 @@ true;⌈Q⌉ ∧ ℓ ≥ 5;⌈(Q && (R && !S))⌉;true
 ![](../img/patterns/BndTriggeredEntryConditionPattern_Globally_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/BndTriggeredEntryConditionPattern_Globally_0.svg) | ![](../img/failure_paths/negative/BndTriggeredEntryConditionPattern_Globally_0.svg) |
 | ![](../img/failure_paths/positive/BndTriggeredEntryConditionPattern_Globally_1.svg) | ![](../img/failure_paths/negative/BndTriggeredEntryConditionPattern_Globally_1.svg) |
 

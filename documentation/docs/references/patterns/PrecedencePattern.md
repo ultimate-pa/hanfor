@@ -16,10 +16,8 @@ Globally, it is always the case that if "R" holds, then "Q" previously held
 ![](../img/patterns/PrecedencePattern_Globally_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/PrecedencePattern_Globally_0.svg) | ![](../img/failure_paths/negative/PrecedencePattern_Globally_0.svg) |
 | ![](../img/failure_paths/positive/PrecedencePattern_Globally_1.svg) | ![](../img/failure_paths/negative/PrecedencePattern_Globally_1.svg) |
 
@@ -38,10 +36,8 @@ Before "Q", it is always the case that if "S" holds, then "R" previously held
 ![](../img/patterns/PrecedencePattern_Before_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/PrecedencePattern_Before_0.svg) | ![](../img/failure_paths/negative/PrecedencePattern_Before_0.svg) |
 
 
@@ -59,10 +55,8 @@ true;⌈Q⌉;⌈!R⌉;⌈S⌉;true
 ![](../img/patterns/PrecedencePattern_After_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/PrecedencePattern_After_0.svg) | ![](../img/failure_paths/negative/PrecedencePattern_After_0.svg) |
 | ![](../img/failure_paths/positive/PrecedencePattern_After_1.svg) |  |
 | ![](../img/failure_paths/positive/PrecedencePattern_After_2.svg) |  |
@@ -83,10 +77,8 @@ true;⌈(Q && (!R && !S))⌉;⌈(!R && !S)⌉;⌈(!R && T)⌉;⌈!R⌉;⌈R⌉;t
 ![](../img/patterns/PrecedencePattern_Between_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/PrecedencePattern_Between_0.svg) | ![](../img/failure_paths/negative/PrecedencePattern_Between_0.svg) |
 | ![](../img/failure_paths/positive/PrecedencePattern_Between_1.svg) |  |
 | ![](../img/failure_paths/positive/PrecedencePattern_Between_2.svg) |  |
@@ -109,10 +101,8 @@ true;⌈Q⌉;⌈(!R && !S)⌉;⌈(!R && T)⌉;true
 ![](../img/patterns/PrecedencePattern_AfterUntil_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 | ![](../img/failure_paths/positive/PrecedencePattern_AfterUntil_0.svg) | ![](../img/failure_paths/negative/PrecedencePattern_AfterUntil_0.svg) |
 | ![](../img/failure_paths/positive/PrecedencePattern_AfterUntil_1.svg) |  |
 

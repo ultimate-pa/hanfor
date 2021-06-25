@@ -1,3 +1,4 @@
+/*
 .md-typeset {
     text-align: justify;
 }
@@ -15,7 +16,7 @@
 figure {
     #display: inline-block;
     #border: 1px solid gray;
-    margin: 20px; /* adjust as needed */
+    margin: 20px;
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -31,4 +32,23 @@ figure figcaption {
     #border: 1px solid gray;
     text-align: center;
     font-weight: bold;
+}
+*/
+
+
+
+/**
+ * Set table width to 100%.
+ * https://github.com/squidfunk/mkdocs-material/issues/175
+ */
+.md-typeset__table {
+   min-width: 100%;
+}
+
+.md-typeset table:not([class]) {
+    display: table;
+}
+
+.negative-example, .positive-example {
+	width: 50%;
 }

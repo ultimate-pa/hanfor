@@ -16,10 +16,8 @@ true;⌈!Q⌉;⌈Q⌉ ∧ ℓ < 5;⌈!Q⌉;true
 ![](../img/patterns/MinDurationPattern_Globally_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 |  | ![](../img/failure_paths/negative/MinDurationPattern_Globally_0.svg) |
 
 
@@ -37,10 +35,8 @@ Before "Q", it is always the case that once "R" becomes satisfied, it holds for 
 ![](../img/patterns/MinDurationPattern_Before_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 |  | ![](../img/failure_paths/negative/MinDurationPattern_Before_0.svg) |
 
 
@@ -58,10 +54,8 @@ true;⌈Q⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ < 5;⌈!R⌉;true
 ![](../img/patterns/MinDurationPattern_After_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 |  | ![](../img/failure_paths/negative/MinDurationPattern_After_0.svg) |
 
 
@@ -79,10 +73,8 @@ true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉ ∧ ℓ < 5;⌈(!
 ![](../img/patterns/MinDurationPattern_Between_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 |  | ![](../img/failure_paths/negative/MinDurationPattern_Between_0.svg) |
 
 
@@ -100,9 +92,7 @@ true;⌈Q⌉;⌈!R⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉ ∧ ℓ < 5;⌈(!R && !S)
 ![](../img/patterns/MinDurationPattern_AfterUntil_0.svg)
 
 #### Examples
-
-<div class="pattern-examples"></div>
-| Positive Example | Negative Example |
-| --- | --- |
+| Positive Example { .positive-example} | Negative Example { .negative-example} |
+| :---: | :---: |
 |  | ![](../img/failure_paths/negative/MinDurationPattern_AfterUntil_0.svg) |
 
