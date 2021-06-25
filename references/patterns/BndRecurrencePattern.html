@@ -1,347 +1,786 @@
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!-->
-<html class="no-js" lang="en"> <!--<![endif]-->
-<head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        
-        
-        
-            <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/references/patterns/BndRecurrencePattern.html">
-        
-            <link rel="shortcut icon" href="../../img/favicon.ico">
-        <title>BndRecurrencePattern
-            - Hanfor Docs</title>
-        <link rel="stylesheet"
-              href="../../css/stupid_fonts.css"/>
 
-        <link rel="stylesheet" href="../../css/theme.css"/>
-        <link rel="stylesheet" href="../../css/theme_extra.css"/>
-        <link rel="stylesheet" href="../../css/lightbox.min.css"/>
-            <link rel="stylesheet" href="../../css/github.min.css"/>
-            <link href="../../stylesheets/extra.css" rel="stylesheet"/>
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/references/patterns/BndRecurrencePattern.html">
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1, mkdocs-material-7.1.8">
+    
+    
+      
+        <title>BndRecurrencePattern - Hanfor Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ca7ac06f.min.css">
+      
         
-            <script>
-                // Current page data
-                var mkdocs_page_name = "BndRecurrencePattern";
-                var mkdocs_page_input_path = "references/patterns/BndRecurrencePattern.md";
-                var mkdocs_page_url = "/hanfor/references/patterns/BndRecurrencePattern.html";
-            </script>
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.f1a3b89f.min.css">
         
-        <script src="../../js/jquery-2.1.1.min.js" defer></script>
-        <script src="../../js/modernizr-2.8.3.min.js" defer></script>
-            <script src="../../js/highlight.min.js"></script>
-            <script src="../../js/python.min.js"></script>
-            <script src="../../js/bash.min.js"></script>
-            <script>hljs.initHighlightingOnLoad();</script>
-        <script src="../../js/lightbox.min.js" defer></script> 
+      
+    
+    
+    
+      
         
-</head>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    
+      
 
-<body class="wy-body-for-nav" role="document">
-
-<div class="wy-grid-for-nav">
 
     
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
-        <div class="wy-side-scroll">
-            <div class="wy-side-nav-search">
-                    <a href="../../index.html" class="icon icon-home"> Hanfor Docs</a>
-                    <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
-  </form>
-</div>
-            </div>
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#bndrecurrencepattern" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Hanfor Docs" class="md-header__button md-logo" aria-label="Hanfor Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
 
-            <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-                            <p class="caption"><span class="caption-text">Introduction</span></p>
-                            <ul>
-                                    <li class="toctree-l1"><a class="reference internal" href="../../introduction/index.html">What is Hanfor?</a>
-                                    </li>
-                            </ul>
-                            <p class="caption"><span class="caption-text">Installation</span></p>
-                            <ul>
-                                    <li class="toctree-l1"><a class="reference internal" href="../../installation/installation.html">Installation</a>
-                                    </li>
-                            </ul>
-                            <p class="caption"><span class="caption-text">Usage</span></p>
-                            <ul>
-                                    <li class="toctree-l1"><a class="reference internal" href="../../usage/api_queries.html">API queries</a>
-                                    </li>
-                                    <li class="toctree-l1"><a class="reference internal" href="../../usage/faq.html">FAQ</a>
-                                    </li>
-                                    <li class="toctree-l1"><a class="reference internal" href="../../usage/requirements.html">Requirements</a>
-                                    </li>
-                                    <li class="toctree-l1"><a class="reference internal" href="../../usage/workflow.html">Workflow</a>
-                                    </li>
-                            </ul>
-                            <p class="caption"><span class="caption-text">References</span></p>
-                            <ul class="current">
-                                    <li class="toctree-l1"><a class="reference internal" href="../duration_calculus.html">Duration Calculus</a>
-                                    </li>
-                                    <li class="toctree-l1"><a class="reference internal" href="../pea.html">Phase Event Automata</a>
-                                    </li>
-                                    <li class="toctree-l1"><a class="reference internal" href="../patterns.html">Patterns</a>
-                                    </li>
-                                    <li class="toctree-l1"><a class="reference internal" href="../publications.html">Publications</a>
-                                    </li>
-                            </ul>
-                            <p class="caption"><span class="caption-text">Contribute</span></p>
-                            <ul>
-                                    <li class="toctree-l1"><a class="reference internal" href="../../contribute/to_hanfor.html">Hanfor</a>
-                                    </li>
-                                    <li class="toctree-l1"><a class="reference internal" href="../../contribute/to_docs.html">To docs</a>
-                                    </li>
-                            </ul>
-                            <p class="caption"><span class="caption-text">Contact</span></p>
-                            <ul>
-                                    <li class="toctree-l1"><a class="reference internal" href="../../contact/contact.html">Contact</a>
-                                    </li>
-                            </ul>
-            </div>
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Hanfor Docs
+          </span>
         </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-        
-        <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-            <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-            <a href="../../index.html">Hanfor Docs</a>
-        </nav>
-
-        
-        <div class="wy-nav-content">
-            <div class="rst-content">
-                <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="../../index.html">Docs</a> &raquo;</li>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              BndRecurrencePattern
+            
+          </span>
+        </div>
+      </div>
+    </div>
     
-      
-        
-          <li>Patterns &raquo;</li>
-        
-      
-        
-          <li>References &raquo;</li>
-        
-      
     
-    <li>BndRecurrencePattern</li>
-    <li class="wy-breadcrumbs-aside">
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
       
-        <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/references/patterns/BndRecurrencePattern.md"
-          class="icon icon-github"> Edit on GitHub</a>
-      
-    </li>
-  </ul>
-  <hr/>
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-                <div role="main">
-                    <div class="section">
-                        
-                            <!-- Auto generated file, do not make any changes here. -->
+    
+    
+      <div class="md-header__source">
+        
+<a href="https://github.com/ultimate-pa/hanfor/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ultimate-pa/hanfor
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Hanfor Docs" class="md-nav__button md-logo" aria-label="Hanfor Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Hanfor Docs
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/ultimate-pa/hanfor/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ultimate-pa/hanfor
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_1" type="checkbox" id="__nav_1" >
+      
+      <label class="md-nav__link" for="__nav_1">
+        Introduction
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Introduction" data-md-level="1">
+        <label class="md-nav__title" for="__nav_1">
+          <span class="md-nav__icon md-icon"></span>
+          Introduction
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../introduction/index.html" class="md-nav__link">
+        What is Hanfor?
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      
+      <label class="md-nav__link" for="__nav_2">
+        Installation
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Installation" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Installation
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/installation.html" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      <label class="md-nav__link" for="__nav_3">
+        Usage
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Usage" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Usage
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/api_queries.html" class="md-nav__link">
+        API queries
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/faq.html" class="md-nav__link">
+        FAQ
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/requirements.html" class="md-nav__link">
+        Requirements
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/workflow.html" class="md-nav__link">
+        Workflow
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
+      
+      <label class="md-nav__link" for="__nav_4">
+        References
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="References" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          References
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../duration_calculus.html" class="md-nav__link">
+        Duration Calculus
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pea.html" class="md-nav__link">
+        Phase Event Automata
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../patterns.html" class="md-nav__link">
+        Patterns
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../publications.html" class="md-nav__link">
+        Publications
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      <label class="md-nav__link" for="__nav_5">
+        Contribute
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Contribute" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Contribute
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contribute/to_hanfor.html" class="md-nav__link">
+        Hanfor
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contribute/to_docs.html" class="md-nav__link">
+        To docs
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" >
+      
+      <label class="md-nav__link" for="__nav_6">
+        Contact
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Contact" data-md-level="1">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Contact
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contact/contact.html" class="md-nav__link">
+        Contact
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/ultimate-pa/hanfor/edit/master/documentation/docs/references/patterns/BndRecurrencePattern.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  <h1>BndRecurrencePattern</h1>
+                
+                <!-- Auto generated file, do not make any changes here. -->
 
 <h2 id="bndrecurrencepattern">BndRecurrencePattern<a class="headerlink" href="#bndrecurrencepattern" title="Permanent link"> #</a></h2>
 <h3 id="bndrecurrencepattern-globally">BndRecurrencePattern Globally<a class="headerlink" href="#bndrecurrencepattern-globally" title="Permanent link"> #</a></h3>
 <pre><code>Globally, it is always the case that &quot;Q&quot; holds at least every &quot;5&quot; time units
 </code></pre>
-
 <h4 id="countertraces">Countertraces<a class="headerlink" href="#countertraces" title="Permanent link"> #</a></h4>
 <pre><code>true;⌈!Q⌉ ∧ ℓ &gt; 5;true
 </code></pre>
-
 <h4 id="phase-event-automata">Phase Event Automata<a class="headerlink" href="#phase-event-automata" title="Permanent link"> #</a></h4>
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndRecurrencePattern_Globally_0.svg"><img alt="" src="../img/patterns/BndRecurrencePattern_Globally_0.svg" /></a><figcaption></figcaption>
-</figure>
+<p><img alt="" src="../img/patterns/BndRecurrencePattern_Globally_0.svg" /></p>
 <h4 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link"> #</a></h4>
-<div class="pattern-examples"></div>
-
 <table>
 <thead>
 <tr>
-<th>Positive Example</th>
-<th>Negative Example</th>
+<th align="center" class="positive-example">Positive Example</th>
+<th align="center" class="negative-example">Negative Example</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td></td>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/BndRecurrencePattern_Globally_0.svg"><img alt="" src="../img/failure_paths/negative/BndRecurrencePattern_Globally_0.svg" /></a></td>
+<td align="center"></td>
+<td align="center"><img alt="" src="../img/failure_paths/negative/BndRecurrencePattern_Globally_0.svg" /></td>
 </tr>
 </tbody>
 </table>
 <h3 id="bndrecurrencepattern-before">BndRecurrencePattern Before<a class="headerlink" href="#bndrecurrencepattern-before" title="Permanent link"> #</a></h3>
 <pre><code>Before &quot;Q&quot;, it is always the case that &quot;R&quot; holds at least every &quot;5&quot; time units
 </code></pre>
-
 <h4 id="countertraces_1">Countertraces<a class="headerlink" href="#countertraces_1" title="Permanent link"> #</a></h4>
 <pre><code>⌈!Q⌉;⌈(!Q &amp;&amp; !R)⌉ ∧ ℓ &gt; 5;true
 </code></pre>
-
 <h4 id="phase-event-automata_1">Phase Event Automata<a class="headerlink" href="#phase-event-automata_1" title="Permanent link"> #</a></h4>
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndRecurrencePattern_Before_0.svg"><img alt="" src="../img/patterns/BndRecurrencePattern_Before_0.svg" /></a><figcaption></figcaption>
-</figure>
+<p><img alt="" src="../img/patterns/BndRecurrencePattern_Before_0.svg" /></p>
 <h4 id="examples_1">Examples<a class="headerlink" href="#examples_1" title="Permanent link"> #</a></h4>
-<div class="pattern-examples"></div>
-
 <table>
 <thead>
 <tr>
-<th>Positive Example</th>
-<th>Negative Example</th>
+<th align="center" class="positive-example">Positive Example</th>
+<th align="center" class="negative-example">Negative Example</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td></td>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/BndRecurrencePattern_Before_0.svg"><img alt="" src="../img/failure_paths/negative/BndRecurrencePattern_Before_0.svg" /></a></td>
+<td align="center"></td>
+<td align="center"><img alt="" src="../img/failure_paths/negative/BndRecurrencePattern_Before_0.svg" /></td>
 </tr>
 </tbody>
 </table>
 <h3 id="bndrecurrencepattern-after">BndRecurrencePattern After<a class="headerlink" href="#bndrecurrencepattern-after" title="Permanent link"> #</a></h3>
 <pre><code>After &quot;Q&quot;, it is always the case that &quot;R&quot; holds at least every &quot;5&quot; time units
 </code></pre>
-
 <h4 id="countertraces_2">Countertraces<a class="headerlink" href="#countertraces_2" title="Permanent link"> #</a></h4>
 <pre><code>true;⌈Q⌉;true;⌈!R⌉ ∧ ℓ &gt; 5;true
 </code></pre>
-
 <h4 id="phase-event-automata_2">Phase Event Automata<a class="headerlink" href="#phase-event-automata_2" title="Permanent link"> #</a></h4>
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndRecurrencePattern_After_0.svg"><img alt="" src="../img/patterns/BndRecurrencePattern_After_0.svg" /></a><figcaption></figcaption>
-</figure>
+<p><img alt="" src="../img/patterns/BndRecurrencePattern_After_0.svg" /></p>
 <h4 id="examples_2">Examples<a class="headerlink" href="#examples_2" title="Permanent link"> #</a></h4>
-<div class="pattern-examples"></div>
-
 <table>
 <thead>
 <tr>
-<th>Positive Example</th>
-<th>Negative Example</th>
+<th align="center" class="positive-example">Positive Example</th>
+<th align="center" class="negative-example">Negative Example</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td></td>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/BndRecurrencePattern_After_0.svg"><img alt="" src="../img/failure_paths/negative/BndRecurrencePattern_After_0.svg" /></a></td>
+<td align="center"></td>
+<td align="center"><img alt="" src="../img/failure_paths/negative/BndRecurrencePattern_After_0.svg" /></td>
 </tr>
 </tbody>
 </table>
 <h3 id="bndrecurrencepattern-between">BndRecurrencePattern Between<a class="headerlink" href="#bndrecurrencepattern-between" title="Permanent link"> #</a></h3>
 <pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that &quot;S&quot; holds at least every &quot;5&quot; time units
 </code></pre>
-
 <h4 id="countertraces_3">Countertraces<a class="headerlink" href="#countertraces_3" title="Permanent link"> #</a></h4>
 <pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ &gt; 5;⌈!R⌉;⌈R⌉;true
 </code></pre>
-
 <h4 id="phase-event-automata_3">Phase Event Automata<a class="headerlink" href="#phase-event-automata_3" title="Permanent link"> #</a></h4>
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndRecurrencePattern_Between_0.svg"><img alt="" src="../img/patterns/BndRecurrencePattern_Between_0.svg" /></a><figcaption></figcaption>
-</figure>
+<p><img alt="" src="../img/patterns/BndRecurrencePattern_Between_0.svg" /></p>
 <h4 id="examples_3">Examples<a class="headerlink" href="#examples_3" title="Permanent link"> #</a></h4>
-<div class="pattern-examples"></div>
-
 <table>
 <thead>
 <tr>
-<th>Positive Example</th>
-<th>Negative Example</th>
+<th align="center" class="positive-example">Positive Example</th>
+<th align="center" class="negative-example">Negative Example</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndRecurrencePattern_Between_0.svg"><img alt="" src="../img/failure_paths/positive/BndRecurrencePattern_Between_0.svg" /></a></td>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/BndRecurrencePattern_Between_0.svg"><img alt="" src="../img/failure_paths/negative/BndRecurrencePattern_Between_0.svg" /></a></td>
+<td align="center"><img alt="" src="../img/failure_paths/positive/BndRecurrencePattern_Between_0.svg" /></td>
+<td align="center"><img alt="" src="../img/failure_paths/negative/BndRecurrencePattern_Between_0.svg" /></td>
 </tr>
 <tr>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndRecurrencePattern_Between_1.svg"><img alt="" src="../img/failure_paths/positive/BndRecurrencePattern_Between_1.svg" /></a></td>
-<td></td>
+<td align="center"><img alt="" src="../img/failure_paths/positive/BndRecurrencePattern_Between_1.svg" /></td>
+<td align="center"></td>
 </tr>
 <tr>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndRecurrencePattern_Between_2.svg"><img alt="" src="../img/failure_paths/positive/BndRecurrencePattern_Between_2.svg" /></a></td>
-<td></td>
+<td align="center"><img alt="" src="../img/failure_paths/positive/BndRecurrencePattern_Between_2.svg" /></td>
+<td align="center"></td>
 </tr>
 <tr>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndRecurrencePattern_Between_3.svg"><img alt="" src="../img/failure_paths/positive/BndRecurrencePattern_Between_3.svg" /></a></td>
-<td></td>
+<td align="center"><img alt="" src="../img/failure_paths/positive/BndRecurrencePattern_Between_3.svg" /></td>
+<td align="center"></td>
 </tr>
 <tr>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndRecurrencePattern_Between_4.svg"><img alt="" src="../img/failure_paths/positive/BndRecurrencePattern_Between_4.svg" /></a></td>
-<td></td>
+<td align="center"><img alt="" src="../img/failure_paths/positive/BndRecurrencePattern_Between_4.svg" /></td>
+<td align="center"></td>
 </tr>
 <tr>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/positive/BndRecurrencePattern_Between_5.svg"><img alt="" src="../img/failure_paths/positive/BndRecurrencePattern_Between_5.svg" /></a></td>
-<td></td>
+<td align="center"><img alt="" src="../img/failure_paths/positive/BndRecurrencePattern_Between_5.svg" /></td>
+<td align="center"></td>
 </tr>
 </tbody>
 </table>
 <h3 id="bndrecurrencepattern-afteruntil">BndRecurrencePattern AfterUntil<a class="headerlink" href="#bndrecurrencepattern-afteruntil" title="Permanent link"> #</a></h3>
 <pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that &quot;S&quot; holds at least every &quot;5&quot; time units
 </code></pre>
-
 <h4 id="countertraces_4">Countertraces<a class="headerlink" href="#countertraces_4" title="Permanent link"> #</a></h4>
 <pre><code>true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; !S)⌉ ∧ ℓ &gt; 5;true
 </code></pre>
-
 <h4 id="phase-event-automata_4">Phase Event Automata<a class="headerlink" href="#phase-event-automata_4" title="Permanent link"> #</a></h4>
-<figure><a data-lightbox="all_images" data-title="" href="../img/patterns/BndRecurrencePattern_AfterUntil_0.svg"><img alt="" src="../img/patterns/BndRecurrencePattern_AfterUntil_0.svg" /></a><figcaption></figcaption>
-</figure>
+<p><img alt="" src="../img/patterns/BndRecurrencePattern_AfterUntil_0.svg" /></p>
 <h4 id="examples_4">Examples<a class="headerlink" href="#examples_4" title="Permanent link"> #</a></h4>
-<div class="pattern-examples"></div>
-
 <table>
 <thead>
 <tr>
-<th>Positive Example</th>
-<th>Negative Example</th>
+<th align="center" class="positive-example">Positive Example</th>
+<th align="center" class="negative-example">Negative Example</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td></td>
-<td><a data-lightbox="all_images" data-title="" href="../img/failure_paths/negative/BndRecurrencePattern_AfterUntil_0.svg"><img alt="" src="../img/failure_paths/negative/BndRecurrencePattern_AfterUntil_0.svg" /></a></td>
+<td align="center"></td>
+<td align="center"><img alt="" src="../img/failure_paths/negative/BndRecurrencePattern_AfterUntil_0.svg" /></td>
 </tr>
 </tbody>
 </table>
-                        
-                    </div>
-                </div>
-                    <footer>
-  <hr/>
-
-  <div role="contentinfo">
-    <!-- Copyright etc -->
-    
-  </div>
-
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a custom theme</a>.
-</footer>
                 
-            </div>
+              
+              
+                
+
+
+              
+            </article>
+          </div>
         </div>
-
-    </section>
-
-</div>
-
-<div class="rst-versions" role="note" aria-label="versions">
-    <span class="rst-current-version" data-toggle="rst-current-version">
+        
+          <a href="#" class="md-top md-icon" title="Back to top" data-md-component="top" data-md-state="hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"/></svg>
+          </a>
+        
+      </main>
       
-          <a href="https://github.com/ultimate-pa/hanfor/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
       
-    </span>
-</div>
-    <script>var base_url = '../..';</script>
-    <script src="../../js/theme.js" defer></script>
-        <script src="../../search/main.js" defer></script>
-    <script type="text/javascript" defer>
-        window.onload = function () {
-            SphinxRtdTheme.Navigation.enable(false);
-        };
-    </script>
-
-</body>
+        
+        <a href="BndInvariancePattern.html" class="md-footer__link md-footer__link--prev" aria-label="Previous: BndInvariancePattern" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              BndInvariancePattern
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="BndResponsePatternTT.html" class="md-footer__link md-footer__link--next" aria-label="Next: BndResponsePatternTT" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              BndResponsePatternTT
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.top", "navigation.tracking", "navigation.sections", "toc.integrate", "search.share"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.b0710199.min.js", "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.76f349be.min.js"></script>
+      
+    
+  </body>
 </html>
