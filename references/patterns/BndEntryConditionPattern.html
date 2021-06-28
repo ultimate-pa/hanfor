@@ -568,11 +568,11 @@
 
 <h2 id="bndentryconditionpattern">BndEntryConditionPattern<a class="headerlink" href="#bndentryconditionpattern" title="Permanent link"> #</a></h2>
 <h3 id="bndentryconditionpattern-globally">BndEntryConditionPattern Globally<a class="headerlink" href="#bndentryconditionpattern-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that after &quot;R&quot; holds for at least &quot;5&quot; time units, then &quot;Q&quot; holds
-</code></pre>
+<div class="highlight"><pre><span></span><code>Globally, it is always the case that after &quot;R&quot; holds for at least &quot;5&quot; time units, then &quot;Q&quot; holds
+</code></pre></div>
 <h4 id="countertraces">Countertraces<a class="headerlink" href="#countertraces" title="Permanent link"> #</a></h4>
-<pre><code>true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true
-</code></pre>
+<div class="highlight"><pre><span></span><code>true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉;true
+</code></pre></div>
 <h4 id="phase-event-automata">Phase Event Automata<a class="headerlink" href="#phase-event-automata" title="Permanent link"> #</a></h4>
 <p><img alt="" src="../img/patterns/BndEntryConditionPattern_Globally_0.svg" /></p>
 <h4 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link"> #</a></h4>
@@ -599,11 +599,11 @@
 </tbody>
 </table>
 <h3 id="bndentryconditionpattern-before">BndEntryConditionPattern Before<a class="headerlink" href="#bndentryconditionpattern-before" title="Permanent link"> #</a></h3>
-<pre><code>Before &quot;Q&quot;, it is always the case that after &quot;S&quot; holds for at least &quot;5&quot; time units, then &quot;R&quot; holds
-</code></pre>
+<div class="highlight"><pre><span></span><code>Before &quot;Q&quot;, it is always the case that after &quot;S&quot; holds for at least &quot;5&quot; time units, then &quot;R&quot; holds
+</code></pre></div>
 <h4 id="countertraces_1">Countertraces<a class="headerlink" href="#countertraces_1" title="Permanent link"> #</a></h4>
-<pre><code>⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉ ∧ ℓ ≥ 5;⌈(!Q &amp;&amp; !R)⌉;true
-</code></pre>
+<div class="highlight"><pre><span></span><code>⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉ ∧ ℓ ≥ 5;⌈(!Q &amp;&amp; !R)⌉;true
+</code></pre></div>
 <h4 id="phase-event-automata_1">Phase Event Automata<a class="headerlink" href="#phase-event-automata_1" title="Permanent link"> #</a></h4>
 <p><img alt="" src="../img/patterns/BndEntryConditionPattern_Before_0.svg" /></p>
 <h4 id="examples_1">Examples<a class="headerlink" href="#examples_1" title="Permanent link"> #</a></h4>
@@ -626,11 +626,11 @@
 </tbody>
 </table>
 <h3 id="bndentryconditionpattern-after">BndEntryConditionPattern After<a class="headerlink" href="#bndentryconditionpattern-after" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot;, it is always the case that after &quot;S&quot; holds for at least &quot;5&quot; time units, then &quot;R&quot; holds
-</code></pre>
+<div class="highlight"><pre><span></span><code>After &quot;Q&quot;, it is always the case that after &quot;S&quot; holds for at least &quot;5&quot; time units, then &quot;R&quot; holds
+</code></pre></div>
 <h4 id="countertraces_2">Countertraces<a class="headerlink" href="#countertraces_2" title="Permanent link"> #</a></h4>
-<pre><code>true;⌈Q⌉;true;⌈S⌉ ∧ ℓ ≥ 5;⌈!R⌉;true
-</code></pre>
+<div class="highlight"><pre><span></span><code>true;⌈Q⌉;true;⌈S⌉ ∧ ℓ ≥ 5;⌈!R⌉;true
+</code></pre></div>
 <h4 id="phase-event-automata_2">Phase Event Automata<a class="headerlink" href="#phase-event-automata_2" title="Permanent link"> #</a></h4>
 <p><img alt="" src="../img/patterns/BndEntryConditionPattern_After_0.svg" /></p>
 <h4 id="examples_2">Examples<a class="headerlink" href="#examples_2" title="Permanent link"> #</a></h4>
@@ -677,11 +677,11 @@
 </tbody>
 </table>
 <h3 id="bndentryconditionpattern-between">BndEntryConditionPattern Between<a class="headerlink" href="#bndentryconditionpattern-between" title="Permanent link"> #</a></h3>
-<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that after &quot;T&quot; holds for at least &quot;5&quot; time units, then &quot;S&quot; holds
-</code></pre>
+<div class="highlight"><pre><span></span><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that after &quot;T&quot; holds for at least &quot;5&quot; time units, then &quot;S&quot; holds
+</code></pre></div>
 <h4 id="countertraces_3">Countertraces<a class="headerlink" href="#countertraces_3" title="Permanent link"> #</a></h4>
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
-</code></pre>
+<div class="highlight"><pre><span></span><code>true;⌈(Q &amp;&amp; !R)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;⌈!R⌉;⌈R⌉;true
+</code></pre></div>
 <h4 id="phase-event-automata_3">Phase Event Automata<a class="headerlink" href="#phase-event-automata_3" title="Permanent link"> #</a></h4>
 <p><img alt="" src="../img/patterns/BndEntryConditionPattern_Between_0.svg" /></p>
 <h4 id="examples_3">Examples<a class="headerlink" href="#examples_3" title="Permanent link"> #</a></h4>
@@ -744,11 +744,11 @@
 </tbody>
 </table>
 <h3 id="bndentryconditionpattern-afteruntil">BndEntryConditionPattern AfterUntil<a class="headerlink" href="#bndentryconditionpattern-afteruntil" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that after &quot;T&quot; holds for at least &quot;5&quot; time units, then &quot;S&quot; holds
-</code></pre>
+<div class="highlight"><pre><span></span><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that after &quot;T&quot; holds for at least &quot;5&quot; time units, then &quot;S&quot; holds
+</code></pre></div>
 <h4 id="countertraces_4">Countertraces<a class="headerlink" href="#countertraces_4" title="Permanent link"> #</a></h4>
-<pre><code>true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;true
-</code></pre>
+<div class="highlight"><pre><span></span><code>true;⌈Q⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉ ∧ ℓ ≥ 5;⌈(!R &amp;&amp; !S)⌉;true
+</code></pre></div>
 <h4 id="phase-event-automata_4">Phase Event Automata<a class="headerlink" href="#phase-event-automata_4" title="Permanent link"> #</a></h4>
 <p><img alt="" src="../img/patterns/BndEntryConditionPattern_AfterUntil_0.svg" /></p>
 <h4 id="examples_4">Examples<a class="headerlink" href="#examples_4" title="Permanent link"> #</a></h4>
