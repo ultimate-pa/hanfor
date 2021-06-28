@@ -651,15 +651,15 @@
 </tbody>
 </table>
 <h3 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link"> #</a></h3>
-<pre><code class="language-bash"># Show all stored Queries
+<div class="highlight"><pre><span></span><code><span class="c1"># Show all stored Queries</span>
 $ curl http://localhost:5000/api/query
 
-# Show only Queries which are named 'MyQuery' and re-evaluate the stored Query 
-$ curl http://localhost:5000/api/query?name=MyQuery&amp;reload=true
+<span class="c1"># Show only Queries which are named &#39;MyQuery&#39; and re-evaluate the stored Query </span>
+$ curl http://localhost:5000/api/query?name<span class="o">=</span>MyQuery<span class="p">&amp;</span><span class="nv">reload</span><span class="o">=</span><span class="nb">true</span>
 
-# Using jq to parse the JSON response. Show only the name of the query with associated hits.
-$ curl http://localhost:5000/api/query\?reload\=true | jq -r '.data[] | {name: .name, hits: .hits}'
-</code></pre>
+<span class="c1"># Using jq to parse the JSON response. Show only the name of the query with associated hits.</span>
+$ curl http://localhost:5000/api/query<span class="se">\?</span>reload<span class="se">\=</span><span class="nb">true</span> <span class="p">|</span> jq -r <span class="s1">&#39;.data[] | {name: .name, hits: .hits}&#39;</span>
+</code></pre></div>
 <h2 id="adding-new-queries">Adding new queries<a class="headerlink" href="#adding-new-queries" title="Permanent link"> #</a></h2>
 <p><code>POST /api/query Content-Type: application/json</code></p>
 <h3 id="json-body-parameters">JSON body parameters<a class="headerlink" href="#json-body-parameters" title="Permanent link"> #</a></h3>
@@ -685,9 +685,9 @@ $ curl http://localhost:5000/api/query\?reload\=true | jq -r '.data[] | {name: .
 </tbody>
 </table>
 <h3 id="examples_1">Examples<a class="headerlink" href="#examples_1" title="Permanent link"> #</a></h3>
-<pre><code class="language-bash">$ curl -X POST -H 'Content-Type: application/json' \
- --data '{&quot;name&quot;: &quot;MyQuery&quot;, &quot;query&quot;: &quot;foo:AND:bar&quot;}' http://localhost:5000/api/query
-</code></pre>
+<div class="highlight"><pre><span></span><code>$ curl -X POST -H <span class="s1">&#39;Content-Type: application/json&#39;</span> <span class="se">\</span>
+ --data <span class="s1">&#39;{&quot;name&quot;: &quot;MyQuery&quot;, &quot;query&quot;: &quot;foo:AND:bar&quot;}&#39;</span> http://localhost:5000/api/query
+</code></pre></div>
 <h2 id="deleting-queries">Deleting queries<a class="headerlink" href="#deleting-queries" title="Permanent link"> #</a></h2>
 <p><code>DELETE /api/query</code></p>
 <h3 id="json-body-parameters_1">JSON body parameters<a class="headerlink" href="#json-body-parameters_1" title="Permanent link"> #</a></h3>
@@ -713,14 +713,14 @@ $ curl http://localhost:5000/api/query\?reload\=true | jq -r '.data[] | {name: .
 </tbody>
 </table>
 <h3 id="examples_2">Examples<a class="headerlink" href="#examples_2" title="Permanent link"> #</a></h3>
-<pre><code class="language-bash"># Delete a single Query:
-$ curl -X DELETE -H 'Content-Type: application/json' \
- --data '{&quot;name&quot;: &quot;MyQuery&quot;}' http://localhost:5000/api/query
+<div class="highlight"><pre><span></span><code><span class="c1"># Delete a single Query:</span>
+$ curl -X DELETE -H <span class="s1">&#39;Content-Type: application/json&#39;</span> <span class="se">\</span>
+ --data <span class="s1">&#39;{&quot;name&quot;: &quot;MyQuery&quot;}&#39;</span> http://localhost:5000/api/query
 
-# Delete multiple Queries:
-$ curl -X DELETE -H 'Content-Type: application/json' \
- --data '{&quot;names&quot;: [&quot;MyQuery&quot;, &quot;Another&quot;]' http://localhost:5000/api/query
-</code></pre>
+<span class="c1"># Delete multiple Queries:</span>
+$ curl -X DELETE -H <span class="s1">&#39;Content-Type: application/json&#39;</span> <span class="se">\</span>
+ --data <span class="s1">&#39;{&quot;names&quot;: [&quot;MyQuery&quot;, &quot;Another&quot;]&#39;</span> http://localhost:5000/api/query
+</code></pre></div>
 <h2 id="query-syntax">Query syntax<a class="headerlink" href="#query-syntax" title="Permanent link"> #</a></h2>
 <p>Much <a href="requirements.html#Search in requirements table">like in the frontend</a> the Query syntax supports operators, nesting, exact- exclusive matches 
 and targeting 
@@ -748,21 +748,21 @@ specific attributes.</p>
 <h3 id="get-available-attributes">Get available attributes<a class="headerlink" href="#get-available-attributes" title="Permanent link"> #</a></h3>
 <p><code>GET /api/quer?show=targets</code></p>
 <h3 id="example">Example<a class="headerlink" href="#example" title="Permanent link"> #</a></h3>
-<pre><code class="language-bash"># Show attribute names available for specific search.
-$ curl http://localhost:5000/api/query?show=targets
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="c1"># Show attribute names available for specific search.</span>
+$ curl http://localhost:5000/api/query?show<span class="o">=</span>targets
+</code></pre></div>
 <p><strong>Default targets:</strong></p>
-<p>The available targets are composed of</p>
-<pre><code class="language-json">[
-    &quot;Description&quot;,
-    &quot;Formalization&quot;,
-    &quot;Id&quot;,
-    &quot;Status&quot;,
-    &quot;Tags&quot;,
-    &quot;Type&quot;
-]
-</code></pre>
-<p>Plus the fields available in the associated CSV file the requirements origin from.</p>
+<p>The available targets are composed of
+<div class="highlight"><pre><span></span><code><span class="p">[</span>
+    <span class="s2">&quot;Description&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Formalization&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Id&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Status&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Tags&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Type&quot;</span>
+<span class="p">]</span>
+</code></pre></div>
+Plus the fields available in the associated CSV file the requirements origin from.</p>
                 
                   
                 

@@ -639,20 +639,20 @@
                 
                 <h1 id="workflow">Workflow<a class="headerlink" href="#workflow" title="Permanent link"> #</a></h1>
 <h2 id="example-input">Example input<a class="headerlink" href="#example-input" title="Permanent link"> #</a></h2>
-<p>The CSV file <code>example_intput/example_input.csv</code> contains requirements:</p>
-<pre><code class="language-bash">ID,Description,Type
-META1,This is an example for some requirements,meta
+<p>The CSV file <code>example_intput/example_input.csv</code> contains requirements:
+<div class="highlight"><pre><span></span><code>ID,Description,Type
+META1,This is an example <span class="k">for</span> some requirements,meta
 META2,Next we define some requirements,meta
-REQ1,var1 is always greater than 5,requirement
-REQ2,var2 is always smaller than 10,requirement
+REQ1,var1 is always greater than <span class="m">5</span>,requirement
+REQ2,var2 is always smaller than <span class="m">10</span>,requirement
 REQ3,constraint1 always holds,requirement
 REQ4,constraint2 always holds,requirement
-REQ5,var1 is always smaller than 5,requirement
+REQ5,var1 is always smaller than <span class="m">5</span>,requirement
 REQ6,constraint1 and constraint2 never hold at the same time,requirement
-REQ7,if var3 = True then var4 := 1,requirement
-REQ8,if var3 = True then var4 := 0,requirement
-</code></pre>
-<p>In this case every row consists of the fields <code>ID</code>, <code>Description</code>, and <code>Type</code>.</p>
+REQ7,if <span class="nv">var3</span> <span class="o">=</span> True <span class="k">then</span> var4 :<span class="o">=</span> <span class="m">1</span>,requirement
+REQ8,if <span class="nv">var3</span> <span class="o">=</span> True <span class="k">then</span> var4 :<span class="o">=</span> <span class="m">0</span>,requirement
+</code></pre></div>
+In this case every row consists of the fields <code>ID</code>, <code>Description</code>, and <code>Type</code>.</p>
 <ul>
 <li><code>ID</code> is a unique identifier, </li>
 <li><code>Description</code> is the description ,</li>
@@ -662,56 +662,54 @@ and rows with type <code>requirement</code> contain actual requirements of the m
 <h2 id="start-hanfor">Start Hanfor<a class="headerlink" href="#start-hanfor" title="Permanent link"> #</a></h2>
 <ol>
 <li>Configure Hanfor as explained in <a href="/installation/installation.html">Installation</a></li>
-<li>Start Hanfor: </li>
-</ol>
-<pre><code class="language-bash">cd hanfor
+<li>Start Hanfor: 
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span> hanfor
 python3 app.py -c ../example_input/example_input.csv awesome_tag
-</code></pre>
-<ul>
-<li><code>-c example_input.csv</code> specifies the csv input file we pass.</li>
-<li><code>example_tag</code> is some meaningful tag you want to give this session.
+</code></pre></div>
+- <code>-c example_input.csv</code> specifies the csv input file we pass.
+- <code>example_tag</code> is some meaningful tag you want to give this session.
 If you start Hanfor later with the same tag, you'll start exactly this session.</li>
-</ul>
-<p>Currently the startup of Hanfor is interactive and looks like this:</p>
-<pre><code class="language-shell">(venv) bree@titan:~/repos/hanfor/hanfor$ python3 app.py -c ../example_input/example_input.csv awesome_tag
-2019-10-10 13:55:17,845: [DEBUG]: Enabled logging.
-2019-10-10 13:55:17,858: [INFO]: Hanfor starts creating a revision.
-2019-10-10 13:55:17,858: [INFO]: No revisions for `awesome_tag`. Creating initial revision.
-2019-10-10 13:55:17,858: [INFO]: Load Input : example/example_input.csv
-2019-10-10 13:55:17,862: [INFO]: Could not guess .csv dialect, assuming defaults
+</ol>
+<p>Currently the startup of Hanfor is interactive and looks like this:
+<div class="highlight"><pre><span></span><code><span class="o">(</span>venv<span class="o">)</span> bree@titan:~/repos/hanfor/hanfor$ python3 app.py -c ../example_input/example_input.csv awesome_tag
+<span class="m">2019</span>-10-10 <span class="m">13</span>:55:17,845: <span class="o">[</span>DEBUG<span class="o">]</span>: Enabled logging.
+<span class="m">2019</span>-10-10 <span class="m">13</span>:55:17,858: <span class="o">[</span>INFO<span class="o">]</span>: Hanfor starts creating a revision.
+<span class="m">2019</span>-10-10 <span class="m">13</span>:55:17,858: <span class="o">[</span>INFO<span class="o">]</span>: No revisions <span class="k">for</span> <span class="sb">`</span>awesome_tag<span class="sb">`</span>. Creating initial revision.
+<span class="m">2019</span>-10-10 <span class="m">13</span>:55:17,858: <span class="o">[</span>INFO<span class="o">]</span>: Load Input : example/example_input.csv
+<span class="m">2019</span>-10-10 <span class="m">13</span>:55:17,862: <span class="o">[</span>INFO<span class="o">]</span>: Could not guess .csv dialect, assuming defaults
 Select ID header
 ╔Choices═════════════╗
-║ 0    ║ Description ║
-║ -&gt; 1 ║ ID          ║
-║ 2    ║ Type        ║
+║ <span class="m">0</span>    ║ Description ║
+║ -&gt; <span class="m">1</span> ║ ID          ║
+║ <span class="m">2</span>    ║ Type        ║
 ╚══════╩═════════════╝
-[Choice or Enter for  -&gt; default]&gt; 1
+<span class="o">[</span>Choice or Enter <span class="k">for</span>  -&gt; default<span class="o">]</span>&gt; <span class="m">1</span>
 Select requirements description header
 ╔Choices══════════╗
-║ 0 ║ Description ║
-║ 1 ║ ID          ║
-║ 2 ║ Type        ║
+║ <span class="m">0</span> ║ Description ║
+║ <span class="m">1</span> ║ ID          ║
+║ <span class="m">2</span> ║ Type        ║
 ╚═══╩═════════════╝
-[Choice or Enter for  -&gt; default]&gt; 0
+<span class="o">[</span>Choice or Enter <span class="k">for</span>  -&gt; default<span class="o">]</span>&gt; <span class="m">0</span>
 Select formalization header
 ╔Choices════════════════════╗
-║ 0 ║ Description           ║
-║ 1 ║ ID                    ║
-║ 2 ║ Type                  ║
-║ 3 ║ Add new Formalization ║
+║ <span class="m">0</span> ║ Description           ║
+║ <span class="m">1</span> ║ ID                    ║
+║ <span class="m">2</span> ║ Type                  ║
+║ <span class="m">3</span> ║ Add new Formalization ║
 ╚═══╩═══════════════════════╝
-[Choice or Enter for  -&gt; default]&gt; 3
-Select type header.
+<span class="o">[</span>Choice or Enter <span class="k">for</span>  -&gt; default<span class="o">]</span>&gt; <span class="m">3</span>
+Select <span class="nb">type</span> header.
 ╔Choices══════════╗
-║ 0 ║ Description ║
-║ 1 ║ ID          ║
-║ 2 ║ Type        ║
+║ <span class="m">0</span> ║ Description ║
+║ <span class="m">1</span> ║ ID          ║
+║ <span class="m">2</span> ║ Type        ║
 ╚═══╩═════════════╝
-[Choice or Enter for  -&gt; default]&gt; 2
-</code></pre>
-<p>Alternatively you can directly pass the header definition, using <code>--header</code>: </p>
-<pre><code>python3 app.py -c example_input/example_input.csv --header='{&quot;csv_id_header&quot;: &quot;ID&quot;, &quot;csv_desc_header&quot;: &quot;Description&quot;, &quot;csv_formal_header&quot;: &quot;Hanfor_Formalization&quot;, &quot;csv_type_header&quot; : &quot;Type&quot;}' awesome_tag
-</code></pre>
+<span class="o">[</span>Choice or Enter <span class="k">for</span>  -&gt; default<span class="o">]</span>&gt; <span class="m">2</span>
+</code></pre></div></p>
+<p>Alternatively you can directly pass the header definition, using <code>--header</code>: 
+<div class="highlight"><pre><span></span><code>python3 app.py -c example_input/example_input.csv --header=&#39;{&quot;csv_id_header&quot;: &quot;ID&quot;, &quot;csv_desc_header&quot;: &quot;Description&quot;, &quot;csv_formal_header&quot;: &quot;Hanfor_Formalization&quot;, &quot;csv_type_header&quot; : &quot;Type&quot;}&#39; awesome_tag
+</code></pre></div></p>
 <p>you can now reach Hanfor by visiting <a href="http://127.0.0.1:5000">http://127.0.0.1:5000</a></p>
 <p><img alt="Hanfor requirement overview" src="../img/hanfor01.png" title="This is how Hanfor looks like after you started it" /></p>
 <h2 id="preprocessing">Preprocessing<a class="headerlink" href="#preprocessing" title="Permanent link"> #</a></h2>
@@ -754,32 +752,32 @@ Consider REQ7: <code>if var3 = True then var4 := 0</code>.</p>
 <li>For <strong>{T}</strong> we need a certain amount of time units, for example 50. We do not want to hardcode values, 
 we introduce a new variable and insert <code>MAX_TIME</code>.</li>
 </ul>
-<p>We end up with the following: </p>
-<pre><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 0&quot; holds after at most &quot;MAX_TIME&quot; time units.
-</code></pre>
-<p>Save the formalization. </p>
+<p>We end up with the following: 
+<div class="highlight"><pre><span></span><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 0&quot; holds after at most &quot;MAX_TIME&quot; time units.
+</code></pre></div>
+Save the formalization. </p>
 <p>You will now recognize that Hanfor automatically added a new <em>Tag</em> <strong>Type_inference_error</strong> to your freshly
 formalized requirement. To fix that, to go the <strong>Variables</strong> section and open the <code>MAX_TIME</code> variable.
 You see that Hanfor derived the type <code>bool</code>, but we actually want it to be of type <code>CONST</code> as the variable represents time units. Change the type and
 also assign a value, for example <code>50</code>.</p>
 <p><img alt="Example for the MAX_TIME variable" src="../img/hanfor_var_maxtime.png" title="This is how you should edit the MAX_TIME variable" /></p>
-<p>For REQ8 you should have: </p>
-<pre><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 1&quot; holds after at most &quot;MAX_TIME&quot; time units.
-</code></pre>
+<p>For REQ8 you should have: 
+<div class="highlight"><pre><span></span><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 1&quot; holds after at most &quot;MAX_TIME&quot; time units.
+</code></pre></div></p>
 <h2 id="exporting-the-formalized-requirements">Exporting the formalized requirements.<a class="headerlink" href="#exporting-the-formalized-requirements" title="Permanent link"> #</a></h2>
 <p>Once you are done with all requirements, it is time to analyze them using a tool like Ultimate (TODO:ref to git).</p>
 <h3 id="preparing-the-export">Preparing the export.<a class="headerlink" href="#preparing-the-export" title="Permanent link"> #</a></h3>
 <p>You might want to filter out some rows, for example, all of type <code>meta</code> or all that have a certain tag.
 Again, use the <a href="/usage/requirements/#search-in-requirements-table">Search Query Language</a> to select only the requirements you want.
 For example, if we only rows of type <code>requirement</code> which are not on status <strong>Todo</strong> we search:</p>
-<pre><code>:COL_INDEX_04:requirement:AND::COL_INDEX_06::NOT:Todo
-</code></pre>
+<div class="highlight"><pre><span></span><code>:COL_INDEX_04:requirement:AND::COL_INDEX_06::NOT:Todo
+</code></pre></div>
 <h3 id="export">Export<a class="headerlink" href="#export" title="Permanent link"> #</a></h3>
 <p>To export requirements, press <strong>Tools</strong>, then choose either <code>.req</code> or <code>.csv</code>.
 If you want to analyze the requirements using Ultimate, choose <strong>Generate .req file from (filtered) requirements table</strong>
 and then save it.</p>
-<p>You should end up with the following:</p>
-<pre><code class="language-plain">CONST MAX_TIME IS 50.0
+<p>You should end up with the following:
+<div class="highlight"><pre><span></span><code>CONST MAX_TIME IS 50.0
 
 Input constraint1 IS bool
 Input constraint2 IS bool
@@ -797,7 +795,7 @@ REQ5_0: Globally, it is always the case that &quot;var1 &lt; 5&quot; holds
 REQ6_0: Globally, it is never the case that &quot;constraint1 &amp;&amp; constraint2 &quot; holds
 REQ7_0: Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 1&quot; holds after at most &quot;MAX_TIME&quot; time units
 REQ8_0: Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 0&quot; holds after at most &quot;MAX_TIME &quot; time units
-</code></pre>
+</code></pre></div></p>
 <h2 id="analysis-using-ultimate">Analysis using Ultimate.<a class="headerlink" href="#analysis-using-ultimate" title="Permanent link"> #</a></h2>
 <h3 id="get-reqanalyzer">Get ReqAnalyzer<a class="headerlink" href="#get-reqanalyzer" title="Permanent link"> #</a></h3>
 <p>First of all you need the <a href="https://github.com/ultimate-pa/ultimate">Ultimate</a> tool <strong>ReqAnalyzer</strong>.
@@ -807,10 +805,10 @@ See how in the <a href="/installation/installation.html#reqanalyzer">ReqAnalyzer
 The script is located in <code>UReqCheck-linux</code>.</p>
 <ul>
 <li>You have to configure <code>run_complete_analysis.sh</code>, which is used to run the complete analysis.
-The script takes several arguments:</li>
+The script takes several arguments:
+<div class="highlight"><pre><span></span><code>run_complete_analysis.sh &lt;req_file&gt; &lt;req_repo_folder&gt; &lt;req_folder&gt; [&lt;rt_inconsistency_range&gt; &lt;timeout_per_assertion&gt;]
+</code></pre></div></li>
 </ul>
-<pre><code>run_complete_analysis.sh &lt;req_file&gt; &lt;req_repo_folder&gt; &lt;req_folder&gt; [&lt;rt_inconsistency_range&gt; &lt;timeout_per_assertion&gt;]
-</code></pre>
 <p>Where:
 * <code>req_file</code> is the Requirements file you generated using Hanfor.
 * <code>req_repo_folder</code> is the path to the repository, which contains the requirements-folder
@@ -820,9 +818,9 @@ Careful with this parameter, it will blow up the amount of checks really fast.
 * <code>timeout_per_assertion</code> (default: 900) The time how long a singles assertion is checked.</p>
 <h3 id="use-ultimate">Use Ultimate<a class="headerlink" href="#use-ultimate" title="Permanent link"> #</a></h3>
 <p>Execute the <code>run_complete_analysis.sh</code> script.</p>
-<pre><code class="language-bash">$ cd /path/to/UReqCheck-linux
+<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> /path/to/UReqCheck-linux
 $ ./run_complete_analysis.sh path/to/repo/example_input/example_input.req path/to/repo/example_input path/to/repo/example_input
-</code></pre>
+</code></pre></div>
 <p>This will start Ultimate and run an analysis. The analysis checks for rt-inconsistency and vacuity and logs are be generated: </p>
 <ul>
 <li><code>hanfor/example/example_input.req.log</code></li>
@@ -831,23 +829,23 @@ $ ./run_complete_analysis.sh path/to/repo/example_input/example_input.req path/t
 <li><code>hanfor/example/logs/example_input/example_input.req.testgen.log</code></li>
 </ul>
 <h3 id="evaluate">Evaluate<a class="headerlink" href="#evaluate" title="Permanent link"> #</a></h3>
-<p>In <code>hanfor/example/example_input.req.log</code> we can see that Ultimate reports: </p>
-<pre><code> --- Results ---
+<p>In <code>hanfor/example/example_input.req.log</code> we can see that Ultimate reports: 
+<div class="highlight"><pre><span></span><code> --- Results ---
  * Results from de.uni_freiburg.informatik.ultimate.pea2boogie:
   - RequirementInconsistentErrorResult: Requirements set is inconsistent.
     Requirements set is inconsistent. Some invariants are already infeasible. Responsible requirements: REQ6_0, REQ3_0, REQ4_0
-</code></pre>
+</code></pre></div></p>
 <p>Now, if we investigate REQ3, REQ4 and REQ6:</p>
-<pre><code>REQ3_0: Globally, it is always the case that &quot;constraint1&quot; holds
+<p><div class="highlight"><pre><span></span><code>REQ3_0: Globally, it is always the case that &quot;constraint1&quot; holds
 REQ4_0: Globally, it is always the case that &quot;constraint2&quot; holds
 REQ6_0: Globally, it is never the case that &quot;constraint1 &amp;&amp; constraint2 &quot; holds
-</code></pre>
-<p>We directly see what the problem is: On one hand, our invariants demand that <code>constraint1</code> and <code>constraint2</code> always holds,
+</code></pre></div>
+We directly see what the problem is: On one hand, our invariants demand that <code>constraint1</code> and <code>constraint2</code> always holds,
 but on the other hand there is another invariant which demands that <code>constraint1</code> and <code>constraint2</code> never hold at the same time.
-Think about this as:</p>
-<pre><code>constraint1 &amp;&amp; constraint2 &amp;&amp; ((constraint1 &amp;&amp; !constraint2) || (!constraint1 &amp;&amp; constraint2))
-</code></pre>
-<p>this is clearly unsatisfiable.</p>
+Think about this as:
+<div class="highlight"><pre><span></span><code>constraint1 &amp;&amp; constraint2 &amp;&amp; ((constraint1 &amp;&amp; !constraint2) || (!constraint1 &amp;&amp; constraint2))
+</code></pre></div>
+this is clearly unsatisfiable.</p>
 <h3 id="alter-your-requirements">Alter your requirements<a class="headerlink" href="#alter-your-requirements" title="Permanent link"> #</a></h3>
 <p>We found an inconsistency in our requirements, that has to be fixed. 
 Let's assume you review your requirements and you recognize <code>REQ4</code> was defined wrong in the csv,
@@ -859,23 +857,23 @@ While reading over the requirements, you also recognize that <code>REQ1</code> a
 <li>Remove <code>REQ5</code></li>
 </ul>
 <p>and our csv file now looks as follows: </p>
-<pre><code class="language-bash">ID,Description,Type
-META1,This is an example for some requirements,meta
+<div class="highlight"><pre><span></span><code>ID,Description,Type
+META1,This is an example <span class="k">for</span> some requirements,meta
 META2,Next we define some requirements,meta
-REQ1,var1 is always greater than 5,requirement
-REQ2,var2 is always smaller than 10,requirement
+REQ1,var1 is always greater than <span class="m">5</span>,requirement
+REQ2,var2 is always smaller than <span class="m">10</span>,requirement
 REQ3,constraint1 always holds,requirement
 REQ4,constraint2 never holds,requirement
 REQ6,constraint1 and constraint2 never hold at the same time,requirement
-REQ7,if var3 = True then var4 = 0,requirement
-REQ8,if var3 = True then var4 = 1,requirement
-</code></pre>
+REQ7,if <span class="nv">var3</span> <span class="o">=</span> True <span class="k">then</span> <span class="nv">var4</span> <span class="o">=</span> <span class="m">0</span>,requirement
+REQ8,if <span class="nv">var3</span> <span class="o">=</span> True <span class="k">then</span> <span class="nv">var4</span> <span class="o">=</span> <span class="m">1</span>,requirement
+</code></pre></div>
 <h3 id="time-for-a-new-revision">Time for a new revision.<a class="headerlink" href="#time-for-a-new-revision" title="Permanent link"> #</a></h3>
 <p>We altered our requirements, we now need to create a new revision in Hanfor and change our formalizations.
 Execute: </p>
-<pre><code>$ cd hanfor
+<div class="highlight"><pre><span></span><code>$ cd hanfor
 $ python3 app.py -r -c example/example_input.csv example_tag
-</code></pre>
+</code></pre></div>
 <ul>
 <li>
 <p>Hanfor will then ask: <strong>"Which revision should I use as a base?"</strong>,
@@ -898,14 +896,14 @@ Open the formalization of <code>REQ4</code> and correct it to <code>Globally, it
 <li>Run Ultimate on the new requirements file.</li>
 </ol>
 <p>You can now examine the log created in <code>hanfor/example/logs/example_input/example_input.req.relevant.log</code>,
-which contains the following:</p>
-<pre><code>- ReqCheckFailResult [Line: -1]: Requirements REQ8_0, REQ7_0 are rt-inconsistent
-</code></pre>
+which contains the following:
+<div class="highlight"><pre><span></span><code>- ReqCheckFailResult [Line: -1]: Requirements REQ8_0, REQ7_0 are rt-inconsistent
+</code></pre></div></p>
 <p>A <code>ReqCheckFailResult</code> usually implies that something is broken, 
 Ultimate found that requirements <code>REQ7</code> and <code>REQ8</code> are rt-inconsistent, let's analyze this result:</p>
-<pre><code>REQ7,if var3 = True then var4 = 0,requirement
+<div class="highlight"><pre><span></span><code>REQ7,if var3 = True then var4 = 0,requirement
 REQ8,if var3 = True then var4 = 1,requirement
-</code></pre>
+</code></pre></div>
 <p>These two requirements collide, because they assign different values to <code>var4</code> when <code>var3</code> holds.
 This is especially bad in a realtime system, because it can happen that <code>var4 == 0</code> holds after a certain amount of time, 
 and <code>var4 == 1</code> holds at a later point of time or vice versa. Why is this bad? - because it can cause unexpected behaviour when a change propagates through the system.</p>

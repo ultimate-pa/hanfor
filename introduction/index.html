@@ -640,8 +640,8 @@
 <p>To make it possible for a computer to check a set of requirements for a given criteria, it has to "understand" the semantics of the requirements. This could be achieved by using formal languages, which usually share the fact that they are rarely understandable for humans.</p>
 <p>In this method we make use of a simple pattern language. The language is based on a restricted English grammar and hence looks like natural language. Requirements formalized in this specification language can automatically be translated into logics.</p>
 <h3 id="specification-language">Specification language<a class="headerlink" href="#specification-language" title="Permanent link"> #</a></h3>
-<p>The grammar of the specification language is given below. A requirement is defined by an ID, a scope and a pattern. Scope and pattern are parameterised by expressions over system observables and durations. Some patterns require a more detailed description concerning the order or the realtime occurence of events.</p>
-<pre><code>REQ      ::= ID: SCOPE, PATTERN .
+<p>The grammar of the specification language is given below. A requirement is defined by an ID, a scope and a pattern. Scope and pattern are parameterised by expressions over system observables and durations. Some patterns require a more detailed description concerning the order or the realtime occurence of events.
+<div class="highlight"><pre><span></span><code>REQ      ::= ID: SCOPE, PATTERN .
 SCOPE    ::= Globally  | Before EXPR  | After EXPR | Between EXPR and EXPR  | After EXPR until EXPR
 PATTERN  ::= It is never the case that EXPR holds
            | It is always the case that EXPR holds
@@ -669,7 +669,7 @@ REALTIME ::= Once EXPR becomes satisfied, it holds for at least DURATION
            | After EXPR holds for DURATION, then EXPR holds
            | After EXPR holds for DURATION and EXPR holds, then EXPR holds
            | If EXPR holds, then EXPR toggles EXPR at most DURATION later
-</code></pre>
+</code></pre></div></p>
 <p>Figure 2 shows the toolchain for the translation of an informal requirement into a formalized version. In the first step, the informal requirement, given in natural language, is translated into the specification language. This process is done manually. The requirement expressed in the specification language is then automatically translated into a formula in realtime logic (the Duration Calculus).</p>
 <figure id="figure-2"><img alt="Figure 2: A specification language for real-time requirements is used as an intermediate step in the translation from informal to formalized requirements." src="../img/toolchain_language.svg" title="Figure 2" /><figcaption>Figure 2: A specification language for real-time requirements is used as an intermediate step in the translation from informal to formalized requirements.</figcaption>
 </figure>
@@ -787,7 +787,7 @@ In case that there exist untestable requirements, the algorithm lists the set of
 </ul>
 </div>
 <p>The test generation tool outputs the following test case:</p>
-<pre><code>Case SystemTest:
+<div class="highlight"><pre><span></span><code>Case SystemTest:
 TestGeneratorResult:
 Found Test for: [C]
 Test Vector:
@@ -795,7 +795,7 @@ Set inputs:
 A := true, B := true
 Wait for at most 20 for:
 C == true, (req3)
-</code></pre>
+</code></pre></div>
 <p>The given test case tests the output variable <em>C</em> based on the third requirement. The input sequence is specified by an initial state only, in which both input variables <em>A</em> and <em>B</em> are set to <em>true</em>. The output variable <em>C</em> is expected to evaluate to <em>true</em> after at most 20 time units.</p>
 <h2 id="tool-support">Tool support<a class="headerlink" href="#tool-support" title="Permanent link"> #</a></h2>
 <p>Hanfor takes as input an exported .csv file from Doors and stores the requirements. Figure 7 shows a screenshot of requirements imported into a Hanfor session.

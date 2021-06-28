@@ -568,11 +568,11 @@
 
 <h2 id="precedencechain12pattern">PrecedenceChain12Pattern<a class="headerlink" href="#precedencechain12pattern" title="Permanent link"> #</a></h2>
 <h3 id="precedencechain12pattern-globally">PrecedenceChain12Pattern Globally<a class="headerlink" href="#precedencechain12pattern-globally" title="Permanent link"> #</a></h3>
-<pre><code>Globally, it is always the case that if &quot;S&quot; holds and is succeeded by &quot;R&quot;, then &quot;Q&quot; previously held
-</code></pre>
+<div class="highlight"><pre><span></span><code>Globally, it is always the case that if &quot;S&quot; holds and is succeeded by &quot;R&quot;, then &quot;Q&quot; previously held
+</code></pre></div>
 <h4 id="countertraces">Countertraces<a class="headerlink" href="#countertraces" title="Permanent link"> #</a></h4>
-<pre><code>⌈!Q⌉;⌈S⌉;true;⌈R⌉;true
-</code></pre>
+<div class="highlight"><pre><span></span><code>⌈!Q⌉;⌈S⌉;true;⌈R⌉;true
+</code></pre></div>
 <h4 id="phase-event-automata">Phase Event Automata<a class="headerlink" href="#phase-event-automata" title="Permanent link"> #</a></h4>
 <p><img alt="" src="../img/patterns/PrecedenceChain12Pattern_Globally_0.svg" /></p>
 <h4 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link"> #</a></h4>
@@ -619,11 +619,11 @@
 </tbody>
 </table>
 <h3 id="precedencechain12pattern-before">PrecedenceChain12Pattern Before<a class="headerlink" href="#precedencechain12pattern-before" title="Permanent link"> #</a></h3>
-<pre><code>Before &quot;Q&quot;, it is always the case that if &quot;T&quot; holds and is succeeded by &quot;S&quot;, then &quot;R&quot; previously held
-</code></pre>
+<div class="highlight"><pre><span></span><code>Before &quot;Q&quot;, it is always the case that if &quot;T&quot; holds and is succeeded by &quot;S&quot;, then &quot;R&quot; previously held
+</code></pre></div>
 <h4 id="countertraces_1">Countertraces<a class="headerlink" href="#countertraces_1" title="Permanent link"> #</a></h4>
-<pre><code>⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; T)⌉;⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉;true
-</code></pre>
+<div class="highlight"><pre><span></span><code>⌈(!Q &amp;&amp; !R)⌉;⌈(!Q &amp;&amp; T)⌉;⌈!Q⌉;⌈(!Q &amp;&amp; S)⌉;true
+</code></pre></div>
 <h4 id="phase-event-automata_1">Phase Event Automata<a class="headerlink" href="#phase-event-automata_1" title="Permanent link"> #</a></h4>
 <p><img alt="" src="../img/patterns/PrecedenceChain12Pattern_Before_0.svg" /></p>
 <h4 id="examples_1">Examples<a class="headerlink" href="#examples_1" title="Permanent link"> #</a></h4>
@@ -654,11 +654,11 @@
 </tbody>
 </table>
 <h3 id="precedencechain12pattern-after">PrecedenceChain12Pattern After<a class="headerlink" href="#precedencechain12pattern-after" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot;, it is always the case that if &quot;T&quot; holds and is succeeded by &quot;S&quot;, then &quot;R&quot; previously held
-</code></pre>
+<div class="highlight"><pre><span></span><code>After &quot;Q&quot;, it is always the case that if &quot;T&quot; holds and is succeeded by &quot;S&quot;, then &quot;R&quot; previously held
+</code></pre></div>
 <h4 id="countertraces_2">Countertraces<a class="headerlink" href="#countertraces_2" title="Permanent link"> #</a></h4>
-<pre><code>true;⌈Q⌉;⌈!R⌉;⌈T⌉;true;⌈S⌉;true
-</code></pre>
+<div class="highlight"><pre><span></span><code>true;⌈Q⌉;⌈!R⌉;⌈T⌉;true;⌈S⌉;true
+</code></pre></div>
 <h4 id="phase-event-automata_2">Phase Event Automata<a class="headerlink" href="#phase-event-automata_2" title="Permanent link"> #</a></h4>
 <p><img alt="" src="../img/patterns/PrecedenceChain12Pattern_After_0.svg" /></p>
 <h4 id="examples_2">Examples<a class="headerlink" href="#examples_2" title="Permanent link"> #</a></h4>
@@ -749,11 +749,11 @@
 </tbody>
 </table>
 <h3 id="precedencechain12pattern-between">PrecedenceChain12Pattern Between<a class="headerlink" href="#precedencechain12pattern-between" title="Permanent link"> #</a></h3>
-<pre><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;U&quot; holds and is succeeded by &quot;T&quot;, then &quot;S&quot; previously held
-</code></pre>
+<div class="highlight"><pre><span></span><code>Between &quot;Q&quot; and &quot;R&quot;, it is always the case that if &quot;U&quot; holds and is succeeded by &quot;T&quot;, then &quot;S&quot; previously held
+</code></pre></div>
 <h4 id="countertraces_3">Countertraces<a class="headerlink" href="#countertraces_3" title="Permanent link"> #</a></h4>
-<pre><code>true;⌈(Q &amp;&amp; !R)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉;⌈!R⌉;⌈R⌉;true
-</code></pre>
+<div class="highlight"><pre><span></span><code>true;⌈(Q &amp;&amp; !R)⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉;⌈!R⌉;⌈R⌉;true
+</code></pre></div>
 <h4 id="phase-event-automata_3">Phase Event Automata<a class="headerlink" href="#phase-event-automata_3" title="Permanent link"> #</a></h4>
 <p><img alt="" src="../img/patterns/PrecedenceChain12Pattern_Between_0.svg" /></p>
 <h4 id="examples_3">Examples<a class="headerlink" href="#examples_3" title="Permanent link"> #</a></h4>
@@ -832,11 +832,11 @@
 </tbody>
 </table>
 <h3 id="precedencechain12pattern-afteruntil">PrecedenceChain12Pattern AfterUntil<a class="headerlink" href="#precedencechain12pattern-afteruntil" title="Permanent link"> #</a></h3>
-<pre><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;U&quot; holds and is succeeded by &quot;T&quot;, then &quot;S&quot; previously held
-</code></pre>
+<div class="highlight"><pre><span></span><code>After &quot;Q&quot; until &quot;R&quot;, it is always the case that if &quot;U&quot; holds and is succeeded by &quot;T&quot;, then &quot;S&quot; previously held
+</code></pre></div>
 <h4 id="countertraces_4">Countertraces<a class="headerlink" href="#countertraces_4" title="Permanent link"> #</a></h4>
-<pre><code>true;⌈Q⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉;true
-</code></pre>
+<div class="highlight"><pre><span></span><code>true;⌈Q⌉;⌈(!R &amp;&amp; !S)⌉;⌈(!R &amp;&amp; U)⌉;⌈!R⌉;⌈(!R &amp;&amp; T)⌉;true
+</code></pre></div>
 <h4 id="phase-event-automata_4">Phase Event Automata<a class="headerlink" href="#phase-event-automata_4" title="Permanent link"> #</a></h4>
 <p><img alt="" src="../img/patterns/PrecedenceChain12Pattern_AfterUntil_0.svg" /></p>
 <h4 id="examples_4">Examples<a class="headerlink" href="#examples_4" title="Permanent link"> #</a></h4>
