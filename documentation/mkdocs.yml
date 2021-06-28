@@ -7,6 +7,7 @@ use_directory_urls: false
 
 theme:
   name: 'material'
+  custom_dir: 'overrides'
   features:
     - navigation.top
     - navigation.tracking
@@ -18,20 +19,28 @@ extra_css:
   - 'stylesheets/extra.css'
 
 markdown_extensions:
+  - admonition
+  - attr_list
+  - extra
+  - figureAltCaption
+  - footnotes
   - markdown_include.include:
       base_path: docs
+  - meta
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+      options:
+        custom_icons:
+          - overrides/.icons
+  - pymdownx.superfences
+  - sane_lists
   - toc:
       toc_depth: 2
       permalink: ' #'
-  - admonition
-  - attr_list
-  - footnotes
-  - meta
-  - sane_lists
-  - figureAltCaption
   #- mdlightbox
-  - extra
-
+  
 plugins:
   - awesome-pages
   - search
