@@ -2,6 +2,11 @@ toc_depth: 1
 
 # Publications
 
+* Samuel Becker, Daniel Dietsch, Nico Hauff, Elisabeth Henkel, Vincent Langenfeld, Andreas Podelski, Bernd Westphal.
+  *Hanfor: Semantic Requirements Review at Scale.*
+  In *REFSQ Workshops 2021*.
+  [<a href="http://ceur-ws.org/Vol-2857/pt3.pdf">doi</a>&nbsp;|&nbsp;<a href="publications/hanfor-semantic-requirements-review-at-scale.pdf">pdf</a>]
+
 * Vincent Langenfeld, Daniel Dietsch, Bernd Westphal, Jochen Hoenicke, and Amalinda Post.
   *Scalable Analysis of Real-Time Requirements.*
   [<a href="http://dx.doi.org/10.1109/RE.2019.00033">doi</a>&nbsp;|&nbsp;<a href="publications/scalable-analysis.pdf">pdf</a>]
