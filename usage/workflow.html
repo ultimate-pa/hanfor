@@ -660,11 +660,13 @@ and rows with type <code>requirement</code> contain actual requirements of the m
 <li>Start Hanfor: 
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span> hanfor
 python3 app.py -c ../example_input/example_input.csv awesome_tag
-</code></pre></div>
-- <code>-c example_input.csv</code> specifies the csv input file we pass.
-- <code>example_tag</code> is some meaningful tag you want to give this session.
-If you start Hanfor later with the same tag, you'll start exactly this session.</li>
+</code></pre></div></li>
 </ol>
+<ul>
+<li><code>-c example_input.csv</code> specifies the csv input file we pass.</li>
+<li><code>example_tag</code> is some meaningful tag you want to give this session.</li>
+</ul>
+<p>If you start Hanfor later with the same tag, you'll start exactly this session.</p>
 <p>Currently the startup of Hanfor is interactive and looks like this:
 <div class="highlight"><pre><span></span><code><span class="o">(</span>venv<span class="o">)</span> bree@titan:~/repos/hanfor/hanfor$ python3 app.py -c ../example_input/example_input.csv awesome_tag
 <span class="m">2019</span>-10-10 <span class="m">13</span>:55:17,845: <span class="o">[</span>DEBUG<span class="o">]</span>: Enabled logging.
@@ -703,7 +705,7 @@ Select <span class="nb">type</span> header.
 <span class="o">[</span>Choice or Enter <span class="k">for</span>  -&gt; default<span class="o">]</span>&gt; <span class="m">2</span>
 </code></pre></div></p>
 <p>Alternatively you can directly pass the header definition, using <code>--header</code>: 
-<div class="highlight"><pre><span></span><code>python3 app.py -c example_input/example_input.csv --header=&#39;{&quot;csv_id_header&quot;: &quot;ID&quot;, &quot;csv_desc_header&quot;: &quot;Description&quot;, &quot;csv_formal_header&quot;: &quot;Hanfor_Formalization&quot;, &quot;csv_type_header&quot; : &quot;Type&quot;}&#39; awesome_tag
+<div class="highlight"><pre><span></span><code>python3 app.py -c example_input/example_input.csv --header<span class="o">=</span><span class="s1">&#39;{&quot;csv_id_header&quot;: &quot;ID&quot;, &quot;csv_desc_header&quot;: &quot;Description&quot;, &quot;csv_formal_header&quot;: &quot;Hanfor_Formalization&quot;, &quot;csv_type_header&quot; : &quot;Type&quot;}&#39;</span> awesome_tag
 </code></pre></div></p>
 <p>you can now reach Hanfor by visiting <a href="http://127.0.0.1:5000">http://127.0.0.1:5000</a></p>
 <p><img alt="Hanfor requirement overview" src="../img/hanfor01.png" title="This is how Hanfor looks like after you started it" /></p>
@@ -801,7 +803,7 @@ The script is located in <code>UReqCheck-linux</code>.</p>
 <ul>
 <li>You have to configure <code>run_complete_analysis.sh</code>, which is used to run the complete analysis.
 The script takes several arguments:
-<div class="highlight"><pre><span></span><code>run_complete_analysis.sh &lt;req_file&gt; &lt;req_repo_folder&gt; &lt;req_folder&gt; [&lt;rt_inconsistency_range&gt; &lt;timeout_per_assertion&gt;]
+<div class="highlight"><pre><span></span><code>run_complete_analysis.sh &lt;req_file&gt; &lt;req_repo_folder&gt; &lt;req_folder&gt; <span class="o">[</span>&lt;rt_inconsistency_range&gt; &lt;timeout_per_assertion&gt;<span class="o">]</span>
 </code></pre></div></li>
 </ul>
 <p>Where:
@@ -813,8 +815,8 @@ Careful with this parameter, it will blow up the amount of checks really fast.
 * <code>timeout_per_assertion</code> (default: 900) The time how long a singles assertion is checked.</p>
 <h3 id="use-ultimate">Use Ultimate<a class="headerlink" href="#use-ultimate" title="Permanent link"> #</a></h3>
 <p>Execute the <code>run_complete_analysis.sh</code> script.</p>
-<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> /path/to/UReqCheck-linux
-$ ./run_complete_analysis.sh path/to/repo/example_input/example_input.req path/to/repo/example_input path/to/repo/example_input
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span> /path/to/UReqCheck-linux
+./run_complete_analysis.sh path/to/repo/example_input/example_input.req path/to/repo/example_input path/to/repo/example_input
 </code></pre></div>
 <p>This will start Ultimate and run an analysis. The analysis checks for rt-inconsistency and vacuity and logs are be generated: </p>
 <ul>
@@ -866,8 +868,8 @@ REQ8,if <span class="nv">var3</span> <span class="o">=</span> True <span class="
 <h3 id="time-for-a-new-revision">Time for a new revision.<a class="headerlink" href="#time-for-a-new-revision" title="Permanent link"> #</a></h3>
 <p>We altered our requirements, we now need to create a new revision in Hanfor and change our formalizations.
 Execute: </p>
-<div class="highlight"><pre><span></span><code>$ cd hanfor
-$ python3 app.py -r -c example/example_input.csv example_tag
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span> hanfor
+python3 app.py -r -c example/example_input.csv example_tag
 </code></pre></div>
 <ul>
 <li>
@@ -989,7 +991,7 @@ and <code>var4 == 1</code> holds at a later point of time or vice versa. Why is 
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.top", "navigation.tracking", "navigation.sections", "toc.integrate", "search.share"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.b0710199.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.tabs.link", "navigation.top", "navigation.tracking", "navigation.sections", "search.share", "toc.integrate"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.b0710199.min.js", "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.76f349be.min.js"></script>
