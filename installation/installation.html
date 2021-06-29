@@ -646,43 +646,52 @@ pip --version
 <h2 id="install-hanfor">Install Hanfor<a class="headerlink" href="#install-hanfor" title="Permanent link"> #</a></h2>
 <p>To get Hanfor either download the .zip file or clone the repository.</p>
 <h3 id="download-zip-file">Download .zip file<a class="headerlink" href="#download-zip-file" title="Permanent link"> #</a></h3>
-<p>Download <a href="https://github.com/ultimate-pa/hanfor/archive/master.zip">Hanfor</a> and unzip it.<br />
-Rename the root folder <code>hanfor-master</code> to <code>hanfor</code>.
-<div class="highlight"><pre><span></span><code><span class="c1"># Linux</span>
-mv hanfor-master hanfor
-
-<span class="c1"># Windows</span>
-move hanfor-master hanfor
-</code></pre></div></p>
+<p>Download <a href="https://github.com/ultimate-pa/hanfor/archive/master.zip">Hanfor</a> and unzip it.
+Rename the root folder <code>hanfor-master</code> to <code>hanfor</code>.</p>
+<div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Linux</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>mv hanfor-master hanfor
+</code></pre></div>
+</div>
+<input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><label for="__tabbed_1_2">Windows</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>move hanfor-master hanfor
+</code></pre></div>
+</div>
+</div>
 <h3 id="clone-the-repository">Clone the repository<a class="headerlink" href="#clone-the-repository" title="Permanent link"> #</a></h3>
-<div class="highlight"><pre><span></span><code>$ git clone https://github.com/ultimate-pa/hanfor.git -b master --single-branch 
+<div class="highlight"><pre><span></span><code>git clone https://github.com/ultimate-pa/hanfor.git -b master --single-branch 
 </code></pre></div>
 <h2 id="install-dependencies">Install dependencies<a class="headerlink" href="#install-dependencies" title="Permanent link"> #</a></h2>
-<p>We recommend to use a <a href="https://docs.python.org/3/tutorial/venv.html">virtual environment</a>.
-<div class="highlight"><pre><span></span><code><span class="c1"># Linux</span>
-<span class="nb">cd</span> hanfor/hanfor
+<p>We recommend to use a <a href="https://docs.python.org/3/tutorial/venv.html">virtual environment</a>.</p>
+<div class="tabbed-set" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><label for="__tabbed_2_1">Linux</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span> hanfor/hanfor
 python -m venv hanfor_venv
 <span class="nb">source</span> hanfor_venv/bin/activate
-
-<span class="c1"># Windows</span>
-<span class="nb">cd</span> hanfor<span class="se">\h</span>anfor
+</code></pre></div>
+</div>
+<input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><label for="__tabbed_2_2">Windows</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span> hanfor<span class="se">\h</span>anfor
 python -m venv hanfor_venv
 hanfor_venv<span class="se">\S</span>cripts<span class="se">\a</span>ctivate.bat
-</code></pre></div></p>
+</code></pre></div>
+</div>
+</div>
 <p>error: Microsoft Visual C++ 14.0 is required.
 Workloads &gt; C++ build tools
 Installation details &gt; Optional &gt; MSVC v142 - VS 2019 C++ x64/x86 build tools &amp;&amp; Windows 10 SDK</p>
 <p>Use <a href="https://pypi.org/project/pip/">pip</a> to install all required dependencies listed in <code>requirements.txt</code>.
-<div class="highlight"><pre><span></span><code>$ pip install -r requirements.txt
+<div class="highlight"><pre><span></span><code>pip install -r requirements.txt
 </code></pre></div></p>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link"> #</a></h2>
-<p>Copy the default config file <code>config.dist.py</code> to <code>config.py</code>.
-<div class="highlight"><pre><span></span><code><span class="c1"># Linux</span>
-$ cp config.dist.py config.py
-
-<span class="c1"># Windows</span>
-$ copy config.dist.py config.py
-</code></pre></div></p>
+<p>Copy the default config file <code>config.dist.py</code> to <code>config.py</code>.</p>
+<div class="tabbed-set" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><label for="__tabbed_3_1">Linux</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>cp config.dist.py config.py
+</code></pre></div>
+</div>
+<input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><label for="__tabbed_3_2">Windows</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>copy config.dist.py config.py
+</code></pre></div>
+</div>
+</div>
 <p>The config file <code>config.py</code> allows to change parameters like ...</p>
 <ul>
 <li><code>SESSION_BASE_FOLDER</code> where Hanfor sessions are stored</li>
@@ -691,7 +700,7 @@ $ copy config.dist.py config.py
 </ul>
 <h2 id="launch-a-hanfor-session">Launch a Hanfor session<a class="headerlink" href="#launch-a-hanfor-session" title="Permanent link"> #</a></h2>
 <h3 id="launch-a-new-session">Launch a new session<a class="headerlink" href="#launch-a-new-session" title="Permanent link"> #</a></h3>
-<p><div class="highlight"><pre><span></span><code>$ python app.py &lt;tag&gt; -c &lt;path_to_input_csv&gt;
+<p><div class="highlight"><pre><span></span><code>python app.py &lt;tag&gt; -c &lt;path_to_input_csv&gt;
 </code></pre></div>
 1. This creates a new session named by <code>&lt;tag&gt;</code> in the <code>SESSION_BASE_FOLDER</code>.
 2. It asks the user for a mapping of the the following csv header names.
@@ -703,10 +712,10 @@ $ copy config.dist.py config.py
 4. It serves the web interface on <code>HOST</code> and <code>PORT</code>.</p>
 <p>Open the web interface in your web browser at <a href="http://127.0.0.1:5000"><code>http://&lt;HOST&gt;:&lt;PORT&gt;</code></a>.</p>
 <h3 id="launch-an-existing-session">Launch an existing session<a class="headerlink" href="#launch-an-existing-session" title="Permanent link"> #</a></h3>
-<p><div class="highlight"><pre><span></span><code>$ python app.py &lt;tag&gt;
+<p><div class="highlight"><pre><span></span><code>python app.py &lt;tag&gt;
 </code></pre></div>
 To see all available tags use the <code>-L</code> switch.
-<div class="highlight"><pre><span></span><code>$ python app.py -L
+<div class="highlight"><pre><span></span><code>python app.py -L
 </code></pre></div>
 Open the web interface in your web browser at <a href="http://127.0.0.1:5000"><code>http://&lt;HOST&gt;:&lt;PORT&gt;</code></a>.</p>
 <h2 id="reqanalyzer">ReqAnalyzer<a class="headerlink" href="#reqanalyzer" title="Permanent link"> #</a></h2>
@@ -804,7 +813,7 @@ The asset you need is called <code>UReqCheck-linux.zip</code>. </p>
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.top", "navigation.tracking", "navigation.sections", "toc.integrate", "search.share"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.b0710199.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.tabs.link", "navigation.top", "navigation.tracking", "navigation.sections", "search.share", "toc.integrate"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.b0710199.min.js", "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.76f349be.min.js"></script>
