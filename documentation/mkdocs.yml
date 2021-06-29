@@ -7,14 +7,15 @@ use_directory_urls: false
 
 theme:
   name: 'material'
-  font: false
   custom_dir: 'overrides'
   features:
+    - content.tabs.link
     - navigation.top
     - navigation.tracking
     - navigation.sections
-    - toc.integrate
     - search.share
+    - toc.integrate
+  font: false
 
 extra_css:
   - 'stylesheets/extra.css'
@@ -35,7 +36,9 @@ markdown_extensions:
       options:
         custom_icons:
           - overrides/.icons
+  - pymdownx.highlight
   - pymdownx.superfences
+  - pymdownx.tabbed
   - sane_lists
   - toc:
       toc_depth: 2

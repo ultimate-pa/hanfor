@@ -27,16 +27,18 @@ and rows with type `requirement` contain actual requirements of the module you w
 ## Start Hanfor
 1. Configure Hanfor as explained in [Installation](/installation/installation.html)
 2. Start Hanfor: 
-```bash
+``` bash
 cd hanfor
 python3 app.py -c ../example_input/example_input.csv awesome_tag
 ```
-- `-c example_input.csv` specifies the csv input file we pass.
-- `example_tag` is some meaningful tag you want to give this session.
+
+* `-c example_input.csv` specifies the csv input file we pass.
+* `example_tag` is some meaningful tag you want to give this session.
+
 If you start Hanfor later with the same tag, you'll start exactly this session.
 
 Currently the startup of Hanfor is interactive and looks like this:
-```shell
+``` bash
 (venv) bree@titan:~/repos/hanfor/hanfor$ python3 app.py -c ../example_input/example_input.csv awesome_tag
 2019-10-10 13:55:17,845: [DEBUG]: Enabled logging.
 2019-10-10 13:55:17,858: [INFO]: Hanfor starts creating a revision.
@@ -75,7 +77,7 @@ Select type header.
 ```
 
 Alternatively you can directly pass the header definition, using `--header`: 
-``` 
+``` bash
 python3 app.py -c example_input/example_input.csv --header='{"csv_id_header": "ID", "csv_desc_header": "Description", "csv_formal_header": "Hanfor_Formalization", "csv_type_header" : "Type"}' awesome_tag
 ```
 
@@ -165,7 +167,7 @@ If you want to analyze the requirements using Ultimate, choose **Generate .req f
 and then save it.
 
 You should end up with the following:
-```plain
+```
 CONST MAX_TIME IS 50.0
 
 Input constraint1 IS bool
@@ -199,7 +201,7 @@ The script is located in `UReqCheck-linux`.
 
 - You have to configure `run_complete_analysis.sh`, which is used to run the complete analysis.
 The script takes several arguments:
-``` 
+``` bash
 run_complete_analysis.sh <req_file> <req_repo_folder> <req_folder> [<rt_inconsistency_range> <timeout_per_assertion>]
 ```
 
@@ -215,8 +217,8 @@ Careful with this parameter, it will blow up the amount of checks really fast.
 Execute the `run_complete_analysis.sh` script.
 
 ``` bash
-$ cd /path/to/UReqCheck-linux
-$ ./run_complete_analysis.sh path/to/repo/example_input/example_input.req path/to/repo/example_input path/to/repo/example_input
+cd /path/to/UReqCheck-linux
+./run_complete_analysis.sh path/to/repo/example_input/example_input.req path/to/repo/example_input path/to/repo/example_input
 ```
 
 This will start Ultimate and run an analysis. The analysis checks for rt-inconsistency and vacuity and logs are be generated: 
@@ -229,7 +231,7 @@ This will start Ultimate and run an analysis. The analysis checks for rt-inconsi
 ### Evaluate
 
 In `hanfor/example/example_input.req.log` we can see that Ultimate reports: 
-``` 
+```
  --- Results ---
  * Results from de.uni_freiburg.informatik.ultimate.pea2boogie:
   - RequirementInconsistentErrorResult: Requirements set is inconsistent.
@@ -281,9 +283,9 @@ REQ8,if var3 = True then var4 = 1,requirement
 We altered our requirements, we now need to create a new revision in Hanfor and change our formalizations.
 Execute: 
 
-``` 
-$ cd hanfor
-$ python3 app.py -r -c example/example_input.csv example_tag
+``` bash
+cd hanfor
+python3 app.py -r -c example/example_input.csv example_tag
 ```
 
 - Hanfor will then ask: **"Which revision should I use as a base?"**,

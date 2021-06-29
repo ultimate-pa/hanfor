@@ -16,15 +16,15 @@ name   | string         | Name of the Query to retrieve a single Query.
 reload | bool, optional |  Reevaluates all stored Queries. 
 
 ### Examples
-```bash
+``` bash
 # Show all stored Queries
-$ curl http://localhost:5000/api/query
+curl http://localhost:5000/api/query
 
 # Show only Queries which are named 'MyQuery' and re-evaluate the stored Query 
-$ curl http://localhost:5000/api/query?name=MyQuery&reload=true
+curl http://localhost:5000/api/query?name=MyQuery&reload=true
 
 # Using jq to parse the JSON response. Show only the name of the query with associated hits.
-$ curl http://localhost:5000/api/query\?reload\=true | jq -r '.data[] | {name: .name, hits: .hits}'
+curl http://localhost:5000/api/query\?reload\=true | jq -r '.data[] | {name: .name, hits: .hits}'
 ```
 
 ## Adding new queries
@@ -38,9 +38,9 @@ name | string | Name for the Query. Existing ones will be overridden.
 query | string | The search Query.
 
 ### Examples
-```bash
-$ curl -X POST -H 'Content-Type: application/json' \
- --data '{"name": "MyQuery", "query": "foo:AND:bar"}' http://localhost:5000/api/query
+``` bash
+curl -X POST -H 'Content-Type: application/json' \
+  --data '{"name": "MyQuery", "query": "foo:AND:bar"}' http://localhost:5000/api/query
 ```
 
 ## Deleting queries
@@ -54,14 +54,14 @@ name | string | Name for the Query to be deleted.
 names | list of strings | Queries by name to be deleted. 
 
 ### Examples
-```bash
+``` bash
 # Delete a single Query:
-$ curl -X DELETE -H 'Content-Type: application/json' \
- --data '{"name": "MyQuery"}' http://localhost:5000/api/query
+curl -X DELETE -H 'Content-Type: application/json' \
+  --data '{"name": "MyQuery"}' http://localhost:5000/api/query
 
 # Delete multiple Queries:
-$ curl -X DELETE -H 'Content-Type: application/json' \
- --data '{"names": ["MyQuery", "Another"]' http://localhost:5000/api/query
+curl -X DELETE -H 'Content-Type: application/json' \
+  --data '{"names": ["MyQuery", "Another"]' http://localhost:5000/api/query
 ```
 
 ## Query syntax
@@ -97,22 +97,22 @@ To limit a part of the search Query to one attribute use the syntax
 `GET /api/quer?show=targets`
 
 ### Example
-```bash
+``` bash
 # Show attribute names available for specific search.
-$ curl http://localhost:5000/api/query?show=targets
+curl http://localhost:5000/api/query?show=targets
 ```
 
 **Default targets:**
 
 The available targets are composed of
-```json
+``` json
 [
-    "Description",
-    "Formalization",
-    "Id",
-    "Status",
-    "Tags",
-    "Type"
+  "Description",
+  "Formalization",
+  "Id",
+  "Status",
+  "Tags",
+  "Type"
 ]
 ```
 Plus the fields available in the associated CSV file the requirements origin from.

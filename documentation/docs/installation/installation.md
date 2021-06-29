@@ -7,7 +7,7 @@ toc_depth: 2
 * [pip](https://pypi.org/project/pip/) - Used to install all required dependencies.
 
 If python and pip are installed, their version can be checked from command line.
-```bash
+``` bash
 python --version
 
 pip --version
@@ -17,53 +17,59 @@ pip --version
 To get Hanfor either download the .zip file or clone the repository.
 
 ### Download .zip file
-Download [Hanfor](https://github.com/ultimate-pa/hanfor/archive/master.zip) and unzip it.  
+Download [Hanfor](https://github.com/ultimate-pa/hanfor/archive/master.zip) and unzip it.
 Rename the root folder `hanfor-master` to `hanfor`.
-```bash
-# Linux
-mv hanfor-master hanfor
 
-# Windows
-move hanfor-master hanfor
-```
+=== "Linux"
+    ``` bash
+    mv hanfor-master hanfor
+    ```
+=== "Windows"
+    ``` bash
+    move hanfor-master hanfor
+    ```
 
 ### Clone the repository
-```bash
-$ git clone https://github.com/ultimate-pa/hanfor.git -b master --single-branch 
+``` bash
+git clone https://github.com/ultimate-pa/hanfor.git -b master --single-branch 
 ```
 
 ## Install dependencies
 We recommend to use a [virtual environment](https://docs.python.org/3/tutorial/venv.html).
-```bash
-# Linux
-cd hanfor/hanfor
-python -m venv hanfor_venv
-source hanfor_venv/bin/activate
 
-# Windows
-cd hanfor\hanfor
-python -m venv hanfor_venv
-hanfor_venv\Scripts\activate.bat
-```
+=== "Linux"
+    ``` bash
+    cd hanfor/hanfor
+    python -m venv hanfor_venv
+    source hanfor_venv/bin/activate
+    ```
+=== "Windows"
+    ``` bash
+    cd hanfor\hanfor
+    python -m venv hanfor_venv
+    hanfor_venv\Scripts\activate.bat
+    ```
 
 error: Microsoft Visual C++ 14.0 is required.
 Workloads > C++ build tools
 Installation details > Optional > MSVC v142 - VS 2019 C++ x64/x86 build tools && Windows 10 SDK
 
 Use [pip](https://pypi.org/project/pip/) to install all required dependencies listed in `requirements.txt`.
-```bash
-$ pip install -r requirements.txt
+``` bash
+pip install -r requirements.txt
 ```
 
 ## Configuration
 Copy the default config file `config.dist.py` to `config.py`.
-```bash
-# Linux
-$ cp config.dist.py config.py
 
-# Windows
-$ copy config.dist.py config.py
-```
+=== "Linux"
+    ``` bash
+    cp config.dist.py config.py
+    ```
+=== "Windows"
+    ``` bash
+    copy config.dist.py config.py
+    ```
 
 The config file `config.py` allows to change parameters like ...
 
@@ -74,8 +80,8 @@ The config file `config.py` allows to change parameters like ...
 ## Launch a Hanfor session
 
 ### Launch a new session
-```bash
-$ python app.py <tag> -c <path_to_input_csv>
+``` bash
+python app.py <tag> -c <path_to_input_csv>
 ```
 1. This creates a new session named by `<tag>` in the `SESSION_BASE_FOLDER`.
 2. It asks the user for a mapping of the the following csv header names.
@@ -89,12 +95,12 @@ $ python app.py <tag> -c <path_to_input_csv>
 Open the web interface in your web browser at [`http://<HOST>:<PORT>`](http://127.0.0.1:5000).
 
 ### Launch an existing session
-```bash
-$ python app.py <tag>
+``` bash
+python app.py <tag>
 ```
 To see all available tags use the `-L` switch.
-```bash
-$ python app.py -L
+``` bash
+python app.py -L
 ```
 Open the web interface in your web browser at [`http://<HOST>:<PORT>`](http://127.0.0.1:5000).
  
