@@ -9,11 +9,9 @@ theme:
   name: 'material'
   custom_dir: 'overrides'
   features:
-    - content.tabs.link
     - navigation.top
     - navigation.tracking
     - navigation.sections
-    - search.share
     - toc.integrate
   font: false
 
@@ -23,7 +21,6 @@ extra_css:
 markdown_extensions:
   - admonition
   - attr_list
-  - extra
   - figureAltCaption
   - footnotes
   - markdown_include.include:
@@ -39,7 +36,6 @@ markdown_extensions:
   - pymdownx.highlight
   - pymdownx.superfences
   - pymdownx.tabbed
-  - sane_lists
   - toc:
       toc_depth: 2
       permalink: ' #'
