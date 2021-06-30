@@ -23,8 +23,6 @@ markdown_extensions:
   - attr_list
   - figureAltCaption
   - footnotes
-  - markdown_include.include:
-      base_path: docs
   - meta
   - pymdownx.details
   - pymdownx.emoji:
@@ -34,6 +32,7 @@ markdown_extensions:
         custom_icons:
           - overrides/.icons
   - pymdownx.highlight
+  - pymdownx.snippets
   - pymdownx.superfences
   - pymdownx.tabbed
   - toc:
