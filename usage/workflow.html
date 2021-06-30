@@ -12,7 +12,7 @@
         <link rel="canonical" href="https://ultimate-pa.github.io/hanfor/usage/workflow.html">
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1, mkdocs-material-7.1.8">
+      <meta name="generator" content="mkdocs-1.2.1, mkdocs-material-7.1.9">
     
     
       
@@ -657,15 +657,17 @@ and rows with type <code>requirement</code> contain actual requirements of the m
 <h2 id="start-hanfor">Start Hanfor<a class="headerlink" href="#start-hanfor" title="Permanent link"> #</a></h2>
 <ol>
 <li>Configure Hanfor as explained in <a href="/installation/installation.html">Installation</a></li>
-<li>Start Hanfor: 
+<li>
+<p>Start Hanfor: 
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span> hanfor
 python3 app.py -c ../example_input/example_input.csv awesome_tag
-</code></pre></div></li>
-</ol>
-<ul>
-<li><code>-c example_input.csv</code> specifies the csv input file we pass.</li>
+</code></pre></div></p>
+</li>
+<li>
+<p><code>-c example_input.csv</code> specifies the csv input file we pass.</p>
+</li>
 <li><code>example_tag</code> is some meaningful tag you want to give this session.</li>
-</ul>
+</ol>
 <p>If you start Hanfor later with the same tag, you'll start exactly this session.</p>
 <p>Currently the startup of Hanfor is interactive and looks like this:
 <div class="highlight"><pre><span></span><code><span class="o">(</span>venv<span class="o">)</span> bree@titan:~/repos/hanfor/hanfor$ python3 app.py -c ../example_input/example_input.csv awesome_tag
@@ -728,11 +730,11 @@ You should now only see the rows of type <code>meta</code>.</li>
 <p><img alt="Formalization modal" src="../img/hanfor02.png" title="This is how a formalization modal looks like" /></p>
 <ol>
 <li>Click on <strong>+</strong> to add a new formalization and then on <strong>..(click to open)</strong></li>
-<li>We now have to select a <em>Scope</em> and a <em>Pattern</em>.
-* The scope is <strong>Globally</strong>, because the requirement states that "var1 is <strong>always</strong> greater than 5".
-* The pattern is <strong>it is always the case that {R} holds</strong>.
-* For <strong>{R}</strong> we insert the condition: <code>var1 &gt; 5</code> 
-* Set the status to <strong>Review</strong> and then press <strong>save changes</strong>.
+<li>We now have to select a <em>Scope</em> and a <em>Pattern</em>.</li>
+<li>The scope is <strong>Globally</strong>, because the requirement states that "var1 is <strong>always</strong> greater than 5".</li>
+<li>The pattern is <strong>it is always the case that {R} holds</strong>.</li>
+<li>For <strong>{R}</strong> we insert the condition: <code>var1 &gt; 5</code> </li>
+<li>Set the status to <strong>Review</strong> and then press <strong>save changes</strong>.
 If you save a requirement, Hanfor will automatically create the used variables and derive their type.
 You can examine and even alter them in the section <strong>Variables</strong>, for the case that Hanfor did not derive a variable-type correctly.</li>
 </ol>
@@ -991,10 +993,10 @@ and <code>var4 == 1</code> holds at a later point of time or vice versa. Why is 
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": ["content.tabs.link", "navigation.top", "navigation.tracking", "navigation.sections", "search.share", "toc.integrate"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.b0710199.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.top", "navigation.tracking", "navigation.sections", "toc.integrate"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.477d984a.min.js", "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.76f349be.min.js"></script>
+      <script src="../assets/javascripts/bundle.82b56eb2.min.js"></script>
       
     
   </body>
