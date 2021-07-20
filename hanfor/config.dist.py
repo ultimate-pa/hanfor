@@ -357,6 +357,37 @@ PATTERNS = {
         'group': 'Real-time',
         'pattern_order': 0
     },
+    'EdgeResponsePatternDelayed': {
+        'pattern': 'it is always the case that once {R} becomes satisfied, {S} holds after at most {T} time units',
+        'env': {
+            'R': ['bool'],
+            'S': ['bool'],
+            'T': ['real', 'int']
+        },
+        'group': 'Real-time',
+        'pattern_order': 0
+    },
+    'BndEdgeResponsePattern': {
+        'pattern': 'it is always the case that once {R} becomes satisfied, {S} holds for at least {T} time units',
+        'env': {
+            'R': ['bool'],
+            'S': ['bool'],
+            'T': ['real', 'int']
+        },
+        'group': 'Real-time',
+        'pattern_order': 0
+    },
+    'BndEdgeResponsePatternDelayed': {
+        'pattern': 'it is always the case that once {R} becomes satisfied, {S} holds after at most {T} time units for at least {U} time units',
+        'env': {
+            'R': ['bool'],
+            'S': ['bool'],
+            'T': ['real', 'int'],
+            'U': ['real', 'int']
+        },
+        'group': 'Real-time',
+        'pattern_order': 0
+    },
     'NotFormalizable': {
         'pattern': '// not formalizable',
         'env': {
