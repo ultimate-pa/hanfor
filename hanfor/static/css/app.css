@@ -10,9 +10,12 @@
 
 body,
 body.modal-open{
-    overflow: visible;
     padding-right: 0 !important;
     position: inherit;
+}
+
+body.modal-open{
+    overflow: hidden;
 }
 
 #var_import_table > tbody > tr > td,
