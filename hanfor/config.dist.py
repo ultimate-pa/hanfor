@@ -388,6 +388,16 @@ PATTERNS = {
         'group': 'Real-time',
         'pattern_order': 0
     },
+    'BndEdgeResponsePatternTU ': {
+        'pattern': 'it is always the case that once {R} becomes satisfied and holds for at most {S} time units, then {T} holds  afterwards',
+        'env': {
+            'R': ['bool'],
+            'S': ['real', 'int'],
+            'T': ['bool']
+        },
+        'group': 'Real-time',
+        'pattern_order': 0
+    },
     'NotFormalizable': {
         'pattern': '// not formalizable',
         'env': {
