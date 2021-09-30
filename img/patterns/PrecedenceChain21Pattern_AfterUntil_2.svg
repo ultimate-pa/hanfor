@@ -9,835 +9,835 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 1495.02)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-1495.02 4246,-1495.02 4246,4 -4,4"/>
-<!-- _ID_91_ct2_st0 -->
-<!-- ID_91_ct2_st0 -->
+<!-- _ID_81_ct2_st0 -->
+<!-- ID_81_ct2_st0 -->
 <g id="node2" class="node">
-<title>ID_91_ct2_st0</title>
+<title>ID_81_ct2_st0</title>
 <polygon fill="none" stroke="black" points="261,-594.02 154,-594.02 154,-544.02 261,-544.02 261,-594.02"/>
-<text text-anchor="start" x="162" y="-579.82" font-family="arial" font-weight="bold" font-size="14.00">ID_91_ct2_st0</text>
+<text text-anchor="start" x="162" y="-579.82" font-family="arial" font-weight="bold" font-size="14.00">ID_81_ct2_st0</text>
 <text text-anchor="start" x="199.5" y="-565.82" font-family="arial" font-size="14.00" fill="#984ea3">!Q</text>
 <text text-anchor="start" x="195.5" y="-551.82" font-family="arial" font-size="14.00" fill="#ff7f00">true</text>
 </g>
-<!-- _ID_91_ct2_st0&#45;&gt;ID_91_ct2_st0 -->
+<!-- _ID_81_ct2_st0&#45;&gt;ID_81_ct2_st0 -->
 <g id="edge1" class="edge">
-<title>_ID_91_ct2_st0&#45;&gt;ID_91_ct2_st0</title>
+<title>_ID_81_ct2_st0&#45;&gt;ID_81_ct2_st0</title>
 <path fill="none" stroke="black" d="M111.08,-569.02C121.62,-569.02 132.74,-569.02 143.52,-569.02"/>
 <polygon fill="black" stroke="black" points="143.72,-572.52 153.72,-569.02 143.72,-565.52 143.72,-572.52"/>
 </g>
-<!-- ID_91_ct2_st0&#45;&gt;ID_91_ct2_st0 -->
+<!-- ID_81_ct2_st0&#45;&gt;ID_81_ct2_st0 -->
 <g id="edge5" class="edge">
-<title>ID_91_ct2_st0&#45;&gt;ID_91_ct2_st0</title>
+<title>ID_81_ct2_st0&#45;&gt;ID_81_ct2_st0</title>
 <path fill="none" stroke="black" d="M192.93,-594.2C192.28,-603.93 197.14,-612.02 207.5,-612.02 213.97,-612.02 218.3,-608.86 220.47,-604.12"/>
 <polygon fill="black" stroke="black" points="223.94,-604.63 222.07,-594.2 217.03,-603.52 223.94,-604.63"/>
 <text text-anchor="start" x="195.5" y="-615.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st01 -->
+<!-- ID_81_ct2_st01 -->
 <g id="node4" class="node">
-<title>ID_91_ct2_st01</title>
+<title>ID_81_ct2_st01</title>
 <polygon fill="none" stroke="black" points="472,-785.02 358,-785.02 358,-735.02 472,-735.02 472,-785.02"/>
-<text text-anchor="start" x="366" y="-770.82" font-family="arial" font-weight="bold" font-size="14.00">ID_91_ct2_st01</text>
+<text text-anchor="start" x="366" y="-770.82" font-family="arial" font-weight="bold" font-size="14.00">ID_81_ct2_st01</text>
 <text text-anchor="start" x="370.5" y="-756.82" font-family="arial" font-size="14.00" fill="#984ea3">(Q &amp;&amp; (R || S))</text>
 <text text-anchor="start" x="403" y="-742.82" font-family="arial" font-size="14.00" fill="#ff7f00">true</text>
 </g>
-<!-- ID_91_ct2_st0&#45;&gt;ID_91_ct2_st01 -->
+<!-- ID_81_ct2_st0&#45;&gt;ID_81_ct2_st01 -->
 <g id="edge6" class="edge">
-<title>ID_91_ct2_st0&#45;&gt;ID_91_ct2_st01</title>
+<title>ID_81_ct2_st0&#45;&gt;ID_81_ct2_st01</title>
 <path fill="none" stroke="black" d="M230.93,-594.15C245.83,-610.49 266.07,-632.03 285,-650.02 314.1,-677.68 348.81,-707.09 374.89,-728.53"/>
 <polygon fill="black" stroke="black" points="372.74,-731.3 382.69,-734.92 377.17,-725.88 372.74,-731.3"/>
 <text text-anchor="start" x="297.5" y="-696.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st012 -->
+<!-- ID_81_ct2_st012 -->
 <g id="node6" class="node">
-<title>ID_91_ct2_st012</title>
+<title>ID_81_ct2_st012</title>
 <polygon fill="none" stroke="black" points="733,-343.02 563,-343.02 563,-293.02 733,-293.02 733,-343.02"/>
-<text text-anchor="start" x="595" y="-328.82" font-family="arial" font-weight="bold" font-size="14.00">ID_91_ct2_st012</text>
+<text text-anchor="start" x="595" y="-328.82" font-family="arial" font-weight="bold" font-size="14.00">ID_81_ct2_st012</text>
 <text text-anchor="start" x="571" y="-314.82" font-family="arial" font-size="14.00" fill="#984ea3">(Q &amp;&amp; (!R &amp;&amp; (!S &amp;&amp; !T)))</text>
 <text text-anchor="start" x="636" y="-300.82" font-family="arial" font-size="14.00" fill="#ff7f00">true</text>
 </g>
-<!-- ID_91_ct2_st0&#45;&gt;ID_91_ct2_st012 -->
+<!-- ID_81_ct2_st0&#45;&gt;ID_81_ct2_st012 -->
 <g id="edge7" class="edge">
-<title>ID_91_ct2_st0&#45;&gt;ID_91_ct2_st012</title>
+<title>ID_81_ct2_st0&#45;&gt;ID_81_ct2_st012</title>
 <path fill="none" stroke="black" d="M213.49,-543.64C225.73,-489.55 262.96,-364.61 352,-324.02 414.57,-295.5 492.63,-295.24 552.73,-301.45"/>
 <polygon fill="black" stroke="black" points="552.65,-304.96 562.98,-302.58 553.43,-298 552.65,-304.96"/>
 <text text-anchor="start" x="403" y="-327.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st01234 -->
+<!-- ID_81_ct2_st01234 -->
 <g id="node8" class="node">
-<title>ID_91_ct2_st01234</title>
+<title>ID_81_ct2_st01234</title>
 <polygon fill="none" stroke="black" points="3667,-584.02 3501,-584.02 3501,-534.02 3667,-534.02 3667,-584.02"/>
-<text text-anchor="start" x="3523.5" y="-569.82" font-family="arial" font-weight="bold" font-size="14.00">ID_91_ct2_st01234</text>
+<text text-anchor="start" x="3523.5" y="-569.82" font-family="arial" font-weight="bold" font-size="14.00">ID_81_ct2_st01234</text>
 <text text-anchor="start" x="3509" y="-555.82" font-family="arial" font-size="14.00" fill="#984ea3">(Q &amp;&amp; (!R &amp;&amp; (!S &amp;&amp; T)))</text>
 <text text-anchor="start" x="3572" y="-541.82" font-family="arial" font-size="14.00" fill="#ff7f00">true</text>
 </g>
-<!-- ID_91_ct2_st0&#45;&gt;ID_91_ct2_st01234 -->
+<!-- ID_81_ct2_st0&#45;&gt;ID_81_ct2_st01234 -->
 <g id="edge8" class="edge">
-<title>ID_91_ct2_st0&#45;&gt;ID_91_ct2_st01234</title>
+<title>ID_81_ct2_st0&#45;&gt;ID_81_ct2_st01234</title>
 <path fill="none" stroke="black" d="M207.69,-543.79C205.91,-444.61 213.41,-87.02 414,-87.02 414,-87.02 414,-87.02 2791.5,-87.02 2917.06,-87.02 2951.38,-96.06 3069,-140.02 3131.12,-163.24 3136.39,-190.48 3198,-215.02 3271.81,-244.42 3299.32,-223.92 3372,-256.02 3426.69,-280.18 3444.82,-286.01 3483,-332.02 3531.55,-390.53 3560.7,-476.3 3574.11,-523.9"/>
 <polygon fill="black" stroke="black" points="3570.79,-525.02 3576.81,-533.74 3577.54,-523.17 3570.79,-525.02"/>
 <text text-anchor="start" x="1797" y="-90.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- _ID_91_ct2_st01 -->
-<!-- _ID_91_ct2_st01&#45;&gt;ID_91_ct2_st01 -->
+<!-- _ID_81_ct2_st01 -->
+<!-- _ID_81_ct2_st01&#45;&gt;ID_81_ct2_st01 -->
 <g id="edge2" class="edge">
-<title>_ID_91_ct2_st01&#45;&gt;ID_91_ct2_st01</title>
+<title>_ID_81_ct2_st01&#45;&gt;ID_81_ct2_st01</title>
 <path fill="none" stroke="black" d="M214.21,-1390.02C242.21,-1301.73 365.14,-914.08 402.92,-794.96"/>
 <polygon fill="black" stroke="black" points="406.31,-795.84 406,-785.25 399.64,-793.72 406.31,-795.84"/>
 </g>
-<!-- ID_91_ct2_st01&#45;&gt;ID_91_ct2_st0 -->
+<!-- ID_81_ct2_st01&#45;&gt;ID_81_ct2_st0 -->
 <g id="edge9" class="edge">
-<title>ID_91_ct2_st01&#45;&gt;ID_91_ct2_st0</title>
+<title>ID_81_ct2_st01&#45;&gt;ID_81_ct2_st0</title>
 <path fill="none" stroke="black" d="M403.53,-734.82C390.7,-706.49 366.58,-660.61 334,-631.02 315.66,-614.37 292.03,-601.15 270.22,-591.27"/>
 <polygon fill="black" stroke="black" points="271.58,-588.04 261.01,-587.23 268.77,-594.45 271.58,-588.04"/>
 <text text-anchor="start" x="285" y="-634.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || S&#39;)</text>
 </g>
-<!-- ID_91_ct2_st01&#45;&gt;ID_91_ct2_st01 -->
+<!-- ID_81_ct2_st01&#45;&gt;ID_81_ct2_st01 -->
 <g id="edge12" class="edge">
-<title>ID_91_ct2_st01&#45;&gt;ID_91_ct2_st01</title>
+<title>ID_81_ct2_st01&#45;&gt;ID_81_ct2_st01</title>
 <path fill="none" stroke="black" d="M395.58,-785.2C394.71,-794.93 401.19,-803.02 415,-803.02 423.63,-803.02 429.4,-799.86 432.3,-795.12"/>
 <polygon fill="black" stroke="black" points="435.75,-795.71 434.42,-785.2 428.91,-794.24 435.75,-795.71"/>
 <text text-anchor="start" x="403" y="-806.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st01&#45;&gt;ID_91_ct2_st012 -->
+<!-- ID_81_ct2_st01&#45;&gt;ID_81_ct2_st012 -->
 <g id="edge13" class="edge">
-<title>ID_91_ct2_st01&#45;&gt;ID_91_ct2_st012</title>
+<title>ID_81_ct2_st01&#45;&gt;ID_81_ct2_st012</title>
 <path fill="none" stroke="black" d="M420.35,-734.92C428.51,-694.73 449.65,-615.55 496,-567.02 512.62,-549.63 530.58,-563.28 545,-544.02 576.28,-502.27 542.54,-476.01 563,-428.02 575.29,-399.21 596.84,-371.22 615.03,-350.69"/>
 <polygon fill="black" stroke="black" points="617.7,-352.96 621.82,-343.2 612.51,-348.26 617.7,-352.96"/>
 <text text-anchor="start" x="508.5" y="-570.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st01&#45;&gt;ID_91_ct2_st01234 -->
+<!-- ID_81_ct2_st01&#45;&gt;ID_81_ct2_st01234 -->
 <g id="edge14" class="edge">
-<title>ID_91_ct2_st01&#45;&gt;ID_91_ct2_st01234</title>
+<title>ID_81_ct2_st01&#45;&gt;ID_81_ct2_st01234</title>
 <path fill="none" stroke="black" d="M472.01,-781.9C518.21,-797.97 585.87,-817.02 647,-817.02 647,-817.02 647,-817.02 1305,-817.02 1498.98,-817.02 1549.47,-827.77 1741,-797.02 1802.97,-787.08 1815.15,-769.67 1877,-759.02 2229.54,-698.35 3153.6,-788.53 3483,-649.02 3512.18,-636.67 3538.52,-612.13 3556.83,-591.79"/>
 <polygon fill="black" stroke="black" points="3559.49,-594.07 3563.44,-584.24 3554.22,-589.46 3559.49,-594.07"/>
 <text text-anchor="start" x="1972" y="-762.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st02 -->
+<!-- ID_81_ct2_st02 -->
 <g id="node9" class="node">
-<title>ID_91_ct2_st02</title>
+<title>ID_81_ct2_st02</title>
 <polygon fill="none" stroke="black" points="1037,-429.02 864,-429.02 864,-379.02 1037,-379.02 1037,-429.02"/>
-<text text-anchor="start" x="901.5" y="-414.82" font-family="arial" font-weight="bold" font-size="14.00">ID_91_ct2_st02</text>
+<text text-anchor="start" x="901.5" y="-414.82" font-family="arial" font-weight="bold" font-size="14.00">ID_81_ct2_st02</text>
 <text text-anchor="start" x="872" y="-400.82" font-family="arial" font-size="14.00" fill="#984ea3">(!Q &amp;&amp; (!R &amp;&amp; (!S &amp;&amp; !T)))</text>
 <text text-anchor="start" x="938.5" y="-386.82" font-family="arial" font-size="14.00" fill="#ff7f00">true</text>
 </g>
-<!-- ID_91_ct2_st01&#45;&gt;ID_91_ct2_st02 -->
+<!-- ID_81_ct2_st01&#45;&gt;ID_81_ct2_st02 -->
 <g id="edge10" class="edge">
-<title>ID_91_ct2_st01&#45;&gt;ID_91_ct2_st02</title>
+<title>ID_81_ct2_st01&#45;&gt;ID_81_ct2_st02</title>
 <path fill="none" stroke="black" d="M424.45,-734.77C436.26,-702.6 460.32,-646.76 496,-610.02 513.48,-592.03 530.81,-602.7 545,-582.02 575.02,-538.28 525.54,-501.59 563,-464.02 568.16,-458.85 740.97,-433.53 853.75,-417.48"/>
 <polygon fill="black" stroke="black" points="854.38,-420.92 863.79,-416.05 853.39,-413.99 854.38,-420.92"/>
 <text text-anchor="start" x="636" y="-467.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0234 -->
+<!-- ID_81_ct2_st0234 -->
 <g id="node10" class="node">
-<title>ID_91_ct2_st0234</title>
+<title>ID_81_ct2_st0234</title>
 <polygon fill="none" stroke="black" points="1389,-526.02 1219,-526.02 1219,-476.02 1389,-476.02 1389,-526.02"/>
-<text text-anchor="start" x="1247.5" y="-511.82" font-family="arial" font-weight="bold" font-size="14.00">ID_91_ct2_st0234</text>
+<text text-anchor="start" x="1247.5" y="-511.82" font-family="arial" font-weight="bold" font-size="14.00">ID_81_ct2_st0234</text>
 <text text-anchor="start" x="1227" y="-497.82" font-family="arial" font-size="14.00" fill="#984ea3">(!Q &amp;&amp; (!R &amp;&amp; (!S &amp;&amp; T)))</text>
 <text text-anchor="start" x="1292" y="-483.82" font-family="arial" font-size="14.00" fill="#ff7f00">true</text>
 </g>
-<!-- ID_91_ct2_st01&#45;&gt;ID_91_ct2_st0234 -->
+<!-- ID_81_ct2_st01&#45;&gt;ID_81_ct2_st0234 -->
 <g id="edge11" class="edge">
-<title>ID_91_ct2_st01&#45;&gt;ID_91_ct2_st0234</title>
+<title>ID_81_ct2_st01&#45;&gt;ID_81_ct2_st0234</title>
 <path fill="none" stroke="black" d="M443.54,-734.98C458.08,-723.23 476.86,-710.25 496,-703.02 722.14,-617.62 801.91,-703.3 1037,-647.02 1112.94,-628.85 1133.43,-623.15 1201,-584.02 1225.66,-569.74 1250.52,-549.66 1269.52,-532.83"/>
 <polygon fill="black" stroke="black" points="1271.93,-535.37 1277.02,-526.08 1267.25,-530.16 1271.93,-535.37"/>
 <text text-anchor="start" x="786.5" y="-670.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- _ID_91_ct2_st012 -->
-<!-- _ID_91_ct2_st012&#45;&gt;ID_91_ct2_st012 -->
+<!-- _ID_81_ct2_st012 -->
+<!-- _ID_81_ct2_st012&#45;&gt;ID_81_ct2_st012 -->
 <g id="edge3" class="edge">
-<title>_ID_91_ct2_st012&#45;&gt;ID_91_ct2_st012</title>
+<title>_ID_81_ct2_st012&#45;&gt;ID_81_ct2_st012</title>
 <path fill="none" stroke="black" d="M478.21,-353.1C501.21,-348.32 527.83,-342.79 553.03,-337.55"/>
 <polygon fill="black" stroke="black" points="553.9,-340.94 562.98,-335.48 552.47,-334.09 553.9,-340.94"/>
 </g>
-<!-- ID_91_ct2_st012&#45;&gt;ID_91_ct2_st0 -->
+<!-- ID_81_ct2_st012&#45;&gt;ID_81_ct2_st0 -->
 <g id="edge21" class="edge">
-<title>ID_91_ct2_st012&#45;&gt;ID_91_ct2_st0</title>
+<title>ID_81_ct2_st012&#45;&gt;ID_81_ct2_st0</title>
 <path fill="none" stroke="black" d="M580.36,-292.98C519.49,-273.93 427.72,-254.88 352,-280.02 248.08,-314.52 219.2,-464.82 211.34,-533.97"/>
 <polygon fill="black" stroke="black" points="207.86,-533.64 210.29,-543.96 214.82,-534.38 207.86,-533.64"/>
 <text text-anchor="start" x="390.5" y="-283.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || S&#39;)</text>
 </g>
-<!-- ID_91_ct2_st012&#45;&gt;ID_91_ct2_st01 -->
+<!-- ID_81_ct2_st012&#45;&gt;ID_81_ct2_st01 -->
 <g id="edge24" class="edge">
-<title>ID_91_ct2_st012&#45;&gt;ID_91_ct2_st01</title>
+<title>ID_81_ct2_st012&#45;&gt;ID_81_ct2_st01</title>
 <path fill="none" stroke="black" d="M627.3,-343.11C610.06,-365.24 584.47,-398.47 563,-428.02 532.2,-470.41 519.56,-478.22 496,-525.02 461.97,-592.63 436.98,-678.07 424.65,-725.06"/>
 <polygon fill="black" stroke="black" points="421.25,-724.2 422.13,-734.76 428.03,-725.96 421.25,-724.2"/>
 <text text-anchor="start" x="508.5" y="-528.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st012&#45;&gt;ID_91_ct2_st012 -->
+<!-- ID_81_ct2_st012&#45;&gt;ID_81_ct2_st012 -->
 <g id="edge25" class="edge">
-<title>ID_91_ct2_st012&#45;&gt;ID_91_ct2_st012</title>
+<title>ID_81_ct2_st012&#45;&gt;ID_81_ct2_st012</title>
 <path fill="none" stroke="black" d="M624.47,-343.2C623.42,-352.93 631.27,-361.02 648,-361.02 658.46,-361.02 665.45,-357.86 668.96,-353.12"/>
 <polygon fill="black" stroke="black" points="672.41,-353.76 671.53,-343.2 665.63,-352 672.41,-353.76"/>
 <text text-anchor="start" x="636" y="-364.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st012&#45;&gt;ID_91_ct2_st01234 -->
+<!-- ID_81_ct2_st012&#45;&gt;ID_81_ct2_st01234 -->
 <g id="edge26" class="edge">
-<title>ID_91_ct2_st012&#45;&gt;ID_91_ct2_st01234</title>
+<title>ID_81_ct2_st012&#45;&gt;ID_81_ct2_st01234</title>
 <path fill="none" stroke="black" d="M669.38,-292.79C714.11,-240.48 826.73,-125.02 949.5,-125.02 949.5,-125.02 949.5,-125.02 2791.5,-125.02 2802.22,-125.02 3377.54,-298.58 3483,-388.02 3526.58,-424.98 3555.71,-486 3570.8,-524.28"/>
 <polygon fill="black" stroke="black" points="3567.66,-525.87 3574.5,-533.96 3574.2,-523.37 3567.66,-525.87"/>
 <text text-anchor="start" x="2147" y="-128.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st012&#45;&gt;ID_91_ct2_st02 -->
+<!-- ID_81_ct2_st012&#45;&gt;ID_81_ct2_st02 -->
 <g id="edge22" class="edge">
-<title>ID_91_ct2_st012&#45;&gt;ID_91_ct2_st02</title>
+<title>ID_81_ct2_st012&#45;&gt;ID_81_ct2_st02</title>
 <path fill="none" stroke="black" d="M733.48,-312.99C769.11,-313.44 810.48,-317.43 846,-330.02 871.69,-339.13 896.65,-356.65 915.63,-372.35"/>
 <polygon fill="black" stroke="black" points="913.49,-375.13 923.38,-378.94 918.03,-369.8 913.49,-375.13"/>
 <text text-anchor="start" x="786.5" y="-333.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st012&#45;&gt;ID_91_ct2_st0234 -->
+<!-- ID_81_ct2_st012&#45;&gt;ID_81_ct2_st0234 -->
 <g id="edge23" class="edge">
-<title>ID_91_ct2_st012&#45;&gt;ID_91_ct2_st0234</title>
+<title>ID_81_ct2_st012&#45;&gt;ID_81_ct2_st0234</title>
 <path fill="none" stroke="black" d="M733.09,-308.85C768.1,-306.52 809.11,-305.74 846,-310.02 1011.29,-329.23 1056.53,-346.45 1201,-429.02 1222.05,-441.06 1244.18,-456.32 1262.43,-469.7"/>
 <polygon fill="black" stroke="black" points="1260.4,-472.55 1270.52,-475.69 1264.57,-466.93 1260.4,-472.55"/>
 <text text-anchor="start" x="938.5" y="-350.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- _ID_91_ct2_st01234 -->
-<!-- _ID_91_ct2_st01234&#45;&gt;ID_91_ct2_st01234 -->
+<!-- _ID_81_ct2_st01234 -->
+<!-- _ID_81_ct2_st01234&#45;&gt;ID_81_ct2_st01234 -->
 <g id="edge4" class="edge">
-<title>_ID_91_ct2_st01234&#45;&gt;ID_91_ct2_st01234</title>
+<title>_ID_81_ct2_st01234&#45;&gt;ID_81_ct2_st01234</title>
 <path fill="none" stroke="black" d="M3355.89,-438.76C3394.91,-442.04 3443.47,-450.08 3483,-469.02 3511.08,-482.48 3537.03,-506.33 3555.46,-526.09"/>
 <polygon fill="black" stroke="black" points="3553.07,-528.67 3562.38,-533.71 3558.25,-523.96 3553.07,-528.67"/>
 </g>
-<!-- ID_91_ct2_st01234&#45;&gt;ID_91_ct2_st0 -->
+<!-- ID_81_ct2_st01234&#45;&gt;ID_81_ct2_st0 -->
 <g id="edge51" class="edge">
-<title>ID_91_ct2_st01234&#45;&gt;ID_91_ct2_st0</title>
+<title>ID_81_ct2_st01234&#45;&gt;ID_81_ct2_st0</title>
 <path fill="none" stroke="black" d="M3581.38,-533.99C3576.45,-477.97 3557.1,-341.16 3483,-261.02 3264.76,-25.01 3112.95,-49.02 2791.5,-49.02 414,-49.02 414,-49.02 414,-49.02 350.77,-49.02 323.27,-58.69 285,-109.02 233.99,-176.11 215.35,-438.32 210.17,-533.91"/>
 <polygon fill="black" stroke="black" points="206.67,-533.77 209.64,-543.94 213.66,-534.14 206.67,-533.77"/>
 <text text-anchor="start" x="1761.5" y="-52.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (S&#39; &amp;&amp; T&#39;))</text>
 </g>
-<!-- ID_91_ct2_st01234&#45;&gt;ID_91_ct2_st01 -->
+<!-- ID_81_ct2_st01234&#45;&gt;ID_81_ct2_st01 -->
 <g id="edge55" class="edge">
-<title>ID_91_ct2_st01234&#45;&gt;ID_91_ct2_st01</title>
+<title>ID_81_ct2_st01234&#45;&gt;ID_81_ct2_st01</title>
 <path fill="none" stroke="black" d="M3509.51,-584.04C3500.66,-586.39 3491.68,-588.47 3483,-590.02 3434.37,-598.74 3421.34,-593.4 3372,-596.02 3171.9,-606.65 1769.51,-662.68 1571,-690.02 1488.86,-701.34 1471.26,-720.63 1389,-731.02 1050.21,-773.83 640.05,-767.13 482.26,-762.4"/>
 <polygon fill="black" stroke="black" points="482.34,-758.9 472.23,-762.1 482.12,-765.9 482.34,-758.9"/>
 <text text-anchor="start" x="1940" y="-670.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (T&#39; || !S&#39;))</text>
 </g>
-<!-- ID_91_ct2_st01234&#45;&gt;ID_91_ct2_st01234 -->
+<!-- ID_81_ct2_st01234&#45;&gt;ID_81_ct2_st01234 -->
 <g id="edge58" class="edge">
-<title>ID_91_ct2_st01234&#45;&gt;ID_91_ct2_st01234</title>
+<title>ID_81_ct2_st01234&#45;&gt;ID_81_ct2_st01234</title>
 <path fill="none" stroke="black" d="M3557.11,-584.2C3555.91,-593.93 3564.88,-602.02 3584,-602.02 3595.95,-602.02 3603.94,-598.86 3607.95,-594.12"/>
 <polygon fill="black" stroke="black" points="3611.41,-594.78 3610.89,-584.2 3604.7,-592.79 3611.41,-594.78"/>
 <text text-anchor="start" x="3572" y="-605.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st01234&#45;&gt;ID_91_ct2_st0234 -->
+<!-- ID_81_ct2_st01234&#45;&gt;ID_81_ct2_st0234 -->
 <g id="edge54" class="edge">
-<title>ID_91_ct2_st01234&#45;&gt;ID_91_ct2_st0234</title>
+<title>ID_81_ct2_st01234&#45;&gt;ID_81_ct2_st0234</title>
 <path fill="none" stroke="black" d="M3500.98,-541.18C3494.91,-540.05 3488.87,-538.98 3483,-538.02 3300.86,-508.29 3253.21,-517.21 3069,-506.02 2331.6,-461.25 2141.67,-402.38 1407,-480.02 1404.44,-480.29 1401.86,-480.6 1399.25,-480.93"/>
 <polygon fill="black" stroke="black" points="1398.54,-477.5 1389.12,-482.36 1399.52,-484.43 1398.54,-477.5"/>
 <text text-anchor="start" x="2466" y="-466.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st024 -->
+<!-- ID_81_ct2_st024 -->
 <g id="node11" class="node">
-<title>ID_91_ct2_st024</title>
+<title>ID_81_ct2_st024</title>
 <polygon fill="none" stroke="black" points="3964,-424.02 3791,-424.02 3791,-374.02 3964,-374.02 3964,-424.02"/>
-<text text-anchor="start" x="3824.5" y="-409.82" font-family="arial" font-weight="bold" font-size="14.00">ID_91_ct2_st024</text>
+<text text-anchor="start" x="3824.5" y="-409.82" font-family="arial" font-weight="bold" font-size="14.00">ID_81_ct2_st024</text>
 <text text-anchor="start" x="3799" y="-395.82" font-family="arial" font-size="14.00" fill="#984ea3">(!Q &amp;&amp; (!R &amp;&amp; (!S &amp;&amp; !T)))</text>
 <text text-anchor="start" x="3865.5" y="-381.82" font-family="arial" font-size="14.00" fill="#ff7f00">true</text>
 </g>
-<!-- ID_91_ct2_st01234&#45;&gt;ID_91_ct2_st024 -->
+<!-- ID_81_ct2_st01234&#45;&gt;ID_81_ct2_st024 -->
 <g id="edge53" class="edge">
-<title>ID_91_ct2_st01234&#45;&gt;ID_91_ct2_st024</title>
+<title>ID_81_ct2_st01234&#45;&gt;ID_81_ct2_st024</title>
 <path fill="none" stroke="black" d="M3599.15,-533.8C3615.96,-506.29 3646.61,-463.11 3685,-440.02 3713.65,-422.79 3748.54,-412.75 3780.66,-406.92"/>
 <polygon fill="black" stroke="black" points="3781.25,-410.37 3790.52,-405.24 3780.08,-403.46 3781.25,-410.37"/>
 <text text-anchor="start" x="3717" y="-443.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st056 -->
+<!-- ID_81_ct2_st056 -->
 <g id="node12" class="node">
-<title>ID_91_ct2_st056</title>
+<title>ID_81_ct2_st056</title>
 <polygon fill="none" stroke="black" points="4242,-1187.02 4024,-1187.02 4024,-1137.02 4242,-1137.02 4242,-1187.02"/>
-<text text-anchor="start" x="4080" y="-1172.82" font-family="arial" font-weight="bold" font-size="14.00">ID_91_ct2_st056</text>
+<text text-anchor="start" x="4080" y="-1172.82" font-family="arial" font-weight="bold" font-size="14.00">ID_81_ct2_st056</text>
 <text text-anchor="start" x="4032" y="-1158.82" font-family="arial" font-size="14.00" fill="#984ea3">(!Q &amp;&amp; (!R &amp;&amp; (S &amp;&amp; (!T &amp;&amp; !U))))</text>
 <text text-anchor="start" x="4121" y="-1144.82" font-family="arial" font-size="14.00" fill="#ff7f00">true</text>
 </g>
-<!-- ID_91_ct2_st01234&#45;&gt;ID_91_ct2_st056 -->
+<!-- ID_81_ct2_st01234&#45;&gt;ID_81_ct2_st056 -->
 <g id="edge52" class="edge">
-<title>ID_91_ct2_st01234&#45;&gt;ID_91_ct2_st056</title>
+<title>ID_81_ct2_st01234&#45;&gt;ID_81_ct2_st056</title>
 <path fill="none" stroke="black" d="M3587.83,-584.28C3597.47,-666.01 3631.37,-921.53 3685,-982.02 3785.84,-1095.76 3866.28,-1040.16 4006,-1100.02 4028.94,-1109.85 4053.69,-1121.73 4075.12,-1132.46"/>
 <polygon fill="black" stroke="black" points="4073.58,-1135.6 4084.09,-1136.97 4076.73,-1129.35 4073.58,-1135.6"/>
 <text text-anchor="start" x="3865.5" y="-1086.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0156 -->
+<!-- ID_81_ct2_st0156 -->
 <g id="node13" class="node">
-<title>ID_91_ct2_st0156</title>
+<title>ID_81_ct2_st0156</title>
 <polygon fill="none" stroke="black" points="2091,-833.02 1877,-833.02 1877,-783.02 2091,-783.02 2091,-833.02"/>
-<text text-anchor="start" x="1927.5" y="-818.82" font-family="arial" font-weight="bold" font-size="14.00">ID_91_ct2_st0156</text>
+<text text-anchor="start" x="1927.5" y="-818.82" font-family="arial" font-weight="bold" font-size="14.00">ID_81_ct2_st0156</text>
 <text text-anchor="start" x="1885" y="-804.82" font-family="arial" font-size="14.00" fill="#984ea3">(Q &amp;&amp; (!R &amp;&amp; (S &amp;&amp; (!T &amp;&amp; !U))))</text>
 <text text-anchor="start" x="1972" y="-790.82" font-family="arial" font-size="14.00" fill="#ff7f00">true</text>
 </g>
-<!-- ID_91_ct2_st01234&#45;&gt;ID_91_ct2_st0156 -->
+<!-- ID_81_ct2_st01234&#45;&gt;ID_81_ct2_st0156 -->
 <g id="edge56" class="edge">
-<title>ID_91_ct2_st01234&#45;&gt;ID_91_ct2_st0156</title>
+<title>ID_81_ct2_st01234&#45;&gt;ID_81_ct2_st0156</title>
 <path fill="none" stroke="black" d="M3575.13,-584.09C3562.3,-620.21 3533.16,-685.77 3483,-715.02 3483,-715.02 2109,-791.02 2109,-791.02 2106.45,-791.27 2103.86,-791.53 2101.26,-791.8"/>
 <polygon fill="black" stroke="black" points="2100.7,-788.34 2091.13,-792.9 2101.45,-795.3 2100.7,-788.34"/>
 <text text-anchor="start" x="2778.5" y="-758.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0124 -->
+<!-- ID_81_ct2_st0124 -->
 <g id="node14" class="node">
-<title>ID_91_ct2_st0124</title>
+<title>ID_81_ct2_st0124</title>
 <polygon fill="none" stroke="black" points="1741,-548.02 1571,-548.02 1571,-498.02 1741,-498.02 1741,-548.02"/>
-<text text-anchor="start" x="1599.5" y="-533.82" font-family="arial" font-weight="bold" font-size="14.00">ID_91_ct2_st0124</text>
+<text text-anchor="start" x="1599.5" y="-533.82" font-family="arial" font-weight="bold" font-size="14.00">ID_81_ct2_st0124</text>
 <text text-anchor="start" x="1579" y="-519.82" font-family="arial" font-size="14.00" fill="#984ea3">(Q &amp;&amp; (!R &amp;&amp; (!S &amp;&amp; !T)))</text>
 <text text-anchor="start" x="1644" y="-505.82" font-family="arial" font-size="14.00" fill="#ff7f00">true</text>
 </g>
-<!-- ID_91_ct2_st01234&#45;&gt;ID_91_ct2_st0124 -->
+<!-- ID_81_ct2_st01234&#45;&gt;ID_81_ct2_st0124 -->
 <g id="edge57" class="edge">
-<title>ID_91_ct2_st01234&#45;&gt;ID_91_ct2_st0124</title>
+<title>ID_81_ct2_st01234&#45;&gt;ID_81_ct2_st0124</title>
 <path fill="none" stroke="black" d="M3500.67,-551.74C3317.33,-536.16 2861.42,-501.02 2479,-501.02 1983,-501.02 1983,-501.02 1983,-501.02 1904.92,-501.02 1816.57,-507.38 1751.56,-513.26"/>
 <polygon fill="black" stroke="black" points="1750.97,-509.8 1741.33,-514.2 1751.6,-516.77 1750.97,-509.8"/>
 <text text-anchor="start" x="2605" y="-507.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st02&#45;&gt;ID_91_ct2_st0 -->
+<!-- ID_81_ct2_st02&#45;&gt;ID_81_ct2_st0 -->
 <g id="edge15" class="edge">
-<title>ID_91_ct2_st02&#45;&gt;ID_91_ct2_st0</title>
+<title>ID_81_ct2_st02&#45;&gt;ID_81_ct2_st0</title>
 <path fill="none" stroke="black" d="M863.92,-401.58C707.05,-398.56 380.76,-399.57 285,-456.02 255.01,-473.7 234.24,-508.32 221.99,-534.6"/>
 <polygon fill="black" stroke="black" points="218.74,-533.31 217.86,-543.86 225.13,-536.16 218.74,-533.31"/>
 <text text-anchor="start" x="496" y="-413.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || S&#39;)</text>
 </g>
-<!-- ID_91_ct2_st02&#45;&gt;ID_91_ct2_st01 -->
+<!-- ID_81_ct2_st02&#45;&gt;ID_81_ct2_st01 -->
 <g id="edge18" class="edge">
-<title>ID_91_ct2_st02&#45;&gt;ID_91_ct2_st01</title>
+<title>ID_81_ct2_st02&#45;&gt;ID_81_ct2_st01</title>
 <path fill="none" stroke="black" d="M903.75,-429.23C860.12,-453.09 792.44,-489.69 733,-520.02 706.93,-533.33 517.88,-615.58 496,-635.02 467.58,-660.29 445.34,-697.97 431.6,-725.35"/>
 <polygon fill="black" stroke="black" points="428.34,-724.05 427.09,-734.57 434.63,-727.12 428.34,-724.05"/>
 <text text-anchor="start" x="636" y="-600.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st02&#45;&gt;ID_91_ct2_st012 -->
+<!-- ID_81_ct2_st02&#45;&gt;ID_81_ct2_st012 -->
 <g id="edge19" class="edge">
-<title>ID_91_ct2_st02&#45;&gt;ID_91_ct2_st012</title>
+<title>ID_81_ct2_st02&#45;&gt;ID_81_ct2_st012</title>
 <path fill="none" stroke="black" d="M863.85,-379.51C826.05,-368.69 781.51,-355.94 742.81,-344.87"/>
 <polygon fill="black" stroke="black" points="743.68,-341.48 733.11,-342.09 741.76,-348.21 743.68,-341.48"/>
 <text text-anchor="start" x="786.5" y="-377.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st02&#45;&gt;ID_91_ct2_st01234 -->
+<!-- ID_81_ct2_st02&#45;&gt;ID_81_ct2_st01234 -->
 <g id="edge20" class="edge">
-<title>ID_91_ct2_st02&#45;&gt;ID_91_ct2_st01234</title>
+<title>ID_81_ct2_st02&#45;&gt;ID_81_ct2_st01234</title>
 <path fill="none" stroke="black" d="M1008.28,-378.86C1125.72,-326.93 1386.16,-212.32 1407,-208.02 1550.55,-178.45 2616.09,-128.06 2726,-225.02 2764.14,-258.66 2706.74,-303.41 2744,-338.02 2750.41,-343.98 3363.31,-389.99 3372,-391.02 3421.56,-396.9 3440.95,-381.14 3483,-408.02 3526.1,-435.58 3554.81,-489.11 3570.01,-524.46"/>
 <polygon fill="black" stroke="black" points="3566.87,-526.02 3573.94,-533.91 3573.33,-523.33 3566.87,-526.02"/>
 <text text-anchor="start" x="2325.5" y="-178.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st02&#45;&gt;ID_91_ct2_st02 -->
+<!-- ID_81_ct2_st02&#45;&gt;ID_81_ct2_st02 -->
 <g id="edge16" class="edge">
-<title>ID_91_ct2_st02&#45;&gt;ID_91_ct2_st02</title>
+<title>ID_81_ct2_st02&#45;&gt;ID_81_ct2_st02</title>
 <path fill="none" stroke="black" d="M922.11,-429.2C920.85,-438.93 930.31,-447.02 950.5,-447.02 963.12,-447.02 971.55,-443.86 975.78,-439.12"/>
 <polygon fill="black" stroke="black" points="979.24,-439.79 978.89,-429.2 972.56,-437.7 979.24,-439.79"/>
 <text text-anchor="start" x="938.5" y="-450.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st02&#45;&gt;ID_91_ct2_st0234 -->
+<!-- ID_81_ct2_st02&#45;&gt;ID_81_ct2_st0234 -->
 <g id="edge17" class="edge">
-<title>ID_91_ct2_st02&#45;&gt;ID_91_ct2_st0234</title>
+<title>ID_81_ct2_st02&#45;&gt;ID_81_ct2_st0234</title>
 <path fill="none" stroke="black" d="M1037.01,-427.08C1085.21,-440.14 1146.5,-456.85 1201,-472.02 1203.74,-472.79 1206.53,-473.56 1209.34,-474.35"/>
 <polygon fill="black" stroke="black" points="1208.4,-477.72 1218.97,-477.05 1210.29,-470.98 1208.4,-477.72"/>
 <text text-anchor="start" x="1116" y="-475.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0234&#45;&gt;ID_91_ct2_st0 -->
+<!-- ID_81_ct2_st0234&#45;&gt;ID_81_ct2_st0 -->
 <g id="edge43" class="edge">
-<title>ID_91_ct2_st0234&#45;&gt;ID_91_ct2_st0</title>
+<title>ID_81_ct2_st0234&#45;&gt;ID_81_ct2_st0</title>
 <path fill="none" stroke="black" d="M1218.77,-496.77C1071.97,-489.91 759.73,-477.78 496,-484.02 402.14,-486.25 371.05,-456.48 285,-494.02 264.39,-503.02 246.18,-520.25 232.7,-535.93"/>
 <polygon fill="black" stroke="black" points="229.76,-533.99 226.1,-543.93 235.16,-538.45 229.76,-533.99"/>
 <text text-anchor="start" x="600.5" y="-485.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (S&#39; &amp;&amp; T&#39;))</text>
 </g>
-<!-- ID_91_ct2_st0234&#45;&gt;ID_91_ct2_st01 -->
+<!-- ID_81_ct2_st0234&#45;&gt;ID_81_ct2_st01 -->
 <g id="edge47" class="edge">
-<title>ID_91_ct2_st0234&#45;&gt;ID_91_ct2_st01</title>
+<title>ID_81_ct2_st0234&#45;&gt;ID_81_ct2_st01</title>
 <path fill="none" stroke="black" d="M1218.76,-523.22C1127.36,-546.85 976.96,-584.42 846,-611.02 721.05,-636.4 686.19,-625.14 563,-658.02 532.29,-666.22 522.9,-666.09 496,-683.02 476.97,-695 458.67,-712.05 444.38,-727.07"/>
 <polygon fill="black" stroke="black" points="441.54,-724.99 437.3,-734.7 446.67,-729.75 441.54,-724.99"/>
 <text text-anchor="start" x="754.5" y="-629.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (T&#39; || !S&#39;))</text>
 </g>
-<!-- ID_91_ct2_st0234&#45;&gt;ID_91_ct2_st01234 -->
+<!-- ID_81_ct2_st0234&#45;&gt;ID_81_ct2_st01234 -->
 <g id="edge50" class="edge">
-<title>ID_91_ct2_st0234&#45;&gt;ID_91_ct2_st01234</title>
+<title>ID_81_ct2_st0234&#45;&gt;ID_81_ct2_st01234</title>
 <path fill="none" stroke="black" d="M1315.91,-475.84C1331.2,-443.97 1362.23,-390.18 1407,-365.02 1503.54,-310.78 1544.26,-341.02 1655,-341.02 1655,-341.02 1655,-341.02 2160,-341.02 2294.88,-341.02 3238.76,-389.04 3372,-410.02 3422.37,-417.96 3439.96,-411.69 3483,-439.02 3517.29,-460.8 3545.69,-498.18 3563.35,-525.44"/>
 <polygon fill="black" stroke="black" points="3560.4,-527.32 3568.7,-533.91 3566.32,-523.58 3560.4,-527.32"/>
 <text text-anchor="start" x="2466" y="-357.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0234&#45;&gt;ID_91_ct2_st0234 -->
+<!-- ID_81_ct2_st0234&#45;&gt;ID_81_ct2_st0234 -->
 <g id="edge46" class="edge">
-<title>ID_91_ct2_st0234&#45;&gt;ID_91_ct2_st0234</title>
+<title>ID_81_ct2_st0234&#45;&gt;ID_81_ct2_st0234</title>
 <path fill="none" stroke="black" d="M1271.13,-526.2C1269.67,-535.93 1280.62,-544.02 1304,-544.02 1318.97,-544.02 1328.85,-540.7 1333.63,-535.76"/>
 <polygon fill="black" stroke="black" points="1336.98,-536.79 1336.87,-526.2 1330.35,-534.55 1336.98,-536.79"/>
 <text text-anchor="start" x="1292" y="-547.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0234&#45;&gt;ID_91_ct2_st024 -->
+<!-- ID_81_ct2_st0234&#45;&gt;ID_81_ct2_st024 -->
 <g id="edge45" class="edge">
-<title>ID_91_ct2_st0234&#45;&gt;ID_91_ct2_st024</title>
+<title>ID_81_ct2_st0234&#45;&gt;ID_81_ct2_st024</title>
 <path fill="none" stroke="black" d="M1308.92,-475.8C1317.54,-429.76 1342.73,-332.64 1407,-287.02 1497.42,-222.85 1544.13,-260.02 1655,-260.02 1655,-260.02 1655,-260.02 2160,-260.02 2622.24,-260.02 2735.99,-209.47 3198,-195.02 3406.34,-188.51 3458.73,-187.61 3667,-196.02 3714.21,-197.93 3733.46,-178.17 3773,-204.02 3829.22,-240.78 3856.97,-318.59 3868.88,-364.03"/>
 <polygon fill="black" stroke="black" points="3865.49,-364.9 3871.32,-373.75 3872.28,-363.2 3865.49,-364.9"/>
 <text text-anchor="start" x="2605" y="-252.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0234&#45;&gt;ID_91_ct2_st056 -->
+<!-- ID_81_ct2_st0234&#45;&gt;ID_81_ct2_st056 -->
 <g id="edge44" class="edge">
-<title>ID_91_ct2_st0234&#45;&gt;ID_91_ct2_st056</title>
+<title>ID_81_ct2_st0234&#45;&gt;ID_81_ct2_st056</title>
 <path fill="none" stroke="black" d="M1311.56,-475.63C1327.24,-416.98 1368.47,-274.91 1407,-246.02 1495.6,-179.59 1544.26,-222.02 1655,-222.02 1655,-222.02 1655,-222.02 2160,-222.02 2288.6,-222.02 2320.21,-208.44 2448,-194.02 2595.34,-177.39 3644.55,39.05 3773,-35.02 3919.8,-119.67 3903.32,-206.8 3964,-365.02 4072.04,-646.74 4116.69,-1012.5 4128.56,-1126.51"/>
 <polygon fill="black" stroke="black" points="4125.11,-1127.16 4129.61,-1136.75 4132.07,-1126.44 4125.11,-1127.16"/>
 <text text-anchor="start" x="2778.5" y="-147.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0234&#45;&gt;ID_91_ct2_st0156 -->
+<!-- ID_81_ct2_st0234&#45;&gt;ID_81_ct2_st0156 -->
 <g id="edge48" class="edge">
-<title>ID_91_ct2_st0234&#45;&gt;ID_91_ct2_st0156</title>
+<title>ID_81_ct2_st0234&#45;&gt;ID_81_ct2_st0156</title>
 <path fill="none" stroke="black" d="M1319.72,-526.38C1337.11,-554.14 1368.6,-598.01 1407,-623.02 1582.16,-737.1 1662.55,-681.59 1859,-753.02 1879.73,-760.56 1901.89,-769.95 1921.66,-778.82"/>
 <polygon fill="black" stroke="black" points="1920.3,-782.05 1930.86,-782.98 1923.19,-775.67 1920.3,-782.05"/>
 <text text-anchor="start" x="1644" y="-722.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0234&#45;&gt;ID_91_ct2_st0124 -->
+<!-- ID_81_ct2_st0234&#45;&gt;ID_81_ct2_st0124 -->
 <g id="edge49" class="edge">
-<title>ID_91_ct2_st0234&#45;&gt;ID_91_ct2_st0124</title>
+<title>ID_81_ct2_st0234&#45;&gt;ID_81_ct2_st0124</title>
 <path fill="none" stroke="black" d="M1389.27,-488.96C1437.48,-484.14 1498.93,-481.49 1553,-490.02 1561.19,-491.32 1569.62,-493.16 1577.96,-495.32"/>
 <polygon fill="black" stroke="black" points="1577.12,-498.72 1587.69,-497.99 1578.97,-491.97 1577.12,-498.72"/>
 <text text-anchor="start" x="1468" y="-493.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st024&#45;&gt;ID_91_ct2_st0 -->
+<!-- ID_81_ct2_st024&#45;&gt;ID_81_ct2_st0 -->
 <g id="edge27" class="edge">
-<title>ID_91_ct2_st024&#45;&gt;ID_91_ct2_st0</title>
+<title>ID_81_ct2_st024&#45;&gt;ID_81_ct2_st0</title>
 <path fill="none" stroke="black" d="M3864.58,-373.9C3838.23,-318.45 3777.02,-190.22 3773,-187.02 3561.29,-18.66 3448,-86.71 3180,-50.02 2653.44,22.05 2516.47,-6.02 1985,-6.02 414,-6.02 414,-6.02 414,-6.02 351.85,-6.02 323.19,-10.99 285,-60.02 227.19,-134.24 212.73,-430.68 209.41,-533.6"/>
 <polygon fill="black" stroke="black" points="205.91,-533.68 209.1,-543.79 212.9,-533.9 205.91,-533.68"/>
 <text text-anchor="start" x="1936.5" y="-9.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (S&#39; &amp;&amp; T&#39;))</text>
 </g>
-<!-- ID_91_ct2_st024&#45;&gt;ID_91_ct2_st01 -->
+<!-- ID_81_ct2_st024&#45;&gt;ID_81_ct2_st01 -->
 <g id="edge31" class="edge">
-<title>ID_91_ct2_st024&#45;&gt;ID_91_ct2_st01</title>
+<title>ID_81_ct2_st024&#45;&gt;ID_81_ct2_st01</title>
 <path fill="none" stroke="black" d="M3867.66,-424.39C3821.53,-552.01 3594.41,-1123.19 3180,-1263.02 2988,-1327.81 2928.42,-1295.68 2726,-1305.02 2629.21,-1309.49 2604.76,-1309.98 2508,-1305.02 2089.55,-1283.57 1985.56,-1261.87 1571,-1201.02 1413.82,-1177.95 1017.3,-1136.71 864,-1095.02 772.35,-1070.1 574.1,-1019.75 496,-929.02 461.45,-888.88 438.44,-831.26 426.3,-794.74"/>
 <polygon fill="black" stroke="black" points="429.57,-793.48 423.16,-785.04 422.91,-795.63 429.57,-793.48"/>
 <text text-anchor="start" x="2115" y="-1288.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (T&#39; || !S&#39;))</text>
 </g>
-<!-- ID_91_ct2_st024&#45;&gt;ID_91_ct2_st01234 -->
+<!-- ID_81_ct2_st024&#45;&gt;ID_81_ct2_st01234 -->
 <g id="edge34" class="edge">
-<title>ID_91_ct2_st024&#45;&gt;ID_91_ct2_st01234</title>
+<title>ID_81_ct2_st024&#45;&gt;ID_81_ct2_st01234</title>
 <path fill="none" stroke="black" d="M3830.9,-424.05C3779.22,-452.42 3695.02,-498.64 3639.81,-528.94"/>
 <polygon fill="black" stroke="black" points="3637.95,-525.97 3630.87,-533.85 3641.32,-532.1 3637.95,-525.97"/>
 <text text-anchor="start" x="3717" y="-505.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st024&#45;&gt;ID_91_ct2_st0234 -->
+<!-- ID_81_ct2_st024&#45;&gt;ID_81_ct2_st0234 -->
 <g id="edge30" class="edge">
-<title>ID_91_ct2_st024&#45;&gt;ID_91_ct2_st0234</title>
+<title>ID_81_ct2_st024&#45;&gt;ID_81_ct2_st0234</title>
 <path fill="none" stroke="black" d="M3869.32,-373.9C3856.76,-334.85 3826.85,-260.33 3773,-224.02 3733.5,-197.39 3714.51,-211.59 3667,-208.02 3257.15,-177.26 3152.97,-224.19 2744,-265.02 2625.9,-276.82 2597.69,-298.02 2479,-298.02 1655,-298.02 1655,-298.02 1655,-298.02 1543.92,-298.02 1499.92,-268.15 1407,-329.02 1357.87,-361.2 1329.13,-425.96 1315.29,-466.19"/>
 <polygon fill="black" stroke="black" points="1311.91,-465.26 1312.09,-475.85 1318.55,-467.46 1311.91,-465.26"/>
 <text text-anchor="start" x="2605" y="-301.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st024&#45;&gt;ID_91_ct2_st024 -->
+<!-- ID_81_ct2_st024&#45;&gt;ID_81_ct2_st024 -->
 <g id="edge29" class="edge">
-<title>ID_91_ct2_st024&#45;&gt;ID_91_ct2_st024</title>
+<title>ID_81_ct2_st024&#45;&gt;ID_81_ct2_st024</title>
 <path fill="none" stroke="black" d="M3855.83,-424.2C3854.87,-433.93 3862.09,-442.02 3877.5,-442.02 3887.13,-442.02 3893.56,-438.86 3896.8,-434.12"/>
 <polygon fill="black" stroke="black" points="3900.25,-434.74 3899.17,-424.2 3893.44,-433.11 3900.25,-434.74"/>
 <text text-anchor="start" x="3865.5" y="-445.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st024&#45;&gt;ID_91_ct2_st056 -->
+<!-- ID_81_ct2_st024&#45;&gt;ID_81_ct2_st056 -->
 <g id="edge28" class="edge">
-<title>ID_91_ct2_st024&#45;&gt;ID_91_ct2_st056</title>
+<title>ID_81_ct2_st024&#45;&gt;ID_81_ct2_st056</title>
 <path fill="none" stroke="black" d="M3886.93,-424.41C3924.57,-537.69 4077.22,-997.14 4120.51,-1127.43"/>
 <polygon fill="black" stroke="black" points="4117.19,-1128.54 4123.66,-1136.93 4123.83,-1126.33 4117.19,-1128.54"/>
 <text text-anchor="start" x="3982" y="-783.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st024&#45;&gt;ID_91_ct2_st0156 -->
+<!-- ID_81_ct2_st024&#45;&gt;ID_81_ct2_st0156 -->
 <g id="edge32" class="edge">
-<title>ID_91_ct2_st024&#45;&gt;ID_91_ct2_st0156</title>
+<title>ID_81_ct2_st024&#45;&gt;ID_81_ct2_st0156</title>
 <path fill="none" stroke="black" d="M3855.8,-424.06C3835.13,-448.92 3802.3,-487.98 3773,-521.02 3617.41,-696.5 3604.49,-833.16 3372,-864.02 3295.34,-874.2 3275.13,-869.67 3198,-864.02 3140.2,-859.79 3126.72,-850.24 3069,-845.02 2717.61,-813.25 2299.91,-808.17 2101.19,-807.72"/>
 <polygon fill="black" stroke="black" points="2101.04,-804.22 2091.03,-807.7 2101.02,-811.22 2101.04,-804.22"/>
 <text text-anchor="start" x="2950" y="-848.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st024&#45;&gt;ID_91_ct2_st0124 -->
+<!-- ID_81_ct2_st024&#45;&gt;ID_81_ct2_st0124 -->
 <g id="edge33" class="edge">
-<title>ID_91_ct2_st024&#45;&gt;ID_91_ct2_st0124</title>
+<title>ID_81_ct2_st024&#45;&gt;ID_81_ct2_st0124</title>
 <path fill="none" stroke="black" d="M3866.07,-374C3850.98,-341.48 3819.66,-286.15 3773,-263.02 3544.02,-149.54 3453.49,-257.12 3198,-263.02 3147.52,-264.19 2786.82,-257.25 2744,-284.02 2729.83,-292.88 2739.79,-307.6 2726,-317.02 2636.57,-378.14 1849.67,-381.75 1759,-441.02 1745.98,-449.53 1751.92,-459.95 1741,-471.02 1733.35,-478.78 1724.32,-485.89 1715.07,-492.2"/>
 <polygon fill="black" stroke="black" points="1713,-489.37 1706.54,-497.76 1716.83,-495.23 1713,-489.37"/>
 <text text-anchor="start" x="2778.5" y="-287.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st056&#45;&gt;ID_91_ct2_st0 -->
+<!-- ID_81_ct2_st056&#45;&gt;ID_81_ct2_st0 -->
 <g id="edge89" class="edge">
-<title>ID_91_ct2_st056&#45;&gt;ID_91_ct2_st0</title>
+<title>ID_81_ct2_st056&#45;&gt;ID_81_ct2_st0</title>
 <path fill="none" stroke="black" d="M4125.85,-1187.25C4110.19,-1245.4 4062.89,-1388.61 3964,-1451.02 3930.52,-1472.15 3918.09,-1476.02 3878.5,-1476.02 414,-1476.02 414,-1476.02 414,-1476.02 231.92,-1476.02 211.16,-771.97 208.8,-604.47"/>
 <polygon fill="black" stroke="black" points="212.3,-604.18 208.67,-594.23 205.3,-604.27 212.3,-604.18"/>
 <text text-anchor="start" x="2109" y="-1479.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (T&#39; &amp;&amp; !U&#39;))</text>
 </g>
-<!-- ID_91_ct2_st056&#45;&gt;ID_91_ct2_st01 -->
+<!-- ID_81_ct2_st056&#45;&gt;ID_81_ct2_st01 -->
 <g id="edge92" class="edge">
-<title>ID_91_ct2_st056&#45;&gt;ID_91_ct2_st01</title>
+<title>ID_81_ct2_st056&#45;&gt;ID_81_ct2_st01</title>
 <path fill="none" stroke="black" d="M4122.85,-1187.4C4096.5,-1255.48 4013.56,-1437.02 3878.5,-1437.02 2961,-1437.02 2961,-1437.02 2961,-1437.02 2572.32,-1437.02 1598.74,-1362.91 1219,-1280.02 1143.47,-1263.54 1127.56,-1248.71 1055,-1222.02 835.3,-1141.21 758.01,-1163.51 563,-1034.02 477.97,-977.57 438.36,-855.05 423.46,-794.85"/>
 <polygon fill="black" stroke="black" points="426.84,-793.96 421.11,-785.05 420.03,-795.59 426.84,-793.96"/>
 <text text-anchor="start" x="2287.5" y="-1419.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (T&#39; &amp;&amp; !U&#39;))</text>
 </g>
-<!-- ID_91_ct2_st056&#45;&gt;ID_91_ct2_st01234 -->
+<!-- ID_81_ct2_st056&#45;&gt;ID_81_ct2_st01234 -->
 <g id="edge95" class="edge">
-<title>ID_91_ct2_st056&#45;&gt;ID_91_ct2_st01234</title>
+<title>ID_81_ct2_st056&#45;&gt;ID_81_ct2_st01234</title>
 <path fill="none" stroke="black" d="M4109.1,-1136.77C4022.13,-1040.91 3712.41,-699.48 3614.74,-591.8"/>
 <polygon fill="black" stroke="black" points="3617.12,-589.22 3607.81,-584.17 3611.93,-593.92 3617.12,-589.22"/>
 <text text-anchor="start" x="3831" y="-971.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (!U&#39; || !T&#39;))</text>
 </g>
-<!-- ID_91_ct2_st056&#45;&gt;ID_91_ct2_st056 -->
+<!-- ID_81_ct2_st056&#45;&gt;ID_81_ct2_st056 -->
 <g id="edge91" class="edge">
-<title>ID_91_ct2_st056&#45;&gt;ID_91_ct2_st056</title>
+<title>ID_81_ct2_st056&#45;&gt;ID_81_ct2_st056</title>
 <path fill="none" stroke="black" d="M4107.23,-1187.2C4106.08,-1196.93 4114.67,-1205.02 4133,-1205.02 4144.46,-1205.02 4152.11,-1201.86 4155.95,-1197.12"/>
 <polygon fill="black" stroke="black" points="4159.41,-1197.77 4158.77,-1187.2 4152.67,-1195.86 4159.41,-1197.77"/>
 <text text-anchor="start" x="4121" y="-1208.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st056&#45;&gt;ID_91_ct2_st0156 -->
+<!-- ID_81_ct2_st056&#45;&gt;ID_81_ct2_st0156 -->
 <g id="edge93" class="edge">
-<title>ID_91_ct2_st056&#45;&gt;ID_91_ct2_st0156</title>
+<title>ID_81_ct2_st056&#45;&gt;ID_81_ct2_st0156</title>
 <path fill="none" stroke="black" d="M4086.81,-1187.07C4037.25,-1212.14 3954.63,-1247.02 3878.5,-1247.02 3284,-1247.02 3284,-1247.02 3284,-1247.02 3110.32,-1247.02 2664.53,-1229.28 2508,-1154.02 2474.29,-1137.82 2481.28,-1112.08 2448,-1095.02 2359.31,-1049.56 2319.01,-1095.32 2227,-1057.02 2122.14,-1013.37 2040.54,-899.09 2004.77,-841.79"/>
 <polygon fill="black" stroke="black" points="2007.64,-839.79 1999.42,-833.11 2001.68,-843.46 2007.64,-839.79"/>
 <text text-anchor="start" x="3121.5" y="-1248.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st06 -->
+<!-- ID_81_ct2_st06 -->
 <g id="node15" class="node">
-<title>ID_91_ct2_st06</title>
+<title>ID_81_ct2_st06</title>
 <polygon fill="none" stroke="black" points="3372,-1101.02 3198,-1101.02 3198,-1051.02 3372,-1051.02 3372,-1101.02"/>
-<text text-anchor="start" x="3236" y="-1086.82" font-family="arial" font-weight="bold" font-size="14.00">ID_91_ct2_st06</text>
+<text text-anchor="start" x="3236" y="-1086.82" font-family="arial" font-weight="bold" font-size="14.00">ID_81_ct2_st06</text>
 <text text-anchor="start" x="3206" y="-1072.82" font-family="arial" font-size="14.00" fill="#984ea3">(!Q &amp;&amp; (!R &amp;&amp; (!T &amp;&amp; !U)))</text>
 <text text-anchor="start" x="3273" y="-1058.82" font-family="arial" font-size="14.00" fill="#ff7f00">true</text>
 </g>
-<!-- ID_91_ct2_st056&#45;&gt;ID_91_ct2_st06 -->
+<!-- ID_81_ct2_st056&#45;&gt;ID_81_ct2_st06 -->
 <g id="edge90" class="edge">
-<title>ID_91_ct2_st056&#45;&gt;ID_91_ct2_st06</title>
+<title>ID_81_ct2_st056&#45;&gt;ID_81_ct2_st06</title>
 <path fill="none" stroke="black" d="M4023.76,-1149.92C4017.75,-1149.27 4011.8,-1148.64 4006,-1148.02 3782.81,-1124.46 3520.48,-1098.72 3382.34,-1085.32"/>
 <polygon fill="black" stroke="black" points="3382.49,-1081.82 3372.2,-1084.33 3381.82,-1088.78 3382.49,-1081.82"/>
 <text text-anchor="start" x="3685" y="-1126.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (T&#39; || !S&#39;))</text>
 </g>
-<!-- ID_91_ct2_st0126 -->
+<!-- ID_81_ct2_st0126 -->
 <g id="node17" class="node">
-<title>ID_91_ct2_st0126</title>
+<title>ID_81_ct2_st0126</title>
 <polygon fill="none" stroke="black" points="2726,-1084.02 2508,-1084.02 2508,-1034.02 2726,-1034.02 2726,-1084.02"/>
-<text text-anchor="start" x="2560.5" y="-1069.82" font-family="arial" font-weight="bold" font-size="14.00">ID_91_ct2_st0126</text>
+<text text-anchor="start" x="2560.5" y="-1069.82" font-family="arial" font-weight="bold" font-size="14.00">ID_81_ct2_st0126</text>
 <text text-anchor="start" x="2516" y="-1055.82" font-family="arial" font-size="14.00" fill="#984ea3">(Q &amp;&amp; (!R &amp;&amp; (!S &amp;&amp; (!T &amp;&amp; !U))))</text>
 <text text-anchor="start" x="2605" y="-1041.82" font-family="arial" font-size="14.00" fill="#ff7f00">true</text>
 </g>
-<!-- ID_91_ct2_st056&#45;&gt;ID_91_ct2_st0126 -->
+<!-- ID_81_ct2_st056&#45;&gt;ID_81_ct2_st0126 -->
 <g id="edge94" class="edge">
-<title>ID_91_ct2_st056&#45;&gt;ID_91_ct2_st0126</title>
+<title>ID_81_ct2_st056&#45;&gt;ID_81_ct2_st0126</title>
 <path fill="none" stroke="black" d="M4023.76,-1162.02C3978.82,-1162.02 3926.14,-1162.02 3878.5,-1162.02 3435.5,-1162.02 3435.5,-1162.02 3435.5,-1162.02 3185.12,-1162.02 2894.96,-1113.87 2736.46,-1083.42"/>
 <polygon fill="black" stroke="black" points="2736.7,-1079.9 2726.22,-1081.44 2735.37,-1086.77 2736.7,-1079.9"/>
 <text text-anchor="start" x="3424.5" y="-1165.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0156&#45;&gt;ID_91_ct2_st0 -->
+<!-- ID_81_ct2_st0156&#45;&gt;ID_81_ct2_st0 -->
 <g id="edge96" class="edge">
-<title>ID_91_ct2_st0156&#45;&gt;ID_91_ct2_st0</title>
+<title>ID_81_ct2_st0156&#45;&gt;ID_81_ct2_st0</title>
 <path fill="none" stroke="black" d="M1959.99,-833.32C1936.86,-857.06 1899,-891.6 1859,-910.02 1666.33,-998.75 1598.6,-960.42 1389,-993.02 1144.58,-1031.04 471.25,-1297.79 285,-1135.02 244.77,-1099.87 218.06,-722.74 210.62,-604.36"/>
 <polygon fill="black" stroke="black" points="214.09,-603.81 209.98,-594.05 207.1,-604.25 214.09,-603.81"/>
 <text text-anchor="start" x="877.5" y="-1129.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (S&#39; &amp;&amp; (T&#39; &amp;&amp; !U&#39;)))</text>
 </g>
-<!-- ID_91_ct2_st0156&#45;&gt;ID_91_ct2_st01 -->
+<!-- ID_81_ct2_st0156&#45;&gt;ID_81_ct2_st01 -->
 <g id="edge100" class="edge">
-<title>ID_91_ct2_st0156&#45;&gt;ID_91_ct2_st01</title>
+<title>ID_81_ct2_st0156&#45;&gt;ID_81_ct2_st01</title>
 <path fill="none" stroke="black" d="M1876.8,-815.76C1870.78,-816.19 1864.81,-816.61 1859,-817.02 1806.56,-820.7 1793.5,-822.41 1741,-825.02 1657.51,-829.18 1636.59,-829.69 1553,-831.02 1318.14,-834.77 715.59,-914.41 496,-831.02 475.45,-823.22 456.8,-807.45 442.69,-792.76"/>
 <polygon fill="black" stroke="black" points="445.09,-790.19 435.74,-785.22 439.94,-794.94 445.09,-790.19"/>
 <text text-anchor="start" x="1078" y="-864.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (T&#39; &amp;&amp; !U&#39;))</text>
 </g>
-<!-- ID_91_ct2_st0156&#45;&gt;ID_91_ct2_st01234 -->
+<!-- ID_81_ct2_st0156&#45;&gt;ID_81_ct2_st01234 -->
 <g id="edge103" class="edge">
-<title>ID_91_ct2_st0156&#45;&gt;ID_91_ct2_st01234</title>
+<title>ID_81_ct2_st0156&#45;&gt;ID_81_ct2_st01234</title>
 <path fill="none" stroke="black" d="M2056.86,-782.98C2190.3,-737.77 2486.23,-643.57 2744,-604.02 3068.93,-554.17 3155.61,-602.74 3483,-573.02 3485.56,-572.79 3488.15,-572.54 3490.77,-572.27"/>
 <polygon fill="black" stroke="black" points="3491.38,-575.73 3500.94,-571.16 3490.62,-568.77 3491.38,-575.73"/>
 <text text-anchor="start" x="2744" y="-607.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (!U&#39; || !T&#39;))</text>
 </g>
-<!-- ID_91_ct2_st0156&#45;&gt;ID_91_ct2_st0234 -->
+<!-- ID_81_ct2_st0156&#45;&gt;ID_81_ct2_st0234 -->
 <g id="edge99" class="edge">
-<title>ID_91_ct2_st0156&#45;&gt;ID_91_ct2_st0234</title>
+<title>ID_81_ct2_st0156&#45;&gt;ID_81_ct2_st0234</title>
 <path fill="none" stroke="black" d="M1876.81,-810.37C1750.35,-807.51 1539.62,-784.11 1407,-670.02 1364.07,-633.09 1334.07,-573.43 1318.19,-535.77"/>
 <polygon fill="black" stroke="black" points="1321.3,-534.15 1314.27,-526.23 1314.83,-536.81 1321.3,-534.15"/>
 <text text-anchor="start" x="1609.5" y="-802.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (!U&#39; || !T&#39;))</text>
 </g>
-<!-- ID_91_ct2_st0156&#45;&gt;ID_91_ct2_st056 -->
+<!-- ID_81_ct2_st0156&#45;&gt;ID_81_ct2_st056 -->
 <g id="edge97" class="edge">
-<title>ID_91_ct2_st0156&#45;&gt;ID_91_ct2_st056</title>
+<title>ID_81_ct2_st0156&#45;&gt;ID_81_ct2_st056</title>
 <path fill="none" stroke="black" d="M2003.88,-833.19C2026.81,-864.63 2065.56,-920.65 2091,-973.02 2101.68,-995.02 2093.24,-1006.32 2109,-1025.02 2147.58,-1070.81 2172.59,-1065.03 2227,-1090.02 2603.36,-1262.88 2718.35,-1310.02 3132.5,-1310.02 3132.5,-1310.02 3132.5,-1310.02 3878.5,-1310.02 3969.55,-1310.02 4056.98,-1237.94 4101.5,-1194.38"/>
 <polygon fill="black" stroke="black" points="4104.17,-1196.66 4108.79,-1187.13 4099.23,-1191.7 4104.17,-1196.66"/>
 <text text-anchor="start" x="3121.5" y="-1313.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0156&#45;&gt;ID_91_ct2_st0156 -->
+<!-- ID_81_ct2_st0156&#45;&gt;ID_81_ct2_st0156 -->
 <g id="edge101" class="edge">
-<title>ID_91_ct2_st0156&#45;&gt;ID_91_ct2_st0156</title>
+<title>ID_81_ct2_st0156&#45;&gt;ID_81_ct2_st0156</title>
 <path fill="none" stroke="black" d="M1951.5,-833.2C1950.06,-842.93 1960.89,-851.02 1984,-851.02 1998.8,-851.02 2008.57,-847.7 2013.3,-842.76"/>
 <polygon fill="black" stroke="black" points="2016.64,-843.79 2016.5,-833.2 2010,-841.57 2016.64,-843.79"/>
 <text text-anchor="start" x="1972" y="-854.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0156&#45;&gt;ID_91_ct2_st0126 -->
+<!-- ID_81_ct2_st0156&#45;&gt;ID_81_ct2_st0126 -->
 <g id="edge102" class="edge">
-<title>ID_91_ct2_st0156&#45;&gt;ID_91_ct2_st0126</title>
+<title>ID_81_ct2_st0156&#45;&gt;ID_81_ct2_st0126</title>
 <path fill="none" stroke="black" d="M2008.02,-833.09C2048.13,-875.09 2135.34,-959.17 2227,-1001.02 2317.87,-1042.52 2350.67,-1019.52 2448,-1042.02 2456.09,-1043.89 2457.82,-1045.57 2466,-1047.02 2476.34,-1048.86 2487.13,-1050.41 2497.98,-1051.72"/>
 <polygon fill="black" stroke="black" points="2497.61,-1055.2 2507.94,-1052.87 2498.4,-1048.25 2497.61,-1055.2"/>
 <text text-anchor="start" x="2325.5" y="-1045.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st026 -->
+<!-- ID_81_ct2_st026 -->
 <g id="node18" class="node">
-<title>ID_91_ct2_st026</title>
+<title>ID_81_ct2_st026</title>
 <polygon fill="none" stroke="black" points="2448,-959.02 2227,-959.02 2227,-909.02 2448,-909.02 2448,-959.02"/>
-<text text-anchor="start" x="2284.5" y="-944.82" font-family="arial" font-weight="bold" font-size="14.00">ID_91_ct2_st026</text>
+<text text-anchor="start" x="2284.5" y="-944.82" font-family="arial" font-weight="bold" font-size="14.00">ID_81_ct2_st026</text>
 <text text-anchor="start" x="2235" y="-930.82" font-family="arial" font-size="14.00" fill="#984ea3">(!Q &amp;&amp; (!R &amp;&amp; (!S &amp;&amp; (!T &amp;&amp; !U))))</text>
 <text text-anchor="start" x="2325.5" y="-916.82" font-family="arial" font-size="14.00" fill="#ff7f00">true</text>
 </g>
-<!-- ID_91_ct2_st0156&#45;&gt;ID_91_ct2_st026 -->
+<!-- ID_81_ct2_st0156&#45;&gt;ID_81_ct2_st026 -->
 <g id="edge98" class="edge">
-<title>ID_91_ct2_st0156&#45;&gt;ID_91_ct2_st026</title>
+<title>ID_81_ct2_st0156&#45;&gt;ID_81_ct2_st026</title>
 <path fill="none" stroke="black" d="M2054.87,-833.07C2113.11,-853.95 2196.1,-883.7 2256.91,-905.49"/>
 <polygon fill="black" stroke="black" points="2255.87,-908.84 2266.47,-908.92 2258.23,-902.25 2255.87,-908.84"/>
 <text text-anchor="start" x="2147" y="-888.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0124&#45;&gt;ID_91_ct2_st0 -->
+<!-- ID_81_ct2_st0124&#45;&gt;ID_81_ct2_st0 -->
 <g id="edge35" class="edge">
-<title>ID_91_ct2_st0124&#45;&gt;ID_91_ct2_st0</title>
+<title>ID_81_ct2_st0124&#45;&gt;ID_81_ct2_st0</title>
 <path fill="none" stroke="black" d="M1570.96,-540.51C1518.83,-550.54 1450.32,-562.26 1389,-568.02 1160.05,-589.54 571.7,-587.82 563,-581.02 537,-560.72 571,-529.32 545,-509.02 503.23,-476.41 355.93,-518.51 270.7,-546.95"/>
 <polygon fill="black" stroke="black" points="269.49,-543.66 261.13,-550.17 271.73,-550.3 269.49,-543.66"/>
 <text text-anchor="start" x="751" y="-588.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (S&#39; &amp;&amp; T&#39;))</text>
 </g>
-<!-- ID_91_ct2_st0124&#45;&gt;ID_91_ct2_st01 -->
+<!-- ID_81_ct2_st0124&#45;&gt;ID_81_ct2_st01 -->
 <g id="edge39" class="edge">
-<title>ID_91_ct2_st0124&#45;&gt;ID_91_ct2_st01</title>
+<title>ID_81_ct2_st0124&#45;&gt;ID_81_ct2_st01</title>
 <path fill="none" stroke="black" d="M1630.43,-548.38C1576.7,-600.97 1442.56,-717.02 1305,-717.02 647,-717.02 647,-717.02 647,-717.02 590.75,-717.02 528.08,-729.5 482.23,-741.01"/>
 <polygon fill="black" stroke="black" points="481.23,-737.65 472.41,-743.52 482.97,-744.43 481.23,-737.65"/>
 <text text-anchor="start" x="906.5" y="-720.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (T&#39; || !S&#39;))</text>
 </g>
-<!-- ID_91_ct2_st0124&#45;&gt;ID_91_ct2_st01234 -->
+<!-- ID_81_ct2_st0124&#45;&gt;ID_81_ct2_st01234 -->
 <g id="edge42" class="edge">
-<title>ID_91_ct2_st0124&#45;&gt;ID_91_ct2_st01234</title>
+<title>ID_81_ct2_st0124&#45;&gt;ID_81_ct2_st01234</title>
 <path fill="none" stroke="black" d="M1741.25,-534.65C1806.97,-542.72 1900.61,-552.02 1983,-552.02 1983,-552.02 1983,-552.02 2479,-552.02 2854.24,-552.02 3301.21,-556.12 3490.74,-558.04"/>
 <polygon fill="black" stroke="black" points="3490.91,-561.54 3500.94,-558.15 3490.98,-554.54 3490.91,-561.54"/>
 <text text-anchor="start" x="2605" y="-555.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0124&#45;&gt;ID_91_ct2_st0234 -->
+<!-- ID_81_ct2_st0124&#45;&gt;ID_81_ct2_st0234 -->
 <g id="edge38" class="edge">
-<title>ID_91_ct2_st0124&#45;&gt;ID_91_ct2_st0234</title>
+<title>ID_81_ct2_st0124&#45;&gt;ID_81_ct2_st0234</title>
 <path fill="none" stroke="black" d="M1570.89,-518.73C1522.86,-516.17 1461.54,-512.7 1407,-509.02 1404.44,-508.85 1401.85,-508.67 1399.23,-508.49"/>
 <polygon fill="black" stroke="black" points="1399.26,-504.98 1389.04,-507.76 1398.76,-511.96 1399.26,-504.98"/>
 <text text-anchor="start" x="1468" y="-520.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0124&#45;&gt;ID_91_ct2_st024 -->
+<!-- ID_81_ct2_st0124&#45;&gt;ID_81_ct2_st024 -->
 <g id="edge37" class="edge">
-<title>ID_91_ct2_st0124&#45;&gt;ID_91_ct2_st024</title>
+<title>ID_81_ct2_st0124&#45;&gt;ID_81_ct2_st024</title>
 <path fill="none" stroke="black" d="M1741.25,-504.44C1747.25,-503.24 1753.21,-502.09 1759,-501.02 1972.81,-461.53 2512.32,-392.18 2726,-352.02 2734.05,-350.51 2735.89,-349.21 2744,-348.02 3028.82,-306.24 3102.32,-311.47 3390,-301.02 3431.31,-299.52 3441.97,-295.99 3483,-301.02 3590.39,-314.19 3710.65,-346.87 3789.63,-370.88"/>
 <polygon fill="black" stroke="black" points="3788.94,-374.33 3799.53,-373.91 3790.99,-367.64 3788.94,-374.33"/>
 <text text-anchor="start" x="2778.5" y="-351.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0124&#45;&gt;ID_91_ct2_st056 -->
+<!-- ID_81_ct2_st0124&#45;&gt;ID_81_ct2_st056 -->
 <g id="edge36" class="edge">
-<title>ID_91_ct2_st0124&#45;&gt;ID_91_ct2_st056</title>
+<title>ID_81_ct2_st0124&#45;&gt;ID_81_ct2_st056</title>
 <path fill="none" stroke="black" d="M1673.49,-548.08C1693.36,-579.7 1725.95,-636.44 1741,-690.02 1767.53,-784.47 1722.4,-819 1759,-910.02 1790,-987.11 1808.43,-1008.09 1877,-1055.02 2115.48,-1218.25 2843.51,-1394.02 3132.5,-1394.02 3132.5,-1394.02 3132.5,-1394.02 3878.5,-1394.02 3994.22,-1394.02 4080.11,-1260.84 4114.94,-1196.29"/>
 <polygon fill="black" stroke="black" points="4118.12,-1197.77 4119.71,-1187.29 4111.93,-1194.49 4118.12,-1197.77"/>
 <text text-anchor="start" x="2950" y="-1394.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0124&#45;&gt;ID_91_ct2_st0156 -->
+<!-- ID_81_ct2_st0124&#45;&gt;ID_81_ct2_st0156 -->
 <g id="edge40" class="edge">
-<title>ID_91_ct2_st0124&#45;&gt;ID_91_ct2_st0156</title>
+<title>ID_81_ct2_st0124&#45;&gt;ID_81_ct2_st0156</title>
 <path fill="none" stroke="black" d="M1702.64,-548.26C1748.94,-576.22 1819.28,-625.56 1859,-687.02 1875.97,-713.28 1857.27,-730.77 1877,-755.02 1884.18,-763.85 1893.21,-771.34 1902.94,-777.65"/>
 <polygon fill="black" stroke="black" points="1901.28,-780.73 1911.65,-782.9 1904.9,-774.74 1901.28,-780.73"/>
 <text text-anchor="start" x="1797" y="-690.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0124&#45;&gt;ID_91_ct2_st0124 -->
+<!-- ID_81_ct2_st0124&#45;&gt;ID_81_ct2_st0124 -->
 <g id="edge41" class="edge">
-<title>ID_91_ct2_st0124&#45;&gt;ID_91_ct2_st0124</title>
+<title>ID_81_ct2_st0124&#45;&gt;ID_81_ct2_st0124</title>
 <path fill="none" stroke="black" d="M1627.61,-548.2C1626.35,-557.93 1635.81,-566.02 1656,-566.02 1668.62,-566.02 1677.05,-562.86 1681.28,-558.12"/>
 <polygon fill="black" stroke="black" points="1684.74,-558.79 1684.39,-548.2 1678.06,-556.7 1684.74,-558.79"/>
 <text text-anchor="start" x="1644" y="-569.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st06&#45;&gt;ID_91_ct2_st0 -->
+<!-- ID_81_ct2_st06&#45;&gt;ID_81_ct2_st0 -->
 <g id="edge59" class="edge">
-<title>ID_91_ct2_st06&#45;&gt;ID_91_ct2_st0</title>
+<title>ID_81_ct2_st06&#45;&gt;ID_81_ct2_st0</title>
 <path fill="none" stroke="black" d="M3250.24,-1101.16C3230.53,-1114.95 3204.74,-1131.53 3180,-1143.02 3133.2,-1164.76 3118.95,-1164.09 3069,-1177.02 2690.7,-1275.01 2596.94,-1313 2209,-1360.02 1887.64,-1398.98 1804.72,-1383.02 1481,-1383.02 414,-1383.02 414,-1383.02 414,-1383.02 327.08,-1383.02 320.22,-1315.49 285,-1236.02 233.99,-1120.95 214.6,-725.28 209.78,-604.39"/>
 <polygon fill="black" stroke="black" points="213.27,-604.07 209.39,-594.21 206.28,-604.34 213.27,-604.07"/>
 <text text-anchor="start" x="1606" y="-1388.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (T&#39; &amp;&amp; !U&#39;))</text>
 </g>
-<!-- ID_91_ct2_st06&#45;&gt;ID_91_ct2_st01 -->
+<!-- ID_81_ct2_st06&#45;&gt;ID_81_ct2_st01 -->
 <g id="edge61" class="edge">
-<title>ID_91_ct2_st06&#45;&gt;ID_91_ct2_st01</title>
+<title>ID_81_ct2_st06&#45;&gt;ID_81_ct2_st01</title>
 <path fill="none" stroke="black" d="M3228.25,-1101.12C3212.81,-1107.51 3195.92,-1113.98 3180,-1119.02 3131.79,-1134.29 3118.76,-1135.03 3069,-1144.02 2794.87,-1193.56 2725.93,-1210.09 2448,-1229.02 2350,-1235.7 2325.11,-1233.8 2227,-1229.02 1861.26,-1211.22 1767.76,-1211.78 1407,-1149.02 1311.71,-1132.45 653.57,-969.95 563,-936.02 531.73,-924.31 520.12,-925.12 496,-902.02 464.37,-871.74 441.75,-826.18 428.8,-794.88"/>
 <polygon fill="black" stroke="black" points="431.91,-793.23 424.94,-785.25 425.41,-795.84 431.91,-793.23"/>
 <text text-anchor="start" x="1759" y="-1212.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (T&#39; &amp;&amp; !U&#39;))</text>
 </g>
-<!-- ID_91_ct2_st06&#45;&gt;ID_91_ct2_st01234 -->
+<!-- ID_81_ct2_st06&#45;&gt;ID_81_ct2_st01234 -->
 <g id="edge64" class="edge">
-<title>ID_91_ct2_st06&#45;&gt;ID_91_ct2_st01234</title>
+<title>ID_81_ct2_st06&#45;&gt;ID_81_ct2_st01234</title>
 <path fill="none" stroke="black" d="M3321.94,-1050.95C3366.09,-1018.33 3440.36,-957.26 3483,-888.02 3542.33,-791.67 3568.62,-657.65 3578.28,-594.55"/>
 <polygon fill="black" stroke="black" points="3581.79,-594.74 3579.79,-584.34 3574.86,-593.72 3581.79,-594.74"/>
 <text text-anchor="start" x="3390" y="-996.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (!U&#39; || !T&#39;))</text>
 </g>
-<!-- ID_91_ct2_st06&#45;&gt;ID_91_ct2_st06 -->
+<!-- ID_81_ct2_st06&#45;&gt;ID_81_ct2_st06 -->
 <g id="edge60" class="edge">
-<title>ID_91_ct2_st06&#45;&gt;ID_91_ct2_st06</title>
+<title>ID_81_ct2_st06&#45;&gt;ID_81_ct2_st06</title>
 <path fill="none" stroke="black" d="M3256.98,-1101.2C3255.74,-1110.93 3265.08,-1119.02 3285,-1119.02 3297.45,-1119.02 3305.77,-1115.86 3309.95,-1111.12"/>
 <polygon fill="black" stroke="black" points="3313.41,-1111.79 3313.02,-1101.2 3306.72,-1109.72 3313.41,-1111.79"/>
 <text text-anchor="start" x="3273" y="-1122.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st016 -->
+<!-- ID_81_ct2_st016 -->
 <g id="node16" class="node">
-<title>ID_91_ct2_st016</title>
+<title>ID_81_ct2_st016</title>
 <polygon fill="none" stroke="black" points="3069,-919.02 2855,-919.02 2855,-869.02 3069,-869.02 3069,-919.02"/>
-<text text-anchor="start" x="2909" y="-904.82" font-family="arial" font-weight="bold" font-size="14.00">ID_91_ct2_st016</text>
+<text text-anchor="start" x="2909" y="-904.82" font-family="arial" font-weight="bold" font-size="14.00">ID_81_ct2_st016</text>
 <text text-anchor="start" x="2863" y="-890.82" font-family="arial" font-size="14.00" fill="#984ea3">(Q &amp;&amp; (!R &amp;&amp; (S &amp;&amp; (!T &amp;&amp; !U))))</text>
 <text text-anchor="start" x="2950" y="-876.82" font-family="arial" font-size="14.00" fill="#ff7f00">true</text>
 </g>
-<!-- ID_91_ct2_st06&#45;&gt;ID_91_ct2_st016 -->
+<!-- ID_81_ct2_st06&#45;&gt;ID_81_ct2_st016 -->
 <g id="edge62" class="edge">
-<title>ID_91_ct2_st06&#45;&gt;ID_91_ct2_st016</title>
+<title>ID_81_ct2_st06&#45;&gt;ID_81_ct2_st016</title>
 <path fill="none" stroke="black" d="M3256.8,-1050.76C3236.87,-1033.45 3208.43,-1011.15 3180,-997.02 3141.56,-977.93 3126.29,-988.29 3087,-971.02 3058.61,-958.54 3029.03,-940.4 3005.88,-924.86"/>
 <polygon fill="black" stroke="black" points="3007.58,-921.78 2997.34,-919.05 3003.64,-927.57 3007.58,-921.78"/>
 <text text-anchor="start" x="3121.5" y="-1000.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st06&#45;&gt;ID_91_ct2_st0126 -->
+<!-- ID_81_ct2_st06&#45;&gt;ID_81_ct2_st0126 -->
 <g id="edge63" class="edge">
-<title>ID_91_ct2_st06&#45;&gt;ID_91_ct2_st0126</title>
+<title>ID_81_ct2_st06&#45;&gt;ID_81_ct2_st0126</title>
 <path fill="none" stroke="black" d="M3197.84,-1058.24C3158.71,-1051.03 3111.71,-1043.57 3069,-1040.02 2974.22,-1032.14 2948.04,-1020.28 2855,-1040.02 2846.44,-1041.84 2845.52,-1045.99 2837,-1048.02 2804.78,-1055.71 2769.17,-1059.44 2736.19,-1061.02"/>
 <polygon fill="black" stroke="black" points="2735.89,-1057.53 2726.05,-1061.44 2736.19,-1064.52 2735.89,-1057.53"/>
 <text text-anchor="start" x="2950" y="-1043.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st016&#45;&gt;ID_91_ct2_st0 -->
+<!-- ID_81_ct2_st016&#45;&gt;ID_81_ct2_st0 -->
 <g id="edge65" class="edge">
-<title>ID_91_ct2_st016&#45;&gt;ID_91_ct2_st0</title>
+<title>ID_81_ct2_st016&#45;&gt;ID_81_ct2_st0</title>
 <path fill="none" stroke="black" d="M2854.81,-886.98C2848.79,-886.64 2842.82,-886.32 2837,-886.02 2558.06,-871.92 2488.25,-868.13 2209,-863.02 2164.56,-862.21 2151.54,-850.14 2109,-863.02 2099.8,-865.81 2099.52,-870.57 2091,-875.02 1977.12,-934.55 1677.71,-1056.02 1553,-1087.02 1254.77,-1161.16 1171.13,-1155.44 864,-1145.02 700.16,-1139.46 633.23,-1209.7 496,-1120.02 306.48,-996.17 234.49,-705.19 214.69,-604.25"/>
 <polygon fill="black" stroke="black" points="218.1,-603.42 212.78,-594.26 211.22,-604.74 218.1,-603.42"/>
 <text text-anchor="start" x="1407" y="-1123.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (S&#39; &amp;&amp; (T&#39; &amp;&amp; !U&#39;)))</text>
 </g>
-<!-- ID_91_ct2_st016&#45;&gt;ID_91_ct2_st01 -->
+<!-- ID_81_ct2_st016&#45;&gt;ID_81_ct2_st01 -->
 <g id="edge69" class="edge">
-<title>ID_91_ct2_st016&#45;&gt;ID_91_ct2_st01</title>
+<title>ID_81_ct2_st016&#45;&gt;ID_81_ct2_st01</title>
 <path fill="none" stroke="black" d="M2854.71,-892.14C2693.45,-889.75 2377.34,-886.82 2109,-895.02 1997.74,-898.42 1970.26,-906.69 1859,-910.02 1501.58,-920.74 1411.83,-903.25 1055,-880.02 930.56,-871.92 610.53,-880.35 496,-831.02 476.1,-822.45 457.73,-806.95 443.62,-792.61"/>
 <polygon fill="black" stroke="black" points="446.06,-790.11 436.64,-785.26 440.99,-794.92 446.06,-790.11"/>
 <text text-anchor="start" x="1606" y="-916.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (T&#39; &amp;&amp; !U&#39;))</text>
 </g>
-<!-- ID_91_ct2_st016&#45;&gt;ID_91_ct2_st01234 -->
+<!-- ID_81_ct2_st016&#45;&gt;ID_81_ct2_st01234 -->
 <g id="edge72" class="edge">
-<title>ID_91_ct2_st016&#45;&gt;ID_91_ct2_st01234</title>
+<title>ID_81_ct2_st016&#45;&gt;ID_81_ct2_st01234</title>
 <path fill="none" stroke="black" d="M3069.25,-870.8C3109.5,-862.28 3155.79,-852.83 3198,-845.02 3324.17,-821.7 3382.27,-878.5 3483,-799.02 3547.78,-747.91 3571.04,-647.41 3579.04,-594.12"/>
 <polygon fill="black" stroke="black" points="3582.52,-594.51 3580.44,-584.12 3575.59,-593.54 3582.52,-594.51"/>
 <text text-anchor="start" x="3238.5" y="-848.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (!U&#39; || !T&#39;))</text>
 </g>
-<!-- ID_91_ct2_st016&#45;&gt;ID_91_ct2_st0234 -->
+<!-- ID_81_ct2_st016&#45;&gt;ID_81_ct2_st0234 -->
 <g id="edge68" class="edge">
-<title>ID_91_ct2_st016&#45;&gt;ID_91_ct2_st0234</title>
+<title>ID_81_ct2_st016&#45;&gt;ID_81_ct2_st0234</title>
 <path fill="none" stroke="black" d="M2892.25,-868.85C2773.03,-825.22 2532.56,-737.29 2448,-707.02 2342,-669.08 2319.46,-644.82 2209,-623.02 1930.44,-568.05 1850.1,-642.22 1571,-590.02 1502.17,-577.15 1426.73,-550.66 1373.83,-529.91"/>
 <polygon fill="black" stroke="black" points="1374.81,-526.53 1364.22,-526.1 1372.23,-533.04 1374.81,-526.53"/>
 <text text-anchor="start" x="2112.5" y="-626.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (!U&#39; || !T&#39;))</text>
 </g>
-<!-- ID_91_ct2_st016&#45;&gt;ID_91_ct2_st06 -->
+<!-- ID_81_ct2_st016&#45;&gt;ID_81_ct2_st06 -->
 <g id="edge66" class="edge">
-<title>ID_91_ct2_st016&#45;&gt;ID_91_ct2_st06</title>
+<title>ID_81_ct2_st016&#45;&gt;ID_81_ct2_st06</title>
 <path fill="none" stroke="black" d="M3047.22,-919.09C3060.5,-922.87 3074.1,-926.63 3087,-930.02 3128.07,-940.84 3143.85,-929.73 3180,-952.02 3216.25,-974.38 3246.04,-1013.74 3264.31,-1042.13"/>
 <polygon fill="black" stroke="black" points="3261.54,-1044.31 3269.82,-1050.92 3267.47,-1040.59 3261.54,-1044.31"/>
 <text text-anchor="start" x="3109" y="-955.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || S&#39;)</text>
 </g>
-<!-- ID_91_ct2_st016&#45;&gt;ID_91_ct2_st016 -->
+<!-- ID_81_ct2_st016&#45;&gt;ID_81_ct2_st016 -->
 <g id="edge70" class="edge">
-<title>ID_91_ct2_st016&#45;&gt;ID_91_ct2_st016</title>
+<title>ID_81_ct2_st016&#45;&gt;ID_81_ct2_st016</title>
 <path fill="none" stroke="black" d="M2930.25,-919.2C2928.84,-928.93 2939.42,-937.02 2962,-937.02 2976.46,-937.02 2986.01,-933.7 2990.62,-928.76"/>
 <polygon fill="black" stroke="black" points="2993.97,-929.79 2993.75,-919.2 2987.32,-927.62 2993.97,-929.79"/>
 <text text-anchor="start" x="2950" y="-940.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st016&#45;&gt;ID_91_ct2_st0126 -->
+<!-- ID_81_ct2_st016&#45;&gt;ID_81_ct2_st0126 -->
 <g id="edge71" class="edge">
-<title>ID_91_ct2_st016&#45;&gt;ID_91_ct2_st0126</title>
+<title>ID_81_ct2_st016&#45;&gt;ID_81_ct2_st0126</title>
 <path fill="none" stroke="black" d="M2907.71,-919.04C2886.07,-928.6 2860.64,-939.1 2837,-947.02 2796.63,-960.55 2776.11,-942.06 2744,-970.02 2727.75,-984.17 2741.18,-999.74 2726,-1015.02 2720.9,-1020.16 2715.12,-1024.72 2708.94,-1028.76"/>
 <polygon fill="black" stroke="black" points="2707.07,-1025.8 2700.31,-1033.96 2710.68,-1031.8 2707.07,-1025.8"/>
 <text text-anchor="start" x="2778.5" y="-973.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st016&#45;&gt;ID_91_ct2_st026 -->
+<!-- ID_81_ct2_st016&#45;&gt;ID_81_ct2_st026 -->
 <g id="edge67" class="edge">
-<title>ID_91_ct2_st016&#45;&gt;ID_91_ct2_st026</title>
+<title>ID_81_ct2_st016&#45;&gt;ID_81_ct2_st026</title>
 <path fill="none" stroke="black" d="M2856.05,-919.09C2806.08,-931.4 2754.82,-944.7 2744,-950.02 2734.9,-954.49 2735.59,-960.73 2726,-964.02 2634.36,-995.47 2604.52,-972.5 2508,-964.02 2491.98,-962.62 2475.2,-960.47 2458.69,-957.97"/>
 <polygon fill="black" stroke="black" points="2458.87,-954.46 2448.45,-956.37 2457.79,-961.37 2458.87,-954.46"/>
 <text text-anchor="start" x="2605" y="-983.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0126&#45;&gt;ID_91_ct2_st0 -->
+<!-- ID_81_ct2_st0126&#45;&gt;ID_81_ct2_st0 -->
 <g id="edge81" class="edge">
-<title>ID_91_ct2_st0126&#45;&gt;ID_91_ct2_st0</title>
+<title>ID_81_ct2_st0126&#45;&gt;ID_81_ct2_st0</title>
 <path fill="none" stroke="black" d="M2584.41,-1084.2C2513.18,-1138.35 2332.74,-1261.02 2160,-1261.02 414,-1261.02 414,-1261.02 414,-1261.02 350.39,-1261.02 321.49,-1251.12 285,-1199.02 216.96,-1101.89 209.26,-722.6 208.53,-604.4"/>
 <polygon fill="black" stroke="black" points="212.03,-604.09 208.48,-594.11 205.03,-604.13 212.03,-604.09"/>
 <text text-anchor="start" x="1231" y="-1264.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (S&#39; &amp;&amp; (T&#39; &amp;&amp; !U&#39;)))</text>
 </g>
-<!-- ID_91_ct2_st0126&#45;&gt;ID_91_ct2_st01 -->
+<!-- ID_81_ct2_st0126&#45;&gt;ID_81_ct2_st01 -->
 <g id="edge85" class="edge">
-<title>ID_91_ct2_st0126&#45;&gt;ID_91_ct2_st01</title>
+<title>ID_81_ct2_st0126&#45;&gt;ID_81_ct2_st01</title>
 <path fill="none" stroke="black" d="M2542.27,-1084.13C2444.11,-1114.78 2264.75,-1161.14 2109,-1149.02 2022.33,-1142.28 646.04,-932.75 563,-907.02 531.48,-897.26 521.15,-896.39 496,-875.02 469.42,-852.44 447.52,-819.08 433.39,-794.09"/>
 <polygon fill="black" stroke="black" points="436.44,-792.37 428.55,-785.3 430.31,-795.75 436.44,-792.37"/>
 <text text-anchor="start" x="1410.5" y="-1071.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || ((T&#39; &amp;&amp; !U&#39;) || !S&#39;))</text>
 </g>
-<!-- ID_91_ct2_st0126&#45;&gt;ID_91_ct2_st01234 -->
+<!-- ID_81_ct2_st0126&#45;&gt;ID_81_ct2_st01234 -->
 <g id="edge88" class="edge">
-<title>ID_91_ct2_st0126&#45;&gt;ID_91_ct2_st01234</title>
+<title>ID_81_ct2_st0126&#45;&gt;ID_81_ct2_st01234</title>
 <path fill="none" stroke="black" d="M2726.17,-1043.4C2761.62,-1037.71 2801.12,-1030.75 2837,-1023.02 2941.34,-1000.56 2990.41,-1033.24 3069,-961.02 3086.39,-945.04 3068.95,-926.26 3087,-911.02 3136.16,-869.52 3308.99,-873.03 3372,-860.02 3421.62,-849.78 3445.11,-867.66 3483,-834.02 3553.99,-770.99 3574.62,-653.45 3580.59,-594.56"/>
 <polygon fill="black" stroke="black" points="3584.11,-594.56 3581.54,-584.28 3577.14,-593.91 3584.11,-594.56"/>
 <text text-anchor="start" x="3087" y="-914.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (!U&#39; || !T&#39;))</text>
 </g>
-<!-- ID_91_ct2_st0126&#45;&gt;ID_91_ct2_st0234 -->
+<!-- ID_81_ct2_st0126&#45;&gt;ID_81_ct2_st0234 -->
 <g id="edge84" class="edge">
-<title>ID_91_ct2_st0126&#45;&gt;ID_91_ct2_st0234</title>
+<title>ID_81_ct2_st0126&#45;&gt;ID_81_ct2_st0234</title>
 <path fill="none" stroke="black" d="M2508,-1068.69C2429.55,-1073.5 2321.11,-1075.59 2227,-1061.02 1925.13,-1014.31 1856.51,-964.59 1571,-856.02 1496.26,-827.6 1461.36,-840.67 1407,-782.02 1341.23,-711.08 1317.16,-594.47 1308.93,-536.31"/>
 <polygon fill="black" stroke="black" points="1312.37,-535.6 1307.58,-526.15 1305.43,-536.53 1312.37,-535.6"/>
 <text text-anchor="start" x="1937.5" y="-1039.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (!U&#39; || !T&#39;))</text>
 </g>
-<!-- ID_91_ct2_st0126&#45;&gt;ID_91_ct2_st06 -->
+<!-- ID_81_ct2_st0126&#45;&gt;ID_81_ct2_st06 -->
 <g id="edge82" class="edge">
-<title>ID_91_ct2_st0126&#45;&gt;ID_91_ct2_st06</title>
+<title>ID_81_ct2_st0126&#45;&gt;ID_81_ct2_st06</title>
 <path fill="none" stroke="black" d="M2726.23,-1067.15C2732.24,-1067.48 2738.19,-1067.77 2744,-1068.02 2899.18,-1074.71 3079.64,-1076.09 3187.69,-1076.24"/>
 <polygon fill="black" stroke="black" points="3187.91,-1079.74 3197.91,-1076.25 3187.92,-1072.74 3187.91,-1079.74"/>
 <text text-anchor="start" x="2937.5" y="-1078.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || S&#39;)</text>
 </g>
-<!-- ID_91_ct2_st0126&#45;&gt;ID_91_ct2_st016 -->
+<!-- ID_81_ct2_st0126&#45;&gt;ID_81_ct2_st016 -->
 <g id="edge86" class="edge">
-<title>ID_91_ct2_st0126&#45;&gt;ID_91_ct2_st016</title>
+<title>ID_81_ct2_st0126&#45;&gt;ID_81_ct2_st016</title>
 <path fill="none" stroke="black" d="M2679.38,-1033.96C2709.64,-1021.64 2740.45,-1009.17 2744,-1008.02 2784.5,-994.89 2800.21,-1006.45 2837,-985.02 2847.05,-979.17 2846.14,-973.56 2855,-966.02 2872.33,-951.29 2892.73,-936.84 2910.99,-924.79"/>
 <polygon fill="black" stroke="black" points="2913.28,-927.47 2919.75,-919.08 2909.46,-921.61 2913.28,-927.47"/>
 <text text-anchor="start" x="2778.5" y="-1011.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0126&#45;&gt;ID_91_ct2_st0126 -->
+<!-- ID_81_ct2_st0126&#45;&gt;ID_81_ct2_st0126 -->
 <g id="edge87" class="edge">
-<title>ID_91_ct2_st0126&#45;&gt;ID_91_ct2_st0126</title>
+<title>ID_81_ct2_st0126&#45;&gt;ID_81_ct2_st0126</title>
 <path fill="none" stroke="black" d="M2591.23,-1084.2C2590.08,-1093.93 2598.67,-1102.02 2617,-1102.02 2628.46,-1102.02 2636.11,-1098.86 2639.95,-1094.12"/>
 <polygon fill="black" stroke="black" points="2643.41,-1094.77 2642.77,-1084.2 2636.67,-1092.86 2643.41,-1094.77"/>
 <text text-anchor="start" x="2605" y="-1105.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st0126&#45;&gt;ID_91_ct2_st026 -->
+<!-- ID_81_ct2_st0126&#45;&gt;ID_81_ct2_st026 -->
 <g id="edge83" class="edge">
-<title>ID_91_ct2_st0126&#45;&gt;ID_91_ct2_st026</title>
+<title>ID_81_ct2_st0126&#45;&gt;ID_81_ct2_st026</title>
 <path fill="none" stroke="black" d="M2545.34,-1033.91C2532.57,-1028.35 2519.63,-1022.01 2508,-1015.02 2499.07,-1009.66 2498.86,-1005.49 2490,-1000.02 2467.26,-985.99 2441.01,-973.44 2416.82,-963.14"/>
 <polygon fill="black" stroke="black" points="2417.88,-959.79 2407.31,-959.16 2415.18,-966.25 2417.88,-959.79"/>
 <text text-anchor="start" x="2466" y="-1003.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st026&#45;&gt;ID_91_ct2_st0 -->
+<!-- ID_81_ct2_st026&#45;&gt;ID_81_ct2_st0 -->
 <g id="edge73" class="edge">
-<title>ID_91_ct2_st026&#45;&gt;ID_91_ct2_st0</title>
+<title>ID_81_ct2_st026&#45;&gt;ID_81_ct2_st0</title>
 <path fill="none" stroke="black" d="M2277.19,-959.11C2259.3,-968.9 2240.77,-981.53 2227,-997.02 2213.51,-1012.2 2224.23,-1025.58 2209,-1039.02 2168.08,-1075.14 2143.96,-1059.82 2091,-1073.02 1530.31,-1212.82 1377.36,-1223.02 799.5,-1223.02 414,-1223.02 414,-1223.02 414,-1223.02 350.77,-1223.02 322.34,-1214.05 285,-1163.02 219.27,-1073.2 209.98,-718.17 208.69,-604.34"/>
 <polygon fill="black" stroke="black" points="212.19,-604.06 208.59,-594.1 205.19,-604.13 212.19,-604.06"/>
 <text text-anchor="start" x="1055" y="-1224.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (S&#39; &amp;&amp; (T&#39; &amp;&amp; !U&#39;)))</text>
 </g>
-<!-- ID_91_ct2_st026&#45;&gt;ID_91_ct2_st01 -->
+<!-- ID_81_ct2_st026&#45;&gt;ID_81_ct2_st01 -->
 <g id="edge77" class="edge">
-<title>ID_91_ct2_st026&#45;&gt;ID_91_ct2_st01</title>
+<title>ID_81_ct2_st026&#45;&gt;ID_81_ct2_st01</title>
 <path fill="none" stroke="black" d="M2291.48,-959.1C2232.46,-991.42 2131.67,-1044.61 2091,-1054.02 1998.34,-1075.46 1972.04,-1057.74 1877,-1054.02 1740.69,-1048.69 1705,-1055.57 1571,-1030.02 1487.87,-1014.17 1472.01,-990.52 1389,-974.02 1109.65,-918.52 1032.31,-958.49 751,-914.02 658.41,-899.39 531.77,-875.08 496,-852.02 472.75,-837.04 452.4,-813.38 438.04,-793.81"/>
 <polygon fill="black" stroke="black" points="440.72,-791.54 432.06,-785.43 435.02,-795.61 440.72,-791.54"/>
 <text text-anchor="start" x="1234.5" y="-977.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || ((T&#39; &amp;&amp; !U&#39;) || !S&#39;))</text>
 </g>
-<!-- ID_91_ct2_st026&#45;&gt;ID_91_ct2_st01234 -->
+<!-- ID_81_ct2_st026&#45;&gt;ID_81_ct2_st01234 -->
 <g id="edge80" class="edge">
-<title>ID_91_ct2_st026&#45;&gt;ID_91_ct2_st01234</title>
+<title>ID_81_ct2_st026&#45;&gt;ID_81_ct2_st01234</title>
 <path fill="none" stroke="black" d="M2364.34,-908.75C2410.65,-866.24 2512.65,-785.02 2616,-785.02 2616,-785.02 2616,-785.02 3286,-785.02 3374.7,-785.02 3411.22,-805.13 3483,-753.02 3536.34,-714.3 3563.36,-638.63 3575.21,-594.1"/>
 <polygon fill="black" stroke="black" points="3578.63,-594.85 3577.7,-584.29 3571.84,-593.12 3578.63,-594.85"/>
 <text text-anchor="start" x="2915.5" y="-788.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (!U&#39; || !T&#39;))</text>
 </g>
-<!-- ID_91_ct2_st026&#45;&gt;ID_91_ct2_st0234 -->
+<!-- ID_81_ct2_st026&#45;&gt;ID_81_ct2_st0234 -->
 <g id="edge76" class="edge">
-<title>ID_91_ct2_st026&#45;&gt;ID_91_ct2_st0234</title>
+<title>ID_81_ct2_st026&#45;&gt;ID_81_ct2_st0234</title>
 <path fill="none" stroke="black" d="M2226.97,-931.02C2075.27,-923.86 1794.65,-899.66 1571,-818.02 1492.29,-789.29 1463.57,-786.84 1407,-725.02 1355.94,-669.22 1326.72,-583.49 1313.56,-535.9"/>
 <polygon fill="black" stroke="black" points="1316.89,-534.82 1310.91,-526.07 1310.13,-536.63 1316.89,-534.82"/>
 <text text-anchor="start" x="1762.5" y="-894.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || (!U&#39; || !T&#39;))</text>
 </g>
-<!-- ID_91_ct2_st026&#45;&gt;ID_91_ct2_st06 -->
+<!-- ID_81_ct2_st026&#45;&gt;ID_81_ct2_st06 -->
 <g id="edge74" class="edge">
-<title>ID_91_ct2_st026&#45;&gt;ID_91_ct2_st06</title>
+<title>ID_81_ct2_st026&#45;&gt;ID_81_ct2_st06</title>
 <path fill="none" stroke="black" d="M2399.22,-959.1C2416.87,-968.79 2434.9,-981.38 2448,-997.02 2463.16,-1015.13 2456.43,-1025.43 2466,-1047.02 2482.11,-1083.38 2473.92,-1105.54 2508,-1126.02 2619.99,-1193.32 3006.27,-1130.26 3188.02,-1095.5"/>
 <polygon fill="black" stroke="black" points="3188.69,-1098.94 3197.85,-1093.61 3187.36,-1092.07 3188.69,-1098.94"/>
 <text text-anchor="start" x="2766" y="-1157.82" font-family="arial" font-size="14.00" fill="#377eb8">(R&#39; || S&#39;)</text>
 </g>
-<!-- ID_91_ct2_st026&#45;&gt;ID_91_ct2_st016 -->
+<!-- ID_81_ct2_st026&#45;&gt;ID_81_ct2_st016 -->
 <g id="edge78" class="edge">
-<title>ID_91_ct2_st026&#45;&gt;ID_91_ct2_st016</title>
+<title>ID_81_ct2_st026&#45;&gt;ID_81_ct2_st016</title>
 <path fill="none" stroke="black" d="M2448.37,-928.85C2525.97,-925 2632.4,-919.34 2726,-913.02 2764.71,-910.41 2806.97,-907.13 2844.84,-904.03"/>
 <polygon fill="black" stroke="black" points="2845.2,-907.51 2854.88,-903.2 2844.63,-900.53 2845.2,-907.51"/>
 <text text-anchor="start" x="2605" y="-928.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st026&#45;&gt;ID_91_ct2_st0126 -->
+<!-- ID_81_ct2_st026&#45;&gt;ID_81_ct2_st0126 -->
 <g id="edge79" class="edge">
-<title>ID_91_ct2_st026&#45;&gt;ID_91_ct2_st0126</title>
+<title>ID_81_ct2_st026&#45;&gt;ID_81_ct2_st0126</title>
 <path fill="none" stroke="black" d="M2377.54,-959.1C2398.57,-972.76 2424.87,-990.07 2448,-1006.02 2456.12,-1011.62 2457.08,-1014.79 2466,-1019.02 2476.17,-1023.85 2487.01,-1028.16 2498.04,-1032.01"/>
 <polygon fill="black" stroke="black" points="2497.17,-1035.41 2507.77,-1035.27 2499.4,-1028.77 2497.17,-1035.41"/>
 <text text-anchor="start" x="2466" y="-1031.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_91_ct2_st026&#45;&gt;ID_91_ct2_st026 -->
+<!-- ID_81_ct2_st026&#45;&gt;ID_81_ct2_st026 -->
 <g id="edge75" class="edge">
-<title>ID_91_ct2_st026&#45;&gt;ID_91_ct2_st026</title>
+<title>ID_81_ct2_st026&#45;&gt;ID_81_ct2_st026</title>
 <path fill="none" stroke="black" d="M2311.35,-959.2C2310.19,-968.93 2318.91,-977.02 2337.5,-977.02 2349.12,-977.02 2356.88,-973.86 2360.79,-969.12"/>
 <polygon fill="black" stroke="black" points="2364.24,-969.78 2363.65,-959.2 2357.51,-967.84 2364.24,-969.78"/>
 <text text-anchor="start" x="2325.5" y="-980.82" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
