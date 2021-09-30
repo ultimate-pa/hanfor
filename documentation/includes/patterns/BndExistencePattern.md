@@ -16,8 +16,9 @@ true;⌈Q⌉;⌈!Q⌉;⌈Q⌉;⌈!Q⌉;⌈Q⌉;true
 ![](../img/patterns/BndExistencePattern_Globally_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 |  | ![](../img/failure_paths/negative/BndExistencePattern_Globally_0.svg) |
 
 
@@ -35,8 +36,9 @@ Before "Q", transitions to states in which "R" holds occur at most twice
 ![](../img/patterns/BndExistencePattern_Before_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 |  | ![](../img/failure_paths/negative/BndExistencePattern_Before_0.svg) |
 
 
@@ -54,8 +56,9 @@ true;⌈Q⌉;true;⌈R⌉;⌈!R⌉;⌈R⌉;⌈!R⌉;⌈R⌉;true
 ![](../img/patterns/BndExistencePattern_After_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 |  | ![](../img/failure_paths/negative/BndExistencePattern_After_0.svg) |
 
 
@@ -73,8 +76,9 @@ true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;�
 ![](../img/patterns/BndExistencePattern_Between_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 |  | ![](../img/failure_paths/negative/BndExistencePattern_Between_0.svg) |
 
 
@@ -92,7 +96,8 @@ true;⌈Q⌉;⌈!R⌉;⌈(!R && S)⌉;⌈(!R && !S)⌉;⌈(!R && S)⌉;⌈(!R &&
 ![](../img/patterns/BndExistencePattern_AfterUntil_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 |  | ![](../img/failure_paths/negative/BndExistencePattern_AfterUntil_0.svg) |
 

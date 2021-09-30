@@ -18,8 +18,9 @@ true;⌈!R⌉;⌈R⌉;⌈true⌉ ∧ ℓ < 5;⌈Q⌉ ∧ ℓ < 10;⌈!Q⌉;true
 ![](../img/patterns/BndEdgeResponsePatternDelayed_Globally_1.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 | ![](../img/failure_paths/positive/BndEdgeResponsePatternDelayed_Globally_0.svg) |  |
 | ![](../img/failure_paths/positive/BndEdgeResponsePatternDelayed_Globally_1.svg) |  |
 | ![](../img/failure_paths/positive/BndEdgeResponsePatternDelayed_Globally_2.svg) |  |

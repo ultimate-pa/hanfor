@@ -2,12 +2,12 @@ These are the source files for the [Hanfor Documentation](https://ultimate-pa.gi
 # Contribute to this Documentation.
 
 
-#### 0. (Optional) setup a virtual environment 
-```
+#### 0. (Optional) setup a virtual environment
+```bash
 $ cd hanfor/documentation
-$ python3 -m venv docs_venv
-$ source docs_venv/bin/activate
-``` 
+$ python3 -m venv venv
+$ source venv/bin/activate
+```
 
 #### 1. Install [MkDocs](https://www.mkdocs.org/) and all dependencies.
 ```bash
@@ -16,7 +16,7 @@ $ pip3 install -r requirements.txt
 
 #### 2. Serve this Documentation locally to track your changes.
 ```bash
-$ cd to_here
+$ cd hanfor/documentation
 $ mkdocs serve
 ```
 Open your Browser at [http://127.0.0.1:8000/](http://127.0.0.1:8000/).

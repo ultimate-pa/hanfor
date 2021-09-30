@@ -16,8 +16,9 @@ true;⌈Q⌉ ∧ ℓ ≥ 5;true
 ![](../img/patterns/MaxDurationPattern_Globally_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 | ![](../img/failure_paths/positive/MaxDurationPattern_Globally_0.svg) | ![](../img/failure_paths/negative/MaxDurationPattern_Globally_0.svg) |
 
 
@@ -35,8 +36,9 @@ Before "Q", it is always the case that once "R" becomes satisfied, it holds for 
 ![](../img/patterns/MaxDurationPattern_Before_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 | ![](../img/failure_paths/positive/MaxDurationPattern_Before_0.svg) | ![](../img/failure_paths/negative/MaxDurationPattern_Before_0.svg) |
 
 
@@ -54,8 +56,9 @@ true;⌈Q⌉;true;⌈R⌉ ∧ ℓ ≥ 5;true
 ![](../img/patterns/MaxDurationPattern_After_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 | ![](../img/failure_paths/positive/MaxDurationPattern_After_0.svg) | ![](../img/failure_paths/negative/MaxDurationPattern_After_0.svg) |
 | ![](../img/failure_paths/positive/MaxDurationPattern_After_1.svg) |  |
 
@@ -74,8 +77,9 @@ true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && S)⌉ ∧ ℓ ≥ 5;⌈!R⌉;⌈R⌉;tru
 ![](../img/patterns/MaxDurationPattern_Between_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 | ![](../img/failure_paths/positive/MaxDurationPattern_Between_0.svg) | ![](../img/failure_paths/negative/MaxDurationPattern_Between_0.svg) |
 | ![](../img/failure_paths/positive/MaxDurationPattern_Between_1.svg) |  |
 | ![](../img/failure_paths/positive/MaxDurationPattern_Between_2.svg) |  |
@@ -98,8 +102,9 @@ true;⌈Q⌉;⌈!R⌉;⌈(!R && S)⌉ ∧ ℓ ≥ 5;true
 ![](../img/patterns/MaxDurationPattern_AfterUntil_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 | ![](../img/failure_paths/positive/MaxDurationPattern_AfterUntil_0.svg) | ![](../img/failure_paths/negative/MaxDurationPattern_AfterUntil_0.svg) |
 | ![](../img/failure_paths/positive/MaxDurationPattern_AfterUntil_1.svg) |  |
 

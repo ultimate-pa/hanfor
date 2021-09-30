@@ -16,8 +16,9 @@ true;⌈(!Q && R)⌉;true
 ![](../img/patterns/InvariantPattern_Globally_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 | ![](../img/failure_paths/positive/InvariantPattern_Globally_0.svg) | ![](../img/failure_paths/negative/InvariantPattern_Globally_0.svg) |
 
 
@@ -35,8 +36,9 @@ Before "Q", it is always the case that if "S" holds, then "R" holds as well
 ![](../img/patterns/InvariantPattern_Before_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 | ![](../img/failure_paths/positive/InvariantPattern_Before_0.svg) | ![](../img/failure_paths/negative/InvariantPattern_Before_0.svg) |
 
 
@@ -54,8 +56,9 @@ true;⌈Q⌉;true;⌈(!R && S)⌉;true
 ![](../img/patterns/InvariantPattern_After_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 | ![](../img/failure_paths/positive/InvariantPattern_After_0.svg) | ![](../img/failure_paths/negative/InvariantPattern_After_0.svg) |
 | ![](../img/failure_paths/positive/InvariantPattern_After_1.svg) |  |
 
@@ -74,8 +77,9 @@ true;⌈(Q && !R)⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;⌈!R⌉;⌈R⌉;true
 ![](../img/patterns/InvariantPattern_Between_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 | ![](../img/failure_paths/positive/InvariantPattern_Between_0.svg) | ![](../img/failure_paths/negative/InvariantPattern_Between_0.svg) |
 | ![](../img/failure_paths/positive/InvariantPattern_Between_1.svg) |  |
 | ![](../img/failure_paths/positive/InvariantPattern_Between_2.svg) |  |
@@ -96,8 +100,9 @@ true;⌈Q⌉;⌈!R⌉;⌈(!R && (!S && T))⌉;true
 ![](../img/patterns/InvariantPattern_AfterUntil_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 | ![](../img/failure_paths/positive/InvariantPattern_AfterUntil_0.svg) | ![](../img/failure_paths/negative/InvariantPattern_AfterUntil_0.svg) |
 | ![](../img/failure_paths/positive/InvariantPattern_AfterUntil_1.svg) |  |
 

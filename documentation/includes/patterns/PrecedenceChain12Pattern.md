@@ -16,8 +16,9 @@ Globally, it is always the case that if "S" holds and is succeeded by "R", then 
 ![](../img/patterns/PrecedenceChain12Pattern_Globally_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 | ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_0.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_1.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Globally_2.svg) |  |
@@ -42,8 +43,9 @@ Before "Q", it is always the case that if "T" holds and is succeeded by "S", the
 ![](../img/patterns/PrecedenceChain12Pattern_Before_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 | ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Before_0.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Before_1.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Before_2.svg) |  |
@@ -64,8 +66,9 @@ true;⌈Q⌉;⌈!R⌉;⌈T⌉;true;⌈S⌉;true
 ![](../img/patterns/PrecedenceChain12Pattern_After_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 | ![](../img/failure_paths/positive/PrecedenceChain12Pattern_After_0.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain12Pattern_After_1.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain12Pattern_After_2.svg) |  |
@@ -101,8 +104,9 @@ true;⌈(Q && !R)⌉;⌈(!R && !S)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈(!R && T)⌉;�
 ![](../img/patterns/PrecedenceChain12Pattern_Between_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 | ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_0.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_1.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain12Pattern_Between_2.svg) |  |
@@ -135,8 +139,9 @@ true;⌈Q⌉;⌈(!R && !S)⌉;⌈(!R && U)⌉;⌈!R⌉;⌈(!R && T)⌉;true
 ![](../img/patterns/PrecedenceChain12Pattern_AfterUntil_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 | ![](../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_0.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_1.svg) |  |
 | ![](../img/failure_paths/positive/PrecedenceChain12Pattern_AfterUntil_2.svg) |  |

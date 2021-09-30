@@ -1,4 +1,4 @@
 -e git+https://github.com/grandgeorg/figureAltCaption@7c1853e864ad753c41bbbbc49b3be9234681bd8e#egg=mdx-figurealtcaption
 -e git+https://github.com/aleksan4eg/markdown-lightbox@7dbf517cbb208179046237eb157e84e8826fda67#egg=markdown_lightbox
-mkdocs-material==7.1.9
-mkdocs-awesome-pages-plugin==2.5.0
+mkdocs-material>=7.1.9
+mkdocs-awesome-pages-plugin>=2.5.0

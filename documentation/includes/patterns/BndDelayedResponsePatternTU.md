@@ -16,9 +16,11 @@ true;⌈R⌉ ∧ ℓ ≥ 5;⌈!Q⌉ ∧ ℓ > 10;true
 ![](../img/patterns/BndDelayedResponsePatternTU_Globally_0.svg)
 
 #### Examples
-| Positive Example { .positive-example} | Negative Example { .negative-example} |
-| :---: | :---: |
+
+| Positive Example { .negative-example } | Negative Example { .positive-example } |
+| --- | --- |
 | ![](../img/failure_paths/positive/BndDelayedResponsePatternTU_Globally_0.svg) |  |
 | ![](../img/failure_paths/positive/BndDelayedResponsePatternTU_Globally_1.svg) |  |
 | ![](../img/failure_paths/positive/BndDelayedResponsePatternTU_Globally_2.svg) |  |
 | ![](../img/failure_paths/positive/BndDelayedResponsePatternTU_Globally_3.svg) |  |
+
