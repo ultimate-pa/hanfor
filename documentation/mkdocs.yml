@@ -12,6 +12,8 @@ theme:
     - navigation.top
     - navigation.tracking
     - navigation.sections
+    - search.share
+    - search.suggest
     - toc.integrate
   font: false
 
@@ -39,8 +41,7 @@ markdown_extensions:
       toc_depth: 2
       permalink: ' #'
   #- mdlightbox
-  
+
 plugins:
   - awesome-pages
   - search
-
