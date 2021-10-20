@@ -1,1 +1,2 @@
 pytest==7.1.2
+parameterized==0.8.1
