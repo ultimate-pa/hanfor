@@ -5,62 +5,62 @@
 exprcommaplus: expr
     | exprcommaplus COMMA expr
 
-expr: expr1ni IFF expr
+expr: expr1ni IFF expr -> iff
     | expr1
 
-expr1: expr2ni IMPLIES exprimplies
-    | exprexpliesni EXPLIES expr2
+expr1: expr2ni IMPLIES exprimplies -> implies
+    | exprexpliesni EXPLIES expr2 -> explies
     | expr2
 
-exprimplies: expr2ni IMPLIES exprimplies
+exprimplies: expr2ni IMPLIES exprimplies -> implies
     | expr2
 
-expr2: expr3ni AND exprand
-    | expr3ni OR  expror
+expr2: expr3ni AND exprand -> conjunction
+    | expr3ni OR expror -> disjunction
     | expr3
 
-exprand: expr3ni AND exprand
+exprand: expr3ni AND exprand -> conjunction
     | expr3
 
-expror: expr3ni OR expror
+expror: expr3ni OR expror -> disjunction
     | expr3
 
-expr3: expr4ni LESS expr4
-    | expr4ni GREATER expr4
-    | expr4ni LTEQ expr4
-    | expr4ni GTEQ expr4
-    | expr4ni EQ expr4
-    | expr4ni NEQ expr4
+expr3: expr4ni LESS expr4 -> lt
+    | expr4ni GREATER expr4 -> gt
+    | expr4ni LTEQ expr4 -> lteq
+    | expr4ni GTEQ expr4 -> gteq
+    | expr4ni EQ expr4 -> eq
+    | expr4ni NEQ expr4 -> neq
     | expr4ni PARTORDER expr4
     | expr4
 
 expr4: expr4ni CONCAT expr5
     | expr5
 
-expr5: expr5ni PLUS expr6
-    | expr5ni MINUS expr6
+expr5: expr5ni PLUS expr6 -> plus
+    | expr5ni MINUS expr6 -> minus
     | expr6
 
-expr6: expr6ni TIMES expr7
-    | expr6ni DIVIDE expr7
-    | expr6ni MOD expr7
+expr6: expr6ni TIMES expr7 -> times
+    | expr6ni DIVIDE expr7 -> divide
+    | expr6ni MOD expr7 -> mod
     | expr7
 
-expr7: NOT   expr7
-    | MINUS expr7
+expr7: NOT expr7 -> negation
+    | MINUS expr7 -> minus_unary
     | expr8
 
 expr8: expr8ni LBKT exprcommaplus RBKT
     | expr8ni LBKT exprcommaplus COLONEQUALS expr RBKT
-    | expr8ni NOT ID
+    | expr8ni NOT ID -> negation
     | expr8ni LBKT NUMBER COLON NUMBER RBKT
     | expr9
 
 expr9: FALSE
-    | TRUE
-    | NUMBER
-    | REALNUMBER
-    | ID
+    | TRUE -> true
+    | NUMBER -> number
+    | REALNUMBER -> realnumber
+    | ID -> id
     | ID LPAR exprcommastar RPAR
     | OLD LPAR expr RPAR
     | IF expr THEN expr ELSE expr
@@ -70,49 +70,49 @@ expr9: FALSE
 
 // expressions  without if-then-else
 
-expr1ni: expr2ni IMPLIES exprimpliesni
-    | exprexpliesni EXPLIES expr2ni
+expr1ni: expr2ni IMPLIES exprimpliesni -> implies
+    | exprexpliesni EXPLIES expr2ni -> explies
     | expr2ni
 
-exprimpliesni: expr2ni IMPLIES exprimpliesni
+exprimpliesni: expr2ni IMPLIES exprimpliesni -> implies
     | expr2ni
 
-exprexpliesni: exprexpliesni EXPLIES expr2ni
+exprexpliesni: exprexpliesni EXPLIES expr2ni -> explies
     | expr2ni
 
-expr2ni: expr3ni AND exprandni
-    | expr3ni OR  exprorni
+expr2ni: expr3ni AND exprandni -> conjunction
+    | expr3ni OR exprorni -> disjunction
     | expr3ni
 
-exprandni: expr3ni AND exprandni
+exprandni: expr3ni AND exprandni -> conjunction
     | expr3ni
 
-exprorni: expr3ni OR exprorni
+exprorni: expr3ni OR exprorni -> disjunction
     | expr3ni
 
-expr3ni: expr4ni LESS expr4ni
-    | expr4ni GREATER expr4ni
-    | expr4ni LTEQ expr4ni
-    | expr4ni GTEQ expr4ni
-    | expr4ni EQ expr4ni
-    | expr4ni NEQ expr4ni
+expr3ni: expr4ni LESS expr4ni -> lt
+    | expr4ni GREATER expr4ni -> gt
+    | expr4ni LTEQ expr4ni -> lteq
+    | expr4ni GTEQ expr4ni -> gteq
+    | expr4ni EQ expr4ni -> eq
+    | expr4ni NEQ expr4ni -> neq
     | expr4ni PARTORDER expr4ni
     | expr4ni
 
 expr4ni: expr4ni CONCAT expr5ni
     | expr5ni
 
-expr5ni: expr5ni PLUS expr6ni
-    | expr5ni MINUS expr6ni
+expr5ni: expr5ni PLUS expr6ni -> plus
+    | expr5ni MINUS expr6ni -> minus
     | expr6ni
 
-expr6ni: expr6ni TIMES expr7ni
-    | expr6ni DIVIDE expr7ni
-    | expr6ni MOD expr7ni
+expr6ni: expr6ni TIMES expr7ni -> times
+    | expr6ni DIVIDE expr7ni -> divide
+    | expr6ni MOD expr7ni -> mod
     | expr7ni
 
-expr7ni: NOT   expr7ni
-    | MINUS expr7ni
+expr7ni: NOT expr7ni -> negation
+    | MINUS expr7ni -> minus_unary
     | expr8ni
 
 expr8ni: expr8ni LBKT exprcommaplus RBKT
@@ -121,11 +121,11 @@ expr8ni: expr8ni LBKT exprcommaplus RBKT
     | expr8ni NOT ID
     | expr9ni
 
-expr9ni: FALSE
-    | TRUE
-    | NUMBER
-    | REALNUMBER
-    | ID
+expr9ni: FALSE -> false
+    | TRUE -> true
+    | NUMBER -> number
+    | REALNUMBER -> realnumber
+    | ID -> id
     | ID LPAR exprcommastar RPAR
     | OLD LPAR expr RPAR
     | LBRC idsexprcommaplus RBRC
@@ -142,11 +142,11 @@ function: abs_function
 
 abs_function: ABS LPAR numeric RPAR
 
-numeric: ID
-    | NUMBER
+numeric: ID -> id
+    | NUMBER -> number
     | numeric numeric_operator numeric
-    | MINUS numeric
-    | PLUS numeric
+    | MINUS numeric -> minus_unary
+    | PLUS numeric -> plus
     | abs_function
 
 numeric_operator: PLUS
