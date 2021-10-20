@@ -156,7 +156,7 @@ def infer_variable_types(tree: Tree, type_env: dict):
                         op = LogicOperator(child.type)
                         father.children.append(op)
                     elif child.type in ["EQ", "GREATER", "GTEQ", "LESS", "LTEQ", "NEQ", "DIVIDE", "MINUS", "MOD",
-                                        "PLUS", "TIMES", "DIVIDE"]:
+                                        "PLUS", "TIMES"]:
                         op = RealIntOperator(child.type)
                         father.children.append(op)
                     elif child.type in ["ABS"]:
@@ -276,7 +276,7 @@ def infer_variable_types(tree: Tree, type_env: dict):
             else:
                 t = BoogieType.error
             if next_op not in ["EQ", "GREATER", "GTEQ", "LESS", "LTEQ", "NEQ", "DIVIDE", "MINUS", "MOD", "PLUS",
-                               "TIMES", "DIVIDE"] or t is not BoogieType.unknown:
+                               "TIMES"] or t is not BoogieType.unknown:
                 for id in locals:
                     op_type_env[id] = t if t is not BoogieType.error else BoogieType.unknown
                 locals = set()

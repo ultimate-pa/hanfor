@@ -118,7 +118,7 @@ expr7ni: NOT expr7ni -> negation
 expr8ni: expr8ni LBKT exprcommaplus RBKT
     | expr8ni LBKT exprcommaplus COLONEQUALS expr RBKT
     | expr8ni LBKT NUMBER COLON NUMBER RBKT
-    | expr8ni NOT ID
+    | expr8ni NOT ID -> negation
     | expr9ni
 
 expr9ni: FALSE -> false
