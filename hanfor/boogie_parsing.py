@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from enum import Enum
-from lark import Lark, Tree
+from lark import Lark, Tree, Transformer
 from lark.lexer import Token
 from lark.reconstruct import Reconstructor
 
@@ -52,9 +52,16 @@ def replace_var_in_expression(expression, old_var, new_var, parser=None, matchin
     recons = Reconstructor(parser)
 
     for node in tree.iter_subtrees():  # type: Tree
+        #children = []
+        #for child in node.children:
+        #    if isinstance(child, Token) and child.type in matching_terminal_names and child.value == old_var:
+        #        children.append(child.update(value=new_var))
+        #    else:
+        #        children.append(child)
+
+        #node.set(data=node.data, children=children)
+
         for child in node.children:
-            if isinstance(child, Token):
-                pass
             if isinstance(child, Token) and child.type in matching_terminal_names:
                 if child.value == old_var:
                     node.set(data=node.data, children=[Token(child.type, new_var)])
@@ -128,6 +135,12 @@ class BoogieType(Enum):
         return BoogieType.get_alias_mapping()[name]
 
 
+class MyTransformer(Transformer):
+    def greater(self, args):
+        print(args)
+        return(Tree("ficken", [arg for arg in args if isinstance(arg, Tree)]))
+
+
 def infer_variable_types(tree: Tree, type_env: dict):
     class TypeNode:
 
@@ -143,7 +156,7 @@ def infer_variable_types(tree: Tree, type_env: dict):
                         op = LogicOperator(child.type)
                         father.children.append(op)
                     elif child.type in ["EQ", "GREATER", "GTEQ", "LESS", "LTEQ", "NEQ", "DIVIDE", "MINUS", "MOD",
-                                        "PLUS", "TIMES", "DIVIDE", "MINUS", "MOD", "PLUS", "TIMES"]:
+                                        "PLUS", "TIMES", "DIVIDE"]:
                         op = RealIntOperator(child.type)
                         father.children.append(op)
                     elif child.type in ["ABS"]:
@@ -263,7 +276,7 @@ def infer_variable_types(tree: Tree, type_env: dict):
             else:
                 t = BoogieType.error
             if next_op not in ["EQ", "GREATER", "GTEQ", "LESS", "LTEQ", "NEQ", "DIVIDE", "MINUS", "MOD", "PLUS",
-                               "TIMES", "DIVIDE", "MINUS", "MOD", "PLUS", "TIMES"] or t is not BoogieType.unknown:
+                               "TIMES", "DIVIDE"] or t is not BoogieType.unknown:
                 for id in locals:
                     op_type_env[id] = t if t is not BoogieType.error else BoogieType.unknown
                 locals = set()
