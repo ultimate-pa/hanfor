@@ -1,3 +1,5 @@
+from typing import Dict
+
 from lark import Transformer, Token
 from pysmt.shortcuts import And, Or, Div, Equals, FALSE, TRUE, GT, GE, Symbol, Iff, Implies, LT, LE, Minus, Not, NotEquals, \
     Int, Plus, Real, Times
@@ -7,7 +9,7 @@ import boogie_parsing
 
 
 class BoogieToPysmtTransformer(Transformer):
-    def __init__(self, type_env):
+    def __init__(self, type_env: Dict[str, boogie_parsing.BoogieType]):
         super().__init__()
         self.type_env = type_env
         self.formula = None
