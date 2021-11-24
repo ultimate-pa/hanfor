@@ -1,7 +1,6 @@
-from typing import Dict
-
 from lark import Transformer, Token
-from pysmt.shortcuts import And, Or, Div, Equals, FALSE, TRUE, GT, GE, Symbol, Iff, Implies, LT, LE, Minus, Not, NotEquals, \
+from pysmt.shortcuts import And, Or, Div, Equals, FALSE, TRUE, GT, GE, Symbol, Iff, Implies, LT, LE, Minus, Not, \
+    NotEquals, \
     Int, Plus, Real, Times
 from pysmt.typing import INT, BOOL, REAL
 
@@ -9,7 +8,13 @@ import boogie_parsing
 
 
 class BoogieToPysmtTransformer(Transformer):
-    def __init__(self, type_env: Dict[str, boogie_parsing.BoogieType]):
+    boogie_to_pysmt_type_mapping = {
+        boogie_parsing.BoogieType.bool: BOOL,
+        boogie_parsing.BoogieType.int: INT,
+        boogie_parsing.BoogieType.real: REAL
+    }
+
+    def __init__(self, type_env: dict[str, boogie_parsing.BoogieType]):
         super().__init__()
         self.type_env = type_env
         self.formula = None
@@ -28,6 +33,9 @@ class BoogieToPysmtTransformer(Transformer):
 
     def eq(self, children):
         print("eq:", children)
+        # It is not supported to use equality '=' on boolean terms. One should use  iff '<->' instead.
+        if children[0].get_type() == BOOL or children[2].get_type() == BOOL:
+            return self.iff(children)
         return Equals(children[0], children[2])
 
     def explies(self, children):
@@ -49,15 +57,10 @@ class BoogieToPysmtTransformer(Transformer):
     def id(self, children):
         print("id:", children)
         boogie_type = self.type_env[children[0].value]
+        pysmt_type = self.boogie_to_pysmt_type_mapping.get(boogie_type)
 
-        if boogie_type == boogie_parsing.BoogieType.bool:
-            pysmt_type = BOOL
-        elif boogie_type == boogie_parsing.BoogieType.int:
-            pysmt_type = INT
-        elif boogie_type == boogie_parsing.BoogieType.real:
-            pysmt_type = REAL
-        else:
-            raise Exception("Unexpected boogie type of children: %s" % (boogie_type))
+        if not pysmt_type:
+            raise ValueError("Unexpected value of `boogie_type`: %s" % boogie_type)
 
         return Symbol(children[0].value, pysmt_type)
 
@@ -126,6 +129,6 @@ class BoogieToPysmtTransformer(Transformer):
         children = [child for child in children if not isinstance(child, Token)]
 
         if len(children) != 1:
-            raise Exception("Unexpected size of children: %d" % (len(children)))
+            raise Exception("Unexpected size of children: %d" % len(children))
 
         return children[0]
