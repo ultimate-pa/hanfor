@@ -1,0 +1,118 @@
+from __future__ import annotations
+
+from enum import Enum
+
+from pysmt.fnode import FNode
+from pysmt.shortcuts import TRUE, Not
+
+
+class CounterTrace:
+    def __init__(self, *phases: DCPhase):
+        self.phases = [phase for phase in phases]
+
+    def __str__(self):
+        return ' ; '.join([str(phase) for phase in self.phases])
+
+    class BoundTypes(Enum):
+        LESS = -2
+        LESSEQUAL = -1
+        NONE = 0
+        GREATEREQUAL = 1
+        GREATER = 2
+
+    class DCPhase:
+        def __init__(self, entry_events: FNode, invariant: FNode, bound_type: CounterTrace.BoundTypes, bound: int,
+                     forbid: set[str], allow_empty: bool):
+            self.entry_events = entry_events
+            self.invariant = invariant
+            self.bound_type = bound_type
+            self.bound = bound
+            self.forbid = forbid
+            self.allow_empty = allow_empty
+
+        def __str__(self, unicode: bool = True):
+            result = ''
+
+            AND = '\u2227' if unicode else '/\\'
+            NOEVENT = '\u229F' if unicode else '[-]'
+            EMPTY = '\u2080' if unicode else '0'
+            GEQ = '\u2265' if unicode else '>='
+            LEQ = '\u2264' if unicode else '<='
+            LCEIL = '\u2308' if unicode else '['
+            RCEIL = '\u2309' if unicode else ']'
+            ELL = '\u2113' if unicode else 'L'
+
+            result += str(self.entry_events) + ';' if self.entry_events != TRUE() else ''
+            result += str(self.invariant) if self.invariant == TRUE() else LCEIL + str(self.invariant) + RCEIL
+
+            for forbid in self.forbid:
+                result += ' ' + AND + ' ' + NOEVENT + ' ' + forbid
+
+            if self.bound_type == CounterTrace.BoundTypes.NONE:
+                return result
+
+            result += ' ' + AND + ' ' + ELL
+
+            if self.bound_type == CounterTrace.BoundTypes.LESS:
+                result += ' <' + EMPTY + ' ' if self.allow_empty else ' < '
+            elif self.bound_type == CounterTrace.BoundTypes.LESSEQUAL:
+                result += ' ' + LEQ + EMPTY + ' ' if self.allow_empty else ' ' + LEQ + ' '
+            elif self.bound_type == CounterTrace.BoundTypes.GREATER:
+                result += ' >' + EMPTY + ' ' if self.allow_empty else ' > '
+            elif self.bound_type == CounterTrace.BoundTypes.GREATEREQUAL:
+                result += ' ' + GEQ + EMPTY + ' ' if self.allow_empty else ' ' + GEQ + ' '
+            else:
+                raise ValueError("Unexpected value of `bound_type`: %s" % self.bound_type)
+
+            result += str(self.bound)
+
+            return result
+
+
+def phaseT():
+    return CounterTrace.DCPhase(TRUE(), TRUE(), CounterTrace.BoundTypes.NONE, 0, set(), True)
+
+
+def phase(invariant: FNode, bound_type: CounterTrace.BoundTypes = CounterTrace.BoundTypes.NONE, bound: int = 0):
+    return CounterTrace.DCPhase(TRUE(), invariant, bound_type, bound, set(), False)
+
+
+def create_counter_trace(scope: str, pattern: str, expressions: dict[str, FNode]):
+    # scope = formalization.scoped_pattern.scope.name
+    # pattern = formalization. scoped_pattern.pattern.name
+
+    # variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+    # type_env = variable_collection.get_boogie_type_env()
+
+    # expressions = {}
+    # for key, value in formalization.expressions_mapping.items():
+    #    lark_tree = boogie_parsing.get_parser_instance().parse(value.raw_expression)
+    #    expressions[key] = BoogieToPysmtTransformer(type_env).transform(lark_tree)
+
+    P = expressions.get('P')  # Scope
+    Q = expressions.get('Q')  # Scope
+    R = expressions.get('R')
+    S = expressions.get('S')
+    T = expressions.get('T')
+    U = expressions.get('U')
+    V = expressions.get('V')
+
+    if pattern == 'BndResponsePatternUT':
+        if scope == 'GLOBALLY':
+            return CounterTrace(phaseT(), phase(R.And(Not(S))), phase(Not(S), CounterTrace.BoundTypes.GREATER, T),
+                                phaseT())
+        if scope == 'BEFORE':
+            return CounterTrace(phase(Not(P)), phase(Not(P).And(R).And(Not(S))),
+                                phase(Not(P).And(Not(S)), CounterTrace.BoundTypes.GREATER, T), phaseT())
+        if scope == 'AFTER':
+            return CounterTrace(phaseT(), phase(P), phaseT(), phase(R.And(Not(S))),
+                                phase(Not(S), CounterTrace.BoundTypes.GREATER, T), phaseT())
+        if scope == 'AFTER_UNTIL':
+            return CounterTrace(phaseT(), phase(P), phase(Not(Q)), phase(Not(Q).And(R).And(Not(S))),
+                                phase(Not(Q).And(Not(S)), CounterTrace.BoundTypes.GREATER, T), phaseT())
+        if scope == 'BETWEEN':
+            return CounterTrace(phaseT(), phase(P.And(Not(Q))), phase(Not(Q)), phase(Not(Q).And(R).And(Not(S))),
+                                phase(Not(Q).And(Not(S)), CounterTrace.BoundTypes.GREATER, T), phase(Not(Q)), phase(Q),
+                                phaseT())
+    else:
+        raise NotImplementedError('Pattern is not implemented. %s %s' % (scope, pattern))
