@@ -2,16 +2,17 @@ from __future__ import annotations
 
 from enum import Enum
 
+from lark.visitors import Transformer
 from pysmt.fnode import FNode
-from pysmt.shortcuts import TRUE, Not
+from pysmt.shortcuts import TRUE, Not, And, Or
 
 
 class CounterTrace:
-    def __init__(self, *phases: DCPhase):
-        self.phases = [phase for phase in phases]
+    def __init__(self, *dc_phases: DCPhase):
+        self.dc_phases = [dc_phase for dc_phase in dc_phases]
 
     def __str__(self):
-        return ' ; '.join([str(phase) for phase in self.phases])
+        return ';'.join([str(phase) for phase in self.dc_phases])
 
     class BoundTypes(Enum):
         LESS = -2
@@ -72,6 +73,8 @@ class CounterTrace:
 def phaseT():
     return CounterTrace.DCPhase(TRUE(), TRUE(), CounterTrace.BoundTypes.NONE, 0, set(), True)
 
+def phaseE(invariant: FNode, bound_type: CounterTrace.BoundTypes, bound: int):
+    return CounterTrace.DCPhase(TRUE(), invariant, bound_type, bound, set(), True)
 
 def phase(invariant: FNode, bound_type: CounterTrace.BoundTypes = CounterTrace.BoundTypes.NONE, bound: int = 0):
     return CounterTrace.DCPhase(TRUE(), invariant, bound_type, bound, set(), False)
@@ -107,12 +110,78 @@ def create_counter_trace(scope: str, pattern: str, expressions: dict[str, FNode]
         if scope == 'AFTER':
             return CounterTrace(phaseT(), phase(P), phaseT(), phase(R.And(Not(S))),
                                 phase(Not(S), CounterTrace.BoundTypes.GREATER, T), phaseT())
-        if scope == 'AFTER_UNTIL':
-            return CounterTrace(phaseT(), phase(P), phase(Not(Q)), phase(Not(Q).And(R).And(Not(S))),
-                                phase(Not(Q).And(Not(S)), CounterTrace.BoundTypes.GREATER, T), phaseT())
         if scope == 'BETWEEN':
             return CounterTrace(phaseT(), phase(P.And(Not(Q))), phase(Not(Q)), phase(Not(Q).And(R).And(Not(S))),
                                 phase(Not(Q).And(Not(S)), CounterTrace.BoundTypes.GREATER, T), phase(Not(Q)), phase(Q),
                                 phaseT())
+        if scope == 'AFTER_UNTIL':
+            return CounterTrace(phaseT(), phase(P), phase(Not(Q)), phase(Not(Q).And(R).And(Not(S))),
+                                phase(Not(Q).And(Not(S)), CounterTrace.BoundTypes.GREATER, T), phaseT())
     else:
-        raise NotImplementedError('Pattern is not implemented. %s %s' % (scope, pattern))
+        raise NotImplementedError('Pattern is not implemented: %s %s' % (scope, pattern))
+
+
+class CounterTraceTransformer(Transformer):
+    def __init__(self, expressions: dict[str, FNode]):
+        super().__init__()
+        self.expressions = expressions
+
+    def counter_trace(self, children):
+        print("counter_trace:", children)
+        return CounterTrace(*children)
+
+    def phase_t(self, children):
+        print("phase_t:", children)
+        return phaseT()
+
+    def phase_unbounded(self, children):
+        print("phase_unbounded:", children)
+        return phase(children[0])
+
+    def phase(self, children):
+        print("phase:", children)
+        return phase(children[0], children[1], children[2])
+
+    def phase_e(self, children):
+        print("phase_e:", children)
+        return phaseE(children[0], children[1], children[2])
+
+    def conjunction(self, children):
+        print("conjunction:", children)
+        return And(children[0], children[1])
+
+    def disjunction(self, children):
+        print("disjunction:", children)
+        return Or(children[0], children[1])
+
+    def negation(self, children):
+        print("negation:", children)
+        return Not(children[0])
+
+    def bound_type_lt(self, children):
+        print("bound_type_lt:", children)
+        return CounterTrace.BoundTypes.LESS
+
+    def bound_type_lteq(self, children):
+        print("bound_type_lteq:", children)
+        return CounterTrace.BoundTypes.LESSEQUAL
+
+    def bound_type_gt(self, children):
+        print("bound_type_gt:", children)
+        return CounterTrace.BoundTypes.GREATER
+
+    def bound_type_gteq(self, children):
+        print("bound_type_gteq:", children)
+        return CounterTrace.BoundTypes.GREATEREQUAL
+
+    def variable(self, children):
+        print("variable:", children)
+        return self.expressions.get(children[0])
+
+    def __default__(self, data, children, meta):
+        print("default:", children)
+
+        if len(children) != 1:
+            raise ValueError("Unexpected size of children: %d" % len(children))
+
+        return children[0]

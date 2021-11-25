@@ -3,10 +3,10 @@ from unittest import TestCase
 from parameterized import parameterized
 
 import boogie_parsing
-from simulator.boogie_to_pysmt_transformer import BoogieToPysmtTransformer
+from simulator.boogie_pysmt_transformer import BoogiePysmtTransformer
 
 
-class TestBoogieToPysmtTransformer(TestCase):
+class TestBoogiePysmtTransformer(TestCase):
 
     @parameterized.expand([
         # Bool
@@ -32,5 +32,5 @@ class TestBoogieToPysmtTransformer(TestCase):
         lark_tree = boogie_parsing.get_parser_instance().parse(test_input)
         type, type_env = boogie_parsing.infer_variable_types(lark_tree, {}).derive_type()
 
-        actual = str(BoogieToPysmtTransformer(type_env).transform(lark_tree))
+        actual = str(BoogiePysmtTransformer(type_env).transform(lark_tree))
         self.assertEqual(expected, actual, msg='Error while transforming boogie expression to pysmt formula.')
