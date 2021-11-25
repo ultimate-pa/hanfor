@@ -7,7 +7,7 @@ from pysmt.typing import INT, BOOL, REAL
 import boogie_parsing
 
 
-class BoogieToPysmtTransformer(Transformer):
+class BoogiePysmtTransformer(Transformer):
     boogie_to_pysmt_type_mapping = {
         boogie_parsing.BoogieType.bool: BOOL,
         boogie_parsing.BoogieType.int: INT,
@@ -129,6 +129,6 @@ class BoogieToPysmtTransformer(Transformer):
         children = [child for child in children if not isinstance(child, Token)]
 
         if len(children) != 1:
-            raise Exception("Unexpected size of children: %d" % len(children))
+            raise ValueError("Unexpected size of children: %d" % len(children))
 
         return children[0]
