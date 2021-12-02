@@ -8,10 +8,10 @@ from pysmt.shortcuts import TRUE, Not, And, Or
 
 
 class CounterTrace:
-    def __init__(self, *dc_phases: DCPhase):
+    def __init__(self, *dc_phases: DCPhase) -> None:
         self.dc_phases = [dc_phase for dc_phase in dc_phases]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return ';'.join([str(phase) for phase in self.dc_phases])
 
     class BoundTypes(Enum):
@@ -23,7 +23,7 @@ class CounterTrace:
 
     class DCPhase:
         def __init__(self, entry_events: FNode, invariant: FNode, bound_type: CounterTrace.BoundTypes, bound: int,
-                     forbid: set[str], allow_empty: bool):
+                     forbid: set[str], allow_empty: bool) -> None:
             self.entry_events: FNode = entry_events
             self.invariant: FNode = invariant
             self.bound_type: CounterTrace.BoundTypes = bound_type
@@ -39,7 +39,7 @@ class CounterTrace:
             return self.bound_type == CounterTrace.BoundTypes.GREATER or \
                    self.bound_type == CounterTrace.BoundTypes.GREATEREQUAL
 
-        def __str__(self, unicode: bool = True):
+        def __str__(self, unicode: bool = True) -> str:
             result = ''
 
             AND = '\u2227' if unicode else '/\\'
@@ -78,30 +78,21 @@ class CounterTrace:
             return result
 
 
-def phaseT():
+def phaseT() -> CounterTrace.DCPhase:
     return CounterTrace.DCPhase(TRUE(), TRUE(), CounterTrace.BoundTypes.NONE, 0, set(), True)
 
 
-def phaseE(invariant: FNode, bound_type: CounterTrace.BoundTypes, bound: int):
+def phaseE(invariant: FNode, bound_type: CounterTrace.BoundTypes, bound: int) -> CounterTrace.DCPhase:
     return CounterTrace.DCPhase(TRUE(), invariant, bound_type, bound, set(), True)
 
 
-def phase(invariant: FNode, bound_type: CounterTrace.BoundTypes = CounterTrace.BoundTypes.NONE, bound: int = 0):
+def phase(invariant: FNode, bound_type: CounterTrace.BoundTypes = CounterTrace.BoundTypes.NONE,
+          bound: int = 0) -> CounterTrace.DCPhase:
     return CounterTrace.DCPhase(TRUE(), invariant, bound_type, bound, set(), False)
 
 
-def create_counter_trace(scope: str, pattern: str, expressions: dict[str, FNode]):
-    # scope = formalization.scoped_pattern.scope.name
-    # pattern = formalization. scoped_pattern.pattern.name
-
-    # variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
-    # type_env = variable_collection.get_boogie_type_env()
-
-    # expressions = {}
-    # for key, value in formalization.expressions_mapping.items():
-    #    lark_tree = boogie_parsing.get_parser_instance().parse(value.raw_expression)
-    #    expressions[key] = BoogieToPysmtTransformer(type_env).transform(lark_tree)
-
+# TODO: Obsolete.
+def create_counter_trace(scope: str, pattern: str, expressions: dict[str, FNode]) -> CounterTrace:
     P = expressions.get('P')  # Scope
     Q = expressions.get('Q')  # Scope
     R = expressions.get('R')
@@ -132,59 +123,59 @@ def create_counter_trace(scope: str, pattern: str, expressions: dict[str, FNode]
 
 
 class CounterTraceTransformer(Transformer):
-    def __init__(self, expressions: dict[str, FNode]):
+    def __init__(self, expressions: dict[str, FNode]) -> None:
         super().__init__()
         self.expressions = expressions
 
-    def counter_trace(self, children):
+    def counter_trace(self, children) -> CounterTrace:
         print("counter_trace:", children)
         return CounterTrace(*children)
 
-    def phase_t(self, children):
+    def phase_t(self, children) -> CounterTrace.DCPhase:
         print("phase_t:", children)
         return phaseT()
 
-    def phase_unbounded(self, children):
+    def phase_unbounded(self, children) -> CounterTrace.DCPhase:
         print("phase_unbounded:", children)
         return phase(children[0])
 
-    def phase(self, children):
+    def phase(self, children) -> CounterTrace.DCPhase:
         print("phase:", children)
         return phase(children[0], children[1], children[2])
 
-    def phase_e(self, children):
+    def phase_e(self, children) -> CounterTrace.DCPhase:
         print("phase_e:", children)
         return phaseE(children[0], children[1], children[2])
 
-    def conjunction(self, children):
+    def conjunction(self, children) -> CounterTrace.DCPhase:
         print("conjunction:", children)
         return And(children[0], children[1])
 
-    def disjunction(self, children):
+    def disjunction(self, children) -> CounterTrace.DCPhase:
         print("disjunction:", children)
         return Or(children[0], children[1])
 
-    def negation(self, children):
+    def negation(self, children) -> CounterTrace.DCPhase:
         print("negation:", children)
         return Not(children[0])
 
-    def bound_type_lt(self, children):
+    def bound_type_lt(self, children) -> CounterTrace.BoundTypes:
         print("bound_type_lt:", children)
         return CounterTrace.BoundTypes.LESS
 
-    def bound_type_lteq(self, children):
+    def bound_type_lteq(self, children) -> CounterTrace.BoundTypes:
         print("bound_type_lteq:", children)
         return CounterTrace.BoundTypes.LESSEQUAL
 
-    def bound_type_gt(self, children):
+    def bound_type_gt(self, children) -> CounterTrace.BoundTypes:
         print("bound_type_gt:", children)
         return CounterTrace.BoundTypes.GREATER
 
-    def bound_type_gteq(self, children):
+    def bound_type_gteq(self, children) -> CounterTrace.BoundTypes:
         print("bound_type_gteq:", children)
         return CounterTrace.BoundTypes.GREATEREQUAL
 
-    def variable(self, children):
+    def variable(self, children) -> FNode:
         print("variable:", children)
         return self.expressions.get(children[0])
 

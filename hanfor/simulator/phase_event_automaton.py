@@ -8,21 +8,18 @@ from simulator.counter_trace import CounterTrace
 
 
 class Phase():
-    def __init__(self):
+    def __init__(self) -> None:
         self.phase_sets: Phase.PhaseSets = Phase.PhaseSets(set(), set(), set(), set())
-
-    def add_successor(self, guard: FNode, clocks, phase: Phase):
-        raise NotImplementedError()
 
     class PhaseSets():
         def __init__(self, gteq: set[int] = None, wait: set[int] = None, less: set[int] = None,
-                     active: set[int] = None):
+                     active: set[int] = None) -> None:
             self.gteq: set[int] = set() if gteq is None else gteq
             self.wait: set[int] = set() if wait is None else wait
             self.less: set[int] = set() if less is None else less
             self.active: set[int] = set() if active is None else active
 
-        def __eq__(self, o):
+        def __eq__(self, o) -> bool:
             return isinstance(o, Phase.PhaseSets) and \
                    self.gteq == o.gteq and self.wait == o.wait and self.less == o.less and self.active == o.active
 
@@ -39,7 +36,8 @@ class Phase():
             return Phase.PhaseSets(self.gteq.copy(), self.wait.copy(), self.less.copy(), self.active.union({i}))
 
 
-def build_automaton(ct: CounterTrace):
+def build_automaton(ct: CounterTrace) -> tuple[list[tuple[Phase.PhaseSets, Phase.PhaseSets, FNode, set[str]]], list[
+    tuple[Phase.PhaseSets, Phase.PhaseSets, FNode, set[str]]]]:
     result_init, result, visited, pending = [], [], [], []
 
     while pending or not result_init:
@@ -169,21 +167,18 @@ def compute_enter_keep(ct: CounterTrace, p: Phase.PhaseSets = None) -> tuple[dic
     return enter_, keep_
 
 
-def keep(ct: CounterTrace, p: Phase.PhaseSets, i: int) -> FNode:
-    is_upper_bound = ct.dc_phases[i].bound_type == CounterTrace.BoundTypes.LESS or \
-                     ct.dc_phases[i].bound_type == CounterTrace.BoundTypes.LESSEQUAL
-    is_can_seep = can_seep(p, i) == FALSE()
-
-    return And(TRUE() if i in p.active else FALSE(), ct.dc_phases[i].invariant,
-               LT(Symbol('c' + str(i), INT), ct.dc_phases[i].bound) if is_upper_bound and is_can_seep else TRUE())
-
-
 def enter(ct: CounterTrace, p: Phase.PhaseSets, i: int) -> FNode:
     return And(complete(ct, p, i - 1), ct.dc_phases[i].invariant)
 
 
 def seep(ct: CounterTrace, p: Phase.PhaseSets, i: int) -> FNode:
     return And(can_seep(p, i), ct.dc_phases[i].invariant)
+
+
+def keep(ct: CounterTrace, p: Phase.PhaseSets, i: int) -> FNode:
+    return And(TRUE() if i in p.active else FALSE(), ct.dc_phases[i].invariant,
+               LT(Symbol('c' + str(i), INT), ct.dc_phases[i].bound) \
+                   if ct.dc_phases[i].is_upper_bound() and can_seep(p, i) == FALSE() else TRUE())
 
 
 def complete(ct: CounterTrace, p: Phase.PhaseSets, i: int) -> FNode:
