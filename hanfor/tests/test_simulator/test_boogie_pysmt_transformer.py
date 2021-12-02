@@ -7,7 +7,6 @@ from simulator.boogie_pysmt_transformer import BoogiePysmtTransformer
 
 
 class TestBoogiePysmtTransformer(TestCase):
-
     @parameterized.expand([
         # Bool
         # TODO: Check this.

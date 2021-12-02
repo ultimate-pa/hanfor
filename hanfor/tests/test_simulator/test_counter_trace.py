@@ -10,7 +10,6 @@ from simulator.counter_trace import create_counter_trace, CounterTraceTransforme
 
 
 class TestCounterTrace(TestCase):
-
     @parameterized.expand([
         ('BndResponsePatternUT', 'GLOBALLY',
          {'R': Symbol('R'), 'S': Symbol('S'), 'T': Symbol('T', INT)},

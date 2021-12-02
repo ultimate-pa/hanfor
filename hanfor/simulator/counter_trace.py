@@ -15,21 +15,29 @@ class CounterTrace:
         return ';'.join([str(phase) for phase in self.dc_phases])
 
     class BoundTypes(Enum):
-        LESS = -2
-        LESSEQUAL = -1
         NONE = 0
-        GREATEREQUAL = 1
-        GREATER = 2
+        LESS = 1
+        LESSEQUAL = 2
+        GREATER = 3
+        GREATEREQUAL = 4
 
     class DCPhase:
         def __init__(self, entry_events: FNode, invariant: FNode, bound_type: CounterTrace.BoundTypes, bound: int,
                      forbid: set[str], allow_empty: bool):
-            self.entry_events = entry_events
-            self.invariant = invariant
-            self.bound_type = bound_type
-            self.bound = bound
-            self.forbid = forbid
-            self.allow_empty = allow_empty
+            self.entry_events: FNode = entry_events
+            self.invariant: FNode = invariant
+            self.bound_type: CounterTrace.BoundTypes = bound_type
+            self.bound: int = bound
+            self.forbid: set[str] = forbid
+            self.allow_empty: bool = allow_empty
+
+        def is_upper_bound(self) -> bool:
+            return self.bound_type == CounterTrace.BoundTypes.LESS or \
+                   self.bound_type == CounterTrace.BoundTypes.LESSEQUAL
+
+        def is_lower_bound(self) -> bool:
+            return self.bound_type == CounterTrace.BoundTypes.GREATER or \
+                   self.bound_type == CounterTrace.BoundTypes.GREATEREQUAL
 
         def __str__(self, unicode: bool = True):
             result = ''
@@ -73,8 +81,10 @@ class CounterTrace:
 def phaseT():
     return CounterTrace.DCPhase(TRUE(), TRUE(), CounterTrace.BoundTypes.NONE, 0, set(), True)
 
+
 def phaseE(invariant: FNode, bound_type: CounterTrace.BoundTypes, bound: int):
     return CounterTrace.DCPhase(TRUE(), invariant, bound_type, bound, set(), True)
+
 
 def phase(invariant: FNode, bound_type: CounterTrace.BoundTypes = CounterTrace.BoundTypes.NONE, bound: int = 0):
     return CounterTrace.DCPhase(TRUE(), invariant, bound_type, bound, set(), False)
