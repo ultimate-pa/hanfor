@@ -23,6 +23,11 @@ class Phase():
             return isinstance(o, Phase.PhaseSets) and \
                    self.gteq == o.gteq and self.wait == o.wait and self.less == o.less and self.active == o.active
 
+        def __str__(self) -> str:
+            return "gteq = %s, wait = %s, less = %s, active = %s" % (
+            self.gteq if self.gteq else {}, self.wait if self.wait else {}, self.less if self.less else {},
+            self.active if self.active else {})
+
         def add_gteq(self, i: int) -> Phase.PhaseSets:
             return Phase.PhaseSets(self.gteq.union({i}), self.wait.union({i}), self.less.copy(), self.active.union({i}))
 
