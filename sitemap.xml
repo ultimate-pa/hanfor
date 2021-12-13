@@ -51,6 +51,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://ultimate-pa.github.io/hanfor/references/patterns/ConstrainedChainPattern.html</loc>
+         <lastmod>2021-12-13</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://ultimate-pa.github.io/hanfor/usage/api_queries.html</loc>
          <lastmod>2021-12-13</lastmod>
          <changefreq>daily</changefreq>
