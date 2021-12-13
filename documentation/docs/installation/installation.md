@@ -2,16 +2,10 @@ toc_depth: 2
 
 # Installation
 
-## Preliminaries
-* [Python](https://www.python.org/) - Hanfor is only tested with **Python 3.6.x**.
-* [pip](https://pypi.org/project/pip/) - Used to install all required dependencies.
+## Prerequisites
+* [Python](https://www.python.org/) (**Note**: Hanfor is only tested with Python 3.9.x)
+* [pip](https://pypi.org/project/pip/)
 
-If python and pip are installed, their version can be checked from command line.
-``` bash
-python --version
-
-pip --version
-```
 
 ## Install Hanfor
 To get Hanfor either download the .zip file or clone the repository.
@@ -35,7 +29,7 @@ git clone https://github.com/ultimate-pa/hanfor.git -b master --single-branch
 ```
 
 ## Install dependencies
-We recommend to use a [virtual environment](https://docs.python.org/3/tutorial/venv.html).
+We recommend using a [virtual environment](https://docs.python.org/3/tutorial/venv.html).
 
 === "Linux"
     ``` bash
@@ -50,11 +44,7 @@ We recommend to use a [virtual environment](https://docs.python.org/3/tutorial/v
     hanfor_venv\Scripts\activate.bat
     ```
 
-error: Microsoft Visual C++ 14.0 is required.
-Workloads > C++ build tools
-Installation details > Optional > MSVC v142 - VS 2019 C++ x64/x86 build tools && Windows 10 SDK
-
-Use [pip](https://pypi.org/project/pip/) to install all required dependencies listed in `requirements.txt`.
+Then, install all Python dependencies. 
 ``` bash
 pip install -r requirements.txt
 ```
@@ -71,11 +61,7 @@ Copy the default config file `config.dist.py` to `config.py`.
     copy config.dist.py config.py
     ```
 
-The config file `config.py` allows to change parameters like ...
-
-- `SESSION_BASE_FOLDER` where Hanfor sessions are stored
-- `HOST` and `PORT` of Hanfor's web interface
-- ...
+The config file `config.py` allows you to change various parameters -- see the comments in [`config.dist.py`](https://github.com/ultimate-pa/hanfor/blob/master/hanfor/config.dist.py).
 
 ## Launch a Hanfor session
 
@@ -84,7 +70,7 @@ The config file `config.py` allows to change parameters like ...
 python app.py <tag> -c <path_to_input_csv>
 ```
 1. This creates a new session named by `<tag>` in the `SESSION_BASE_FOLDER`.
-2. It asks the user for a mapping of the the following csv header names.
+2. It asks the user for a mapping of the following .csv header names.
     * "ID"
     * "Description"
     * "Formalized Requirement"
@@ -107,25 +93,22 @@ Open the web interface in your web browser at [`http://<HOST>:<PORT>`](http://12
  
 ## ReqAnalyzer
 With Hanfor you can formalize requirements and export them. 
-The ReqAnalyzer is a tool to analyze the formalized requirements and part of the released tools of [Ultimate](https://github.com/ultimate-pa/ultimate).
+Ultimate ReqAnalyzer is a tool to analyze the formalized requirements and part of the released tools of [Ultimate](https://github.com/ultimate-pa/ultimate).
 
 #### Variant 1: Use the latest release
 
-1. Install `Java JRE (1.8)`
+1. Install `Java JRE (11)`
+2. Download one of the latest [nightly builds](https://monteverdi.informatik.uni-freiburg.de/ultimate-nightly/).  
+   Depending on your OS, you need to download `UReqCheck-linux.zip` or `UReqCheck-win32.zip`.
 
-Download the latest [Release](https://monteverdi.informatik.uni-freiburg.de/ultimate-nightly/).
-The asset you need is called `UReqCheck-linux.zip`. 
 
+#### Variant 2: Build the latest development version
 
-#### Variant 2: Build the latest dev-version
-
-https://github.com/ultimate-pa/ultimate/wiki/Usage
-
-1. Install `Java JDK (1.8)` and `Maven (>3.0)`
+1. Install `Java JDK (11)` and `Maven (>=3.6)`
 2. Clone the repository: `git clone https://github.com/ultimate-pa/ultimate`.
 3. Navigate to the release scripts `cd ultimate/releaseScripts/default`
-4. Generate a fresh binary `./makeFresh.sh`
+4. Build the latest binaries by executing `./makeFresh.sh`. This also works on Windows if you use a `bash` shell (e.g., from WSL or GitBash). 
 
-The binaries are located in `UReqCheck-linux`.
+After a successful build, the binaries are located in `UReqCheck-linux` and `UReqCheck-win32`, respectively.
 
 In the [Workflow](../usage/workflow.md) section we explain how to use the tool.
