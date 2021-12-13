@@ -1,24 +1,30 @@
-counter_trace: phase (";" phase)* -> counter_trace
+counter_trace: phase_ (";" phase_)* ";" phase_true_ -> counter_trace
 
-phase: "true" -> phase_t
-    | "⌈" invariant "⌉" -> phase_unbounded
-    | "⌈" invariant "⌉" "∧" "ℓ" bound_type variable -> phase
-    | "⌈" invariant "⌉" "∧" "ℓ" bound_type "₀" variable -> phase_e
+phase_: phase_true_
+    | true_ "∧" "ℓ" bound_type_ variable_ -> phase
+    | true_ "∧" "ℓ" bound_type_ "₀" variable_ -> phase_e
+    | "⌈" predicate_ "⌉" -> phase_unbounded
+    | "⌈" predicate_ "⌉" "∧" "ℓ" bound_type_ variable_ -> phase
+    | "⌈" predicate_ "⌉" "∧" "ℓ" bound_type_ "₀" variable_ -> phase_e
 
-invariant: expression
+predicate_: expression_
 
-expression: "(" expression ")"
-    | expression "&&" expression -> conjunction
-    | expression "||" expression -> disjunction
-    | "!" variable -> negation
-    | variable
+expression_: "(" expression_ ")"
+    | expression_ "&&" expression_ -> conjunction
+    | expression_ "||" expression_ -> disjunction
+    | "!" variable_ -> negation
+    | variable_
 
-bound_type: "<" -> bound_type_lt
+bound_type_: "<" -> bound_type_lt
     | "≤" -> bound_type_lteq
     | ">" -> bound_type_gt
     | "≥" -> bound_type_gteq
 
-variable: VARIABLE -> variable
+variable_: VARIABLE -> variable
+
+phase_true_: "true" -> phase_t
+
+true_: "true" -> true
 
 VARIABLE: /[A-Z]/
 
