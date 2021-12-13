@@ -6,10 +6,14 @@ from pysmt.fnode import FNode
 from pysmt.shortcuts import Symbol
 from pysmt.typing import INT
 
-from simulator.counter_trace import create_counter_trace, CounterTraceTransformer
+from simulator.counter_trace import CounterTraceTransformer
+
+parser = Lark.open("../../simulator/counter_trace_grammar.lark", rel_to=__file__, start='counter_trace', parser='lalr')
 
 
 class TestCounterTrace(TestCase):
+    # TODO: Obsolete.
+    '''
     @parameterized.expand([
         ('BndResponsePatternUT', 'GLOBALLY',
          {'R': Symbol('R'), 'S': Symbol('S'), 'T': Symbol('T', INT)},
@@ -34,8 +38,18 @@ class TestCounterTrace(TestCase):
     def test_bnd_response_pattern_ut(self, pattern: str, scope: str, expressions: dict[str, FNode], expected: str):
         actual = create_counter_trace(scope, pattern, expressions)
         self.assertEqual(expected, str(actual), msg="Error while creating counter trace.")
-
+    '''
     @parameterized.expand([
+        # True
+        ({'T': Symbol('T', INT)},
+         'true ∧ ℓ > T;true',
+         'True ∧ ℓ > T;True'),
+
+        # True empty
+        ({'T': Symbol('T', INT)},
+         'true ∧ ℓ >₀ T;true',
+         'True ∧ ℓ >₀ T;True'),
+
         # BndResponsePatternUT Globally
         ({'R': Symbol('R'), 'S': Symbol('S'), 'T': Symbol('T', INT)},
          'true;⌈(!S && R)⌉;⌈!S⌉ ∧ ℓ > T;true',
@@ -62,7 +76,6 @@ class TestCounterTrace(TestCase):
          'True;⌈P⌉;⌈(! Q)⌉;⌈((! Q) & ((! S) & R))⌉;⌈((! Q) & (! S))⌉ ∧ ℓ > T;True'),
     ])
     def test_counter_trace_transformer(self, expressions: dict[str, FNode], counter_trace: str, expected: str):
-        parser = Lark.open("../../simulator/counter_trace_grammar.lark", rel_to=__file__, start='counter_trace', parser='lalr')
         lark_tree = parser.parse(counter_trace)
         actual = CounterTraceTransformer(expressions).transform(lark_tree)
         self.assertEqual(expected, str(actual), msg="Error while parsing counter trace.")

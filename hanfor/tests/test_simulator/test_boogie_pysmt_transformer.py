@@ -5,12 +5,14 @@ from parameterized import parameterized
 import boogie_parsing
 from simulator.boogie_pysmt_transformer import BoogiePysmtTransformer
 
+parser = boogie_parsing.get_parser_instance()
+
 
 class TestBoogiePysmtTransformer(TestCase):
     @parameterized.expand([
         # Bool
         # TODO: Check this.
-        #('a && a == a', ''),
+        # ('a && a == a', ''),
         ('!a ==> true', '((! a) -> True)'),
 
         # Int
@@ -28,7 +30,7 @@ class TestBoogiePysmtTransformer(TestCase):
         ('y > 0.0 && y < 2.0 ==> y == 1.0', '(((0.0 < y) & (y < 2.0)) -> (y = 1.0))')
     ])
     def test_int_expressions(self, test_input: str, expected: str):
-        lark_tree = boogie_parsing.get_parser_instance().parse(test_input)
+        lark_tree = parser.parse(test_input)
         type, type_env = boogie_parsing.infer_variable_types(lark_tree, {}).derive_type()
 
         actual = str(BoogiePysmtTransformer(type_env).transform(lark_tree))
