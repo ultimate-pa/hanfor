@@ -1,0 +1,33 @@
+<!-- Auto generated file, do not make any changes here. -->
+
+Ultimate revision on Github that corresponds to this documention: 
+[2c758166ba0bef69fc6a61dc753f40d5644e87f7](https://github.com/ultimate-pa/ultimate/tree/2c758166ba0bef69fc6a61dc753f40d5644e87f7 "2c758166ba0bef69fc6a61dc753f40d5644e87f7")
+
+--8<-- "includes/patterns/AbsencePattern.md"
+--8<-- "includes/patterns/BndEntryConditionPattern.md"
+--8<-- "includes/patterns/ConstrainedChainPattern.md"
+--8<-- "includes/patterns/DurationBoundLPattern.md"
+--8<-- "includes/patterns/DurationBoundUPattern.md"
+--8<-- "includes/patterns/EdgeResponseBoundL2Pattern.md"
+--8<-- "includes/patterns/EdgeResponseBoundU1Pattern.md"
+--8<-- "includes/patterns/EdgeResponseDelayBoundL2Pattern.md"
+--8<-- "includes/patterns/EdgeResponseDelayPattern.md"
+--8<-- "includes/patterns/ExistenceBoundUPattern.md"
+--8<-- "includes/patterns/InitializationPattern.md"
+--8<-- "includes/patterns/InvarianceBoundL2Pattern.md"
+--8<-- "includes/patterns/InvariancePattern.md"
+--8<-- "includes/patterns/PrecedenceChain12Pattern.md"
+--8<-- "includes/patterns/PrecedenceChain21Pattern.md"
+--8<-- "includes/patterns/PrecedencePattern.md"
+--8<-- "includes/patterns/ReccurrenceBoundLPattern.md"
+--8<-- "includes/patterns/ResponseBoundL12Pattern.md"
+--8<-- "includes/patterns/ResponseBoundL1Pattern.md"
+--8<-- "includes/patterns/ResponseChain12Pattern.md"
+--8<-- "includes/patterns/ResponseDelayBoundL1Pattern.md"
+--8<-- "includes/patterns/ResponseDelayBoundL2Pattern.md"
+--8<-- "includes/patterns/ResponseDelayPattern.md"
+--8<-- "includes/patterns/ResponsePattern.md"
+--8<-- "includes/patterns/TriggerResponseBoundL1Pattern.md"
+--8<-- "includes/patterns/TriggerResponseDelayBoundL1Pattern.md"
+--8<-- "includes/patterns/UniversalityDelayPattern.md"
+--8<-- "includes/patterns/UniversalityPattern.md"
