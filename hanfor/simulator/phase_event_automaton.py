@@ -111,26 +111,26 @@ class PhaseEventAutomaton:
 
     def add_phase(self, phase: Phase, init: bool = False):
         self.init_phases.append(phase) if init else self.phases.append(phase)
-        #self.phases.append(phase)
-        #return len(self.phases) - 1
+        # self.phases.append(phase)
+        # return len(self.phases) - 1
 
     def add_transition(self, transition: Transition, init: bool) -> None:
         self.init_transitions.append(transition) if init else self.transitions.append(transition)
-        #self.transitions.append(transition)
+        # self.transitions.append(transition)
 
 
 def build_automaton(ct: CounterTrace) -> PhaseEventAutomaton:
     t = time.perf_counter()
 
     pea = PhaseEventAutomaton()
-    #indices = {}
+    # indices = {}
     visited, pending = set(), set()
     init = True
 
     while pending or init:
         if init:
             p = Sets()
-            #indices[p] = -1
+            # indices[p] = -1
         else:
             p = pending.pop()
             visited.add(p)
@@ -152,9 +152,6 @@ def build_automaton(ct: CounterTrace) -> PhaseEventAutomaton:
 
     print('TIME: %0.4f ms' % ((time.perf_counter() - t) * 1000))
     return pea
-
-
-cache = {}
 
 
 def build_successors(i: int, p: Sets, p_: Sets, resets: set[str], guard: FNode, ct: CounterTrace,
