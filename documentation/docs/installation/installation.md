@@ -14,11 +14,11 @@ To get Hanfor either download the .zip file or clone the repository.
 Download [Hanfor](https://github.com/ultimate-pa/hanfor/archive/master.zip) and unzip it.
 Rename the root folder `hanfor-master` to `hanfor`.
 
-=== "Linux"
+=== ":material-linux: Linux"
     ``` bash
     mv hanfor-master hanfor
     ```
-=== "Windows"
+=== ":fontawesome-brands-windows: Windows"
     ``` bash
     move hanfor-master hanfor
     ```
@@ -31,13 +31,13 @@ git clone https://github.com/ultimate-pa/hanfor.git -b master --single-branch
 ## Install dependencies
 We recommend using a [virtual environment](https://docs.python.org/3/tutorial/venv.html).
 
-=== "Linux"
+=== ":material-linux: Linux"
     ``` bash
     cd hanfor/hanfor
     python -m venv hanfor_venv
     source hanfor_venv/bin/activate
     ```
-=== "Windows"
+=== ":fontawesome-brands-windows: Windows"
     ``` bash
     cd hanfor\hanfor
     python -m venv hanfor_venv
@@ -52,11 +52,11 @@ pip install -r requirements.txt
 ## Configuration
 Copy the default config file `config.dist.py` to `config.py`.
 
-=== "Linux"
+=== ":material-linux: Linux"
     ``` bash
     cp config.dist.py config.py
     ```
-=== "Windows"
+=== ":fontawesome-brands-windows: Windows"
     ``` bash
     copy config.dist.py config.py
     ```
