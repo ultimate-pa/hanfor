@@ -70,10 +70,10 @@
 
 :root {
   --md-text-font-family: "Roboto";
-}
+  --md-text-font: "Roboto";
 
-:root {
   --md-code-font-family: "Roboto Mono";
+  --md-code-font: "Roboto Mono";
 }
 
 
