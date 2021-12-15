@@ -29,6 +29,28 @@ In *REFSQ Workshops 2021*.
     }
     ```
 
+## Formal Requirements in an Informal World
+Daniel Dietsch, Vincent Langenfeld, Bernd Westphal.
+*Formal Requirements in an Informal World.*
+In *IEEE Workshop on Formal Requirements (FORMREQ) 2020*.
+
+[:misc-doi: DOI](https://doi.org/10.1109/FORMREQ51202.2020.00010){ target=_blank .md-button }
+[:fontawesome-regular-file-pdf: PDF](publications/formal-requirements-in-an-informal-world.pdf){ target=_blank .md-button }
+
+??? cite
+    ```
+    @inproceedings{9224533,
+      author={Daniel Dietsch and
+              Vincent Langenfeld and 
+              Bernd Westphal},
+      title={Formal Requirements in an Informal World},
+      booktitle={2020 IEEE Workshop on Formal Requirements (FORMREQ)},
+      year={2020},
+      pages={14-20}
+      doi={10.1109/FORMREQ51202.2020.00010}}
+    ```
+
+
 ## Scalable Analysis of Real-Time Requirements
 Vincent Langenfeld, Daniel Dietsch, Bernd Westphal, Jochen Hoenicke, and Amalinda Post.
 *Scalable Analysis of Real-Time Requirements.*
