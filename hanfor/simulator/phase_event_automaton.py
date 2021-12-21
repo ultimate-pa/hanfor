@@ -28,13 +28,6 @@ class Sets:
             result += 'ᴳ' if i in self.gteq else 'ᵂ' if i in self.wait else 'ᴸ' if i in self.less else ''
         return result
 
-        # if i in self.gteq:
-        #    result += '≥'
-        # elif i in self.wait:
-        #    result += '>'
-        # elif i in self.less:
-        #    result += '<'
-
         # return "gteq = %s, wait = %s, less = %s, active = %s" % (
         #    {*self.gteq} if self.gteq else {}, {*self.wait} if self.wait else {}, {*self.less} if self.less else {},
         #    {*self.active} if self.active else {})
