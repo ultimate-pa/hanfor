@@ -21,42 +21,42 @@ class BoogiePysmtTransformer(Transformer):
         self.formula = None
 
     def conjunction(self, children) -> FNode:
-        print("conjunction:", children)
+        #print("conjunction:", children)
         return And(children[0], children[2])
 
     def disjunction(self, children) -> FNode:
-        print("disjunction:", children)
+        #print("disjunction:", children)
         return Or(children[0], children[2])
 
     def divide(self, children) -> FNode:
-        print("devide:", children)
+        #print("devide:", children)
         return Div(children[0], children[2])
 
     def eq(self, children) -> FNode:
-        print("eq:", children)
+        #print("eq:", children)
         # It is not supported to use equality '=' on boolean terms. One should use  iff '<->' instead.
         if children[0].get_type() == BOOL or children[2].get_type() == BOOL:
             return self.iff(children)
         return Equals(children[0], children[2])
 
     def explies(self, children) -> FNode:
-        print("explies:", children)
+        #print("explies:", children)
         raise NotImplementedError("Unsupported operation 'explies'.")
 
     def false(self, children) -> FNode:
-        print("false:", children)
+        #print("false:", children)
         return FALSE()
 
     def gt(self, children) -> FNode:
-        print("gt:", children)
+        #print("gt:", children)
         return GT(children[0], children[2])
 
     def gteq(self, children) -> FNode:
-        print("gteq:", children)
+        #print("gteq:", children)
         return GE(children[0], children[2])
 
     def id(self, children) -> Symbol:
-        print("id:", children)
+        #print("id:", children)
         boogie_type = self.type_env[children[0].value]
         pysmt_type = self.boogie_to_pysmt_type_mapping.get(boogie_type)
 
@@ -66,67 +66,67 @@ class BoogiePysmtTransformer(Transformer):
         return Symbol(children[0].value, pysmt_type)
 
     def iff(self, children) -> FNode:
-        print("iff:", children)
+        #print("iff:", children)
         return Iff(children[0], children[2])
 
     def implies(self, children) -> FNode:
-        print("implies:", children)
+        #print("implies:", children)
         return Implies(children[0], children[2])
 
     def lt(self, children) -> FNode:
-        print("lt:", children)
+        #print("lt:", children)
         return LT(children[0], children[2])
 
     def lteq(self, children) -> FNode:
-        print("lteq:", children)
+        #print("lteq:", children)
         return LE(children[0], children[2])
 
     def minus(self, children) -> FNode:
-        print("minus:", children)
+        #print("minus:", children)
         return Minus(children[0], children[2])
 
     def minus_unary(self, children) -> FNode:
-        print("minus_unary:", children)
+        #print("minus_unary:", children)
         return -children[1]
 
     def mod(self, children) -> None:
-        print("mod:", children)
+        #print("mod:", children)
         raise NotImplementedError("Unsupported operation 'mod'.")
 
     def negation(self, children) -> FNode:
-        print("negation:", children)
+        #print("negation:", children)
         return Not(children[1])
 
     def neq(self, children) -> FNode:
-        print("neq:", children)
+        #print("neq:", children)
         return NotEquals(children[0], children[2])
 
     def number(self, children) -> Int:
-        print("number:", children)
+        #print("number:", children)
         return Int(int(children[0]))
 
     def plus(self, children) -> FNode:
-        print("plus:", children)
+        #print("plus:", children)
         return Plus(children[0], children[2])
 
     def plus_unary(self, children) -> FNode:
-        print("plus_unary:", children)
+        #print("plus_unary:", children)
         return +children[1]
 
     def realnumber(self, children) -> Real:
-        print("realnumber:", children)
+        #print("realnumber:", children)
         return Real(float(children[0]))
 
     def times(self, children) -> FNode:
-        print("times:", children)
+        #print("times:", children)
         return Times(children[0], children[2])
 
     def true(self, children) -> FNode:
-        print("true:", children)
+        #print("true:", children)
         return TRUE()
 
     def __default__(self, data, children, meta):
-        print("default:", children)
+        #print("default:", children)
         children = [child for child in children if not isinstance(child, Token)]
 
         if len(children) != 1:
