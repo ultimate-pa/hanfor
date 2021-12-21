@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from collections import defaultdict
 from dataclasses import dataclass
 
 from pysmt.fnode import FNode
@@ -52,6 +53,9 @@ class Phase:
                is_valid(Iff(o.state_invariant, self.state_invariant), solver_name=SOLVER_NAME) and \
                is_valid(Iff(o.clock_invariant, self.clock_invariant), solver_name=SOLVER_NAME)
 
+    def __hash__(self) -> int:
+        return hash((self.sets))
+
     def __str__(self) -> str:
         return 'state_invariant: "%s" | clock_invariant: "%s" | sets: "%s"' % (
             self.state_invariant, self.clock_invariant, self.sets)
@@ -84,69 +88,53 @@ class Transition:
         return isinstance(o, Transition) and o.src == self.src and o.dst == self.dst and o.resets == self.resets and \
                is_valid(Iff(o.guard, self.guard), solver_name=SOLVER_NAME)
 
+    def __hash__(self) -> int:
+        return hash((self.src, self.dst, self.resets))
+
     def __str__(self) -> str:
         return 'src: "%s" | dst: "%s" | guard: "%s" | resets: "%s"' % (self.src, self.dst, self.guard, self.resets)
 
 
 class PhaseEventAutomaton:
     def __init__(self):
-        self.init_phases: list[Phase] = []
-        self.phases: list[Phase] = []
-        self.init_transitions: list[Transition] = []
-        self.transitions: list[Transition] = []
+        self.phases: defaultdict[Phase, set[Transition]] = defaultdict(set)
 
     def __eq__(self, o: PhaseEventAutomaton) -> bool:
-        return isinstance(o, PhaseEventAutomaton) and self.compare(o.phases, self.phases) and \
-               self.compare(o.transitions, self.transitions)
+        return isinstance(o, PhaseEventAutomaton) and o.phases == self.phases
 
-    @staticmethod
-    def compare(l1, l2):
-        l1 = list(l1)
-        try:
-            for i in l2:
-                l1.remove(i)
-        except ValueError:
-            return False
-        return not l1
+    def add_transition(self, transition: Transition) -> None:
+        if transition in self.phases[transition.src]:
+            raise ValueError('Transition already exists in this phase event automaton.')
 
-    def add_phase(self, phase: Phase, init: bool = False):
-        self.init_phases.append(phase) if init else self.phases.append(phase)
-        # self.phases.append(phase)
-        # return len(self.phases) - 1
-
-    def add_transition(self, transition: Transition, init: bool) -> None:
-        self.init_transitions.append(transition) if init else self.transitions.append(transition)
-        # self.transitions.append(transition)
+        self.phases[transition.src].add(transition)
 
 
 def build_automaton(ct: CounterTrace) -> PhaseEventAutomaton:
     t = time.perf_counter()
 
     pea = PhaseEventAutomaton()
-    # indices = {}
     visited, pending = set(), set()
     init = True
 
     while pending or init:
         if init:
             p = Sets()
-            # indices[p] = -1
+            src = None
         else:
             p = pending.pop()
             visited.add(p)
+            src = Phase(Phase.compute_state_invariant(ct, p), Phase.compute_clock_invariant(ct, p), p)
 
         enter, keep = compute_enter_keep(ct, p, init)
         successors = build_successors(0, p, Sets(), set(), TRUE(), ct, enter, keep)
 
         for s in successors:
-            src = None if init else Phase(Phase.compute_state_invariant(ct, p), Phase.compute_clock_invariant(ct, p), p)
             dst = Phase(Phase.compute_state_invariant(ct, s[0]), Phase.compute_clock_invariant(ct, s[0]), s[0])
 
             if s[0] not in visited.union(pending):
-                pea.add_phase(dst, init)
                 pending.add(s[0])
 
-            pea.add_transition(Transition(src, dst, s[1], frozenset(s[2])), init)
+            pea.add_transition(Transition(src, dst, s[1], frozenset(s[2])))
 
         init = False
 

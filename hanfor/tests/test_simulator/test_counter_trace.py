@@ -3,12 +3,109 @@ from unittest import TestCase
 from lark.lark import Lark
 from parameterized import parameterized
 from pysmt.fnode import FNode
-from pysmt.shortcuts import Symbol
+from pysmt.shortcuts import Symbol, FALSE
 from pysmt.typing import INT
 
 from simulator.counter_trace import CounterTraceTransformer
 
 parser = Lark.open("../../simulator/counter_trace_grammar.lark", rel_to=__file__, start='counter_trace', parser='lalr')
+
+testcases = {
+    'false':
+        ({'P': FALSE()},
+         '⌈P⌉;true',
+         '⌈False⌉;True'),
+
+    'true':
+        ({},
+         'true;true',
+         'True;True'),
+
+    'true_lower_bound_empty':
+        ({'T': Symbol('T', INT)},
+         'true ∧ ℓ >₀ T;true',
+         'True ∧ ℓ >₀ T;True'),
+
+    'true_lower_bound':
+        ({'T': Symbol('T', INT)},
+         'true ∧ ℓ > T;true',
+         'True ∧ ℓ > T;True'),
+
+    'absence_globally':
+        ({'R': Symbol('R')},
+         'true;⌈R⌉;true',
+         'True;⌈R⌉;True'),
+
+    'absence_before':
+        ({'P': Symbol('P'), 'R': Symbol('R')},
+         '⌈!P⌉;⌈(!P && R)⌉;true',
+         '⌈(! P)⌉;⌈((! P) & R)⌉;True'),
+
+    'absence_after':
+        ({'P': Symbol('P'), 'R': Symbol('R')},
+         'true;⌈P⌉;true;⌈R⌉;true',
+         'True;⌈P⌉;True;⌈R⌉;True'),
+
+    'absence_between':
+        ({'P': Symbol('P'), 'Q': Symbol('Q'), 'R': Symbol('R')},
+         'true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈Q⌉;true',
+         'True;⌈(P & (! Q))⌉;⌈(! Q)⌉;⌈((! Q) & R)⌉;⌈(! Q)⌉;⌈Q⌉;True'),
+
+    'absence_after_until':
+        ({'P': Symbol('P'), 'Q': Symbol('Q'), 'R': Symbol('R')},
+         'true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;true',
+         'True;⌈P⌉;⌈(! Q)⌉;⌈((! Q) & R)⌉;True'),
+
+    'duration_bound_l_globally':
+        ({'R': Symbol('R'), 'T': Symbol('T', INT)},
+         'true;⌈!R⌉;⌈R⌉ ∧ ℓ < T;⌈!R⌉;true',
+         'True;⌈(! R)⌉;⌈R⌉ ∧ ℓ < T;⌈(! R)⌉;True'),
+
+    'duration_bound_l_before':
+        ({'P': Symbol('P'), 'R': Symbol('R'), 'T': Symbol('T', INT)},
+         '⌈!P⌉;⌈(!P && !R)⌉;⌈(!P && R)⌉ ∧ ℓ < T;⌈(!P && !R)⌉;true',
+         '⌈(! P)⌉;⌈((! P) & (! R))⌉;⌈((! P) & R)⌉ ∧ ℓ < T;⌈((! P) & (! R))⌉;True'),
+
+    'duration_bound_l_after':
+        ({'P': Symbol('P'), 'R': Symbol('R'), 'T': Symbol('T', INT)},
+         'true;⌈P⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ < T;⌈!R⌉;true',
+         'True;⌈P⌉;True;⌈(! R)⌉;⌈R⌉ ∧ ℓ < T;⌈(! R)⌉;True'),
+
+    'duration_bound_l_between':
+        ({'P': Symbol('P'), 'Q': Symbol('Q'), 'R': Symbol('R'), 'T': Symbol('T', INT)},
+         'true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ < T;⌈(!Q && !R)⌉;⌈!Q⌉;⌈Q⌉;true',
+         'True;⌈(P & (! Q))⌉;⌈(! Q)⌉;⌈((! Q) & (! R))⌉;⌈((! Q) & R)⌉ ∧ ℓ < T;⌈((! Q) & (! R))⌉;⌈(! Q)⌉;⌈Q⌉;True'),
+
+    'duration_bound_l_after_until':
+        ({'P': Symbol('P'), 'Q': Symbol('Q'), 'R': Symbol('R'), 'T': Symbol('T', INT)},
+         'true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ < T;⌈(!Q && !R)⌉;true',
+         'True;⌈P⌉;⌈(! Q)⌉;⌈((! Q) & (! R))⌉;⌈((! Q) & R)⌉ ∧ ℓ < T;⌈((! Q) & (! R))⌉;True'),
+
+    'response_delay_globally':
+        ({'R': Symbol('R'), 'S': Symbol('S'), 'T': Symbol('T', INT)},
+         'true;⌈(R && !S)⌉;⌈!S⌉ ∧ ℓ > T;true',
+         'True;⌈(R & (! S))⌉;⌈(! S)⌉ ∧ ℓ > T;True'),
+
+    'response_delay_before':
+        ({'P': Symbol('P'), 'R': Symbol('R'), 'S': Symbol('S'), 'T': Symbol('T', INT)},
+         '⌈!P⌉;⌈(!P && (R && !S))⌉;⌈(!P && !S)⌉ ∧ ℓ > T;true',
+         '⌈(! P)⌉;⌈((! P) & (R & (! S)))⌉;⌈((! P) & (! S))⌉ ∧ ℓ > T;True'),
+
+    'response_delay_after':
+        ({'P': Symbol('P'), 'R': Symbol('R'), 'S': Symbol('S'), 'T': Symbol('T', INT)},
+         'true;⌈P⌉;true;⌈(R && !S)⌉;⌈!S⌉ ∧ ℓ > T;true',
+         'True;⌈P⌉;True;⌈(R & (! S))⌉;⌈(! S)⌉ ∧ ℓ > T;True'),
+
+    'response_delay_between':
+        ({'P': Symbol('P'), 'Q': Symbol('Q'), 'R': Symbol('R'), 'S': Symbol('S'), 'T': Symbol('T', INT)},
+         'true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉ ∧ ℓ > T;⌈!Q⌉;⌈Q⌉;true',
+         'True;⌈(P & (! Q))⌉;⌈(! Q)⌉;⌈((! Q) & (R & (! S)))⌉;⌈((! Q) & (! S))⌉ ∧ ℓ > T;⌈(! Q)⌉;⌈Q⌉;True'),
+
+    'response_delay_after_until':
+        ({'P': Symbol('P'), 'Q': Symbol('Q'), 'R': Symbol('R'), 'S': Symbol('S'), 'T': Symbol('T', INT)},
+         'true;⌈P⌉;⌈!Q⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉ ∧ ℓ > T;true',
+         'True;⌈P⌉;⌈(! Q)⌉;⌈((! Q) & (R & (! S)))⌉;⌈((! Q) & (! S))⌉ ∧ ℓ > T;True')
+}
 
 
 class TestCounterTrace(TestCase):
@@ -39,43 +136,9 @@ class TestCounterTrace(TestCase):
         actual = create_counter_trace(scope, pattern, expressions)
         self.assertEqual(expected, str(actual), msg="Error while creating counter trace.")
     '''
-    @parameterized.expand([
-        # True
-        ({'T': Symbol('T', INT)},
-         'true ∧ ℓ > T;true',
-         'True ∧ ℓ > T;True'),
 
-        # True empty
-        ({'T': Symbol('T', INT)},
-         'true ∧ ℓ >₀ T;true',
-         'True ∧ ℓ >₀ T;True'),
-
-        # BndResponsePatternUT Globally
-        ({'R': Symbol('R'), 'S': Symbol('S'), 'T': Symbol('T', INT)},
-         'true;⌈(!S && R)⌉;⌈!S⌉ ∧ ℓ > T;true',
-         'True;⌈((! S) & R)⌉;⌈(! S)⌉ ∧ ℓ > T;True'),
-
-        # BndResponsePatternUT BEFORE
-        ({'P': Symbol('P'), 'R': Symbol('R'), 'S': Symbol('S'), 'T': Symbol('T', INT)},
-         '⌈!P⌉;⌈(!P && (!S && R))⌉;⌈(!P && !S)⌉ ∧ ℓ > T;true',
-         '⌈(! P)⌉;⌈((! P) & ((! S) & R))⌉;⌈((! P) & (! S))⌉ ∧ ℓ > T;True'),
-
-        # BndResponsePatternUT AFTER
-        ({'P': Symbol('P'), 'R': Symbol('R'), 'S': Symbol('S'), 'T': Symbol('T', INT)},
-         'true;⌈P⌉;true;⌈(!S && R)⌉;⌈!S⌉ ∧ ℓ > T;true',
-         'True;⌈P⌉;True;⌈((! S) & R)⌉;⌈(! S)⌉ ∧ ℓ > T;True'),
-
-        # BndResponsePatternUT BETWEEN
-        ({'P': Symbol('P'), 'Q': Symbol('Q'), 'R': Symbol('R'), 'S': Symbol('S'), 'T': Symbol('T', INT)},
-         'true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && (!S && R))⌉;⌈(!Q && !S)⌉ ∧ ℓ > T;⌈!Q⌉;⌈Q⌉;true',
-         'True;⌈(P & (! Q))⌉;⌈(! Q)⌉;⌈((! Q) & ((! S) & R))⌉;⌈((! Q) & (! S))⌉ ∧ ℓ > T;⌈(! Q)⌉;⌈Q⌉;True'),
-
-        # BndResponsePatternUT AFTER_UNTIL
-        ({'P': Symbol('P'), 'Q': Symbol('Q'), 'R': Symbol('R'), 'S': Symbol('S'), 'T': Symbol('T', INT)},
-         'true;⌈P⌉;⌈!Q⌉;⌈(!Q && (!S && R))⌉;⌈(!Q && !S)⌉ ∧ ℓ > T;true',
-         'True;⌈P⌉;⌈(! Q)⌉;⌈((! Q) & ((! S) & R))⌉;⌈((! Q) & (! S))⌉ ∧ ℓ > T;True'),
-    ])
-    def test_counter_trace_transformer(self, expressions: dict[str, FNode], counter_trace: str, expected: str):
+    @parameterized.expand(testcases.values())
+    def test_counter_trace(self, expressions: dict[str, FNode], counter_trace: str, expected: str):
         lark_tree = parser.parse(counter_trace)
         actual = CounterTraceTransformer(expressions).transform(lark_tree)
         self.assertEqual(expected, str(actual), msg="Error while parsing counter trace.")
