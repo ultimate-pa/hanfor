@@ -124,7 +124,7 @@ PATTERNS = {
             'before':       ['⌈!P⌉;⌈(!P && R)⌉;true'],
             'after':        ['true;⌈P⌉;true;⌈R⌉;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;true']
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;true']
         },
         'env': {
             'R': ['bool']
@@ -143,7 +143,7 @@ PATTERNS = {
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !S)⌉;⌈Q⌉;true',
                              'true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(!Q && S)⌉;⌈(!Q && !T)⌉;⌈Q⌉;true',
                              'true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(!Q && S)⌉;⌈(!Q && !T)⌉;⌈(!Q && (!T && U))⌉;⌈!Q⌉;⌈(!Q && T)⌉;⌈!Q⌉;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !S)⌉;⌈Q⌉;true',
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !S)⌉;⌈Q⌉;true',
                              'true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(!Q && S)⌉;⌈(!Q && !T)⌉;⌈Q⌉;true',
                              'true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(!Q && S)⌉;⌈(!Q && !T)⌉;⌈(!Q && (!T && U))⌉;⌈!Q⌉;⌈(!Q && T)⌉;⌈!Q⌉;⌈Q⌉;true']
         },
@@ -162,7 +162,7 @@ PATTERNS = {
             'before':       ['⌈!P⌉;⌈(!P && !R)⌉;⌈(!P && R)⌉ ∧ ℓ < S;⌈(!P && !R)⌉;true'],
             'after':        ['true;⌈P⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ < S;⌈!R⌉;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ < S;⌈(!Q && !R)⌉;⌈!Q⌉;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ < S;⌈(!Q && !R)⌉;true']
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ < S;⌈(!Q && !R)⌉;true']
         },
         'env': {
             'R': ['bool'],
@@ -178,7 +178,7 @@ PATTERNS = {
             'before':       ['⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ S;true'],
             'after':        ['true;⌈P⌉;true;⌈R⌉ ∧ ℓ ≥ S;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ S;⌈!Q⌉;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ S;true']
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ S;true']
         },
         'env': {
             'R': ['bool'],
@@ -198,7 +198,7 @@ PATTERNS = {
                              'true;⌈P⌉;true;⌈!R⌉;⌈(R && !S)⌉;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;⌈(!Q && S)⌉ ∧ ℓ < T;⌈(!Q && !S)⌉;⌈!Q⌉;⌈Q⌉;true',
                              'true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && (R && !S))⌉;⌈!Q⌉;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;⌈(!Q && S)⌉ ∧ ℓ < T;⌈(!Q && !S)⌉;true',
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;⌈(!Q && S)⌉ ∧ ℓ < T;⌈(!Q && !S)⌉;true',
                              'true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && (R && !S))⌉;true']
         },
         'env': {
@@ -216,7 +216,7 @@ PATTERNS = {
             'before':       ['⌈!P⌉;⌈(!P && !R)⌉;⌈(!P && R)⌉ ∧ ℓ ≥ T;⌈(!P && (!R && !S))⌉;true'],
             'after':        ['true;⌈P⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ ≤ T;⌈(!R && !S)⌉;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ ≤ T;⌈(!Q && (!R && !S))⌉;⌈!Q⌉;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ ≤ T;⌈(!Q && (!R && !S))⌉;true']
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ ≤ T;⌈(!Q && (!R && !S))⌉;true']
         },
         'env': {
             'R': ['bool'],
@@ -237,7 +237,7 @@ PATTERNS = {
                              'true;⌈P⌉;true;⌈!R⌉;⌈R⌉;⌈true⌉ ∧ ℓ < T;⌈S⌉ ∧ ℓ < U;⌈!S⌉;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉ ∧ ℓ > T;true;⌈Q⌉;true',
                              'true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;⌈!Q⌉ ∧ ℓ < T;⌈(!Q && S)⌉ ∧ ℓ < U;⌈(!Q && !S)⌉;true;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉ ∧ ℓ > T;true',
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉ ∧ ℓ > T;true',
                              'true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;⌈!Q⌉ ∧ ℓ < T;⌈(!Q && S)⌉ ∧ ℓ < U;⌈(!Q && !S)⌉;true']
         },
         'env': {
@@ -256,7 +256,7 @@ PATTERNS = {
             'before':       ['⌈!P⌉;⌈(!P && !R)⌉;⌈(!P && (R && !S))⌉;⌈(!P && !S)⌉ ∧ ℓ > T;true'],
             'after':        ['true;⌈P⌉;true;⌈!R⌉;⌈(R && !S)⌉;⌈!S⌉ ∧ ℓ > T;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉ ∧ ℓ > T;true;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉ ∧ ℓ > T;true']
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉ ∧ ℓ > T;true']
         },
         'env': {
             'R': ['bool'],
@@ -273,7 +273,7 @@ PATTERNS = {
             'before':       ['⌈!P⌉;⌈(!P && R)⌉;⌈(!P && !R)⌉;⌈(!P && R)⌉;⌈(!P && !R)⌉;⌈(!P && R)⌉;true'],
             'after':        ['true;⌈P⌉;true;⌈R⌉;⌈!R⌉;⌈R⌉;⌈!R⌉;⌈R⌉;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;true']
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉;true']
         },
         'env': {
             'R': ['bool']
@@ -288,7 +288,7 @@ PATTERNS = {
             'before':       ['⌈(!P && !R)⌉;true'],
             'after':        ['true;⌈P⌉;⌈!R⌉;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈(!Q && !R)⌉;true;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈(!Q && !R)⌉;true']
+            'after_until':  ['true;⌈P⌉;⌈(!Q && !R)⌉;true']
         },
         'env': {
             'R': ['bool']
@@ -303,7 +303,7 @@ PATTERNS = {
             'before':       ['⌈!P⌉;⌈(!P && R)⌉;⌈!P⌉ ∧ ℓ < T;⌈(!P && !S)⌉;true'],
             'after':        ['true;⌈P⌉;true;⌈R⌉;⌈true⌉ ∧ ℓ < T;⌈!S⌉;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉ ∧ ℓ < T;⌈(!Q && !S)⌉;⌈!Q⌉;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉ ∧ ℓ < T;⌈(!Q && !S)⌉;true']
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉ ∧ ℓ < T;⌈(!Q && !S)⌉;true']
         },
         'env': {
             'R': ['bool'],
@@ -320,7 +320,7 @@ PATTERNS = {
             'before':       ['⌈!P⌉;⌈(!P && (R && !S))⌉;true'],
             'after':        ['true;⌈P⌉;true;⌈(R && !S)⌉;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && (R && !S))⌉;⌈!Q⌉;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && (R && !S))⌉;true']
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && (R && !S))⌉;true']
         },
         'env': {
             'R': ['bool'],
@@ -336,7 +336,7 @@ PATTERNS = {
             'before':       ['⌈(!P && !T)⌉;⌈(!P && R)⌉;⌈!P⌉;⌈(!P && S)⌉;true'],
             'after':        ['true;⌈P⌉;⌈!T⌉;⌈R⌉;true;⌈S⌉;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈(!Q && !T)⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(!Q && S)⌉;⌈!Q⌉;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈(!Q && !T)⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(!Q && S)⌉;true']
+            'after_until':  ['true;⌈P⌉;⌈(!Q && !T)⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(!Q && S)⌉;true']
         },
         'env': {
             'R': ['bool'],
@@ -361,7 +361,7 @@ PATTERNS = {
             'between':      ['true;⌈(P && !Q)⌉;⌈(!Q && !T)⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈Q⌉;true',
                              'true;⌈(P && !Q)⌉;⌈(!Q && !S)⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈Q⌉;true',
                              'true;⌈(P && !Q)⌉;⌈(!Q && !T)⌉;⌈(!Q && (S && !T))⌉;⌈(!Q && !T)⌉;⌈(!Q && (!S && T))⌉;⌈(!Q && !S)⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈(!Q && !T)⌉;⌈(!Q && R)⌉;true',
+            'after_until':  ['true;⌈P⌉;⌈(!Q && !T)⌉;⌈(!Q && R)⌉;true',
                              'true;⌈P⌉;⌈(!Q && !S)⌉;⌈(!Q && R)⌉;true',
                              'true;⌈P⌉;⌈(!Q && !T)⌉;⌈(!Q && (S && !T))⌉;⌈(!Q && !T)⌉;⌈(!Q && (!S && T))⌉;⌈(!Q && !S)⌉;⌈(!Q && R)⌉;true']
         },
@@ -380,7 +380,7 @@ PATTERNS = {
             'before':       ['⌈(!P && !S)⌉;⌈(!P && R)⌉;true'],
             'after':        ['true;⌈P⌉;⌈!S⌉;⌈R⌉;true'],
             'between':      ['true;⌈(P && (!Q && !S))⌉;⌈(!Q && !S)⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈(!Q && !S)⌉;⌈(!Q && R)⌉;true']
+            'after_until':  ['true;⌈P⌉;⌈(!Q && !S)⌉;⌈(!Q && R)⌉;true']
         },
         'env': {
             'R': ['bool'],
@@ -396,7 +396,7 @@ PATTERNS = {
             'before':       ['⌈!P⌉;⌈(!P && !R)⌉ ∧ ℓ > S;true'],
             'after':        ['true;⌈P⌉;true;⌈!R⌉ ∧ ℓ > S;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && !R)⌉ ∧ ℓ > S;⌈!Q⌉;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉ ∧ ℓ > S;true']
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉ ∧ ℓ > S;true']
         },
         'env': {
             'R': ['bool'],
@@ -412,7 +412,7 @@ PATTERNS = {
             'before':       ['⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ T;⌈(!P && S)⌉ ∧ ℓ <₀ U;⌈(!P && !S)⌉;true'],
             'after':        ['true;⌈P⌉;⌈R⌉ ∧ ℓ ≥ T;⌈S⌉ ∧ ℓ <₀ U;⌈!S⌉;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ T;⌈(!Q && S)⌉ ∧ ℓ <₀ U;⌈(!Q && !S)⌉;true;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ T;⌈(!Q && S)⌉ ∧ ℓ <₀ U;⌈(!Q && !S)⌉;true']
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ T;⌈(!Q && S)⌉ ∧ ℓ <₀ U;⌈(!Q && !S)⌉;true']
         },
         'env': {
             'R': ['bool'],
@@ -430,7 +430,7 @@ PATTERNS = {
             'before':       ['⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ T;⌈(!P && !S)⌉;true'],
             'after':        ['true;⌈P⌉;true;⌈R⌉ ∧ ℓ ≥ T;⌈!S⌉;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ T;⌈(!Q && !S)⌉;⌈!Q⌉;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ T;⌈(!Q && !S)⌉;true']
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ T;⌈(!Q && !S)⌉;true']
         },
         'env': {
             'R': ['bool'],
@@ -449,7 +449,7 @@ PATTERNS = {
             'after':        [],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !S)⌉;⌈Q⌉;true',
                              'true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(!Q && S)⌉;⌈(!Q && !T)⌉;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !S)⌉;⌈Q⌉;true',
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !S)⌉;⌈Q⌉;true',
                              'true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(!Q && S)⌉;⌈(!Q && !T)⌉;⌈Q⌉;true']
         },
         'env': {
@@ -467,7 +467,7 @@ PATTERNS = {
             'before':       ['⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ T;⌈(!P && !S)⌉ ∧ ℓ > U;true'],
             'after':        ['true;⌈P⌉;true;⌈R⌉ ∧ ℓ ≥ T;⌈!S⌉ ∧ ℓ > U;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ T;⌈(!Q && !S)⌉ ∧ ℓ > U;true;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ T;⌈(!Q && !S)⌉ ∧ ℓ > U;true']
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ T;⌈(!Q && !S)⌉ ∧ ℓ > U;true']
         },
         'env': {
             'R': ['bool'],
@@ -489,7 +489,7 @@ PATTERNS = {
                              'true;⌈P⌉;true;⌈R⌉;⌈!S⌉ ∧ ℓ <₀ T;⌈S⌉ ∧ ℓ < U;⌈!S⌉;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !S)⌉ ∧ ℓ > T;true;⌈Q⌉;true',
                              'true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !S)⌉ ∧ ℓ <₀ T;⌈(!Q && S)⌉ ∧ ℓ < U;⌈(!Q && !S)⌉;true;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !S)⌉ ∧ ℓ > T;true',
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !S)⌉ ∧ ℓ > T;true',
                              'true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !S)⌉ ∧ ℓ <₀ T;⌈(!Q && S)⌉ ∧ ℓ < U;⌈(!Q && !S)⌉;true']
         },
         'env': {
@@ -508,7 +508,7 @@ PATTERNS = {
             'before':       ['⌈!P⌉;⌈(!P && (R && !S))⌉;⌈(!P && !S)⌉ ∧ ℓ > T;true'],
             'after':        ['true;⌈P⌉;true;⌈(R && !S)⌉;⌈!S⌉ ∧ ℓ > T;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉ ∧ ℓ > T;⌈!Q⌉;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉ ∧ ℓ > T;true']
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉ ∧ ℓ > T;true']
         },
         'env': {
             'R': ['bool'],
@@ -525,7 +525,7 @@ PATTERNS = {
             'before':       ['⌈!P⌉;⌈(!P && (R && !S))⌉;⌈(!P && !S)⌉;⌈P⌉;true'],
             'after':        [],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉;⌈Q⌉;true']
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉;⌈Q⌉;true']
         },
         'env': {
             'R': ['bool'],
@@ -541,7 +541,7 @@ PATTERNS = {
             'before':       ['⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ U;⌈(!P && (R && (S && !T)))⌉;true'],
             'after':        ['true;⌈P⌉;true;⌈R⌉ ∧ ℓ ≥ U;⌈(R && (S && !T))⌉;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ U;⌈(!Q && (R && (S && !T)))⌉;true;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ U;⌈(!Q && (R && (S && !T)))⌉;true']
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ U;⌈(!Q && (R && (S && !T)))⌉;true']
         },
         'env': {
             'R': ['bool'],
@@ -559,7 +559,7 @@ PATTERNS = {
             'before':       ['⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ U;⌈(!P && (R && (S && !T)))⌉;⌈(!P && !T)⌉ ∧ ℓ > V;true'],
             'after':        ['true;⌈P⌉;true;⌈R⌉ ∧ ℓ ≥ U;⌈(R && (S && !T))⌉;⌈!T⌉ ∧ ℓ > V;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ U;⌈(!Q && (R && (S && !T)))⌉;⌈(!Q && !T)⌉ ∧ ℓ > V;true;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ U;⌈(!Q && (R && (S && !T)))⌉;⌈(!Q && !T)⌉ ∧ ℓ > V;true']
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ U;⌈(!Q && (R && (S && !T)))⌉;⌈(!Q && !T)⌉ ∧ ℓ > V;true']
         },
         'env': {
             'R': ['bool'],
@@ -578,7 +578,7 @@ PATTERNS = {
             'before':       ['⌈!P⌉ ∧ ℓ ≥ S;⌈(!P && !R)⌉;true'],
             'after':        ['true;⌈P⌉;⌈true⌉ ∧ ℓ ≥ S;⌈!R⌉;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉ ∧ ℓ ≥ S;⌈(!Q && !R)⌉;true;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉ ∧ ℓ ≥ S;⌈(!Q && !R)⌉;true']
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉ ∧ ℓ ≥ S;⌈(!Q && !R)⌉;true']
         },
         'env': {
             'R': ['bool'],
@@ -594,7 +594,7 @@ PATTERNS = {
             'before':       ['⌈!P⌉;⌈(!P && !R)⌉;true'],
             'after':        ['true;⌈P⌉;true;⌈!R⌉;true'],
             'between':      ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈!Q⌉;⌈Q⌉;true'],
-            'after until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉;true']
+            'after_until':  ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉;true']
         },
         'env': {
             'R': ['bool']
@@ -609,7 +609,7 @@ PATTERNS = {
             'before': [],
             'after': [],
             'between': [],
-            'after until': []
+            'after_until': []
         },
         'env': {
 
@@ -636,7 +636,7 @@ PATTERNS_GROUP_ORDER = [
 #        	'before': [],
 #        	'after': [],
 #        	'between': [],
-#        	'after until': []
+#        	'after_until': []
 #        },
 #        'env': {
 #            'R': ['bool']
@@ -653,7 +653,7 @@ PATTERNS_GROUP_ORDER = [
 #        	'before': [],
 #        	'after': [],
 #        	'between': [],
-#        	'after until': []
+#        	'after_until': []
 #        },
 #        'env': {
 #            'R': ['bool'],
@@ -672,7 +672,7 @@ PATTERNS_GROUP_ORDER = [
 #        	'before': [],
 #        	'after': [],
 #        	'between': [],
-#        	'after until': []
+#        	'after_until': []
 #        },
 #        'env': {
 #            'R': ['bool'],
@@ -691,7 +691,7 @@ PATTERNS_GROUP_ORDER = [
 #        	'before': [],
 #        	'after': [],
 #        	'between': [],
-#        	'after until': []
+#        	'after_until': []
 #        },
 #        'env': {
 #            'R': ['bool'],
@@ -711,7 +711,7 @@ PATTERNS_GROUP_ORDER = [
 #        	'before': [],
 #        	'after': [],
 #        	'between': [],
-#        	'after until': []
+#        	'after_until': []
 #        },
 #        'env': {
 #            'R': ['bool'],
