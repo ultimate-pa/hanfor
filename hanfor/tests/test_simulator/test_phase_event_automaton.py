@@ -65,142 +65,140 @@ class TestPhaseEventAutomaton(TestCase):
 
     def test_absence_globally(self):
         expressions, ct_str, _ = testcases['absence_globally']
+        expressions_ = {k + '_': Symbol(v.symbol_name() + '_', v.symbol_type()) for k, v in expressions.items()}
         ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
 
         expected = PhaseEventAutomaton()
         R = expressions['R']
+        R_ = expressions_['R_']
 
         # ct0_st0
-        p1_invariant = Not(R)
-        p1 = Phase(p1_invariant, TRUE(), Sets(active=frozenset({0})))
+        p1 = Phase(Not(R), TRUE(), Sets(active=frozenset({0})))
 
         # ct0_st0
-        expected.phases[None].add(Transition(None, p1, p1_invariant))
-        expected.phases[p1].add(Transition(p1, p1, p1_invariant))
+        expected.phases[None].add(Transition(None, p1, Not(R_)))
+        expected.phases[p1].add(Transition(p1, p1, Not(R_)))
 
         actual = build_automaton(ct)
         self.assertEqual(expected, actual, msg="Error while building phase event automaton.")
 
     def test_absence_before(self):
         expressions, ct_str, _ = testcases['absence_before']
+        expressions_ = {k + '_': Symbol(v.symbol_name() + '_', v.symbol_type()) for k, v in expressions.items()}
         ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
 
         expected = PhaseEventAutomaton()
         P, R = expressions['P'], expressions['R']
+        P_, R_ = expressions_['P_'], expressions_['R_']
 
         # ct0_st0
-        p1_invariant = And(Not(P), Not(R))
-        p1 = Phase(p1_invariant, TRUE(), Sets(active=frozenset({0})))
+        p1 = Phase(And(Not(P), Not(R)), TRUE(), Sets(active=frozenset({0})))
         # ct0_st
-        p2_invariant = TRUE()
-        p2 = Phase(p2_invariant, TRUE(), Sets())
+        p2 = Phase(TRUE(), TRUE(), Sets())
 
         # ct0_st0
-        expected.phases[None].add(Transition(None, p1, p1_invariant))
-        expected.phases[p1].add(Transition(p1, p1, p1_invariant))
-        expected.phases[p1].add(Transition(p1, p2, And(p2_invariant, P)))
+        expected.phases[None].add(Transition(None, p1, And(Not(P_), Not(R_))))
+        expected.phases[p1].add(Transition(p1, p1, And(Not(P_), Not(R_))))
+        expected.phases[p1].add(Transition(p1, p2, P_))
         # ct0_st
-        expected.phases[None].add(Transition(None, p2, And(p2_invariant, P)))
-        expected.phases[p2].add(Transition(p2, p2, p2_invariant))
+        expected.phases[None].add(Transition(None, p2, P_))
+        expected.phases[p2].add(Transition(p2, p2, TRUE()))
 
         actual = build_automaton(ct)
         self.assertEqual(expected, actual, msg="Error while building phase event automaton.")
 
     def test_absence_after(self):
         expressions, ct_str, _ = testcases['absence_after']
+        expressions_ = {k + '_': Symbol(v.symbol_name() + '_', v.symbol_type()) for k, v in expressions.items()}
         ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
 
         expected = PhaseEventAutomaton()
         P, R = expressions['P'], expressions['R']
+        P_, R_ = expressions_['P_'], expressions_['R_']
 
         # ct0_st0
-        p1_invariant = Not(P)
-        p1 = Phase(p1_invariant, TRUE(), Sets(active=frozenset({0})))
+        p1 = Phase(Not(P), TRUE(), Sets(active=frozenset({0})))
         # ct0_st012
-        p2_invariant = And(P, Not(R))
-        p2 = Phase(p2_invariant, TRUE(), Sets(active=frozenset({0, 1, 2})))
+        p2 = Phase(And(P, Not(R)), TRUE(), Sets(active=frozenset({0, 1, 2})))
         # ct0_st02
-        p3_invariant = And(Not(P), Not(R))
-        p3 = Phase(p3_invariant, TRUE(), Sets(active=frozenset({0, 2})))
+        p3 = Phase(And(Not(P), Not(R)), TRUE(), Sets(active=frozenset({0, 2})))
 
         # ct0_st0
-        expected.phases[None].add(Transition(None, p1, p1_invariant))
-        expected.phases[p1].add(Transition(p1, p1, p1_invariant))
-        expected.phases[p1].add(Transition(p1, p2, p2_invariant))
+        expected.phases[None].add(Transition(None, p1, Not(P_)))
+        expected.phases[p1].add(Transition(p1, p1, Not(P_)))
+        expected.phases[p1].add(Transition(p1, p2, And(P_, Not(R_))))
         # ct0_st012
-        expected.phases[None].add(Transition(None, p2, p2_invariant))
-        expected.phases[p2].add(Transition(p2, p2, p2_invariant))
-        expected.phases[p2].add(Transition(p2, p3, p3_invariant))
+        expected.phases[None].add(Transition(None, p2, And(P_, Not(R_))))
+        expected.phases[p2].add(Transition(p2, p2, And(P_, Not(R_))))
+        expected.phases[p2].add(Transition(p2, p3, And(Not(P_), Not(R_))))
         # ct0_st02
-        expected.phases[p3].add(Transition(p3, p3, p3_invariant))
-        expected.phases[p3].add(Transition(p3, p2, p2_invariant))
+        expected.phases[p3].add(Transition(p3, p3, And(Not(P_), Not(R_))))
+        expected.phases[p3].add(Transition(p3, p2, And(P_, Not(R_))))
 
         actual = build_automaton(ct)
         self.assertEqual(expected, actual, msg="Error while building phase event automaton.")
 
     def test_duration_bound_l_pattern_globally(self):
         expressions, ct_str, _ = testcases['duration_bound_l_globally']
+        expressions_ = {k + '_': Symbol(v.symbol_name() + '_', v.symbol_type()) for k, v in expressions.items()}
         ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
 
         expected = PhaseEventAutomaton()
         R, T, c2 = expressions['R'], expressions['T'], Symbol('c2', INT)
+        R_, T_ = expressions_['R_'], expressions_['T_']
 
         # ct0_st0
-        p1_invariant = R
-        p1 = Phase(p1_invariant, TRUE(), Sets(active=frozenset({0})))
+        p1 = Phase(R, TRUE(), Sets(active=frozenset({0})))
         # ct0_st01
-        p2_invariant = Not(R)
-        p2 = Phase(p2_invariant, TRUE(), Sets(active=frozenset({0, 1})))
+        p2 = Phase(Not(R), TRUE(), Sets(active=frozenset({0, 1})))
         # ct0_st02
-        p3_invariant = R
-        p3 = Phase(p3_invariant, LE(c2, T), Sets(less=frozenset({2}), active=frozenset({0, 2})))
+        p3 = Phase(R, LE(c2, T), Sets(less=frozenset({2}), active=frozenset({0, 2})))
 
         # ct0_st0
-        expected.phases[None].add(Transition(None, p1, p1_invariant))
-        expected.phases[p1].add(Transition(p1, p1, p1_invariant))
-        expected.phases[p1].add(Transition(p1, p2, p2_invariant))
+        expected.phases[None].add(Transition(None, p1, R_))
+        expected.phases[p1].add(Transition(p1, p1, R_))
+        expected.phases[p1].add(Transition(p1, p2, Not(R_)))
         # ct0_st01
-        expected.phases[None].add(Transition(None, p2, p2_invariant))
-        expected.phases[p2].add(Transition(p2, p2, p2_invariant))
-        expected.phases[p2].add(Transition(p2, p3, p3_invariant, frozenset({'c2'})))
+        expected.phases[None].add(Transition(None, p2, Not(R_)))
+        expected.phases[p2].add(Transition(p2, p2, Not(R_)))
+        expected.phases[p2].add(Transition(p2, p3, R_, frozenset({'c2'})))
         # ct0_st02
-        expected.phases[p3].add(Transition(p3, p3, And(p3_invariant, LT(c2, T))))
-        expected.phases[p3].add(Transition(p3, p1, And(p1_invariant, GE(c2, T))))
-        expected.phases[p3].add(Transition(p3, p2, And(p2_invariant, Or(R, GE(c2, T)))))
+        expected.phases[p3].add(Transition(p3, p3, And(LT(c2, T), R_)))
+        expected.phases[p3].add(Transition(p3, p1, And(GE(c2, T), R_)))
+        expected.phases[p3].add(Transition(p3, p2, And(Or(R_, GE(c2, T)), Not(R_))))
 
         actual = build_automaton(ct)
         self.assertEqual(expected, actual, msg="Error while building phase event automaton.")
 
     def test_response_delay_globally(self):
         expressions, ct_str, _ = testcases['response_delay_globally']
+        expressions_ = {k + '_': Symbol(v.symbol_name() + '_', v.symbol_type()) for k, v in expressions.items()}
         ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
 
         expected = PhaseEventAutomaton()
         R, S, T, c2 = expressions['R'], expressions['S'], expressions['T'], Symbol('c2', INT)
+        R_, S_, T_ = expressions_['R_'], expressions_['S_'], expressions_['T_']
 
         # ct0_st0
-        p1_invariant = Or(S, Not(R))
-        p1 = Phase(p1_invariant, TRUE(), Sets(active=frozenset({0})))
+        p1 = Phase(Or(S, Not(R)), TRUE(), Sets(active=frozenset({0})))
         # ct0_st012W
-        p2_invariant = And(Not(S), R)
-        p2 = Phase(p2_invariant, LE(c2, T), Sets(wait=frozenset({2}), active=frozenset({0, 1, 2})))
+        p2 = Phase(And(R, Not(S)), LE(c2, T), Sets(wait=frozenset({2}), active=frozenset({0, 1, 2})))
         # ct0_st02W
-        p3_invariant = And(Not(S), Not(R))
-        p3 = Phase(p3_invariant, LE(c2, T), Sets(wait=frozenset({2}), active=frozenset({0, 2})))
+        p3 = Phase(And(Not(R), Not(S)), LE(c2, T), Sets(wait=frozenset({2}), active=frozenset({0, 2})))
 
         # ct0_st0
-        expected.phases[None].add(Transition(None, p1, p1_invariant))
-        expected.phases[p1].add(Transition(p1, p1, p1_invariant))
-        expected.phases[p1].add(Transition(p1, p2, p2_invariant, frozenset({'c2'})))
+        expected.phases[None].add(Transition(None, p1, Or(S_, Not(R_))))
+        expected.phases[p1].add(Transition(p1, p1, Or(S_, Not(R_))))
+        expected.phases[p1].add(Transition(p1, p2, And(R_, Not(S_)), frozenset({'c2'})))
         # ct0_st012W
-        expected.phases[None].add(Transition(None, p2, p2_invariant, frozenset({'c2'})))
-        expected.phases[p2].add(Transition(p2, p2, And(p2_invariant, LT(c2, T))))
-        expected.phases[p2].add(Transition(p2, p1, And(p1_invariant, S)))
-        expected.phases[p2].add(Transition(p2, p3, And(p3_invariant, LT(c2, T))))
+        expected.phases[None].add(Transition(None, p2, And(R_, Not(S_)), frozenset({'c2'})))
+        expected.phases[p2].add(Transition(p2, p2, And(LT(c2, T), And(R_, Not(S_)))))
+        expected.phases[p2].add(Transition(p2, p1, And(S_, Or(S_, Not(R_)))))
+        expected.phases[p2].add(Transition(p2, p3, And(LT(c2, T), And(Not(R_), Not(S_)))))
         # ct0_st02W
-        expected.phases[p3].add(Transition(p3, p3, And(p3_invariant, LT(c2, T))))
-        expected.phases[p3].add(Transition(p3, p1, And(p1_invariant, S)))
-        expected.phases[p3].add(Transition(p3, p2, And(p2_invariant, LT(c2, T))))
+        expected.phases[p3].add(Transition(p3, p3, And(LT(c2, T), And(Not(R_), Not(S_)))))
+        expected.phases[p3].add(Transition(p3, p1, And(S_, Or(S_, Not(R_)))))
+        expected.phases[p3].add(Transition(p3, p2, And(LT(c2, T), And(R_, Not(S_)))))
 
         actual = build_automaton(ct)
         self.assertEqual(expected, actual, msg="Error while building phase event automaton.")
