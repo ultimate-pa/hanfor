@@ -9,160 +9,160 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 276.73)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-276.73 813,-276.73 813,4 -4,4"/>
-<!-- _ID_66_ct0_st0 -->
-<!-- ID_66_ct0_st0 -->
+<!-- _ID_26_ct0_st0 -->
+<!-- ID_26_ct0_st0 -->
 <g id="node2" class="node">
-<title>ID_66_ct0_st0</title>
+<title>ID_26_ct0_st0</title>
 <polygon fill="none" stroke="black" points="261,-187.73 154,-187.73 154,-137.73 261,-137.73 261,-187.73"/>
-<text text-anchor="start" x="162" y="-173.53" font-family="arial" font-weight="bold" font-size="14.00">ID_66_ct0_st0</text>
+<text text-anchor="start" x="162" y="-173.53" font-family="arial" font-weight="bold" font-size="14.00">ID_26_ct0_st0</text>
 <text text-anchor="start" x="201" y="-159.53" font-family="arial" font-size="14.00" fill="#984ea3">!P</text>
 <text text-anchor="start" x="195.5" y="-145.53" font-family="arial" font-size="14.00" fill="#ff7f00">true</text>
 </g>
-<!-- _ID_66_ct0_st0&#45;&gt;ID_66_ct0_st0 -->
+<!-- _ID_26_ct0_st0&#45;&gt;ID_26_ct0_st0 -->
 <g id="edge1" class="edge">
-<title>_ID_66_ct0_st0&#45;&gt;ID_66_ct0_st0</title>
+<title>_ID_26_ct0_st0&#45;&gt;ID_26_ct0_st0</title>
 <path fill="none" stroke="black" d="M111.08,-162.73C121.62,-162.73 132.74,-162.73 143.52,-162.73"/>
 <polygon fill="black" stroke="black" points="143.72,-166.23 153.72,-162.73 143.72,-159.23 143.72,-166.23"/>
 </g>
-<!-- ID_66_ct0_st0&#45;&gt;ID_66_ct0_st0 -->
+<!-- ID_26_ct0_st0&#45;&gt;ID_26_ct0_st0 -->
 <g id="edge4" class="edge">
-<title>ID_66_ct0_st0&#45;&gt;ID_66_ct0_st0</title>
+<title>ID_26_ct0_st0&#45;&gt;ID_26_ct0_st0</title>
 <path fill="none" stroke="black" d="M192.93,-187.91C192.28,-197.64 197.14,-205.73 207.5,-205.73 213.97,-205.73 218.3,-202.57 220.47,-197.82"/>
 <polygon fill="black" stroke="black" points="223.94,-198.33 222.07,-187.91 217.03,-197.22 223.94,-198.33"/>
 <text text-anchor="start" x="195.5" y="-209.53" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_66_ct0_st01 -->
+<!-- ID_26_ct0_st01 -->
 <g id="node4" class="node">
-<title>ID_66_ct0_st01</title>
+<title>ID_26_ct0_st01</title>
 <polygon fill="none" stroke="black" points="441,-89.73 327,-89.73 327,-39.73 441,-39.73 441,-89.73"/>
-<text text-anchor="start" x="335" y="-75.53" font-family="arial" font-weight="bold" font-size="14.00">ID_66_ct0_st01</text>
+<text text-anchor="start" x="335" y="-75.53" font-family="arial" font-weight="bold" font-size="14.00">ID_26_ct0_st01</text>
 <text text-anchor="start" x="356.5" y="-61.53" font-family="arial" font-size="14.00" fill="#984ea3">(P &amp;&amp; Q)</text>
 <text text-anchor="start" x="372" y="-47.53" font-family="arial" font-size="14.00" fill="#ff7f00">true</text>
 </g>
-<!-- ID_66_ct0_st0&#45;&gt;ID_66_ct0_st01 -->
+<!-- ID_26_ct0_st0&#45;&gt;ID_26_ct0_st01 -->
 <g id="edge5" class="edge">
-<title>ID_66_ct0_st0&#45;&gt;ID_66_ct0_st01</title>
+<title>ID_26_ct0_st0&#45;&gt;ID_26_ct0_st01</title>
 <path fill="none" stroke="black" d="M231.98,-137.55C246.18,-123.57 265.31,-106.82 285,-95.73 294.98,-90.11 306.12,-85.36 317.21,-81.39"/>
 <polygon fill="black" stroke="black" points="318.56,-84.63 326.91,-78.11 316.31,-78 318.56,-84.63"/>
 <text text-anchor="start" x="285" y="-99.53" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_66_ct0_st012 -->
+<!-- ID_26_ct0_st012 -->
 <g id="node6" class="node">
-<title>ID_66_ct0_st012</title>
+<title>ID_26_ct0_st012</title>
 <polygon fill="none" stroke="black" points="809,-152.73 687,-152.73 687,-102.73 809,-102.73 809,-152.73"/>
-<text text-anchor="start" x="695" y="-138.53" font-family="arial" font-weight="bold" font-size="14.00">ID_66_ct0_st012</text>
+<text text-anchor="start" x="695" y="-138.53" font-family="arial" font-weight="bold" font-size="14.00">ID_26_ct0_st012</text>
 <text text-anchor="start" x="696.5" y="-124.53" font-family="arial" font-size="14.00" fill="#984ea3">(P &amp;&amp; (!Q &amp;&amp; R))</text>
 <text text-anchor="start" x="736" y="-110.53" font-family="arial" font-size="14.00" fill="#ff7f00">true</text>
 </g>
-<!-- ID_66_ct0_st0&#45;&gt;ID_66_ct0_st012 -->
+<!-- ID_26_ct0_st0&#45;&gt;ID_26_ct0_st012 -->
 <g id="edge6" class="edge">
-<title>ID_66_ct0_st0&#45;&gt;ID_66_ct0_st012</title>
+<title>ID_26_ct0_st0&#45;&gt;ID_26_ct0_st012</title>
 <path fill="none" stroke="black" d="M261.01,-182.27C341.59,-209.28 499.77,-250.44 627,-210.73 659.45,-200.6 690.85,-178.29 713.38,-159.35"/>
 <polygon fill="black" stroke="black" points="715.68,-161.99 720.97,-152.81 711.11,-156.68 715.68,-161.99"/>
 <text text-anchor="start" x="459" y="-229.53" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- _ID_66_ct0_st01 -->
-<!-- _ID_66_ct0_st01&#45;&gt;ID_66_ct0_st01 -->
+<!-- _ID_26_ct0_st01 -->
+<!-- _ID_26_ct0_st01&#45;&gt;ID_26_ct0_st01 -->
 <g id="edge2" class="edge">
-<title>_ID_66_ct0_st01&#45;&gt;ID_66_ct0_st01</title>
+<title>_ID_26_ct0_st01&#45;&gt;ID_26_ct0_st01</title>
 <path fill="none" stroke="black" d="M267.09,-62.74C283.08,-63.01 300.51,-63.31 316.89,-63.59"/>
 <polygon fill="black" stroke="black" points="316.87,-67.09 326.93,-63.77 316.99,-60.09 316.87,-67.09"/>
 </g>
-<!-- ID_66_ct0_st01&#45;&gt;ID_66_ct0_st0 -->
+<!-- ID_26_ct0_st01&#45;&gt;ID_26_ct0_st0 -->
 <g id="edge7" class="edge">
-<title>ID_66_ct0_st01&#45;&gt;ID_66_ct0_st0</title>
+<title>ID_26_ct0_st01&#45;&gt;ID_26_ct0_st0</title>
 <path fill="none" stroke="black" d="M343.79,-89.9C332.65,-96.83 320.44,-104.23 309,-110.73 295.89,-118.18 281.6,-125.84 268.02,-132.92"/>
 <polygon fill="black" stroke="black" points="266.03,-130 258.76,-137.71 269.25,-136.22 266.03,-130"/>
 <text text-anchor="start" x="289.5" y="-126.53" font-family="arial" font-size="14.00" fill="#377eb8">Q&#39;</text>
 </g>
-<!-- ID_66_ct0_st01&#45;&gt;ID_66_ct0_st01 -->
+<!-- ID_26_ct0_st01&#45;&gt;ID_26_ct0_st01 -->
 <g id="edge9" class="edge">
-<title>ID_66_ct0_st01&#45;&gt;ID_66_ct0_st01</title>
+<title>ID_26_ct0_st01&#45;&gt;ID_26_ct0_st01</title>
 <path fill="none" stroke="black" d="M367.94,-89.91C367.22,-99.64 372.58,-107.73 384,-107.73 391.14,-107.73 395.91,-104.57 398.31,-99.82"/>
 <polygon fill="black" stroke="black" points="401.76,-100.36 400.06,-89.91 394.87,-99.14 401.76,-100.36"/>
 <text text-anchor="start" x="372" y="-111.53" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_66_ct0_st01&#45;&gt;ID_66_ct0_st012 -->
+<!-- ID_26_ct0_st01&#45;&gt;ID_26_ct0_st012 -->
 <g id="edge10" class="edge">
-<title>ID_66_ct0_st01&#45;&gt;ID_66_ct0_st012</title>
+<title>ID_26_ct0_st01&#45;&gt;ID_26_ct0_st012</title>
 <path fill="none" stroke="black" d="M441.16,-46.52C491.12,-33.26 565.55,-20.8 627,-40.73 660.5,-51.6 692.48,-75.71 714.99,-95.8"/>
 <polygon fill="black" stroke="black" points="712.8,-98.54 722.54,-102.71 717.53,-93.38 712.8,-98.54"/>
 <text text-anchor="start" x="552" y="-44.53" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_66_ct0_st02 -->
+<!-- ID_26_ct0_st02 -->
 <g id="node7" class="node">
-<title>ID_66_ct0_st02</title>
+<title>ID_26_ct0_st02</title>
 <polygon fill="none" stroke="black" points="625.5,-114.73 502.5,-114.73 502.5,-64.73 625.5,-64.73 625.5,-114.73"/>
-<text text-anchor="start" x="515" y="-100.53" font-family="arial" font-weight="bold" font-size="14.00">ID_66_ct0_st02</text>
+<text text-anchor="start" x="515" y="-100.53" font-family="arial" font-weight="bold" font-size="14.00">ID_26_ct0_st02</text>
 <text text-anchor="start" x="510.5" y="-86.53" font-family="arial" font-size="14.00" fill="#984ea3">(!P &amp;&amp; (!Q &amp;&amp; R))</text>
 <text text-anchor="start" x="552" y="-72.53" font-family="arial" font-size="14.00" fill="#ff7f00">true</text>
 </g>
-<!-- ID_66_ct0_st01&#45;&gt;ID_66_ct0_st02 -->
+<!-- ID_26_ct0_st01&#45;&gt;ID_26_ct0_st02 -->
 <g id="edge8" class="edge">
-<title>ID_66_ct0_st01&#45;&gt;ID_66_ct0_st02</title>
+<title>ID_26_ct0_st01&#45;&gt;ID_26_ct0_st02</title>
 <path fill="none" stroke="black" d="M441.19,-62.6C454.93,-62.82 469.54,-63.68 483,-65.73 486.06,-66.19 489.16,-66.75 492.27,-67.37"/>
 <polygon fill="black" stroke="black" points="491.73,-70.84 502.25,-69.59 493.25,-64 491.73,-70.84"/>
 <text text-anchor="start" x="459" y="-69.53" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- _ID_66_ct0_st012 -->
-<!-- _ID_66_ct0_st012&#45;&gt;ID_66_ct0_st012 -->
+<!-- _ID_26_ct0_st012 -->
+<!-- _ID_26_ct0_st012&#45;&gt;ID_26_ct0_st012 -->
 <g id="edge3" class="edge">
-<title>_ID_66_ct0_st012&#45;&gt;ID_66_ct0_st012</title>
+<title>_ID_26_ct0_st012&#45;&gt;ID_26_ct0_st012</title>
 <path fill="none" stroke="black" d="M623.59,-165.7C640.68,-160.44 659.54,-154.64 677.25,-149.19"/>
 <polygon fill="black" stroke="black" points="678.43,-152.49 686.96,-146.2 676.37,-145.8 678.43,-152.49"/>
 </g>
-<!-- ID_66_ct0_st012&#45;&gt;ID_66_ct0_st0 -->
+<!-- ID_26_ct0_st012&#45;&gt;ID_26_ct0_st0 -->
 <g id="edge15" class="edge">
-<title>ID_66_ct0_st012&#45;&gt;ID_66_ct0_st0</title>
+<title>ID_26_ct0_st012&#45;&gt;ID_26_ct0_st0</title>
 <path fill="none" stroke="black" d="M729.3,-152.78C708.48,-179.56 671.13,-219.91 627,-232.73 498.94,-269.95 454.79,-264.86 327,-226.73 301.61,-219.15 275.48,-205.75 254.24,-193.15"/>
 <polygon fill="black" stroke="black" points="255.82,-190.02 245.45,-187.83 252.19,-196 255.82,-190.02"/>
 <text text-anchor="start" x="463.5" y="-261.53" font-family="arial" font-size="14.00" fill="#377eb8">Q&#39;</text>
 </g>
-<!-- ID_66_ct0_st012&#45;&gt;ID_66_ct0_st01 -->
+<!-- ID_26_ct0_st012&#45;&gt;ID_26_ct0_st01 -->
 <g id="edge17" class="edge">
-<title>ID_66_ct0_st012&#45;&gt;ID_66_ct0_st01</title>
+<title>ID_26_ct0_st012&#45;&gt;ID_26_ct0_st01</title>
 <path fill="none" stroke="black" d="M731.23,-102.7C711.2,-73.7 673.55,-27.83 627,-11.73 574.08,6.57 555.72,0.18 501,-11.73 479.15,-16.49 456.48,-25.74 437.05,-35.2"/>
 <polygon fill="black" stroke="black" points="435.44,-32.09 428.07,-39.69 438.58,-38.35 435.44,-32.09"/>
 <text text-anchor="start" x="552" y="-15.53" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_66_ct0_st012&#45;&gt;ID_66_ct0_st012 -->
+<!-- ID_26_ct0_st012&#45;&gt;ID_26_ct0_st012 -->
 <g id="edge18" class="edge">
-<title>ID_66_ct0_st012&#45;&gt;ID_66_ct0_st012</title>
+<title>ID_26_ct0_st012&#45;&gt;ID_26_ct0_st012</title>
 <path fill="none" stroke="black" d="M731.19,-152.91C730.44,-162.64 736.05,-170.73 748,-170.73 755.47,-170.73 760.46,-167.57 762.97,-162.82"/>
 <polygon fill="black" stroke="black" points="766.43,-163.38 764.81,-152.91 759.54,-162.1 766.43,-163.38"/>
 <text text-anchor="start" x="736" y="-174.53" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_66_ct0_st012&#45;&gt;ID_66_ct0_st02 -->
+<!-- ID_26_ct0_st012&#45;&gt;ID_26_ct0_st02 -->
 <g id="edge16" class="edge">
-<title>ID_66_ct0_st012&#45;&gt;ID_66_ct0_st02</title>
+<title>ID_26_ct0_st012&#45;&gt;ID_26_ct0_st02</title>
 <path fill="none" stroke="black" d="M686.97,-115.2C670.5,-111.76 652.48,-108 635.48,-104.45"/>
 <polygon fill="black" stroke="black" points="636.11,-101 625.6,-102.38 634.68,-107.85 636.11,-101"/>
 <text text-anchor="start" x="645" y="-115.53" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_66_ct0_st02&#45;&gt;ID_66_ct0_st0 -->
+<!-- ID_26_ct0_st02&#45;&gt;ID_26_ct0_st0 -->
 <g id="edge11" class="edge">
-<title>ID_66_ct0_st02&#45;&gt;ID_66_ct0_st0</title>
+<title>ID_26_ct0_st02&#45;&gt;ID_26_ct0_st0</title>
 <path fill="none" stroke="black" d="M502.26,-113.3C482.92,-120.09 461.27,-126.94 441,-131.73 384.33,-145.12 318.42,-153.23 271.28,-157.77"/>
 <polygon fill="black" stroke="black" points="270.84,-154.3 261.21,-158.71 271.5,-161.26 270.84,-154.3"/>
 <text text-anchor="start" x="376.5" y="-154.53" font-family="arial" font-size="14.00" fill="#377eb8">Q&#39;</text>
 </g>
-<!-- ID_66_ct0_st02&#45;&gt;ID_66_ct0_st01 -->
+<!-- ID_26_ct0_st02&#45;&gt;ID_26_ct0_st01 -->
 <g id="edge13" class="edge">
-<title>ID_66_ct0_st02&#45;&gt;ID_66_ct0_st01</title>
+<title>ID_26_ct0_st02&#45;&gt;ID_26_ct0_st01</title>
 <path fill="none" stroke="black" d="M502.35,-85.78C488.09,-84.5 472.98,-82.84 459,-80.73 456.35,-80.33 453.65,-79.89 450.93,-79.43"/>
 <polygon fill="black" stroke="black" points="451.49,-75.97 441.02,-77.62 450.24,-82.86 451.49,-75.97"/>
 <text text-anchor="start" x="459" y="-87.53" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_66_ct0_st02&#45;&gt;ID_66_ct0_st012 -->
+<!-- ID_26_ct0_st02&#45;&gt;ID_26_ct0_st012 -->
 <g id="edge14" class="edge">
-<title>ID_66_ct0_st02&#45;&gt;ID_66_ct0_st012</title>
+<title>ID_26_ct0_st02&#45;&gt;ID_26_ct0_st012</title>
 <path fill="none" stroke="black" d="M625.74,-85.92C640.07,-86.23 655.19,-87.55 669,-90.73 677,-92.57 685.14,-95.32 693,-98.49"/>
 <polygon fill="black" stroke="black" points="691.85,-101.81 702.42,-102.56 694.62,-95.38 691.85,-101.81"/>
 <text text-anchor="start" x="645" y="-94.53" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
 </g>
-<!-- ID_66_ct0_st02&#45;&gt;ID_66_ct0_st02 -->
+<!-- ID_26_ct0_st02&#45;&gt;ID_26_ct0_st02 -->
 <g id="edge12" class="edge">
-<title>ID_66_ct0_st02&#45;&gt;ID_66_ct0_st02</title>
+<title>ID_26_ct0_st02&#45;&gt;ID_26_ct0_st02</title>
 <path fill="none" stroke="black" d="M546.82,-114.91C546.05,-124.64 551.78,-132.73 564,-132.73 571.64,-132.73 576.74,-129.57 579.3,-124.82"/>
 <polygon fill="black" stroke="black" points="582.76,-125.38 581.18,-114.91 575.88,-124.08 582.76,-125.38"/>
 <text text-anchor="start" x="552" y="-136.53" font-family="arial" font-size="14.00" fill="#377eb8">true</text>
