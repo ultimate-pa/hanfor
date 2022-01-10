@@ -25,7 +25,7 @@ In this method we make use of a simple pattern language. The language is based o
 
 
 ### Specification language
-The grammar of the specification language is given below. A requirement is defined by an ID, a scope and a pattern. Scope and pattern are parameterised by expressions over system observables and durations. Some patterns require a more detailed description concerning the order or the realtime occurence of events.
+The grammar of the specification language is given below. A requirement is defined by an ID, a scope and a pattern. Scope and pattern are parameterised by expressions over system observables and durations. Some patterns require a more detailed description concerning the order or the realtime occurence of events. Note that not all combinations of scope and pattern are supported within the **Hanfor** tool. For more information, have a look at our [pattern section](../references/patterns.md "Patterns").
 ```
 REQ      ::= ID: SCOPE, PATTERN.
 

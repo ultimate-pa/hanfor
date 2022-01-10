@@ -1,8 +1,8 @@
 <!-- Auto generated file, do not make any changes here. -->
 
-## InitializationPattern
+## Initialization
 
-### InitializationPattern Globally
+### Initialization Globally
 ```
 Globally, it is always the case that initially "R" holds
 ```
@@ -15,11 +15,9 @@ Globally, it is always the case that initially "R" holds
 #### Phase Event Automata
 ![](../img/patterns/InitializationPattern_Globally_0.svg)
 
-#### Examples
 
 
-
-### InitializationPattern Before
+### Initialization Before
 ```
 Before "P", it is always the case that initially "R" holds
 ```
@@ -32,11 +30,9 @@ Before "P", it is always the case that initially "R" holds
 #### Phase Event Automata
 ![](../img/patterns/InitializationPattern_Before_0.svg)
 
-#### Examples
 
 
-
-### InitializationPattern After
+### Initialization After
 ```
 After "P", it is always the case that initially "R" holds
 ```
@@ -49,11 +45,12 @@ true;⌈P⌉;⌈!R⌉;true
 #### Phase Event Automata
 ![](../img/patterns/InitializationPattern_After_0.svg)
 
-#### Examples
+??? Example "Positive Examples: Initialization - After"
+    ![](../img/failure_paths/positive/InitializationPattern_After_0.svg){ loading=lazy width=47% align=left }
+    ![](../img/failure_paths/positive/InitializationPattern_After_1.svg){ loading=lazy width=47% align=left }
 
 
-
-### InitializationPattern Between
+### Initialization Between
 ```
 Between "P" and "Q", it is always the case that initially "R" holds
 ```
@@ -66,11 +63,14 @@ true;⌈(P && !Q)⌉;⌈(!Q && !R)⌉;true;⌈Q⌉;true
 #### Phase Event Automata
 ![](../img/patterns/InitializationPattern_Between_0.svg)
 
-#### Examples
+??? Example "Positive Examples: Initialization - Between"
+    ![](../img/failure_paths/positive/InitializationPattern_Between_0.svg){ loading=lazy width=47% align=left }
+    ![](../img/failure_paths/positive/InitializationPattern_Between_1.svg){ loading=lazy width=47% align=left }
+    ![](../img/failure_paths/positive/InitializationPattern_Between_2.svg){ loading=lazy width=47% align=left }
+    ![](../img/failure_paths/positive/InitializationPattern_Between_3.svg){ loading=lazy width=47% align=left }
 
 
-
-### InitializationPattern AfterUntil
+### Initialization AfterUntil
 ```
 After "P" until "Q", it is always the case that initially "R" holds
 ```
@@ -83,6 +83,6 @@ true;⌈P⌉;⌈(!Q && !R)⌉;true
 #### Phase Event Automata
 ![](../img/patterns/InitializationPattern_AfterUntil_0.svg)
 
-#### Examples
-
+??? Example "Positive Examples: Initialization - AfterUntil"
+    ![](../img/failure_paths/positive/InitializationPattern_AfterUntil_0.svg){ loading=lazy width=47% align=left }
 

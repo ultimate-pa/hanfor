@@ -1,8 +1,8 @@
 <!-- Auto generated file, do not make any changes here. -->
 
-## DurationBoundLPattern
+## DurationBoundL
 
-### DurationBoundLPattern Globally
+### DurationBoundL Globally
 ```
 Globally, it is always the case that once "R" becomes satisfied, it holds for at least "5" time units
 ```
@@ -15,11 +15,9 @@ true;⌈!R⌉;⌈R⌉ ∧ ℓ < 5;⌈!R⌉;true
 #### Phase Event Automata
 ![](../img/patterns/DurationBoundLPattern_Globally_0.svg)
 
-#### Examples
 
 
-
-### DurationBoundLPattern Before
+### DurationBoundL Before
 ```
 Before "P", it is always the case that once "R" becomes satisfied, it holds for at least "5" time units
 ```
@@ -32,11 +30,9 @@ Before "P", it is always the case that once "R" becomes satisfied, it holds for 
 #### Phase Event Automata
 ![](../img/patterns/DurationBoundLPattern_Before_0.svg)
 
-#### Examples
 
 
-
-### DurationBoundLPattern After
+### DurationBoundL After
 ```
 After "P", it is always the case that once "R" becomes satisfied, it holds for at least "5" time units
 ```
@@ -49,11 +45,9 @@ true;⌈P⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ < 5;⌈!R⌉;true
 #### Phase Event Automata
 ![](../img/patterns/DurationBoundLPattern_After_0.svg)
 
-#### Examples
 
 
-
-### DurationBoundLPattern Between
+### DurationBoundL Between
 ```
 Between "P" and "Q", it is always the case that once "R" becomes satisfied, it holds for at least "5" time units
 ```
@@ -66,11 +60,9 @@ true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ < 5;⌈(!
 #### Phase Event Automata
 ![](../img/patterns/DurationBoundLPattern_Between_0.svg)
 
-#### Examples
 
 
-
-### DurationBoundLPattern AfterUntil
+### DurationBoundL AfterUntil
 ```
 After "P" until "Q", it is always the case that once "R" becomes satisfied, it holds for at least "5" time units
 ```
@@ -82,7 +74,5 @@ true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ < 5;⌈(!Q && !R)
 
 #### Phase Event Automata
 ![](../img/patterns/DurationBoundLPattern_AfterUntil_0.svg)
-
-#### Examples
 
 
