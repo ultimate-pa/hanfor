@@ -18,9 +18,6 @@ Globally, it is always the case that if "R" holds, then "S" previously held
 ??? Example "Positive Examples: Precedence - Globally"
     ![](../img/failure_paths/positive/PrecedencePattern_Globally_0.svg){ loading=lazy width=47% align=left }
     ![](../img/failure_paths/positive/PrecedencePattern_Globally_1.svg){ loading=lazy width=47% align=left }
-??? Example "Negative Examples: Precedence - Globally"
-    ![](../img/failure_paths/negative/PrecedencePattern_Globally_0.svg){ loading=lazy width=47% align=left }
-    ![](../img/failure_paths/negative/PrecedencePattern_Globally_1.svg){ loading=lazy width=47% align=left }
 
 
 ### Precedence Before
@@ -38,8 +35,6 @@ Before "P", it is always the case that if "R" holds, then "S" previously held
 
 ??? Example "Positive Examples: Precedence - Before"
     ![](../img/failure_paths/positive/PrecedencePattern_Before_0.svg){ loading=lazy width=47% align=left }
-??? Example "Negative Examples: Precedence - Before"
-    ![](../img/failure_paths/negative/PrecedencePattern_Before_0.svg){ loading=lazy width=47% align=left }
 
 
 ### Precedence After
@@ -60,8 +55,6 @@ true;⌈P⌉;⌈!S⌉;⌈R⌉;true
     ![](../img/failure_paths/positive/PrecedencePattern_After_1.svg){ loading=lazy width=47% align=left }
     ![](../img/failure_paths/positive/PrecedencePattern_After_2.svg){ loading=lazy width=47% align=left }
     ![](../img/failure_paths/positive/PrecedencePattern_After_3.svg){ loading=lazy width=47% align=left }
-??? Example "Negative Examples: Precedence - After"
-    ![](../img/failure_paths/negative/PrecedencePattern_After_0.svg){ loading=lazy width=47% align=left }
 
 
 ### Precedence Between
@@ -84,8 +77,6 @@ true;⌈(P && (!Q && !S))⌉;⌈(!Q && !S)⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈Q⌉;t
     ![](../img/failure_paths/positive/PrecedencePattern_Between_3.svg){ loading=lazy width=47% align=left }
     ![](../img/failure_paths/positive/PrecedencePattern_Between_4.svg){ loading=lazy width=47% align=left }
     ![](../img/failure_paths/positive/PrecedencePattern_Between_5.svg){ loading=lazy width=47% align=left }
-??? Example "Negative Examples: Precedence - Between"
-    ![](../img/failure_paths/negative/PrecedencePattern_Between_0.svg){ loading=lazy width=47% align=left }
 
 
 ### Precedence AfterUntil
@@ -104,6 +95,4 @@ true;⌈P⌉;⌈(!Q && !S)⌉;⌈(!Q && R)⌉;true
 ??? Example "Positive Examples: Precedence - AfterUntil"
     ![](../img/failure_paths/positive/PrecedencePattern_AfterUntil_0.svg){ loading=lazy width=47% align=left }
     ![](../img/failure_paths/positive/PrecedencePattern_AfterUntil_1.svg){ loading=lazy width=47% align=left }
-??? Example "Negative Examples: Precedence - AfterUntil"
-    ![](../img/failure_paths/negative/PrecedencePattern_AfterUntil_0.svg){ loading=lazy width=47% align=left }
 
