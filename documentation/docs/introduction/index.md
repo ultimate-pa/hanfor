@@ -27,34 +27,42 @@ In this method we make use of a simple pattern language. The language is based o
 ### Specification language
 The grammar of the specification language is given below. A requirement is defined by an ID, a scope and a pattern. Scope and pattern are parameterised by expressions over system observables and durations. Some patterns require a more detailed description concerning the order or the realtime occurence of events.
 ```
-REQ      ::= ID: SCOPE, PATTERN .
+REQ      ::= ID: SCOPE, PATTERN.
+
 SCOPE    ::= Globally  | Before EXPR  | After EXPR | Between EXPR and EXPR  | After EXPR until EXPR
+
 PATTERN  ::= It is never the case that EXPR holds
            | It is always the case that EXPR holds
+           | It is always the case that initially EXPR holds 
            | It is always the case that if EXPR holds, then EXPR holds as well
-           | Transition to states in which EXPR holds occur at most twice
+           | Transitions to states in which EXPR holds occur at most twice
            | It is always the case that ORDER
            | It is always the case that REALTIME
-ORDER    ::=
-           | If EXPR holds, then EXPR previously held
+
+ORDER    ::= If EXPR holds, then EXPR previously held
            | If EXPR holds and is succeded by EXPR, then EXPR previously held
            | If EXPR holds, then EXPR previously held and was preceeded by EXPR
            | If EXPR holds, then EXPR eventually holds and is succeeded by EXPR
-           | If EXPR holds and is succeeded by EXPR, then EXPR eventually holds after EXPR
-           | If EXPR holds, then EXPR eventually holds and is succeeded by EXPR where EXPR does not hold between EXPR and EXPR
-           | If EXPR holds, then EXPR toggles EXPR
+           | If EXPR holds, then EXPR eventually holds
+           | If EXPR holds, then EXPR eventually holds and is succeeded by EXPR where 
+                EXPR does not hold between EXPR and EXPR
+
 REALTIME ::= Once EXPR becomes satisfied, it holds for at least DURATION
            | Once EXPR becomes satisfied, it holds for less than DURATION
+           | Once EXPR becomes satisfied, EXPR holds for at least DURATION
+           | Once EXPR becomes satisfied and holds for at most DURATION, then EXPR holds afterwards
+           | Once EXPR becomes satisfied, EXPR holds after at most DURATION
+           | Once EXPR becomes satisfied, EXPR holds after at most DURATION for at least DURATION
            | EXPR holds at least every DURATION
+           | EXPR holds after at most DURATION
            | If EXPR holds, then EXPR holds after at most DURATION
            | If EXPR holds for at least DURATION, then EXPR holds afterwards for at least DURATION
+           | If EXPR holds for at least DURATION, then EXPR holds after at most DURATION
            | If EXPR holds for at least DURATION, then EXPR holds afterwards
            | If EXPR holds, then EXPR holds after at most DURATION for at least DURATION
            | If EXPR holds, then EXPR holds for at least DURATION
-           | If EXPR holds, then there is at least one execution sequence such that EXPR holds after at most DURATION
-           | After EXPR holds for DURATION, then EXPR holds
-	       | After EXPR holds for DURATION and EXPR holds, then EXPR holds
-           | If EXPR holds, then EXPR toggles EXPR at most DURATION later
+	       | After EXPR holds for at least DURATION and EXPR holds, then EXPR holds
+           | After EXPR holds for at least DURATION and EXPR holds, then EXPR holds after at most DURATION
 ```
 
 Figure 2 shows the toolchain for the translation of an informal requirement into a formalized version. In the first step, the informal requirement, given in natural language, is translated into the specification language. This process is done manually. The requirement expressed in the specification language is then automatically translated into a formula in realtime logic (the Duration Calculus).
