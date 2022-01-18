@@ -8,7 +8,8 @@ require('./bootstrap-tokenfield.js');
 require('jquery-ui/ui/effects/effect-highlight');
 require('awesomplete');
 require('awesomplete/awesomplete.css');
-require('./colResizable-1.6.min.js');
+require('datatables.net-colreorderwithresize-npm');
+
 let utils = require('./hanfor-utils');
 
 // Globals
@@ -849,6 +850,7 @@ $(document).ready(function () {
     });
     variables_table.column(4).visible(true);
     variables_table.column(5).visible(false);
+    new $.fn.dataTable.ColReorder(variables_table, {});
 
     let search_bar = $('#search_bar');
     // Init search Bar Autocomplete

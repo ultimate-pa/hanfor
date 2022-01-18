@@ -7,7 +7,6 @@ require('jquery-ui/ui/effects/effect-highlight');
 require('./bootstrap-tokenfield.js');
 require('awesomplete');
 require('awesomplete/awesomplete.css');
-require('./colResizable-1.6.min.js');
 
 const autosize = require('autosize');
 const { SearchNode } = require('./datatables-advanced-search.js');

@@ -6,7 +6,7 @@ require('datatables.net-select');
 require('jquery-ui/ui/widgets/autocomplete');
 require('jquery-ui/ui/effects/effect-highlight');
 require('./bootstrap-tokenfield.js');
-require('./colResizable-1.6.min.js');
+require('datatables.net-colreorderwithresize-npm');
 
 // Globals
 let available_types = ['bool', 'int', 'real', 'unknown', 'CONST', 'ENUM', 'ENUMERATOR'];
@@ -533,12 +533,10 @@ $(document).ready(function() {
             );
 
             this.api().draw();
-            $('#var_import_table').colResizable({
-                liveDrag:true,
-                postbackSafe: true
-            });
+
         }
     });
+    new $.fn.dataTable.ColReorder(var_import_table, {});
 
     // Bind big custom searchbar to search the table.
     $('#search_bar').keypress(function(e) {

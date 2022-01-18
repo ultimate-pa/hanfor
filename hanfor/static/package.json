@@ -31,7 +31,8 @@
     "js-cookie": "^2.2.0",
     "popper.js": "^1.16.1",
     "textcomplete": "^0.17.1",
-    "yargs": "^17.0.1"
+    "yargs": "^17.0.1",
+    "datatables.net-colreorderwithresize-npm": "^1.0.4"
   },
   "devDependencies": {
     "autoprefixer": "^9.6.1",

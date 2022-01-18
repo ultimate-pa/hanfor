@@ -8,7 +8,7 @@ require('jquery-ui/ui/effects/effect-highlight');
 require('./bootstrap-tokenfield.js');
 require('awesomplete');
 require('awesomplete/awesomplete.css');
-require('./colResizable-1.6.min.js');
+require('datatables.net-colreorderwithresize-npm');
 
 let utils = require('./hanfor-utils');
 const autosize = require('autosize');
@@ -861,7 +861,7 @@ function init_datatable_manipulators(requirements_table) {
  * @param columnDefs predefined columDefs (https://datatables.net/reference/option/columnDefs)
  */
 function init_datatable(columnDefs) {
-    $('#requirements_table').DataTable({
+    let table = $('#requirements_table').DataTable({
         "language": {
             "emptyTable": "Loading data."
         },
@@ -926,12 +926,10 @@ function init_datatable(columnDefs) {
             );
 
             this.api().draw();
-            $('#requirements_table').colResizable({
-                liveDrag: true,
-                postbackSafe: true
-            });
+
         }
     });
+    new $.fn.dataTable.ColReorder(table, {});
 }
 
 
