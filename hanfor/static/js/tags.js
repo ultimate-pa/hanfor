@@ -7,6 +7,7 @@ require('jquery-ui/ui/effects/effect-highlight');
 require('./bootstrap-tokenfield.js');
 require('awesomplete');
 require('awesomplete/awesomplete.css');
+require('datatables.net-colreorderwithresize-npm');
 
 const autosize = require('autosize');
 const { SearchNode } = require('./datatables-advanced-search.js');
@@ -183,13 +184,10 @@ $(document).ready(function() {
                 }
             );
             this.api().draw();
-            $('#tags_table').colResizable({
-                liveDrag:true,
-                postbackSafe: true
-            });
         }
     });
     tags_datatable.column(3).visible(false);
+    new $.fn.dataTable.ColReorder(tags_datatable, {});
 
     let search_bar = $( "#search_bar" );
     // Bind big custom searchbar to search the table.

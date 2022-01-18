@@ -842,10 +842,6 @@ $(document).ready(function () {
             );
 
             this.api().draw();
-            $('#variables_table').colResizable({
-                liveDrag: true,
-                postbackSafe: true
-            });
         }
     });
     variables_table.column(4).visible(true);
