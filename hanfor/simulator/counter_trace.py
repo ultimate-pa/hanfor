@@ -27,7 +27,7 @@ class CounterTrace:
             self.entry_events: FNode = entry_events
             self.invariant: FNode = invariant
             self.bound_type: CounterTrace.BoundTypes = bound_type
-            self.bound: int = bound
+            self.bound: float = bound
             self.forbid: set[str] = forbid
             self.allow_empty: bool = allow_empty
 

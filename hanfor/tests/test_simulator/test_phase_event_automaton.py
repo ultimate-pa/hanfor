@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from lark.lark import Lark
 from pysmt.shortcuts import Symbol, And, LT, GE, Or, LE, TRUE, Not
-from pysmt.typing import INT
+from pysmt.typing import REAL
 
 from simulator.counter_trace import CounterTraceTransformer
 from simulator.phase_event_automaton import build_automaton, PhaseEventAutomaton, Transition, Phase, Sets
@@ -51,7 +51,7 @@ class TestPhaseEventAutomaton(TestCase):
         ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
 
         expected = PhaseEventAutomaton()
-        T, c0 = expressions['T'], Symbol('c0', INT)
+        T, c0 = expressions['T'], Symbol('c0', REAL)
 
         # ct0_st0W
         p1_invariant = TRUE()
@@ -144,7 +144,7 @@ class TestPhaseEventAutomaton(TestCase):
         ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
 
         expected = PhaseEventAutomaton()
-        R, T, c2 = expressions['R'], expressions['T'], Symbol('c2', INT)
+        R, T, c2 = expressions['R'], expressions['T'], Symbol('c2', REAL)
         R_ = expressions_['R_']
 
         # ct0_st0
@@ -176,7 +176,7 @@ class TestPhaseEventAutomaton(TestCase):
         ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
 
         expected = PhaseEventAutomaton()
-        R, S, T, c2 = expressions['R'], expressions['S'], expressions['T'], Symbol('c2', INT)
+        R, S, T, c2 = expressions['R'], expressions['S'], expressions['T'], Symbol('c2', REAL)
         R_, S_ = expressions_['R_'], expressions_['S_']
 
         # ct0_st0
@@ -209,7 +209,7 @@ class TestPhaseEventAutomaton(TestCase):
         ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
 
         expected = PhaseEventAutomaton()
-        P, R, S, T, c2 = expressions['P'], expressions['R'], expressions['S'], expressions['T'], Symbol('c2', INT)
+        P, R, S, T, c2 = expressions['P'], expressions['R'], expressions['S'], expressions['T'], Symbol('c2', REAL)
         P_, R_, S_ = expressions_['P_'], expressions_['R_'], expressions_['S_']
 
         # ct0_st0
