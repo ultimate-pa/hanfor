@@ -88,7 +88,7 @@ class Scenario:
 
     @staticmethod
     def save_to_file(scenario: Scenario, path: str, sort_keys: bool = False) -> None:
-        save_yaml_file(scenario, path)
+        save_yaml_file(Scenario.to_object(scenario), path)
 
 
 def main():
