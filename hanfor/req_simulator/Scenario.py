@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from fractions import Fraction
 from typing import Any
 
 from pysmt.fnode import FNode
@@ -66,8 +67,9 @@ class Scenario:
         const_mapping = {
             BOOL: eval,
             INT: int,
-            REAL: float
+            REAL: lambda v: float(Fraction(v))
         }
+
 
         head = {'duration': scenario.duration, 'types': {}}
         head['types'] = {v.symbol_name(): type_mapping[v.symbol_type()] for v in scenario.variables}
@@ -90,13 +92,3 @@ class Scenario:
     @staticmethod
     def save_to_file(scenario: Scenario, path: str, sort_keys: bool = False) -> None:
         save_json_file(Scenario.to_object(scenario), path)
-
-
-def main():
-    scenario = Scenario.load_from_file('/home/ubuntu/Desktop/scenario.yaml')
-    obj = Scenario.to_object(scenario)
-    Scenario.save_to_file(obj, '/home/ubuntu/Desktop/scenario1.yaml')
-
-
-if __name__ == "__main__":
-    main()
