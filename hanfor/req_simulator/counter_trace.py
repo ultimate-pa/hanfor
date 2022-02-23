@@ -121,6 +121,7 @@ def create_counter_trace(scope: str, pattern: str, expressions: dict[str, FNode]
         raise NotImplementedError('Pattern is not implemented: %s %s' % (scope, pattern))
 '''
 
+
 class CounterTraceTransformer(Transformer):
     def __init__(self, expressions: dict[str, FNode]) -> None:
         super().__init__()
@@ -190,7 +191,8 @@ class CounterTraceTransformer(Transformer):
         print("variable:", children)
         return self.expressions.get(children[0])
 
-    def true(self, children) -> FNode:
+    @staticmethod
+    def true(children) -> FNode:
         print("true:", children)
         return TRUE()
 

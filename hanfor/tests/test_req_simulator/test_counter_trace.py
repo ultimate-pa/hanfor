@@ -3,12 +3,13 @@ from unittest import TestCase
 from lark.lark import Lark
 from parameterized import parameterized
 from pysmt.fnode import FNode
-from pysmt.shortcuts import Symbol, FALSE
-from pysmt.typing import REAL
+from pysmt.shortcuts import Symbol, FALSE, And, Equals, Int, Real
+from pysmt.typing import REAL, INT
 
-from simulator.counter_trace import CounterTraceTransformer
+from req_simulator.counter_trace import CounterTraceTransformer
 
-parser = Lark.open("../../simulator/counter_trace_grammar.lark", rel_to=__file__, start='counter_trace', parser='lalr')
+parser = Lark.open("../../req_simulator/counter_trace_grammar.lark", rel_to=__file__, start='counter_trace',
+                   parser='lalr')
 
 testcases = {
     'false':
@@ -104,7 +105,12 @@ testcases = {
     'response_delay_after_until':
         ({'P': Symbol('P'), 'Q': Symbol('Q'), 'R': Symbol('R'), 'S': Symbol('S'), 'T': Symbol('T', REAL)},
          'true;⌈P⌉;⌈!Q⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉ ∧ ℓ > T;true',
-         'True;⌈P⌉;⌈(! Q)⌉;⌈((! Q) & (R & (! S)))⌉;⌈((! Q) & (! S))⌉ ∧ ℓ > T;True')
+         'True;⌈P⌉;⌈(! Q)⌉;⌈((! Q) & (R & (! S)))⌉;⌈((! Q) & (! S))⌉ ∧ ℓ > T;True'),
+
+    'universality_globally':
+        ({'P': And(Equals(Symbol('int', INT), Int(1)), Equals(Symbol('real', REAL), Real(1.0)))},
+         'true;⌈P⌉;true',
+         'True;⌈((int = 1) & (real = 1.0))⌉;True')
 }
 
 
