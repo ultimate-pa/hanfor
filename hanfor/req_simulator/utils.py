@@ -32,5 +32,5 @@ def load_yaml_or_json_file(path: str) -> Any:
     return data
 
 
-def parse_yaml_string(yaml_str: str) -> Any:
+def parse_yaml_or_json_string(yaml_str: str) -> Any:
     return yaml.safe_load(yaml_str)

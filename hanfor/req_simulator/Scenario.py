@@ -8,7 +8,7 @@ from pysmt.fnode import FNode
 from pysmt.shortcuts import Symbol, Real, Bool, Int
 from pysmt.typing import BOOL, INT, REAL
 
-from req_simulator.utils import load_yaml_or_json_file, parse_yaml_string, save_json_file
+from req_simulator.utils import load_yaml_or_json_file, parse_yaml_or_json_string, save_json_file
 
 
 @dataclass
@@ -82,8 +82,8 @@ class Scenario:
         return {'head': head, 'data': data}
 
     @staticmethod
-    def parse_from_yaml_string(yaml_str: str) -> Scenario:
-        return Scenario.from_object(parse_yaml_string(yaml_str))
+    def parse_from_yaml_or_json_string(yaml_str: str) -> Scenario:
+        return Scenario.from_object(parse_yaml_or_json_string(yaml_str))
 
     @staticmethod
     def load_from_file(path: str) -> Scenario:
