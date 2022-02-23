@@ -11,7 +11,7 @@ from InquirerPy.validator import PathValidator
 from lark.lark import Lark
 from prompt_toolkit.validation import ValidationError, Validator
 from pysmt.fnode import FNode
-from pysmt.shortcuts import get_free_variables, And, Iff, Equals, Symbol, is_sat, Real, Int, Bool
+from pysmt.shortcuts import get_free_variables, And, Equals, Symbol, is_sat, Real, Int, Bool, EqualsOrIff
 from pysmt.typing import REAL, INT, BOOL
 
 from req_simulator.Scenario import Scenario
@@ -147,7 +147,7 @@ class Simulator:
         return clocks
 
     def build_var_assertions(self) -> FNode:
-        return And(Iff(substitute_free_variables(k), v) for k, v in self.variables.items() if v is not None)
+        return And(EqualsOrIff(substitute_free_variables(k), v) for k, v in self.variables.items() if v is not None)
 
     def build_clock_assertions(self, clocks: dict[str, float]) -> FNode:
         return And(Equals(Symbol(k, REAL), Real(v)) for k, v in clocks.items())
@@ -204,8 +204,8 @@ def main() -> int:
              'True;⌈(R & (! S))⌉;⌈(! S)⌉ ∧ ℓ > T;True')}
 
     expressions, ct_str, _ = testcases['response_delay_globally']
-    # expressions['R'] = GT(Symbol('counter', INT), Int(5))
-    # expressions['S'] = Iff(Symbol('is_active'), TRUE())
+    #expressions['R'] = GT(Symbol('counter', INT), Int(5))
+    #expressions['S'] = Iff(Symbol('is_active'), TRUE())
     expressions['T'] = Real(5)
 
     # ct0 = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
