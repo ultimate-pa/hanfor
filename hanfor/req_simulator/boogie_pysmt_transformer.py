@@ -1,8 +1,8 @@
 from lark import Transformer, Token
 from pysmt.fnode import FNode
-from pysmt.shortcuts import And, Or, Div, Equals, FALSE, TRUE, GT, GE, Symbol, Iff, Implies, LT, LE, Minus, Not, \
+from pysmt.shortcuts import And, Or, Div, FALSE, TRUE, GT, GE, Symbol, Iff, Implies, LT, LE, Minus, Not, \
     NotEquals, \
-    Int, Plus, Real, Times
+    Int, Plus, Real, Times, EqualsOrIff
 from pysmt.typing import INT, BOOL, REAL
 
 import boogie_parsing
@@ -34,10 +34,7 @@ class BoogiePysmtTransformer(Transformer):
 
     def eq(self, children) -> FNode:
         #print("eq:", children)
-        # It is not supported to use equality '=' on boolean terms. One should use  iff '<->' instead.
-        if children[0].get_type() == BOOL or children[2].get_type() == BOOL:
-            return self.iff(children)
-        return Equals(children[0], children[2])
+        return EqualsOrIff(children[0], children[2])
 
     def explies(self, children) -> FNode:
         #print("explies:", children)
