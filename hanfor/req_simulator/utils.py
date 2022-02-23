@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import yaml
@@ -19,7 +20,12 @@ def save_yaml_file(data: Any, path: str, sort_keys: bool = False):
         yaml.dump(data, file, sort_keys=sort_keys)
 
 
-def load_yaml_file(path: str) -> Any:
+def save_json_file(data: Any, path: str, sort_keys: bool = False):
+    with open(path, 'w') as file:
+        json.dump(data, file, indent=2, sort_keys=sort_keys)
+
+
+def load_yaml_or_json_file(path: str) -> Any:
     with open(path, 'r') as file:
         data = yaml.safe_load(file)
 

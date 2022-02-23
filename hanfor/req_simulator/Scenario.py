@@ -7,7 +7,7 @@ from pysmt.fnode import FNode
 from pysmt.shortcuts import Symbol, Real, Bool, Int
 from pysmt.typing import BOOL, INT, REAL
 
-from req_simulator.utils import load_yaml_file, save_yaml_file, parse_yaml_string
+from req_simulator.utils import load_yaml_or_json_file, parse_yaml_string, save_json_file
 
 
 @dataclass
@@ -40,6 +40,7 @@ class Scenario:
         prev_t = -1.0
         data_sorted = dict(sorted(obj['data'].items()))
         for t, values in data_sorted.items():
+            t = float(t)
             scenario.values[t] = dict.fromkeys(scenario.variables, None) if prev_t < 0.0 else scenario.values[
                 prev_t].copy()
             prev_t = t
@@ -84,11 +85,11 @@ class Scenario:
 
     @staticmethod
     def load_from_file(path: str) -> Scenario:
-        return Scenario.from_object(load_yaml_file(path))
+        return Scenario.from_object(load_yaml_or_json_file(path))
 
     @staticmethod
     def save_to_file(scenario: Scenario, path: str, sort_keys: bool = False) -> None:
-        save_yaml_file(Scenario.to_object(scenario), path)
+        save_json_file(Scenario.to_object(scenario), path)
 
 
 def main():

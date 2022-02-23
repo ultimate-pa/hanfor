@@ -104,6 +104,9 @@ class Simulator:
     def load_scenario_from_file(self, path: str) -> None:
         self.set_scenario(Scenario.load_from_file(path))
 
+    def save_scenario_to_file(self, path: str) -> None:
+        Scenario.save_to_file(self.scenario, path)
+
     def update_variables(self, variables: dict[FNode, FNode]) -> None:
         for k, v in variables.items():
             if k in self.variables:
@@ -254,8 +257,7 @@ def main() -> int:
                 default=home_path,
             ).execute()
 
-            # scenario = yaml.safe_load(testcases1_yaml)
-            # save_yaml_file(scenario, path)
+            simulator.save_scenario_to_file(path)
 
         if action == 3:
             home_path = "/" if os.name == "posix" else "C:\\"
