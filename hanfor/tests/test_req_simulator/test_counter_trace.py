@@ -143,8 +143,8 @@ class TestCounterTrace(TestCase):
         self.assertEqual(expected, str(actual), msg="Error while creating counter trace.")
     '''
 
-    @parameterized.expand(testcases.values())
-    def test_counter_trace(self, expressions: dict[str, FNode], counter_trace: str, expected: str):
+    @parameterized.expand([(k, *v) for k, v in testcases.items()])
+    def test_counter_trace(self, name, expressions: dict[str, FNode], counter_trace: str, expected: str):
         lark_tree = parser.parse(counter_trace)
         actual = CounterTraceTransformer(expressions).transform(lark_tree)
         self.assertEqual(expected, str(actual), msg="Error while parsing counter trace.")
