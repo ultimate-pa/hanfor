@@ -4,11 +4,11 @@ from lark.lark import Lark
 from pysmt.shortcuts import Symbol, And, LT, GE, Or, LE, TRUE, Not
 from pysmt.typing import REAL
 
-from simulator.counter_trace import CounterTraceTransformer
-from simulator.phase_event_automaton import build_automaton, PhaseEventAutomaton, Transition, Phase, Sets
-from tests.test_simulator.test_counter_trace import testcases
+from req_simulator.counter_trace import CounterTraceTransformer
+from req_simulator.phase_event_automaton import build_automaton, PhaseEventAutomaton, Transition, Phase, Sets
+from tests.test_req_simulator.test_counter_trace import testcases
 
-parser = Lark.open('../../simulator/counter_trace_grammar.lark', rel_to=__file__, start='counter_trace', parser='lalr')
+parser = Lark.open('../../req_simulator/counter_trace_grammar.lark', rel_to=__file__, start='counter_trace', parser='lalr')
 
 
 class TestPhaseEventAutomaton(TestCase):

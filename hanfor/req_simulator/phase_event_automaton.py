@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-import time
 from collections import defaultdict
 from dataclasses import dataclass
 
 from pysmt.fnode import FNode
-from pysmt.shortcuts import TRUE, And, FALSE, Or, Not, Symbol, LT, GE, LE, is_valid, Iff, Solver, is_sat, substitute
+from pysmt.shortcuts import TRUE, And, FALSE, Or, Not, Symbol, LT, GE, LE, is_valid, Iff, Solver, is_sat
 from pysmt.typing import REAL
 
-from .counter_trace import CounterTrace
+from req_simulator.counter_trace import CounterTrace
+from req_simulator.utils import substitute_free_variables
 
 SOLVER_NAME = 'cvc4'
 SOLVER = Solver(name=SOLVER_NAME)
@@ -108,6 +108,7 @@ class Transition:
     def __repr__(self):
         return str(self)
 
+
 class PhaseEventAutomaton:
     def __init__(self):
         self.clocks: set[str] = set()
@@ -125,8 +126,6 @@ class PhaseEventAutomaton:
 
 
 def build_automaton(ct: CounterTrace, cp: str = 'c') -> PhaseEventAutomaton:
-    t = time.perf_counter()
-
     pea = PhaseEventAutomaton()
     visited, pending = set(), set()
     init = True
@@ -153,7 +152,6 @@ def build_automaton(ct: CounterTrace, cp: str = 'c') -> PhaseEventAutomaton:
 
         init = False
 
-    print('TIME: %0.4f ms' % ((time.perf_counter() - t) * 1000))
     return pea
 
 
@@ -265,13 +263,6 @@ def build_successors(i: int, p: Sets, p_: Sets, resets: set[str], guard: FNode, 
     return result
 
 
-def substitute_free_variables(fnode: FNode, suffix: str = "_"):
-    symbols = fnode.get_free_variables()
-    subs = {s: Symbol(s.symbol_name() + suffix, s.symbol_type()) for s in symbols}
-    result = substitute(fnode, subs)
-    return result
-
-
 def compute_enter_keep(ct: CounterTrace, p: Sets, init: bool, cp: str) -> tuple[dict[int, FNode], dict[int, FNode]]:
     enter_, keep_ = {}, {}
 
@@ -280,8 +271,10 @@ def compute_enter_keep(ct: CounterTrace, p: Sets, init: bool, cp: str) -> tuple[
             inv = substitute_free_variables(ct.dc_phases[i].invariant)
             enter_[i] = TRUE() if i < 0 else And(enter_[i - 1], TRUE() if ct.dc_phases[i - 1].allow_empty else FALSE(),
                                                  inv).simplify()
-            # enter_[i] = TRUE() if i < 0 else And(enter_[i - 1], TRUE() if ct.dc_phases[i - 1].allow_empty else FALSE(),
-            #                                     ct.dc_phases[i].invariant).simplify()
+            # enter_[i] = TRUE() if i < 0 else And(
+            #   enter_[i - 1],
+            #   TRUE() if ct.dc_phases[i - 1].allow_empty else FALSE(),
+            #   ct.dc_phases[i].invariant).simplify()
             keep_[i] = FALSE()
     else:
         for i in range(len(ct.dc_phases)):

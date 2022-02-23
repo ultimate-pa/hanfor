@@ -3,7 +3,7 @@ from unittest import TestCase
 from parameterized import parameterized
 
 import boogie_parsing
-from simulator.boogie_pysmt_transformer import BoogiePysmtTransformer
+from req_simulator.boogie_pysmt_transformer import BoogiePysmtTransformer
 
 parser = boogie_parsing.get_parser_instance()
 
