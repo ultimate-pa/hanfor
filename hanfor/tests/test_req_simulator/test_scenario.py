@@ -1,13 +1,15 @@
-import os
+import tempfile
 
 from parameterized import parameterized
 from pyfakefs.fake_filesystem_unittest import TestCase
+
+from req_simulator.Scenario import Scenario
 
 testcases = [
     ({
          'head': {
              'duration': 6,
-             'types': {'R': bool}
+             'types': {'R': 'bool'}
          },
          'data': {
              0: {'R': True},
@@ -21,16 +23,20 @@ class TestScenario(TestCase):
 
     def setUp(self):
         self.setUpPyfakefs()
+        self.test_file = tempfile.NamedTemporaryFile(suffix='.yaml')
+        self.test_dir = tempfile.TemporaryFile()
+
+    def tearDown(self):
+        self.test_file.close()
+        self.test_dir.close()
 
     @parameterized.expand(testcases)
-    def test_simulator(self, a):
-        file_path = '/test/file.yaml'
-        self.assertFalse(os.path.exists(file_path))
-        self.fs.create_file(file_path)
-        self.assertTrue(os.path.exists(file_path))
+    def test_scenario(self, obj):
+        path = '/test/file.txt'
+        self.fs.create_file(path)
 
-        # scenario = Scenario.parse_from_yaml_string(yaml_str)
+        expected = Scenario.from_object(obj)
+        Scenario.save_to_file(expected, path)
+        actual = Scenario.load_from_file(path)
 
-        # self.assertEqual(expected, actual, msg="Error while simulating scenario.")
-
-        print()
+        self.assertEqual(expected, actual, msg="Error while parsing scenario.")
