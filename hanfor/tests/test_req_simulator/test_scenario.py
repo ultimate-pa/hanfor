@@ -8,14 +8,20 @@ from req_simulator.Scenario import Scenario
 testcases = [
     ({
          'head': {
-             'duration': 6,
-             'types': {'R': 'bool'}
-         },
+             'duration': 5,
+             'types': {'A': 'bool', 'B': 'int', 'C': 'real'}},
          'data': {
-             0: {'R': True},
-             5: {'R': True}
-         }
-     },)
+             0: {'A': True, 'B': 1, 'C': 1.0},
+             1: {'A': False, 'B': None}}},
+    ),
+    ({
+         'head': {
+             'duration': 5,
+             'types': {'A': 'bool', 'B': 'int', 'C': 'real'}},
+         'data': {
+             0: {},
+             1: {'A': True, 'B': 5}}},
+    ),
 ]
 
 
