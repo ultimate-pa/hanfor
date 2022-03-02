@@ -170,6 +170,32 @@ class TestPhaseEventAutomaton(TestCase):
         actual = build_automaton(ct)
         self.assertEqual(expected, actual, msg="Error while building phase event automaton.")
 
+    def test_duration_bound_u_globally(self):
+        expressions, ct_str, _ = testcases['duration_bound_u_globally']
+        expressions_ = {k + '_': Symbol(v.symbol_name() + '_', v.symbol_type()) for k, v in expressions.items()}
+        ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
+
+        expected = PhaseEventAutomaton()
+        R, T, c1 = expressions['R'], expressions['T'], Symbol('c1', REAL)
+        R_ = expressions_['R_']
+
+        # ct0_st0
+        p1 = Phase(Not(R), TRUE(), Sets(active=frozenset({0})))
+        # ct0_st01X
+        p2 = Phase(R, LE(c1, T), Sets(gteq=frozenset({1}), wait=frozenset({1}), active=frozenset({0, 1})))
+
+        # ct0_st0
+        expected.phases[None].add(Transition(None, p1, Not(R_)))
+        expected.phases[p1].add(Transition(p1, p1, Not(R_)))
+        expected.phases[p1].add(Transition(p1, p2, R_, frozenset({'c1'})))
+        # ct0_st01X
+        expected.phases[None].add(Transition(None, p2, R_, frozenset({'c1'})))
+        expected.phases[p2].add(Transition(p2, p2, And(LT(c1, T), R_)))
+        expected.phases[p2].add(Transition(p2, p1, And(LT(c1, T), Not(R_))))
+
+        actual = build_automaton(ct)
+        self.assertEqual(expected, actual, msg="Error while building phase event automaton.")
+
     def test_response_delay_globally(self):
         expressions, ct_str, _ = testcases['response_delay_globally']
         expressions_ = {k + '_': Symbol(v.symbol_name() + '_', v.symbol_type()) for k, v in expressions.items()}

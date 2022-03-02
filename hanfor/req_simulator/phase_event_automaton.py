@@ -28,10 +28,6 @@ class Sets:
             result += 'ᴳ' if i in self.gteq else 'ᵂ' if i in self.wait else 'ᴸ' if i in self.less else ''
         return result
 
-        # return "gteq = %s, wait = %s, less = %s, active = %s" % (
-        #    {*self.gteq} if self.gteq else {}, {*self.wait} if self.wait else {}, {*self.less} if self.less else {},
-        #    {*self.active} if self.active else {})
-
     def is_empty(self) -> bool:
         return len(self.gteq) == 0 and len(self.wait) == 0 and len(self.less) == 0 and len(self.active) == 0
 
@@ -68,6 +64,16 @@ class Phase:
 
     def __repr__(self):
         return str(self)
+
+    def get_clock_bounds(self) -> dict[str, float]:
+        clock_bounds = {}
+        atoms = self.clock_invariant.get_atoms()
+
+        for atom in atoms:
+            assert (atom.is_le())
+            clock_bounds[str(atom.args()[0])] = float(str(atom.args()[1]))
+
+        return clock_bounds
 
     @staticmethod
     def compute_state_invariant(ct: CounterTrace, p: Sets) -> FNode:
@@ -116,6 +122,9 @@ class PhaseEventAutomaton:
 
     def __eq__(self, o: PhaseEventAutomaton) -> bool:
         return isinstance(o, PhaseEventAutomaton) and o.phases == self.phases
+
+    def get_transitions(self, phase: Phase):
+        return [t for t in self.phases[phase]]
 
     def add_transition(self, transition: Transition) -> None:
         if transition in self.phases[transition.src]:
