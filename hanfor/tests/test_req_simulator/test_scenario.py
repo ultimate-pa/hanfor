@@ -3,7 +3,7 @@ import tempfile
 from parameterized import parameterized
 from pyfakefs.fake_filesystem_unittest import TestCase
 
-from req_simulator.Scenario import Scenario
+from req_simulator.scenario import Scenario
 
 testcases = [
     ({

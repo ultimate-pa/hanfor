@@ -4,7 +4,7 @@ from enum import Enum
 
 from lark.visitors import Transformer
 from pysmt.fnode import FNode
-from pysmt.shortcuts import TRUE, Not, And, Or
+from pysmt.shortcuts import TRUE, Not, And, Or, get_free_variables
 
 
 class CounterTrace:
@@ -13,6 +13,14 @@ class CounterTrace:
 
     def __str__(self) -> str:
         return ';'.join([str(dc_phase) for dc_phase in self.dc_phases])
+
+    def extract_variables(self) -> set[FNode]:
+        variables = set()
+
+        for dc_phase in self.dc_phases:
+            variables.update(dc_phase.extract_variables())
+
+        return variables
 
     class BoundTypes(Enum):
         NONE = 0
@@ -76,6 +84,9 @@ class CounterTrace:
         def is_lower_bound(self) -> bool:
             return self.bound_type == CounterTrace.BoundTypes.GREATER or \
                    self.bound_type == CounterTrace.BoundTypes.GREATEREQUAL
+
+        def extract_variables(self) -> set[FNode]:
+            return set(get_free_variables(self.invariant))
 
 
 def phaseT() -> CounterTrace.DCPhase:

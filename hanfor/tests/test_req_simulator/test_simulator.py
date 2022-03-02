@@ -6,9 +6,9 @@ from pysmt.fnode import FNode
 from pysmt.shortcuts import Real, Symbol, GE, Int, Equals
 from pysmt.typing import REAL, INT
 
-from req_simulator.Scenario import Scenario
 from req_simulator.counter_trace import CounterTraceTransformer
 from req_simulator.phase_event_automaton import build_automaton
+from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
 from tests.test_req_simulator import test_counter_trace
 
@@ -110,7 +110,7 @@ testcases = [
         },
         "data": {
             "0": {"P": false, "R": true},
-            "6": {"R": false}
+            "6": {"R": true}
         }
      }""",
      False),
@@ -143,20 +143,18 @@ class TestSimulator(TestCase):
         ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
         pea = build_automaton(ct)
         scenario = Scenario.parse_from_yaml_or_json_string(yaml_str)
-
-        simulator = Simulator([ct], [pea])
-        simulator.set_scenario(scenario)
+        simulator = Simulator([ct], [pea], scenario)
 
         actual = False
-        for i in range(len(scenario.values)):
+        for i in range(len(scenario.valuations)):
+            actual = False
             transitions = simulator.check_sat()
-            assert (len(transitions) <= 1)
 
-            if len(transitions) == 0:
+            if len(transitions) == 0 or len(transitions) > 1:
                 break
 
             if len(transitions) == 1:
                 simulator.walk_transitions(transitions[0])
-                actual = True if i == len(scenario.values) - 1 else False
+                actual = True
 
         self.assertEqual(expected, actual, msg="Error while simulating scenario.")
