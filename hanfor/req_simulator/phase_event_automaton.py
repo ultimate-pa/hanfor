@@ -75,6 +75,15 @@ class Phase:
 
         return clock_bounds
 
+    def get_min_clock_bound(self) -> tuple[str, float]:
+        clock_bounds = self.get_clock_bounds()
+
+        if len(clock_bounds) == 0:
+            return None
+
+        k = min(clock_bounds, key=clock_bounds.get)
+        return (k, clock_bounds[k])
+
     @staticmethod
     def compute_state_invariant(ct: CounterTrace, p: Sets) -> FNode:
         inactive = {*range(len(ct.dc_phases))} - p.active
