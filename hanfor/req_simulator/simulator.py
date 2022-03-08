@@ -67,7 +67,6 @@ type_validator_mapping = {
 
 
 class Simulator:
-
     @dataclass
     class State:
         time: float
@@ -86,7 +85,6 @@ class Simulator:
         self.clocks: list[dict[str, float]] = [{clock: 0 for clock in pea.clocks} for pea in self.peas]
         self.variables: dict[FNode, FNode] = {v: None for ct in self.cts for v in ct.extract_variables()}
         self.time_step: float = 1.0
-
 
         if self.scenario is not None:
             self.time_step = self.scenario.valuations[0.0].get_duration()
@@ -136,21 +134,70 @@ class Simulator:
         return clocks
 
     def build_var_assertions(self) -> FNode:
-        return And(
-            EqualsOrIff(substitute_free_variables(k), v) for k, v in self.variables.items() if v is not None)
+        return And(EqualsOrIff(substitute_free_variables(k), v) for k, v in self.variables.items() if v is not None)
 
     def build_clock_assertions(self, clocks: dict[str, float]) -> FNode:
         return And(Equals(Symbol(k, REAL), Real(v)) for k, v in clocks.items())
 
+    def check_guard(self, transition: Transition, clocks: dict[str, float]) -> bool:
+        f = And(self.build_var_assertions(), transition.guard, self.build_clock_assertions(clocks))
+
+        return is_sat(f)
+
+    def check_clock_invariant(self, transition: Transition, clocks: dict[str, float]) -> bool:
+        f = And(substitute_free_variables(transition.dst.clock_invariant),
+                substitute_free_variables(self.build_clock_assertions(clocks)))
+
+        return is_sat(f)
+
+    def calculate_max_time_step(self, transition: Transition, clocks: dict[str, float], time_step: float):
+        k, v = transition.dst.get_min_clock_bound()
+
+        if k is not None and v is not None:
+            delta = v - clocks[k]
+            time_step = time_step if delta <= 0 else min(time_step, delta)
+
+        return time_step
+
     def check_sat(self) -> list[tuple[Transition]]:
+        enabled_transitions = []
+
+        transition_lists = [self.peas[i].get_transitions(self.current_phases[i]) for i in range(len(self.peas))]
+        transition_tuples = list(itertools.product(*transition_lists))
+
+        time_step_max = self.time_step
+        for transition_tuple in transition_tuples:
+            for i in range(len(transition_tuple)):
+                transition = transition_tuple[i]
+
+                clock_bound = transition.dst.get_min_clock_bound()
+                if clock_bound is not None:
+                    delta = clock_bound[1] - self.clocks[i][clock_bound[0]]
+                    time_step_max = time_step_max if delta <= 0 else min(time_step_max, delta)
+
+        self.time_step = time_step_max
+
+        for transition_tuple in transition_tuples:
+            is_enabled = len(transition_tuple) > 0
+
+            for i in range(len(transition_tuple)):
+                transition = transition_tuple[i]
+
+                is_enabled = is_enabled and \
+                             self.check_guard(transition, self.clocks[i]) and \
+                             self.check_clock_invariant(transition, self.update_clocks(i, transition.resets, True))
+
+            if is_enabled:
+                enabled_transitions.append(transition_tuple)
+
+        return enabled_transitions
+
+    def check_sat_old(self) -> list[tuple[Transition]]:
         enabled_transitions = []
         var_assertions = self.build_var_assertions()
 
-
         transition_lists = [self.peas[i].get_transitions(self.current_phases[i]) for i in range(len(self.peas))]
-        #transition_lists = [[t for t in self.peas[i].phases[self.current_phases[i]]] for i in range(len(self.peas))]
         transition_tuples = list(itertools.product(*transition_lists))
-
 
         time_step_max = self.time_step
         for transition_tuple in transition_tuples:
@@ -163,18 +210,11 @@ class Simulator:
         self.time_step = time_step_max
         print()
 
-
-
         for transition_tuple in transition_tuples:
             f = var_assertions
 
             for i in range(len(transition_tuple)):
                 transition = transition_tuple[i]
-
-
-
-
-
 
                 clocks = self.update_clocks(i, transition.resets, True)
 
@@ -341,8 +381,8 @@ def main() -> int:
     ct1 = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
     pea1 = build_automaton(ct0, 'c1_')
 
-    #cts, peas = [], []
-    #for i in range(2):
+    # cts, peas = [], []
+    # for i in range(2):
     #    cts.append(CounterTraceTransformer(expressions).transform(parser.parse(ct_str)))
     #    peas.append(build_automaton(cts[-1], f"c{i}_"))
 
