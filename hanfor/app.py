@@ -9,6 +9,7 @@ import os
 import re
 import subprocess
 import sys
+from functools import wraps, update_wrapper
 
 import flask
 
@@ -18,11 +19,12 @@ from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice
     hash_file_sha1
 from flask import Flask, render_template, request, jsonify, make_response, json
 from flask_debugtoolbar import DebugToolbarExtension
-from functools import wraps, update_wrapper
+
 import reqtransformer
+import utils
 from guesser.Guess import Guess
-from reqtransformer import Requirement, VariableCollection, Variable, VarImportSessions
 from guesser.guesser_registerer import REGISTERED_GUESSERS
+from reqtransformer import Requirement, VariableCollection, Variable, VarImportSessions
 from ressources import Report, Tag, Statistics, QueryAPI
 from patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
 
@@ -1182,6 +1184,18 @@ def get_app_options():
         app_options["use_reloader"] = False
 
     return app_options
+
+
+@app.route('/simulator/', methods=['POST'])
+@nocache
+def start_simulator():
+    id = request.form.get('id', '')
+
+    result = {}
+    result['success'] = True
+    result['id'] = int(id) + 1
+
+    return result, 200
 
 
 if __name__ == '__main__':

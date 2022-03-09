@@ -33,6 +33,10 @@
                 <a class="nav-link" id="log-tab" data-toggle="tab" href="#log-pane" role="tab"
                    aria-controls="log" aria-selected="false">Logs</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" id="simulator-tab" data-toggle="tab" href="#simulator-pane" role="tab"
+                   aria-controls="log" aria-selected="false">Simulator</a>
+            </li>
         </ul>
     </div>
     <div class="tab-content">
@@ -183,6 +187,15 @@
         <div class="tab-pane fade" id="log-pane" role="tabpanel" aria-labelledby="log-tab">
             <div class="col-12" id="log_textarea"></div>
         </div>
+        <div class="tab-pane fade card-body" id="simulator-pane" role="tabpanel" aria-labelledby="simulator-tab">
+            <div class="input-group top-padding">
+                <button id="start-simulator"
+                        class="btn btn-secondary btn-block"
+                        type="button">
+                    Start Simulator.
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 <table id="requirements_table" class="table table-hover table-bordered" width="100%" cellspacing="0">
@@ -225,6 +238,7 @@
 </table>
 {% include 'requirement-modal.html' %}
 {% include 'report-modal.html' %}
+{% include 'simulator-modal.html' %}
 {% endblock %}
 {% block scripts %}
 {% assets "main" %}

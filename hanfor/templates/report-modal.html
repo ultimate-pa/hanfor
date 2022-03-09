@@ -3,41 +3,41 @@
      tabindex="-1"
      role="dialog"
      aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 id="report_modal_title" class="modal-title">Report</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="report_modal_title" class="modal-title">Report</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" id="report_name_label">Report Name</span>
+                  </div>
+                  <input id="report_name" type="text" class="form-control" placeholder="Report Name"
+                         aria-label="ReportName" aria-describedby="report_name_label">
                 </div>
-                <div class="modal-body">
-                    <div class="input-group mb-3">
-                      <div class="input-group-prepend">
-                        <span class="input-group-text" id="report_name_label">Report Name</span>
-                      </div>
-                      <input id="report_name" type="text" class="form-control" placeholder="Report Name"
-                             aria-label="ReportName" aria-describedby="report_name_label">
-                    </div>
-                    <h5>Report Query.</h5>
-                    <p>Add one search query per line. Name a query by starting it with <code>:NAME:`foo`</code>.</p>
-                    <div class="row form-inline">
-                        <div class="input-group col-md-12">
-                            <textarea rows="6" type="text" class="form-control" id="report_query_textarea"></textarea>
-                        </div>
-                    </div>
-                    <h5>Query results.</h5>
-                    <div class="row form-inline">
-                        <div class="input-group col-md-12">
-                            <textarea rows="6" type="text" class="form-control" id="report_results_textarea" readonly></textarea>
-                        </div>
+                <h5>Report Query.</h5>
+                <p>Add one search query per line. Name a query by starting it with <code>:NAME:`foo`</code>.</p>
+                <div class="row form-inline">
+                    <div class="input-group col-md-12">
+                        <textarea rows="6" type="text" class="form-control" id="report_query_textarea"></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button id="eval_report" type="button" class="btn btn-primary">Evaluate Report</button>
-                    <button id="save_report" type="button" class="btn btn-primary">Save report.</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <h5>Query results.</h5>
+                <div class="row form-inline">
+                    <div class="input-group col-md-12">
+                        <textarea rows="6" type="text" class="form-control" id="report_results_textarea" readonly></textarea>
+                    </div>
                 </div>
             </div>
+            <div class="modal-footer">
+                <button id="eval_report" type="button" class="btn btn-primary">Evaluate Report</button>
+                <button id="save_report" type="button" class="btn btn-primary">Save report.</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
         </div>
+    </div>
 </div>
