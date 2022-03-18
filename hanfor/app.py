@@ -10,6 +10,8 @@ import re
 import subprocess
 import sys
 
+import flask
+
 import utils
 
 from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, \
@@ -62,18 +64,25 @@ def tools_api(command):
     else:
         filter_list = None
 
+    file_name = f"{app.config['CSV_INPUT_FILE'][:-4]}"
+
     if command == 'req_file':
         content = utils.generate_req_file_content(app, filter_list=filter_list)
-        name = app.config['CSV_INPUT_FILE'][:-4] + '.req'
-        return utils.generate_file_response(content, name)
+        return utils.generate_file_response(content, file_name+".req")
 
     if command == 'csv_file':
-        filename = utils.generate_csv_file_content(app, filter_list=filter_list)
+        file = utils.generate_csv_file_content(app, filter_list=filter_list)
         name = '{}_{}_out.csv'.format(
             app.config['SESSION_TAG'],
             app.config['USING_REVISION']
         )
-        return utils.generate_file_response(filename, name)
+        return utils.generate_file_response(file, name, mimetype='text/csv')
+
+    if command == 'xls_file':
+        file = utils.generate_xls_file_content(app, filter_list=filter_list)
+        file.seek(0)
+        return flask.send_file(file, attachment_filename=file_name+".xls", as_attachment=True)
+
 
 
 @app.route('/api/table/colum_defs', methods=['GET'])

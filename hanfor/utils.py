@@ -4,6 +4,8 @@
 @licence: GPLv3
 """
 import argparse
+import io
+import mimetypes
 import shutil
 from collections import defaultdict
 from io import StringIO
@@ -15,6 +17,7 @@ import html
 import logging
 import os
 import re
+import xlwt
 
 from flask import json, Response
 from flask_assets import Environment
@@ -30,7 +33,7 @@ except ModuleNotFoundError:
 from reqtransformer import VarImportSessions, VariableCollection, Requirement, ScriptEvals, RequirementCollection
 from static_utils import pickle_dump_obj_to_file, pickle_load_from_dump, replace_prefix, get_filenames_from_dir, \
     hash_file_sha1
-from typing import Union, Set
+from typing import Union, Set, List
 from terminaltables import DoubleTable
 
 here = os.path.dirname(os.path.realpath(__file__))
@@ -626,6 +629,41 @@ def generate_csv_file_content(app, filter_list=None, invert_filter=False):
     return result
 
 
+def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter: bool = False) -> io.BytesIO:
+    """ Generates the xls file content for a session."""
+    requirements = get_requirements(app.config['REVISION_FOLDER'], filter_list=filter_list, invert_filter=invert_filter)
+    session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])
+
+    # create xcel styles
+    NONE = xlwt.easyxf("align: vert top;")
+    BOLD = xlwt.easyxf("font: bold True; align: vert top")
+    MULTILINE = xlwt.easyxf("alignment: wrap True; align: vert top")
+    FILL = xlwt.easyxf("pattern: pattern solid, back_colour white; font: colour white, bold True; align: vert top;")
+    HIDDEN = xlwt.easyxf("font: colour white; align: vert top")
+    #create excel template
+    work_book = xlwt.Workbook()
+    work_sheet = work_book.add_sheet("Report")
+    work_sheet.write(0, 0, "It is workiiing")
+
+    HEADER_OFFSET = 4
+    # Add requirements to xls
+    work_sheet.col(0).width = 256*20
+    work_sheet.col(1).width = 256 * 80
+    work_sheet.col(3).width = 256 * 40
+
+    #TODO: insert headings
+    for i, requirement in enumerate(requirements):
+        work_sheet.write(HEADER_OFFSET + i, 0, requirement.rid, BOLD)
+        work_sheet.write(HEADER_OFFSET + i, 1, requirement.description, MULTILINE)
+        work_sheet.write(HEADER_OFFSET + i, 2, requirement.type_in_csv, NONE)
+        work_sheet.write(HEADER_OFFSET + i, 3, ", \r\n".join([tag for tag in requirement.tags]), MULTILINE)
+        work_sheet.write(HEADER_OFFSET + i, 4, requirement.status,NONE)
+
+    buffer = io.BytesIO()
+    work_book.save(buffer)
+    return buffer
+
+
 def clean_identifier_for_ultimate_parser(slug: str, used_slugs: Set[str]) -> (str, Set[str]):
     """ Clean slug to be sound for ultimate parser.
 
@@ -1027,14 +1065,9 @@ def slugify(s):
 def generate_file_response(content, name, mimetype='text/plain'):
     response = Response(
         content,
-        mimetype='text/csv'
+        mimetype=mimetype
     )
-    response.headers["Content-Disposition"] = \
-        "attachment;" \
-        "filename*=UTF-8''{utf_filename}".format(
-            utf_filename=name
-        )
-
+    response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{name}"
     return response
 
 

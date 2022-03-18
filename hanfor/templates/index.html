@@ -156,6 +156,19 @@
                     Generate .csv file from (filtered) requirements table.
                 </button>
             </div>
+            <form id="generate_xls_form" method="post"
+                  action="{{ url_for('tools_api', command='xls_file') }}"
+                  target="_blank">
+                <input type="hidden" id="selected_xls_requirement_ids" name="selected_requirement_ids"
+                       hidden/>
+            </form>
+            <div class="input-group top-padding">
+                <button id="gen-xls-from-selection"
+                        class="btn btn-secondary btn-block"
+                        type="button">
+                    Generate .xls file from (filtered) requirements table.
+                </button>
+            </div>
         </div>
         <div class="tab-pane fade card-body" id="reports-pane" role="tabpanel" aria-labelledby="tools-tab">
             <div class="input-group top-padding">

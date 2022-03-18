@@ -787,6 +787,16 @@ function init_datatable_manipulators(requirements_table) {
         $('#generate_csv_form').submit();
     });
 
+    $('#gen-xls-from-selection').click(function () {
+        let req_ids = [];
+        requirements_table.rows({search: 'applied'}).every(function () {
+            let d = this.data();
+            req_ids.push(d['id']);
+        });
+        $('#selected_xls_requirement_ids').val(JSON.stringify(req_ids));
+        $('#generate_xls_form').submit();
+    });
+
     // Column toggling
     $('.colum-toggle-button').on('click', function (e) {
         e.preventDefault();
