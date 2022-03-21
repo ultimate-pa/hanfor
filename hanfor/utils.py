@@ -643,21 +643,35 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
     #create excel template
     work_book = xlwt.Workbook()
     work_sheet = work_book.add_sheet("Report")
-    work_sheet.write(0, 0, "It is workiiing")
+    work_sheet.write(0, 1, "HANFOR",BOLD)
+    work_sheet.write(0, 2, "Requirements export for")
+    work_sheet.write(0, 3, session_dict["csv_input_file"])
 
     HEADER_OFFSET = 4
-    # Add requirements to xls
-    work_sheet.col(0).width = 256*20
-    work_sheet.col(1).width = 256 * 80
-    work_sheet.col(3).width = 256 * 40
+    # Set column widths and headings
+    work_sheet.col(0).width = 256 * 5
+    work_sheet.write(HEADER_OFFSET - 1, 0, "Index", FILL)
+    work_sheet.col(1).width = 256 * 20
+    work_sheet.write(HEADER_OFFSET - 1, 1, "ID", FILL)
+    work_sheet.col(2).width = 256 * 80
+    work_sheet.write(HEADER_OFFSET - 1, 2, "Description", FILL)
+    work_sheet.write(HEADER_OFFSET - 1, 3, "Type", FILL)
+    work_sheet.col(4).width = 256 * 40
+    work_sheet.write(HEADER_OFFSET - 1, 4, "Tags", FILL)
+    work_sheet.write(HEADER_OFFSET - 1, 5, "Status", FILL)
+    work_sheet.col(6).width = 256 * 160
+    work_sheet.write(HEADER_OFFSET - 1, 6, "Formalisation", FILL)
 
     #TODO: insert headings
     for i, requirement in enumerate(requirements):
-        work_sheet.write(HEADER_OFFSET + i, 0, requirement.rid, BOLD)
-        work_sheet.write(HEADER_OFFSET + i, 1, requirement.description, MULTILINE)
-        work_sheet.write(HEADER_OFFSET + i, 2, requirement.type_in_csv, NONE)
-        work_sheet.write(HEADER_OFFSET + i, 3, ", \r\n".join([tag for tag in requirement.tags]), MULTILINE)
-        work_sheet.write(HEADER_OFFSET + i, 4, requirement.status,NONE)
+        work_sheet.write(HEADER_OFFSET + i, 0, requirement.pos_in_csv, FILL)
+        work_sheet.write(HEADER_OFFSET + i, 1, requirement.rid, BOLD)
+        work_sheet.write(HEADER_OFFSET + i, 2, requirement.description, MULTILINE)
+        work_sheet.write(HEADER_OFFSET + i, 3, requirement.type_in_csv, NONE)
+        work_sheet.write(HEADER_OFFSET + i, 4, ", \r\n".join([tag for tag in requirement.tags]), MULTILINE)
+        work_sheet.write(HEADER_OFFSET + i, 5, requirement.status, NONE)
+        work_sheet.write(HEADER_OFFSET + i, 6,
+                         ", \r\n".join([f.get_string() for f in requirement.formalizations.values()]), MULTILINE)
 
     buffer = io.BytesIO()
     work_book.save(buffer)
