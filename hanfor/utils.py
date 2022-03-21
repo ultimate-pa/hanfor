@@ -5,7 +5,6 @@
 """
 import argparse
 import io
-import mimetypes
 import shutil
 from collections import defaultdict
 from io import StringIO
@@ -17,7 +16,8 @@ import html
 import logging
 import os
 import re
-import xlwt
+from openpyxl import Workbook
+from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font
 
 from flask import json, Response
 from flask_assets import Environment
@@ -630,48 +630,60 @@ def generate_csv_file_content(app, filter_list=None, invert_filter=False):
 
 
 def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter: bool = False) -> io.BytesIO:
-    """ Generates the xls file content for a session."""
+    """ Generates the xlsx file content for a session."""
     requirements = get_requirements(app.config['REVISION_FOLDER'], filter_list=filter_list, invert_filter=invert_filter)
     session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])
 
-    # create xcel styles
-    NONE = xlwt.easyxf("align: vert top;")
-    BOLD = xlwt.easyxf("font: bold True; align: vert top")
-    MULTILINE = xlwt.easyxf("alignment: wrap True; align: vert top")
-    FILL = xlwt.easyxf("pattern: pattern solid, back_colour white; font: colour white, bold True; align: vert top;")
-    HIDDEN = xlwt.easyxf("font: colour white; align: vert top")
+    # create  styles
+    MULTILINE = Alignment(vertical="top", wrap_text=True)
+    BOLD = Font(bold=True)
+    WHITE = Font(color="FFFFFF", bold=True)
+    FILLED = PatternFill(fill_type="solid", start_color="2a6ebb", end_color="2a6ebb")
+    META = PatternFill(fill_type="solid", start_color="004a99", end_color="004a99")
     #create excel template
-    work_book = xlwt.Workbook()
-    work_sheet = work_book.add_sheet("Report")
-    work_sheet.write(0, 1, "HANFOR",BOLD)
-    work_sheet.write(0, 2, "Requirements export for")
-    work_sheet.write(0, 3, session_dict["csv_input_file"])
+    work_book = Workbook()
+    work_sheet = work_book.active
+    work_sheet.title = f"Report {session_dict['csv_input_file']}"
+    work_sheet.freeze_panes = "A4"
+    for c in range(1, 8):
+        for r in range(1,3):
+            work_sheet.cell(r, c).fill = META
+    work_sheet.cell(1, 2, value= "HANFOR Report")
+    work_sheet.cell(1, 2).font = WHITE
+    work_sheet.cell(1, 3, value=session_dict['csv_input_file'])
+    work_sheet.cell(1, 3).font = Font(color="FFFFFF")
 
     HEADER_OFFSET = 4
     # Set column widths and headings
-    work_sheet.col(0).width = 256 * 5
-    work_sheet.write(HEADER_OFFSET - 1, 0, "Index", FILL)
-    work_sheet.col(1).width = 256 * 20
-    work_sheet.write(HEADER_OFFSET - 1, 1, "ID", FILL)
-    work_sheet.col(2).width = 256 * 80
-    work_sheet.write(HEADER_OFFSET - 1, 2, "Description", FILL)
-    work_sheet.write(HEADER_OFFSET - 1, 3, "Type", FILL)
-    work_sheet.col(4).width = 256 * 40
-    work_sheet.write(HEADER_OFFSET - 1, 4, "Tags", FILL)
-    work_sheet.write(HEADER_OFFSET - 1, 5, "Status", FILL)
-    work_sheet.col(6).width = 256 * 160
-    work_sheet.write(HEADER_OFFSET - 1, 6, "Formalisation", FILL)
+    for c in range(1, 8):
+        work_sheet.cell(HEADER_OFFSET - 1, c).fill = FILLED
+        work_sheet.cell(HEADER_OFFSET - 1, c).font = WHITE
+    work_sheet.column_dimensions['A'].width = 5
+    work_sheet.cell(HEADER_OFFSET - 1, 1, value="Index")
+    work_sheet.column_dimensions['B'].width = 20
+    work_sheet.cell(HEADER_OFFSET - 1, 2, value="ID")
+    work_sheet.column_dimensions['C'].width = 80
+    work_sheet.cell(HEADER_OFFSET - 1, 3, value="Description")
+    work_sheet.cell(HEADER_OFFSET - 1, 4, value="Type")
+    work_sheet.column_dimensions['E'].width = 40
+    work_sheet.cell(HEADER_OFFSET - 1, 5, value="Tags")
+    work_sheet.cell(HEADER_OFFSET - 1, 6, value="Status")
+    work_sheet.column_dimensions['G'].width = 160
+    work_sheet.cell(HEADER_OFFSET - 1, 7, value="Formalisation")
 
-    #TODO: insert headings
     for i, requirement in enumerate(requirements):
-        work_sheet.write(HEADER_OFFSET + i, 0, requirement.pos_in_csv, FILL)
-        work_sheet.write(HEADER_OFFSET + i, 1, requirement.rid, BOLD)
-        work_sheet.write(HEADER_OFFSET + i, 2, requirement.description, MULTILINE)
-        work_sheet.write(HEADER_OFFSET + i, 3, requirement.type_in_csv, NONE)
-        work_sheet.write(HEADER_OFFSET + i, 4, ", \r\n".join([tag for tag in requirement.tags]), MULTILINE)
-        work_sheet.write(HEADER_OFFSET + i, 5, requirement.status, NONE)
-        work_sheet.write(HEADER_OFFSET + i, 6,
-                         ", \r\n".join([f.get_string() for f in requirement.formalizations.values()]), MULTILINE)
+        for c in range(1, 8):
+            # Note: setting styles is ordering-sensitive so set styles FIRST
+            work_sheet.cell(HEADER_OFFSET + i, c).alignment = MULTILINE
+        work_sheet.cell(HEADER_OFFSET + i, 1, requirement.pos_in_csv)
+        work_sheet.cell(HEADER_OFFSET + i, 2).font = BOLD
+        work_sheet.cell(HEADER_OFFSET + i, 2, requirement.rid)
+        work_sheet.cell(HEADER_OFFSET + i, 3, requirement.description)
+        work_sheet.cell(HEADER_OFFSET + i, 4, requirement.type_in_csv)
+        work_sheet.cell(HEADER_OFFSET + i, 5, "\n".join([f"{tag}:" for tag in requirement.tags]))
+        work_sheet.cell(HEADER_OFFSET + i, 6, requirement.status)
+        work_sheet.cell(HEADER_OFFSET + i, 7,
+                         "\n".join([f.get_string() for f in requirement.formalizations.values()]))
 
     buffer = io.BytesIO()
     work_book.save(buffer)

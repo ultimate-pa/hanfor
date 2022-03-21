@@ -81,7 +81,7 @@ def tools_api(command):
     if command == 'xls_file':
         file = utils.generate_xls_file_content(app, filter_list=filter_list)
         file.seek(0)
-        return flask.send_file(file, attachment_filename=file_name+".xls", as_attachment=True)
+        return flask.send_file(file, attachment_filename=file_name+".xlsx", as_attachment=True)
 
 
 
