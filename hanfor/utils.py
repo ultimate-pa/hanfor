@@ -643,7 +643,7 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
     #create excel template
     work_book = Workbook()
     work_sheet = work_book.active
-    work_sheet.title = f"Report {session_dict['csv_input_file']}"
+    work_sheet.title = "Report"
     work_sheet.freeze_panes = "A4"
     for c in range(1, 8):
         for r in range(1,3):
