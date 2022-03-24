@@ -5,20 +5,30 @@ from pysmt.shortcuts import And, Or, Div, FALSE, TRUE, GT, GE, Symbol, Iff, Impl
     Int, Plus, Real, Times, EqualsOrIff
 from pysmt.typing import INT, BOOL, REAL
 
-import boogie_parsing
-
 
 class BoogiePysmtTransformer(Transformer):
+    '''
     boogie_to_pysmt_type_mapping = {
         boogie_parsing.BoogieType.bool: BOOL,
         boogie_parsing.BoogieType.int: INT,
         boogie_parsing.BoogieType.real: REAL
     }
+    '''
 
-    def __init__(self, type_env: dict[str, boogie_parsing.BoogieType]) -> None:
+    hanfor_to_pysmt_type_mapping = {
+        'bool': BOOL,
+        'int': INT,
+        'real': REAL,
+        'ENUM_INT': INT,
+        'ENUM_REAL': REAL,
+        'ENUMERATOR_INT': INT,
+        'ENUMERATOR_REAL': REAL
+    }
+
+    #def __init__(self, type_env: dict[str, boogie_parsing.BoogieType]) -> None:
+    def __init__(self, variables: dict[str, str]) -> None:
         super().__init__()
-        self.type_env = type_env
-        self.formula = None
+        self.variables_mapping = variables
 
     def conjunction(self, children) -> FNode:
         #print("conjunction:", children)
@@ -54,11 +64,11 @@ class BoogiePysmtTransformer(Transformer):
 
     def id(self, children) -> Symbol:
         #print("id:", children)
-        boogie_type = self.type_env[children[0].value]
-        pysmt_type = self.boogie_to_pysmt_type_mapping.get(boogie_type)
+        hanfor_type = self.variables_mapping.get(children[0].value)
+        pysmt_type = self.hanfor_to_pysmt_type_mapping.get(hanfor_type)
 
-        if not pysmt_type:
-            raise ValueError("Unexpected value of `boogie_type`: %s" % boogie_type)
+        if pysmt_type is None:
+            raise ValueError("Unexpected variable type: %s" % hanfor_type)
 
         return Symbol(children[0].value, pysmt_type)
 

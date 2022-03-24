@@ -4,15 +4,30 @@ from enum import Enum
 
 from lark.visitors import Transformer
 from pysmt.fnode import FNode
-from pysmt.shortcuts import TRUE, Not, And, Or, get_free_variables
+from pysmt.formula import FormulaManager
+from pysmt.shortcuts import TRUE, Not, And, Or, get_free_variables, get_env
+
+from reqtransformer import Pickleable
 
 
-class CounterTrace:
-    def __init__(self, *dc_phases: DCPhase) -> None:
+class CounterTrace(Pickleable):
+    def __init__(self, *dc_phases: DCPhase, path: str = None) -> None:
         self.dc_phases = [dc_phase for dc_phase in dc_phases]
+        super().__init__(path)
 
     def __str__(self) -> str:
         return ';'.join([str(dc_phase) for dc_phase in self.dc_phases])
+
+    @classmethod
+    def load(cls, path: str) -> CounterTrace:
+        ct = super().load(path)
+        ct.normalize(get_env().formula_manager)
+
+        return ct
+
+    def normalize(self, formula_manager: FormulaManager) -> None:
+        for dc_phase in self.dc_phases:
+            dc_phase.normalize(formula_manager)
 
     def extract_variables(self) -> set[FNode]:
         variables = set()
@@ -76,6 +91,13 @@ class CounterTrace:
             result += str(self.bound)
 
             return result
+
+        def normalize(self, formula_manager: FormulaManager) -> None:
+            if self.entry_events is not None and self.entry_events not in formula_manager:
+                formula_manager.normalize(self.entry_events)
+
+            if self.invariant is not None and self.invariant not in formula_manager:
+                formula_manager.normalize(self.invariant)
 
         def is_upper_bound(self) -> bool:
             return self.bound_type == CounterTrace.BoundTypes.LESS or \
