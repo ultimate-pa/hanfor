@@ -8,8 +8,8 @@ from req_simulator.counter_trace import CounterTraceTransformer
 from req_simulator.phase_event_automaton import build_automaton, PhaseEventAutomaton, Transition, Phase, Sets
 from tests.test_req_simulator.test_counter_trace import testcases
 
-parser = Lark.open('../../req_simulator/counter_trace_grammar.lark', rel_to=__file__, start='counter_trace',
-                   parser='lalr')
+parser = Lark.open('../../req_simulator/counter_trace_grammar.lark', rel_to=__file__,
+                   start='counter_trace', parser='lalr')
 
 
 class TestPhaseEventAutomaton(TestCase):
@@ -269,5 +269,5 @@ class TestPhaseEventAutomaton(TestCase):
         expected.phases[None].add(Transition(None, p4, P_))
         expected.phases[p4].add(Transition(p4, p4, TRUE()))
 
-        actual = build_automaton(ct)
+        actual: PhaseEventAutomaton = build_automaton(ct)
         self.assertEqual(expected, actual, msg="Error while building phase event automaton.")

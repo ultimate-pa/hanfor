@@ -8,6 +8,7 @@ const config = {
         variable_import: __dirname + '/js/variable-import.js',
         stats: __dirname + '/js/stats.js',
         tags: __dirname + '/js/tags.js',
+        simulator: __dirname + '/js/simulator.js',
     },
     output: {
         path: __dirname + '/dist',

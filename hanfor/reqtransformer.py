@@ -3,7 +3,6 @@
 @copyright: 2018 Samuel Roth <samuel@smel.de>
 @licence: GPLv3
 """
-import boogie_parsing
 import csv
 import difflib
 import json
@@ -13,17 +12,18 @@ import pickle
 import re
 import string
 import subprocess
-
 from collections import defaultdict
 from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
-from flask import current_app
-
-from patterns import PATTERNS
-from static_utils import choice, get_filenames_from_dir, replace_prefix
 from threading import Thread
 from typing import Dict
+
+from flask import current_app
+
+import boogie_parsing
+from patterns import PATTERNS
+from static_utils import choice, get_filenames_from_dir, replace_prefix
 
 __version__ = '1.0.3'
 
@@ -58,10 +58,10 @@ class Pickleable:
     @classmethod
     def load(self, path):
         path_size = os.path.getsize(path)
+
         if not path_size > 0:
-            raise AssertionError('Could not load object from `{}`. (path size is {})'.format(
-                path, path_size
-            ))
+            raise AssertionError('Could not load object from `{}`. (path size is {})'.format(path, path_size))
+
         with open(path, mode='rb') as f:
             me = pickle.load(f)
             if not isinstance(me, self):
@@ -570,7 +570,7 @@ class Formalization(HanforVersioned):
         :rtype: dict
         """
         for key, expression_string in mapping.items():
-            if len(expression_string) is 0:
+            if len(expression_string) == 0:
                 continue
             expression = Expression()
             expression.set_expression(
@@ -1440,7 +1440,7 @@ class Variable(HanforVersioned):
         )
         # Parse and set the expressions.
         for key, expression_string in mapping.items():
-            if len(expression_string) is 0:
+            if len(expression_string) == 0:
                 continue
             expression = Expression()
             expression.set_expression(

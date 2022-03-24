@@ -4,11 +4,13 @@ from collections import defaultdict
 from dataclasses import dataclass
 
 from pysmt.fnode import FNode
-from pysmt.shortcuts import TRUE, And, FALSE, Or, Not, Symbol, LT, GE, LE, is_valid, Iff, Solver, is_sat
+from pysmt.formula import FormulaManager
+from pysmt.shortcuts import TRUE, And, FALSE, Or, Not, Symbol, LT, GE, LE, is_valid, Iff, Solver, is_sat, get_env
 from pysmt.typing import REAL
 
 from req_simulator.counter_trace import CounterTrace
 from req_simulator.utils import substitute_free_variables
+from reqtransformer import Pickleable
 
 SOLVER_NAME = 'cvc4'
 SOLVER = Solver(name=SOLVER_NAME)
@@ -44,7 +46,7 @@ class Sets:
         return Sets(self.gteq.copy(), self.wait.copy(), self.less.copy(), self.active.union({i}))
 
 
-@dataclass(eq=False, frozen=True)
+@dataclass()
 class Phase:
     state_invariant: FNode = TRUE()
     clock_invariant: FNode = TRUE()
@@ -64,6 +66,13 @@ class Phase:
 
     def __repr__(self):
         return str(self)
+
+    def normalize(self, formula_manager: FormulaManager) -> None:
+        if self.state_invariant not in formula_manager:
+            self.state_invariant = formula_manager.normalize(self.state_invariant)
+
+        if self.clock_invariant not in formula_manager:
+            self.clock_invariant = formula_manager.normalize(self.clock_invariant)
 
     def get_clock_bounds(self) -> dict[str, float]:
         clock_bounds = {}
@@ -101,7 +110,7 @@ class Phase:
         return result.simplify()
 
 
-@dataclass(eq=False, frozen=True)
+@dataclass()
 class Transition:
     src: Phase = None
     dst: Phase = None
@@ -123,14 +132,37 @@ class Transition:
     def __repr__(self):
         return str(self)
 
+    def normalize(self, formula_manager: FormulaManager) -> None:
+        if self.src is not None:
+            self.src.normalize(formula_manager)
 
-class PhaseEventAutomaton:
-    def __init__(self):
+        if self.dst is not None:
+            self.dst.normalize(formula_manager)
+
+        if self.guard not in formula_manager:
+            self.guard = formula_manager.normalize(self.guard)
+
+
+class PhaseEventAutomaton(Pickleable):
+    def __init__(self, path: str = None):
         self.clocks: set[str] = set()
         self.phases: defaultdict[Phase, set[Transition]] = defaultdict(set)
+        super().__init__(path)
 
     def __eq__(self, o: PhaseEventAutomaton) -> bool:
         return isinstance(o, PhaseEventAutomaton) and o.phases == self.phases
+
+    @classmethod
+    def load(cls, path: str) -> PhaseEventAutomaton:
+        pea = super().load(path)
+        pea.normalize(get_env().formula_manager)
+
+        return pea
+
+    def normalize(self, formula_manager: FormulaManager) -> None:
+        for transitions in self.phases.values():
+            for transition in transitions:
+                transition.normalize(formula_manager)
 
     def get_transitions(self, phase: Phase):
         return [t for t in self.phases[phase]]

@@ -26,11 +26,15 @@ from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from reqtransformer import Requirement, VariableCollection, Variable, VarImportSessions
 from ressources import Report, Tag, Statistics, QueryAPI
+from ressources.simulator_ressource import SimulatorRessource
+from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, \
+    hash_file_sha1
 from patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
 
 # Create the app
 app = Flask(__name__)
 app.config.from_object('config')
+
 
 if 'USE_SENTRY' in app.config and app.config['USE_SENTRY']:
     import sentry_sdk
@@ -56,6 +60,12 @@ def nocache(view):
         return response
 
     return update_wrapper(no_cache, view)
+
+
+@app.route('/simulator', methods=['GET', 'POST', 'DELETE'])
+@nocache
+def simulator():
+    return SimulatorRessource(app, request).apply_request()
 
 
 @app.route('/api/tools/<command>', methods=['GET', 'POST'])
@@ -179,6 +189,11 @@ def api(resource, command):
         if command == 'update' and request.method == 'POST':
             id = request.form.get('id', '')
             requirement = Requirement.load_requirement_by_id(id, app)
+            var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+
+            SimulatorRessource.create_cts_and_peas(requirement, var_collection, app)
+
+
             error = False
             error_msg = ''
 
@@ -1184,18 +1199,6 @@ def get_app_options():
         app_options["use_reloader"] = False
 
     return app_options
-
-
-@app.route('/simulator/', methods=['POST'])
-@nocache
-def start_simulator():
-    id = request.form.get('id', '')
-
-    result = {}
-    result['success'] = True
-    result['id'] = int(id) + 1
-
-    return result, 200
 
 
 if __name__ == '__main__':

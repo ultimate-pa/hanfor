@@ -10,11 +10,13 @@ require('awesomplete');
 require('awesomplete/awesomplete.css');
 require('datatables.net-colreorderwithresize-npm');
 
+
 let utils = require('./hanfor-utils');
 const autosize = require('autosize');
 
 // Globals
 const {SearchNode} = require('./datatables-advanced-search.js');
+const {init_simulator_tab} = require("./simulator.js");
 let Fuse = require('fuse.js');
 let {Textcomplete, Textarea} = require('textcomplete');
 let fuse = new Fuse([], {});
@@ -1451,37 +1453,6 @@ function init_report_generation() {
     load_reports();
 }
 
-function open_simulator_modal(id) {
-    let simulator_title = $('#simulator_modal_title');
-    let simulator_modal = $('#simulator_modal');
-
-    simulator_title.html('Simulator: ' + id);
-    simulator_modal.modal('show');
-}
-
-/**
- * Listen on click events to start the simulator.
- */
-function init_simulator() {
-    $('#start-simulator').click(function () {
-
-        $.post("simulator",
-        {
-            id: 2
-        },
-        // Update requirements table on success or show an error message.
-        function (data) {
-            if (data['success'] === false) {
-                alert(data['errormsg']);
-            } else {
-                //location.reload();
-                open_simulator_modal(data['id']);
-            }
-        });
-
-
-    });
-}
 
 /**
  * Start the app.
@@ -1492,7 +1463,7 @@ $(document).ready(function () {
     init_modal();
     update_logs();
     init_report_generation();
-    init_simulator();
+    init_simulator_tab();
 
     let body = $('body');
     // Bind formalization deletion.
