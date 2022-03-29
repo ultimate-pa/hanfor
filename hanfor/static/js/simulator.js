@@ -1,11 +1,3 @@
-function open_simulator_modal(id) {
-    let simulator_title = $('#simulator_modal_title')
-    let simulator_modal = $('#simulator_modal')
-
-    simulator_title.html('Simulator: ' + id)
-    simulator_modal.modal('show')
-}
-
 function get_selected_requirement_ids() {
     let requirements_table = $('#requirements_table').DataTable()
 
@@ -86,8 +78,25 @@ function init_simulator_tab() {
     });
 
     $('#start-simulator-btn').click(function () {
-        get_selected_requirement_ids()
+        let simulator_id = simulator_select.val()
+
+        init_simulator_modal(simulator_id)
     })
+}
+
+function init_simulator_modal(simulator_id) {
+    let simulator_title = $('#simulator_modal_title')
+    let simulator_modal = $('#simulator_modal')
+
+    simulator_title.html('Simulator: ' + simulator_id)
+
+    let accordion = $('#simulator-accordion')
+    let accordion_card = $('.simulator-accordion-card')
+
+    accordion_card.clone().html(accordion_card.html().replaceAll('{requirement_id}', 'REQ1')).appendTo(accordion)
+    accordion_card.clone().html(accordion_card.html().replaceAll('{requirement_id}', 'REQ2')).appendTo(accordion)
+
+    simulator_modal.modal('show')
 }
 
 exports.init_simulator_tab = init_simulator_tab

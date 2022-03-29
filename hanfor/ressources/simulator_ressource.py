@@ -1,17 +1,17 @@
+import fnmatch
 import json
 import os
 import uuid
-from dataclasses import dataclass
 
 from flask import Flask
 from lark import Lark
 
 import boogie_parsing
 from req_simulator.boogie_pysmt_transformer import BoogiePysmtTransformer
-from req_simulator.counter_trace import CounterTrace, CounterTraceTransformer
+from req_simulator.counter_trace import CounterTraceTransformer
 from req_simulator.phase_event_automaton import PhaseEventAutomaton, build_automaton
 from req_simulator.simulator import Simulator
-from reqtransformer import Requirement, VariableCollection, Formalization
+from reqtransformer import Requirement, Formalization, VariableCollection
 from ressources import Ressource
 
 ct_parser = Lark.open('../req_simulator/counter_trace_grammar.lark', rel_to=__file__, start='counter_trace',
@@ -19,12 +19,7 @@ ct_parser = Lark.open('../req_simulator/counter_trace_grammar.lark', rel_to=__fi
 
 
 class SimulatorRessource(Ressource):
-    @dataclass
-    class SimulatorCacheEntry:
-        name: str
-        simulator: Simulator
-
-    simulator_cache: dict[str, SimulatorCacheEntry] = {}
+    simulator_cache: dict[str, Simulator] = {}
 
     def __init__(self, app, request):
         super().__init__(app, request)
@@ -55,10 +50,19 @@ class SimulatorRessource(Ressource):
         simulator_name = self.request.form.get('simulator_name')
         simulator_id = uuid.uuid4().hex
 
-        requirements = [Requirement.load_requirement_by_id(id, self.app) for id in requirement_ids]
+        peas = []
+        for i in range(100):
+            for requirement_id in requirement_ids:
+                peas_tmp = SimulatorRessource.create_phase_event_automata(requirement_id, self.app)
 
-        self.simulator_cache[simulator_id] = self.SimulatorCacheEntry(simulator_name, None)
+                if len(peas_tmp) <= 0:
+                    self.response.success = False
+                    self.response.errormsg = f'Unable to constuct phase event automaton for {requirement_id}.'
+                    return
 
+                peas.extend(peas_tmp)
+
+        self.simulator_cache[simulator_id] = Simulator(peas, name=simulator_name)
         data = {'simulator_id': simulator_id, 'simulator_name': simulator_name}
         self.response.data = data
 
@@ -71,26 +75,26 @@ class SimulatorRessource(Ressource):
             self.response.errormsg = 'No simulator with given id found.'
 
     @staticmethod
-    def load_counter_trace(id: str, app: Flask) -> CounterTrace:
-        path = os.path.join(app.config['REVISION_FOLDER'], '{}_CT.pickle'.format(id))
-        if os.path.exists(path) and os.path.isfile(path):
-            return CounterTrace.load(path)
+    def load_phase_event_automata(requirement_id: str, app: Flask):
+        result = []
+
+        dir = app.config['REVISION_FOLDER']
+        for file in fnmatch.filter(os.listdir(dir), f'{requirement_id}_*_PEA.pickle'):
+            result.append(PhaseEventAutomaton.load(os.path.join(dir, file)))
+
+        return result
 
     @staticmethod
-    def store_counter_trace(ct: CounterTrace, id: str, app: Flask) -> None:
-        path = os.path.join(app.config['REVISION_FOLDER'], '{}_CT.pickle'.format(id))
-        ct.store(path)
+    def store_phase_event_automata(peas: list[PhaseEventAutomaton], app: Flask) -> None:
+        for pea in peas:
+            file = f'{pea.requirement_id}_{pea.formalization_id}_{pea.counter_trace_id}_PEA.pickle'
+            pea.store(os.path.join(app.config['REVISION_FOLDER'], file))
 
     @staticmethod
-    def load_phase_event_automaton(id: str, app: Flask) -> PhaseEventAutomaton:
-        path = os.path.join(app.config['REVISION_FOLDER'], '{}_PEA.pickle'.format(id))
-        if os.path.exists(path) and os.path.isfile(path):
-            return PhaseEventAutomaton.load(path)
-
-    @staticmethod
-    def store_phase_event_automaton(pea: PhaseEventAutomaton, id: str, app: Flask) -> None:
-        path = os.path.join(app.config['REVISION_FOLDER'], '{}_PEA.pickle'.format(id))
-        pea.store(path)
+    def delete_phase_event_automata(requirement_id: str, app: Flask):
+        dir = app.config['REVISION_FOLDER']
+        for file in fnmatch.filter(os.listdir(dir), f'{requirement_id}_*_PEA.pickle'):
+            os.remove(os.path.join(dir, file))
 
     @staticmethod
     def has_variable_with_unknown_type(formalization: Formalization, variables: dict[str, str]) -> bool:
@@ -101,17 +105,19 @@ class SimulatorRessource(Ressource):
         return False
 
     @staticmethod
-    def create_cts_and_peas(requirement: Requirement, var_collection: VariableCollection, app: Flask) \
-            -> dict[int, list[tuple[CounterTrace, PhaseEventAutomaton]]]:
-        result = {}
+    def create_phase_event_automata(requirement_id: str, app: Flask) -> list[PhaseEventAutomaton]:
+        result = []
+
+        requirement = Requirement.load_requirement_by_id(requirement_id, app)
+        var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
 
         variables = {k: v.type for k, v in var_collection.collection.items()}
         boogie_parser = boogie_parsing.get_parser_instance()
 
-        for formalization_index, formalization in requirement.formalizations.items():
-            if formalization.has_type_inference_errors() or \
+        for formalization in requirement.formalizations.values():
+            if formalization.scoped_pattern is None or formalization.has_type_inference_errors() or \
                     SimulatorRessource.has_variable_with_unknown_type(formalization, variables):
-                return {}
+                return []
 
             scope = formalization.scoped_pattern.scope.name
             pattern = formalization.scoped_pattern.pattern.name
@@ -121,10 +127,12 @@ class SimulatorRessource(Ressource):
                 tree = boogie_parser.parse(v.raw_expression)
                 expressions[k] = BoogiePysmtTransformer(variables).transform(tree)
 
-            result[formalization_index] = []
             for i, ct_str in enumerate(app.config['PATTERNS'][pattern]['counter_traces'][scope]):
                 ct = CounterTraceTransformer(expressions).transform(ct_parser.parse(ct_str))
-                pea = build_automaton(ct, f'c{formalization_index}_{i}_')
-                result[formalization_index].append((ct, pea))
+                pea = build_automaton(ct, f'c_{requirement.rid}_{formalization.formalization_id}_{i}_')
+                pea.requirement_id = requirement.rid
+                pea.formalization_id = formalization.formalization_id
+                pea.counter_trace_id = i
+                result.append(pea)
 
         return result

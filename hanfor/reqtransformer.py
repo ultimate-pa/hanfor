@@ -359,6 +359,14 @@ class Requirement(HanforVersioned, Pickleable):
     def store(self, path=None):
         super().store(path)
 
+        # Create PEAs
+        #from ressources.simulator_ressource import SimulatorRessource
+
+        #var_collection = VariableCollection.load(current_app.config['SESSION_VARIABLE_COLLECTION'])
+        #peas = SimulatorRessource.create_phase_event_automata(self, var_collection, current_app)
+        #SimulatorRessource.delete_phase_event_automata(self.rid, current_app)
+        #SimulatorRessource.store_phase_event_automata(peas, current_app)
+
     @property
     def revision_diff(self) -> Dict[str, str]:
         if not hasattr(self, '_revision_diff'):
@@ -409,6 +417,7 @@ class Requirement(HanforVersioned, Pickleable):
             self.formalizations = dict()
 
         id = self._next_free_formalization_id()
+        formalization.formalization_id = id
         self.formalizations[id] = formalization
 
         return id, self.formalizations[id]
@@ -544,6 +553,7 @@ class Formalization(HanforVersioned):
         self.scoped_pattern = None
         self.expressions_mapping = dict()
         self.belongs_to_requirement = None
+        self.formalization_id = None
         self.type_inference_errors = dict()
 
     @property
@@ -659,6 +669,7 @@ class Expression(HanforVersioned):
         `NO_PAIN => NO_GAIN`
     Then `NO_PAIN => NO_GAIN` is the Expression.
      """
+
     def __init__(self):
         """ Create an empty new expression.
 
@@ -881,6 +892,7 @@ class VariableCollection(HanforVersioned, Pickleable):
         :return:
         :rtype:
         """
+
         def in_result(var) -> bool:
             if used_only:
                 if var.name not in self.var_req_mapping.keys():
@@ -994,7 +1006,8 @@ class VariableCollection(HanforVersioned, Pickleable):
 
         # Todo: this is even more inefficient :-(
         for key in self.var_req_mapping.keys():
-            self.var_req_mapping[key] = {rename_constraint(name, old_name, new_name) for name in self.var_req_mapping[key]}
+            self.var_req_mapping[key] = {rename_constraint(name, old_name, new_name) for name in
+                                         self.var_req_mapping[key]}
 
         # Update the req -> var mapping.
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
@@ -1522,7 +1535,7 @@ class Variable(HanforVersioned):
         if self.type == 'ENUMERATOR':
             for other_var_name in variable_collection.collection.keys():
                 if (len(self.name) > len(other_var_name)
-                    and variable_collection.collection[other_var_name].type == 'ENUM'
+                        and variable_collection.collection[other_var_name].type == 'ENUM'
                         and self.name.startswith(other_var_name)):
                     result = other_var_name
                     break
@@ -1538,7 +1551,7 @@ class Variable(HanforVersioned):
         if self.type == 'ENUM':
             for other_var_name in variable_collection.collection.keys():
                 if (len(self.name) < len(other_var_name)
-                    and variable_collection.collection[other_var_name].type == 'ENUMERATOR'
+                        and variable_collection.collection[other_var_name].type == 'ENUMERATOR'
                         and self.other_var_name.startswith(self.name)):
                     result.append(other_var_name)
                     break
@@ -1666,7 +1679,7 @@ class VarImportSession(HanforVersioned):
                 self.result_var_collection.collection[name] = deepcopy(self.target_var_collection.collection[name])
             for key in self.available_constraints[name].keys():
                 self.available_constraints[name][key]['to_result'] = (
-                            self.available_constraints[name][key]['origin'] == data['action']
+                        self.available_constraints[name][key]['origin'] == data['action']
                 )
 
     def store_variable(self, row):

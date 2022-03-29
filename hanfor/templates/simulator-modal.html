@@ -12,15 +12,9 @@
                 </button>
             </div>
             <div class="modal-body">
-                <ul class="list-group">
-                    <li class="list-group-item">first counter trace</li>
-                    <li class="list-group-item">second counter trace</li>
-                </ul>
-                <button id="delete-simulator"
-                        class="btn btn-secondary btn-block"
-                        type="button">
-                    Delete Simulator
-                </button>
+
+                <div id="simulator-accordion" class="accordion"></div>
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -28,3 +22,5 @@
         </div>
     </div>
 </div>
+
+{% include 'simulator-accordion-card.html' %}

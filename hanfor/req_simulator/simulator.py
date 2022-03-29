@@ -15,7 +15,7 @@ from pysmt.fnode import FNode
 from pysmt.shortcuts import And, Equals, Symbol, is_sat, Real, Int, Bool, EqualsOrIff
 from pysmt.typing import REAL, INT, BOOL
 
-from req_simulator.counter_trace import CounterTrace, CounterTraceTransformer
+from req_simulator.counter_trace import CounterTraceTransformer
 from req_simulator.phase_event_automaton import PhaseEventAutomaton, build_automaton, Phase, Transition
 from req_simulator.scenario import Scenario
 from req_simulator.utils import substitute_free_variables
@@ -75,15 +75,16 @@ class Simulator:
         variables: dict[FNode, FNode]
         time_step: float
 
-    def __init__(self, cts: list[CounterTrace], peas: list[PhaseEventAutomaton], scenario: Scenario = None) -> None:
-        self.cts: list[CounterTrace] = cts
+    def __init__(self, peas: list[PhaseEventAutomaton], scenario: Scenario = None, name: str = 'unnamed') -> None:
+        self.name: str = name
         self.peas: list[PhaseEventAutomaton] = peas
         self.scenario: Scenario = scenario
 
         self.time: float = 0.0
         self.current_phases: list[Phase] = [None] * len(self.peas)
         self.clocks: list[dict[str, float]] = [{clock: 0 for clock in pea.clocks} for pea in self.peas]
-        self.variables: dict[FNode, FNode] = {v: None for ct in self.cts for v in ct.extract_variables()}
+
+        self.variables: dict[FNode, FNode] = {v: None for pea in self.peas for v in pea.counter_trace.extract_variables()}
         self.time_step: float = 1.0
 
         if self.scenario is not None:
@@ -95,7 +96,7 @@ class Simulator:
 
     @staticmethod
     def load_scenario_from_file(simulator: Simulator, path: str) -> Simulator:
-        return Simulator(simulator.cts, simulator.peas, Scenario.load_from_file(path))
+        return Simulator(simulator.peas, Scenario.load_from_file(path))
 
     def save_scenario_to_file(self, path: str) -> None:
         Scenario.save_to_file(self.scenario, path)
@@ -254,7 +255,7 @@ class TUI:
             for i in range(len(self.simulator.peas)):
                 print('phase:',
                       {} if self.simulator.current_phases[i] is None else self.simulator.current_phases[i].sets,
-                      '| counter trace:', self.simulator.cts[i], )
+                      '| counter trace:', self.simulator.peas[i].counter_trace, )
             print('clocks:', self.simulator.clocks)
             print('time:', self.simulator.time, '\n')
 
@@ -386,7 +387,7 @@ def main() -> int:
     #    cts.append(CounterTraceTransformer(expressions).transform(parser.parse(ct_str)))
     #    peas.append(build_automaton(cts[-1], f"c{i}_"))
 
-    simulator = Simulator([ct0, ct1], [pea0, pea1])
+    simulator = Simulator([pea0, pea1])
     tui = TUI(simulator)
     tui.simulate()
 
