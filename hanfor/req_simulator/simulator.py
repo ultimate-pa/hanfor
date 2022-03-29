@@ -5,7 +5,7 @@ import os
 from copy import copy
 from dataclasses import dataclass
 
-import regex
+import re as regex
 from InquirerPy import inquirer
 from InquirerPy.base import Choice
 from InquirerPy.validator import PathValidator
