@@ -35,11 +35,11 @@ const config = {
                 }, {
                     loader: 'postcss-loader', // Run post css actions
                     options: {
-                        plugins: function () { // post css plugins, can be exported to postcss.config.js
-                            return [
+                        postcssOptions: { // post css plugins, can be exported to postcss.config.js
+                            plugins: [
                                 require('precss'),
                                 require('autoprefixer')
-                            ];
+                            ]
                         }
                     }
                 }, {
@@ -48,7 +48,7 @@ const config = {
             },
             {
                 test: /\.(jpe?g|png|gif)$/i,
-                loader:"file-loader"
+                loader: "file-loader"
             },
         ]
     },
