@@ -143,7 +143,7 @@ class TestSimulator(TestCase):
         ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
         pea = build_automaton(ct)
         scenario = Scenario.parse_from_yaml_or_json_string(yaml_str)
-        simulator = Simulator([ct], [pea], scenario)
+        simulator = Simulator([pea], scenario)
 
         actual = False
         for i in range(len(scenario.valuations)):

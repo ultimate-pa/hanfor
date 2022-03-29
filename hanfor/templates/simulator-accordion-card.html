@@ -1,0 +1,19 @@
+<div class="simulator-accordion-card card">
+    <div class="card-header" id="heading-{requirement_id}">
+        <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                    data-target="#collapse-{requirement_id}" aria-expanded="false"
+                    aria-controls="collapse-{requirement_id}">
+                {requirement_id}
+            </button>
+        </h2>
+    </div>
+
+    <div id="collapse-{requirement_id}" class="collapse" aria-labelledby="heading-{requirement_id}"
+         data-parent="#simulator-accordion">
+        <div class="card-body">
+            Some placeholder content for the first accordion panel. This panel is shown by default,
+            thanks to the <code>.show</code> class.
+        </div>
+    </div>
+</div>

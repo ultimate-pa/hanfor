@@ -4,20 +4,20 @@
 @licence: GPLv3
 """
 import argparse
-import shutil
-from collections import defaultdict
-from io import StringIO
-
-import boogie_parsing
 import csv
 import datetime
 import html
 import logging
 import os
 import re
+import shutil
+from collections import defaultdict
+from io import StringIO
 
 from flask import json, Response
 from flask_assets import Environment
+
+import boogie_parsing
 
 # Here is the first time we use config. Check existence and raise a meaningful exception if not found.
 try:
@@ -298,11 +298,11 @@ def update_variable_in_collection(app, request):
 
     # Check for changes
     if (
-        var_type_old != var_type
-        or var_name_old != var_name
-        or var_const_val_old != var_const_val
-        or request.form.get('updated_constraints') == 'true'
-        or belongs_to_enum != belongs_to_enum_old
+            var_type_old != var_type
+            or var_name_old != var_name
+            or var_const_val_old != var_const_val
+            or request.form.get('updated_constraints') == 'true'
+            or belongs_to_enum != belongs_to_enum_old
     ):
         logging.info('Update Variable `{}`'.format(var_name_old))
         result['has_changes'] = True
@@ -332,7 +332,7 @@ def update_variable_in_collection(app, request):
                     float(var_const_val)
             except Exception as e:
                 result = {
-                    'success':  False,
+                    'success': False,
                     'errormsg': 'Enumerator value `{}` for {} `{}` not valid: {}'.format(
                         var_const_val, var_type, var_name, e
                     )
@@ -465,7 +465,7 @@ def update_variable_in_collection(app, request):
                     float(enumerator_value)
             except Exception as e:
                 result = {
-                    'success':  False,
+                    'success': False,
                     'errormsg': 'Enumerator value `{}` for enumerator `{}` not valid: {}'.format(
                         enumerator_value, enumerator_name, e
                     )
@@ -979,9 +979,9 @@ def add_msg_to_flask_session_log(app, msg, rid=None, rid_list=None, clear=False,
         ])
 
     session['hanfor_log'].append(template.format(
-            timestamp=datetime.datetime.now(),
-            message=msg,
-            rid=rid)
+        timestamp=datetime.datetime.now(),
+        message=msg,
+        rid=rid)
     )
 
     # Remove oldest logs until threshold
@@ -1039,19 +1039,19 @@ def generate_file_response(content, name, mimetype='text/plain'):
 
 
 def get_requirements_in_folder(folder_path):
-        result = dict()
-        for filename in get_filenames_from_dir(folder_path):
-            try:
-                r = Requirement.load(filename)
-                result[r.rid] = {
-                    'req': r,
-                    'path': filename
-                }
-            except TypeError:
-                continue
-            except Exception as e:
-                raise e
-        return result
+    result = dict()
+    for filename in get_filenames_from_dir(folder_path):
+        try:
+            r = Requirement.load(filename)
+            result[r.rid] = {
+                'req': r,
+                'path': filename
+            }
+        except TypeError:
+            continue
+        except Exception as e:
+            raise e
+    return result
 
 
 def init_var_collection(app):
@@ -1112,6 +1112,7 @@ class ListStoredSessions(argparse.Action):
 
 class GenerateScopedPatternTrainingData(argparse.Action):
     """ Generate training data consisting of requirement descriptions with assigned scoped pattern."""
+
     def __init__(self, option_strings, app, dest, *args, **kwargs):
         self.app = app
         super(GenerateScopedPatternTrainingData, self).__init__(
@@ -1200,6 +1201,7 @@ class HanforArgumentParser(argparse.ArgumentParser):
 
 class MetaSettings():
     """ Just an auto saving minimal dict. """
+
     def __init__(self, path):
         self.__dict__ = pickle_load_from_dump(path)  # type: dict
         self.path = path

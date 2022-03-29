@@ -177,11 +177,6 @@ def api(resource, command):
         if command == 'update' and request.method == 'POST':
             id = request.form.get('id', '')
             requirement = Requirement.load_requirement_by_id(id, app)
-            var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
-
-            SimulatorRessource.create_cts_and_peas(requirement, var_collection, app)
-
-
             error = False
             error_msg = ''
 
@@ -331,6 +326,7 @@ def api(resource, command):
             requirement = Requirement.load_requirement_by_id(requirement_id, app)
             requirement.delete_formalization(formalization_id, app)
             requirement.store()
+
             utils.add_msg_to_flask_session_log(app, 'Deleted formalization from requirement', requirement_id)
             result['html'] = utils.formalizations_to_html(app, requirement.formalizations)
             return jsonify(result)
@@ -451,6 +447,7 @@ def api(resource, command):
                                         app=app
                                     )
                                     requirement.store()
+
                         except ValueError as e:
                             result['success'] = False
                             result['errormsg'] = 'Could not determine a guess: '

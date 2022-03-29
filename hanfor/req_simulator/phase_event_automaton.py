@@ -144,9 +144,14 @@ class Transition:
 
 
 class PhaseEventAutomaton(Pickleable):
-    def __init__(self, path: str = None):
+    def __init__(self, counter_trace: CounterTrace = None, path: str = None):
         self.clocks: set[str] = set()
         self.phases: defaultdict[Phase, set[Transition]] = defaultdict(set)
+        self.counter_trace: CounterTrace = counter_trace
+        self.requirement_id: str = None
+        self.formalization_id: int = None
+        self.counter_trace_id: int = None
+
         super().__init__(path)
 
     def __eq__(self, o: PhaseEventAutomaton) -> bool:
@@ -160,6 +165,8 @@ class PhaseEventAutomaton(Pickleable):
         return pea
 
     def normalize(self, formula_manager: FormulaManager) -> None:
+        self.counter_trace.normalize(formula_manager)
+
         for transitions in self.phases.values():
             for transition in transitions:
                 transition.normalize(formula_manager)
@@ -176,7 +183,7 @@ class PhaseEventAutomaton(Pickleable):
 
 
 def build_automaton(ct: CounterTrace, cp: str = 'c') -> PhaseEventAutomaton:
-    pea = PhaseEventAutomaton()
+    pea = PhaseEventAutomaton(ct)
     visited, pending = set(), set()
     init = True
 
