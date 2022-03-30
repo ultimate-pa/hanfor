@@ -1,22 +1,19 @@
 from unittest import TestCase
 
-from lark.lark import Lark
 from pysmt.shortcuts import Symbol, And, LT, GE, Or, LE, TRUE, Not
 from pysmt.typing import REAL
 
-from req_simulator.counter_trace import CounterTraceTransformer
+from req_simulator.countertrace import CountertraceTransformer
 from req_simulator.phase_event_automaton import build_automaton, PhaseEventAutomaton, Transition, Phase, Sets
+from req_simulator.utils import get_countertrace_parser
 from tests.test_req_simulator.test_counter_trace import testcases
-
-parser = Lark.open('../../req_simulator/counter_trace_grammar.lark', rel_to=__file__,
-                   start='counter_trace', parser='lalr')
 
 
 class TestPhaseEventAutomaton(TestCase):
 
     def test_false(self):
         expressions, ct_str, _ = testcases['false']
-        ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseEventAutomaton()
 
@@ -32,7 +29,7 @@ class TestPhaseEventAutomaton(TestCase):
 
     def test_true(self):
         expressions, ct_str, _ = testcases['true']
-        ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseEventAutomaton()
 
@@ -41,7 +38,7 @@ class TestPhaseEventAutomaton(TestCase):
 
     def test_true_lower_bound_empty(self):
         expressions, ct_str, _ = testcases['true_lower_bound_empty']
-        ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseEventAutomaton()
 
@@ -50,7 +47,7 @@ class TestPhaseEventAutomaton(TestCase):
 
     def test_true_lower_bound(self):
         expressions, ct_str, _ = testcases['true_lower_bound']
-        ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseEventAutomaton()
         T, c0 = expressions['T'], Symbol('c0', REAL)
@@ -68,7 +65,7 @@ class TestPhaseEventAutomaton(TestCase):
     def test_absence_globally(self):
         expressions, ct_str, _ = testcases['absence_globally']
         expressions_ = {k + '_': Symbol(v.symbol_name() + '_', v.symbol_type()) for k, v in expressions.items()}
-        ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseEventAutomaton()
         R = expressions['R']
@@ -87,7 +84,7 @@ class TestPhaseEventAutomaton(TestCase):
     def test_absence_before(self):
         expressions, ct_str, _ = testcases['absence_before']
         expressions_ = {k + '_': Symbol(v.symbol_name() + '_', v.symbol_type()) for k, v in expressions.items()}
-        ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseEventAutomaton()
         P, R = expressions['P'], expressions['R']
@@ -112,7 +109,7 @@ class TestPhaseEventAutomaton(TestCase):
     def test_absence_after(self):
         expressions, ct_str, _ = testcases['absence_after']
         expressions_ = {k + '_': Symbol(v.symbol_name() + '_', v.symbol_type()) for k, v in expressions.items()}
-        ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseEventAutomaton()
         P, R = expressions['P'], expressions['R']
@@ -143,7 +140,7 @@ class TestPhaseEventAutomaton(TestCase):
     def test_duration_bound_l_pattern_globally(self):
         expressions, ct_str, _ = testcases['duration_bound_l_globally']
         expressions_ = {k + '_': Symbol(v.symbol_name() + '_', v.symbol_type()) for k, v in expressions.items()}
-        ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseEventAutomaton()
         R, T, c2 = expressions['R'], expressions['T'], Symbol('c2', REAL)
@@ -175,7 +172,7 @@ class TestPhaseEventAutomaton(TestCase):
     def test_duration_bound_u_globally(self):
         expressions, ct_str, _ = testcases['duration_bound_u_globally']
         expressions_ = {k + '_': Symbol(v.symbol_name() + '_', v.symbol_type()) for k, v in expressions.items()}
-        ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseEventAutomaton()
         R, T, c1 = expressions['R'], expressions['T'], Symbol('c1', REAL)
@@ -201,7 +198,7 @@ class TestPhaseEventAutomaton(TestCase):
     def test_response_delay_globally(self):
         expressions, ct_str, _ = testcases['response_delay_globally']
         expressions_ = {k + '_': Symbol(v.symbol_name() + '_', v.symbol_type()) for k, v in expressions.items()}
-        ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseEventAutomaton()
         R, S, T, c2 = expressions['R'], expressions['S'], expressions['T'], Symbol('c2', REAL)
@@ -234,7 +231,7 @@ class TestPhaseEventAutomaton(TestCase):
     def test_response_delay_before(self):
         expressions, ct_str, _ = testcases['response_delay_before']
         expressions_ = {k + '_': Symbol(v.symbol_name() + '_', v.symbol_type()) for k, v in expressions.items()}
-        ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseEventAutomaton()
         P, R, S, T, c2 = expressions['P'], expressions['R'], expressions['S'], expressions['T'], Symbol('c2', REAL)

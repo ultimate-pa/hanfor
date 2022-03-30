@@ -2,25 +2,23 @@ from __future__ import annotations
 
 import itertools
 import os
+import re as regex
+from collections import defaultdict
 from copy import copy
 from dataclasses import dataclass
 
-import re as regex
 from InquirerPy import inquirer
 from InquirerPy.base import Choice
 from InquirerPy.validator import PathValidator
-from lark.lark import Lark
 from prompt_toolkit.validation import ValidationError, Validator
 from pysmt.fnode import FNode
 from pysmt.shortcuts import And, Equals, Symbol, is_sat, Real, Int, Bool, EqualsOrIff
 from pysmt.typing import REAL, INT, BOOL
 
-from req_simulator.counter_trace import CounterTraceTransformer
+from req_simulator.countertrace import CountertraceTransformer
 from req_simulator.phase_event_automaton import PhaseEventAutomaton, build_automaton, Phase, Transition
 from req_simulator.scenario import Scenario
-from req_simulator.utils import substitute_free_variables
-
-parser = Lark.open('counter_trace_grammar.lark', rel_to=__file__, start='counter_trace', parser='lalr')
+from req_simulator.utils import substitute_free_variables, get_countertrace_parser
 
 
 class BoolValidator(Validator):
@@ -84,7 +82,8 @@ class Simulator:
         self.current_phases: list[Phase] = [None] * len(self.peas)
         self.clocks: list[dict[str, float]] = [{clock: 0 for clock in pea.clocks} for pea in self.peas]
 
-        self.variables: dict[FNode, FNode] = {v: None for pea in self.peas for v in pea.counter_trace.extract_variables()}
+        self.variables: dict[FNode, FNode] = {v: None for pea in self.peas for v in
+                                              pea.countertrace.extract_variables()}
         self.time_step: float = 1.0
 
         if self.scenario is not None:
@@ -93,6 +92,14 @@ class Simulator:
 
         self.states: list[Simulator.State] = []
         self.save_state()
+
+    def mapping_peas(self):
+        result = defaultdict(lambda: defaultdict(dict))
+
+        for pea in self.peas:
+            result[pea.requirement][pea.formalization][pea.countertrace_id] = pea
+
+        return result
 
     @staticmethod
     def load_scenario_from_file(simulator: Simulator, path: str) -> Simulator:
@@ -255,7 +262,7 @@ class TUI:
             for i in range(len(self.simulator.peas)):
                 print('phase:',
                       {} if self.simulator.current_phases[i] is None else self.simulator.current_phases[i].sets,
-                      '| counter trace:', self.simulator.peas[i].counter_trace, )
+                      '| counter trace:', self.simulator.peas[i].countertrace, )
             print('clocks:', self.simulator.clocks)
             print('time:', self.simulator.time, '\n')
 
@@ -376,10 +383,10 @@ def main() -> int:
     # expressions['S'] = Iff(Symbol('is_active'), TRUE())
     expressions['T'] = Real(5)
 
-    ct0 = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
+    ct0 = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
     pea0 = build_automaton(ct0, 'c0_')
     expressions['T'] = Real(10)
-    ct1 = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
+    ct1 = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
     pea1 = build_automaton(ct0, 'c1_')
 
     # cts, peas = [], []

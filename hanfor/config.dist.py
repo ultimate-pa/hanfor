@@ -80,7 +80,8 @@ URL_PREFIX = ''
 
 # set a 'SECRET_KEY' to enable the Flask session cookies
 # generate one for production with, for example, openssl rand -base64 64
-SECRET_KEY = os.environ.get('HANFOR_SECRET_KEY', default='tRKGzHAD3NHfk0u6jV7rMb42RBo/ldFIePPG2tgXrEZhAyOwQ/3aN0Uekt+mXmV2JGzMtiKSZBDhYKiO1fgu7A==')
+SECRET_KEY = os.environ.get('HANFOR_SECRET_KEY',
+                            default='tRKGzHAD3NHfk0u6jV7rMb42RBo/ldFIePPG2tgXrEZhAyOwQ/3aN0Uekt+mXmV2JGzMtiKSZBDhYKiO1fgu7A==')
 
 # Specify the PORT the app should be running at
 PORT = os.environ.get('HANFOR_PORT', default=5000)

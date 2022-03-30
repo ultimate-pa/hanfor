@@ -239,7 +239,7 @@ class RequirementCollection(HanforVersioned, Pickleable):
         for index, row in enumerate(self.csv_all_rows):
             # Todo: Use utils.slugify to make the rid save for a filename.
             requirement = Requirement(
-                rid=row[self.csv_meta['id_header']],
+                id=row[self.csv_meta['id_header']],
                 description=row[self.csv_meta['desc_header']],
                 type_in_csv=row[self.csv_meta['type_header']],
                 csv_row=row,
@@ -274,10 +274,10 @@ class RequirementCollection(HanforVersioned, Pickleable):
 
 
 class Requirement(HanforVersioned, Pickleable):
-    def __init__(self, rid, description, type_in_csv, csv_row, pos_in_csv):
+    def __init__(self, id, description, type_in_csv, csv_row, pos_in_csv):
         HanforVersioned.__init__(self)
         Pickleable.__init__(self, None)
-        self.rid = rid
+        self.id = id
         self.formalizations = dict()  # type: Dict[int, Formalization]
         self.description = description
         self.type_in_csv = type_in_csv
@@ -298,7 +298,7 @@ class Requirement(HanforVersioned, Pickleable):
                     used_variables.add(name)
 
         d = {
-            'id': self.rid,
+            'id': self.id,
             'desc': self.description,
             'type': self.type_in_csv if type(self.type_in_csv) is str else self.type_in_csv[0],
             'tags': sorted([tag for tag in self.tags]),
@@ -417,7 +417,7 @@ class Requirement(HanforVersioned, Pickleable):
             self.formalizations = dict()
 
         id = self._next_free_formalization_id()
-        formalization.formalization_id = id
+        formalization.id = id
         self.formalizations[id] = formalization
 
         return id, self.formalizations[id]
@@ -436,7 +436,7 @@ class Requirement(HanforVersioned, Pickleable):
                     remaining_vars = remaining_vars.union(expression.used_variables)
 
         # Update the mappings.
-        variable_collection.req_var_mapping[self.rid] = remaining_vars
+        variable_collection.req_var_mapping[self.id] = remaining_vars
         variable_collection.var_req_mapping = variable_collection.invert_mapping(variable_collection.req_var_mapping)
         variable_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
 
@@ -449,13 +449,13 @@ class Requirement(HanforVersioned, Pickleable):
             Scope[scope_name], Pattern(name=pattern_name)
         )
         # set parent
-        self.formalizations[formalization_id].belongs_to_requirement = self.rid
+        self.formalizations[formalization_id].belongs_to_requirement = self.id
         # Parse and set the expressions.
         self.formalizations[formalization_id].set_expressions_mapping(
             mapping=mapping,
             variable_collection=variable_collection,
             app=app,
-            rid=self.rid
+            rid=self.id
         )
         if len(self.formalizations[formalization_id].type_inference_errors) > 0:
             logging.debug('Type inference Error in formalization at {}.'.format(
@@ -465,10 +465,10 @@ class Requirement(HanforVersioned, Pickleable):
 
     def update_formalizations(self, formalizations: dict, app):
         self.tags.discard('Type_inference_error')
-        logging.debug('Updating formalizatioins of requirement {}.'.format(self.rid))
+        logging.debug('Updating formalizatioins of requirement {}.'.format(self.id))
         variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
         # Reset the var mapping.
-        variable_collection.req_var_mapping[self.rid] = set()
+        variable_collection.req_var_mapping[self.id] = set()
 
         for formalization in formalizations.values():
             logging.debug('Updating formalization No. {}.'.format(formalization['id']))
@@ -487,7 +487,7 @@ class Requirement(HanforVersioned, Pickleable):
                 raise e
 
     def reload_type_inference(self, var_collection, app):
-        logging.info('Reload type inference for `{}`'.format(self.rid))
+        logging.info('Reload type inference for `{}`'.format(self.id))
         self.tags.discard('Type_inference_error')
         for id in self.formalizations.keys():
             try:
@@ -497,7 +497,7 @@ class Requirement(HanforVersioned, Pickleable):
             except AttributeError as e:
                 # Probably No pattern set.
                 logging.info('Could not derive type inference for requirement `{}`, Formalization No. {}. {}'.format(
-                    self.rid,
+                    self.id,
                     id,
                     e
                 ))
@@ -550,10 +550,10 @@ class Requirement(HanforVersioned, Pickleable):
 class Formalization(HanforVersioned):
     def __init__(self):
         super().__init__()
+        self.id = None
         self.scoped_pattern = None
         self.expressions_mapping = dict()
         self.belongs_to_requirement = None
-        self.formalization_id = None
         self.type_inference_errors = dict()
 
     @property
@@ -1146,11 +1146,11 @@ class VariableCollection(HanforVersioned, Pickleable):
                     for var_name in formalization.used_variables:
                         if var_name not in mapping.keys():
                             mapping[var_name] = set()
-                        mapping[var_name].add(req.rid)
+                        mapping[var_name].add(req.id)
                 except TypeError:
                     pass
                 except Exception as e:
-                    logging.info('Could not read formalizations for `{}`: {}'.format(req.rid, e))
+                    logging.info('Could not read formalizations for `{}`: {}'.format(req.id, e))
                     raise e
 
         # Add the constraints using this variable.

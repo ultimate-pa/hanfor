@@ -18,7 +18,7 @@ function update_simulator_select() {
         data: {command: 'get_simulators'},
         success: function (response) {
             if (response['success'] === false) {
-                alert(response['errormsg']);
+                alert(response['errormsg'])
                 return
             }
 
@@ -80,21 +80,41 @@ function init_simulator_tab() {
     $('#start-simulator-btn').click(function () {
         let simulator_id = simulator_select.val()
 
-        init_simulator_modal(simulator_id)
+        $.ajax({
+            type: 'GET',
+            url: 'simulator',
+            data: {command: 'init_simulator_modal', simulator_id: simulator_id},
+            success: function (response) {
+                if (response['success'] === false) {
+                    alert(response['errormsg'])
+                    return
+                }
+
+                init_simulator_modal(response['data']['html'])
+            }
+        })
     })
 }
 
-function init_simulator_modal(simulator_id) {
-    let simulator_title = $('#simulator_modal_title')
-    let simulator_modal = $('#simulator_modal')
+function init_simulator_modal(html_str) {
+    //let simulator_title = $('#simulator_modal_title')
+    //$('#simulator_modal').replaceWith(html_str)
+    //let simulator_modal = $('#simulator_modal')
 
-    simulator_title.html('Simulator: ' + simulator_id)
+    let simulator_modal = $(html_str)
 
-    let accordion = $('#simulator-accordion')
-    let accordion_card = $('.simulator-accordion-card')
+    //simulator_title.html('Simulator: ' + simulator_id)
 
-    accordion_card.clone().html(accordion_card.html().replaceAll('{requirement_id}', 'REQ1')).appendTo(accordion)
-    accordion_card.clone().html(accordion_card.html().replaceAll('{requirement_id}', 'REQ2')).appendTo(accordion)
+    //let accordion = $('#simulator-accordion')
+    //let accordion_card = $('.simulator-accordion-card')
+
+    //accordion_card.clone().html(accordion_card.html().replaceAll('{requirement_id}', 'REQ1')).appendTo(accordion)
+    //accordion_card.clone().html(accordion_card.html().replaceAll('{requirement_id}', 'REQ2')).appendTo(accordion)
+
+    //let html = $.parseHTML(html_str)
+    //alert(html_str)
+    //simulator_modal.replaceWith(html_str)
+
 
     simulator_modal.modal('show')
 }

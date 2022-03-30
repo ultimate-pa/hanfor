@@ -13,7 +13,56 @@
             </div>
             <div class="modal-body">
 
-                <div id="simulator-accordion" class="accordion"></div>
+                <div id="simulator-accordion" class="accordion">
+
+                    {% for requirement, formalizations in simulator.mapping_peas().items() %}
+                        <div class="simulator-accordion-card card">
+                            <div class="card-header" id="heading-{{ requirement.id }}">
+                                <h5 class="mb-0">
+                                    <button class="btn btn-link btn-block text-left" type="button"
+                                            data-toggle="collapse"
+                                            data-target="#collapse-{{ requirement.id }}" aria-expanded="false"
+                                            aria-controls="collapse-{{ requirement.id }}">
+                                        {{ requirement.id }}
+                                    </button>
+                                </h5>
+                            </div>
+
+                            <div id="collapse-{{ requirement.id }}" class="collapse"
+                                 aria-labelledby="heading-{{ requirement.id }}">
+                                <div class="card-body">
+
+                                    {% for formalization, countertrace_ids in formalizations.items() %}
+                                        <label for="formalization-pre">Formalization</label>
+                                        <pre id="formalization-pre"
+                                             class="alert alert-secondary">{{ formalization.get_string() }}</pre>
+
+                                        <label for="countertrace-list-group">Countertraces</label>
+                                        <ul id="countertrace-list-group" class="list-group">
+                                            {% for countertrace_id, pea in countertrace_ids.items() %}
+                                                <li class="list-group-item">
+                                                    {% for dc_phase in pea.countertrace.dc_phases %}
+                                                        {% if loop.index is greaterthan 1 %}
+                                                            ;
+                                                        {% endif %}
+                                                        {% if loop.index is equalto 2 %}
+                                                            <code class="alert-success">{{ dc_phase }}</code>
+                                                        {% else %}
+                                                            <code class="alert-light">{{ dc_phase }}</code>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+
+                                    {% endfor %}
+
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                </div>
 
             </div>
             <div class="modal-footer">
@@ -22,5 +71,3 @@
         </div>
     </div>
 </div>
-
-{% include 'simulator-accordion-card.html' %}
