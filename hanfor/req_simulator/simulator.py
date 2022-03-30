@@ -19,6 +19,7 @@ from req_simulator.countertrace import CountertraceTransformer
 from req_simulator.phase_event_automaton import PhaseEventAutomaton, build_automaton, Phase, Transition
 from req_simulator.scenario import Scenario
 from req_simulator.utils import substitute_free_variables, get_countertrace_parser
+from reqtransformer import Requirement, Formalization
 
 
 class BoolValidator(Validator):
@@ -93,13 +94,22 @@ class Simulator:
         self.states: list[Simulator.State] = []
         self.save_state()
 
-    def mapping_peas(self):
+    def mapping_peas(self) -> dict[Requirement, dict[Formalization, dict[str, PhaseEventAutomaton]]]:
         result = defaultdict(lambda: defaultdict(dict))
 
         for pea in self.peas:
             result[pea.requirement][pea.formalization][pea.countertrace_id] = pea
 
         return result
+
+    def mapping_clocks(self) -> dict[dict[str, float]]:
+        result = defaultdict(dict)
+
+        for i in range(len(self.peas)):
+            result[self.peas[i].requirement.id].update(self.clocks[i])
+
+        return result
+
 
     @staticmethod
     def load_scenario_from_file(simulator: Simulator, path: str) -> Simulator:

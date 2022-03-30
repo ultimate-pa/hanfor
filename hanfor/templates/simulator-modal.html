@@ -1,3 +1,6 @@
+{% set mapping_peas = simulator.mapping_peas() %}
+{% set mapping_clocks = simulator.mapping_clocks() %}
+
 <div id="simulator_modal"
      class="modal fade"
      tabindex="-1"
@@ -15,7 +18,7 @@
 
                 <div id="simulator-accordion" class="accordion">
 
-                    {% for requirement, formalizations in simulator.mapping_peas().items() %}
+                    {% for requirement, formalizations in mapping_peas.items() %}
                         <div class="simulator-accordion-card card">
                             <div class="card-header" id="heading-{{ requirement.id }}">
                                 <h5 class="mb-0">
@@ -31,15 +34,15 @@
                             <div id="collapse-{{ requirement.id }}" class="collapse"
                                  aria-labelledby="heading-{{ requirement.id }}">
                                 <div class="card-body">
+                                    {% for formalization, peas in formalizations.items() %}
 
-                                    {% for formalization, countertrace_ids in formalizations.items() %}
                                         <label for="formalization-pre">Formalization</label>
                                         <pre id="formalization-pre"
                                              class="alert alert-secondary">{{ formalization.get_string() }}</pre>
 
                                         <label for="countertrace-list-group">Countertraces</label>
                                         <ul id="countertrace-list-group" class="list-group">
-                                            {% for countertrace_id, pea in countertrace_ids.items() %}
+                                            {% for countertrace_id, pea in peas.items() %}
                                                 <li class="list-group-item">
                                                     {% for dc_phase in pea.countertrace.dc_phases %}
                                                         {% if loop.index is greaterthan 1 %}
@@ -56,7 +59,6 @@
                                         </ul>
 
                                     {% endfor %}
-
                                 </div>
                             </div>
                         </div>
