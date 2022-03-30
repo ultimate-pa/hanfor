@@ -10,7 +10,7 @@ from pysmt.shortcuts import TRUE, Not, And, Or, get_free_variables, get_env
 from reqtransformer import Pickleable
 
 
-class CounterTrace(Pickleable):
+class Countertrace(Pickleable):
     def __init__(self, *dc_phases: DCPhase, path: str = None) -> None:
         self.dc_phases = [dc_phase for dc_phase in dc_phases]
         super().__init__(path)
@@ -19,7 +19,7 @@ class CounterTrace(Pickleable):
         return ';'.join([str(dc_phase) for dc_phase in self.dc_phases])
 
     @classmethod
-    def load(cls, path: str) -> CounterTrace:
+    def load(cls, path: str) -> Countertrace:
         ct = super().load(path)
         ct.normalize(get_env().formula_manager)
 
@@ -45,11 +45,11 @@ class CounterTrace(Pickleable):
         GREATEREQUAL = 4
 
     class DCPhase:
-        def __init__(self, entry_events: FNode, invariant: FNode, bound_type: CounterTrace.BoundTypes, bound: int,
+        def __init__(self, entry_events: FNode, invariant: FNode, bound_type: Countertrace.BoundTypes, bound: int,
                      forbid: set[str], allow_empty: bool) -> None:
             self.entry_events: FNode = entry_events
             self.invariant: FNode = invariant
-            self.bound_type: CounterTrace.BoundTypes = bound_type
+            self.bound_type: Countertrace.BoundTypes = bound_type
             self.bound: float = bound
             self.forbid: set[str] = forbid
             self.allow_empty: bool = allow_empty
@@ -72,18 +72,18 @@ class CounterTrace(Pickleable):
             for forbid in self.forbid:
                 result += ' ' + _AND + ' ' + _NO_EVENT + ' ' + forbid
 
-            if self.bound_type == CounterTrace.BoundTypes.NONE:
+            if self.bound_type == Countertrace.BoundTypes.NONE:
                 return result
 
             result += ' ' + _AND + ' ' + _ELL
 
-            if self.bound_type == CounterTrace.BoundTypes.LESS:
+            if self.bound_type == Countertrace.BoundTypes.LESS:
                 result += ' <' + _EMPTY + ' ' if self.allow_empty else ' < '
-            elif self.bound_type == CounterTrace.BoundTypes.LESSEQUAL:
+            elif self.bound_type == Countertrace.BoundTypes.LESSEQUAL:
                 result += ' ' + _LEQ + _EMPTY + ' ' if self.allow_empty else ' ' + _LEQ + ' '
-            elif self.bound_type == CounterTrace.BoundTypes.GREATER:
+            elif self.bound_type == Countertrace.BoundTypes.GREATER:
                 result += ' >' + _EMPTY + ' ' if self.allow_empty else ' > '
-            elif self.bound_type == CounterTrace.BoundTypes.GREATEREQUAL:
+            elif self.bound_type == Countertrace.BoundTypes.GREATEREQUAL:
                 result += ' ' + _GEQ + _EMPTY + ' ' if self.allow_empty else ' ' + _GEQ + ' '
             else:
                 raise ValueError("Unexpected value of `bound_type`: %s" % self.bound_type)
@@ -100,28 +100,28 @@ class CounterTrace(Pickleable):
                 formula_manager.normalize(self.invariant)
 
         def is_upper_bound(self) -> bool:
-            return self.bound_type == CounterTrace.BoundTypes.LESS or \
-                   self.bound_type == CounterTrace.BoundTypes.LESSEQUAL
+            return self.bound_type == Countertrace.BoundTypes.LESS or \
+                   self.bound_type == Countertrace.BoundTypes.LESSEQUAL
 
         def is_lower_bound(self) -> bool:
-            return self.bound_type == CounterTrace.BoundTypes.GREATER or \
-                   self.bound_type == CounterTrace.BoundTypes.GREATEREQUAL
+            return self.bound_type == Countertrace.BoundTypes.GREATER or \
+                   self.bound_type == Countertrace.BoundTypes.GREATEREQUAL
 
         def extract_variables(self) -> set[FNode]:
             return set(get_free_variables(self.invariant))
 
 
-def phaseT() -> CounterTrace.DCPhase:
-    return CounterTrace.DCPhase(TRUE(), TRUE(), CounterTrace.BoundTypes.NONE, 0, set(), True)
+def phaseT() -> Countertrace.DCPhase:
+    return Countertrace.DCPhase(TRUE(), TRUE(), Countertrace.BoundTypes.NONE, 0, set(), True)
 
 
-def phaseE(invariant: FNode, bound_type: CounterTrace.BoundTypes, bound: int) -> CounterTrace.DCPhase:
-    return CounterTrace.DCPhase(TRUE(), invariant, bound_type, bound, set(), True)
+def phaseE(invariant: FNode, bound_type: Countertrace.BoundTypes, bound: int) -> Countertrace.DCPhase:
+    return Countertrace.DCPhase(TRUE(), invariant, bound_type, bound, set(), True)
 
 
-def phase(invariant: FNode, bound_type: CounterTrace.BoundTypes = CounterTrace.BoundTypes.NONE,
-          bound: int = 0) -> CounterTrace.DCPhase:
-    return CounterTrace.DCPhase(TRUE(), invariant, bound_type, bound, set(), False)
+def phase(invariant: FNode, bound_type: Countertrace.BoundTypes = Countertrace.BoundTypes.NONE,
+          bound: int = 0) -> Countertrace.DCPhase:
+    return Countertrace.DCPhase(TRUE(), invariant, bound_type, bound, set(), False)
 
 
 # TODO: Obsolete.
@@ -155,70 +155,70 @@ def create_counter_trace(scope: str, pattern: str, expressions: dict[str, FNode]
 '''
 
 
-class CounterTraceTransformer(Transformer):
+class CountertraceTransformer(Transformer):
     def __init__(self, expressions: dict[str, FNode]) -> None:
         super().__init__()
         self.expressions = expressions
 
     @staticmethod
-    def counter_trace(children) -> CounterTrace:
-        print("counter_trace:", children)
-        return CounterTrace(*children)
+    def countertrace(children) -> Countertrace:
+        print("countertrace:", children)
+        return Countertrace(*children)
 
     @staticmethod
-    def phase_t(children) -> CounterTrace.DCPhase:
+    def phase_t(children) -> Countertrace.DCPhase:
         print("phase_t:", children)
         return phaseT()
 
     @staticmethod
-    def phase_unbounded(children) -> CounterTrace.DCPhase:
+    def phase_unbounded(children) -> Countertrace.DCPhase:
         print("phase_unbounded:", children)
         return phase(children[0])
 
     @staticmethod
-    def phase(children) -> CounterTrace.DCPhase:
+    def phase(children) -> Countertrace.DCPhase:
         print("phase:", children)
         return phase(children[0], children[1], children[2])
 
     @staticmethod
-    def phase_e(children) -> CounterTrace.DCPhase:
+    def phase_e(children) -> Countertrace.DCPhase:
         print("phase_e:", children)
         return phaseE(children[0], children[1], children[2])
 
     @staticmethod
-    def conjunction(children) -> CounterTrace.DCPhase:
+    def conjunction(children) -> Countertrace.DCPhase:
         print("conjunction:", children)
         return And(children[0], children[1])
 
     @staticmethod
-    def disjunction(children) -> CounterTrace.DCPhase:
+    def disjunction(children) -> Countertrace.DCPhase:
         print("disjunction:", children)
         return Or(children[0], children[1])
 
     @staticmethod
-    def negation(children) -> CounterTrace.DCPhase:
+    def negation(children) -> Countertrace.DCPhase:
         print("negation:", children)
         return Not(children[0])
 
     @staticmethod
-    def bound_type_lt(children) -> CounterTrace.BoundTypes:
+    def bound_type_lt(children) -> Countertrace.BoundTypes:
         print("bound_type_lt:", children)
-        return CounterTrace.BoundTypes.LESS
+        return Countertrace.BoundTypes.LESS
 
     @staticmethod
-    def bound_type_lteq(children) -> CounterTrace.BoundTypes:
+    def bound_type_lteq(children) -> Countertrace.BoundTypes:
         print("bound_type_lteq:", children)
-        return CounterTrace.BoundTypes.LESSEQUAL
+        return Countertrace.BoundTypes.LESSEQUAL
 
     @staticmethod
-    def bound_type_gt(children) -> CounterTrace.BoundTypes:
+    def bound_type_gt(children) -> Countertrace.BoundTypes:
         print("bound_type_gt:", children)
-        return CounterTrace.BoundTypes.GREATER
+        return Countertrace.BoundTypes.GREATER
 
     @staticmethod
-    def bound_type_gteq(children) -> CounterTrace.BoundTypes:
+    def bound_type_gteq(children) -> Countertrace.BoundTypes:
         print("bound_type_gteq:", children)
-        return CounterTrace.BoundTypes.GREATEREQUAL
+        return Countertrace.BoundTypes.GREATEREQUAL
 
     def variable(self, children) -> FNode:
         print("variable:", children)

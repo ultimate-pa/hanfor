@@ -1,4 +1,4 @@
-counter_trace: phase_ (";" phase_)* ";" phase_true_ -> counter_trace
+countertrace: phase_ (";" phase_)* ";" phase_true_ -> countertrace
 
 phase_: phase_true_
     | true_ "∧" "ℓ" bound_type_ variable_ -> phase

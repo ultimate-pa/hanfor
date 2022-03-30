@@ -8,9 +8,9 @@ from pysmt.formula import FormulaManager
 from pysmt.shortcuts import TRUE, And, FALSE, Or, Not, Symbol, LT, GE, LE, is_valid, Iff, Solver, is_sat, get_env
 from pysmt.typing import REAL
 
-from req_simulator.counter_trace import CounterTrace
+from req_simulator.countertrace import Countertrace
 from req_simulator.utils import substitute_free_variables
-from reqtransformer import Pickleable
+from reqtransformer import Pickleable, Requirement, Formalization
 
 SOLVER_NAME = 'cvc4'
 SOLVER = Solver(name=SOLVER_NAME)
@@ -94,7 +94,7 @@ class Phase:
         return (k, clock_bounds[k])
 
     @staticmethod
-    def compute_state_invariant(ct: CounterTrace, p: Sets) -> FNode:
+    def compute_state_invariant(ct: Countertrace, p: Sets) -> FNode:
         inactive = {*range(len(ct.dc_phases))} - p.active
 
         result = And(*[ct.dc_phases[i].invariant for i in p.active],
@@ -103,7 +103,7 @@ class Phase:
         return result.simplify()
 
     @staticmethod
-    def compute_clock_invariant(ct: CounterTrace, p: Sets, cp: str) -> FNode:
+    def compute_clock_invariant(ct: Countertrace, p: Sets, cp: str) -> FNode:
         result = And(LE(Symbol(cp + str(i), REAL), ct.dc_phases[i].bound) for i in p.active if
                      i in p.wait or ct.dc_phases[i].is_upper_bound() and can_seep(p, i) == FALSE())
 
@@ -144,13 +144,13 @@ class Transition:
 
 
 class PhaseEventAutomaton(Pickleable):
-    def __init__(self, counter_trace: CounterTrace = None, path: str = None):
+    def __init__(self, countertrace: Countertrace = None, path: str = None):
         self.clocks: set[str] = set()
         self.phases: defaultdict[Phase, set[Transition]] = defaultdict(set)
-        self.counter_trace: CounterTrace = counter_trace
-        self.requirement_id: str = None
-        self.formalization_id: int = None
-        self.counter_trace_id: int = None
+        self.countertrace: Countertrace = countertrace
+        self.requirement: Requirement = None
+        self.formalization: Formalization = None
+        self.countertrace_id: int = None
 
         super().__init__(path)
 
@@ -165,7 +165,7 @@ class PhaseEventAutomaton(Pickleable):
         return pea
 
     def normalize(self, formula_manager: FormulaManager) -> None:
-        self.counter_trace.normalize(formula_manager)
+        self.countertrace.normalize(formula_manager)
 
         for transitions in self.phases.values():
             for transition in transitions:
@@ -182,7 +182,7 @@ class PhaseEventAutomaton(Pickleable):
         self.phases[transition.src].add(transition)
 
 
-def build_automaton(ct: CounterTrace, cp: str = 'c') -> PhaseEventAutomaton:
+def build_automaton(ct: Countertrace, cp: str = 'c') -> PhaseEventAutomaton:
     pea = PhaseEventAutomaton(ct)
     visited, pending = set(), set()
     init = True
@@ -212,7 +212,7 @@ def build_automaton(ct: CounterTrace, cp: str = 'c') -> PhaseEventAutomaton:
     return pea
 
 
-def build_successors(i: int, p: Sets, p_: Sets, resets: set[str], guard: FNode, ct: CounterTrace,
+def build_successors(i: int, p: Sets, p_: Sets, resets: set[str], guard: FNode, ct: Countertrace,
                      enter: dict[int, FNode], keep: dict[int, FNode], cp: str) -> list[tuple[Sets, FNode, set[str]]]:
     result = []
     guard = guard.simplify()
@@ -246,7 +246,7 @@ def build_successors(i: int, p: Sets, p_: Sets, resets: set[str], guard: FNode, 
 
     if ct.dc_phases[i].is_lower_bound():
         # Case 2a: clocks[i] in resets.
-        if ct.dc_phases[i].bound_type == CounterTrace.BoundTypes.GREATEREQUAL:
+        if ct.dc_phases[i].bound_type == Countertrace.BoundTypes.GREATEREQUAL:
             result.extend(build_successors(i + 1, p, p_.add_gteq(i), resets.union({cp + str(i)}),
                                            And(guard, Not(keep[i]), enter[i]),
                                            ct, enter, keep, cp))
@@ -278,7 +278,7 @@ def build_successors(i: int, p: Sets, p_: Sets, resets: set[str], guard: FNode, 
 
     elif ct.dc_phases[i].is_upper_bound() and can_seep(p_, i) == FALSE():
         # Case 2c: clocks[i] in resets.
-        if ct.dc_phases[i].bound_type == CounterTrace.BoundTypes.LESS:
+        if ct.dc_phases[i].bound_type == Countertrace.BoundTypes.LESS:
             result.extend(build_successors(i + 1, p, p_.add_less(i), resets.union({cp + str(i)}),
                                            And(guard, enter[i] or can_seep(p, i)),
                                            ct, enter, keep, cp))
@@ -320,7 +320,7 @@ def build_successors(i: int, p: Sets, p_: Sets, resets: set[str], guard: FNode, 
     return result
 
 
-def compute_enter_keep(ct: CounterTrace, p: Sets, init: bool, cp: str) -> tuple[dict[int, FNode], dict[int, FNode]]:
+def compute_enter_keep(ct: Countertrace, p: Sets, init: bool, cp: str) -> tuple[dict[int, FNode], dict[int, FNode]]:
     enter_, keep_ = {}, {}
 
     if init:
@@ -341,19 +341,19 @@ def compute_enter_keep(ct: CounterTrace, p: Sets, init: bool, cp: str) -> tuple[
     return enter_, keep_
 
 
-def enter(ct: CounterTrace, p: Sets, i: int, cp: str) -> FNode:
+def enter(ct: Countertrace, p: Sets, i: int, cp: str) -> FNode:
     inv = substitute_free_variables(ct.dc_phases[i].invariant)
     return And(complete(ct, p, i - 1, cp), inv).simplify()
     # return And(complete(ct, p, i - 1), ct.dc_phases[i].invariant).simplify()
 
 
-def seep(ct: CounterTrace, p: Sets, i: int) -> FNode:
+def seep(ct: Countertrace, p: Sets, i: int) -> FNode:
     inv = substitute_free_variables(ct.dc_phases[i].invariant)
     return And(can_seep(p, i), inv).simplify()
     # return And(can_seep(p, i), ct.dc_phases[i].invariant).simplify()
 
 
-def keep(ct: CounterTrace, p: Sets, i: int, cp: str) -> FNode:
+def keep(ct: Countertrace, p: Sets, i: int, cp: str) -> FNode:
     inv = substitute_free_variables(ct.dc_phases[i].invariant)
     return And(TRUE() if i in p.active else FALSE(), inv,
                LT(Symbol(cp + str(i), REAL), ct.dc_phases[i].bound)
@@ -364,7 +364,7 @@ def keep(ct: CounterTrace, p: Sets, i: int, cp: str) -> FNode:
     #           if ct.dc_phases[i].is_upper_bound() and can_seep(p, i) == FALSE() else TRUE()).simplify()
 
 
-def complete(ct: CounterTrace, p: Sets, i: int, cp: str) -> FNode:
+def complete(ct: Countertrace, p: Sets, i: int, cp: str) -> FNode:
     result = TRUE() if i in p.active else FALSE()
 
     if i in p.wait:

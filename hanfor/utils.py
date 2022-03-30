@@ -248,7 +248,7 @@ def get_requirements_using_var(requirements: list, var_name: str):
     result_rids = []
     for requirement in requirements:  # type: Requirement
         if requirement.uses_var(var_name):
-            result_rids.append(requirement.rid)
+            result_rids.append(requirement.id)
 
     return result_rids
 
@@ -520,7 +520,7 @@ def rename_variable_in_expressions(app, occurences, var_name_old, var_name):
                     requirement.formalizations[index].expressions_mapping[key].raw_expression = new_expression
                     requirement.formalizations[index].expressions_mapping[key].used_variables.discard(var_name_old)
                     requirement.formalizations[index].expressions_mapping[key].used_variables.add(var_name)
-            logging.debug('Updated variables in requirement id: `{}`.'.format(requirement.rid))
+            logging.debug('Updated variables in requirement id: `{}`.'.format(requirement.id))
             requirement.store(filepath)
 
 
@@ -556,7 +556,7 @@ def get_requirements(input_dir, filter_list=None, invert_filter=False):
     def should_be_in_result(req) -> bool:
         if filter_list is None:
             return True
-        return (req.rid in filter_list) != invert_filter
+        return (req.id in filter_list) != invert_filter
 
     requirements = list()
     for filename in filenames:
@@ -566,7 +566,7 @@ def get_requirements(input_dir, filter_list=None, invert_filter=False):
             continue
         if hasattr(req, 'rid'):
             if should_be_in_result(req):
-                logging.debug('Adding {} to results.'.format(req.rid))
+                logging.debug('Adding {} to results.'.format(req.id))
                 requirements.append(req)
 
     # We want to preserve the order of the generated CSV relative to the origin CSV.
@@ -740,7 +740,7 @@ def generate_req_file_content(app, filter_list=None, invert_filter=False, variab
         for requirement in requirements:  # type: Requirement
             try:
                 for index, formalization in requirement.formalizations.items():
-                    slug, used_slugs = clean_identifier_for_ultimate_parser(requirement.rid, used_slugs)
+                    slug, used_slugs = clean_identifier_for_ultimate_parser(requirement.id, used_slugs)
                     if formalization.scoped_pattern is None:
                         continue
                     if formalization.scoped_pattern.get_scope_slug().lower() == 'none':
@@ -1043,7 +1043,7 @@ def get_requirements_in_folder(folder_path):
     for filename in get_filenames_from_dir(folder_path):
         try:
             r = Requirement.load(filename)
-            result[r.rid] = {
+            result[r.id] = {
                 'req': r,
                 'path': filename
             }
@@ -1136,7 +1136,7 @@ class GenerateScopedPatternTrainingData(argparse.Action):
                     try:
                         if len(requirement.description) == 0:
                             continue
-                        slug, used_slugs = clean_identifier_for_ultimate_parser(requirement.rid, used_slugs)
+                        slug, used_slugs = clean_identifier_for_ultimate_parser(requirement.id, used_slugs)
                         result[slug] = dict()
                         result[slug]['desc'] = requirement.description
                         for index, formalization in requirement.formalizations.items():
@@ -1369,7 +1369,7 @@ class Revision:
 
     def _store_requirements(self):
         for index, req in enumerate(self.requirement_collection.requirements):  # type: Requirement
-            filename = os.path.join(self.app.config['REVISION_FOLDER'], '{}.pickle'.format(req.rid))
+            filename = os.path.join(self.app.config['REVISION_FOLDER'], '{}.pickle'.format(req.id))
             req.store(filename)
 
     def _generate_session_dict(self):

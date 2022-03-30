@@ -1,16 +1,13 @@
 from collections import namedtuple
 from unittest import TestCase
 
-from lark.lark import Lark
 from parameterized import parameterized
 from pysmt.fnode import FNode
 from pysmt.shortcuts import Symbol, FALSE, And, Equals, Int, Real
 from pysmt.typing import REAL, INT
 
-from req_simulator.counter_trace import CounterTraceTransformer
-
-parser = Lark.open("../../req_simulator/counter_trace_grammar.lark", rel_to=__file__, start='counter_trace',
-                   parser='lalr')
+from req_simulator.countertrace import CountertraceTransformer
+from req_simulator.utils import get_countertrace_parser
 
 Test = namedtuple('Test', 'expressions ct_str expected')
 
@@ -153,7 +150,7 @@ class TestCounterTrace(TestCase):
 
     @parameterized.expand([(k, *v) for k, v in testcases.items()])
     def test_counter_trace(self, name, expressions: dict[str, FNode], counter_trace: str, expected: str):
-        lark_tree = parser.parse(counter_trace)
-        actual = CounterTraceTransformer(expressions).transform(lark_tree)
+        lark_tree = get_countertrace_parser().parse(counter_trace)
+        actual = CountertraceTransformer(expressions).transform(lark_tree)
         self.assertEqual(expected, str(actual), msg="Error while parsing counter trace.")
         # Image.open(BytesIO(pydot__tree_to_graph(lark_tree).create_png())).show()

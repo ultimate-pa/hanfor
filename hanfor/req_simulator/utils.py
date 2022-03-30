@@ -4,8 +4,20 @@ import json
 from typing import Any
 
 import yaml
+from lark import Lark
 from pysmt.fnode import FNode
 from pysmt.shortcuts import Symbol, substitute
+
+ct_parser = None
+
+
+def get_countertrace_parser() -> Lark:
+    global ct_parser
+
+    if ct_parser is None:
+        ct_parser = Lark.open('countertrace_grammar.lark', rel_to=__file__, start='countertrace', parser='lalr')
+
+    return ct_parser
 
 
 def substitute_free_variables(fnode: FNode, suffix: str = "_") -> FNode:

@@ -1,19 +1,16 @@
 from unittest import TestCase
 
-from lark import Lark
 from parameterized import parameterized
 from pysmt.fnode import FNode
 from pysmt.shortcuts import Real, Symbol, GE, Int, Equals
 from pysmt.typing import REAL, INT
 
-from req_simulator.counter_trace import CounterTraceTransformer
+from req_simulator.countertrace import CountertraceTransformer
 from req_simulator.phase_event_automaton import build_automaton
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
+from req_simulator.utils import get_countertrace_parser
 from tests.test_req_simulator import test_counter_trace
-
-parser = Lark.open('../../req_simulator/counter_trace_grammar.lark', rel_to=__file__, start='counter_trace',
-                   parser='lalr')
 
 testcases = [
     ('false',
@@ -140,7 +137,7 @@ class TestSimulator(TestCase):
         _, ct_str, _ = test_counter_trace.testcases[pattern_name]
         expressions['T'] = Real(5)
 
-        ct = CounterTraceTransformer(expressions).transform(parser.parse(ct_str))
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
         pea = build_automaton(ct)
         scenario = Scenario.parse_from_yaml_or_json_string(yaml_str)
         simulator = Simulator([pea], scenario)

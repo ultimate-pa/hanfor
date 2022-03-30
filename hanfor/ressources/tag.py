@@ -30,7 +30,7 @@ class Tag(Ressource):
                         'color': self.get_tag_color(tag),
                         'description': self.get_tag_desc(tag)
                     }
-                self._available_tags[tag]['used_by'].append(req.rid)
+                self._available_tags[tag]['used_by'].append(req.id)
 
     def sort_used_by_field(self):
         for tag in self._available_tags.keys():
@@ -80,7 +80,7 @@ class Tag(Ressource):
                     filepath = os.path.join(self.app.config['REVISION_FOLDER'], '{}.pickle'.format(rid))
                     if os.path.exists(filepath) and os.path.isfile(filepath):
                         requirement = Requirement.load(filepath)
-                        logging.info('Update tags in requirement `{}`'.format(requirement.rid))
+                        logging.info('Update tags in requirement `{}`'.format(requirement.id))
                         requirement.tags.discard(tag_name_old)
                         requirement.tags.add(tag_name)
                         requirement.store()
@@ -114,6 +114,6 @@ class Tag(Ressource):
                 filepath = os.path.join(self.app.config['REVISION_FOLDER'], '{}.pickle'.format(rid))
                 if os.path.exists(filepath) and os.path.isfile(filepath):
                     requirement = Requirement.load(filepath)
-                    logging.info('Delete tag `{}` in requirement `{}`'.format(tag_name, requirement.rid))
+                    logging.info('Delete tag `{}` in requirement `{}`'.format(tag_name, requirement.id))
                     requirement.tags.discard(tag_name)
                     requirement.store()
