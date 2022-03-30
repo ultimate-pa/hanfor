@@ -11,11 +11,21 @@ head over to [Hanfor's Git repository](https://github.com/ultimate-pa/hanfor) an
 
 _Hanfor_ is a web based tool running on java script on the client side and python on the server side.
 
+### Backend
+
+Prepare the python environment as described in the [installation guide](../installation/installation.md#install-dependencies).
+
+Additionally install the development requirements
+
+```sh
+pip install -r requirements-dev.txt
+```
+
 ### Frontend
 
-To prepare the client side java script code (and also some static assets),
+To prepare the client side java script code development (and also some static assets),
 the java script based module bundler [webpack](https://webpack.js.org/) is needed. 
-Also, _webpack_ has to be executed before trying out changes in the frontend.
+Note, that _webpack_ has to be executed after changing in the frontend.
 
 - Install [Node.js](https://nodejs.org/en/) on your machine (in order to be able to execute java script code).
 - Run the package manager [npm](https://www.npmjs.com/) (part of the _Node.js_ installation) to install webpack.
@@ -24,33 +34,27 @@ Also, _webpack_ has to be executed before trying out changes in the frontend.
 npm install --save-dev webpack
 ```
 
-### Backend
-
-To prepare for server side development:
-
-- install the latest version of [python](https://www.python.org/)
-- install all dependencies using the python package manager
-
-```sh
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
-```
-
 ## Build and Run
 
 The frontend of _Hanfor_ has to be built before deploying.
 
 ### Frontend
 
-TBA
-<!--
-How to build the frontend (webpack)
-Is there a development build where webpack is more lenient
--->
+To build the frontend change your path to the ``static`` folder, and execute _webpack_ as follows
+
+```sh
+cd static
+npm run build
+```
+
+If you want to debug java-script code in your browser, you can tell _webpack_ to include a source map by running the following command instead. Note: please do not commit the resulting build to the repository.
+
+```sh
+npm run dev-build
+```
+
+
 
 ### Backend
 
-TBA
-<!--
-Just run app.py
--->
+Launch a Hanfor session as explained in the [installation guide](../installation/installation.md#launch-a-hanfor-session).
