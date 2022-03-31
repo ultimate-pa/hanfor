@@ -7,6 +7,9 @@ require('../css/bootstrap-tokenfield.css');
 require('../css/tether.css');
 require('../css/app.css');
 
+// TODO: Remove in Bootstrap version >= 5.1
+require('../css/floating-labels.css')
+
 // Dark theme switch.
 function update_color_theme() {
   let theme_switch = $('#dark_theme_switch');
