@@ -5,14 +5,14 @@
             <div class="card-header" id="heading-{{ requirement.id }}">
                 <h5 class="mb-0">
                     <button class="btn btn-sm btn-link btn-block text-left" type="button" data-toggle="collapse"
-                            data-target="#collapse-{{ requirement.id }}" aria-expanded="false"
+                            data-target="#collapse-{{ requirement.id }}" aria-expanded="true"
                             aria-controls="collapse-{{ requirement.id }}">
                         {{ requirement.id }}
                     </button>
                 </h5>
             </div>
 
-            <div id="collapse-{{ requirement.id }}" class="collapse" aria-labelledby="heading-{{ requirement.id }}">
+            <div id="collapse-{{ requirement.id }}" class="collapse show" aria-labelledby="heading-{{ requirement.id }}">
                 <div class="card-body">
 
                     {% for formalization, peas in formalizations.items() %}
@@ -26,8 +26,8 @@
                                 <li class="list-group-item">
 
                                     {% for dc_phase in pea.countertrace.dc_phases %}
-                                        {{ loop.index <= 1 or ";" }}
-                                        <code class={{ "alert-success" if loop.index == 2 else "text-dark" }}>{{ dc_phase }}</code>
+                                        {{ ";" if loop.index > 1 }}
+                                        <code class="text-dark {{ "alert-success" if loop.index == 2 }}">{{ dc_phase }}</code>
                                     {% endfor %}
 
                                 </li>
