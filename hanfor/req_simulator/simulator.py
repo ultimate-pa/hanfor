@@ -102,14 +102,6 @@ class Simulator:
 
         return result
 
-    def mapping_clocks(self) -> dict[dict[str, float]]:
-        result = defaultdict(dict)
-
-        for i in range(len(self.peas)):
-            result[self.peas[i].requirement.id].update(self.clocks[i])
-
-        return result
-
 
     @staticmethod
     def load_scenario_from_file(simulator: Simulator, path: str) -> Simulator:

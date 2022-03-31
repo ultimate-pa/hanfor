@@ -1,6 +1,3 @@
-{% set mapping_peas = simulator.mapping_peas() %}
-{% set mapping_clocks = simulator.mapping_clocks() %}
-
 <div id="simulator_modal"
      class="modal fade"
      tabindex="-1"
@@ -15,57 +12,12 @@
                 </button>
             </div>
             <div class="modal-body">
-
-                <div id="simulator-accordion" class="accordion">
-
-                    {% for requirement, formalizations in mapping_peas.items() %}
-                        <div class="simulator-accordion-card card">
-                            <div class="card-header" id="heading-{{ requirement.id }}">
-                                <h5 class="mb-0">
-                                    <button class="btn btn-link btn-block text-left" type="button"
-                                            data-toggle="collapse"
-                                            data-target="#collapse-{{ requirement.id }}" aria-expanded="false"
-                                            aria-controls="collapse-{{ requirement.id }}">
-                                        {{ requirement.id }}
-                                    </button>
-                                </h5>
-                            </div>
-
-                            <div id="collapse-{{ requirement.id }}" class="collapse"
-                                 aria-labelledby="heading-{{ requirement.id }}">
-                                <div class="card-body">
-                                    {% for formalization, peas in formalizations.items() %}
-
-                                        <label for="formalization-pre">Formalization</label>
-                                        <pre id="formalization-pre"
-                                             class="alert alert-secondary">{{ formalization.get_string() }}</pre>
-
-                                        <label for="countertrace-list-group">Countertraces</label>
-                                        <ul id="countertrace-list-group" class="list-group">
-                                            {% for countertrace_id, pea in peas.items() %}
-                                                <li class="list-group-item">
-                                                    {% for dc_phase in pea.countertrace.dc_phases %}
-                                                        {% if loop.index is greaterthan 1 %}
-                                                            ;
-                                                        {% endif %}
-                                                        {% if loop.index is equalto 2 %}
-                                                            <code class="alert-success">{{ dc_phase }}</code>
-                                                        {% else %}
-                                                            <code class="alert-light">{{ dc_phase }}</code>
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                </li>
-                                            {% endfor %}
-                                        </ul>
-
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-
+                <div class="form-label-group">
+                    <input type="password" id="inputPassword" class="form-control" placeholder="Password" required="">
+                    <label for="inputPassword">Password</label>
                 </div>
 
+                {% include "simulator-accordion.html" %}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
