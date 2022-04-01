@@ -85,19 +85,29 @@ function init_simulator_tab() {
                     return
                 }
 
-                init_simulator_modal(simulator_id, response['data']['html'])
+                init_simulator_modal(simulator_id, response['data'])
             }
         })
     })
 }
 
-function init_simulator_modal(simulator_id, html_str) {
-    let simulator_modal = $(html_str)
+function init_simulator_modal(simulator_id, data) {
+    let simulator_modal = $(data['html'])
     let simulator_next_step_btn = simulator_modal.find('#simulator-next-step-btn')
     let simulator_previous_step_btn = simulator_modal.find('#simulator-previous-step-btn')
 
     simulator_modal.find('#simulator-countertraces-accordion').sortable();
     simulator_modal.find('#simulator-variables-form-row').sortable();
+
+    let var_mapping = data['var_mapping']
+    let time = Object.keys(var_mapping)[Object.keys(var_mapping).length - 1]
+    let variables = var_mapping[time]
+
+    let variable_inputs = {}
+    $.each(variables, function (variable, value) {
+        variable_inputs[variable] = simulator_modal.find('#' + variable + '_input')
+        variable_inputs[variable].val(value !== 'None' ? value : '')
+    });
 
     simulator_next_step_btn.click(function () {
         $.ajax({

@@ -12,7 +12,7 @@
         <tr>
             <td>{{ variable }}</td>
             <td>{{ variable.symbol_type() }}</td>
-            <td><input class="form-control form-control-sm" type="text"></td>
+            <td><input id="{{ variable }}_input" class="form-control form-control-sm" type="text"></td>
         </tr>
     {% endfor %}
     </tbody>
@@ -23,7 +23,7 @@
     {% for variable in simulator.variables.keys() %}
         <div class="col-sm-2">
             <div class="form-label-group mb-2">
-                <input type="text" id="input2" class="form-control" title="{{ variable }}" required>
+                <input id="{{ variable }}_input" class="form-control" type="text" title="{{ variable }}">
                 <label class="text-truncate" for="input2">
                     <span class="d-inline-block text-truncate w-75">{{ variable }}</span>
                     <span class="float-right"><em>({{ variable.symbol_type() }})</em></span>
