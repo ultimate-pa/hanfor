@@ -4,7 +4,6 @@ import os
 import uuid
 
 from flask import Flask, render_template
-from lark import Lark
 
 import boogie_parsing
 from req_simulator.boogie_pysmt_transformer import BoogiePysmtTransformer
@@ -28,16 +27,20 @@ class SimulatorRessource(Ressource):
         if command == 'get_simulators':
             self.get_simulators()
 
-        if command == 'init_simulator_modal':
-            simulator_id = self.request.args.get('simulator_id')
-            html = render_template('simulator-modal.html', simulator=self.simulator_cache[simulator_id])
-            self.response.data = {'html': html}
+        if command == 'start_simulator':
+            self.start_simulator()
 
     def POST(self):
         command = self.request.form.get('command')
 
         if command == 'create_simulator':
             self.create_simulator()
+
+        if command == 'next_step':
+            self.next_step()
+
+        if command == 'previous_step':
+            self.previous_step()
 
     def DELETE(self):
         command = self.request.form.get('command')
@@ -48,10 +51,24 @@ class SimulatorRessource(Ressource):
     def get_simulators(self) -> None:
         self.response.data = {'simulators': [(k, v.name) for k, v in self.simulator_cache.items()]}
 
+    def start_simulator(self) -> None:
+        simulator_id = self.request.args.get('simulator_id')
+
+        if len(simulator_id) <= 0:
+            self.response.success = False
+            self.response.errormsg = 'No simulator selected.'
+            return
+
+        data = {'html': render_template('simulator-modal.html', simulator=self.simulator_cache[simulator_id])}
+        self.response.data = data
+
     def create_simulator(self) -> None:
         requirement_ids = json.loads(self.request.form.get('requirement_ids'))
-        simulator_name = self.request.form.get('simulator_name')
-        simulator_id = uuid.uuid4().hex
+
+        if len(requirement_ids) <= 0:
+            self.response.success = False
+            self.response.errormsg = 'No requirement selected.'
+            return
 
         peas = []
         for requirement_id in requirement_ids:
@@ -64,19 +81,32 @@ class SimulatorRessource(Ressource):
 
             peas.extend(peas_tmp)
 
+        simulator_name = self.request.form.get('simulator_name')
+        simulator_id = uuid.uuid4().hex
+
         self.simulator_cache[simulator_id] = Simulator(peas, name=simulator_name)
         data = {'simulator_id': simulator_id, 'simulator_name': simulator_name}
         self.response.data = data
 
+    def next_step(self) -> None:
+        raise NotImplementedError('next step')
+
+    def previous_step(self) -> None:
+        raise NotImplementedError('previous step')
 
     def delete_simulator(self) -> None:
         simulator_id = self.request.form.get('simulator_id')
+
+        if len(simulator_id) <= 0:
+            self.response.success = False
+            self.response.errormsg = 'No simulator selected.'
+            return
+
         value = self.simulator_cache.pop(simulator_id, None)
 
         if value is None:
             self.response.success = False
-            self.response.errormsg = 'No simulator with given id found.'
-
+            self.response.errormsg = 'Could not find simulator with given id.'
 
     @staticmethod
     def load_phase_event_automata(requirement_id: str, app: Flask):
@@ -88,20 +118,17 @@ class SimulatorRessource(Ressource):
 
         return result
 
-
     @staticmethod
     def store_phase_event_automata(peas: list[PhaseEventAutomaton], app: Flask) -> None:
         for pea in peas:
             file = f'{pea.requirement.id}_{pea.formalization.id}_{pea.countertrace_id}_PEA.pickle'
             pea.store(os.path.join(app.config['REVISION_FOLDER'], file))
 
-
     @staticmethod
     def delete_phase_event_automata(requirement_id: str, app: Flask):
         dir = app.config['REVISION_FOLDER']
         for file in fnmatch.filter(os.listdir(dir), f'{requirement_id}_*_PEA.pickle'):
             os.remove(os.path.join(dir, file))
-
 
     @staticmethod
     def has_variable_with_unknown_type(formalization: Formalization, variables: dict[str, str]) -> bool:
@@ -110,7 +137,6 @@ class SimulatorRessource(Ressource):
                 return True
 
         return False
-
 
     @staticmethod
     def create_phase_event_automata(requirement_id: str, app: Flask) -> list[PhaseEventAutomaton]:

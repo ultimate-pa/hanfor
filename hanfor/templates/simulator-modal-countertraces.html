@@ -1,7 +1,6 @@
-<div id="simulator-accordion" class="accordion">
-
+<div id="simulator-countertraces-accordion" class="accordion">
     {% for requirement, formalizations in simulator.mapping_peas().items() %}
-        <div class="simulator-accordion-card card">
+        <div class="simulator-countertraces-card card">
             <div class="card-header" id="heading-{{ requirement.id }}">
                 <h5 class="mb-0">
                     <button class="btn btn-sm btn-link btn-block text-left" type="button" data-toggle="collapse"
@@ -12,33 +11,27 @@
                 </h5>
             </div>
 
-            <div id="collapse-{{ requirement.id }}" class="collapse show" aria-labelledby="heading-{{ requirement.id }}">
+            <div id="collapse-{{ requirement.id }}" class="collapse show"
+                 aria-labelledby="heading-{{ requirement.id }}">
                 <div class="card-body">
-
                     {% for formalization, peas in formalizations.items() %}
                         <label>Formalization</label>
                         <pre class="alert alert-secondary">{{ formalization.get_string() }}</pre>
 
                         <label>Countertraces</label>
                         <ul class="list-group">
-
                             {% for countertrace_id, pea in peas.items() %}
                                 <li class="list-group-item">
-
                                     {% for dc_phase in pea.countertrace.dc_phases %}
                                         {{ ";" if loop.index > 1 }}
                                         <code class="text-dark {{ "alert-success" if loop.index == 2 }}">{{ dc_phase }}</code>
                                     {% endfor %}
-
                                 </li>
                             {% endfor %}
-
                         </ul>
                     {% endfor %}
-
                 </div>
             </div>
         </div>
     {% endfor %}
-
 </div>
