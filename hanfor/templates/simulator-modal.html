@@ -14,49 +14,44 @@
             <div class="modal-body">
 
 
-                <form>
-                    <div class="form-row">
 
+                <form>
+                    <!--
+                    <table class="table table-sm">
+                        <thead>
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Value</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for item in simulator.variables.keys() %}
+                            <tr>
+                                <td>{{ item }}</td>
+                                <td>bool</td>
+                                <td><input class="form-control form-control-sm" type="text"></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    -->
+
+                    <div id="bla" class="form-row">
                         {% for item in simulator.variables.keys() %}
                             <div class="col-sm-2">
                                 <div class="form-label-group mb-2">
-                                    <input type="text" id="input2" class="form-control" placeholder="Text" required="">
-                                    <label class="text-truncate" for="input2">{{ item }}</label>
-                                </div>
-                            </div>
-                        {% endfor %}
-
-                    </div>
-
-                    <!--
-                    <div class="form-row">
-                        {% for item in simulator.variables.keys() %}
-                            <div class="col-sm-3">
-                                <div class="input-group input-group-sm mb-2">
-                                    <div class="input-group-prepend w-75">
-                                        <span class="input-group-text text-truncate text-left d-block w-100" id="basic-addon3">{{ item }}</span>
-                                    </div>
-                                    <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3">
+                                    <input type="text" id="input2" class="form-control" title="{{ item }}" required="">
+                                    <label class="text-truncate" for="input2">
+                                        <span class="d-inline-block text-truncate w-75">{{ item }}</span>
+                                        <span class="float-right"><em>(bool)</em></span>
+                                    </label>
                                 </div>
                             </div>
                         {% endfor %}
                     </div>
-                    -->
 
                 </form>
-
-                <!--
-                <div class="form-group col-sm-3">
-                    {% for item in simulator.variables.keys() %}
-                        <div class="input-group mb-2">
-                            <div class="input-group-prepend w-75">
-                                <span class="input-group-text w-100">{{ item }}</span>
-                            </div>
-                            <input type="text" aria-label="First name" class="form-control">
-                        </div>
-                    {% endfor %}
-                </div>
-                -->
 
                 <hr>
 

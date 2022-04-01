@@ -1,3 +1,6 @@
+require('jquery-ui')
+require('jquery-ui-sortable')
+
 function get_selected_requirement_ids() {
     let requirements_table = $('#requirements_table').DataTable()
 
@@ -115,8 +118,39 @@ function init_simulator_modal(html_str) {
     //alert(html_str)
     //simulator_modal.replaceWith(html_str)
 
+    $(function () {
+        simulator_modal.find('#simulator-accordion').sortable();
+    });
+
+    $(function () {
+        simulator_modal.find('#bla').sortable();
+    });
+
 
     simulator_modal.modal('show')
+
+
+    /*
+
+    $(function() {
+        let accordion = $('#simulator-accordion');
+
+        accordion.sortable({
+            // Only make the .panel-heading child elements support dragging.
+            // Omit this to make then entire <li>...</li> draggable.
+            handle: '.card-header',
+            update: function() {
+                $('.simulator-accordion-card', accordion).each(function(index, elem) {
+                     let $listItem = $(elem),
+                         newIndex = $listItem.index();
+
+                     // Persist the new indices.
+                });
+            }
+        });
+    });
+
+     */
 }
 
 exports.init_simulator_tab = init_simulator_tab
