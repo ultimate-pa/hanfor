@@ -145,6 +145,11 @@
  * 2015-2021 SpryMedia Ltd - datatables.net/license/mit
  */
 
+/*! jQuery UI - v1.12.0 - 2016-08-17
+* http://jqueryui.com
+* Includes: widget.js, data.js, scroll-parent.js, widgets/sortable.js, widgets/mouse.js
+* Copyright jQuery Foundation and other contributors; Licensed MIT */
+
 /**!
  * @fileOverview Kickass library to create and place poppers near their reference elements.
  * @version 1.16.1
