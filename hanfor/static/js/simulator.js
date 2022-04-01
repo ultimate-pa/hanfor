@@ -1,25 +1,20 @@
-require('jquery-ui')
 require('jquery-ui-sortable')
 
-function get_selected_requirement_ids() {
-    let requirements_table = $('#requirements_table').DataTable()
+// TODO: Remove in Bootstrap version >= 5.1
+require('../css/floating-labels.css')
 
+function get_selected_requirement_ids(requirements_table) {
     let ids = []
-    requirements_table.rows({selected: true}).every(function () {
+    requirements_table.DataTable().rows({selected: true}).every(function () {
         ids.push(this.data()['id'])
     })
 
     return ids
 }
 
-function update_simulator_select() {
-    let simulator_select = $('#simulator-select')
-
+function update_simulator_select(simulator_select) {
     $.ajax({
-        type: 'GET',
-        url: 'simulator',
-        data: {command: 'get_simulators'},
-        success: function (response) {
+        type: 'GET', url: 'simulator', data: {command: 'get_simulators'}, success: function (response) {
             if (response['success'] === false) {
                 alert(response['errormsg'])
                 return
@@ -36,19 +31,20 @@ function update_simulator_select() {
 function init_simulator_tab() {
     let simulator_name_input = $('#simulator-name-input')
     let simulator_select = $('#simulator-select')
+    let simulator_create_btn = $('#simulator-create-btn')
+    let simulator_delete_btn = $('#simulator-delete-btn')
+    let siumlator_start_btn = $('#simulator-start-btn')
+    let requirements_table = $('#requirements_table')
 
-    update_simulator_select()
+    update_simulator_select(simulator_select)
 
-    $('#create-simulator-btn').click(function () {
+    simulator_create_btn.click(function () {
         $.ajax({
-            type: 'POST',
-            url: 'simulator',
-            data: {
+            type: 'POST', url: 'simulator', data: {
                 command: 'create_simulator',
                 simulator_name: simulator_name_input.val() || 'unnamed',
-                requirement_ids: JSON.stringify(get_selected_requirement_ids())
-            },
-            success: function (response) {
+                requirement_ids: JSON.stringify(get_selected_requirement_ids(requirements_table))
+            }, success: function (response) {
                 if (response['success'] === false) {
                     alert(response['errormsg'])
                     return
@@ -61,96 +57,83 @@ function init_simulator_tab() {
         })
     })
 
-    $('#delete-simulator-btn').click(function () {
+    simulator_delete_btn.click(function () {
         $.ajax({
-            type: 'DELETE',
-            url: 'simulator',
-            data: {
-                command: 'delete_simulator',
-                simulator_id: simulator_select.val()
-            },
-            success: function (response) {
+            type: 'DELETE', url: 'simulator', data: {
+                command: 'delete_simulator', simulator_id: simulator_select.val()
+            }, success: function (response) {
                 if (response['success'] === false) {
                     alert(response['errormsg'])
                     return
                 }
 
-                update_simulator_select()
+                update_simulator_select(simulator_select)
             }
         });
     });
 
-    $('#start-simulator-btn').click(function () {
+    siumlator_start_btn.click(function () {
         let simulator_id = simulator_select.val()
 
         $.ajax({
             type: 'GET',
             url: 'simulator',
-            data: {command: 'init_simulator_modal', simulator_id: simulator_id},
+            data: {command: 'start_simulator', simulator_id: simulator_id},
             success: function (response) {
                 if (response['success'] === false) {
                     alert(response['errormsg'])
                     return
                 }
 
-                init_simulator_modal(response['data']['html'])
+                init_simulator_modal(simulator_id, response['data']['html'])
             }
         })
     })
 }
 
-function init_simulator_modal(html_str) {
-    //let simulator_title = $('#simulator_modal_title')
-    //$('#simulator_modal').replaceWith(html_str)
-    //let simulator_modal = $('#simulator_modal')
-
+function init_simulator_modal(simulator_id, html_str) {
     let simulator_modal = $(html_str)
+    let simulator_next_step_btn = simulator_modal.find('#simulator-next-step-btn')
+    let simulator_previous_step_btn = simulator_modal.find('#simulator-previous-step-btn')
 
-    //simulator_title.html('Simulator: ' + simulator_id)
+    simulator_modal.find('#simulator-countertraces-accordion').sortable();
+    simulator_modal.find('#simulator-variables-form-row').sortable();
 
-    //let accordion = $('#simulator-accordion')
-    //let accordion_card = $('.simulator-accordion-card')
+    simulator_next_step_btn.click(function () {
+        $.ajax({
+            type: 'POST',
+            url: 'simulator',
+            data: {command: 'next_step', simulator_id: simulator_id},
+            success: function (response) {
+                if (response['success'] === false) {
+                    alert(response['errormsg'])
+                    return
+                }
 
-    //accordion_card.clone().html(accordion_card.html().replaceAll('{requirement_id}', 'REQ1')).appendTo(accordion)
-    //accordion_card.clone().html(accordion_card.html().replaceAll('{requirement_id}', 'REQ2')).appendTo(accordion)
+                // TODO: next step
+                alert('next step')
+            }
+        })
+    })
 
-    //let html = $.parseHTML(html_str)
-    //alert(html_str)
-    //simulator_modal.replaceWith(html_str)
+    simulator_previous_step_btn.click(function () {
+        $.ajax({
+            type: 'POST',
+            url: 'simulator',
+            data: {command: 'previous_step', simulator_id: simulator_id},
+            success: function (response) {
+                if (response['success'] === false) {
+                    alert(response['errormsg'])
+                    return
+                }
 
-    $(function () {
-        simulator_modal.find('#simulator-accordion').sortable();
-    });
-
-    $(function () {
-        simulator_modal.find('#bla').sortable();
-    });
-
+                // TODO: previous step
+                alert('previous step')
+            }
+        })
+    })
 
     simulator_modal.modal('show')
-
-
-    /*
-
-    $(function() {
-        let accordion = $('#simulator-accordion');
-
-        accordion.sortable({
-            // Only make the .panel-heading child elements support dragging.
-            // Omit this to make then entire <li>...</li> draggable.
-            handle: '.card-header',
-            update: function() {
-                $('.simulator-accordion-card', accordion).each(function(index, elem) {
-                     let $listItem = $(elem),
-                         newIndex = $listItem.index();
-
-                     // Persist the new indices.
-                });
-            }
-        });
-    });
-
-     */
 }
 
 exports.init_simulator_tab = init_simulator_tab
