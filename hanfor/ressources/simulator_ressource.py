@@ -59,7 +59,11 @@ class SimulatorRessource(Ressource):
             self.response.errormsg = 'No simulator selected.'
             return
 
-        data = {'html': render_template('simulator-modal.html', simulator=self.simulator_cache[simulator_id])}
+        data = {
+            'html': render_template('simulator-modal.html', simulator=self.simulator_cache[simulator_id]),
+            'var_mapping': self.simulator_cache[simulator_id].get_var_mapping()
+        }
+
         self.response.data = data
 
     def create_simulator(self) -> None:

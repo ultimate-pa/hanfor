@@ -94,7 +94,7 @@ class Simulator:
         self.states: list[Simulator.State] = []
         self.save_state()
 
-    def mapping_peas(self) -> dict[Requirement, dict[Formalization, dict[str, PhaseEventAutomaton]]]:
+    def get_pea_mapping(self) -> dict[Requirement, dict[Formalization, dict[str, PhaseEventAutomaton]]]:
         result = defaultdict(lambda: defaultdict(dict))
 
         for pea in self.peas:
@@ -102,6 +102,15 @@ class Simulator:
 
         return result
 
+    def get_var_mapping(self) -> dict[float, dict[str, str]]:
+        result = defaultdict(dict)
+
+        for state in self.states:
+            result[state.time] = {str(k): str(v) for k, v in state.variables.items()}
+
+        result[self.time] = {str(k): str(v) for k, v in self.variables.items()}
+
+        return result
 
     @staticmethod
     def load_scenario_from_file(simulator: Simulator, path: str) -> Simulator:
