@@ -87,6 +87,8 @@ class Simulator:
                                               pea.countertrace.extract_variables()}
         self.time_step: float = 1.0
 
+        self.enabled_transitions = []
+
         if self.scenario is not None:
             self.time_step = self.scenario.valuations[0.0].get_duration()
             self.update_variables()
@@ -221,6 +223,8 @@ class Simulator:
             if is_enabled:
                 enabled_transitions.append(transition_tuple)
 
+        self.enabled_transitions = enabled_transitions
+
         return enabled_transitions
 
     def check_sat_old(self) -> list[tuple[Transition]]:
@@ -258,6 +262,8 @@ class Simulator:
 
             if sat:
                 enabled_transitions.append(transition_tuple)
+
+        self.enabled_transitions = enabled_transitions
 
         return enabled_transitions
 

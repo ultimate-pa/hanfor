@@ -22,7 +22,7 @@ function update_simulator_select(simulator_select) {
 
             simulator_select.empty()
             $.each(response['data']['simulators'], function (index, value) {
-                simulator_select.append($('<option></option>').val(value[0]).text(value[1] + ' (' + value[0] + ')'))
+                simulator_select.append($('<option></option>').val(index).text(value + ' (' + value + ')'))
             })
         }
     })
@@ -52,7 +52,7 @@ function init_simulator_tab() {
 
                 let id = response['data']['simulator_id']
                 let name = response['data']['simulator_name']
-                simulator_select.prepend($('<option></option>').val(id).text(name + ' (' + id + ')')).val(id)
+                simulator_select.prepend($('<option></option>').val(id).text(name + ' (' + id + ')'))
             }
         })
     })
@@ -75,10 +75,8 @@ function init_simulator_tab() {
     simulator_start_btn.click(function () {
         $.ajax({
             type: 'GET', url: 'simulator', async: false, data: {
-                command: 'start_simulator',
-                simulator_id: simulator_select.val()
-            },
-            success: function (response) {
+                command: 'start_simulator', simulator_id: simulator_select.val()
+            }, success: function (response) {
                 if (response['success'] === false) {
                     alert(response['errormsg'])
                     return
@@ -91,102 +89,127 @@ function init_simulator_tab() {
 }
 
 function init_simulator_modal(data) {
-    let simulator_modal = $(data['html'])
-    let simulator_next_step_btn = simulator_modal.find('#simulator-next-step-btn')
-    let simulator_previous_step_btn = simulator_modal.find('#simulator-previous-step-btn')
-
-    simulator_modal.find('#simulator-countertraces-accordion').sortable();
-    simulator_modal.find('#simulator-variables-form-row').sortable();
-
     let simulator_id = data['simulator_id']
     let time = data['time']
     let variables = data['var_mapping'][time]
     let active_dc_phases = data['active_dc_phases']
 
+    let simulator_modal = $(data['html'])
+    let simulator_step_transition_select = simulator_modal.find('#simulator-step-transition-select')
+    let simulator_step_check_btn = simulator_modal.find('#simulator-step-check-btn')
+    let simulator_step_next_btn = simulator_modal.find('#simulator-step-next-btn')
+    let simulator_step_back_btn = simulator_modal.find('#simulator-step-back-btn')
+
     let variable_inputs = {}
-    update_variable_inputs(simulator_modal, variable_inputs, variables)
+    $.each(simulator_modal.find('input[id$=_variable]'), function (index, value) {
+        id = $(value).attr('id').replace('_variable', '')
+        variable_inputs[id] = $(value)
+    })
+
+    update_variable_inputs(variable_inputs, variables)
 
     let dc_phase_codes = {}
-    update_dc_phases(simulator_modal, dc_phase_codes, active_dc_phases)
+    $.each(simulator_modal.find('code[id$=_dc_phase]'), function (index, value) {
+        id = $(value).attr('id').replace('_dc_phase', '')
+        dc_phase_codes[id] = $(value)
+    })
 
-    simulator_next_step_btn.click(function () {
+    update_dc_phases(dc_phase_codes, active_dc_phases)
+
+    simulator_step_check_btn.click(function () {
         $.ajax({
             type: 'POST', url: 'simulator', async: false, data: {
-                command: 'next_step',
+                command: 'step_check',
                 simulator_id: simulator_id,
                 variables: JSON.stringify(read_variable_inputs(variable_inputs))
-            },
-            success: function (response) {
+            }, success: function (response) {
                 if (response['success'] === false) {
                     alert(response['errormsg'])
                     return
                 }
 
-                time = response['data']['time']
-                variables = response['data']['var_mapping'][time]
-                update_variable_inputs(simulator_modal, variable_inputs, variables)
-
-                active_dc_phases = response['data']['active_dc_phases']
-                update_dc_phases(simulator_modal, dc_phase_codes, active_dc_phases)
+                simulator_step_transition_select.empty()
+                $.each(response['data']['transitions'], function (index, value) {
+                    simulator_step_transition_select.append($('<option></option>').val(index).text(value))
+                })
             }
         })
     })
 
-    simulator_previous_step_btn.click(function () {
+    simulator_step_next_btn.click(function () {
         $.ajax({
             type: 'POST', url: 'simulator', async: false, data: {
-                command: 'previous_step',
-                simulator_id: simulator_id
-            },
-            success: function (response) {
+                command: 'step_next',
+                simulator_id: simulator_id,
+                transition_id: simulator_step_transition_select.val()
+            }, success: function (response) {
                 if (response['success'] === false) {
                     alert(response['errormsg'])
                     return
                 }
 
+                simulator_step_transition_select.empty()
+
                 time = response['data']['time']
                 variables = response['data']['var_mapping'][time]
-                update_variable_inputs(simulator_modal, variable_inputs, variables)
+                update_variable_inputs(variable_inputs, variables)
 
                 active_dc_phases = response['data']['active_dc_phases']
-                update_dc_phases(simulator_modal, dc_phase_codes, active_dc_phases)
+                update_dc_phases(dc_phase_codes, active_dc_phases)
             }
         })
     })
+
+    simulator_step_back_btn.click(function () {
+        $.ajax({
+            type: 'POST', url: 'simulator', async: false, data: {
+                command: 'step_back', simulator_id: simulator_id
+            }, success: function (response) {
+                if (response['success'] === false) {
+                    alert(response['errormsg'])
+                    return
+                }
+
+                simulator_step_transition_select.empty()
+
+                time = response['data']['time']
+                variables = response['data']['var_mapping'][time]
+                update_variable_inputs(variable_inputs, variables)
+
+                active_dc_phases = response['data']['active_dc_phases']
+                update_dc_phases(dc_phase_codes, active_dc_phases)
+            }
+        })
+    })
+
+    simulator_modal.find('#simulator-countertraces-accordion').sortable();
+    simulator_modal.find('#simulator-variables-form-row').sortable();
 
     simulator_modal.modal('show')
 }
 
 function read_variable_inputs(variable_inputs) {
     result = {}
-    $.each(variable_inputs, function(index, value) {
+    $.each(variable_inputs, function (index, value) {
         result[index] = value.val() === '' ? null : value.val()
     })
 
     return result
 }
 
-function update_variable_inputs(simulator_modal, variable_inputs, variables) {
+function update_variable_inputs(variable_inputs, variables) {
     $.each(variables, function (index, value) {
-        if (!(index in variable_inputs)) {
-            variable_inputs[index] = simulator_modal.find('#' + index + '_input')
-        }
-
         variable_inputs[index].val(value === 'None' ? '' : value)
     })
 }
 
-function update_dc_phases(simulator_modal, dc_phase_codes, active_dc_phases) {
+function update_dc_phases(dc_phase_codes, active_dc_phases) {
     $.each(dc_phase_codes, function (index, value) {
         value.removeClass('alert-success')
-    })
 
-    $.each(active_dc_phases, function (index, value) {
-        if (!(value in dc_phase_codes)) {
-            dc_phase_codes[value] = simulator_modal.find('#' + value + '_code')
+        if ($.inArray(index, active_dc_phases) !== -1) {
+            value.addClass('alert-success')
         }
-
-        dc_phase_codes[value].addClass('alert-success')
     })
 }
 
