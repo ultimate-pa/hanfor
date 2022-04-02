@@ -64,6 +64,7 @@ class SimulatorRessource(Ressource):
         data = {
             'simulator_id': simulator_id,
             'html': render_template('simulator-modal.html', simulator=simulator),
+            'time': str(simulator.time),
             'var_mapping': simulator.get_var_mapping(),
             'active_dc_phases': simulator.get_active_dc_phases()
         }
@@ -98,12 +99,14 @@ class SimulatorRessource(Ressource):
 
     def next_step(self) -> None:
         simulator_id = self.request.form.get('simulator_id')
-        simulator = self.simulator_cache[simulator_id]
+        variables = json.loads(self.request.form.get('variables'))
 
+        simulator = self.simulator_cache[simulator_id]
         enabled_transitions = simulator.check_sat()
         simulator.walk_transitions(enabled_transitions[0])
 
         data = {
+            'time': str(simulator.time),
             'var_mapping': simulator.get_var_mapping(),
             'active_dc_phases': simulator.get_active_dc_phases()
         }
@@ -112,11 +115,12 @@ class SimulatorRessource(Ressource):
 
     def previous_step(self) -> None:
         simulator_id = self.request.form.get('simulator_id')
-        simulator = self.simulator_cache[simulator_id]
 
+        simulator = self.simulator_cache[simulator_id]
         simulator.load_prev_state()
 
         data = {
+            'time': str(simulator.time),
             'var_mapping': simulator.get_var_mapping(),
             'active_dc_phases': simulator.get_active_dc_phases()
         }
