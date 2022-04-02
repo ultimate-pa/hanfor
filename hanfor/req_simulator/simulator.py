@@ -112,6 +112,18 @@ class Simulator:
 
         return result
 
+    def get_active_dc_phases(self) -> list[str]:
+        result = []
+
+        if len(self.current_phases) > 0 and self.current_phases[0] is None:
+            return result
+
+        for i, pea in enumerate(self.peas):
+            prefix = f'{pea.requirement.id}_{pea.formalization.id}_{pea.countertrace_id}'
+            result.extend([f'{prefix}_{dc_phase_id}' for dc_phase_id in self.current_phases[i].sets.active])
+
+        return result
+
     @staticmethod
     def load_scenario_from_file(simulator: Simulator, path: str) -> Simulator:
         return Simulator(simulator.peas, Scenario.load_from_file(path))
