@@ -69,7 +69,7 @@ const config = {
             $: 'jquery',
             jQuery: 'jquery'
         })
-    ],
+    ]
 };
 
 module.exports = config;

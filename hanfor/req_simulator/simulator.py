@@ -102,13 +102,13 @@ class Simulator:
 
         return result
 
-    def get_var_mapping(self) -> dict[float, dict[str, str]]:
+    def get_var_mapping(self) -> dict[str, dict[str, str]]:
         result = defaultdict(dict)
 
         for state in self.states:
-            result[state.time] = {str(k): str(v) for k, v in state.variables.items()}
+            result[str(state.time)] = {str(k): str(v) for k, v in state.variables.items()}
 
-        result[self.time] = {str(k): str(v) for k, v in self.variables.items()}
+        result[str(self.time)] = {str(k): str(v) for k, v in self.variables.items()}
 
         return result
 
