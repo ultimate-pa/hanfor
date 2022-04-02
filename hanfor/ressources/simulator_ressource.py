@@ -59,9 +59,13 @@ class SimulatorRessource(Ressource):
             self.response.errormsg = 'No simulator selected.'
             return
 
+        simulator = self.simulator_cache[simulator_id]
+
         data = {
-            'html': render_template('simulator-modal.html', simulator=self.simulator_cache[simulator_id]),
-            'var_mapping': self.simulator_cache[simulator_id].get_var_mapping()
+            'simulator_id': simulator_id,
+            'html': render_template('simulator-modal.html', simulator=simulator),
+            'var_mapping': simulator.get_var_mapping(),
+            'active_dc_phases': simulator.get_active_dc_phases()
         }
 
         self.response.data = data
@@ -93,10 +97,31 @@ class SimulatorRessource(Ressource):
         self.response.data = data
 
     def next_step(self) -> None:
-        raise NotImplementedError('next step')
+        simulator_id = self.request.form.get('simulator_id')
+        simulator = self.simulator_cache[simulator_id]
+
+        enabled_transitions = simulator.check_sat()
+        simulator.walk_transitions(enabled_transitions[0])
+
+        data = {
+            'var_mapping': simulator.get_var_mapping(),
+            'active_dc_phases': simulator.get_active_dc_phases()
+        }
+
+        self.response.data = data
 
     def previous_step(self) -> None:
-        raise NotImplementedError('previous step')
+        simulator_id = self.request.form.get('simulator_id')
+        simulator = self.simulator_cache[simulator_id]
+
+        simulator.load_prev_state()
+
+        data = {
+            'var_mapping': simulator.get_var_mapping(),
+            'active_dc_phases': simulator.get_active_dc_phases()
+        }
+
+        self.response.data = data
 
     def delete_simulator(self) -> None:
         simulator_id = self.request.form.get('simulator_id')
