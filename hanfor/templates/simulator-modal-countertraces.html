@@ -24,7 +24,7 @@
                                 <li class="list-group-item">
                                     {% for dc_phase in pea.countertrace.dc_phases %}
                                         {{ ";" if loop.index > 1 }}
-                                        <code id="{{ "%s_%s_%s_%s_code" % (requirement.id, formalization.id, countertrace_id, loop.index - 1) }}"
+                                        <code id="{{ "%s_%s_%s_%s_dc_phase" % (requirement.id, formalization.id, countertrace_id, loop.index - 1) }}"
                                               class="text-dark">{{ dc_phase }}</code>
                                     {% endfor %}
                                 </li>

@@ -36,11 +36,14 @@ class SimulatorRessource(Ressource):
         if command == 'create_simulator':
             self.create_simulator()
 
-        if command == 'next_step':
-            self.next_step()
+        if command == 'step_check':
+            self.step_check()
 
-        if command == 'previous_step':
-            self.previous_step()
+        if command == 'step_next':
+            self.step_next()
+
+        if command == 'step_back':
+            self.step_back()
 
     def DELETE(self):
         command = self.request.form.get('command')
@@ -49,7 +52,7 @@ class SimulatorRessource(Ressource):
             self.delete_simulator()
 
     def get_simulators(self) -> None:
-        self.response.data = {'simulators': [(k, v.name) for k, v in self.simulator_cache.items()]}
+        self.response.data = {'simulators': {k: v.name for k, v in self.simulator_cache.items()}}
 
     def start_simulator(self) -> None:
         simulator_id = self.request.args.get('simulator_id')
@@ -68,7 +71,6 @@ class SimulatorRessource(Ressource):
             'var_mapping': simulator.get_var_mapping(),
             'active_dc_phases': simulator.get_active_dc_phases()
         }
-
         self.response.data = data
 
     def create_simulator(self) -> None:
@@ -97,23 +99,38 @@ class SimulatorRessource(Ressource):
         data = {'simulator_id': simulator_id, 'simulator_name': simulator_name}
         self.response.data = data
 
-    def next_step(self) -> None:
+    def step_check(self) -> None:
         simulator_id = self.request.form.get('simulator_id')
         variables = json.loads(self.request.form.get('variables'))
 
         simulator = self.simulator_cache[simulator_id]
-        enabled_transitions = simulator.check_sat()
-        simulator.walk_transitions(enabled_transitions[0])
+        simulator.check_sat()
+
+        data = {
+            'transitions': [str(v) for v in simulator.enabled_transitions]
+        }
+        self.response.data = data
+
+    def step_next(self) -> None:
+        simulator_id = self.request.form.get('simulator_id')
+        transition_id = self.request.form.get('transition_id')
+
+        if len(transition_id) <= 0:
+            self.response.success = False
+            self.response.errormsg = 'No transition selected.'
+            return
+
+        simulator = self.simulator_cache[simulator_id]
+        simulator.walk_transitions(simulator.enabled_transitions[int(transition_id)])
 
         data = {
             'time': str(simulator.time),
             'var_mapping': simulator.get_var_mapping(),
             'active_dc_phases': simulator.get_active_dc_phases()
         }
-
         self.response.data = data
 
-    def previous_step(self) -> None:
+    def step_back(self) -> None:
         simulator_id = self.request.form.get('simulator_id')
 
         simulator = self.simulator_cache[simulator_id]
@@ -124,7 +141,6 @@ class SimulatorRessource(Ressource):
             'var_mapping': simulator.get_var_mapping(),
             'active_dc_phases': simulator.get_active_dc_phases()
         }
-
         self.response.data = data
 
     def delete_simulator(self) -> None:
