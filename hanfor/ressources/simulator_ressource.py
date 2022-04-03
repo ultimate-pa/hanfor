@@ -2,8 +2,12 @@ import fnmatch
 import json
 import os
 import uuid
+from distutils.util import strtobool
 
 from flask import Flask, render_template
+from pysmt.constants import Fraction
+from pysmt.shortcuts import Bool, Int, Real
+from pysmt.typing import BOOL, INT, REAL
 
 import boogie_parsing
 from req_simulator.boogie_pysmt_transformer import BoogiePysmtTransformer
@@ -104,6 +108,16 @@ class SimulatorRessource(Ressource):
         variables = json.loads(self.request.form.get('variables'))
 
         simulator = self.simulator_cache[simulator_id]
+
+        var_mapping = {str(v): v for v in simulator.variables}
+        const_mapping = {
+            BOOL: lambda v: Bool(bool(strtobool(v))),
+            INT: lambda v: Int(int(v)),
+            REAL: lambda v: Real(float(v))
+        }
+
+        variables = {var_mapping[k]: const_mapping[var_mapping[k].symbol_type()](v) if v is not None else v for k, v in variables.items()}
+        simulator.update_variables(variables)
         simulator.check_sat()
 
         data = {
