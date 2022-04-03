@@ -12,8 +12,13 @@ from InquirerPy.base import Choice
 from InquirerPy.validator import PathValidator
 from prompt_toolkit.validation import ValidationError, Validator
 from pysmt.constants import Fraction
+from pysmt.environment import push_env, pop_env
 from pysmt.fnode import FNode
-from pysmt.shortcuts import And, Equals, Symbol, is_sat, Real, Int, Bool, EqualsOrIff
+from pysmt.printers import smart_serialize
+from pysmt.rewritings import CNFizer
+from pysmt.shortcuts import And, Equals, Symbol, is_sat, Real, Int, Bool, EqualsOrIff, TRUE, get_env, get_model, \
+    Implies, Iff, Solver, get_free_variables
+from pysmt.simplifier import BddSimplifier
 from pysmt.typing import REAL, INT, BOOL
 
 from req_simulator.countertrace import CountertraceTransformer
@@ -21,6 +26,9 @@ from req_simulator.phase_event_automaton import PhaseEventAutomaton, build_autom
 from req_simulator.scenario import Scenario
 from req_simulator.utils import substitute_free_variables, get_countertrace_parser
 from reqtransformer import Requirement, Formalization
+
+SOLVER_NAME = 'cvc4'
+SOLVER = Solver(name=SOLVER_NAME)
 
 
 class BoolValidator(Validator):
@@ -104,9 +112,11 @@ class Simulator:
         self.clocks: list[dict[str, float]] = [{clock: 0 for clock in pea.clocks} for pea in self.peas]
 
         self.variables: dict[FNode, FNode] = {v: None for pea in self.peas for v in pea.countertrace.extract_variables()}
+
         self.time_step: float = 1.0
 
         self.enabled_transitions = []
+        self.models = []
 
         if self.scenario is not None:
             self.time_step = self.scenario.valuations[0.0].get_duration()
@@ -114,6 +124,16 @@ class Simulator:
 
         self.states: list[Simulator.State] = []
         self.save_state()
+
+    def get_transitions(self):
+        results = []
+
+        for model in self.models:
+            results.append(' ; '.join([f'{k} = {v}' for k, v in model.items() if self.variables[k] is None]))
+
+        return results
+
+
 
     def get_pea_mapping(self) -> dict[Requirement, dict[Formalization, dict[str, PhaseEventAutomaton]]]:
         result = defaultdict(lambda: defaultdict(dict))
@@ -191,16 +211,16 @@ class Simulator:
     def build_clock_assertions(self, clocks: dict[str, float]) -> FNode:
         return And(Equals(Symbol(k, REAL), Real(v)) for k, v in clocks.items())
 
-    def check_guard(self, transition: Transition, clocks: dict[str, float]) -> bool:
+    def build_guard(self, transition: Transition, clocks: dict[str, float]) -> FNode:
         f = And(self.build_var_assertions(), transition.guard, self.build_clock_assertions(clocks))
 
-        return is_sat(f)
+        return f
 
-    def check_clock_invariant(self, transition: Transition, clocks: dict[str, float]) -> bool:
+    def build_clock_invariant(self, transition: Transition, clocks: dict[str, float]) -> FNode:
         f = And(substitute_free_variables(transition.dst.clock_invariant),
                 substitute_free_variables(self.build_clock_assertions(clocks)))
 
-        return is_sat(f)
+        return f
 
     def calculate_max_time_step(self, transition: Transition, clocks: dict[str, float], time_step: float):
         k, v = transition.dst.get_min_clock_bound()
@@ -213,6 +233,7 @@ class Simulator:
 
     def check_sat(self) -> list[tuple[Transition]]:
         enabled_transitions = []
+        models = []
 
         transition_lists = [self.peas[i].get_transitions(self.current_phases[i]) for i in range(len(self.peas))]
         transition_tuples = list(itertools.product(*transition_lists))
@@ -230,19 +251,25 @@ class Simulator:
         self.time_step = time_step_max
 
         for transition_tuple in transition_tuples:
-            is_enabled = len(transition_tuple) > 0
+            f = TRUE()
 
             for i in range(len(transition_tuple)):
                 transition = transition_tuple[i]
 
-                is_enabled = is_enabled and \
-                             self.check_guard(transition, self.clocks[i]) and \
-                             self.check_clock_invariant(transition, self.update_clocks(i, transition.resets, True))
+                f = And(f, self.build_guard(transition, self.clocks[i]),
+                    self.build_clock_invariant(transition, self.update_clocks(i, transition.resets, True)))
 
-            if is_enabled:
+            model = get_model(f, SOLVER_NAME)
+
+            if model is not None:
                 enabled_transitions.append(transition_tuple)
 
+                variable_mapping = {substitute_free_variables(k): k for k in self.variables.keys()}
+                partial = model.get_values(variable_mapping.keys())
+                models.append({v: partial[k] for k, v in variable_mapping.items()})
+
         self.enabled_transitions = enabled_transitions
+        self.models = models
 
         return enabled_transitions
 
@@ -276,7 +303,7 @@ class Simulator:
                         substitute_free_variables(transition.dst.clock_invariant),
                         substitute_free_variables(self.build_clock_assertions(clocks))).simplify()
 
-            sat = is_sat(f)
+            sat = is_sat(f, SOLVER_NAME)
             print('{x:<8}'.format(x='sat:' if sat else 'unsat:'), f)
 
             if sat:
