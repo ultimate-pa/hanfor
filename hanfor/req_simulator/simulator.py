@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 import os
 import re as regex
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from copy import copy
 from dataclasses import dataclass
 
@@ -11,6 +11,7 @@ from InquirerPy import inquirer
 from InquirerPy.base import Choice
 from InquirerPy.validator import PathValidator
 from prompt_toolkit.validation import ValidationError, Validator
+from pysmt.constants import Fraction
 from pysmt.fnode import FNode
 from pysmt.shortcuts import And, Equals, Symbol, is_sat, Real, Int, Bool, EqualsOrIff
 from pysmt.typing import REAL, INT, BOOL
@@ -66,6 +67,25 @@ type_validator_mapping = {
 
 
 class Simulator:
+    '''
+    @dataclass
+    class Variable:
+        name: FNode
+        value: FNode = None
+
+
+        def set_value_from_string(self, value: str):
+            const_mapping = {
+                BOOL: eval,
+                INT: int,
+                REAL: lambda v: float(Fraction(v))
+            }
+
+            symbol_type = self.name.symbol_type()
+            self.value = Sconst_mapping[symbol_type](value)
+        '''
+
+
     @dataclass
     class State:
         time: float
@@ -83,8 +103,7 @@ class Simulator:
         self.current_phases: list[Phase] = [None] * len(self.peas)
         self.clocks: list[dict[str, float]] = [{clock: 0 for clock in pea.clocks} for pea in self.peas]
 
-        self.variables: dict[FNode, FNode] = {v: None for pea in self.peas for v in
-                                              pea.countertrace.extract_variables()}
+        self.variables: dict[FNode, FNode] = {v: None for pea in self.peas for v in pea.countertrace.extract_variables()}
         self.time_step: float = 1.0
 
         self.enabled_transitions = []

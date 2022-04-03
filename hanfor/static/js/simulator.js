@@ -130,7 +130,7 @@ function init_simulator_modal(data) {
 
                 simulator_step_transition_select.empty()
                 $.each(response['data']['transitions'], function (index, value) {
-                    simulator_step_transition_select.append($('<option></option>').val(index).text(value))
+                    simulator_step_transition_select.append($('<option></option>').val(index).text(value).addClass('text-break'))
                 })
             }
         })
