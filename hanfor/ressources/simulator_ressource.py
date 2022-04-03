@@ -5,7 +5,6 @@ import uuid
 from distutils.util import strtobool
 
 from flask import Flask, render_template
-from pysmt.constants import Fraction
 from pysmt.shortcuts import Bool, Int, Real
 from pysmt.typing import BOOL, INT, REAL
 
@@ -116,12 +115,15 @@ class SimulatorRessource(Ressource):
             REAL: lambda v: Real(float(v))
         }
 
-        variables = {var_mapping[k]: const_mapping[var_mapping[k].symbol_type()](v) if v is not None else v for k, v in variables.items()}
+        variables = {var_mapping[k]: const_mapping[var_mapping[k].symbol_type()](v) if v is not None else v for k, v in
+                     variables.items()}
         simulator.update_variables(variables)
         simulator.check_sat()
 
+        simulator.get_transitions()
+
         data = {
-            'transitions': [str(v) for v in simulator.enabled_transitions]
+            'transitions': simulator.get_transitions()
         }
         self.response.data = data
 
@@ -170,6 +172,8 @@ class SimulatorRessource(Ressource):
         if value is None:
             self.response.success = False
             self.response.errormsg = 'Could not find simulator with given id.'
+
+        self.response.data = {'simulators': {k: v.name for k, v in self.simulator_cache.items()}}
 
     @staticmethod
     def load_phase_event_automata(requirement_id: str, app: Flask):

@@ -14,7 +14,7 @@ function get_selected_requirement_ids(requirements_table) {
 
 function update_simulator_select(simulator_select) {
     $.ajax({
-        type: 'GET', url: 'simulator', data: {command: 'get_simulators'}, success: function (response) {
+        type: 'GET', url: 'simulator', async: false, data: {command: 'get_simulators'}, success: function (response) {
             if (response['success'] === false) {
                 alert(response['errormsg'])
                 return
@@ -22,7 +22,7 @@ function update_simulator_select(simulator_select) {
 
             simulator_select.empty()
             $.each(response['data']['simulators'], function (index, value) {
-                simulator_select.append($('<option></option>').val(index).text(value + ' (' + value + ')'))
+                simulator_select.append($('<option></option>').val(index).text(value + ' (' + index + ')'))
             })
         }
     })
@@ -53,6 +53,7 @@ function init_simulator_tab() {
                 let id = response['data']['simulator_id']
                 let name = response['data']['simulator_name']
                 simulator_select.prepend($('<option></option>').val(id).text(name + ' (' + id + ')'))
+                simulator_select.prop('selectedIndex', 0)
             }
         })
     })
