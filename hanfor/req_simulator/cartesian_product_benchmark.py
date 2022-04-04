@@ -13,6 +13,7 @@ import boogie_parsing
 from req_simulator.boogie_pysmt_transformer import BoogiePysmtTransformer
 from termcolor import colored
 
+SOLVER_NAME = None
 parser = boogie_parsing.get_parser_instance()
 stats = defaultdict(dict)
 
@@ -59,7 +60,7 @@ def check_sat(formula: FNode) -> bool:
     caller = get_caller_name()
 
     check_sat_duration = time.time()
-    result = is_sat(formula)
+    result = is_sat(formula, solver_name=SOLVER_NAME)
     check_sat_duration = time.time() - check_sat_duration
 
     stats[caller].setdefault('check_sat_calls', 0)
@@ -107,7 +108,7 @@ def optimized_initial_checks(inputs: list[list[FNode]]) -> list[tuple[FNode]]:
 
         inputs_.append(input_)
 
-    inputs = inputs
+    inputs = inputs_
 
     # Compute cartesian product
     results_ = list(itertools.product(*inputs))
@@ -142,7 +143,7 @@ def optimized_intermediate_checks(inputs: list[list[FNode]]) -> list[tuple[FNode
 
         inputs_.append(input_)
 
-    inputs = inputs
+    inputs = inputs_
 
     # Compute cartesian product with intermediate checks
     for e in inputs[0]:
@@ -166,8 +167,10 @@ def optimized_intermediate_checks(inputs: list[list[FNode]]) -> list[tuple[FNode
 
 def main():
     inputs = [
-        ['true', 'true'],
-        ['true', 'true']
+        ['false', 'true', 'true', 'true'],
+        ['true', 'false', 'true', 'true'],
+        ['true', 'true', 'false', 'true'],
+        ['true', 'true', 'true', 'false']
     ]
 
     variables = {
