@@ -80,7 +80,8 @@ def cartesian_product_optimized(lists) -> list[tuple[int]]:
         return results
 
     for l in lists[0]:
-        results.append((l,))
+        if check_sat(build_var_assertion('x', l)):
+            results.append((l,))
 
     for i, list in enumerate(lists[1:]):
         results_ = []
