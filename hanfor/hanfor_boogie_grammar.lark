@@ -56,7 +56,7 @@ expr8: expr8ni LBKT exprcommaplus RBKT
     | expr8ni LBKT NUMBER COLON NUMBER RBKT
     | expr9
 
-expr9: FALSE
+expr9: FALSE -> false
     | TRUE -> true
     | NUMBER -> number
     | REALNUMBER -> realnumber

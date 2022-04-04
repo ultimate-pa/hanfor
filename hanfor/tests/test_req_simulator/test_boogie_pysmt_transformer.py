@@ -31,7 +31,6 @@ class TestBoogiePysmtTransformer(TestCase):
     ])
     def test_int_expressions(self, variables: str, test_input: str, expected: str):
         lark_tree = parser.parse(test_input)
-        #type, type_env = boogie_parsing.infer_variable_types(lark_tree, {}).derive_type()
-
         actual = str(BoogiePysmtTransformer(variables).transform(lark_tree))
+
         self.assertEqual(expected, actual, msg='Error while transforming boogie expression to pysmt formula.')
