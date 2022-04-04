@@ -20,7 +20,7 @@ def print_stats() -> None:
         print('check sat calls:', stats[s]['check_sat_calls'])
         print('check sat duration:', sum(stats[s]['check_sat_durations']))
         print('check sat duration avg:', sum(stats[s]['check_sat_durations']) / len(stats[s]['check_sat_durations']))
-        print('check sat formulas:', stats[s]['check_sat_formulas'])
+        #print('check sat formulas:', stats[s]['check_sat_formulas'])
 
 
 def get_caller_name() -> str:
