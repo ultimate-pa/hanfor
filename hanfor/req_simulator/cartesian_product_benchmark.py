@@ -11,19 +11,26 @@ from pysmt.typing import INT
 
 import boogie_parsing
 from req_simulator.boogie_pysmt_transformer import BoogiePysmtTransformer
+from termcolor import colored
 
 parser = boogie_parsing.get_parser_instance()
 stats = defaultdict(dict)
 
 
 def print_stats() -> None:
+    min_duration = min([stats[s]['duration'] for s in stats])
+    min_sat_duration = min([sum(stats[s]['check_sat_durations']) for s in stats])
+
     for s in stats:
+        duration_color = 'green' if stats[s]["duration"] <= min_duration else 'white'
+        check_sat_durations_color = 'green' if sum(stats[s]['check_sat_durations']) <= min_sat_duration else 'white'
+
         print(f'\n{s}:')
-        print('duration:', stats[s]['duration'])
+        print(colored(f'duration: {stats[s]["duration"]}', duration_color))
         print('result:', stats[s]['result'])
         print('result size:', f'{len(stats[s]["result"])}')
         print('check sat calls:', stats[s]['check_sat_calls'])
-        print('check sat duration:', sum(stats[s]['check_sat_durations']))
+        print(colored(f'check sat duration: {sum(stats[s]["check_sat_durations"])}', check_sat_durations_color))
         print('check sat duration avg:', sum(stats[s]['check_sat_durations']) / len(stats[s]['check_sat_durations']))
         # print('check sat formulas:', stats[s]['check_sat_formulas'])
 
@@ -159,9 +166,8 @@ def optimized_intermediate_checks(inputs: list[list[FNode]]) -> list[tuple[FNode
 
 def main():
     inputs = [
-        ['a < 5', 'b > 10'],
-        ['a == 6', 'b == 11'],
-        ['a == 4', 'b == 10']
+        ['true', 'true'],
+        ['true', 'true']
     ]
 
     variables = {
