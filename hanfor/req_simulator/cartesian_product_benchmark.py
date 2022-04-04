@@ -6,21 +6,30 @@ import time
 from collections import defaultdict
 
 from pysmt.fnode import FNode
-from pysmt.shortcuts import TRUE, Symbol, EqualsOrIff, Int, is_sat, And
+from pysmt.shortcuts import Symbol, EqualsOrIff, Int, is_sat, And, TRUE
 from pysmt.typing import INT
 
-f = TRUE()
+import boogie_parsing
+from req_simulator.boogie_pysmt_transformer import BoogiePysmtTransformer
+
+parser = boogie_parsing.get_parser_instance()
 stats = defaultdict(dict)
+
 
 def print_stats() -> None:
     for s in stats:
         print(f'\n{s}:')
+        print('duration:', stats[s]['duration'])
         print('result:', stats[s]['result'])
         print('result size:', f'{len(stats[s]["result"])}')
         print('check sat calls:', stats[s]['check_sat_calls'])
         print('check sat duration:', sum(stats[s]['check_sat_durations']))
         print('check sat duration avg:', sum(stats[s]['check_sat_durations']) / len(stats[s]['check_sat_durations']))
-        #print('check sat formulas:', stats[s]['check_sat_formulas'])
+        # print('check sat formulas:', stats[s]['check_sat_formulas'])
+
+    print('\nresults are equal:',
+          stats['naive']['result'] == stats['optimized_initial_checks']['result'] and
+          stats['naive']['result'] == stats['optimized_intermediate_checks']['result'])
 
 
 def get_caller_name() -> str:
@@ -58,16 +67,18 @@ def check_sat(formula: FNode) -> bool:
     return result
 
 
-def cartesian_product_naive(inputs: list[list[int]]) -> list[tuple[int]]:
+def naive(inputs: list[list[FNode]]) -> list[tuple[FNode]]:
     results = []
 
+    # Compute cartesian product
     results_ = list(itertools.product(*inputs))
 
-    for i, result_ in enumerate(results_):
-        formula = f
+    # Check result tuples
+    for result_ in results_:
+        formula = TRUE()
 
         for r_ in result_:
-            formula = And(formula, build_var_assertion('x', r_))
+            formula = And(formula, r_)
 
         if check_sat(formula):
             results.append(result_)
@@ -75,42 +86,119 @@ def cartesian_product_naive(inputs: list[list[int]]) -> list[tuple[int]]:
     return results
 
 
-def cartesian_product_optimized(lists) -> list[tuple[int]]:
+def optimized_initial_checks(inputs: list[list[FNode]]) -> list[tuple[FNode]]:
     results = []
 
-    if [] in lists:
+    # Check single elements
+    inputs_ = []
+    for input in inputs:
+        input_ = []
+
+        for e in input:
+            if check_sat(e):
+                input_.append(e)
+
+        inputs_.append(input_)
+
+    inputs = inputs
+
+    # Compute cartesian product
+    results_ = list(itertools.product(*inputs))
+
+    # Check result tuples
+    for result_ in results_:
+        formula = TRUE()
+
+        for r_ in result_:
+            formula = And(formula, r_)
+
+        if check_sat(formula):
+            results.append(result_)
+
+    return results
+
+
+def optimized_intermediate_checks(inputs: list[list[FNode]]) -> list[tuple[FNode]]:
+    results = []
+
+    if [] in inputs:
         return results
 
-    for l in lists[0]:
-        if check_sat(And(f, build_var_assertion('x', l))):
-            results.append((l,))
+    # Check single elements
+    inputs_ = []
+    for input in inputs:
+        input_ = []
 
-    for i, list in enumerate(lists[1:]):
+        for e in input:
+            if check_sat(e):
+                input_.append(e)
+
+        inputs_.append(input_)
+
+    inputs = inputs
+
+    # Compute cartesian product with intermediate checks
+    for e in inputs[0]:
+        results.append((e,))
+
+    for input in inputs[1:]:
         results_ = []
 
         for result in results:
-            formula = And(f, build_var_assertions('x', result))
+            formula = And(*result)
 
-            for l in list:
-                if check_sat(And(formula, build_var_assertion('x', l))):
-                    result_ = result + (l,)
+            for e in input:
+                if check_sat(And(formula, e)):
+                    result_ = result + (e,)
                     results_.append(result_)
 
         results = results_
-
-    check_sat(TRUE())
 
     return results
 
 
 def main():
-    f = build_var_assertion('x', 1)
-    inputs = [[1, 1], [0, 1]]
+    inputs = [
+        ['a < 5', 'b > 10'],
+        ['a == 6', 'b == 11'],
+        ['a == 4', 'b == 10']
+    ]
 
-    stats['cartesian_product_naive']['result'] = cartesian_product_naive(inputs)
-    stats['cartesian_product_optimized']['result'] = cartesian_product_optimized(inputs)
+    variables = {
+        'a': 'int',
+        'b': 'int'
+    }
+
+    inputs = parse_inputs(inputs, variables)
+
+    duration = time.time()
+    stats['naive']['result'] = naive(inputs)
+    stats['naive']['duration'] = time.time() - duration
+
+    duration = time.time()
+    stats['optimized_initial_checks']['result'] = optimized_initial_checks(inputs)
+    stats['optimized_initial_checks']['duration'] = time.time() - duration
+
+    duration = time.time()
+    stats['optimized_intermediate_checks']['result'] = optimized_intermediate_checks(inputs)
+    stats['optimized_intermediate_checks']['duration'] = time.time() - duration
 
     print_stats()
+
+
+def parse_inputs(inputs: list[list[str]], variables: dict[str, str]) -> list[list[FNode]]:
+    results = []
+
+    for input in inputs:
+        result = []
+
+        for e in input:
+            lark_tree = parser.parse(e)
+            result.append(BoogiePysmtTransformer(variables).transform(lark_tree))
+
+        results.append(result)
+
+    return results
 
 
 if __name__ == '__main__':

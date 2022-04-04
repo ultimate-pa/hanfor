@@ -7,14 +7,6 @@ from pysmt.typing import INT, BOOL, REAL
 
 
 class BoogiePysmtTransformer(Transformer):
-    '''
-    boogie_to_pysmt_type_mapping = {
-        boogie_parsing.BoogieType.bool: BOOL,
-        boogie_parsing.BoogieType.int: INT,
-        boogie_parsing.BoogieType.real: REAL
-    }
-    '''
-
     hanfor_to_pysmt_type_mapping = {
         'bool': BOOL,
         'int': INT,
@@ -25,45 +17,43 @@ class BoogiePysmtTransformer(Transformer):
         'ENUMERATOR_REAL': REAL
     }
 
-    #def __init__(self, type_env: dict[str, boogie_parsing.BoogieType]) -> None:
     def __init__(self, variables: dict[str, str]) -> None:
         super().__init__()
         self.variables_mapping = variables
 
-    def conjunction(self, children) -> FNode:
-        #print("conjunction:", children)
+    @staticmethod
+    def conjunction(children) -> FNode:
         return And(children[0], children[2])
 
-    def disjunction(self, children) -> FNode:
-        #print("disjunction:", children)
+    @staticmethod
+    def disjunction(children) -> FNode:
         return Or(children[0], children[2])
 
-    def divide(self, children) -> FNode:
-        #print("devide:", children)
+    @staticmethod
+    def divide(children) -> FNode:
         return Div(children[0], children[2])
 
-    def eq(self, children) -> FNode:
-        #print("eq:", children)
+    @staticmethod
+    def eq(children) -> FNode:
         return EqualsOrIff(children[0], children[2])
 
-    def explies(self, children) -> FNode:
-        #print("explies:", children)
+    @staticmethod
+    def explies(children) -> FNode:
         raise NotImplementedError("Unsupported operation 'explies'.")
 
-    def false(self, children) -> FNode:
-        #print("false:", children)
+    @staticmethod
+    def false(children) -> FNode:
         return FALSE()
 
-    def gt(self, children) -> FNode:
-        #print("gt:", children)
+    @staticmethod
+    def gt(children) -> FNode:
         return GT(children[0], children[2])
 
-    def gteq(self, children) -> FNode:
-        #print("gteq:", children)
+    @staticmethod
+    def gteq(children) -> FNode:
         return GE(children[0], children[2])
 
     def id(self, children) -> Symbol:
-        #print("id:", children)
         hanfor_type = self.variables_mapping.get(children[0].value)
         pysmt_type = self.hanfor_to_pysmt_type_mapping.get(hanfor_type)
 
@@ -72,68 +62,72 @@ class BoogiePysmtTransformer(Transformer):
 
         return Symbol(children[0].value, pysmt_type)
 
-    def iff(self, children) -> FNode:
-        #print("iff:", children)
+    @staticmethod
+    def iff(children) -> FNode:
         return Iff(children[0], children[2])
 
-    def implies(self, children) -> FNode:
-        #print("implies:", children)
+    @staticmethod
+    def implies(children) -> FNode:
         return Implies(children[0], children[2])
 
-    def lt(self, children) -> FNode:
-        #print("lt:", children)
+    @staticmethod
+    def lt(children) -> FNode:
         return LT(children[0], children[2])
 
-    def lteq(self, children) -> FNode:
-        #print("lteq:", children)
+    @staticmethod
+    def lteq(children) -> FNode:
         return LE(children[0], children[2])
 
-    def minus(self, children) -> FNode:
-        #print("minus:", children)
+    @staticmethod
+    def minus(children) -> FNode:
         return Minus(children[0], children[2])
 
-    def minus_unary(self, children) -> FNode:
-        #print("minus_unary:", children)
+    @staticmethod
+    def minus_unary(children) -> FNode:
         return -children[1]
 
-    def mod(self, children) -> None:
-        #print("mod:", children)
+    @staticmethod
+    def mod(children) -> None:
         raise NotImplementedError("Unsupported operation 'mod'.")
 
-    def negation(self, children) -> FNode:
-        #print("negation:", children)
+    @staticmethod
+    def negation(children) -> FNode:
         return Not(children[1])
 
-    def neq(self, children) -> FNode:
-        #print("neq:", children)
+    @staticmethod
+    def neq(children) -> FNode:
         return NotEquals(children[0], children[2])
 
-    def number(self, children) -> Int:
-        #print("number:", children)
+    @staticmethod
+    def number(children) -> Int:
         return Int(int(children[0]))
 
-    def plus(self, children) -> FNode:
-        #print("plus:", children)
+    @staticmethod
+    def plus(children) -> FNode:
         return Plus(children[0], children[2])
 
-    def plus_unary(self, children) -> FNode:
-        #print("plus_unary:", children)
+    @staticmethod
+    def plus_unary(children) -> FNode:
         return +children[1]
 
-    def realnumber(self, children) -> Real:
-        #print("realnumber:", children)
+    @staticmethod
+    def realnumber(children) -> Real:
         return Real(float(children[0]))
 
-    def times(self, children) -> FNode:
-        #print("times:", children)
+    @staticmethod
+    def times(children) -> FNode:
         return Times(children[0], children[2])
 
-    def true(self, children) -> FNode:
-        #print("true:", children)
+    @staticmethod
+    def true(children) -> FNode:
         return TRUE()
 
-    def __default__(self, data, children, meta):
-        #print("default:", children)
+    @staticmethod
+    def false(children) -> FNode:
+        return FALSE()
+
+    @staticmethod
+    def __default__(data, children, meta):
         children = [child for child in children if not isinstance(child, Token)]
 
         if len(children) != 1:

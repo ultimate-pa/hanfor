@@ -162,77 +162,61 @@ class CountertraceTransformer(Transformer):
 
     @staticmethod
     def countertrace(children) -> Countertrace:
-        print("countertrace:", children)
         return Countertrace(*children)
 
     @staticmethod
     def phase_t(children) -> Countertrace.DCPhase:
-        print("phase_t:", children)
         return phaseT()
 
     @staticmethod
     def phase_unbounded(children) -> Countertrace.DCPhase:
-        print("phase_unbounded:", children)
         return phase(children[0])
 
     @staticmethod
     def phase(children) -> Countertrace.DCPhase:
-        print("phase:", children)
         return phase(children[0], children[1], children[2])
 
     @staticmethod
     def phase_e(children) -> Countertrace.DCPhase:
-        print("phase_e:", children)
         return phaseE(children[0], children[1], children[2])
 
     @staticmethod
     def conjunction(children) -> Countertrace.DCPhase:
-        print("conjunction:", children)
         return And(children[0], children[1])
 
     @staticmethod
     def disjunction(children) -> Countertrace.DCPhase:
-        print("disjunction:", children)
         return Or(children[0], children[1])
 
     @staticmethod
     def negation(children) -> Countertrace.DCPhase:
-        print("negation:", children)
         return Not(children[0])
 
     @staticmethod
     def bound_type_lt(children) -> Countertrace.BoundTypes:
-        print("bound_type_lt:", children)
         return Countertrace.BoundTypes.LESS
 
     @staticmethod
     def bound_type_lteq(children) -> Countertrace.BoundTypes:
-        print("bound_type_lteq:", children)
         return Countertrace.BoundTypes.LESSEQUAL
 
     @staticmethod
     def bound_type_gt(children) -> Countertrace.BoundTypes:
-        print("bound_type_gt:", children)
         return Countertrace.BoundTypes.GREATER
 
     @staticmethod
     def bound_type_gteq(children) -> Countertrace.BoundTypes:
-        print("bound_type_gteq:", children)
         return Countertrace.BoundTypes.GREATEREQUAL
 
     def variable(self, children) -> FNode:
-        print("variable:", children)
         return self.expressions.get(children[0])
 
     @staticmethod
     def true(children) -> FNode:
-        print("true:", children)
         return TRUE()
 
     @staticmethod
     def __default__(data, children, meta):
-        print("default:", children)
-
         if len(children) != 1:
             raise ValueError("Unexpected size of children: %d" % len(children))
 
