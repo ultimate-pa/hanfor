@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import inspect
 import itertools
 import time
@@ -7,8 +9,8 @@ from pysmt.fnode import FNode
 from pysmt.shortcuts import TRUE, Symbol, EqualsOrIff, Int, is_sat, And
 from pysmt.typing import INT
 
+f = TRUE()
 stats = defaultdict(dict)
-
 
 def print_stats() -> None:
     for s in stats:
@@ -62,7 +64,7 @@ def cartesian_product_naive(inputs: list[list[int]]) -> list[tuple[int]]:
     results_ = list(itertools.product(*inputs))
 
     for i, result_ in enumerate(results_):
-        formula = TRUE()
+        formula = f
 
         for r_ in result_:
             formula = And(formula, build_var_assertion('x', r_))
@@ -80,14 +82,14 @@ def cartesian_product_optimized(lists) -> list[tuple[int]]:
         return results
 
     for l in lists[0]:
-        if check_sat(build_var_assertion('x', l)):
+        if check_sat(And(f, build_var_assertion('x', l))):
             results.append((l,))
 
     for i, list in enumerate(lists[1:]):
         results_ = []
 
         for result in results:
-            formula = And(TRUE(), build_var_assertions('x', result))
+            formula = And(f, build_var_assertions('x', result))
 
             for l in list:
                 if check_sat(And(formula, build_var_assertion('x', l))):
@@ -102,6 +104,7 @@ def cartesian_product_optimized(lists) -> list[tuple[int]]:
 
 
 def main():
+    f = build_var_assertion('x', 1)
     inputs = [[1, 1], [0, 1]]
 
     stats['cartesian_product_naive']['result'] = cartesian_product_naive(inputs)
