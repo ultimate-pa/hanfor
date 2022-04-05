@@ -1,3 +1,58 @@
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+        $("#delete-row").attr("hidden",true);
+        var rowCount = $('.tags-list tr').length;
+
+        $("#add-row").click(function(){
+            rowCount += 1;
+
+            $("#delete-row").attr("hidden",false);
+            var name = $("#requirement_tag_field").val();
+            var email = $("#tag_comment_field").val();
+            var markup = "<tr><td><input type='checkbox' name='record'></td><td>" + name + "</td><td>" + email + "</td></tr>";
+            $("table tbody").append(markup);
+        });
+
+
+
+        // Find and remove selected table rows
+        $("#delete-row").click(function(){
+
+            rowCount -= 1;
+            
+            if (rowCount === 1)
+                $("#delete-row").attr("hidden",true);
+            $("table tbody").find('input[name="record"]').each(function(){
+            	if($(this).is(":checked")){
+                    $(this).parents("tr").remove();
+                }
+            });
+        });
+    });
+    </script>
+    <style>
+        form{
+            margin: 20px 0;
+        }
+        form input, button{
+            padding: 5px;
+        }
+        table{
+            width: 100%;
+            margin-bottom: 10px;
+            border-collapse: collapse;
+        }
+        table, th, td{
+            border: 1px solid #cdcdcd;
+        }
+        table th, table td{
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
 <div id="requirement_modal"
      class="modal fade"
      tabindex="-1"
@@ -38,11 +93,55 @@
                 </h5>
                 <div id="formalization_accordion"></div>
                 <h5 class="top-padding">Tags</h5>
-                <div class="input-group">
+
+                <form>
+                    <label>Tag</label>
                     <input type="text" class="form-control" id="requirement_tag_field" value=""
                            aria-label="Tags" aria-describedby="requirement-tags-addon">
-                </div>
-                <label for="requirement_tag_field">Hit "Enter" to actually set a new tag.</label>
+                    <label for="requirement_tag_field">Hit "Enter" to actually set a new tag.</label><br>
+
+                    <label>Comment</label>
+                    <input type="text" class="form-control" id="tag_comment_field" value=""
+                           aria-label="Comments" aria-describedby="requirement-comments-addon">
+
+                    <input type="button" id="add-row" class="btn btn-success" value="Add Tag">
+                </form>
+                <table class="tags-list">
+                    <thead>
+                        <tr>
+                            <th>Select</th>
+                            <th>Tag</th>
+                            <th>Comment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+<!--                    <tr>-->
+<!--                        <td> <input type="text" class="form-control" id="requirement_tag_field" value=""-->
+<!--                           aria-label="Tags" aria-describedby="requirement-tags-addon"></td>-->
+
+<!--                        <td> <input type="text" class="form-control" id="tag_comment_field" value=""-->
+<!--                           aria-label="Comments" aria-describedby="requirement-comments-addon"></td>-->
+<!--                        <td>-->
+
+<!--                        </td>-->
+<!--                    </tr>-->
+                </table>
+                <button type="button" id="delete-row" class="btn btn-danger">Delete</button>
+<!--                <button type="button" class="delete-row">Delete Row</button>-->
+<!--                <button id="add_tag"-->
+<!--                                    type="button"-->
+<!--                                    class="add_tag btn btn-success btn-sm"-->
+<!--                                    title="Add tag">-->
+<!--                                    <strong>+</strong>-->
+<!--                </button>-->
+
+<!--                <div class="input-group">-->
+<!--                    <input type="text" class="form-control" id="requirement_tag_field" value=""-->
+<!--                           aria-label="Tags" aria-describedby="requirement-tags-addon">-->
+<!--                </div>-->
+
                 <h5>Status</h5>
                 <div class="form-group">
                     <div class="row form-inline">
@@ -113,6 +212,7 @@
                     <span class="sr-only">Close</span>
                 </button>
             </div>
+
             <div class="modal-body">
                 <h6>Description</h6>
                 <div class="form-group">

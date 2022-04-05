@@ -141,7 +141,7 @@ class FormulaProcessor(object):
                 stack.push(element)
             # handle right bracket.
             elif element == ")":
-                while stack.peek() is not "(":
+                while stack.peek() != "(":
                     output.append(stack.pop())
                 # digit
                 stack.pop()
