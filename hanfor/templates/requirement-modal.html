@@ -1,37 +1,4 @@
 <head>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script>
-        $(document).ready(function(){
-        $("#delete-row").attr("hidden",true);
-        var rowCount = $('.tags-list tr').length;
-
-        $("#add-row").click(function(){
-            rowCount += 1;
-
-            $("#delete-row").attr("hidden",false);
-            var name = $("#requirement_tag_field").val();
-            var email = $("#tag_comment_field").val();
-            var markup = "<tr><td><input type='checkbox' name='record'></td><td>" + name + "</td><td>" + email + "</td></tr>";
-            $("table tbody").append(markup);
-        });
-
-
-
-        // Find and remove selected table rows
-        $("#delete-row").click(function(){
-
-            rowCount -= 1;
-            
-            if (rowCount === 1)
-                $("#delete-row").attr("hidden",true);
-            $("table tbody").find('input[name="record"]').each(function(){
-            	if($(this).is(":checked")){
-                    $(this).parents("tr").remove();
-                }
-            });
-        });
-    });
-    </script>
     <style>
         form{
             margin: 20px 0;
