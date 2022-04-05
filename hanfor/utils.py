@@ -632,6 +632,7 @@ def generate_csv_file_content(app, filter_list=None, invert_filter=False):
 def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter: bool = False) -> io.BytesIO:
     """ Generates the xlsx file content for a session."""
     requirements = get_requirements(app.config['REVISION_FOLDER'], filter_list=filter_list, invert_filter=invert_filter)
+    var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
     session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])
 
     # create  styles
@@ -644,20 +645,25 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
     work_book = Workbook()
     work_sheet = work_book.active
     work_sheet.title = "Report"
-    work_sheet.freeze_panes = "A4"
-    for c in range(1, 8):
-        for r in range(1,3):
-            work_sheet.cell(r, c).fill = META
-    work_sheet.cell(1, 2, value= "HANFOR Report")
-    work_sheet.cell(1, 2).font = WHITE
-    work_sheet.cell(1, 3, value=session_dict['csv_input_file'])
-    work_sheet.cell(1, 3).font = Font(color="FFFFFF")
+
 
     HEADER_OFFSET = 4
+    def make_header(work_sheet):
+        work_sheet.freeze_panes = "A4"
+        for c in range(1, 8):
+            for r in range(1, 3):
+                work_sheet.cell(r, c).fill = META
+        work_sheet.cell(1, 2, value= "HANFOR Report")
+        work_sheet.cell(1, 2).font = WHITE
+        work_sheet.cell(1, 3, value=session_dict['csv_input_file'])
+        work_sheet.cell(1, 3).font = Font(color="FFFFFF")
+        for c in range(1, 8):
+            work_sheet.cell(HEADER_OFFSET - 1, c).fill = FILLED
+            work_sheet.cell(HEADER_OFFSET - 1, c).font = WHITE
+    make_header(work_sheet)
+
+
     # Set column widths and headings
-    for c in range(1, 8):
-        work_sheet.cell(HEADER_OFFSET - 1, c).fill = FILLED
-        work_sheet.cell(HEADER_OFFSET - 1, c).font = WHITE
     work_sheet.column_dimensions['A'].width = 5
     work_sheet.cell(HEADER_OFFSET - 1, 1, value="Index")
     work_sheet.column_dimensions['B'].width = 20
@@ -684,6 +690,27 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
         work_sheet.cell(HEADER_OFFSET + i, 6, requirement.status)
         work_sheet.cell(HEADER_OFFSET + i, 7,
                          "\n".join([f.get_string() for f in requirement.formalizations.values()]))
+
+    # make sheet with variables
+    var_sheet = work_book.create_sheet("Variables")
+    make_header(var_sheet)
+    var_sheet.column_dimensions['A'].width = 5
+    var_sheet.cell(HEADER_OFFSET - 1, 1, value="Index")
+    var_sheet.column_dimensions['B'].width = 40
+    var_sheet.cell(HEADER_OFFSET - 1, 2, value="Name")
+    var_sheet.column_dimensions['C'].width = 80
+    var_sheet.column_dimensions['D'].width = 5
+    var_sheet.cell(HEADER_OFFSET - 1, 3, value="Type")
+    var_sheet.column_dimensions['E'].width = 180
+    var_sheet.cell(HEADER_OFFSET - 1, 5, value="Invarianten")
+
+    var: object
+    for i, var in enumerate(var_collection.collection.values()):
+        var_sheet.cell(HEADER_OFFSET + i, 2, var.name)
+        var_sheet.cell(HEADER_OFFSET + i, 2).font = BOLD
+        var_sheet.cell(HEADER_OFFSET + i, 3, var.type)
+        var_sheet.cell(HEADER_OFFSET + i, 4, "E" if var.belongs_to_enum else "")
+        var_sheet.cell(HEADER_OFFSET + i, 5, "\n".join([c.get_string() for c in var.get_constraints().values()]))
 
     buffer = io.BytesIO()
     work_book.save(buffer)
@@ -1438,7 +1465,6 @@ class Revision:
         session['csv_formal_header'] = self.requirement_collection.csv_meta['formal_header']
         session['csv_type_header'] = self.requirement_collection.csv_meta['type_header']
         session['csv_desc_header'] = self.requirement_collection.csv_meta['desc_header']
-        session['csv_dialect'] = self.requirement_collection.csv_meta['dialect']
         session['csv_hash'] = hash_file_sha1(self.args.input_csv)
         pickle_dump_obj_to_file(session, self.app.config['SESSION_STATUS_PATH'])
 
