@@ -115,7 +115,7 @@ def hash_file_sha1(path, encoding='utf-8'):
     """
     sha1sum = hashlib.sha1()
 
-    with open(path, 'r') as f:
+    with open(path, 'r', encoding=encoding) as f:
         while True:
             data = f.readline().encode(encoding=encoding)
             if not data:
