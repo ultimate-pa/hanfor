@@ -210,18 +210,18 @@ PATTERNS = {
         'pattern_order': 0
     },
     'EdgeResponseBoundU1': {
-        'pattern': 'it is always the case that once {R} becomes satisfied and holds for at most {T} time units, then {S} holds  afterwards',
+        'pattern': 'it is always the case that once {R} becomes satisfied and holds for at most {S} time units, then {T} holds afterwards',
         'countertraces': {
-            'GLOBALLY': ['true;⌈!R⌉;⌈R⌉ ∧ ℓ ≤ T;⌈(!R && !S)⌉;true'],
-            'BEFORE': ['⌈!P⌉;⌈(!P && !R)⌉;⌈(!P && R)⌉ ∧ ℓ ≥ T;⌈(!P && (!R && !S))⌉;true'],
-            'AFTER': ['true;⌈P⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ ≤ T;⌈(!R && !S)⌉;true'],
-            'BETWEEN': ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ ≤ T;⌈(!Q && (!R && !S))⌉;⌈!Q⌉;⌈Q⌉;true'],
-            'AFTER_UNTIL': ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ ≤ T;⌈(!Q && (!R && !S))⌉;true']
+            'GLOBALLY': ['true;⌈!R⌉;⌈R⌉ ∧ ℓ ≤ S;⌈(!R && !T)⌉;true'],
+            'BEFORE': ['⌈!P⌉;⌈(!P && !R)⌉;⌈(!P && R)⌉ ∧ ℓ ≥ S;⌈(!P && (!R && !T))⌉;true'],
+            'AFTER': ['true;⌈P⌉;true;⌈!R⌉;⌈R⌉ ∧ ℓ ≤ S;⌈(!R && !T)⌉;true'],
+            'BETWEEN': ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ ≤ S;⌈(!Q && (!R && !T))⌉;⌈!Q⌉;⌈Q⌉;true'],
+            'AFTER_UNTIL': ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && !R)⌉;⌈(!Q && R)⌉ ∧ ℓ ≤ S;⌈(!Q && (!R && !T))⌉;true']
         },
         'env': {
             'R': ['bool'],
-            'S': ['bool'],
-            'T': ['real', 'int']
+            'S': ['real', 'int'],
+            'T': ['bool']
         },
         'group': 'Real-time',
         'pattern_order': 0
@@ -330,7 +330,7 @@ PATTERNS = {
         'group': 'Occurence',
         'pattern_order': 2
     },
-    'PrecedenceChain12': {
+    'PrecedenceChain1-2': {
         'pattern': 'it is always the case that if {R} holds and is succeeded by {S}, then {T} previously held',
         'countertraces': {
             'GLOBALLY': ['⌈!T⌉;⌈R⌉;true;⌈S⌉;true'],
@@ -407,36 +407,36 @@ PATTERNS = {
         'pattern_order': 0
     },
     'ResponseBoundL12': {
-        'pattern': 'it is always the case that if {R} holds for at least {T} time units, then {S} holds afterwards for at least {U} time units',
+        'pattern': 'it is always the case that if {R} holds for at least {S} time units, then {T} holds afterwards for at least {U} time units',
         'countertraces': {
-            'GLOBALLY': ['true;⌈R⌉ ∧ ℓ ≥ T;⌈S⌉ ∧ ℓ <₀ U;⌈!S⌉;true'],
-            'BEFORE': ['⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ T;⌈(!P && S)⌉ ∧ ℓ <₀ U;⌈(!P && !S)⌉;true'],
-            'AFTER': ['true;⌈P⌉;⌈R⌉ ∧ ℓ ≥ T;⌈S⌉ ∧ ℓ <₀ U;⌈!S⌉;true'],
-            'BETWEEN': ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ T;⌈(!Q && S)⌉ ∧ ℓ <₀ U;⌈(!Q && !S)⌉;true;⌈Q⌉;true'],
-            'AFTER_UNTIL': ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ T;⌈(!Q && S)⌉ ∧ ℓ <₀ U;⌈(!Q && !S)⌉;true']
+            'GLOBALLY': ['true;⌈R⌉ ∧ ℓ ≥ S;⌈T⌉ ∧ ℓ <₀ U;⌈!T⌉;true'],
+            'BEFORE': ['⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ S;⌈(!P && T)⌉ ∧ ℓ <₀ U;⌈(!P && !T)⌉;true'],
+            'AFTER': ['true;⌈P⌉;⌈R⌉ ∧ ℓ ≥ S;⌈T⌉ ∧ ℓ <₀ U;⌈!T⌉;true'],
+            'BETWEEN': ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ S;⌈(!Q && T)⌉ ∧ ℓ <₀ U;⌈(!Q && !T)⌉;true;⌈Q⌉;true'],
+            'AFTER_UNTIL': ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ S;⌈(!Q && T)⌉ ∧ ℓ <₀ U;⌈(!Q && !T)⌉;true']
         },
         'env': {
             'R': ['bool'],
-            'S': ['bool'],
-            'T': ['real', 'int'],
+            'S': ['real', 'int'],
+            'T': ['bool'],
             'U': ['real', 'int']
         },
         'group': 'Real-time',
         'pattern_order': 0
     },
     'ResponseBoundL1': {
-        'pattern': 'it is always the case that if {R} holds for at least {T} time units, then {S} holds afterwards',
+        'pattern': 'it is always the case that if {R} holds for at least {S} time units, then {T} holds afterwards',
         'countertraces': {
-            'GLOBALLY': ['true;⌈R⌉ ∧ ℓ ≥ T;⌈!S⌉;true'],
-            'BEFORE': ['⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ T;⌈(!P && !S)⌉;true'],
-            'AFTER': ['true;⌈P⌉;true;⌈R⌉ ∧ ℓ ≥ T;⌈!S⌉;true'],
-            'BETWEEN': ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ T;⌈(!Q && !S)⌉;⌈!Q⌉;⌈Q⌉;true'],
-            'AFTER_UNTIL': ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ T;⌈(!Q && !S)⌉;true']
+            'GLOBALLY': ['true;⌈R⌉ ∧ ℓ ≥ S;⌈!T⌉;true'],
+            'BEFORE': ['⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ S;⌈(!P && !T)⌉;true'],
+            'AFTER': ['true;⌈P⌉;true;⌈R⌉ ∧ ℓ ≥ S;⌈!T⌉;true'],
+            'BETWEEN': ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ S;⌈(!Q && !T)⌉;⌈!Q⌉;⌈Q⌉;true'],
+            'AFTER_UNTIL': ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ S;⌈(!Q && !T)⌉;true']
         },
         'env': {
             'R': ['bool'],
-            'S': ['bool'],
-            'T': ['real', 'int']
+            'S': ['real', 'int'],
+            'T': ['bool'],
         },
         'group': 'Real-time',
         'pattern_order': 0
@@ -536,38 +536,38 @@ PATTERNS = {
         'pattern_order': 0
     },
     'TriggerResponseBoundL1': {
-        'pattern': 'it is always the case that after {R} holds for at least {U} time units and {S} holds, then {T} holds',
+        'pattern': 'it is always the case that after {R} holds for at least {S} time units and {T} holds, then {U} holds',
         'countertraces': {
-            'GLOBALLY': ['true;⌈R⌉ ∧ ℓ ≥ U;⌈(R && (S && !T))⌉;true'],
-            'BEFORE': ['⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ U;⌈(!P && (R && (S && !T)))⌉;true'],
-            'AFTER': ['true;⌈P⌉;true;⌈R⌉ ∧ ℓ ≥ U;⌈(R && (S && !T))⌉;true'],
-            'BETWEEN': ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ U;⌈(!Q && (R && (S && !T)))⌉;true;⌈Q⌉;true'],
-            'AFTER_UNTIL': ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ U;⌈(!Q && (R && (S && !T)))⌉;true']
+            'GLOBALLY': ['true;⌈R⌉ ∧ ℓ ≥ S;⌈(R && (T && !U))⌉;true'],
+            'BEFORE': ['⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ S;⌈(!P && (R && (T && !U)))⌉;true'],
+            'AFTER': ['true;⌈P⌉;true;⌈R⌉ ∧ ℓ ≥ S;⌈(R && (T && !U))⌉;true'],
+            'BETWEEN': ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ S;⌈(!Q && (R && (T && !U)))⌉;true;⌈Q⌉;true'],
+            'AFTER_UNTIL': ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ S;⌈(!Q && (R && (T && !U)))⌉;true']
         },
         'env': {
             'R': ['bool'],
-            'S': ['bool'],
+            'S': ['real', 'int'],
             'T': ['bool'],
-            'U': ['real', 'int']
+            'U': ['bool'],
         },
         'group': 'Real-time',
         'pattern_order': 0
     },
     'TriggerResponseDelayBoundL1': {
-        'pattern': 'it is always the case that after {R} holds for at least {U} time units and {S} holds, then {T} holds after at most {V}  time units',
+        'pattern': 'it is always the case that after {R} holds for at least {S} time units and {T} holds, then {U} holds after at most {V} time units',
         'countertraces': {
-            'GLOBALLY': ['true;⌈R⌉ ∧ ℓ ≥ U;⌈(R && (S && !T))⌉;⌈!T⌉ ∧ ℓ > V;true'],
-            'BEFORE': ['⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ U;⌈(!P && (R && (S && !T)))⌉;⌈(!P && !T)⌉ ∧ ℓ > V;true'],
-            'AFTER': ['true;⌈P⌉;true;⌈R⌉ ∧ ℓ ≥ U;⌈(R && (S && !T))⌉;⌈!T⌉ ∧ ℓ > V;true'],
+            'GLOBALLY': ['true;⌈R⌉ ∧ ℓ ≥ S;⌈(R && (T && !U))⌉;⌈!U⌉ ∧ ℓ > V;true'],
+            'BEFORE': ['⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ S;⌈(!P && (R && (T && !U)))⌉;⌈(!P && !U)⌉ ∧ ℓ > V;true'],
+            'AFTER': ['true;⌈P⌉;true;⌈R⌉ ∧ ℓ ≥ S;⌈(R && (T && !U))⌉;⌈!U⌉ ∧ ℓ > V;true'],
             'BETWEEN': [
-                'true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ U;⌈(!Q && (R && (S && !T)))⌉;⌈(!Q && !T)⌉ ∧ ℓ > V;true;⌈Q⌉;true'],
-            'AFTER_UNTIL': ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ U;⌈(!Q && (R && (S && !T)))⌉;⌈(!Q && !T)⌉ ∧ ℓ > V;true']
+                'true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ S;⌈(!Q && (R && (T && !U)))⌉;⌈(!Q && !U)⌉ ∧ ℓ > V;true;⌈Q⌉;true'],
+            'AFTER_UNTIL': ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉ ∧ ℓ ≥ S;⌈(!Q && (R && (T && !U)))⌉;⌈(!Q && !U)⌉ ∧ ℓ > V;true']
         },
         'env': {
             'R': ['bool'],
-            'S': ['bool'],
+            'S': ['real', 'int'],
             'T': ['bool'],
-            'U': ['real', 'int'],
+            'U': ['bool'],
             'V': ['real', 'int'],
         },
         'group': 'Real-time',

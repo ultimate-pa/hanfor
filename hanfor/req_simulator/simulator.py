@@ -160,7 +160,7 @@ class Simulator:
             return result
 
         for i, pea in enumerate(self.peas):
-            prefix = f'{pea.requirement.id}_{pea.formalization.id}_{pea.countertrace_id}'
+            prefix = f'{pea.requirement.rid}_{pea.formalization.id}_{pea.countertrace_id}'
             result.extend([f'{prefix}_{dc_phase_id}' for dc_phase_id in self.current_phases[i].sets.active])
 
         return result

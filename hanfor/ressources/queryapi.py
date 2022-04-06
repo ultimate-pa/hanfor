@@ -251,7 +251,7 @@ class QueryAPI(Ressource):
         if self._requirement_data is None:
             self._requirement_data = dict()
             for req in Requirement.requirements():
-                self._requirement_data[req.id] = QueryAPI.req_dict_to_search_dict(req.to_dict())
+                self._requirement_data[req.rid] = QueryAPI.req_dict_to_search_dict(req.to_dict())
         return self._requirement_data
 
     @property
