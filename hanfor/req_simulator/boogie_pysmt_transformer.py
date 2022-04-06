@@ -17,7 +17,8 @@ class BoogiePysmtTransformer(Transformer):
         'ENUM_REAL': lambda name, value: Symbol(name, REAL),
         'ENUMERATOR_INT': lambda name, value: Int(int(value)),
         'ENUMERATOR_REAL': lambda name, value: Real(float(value)),
-        'CONST': lambda name, value: Real(float(value))
+        # TODO: Make this better, please.
+        'CONST': lambda name, value: Real(float(value)) if '.' in value else Int(int(value))
     }
 
     def __init__(self, variables: dict[str, Variable]) -> None:

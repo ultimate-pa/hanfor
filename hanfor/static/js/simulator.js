@@ -14,6 +14,7 @@ function get_selected_requirement_ids(requirements_table) {
 
 function update_simulator_select(simulator_select) {
     $.ajax({
+        // TODO: Allow async.
         type: 'GET', url: 'simulator', async: false, data: {command: 'get_simulators'}, success: function (response) {
             if (response['success'] === false) {
                 alert(response['errormsg'])
@@ -40,6 +41,7 @@ function init_simulator_tab() {
 
     simulator_create_btn.click(function () {
         $.ajax({
+            // TODO: Allow async.
             type: 'POST', url: 'simulator', async: false, data: {
                 command: 'create_simulator',
                 simulator_name: simulator_name_input.val() || 'unnamed',
@@ -60,6 +62,7 @@ function init_simulator_tab() {
 
     simulator_delete_btn.click(function () {
         $.ajax({
+            // TODO: Allow async.
             type: 'DELETE', url: 'simulator', async: false, data: {
                 command: 'delete_simulator', simulator_id: simulator_select.val()
             }, success: function (response) {
@@ -75,6 +78,7 @@ function init_simulator_tab() {
 
     simulator_start_btn.click(function () {
         $.ajax({
+            // TODO: Allow async.
             type: 'GET', url: 'simulator', async: false, data: {
                 command: 'start_simulator', simulator_id: simulator_select.val()
             }, success: function (response) {
@@ -119,6 +123,7 @@ function init_simulator_modal(data) {
 
     simulator_step_check_btn.click(function () {
         $.ajax({
+            // TODO: Allow async.
             type: 'POST', url: 'simulator', async: false, data: {
                 command: 'step_check',
                 simulator_id: simulator_id,
@@ -139,6 +144,7 @@ function init_simulator_modal(data) {
 
     simulator_step_next_btn.click(function () {
         $.ajax({
+            // TODO: Allow async.
             type: 'POST', url: 'simulator', async: false, data: {
                 command: 'step_next',
                 simulator_id: simulator_id,
@@ -163,6 +169,7 @@ function init_simulator_modal(data) {
 
     simulator_step_back_btn.click(function () {
         $.ajax({
+            // TODO: Allow async.
             type: 'POST', url: 'simulator', async: false, data: {
                 command: 'step_back', simulator_id: simulator_id
             }, success: function (response) {
