@@ -853,7 +853,7 @@ class VariableCollection(HanforVersioned, Pickleable):
     def __init__(self, path):
         HanforVersioned.__init__(self)
         Pickleable.__init__(self, path)
-        self.collection = dict()
+        self.collection: Dict[str, Variable] = dict()
         self.req_var_mapping = dict()
         self.var_req_mapping = dict()
 

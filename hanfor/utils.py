@@ -17,7 +17,8 @@ import logging
 import os
 import re
 from openpyxl import Workbook
-from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font
+from openpyxl.worksheet.datavalidation import DataValidation
+from openpyxl.styles import PatternFill, Alignment, Font
 
 from flask import json, Response
 from flask_assets import Environment
@@ -644,20 +645,19 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
     #create excel template
     work_book = Workbook()
     work_sheet = work_book.active
-    work_sheet.title = "Report"
-
+    work_sheet.title = "Requirements"
 
     HEADER_OFFSET = 4
     def make_header(work_sheet):
         work_sheet.freeze_panes = "A4"
-        for c in range(1, 8):
+        for c in range(1, 10):
             for r in range(1, 3):
                 work_sheet.cell(r, c).fill = META
         work_sheet.cell(1, 2, value= "HANFOR Report")
         work_sheet.cell(1, 2).font = WHITE
         work_sheet.cell(1, 3, value=session_dict['csv_input_file'])
         work_sheet.cell(1, 3).font = Font(color="FFFFFF")
-        for c in range(1, 8):
+        for c in range(1, 10):
             work_sheet.cell(HEADER_OFFSET - 1, c).fill = FILLED
             work_sheet.cell(HEADER_OFFSET - 1, c).font = WHITE
     make_header(work_sheet)
@@ -686,32 +686,74 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
         work_sheet.cell(HEADER_OFFSET + i, 2, requirement.rid)
         work_sheet.cell(HEADER_OFFSET + i, 3, requirement.description)
         work_sheet.cell(HEADER_OFFSET + i, 4, requirement.type_in_csv)
-        work_sheet.cell(HEADER_OFFSET + i, 5, "\n".join([f"{tag}:" for tag in requirement.tags]))
+        work_sheet.cell(HEADER_OFFSET + i, 5, "".join([f"{tag}: \n" for tag in requirement.tags]))
         work_sheet.cell(HEADER_OFFSET + i, 6, requirement.status)
         work_sheet.cell(HEADER_OFFSET + i, 7,
                          "\n".join([f.get_string() for f in requirement.formalizations.values()]))
 
+    # make severity sheet
+    tag_sheet = work_book.create_sheet("Findings")
+    make_header(tag_sheet)
+    tag_sheet.column_dimensions['A'].width = 5
+    tag_sheet.cell(HEADER_OFFSET - 1, 1, value="Index")
+    tag_sheet.column_dimensions['B'].width = 20
+    tag_sheet.cell(HEADER_OFFSET - 1, 2, value="ID")
+    tag_sheet.cell(HEADER_OFFSET - 1, 3, value="Description")
+    tag_sheet.column_dimensions['C'].width = 80
+    tag_sheet.column_dimensions['D'].width = 20
+    tag_sheet.cell(HEADER_OFFSET - 1, 4, value="Tag")
+    tag_sheet.column_dimensions['E'].width = 60
+    tag_sheet.cell(HEADER_OFFSET - 1, 5, value="Comment (Analysis)")
+    tag_sheet.column_dimensions['F'].width = 10
+    tag_sheet.cell(HEADER_OFFSET - 1, 6, value="Accept")
+    tag_sheet.column_dimensions['G'].width = 15
+    tag_sheet.cell(HEADER_OFFSET - 1, 7, value="Value")
+    tag_sheet.column_dimensions['H'].width = 80
+    tag_sheet.cell(HEADER_OFFSET - 1, 8, value="Comment (Review)")
+
+    accept_state_validator = DataValidation(type="list", formula1='"TODO ,Accept,Decline,Inquery"', allow_blank=False)
+    tag_sheet.add_data_validation(accept_state_validator)
+    accept_state_validator.add("F4:F1048576")
+    issue_value_validator = DataValidation(type="list",
+          formula1='"TODO, 0 (no value),1 (nice to have),2 (useful),3 (possible desaster)"', allow_blank=True)
+    tag_sheet.add_data_validation(issue_value_validator)
+    issue_value_validator.add("G4:G1048576")
+
+
+    for i, (req, tag) in enumerate([(req, tag) for req in requirements for tag in req.tags]):
+        for c in range(1, 8):
+            tag_sheet.cell(HEADER_OFFSET + i, c).alignment = MULTILINE
+        tag_sheet.cell(HEADER_OFFSET + i, 1, req.pos_in_csv)
+        tag_sheet.cell(HEADER_OFFSET + i, 2).font = BOLD
+        tag_sheet.cell(HEADER_OFFSET + i, 2, req.rid)
+        tag_sheet.cell(HEADER_OFFSET + i, 3, req.description)
+        tag_sheet.cell(HEADER_OFFSET + i, 4, tag)
+        tag_sheet.cell(HEADER_OFFSET + i, 5, "") # Tags do currently not have comments
+        tag_sheet.cell(HEADER_OFFSET + i, 6, "TODO")
+        tag_sheet.cell(HEADER_OFFSET + i, 7, "TODO")
+
+
     # make sheet with variables
     var_sheet = work_book.create_sheet("Variables")
     make_header(var_sheet)
-    var_sheet.column_dimensions['A'].width = 5
-    var_sheet.cell(HEADER_OFFSET - 1, 1, value="Index")
-    var_sheet.column_dimensions['B'].width = 40
-    var_sheet.cell(HEADER_OFFSET - 1, 2, value="Name")
-    var_sheet.column_dimensions['C'].width = 80
-    var_sheet.column_dimensions['D'].width = 5
-    var_sheet.cell(HEADER_OFFSET - 1, 3, value="Type")
-    var_sheet.column_dimensions['E'].width = 180
-    var_sheet.cell(HEADER_OFFSET - 1, 5, value="Invarianten")
+    var_sheet.column_dimensions['A'].width = 40
+    var_sheet.cell(HEADER_OFFSET - 1, 1, value="Name")
+    var_sheet.column_dimensions['B'].width = 80
+    var_sheet.column_dimensions['C'].width = 5
+    var_sheet.cell(HEADER_OFFSET - 1, 2, value="Type")
+    var_sheet.column_dimensions['D'].width = 180
+    var_sheet.cell(HEADER_OFFSET - 1, 4, value="Invarianten")
 
-    var: object
     for i, var in enumerate(var_collection.collection.values()):
-        var_sheet.cell(HEADER_OFFSET + i, 2, var.name)
-        var_sheet.cell(HEADER_OFFSET + i, 2).font = BOLD
-        var_sheet.cell(HEADER_OFFSET + i, 3, var.type)
-        var_sheet.cell(HEADER_OFFSET + i, 4, "E" if var.belongs_to_enum else "")
-        var_sheet.cell(HEADER_OFFSET + i, 5, "\n".join([c.get_string() for c in var.get_constraints().values()]))
+        for c in range(1, 8):
+            var_sheet.cell(HEADER_OFFSET + i, c).alignment = MULTILINE
+        var_sheet.cell(HEADER_OFFSET + i, 1, var.name)
+        var_sheet.cell(HEADER_OFFSET + i, 1).font = BOLD
+        var_sheet.cell(HEADER_OFFSET + i, 2, var.type)
+        var_sheet.cell(HEADER_OFFSET + i, 3, "E" if var.belongs_to_enum else "")
+        var_sheet.cell(HEADER_OFFSET + i, 4, "\n".join([c.get_string() for c in var.get_constraints().values()]))
 
+    work_book.active = tag_sheet
     buffer = io.BytesIO()
     work_book.save(buffer)
     return buffer
