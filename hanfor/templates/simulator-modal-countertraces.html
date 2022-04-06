@@ -1,18 +1,18 @@
 <div id="simulator-countertraces-accordion" class="accordion">
     {% for requirement, formalizations in simulator.get_pea_mapping().items() %}
         <div class="simulator-countertraces-card card">
-            <div class="card-header" id="heading-{{ requirement.id }}">
+            <div class="card-header" id="heading-{{ requirement.rid }}">
                 <h5 class="mb-0">
                     <button class="btn btn-sm btn-link btn-block text-left" type="button" data-toggle="collapse"
-                            data-target="#collapse-{{ requirement.id }}" aria-expanded="true"
-                            aria-controls="collapse-{{ requirement.id }}">
-                        {{ requirement.id }}
+                            data-target="#collapse-{{ requirement.rid }}" aria-expanded="true"
+                            aria-controls="collapse-{{ requirement.rid }}">
+                        {{ requirement.rid }}
                     </button>
                 </h5>
             </div>
 
-            <div id="collapse-{{ requirement.id }}" class="collapse show"
-                 aria-labelledby="heading-{{ requirement.id }}">
+            <div id="collapse-{{ requirement.rid }}" class="collapse show"
+                 aria-labelledby="heading-{{ requirement.rid }}">
                 <div class="card-body">
                     {% for formalization, peas in formalizations.items() %}
                         <label>Formalization</label>
@@ -24,7 +24,7 @@
                                 <li class="list-group-item">
                                     {% for dc_phase in pea.countertrace.dc_phases %}
                                         {{ ";" if loop.index > 1 }}
-                                        <code id="{{ "%s_%s_%s_%s_dc_phase" % (requirement.id, formalization.id, countertrace_id, loop.index - 1) }}"
+                                        <code id="{{ "%s_%s_%s_%s_dc_phase" % (requirement.rid, formalization.id, countertrace_id, loop.index - 1) }}"
                                               class="text-dark">{{ dc_phase }}</code>
                                     {% endfor %}
                                 </li>
