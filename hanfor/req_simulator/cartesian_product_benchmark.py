@@ -1,17 +1,23 @@
 from __future__ import annotations
 
+import glob
 import inspect
 import itertools
+import os
+import pickle
 import time
 from collections import defaultdict
+from shutil import copy
 
 from pysmt.fnode import FNode
-from pysmt.shortcuts import Symbol, EqualsOrIff, Int, is_sat, And, TRUE, reset_env, get_env
+from pysmt.shortcuts import Symbol, Int, is_sat, And, TRUE, LT, GT
 from pysmt.typing import INT
+from termcolor import colored
 
 import boogie_parsing
+from config_changes import CONFIG_CHANGES
 from req_simulator.boogie_pysmt_transformer import BoogiePysmtTransformer
-from termcolor import colored
+from reqtransformer import VariableCollection, Requirement
 
 SOLVER_NAME = 'z3'
 LOGIC = 'QF_LRA'
@@ -20,27 +26,44 @@ stats = defaultdict(dict)
 
 
 def print_stats() -> None:
+    for key1 in stats.keys():
+        for key2 in stats.keys():
+            if key1 != key2:
+                equal = stats[key1]['result'] == stats[key2]['result']
+                print(f'{key1} == {key2}:', colored(str(equal), 'green' if equal else 'red'))
+
     min_duration = min([stats[s]['duration'] for s in stats])
     min_check_sat_duration = min([stats[s]['check_sat_duration'] for s in stats])
     min_check_sat_duration_avg = min([stats[s]['check_sat_duration_avg'] for s in stats])
+    min_build_formula_duration = min([stats[s]['build_formula_duration'] for s in stats])
+    min_build_formula_duration_avg = min([stats[s]['build_formula_duration_avg'] for s in stats])
 
     for s in stats:
-        duration_color = 'green' if stats[s]["duration"] <= min_duration else 'white'
-        check_sat_duration_color = 'green' if stats[s]['check_sat_duration'] <= min_check_sat_duration else 'white'
-        check_sat_duration_avg_color = 'green' if stats[s]['check_sat_duration_avg'] <= min_check_sat_duration_avg else 'white'
-
         print(f'\n{s}:')
-        print(colored(f'duration: {stats[s]["duration"]}', duration_color))
-        #print('result:', stats[s]['result'])
+
+        min_ = stats[s]["duration"] <= min_duration
+        print('duration:', colored(f'{stats[s]["duration"]}', 'green' if min_ else 'white'))
+
+        print('result:', stats[s]['result'])
+
         print('result size:', f'{len(stats[s]["result"])}')
+
         print('check sat calls:', stats[s]['check_sat_calls'])
-        print(colored(f'check sat duration: {stats[s]["check_sat_duration"]}', check_sat_duration_color))
-        print('check sat duration avg:', stats[s]['check_sat_duration_avg'])
+
+        min_ = stats[s]['check_sat_duration'] <= min_check_sat_duration
+        print('check sat duration:', colored(f'{stats[s]["check_sat_duration"]}', 'green' if min_ else 'white'))
+
+        min_ = stats[s]['check_sat_duration_avg'] <= min_check_sat_duration_avg
+        print('check sat duration avg:', colored(f'{stats[s]["check_sat_duration_avg"]}', 'green' if min_ else 'white'))
+
         # print('check sat formulas:', stats[s]['check_sat_formulas'])
 
-    print('\nresults are equal:',
-          #stats['naive']['result'] == stats['optimized_initial_checks']['result'] and
-          stats['naive']['result'] == stats['optimized_intermediate_checks']['result'])
+        min_ = stats[s]['build_formula_duration'] <= min_build_formula_duration
+        print('build formula duration:', colored(f'{stats[s]["build_formula_duration"]}', 'green' if min_ else 'white'))
+
+        min_ = stats[s]['build_formula_duration_avg'] <= min_build_formula_duration_avg
+        print('build formula duration avg:',
+              colored(f'{stats[s]["build_formula_duration_avg"]}', 'green' if min_ else 'white'))
 
 
 def get_caller_name() -> str:
@@ -51,31 +74,56 @@ def get_func_name() -> str:
     return inspect.stack()[1].function
 
 
-def build_var_assertion(name: str, value: int):
-    return EqualsOrIff(Symbol(name, INT), Int(value))
+# def build_var_assertion(name: str, value: int):
+#    return EqualsOrIff(Symbol(name, INT), Int(value))
 
 
-def build_var_assertions(name: str, values: tuple[int]):
-    return And([build_var_assertion(name, v) for v in values])
+# def build_var_assertions(name: str, values: tuple[int]):
+#    return And([build_var_assertion(name, v) for v in values])
+
+
+def build_formula_and(lhs: FNode, rhs: FNode) -> FNode:
+    caller = get_caller_name()
+
+    start = time.time()
+    result = And(lhs, rhs)
+    duration = time.time() - start
+
+    stats[caller].setdefault('build_formula_calls', 0)
+    stats[caller]['build_formula_calls'] += 1
+
+    stats[caller].setdefault('build_formula_durations', [])
+    stats[caller]['build_formula_durations'].append(duration)
+
+    stats[caller].setdefault('build_formula_duration', 0)
+    stats[caller]['build_formula_duration'] += duration
+
+    stats[caller]['build_formula_duration_avg'] = stats[caller]['build_formula_duration'] / stats[caller][
+        'build_formula_calls']
+
+    return result
 
 
 def check_sat(formula: FNode) -> bool:
     caller = get_caller_name()
 
-    check_sat_duration = time.time()
+    start = time.time()
     result = is_sat(formula, solver_name=SOLVER_NAME, logic=LOGIC)
-    check_sat_duration = time.time() - check_sat_duration
+    duration = time.time() - start
 
     stats[caller].setdefault('check_sat_calls', 0)
     stats[caller]['check_sat_calls'] += 1
 
+    stats[caller].setdefault('check_sat_durations', [])
+    stats[caller]['check_sat_durations'].append(duration)
+
     stats[caller].setdefault('check_sat_duration', 0)
-    stats[caller]['check_sat_duration'] += check_sat_duration
+    stats[caller]['check_sat_duration'] += duration
 
     stats[caller]['check_sat_duration_avg'] = stats[caller]['check_sat_duration'] / stats[caller]['check_sat_calls']
 
-    #stats[caller].setdefault('check_sat_formulas', [])
-    #stats[caller]['check_sat_formulas'].append(formula.simplify())
+    # stats[caller].setdefault('check_sat_formulas', [])
+    # stats[caller]['check_sat_formulas'].append(formula.simplify())
 
     return result
 
@@ -85,31 +133,18 @@ def naive(inputs: list[list[FNode]]) -> list[tuple[FNode]]:
 
     # Compute cartesian product
     results_ = list(itertools.product(*inputs))
-    print(len(results_))
 
     # Check result tuples
-    for i in range(len(results_) - 1, 0, -1):
-        if i % 1000 == 0:
-            print(i)
+    for i in range(len(results_) - 1, -1, -1):
+        if i > 0 and i % 1000 == 0:
+            print('[naive] check result tuples:', i)
 
-        #formula = TRUE()
-        formula = And(*results_[i])
-
-        #for r_ in results_[i]:
-        #    formula = And(formula, r_)
-
-        #env = get_env()
-        #formula_manager_formulae = get_env()._formula_manager.formulae.copy()
-        #stc_memoization = get_env()._stc.memoization.copy()
+        formula = TRUE()
+        for r_ in results_[i]:
+            formula = build_formula_and(formula, r_)
 
         if not check_sat(formula):
             del results_[i]
-            #results_.remove(result_)
-
-        #del get_env()._formula_manager.formulae[formula._content]
-        #del get_env()._stc.memoization[formula]
-        #del formula
-        #print()
 
     return results_
 
@@ -138,7 +173,7 @@ def optimized_initial_checks(inputs: list[list[FNode]]) -> list[tuple[FNode]]:
         formula = TRUE()
 
         for r_ in result_:
-            formula = And(formula, r_)
+            formula = build_formula_and(formula, r_)
 
         if not check_sat(formula):
             results.remove(result_)
@@ -158,7 +193,7 @@ def optimized_intermediate_checks(inputs: list[list[FNode]]) -> list[tuple[FNode
         input_ = []
 
         for e in input:
-            if check_sat(e):
+            if check_sat(build_formula_and(e, TRUE())):
                 input_.append(e)
 
         inputs_.append(input_)
@@ -173,10 +208,13 @@ def optimized_intermediate_checks(inputs: list[list[FNode]]) -> list[tuple[FNode
         results_ = []
 
         for result in results:
-            formula = And(*result)
+            formula = TRUE()
+
+            for r in result:
+                formula = build_formula_and(formula, r)
 
             for e in input:
-                if check_sat(And(formula, e)):
+                if check_sat(build_formula_and(formula, e)):
                     result_ = result + (e,)
                     results_.append(result_)
 
@@ -185,14 +223,75 @@ def optimized_intermediate_checks(inputs: list[list[FNode]]) -> list[tuple[FNode
     return results
 
 
-def main():
-    inputs = [
-        # ['true', 'false', 'true'],
-        # ['true', 'false', 'true'],
+mapping = {
+    'BndEdgeResponsePattern': {
+        'name': '',
+        'pattern': '',
+        'variables': {'P': 'P', 'Q': 'Q', 'R': 'R', 'S': 'S', 'T': 'T', 'U': 'U', 'V': 'V'}
+    }
+}
 
-        ['a && b','b && a','c && a'],
-        ['d && !a','e && !b','f && !c'],
-        ['g && !b','h && !a','i && !c'],
+
+def main():
+    base_dir = '../data/daimler_cs/revision_0/'
+    paths = glob.glob(os.path.join(base_dir + '*.pickle'))
+
+    for path in paths:
+        print(f'Check file: "{os.path.basename(path)}" ...')
+        is_migrated = False
+
+        with open(path, 'rb') as file:
+            object = pickle.load(file)
+
+        if isinstance(object, VariableCollection):
+            for variable_name, variable in object.collection.items():
+
+                if not hasattr(variable, 'constraints') or variable.constraints is None:
+                    continue
+
+                for id, constraint in variable.constraints.items():
+                    name = constraint.scoped_pattern.pattern.name
+
+                    if name in CONFIG_CHANGES:
+                        new_name = CONFIG_CHANGES[name]['name']
+                        print(f'\tMigrate: {name} --> {new_name}')
+                        constraint.scoped_pattern.pattern.name = new_name
+                        is_migrated = True
+
+        elif isinstance(object, Requirement):
+            for id, formalization in object.formalizations.items():
+
+                if not hasattr(formalization, 'scoped_pattern') or formalization.scoped_pattern is None:
+                    continue
+
+                name = formalization.scoped_pattern.pattern.name
+
+                if name in CONFIG_CHANGES:
+                    new_name = CONFIG_CHANGES[name]['name']
+                    print(f'\tMigrate: {name} --> {new_name}')
+                    formalization.scoped_pattern.pattern.name = new_name
+                    is_migrated = True
+
+        if is_migrated:
+            copy(path, path + '.backup')
+
+            with open(path, 'wb') as file:
+                pickle.dump(object, file)
+
+
+
+
+
+
+
+
+
+    return
+
+    inputs = [
+        # ['true', 'false'],
+        # ['true', 'true']
+
         ['a && b', 'b && a', 'c && a'],
         ['d && !a', 'e && !b', 'f && !c'],
         ['g && !b', 'h && !a', 'i && !c'],
@@ -202,6 +301,9 @@ def main():
         ['a && b', 'b && a', 'c && a'],
         ['d && !a', 'e && !b', 'f && !c'],
         ['g && !b', 'h && !a', 'i && !c'],
+        ['a && b', 'b && a', 'c && a'],
+        # ['d && !a', 'e && !b', 'f && !c'],
+        # ['g && !b', 'h && !a', 'i && !c'],
     ]
 
     variables = {
@@ -222,15 +324,64 @@ def main():
     stats['naive']['result'] = naive(inputs)
     stats['naive']['duration'] = time.time() - duration
 
-    #duration = time.time()
-    #stats['optimized_initial_checks']['result'] = optimized_initial_checks(inputs)
-    #stats['optimized_initial_checks']['duration'] = time.time() - duration
+    # duration = time.time()
+    # stats['optimized_initial_checks']['result'] = optimized_initial_checks(inputs)
+    # stats['optimized_initial_checks']['duration'] = time.time() - duration
 
     duration = time.time()
     stats['optimized_intermediate_checks']['result'] = optimized_intermediate_checks(inputs)
     stats['optimized_intermediate_checks']['duration'] = time.time() - duration
 
     print_stats()
+
+
+def test_pysmt_durations():
+    duration = time.time()
+    a = Symbol('a', INT)
+    b = Symbol('b', INT)
+    print('vars:', (time.time() - duration) * 1000)
+
+    duration = time.time()
+    f1 = And(LT(a, Int(5)), GT(a, Int(0)))
+    print('formula:', (time.time() - duration) * 1000)
+
+    duration = time.time()
+    c = Symbol('c', INT)
+    d = Symbol('d', INT)
+    print('vars:', (time.time() - duration) * 1000)
+
+    duration = time.time()
+    f2 = And(LT(c, Int(6)), GT(d, Int(1)))
+    print('formula:', (time.time() - duration) * 1000)
+
+    duration = time.time()
+    x = Symbol('x', INT)
+    y = Symbol('y', INT)
+    print('vars:', (time.time() - duration) * 1000)
+
+    duration = time.time()
+    f3 = And(LT(x, Int(7)), GT(y, Int(2)))
+    print('formula:', (time.time() - duration) * 1000)
+
+    duration = time.time()
+    is_sat(f1, solver_name=SOLVER_NAME, logic=LOGIC)
+    print('sat f1:', (time.time() - duration) * 1000)
+
+    duration = time.time()
+    is_sat(f2, solver_name=SOLVER_NAME, logic=LOGIC)
+    print('sat f2:', (time.time() - duration) * 1000)
+
+    duration = time.time()
+    is_sat(f3, solver_name=SOLVER_NAME, logic=LOGIC)
+    print('sat f3:', (time.time() - duration) * 1000)
+
+    duration = time.time()
+    f4 = And(f1, f2, f3, f1, f2, f3, f1, f2, f3, )
+    print('f4:', (time.time() - duration) * 1000)
+
+    duration = time.time()
+    is_sat(f4, solver_name=SOLVER_NAME, logic=LOGIC)
+    print('sat f4:', (time.time() - duration) * 1000)
 
 
 def parse_inputs(inputs: list[list[str]], variables: dict[str, str]) -> list[list[FNode]]:

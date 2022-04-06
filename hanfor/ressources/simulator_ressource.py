@@ -188,7 +188,7 @@ class SimulatorRessource(Ressource):
     @staticmethod
     def store_phase_event_automata(peas: list[PhaseEventAutomaton], app: Flask) -> None:
         for pea in peas:
-            file = f'{pea.requirement.id}_{pea.formalization.id}_{pea.countertrace_id}_PEA.pickle'
+            file = f'{pea.requirement.rid}_{pea.formalization.id}_{pea.countertrace_id}_PEA.pickle'
             pea.store(os.path.join(app.config['REVISION_FOLDER'], file))
 
     @staticmethod
@@ -230,7 +230,7 @@ class SimulatorRessource(Ressource):
 
             for i, ct_str in enumerate(app.config['PATTERNS'][pattern]['countertraces'][scope]):
                 ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
-                pea = build_automaton(ct, f'c_{requirement.id}_{formalization.id}_{i}_')
+                pea = build_automaton(ct, f'c_{requirement.rid}_{formalization.id}_{i}_')
                 pea.requirement = requirement
                 pea.formalization = formalization
                 pea.countertrace_id = i

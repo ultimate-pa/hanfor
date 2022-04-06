@@ -193,7 +193,7 @@ def api(resource, command):
             error_msg = ''
 
             if requirement:
-                logging.debug('Updating requirement: {}'.format(requirement.id))
+                logging.debug('Updating requirement: {}'.format(requirement.rid))
 
                 new_status = request.form.get('status', '')
                 if requirement.status != new_status:
@@ -927,7 +927,7 @@ def requirements_version_migrations(app, args):
             for formalization in req.formalizations.values():
                 tmp = formalization.type_inference_errors
         except:
-            logging.info('Update type inference results for `{}`'.format(req.id))
+            logging.info('Update type inference results for `{}`'.format(req.rid))
             req.reload_type_inference(var_collection, app)
         if args.reload_type_inference:
             req.reload_type_inference(var_collection, app)
