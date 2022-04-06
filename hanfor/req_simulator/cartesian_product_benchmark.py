@@ -12,6 +12,7 @@ from termcolor import colored
 
 import boogie_parsing
 from req_simulator.boogie_pysmt_transformer import BoogiePysmtTransformer
+from reqtransformer import Variable
 
 SOLVER_NAME = 'z3'
 LOGIC = 'QF_LRA'
@@ -228,33 +229,13 @@ mapping = {
 
 def main():
     inputs = [
-        # ['true', 'false'],
-        # ['true', 'true']
-
-        ['a && b', 'b && a', 'c && a'],
-        ['d && !a', 'e && !b', 'f && !c'],
-        ['g && !b', 'h && !a', 'i && !c'],
-        ['a && b', 'b && a', 'c && a'],
-        ['d && !a', 'e && !b', 'f && !c'],
-        ['g && !b', 'h && !a', 'i && !c'],
-        ['a && b', 'b && a', 'c && a'],
-        ['d && !a', 'e && !b', 'f && !c'],
-        ['g && !b', 'h && !a', 'i && !c'],
-        ['a && b', 'b && a', 'c && a'],
-        # ['d && !a', 'e && !b', 'f && !c'],
-        # ['g && !b', 'h && !a', 'i && !c'],
+        ['a && b', 'b && a'],
+        ['!b', 'b && a']
     ]
 
     variables = {
-        'a': 'bool',
-        'b': 'bool',
-        'c': 'bool',
-        'd': 'bool',
-        'e': 'bool',
-        'f': 'bool',
-        'g': 'bool',
-        'h': 'bool',
-        'i': 'bool'
+        'a': Variable('a', 'bool', 'true'),
+        'b': Variable('b', 'bool', 'true')
     }
 
     inputs = parse_inputs(inputs, variables)
