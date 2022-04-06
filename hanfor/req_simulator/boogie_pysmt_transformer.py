@@ -5,21 +5,24 @@ from pysmt.shortcuts import And, Or, Div, FALSE, TRUE, GT, GE, Symbol, Iff, Impl
     Int, Plus, Real, Times, EqualsOrIff
 from pysmt.typing import INT, BOOL, REAL
 
+from reqtransformer import Variable
+
 
 class BoogiePysmtTransformer(Transformer):
-    hanfor_to_pysmt_type_mapping = {
-        'bool': BOOL,
-        'int': INT,
-        'real': REAL,
-        'ENUM_INT': INT,
-        'ENUM_REAL': REAL,
-        'ENUMERATOR_INT': INT,
-        'ENUMERATOR_REAL': REAL
+    hanfor_to_pysmt_mapping = {
+        'bool': lambda name, value: Symbol(name, BOOL),
+        'int': lambda name, value: Symbol(name, INT),
+        'real': lambda name, value: Symbol(name, REAL),
+        'ENUM_INT': lambda name, value: Symbol(name, INT),
+        'ENUM_REAL': lambda name, value: Symbol(name, REAL),
+        'ENUMERATOR_INT': lambda name, value: Int(int(value)),
+        'ENUMERATOR_REAL': lambda name, value: Real(float(value)),
+        'CONST': lambda name, value: Real(float(value))
     }
 
-    def __init__(self, variables: dict[str, str]) -> None:
+    def __init__(self, variables: dict[str, Variable]) -> None:
         super().__init__()
-        self.variables_mapping = variables
+        self.variables = variables
 
     @staticmethod
     def conjunction(children) -> FNode:
@@ -54,13 +57,11 @@ class BoogiePysmtTransformer(Transformer):
         return GE(children[0], children[2])
 
     def id(self, children) -> Symbol:
-        hanfor_type = self.variables_mapping.get(children[0].value)
-        pysmt_type = self.hanfor_to_pysmt_type_mapping.get(hanfor_type)
+        name = children[0].value
+        type = self.variables[name].type
+        value = self.variables[name].value
 
-        if pysmt_type is None:
-            raise ValueError("Unexpected variable type: %s" % hanfor_type)
-
-        return Symbol(children[0].value, pysmt_type)
+        return self.hanfor_to_pysmt_mapping[type](name, value)
 
     @staticmethod
     def iff(children) -> FNode:

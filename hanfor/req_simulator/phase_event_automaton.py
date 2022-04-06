@@ -80,7 +80,12 @@ class Phase:
 
         for atom in atoms:
             assert (atom.is_le())
+
+            #try:
             clock_bounds[str(atom.args()[0])] = float(str(atom.args()[1]))
+            #except:
+            #    print()
+
 
         return clock_bounds
 
