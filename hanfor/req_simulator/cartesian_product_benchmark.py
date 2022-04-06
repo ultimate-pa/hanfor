@@ -1,13 +1,9 @@
 from __future__ import annotations
 
-import glob
 import inspect
 import itertools
-import os
-import pickle
 import time
 from collections import defaultdict
-from shutil import copy
 
 from pysmt.fnode import FNode
 from pysmt.shortcuts import Symbol, Int, is_sat, And, TRUE, LT, GT
@@ -15,9 +11,7 @@ from pysmt.typing import INT
 from termcolor import colored
 
 import boogie_parsing
-from config_changes import CONFIG_CHANGES
 from req_simulator.boogie_pysmt_transformer import BoogiePysmtTransformer
-from reqtransformer import VariableCollection, Requirement
 
 SOLVER_NAME = 'z3'
 LOGIC = 'QF_LRA'
@@ -233,61 +227,6 @@ mapping = {
 
 
 def main():
-    base_dir = '../data/daimler_cs/revision_0/'
-    paths = glob.glob(os.path.join(base_dir + '*.pickle'))
-
-    for path in paths:
-        print(f'Check file: "{os.path.basename(path)}" ...')
-        is_migrated = False
-
-        with open(path, 'rb') as file:
-            object = pickle.load(file)
-
-        if isinstance(object, VariableCollection):
-            for variable_name, variable in object.collection.items():
-
-                if not hasattr(variable, 'constraints') or variable.constraints is None:
-                    continue
-
-                for id, constraint in variable.constraints.items():
-                    name = constraint.scoped_pattern.pattern.name
-
-                    if name in CONFIG_CHANGES:
-                        new_name = CONFIG_CHANGES[name]['name']
-                        print(f'\tMigrate: {name} --> {new_name}')
-                        constraint.scoped_pattern.pattern.name = new_name
-                        is_migrated = True
-
-        elif isinstance(object, Requirement):
-            for id, formalization in object.formalizations.items():
-
-                if not hasattr(formalization, 'scoped_pattern') or formalization.scoped_pattern is None:
-                    continue
-
-                name = formalization.scoped_pattern.pattern.name
-
-                if name in CONFIG_CHANGES:
-                    new_name = CONFIG_CHANGES[name]['name']
-                    print(f'\tMigrate: {name} --> {new_name}')
-                    formalization.scoped_pattern.pattern.name = new_name
-                    is_migrated = True
-
-        if is_migrated:
-            copy(path, path + '.backup')
-
-            with open(path, 'wb') as file:
-                pickle.dump(object, file)
-
-
-
-
-
-
-
-
-
-    return
-
     inputs = [
         # ['true', 'false'],
         # ['true', 'true']

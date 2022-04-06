@@ -226,7 +226,7 @@ class SimulatorRessource(Ressource):
             expressions = {}
             for k, v in formalization.expressions_mapping.items():
                 tree = boogie_parser.parse(v.raw_expression)
-                expressions[k] = BoogiePysmtTransformer(variables).transform(tree)
+                expressions[k] = BoogiePysmtTransformer(var_collection.collection).transform(tree)
 
             for i, ct_str in enumerate(app.config['PATTERNS'][pattern]['countertraces'][scope]):
                 ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
