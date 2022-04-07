@@ -8,16 +8,18 @@ from lark import Lark
 from pysmt.fnode import FNode
 from pysmt.shortcuts import Symbol, substitute
 
-ct_parser = None
+SOLVER_NAME = 'z3'
+LOGIC = 'QF_LRA'
+CT_PARSER = None
 
 
 def get_countertrace_parser() -> Lark:
-    global ct_parser
+    global CT_PARSER
 
-    if ct_parser is None:
-        ct_parser = Lark.open('countertrace_grammar.lark', rel_to=__file__, start='countertrace', parser='lalr')
+    if CT_PARSER is None:
+        CT_PARSER = Lark.open('countertrace_grammar.lark', rel_to=__file__, start='countertrace', parser='lalr')
 
-    return ct_parser
+    return CT_PARSER
 
 
 def substitute_free_variables(fnode: FNode, suffix: str = "_") -> FNode:

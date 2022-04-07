@@ -5,15 +5,12 @@ from dataclasses import dataclass
 
 from pysmt.fnode import FNode
 from pysmt.formula import FormulaManager
-from pysmt.shortcuts import TRUE, And, FALSE, Or, Not, Symbol, LT, GE, LE, is_valid, Iff, Solver, is_sat, get_env
+from pysmt.shortcuts import TRUE, And, FALSE, Or, Not, Symbol, LT, GE, LE, is_valid, Iff, is_sat, get_env
 from pysmt.typing import REAL
 
 from req_simulator.countertrace import Countertrace
-from req_simulator.utils import substitute_free_variables
+from req_simulator.utils import substitute_free_variables, SOLVER_NAME, LOGIC
 from reqtransformer import Pickleable, Requirement, Formalization
-
-SOLVER_NAME = 'cvc4'
-SOLVER = Solver(name=SOLVER_NAME)
 
 
 @dataclass(frozen=True)
@@ -54,8 +51,8 @@ class Phase:
 
     def __eq__(self, o: Phase) -> bool:
         return isinstance(o, Phase) and o.sets == self.sets and \
-               is_valid(Iff(o.state_invariant, self.state_invariant), solver_name=SOLVER_NAME) and \
-               is_valid(Iff(o.clock_invariant, self.clock_invariant), solver_name=SOLVER_NAME)
+               is_valid(Iff(o.state_invariant, self.state_invariant), solver_name=SOLVER_NAME, logic=LOGIC) and \
+               is_valid(Iff(o.clock_invariant, self.clock_invariant), solver_name=SOLVER_NAME, logic=LOGIC)
 
     def __hash__(self) -> int:
         return hash((self.sets))
@@ -80,12 +77,7 @@ class Phase:
 
         for atom in atoms:
             assert (atom.is_le())
-
-            #try:
             clock_bounds[str(atom.args()[0])] = float(str(atom.args()[1]))
-            #except:
-            #    print()
-
 
         return clock_bounds
 
@@ -105,14 +97,14 @@ class Phase:
         result = And(*[ct.dc_phases[i].invariant for i in p.active],
                      *[Not(ct.dc_phases[i].invariant) for i in inactive if can_seep(p, i) == TRUE()])
 
-        return result.simplify()
+        return result
 
     @staticmethod
     def compute_clock_invariant(ct: Countertrace, p: Sets, cp: str) -> FNode:
         result = And(LE(Symbol(cp + str(i), REAL), ct.dc_phases[i].bound) for i in p.active if
                      i in p.wait or ct.dc_phases[i].is_upper_bound() and can_seep(p, i) == FALSE())
 
-        return result.simplify()
+        return result
 
 
 @dataclass()
@@ -124,7 +116,7 @@ class Transition:
 
     def __eq__(self, o: Transition) -> bool:
         return isinstance(o, Transition) and o.src == self.src and o.dst == self.dst and o.resets == self.resets and \
-               is_valid(Iff(o.guard, self.guard), solver_name=SOLVER_NAME)
+               is_valid(Iff(o.guard, self.guard), solver_name=SOLVER_NAME, logic=LOGIC)
 
     def __hash__(self) -> int:
         return hash((self.src, self.dst, self.resets))
@@ -223,7 +215,7 @@ def build_successors(i: int, p: Sets, p_: Sets, resets: set[str], guard: FNode, 
     guard = guard.simplify()
 
     # Abort if guard is not satisfiable.
-    if guard != TRUE() and (guard == FALSE() or not is_sat(guard, solver_name=SOLVER_NAME)):
+    if guard != TRUE() and (guard == FALSE() or not is_sat(guard, solver_name=SOLVER_NAME, logic=LOGIC)):
         return []
 
     # Check if successor and guard are complete.
@@ -238,8 +230,8 @@ def build_successors(i: int, p: Sets, p_: Sets, resets: set[str], guard: FNode, 
     inv = substitute_free_variables(ct.dc_phases[i].invariant)
 
     # Seep depends on partial successor location.
-    seep = And(can_seep(p_, i), inv).simplify()
-    # seep = And(can_seep(p_, i), ct.dc_phases[i].invariant).simplify()
+    seep = And(can_seep(p_, i), inv)
+    # seep = And(can_seep(p_, i), ct.dc_phases[i].invariant)
 
     # Case 1: i not in successor.active.
     result.extend(build_successors(i + 1, p, p_, resets,
@@ -247,7 +239,7 @@ def build_successors(i: int, p: Sets, p_: Sets, resets: set[str], guard: FNode, 
                                    ct, enter, keep, cp))
 
     # Case 2: i in p_.active.
-    guard = And(guard, Or(enter[i], keep[i], seep)).simplify()
+    guard = And(guard, Or(enter[i], keep[i], seep))
 
     if ct.dc_phases[i].is_lower_bound():
         # Case 2a: clocks[i] in resets.
@@ -332,11 +324,11 @@ def compute_enter_keep(ct: Countertrace, p: Sets, init: bool, cp: str) -> tuple[
         for i in range(-1, len(ct.dc_phases)):
             inv = substitute_free_variables(ct.dc_phases[i].invariant)
             enter_[i] = TRUE() if i < 0 else And(enter_[i - 1], TRUE() if ct.dc_phases[i - 1].allow_empty else FALSE(),
-                                                 inv).simplify()
+                                                 inv)
             # enter_[i] = TRUE() if i < 0 else And(
             #   enter_[i - 1],
             #   TRUE() if ct.dc_phases[i - 1].allow_empty else FALSE(),
-            #   ct.dc_phases[i].invariant).simplify()
+            #   ct.dc_phases[i].invariant)
             keep_[i] = FALSE()
     else:
         for i in range(len(ct.dc_phases)):
@@ -348,25 +340,25 @@ def compute_enter_keep(ct: Countertrace, p: Sets, init: bool, cp: str) -> tuple[
 
 def enter(ct: Countertrace, p: Sets, i: int, cp: str) -> FNode:
     inv = substitute_free_variables(ct.dc_phases[i].invariant)
-    return And(complete(ct, p, i - 1, cp), inv).simplify()
-    # return And(complete(ct, p, i - 1), ct.dc_phases[i].invariant).simplify()
+    return And(complete(ct, p, i - 1, cp), inv)
+    # return And(complete(ct, p, i - 1), ct.dc_phases[i].invariant)
 
 
 def seep(ct: Countertrace, p: Sets, i: int) -> FNode:
     inv = substitute_free_variables(ct.dc_phases[i].invariant)
-    return And(can_seep(p, i), inv).simplify()
-    # return And(can_seep(p, i), ct.dc_phases[i].invariant).simplify()
+    return And(can_seep(p, i), inv)
+    # return And(can_seep(p, i), ct.dc_phases[i].invariant)
 
 
 def keep(ct: Countertrace, p: Sets, i: int, cp: str) -> FNode:
     inv = substitute_free_variables(ct.dc_phases[i].invariant)
     return And(TRUE() if i in p.active else FALSE(), inv,
                LT(Symbol(cp + str(i), REAL), ct.dc_phases[i].bound)
-               if ct.dc_phases[i].is_upper_bound() and can_seep(p, i) == FALSE() else TRUE()).simplify()
+               if ct.dc_phases[i].is_upper_bound() and can_seep(p, i) == FALSE() else TRUE())
 
     # return And(TRUE() if i in p.active else FALSE(), ct.dc_phases[i].invariant,
     #           LT(Symbol(cp + str(i), INT), ct.dc_phases[i].bound)
-    #           if ct.dc_phases[i].is_upper_bound() and can_seep(p, i) == FALSE() else TRUE()).simplify()
+    #           if ct.dc_phases[i].is_upper_bound() and can_seep(p, i) == FALSE() else TRUE())
 
 
 def complete(ct: Countertrace, p: Sets, i: int, cp: str) -> FNode:
@@ -380,7 +372,7 @@ def complete(ct: Countertrace, p: Sets, i: int, cp: str) -> FNode:
     if i > 0 and ct.dc_phases[i].allow_empty:
         result = Or(result, complete(ct, p, i - 1, cp))
 
-    return result.simplify()
+    return result
 
 
 def can_seep(p: Sets, i: int) -> FNode:

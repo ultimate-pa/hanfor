@@ -19,7 +19,7 @@
                         <pre class="alert alert-secondary">{{ formalization.get_string() }}</pre>
 
                         <label>Countertraces</label>
-                        <ul class="list-group">
+                        <ul class="list-group mb-3">
                             {% for countertrace_id, pea in peas.items() %}
                                 <li class="list-group-item">
                                     {% for dc_phase in pea.countertrace.dc_phases %}
