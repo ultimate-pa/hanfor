@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 import os
 import re as regex
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 from copy import copy
 from dataclasses import dataclass
 
@@ -11,24 +11,15 @@ from InquirerPy import inquirer
 from InquirerPy.base import Choice
 from InquirerPy.validator import PathValidator
 from prompt_toolkit.validation import ValidationError, Validator
-from pysmt.constants import Fraction
-from pysmt.environment import push_env, pop_env
 from pysmt.fnode import FNode
-from pysmt.printers import smart_serialize
-from pysmt.rewritings import CNFizer
-from pysmt.shortcuts import And, Equals, Symbol, is_sat, Real, Int, Bool, EqualsOrIff, TRUE, get_env, get_model, \
-    Implies, Iff, Solver, get_free_variables
-from pysmt.simplifier import BddSimplifier
+from pysmt.shortcuts import And, Equals, Symbol, is_sat, Real, Int, Bool, EqualsOrIff, TRUE, get_model
 from pysmt.typing import REAL, INT, BOOL
 
 from req_simulator.countertrace import CountertraceTransformer
 from req_simulator.phase_event_automaton import PhaseEventAutomaton, build_automaton, Phase, Transition
 from req_simulator.scenario import Scenario
-from req_simulator.utils import substitute_free_variables, get_countertrace_parser
+from req_simulator.utils import substitute_free_variables, get_countertrace_parser, SOLVER_NAME, LOGIC
 from reqtransformer import Requirement, Formalization
-
-SOLVER_NAME = 'cvc4'
-SOLVER = Solver(name=SOLVER_NAME)
 
 
 class BoolValidator(Validator):
@@ -93,7 +84,6 @@ class Simulator:
             self.value = Sconst_mapping[symbol_type](value)
         '''
 
-
     @dataclass
     class State:
         time: float
@@ -111,7 +101,8 @@ class Simulator:
         self.current_phases: list[Phase] = [None] * len(self.peas)
         self.clocks: list[dict[str, float]] = [{clock: 0 for clock in pea.clocks} for pea in self.peas]
 
-        self.variables: dict[FNode, FNode] = {v: None for pea in self.peas for v in pea.countertrace.extract_variables()}
+        self.variables: dict[FNode, FNode] = {v: None for pea in self.peas for v in
+                                              pea.countertrace.extract_variables()}
 
         self.time_step: float = 1.0
 
@@ -132,8 +123,6 @@ class Simulator:
             results.append(' ; '.join([f'{k} = {v}' for k, v in model.items() if self.variables[k] is None]))
 
         return results
-
-
 
     def get_pea_mapping(self) -> dict[Requirement, dict[Formalization, dict[str, PhaseEventAutomaton]]]:
         result = defaultdict(lambda: defaultdict(dict))
@@ -257,9 +246,9 @@ class Simulator:
                 transition = transition_tuple[i]
 
                 f = And(f, self.build_guard(transition, self.clocks[i]),
-                    self.build_clock_invariant(transition, self.update_clocks(i, transition.resets, True)))
+                        self.build_clock_invariant(transition, self.update_clocks(i, transition.resets, True)))
 
-            model = get_model(f, SOLVER_NAME)
+            model = get_model(f, SOLVER_NAME, LOGIC)
 
             if model is not None:
                 enabled_transitions.append(transition_tuple)

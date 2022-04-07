@@ -1,7 +1,6 @@
+require('chart.js/auto')
 require('jquery-ui-sortable')
-
-// TODO: Remove in Bootstrap version >= 5.1
-require('../css/floating-labels.css')
+require('../css/floating-labels.css') // TODO: Remove in Bootstrap version >= 5.1
 
 function get_selected_requirement_ids(requirements_table) {
     let ids = []
@@ -100,6 +99,7 @@ function init_simulator_modal(data) {
     let active_dc_phases = data['active_dc_phases']
 
     let simulator_modal = $(data['html'])
+    let simulator_chart_canvas = simulator_modal.find('#chart-canvas')
     let simulator_step_transition_select = simulator_modal.find('#simulator-step-transition-select')
     let simulator_step_check_btn = simulator_modal.find('#simulator-step-check-btn')
     let simulator_step_next_btn = simulator_modal.find('#simulator-step-next-btn')
@@ -120,6 +120,8 @@ function init_simulator_modal(data) {
     })
 
     update_dc_phases(dc_phase_codes, active_dc_phases)
+
+    let chart = init_chart(simulator_chart_canvas, data['var_mapping'])
 
     simulator_step_check_btn.click(function () {
         $.ajax({
@@ -163,6 +165,9 @@ function init_simulator_modal(data) {
 
                 active_dc_phases = response['data']['active_dc_phases']
                 update_dc_phases(dc_phase_codes, active_dc_phases)
+
+                chart.destroy()
+                chart = init_chart(simulator_chart_canvas, response['data']['var_mapping'])
             }
         })
     })
@@ -186,6 +191,9 @@ function init_simulator_modal(data) {
 
                 active_dc_phases = response['data']['active_dc_phases']
                 update_dc_phases(dc_phase_codes, active_dc_phases)
+
+                chart.destroy()
+                chart = init_chart(simulator_chart_canvas, response['data']['var_mapping'])
             }
         })
     })
@@ -194,6 +202,91 @@ function init_simulator_modal(data) {
     simulator_modal.find('#simulator-variables-form-row').sortable();
 
     simulator_modal.modal('show')
+}
+
+function init_chart(chart_canvas, input) {
+    /*
+    let input = {
+        '0.0': {
+            'variable_1': 'False',
+            'variable_2': '0'
+        },
+        '1.0': {
+            'variable_1': 'True',
+            'variable_2': '1'
+        },
+        '2.0': {
+            'variable_1': 'False',
+            'variable_2': '0'
+        },
+        '3.0': {
+            'variable_1': 'False',
+            'variable_2': '0'
+        }
+    }
+    */
+
+    let times = Object.keys(input)
+
+    let valuations = {}
+    $.each(Object.values(input), function (index, value) {
+        $.each(value, function (index, value) {
+            index in valuations ? valuations[index].push(value) : valuations[index] = [value]
+        })
+    })
+
+    let scales = {}
+    let datasets = []
+    $.each(valuations, function (index, value) {
+        let is_bool = value.includes('True') || value.includes('False')
+        let color = generateRandomColor()
+
+        scales['y_' + index] = {
+            type: is_bool ? 'category' : 'linear',
+            labels: is_bool ? ['True', 'False'] : [],
+            offset: true,
+            stack: 'demo'
+        }
+
+        datasets.push({
+            label: index,
+            backgroundColor: color,
+            borderColor: color,
+            data: value,
+            stepped: true,
+            yAxisID: 'y_' + index
+        })
+    })
+
+    const data = {
+        labels: Object.keys(input),
+        datasets: datasets
+    };
+
+    const config = {
+        type: 'line',
+        data: data,
+        options: {
+            scales: scales
+        }
+    };
+
+    console.log('data', data)
+    console.log('config', config)
+
+    const ctx = chart_canvas[0].getContext('2d');
+    const myChart = new Chart(ctx, config)
+    return myChart
+
+}
+
+function generateRandomColor() {
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (var i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
 }
 
 function read_variable_inputs(variable_inputs) {

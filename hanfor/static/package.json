@@ -19,7 +19,7 @@
     "bootstrap": "^4.6.0",
     "bootstrap-confirmation2": "^4.2.1",
     "bootstrapjs": "^2.0.0",
-    "chart.js": "^2.7.2",
+    "chart.js": "^3.7.1",
     "cytoscape": "^3.2.12",
     "datatables.net-bs4": "^1.10.16",
     "datatables.net-select": "^1.2.5",

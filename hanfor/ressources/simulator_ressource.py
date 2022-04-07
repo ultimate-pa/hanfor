@@ -120,8 +120,6 @@ class SimulatorRessource(Ressource):
         simulator.update_variables(variables)
         simulator.check_sat()
 
-        simulator.get_transitions()
-
         data = {
             'transitions': simulator.get_transitions()
         }

@@ -8,17 +8,32 @@
                 </button>
             </div>
             <div class="modal-body">
-
-                <div class="form-row">
-                    <div class="col">
-                        <select id="simulator-step-transition-select" class="custom-select mb-2"></select>
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-6">
+                            <canvas id="chart-canvas"></canvas>
+                        </div>
                     </div>
-                    <div class="col-auto">
-                        <button id="simulator-step-check-btn" class="btn btn-secondary mb-2" type="button">Check</button>
-                        <button id="simulator-step-back-btn" class="btn btn-secondary mb-2" type="button">Back</button>
-                        <button id="simulator-step-next-btn" class="btn btn-secondary mb-2" type="button">Next</button>
+                    <div class="row">
+                        <div class="col">
+                            <select id="simulator-step-transition-select" class="custom-select mb-2"></select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col text-right">
+                            <button id="simulator-step-check-btn" class="btn btn-secondary mb-2" type="button">
+                                Check
+                            </button>
+                            <button id="simulator-step-back-btn" class="btn btn-secondary mb-2" type="button">
+                                Back
+                            </button>
+                            <button id="simulator-step-next-btn" class="btn btn-secondary mb-2" type="button">
+                                Next
+                            </button>
+                        </div>
                     </div>
                 </div>
+
 
                 {% include "simulator-modal-variables.html" %}
                 {% include "simulator-modal-countertraces.html" %}

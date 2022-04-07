@@ -18,6 +18,7 @@ let dynamicColors = function() {
     return "rgb(" + r + "," + g + "," + b + ")";
 };
 
+/*
 Chart.plugins.register({
     afterInit: function (chart) {
         if (chart.config.options.show_total) {
@@ -32,6 +33,7 @@ Chart.plugins.register({
         }
     }
 });
+*/
 
 $(document).ready(function () {
     statistics_request = $.get('api/stats/gets', function (result) {
