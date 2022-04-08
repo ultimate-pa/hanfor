@@ -137,15 +137,15 @@ class SimulatorRessource(Ressource):
 
     def step_next(self) -> None:
         simulator_id = self.request.form.get('simulator_id')
-        transition_id = self.request.form.get('transition_id')
+        transition_index = self.request.form.get('transition_index')
 
-        if len(transition_id) <= 0:
+        if transition_index == '':
             self.response.success = False
             self.response.errormsg = 'No transition selected.'
             return
 
         simulator = self.simulator_cache[simulator_id]
-        simulator.walk_transitions(*simulator.enabled_transitions[int(transition_id)])
+        simulator.step_next(int(transition_index))
 
         data = {
             'times': simulator.get_times(),
@@ -160,7 +160,7 @@ class SimulatorRessource(Ressource):
         simulator_id = self.request.form.get('simulator_id')
 
         simulator = self.simulator_cache[simulator_id]
-        if not simulator.load_prev_state():
+        if not simulator.step_back():
             self.response.success = False
             self.response.errormsg = 'Step back not possible.'
 
