@@ -159,7 +159,7 @@ function init_simulator_modal(data) {
             type: 'POST', url: 'simulator', async: false, data: {
                 command: 'step_next',
                 simulator_id: simulator_id,
-                transition_id: simulator_step_transition_select.val()
+                transition_index: simulator_step_transition_select.val()
             }, success: function (response) {
                 if (response['success'] === false) {
                     alert(response['errormsg'])

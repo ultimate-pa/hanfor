@@ -151,7 +151,7 @@ class TestSimulator(TestCase):
                 break
 
             if len(transitions) == 1:
-                simulator.walk_transitions(transitions[0])
+                simulator.step_next(transitions[0])
                 actual = True
 
         self.assertEqual(expected, actual, msg="Error while simulating scenario.")
