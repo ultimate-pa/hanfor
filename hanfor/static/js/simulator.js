@@ -95,6 +95,7 @@ function init_simulator_tab() {
 function init_simulator_modal(data) {
     let simulator_id = data['simulator_id']
     let times = data['times']
+    let time_step = data['time_step']
     let variables = data['variables']
     let active_dc_phases = data['active_dc_phases']
     let types = data['types']
@@ -103,9 +104,12 @@ function init_simulator_modal(data) {
     let simulator_modal = $(data['html'])
     let simulator_chart_canvas = simulator_modal.find('#chart-canvas')
     let simulator_step_transition_select = simulator_modal.find('#simulator-step-transition-select')
+    let simulator_time_step_input = simulator_modal.find('#simulator-time-step-input')
     let simulator_step_check_btn = simulator_modal.find('#simulator-step-check-btn')
     let simulator_step_next_btn = simulator_modal.find('#simulator-step-next-btn')
     let simulator_step_back_btn = simulator_modal.find('#simulator-step-back-btn')
+
+    simulator_time_step_input.val(time_step)
 
     let variable_inputs = {}
     $.each(simulator_modal.find('input[id$=_variable]'), function (index, value) {
@@ -131,12 +135,15 @@ function init_simulator_modal(data) {
             type: 'POST', url: 'simulator', async: false, data: {
                 command: 'step_check',
                 simulator_id: simulator_id,
+                time_step: simulator_time_step_input.val(),
                 variables: JSON.stringify(read_variable_inputs(variable_inputs))
             }, success: function (response) {
                 if (response['success'] === false) {
                     alert(response['errormsg'])
                     return
                 }
+
+                simulator_time_step_input.val(response['data']['time_step'])
 
                 simulator_step_transition_select.empty()
                 $.each(response['data']['transitions'], function (index, value) {
@@ -158,6 +165,8 @@ function init_simulator_modal(data) {
                     alert(response['errormsg'])
                     return
                 }
+
+                simulator_time_step_input.val(response['data']['time_step'])
 
                 simulator_step_transition_select.empty()
 
@@ -187,6 +196,8 @@ function init_simulator_modal(data) {
                     alert(response['errormsg'])
                     return
                 }
+
+                simulator_time_step_input.val(response['data']['time_step'])
 
                 simulator_step_transition_select.empty()
 
@@ -381,20 +392,20 @@ function generateRandomColor() {
     return color
 }
 
-function read_variable_inputs(variable_inputs) {
+function read_variable_inputs(inputs) {
     result = {}
 
-    $.each(variable_inputs, function (index, value) {
+    $.each(inputs, function (index, value) {
         result[index] = value.val() === '' ? null : value.val()
     })
 
     return result
 }
 
-function update_variable_inputs(variable_inputs, variables) {
-    $.each(variables, function (index, value) {
+function update_variable_inputs(inputs, values) {
+    $.each(values, function (index, value) {
         value = value[value.length - 1]
-        variable_inputs[index].val(value === 'None' ? '' : value)
+        inputs[index].val(value === 'None' ? '' : value)
     })
 }
 

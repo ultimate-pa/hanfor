@@ -9,39 +9,36 @@
             </div>
             <div class="modal-body">
                 <div class="container-fluid">
-                    <div class="row mb-4">
+                    <div class="row py-2">
                         <div class="col" style="height: 300px; resize: vertical; overflow: auto">
                             <canvas id="chart-canvas" style="width: 100%; max-height: 100%"></canvas>
                         </div>
                     </div>
-                    <div class="row mb-4">
+                    <div class="row py-2">
                         <div class="col">
-                            <select id="simulator-step-transition-select" class="custom-select mb-2"></select>
+                            <select id="simulator-step-transition-select" class="custom-select"></select>
                         </div>
                     </div>
-                    <div class="row mb-4">
-                        <div class="col text-right">
-                            <button id="simulator-step-back-btn" class="btn btn-secondary mb-2" type="button">
-                                Back
-                            </button>
-                            <button id="simulator-step-check-btn" class="btn btn-secondary mb-2" type="button">
-                                Check
-                            </button>
-                            <button id="simulator-step-next-btn" class="btn btn-secondary mb-2" type="button">
-                                Next
-                            </button>
+                    <div class="row py-2">
+                        <div class="col">
+                            {% include "simulator-modal-controls.html" %}
+                        </div>
+                    </div>
+                    <div class="row py-2">
+                        <div class="col">
+                            {% include "simulator-modal-variables.html" %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            {% include "simulator-modal-countertraces.html" %}
                         </div>
                     </div>
                 </div>
-
-
-                {% include "simulator-modal-variables.html" %}
-                {% include "simulator-modal-countertraces.html" %}
-
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
         </div>
     </div>
 </div>
