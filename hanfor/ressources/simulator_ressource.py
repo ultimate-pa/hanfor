@@ -72,7 +72,7 @@ class SimulatorRessource(Ressource):
         data = {
             'simulator_id': simulator_id,
             'html': render_template('simulator-modal.html', simulator=simulator),
-            'time_step': str(simulator.time_step),
+            'time_step': str(simulator.time_steps[-1]),
             'times': simulator.get_times(),
             'variables': simulator.get_variables(),
             'active_dc_phases': simulator.get_active_dc_phases(),
@@ -114,7 +114,7 @@ class SimulatorRessource(Ressource):
 
         simulator = self.simulator_cache[simulator_id]
 
-        simulator.time_step = float(time_step)
+        simulator.time_steps[-1] = float(time_step)
 
         var_str_mapping = {str(k): k for k in simulator.variables}
         const_mapping = {
@@ -130,7 +130,7 @@ class SimulatorRessource(Ressource):
         simulator.check_sat()
 
         data = {
-            'time_step': str(simulator.time_step),
+            'time_step': str(simulator.time_steps[-1]),
             'transitions': simulator.get_transitions()
         }
         self.response.data = data
@@ -149,7 +149,7 @@ class SimulatorRessource(Ressource):
 
         data = {
             'times': simulator.get_times(),
-            'time_step': str(simulator.time_step),
+            'time_step': str(simulator.time_steps[-1]),
             'variables': simulator.get_variables(),
             'active_dc_phases': simulator.get_active_dc_phases(),
             'models': simulator.get_models()
@@ -166,7 +166,7 @@ class SimulatorRessource(Ressource):
 
         data = {
             'times': simulator.get_times(),
-            'time_step': simulator.time_step,
+            'time_step': simulator.time_steps[-1],
             'variables': simulator.get_variables(),
             'active_dc_phases': simulator.get_active_dc_phases()
         }

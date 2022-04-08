@@ -69,14 +69,13 @@ class Simulator:
     @dataclass
     class State:
         clocks: list[dict[str, float]]
-        time_step: float
 
     def __init__(self, peas: list[PhaseEventAutomaton], scenario: Scenario = None, name: str = 'unnamed') -> None:
         self.name: str = name
         self.scenario: Scenario = scenario
 
         self.times: list[float] = [0.0]
-        self.time_step: float = 1.0
+        self.time_steps: list[float] = [1.0]
 
         self.peas: list[PhaseEventAutomaton] = peas
         self.current_phases: list[list[Phase | None]] = [[None] * len(self.peas)]
@@ -88,7 +87,7 @@ class Simulator:
         self.models: dict[FNode, list[FNode | None]] = {k: [None] for k in self.variables}
 
         if self.scenario is not None:
-            self.time_step = self.scenario.valuations[0.0].get_duration()
+            self.time_steps[-1] = self.scenario.valuations[0.0].get_duration()
             self.update_variables()
 
         self.states: list[Simulator.State] = []
@@ -157,7 +156,7 @@ class Simulator:
             # self.variables.update((k, v) for k, v in variables.items() if k in self.variables)
 
     def save_state(self) -> None:
-        self.states.append(Simulator.State(copy(self.clocks), self.time_step))
+        self.states.append(Simulator.State(copy(self.clocks)))
 
     def load_prev_state(self) -> bool:
         if len(self.states) < 2:
@@ -165,7 +164,6 @@ class Simulator:
 
         self.states.pop()
         self.clocks = copy(self.states[-1].clocks)
-        self.time_step = self.states[-1].time_step
 
         for k, v in self.models.items():
             v.pop()
@@ -176,7 +174,7 @@ class Simulator:
         clocks = self.clocks[i].copy()
 
         for k, v in clocks.items():
-            clocks[k] = self.time_step if k in resets else v + self.time_step
+            clocks[k] = self.time_steps[-1] if k in resets else v + self.time_steps[-1]
 
         if not dry_run:
             self.clocks[i] = clocks
@@ -216,7 +214,7 @@ class Simulator:
         transition_lists = [self.peas[i].get_transitions(self.current_phases[-1][i]) for i in range(len(self.peas))]
         transition_tuples = list(itertools.product(*transition_lists))
 
-        time_step_max = self.time_step
+        time_step_max = self.time_steps[-1]
         for transition_tuple in transition_tuples:
             for i in range(len(transition_tuple)):
                 transition = transition_tuple[i]
@@ -226,7 +224,7 @@ class Simulator:
                     delta = clock_bound[1] - self.clocks[i][clock_bound[0]]
                     time_step_max = time_step_max if delta <= 0 else min(time_step_max, delta)
 
-        self.time_step = time_step_max
+        self.time_steps[-1] = time_step_max
 
         for transition_tuple in transition_tuples:
             f = TRUE()
@@ -256,7 +254,7 @@ class Simulator:
         transition_lists = [self.peas[i].get_transitions(self.current_phases[-1][i]) for i in range(len(self.peas))]
         transition_tuples = list(itertools.product(*transition_lists))
 
-        time_step_max = self.time_step
+        time_step_max = self.time_steps[-1]
         for transition_tuple in transition_tuples:
             for i in range(len(transition_tuple)):
                 transition = transition_tuple[i]
@@ -264,7 +262,7 @@ class Simulator:
                     delta = v - self.clocks[i][k]
                     if delta > 0:
                         time_step_max = min(time_step_max, delta)
-        self.time_step = time_step_max
+        self.time_steps[-1] = time_step_max
         print()
 
         for transition_tuple in transition_tuples:
@@ -294,12 +292,12 @@ class Simulator:
             self.current_phases[-1][i] = transitions[i].dst
             self.update_clocks(i, transitions[i].resets)
 
-        self.times[-1] += self.time_step
+        self.times[-1] += self.time_steps[-1]
 
         # TODO: fix scenario
         if self.scenario is not None and self.times[-1] in self.scenario.valuations:
             self.update_variables(self.scenario.valuations[self.times[-1]].values)
-            self.time_step = self.scenario.valuations[self.times[-1]].end - self.times[-1]
+            self.time_steps[-1] = self.scenario.valuations[self.times[-1]].end - self.times[-1]
 
         for k, v in model.items():
             self.models[k].append(v)
@@ -326,7 +324,7 @@ class TUI:
 
             for k, v in self.simulator.variables.items():
                 print('%s (%s): %s' % (k, k.symbol_type(), v[-1]))
-            print('time step:', self.simulator.time_step, '\n')
+            print('time step:', self.simulator.time_steps[-1], '\n')
 
             action = inquirer.select(
                 message='Choose an action.',
@@ -401,7 +399,7 @@ class TUI:
             validate=RealValidator(),
         ).execute()
 
-        self.simulator.time_step = float(time_step)
+        self.simulator.time_steps[-1] = float(time_step)
 
     def load_scenario(self):
         home_path = "/" if os.name == "posix" else "C:\\"
