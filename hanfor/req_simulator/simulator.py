@@ -66,50 +66,36 @@ type_validator_mapping = {
 
 
 class Simulator:
-    '''
-    @dataclass
-    class Variable:
-        name: FNode
-        value: FNode = None
-
-
-        def set_value_from_string(self, value: str):
-            const_mapping = {
-                BOOL: eval,
-                INT: int,
-                REAL: lambda v: float(Fraction(v))
-            }
-
-            symbol_type = self.name.symbol_type()
-            self.value = Sconst_mapping[symbol_type](value)
-        '''
 
     @dataclass
     class State:
-        time: float
         current_phases: list[Phase]
         clocks: list[dict[str, float]]
-        variables: dict[FNode, FNode]
         time_step: float
 
     def __init__(self, peas: list[PhaseEventAutomaton], scenario: Scenario = None, name: str = 'unnamed') -> None:
         self.name: str = name
         self.scenario: Scenario = scenario
 
-        self.time: float = 0.0
-        self.time_step: float = 1.0
+        self.times: list[float] = [0.0]
         self.peas: list[PhaseEventAutomaton] = peas
         self.current_phases: list[Phase | None] = [None] * len(self.peas)
         self.clocks: list[dict[str, float]] = [{clock: 0 for clock in pea.clocks} for pea in self.peas]
 
+        self.time_step: float = 1.0
 
 
-        self.variables: dict[FNode, FNode] = {v: None for pea in self.peas for v in pea.countertrace.extract_variables()}
 
+        #self.variables: dict[FNode, FNode] = {v: None for pea in self.peas for v in pea.countertrace.extract_variables()}
+
+
+
+        self.variables: dict[FNode, list[FNode | None]] = {v: [None] for p in self.peas for v in p.countertrace.extract_variables()}
+        self.models: dict[FNode, list[FNode | None]] = {k: [None] for k in self.variables}
 
 
         self.enabled_transitions: list[tuple] = []
-        self.models = {k: [None] for k in self.variables}
+
 
         if self.scenario is not None:
             self.time_step = self.scenario.valuations[0.0].get_duration()
@@ -118,23 +104,24 @@ class Simulator:
         self.states: list[Simulator.State] = []
         self.save_state()
 
-    def get_types(self):
-        type_mapping = {
-            BOOL: 'bool',
-            INT: 'int',
-            REAL: 'float'
-        }
+    def get_times(self) -> list[str]:
+        return [str(v) for v in self.times]
 
-        return {str(k): str(k.symbol_type()) for k, v in self.variables.items()}
+    def get_types(self) -> dict[str, str]:
+        return {str(k): str(k.symbol_type()) for k in self.variables}
 
-    def get_models(self):
-        return {str(k): [str(e) for e in v] for k, v in self.models.items()}
+    def get_variables(self) -> dict[str, list[str]]:
+        return {str(k): [str(v) for v in vv] for k, vv in self.variables.items()}
+
+    def get_models(self) -> dict[str, list[str]]:
+        return {str(k): [str(v) for v in vv] for k, vv in self.models.items()}
+
 
     def get_transitions(self):
         results = []
 
         for transition in self.enabled_transitions:
-            results.append(' ; '.join([f'{k} = {v}' for k, v in transition[1].items() if self.variables[k] is None]))
+            results.append(' ; '.join([f'{k} = {v}' for k, v in transition[1].items() if self.variables[k][-1] is None]))
 
         return results
 
@@ -146,39 +133,9 @@ class Simulator:
 
         return result
 
-    '''
-    def get_var_mapping(self) -> dict[str, dict[str, str]]:
-        result = defaultdict(dict)
 
-        for state in self.states:
-            result[str(state.time)] = {str(k): str(v) for k, v in state.variables.items()}
 
-        result[str(self.time)] = {str(k): str(v) for k, v in self.variables.items()}
 
-        return result
-    '''
-
-    def get_times(self):
-        result = []
-
-        for state in self.states:
-            result.append(str(state.time))
-
-        # result.append(str(self.time))
-
-        return result
-
-    def get_variables(self):
-        result = defaultdict(list)
-
-        for state in self.states:
-            for k, v in state.variables.items():
-                result[str(k)].append(str(v))
-
-        # for k, v in self.variables.items():
-        #    result[str(k)].append(str(v))
-
-        return result
 
     def get_active_dc_phases(self) -> list[str]:
         result = []
@@ -200,25 +157,26 @@ class Simulator:
         Scenario.save_to_file(self.scenario, path)
 
     def update_variables(self, variables: dict[FNode, FNode] = None) -> None:
+        # TODO: fix scenario
         if variables is None and self.scenario is not None:
-            variables = self.scenario.valuations.get(self.time).values
+            variables = self.scenario.valuations.get(self.times[-1]).values
 
         if variables is not None:
-            self.variables.update((k, v) for k, v in variables.items() if k in self.variables)
+            for k, v in variables.items():
+                self.variables[k][-1] = v
+
+            #self.variables.update((k, v) for k, v in variables.items() if k in self.variables)
 
     def save_state(self) -> None:
-        self.states.append(Simulator.State(
-            self.time, copy(self.current_phases), copy(self.clocks), copy(self.variables), self.time_step))
+        self.states.append(Simulator.State(copy(self.current_phases), copy(self.clocks), self.time_step))
 
     def load_prev_state(self) -> bool:
         if len(self.states) < 2:
             return False
 
         self.states.pop()
-        self.time = self.states[-1].time
         self.current_phases = copy(self.states[-1].current_phases)
         self.clocks = copy(self.states[-1].clocks)
-        self.variables = copy(self.states[-1].variables)
         self.time_step = self.states[-1].time_step
 
         for k, v in self.models.items():
@@ -238,7 +196,7 @@ class Simulator:
         return clocks
 
     def build_var_assertions(self) -> FNode:
-        return And(EqualsOrIff(substitute_free_variables(k), v) for k, v in self.variables.items() if v is not None)
+        return And(EqualsOrIff(substitute_free_variables(k), v[-1]) for k, v in self.variables.items() if v[-1] is not None)
 
     def build_clock_assertions(self, clocks: dict[str, float]) -> FNode:
         return And(Equals(Symbol(k, REAL), Real(v)) for k, v in clocks.items())
@@ -294,7 +252,7 @@ class Simulator:
             model = get_model(f, SOLVER_NAME, LOGIC)
 
             if model is not None:
-                variable_mapping = {substitute_free_variables(k): k for k in self.variables.keys()}
+                variable_mapping = {substitute_free_variables(k): k for k in self.variables}
                 partial = model.get_values(variable_mapping.keys())
                 # enabled_models.append({v: partial[k] for k, v in variable_mapping.items()})
 
@@ -347,14 +305,18 @@ class Simulator:
             self.current_phases[i] = transitions[i].dst
             self.update_clocks(i, transitions[i].resets)
 
-        self.time += self.time_step
+        self.times[-1] += self.time_step
 
-        if self.scenario is not None and self.time in self.scenario.valuations:
-            self.update_variables(self.scenario.valuations[self.time].values)
-            self.time_step = self.scenario.valuations[self.time].end - self.time
+        # TODO: fix scenario
+        if self.scenario is not None and self.times[-1] in self.scenario.valuations:
+            self.update_variables(self.scenario.valuations[self.times[-1]].values)
+            self.time_step = self.scenario.valuations[self.times[-1]].end - self.times[-1]
 
         for k, v in model.items():
             self.models[k].append(v)
+
+        for k, v in self.variables.items():
+            self.variables[k].append(self.variables[k][-1])
 
         self.save_state()
 
@@ -371,10 +333,10 @@ class TUI:
                       {} if self.simulator.current_phases[i] is None else self.simulator.current_phases[i].sets,
                       '| counter trace:', self.simulator.peas[i].countertrace, )
             print('clocks:', self.simulator.clocks)
-            print('time:', self.simulator.time, '\n')
+            print('time:', self.simulator.times[-1], '\n')
 
             for k, v in self.simulator.variables.items():
-                print('%s (%s): %s' % (k, k.symbol_type(), v))
+                print('%s (%s): %s' % (k, k.symbol_type(), v[-1]))
             print('time step:', self.simulator.time_step, '\n')
 
             action = inquirer.select(
@@ -486,8 +448,6 @@ def main() -> int:
              'True;⌈(R & (! S))⌉;⌈(! S)⌉ ∧ ℓ > T;True')}
 
     expressions, ct_str, _ = testcases['response_delay_globally']
-    # expressions['R'] = GT(Symbol('counter', INT), Int(5))
-    # expressions['S'] = Iff(Symbol('is_active'), TRUE())
     expressions['T'] = Real(5)
 
     ct0 = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
@@ -496,18 +456,9 @@ def main() -> int:
     ct1 = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
     pea1 = build_automaton(ct0, 'c1_')
 
-    # cts, peas = [], []
-    # for i in range(2):
-    #    cts.append(CounterTraceTransformer(expressions).transform(parser.parse(ct_str)))
-    #    peas.append(build_automaton(cts[-1], f"c{i}_"))
-
     simulator = Simulator([pea0, pea1])
     tui = TUI(simulator)
     tui.simulate()
-
-    # phase = list(peas[0].phases.keys())[1]
-    # a = phase.get_clock_bounds()
-    # print()
 
 
 if __name__ == '__main__':

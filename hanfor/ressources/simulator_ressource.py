@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import fnmatch
 import json
 import os
@@ -114,15 +116,16 @@ class SimulatorRessource(Ressource):
 
         simulator.time_step = float(time_step)
 
-        var_mapping = {str(v): v for v in simulator.variables}
+        var_str_mapping = {str(k): k for k in simulator.variables}
         const_mapping = {
             BOOL: lambda v: Bool(bool(strtobool(v))),
             INT: lambda v: Int(int(v)),
             REAL: lambda v: Real(float(v))
         }
 
-        variables = {var_mapping[k]: const_mapping[var_mapping[k].symbol_type()](v) if v is not None else v for k, v in
+        variables = {var_str_mapping[k]: const_mapping[var_str_mapping[k].symbol_type()](v) if v is not None else v for k, v in
                      variables.items()}
+
         simulator.update_variables(variables)
         simulator.check_sat()
 
@@ -216,7 +219,7 @@ class SimulatorRessource(Ressource):
         return False
 
     @staticmethod
-    def create_phase_event_automata(requirement_id: str, app: Flask) -> list[PhaseEventAutomaton]:
+    def create_phase_event_automata(requirement_id: str, app: Flask) -> list[PhaseEventAutomaton] | None:
         result = []
 
         requirement = Requirement.load_requirement_by_id(requirement_id, app)
