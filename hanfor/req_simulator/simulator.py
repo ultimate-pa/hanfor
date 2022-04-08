@@ -66,10 +66,8 @@ type_validator_mapping = {
 
 
 class Simulator:
-
     @dataclass
     class State:
-        current_phases: list[Phase]
         clocks: list[dict[str, float]]
         time_step: float
 
@@ -78,24 +76,16 @@ class Simulator:
         self.scenario: Scenario = scenario
 
         self.times: list[float] = [0.0]
-        self.peas: list[PhaseEventAutomaton] = peas
-        self.current_phases: list[Phase | None] = [None] * len(self.peas)
-        self.clocks: list[dict[str, float]] = [{clock: 0 for clock in pea.clocks} for pea in self.peas]
-
         self.time_step: float = 1.0
 
-
-
-        #self.variables: dict[FNode, FNode] = {v: None for pea in self.peas for v in pea.countertrace.extract_variables()}
-
-
-
-        self.variables: dict[FNode, list[FNode | None]] = {v: [None] for p in self.peas for v in p.countertrace.extract_variables()}
-        self.models: dict[FNode, list[FNode | None]] = {k: [None] for k in self.variables}
-
-
+        self.peas: list[PhaseEventAutomaton] = peas
+        self.current_phases: list[list[Phase | None]] = [[None] * len(self.peas)]
+        self.clocks: list[dict[str, float]] = [{clock: 0.0 for clock in pea.clocks} for pea in self.peas]
         self.enabled_transitions: list[tuple] = []
 
+        self.variables: dict[FNode, list[FNode | None]] = \
+            {v: [None] for p in self.peas for v in p.countertrace.extract_variables()}
+        self.models: dict[FNode, list[FNode | None]] = {k: [None] for k in self.variables}
 
         if self.scenario is not None:
             self.time_step = self.scenario.valuations[0.0].get_duration()
@@ -116,12 +106,25 @@ class Simulator:
     def get_models(self) -> dict[str, list[str]]:
         return {str(k): [str(v) for v in vv] for k, vv in self.models.items()}
 
+    def get_active_dc_phases(self) -> list[str]:
+        result = []
+
+        if self.current_phases[-1][0] is None:
+            return result
+
+        for i, current_phase in enumerate(self.current_phases[-1]):
+            pea = self.peas[i]
+            result.extend([f'{pea.requirement.rid}_{pea.formalization.id}_{pea.countertrace_id}_{v}' for v in
+                           current_phase.sets.active])
+
+        return result
 
     def get_transitions(self):
         results = []
 
         for transition in self.enabled_transitions:
-            results.append(' ; '.join([f'{k} = {v}' for k, v in transition[1].items() if self.variables[k][-1] is None]))
+            results.append(
+                ' ; '.join([f'{k} = {v}' for k, v in transition[1].items() if self.variables[k][-1] is None]))
 
         return results
 
@@ -134,20 +137,6 @@ class Simulator:
         return result
 
 
-
-
-
-    def get_active_dc_phases(self) -> list[str]:
-        result = []
-
-        if len(self.current_phases) > 0 and self.current_phases[0] is None:
-            return result
-
-        for i, pea in enumerate(self.peas):
-            prefix = f'{pea.requirement.rid}_{pea.formalization.id}_{pea.countertrace_id}'
-            result.extend([f'{prefix}_{dc_phase_id}' for dc_phase_id in self.current_phases[i].sets.active])
-
-        return result
 
     @staticmethod
     def load_scenario_from_file(simulator: Simulator, path: str) -> Simulator:
@@ -165,17 +154,16 @@ class Simulator:
             for k, v in variables.items():
                 self.variables[k][-1] = v
 
-            #self.variables.update((k, v) for k, v in variables.items() if k in self.variables)
+            # self.variables.update((k, v) for k, v in variables.items() if k in self.variables)
 
     def save_state(self) -> None:
-        self.states.append(Simulator.State(copy(self.current_phases), copy(self.clocks), self.time_step))
+        self.states.append(Simulator.State(copy(self.clocks), self.time_step))
 
     def load_prev_state(self) -> bool:
         if len(self.states) < 2:
             return False
 
         self.states.pop()
-        self.current_phases = copy(self.states[-1].current_phases)
         self.clocks = copy(self.states[-1].clocks)
         self.time_step = self.states[-1].time_step
 
@@ -196,7 +184,8 @@ class Simulator:
         return clocks
 
     def build_var_assertions(self) -> FNode:
-        return And(EqualsOrIff(substitute_free_variables(k), v[-1]) for k, v in self.variables.items() if v[-1] is not None)
+        return And(
+            EqualsOrIff(substitute_free_variables(k), v[-1]) for k, v in self.variables.items() if v[-1] is not None)
 
     def build_clock_assertions(self, clocks: dict[str, float]) -> FNode:
         return And(Equals(Symbol(k, REAL), Real(v)) for k, v in clocks.items())
@@ -223,9 +212,8 @@ class Simulator:
 
     def check_sat(self) -> None:
         enabled_transitions = []
-        # enabled_models = []
 
-        transition_lists = [self.peas[i].get_transitions(self.current_phases[i]) for i in range(len(self.peas))]
+        transition_lists = [self.peas[i].get_transitions(self.current_phases[-1][i]) for i in range(len(self.peas))]
         transition_tuples = list(itertools.product(*transition_lists))
 
         time_step_max = self.time_step
@@ -246,6 +234,8 @@ class Simulator:
             for i in range(len(transition_tuple)):
                 transition = transition_tuple[i]
 
+                # TODO: Can be split into two check sat, if it improves performance.
+                # In this case, the substitution of clocks can be omitted.
                 f = And(f, self.build_guard(transition, self.clocks[i]),
                         self.build_clock_invariant(transition, self.update_clocks(i, transition.resets, True)))
 
@@ -254,7 +244,6 @@ class Simulator:
             if model is not None:
                 variable_mapping = {substitute_free_variables(k): k for k in self.variables}
                 partial = model.get_values(variable_mapping.keys())
-                # enabled_models.append({v: partial[k] for k, v in variable_mapping.items()})
 
                 enabled_transitions.append((transition_tuple, {v: partial[k] for k, v in variable_mapping.items()}))
 
@@ -264,7 +253,7 @@ class Simulator:
         enabled_transitions = []
         var_assertions = self.build_var_assertions()
 
-        transition_lists = [self.peas[i].get_transitions(self.current_phases[i]) for i in range(len(self.peas))]
+        transition_lists = [self.peas[i].get_transitions(self.current_phases[-1][i]) for i in range(len(self.peas))]
         transition_tuples = list(itertools.product(*transition_lists))
 
         time_step_max = self.time_step
@@ -302,7 +291,7 @@ class Simulator:
 
     def walk_transitions(self, transitions: tuple[Transition], model: dict[FNode, FNode]):
         for i in range(len(transitions)):
-            self.current_phases[i] = transitions[i].dst
+            self.current_phases[-1][i] = transitions[i].dst
             self.update_clocks(i, transitions[i].resets)
 
         self.times[-1] += self.time_step
@@ -330,7 +319,7 @@ class TUI:
             print('\n---')
             for i in range(len(self.simulator.peas)):
                 print('phase:',
-                      {} if self.simulator.current_phases[i] is None else self.simulator.current_phases[i].sets,
+                      {} if self.simulator.current_phases[-1][i] is None else self.simulator.current_phases[-1][i].sets,
                       '| counter trace:', self.simulator.peas[i].countertrace, )
             print('clocks:', self.simulator.clocks)
             print('time:', self.simulator.times[-1], '\n')
