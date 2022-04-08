@@ -228,7 +228,6 @@ function init_chart(chart_canvas, times, models, types) {
             labels: labels,
             offset: true,
             stack: 'demo',
-            stackWeight: 1,
             grid: {
                 borderDash: [4, 6]
             }
@@ -326,14 +325,14 @@ function onChartLegendClick(evt, item, legend) {
     $.each(chart.data.datasets, function (index, value) {
         if (value.yAxisID === 'y_' + item.text) {
 
-            if (value.hidden === false) {
+            if (value.hidden === true) {
+                value.hidden = false
+                y_scale.display = true
+                y_scale.stackWeight = undefined
+            } else {
                 value.hidden = true
                 y_scale.display = false
                 y_scale.stackWeight = 0.0000000000001
-            } else {
-                value.hidden = false
-                y_scale.display = true
-                y_scale.stackWeight = 1
             }
             console.log('found', item.text)
         }
