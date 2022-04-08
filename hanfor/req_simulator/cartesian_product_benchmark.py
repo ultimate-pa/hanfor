@@ -6,7 +6,7 @@ import time
 from collections import defaultdict
 
 from pysmt.fnode import FNode
-from pysmt.shortcuts import Symbol, Int, is_sat, And, TRUE, LT, GT
+from pysmt.shortcuts import Symbol, Int, is_sat, And, TRUE, LT, GT, get_model
 from pysmt.typing import INT
 from termcolor import colored
 
@@ -230,7 +230,9 @@ mapping = {
 def main():
     inputs = [
         ['a && b', 'b && a'],
-        ['!b', 'b && a']
+        ['!b', 'b && a'],
+        ['a && b', 'b && a'],
+        ['a && b', 'b && a']
     ]
 
     variables = {

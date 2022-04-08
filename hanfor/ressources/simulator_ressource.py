@@ -70,9 +70,11 @@ class SimulatorRessource(Ressource):
         data = {
             'simulator_id': simulator_id,
             'html': render_template('simulator-modal.html', simulator=simulator),
-            'time': str(simulator.time),
-            'var_mapping': simulator.get_var_mapping(),
-            'active_dc_phases': simulator.get_active_dc_phases()
+            'times': simulator.get_times(),
+            'variables': simulator.get_variables(),
+            'active_dc_phases': simulator.get_active_dc_phases(),
+            'models': simulator.get_models(),
+            'types': simulator.get_types()
         }
         self.response.data = data
 
@@ -135,12 +137,13 @@ class SimulatorRessource(Ressource):
             return
 
         simulator = self.simulator_cache[simulator_id]
-        simulator.walk_transitions(simulator.enabled_transitions[int(transition_id)])
+        simulator.walk_transitions(*simulator.enabled_transitions[int(transition_id)])
 
         data = {
-            'time': str(simulator.time),
-            'var_mapping': simulator.get_var_mapping(),
-            'active_dc_phases': simulator.get_active_dc_phases()
+            'times': simulator.get_times(),
+            'variables': simulator.get_variables(),
+            'active_dc_phases': simulator.get_active_dc_phases(),
+            'models': simulator.get_models()
         }
         self.response.data = data
 
@@ -148,11 +151,13 @@ class SimulatorRessource(Ressource):
         simulator_id = self.request.form.get('simulator_id')
 
         simulator = self.simulator_cache[simulator_id]
-        simulator.load_prev_state()
+        if not simulator.load_prev_state():
+            self.response.success = False
+            self.response.errormsg = 'Step back not possible.'
 
         data = {
-            'time': str(simulator.time),
-            'var_mapping': simulator.get_var_mapping(),
+            'times': simulator.get_times(),
+            'variables': simulator.get_variables(),
             'active_dc_phases': simulator.get_active_dc_phases()
         }
         self.response.data = data
