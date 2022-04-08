@@ -106,8 +106,8 @@ class Simulator:
 
         self.time_step: float = 1.0
 
-        self.enabled_transitions = []
-        self.models = []
+        self.enabled_transitions: list[tuple] = []
+        self.models = {k: [None] for k in self.variables}
 
         if self.scenario is not None:
             self.time_step = self.scenario.valuations[0.0].get_duration()
@@ -116,11 +116,23 @@ class Simulator:
         self.states: list[Simulator.State] = []
         self.save_state()
 
+    def get_types(self):
+        type_mapping = {
+            BOOL: 'bool',
+            INT: 'int',
+            REAL: 'float'
+        }
+
+        return {str(k): str(k.symbol_type()) for k, v in self.variables.items()}
+
+    def get_models(self):
+        return {str(k): [str(e) for e in v] for k, v in self.models.items()}
+
     def get_transitions(self):
         results = []
 
-        for model in self.models:
-            results.append(' ; '.join([f'{k} = {v}' for k, v in model.items() if self.variables[k] is None]))
+        for transition in self.enabled_transitions:
+            results.append(' ; '.join([f'{k} = {v}' for k, v in transition[1].items() if self.variables[k] is None]))
 
         return results
 
@@ -132,6 +144,7 @@ class Simulator:
 
         return result
 
+    '''
     def get_var_mapping(self) -> dict[str, dict[str, str]]:
         result = defaultdict(dict)
 
@@ -139,6 +152,29 @@ class Simulator:
             result[str(state.time)] = {str(k): str(v) for k, v in state.variables.items()}
 
         result[str(self.time)] = {str(k): str(v) for k, v in self.variables.items()}
+
+        return result
+    '''
+
+    def get_times(self):
+        result = []
+
+        for state in self.states:
+            result.append(str(state.time))
+
+        # result.append(str(self.time))
+
+        return result
+
+    def get_variables(self):
+        result = defaultdict(list)
+
+        for state in self.states:
+            for k, v in state.variables.items():
+                result[str(k)].append(str(v))
+
+        # for k, v in self.variables.items():
+        #    result[str(k)].append(str(v))
 
         return result
 
@@ -172,9 +208,9 @@ class Simulator:
         self.states.append(Simulator.State(
             self.time, copy(self.current_phases), copy(self.clocks), copy(self.variables), self.time_step))
 
-    def load_prev_state(self) -> None:
+    def load_prev_state(self) -> bool:
         if len(self.states) < 2:
-            return
+            return False
 
         self.states.pop()
         self.time = self.states[-1].time
@@ -182,6 +218,11 @@ class Simulator:
         self.clocks = copy(self.states[-1].clocks)
         self.variables = copy(self.states[-1].variables)
         self.time_step = self.states[-1].time_step
+
+        for k, v in self.models.items():
+            v.pop()
+
+        return True
 
     def update_clocks(self, i: int, resets: frozenset[str], dry_run: bool = False) -> dict[str, float]:
         clocks = self.clocks[i].copy()
@@ -220,9 +261,9 @@ class Simulator:
 
         return time_step
 
-    def check_sat(self) -> list[tuple[Transition]]:
+    def check_sat(self) -> None:
         enabled_transitions = []
-        models = []
+        # enabled_models = []
 
         transition_lists = [self.peas[i].get_transitions(self.current_phases[i]) for i in range(len(self.peas))]
         transition_tuples = list(itertools.product(*transition_lists))
@@ -251,16 +292,13 @@ class Simulator:
             model = get_model(f, SOLVER_NAME, LOGIC)
 
             if model is not None:
-                enabled_transitions.append(transition_tuple)
-
                 variable_mapping = {substitute_free_variables(k): k for k in self.variables.keys()}
                 partial = model.get_values(variable_mapping.keys())
-                models.append({v: partial[k] for k, v in variable_mapping.items()})
+                # enabled_models.append({v: partial[k] for k, v in variable_mapping.items()})
+
+                enabled_transitions.append((transition_tuple, {v: partial[k] for k, v in variable_mapping.items()}))
 
         self.enabled_transitions = enabled_transitions
-        self.models = models
-
-        return enabled_transitions
 
     def check_sat_old(self) -> list[tuple[Transition]]:
         enabled_transitions = []
@@ -302,7 +340,7 @@ class Simulator:
 
         return enabled_transitions
 
-    def walk_transitions(self, transitions: tuple[Transition]):
+    def walk_transitions(self, transitions: tuple[Transition], model: dict[FNode, FNode]):
         for i in range(len(transitions)):
             self.current_phases[i] = transitions[i].dst
             self.update_clocks(i, transitions[i].resets)
@@ -312,6 +350,9 @@ class Simulator:
         if self.scenario is not None and self.time in self.scenario.valuations:
             self.update_variables(self.scenario.valuations[self.time].values)
             self.time_step = self.scenario.valuations[self.time].end - self.time
+
+        for k, v in model.items():
+            self.models[k].append(v)
 
         self.save_state()
 

@@ -94,9 +94,11 @@ function init_simulator_tab() {
 
 function init_simulator_modal(data) {
     let simulator_id = data['simulator_id']
-    let time = data['time']
-    let variables = data['var_mapping'][time]
+    let times = data['times']
+    let variables = data['variables']
     let active_dc_phases = data['active_dc_phases']
+    let types = data['types']
+    let models = data['models']
 
     let simulator_modal = $(data['html'])
     let simulator_chart_canvas = simulator_modal.find('#chart-canvas')
@@ -121,7 +123,7 @@ function init_simulator_modal(data) {
 
     update_dc_phases(dc_phase_codes, active_dc_phases)
 
-    let chart = init_chart(simulator_chart_canvas, data['var_mapping'])
+    let chart = init_chart(simulator_chart_canvas, times, models, types)
 
     simulator_step_check_btn.click(function () {
         $.ajax({
@@ -159,15 +161,18 @@ function init_simulator_modal(data) {
 
                 simulator_step_transition_select.empty()
 
-                time = response['data']['time']
-                variables = response['data']['var_mapping'][time]
+                times = response['data']['times']
+                variables = response['data']['variables']
                 update_variable_inputs(variable_inputs, variables)
 
                 active_dc_phases = response['data']['active_dc_phases']
                 update_dc_phases(dc_phase_codes, active_dc_phases)
 
-                chart.destroy()
-                chart = init_chart(simulator_chart_canvas, response['data']['var_mapping'])
+                addData(chart, times, response['data']['models'])
+
+                //chart.options.scales.y_blinkingMode.stackWeight = 0
+                //chart.options.scales.y_blinkingMode.display = false
+                //chart.update();
             }
         })
     })
@@ -185,15 +190,18 @@ function init_simulator_modal(data) {
 
                 simulator_step_transition_select.empty()
 
-                time = response['data']['time']
-                variables = response['data']['var_mapping'][time]
+                times = response['data']['times']
+                variables = response['data']['variables']
                 update_variable_inputs(variable_inputs, variables)
 
                 active_dc_phases = response['data']['active_dc_phases']
                 update_dc_phases(dc_phase_codes, active_dc_phases)
 
-                chart.destroy()
-                chart = init_chart(simulator_chart_canvas, response['data']['var_mapping'])
+                removeData(chart)
+
+                //chart.options.scales.y_blinkingMode.stackWeight = 1
+                //chart.options.scales.y_blinkingMode.display = true
+                //chart.update();
             }
         })
     })
@@ -204,93 +212,179 @@ function init_simulator_modal(data) {
     simulator_modal.modal('show')
 }
 
-function init_chart(chart_canvas, input) {
-    /*
-    let input = {
-        '0.0': {
-            'variable_1': 'False',
-            'variable_2': '0'
-        },
-        '1.0': {
-            'variable_1': 'True',
-            'variable_2': '1'
-        },
-        '2.0': {
-            'variable_1': 'False',
-            'variable_2': '0'
-        },
-        '3.0': {
-            'variable_1': 'False',
-            'variable_2': '0'
-        }
-    }
-    */
-
-    let times = Object.keys(input)
-
-    let valuations = {}
-    $.each(Object.values(input), function (index, value) {
-        $.each(value, function (index, value) {
-            index in valuations ? valuations[index].push(value) : valuations[index] = [value]
-        })
-    })
-
+function init_chart(chart_canvas, times, models, types) {
     let scales = {}
     let datasets = []
-    $.each(valuations, function (index, value) {
-        let is_bool = value.includes('True') || value.includes('False')
+
+    $.each(types, function (index, value) {
         let color = generateRandomColor()
 
+        const type = types[index] === 'Bool' ? 'category' : 'linear'
+        const labels = types[index] === 'Bool' ? ['True', 'False'] : []
+        models[index][0] = types[index] === 'Bool' ? 'False' : '0'
+
         scales['y_' + index] = {
-            type: is_bool ? 'category' : 'linear',
-            labels: is_bool ? ['True', 'False'] : [],
+            type: type,
+            labels: labels,
             offset: true,
-            stack: 'demo'
+            stack: 'demo',
+            stackWeight: 1,
+            grid: {
+                borderDash: [4, 6]
+            }
         }
 
         datasets.push({
             label: index,
             backgroundColor: color,
             borderColor: color,
-            data: value,
-            stepped: true,
-            yAxisID: 'y_' + index
+            data: models[index],
+            stepped: 'after',
+            yAxisID: 'y_' + index,
         })
     })
 
     const data = {
-        labels: Object.keys(input),
+        labels: times,
         datasets: datasets
-    };
+    }
 
     const config = {
         type: 'line',
         data: data,
         options: {
-            scales: scales
+            scales: Object.assign(
+                {},
+                scales,
+                {
+                    x: {
+                        grid: {
+                            borderDash: [4, 6]
+                        }
+                    }
+                }),
+            borderWidth: 1,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    align: 'start',
+                    onClick: onChartLegendClick
+                },
+                chartAreaBorder: {
+                    borderColor: 'rgba(0, 0, 0, 0.1)',
+                    borderWidth: 2
+                },
+            }
+        },
+        plugins: [
+            {
+                id: 'chartAreaBorder',
+                beforeDraw(chart, args, options) {
+                    const {ctx, chartArea: {left, top, width, height}} = chart;
+                    ctx.save();
+                    ctx.strokeStyle = options.borderColor;
+                    ctx.lineWidth = options.borderWidth;
+                    ctx.setLineDash(options.borderDash || []);
+                    ctx.lineDashOffset = options.borderDashOffset;
+                    ctx.strokeRect(left, top, width, height);
+                    ctx.restore();
+                }
+            }
+        ]
+    }
+
+    const ctx = chart_canvas[0].getContext('2d')
+    return new Chart(ctx, config)
+}
+
+const getOrCreateLegendList = (chart, id) => {
+    const legendContainer = document.getElementById(id);
+    let listContainer = legendContainer.querySelector('ul');
+
+    if (!listContainer) {
+        listContainer = document.createElement('ul');
+        listContainer.style.display = 'flex';
+        listContainer.style.flexDirection = 'row';
+        listContainer.style.margin = 0;
+        listContainer.style.padding = 0;
+
+        legendContainer.appendChild(listContainer);
+    }
+
+    return listContainer;
+};
+
+
+function onChartLegendClick(evt, item, legend) {
+    //console.log('evt', evt)
+    //console.log('item', item)
+    //console.log('legend', legend)
+
+    const chart = legend.chart
+    const y_scale = chart.options.scales['y_' + item.text]
+
+    $.each(chart.data.datasets, function (index, value) {
+        if (value.yAxisID === 'y_' + item.text) {
+
+            if (value.hidden === false) {
+                value.hidden = true
+                y_scale.display = false
+                y_scale.stackWeight = 0.0000000000001
+            } else {
+                value.hidden = false
+                y_scale.display = true
+                y_scale.stackWeight = 1
+            }
+            console.log('found', item.text)
         }
-    };
+    })
 
-    console.log('data', data)
-    console.log('config', config)
+    chart.update();
+}
 
-    const ctx = chart_canvas[0].getContext('2d');
-    const myChart = new Chart(ctx, config)
-    return myChart
+function addData(chart, times, models) {
+    chart.data.labels.push(times[times.length - 1])
 
+    chart.data.datasets.forEach((dataset) => {
+        const label = dataset.label
+        dataset.data.push(models[label][models[label].length - 1])
+
+        console.log(label, models[label][models[label].length - 1])
+    })
+
+    chart.update()
+}
+
+function removeData(chart) {
+    chart.data.labels.pop()
+
+    chart.data.datasets.forEach((dataset) => {
+        dataset.data.pop()
+    })
+
+    chart.update()
+}
+
+function dynamicColor() {
+    const r = Math.floor(Math.random() * 255)
+    const g = Math.floor(Math.random() * 255)
+    const b = Math.floor(Math.random() * 255)
+    return "rgb(" + r + "," + g + "," + b + ")"
 }
 
 function generateRandomColor() {
-    var letters = '0123456789ABCDEF';
-    var color = '#';
+    var letters = '0123456789ABCDEF'
+    var color = '#'
+
     for (var i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
+        color += letters[Math.floor(Math.random() * 16)]
     }
-    return color;
+    return color
 }
 
 function read_variable_inputs(variable_inputs) {
     result = {}
+
     $.each(variable_inputs, function (index, value) {
         result[index] = value.val() === '' ? null : value.val()
     })
@@ -300,6 +394,7 @@ function read_variable_inputs(variable_inputs) {
 
 function update_variable_inputs(variable_inputs, variables) {
     $.each(variables, function (index, value) {
+        value = value[value.length - 1]
         variable_inputs[index].val(value === 'None' ? '' : value)
     })
 }
