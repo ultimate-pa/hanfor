@@ -66,8 +66,8 @@ class Countertrace(Pickleable):
             _RCEIL = '\u2309' if unicode else ']'
             _ELL = '\u2113' if unicode else 'L'
 
-            result += str(self.entry_events) + ';' if self.entry_events != TRUE() else ''
-            result += str(self.invariant) if self.invariant == TRUE() else _LCEIL + str(self.invariant) + _RCEIL
+            result += self.entry_events.serialize() + ';' if self.entry_events != TRUE() else ''
+            result += self.invariant.serialize() if self.invariant == TRUE() else _LCEIL + self.invariant.serialize() + _RCEIL
 
             for forbid in self.forbid:
                 result += ' ' + _AND + ' ' + _NO_EVENT + ' ' + forbid

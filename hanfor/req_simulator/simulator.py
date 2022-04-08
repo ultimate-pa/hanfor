@@ -172,48 +172,6 @@ class Simulator:
 
         self.enabled_transitions = enabled_transitions
 
-    '''
-    def check_sat_old(self) -> list[tuple[Transition]]:
-        enabled_transitions = []
-        var_assertions = self.build_var_assertions()
-
-        transition_lists = [self.peas[i].get_transitions(self.current_phases[-1][i]) for i in range(len(self.peas))]
-        transition_tuples = list(itertools.product(*transition_lists))
-
-        time_step_max = self.time_steps[-1]
-        for transition_tuple in transition_tuples:
-            for i in range(len(transition_tuple)):
-                transition = transition_tuple[i]
-                for k, v in transition.dst.get_clock_bounds().items():
-                    delta = v - self.clocks[-1][i][k]
-                    if delta > 0:
-                        time_step_max = min(time_step_max, delta)
-        self.time_steps[-1] = time_step_max
-        print()
-
-        for transition_tuple in transition_tuples:
-            f = var_assertions
-
-            for i in range(len(transition_tuple)):
-                transition = transition_tuple[i]
-
-                clocks = self.update_clocks(i, transition.resets, True)
-
-                f = And(f, transition.guard, self.build_clock_assertions(self.clocks[-1][i]),
-                        substitute_free_variables(transition.dst.clock_invariant),
-                        substitute_free_variables(self.build_clock_assertions(clocks))).simplify()
-
-            sat = is_sat(f, SOLVER_NAME)
-            print('{x:<8}'.format(x='sat:' if sat else 'unsat:'), f)
-
-            if sat:
-                enabled_transitions.append(transition_tuple)
-
-        self.enabled_transitions = enabled_transitions
-
-        return enabled_transitions
-    '''
-
     def step_next(self, enabled_transition_index: int) -> None:
         transitions, model = self.enabled_transitions[enabled_transition_index]
 

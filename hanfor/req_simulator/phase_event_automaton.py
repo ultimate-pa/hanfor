@@ -22,9 +22,11 @@ class Sets:
 
     def __str__(self) -> str:
         result = ''
+
         for i in self.active:
             result += str(i)
             result += 'ᴳ' if i in self.gteq else 'ᵂ' if i in self.wait else 'ᴸ' if i in self.less else ''
+
         return result
 
     def is_empty(self) -> bool:
@@ -58,8 +60,7 @@ class Phase:
         return hash((self.sets))
 
     def __str__(self) -> str:
-        return 's_inv: "%s" | c_inv: "%s" | sets: "%s"' % (
-            self.state_invariant, self.clock_invariant, self.sets)
+        return f's_inv: "{self.state_invariant.serialize()}" | c_inv: "{self.clock_invariant.serialize()}" | sets: "{self.sets}"'
 
     def __repr__(self):
         return str(self)
@@ -123,7 +124,7 @@ class Transition:
 
     def __str__(self) -> str:
         return 'src: "%s" | dst: "%s" | guard: "%s" | resets: "%s"' % (
-            None if self.src is None else self.src.sets, self.dst.sets, self.guard,
+            None if self.src is None else self.src.sets, self.dst.sets, self.guard.serialize(),
             {*self.resets} if self.resets else '{}')
 
     def __repr__(self):
