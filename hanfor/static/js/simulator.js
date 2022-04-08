@@ -178,10 +178,6 @@ function init_simulator_modal(data) {
                 update_dc_phases(dc_phase_codes, active_dc_phases)
 
                 addData(chart, times, response['data']['models'])
-
-                //chart.options.scales.y_blinkingMode.stackWeight = 0
-                //chart.options.scales.y_blinkingMode.display = false
-                //chart.update();
             }
         })
     })
@@ -209,10 +205,6 @@ function init_simulator_modal(data) {
                 update_dc_phases(dc_phase_codes, active_dc_phases)
 
                 removeData(chart)
-
-                //chart.options.scales.y_blinkingMode.stackWeight = 1
-                //chart.options.scales.y_blinkingMode.display = true
-                //chart.update();
             }
         })
     })
@@ -228,7 +220,7 @@ function init_chart(chart_canvas, times, models, types) {
     let datasets = []
 
     $.each(types, function (index, value) {
-        let color = generateRandomColor()
+        let color = dynamicColor()
 
         const type = types[index] === 'Bool' ? 'category' : 'linear'
         const labels = types[index] === 'Bool' ? ['True', 'False'] : []
@@ -273,7 +265,7 @@ function init_chart(chart_canvas, times, models, types) {
                         }
                     }
                 }),
-            borderWidth: 1,
+            borderWidth: 2,
             plugins: {
                 legend: {
                     position: 'top',
@@ -282,7 +274,7 @@ function init_chart(chart_canvas, times, models, types) {
                 },
                 chartAreaBorder: {
                     borderColor: 'rgba(0, 0, 0, 0.1)',
-                    borderWidth: 2
+                    //borderWidth: 2
                 },
             }
         },
@@ -306,24 +298,6 @@ function init_chart(chart_canvas, times, models, types) {
     const ctx = chart_canvas[0].getContext('2d')
     return new Chart(ctx, config)
 }
-
-const getOrCreateLegendList = (chart, id) => {
-    const legendContainer = document.getElementById(id);
-    let listContainer = legendContainer.querySelector('ul');
-
-    if (!listContainer) {
-        listContainer = document.createElement('ul');
-        listContainer.style.display = 'flex';
-        listContainer.style.flexDirection = 'row';
-        listContainer.style.margin = 0;
-        listContainer.style.padding = 0;
-
-        legendContainer.appendChild(listContainer);
-    }
-
-    return listContainer;
-};
-
 
 function onChartLegendClick(evt, item, legend) {
     //console.log('evt', evt)

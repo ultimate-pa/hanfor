@@ -94,17 +94,19 @@ class Simulator:
 
     def __init__(self, peas: list[PhaseEventAutomaton], scenario: Scenario = None, name: str = 'unnamed') -> None:
         self.name: str = name
-        self.peas: list[PhaseEventAutomaton] = peas
         self.scenario: Scenario = scenario
 
         self.time: float = 0.0
-        self.current_phases: list[Phase] = [None] * len(self.peas)
+        self.time_step: float = 1.0
+        self.peas: list[PhaseEventAutomaton] = peas
+        self.current_phases: list[Phase | None] = [None] * len(self.peas)
         self.clocks: list[dict[str, float]] = [{clock: 0 for clock in pea.clocks} for pea in self.peas]
 
-        self.variables: dict[FNode, FNode] = {v: None for pea in self.peas for v in
-                                              pea.countertrace.extract_variables()}
 
-        self.time_step: float = 1.0
+
+        self.variables: dict[FNode, FNode] = {v: None for pea in self.peas for v in pea.countertrace.extract_variables()}
+
+
 
         self.enabled_transitions: list[tuple] = []
         self.models = {k: [None] for k in self.variables}
