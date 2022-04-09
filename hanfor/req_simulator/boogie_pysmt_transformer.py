@@ -57,7 +57,7 @@ class BoogiePysmtTransformer(Transformer):
     def gteq(children) -> FNode:
         return GE(children[0], children[2])
 
-    def id(self, children) -> Symbol:
+    def id(self, children) -> FNode:
         name = children[0].value
         type = self.variables[name].type
         value = self.variables[name].value
@@ -101,7 +101,7 @@ class BoogiePysmtTransformer(Transformer):
         return NotEquals(children[0], children[2])
 
     @staticmethod
-    def number(children) -> Int:
+    def number(children) -> FNode:
         return Int(int(children[0]))
 
     @staticmethod
@@ -113,7 +113,7 @@ class BoogiePysmtTransformer(Transformer):
         return +children[1]
 
     @staticmethod
-    def realnumber(children) -> Real:
+    def realnumber(children) -> FNode:
         return Real(float(children[0]))
 
     @staticmethod
@@ -123,10 +123,6 @@ class BoogiePysmtTransformer(Transformer):
     @staticmethod
     def true(children) -> FNode:
         return TRUE()
-
-    @staticmethod
-    def false(children) -> FNode:
-        return FALSE()
 
     @staticmethod
     def __default__(data, children, meta):

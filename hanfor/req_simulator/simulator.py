@@ -3,6 +3,8 @@ from __future__ import annotations
 import itertools
 from collections import defaultdict
 from copy import deepcopy
+from dataclasses import dataclass
+from typing import Tuple
 
 from pysmt.fnode import FNode
 from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, TRUE, get_model, is_sat
@@ -15,6 +17,12 @@ from reqtransformer import Requirement, Formalization
 
 
 class Simulator:
+
+    @dataclass
+    class SatResult:
+        transitions: Tuple[Transition]
+        model: dict[FNode, FNode]
+
     def __init__(self, peas: list[PhaseEventAutomaton], scenario: Scenario = None, name: str = 'unnamed') -> None:
         self.name: str = name
         self.scenario: Scenario = scenario
@@ -25,7 +33,9 @@ class Simulator:
         self.peas: list[PhaseEventAutomaton] = peas
         self.current_phases: list[list[Phase | None]] = [[None] * len(self.peas)]  # history
         self.clocks: list[dict[str, float]] = [{vv: 0.0 for v in self.peas for vv in v.clocks}] # history
-        self.enabled_transitions: list[tuple[tuple[Transition], dict[FNode, FNode]]] = []
+
+        self.sat_results: list[Simulator.SatResult] = []
+        #self.enabled_transitions: list[tuple[tuple[Transition], dict[FNode, FNode]]] = []
 
         self.variables: dict[FNode, list[FNode | None]] = \
             {v: [None] for p in self.peas for v in p.countertrace.extract_variables()}  # history
@@ -53,7 +63,7 @@ class Simulator:
         if self.current_phases[-1][0] is None:
             return result
 
-        clock_assertions = self.build_clock_assertions(self.clocks[-1])
+        clock_assertions = self.build_clocks_assertion(self.clocks[-1])
 
         for i, current_phase in enumerate(self.current_phases[-1]):
             prefix = f'{self.peas[i].requirement.rid}_{self.peas[i].formalization.id}_{self.peas[i].countertrace_id}_'
@@ -74,11 +84,22 @@ class Simulator:
 
         return result
 
+    '''
     def get_transitions(self):
         results = []
 
         for transition in self.enabled_transitions:
             model = ' ; '.join([f'{k} = {v}' for k, v in transition[1].items() if self.variables[k][-1] is None])
+            results.append(model if model != '' else 'True')
+
+        return results
+    '''
+
+    def get_transitions(self):
+        results = []
+
+        for sat_result in self.sat_results:
+            model = ' ; '.join([f'{k} = {v}' for k, v in sat_result.model.items() if self.variables[k][-1] is None])
             results.append(model if model != '' else 'True')
 
         return results
@@ -108,7 +129,7 @@ class Simulator:
                 self.variables[k][-1] = v
 
     @staticmethod
-    def update_clocks(clocks: dict[str, float], resets: frozenset[set], time_step: float) -> dict[str, float]:
+    def update_clocks(clocks: dict[str, float], resets: frozenset[str], time_step: float) -> dict[str, float]:
         result = clocks.copy()
 
         for k, v in result.items():
@@ -116,23 +137,26 @@ class Simulator:
 
         return result
 
-    def build_var_assertions(self) -> FNode:
-        return And(
-            EqualsOrIff(substitute_free_variables(k), v[-1]) for k, v in self.variables.items() if v[-1] is not None)
+    @staticmethod
+    def build_variables_assertion(variables: dict[FNode, FNode]) -> FNode:
+        return And(EqualsOrIff(k, v) for k, v in variables.items() if v is not None)
 
-    def build_clock_assertions(self, clocks: dict[str, float]) -> FNode:
+    @staticmethod
+    def build_clocks_assertion(clocks: dict[str, float]) -> FNode:
         return And(Equals(Symbol(k, REAL), Real(v)) for k, v in clocks.items())
 
+    '''
     def build_guard(self, transition: Transition, clocks: dict[str, float]) -> FNode:
-        f = And(self.build_var_assertions(), transition.guard, self.build_clock_assertions(clocks))
+        f = And(self.build_var_assertions(), transition.guard, self.build_clocks_assertion(clocks))
 
         return f
 
     def build_clock_invariant(self, transition: Transition, clocks: dict[str, float]) -> FNode:
         f = And(substitute_free_variables(transition.dst.clock_invariant),
-                substitute_free_variables(self.build_clock_assertions(clocks)))
+                substitute_free_variables(self.build_clocks_assertion(clocks)))
 
         return f
+    '''
 
     def calculate_max_time_step(self, transition: Transition, clocks: dict[str, float], time_step: float):
         k, v = transition.dst.get_min_clock_bound()
@@ -143,11 +167,91 @@ class Simulator:
 
         return time_step
 
-    def check_sat(self) -> None:
+
+    def check_sat(self):
         if not self.time_steps[-1] > 0.0:
             raise ValueError('Time step must be greater than zero.')
 
-        self.enabled_transitions = []
+        primed_vars = {}
+        primed_vars_mapping = {}
+        for k, v in self.variables.items():
+            k_ = substitute_free_variables(k)
+            primed_vars[k_] = v[-1]
+            primed_vars_mapping[k_] = k
+
+        primed_vars_assert = self.build_variables_assertion(primed_vars)
+        clocks_assert = self.build_clocks_assertion(self.clocks[-1])
+
+        inputs = [v.phases[self.current_phases[-1][i]] for i, v in enumerate(self.peas)]
+
+        # Check single elements
+        inputs_ = []
+        for input in inputs:
+            input_ = []
+
+            for e in input:
+
+                updated_clocks = self.update_clocks(self.clocks[-1], e.resets, self.time_steps[-1])
+                updated_clocks_assert = self.build_clocks_assertion(updated_clocks)
+
+                sat = is_sat(And(e.guard, primed_vars_assert, clocks_assert), solver_name=SOLVER_NAME, logic=LOGIC) and \
+                      is_sat(And(e.dst.clock_invariant, updated_clocks_assert), solver_name=SOLVER_NAME, logic=LOGIC)
+
+                if sat:
+                    input_.append(e)
+
+            inputs_.append(input_)
+
+        inputs = inputs_
+
+
+        # Compute cartesian product with intermediate checks
+        #results = []
+        results: list[Simulator.SatResult] = []
+
+        for e in inputs[0]:
+            model = get_model(e.guard, solver_name=SOLVER_NAME, logic=LOGIC)
+            values = model.get_values(primed_vars.keys())
+            results.append(Simulator.SatResult((e,), {primed_vars_mapping[k]: v for k, v in values.items()}))
+            print()
+
+        for input in inputs[1:]:
+            #results_ = []
+            results_: list[Simulator.SatResult] = []
+
+            for result in results:
+                guards_pre = And(primed_vars_assert, clocks_assert)
+
+                for r in result.transitions:
+                    guards_pre = And(guards_pre, r.guard)
+
+                for e in input:
+                    guards = And(guards_pre, e.guard)
+
+                    model = get_model(guards, solver_name=SOLVER_NAME, logic=LOGIC)
+
+                    if model is not None:
+                        values = model.get_values(primed_vars.keys())
+                        result_ = Simulator.SatResult(result.transitions + (e,), {primed_vars_mapping[k]: v for k, v in values.items()})
+                        results_.append(result_)
+
+            results = results_
+
+        self.sat_results = results
+
+
+
+
+
+
+
+
+
+    def check_sat_old(self) -> None:
+        if not self.time_steps[-1] > 0.0:
+            raise ValueError('Time step must be greater than zero.')
+
+        self.sat_results = []
 
         transition_lists = [self.peas[i].get_transitions(self.current_phases[-1][i]) for i in range(len(self.peas))]
         transition_tuples = list(itertools.product(*transition_lists))
@@ -182,10 +286,10 @@ class Simulator:
                 primed_variables = {substitute_free_variables(k): k for k in self.variables}
                 model = model.get_values(primed_variables.keys())
 
-                self.enabled_transitions.append((transition_tuple, {v: model[k] for k, v in primed_variables.items()}))
+                self.sat_results.append((transition_tuple, {v: model[k] for k, v in primed_variables.items()}))
 
     def step_next(self, enabled_transition_index: int) -> None:
-        transitions, model = self.enabled_transitions[enabled_transition_index]
+        sat_result = self.sat_results[enabled_transition_index]
 
         # Save state
         self.times.append(self.times[-1])
@@ -201,16 +305,16 @@ class Simulator:
 
         # step
         for k, v in self.models.items():
-            v[-1] = model[k]
+            v[-1] = sat_result.model[k]
 
         resets = frozenset()
-        for i, transition in enumerate(transitions):
+        for i, transition in enumerate(sat_result.transitions):
             self.current_phases[-1][i] = transition.dst
             resets |= transition.resets
 
         self.clocks[-1] = self.update_clocks(self.clocks[-1], resets, self.time_steps[-1])
 
-        self.enabled_transitions = []
+        self.sat_results = []
         self.times[-1] += self.time_steps[-1]
 
         # TODO: fix scenario
