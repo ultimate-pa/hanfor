@@ -7,12 +7,13 @@ from pysmt.fnode import FNode
 from pysmt.formula import FormulaManager
 from pysmt.shortcuts import TRUE, Not, And, Or, get_free_variables, get_env
 
+from req_simulator.utils import substitute_free_variables
 from reqtransformer import Pickleable
 
 
 class Countertrace(Pickleable):
     def __init__(self, *dc_phases: DCPhase, path: str = None) -> None:
-        self.dc_phases = [dc_phase for dc_phase in dc_phases]
+        self.dc_phases: list[Countertrace.DCPhase] = [dc_phase for dc_phase in dc_phases]
         super().__init__(path)
 
     def __str__(self) -> str:
@@ -29,13 +30,13 @@ class Countertrace(Pickleable):
         for dc_phase in self.dc_phases:
             dc_phase.normalize(formula_manager)
 
-    def extract_variables(self) -> set[FNode]:
+    def extract_variables(self) -> frozenset[FNode]:
         variables = set()
 
         for dc_phase in self.dc_phases:
             variables.update(dc_phase.extract_variables())
 
-        return variables
+        return frozenset(variables)
 
     class BoundTypes(Enum):
         NONE = 0
