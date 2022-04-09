@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import itertools
 from collections import defaultdict
+from copy import deepcopy
 
 from pysmt.fnode import FNode
 from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, TRUE, get_model, is_sat
@@ -23,7 +24,7 @@ class Simulator:
 
         self.peas: list[PhaseEventAutomaton] = peas
         self.current_phases: list[list[Phase | None]] = [[None] * len(self.peas)]  # history
-        self.clocks: list[dict[str, float]] = [{vv: 0.0 for vv in v.clocks} for v in self.peas] # history
+        self.clocks: list[dict[str, float]] = [{vv: 0.0 for v in self.peas for vv in v.clocks}] # history
         self.enabled_transitions: list[tuple[tuple[Transition], dict[FNode, FNode]]] = []
 
         self.variables: dict[FNode, list[FNode | None]] = \
@@ -108,12 +109,12 @@ class Simulator:
 
     @staticmethod
     def update_clocks(clocks: dict[str, float], resets: frozenset[set], time_step: float) -> dict[str, float]:
-        clocks = clocks.copy()
+        result = clocks.copy()
 
-        for k, v in clocks.items():
-            clocks[k] = time_step if k in resets else v + time_step
+        for k, v in result.items():
+            result[k] = time_step if k in resets else v + time_step
 
-        return clocks
+        return result
 
     def build_var_assertions(self) -> FNode:
         return And(
