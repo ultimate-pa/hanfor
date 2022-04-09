@@ -23,8 +23,7 @@ class Simulator:
 
         self.peas: list[PhaseEventAutomaton] = peas
         self.current_phases: list[list[Phase | None]] = [[None] * len(self.peas)]  # history
-        self.clocks: list[list[dict[str, float]]] = [
-            [{v: 0.0 for v in k.clocks} for k in self.peas]]  # history ? TODO: Geht ein globales clock set?
+        self.clocks: list[dict[str, float]] = [{vv: 0.0 for vv in v.clocks} for v in self.peas] # history
         self.enabled_transitions: list[tuple[tuple[Transition], dict[FNode, FNode]]] = []
 
         self.variables: dict[FNode, list[FNode | None]] = \
@@ -53,9 +52,10 @@ class Simulator:
         if self.current_phases[-1][0] is None:
             return result
 
+        clock_assertions = self.build_clock_assertions(self.clocks[-1])
+
         for i, current_phase in enumerate(self.current_phases[-1]):
             prefix = f'{self.peas[i].requirement.rid}_{self.peas[i].formalization.id}_{self.peas[i].countertrace_id}_'
-            clock_assertions = self.build_clock_assertions(self.clocks[-1][i])
 
             for v in current_phase.sets.active:
                 is_complete = is_sat(And(complete(self.peas[i].countertrace, current_phase.sets, v, 'c_' + prefix),
@@ -106,16 +106,12 @@ class Simulator:
             for k, v in variables.items():
                 self.variables[k][-1] = v
 
-            # self.variables.update((k, v) for k, v in variables.items() if k in self.variables)
-
-    def update_clocks(self, i: int, resets: frozenset[str], dry_run: bool = False) -> dict[str, float]:
-        clocks = self.clocks[-1][i].copy()
+    @staticmethod
+    def update_clocks(clocks: dict[str, float], resets: frozenset[set], time_step: float) -> dict[str, float]:
+        clocks = clocks.copy()
 
         for k, v in clocks.items():
-            clocks[k] = self.time_steps[-1] if k in resets else v + self.time_steps[-1]
-
-        if not dry_run:
-            self.clocks[-1][i] = clocks
+            clocks[k] = time_step if k in resets else v + time_step
 
         return clocks
 
@@ -162,7 +158,7 @@ class Simulator:
 
                 clock_bound = transition.dst.get_min_clock_bound()
                 if clock_bound is not None:
-                    delta = clock_bound[1] - self.clocks[-1][i][clock_bound[0]]
+                    delta = clock_bound[1] - self.clocks[-1][clock_bound[0]]
                     time_step_max = time_step_max if delta <= 0 else min(time_step_max, delta)
 
         self.time_steps[-1] = time_step_max
@@ -175,8 +171,9 @@ class Simulator:
 
                 # TODO: Can be split into two check sat, if it improves performance.
                 # In this case, the substitution of clocks can be omitted.
-                f = And(f, self.build_guard(transition, self.clocks[-1][i]),
-                        self.build_clock_invariant(transition, self.update_clocks(i, transition.resets, True)))
+                f = And(f, self.build_guard(transition, self.clocks[-1]),
+                        self.build_clock_invariant(transition,
+                        self.update_clocks(self.clocks[-1], transition.resets, self.time_steps[-1])))
 
             model = get_model(f, SOLVER_NAME, LOGIC)
 
@@ -205,9 +202,12 @@ class Simulator:
         for k, v in self.models.items():
             v[-1] = model[k]
 
+        resets = frozenset()
         for i, transition in enumerate(transitions):
             self.current_phases[-1][i] = transition.dst
-            self.update_clocks(i, transition.resets)
+            resets |= transition.resets
+
+        self.clocks[-1] = self.update_clocks(self.clocks[-1], resets, self.time_steps[-1])
 
         self.enabled_transitions = []
         self.times[-1] += self.time_steps[-1]
