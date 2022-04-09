@@ -64,8 +64,8 @@ class Simulator:
         results = []
 
         for transition in self.enabled_transitions:
-            results.append(
-                ' ; '.join([f'{k} = {v}' for k, v in transition[1].items() if self.variables[k][-1] is None]))
+            model = ' ; '.join([f'{k} = {v}' for k, v in transition[1].items() if self.variables[k][-1] is None])
+            results.append(model if model != '' else 'True')
 
         return results
 
@@ -134,7 +134,7 @@ class Simulator:
         return time_step
 
     def check_sat(self) -> None:
-        enabled_transitions = []
+        self.enabled_transitions = []
 
         transition_lists = [self.peas[i].get_transitions(self.current_phases[-1][i]) for i in range(len(self.peas))]
         transition_tuples = list(itertools.product(*transition_lists))
@@ -165,16 +165,27 @@ class Simulator:
             model = get_model(f, SOLVER_NAME, LOGIC)
 
             if model is not None:
-                variable_mapping = {substitute_free_variables(k): k for k in self.variables}
-                partial = model.get_values(variable_mapping.keys())
+                primed_variables = {substitute_free_variables(k): k for k in self.variables}
+                model = model.get_values(primed_variables.keys())
 
-                enabled_transitions.append((transition_tuple, {v: partial[k] for k, v in variable_mapping.items()}))
-
-        self.enabled_transitions = enabled_transitions
+                self.enabled_transitions.append((transition_tuple, {v: model[k] for k, v in primed_variables.items()}))
 
     def step_next(self, enabled_transition_index: int) -> None:
         transitions, model = self.enabled_transitions[enabled_transition_index]
 
+        # Save state
+        self.times.append(self.times[-1])
+        self.time_steps.append(self.time_steps[-1])
+        self.current_phases.append(self.current_phases[-1].copy())
+        self.clocks.append(self.clocks[-1].copy())
+
+        for k, v in self.models.items():
+            v.append(v[-1])
+
+        for k, v in self.variables.items():
+            v.append(v[-1])
+
+        # step
         for k, v in self.models.items():
             v[-1] = model[k]
 
@@ -189,18 +200,6 @@ class Simulator:
         if self.scenario is not None and self.times[-1] in self.scenario.valuations:
             self.update_variables(self.scenario.valuations[self.times[-1]].values)
             self.time_steps[-1] = self.scenario.valuations[self.times[-1]].end - self.times[-1]
-
-        # Save state
-        self.times.append(self.times[-1])
-        self.time_steps.append(self.time_steps[-1])
-        self.current_phases.append(self.current_phases[-1].copy())
-        self.clocks.append(self.clocks[-1].copy())
-
-        for k, v in self.models.items():
-            v.append(v[-1])
-
-        for k, v in self.variables.items():
-            v.append(v[-1])
 
     def step_back(self) -> bool:
         if len(self.times) < 2:
