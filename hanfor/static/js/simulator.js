@@ -174,8 +174,8 @@ function init_simulator_modal(data) {
                 variables = response['data']['variables']
                 update_variable_inputs(variable_inputs, variables)
 
-                active_dc_phases = response['data']['active_dc_phases']
-                update_dc_phases(dc_phase_codes, active_dc_phases)
+                //active_dc_phases = response['data']['active_dc_phases']
+                update_dc_phases(dc_phase_codes, response['data']['active_dc_phases'])
 
                 addData(chart, times, response['data']['models'])
             }
@@ -201,8 +201,8 @@ function init_simulator_modal(data) {
                 variables = response['data']['variables']
                 update_variable_inputs(variable_inputs, variables)
 
-                active_dc_phases = response['data']['active_dc_phases']
-                update_dc_phases(dc_phase_codes, active_dc_phases)
+                //active_dc_phases = response['data']['active_dc_phases']
+                update_dc_phases(dc_phase_codes, response['data']['active_dc_phases'])
 
                 removeData(chart)
             }
@@ -300,10 +300,6 @@ function init_chart(chart_canvas, times, models, types) {
 }
 
 function onChartLegendClick(evt, item, legend) {
-    //console.log('evt', evt)
-    //console.log('item', item)
-    //console.log('legend', legend)
-
     const chart = legend.chart
     const y_scale = chart.options.scales['y_' + item.text]
 
@@ -319,7 +315,6 @@ function onChartLegendClick(evt, item, legend) {
                 y_scale.display = false
                 y_scale.stackWeight = 0.0000000000001
             }
-            console.log('found', item.text)
         }
     })
 
@@ -386,9 +381,18 @@ function update_variable_inputs(inputs, values) {
 function update_dc_phases(dc_phase_codes, active_dc_phases) {
     $.each(dc_phase_codes, function (index, value) {
         value.removeClass('alert-success')
-
-        if ($.inArray(index, active_dc_phases) !== -1) {
+        if ($.inArray(index, active_dc_phases['complete']) !== -1) {
             value.addClass('alert-success')
+        }
+
+        value.removeClass('alert-warning')
+        if ($.inArray(index, active_dc_phases['waiting']) !== -1) {
+            value.addClass('alert-warning')
+        }
+
+        value.removeClass('alert-danger')
+        if ($.inArray(index, active_dc_phases['exceeded']) !== -1) {
+            value.addClass('alert-danger')
         }
     })
 }

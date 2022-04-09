@@ -124,37 +124,6 @@ def phase(invariant: FNode, bound_type: Countertrace.BoundTypes = Countertrace.B
     return Countertrace.DCPhase(TRUE(), invariant, bound_type, bound, set(), False)
 
 
-# TODO: Obsolete.
-'''
-def create_counter_trace(scope: str, pattern: str, expressions: dict[str, FNode]) -> CounterTrace:
-    _P = expressions.get('P')  # Scope
-    _Q = expressions.get('Q')  # Scope
-    _R = expressions.get('R')
-    _S = expressions.get('S')
-    _T = expressions.get('T')
-
-    if pattern == 'BndResponsePatternUT':
-        if scope == 'GLOBALLY':
-            return CounterTrace(phaseT(), phase(_R.And(Not(_S))), phase(Not(_S), CounterTrace.BoundTypes.GREATER, _T),
-                                phaseT())
-        if scope == 'BEFORE':
-            return CounterTrace(phase(Not(_P)), phase(Not(_P).And(_R).And(Not(_S))),
-                                phase(Not(_P).And(Not(_S)), CounterTrace.BoundTypes.GREATER, _T), phaseT())
-        if scope == 'AFTER':
-            return CounterTrace(phaseT(), phase(_P), phaseT(), phase(_R.And(Not(_S))),
-                                phase(Not(_S), CounterTrace.BoundTypes.GREATER, _T), phaseT())
-        if scope == 'BETWEEN':
-            return CounterTrace(phaseT(), phase(_P.And(Not(_Q))), phase(Not(_Q)), phase(Not(_Q).And(_R).And(Not(_S))),
-                                phase(Not(_Q).And(Not(_S)), CounterTrace.BoundTypes.GREATER, _T), phase(Not(_Q)),
-                                phase(_Q), phaseT())
-        if scope == 'AFTER_UNTIL':
-            return CounterTrace(phaseT(), phase(_P), phase(Not(_Q)), phase(Not(_Q).And(_R).And(Not(_S))),
-                                phase(Not(_Q).And(Not(_S)), CounterTrace.BoundTypes.GREATER, _T), phaseT())
-    else:
-        raise NotImplementedError('Pattern is not implemented: %s %s' % (scope, pattern))
-'''
-
-
 class CountertraceTransformer(Transformer):
     def __init__(self, expressions: dict[str, FNode]) -> None:
         super().__init__()

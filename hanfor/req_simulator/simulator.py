@@ -4,10 +4,10 @@ import itertools
 from collections import defaultdict
 
 from pysmt.fnode import FNode
-from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, TRUE, get_model
+from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, TRUE, get_model, is_sat
 from pysmt.typing import REAL
 
-from req_simulator.phase_event_automaton import PhaseEventAutomaton, Phase, Transition
+from req_simulator.phase_event_automaton import PhaseEventAutomaton, Phase, Transition, complete
 from req_simulator.scenario import Scenario
 from req_simulator.utils import substitute_free_variables, SOLVER_NAME, LOGIC
 from reqtransformer import Requirement, Formalization
@@ -47,16 +47,29 @@ class Simulator:
     def get_models(self) -> dict[str, list[str]]:
         return {str(k): [str(v) for v in vv] for k, vv in self.models.items()}
 
-    def get_active_dc_phases(self) -> list[str]:
-        result = []
+    def get_active_dc_phases(self) -> dict[str, list[str]]:
+        result = {'complete': [], 'waiting': [], 'exceeded': []}
 
         if self.current_phases[-1][0] is None:
             return result
 
         for i, current_phase in enumerate(self.current_phases[-1]):
-            pea = self.peas[i]
-            result.extend([f'{pea.requirement.rid}_{pea.formalization.id}_{pea.countertrace_id}_{v}' for v in
-                           current_phase.sets.active])
+            prefix = f'{self.peas[i].requirement.rid}_{self.peas[i].formalization.id}_{self.peas[i].countertrace_id}_'
+            clock_assertions = self.build_clock_assertions(self.clocks[-1][i])
+
+            for v in current_phase.sets.active:
+                is_complete = is_sat(And(complete(self.peas[i].countertrace, current_phase.sets, v, 'c_' + prefix),
+                                     clock_assertions), solver_name=SOLVER_NAME, logic=LOGIC)
+
+                if is_complete:
+                    result['complete'].append(prefix + str(v))
+                    continue
+
+                if v not in current_phase.sets.less:
+                    result['waiting'].append(prefix + str(v))
+                    continue
+
+                result['exceeded'].append(prefix + str(v))
 
         return result
 
@@ -135,7 +148,7 @@ class Simulator:
 
     def check_sat(self) -> None:
         if not self.time_steps[-1] > 0.0:
-            raise ValueError('Time step must be greater that zero.')
+            raise ValueError('Time step must be greater than zero.')
 
         self.enabled_transitions = []
 
