@@ -134,6 +134,9 @@ class Simulator:
         return time_step
 
     def check_sat(self) -> None:
+        if not self.time_steps[-1] > 0.0:
+            raise ValueError('Time step must be greater that zero.')
+
         self.enabled_transitions = []
 
         transition_lists = [self.peas[i].get_transitions(self.current_phases[-1][i]) for i in range(len(self.peas))]
