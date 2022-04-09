@@ -143,10 +143,10 @@ class Transition:
 
 class PhaseEventAutomaton(Pickleable):
     def __init__(self, countertrace: Countertrace = None, path: str = None):
-        self.clocks: set[str] = set()
         # TODO: Rename to transitions
         self.phases: defaultdict[Phase, set[Transition]] = defaultdict(set)
         self.countertrace: Countertrace = countertrace
+        self.clocks: set[str] = set()
         self.requirement: Requirement = None
         self.formalization: Formalization = None
         self.countertrace_id: int = None
