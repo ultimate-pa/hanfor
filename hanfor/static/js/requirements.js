@@ -513,16 +513,23 @@ function prevent_double_token_insert() {
 
 function bind_tag_editing(){
     $("#delete-row").attr("hidden",true);
-    var rowCount = $('.tags-list tr').length;
+    var rowCount = $('#tags_comments_table tr').length;
 
-    $("#add-row").click(function(){
+//    $('#tag_comment_form').keypress((e) => {
+//        // Enter key corresponds to number 13
+//        if (e.which === 13) {
+//            alert('form submitted');
+//        }
+//    })
+    $("#add_tag_comment_row").click(function(){
         rowCount += 1;
+        alert("hello");
 
         $("#delete-row").attr("hidden",false);
-        var name = $("#requirement_tag_field").val();
-        var email = $("#tag_comment_field").val();
-        var markup = "<tr><td><input type='checkbox' name='record'></td><td>" + name + "</td><td>" + email + "</td></tr>";
-        $("table tbody").append(markup);
+        var tag = $("#requirement_tag_field").val();
+        var comment = $("#tag_comment_field").val();
+        var markup = "<tr><td><input type='checkbox' name='record'></td><td><input" + tag + "</td><td>" + comment + "</td></tr>";
+        $("#tags_comments_table tbody").append(markup);
     });
 
 
