@@ -170,9 +170,6 @@ class PhaseEventAutomaton(Pickleable):
             for transition in transitions:
                 transition.normalize(formula_manager)
 
-    #def get_transitions(self, phase: Phase):
-    #    return [t for t in self.phases[phase]]
-
     def add_transition(self, transition: Transition) -> None:
         if transition in self.phases[transition.src]:
             raise ValueError('Transition already exists in this phase event automaton.')

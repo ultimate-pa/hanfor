@@ -1,6 +1,6 @@
 require('chart.js/auto')
 require('jquery-ui-sortable')
-require('../css/floating-labels.css') // TODO: Remove in Bootstrap version >= 5.1
+require('../css/simulator.css')
 
 function get_selected_requirement_ids(requirements_table) {
     let ids = []
@@ -102,6 +102,7 @@ function init_simulator_modal(data) {
     let models = data['models']
 
     let simulator_modal = $(data['html'])
+    let simulator_modal_title_span = simulator_modal.find('#simulator-modal-title span')
     let simulator_chart_canvas = simulator_modal.find('#chart-canvas')
     let simulator_step_transition_select = simulator_modal.find('#simulator-step-transition-select')
     let simulator_time_step_input = simulator_modal.find('#simulator-time-step-input')
@@ -109,12 +110,20 @@ function init_simulator_modal(data) {
     let simulator_step_next_btn = simulator_modal.find('#simulator-step-next-btn')
     let simulator_step_back_btn = simulator_modal.find('#simulator-step-back-btn')
 
+    update_modal_title_span(simulator_modal_title_span, data)
+
     simulator_time_step_input.val(time_step)
 
     let variable_inputs = {}
-    $.each(simulator_modal.find('input[id$=_variable]'), function (index, value) {
-        id = $(value).attr('id').replace('_variable', '')
+    let variable_colors = {}
+    let variable_prepends = {}
+    $.each(simulator_modal.find('input[id$=_variable_input]'), function (index, value) {
+        id = $(value).attr('id').replace('_variable_input', '')
         variable_inputs[id] = $(value)
+
+        variable_colors[id] = dynamicColor()
+        variable_prepends[id] = simulator_modal.find('#' + id + '_input_prepend')
+        variable_prepends[id].css('background-color', variable_colors[id])
     })
 
     update_variable_inputs(variable_inputs, variables)
@@ -127,7 +136,37 @@ function init_simulator_modal(data) {
 
     update_dc_phases(dc_phase_codes, active_dc_phases)
 
-    let chart = init_chart(simulator_chart_canvas, times, models, types)
+    let chart = init_chart(simulator_chart_canvas, times, models, types, variable_colors)
+
+    $.each(variable_prepends, function (index, value) {
+
+        value.click(function () {
+            console.log('clicked', index, value)
+
+            const y_scale = chart.options.scales['y_' + index]
+
+            $.each(chart.data.datasets, function (i, v) {
+                if (v.yAxisID === 'y_' + index) {
+
+                    if (v.hidden === true) {
+                        v.hidden = false
+                        y_scale.display = true
+                        y_scale.stackWeight = undefined
+                        value.css('background-color', variable_colors[index])
+                    } else {
+                        v.hidden = true
+                        y_scale.display = false
+                        y_scale.stackWeight = 0.0000000000001
+                        value.css('background-color', '#e9ecef')
+                    }
+                }
+            })
+
+            chart.update();
+        })
+
+    })
+
 
     simulator_step_check_btn.click(function () {
         $.ajax({
@@ -166,6 +205,7 @@ function init_simulator_modal(data) {
                     return
                 }
 
+                update_modal_title_span(simulator_modal_title_span, response.data)
                 simulator_time_step_input.val(response['data']['time_step'])
 
                 simulator_step_transition_select.empty()
@@ -193,6 +233,7 @@ function init_simulator_modal(data) {
                     return
                 }
 
+                update_modal_title_span(simulator_modal_title_span, response.data)
                 simulator_time_step_input.val(response['data']['time_step'])
 
                 simulator_step_transition_select.empty()
@@ -215,12 +256,16 @@ function init_simulator_modal(data) {
     simulator_modal.modal('show')
 }
 
-function init_chart(chart_canvas, times, models, types) {
+function update_modal_title_span(modal_title_span, data) {
+    modal_title_span.text('[cartesian product: ' + parseInt(data['cartesian_size']).toLocaleString('de-DE') + ']')
+}
+
+function init_chart(chart_canvas, times, models, types, colors) {
     let scales = {}
     let datasets = []
 
     $.each(types, function (index, value) {
-        let color = dynamicColor()
+        //let color = dynamicColor()
 
         const type = types[index] === 'Bool' ? 'category' : 'linear'
         const labels = types[index] === 'Bool' ? ['True', 'False'] : []
@@ -238,8 +283,8 @@ function init_chart(chart_canvas, times, models, types) {
 
         datasets.push({
             label: index,
-            backgroundColor: color,
-            borderColor: color,
+            backgroundColor: colors[index],
+            borderColor: colors[index],
             data: models[index],
             stepped: 'after',
             yAxisID: 'y_' + index,
@@ -268,9 +313,10 @@ function init_chart(chart_canvas, times, models, types) {
             borderWidth: 2,
             plugins: {
                 legend: {
-                    position: 'top',
-                    align: 'start',
-                    onClick: onChartLegendClick
+                    display: false
+                //    position: 'top',
+                //    align: 'start',
+                //    onClick: onChartLegendClick
                 },
                 chartAreaBorder: {
                     borderColor: 'rgba(0, 0, 0, 0.1)',

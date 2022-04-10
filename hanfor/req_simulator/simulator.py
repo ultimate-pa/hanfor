@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import itertools
+import math
 from collections import defaultdict
 from copy import deepcopy
 from dataclasses import dataclass
@@ -44,6 +45,9 @@ class Simulator:
         if self.scenario is not None:
             self.time_steps[-1] = self.scenario.valuations[0.0].get_duration()
             self.update_variables()
+
+    def get_cartesian_size(self) -> str:
+        return str(math.prod(len(self.peas[i].phases[v]) for i, v in enumerate(self.current_phases[-1])))
 
     def get_times(self) -> list[str]:
         return [str(v) for v in self.times]
@@ -213,7 +217,6 @@ class Simulator:
             model = get_model(e.guard, solver_name=SOLVER_NAME, logic=LOGIC)
             values = model.get_values(primed_vars.keys())
             results.append(Simulator.SatResult((e,), {primed_vars_mapping[k]: v for k, v in values.items()}))
-            print()
 
         for input in inputs[1:]:
             #results_ = []
