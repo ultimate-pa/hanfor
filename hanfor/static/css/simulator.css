@@ -1,0 +1,51 @@
+.simulator-variables {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.simulator-variables input, .simulator-variables label, .simulator-variables .input-group-prepend span {
+    height: 3.125rem;
+    padding: .75rem;
+}
+
+.simulator-variables .input-group-prepend span {
+    width: 1.5rem;
+    padding: 0;
+}
+
+.simulator-variables input {
+    padding-top: 1.25rem;
+    padding-bottom: .25rem;
+}
+
+.simulator-variables label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    width:100%;
+    margin-bottom: 0;
+    padding-top: .25rem;
+    padding-bottom: .25rem;
+    padding-left: 2.25rem; /* width input prepend + padding 0.75rem */
+    line-height: 1.5;
+    font-size: 12px;
+    color: #777;
+    pointer-events: none;
+    cursor: text;
+    z-index: 3;
+}
+
+.simulator-variables label .lhs {
+    float: left;
+    width: 80%;
+    display: inline-block;
+}
+
+.simulator-variables label .rhs {
+    float:none;
+    width: 20%;
+    display: inline-block;
+    overflow: hidden;
+    text-align:right;
+}

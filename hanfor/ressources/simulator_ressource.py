@@ -71,6 +71,8 @@ class SimulatorRessource(Ressource):
 
         data = {
             'simulator_id': simulator_id,
+            'simulator_name': simulator.name,
+            'cartesian_size': simulator.get_cartesian_size(),
             'html': render_template('simulator-modal.html', simulator=simulator),
             'time_step': str(simulator.time_steps[-1]),
             'times': simulator.get_times(),
@@ -148,6 +150,7 @@ class SimulatorRessource(Ressource):
         simulator.step_next(int(transition_index))
 
         data = {
+            'cartesian_size': simulator.get_cartesian_size(),
             'times': simulator.get_times(),
             'time_step': str(simulator.time_steps[-1]),
             'variables': simulator.get_variables(),
@@ -165,6 +168,7 @@ class SimulatorRessource(Ressource):
             self.response.errormsg = 'Step back not possible.'
 
         data = {
+            'cartesian_size': simulator.get_cartesian_size(),
             'times': simulator.get_times(),
             'time_step': simulator.time_steps[-1],
             'variables': simulator.get_variables(),
