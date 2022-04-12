@@ -323,7 +323,7 @@
 
   , setTokens: function (tokens, add, triggerChange) {
       if (!add) this.$wrapper.find('.token').remove()
-
+      print("hello")
       if (!tokens) return
 
       if (typeof triggerChange === 'undefined') {

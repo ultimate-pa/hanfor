@@ -200,6 +200,7 @@ def api(resource, command):
                     if added_tags:
                         utils.add_msg_to_flask_session_log(
                             app, 'Added tags `{}` to requirement'.format(', '.join(added_tags)), id
+
                         )
                         logging.debug(
                             'Added tags `{}` to requirement `{}`'.format(', '.join(added_tags), requirement.tags)

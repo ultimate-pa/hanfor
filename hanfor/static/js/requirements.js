@@ -109,6 +109,7 @@ function store_requirement(requirements_table) {
 
     const req_id = $('#requirement_id').val();
     const req_tags = $('#requirement_tag_field').val();
+    console.log(req_tags);
     const req_status = $('#requirement_status').val();
     const updated_formalization = $('#requirement_modal').data('updated_formalization');
     const associated_row_id = parseInt($('#modal_associated_row_index').val());
@@ -539,6 +540,31 @@ function prevent_double_token_insert() {
     });
 }
 
+function bind_tag_editing(){
+//    $("#delete-row").attr("hidden",true);
+//    var rowCount = $('#tags_comments_table tr').length;
+
+//    $('#requirement_tag_field').keypress((e) => {
+//        // Enter key corresponds to number 13
+//        if (e.which === 13) {
+//            var tag = $("#requirement_tag_field").val();
+//            //var comment = $("#tag_comment_field").val();
+//            var markup = "<tr><td>" + tag + "</td></tr>";
+//            $("#tags_comments_table tbody").append(markup);
+//        }
+//    })
+    $("#add_tag_button").click(function(){
+
+        alert("hello");
+
+//        $("#delete-row").attr("hidden",false);
+        var tag = $("#requirement_tag_field").val();
+        //var comment = $("#tag_comment_field").val();
+        var markup = "<tr><td>" + tag + "</td></tr>";
+        $("#tags_comments_table tbody").append(markup);
+    });
+  }
+
 
 function load_requirement(row_idx) {
     if (row_idx === -1) {
@@ -557,6 +583,7 @@ function load_requirement(row_idx) {
 
     // Set available tags.
     $('#requirement_tag_field').data('bs.tokenfield').$input.autocomplete({source: available_tags});
+
 
     // Get the requirement data and set the modal.
     $.get("api/req/get", {id: data['id'], row_idx: row_idx}, function (data) {
@@ -641,11 +668,13 @@ function load_requirement(row_idx) {
         // Prevent inserting a token twice on enter
         prevent_double_token_insert();
         update_formalization();
+        bind_tag_editing();
         $('#requirement_modal').data({
             'unsaved_changes': false,
             'updated_formalization': false
         });
         requirement_modal_content.LoadingOverlay('hide', true);
+        print(tag);
     });
 }
 
