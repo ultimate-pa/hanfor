@@ -500,79 +500,33 @@ function bind_var_autocomplete() {
     });
 }
 
-
-function prevent_double_token_insert() {
-    $('#requirement_tag_field').on('tokenfield:createtoken', function (event) {
-        let existingTokens = $(this).tokenfield('getTokens');
-        $.each(existingTokens, function (index, token) {
-            if (token.value === event.attrs.value)
-                event.preventDefault();
-        });
-    });
+function add_tag_table_row(tag_name){
+    //todo: we need to fill the fields with the actional comments (maybe name the fields and
+    // add comments later)
+    var table_row = "<tr id='tag_table_" + tag_name + "'>" +
+    "<td><input type='checkbox' name='record'></td>" +
+    "<td>" + tag_name + "</td><td><input type='text' name='comment'></td></tr>";
+    $("#tags_comments_table tbody").append(table_row);
 }
 
-function bind_tag_editing(){
-//    $("#delete-row").attr("hidden",true);
-//    var rowCount = $('#tags_comments_table tr').length;
-
-//    $('#requirement_tag_field').keypress((e) => {
-//        // Enter key corresponds to number 13
-//        if (e.which === 13) {
-//            var tag = $("#requirement_tag_field").val();
-//            //var comment = $("#tag_comment_field").val();
-//            var markup = "<tr><td>" + tag + "</td></tr>";
-//            $("#tags_comments_table tbody").append(markup);
-//        }
-//    })
-    $("#add_tag_button").click(function(){
-
-        alert("hello");
-
-//        $("#delete-row").attr("hidden",false);
-        var tag = $("#requirement_tag_field").val();
-        //var comment = $("#tag_comment_field").val();
-        var markup = "<tr><td>" + tag + "</td></tr>";
-        $("#tags_comments_table tbody").append(markup);
-    });
-  }
-
-
-function bind_tag_editing(){
-    $("#delete-row").attr("hidden",true);
-    var rowCount = $('#tags_comments_table tr').length;
-
-//    $('#tag_comment_form').keypress((e) => {
-//        // Enter key corresponds to number 13
-//        if (e.which === 13) {
-//            alert('form submitted');
-//        }
-//    })
-    $("#add_tag_comment_row").click(function(){
-        rowCount += 1;
-        alert("hello");
-
-        $("#delete-row").attr("hidden",false);
-        var tag = $("#requirement_tag_field").val();
-        var comment = $("#tag_comment_field").val();
-        var markup = "<tr><td><input type='checkbox' name='record'></td><td><input" + tag + "</td><td>" + comment + "</td></tr>";
-        $("#tags_comments_table tbody").append(markup);
-    });
-
-
-
-    // Find and remove selected table rows
-    $("#delete-row").click(function(){
-
-        rowCount -= 1;
-
-        if (rowCount === 1)
-            $("#delete-row").attr("hidden",true);
-        $("table tbody").find('input[name="record"]').each(function(){
-            if($(this).is(":checked")){
-                $(this).parents("tr").remove();
+function bind_tag_field_events(){
+    $("#requirement_tag_field")
+        .on('tokenfield:createdtoken',
+            function(e){
+                let existingTokens = $(this).tokenfield('getTokens');
+                    $.each(existingTokens, function (index, tag_name) {
+                        if (tag_name.value === e.attrs.value)
+                            e.preventDefault();
+                    });
+                add_tag_table_row(e.attrs.value);
             }
-        });
-    });
+        )
+        .on('tokenfield:removedtoken',
+            function(e){
+                var tag_name = e.attrs.value;
+                $("#tag_table_" + tag_name).remove();
+            }
+        )
 }
 
 
@@ -593,7 +547,7 @@ function load_requirement(row_idx) {
 
     // Set available tags.
     $('#requirement_tag_field').data('bs.tokenfield').$input.autocomplete({source: available_tags});
-
+    //todo: clean the tag table. This should be done here (likely)
 
     // Get the requirement data and set the modal.
     $.get("api/req/get", {id: data['id'], row_idx: row_idx}, function (data) {
@@ -670,21 +624,14 @@ function load_requirement(row_idx) {
         });
 
     }).done(function () {
-        // Update visible Vars.
         update_vars();
-        // Handle autocompletion for variables.
         bind_var_autocomplete();
-        // Update available vars based on the selection of requirement and pattern.
-        // Prevent inserting a token twice on enter
-        prevent_double_token_insert();
         update_formalization();
-        bind_tag_editing();
         $('#requirement_modal').data({
             'unsaved_changes': false,
             'updated_formalization': false
         });
         requirement_modal_content.LoadingOverlay('hide', true);
-        print(tag);
     });
 }
 
@@ -1528,4 +1475,5 @@ $(document).ready(function () {
         autosize($(this));
         autosize.update($(this));
     });
+    bind_tag_field_events();
 });
