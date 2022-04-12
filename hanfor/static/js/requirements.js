@@ -374,35 +374,6 @@ function update_formalization() {
 }
 
 
-function add_formalization() {
-    // Request a new Formalization. And add its edit elements to the modal.
-    let requirement_modal_content = $('.modal-content');
-    requirement_modal_content.LoadingOverlay('show');
-
-    const req_id = $('#requirement_id').val();
-    $.post("api/req/new_formalization",
-        {
-            id: req_id
-        },
-        function (data) {
-            requirement_modal_content.LoadingOverlay('hide', true);
-            if (data['success'] === false) {
-                alert(data['errormsg']);
-            } else {
-                let formalization = $(data['html']);
-                formalization.find('.reqirement-variable').each(function () {
-                    add_var_autocomplete(this);
-                });
-                formalization.appendTo('#formalization_accordion');
-            }
-        }).done(function () {
-        update_vars();
-        update_formalization();
-        update_logs();
-    });
-}
-
-
 function add_formalization_from_guess(scope, pattern, mapping) {
     // Request a new Formalization. And add its edit elements to the modal.
     let requirement_modal_content = $('.modal-content');
@@ -566,6 +537,45 @@ function bind_tag_editing(){
   }
 
 
+function bind_tag_editing(){
+    $("#delete-row").attr("hidden",true);
+    var rowCount = $('#tags_comments_table tr').length;
+
+//    $('#tag_comment_form').keypress((e) => {
+//        // Enter key corresponds to number 13
+//        if (e.which === 13) {
+//            alert('form submitted');
+//        }
+//    })
+    $("#add_tag_comment_row").click(function(){
+        rowCount += 1;
+        alert("hello");
+
+        $("#delete-row").attr("hidden",false);
+        var tag = $("#requirement_tag_field").val();
+        var comment = $("#tag_comment_field").val();
+        var markup = "<tr><td><input type='checkbox' name='record'></td><td><input" + tag + "</td><td>" + comment + "</td></tr>";
+        $("#tags_comments_table tbody").append(markup);
+    });
+
+
+
+    // Find and remove selected table rows
+    $("#delete-row").click(function(){
+
+        rowCount -= 1;
+
+        if (rowCount === 1)
+            $("#delete-row").attr("hidden",true);
+        $("table tbody").find('input[name="record"]').each(function(){
+            if($(this).is(":checked")){
+                $(this).parents("tr").remove();
+            }
+        });
+    });
+}
+
+
 function load_requirement(row_idx) {
     if (row_idx === -1) {
         alert("Requirement not found.");
@@ -677,6 +687,7 @@ function load_requirement(row_idx) {
         print(tag);
     });
 }
+
 
 /**
  * Bind the Links to open a requirement modal.

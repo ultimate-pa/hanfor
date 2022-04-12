@@ -572,7 +572,7 @@ class Formalization(HanforVersioned):
         :rtype: dict
         """
         for key, expression_string in mapping.items():
-            if len(expression_string) is 0:
+            if len(expression_string) == 0:
                 continue
             expression = Expression()
             expression.set_expression(
@@ -1442,7 +1442,7 @@ class Variable(HanforVersioned):
         )
         # Parse and set the expressions.
         for key, expression_string in mapping.items():
-            if len(expression_string) is 0:
+            if len(expression_string) == 0:
                 continue
             expression = Expression()
             expression.set_expression(
