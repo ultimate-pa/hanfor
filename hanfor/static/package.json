@@ -20,6 +20,7 @@
     "bootstrap-confirmation2": "^4.2.1",
     "bootstrapjs": "^2.0.0",
     "chart.js": "^3.7.1",
+    "chartjs-plugin-annotation": "^1.4.0",
     "cytoscape": "^3.21.0",
     "datatables.net-bs4": "^1.11.5",
     "datatables.net-colreorderwithresize-npm": "^1.0.4",

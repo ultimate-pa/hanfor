@@ -9,7 +9,7 @@
 }
 
 .simulator-variables .input-group-prepend span {
-    width: 1.5rem;
+    width: 1.25rem;
     padding: 0;
 }
 
@@ -27,13 +27,18 @@
     margin-bottom: 0;
     padding-top: .25rem;
     padding-bottom: .25rem;
-    padding-left: 2.25rem; /* width input prepend + padding 0.75rem */
+    padding-left: 2.0rem; /* width input prepend + padding 0.75rem */
     line-height: 1.5;
     font-size: 12px;
     color: #777;
-    pointer-events: none;
-    cursor: text;
+
     z-index: 3;
+    cursor: text;
+    pointer-events: none;
+    user-select: none;
+    -moz-user-select: none; /* Mozilla-specific */
+    -webkit-user-select: none; /* WebKit-specific */
+    -ms-user-select: none; /* Microsoft-specific */
 }
 
 .simulator-variables label .lhs {

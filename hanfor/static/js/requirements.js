@@ -16,7 +16,7 @@ const autosize = require('autosize');
 
 // Globals
 const {SearchNode} = require('./datatables-advanced-search.js');
-const {init_simulator_tab} = require("./simulator.js");
+const {init_simulator_tab} = require('./simulator-tab.js');
 let Fuse = require('fuse.js');
 let {Textcomplete, Textarea} = require('textcomplete');
 let fuse = new Fuse([], {});
