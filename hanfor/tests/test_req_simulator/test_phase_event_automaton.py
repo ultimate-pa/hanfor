@@ -181,7 +181,7 @@ class TestPhaseEventAutomaton(TestCase):
         # ct0_st0
         p1 = Phase(Not(R), TRUE(), Sets(active=frozenset({0})))
         # ct0_st01X
-        p2 = Phase(R, LE(c1, T), Sets(gteq=frozenset({1}), wait=frozenset({1}), active=frozenset({0, 1})))
+        p2 = Phase(R, LT(c1, T), Sets(gteq=frozenset({1}), wait=frozenset({1}), active=frozenset({0, 1})))
 
         # ct0_st0
         expected.phases[None].add(Transition(None, p1, Not(R_)))

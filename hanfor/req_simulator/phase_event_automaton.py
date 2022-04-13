@@ -102,10 +102,24 @@ class Phase:
 
     @staticmethod
     def compute_clock_invariant(ct: Countertrace, p: Sets, cp: str) -> FNode:
-        result = And(LE(Symbol(cp + str(i), REAL), ct.dc_phases[i].bound) for i in p.active if
-                     i in p.wait or ct.dc_phases[i].is_upper_bound() and can_seep(p, i) == FALSE())
+        result = []
 
-        return result
+        for i in p.active:
+            lt_args = [Symbol(cp + str(i), REAL), ct.dc_phases[i].bound]
+
+            if (i in p.wait) and (i in p.gteq and i == len(ct.dc_phases) - 2):
+                result.append(LT(*lt_args))
+
+            if (i in p.wait) and not (i in p.gteq and i == len(ct.dc_phases) - 2):
+                result.append(LE(*lt_args))
+
+            if not (i in p.wait) and (ct.dc_phases[i].is_upper_bound() and can_seep(p, i) == FALSE()):
+                result.append(LE(*lt_args))
+
+        #result = And(LE(Symbol(cp + str(i), REAL), ct.dc_phases[i].bound) for i in p.active if
+        #             i in p.wait or ct.dc_phases[i].is_upper_bound() and can_seep(p, i) == FALSE())
+
+        return And(result)
 
 
 @dataclass()
