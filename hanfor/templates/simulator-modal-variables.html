@@ -19,12 +19,12 @@
 </table>
 -->
 
-<div id="simulator-variables-form-row" class="form-row">
+<div class="form-row">
     {% for variable in simulator.variables.keys() %}
         <div class="col-sm-2">
             <div class="simulator-variables input-group">
                 <div class="input-group-prepend">
-                    <span id="{{ variable }}_input_prepend" class="input-group-text"></span>
+                    <span id="{{ variable }}_variable_input_prepend" class="input-group-text" style="border: 0"></span>
                 </div>
 
                 <input id="{{ variable }}_variable_input" class="form-control" type="text">
@@ -34,17 +34,5 @@
                 </label>
             </div>
         </div>
-
-
-        <!--
-            <div class="form-label-group mb-2">
-                <input id="{{ variable }}_variable" class="form-control" type="text" title="{{ variable }}">
-                <label class="text-truncate" for="input2">
-                    <span class="d-inline-block text-truncate w-75">{{ variable }}</span>
-                    <span class="float-right"><em>({{ variable.symbol_type() }})</em></span>
-                </label>
-            </div>
-        </div>
-        -->
     {% endfor %}
 </div>

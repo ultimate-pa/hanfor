@@ -14,6 +14,7 @@ import boogie_parsing
 from req_simulator.boogie_pysmt_transformer import BoogiePysmtTransformer
 from req_simulator.countertrace import CountertraceTransformer
 from req_simulator.phase_event_automaton import PhaseEventAutomaton, build_automaton
+from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
 from req_simulator.utils import get_countertrace_parser
 from reqtransformer import Requirement, Formalization, VariableCollection
@@ -32,14 +33,26 @@ class SimulatorRessource(Ressource):
         if command == 'get_simulators':
             self.get_simulators()
 
+        if command == 'get_simulator':
+            self.get_simulator()
+
         if command == 'start_simulator':
             self.start_simulator()
+
+        if command == 'scenario_save':
+            self.scenario_save()
 
     def POST(self):
         command = self.request.form.get('command')
 
         if command == 'create_simulator':
             self.create_simulator()
+
+        if command == 'scenario_load':
+            self.scenario_load()
+
+        if command == 'scenario_exit':
+            self.scenario_exit()
 
         if command == 'step_check':
             self.step_check()
@@ -57,38 +70,59 @@ class SimulatorRessource(Ressource):
             self.delete_simulator()
 
     def get_simulators(self) -> None:
-        self.response.data = {'simulators': {k: v.name for k, v in self.simulator_cache.items()}}
+        self.response.data = {
+            'simulators': {k: v.name for k, v in self.simulator_cache.items()}
+        }
 
-    def start_simulator(self) -> None:
-        simulator_id = self.request.args.get('simulator_id')
+    def get_simulator(self) -> bool:
+        request = self.request.args if len(self.request.args) > 0 else self.request.form
+        simulator_id = request.get('simulator_id')
 
-        if len(simulator_id) <= 0:
+        if simulator_id == '':
             self.response.success = False
-            self.response.errormsg = 'No simulator selected.'
-            return
+            self.response.errormsg = 'No simulator id given.'
+            return False
 
         simulator = self.simulator_cache[simulator_id]
 
-        data = {
+        self.response.data = {
             'simulator_id': simulator_id,
             'simulator_name': simulator.name,
+            'scenario': simulator.get_scenario(),
             'cartesian_size': simulator.get_cartesian_size(),
-            'html': render_template('simulator-modal.html', simulator=simulator),
             'time_step': str(simulator.time_steps[-1]),
             'times': simulator.get_times(),
+            'transitions': simulator.get_transitions(),
             'variables': simulator.get_variables(),
             'active_dc_phases': simulator.get_active_dc_phases(),
             'models': simulator.get_models(),
             'types': simulator.get_types()
         }
-        self.response.data = data
+
+        return True
+
+    def start_simulator(self) -> None:
+        if not self.get_simulator():
+            return
+
+        simulator = self.simulator_cache[self.response.data['simulator_id']]
+        self.response.data['html'] = render_template('simulator-modal.html', simulator=simulator)
+
+    def scenario_save(self) -> None:
+        if not self.get_simulator():
+            return
+
+        simulator = self.simulator_cache[self.response.data['simulator_id']]
+        scenario = Scenario(simulator.times, {k: v for k, v in simulator.models.items()})
+        self.response.data['scenario_str'] = Scenario.to_json_string(scenario)
 
     def create_simulator(self) -> None:
         requirement_ids = json.loads(self.request.form.get('requirement_ids'))
+        simulator_name = self.request.form.get('simulator_name')
 
         if len(requirement_ids) <= 0:
             self.response.success = False
-            self.response.errormsg = 'No requirement selected.'
+            self.response.errormsg = 'No requirement ids given.'
             return
 
         peas = []
@@ -102,12 +136,35 @@ class SimulatorRessource(Ressource):
 
             peas.extend(peas_tmp)
 
-        simulator_name = self.request.form.get('simulator_name')
         simulator_id = uuid.uuid4().hex
-
         self.simulator_cache[simulator_id] = Simulator(peas, name=simulator_name)
-        data = {'simulator_id': simulator_id, 'simulator_name': simulator_name}
-        self.response.data = data
+
+        self.response.data = {
+            'simulator_id': simulator_id,
+            'simulator_name': simulator_name
+        }
+
+    def scenario_load(self) -> None:
+        simulator_id = self.request.form.get('simulator_id')
+        scenario_str = self.request.form.get('scenario_str')
+
+        if scenario_str == '':
+            self.response.success = False
+            self.response.errormsg = 'No scenario given.'
+            return
+
+        scenario = Scenario.from_json_string(scenario_str)
+        simulator = self.simulator_cache[simulator_id]
+        self.simulator_cache[simulator_id] = Simulator(simulator.peas, scenario, simulator.name)
+
+        self.get_simulator()
+
+    def scenario_exit(self) -> None:
+        self.get_simulator()
+
+        simulator = self.simulator_cache[self.response.data['simulator_id']]
+        simulator.scenario = None
+        self.response.data['scenario'] = None
 
     def step_check(self) -> None:
         simulator_id = self.request.form.get('simulator_id')
@@ -115,7 +172,6 @@ class SimulatorRessource(Ressource):
         variables = json.loads(self.request.form.get('variables'))
 
         simulator = self.simulator_cache[simulator_id]
-
         simulator.time_steps[-1] = float(time_step)
 
         var_str_mapping = {str(k): k for k in simulator.variables}
@@ -125,39 +181,27 @@ class SimulatorRessource(Ressource):
             REAL: lambda v: Real(float(v))
         }
 
-        variables = {var_str_mapping[k]: const_mapping[var_str_mapping[k].symbol_type()](v) if v is not None else v for k, v in
-                     variables.items()}
+        variables = {
+            var_str_mapping[k]: const_mapping[var_str_mapping[k].symbol_type()](v)
+            if v is not None else v for k, v in variables.items()}
 
         simulator.update_variables(variables)
         simulator.check_sat()
 
-        data = {
-            'time_step': str(simulator.time_steps[-1]),
-            'transitions': simulator.get_transitions()
-        }
-        self.response.data = data
+        self.get_simulator()
 
     def step_next(self) -> None:
         simulator_id = self.request.form.get('simulator_id')
-        transition_index = self.request.form.get('transition_index')
+        transition_id = self.request.form.get('transition_id')
 
-        if transition_index == '':
+        if transition_id == '':
             self.response.success = False
-            self.response.errormsg = 'No transition selected.'
+            self.response.errormsg = 'No transition id given.'
             return
 
         simulator = self.simulator_cache[simulator_id]
-        simulator.step_next(int(transition_index))
-
-        data = {
-            'cartesian_size': simulator.get_cartesian_size(),
-            'times': simulator.get_times(),
-            'time_step': str(simulator.time_steps[-1]),
-            'variables': simulator.get_variables(),
-            'active_dc_phases': simulator.get_active_dc_phases(),
-            'models': simulator.get_models()
-        }
-        self.response.data = data
+        simulator.step_next(int(transition_id))
+        self.get_simulator()
 
     def step_back(self) -> None:
         simulator_id = self.request.form.get('simulator_id')
@@ -167,30 +211,21 @@ class SimulatorRessource(Ressource):
             self.response.success = False
             self.response.errormsg = 'Step back not possible.'
 
-        data = {
-            'cartesian_size': simulator.get_cartesian_size(),
-            'times': simulator.get_times(),
-            'time_step': simulator.time_steps[-1],
-            'variables': simulator.get_variables(),
-            'active_dc_phases': simulator.get_active_dc_phases()
-        }
-        self.response.data = data
+        self.get_simulator()
 
     def delete_simulator(self) -> None:
         simulator_id = self.request.form.get('simulator_id')
 
-        if len(simulator_id) <= 0:
+        if simulator_id == '':
             self.response.success = False
-            self.response.errormsg = 'No simulator selected.'
+            self.response.errormsg = 'No simulator id given.'
             return
 
-        value = self.simulator_cache.pop(simulator_id, None)
-
-        if value is None:
+        if self.simulator_cache.pop(simulator_id, None) is None:
             self.response.success = False
             self.response.errormsg = 'Could not find simulator with given id.'
 
-        self.response.data = {'simulators': {k: v.name for k, v in self.simulator_cache.items()}}
+        self.get_simulators()
 
     @staticmethod
     def load_phase_event_automata(requirement_id: str, app: Flask):

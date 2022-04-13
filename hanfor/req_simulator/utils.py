@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+import jsbeautifier
 import yaml
 from lark import Lark
 from pysmt.fnode import FNode
@@ -29,6 +30,24 @@ def substitute_free_variables(fnode: FNode, suffix: str = "_") -> FNode:
     return result
 
 
+def parse_json_or_yaml_string(str: str) -> Any:
+    return yaml.safe_load(str)
+
+
+# TODO: Maybe uses this for save file functions too.
+def dump_json_string(data: Any, sort_keys: bool = False) -> str:
+    opts = jsbeautifier.default_options()
+    opts.indent_size = 2
+    return jsbeautifier.beautify(json.dumps(data, indent=None, sort_keys=sort_keys), opts)
+
+
+def load_json_or_yaml_file(path: str) -> Any:
+    with open(path, 'r') as file:
+        data = yaml.safe_load(file)
+
+    return data
+
+
 def save_yaml_file(data: Any, path: str, sort_keys: bool = False):
     with open(path, 'w') as file:
         yaml.dump(data, file, sort_keys=sort_keys)
@@ -37,14 +56,3 @@ def save_yaml_file(data: Any, path: str, sort_keys: bool = False):
 def save_json_file(data: Any, path: str, sort_keys: bool = False):
     with open(path, 'w') as file:
         json.dump(data, file, indent=2, sort_keys=sort_keys)
-
-
-def load_yaml_or_json_file(path: str) -> Any:
-    with open(path, 'r') as file:
-        data = yaml.safe_load(file)
-
-    return data
-
-
-def parse_yaml_or_json_string(yaml_str: str) -> Any:
-    return yaml.safe_load(yaml_str)

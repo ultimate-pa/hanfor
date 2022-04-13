@@ -11,14 +11,12 @@
                 </h5>
             </div>
 
-            <div id="collapse-{{ requirement.rid }}" class="collapse show"
-                 aria-labelledby="heading-{{ requirement.rid }}">
+            <div id="collapse-{{ requirement.rid }}" class="collapse show" aria-labelledby="heading-{{ requirement.rid }}">
                 <div class="card-body">
+                    <label>Formalizations / Countertraces</label>
                     {% for formalization, peas in formalizations.items() %}
-                        <label>Formalization</label>
                         <pre class="alert alert-secondary">{{ formalization.get_string() }}</pre>
 
-                        <label>Countertraces</label>
                         <ul class="list-group mb-3">
                             {% for countertrace_id, pea in peas.items() %}
                                 <li class="list-group-item">

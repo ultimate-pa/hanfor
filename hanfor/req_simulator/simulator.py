@@ -3,7 +3,6 @@ from __future__ import annotations
 import itertools
 import math
 from collections import defaultdict
-from copy import deepcopy
 from dataclasses import dataclass
 from typing import Tuple
 
@@ -18,7 +17,6 @@ from reqtransformer import Requirement, Formalization
 
 
 class Simulator:
-
     @dataclass
     class SatResult:
         transitions: Tuple[Transition]
@@ -33,18 +31,23 @@ class Simulator:
 
         self.peas: list[PhaseEventAutomaton] = peas
         self.current_phases: list[list[Phase | None]] = [[None] * len(self.peas)]  # history
-        self.clocks: list[dict[str, float]] = [{vv: 0.0 for v in self.peas for vv in v.clocks}] # history
-
+        self.clocks: list[dict[str, float]] = [{vv: 0.0 for v in self.peas for vv in v.clocks}]  # history
         self.sat_results: list[Simulator.SatResult] = []
-        #self.enabled_transitions: list[tuple[tuple[Transition], dict[FNode, FNode]]] = []
 
         self.variables: dict[FNode, list[FNode | None]] = \
             {v: [None] for p in self.peas for v in p.countertrace.extract_variables()}  # history
         self.models: dict[FNode, list[FNode | None]] = {k: [None] for k in self.variables}  # history
 
         if self.scenario is not None:
-            self.time_steps[-1] = self.scenario.valuations[0.0].get_duration()
-            self.update_variables()
+            self.scenario.remove_variables(self.scenario.difference(list(self.variables.keys())))
+
+            if len(self.scenario.variables) != len(self.variables):
+                diff = [k for k in self.variables if k not in self.scenario.variables]
+                raise ValueError('Missing variables in scenario: %s' % diff)
+
+            self.time_steps[-1] = self.scenario.times[len(self.times)] - self.scenario.times[len(self.times) - 1]
+            for k, v in self.variables.items():
+                v[-1] = self.scenario.variables[k][len(self.times)]
 
     def get_cartesian_size(self) -> str:
         return str(math.prod(len(self.peas[i].phases[v]) for i, v in enumerate(self.current_phases[-1])))
@@ -56,10 +59,17 @@ class Simulator:
         return {str(k): str(k.symbol_type()) for k in self.variables}
 
     def get_variables(self) -> dict[str, list[str]]:
-        return {str(k): [str(v) for v in vv] for k, vv in self.variables.items()}
+        return {str(k): [str(v_) for v_ in v] for k, v in self.variables.items()}
+
+    def get_scenario(self) -> dict[str, any] | None:
+        if self.scenario is None:
+            return None
+
+        return {'times': [str(v) for v in self.scenario.times],
+                'variables': {str(k): [str(v_) for v_ in v] for k, v in self.scenario.variables.items()}}
 
     def get_models(self) -> dict[str, list[str]]:
-        return {str(k): [str(v) for v in vv] for k, vv in self.models.items()}
+        return {str(k): [str(v_) for v_ in v] for k, v in self.models.items()}
 
     def get_active_dc_phases(self) -> dict[str, list[str]]:
         result = {'complete': [], 'waiting': [], 'exceeded': []}
@@ -74,7 +84,7 @@ class Simulator:
 
             for v in current_phase.sets.active:
                 is_complete = is_sat(And(complete(self.peas[i].countertrace, current_phase.sets, v, 'c_' + prefix),
-                                     clock_assertions), solver_name=SOLVER_NAME, logic=LOGIC)
+                                         clock_assertions), solver_name=SOLVER_NAME, logic=LOGIC)
 
                 if is_complete:
                     result['complete'].append(prefix + str(v))
@@ -87,17 +97,6 @@ class Simulator:
                 result['exceeded'].append(prefix + str(v))
 
         return result
-
-    '''
-    def get_transitions(self):
-        results = []
-
-        for transition in self.enabled_transitions:
-            model = ' ; '.join([f'{k} = {v}' for k, v in transition[1].items() if self.variables[k][-1] is None])
-            results.append(model if model != '' else 'True')
-
-        return results
-    '''
 
     def get_transitions(self):
         results = []
@@ -171,7 +170,6 @@ class Simulator:
 
         return time_step
 
-
     def check_sat(self):
         if not self.time_steps[-1] > 0.0:
             raise ValueError('Time step must be greater than zero.')
@@ -208,9 +206,8 @@ class Simulator:
 
         inputs = inputs_
 
-
         # Compute cartesian product with intermediate checks
-        #results = []
+        # results = []
         results: list[Simulator.SatResult] = []
 
         for e in inputs[0]:
@@ -219,7 +216,7 @@ class Simulator:
             results.append(Simulator.SatResult((e,), {primed_vars_mapping[k]: v for k, v in values.items()}))
 
         for input in inputs[1:]:
-            #results_ = []
+            # results_ = []
             results_: list[Simulator.SatResult] = []
 
             for result in results:
@@ -235,20 +232,13 @@ class Simulator:
 
                     if model is not None:
                         values = model.get_values(primed_vars.keys())
-                        result_ = Simulator.SatResult(result.transitions + (e,), {primed_vars_mapping[k]: v for k, v in values.items()})
+                        result_ = Simulator.SatResult(result.transitions + (e,),
+                                                      {primed_vars_mapping[k]: v for k, v in values.items()})
                         results_.append(result_)
 
             results = results_
 
         self.sat_results = results
-
-
-
-
-
-
-
-
 
     def check_sat_old(self) -> None:
         if not self.time_steps[-1] > 0.0:
@@ -281,7 +271,8 @@ class Simulator:
                 # In this case, the substitution of clocks can be omitted.
                 f = And(f, self.build_guard(transition, self.clocks[-1]),
                         self.build_clock_invariant(transition,
-                        self.update_clocks(self.clocks[-1], transition.resets, self.time_steps[-1])))
+                                                   self.update_clocks(self.clocks[-1], transition.resets,
+                                                                      self.time_steps[-1])))
 
             model = get_model(f, SOLVER_NAME, LOGIC)
 
@@ -292,6 +283,9 @@ class Simulator:
                 self.sat_results.append((transition_tuple, {v: model[k] for k, v in primed_variables.items()}))
 
     def step_next(self, enabled_transition_index: int) -> None:
+        if self.scenario is not None and self.times[-1] >= self.scenario.times[-1]:
+            raise ValueError('Scenario end reached.')
+
         sat_result = self.sat_results[enabled_transition_index]
 
         # Save state
@@ -321,9 +315,12 @@ class Simulator:
         self.times[-1] += self.time_steps[-1]
 
         # TODO: fix scenario
-        if self.scenario is not None and self.times[-1] in self.scenario.valuations:
-            self.update_variables(self.scenario.valuations[self.times[-1]].values)
-            self.time_steps[-1] = self.scenario.valuations[self.times[-1]].end - self.times[-1]
+        if self.scenario is None or self.times[-1] >= self.scenario.times[-1]:
+            return
+
+        self.time_steps[-1] = self.scenario.times[len(self.times)] - self.scenario.times[len(self.times) - 1]
+        for k, v in self.variables.items():
+            v[-1] = self.scenario.variables[k][len(self.times)]
 
     def step_back(self) -> bool:
         if len(self.times) < 2:
