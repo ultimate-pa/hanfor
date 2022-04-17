@@ -81,6 +81,7 @@ class Phase:
         if len(atoms) <= 0:
             return result
 
+        # TODO: Distinguish between lt and le? -> Infinite many chops.
         for atom in atoms:
             assert (atom.is_lt() or atom.is_le())
 
@@ -88,7 +89,8 @@ class Phase:
             bound = float(str(atom.args()[1]))
             is_lt_bound = atom.is_lt()
 
-            if result is None or (result[2] and bound < result[1]) or (not result[2] and bound <= result[1]):
+            #if result is None or (result[2] and bound < result[1]) or (not result[2] and bound <= result[1]):
+            if result is None or bound < result[1]:
                 result = (clock, bound, is_lt_bound)
 
         return result
