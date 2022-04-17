@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Tuple
 
 from pysmt.fnode import FNode
-from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, TRUE, get_model, is_sat
+from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, TRUE, get_model, is_sat, FALSE
 from pysmt.typing import REAL
 
 from req_simulator.phase_event_automaton import PhaseEventAutomaton, Phase, Transition, complete
@@ -21,6 +21,7 @@ class Simulator:
     class SatResult:
         transitions: Tuple[Transition]
         model: dict[FNode, FNode]
+        guard: FNode
 
     def __init__(self, peas: list[PhaseEventAutomaton], scenario: Scenario = None, name: str = 'unnamed') -> None:
         self.name: str = name
@@ -170,34 +171,44 @@ class Simulator:
 
         return time_step
 
-    def check_sat(self):
-        if not self.time_steps[-1] > 0.0:
-            raise ValueError('Time step must be greater than zero.')
+    def calculate_chop_point(self) -> float:
+        result = self.time_steps[-1]
 
-        primed_vars = {}
-        primed_vars_mapping = {}
-        for k, v in self.variables.items():
-            k_ = substitute_free_variables(k)
-            primed_vars[k_] = v[-1]
-            primed_vars_mapping[k_] = k
+        transitions_list = [v.phases[self.current_phases[-1][i]] for i, v in enumerate(self.peas)]
 
-        primed_vars_assert = self.build_variables_assertion(primed_vars)
-        clocks_assert = self.build_clocks_assertion(self.clocks[-1])
+        for transitions in transitions_list:
+            for transition in transitions:
+                min_bound = transition.dst.get_min_clock_bound()
 
+                if min_bound is None:
+                    continue
+
+                clock, bound, is_lt_bound = min_bound
+                result_ = bound if clock in transition.resets else bound - self.clocks[-1][clock]
+
+                if is_lt_bound:
+                    num_zeros = -math.floor(math.log10(result_)) - 1
+                    result_ = result_ - 0.1 if result_ >= 1 else round(result_ - pow(10, -num_zeros - 1), num_zeros + 1)
+
+                if result_ < result:
+                    result = result_
+
+        return result
+
+    def pre_check_sat(self, var_asserts, clock_asserts):
         inputs = [v.phases[self.current_phases[-1][i]] for i, v in enumerate(self.peas)]
 
-        # Check single elements
         inputs_ = []
         for input in inputs:
             input_ = []
 
             for e in input:
-
                 updated_clocks = self.update_clocks(self.clocks[-1], e.resets, self.time_steps[-1])
                 updated_clocks_assert = self.build_clocks_assertion(updated_clocks)
 
-                sat = is_sat(And(e.guard, primed_vars_assert, clocks_assert), solver_name=SOLVER_NAME, logic=LOGIC) and \
-                      is_sat(And(e.dst.clock_invariant, updated_clocks_assert), solver_name=SOLVER_NAME, logic=LOGIC)
+                sat = is_sat(And(e.dst.clock_invariant, updated_clocks_assert), solver_name=SOLVER_NAME,
+                             logic=LOGIC) and \
+                      is_sat(And(e.guard, var_asserts, clock_asserts), solver_name=SOLVER_NAME, logic=LOGIC)
 
                 if sat:
                     input_.append(e)
@@ -206,35 +217,71 @@ class Simulator:
 
         inputs = inputs_
 
+        return inputs
+
+    def check_sat(self):
+        if not self.time_steps[-1] > 0.0:
+            raise ValueError('Time step must be greater than zero.')
+
+        # primed_vars = {}
+        # primed_vars_mapping = {}
+        # for k, v in self.variables.items():
+        #    k_ = substitute_free_variables(k)
+        #    primed_vars[k_] = v[-1]
+        #    primed_vars_mapping[k_] = k
+
+        # var_asserts = self.build_variables_assertion(primed_vars)
+
+        self.time_steps[-1] = self.calculate_chop_point()
+
+        var_asserts = self.build_variables_assertion({k: v[-1] for k, v in self.variables.items()})
+        clock_asserts = self.build_clocks_assertion(self.clocks[-1])
+
+        inputs = self.pre_check_sat(var_asserts, clock_asserts)
+
         # Compute cartesian product with intermediate checks
-        # results = []
         results: list[Simulator.SatResult] = []
 
         for e in inputs[0]:
             model = get_model(e.guard, solver_name=SOLVER_NAME, logic=LOGIC)
-            values = model.get_values(primed_vars.keys())
-            results.append(Simulator.SatResult((e,), {primed_vars_mapping[k]: v for k, v in values.items()}))
+            values = model.get_values(self.variables.keys())
+            # values = model.get_values(primed_vars.keys())
 
-        for input in inputs[1:]:
-            # results_ = []
+            if e.src is not None:
+                results.append(Simulator.SatResult(
+                    (e,), values, And(var_asserts, clock_asserts, e.guard).simplify()
+                    # (e,), {primed_vars_mapping[k]: v for k, v in values.items()}, And(var_asserts, clock_asserts, e.guard).simplify()
+                ))
+            else:
+                results.append(Simulator.SatResult(
+                    (e,), values, And(var_asserts, e.guard).simplify()
+                    # (e,), {primed_vars_mapping[k]: v for k, v in values.items()}, And(var_asserts, e.guard).simplify()
+                ))
+
+        for i, input in enumerate(inputs[1:]):
             results_: list[Simulator.SatResult] = []
 
             for result in results:
-                guards_pre = And(primed_vars_assert, clocks_assert)
-
-                for r in result.transitions:
-                    guards_pre = And(guards_pre, r.guard)
-
                 for e in input:
-                    guards = And(guards_pre, e.guard)
+                    guard = And(result.guard, e.guard).simplify()
 
-                    model = get_model(guards, solver_name=SOLVER_NAME, logic=LOGIC)
+                    if guard == FALSE():
+                        continue
 
-                    if model is not None:
-                        values = model.get_values(primed_vars.keys())
-                        result_ = Simulator.SatResult(result.transitions + (e,),
-                                                      {primed_vars_mapping[k]: v for k, v in values.items()})
-                        results_.append(result_)
+                    if i < len(inputs[1:]) - 1:
+                        sat = is_sat(guard, solver_name=SOLVER_NAME, logic=LOGIC)
+
+                        if sat:
+                            results_.append(Simulator.SatResult(result.transitions + (e,), None, guard))
+
+                    else:
+                        model = get_model(guard, solver_name=SOLVER_NAME, logic=LOGIC)
+
+                        if model is not None:
+                            values = model.get_values(self.variables.keys())
+                            # values = model.get_values(primed_vars.keys())
+                            # values = {primed_vars_mapping[k]: v for k, v in values.items()}
+                            results_.append(Simulator.SatResult(result.transitions + (e,), values, guard))
 
             results = results_
 

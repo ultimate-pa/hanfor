@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from collections import defaultdict
 from dataclasses import dataclass
 
@@ -72,16 +73,27 @@ class Phase:
         if self.clock_invariant not in formula_manager:
             self.clock_invariant = formula_manager.normalize(self.clock_invariant)
 
-    def get_clock_bounds(self) -> dict[str, float]:
-        clock_bounds = {}
+    def get_min_clock_bound(self) -> tuple[str, float, bool] | None:
+        result = None
+
         atoms = self.clock_invariant.get_atoms()
 
+        if len(atoms) <= 0:
+            return result
+
         for atom in atoms:
-            assert (atom.is_le())
-            clock_bounds[str(atom.args()[0])] = float(str(atom.args()[1]))
+            assert (atom.is_lt() or atom.is_le())
 
-        return clock_bounds
+            clock = str(atom.args()[0])
+            bound = float(str(atom.args()[1]))
+            is_lt_bound = atom.is_lt
 
+            if result is None or bound < result[1]:
+                result = (clock, bound, is_lt_bound)
+
+        return result
+
+    '''
     def get_min_clock_bound(self) -> tuple[str, float]:
         clock_bounds = self.get_clock_bounds()
 
@@ -90,6 +102,7 @@ class Phase:
 
         k = min(clock_bounds, key=clock_bounds.get)
         return (k, clock_bounds[k])
+    '''
 
     @staticmethod
     def compute_state_invariant(ct: Countertrace, p: Sets) -> FNode:
@@ -104,6 +117,7 @@ class Phase:
     def compute_clock_invariant(ct: Countertrace, p: Sets, cp: str) -> FNode:
         result = []
 
+        #TODO: check this
         for i in p.active:
             lt_args = [Symbol(cp + str(i), REAL), ct.dc_phases[i].bound]
 
@@ -336,8 +350,7 @@ def compute_enter_keep(ct: Countertrace, p: Sets, init: bool, cp: str) -> tuple[
     if init:
         for i in range(-1, len(ct.dc_phases)):
             inv = substitute_free_variables(ct.dc_phases[i].invariant)
-            enter_[i] = TRUE() if i < 0 else And(enter_[i - 1], TRUE() if ct.dc_phases[i - 1].allow_empty else FALSE(),
-                                                 inv)
+            enter_[i] = TRUE() if i < 0 else And(enter_[i - 1], TRUE() if ct.dc_phases[i - 1].allow_empty else FALSE(), inv)
             # enter_[i] = TRUE() if i < 0 else And(
             #   enter_[i - 1],
             #   TRUE() if ct.dc_phases[i - 1].allow_empty else FALSE(),

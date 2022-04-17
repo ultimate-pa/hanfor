@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import fnmatch
 import json
+import multiprocessing
 import os
+import time
 import uuid
 from distutils.util import strtobool
 
@@ -126,8 +128,10 @@ class SimulatorRessource(Ressource):
             return
 
         peas = []
+        var_collection = VariableCollection.load(self.app.config['SESSION_VARIABLE_COLLECTION'])
+
         for requirement_id in requirement_ids:
-            peas_tmp = SimulatorRessource.create_phase_event_automata(requirement_id, self.app)
+            peas_tmp = SimulatorRessource.create_phase_event_automata(requirement_id, var_collection, self.app)
 
             if peas_tmp is None:
                 self.response.success = False
@@ -258,11 +262,10 @@ class SimulatorRessource(Ressource):
         return False
 
     @staticmethod
-    def create_phase_event_automata(requirement_id: str, app: Flask) -> list[PhaseEventAutomaton] | None:
+    def create_phase_event_automata(requirement_id: str, var_collection, app: Flask) -> list[PhaseEventAutomaton] | None:
         result = []
 
         requirement = Requirement.load_requirement_by_id(requirement_id, app)
-        var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
 
         variables = {k: v.type for k, v in var_collection.collection.items()}
         boogie_parser = boogie_parsing.get_parser_instance()
@@ -281,8 +284,14 @@ class SimulatorRessource(Ressource):
                 expressions[k] = BoogiePysmtTransformer(var_collection.collection).transform(tree)
 
             for i, ct_str in enumerate(app.config['PATTERNS'][pattern]['countertraces'][scope]):
+                #start = time.time()
                 ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
+                #print('parse duration:', requirement_id, (time.time() - start) * 1000)
+                #start = time.time()
+
                 pea = build_automaton(ct, f'c_{requirement.rid}_{formalization.id}_{i}_')
+                #print('build duration:', requirement_id, (time.time() - start) * 1000)
+
                 pea.requirement = requirement
                 pea.formalization = formalization
                 pea.countertrace_id = i
