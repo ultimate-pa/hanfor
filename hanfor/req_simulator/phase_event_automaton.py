@@ -86,23 +86,13 @@ class Phase:
 
             clock = str(atom.args()[0])
             bound = float(str(atom.args()[1]))
-            is_lt_bound = atom.is_lt
+            is_lt_bound = atom.is_lt()
 
-            if result is None or bound < result[1]:
+            if result is None or (result[2] and bound < result[1]) or (not result[2] and bound <= result[1]):
                 result = (clock, bound, is_lt_bound)
 
         return result
 
-    '''
-    def get_min_clock_bound(self) -> tuple[str, float]:
-        clock_bounds = self.get_clock_bounds()
-
-        if len(clock_bounds) == 0:
-            return None
-
-        k = min(clock_bounds, key=clock_bounds.get)
-        return (k, clock_bounds[k])
-    '''
 
     @staticmethod
     def compute_state_invariant(ct: Countertrace, p: Sets) -> FNode:
