@@ -186,9 +186,9 @@ class Simulator:
                 clock, bound, is_lt_bound = min_bound
                 result_ = bound if clock in transition.resets else bound - self.clocks[-1][clock]
 
-                if is_lt_bound:
-                    num_zeros = -math.floor(math.log10(result_)) - 1
-                    result_ = result_ - 0.1 if result_ >= 1 else round(result_ - pow(10, -num_zeros - 1), num_zeros + 1)
+                #if is_lt_bound:
+                #    num_zeros = -math.floor(math.log10(result_)) - 1
+                #    result_ = result_ - 0.1 if result_ >= 1 else round(result_ - pow(10, -num_zeros - 1), num_zeros + 1)
 
                 if result_ < result:
                     result = result_
