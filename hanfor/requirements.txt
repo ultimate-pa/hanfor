@@ -11,3 +11,4 @@ PySMT>=0.9.1.dev139
 inquirerpy==0.3.3
 PyYAML==6.0
 uuid==1.30
+jsbeautifier==1.11.0
