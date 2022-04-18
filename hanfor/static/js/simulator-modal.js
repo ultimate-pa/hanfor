@@ -92,6 +92,8 @@ function init_simulator_modal(data) {
     })
 
     step_check_btn.click(function () {
+        step_transition_select.empty()
+
         $.ajax({
             type: 'POST', url: 'simulator', async: false, data: { // TODO: Allow async.
                 command: 'step_check',

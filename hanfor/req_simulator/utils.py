@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from typing import Any
 
 import jsbeautifier
@@ -31,6 +32,9 @@ def substitute_free_variables(fnode: FNode, suffix: str = "_", do_nothing: bool 
     subs = {s: Symbol(s.symbol_name() + suffix, s.symbol_type()) for s in symbols}
     result = substitute(fnode, subs)
     return result
+
+def num_zeros(x: float) -> int:
+    return 0 if x >= 1 else -math.floor(math.log10(x)) - 1
 
 
 def parse_json_or_yaml_string(str: str) -> Any:

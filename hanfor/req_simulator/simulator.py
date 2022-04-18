@@ -7,12 +7,13 @@ from dataclasses import dataclass
 from typing import Tuple
 
 from pysmt.fnode import FNode
-from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, TRUE, get_model, is_sat, FALSE
+from pysmt.rewritings import conjunctive_partition
+from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, TRUE, get_model, is_sat, FALSE, get_unsat_core
 from pysmt.typing import REAL
 
 from req_simulator.phase_event_automaton import PhaseEventAutomaton, Phase, Transition, complete
 from req_simulator.scenario import Scenario
-from req_simulator.utils import substitute_free_variables, SOLVER_NAME, LOGIC
+from req_simulator.utils import substitute_free_variables, SOLVER_NAME, LOGIC, num_zeros
 from reqtransformer import Requirement, Formalization
 
 
@@ -34,6 +35,7 @@ class Simulator:
         self.current_phases: list[list[Phase | None]] = [[None] * len(self.peas)]  # history
         self.clocks: list[dict[str, float]] = [{vv: 0.0 for v in self.peas for vv in v.clocks}]  # history
         self.sat_results: list[Simulator.SatResult] = []
+        self.sat_error: str | None = None
 
         self.variables: dict[FNode, list[FNode | None]] = \
             {v: [None] for p in self.peas for v in p.countertrace.extract_variables()}  # history
@@ -49,6 +51,9 @@ class Simulator:
             self.time_steps[-1] = self.scenario.times[len(self.times)] - self.scenario.times[len(self.times) - 1]
             for k, v in self.variables.items():
                 v[-1] = self.scenario.variables[k][len(self.times)]
+
+    def all_vars_are_None(self) -> bool:
+        return len(self.variables) == len([k for k, v in self.variables.items() if v[-1] is None])
 
     def get_cartesian_size(self) -> str:
         return str(math.prod(len(self.peas[i].phases[v]) for i, v in enumerate(self.current_phases[-1])))
@@ -171,57 +176,70 @@ class Simulator:
 
         return time_step
 
-    def calculate_chop_point(self) -> float:
+    def calculate_chop_point(self, transition) -> float:
         result = self.time_steps[-1]
 
-        transitions_list = [v.phases[self.current_phases[-1][i]] for i, v in enumerate(self.peas)]
+        #transitions_list = [v.phases[self.current_phases[-1][i]] for i, v in enumerate(self.peas)]
 
-        for transitions in transitions_list:
-            for transition in transitions:
-                min_bound = transition.dst.get_min_clock_bound()
+        #for transitions in transitions_list:
+            #for transition in transitions:
+        min_bound = transition.dst.get_min_clock_bound()
 
-                if min_bound is None:
-                    continue
+        if min_bound is None:
+            return result
 
-                clock, bound, is_lt_bound = min_bound
-                result_ = bound if clock in transition.resets else bound - self.clocks[-1][clock]
+        clock, bound, is_lt_bound = min_bound
+        diff = bound - self.clocks[-1][clock]
+        result_ = bound if clock in transition.resets else round(diff, num_zeros(diff) + 1)
 
-                #if is_lt_bound:
-                #    num_zeros = -math.floor(math.log10(result_)) - 1
-                #    result_ = result_ - 0.1 if result_ >= 1 else round(result_ - pow(10, -num_zeros - 1), num_zeros + 1)
+        #if is_lt_bound:
+        #    num_zeros = -math.floor(math.log10(result_)) - 1
+        #    result_ = result_ - 0.1 if result_ >= 1 else round(result_ - pow(10, -num_zeros - 1), num_zeros + 1)
 
-                if result_ < result:
-                    result = result_
+        #if result_ < result:
+        #    result = result_
 
-        return result
+        return min(result_, result)
 
     def pre_check_sat(self, var_asserts, clock_asserts):
-        inputs = [v.phases[self.current_phases[-1][i]] for i, v in enumerate(self.peas)]
+        phases = [v.phases[self.current_phases[-1][i]] for i, v in enumerate(self.peas)]
+        result = []
 
-        inputs_ = []
-        for input in inputs:
-            input_ = []
+        for i, transitions in enumerate(phases):
+            transitions_ = []
 
-            for e in input:
+            for e in transitions:
+                #sat = is_sat(And(e.dst.clock_invariant, updated_clocks_assert), solver_name=SOLVER_NAME, logic=LOGIC) and \
+                #      is_sat(And(e.guard, var_asserts, clock_asserts), solver_name=SOLVER_NAME, logic=LOGIC)
+
+                if not is_sat(And(e.guard, var_asserts, clock_asserts), solver_name=SOLVER_NAME, logic=LOGIC):
+                    continue
+
+                self.time_steps[-1] = self.calculate_chop_point(e)
                 updated_clocks = self.update_clocks(self.clocks[-1], e.resets, self.time_steps[-1])
                 updated_clocks_assert = self.build_clocks_assertion(updated_clocks)
 
-                sat = is_sat(And(e.dst.clock_invariant, updated_clocks_assert), solver_name=SOLVER_NAME,
-                             logic=LOGIC) and \
-                      is_sat(And(e.guard, var_asserts, clock_asserts), solver_name=SOLVER_NAME, logic=LOGIC)
+                if not is_sat(And(e.dst.clock_invariant, updated_clocks_assert), solver_name=SOLVER_NAME, logic=LOGIC):
+                    continue
 
-                if sat:
-                    input_.append(e)
+                transitions_.append(e)
 
-            inputs_.append(input_)
+            # TODO: input_ could be []
+            result.append(transitions_)
 
-        inputs = inputs_
+            if len(transitions_) <= 0:
+                pea = self.peas[i]
+                self.sat_error = f'Requirement violated: {pea.requirement.rid}, Formalization: {pea.formalization.id}, Countertrace: {pea.countertrace_id}'
+                self.sat_error += '\nReason: ' + ('requirement inconsistent' if len(transitions) <= 0 else 'user input')
 
-        return inputs
+        return result
 
-    def check_sat(self):
+    def check_sat(self) -> bool:
         if not self.time_steps[-1] > 0.0:
             raise ValueError('Time step must be greater than zero.')
+
+        self.sat_results = []
+        self.sat_error = None
 
         # primed_vars = {}
         # primed_vars_mapping = {}
@@ -232,12 +250,15 @@ class Simulator:
 
         # var_asserts = self.build_variables_assertion(primed_vars)
 
-        self.time_steps[-1] = self.calculate_chop_point()
+        #self.time_steps[-1] = self.calculate_chop_point()
 
         var_asserts = self.build_variables_assertion({k: v[-1] for k, v in self.variables.items()})
         clock_asserts = self.build_clocks_assertion(self.clocks[-1])
 
         inputs = self.pre_check_sat(var_asserts, clock_asserts)
+
+        if self.sat_error is not None:
+            return False
 
         # Compute cartesian product with intermediate checks
         results: list[Simulator.SatResult] = []
@@ -245,7 +266,7 @@ class Simulator:
         for e in inputs[0]:
             model = get_model(e.guard, solver_name=SOLVER_NAME, logic=LOGIC)
             values = model.get_values(self.variables.keys())
-            # values = model.get_values(primed_vars.keys())
+            values.update({k: v[-1] for k, v in self.variables.items() if v[-1] is not None})
 
             if e.src is not None:
                 results.append(Simulator.SatResult(
@@ -260,10 +281,13 @@ class Simulator:
 
         for i, input in enumerate(inputs[1:]):
             results_: list[Simulator.SatResult] = []
+            last_guard = None
 
             for result in results:
+
                 for e in input:
                     guard = And(result.guard, e.guard).simplify()
+                    last_guard = guard
 
                     if guard == FALSE():
                         continue
@@ -279,13 +303,23 @@ class Simulator:
 
                         if model is not None:
                             values = model.get_values(self.variables.keys())
+                            values.update({k: v[-1] for k, v in self.variables.items() if v[-1] is not None})
                             # values = model.get_values(primed_vars.keys())
                             # values = {primed_vars_mapping[k]: v for k, v in values.items()}
                             results_.append(Simulator.SatResult(result.transitions + (e,), values, guard))
 
             results = results_
 
+            if len(results) <= 0:
+                pea = self.peas[i]
+                self.sat_error = f'Requirement violated: {pea.requirement.rid}, Formalization: {pea.formalization.id}, Countertrace: {pea.countertrace_id}'
+                self.sat_error += f'\nReason: {get_unsat_core(conjunctive_partition(last_guard))}'
+                #self.sat_error += ', Reason: ' + ('inconsistency' if len(transitions) <= 0 else 'user input')
+                return False
+
         self.sat_results = results
+
+        return True
 
     def check_sat_old(self) -> None:
         if not self.time_steps[-1] > 0.0:
