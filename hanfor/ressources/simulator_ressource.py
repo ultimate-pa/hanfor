@@ -190,9 +190,14 @@ class SimulatorRessource(Ressource):
             if v is not None else v for k, v in variables.items()}
 
         simulator.update_variables(variables)
-        simulator.check_sat()
+
+        if not simulator.check_sat():
+            self.response.success = False
+            self.response.errormsg = simulator.sat_error
+            return
 
         self.get_simulator()
+
 
     def step_next(self) -> None:
         simulator_id = self.request.form.get('simulator_id')
@@ -278,19 +283,17 @@ class SimulatorRessource(Ressource):
             scope = formalization.scoped_pattern.scope.name
             pattern = formalization.scoped_pattern.pattern.name
 
+            if len(app.config['PATTERNS'][pattern]['countertraces'][scope]) <= 0:
+                raise ValueError(f'No countertrace given: {scope}, {pattern}')
+
             expressions = {}
             for k, v in formalization.expressions_mapping.items():
                 tree = boogie_parser.parse(v.raw_expression)
                 expressions[k] = BoogiePysmtTransformer(var_collection.collection).transform(tree)
 
             for i, ct_str in enumerate(app.config['PATTERNS'][pattern]['countertraces'][scope]):
-                #start = time.time()
                 ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
-                #print('parse duration:', requirement_id, (time.time() - start) * 1000)
-                #start = time.time()
-
                 pea = build_automaton(ct, f'c_{requirement.rid}_{formalization.id}_{i}_')
-                #print('build duration:', requirement_id, (time.time() - start) * 1000)
 
                 pea.requirement = requirement
                 pea.formalization = formalization
