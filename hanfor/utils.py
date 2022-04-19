@@ -22,10 +22,11 @@ from openpyxl.styles import PatternFill, Alignment, Font
 
 from flask import json, Response
 from flask_assets import Environment
+from patterns import PATTERNS
 
 # Here is the first time we use config. Check existence and raise a meaningful exception if not found.
 try:
-    from config import PATTERNS, PATTERNS_GROUP_ORDER
+    from config import PATTERNS_GROUP_ORDER
 except ModuleNotFoundError:
     msg = 'Missing a config file. See README.md -> #Setup on how to create one.'
     logging.error(msg)
@@ -50,7 +51,6 @@ default_scope_options = '''
 
 def config_check(app_config):
     to_ensure_configs = [
-        'PATTERNS',
         'PATTERNS_GROUP_ORDER'
     ]
     for to_ensure_config in to_ensure_configs:
@@ -58,8 +58,10 @@ def config_check(app_config):
             raise SyntaxError('Could not find {} in config.'.format(to_ensure_config))
 
     # Check pattern groups set correctly.
-    pattern_groups_used = set((pattern['group'] for pattern in app_config['PATTERNS'].values()))
+    pattern_groups_used = set((pattern['group'] for pattern in PATTERNS.values()))
     pattern_groups_set = set((group for group in app_config['PATTERNS_GROUP_ORDER']))
+    # Pattern group for downwards compatiblitiy: Legacy patterns are not shown in dropdown (but still deserialisable)
+    pattern_groups_set.add("Legacy")
 
     if not pattern_groups_used == pattern_groups_set:
         if len(pattern_groups_used - pattern_groups_set) > 0:

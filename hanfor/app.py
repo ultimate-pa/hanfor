@@ -24,6 +24,7 @@ from guesser.Guess import Guess
 from reqtransformer import Requirement, VariableCollection, Variable, VarImportSessions
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from ressources import Report, Tag, Statistics, QueryAPI
+from patterns import PATTERNS
 
 # Create the app
 app = Flask(__name__)
@@ -795,10 +796,11 @@ def site(site):
                 '{}.html'.format(site),
                 available_sessions=available_sessions,
                 running_import_sessions=running_import_sessions,
-                query=request.args
+                query=request.args,
+                patterns=PATTERNS
             )
         else:
-            return render_template('{}.html'.format(site), query=request.args)
+            return render_template('{}.html'.format(site), query=request.args, patterns=PATTERNS)
     else:
         return render_template('404.html', query=request.args), 404
 
@@ -815,7 +817,8 @@ def index():
         {'name': 'Formalization', 'target': 7}
     ]
     additional_cols = utils.get_datatable_additional_cols(app)['col_defs']
-    return render_template('index.html', query=request.args, additional_cols=additional_cols, default_cols=default_cols)
+    return render_template('index.html', query=request.args, additional_cols=additional_cols, default_cols=default_cols,
+                           patterns=PATTERNS)
 
 
 @app.errorhandler(500)

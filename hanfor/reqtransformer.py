@@ -20,7 +20,7 @@ from distutils.version import StrictVersion
 from enum import Enum
 from flask import current_app
 
-from config import PATTERNS
+from patterns import PATTERNS
 from static_utils import choice, get_filenames_from_dir, replace_prefix
 from threading import Thread
 from typing import Dict
