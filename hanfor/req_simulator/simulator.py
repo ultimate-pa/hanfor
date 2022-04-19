@@ -24,7 +24,7 @@ class Simulator:
         model: dict[FNode, FNode]
         guard: FNode
 
-    def __init__(self, peas: list[PhaseEventAutomaton], scenario: Scenario = None, name: str = 'unnamed') -> None:
+    def __init__(self, peas: list[PhaseEventAutomaton], scenario: Scenario = None, name: str = 'unnamed', test: bool = False) -> None:
         self.name: str = name
         self.scenario: Scenario = scenario
 
@@ -42,11 +42,12 @@ class Simulator:
         self.models: dict[FNode, list[FNode | None]] = {k: [None] for k in self.variables}  # history
 
         if self.scenario is not None:
-            self.scenario.remove_variables(self.scenario.difference(list(self.variables.keys())))
+            if not test:
+                self.scenario.remove_variables(self.scenario.difference(list(self.variables.keys())))
 
-            if len(self.scenario.variables) != len(self.variables):
-                diff = [k for k in self.variables if k not in self.scenario.variables]
-                raise ValueError('Missing variables in scenario: %s' % diff)
+                if len(self.scenario.variables) != len(self.variables):
+                    diff = [k for k in self.variables if k not in self.scenario.variables]
+                    raise ValueError('Missing variables in scenario: %s' % diff)
 
             self.time_steps[-1] = self.scenario.times[len(self.times)] - self.scenario.times[len(self.times) - 1]
             for k, v in self.variables.items():
@@ -207,12 +208,14 @@ class Simulator:
 
         for i, transitions in enumerate(phases):
             transitions_ = []
+            last_fail = None
 
             for e in transitions:
                 #sat = is_sat(And(e.dst.clock_invariant, updated_clocks_assert), solver_name=SOLVER_NAME, logic=LOGIC) and \
                 #      is_sat(And(e.guard, var_asserts, clock_asserts), solver_name=SOLVER_NAME, logic=LOGIC)
 
                 if not is_sat(And(e.guard, var_asserts, clock_asserts), solver_name=SOLVER_NAME, logic=LOGIC):
+                    last_fail = And(e.guard, var_asserts, clock_asserts)
                     continue
 
                 self.time_steps[-1] = self.calculate_chop_point(e)
@@ -229,8 +232,9 @@ class Simulator:
 
             if len(transitions_) <= 0:
                 pea = self.peas[i]
-                self.sat_error = f'Requirement violated: {pea.requirement.rid}, Formalization: {pea.formalization.id}, Countertrace: {pea.countertrace_id}'
-                self.sat_error += '\nReason: ' + ('requirement inconsistent' if len(transitions) <= 0 else 'user input')
+                self.sat_error = 'Requirement violated: %s Formalization: %s, Countertrace: %s\nReason: %s' % (
+                    pea.requirement.rid, pea.formalization.id, pea.countertrace_id,
+                    'inconsistency' if len(transitions) <= 0 else get_unsat_core(conjunctive_partition(last_fail)))
 
         return result
 
@@ -281,15 +285,15 @@ class Simulator:
 
         for i, input in enumerate(inputs[1:]):
             results_: list[Simulator.SatResult] = []
-            last_guard = None
+            last_fail = None
 
             for result in results:
 
                 for e in input:
                     guard = And(result.guard, e.guard).simplify()
-                    last_guard = guard
 
                     if guard == FALSE():
+                        last_fail = guard
                         continue
 
                     if i < len(inputs[1:]) - 1:
@@ -312,9 +316,9 @@ class Simulator:
 
             if len(results) <= 0:
                 pea = self.peas[i]
-                self.sat_error = f'Requirement violated: {pea.requirement.rid}, Formalization: {pea.formalization.id}, Countertrace: {pea.countertrace_id}'
-                self.sat_error += f'\nReason: {get_unsat_core(conjunctive_partition(last_guard))}'
-                #self.sat_error += ', Reason: ' + ('inconsistency' if len(transitions) <= 0 else 'user input')
+                self.sat_error = 'Requirement violated: %s Formalization: %s, Countertrace: %s\nReason: %s' % (
+                    pea.requirement.rid, pea.formalization.id, pea.countertrace_id,
+                    get_unsat_core(conjunctive_partition(last_fail)))
                 return False
 
         self.sat_results = results
