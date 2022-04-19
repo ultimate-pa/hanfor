@@ -233,35 +233,32 @@ def build_successors(i: int, p: Sets, p_: Sets, resets: set[str], guard: FNode, 
     result = []
     guard = guard.simplify()
 
-    # Abort if guard is not satisfiable.
+    # Terminate if guard is unsatisfiable.
     if guard != TRUE() and (guard == FALSE() or not is_sat(guard, solver_name=SOLVER_NAME, logic=LOGIC)):
         return []
 
     # Check if successor and guard are complete.
     if i >= len(ct.dc_phases):
-        # Add successor if last phase not included.
+        # Add successor if last phase is not included.
         if i - 1 not in p_.active:
             return [(p_, guard, resets)]
 
         return []
 
-    # TODO: Check if primed invariant is neccessary.
-    inv = substitute_free_variables(ct.dc_phases[i].invariant)
+    # TODO: Primed vars are not needed.
+    #inv = substitute_free_variables(ct.dc_phases[i].invariant)
+    seep = And(can_seep(p_, i), ct.dc_phases[i].invariant)
 
-    # Seep depends on partial successor location.
-    seep = And(can_seep(p_, i), inv)
-    # seep = And(can_seep(p_, i), ct.dc_phases[i].invariant)
-
-    # Case 1: i not in successor.active.
+    # Case 1: i not in p_.active
     result.extend(build_successors(i + 1, p, p_, resets,
                                    And(guard, Not(Or(enter[i], keep[i], seep))),
                                    ct, enter, keep, cp))
 
-    # Case 2: i in p_.active.
+    # Case 2: i in p_.active
     guard = And(guard, Or(enter[i], keep[i], seep))
 
     if ct.dc_phases[i].is_lower_bound():
-        # Case 2a: clocks[i] in resets.
+        # Case 2a: clock i in resets
         if ct.dc_phases[i].bound_type == Countertrace.BoundTypes.GREATEREQUAL:
             result.extend(build_successors(i + 1, p, p_.add_gteq(i), resets.union({cp + str(i)}),
                                            And(guard, Not(keep[i]), enter[i]),
@@ -278,7 +275,7 @@ def build_successors(i: int, p: Sets, p_: Sets, resets: set[str], guard: FNode, 
             #                               And(guard, Not(keep[i])),
             #                               ct, enter, keep))
 
-        # Case 2b: clocks[i] not in resets.
+        # Case 2b: clock i not in resets
         if i in p.wait:
             result.extend(build_successors(i + 1, p, p_.add_gteq(i) if i in p.gteq else p_.add_wait(i), resets,
                                            And(guard, keep[i], LT(Symbol(cp + str(i), REAL), ct.dc_phases[i].bound)),
@@ -293,7 +290,7 @@ def build_successors(i: int, p: Sets, p_: Sets, resets: set[str], guard: FNode, 
                                            ct, enter, keep, cp))
 
     elif ct.dc_phases[i].is_upper_bound() and can_seep(p_, i) == FALSE():
-        # Case 2c: clocks[i] in resets.
+        # Case 2c: clock i in resets
         if ct.dc_phases[i].bound_type == Countertrace.BoundTypes.LESS:
             result.extend(build_successors(i + 1, p, p_.add_less(i), resets.union({cp + str(i)}),
                                            And(guard, enter[i] or can_seep(p, i)),
@@ -308,19 +305,20 @@ def build_successors(i: int, p: Sets, p_: Sets, resets: set[str], guard: FNode, 
                                            ct, enter, keep, cp))
             '''
         else:
-            result.extend(build_successors(i + 1, p, p_.add_active(i), resets.union({cp + str(i)}),
-                                           And(guard, enter[i]),
-                                           ct, enter, keep, cp))
-
-            result.extend(build_successors(i + 1, p, p_.add_less(i), resets.union({cp + str(i)}),
-                                           And(guard, enter[i], can_seep(p, i)),
-                                           ct, enter, keep, cp))
-
             result.extend(build_successors(i + 1, p, p_.add_less(i), resets.union({cp + str(i)}),
                                            And(guard, Not(enter[i]), can_seep(p, i)),
                                            ct, enter, keep, cp))
 
-        # Case 2e: clocks[i] not in resets.
+            result.extend(build_successors(i + 1, p, p_.add_active(i), resets.union({cp + str(i)}),
+                                           And(guard, enter[i]),
+                                           ct, enter, keep, cp))
+
+            #result.extend(build_successors(i + 1, p, p_.add_less(i), resets.union({cp + str(i)}), # wrong
+            #                               And(guard, enter[i], can_seep(p, i)),
+            #                               ct, enter, keep, cp))
+
+
+        # Case 2e: clock i not in resets
         if i in p.less:
             result.extend(build_successors(i + 1, p, p_.add_less(i), resets,
                                            And(guard, Not(enter[i]), Not(can_seep(p, i))),
@@ -329,8 +327,9 @@ def build_successors(i: int, p: Sets, p_: Sets, resets: set[str], guard: FNode, 
             result.extend(build_successors(i + 1, p, p_.add_active(i), resets,
                                            And(guard, Not(enter[i]), Not(can_seep(p, i))),
                                            ct, enter, keep, cp))
+
     else:
-        # i in p_.active.
+        # i in p_.active
         result.extend(build_successors(i + 1, p, p_.add_active(i), resets, guard, ct, enter, keep, cp))
 
     return result

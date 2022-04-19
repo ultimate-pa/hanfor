@@ -18,140 +18,96 @@ testcases = [
      """{
         "head": {
             "duration": 6,
-            "types": {"R": "bool"}
+            "times": [0.0, 5.0]
         },
         "data": {
-            "0": {"R": false},
-            "5": {"R": true}
+            "R": {
+                "type": "Bool",
+                "values": [false, true]
+            }
         }
-     }""",
-     True),
-
-    ('true',
-     test_counter_trace.testcases['true'].expressions,
-     """{
-        "head": {
-            "duration": 5,
-            "types": {"nonsense_bool": "bool", "nonsense_int": "int"}
-        },
-        "data": {
-            "0": {"nonsense_bool": false, "nonsense_int": 5},
-            "2": {"nonsense_int": 3}
-        }
-     }""",
-     False),
-
-    ('true_lower_bound_empty',
-     test_counter_trace.testcases['true_lower_bound_empty'].expressions,
-     """{
-        "head": {
-            "duration": 6,
-            "types": {"nonsense_bool": "bool", "nonsense_real": "real"}
-        },
-        "data": {
-            "0": {"nonsense_bool": true, "nonsense_real": -1.1},
-            "5": {"nonsense_real": 3.2}
-        }
-     }""",
-     False),
+     }"""),
 
     ('absence_globally',
      test_counter_trace.testcases['absence_globally'].expressions,
      """{
         "head": {
             "duration": 6,
-            "types": {"R": "bool"}
+            "times": [0.0, 5.0]
         },
         "data": {
-            "0": {"R": false},
-            "5": {"R": false}
+            "R": {
+                "type": "Bool",
+                "values": [false, false]
+            }
         }
-     }""",
-     True),
-
-    ('absence_globally',
-     test_counter_trace.testcases['absence_globally'].expressions,
-     """{
-        "head": {
-            "duration": 6,
-            "types": {"R": "bool"}
-        },
-        "data": {
-            "0": {"R": false},
-            "5": {"R": true}
-        }
-     }""",
-     False),
+     }"""),
 
     ('absence_before',
      test_counter_trace.testcases['absence_before'].expressions,
      """{
         "head": {
             "duration": 8,
-            "types": {"P": "bool", "R": "bool"}
+            "times": [0.0, 3.0, 7.0]
         },
         "data": {
-            "0": {"P": false, "R": false},
-            "3": {"P": true},
-            "7": {"R": true}
+            "P": {
+                "type": "Bool",
+                "values": [false, true, false]
+            },
+            "R": {
+                "type": "Bool",
+                "values": [false, false, true]
+            }
         }
-     }""",
-     True),
-
-    ('absence_before',
-     test_counter_trace.testcases['absence_before'].expressions,
-     """{
-        "head": {
-            "duration": 7,
-            "types": {"P": "bool", "R": "bool"}
-        },
-        "data": {
-            "0": {"P": false, "R": true},
-            "6": {"R": true}
-        }
-     }""",
-     False),
+     }"""),
 
     ('response_delay_globally',
      {'R': Equals(Symbol('x', INT), Int(17)), 'S': GE(Symbol('y', REAL), Real(3.14)), 'T': Symbol('T', REAL)},
      """{
         "head": {
             "duration": 7,
-            "types": {"x": "int", "y": "real"}
+            "times": [0.0, 1.0, 5.0, 6.0]
         },
         "data": {
-            "0": {"x": 3, "y": 0},
-            "1": {"x": 17, "y": 2.14},
-            "5": {"x": 7, "y": 2.14},
-            "6": {"x": 7, "y": 3.14}
+            "x": {
+                "type": "Int",
+                "values": [3, 17, 7, 7]
+            },
+            "y": {
+                "type": "Real",
+                "values": [0.0, 2.14, 2.14, 3.14]
+            }
         }
-     }""",
-     True),
+     }"""),
 ]
 
 
 class TestSimulator(TestCase):
 
     @parameterized.expand(testcases)
-    def test_simulator(self, pattern_name: str, expressions: dict[str, FNode], yaml_str: str, expected: bool):
+    def test_simulator(self, pattern_name: str, expressions: dict[str, FNode], yaml_str: str):
         _, ct_str, _ = test_counter_trace.testcases[pattern_name]
         expressions['T'] = Real(5)
 
         ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
         pea = build_automaton(ct)
         scenario = Scenario.from_json_string(yaml_str)
-        simulator = Simulator([pea], scenario)
+        simulator = Simulator([pea], scenario, test=True)
 
         actual = False
-        for i in range(len(scenario.valuations)):
+        for i in range(len(scenario.times)):
             actual = False
-            transitions = simulator.check_sat()
 
-            if len(transitions) == 0 or len(transitions) > 1:
+            if not simulator.check_sat():
                 break
 
-            if len(transitions) == 1:
-                simulator.step_next(transitions[0])
+            if len(simulator.sat_results) != 1:
+                break
+
+            if i == len(scenario.times) - 1:
                 actual = True
 
-        self.assertEqual(expected, actual, msg="Error while simulating scenario.")
+
+
+        self.assertEqual(True, actual, msg="Error while simulating scenario.")

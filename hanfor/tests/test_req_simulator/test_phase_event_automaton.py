@@ -70,6 +70,7 @@ class TestPhaseEventAutomaton(TestCase):
         expected = PhaseEventAutomaton()
         R = expressions['R']
         R_ = expressions_['R_']
+        R_ = R
 
         # ct0_st0
         p1 = Phase(Not(R), TRUE(), Sets(active=frozenset({0})))
@@ -89,6 +90,7 @@ class TestPhaseEventAutomaton(TestCase):
         expected = PhaseEventAutomaton()
         P, R = expressions['P'], expressions['R']
         P_, R_ = expressions_['P_'], expressions_['R_']
+        P_, R_ = P, R
 
         # ct0_st0
         p1 = Phase(And(Not(P), Not(R)), TRUE(), Sets(active=frozenset({0})))
@@ -114,6 +116,7 @@ class TestPhaseEventAutomaton(TestCase):
         expected = PhaseEventAutomaton()
         P, R = expressions['P'], expressions['R']
         P_, R_ = expressions_['P_'], expressions_['R_']
+        P_, R_ = P, R
 
         # ct0_st0
         p1 = Phase(Not(P), TRUE(), Sets(active=frozenset({0})))
@@ -145,6 +148,7 @@ class TestPhaseEventAutomaton(TestCase):
         expected = PhaseEventAutomaton()
         R, T, c2 = expressions['R'], expressions['T'], Symbol('c2', REAL)
         R_ = expressions_['R_']
+        R_ = R
 
         # ct0_st0
         p1 = Phase(R, TRUE(), Sets(active=frozenset({0})))
@@ -177,6 +181,7 @@ class TestPhaseEventAutomaton(TestCase):
         expected = PhaseEventAutomaton()
         R, T, c1 = expressions['R'], expressions['T'], Symbol('c1', REAL)
         R_ = expressions_['R_']
+        R_ = R
 
         # ct0_st0
         p1 = Phase(Not(R), TRUE(), Sets(active=frozenset({0})))
@@ -203,6 +208,7 @@ class TestPhaseEventAutomaton(TestCase):
         expected = PhaseEventAutomaton()
         R, S, T, c2 = expressions['R'], expressions['S'], expressions['T'], Symbol('c2', REAL)
         R_, S_ = expressions_['R_'], expressions_['S_']
+        S_, R_ = S, R
 
         # ct0_st0
         p1 = Phase(Or(S, Not(R)), TRUE(), Sets(active=frozenset({0})))
@@ -236,6 +242,7 @@ class TestPhaseEventAutomaton(TestCase):
         expected = PhaseEventAutomaton()
         P, R, S, T, c2 = expressions['P'], expressions['R'], expressions['S'], expressions['T'], Symbol('c2', REAL)
         P_, R_, S_ = expressions_['P_'], expressions_['R_'], expressions_['S_']
+        P_, R_, S_ = P, R, S
 
         # ct0_st0
         p1 = Phase(And(Not(P), Or(S, Not(R))), TRUE(), Sets(active=frozenset({0})))
