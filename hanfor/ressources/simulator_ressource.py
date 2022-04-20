@@ -191,10 +191,12 @@ class SimulatorRessource(Ressource):
 
         simulator.update_variables(variables)
 
+        start = time.time()
         if not simulator.check_sat():
             self.response.success = False
             self.response.errormsg = simulator.sat_error
             return
+        print('Check sat:', time.time() - start)
 
         self.get_simulator()
 
