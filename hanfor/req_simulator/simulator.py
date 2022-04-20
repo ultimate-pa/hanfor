@@ -232,7 +232,7 @@ class Simulator:
 
             if len(transitions_) <= 0:
                 pea = self.peas[i]
-                self.sat_error = 'Requirement violated: %s Formalization: %s, Countertrace: %s\nReason: %s' % (
+                self.sat_error = 'Requirement violated: %s, Formalization: %s, Countertrace: %s\nReason: %s' % (
                     pea.requirement.rid, pea.formalization.id, pea.countertrace_id,
                     'inconsistency' if len(transitions) <= 0 else get_unsat_core(conjunctive_partition(last_fail)))
 
@@ -264,6 +264,9 @@ class Simulator:
         if self.sat_error is not None:
             return False
 
+        #self.check_sat_rec(inputs, var_asserts, clock_asserts)
+        #return True
+
         # Compute cartesian product with intermediate checks
         results: list[Simulator.SatResult] = []
 
@@ -282,6 +285,7 @@ class Simulator:
                     (e,), values, And(var_asserts, e.guard).simplify()
                     # (e,), {primed_vars_mapping[k]: v for k, v in values.items()}, And(var_asserts, e.guard).simplify()
                 ))
+
 
         for i, input in enumerate(inputs[1:]):
             results_: list[Simulator.SatResult] = []
@@ -316,7 +320,7 @@ class Simulator:
 
             if len(results) <= 0:
                 pea = self.peas[i]
-                self.sat_error = 'Requirement violated: %s Formalization: %s, Countertrace: %s\nReason: %s' % (
+                self.sat_error = 'Requirement violated: %s, Formalization: %s, Countertrace: %s\nReason: %s' % (
                     pea.requirement.rid, pea.formalization.id, pea.countertrace_id,
                     get_unsat_core(conjunctive_partition(last_fail)))
                 return False
@@ -325,6 +329,36 @@ class Simulator:
 
         return True
 
+
+    def check_sat_rec(self, phases: list[list[Transition]], var_asserts, clock_asserts, i: int = 0, guard = None, trs = (), max_results = 10):
+
+        if i >= len(phases):
+            model = get_model(guard, solver_name=SOLVER_NAME, logic=LOGIC)
+            values = model.get_values(self.variables.keys())
+            values.update({k: v[-1] for k, v in self.variables.items() if v[-1] is not None})
+
+            #self.num_results += 1
+            #return [Simulator.SatResult(trs, values, None)]
+            self.sat_results.append(Simulator.SatResult(trs, values, None))
+            return
+
+        result = []
+        for transition in phases[i]:
+            guard_ = And(transition.guard, guard).simplify() if guard is not None else \
+                And(transition.guard, var_asserts, clock_asserts).simplify()
+
+            if not is_sat(guard_, solver_name=SOLVER_NAME, logic=LOGIC):
+                continue
+
+            self.check_sat_rec(phases, var_asserts, clock_asserts, i + 1, guard_, trs + (transition,), max_results)
+
+            if len(self.sat_results) >= max_results:
+                break
+
+        return result
+
+
+    '''
     def check_sat_old(self) -> None:
         if not self.time_steps[-1] > 0.0:
             raise ValueError('Time step must be greater than zero.')
@@ -366,6 +400,7 @@ class Simulator:
                 model = model.get_values(primed_variables.keys())
 
                 self.sat_results.append((transition_tuple, {v: model[k] for k, v in primed_variables.items()}))
+    '''
 
     def step_next(self, enabled_transition_index: int) -> None:
         if self.scenario is not None and self.times[-1] >= self.scenario.times[-1]:

@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 from collections import defaultdict
 from dataclasses import dataclass
+from fractions import Fraction
 
 from pysmt.fnode import FNode
 from pysmt.formula import FormulaManager
@@ -86,7 +87,7 @@ class Phase:
             assert (atom.is_lt() or atom.is_le())
 
             clock = str(atom.args()[0])
-            bound = float(str(atom.args()[1]))
+            bound = float(Fraction(str(atom.args()[1])))
             is_lt_bound = atom.is_lt()
 
             #if result is None or (result[2] and bound < result[1]) or (not result[2] and bound <= result[1]):
