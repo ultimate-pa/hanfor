@@ -98,7 +98,8 @@ class SimulatorRessource(Ressource):
             'variables': simulator.get_variables(),
             'active_dc_phases': simulator.get_active_dc_phases(),
             'models': simulator.get_models(),
-            'types': simulator.get_types()
+            'types': simulator.get_types(),
+            'max_results': str(simulator.max_results)
         }
 
         return True
@@ -173,10 +174,12 @@ class SimulatorRessource(Ressource):
     def step_check(self) -> None:
         simulator_id = self.request.form.get('simulator_id')
         time_step = self.request.form.get('time_step')
+        max_results = self.request.form.get('max_results')
         variables = json.loads(self.request.form.get('variables'))
 
         simulator = self.simulator_cache[simulator_id]
         simulator.time_steps[-1] = float(time_step)
+        simulator.max_results = int(max_results)
 
         var_str_mapping = {str(k): k for k in simulator.variables}
         const_mapping = {
