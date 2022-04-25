@@ -211,28 +211,29 @@ class Simulator:
             last_fail = None
 
             for e in transitions:
-                # Check the guard with var and clock asserts
+                # Check the guard with var and clock asserts.
                 if not is_sat(And(e.guard, var_asserts, clock_asserts), solver_name=SOLVER_NAME, logic=LOGIC):
                     last_fail = And(e.guard, var_asserts, clock_asserts)
                     continue
 
-                # Compute duration to the closest bound, update clocks and build clock asserts
+                # Compute duration to the closest bound, update clocks and build clock asserts.
                 self.time_steps[-1] = self.compute_max_duration(e)
                 updated_clocks = self.update_clocks(self.clocks[-1], e.resets, self.time_steps[-1])
                 updated_clocks_assert = self.build_clocks_assertion(updated_clocks)
 
-                # Check the clock invariant of p' (special case: last non-true phase has bound type '<=')
+                # Check the clock invariant of p'. (special case: last non-true phase has bound type '<=')
                 if not is_sat(And(e.dst.clock_invariant, updated_clocks_assert), solver_name=SOLVER_NAME, logic=LOGIC):
                     continue
 
                 result_.append(e)
 
-            # Check if at least one transition is enabled
+            # Check whether at least one transition is enabled.
+            # If not store an error message.
             if len(result_) <= 0:
                 reason = 'inconsistency' if len(transitions) <= 0 else \
                     'unrealizable input, ' + str(get_unsat_core(conjunctive_partition(last_fail)))
 
-                self.sat_error = 'Requirement violated: %s, Formalization: %s, Countertrace: %s\nReason: %s' % (
+                self.sat_error = 'Requirement violation: %s, Formalization: %s, Countertrace: %s\nReason: %s' % (
                     self.peas[i].requirement.rid, self.peas[i].formalization.id, self.peas[i].countertrace_id, reason)
 
                 break
@@ -268,7 +269,7 @@ class Simulator:
         if self.sat_error is not None:
             return False
 
-        self.sat_results = self.check_sat_rec(inputs, var_asserts, clock_asserts)
+        self.sat_results = self.cartesian_check(inputs, var_asserts, clock_asserts)
         return len(self.sat_results) != 0
 
         # Compute cartesian product with intermediate checks
@@ -322,7 +323,7 @@ class Simulator:
             results = results_
 
             if len(results) == 0:
-                self.sat_error = 'Requirement violated: %s, Formalization: %s, Countertrace: %s\nReason: %s' % (
+                self.sat_error = 'Requirement violation: %s, Formalization: %s, Countertrace: %s\nReason: %s' % (
                     self.peas[i].requirement.self.peas[i], self.peas[i].formalization.id, self.peas[i].countertrace_id,
                     get_unsat_core(conjunctive_partition(last_fail)))
                 return False
@@ -331,9 +332,10 @@ class Simulator:
 
         return True
 
-    def check_sat_rec(self, phases: list[list[Transition]], var_asserts, clock_asserts, i: int = 0, guard=None, trs=(),
-                      max_results=20, num_transitions = 1) -> list[SatResult]:
+    def cartesian_check(self, phases: list[list[Transition]], var_asserts, clock_asserts, i: int = 0, guard=None, trs=(),
+                        max_results=20, num_transitions = 1) -> list[SatResult]:
 
+        # Terminate if tuple of transitions is complete.
         if i >= len(phases):
             model = get_model(guard, solver_name=SOLVER_NAME, logic=LOGIC)
             values = model.get_values(self.variables.keys())
@@ -345,27 +347,31 @@ class Simulator:
         num_transitions *= len(phases[i])
 
         for transition in phases[i]:
-            guard_ = And(transition.guard, guard) if guard is not None else \
-                And(transition.guard, var_asserts, clock_asserts)
+            # Check conjunction of guards including the one of this transition with var and clock asserts.
+            guard_ = And(guard, transition.guard) if guard is not None else And(transition.guard)
 
-            if not is_sat(guard_, solver_name=SOLVER_NAME, logic=LOGIC):
+            if not is_sat(And(guard_, var_asserts, clock_asserts), solver_name=SOLVER_NAME, logic=LOGIC):
                 self.last_fail = guard_
                 continue
 
-            result.extend(self.check_sat_rec(phases, var_asserts, clock_asserts, i + 1, guard_, trs + (transition,),
-                                             max_results, num_transitions))
+            # Call again to check transitions of next location.
+            result.extend(self.cartesian_check(phases, var_asserts, clock_asserts, i + 1, guard_, trs + (transition,),
+                                               max_results, num_transitions))
 
             if self.max_results > 0 and num_transitions >= self.max_results and len(result) >= 1:
                 break
 
+        # Check whether at least one transition is enabled.
+        # If not store an error message.
         if i == 0 and len(result) == 0:
             reason = ''
-            if self.all_vars_are_None():
-                reason += 'inconsistency' if self.current_phases[-1][0] == None else 'rt-inconsistency'
-            else:
-                reason += 'unrealizable input'
 
-            self.sat_error = 'Requirement violated: %s, Formalization: %s, Countertrace: %s\nReason: %s, %s' % (
+            if is_sat(And(self.last_fail, clock_asserts)):
+                reason += 'unrealizable input'
+            else:
+                reason += 'inconsistency' if self.current_phases[-1][0] == None else 'rt-inconsistency'
+
+            self.sat_error = 'Requirement violation: %s, Formalization: %s, Countertrace: %s\nReason: %s, %s' % (
                 self.peas[i].requirement.rid, self.peas[i].formalization.id, self.peas[i].countertrace_id,
                 reason, get_unsat_core(conjunctive_partition(self.last_fail)))
 
