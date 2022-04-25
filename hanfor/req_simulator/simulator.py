@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import itertools
 import math
 from collections import defaultdict
 from dataclasses import dataclass
@@ -8,12 +7,12 @@ from typing import Tuple
 
 from pysmt.fnode import FNode
 from pysmt.rewritings import conjunctive_partition
-from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, TRUE, get_model, is_sat, FALSE, get_unsat_core
+from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, get_model, is_sat, FALSE, get_unsat_core
 from pysmt.typing import REAL
 
 from req_simulator.phase_event_automaton import PhaseEventAutomaton, Phase, Transition, complete
 from req_simulator.scenario import Scenario
-from req_simulator.utils import substitute_free_variables, SOLVER_NAME, LOGIC, num_zeros
+from req_simulator.utils import SOLVER_NAME, LOGIC, num_zeros
 from reqtransformer import Requirement, Formalization
 
 
@@ -24,7 +23,8 @@ class Simulator:
         model: dict[FNode, FNode]
         guard: FNode
 
-    def __init__(self, peas: list[PhaseEventAutomaton], scenario: Scenario = None, name: str = 'unnamed', test: bool = False) -> None:
+    def __init__(self, peas: list[PhaseEventAutomaton], scenario: Scenario = None, name: str = 'unnamed',
+                 test: bool = False) -> None:
         self.name: str = name
         self.scenario: Scenario = scenario
 
@@ -36,6 +36,7 @@ class Simulator:
         self.clocks: list[dict[str, float]] = [{vv: 0.0 for v in self.peas for vv in v.clocks}]  # history
         self.sat_results: list[Simulator.SatResult] = []
         self.sat_error: str | None = None
+        self.max_results: int = -1
 
         self.variables: dict[FNode, list[FNode | None]] = \
             {v: [None] for p in self.peas for v in p.countertrace.extract_variables()}  # history
@@ -177,13 +178,13 @@ class Simulator:
 
         return time_step
 
-    def calculate_chop_point(self, transition) -> float:
+    def compute_max_duration(self, transition) -> float:
         result = self.time_steps[-1]
 
-        #transitions_list = [v.phases[self.current_phases[-1][i]] for i, v in enumerate(self.peas)]
+        # transitions_list = [v.phases[self.current_phases[-1][i]] for i, v in enumerate(self.peas)]
 
-        #for transitions in transitions_list:
-            #for transition in transitions:
+        # for transitions in transitions_list:
+        # for transition in transitions:
         min_bound = transition.dst.get_min_clock_bound()
 
         if min_bound is None:
@@ -193,48 +194,50 @@ class Simulator:
         diff = bound - self.clocks[-1][clock]
         result_ = bound if clock in transition.resets else round(diff, num_zeros(diff) + 1)
 
-        #if is_lt_bound:
+        # if is_lt_bound:
         #    num_zeros = -math.floor(math.log10(result_)) - 1
         #    result_ = result_ - 0.1 if result_ >= 1 else round(result_ - pow(10, -num_zeros - 1), num_zeros + 1)
 
-        #if result_ < result:
+        # if result_ < result:
         #    result = result_
 
         return min(result_, result)
 
-    def pre_check_sat(self, var_asserts, clock_asserts):
-        phases = [v.phases[self.current_phases[-1][i]] for i, v in enumerate(self.peas)]
+    def pre_check(self, phases: list[Phase], var_asserts: FNode, clock_asserts: FNode) -> list[list[Transition]]:
         result = []
 
         for i, transitions in enumerate(phases):
-            transitions_ = []
+            result_ = []
             last_fail = None
 
             for e in transitions:
-                #sat = is_sat(And(e.dst.clock_invariant, updated_clocks_assert), solver_name=SOLVER_NAME, logic=LOGIC) and \
-                #      is_sat(And(e.guard, var_asserts, clock_asserts), solver_name=SOLVER_NAME, logic=LOGIC)
-
+                # Check the guard with var and clock asserts
                 if not is_sat(And(e.guard, var_asserts, clock_asserts), solver_name=SOLVER_NAME, logic=LOGIC):
                     last_fail = And(e.guard, var_asserts, clock_asserts)
                     continue
 
-                self.time_steps[-1] = self.calculate_chop_point(e)
+                # Compute duration to the closest bound, update clocks and build clock asserts
+                self.time_steps[-1] = self.compute_max_duration(e)
                 updated_clocks = self.update_clocks(self.clocks[-1], e.resets, self.time_steps[-1])
                 updated_clocks_assert = self.build_clocks_assertion(updated_clocks)
 
+                # Check the clock invariant of p' (special case: last non-true phase has bound type '<=')
                 if not is_sat(And(e.dst.clock_invariant, updated_clocks_assert), solver_name=SOLVER_NAME, logic=LOGIC):
                     continue
 
-                transitions_.append(e)
+                result_.append(e)
 
-            # TODO: input_ could be []
-            result.append(transitions_)
+            # Check if at least one transition is enabled
+            if len(result_) <= 0:
+                reason = 'inconsistency' if len(transitions) <= 0 else \
+                    'unrealizable input, ' + str(get_unsat_core(conjunctive_partition(last_fail)))
 
-            if len(transitions_) <= 0:
-                pea = self.peas[i]
                 self.sat_error = 'Requirement violated: %s, Formalization: %s, Countertrace: %s\nReason: %s' % (
-                    pea.requirement.rid, pea.formalization.id, pea.countertrace_id,
-                    'inconsistency' if len(transitions) <= 0 else get_unsat_core(conjunctive_partition(last_fail)))
+                    self.peas[i].requirement.rid, self.peas[i].formalization.id, self.peas[i].countertrace_id, reason)
+
+                break
+
+            result.append(result_)
 
         return result
 
@@ -254,18 +257,19 @@ class Simulator:
 
         # var_asserts = self.build_variables_assertion(primed_vars)
 
-        #self.time_steps[-1] = self.calculate_chop_point()
+        # self.time_steps[-1] = self.calculate_chop_point()
 
         var_asserts = self.build_variables_assertion({k: v[-1] for k, v in self.variables.items()})
         clock_asserts = self.build_clocks_assertion(self.clocks[-1])
 
-        inputs = self.pre_check_sat(var_asserts, clock_asserts)
+        inputs = self.pre_check([v.phases[self.current_phases[-1][i]] for i, v in enumerate(self.peas)],
+                                var_asserts, clock_asserts)
 
         if self.sat_error is not None:
             return False
 
-        #self.check_sat_rec(inputs, var_asserts, clock_asserts)
-        #return True
+        self.sat_results = self.check_sat_rec(inputs, var_asserts, clock_asserts)
+        return len(self.sat_results) != 0
 
         # Compute cartesian product with intermediate checks
         results: list[Simulator.SatResult] = []
@@ -285,7 +289,6 @@ class Simulator:
                     (e,), values, And(var_asserts, e.guard).simplify()
                     # (e,), {primed_vars_mapping[k]: v for k, v in values.items()}, And(var_asserts, e.guard).simplify()
                 ))
-
 
         for i, input in enumerate(inputs[1:]):
             results_: list[Simulator.SatResult] = []
@@ -318,10 +321,9 @@ class Simulator:
 
             results = results_
 
-            if len(results) <= 0:
-                pea = self.peas[i]
+            if len(results) == 0:
                 self.sat_error = 'Requirement violated: %s, Formalization: %s, Countertrace: %s\nReason: %s' % (
-                    pea.requirement.rid, pea.formalization.id, pea.countertrace_id,
+                    self.peas[i].requirement.self.peas[i], self.peas[i].formalization.id, self.peas[i].countertrace_id,
                     get_unsat_core(conjunctive_partition(last_fail)))
                 return False
 
@@ -329,34 +331,45 @@ class Simulator:
 
         return True
 
-
-    def check_sat_rec(self, phases: list[list[Transition]], var_asserts, clock_asserts, i: int = 0, guard = None, trs = (), max_results = 10):
+    def check_sat_rec(self, phases: list[list[Transition]], var_asserts, clock_asserts, i: int = 0, guard=None, trs=(),
+                      max_results=20, num_transitions = 1) -> list[SatResult]:
 
         if i >= len(phases):
             model = get_model(guard, solver_name=SOLVER_NAME, logic=LOGIC)
             values = model.get_values(self.variables.keys())
             values.update({k: v[-1] for k, v in self.variables.items() if v[-1] is not None})
 
-            #self.num_results += 1
-            #return [Simulator.SatResult(trs, values, None)]
-            self.sat_results.append(Simulator.SatResult(trs, values, None))
-            return
+            return [Simulator.SatResult(trs, values, None)]
 
         result = []
+        num_transitions *= len(phases[i])
+
         for transition in phases[i]:
-            guard_ = And(transition.guard, guard).simplify() if guard is not None else \
-                And(transition.guard, var_asserts, clock_asserts).simplify()
+            guard_ = And(transition.guard, guard) if guard is not None else \
+                And(transition.guard, var_asserts, clock_asserts)
 
             if not is_sat(guard_, solver_name=SOLVER_NAME, logic=LOGIC):
+                self.last_fail = guard_
                 continue
 
-            self.check_sat_rec(phases, var_asserts, clock_asserts, i + 1, guard_, trs + (transition,), max_results)
+            result.extend(self.check_sat_rec(phases, var_asserts, clock_asserts, i + 1, guard_, trs + (transition,),
+                                             max_results, num_transitions))
 
-            if len(self.sat_results) >= max_results:
+            if self.max_results > 0 and num_transitions >= self.max_results and len(result) >= 1:
                 break
 
-        return result
+        if i == 0 and len(result) == 0:
+            reason = ''
+            if self.all_vars_are_None():
+                reason += 'inconsistency' if self.current_phases[-1][0] == None else 'rt-inconsistency'
+            else:
+                reason += 'unrealizable input'
 
+            self.sat_error = 'Requirement violated: %s, Formalization: %s, Countertrace: %s\nReason: %s, %s' % (
+                self.peas[i].requirement.rid, self.peas[i].formalization.id, self.peas[i].countertrace_id,
+                reason, get_unsat_core(conjunctive_partition(self.last_fail)))
+
+        return result
 
     '''
     def check_sat_old(self) -> None:

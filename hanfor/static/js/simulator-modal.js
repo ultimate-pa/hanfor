@@ -8,6 +8,7 @@ function init_simulator_modal(data) {
     const scenario_load_input = simulator_modal.find('#simulator-scenario-load-input')
     const scenario_exit_btn = simulator_modal.find('#simulator-scenario-exit-btn')
     const step_transition_select = simulator_modal.find('#simulator-step-transition-select')
+    const max_results_input = simulator_modal.find('#simulator-max-results-input')
     const time_step_input = simulator_modal.find('#simulator-time-step-input')
     const step_check_btn = simulator_modal.find('#simulator-step-check-btn')
     const step_next_btn = simulator_modal.find('#simulator-step-next-btn')
@@ -18,7 +19,7 @@ function init_simulator_modal(data) {
     const variable_input_prepends = find_variable_input_prepends(simulator_modal, data.variables)
     const dc_phase_codes = find_dc_phase_codes(simulator_modal)
 
-    update(modal_title_span, step_transition_select, scenario_exit_btn, time_step_input,
+    update(modal_title_span, step_transition_select, scenario_exit_btn, max_results_input, time_step_input,
         variable_inputs, dc_phase_codes, data)
 
     init_variable_input_prepends(variable_input_prepends, variable_colors)
@@ -39,8 +40,8 @@ function init_simulator_modal(data) {
                         return
                     }
 
-                    update(modal_title_span, step_transition_select, scenario_exit_btn, time_step_input,
-                        variable_inputs, dc_phase_codes, response.data)
+                    update(modal_title_span, step_transition_select, scenario_exit_btn, max_results_input,
+                        time_step_input, variable_inputs, dc_phase_codes, response.data)
 
                     chart.destroy()
                     chart = init_chart(chart_canvas, response.data, variable_colors)
@@ -82,8 +83,8 @@ function init_simulator_modal(data) {
                     return
                 }
 
-                update(modal_title_span, step_transition_select, scenario_exit_btn, time_step_input,
-                    variable_inputs, dc_phase_codes, response.data)
+                update(modal_title_span, step_transition_select, scenario_exit_btn, max_results_input,
+                    time_step_input, variable_inputs, dc_phase_codes, response.data)
 
                 chart.destroy()
                 chart = init_chart(chart_canvas, response.data, variable_colors)
@@ -99,6 +100,7 @@ function init_simulator_modal(data) {
                 command: 'step_check',
                 simulator_id: data.simulator_id,
                 time_step: time_step_input.val(),
+                max_results: max_results_input.val(),
                 variables: JSON.stringify(read_variable_inputs(variable_inputs))
             }, success: function (response) {
                 if (response['success'] === false) {
@@ -106,8 +108,8 @@ function init_simulator_modal(data) {
                     return
                 }
 
-                update(modal_title_span, step_transition_select, scenario_exit_btn, time_step_input,
-                    variable_inputs, dc_phase_codes, response.data)
+                update(modal_title_span, step_transition_select, scenario_exit_btn, max_results_input,
+                    time_step_input, variable_inputs, dc_phase_codes, response.data)
             }
         })
     })
@@ -124,8 +126,8 @@ function init_simulator_modal(data) {
                     return
                 }
 
-                update(modal_title_span, step_transition_select, scenario_exit_btn, time_step_input,
-                    variable_inputs, dc_phase_codes, response.data)
+                update(modal_title_span, step_transition_select, scenario_exit_btn, max_results_input,
+                    time_step_input, variable_inputs, dc_phase_codes, response.data)
 
                 add_chart_data(chart, response.data)
             }
@@ -143,8 +145,8 @@ function init_simulator_modal(data) {
                     return
                 }
 
-                update(modal_title_span, step_transition_select, scenario_exit_btn, time_step_input,
-                    variable_inputs, dc_phase_codes, response.data)
+                update(modal_title_span, step_transition_select, scenario_exit_btn, max_results_input,
+                    time_step_input, variable_inputs, dc_phase_codes, response.data)
 
                 remove_chart_data(chart, response.data)
             }
@@ -371,12 +373,13 @@ function read_variable_inputs(inputs) {
     return result
 }
 
-function update(modal_title_span, step_transition_select, scenario_exit_btn, time_step_input,
+function update(modal_title_span, step_transition_select, scenario_exit_btn, max_results_input, time_step_input,
                 variable_inputs, dc_phase_codes, data) {
 
     update_modal_title_span(modal_title_span, data)
     update_step_transition_select(step_transition_select, data)
     update_scenario_exit_btn(scenario_exit_btn, data)
+    update_max_results_input(max_results_input, data)
     update_time_step_input(time_step_input, data)
     update_variable_inputs(variable_inputs, data)
     update_dc_phases(dc_phase_codes, data)
@@ -399,6 +402,11 @@ function update_step_transition_select(step_transition_select, data) {
 
 function update_scenario_exit_btn(scenario_exit_btn, data) {
     scenario_exit_btn.prop('disabled', data.scenario == null)
+}
+
+function update_max_results_input(max_results_input, data) {
+    max_results_input.val(data.max_results)
+    max_results_input.prop('disabled', data.scenario != null)
 }
 
 function update_time_step_input(time_step_input, data) {
