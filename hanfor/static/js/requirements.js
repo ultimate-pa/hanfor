@@ -504,8 +504,8 @@ function add_tag_table_row(tag_name){
     //todo: we need to fill the fields with the actional comments (maybe name the fields and
     // add comments later)
     var table_row = "<tr id='tag_table_" + tag_name + "'>" +
-    "<td><input type='checkbox' name='record'></td>" +
-    "<td>" + tag_name + "</td><td><input type='text' name='comment'></td></tr>";
+//    "<td><input type='checkbox' name='record'></td>" +
+    "<td>" + tag_name + "</td><td><input type='text' name='comment'></td>";
     $("#tags_comments_table tbody").append(table_row);
 }
 
@@ -547,7 +547,6 @@ function load_requirement(row_idx) {
 
     // Set available tags.
     $('#requirement_tag_field').data('bs.tokenfield').$input.autocomplete({source: available_tags});
-    //todo: clean the tag table. This should be done here (likely)
 
     // Get the requirement data and set the modal.
     $.get("api/req/get", {id: data['id'], row_idx: row_idx}, function (data) {
