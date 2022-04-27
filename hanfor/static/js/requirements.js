@@ -881,6 +881,7 @@ function init_datatable(columnDefs) {
             style: 'os',
             selector: 'td:first-child'
         },
+        "order": [[ 1, "asc" ]],
         "pageLength": 50,
         "lengthMenu": [[10, 50, 100, 500, -1], [10, 50, 100, 500, "All"]],
         "dom": 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
