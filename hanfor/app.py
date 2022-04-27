@@ -24,7 +24,7 @@ from guesser.Guess import Guess
 from reqtransformer import Requirement, VariableCollection, Variable, VarImportSessions
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from ressources import Report, Tag, Statistics, QueryAPI
-from patterns import PATTERNS
+from patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
 
 # Create the app
 app = Flask(__name__)
@@ -155,9 +155,7 @@ def api(resource, command):
                 exclude_types={'ENUM'}
             )
 
-            result['additional_static_available_vars'] = []
-            if app.config.get('VARIABLE_AUTOCOMPLETE_EXTENSION'):
-                result['additional_static_available_vars'] = app.config.get('VARIABLE_AUTOCOMPLETE_EXTENSION')
+            result['additional_static_available_vars'] = VARIABLE_AUTOCOMPLETE_EXTENSION
 
             if requirement:
                 return jsonify(result)
