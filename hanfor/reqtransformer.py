@@ -515,9 +515,7 @@ class Requirement(HanforVersioned, Pickleable):
 
     def run_version_migrations(self):
         if self.hanfor_version == '0.0.0':
-            logging.info('Migrating `{}`:`{}`, from 0.0.0 -> 1.0.0'.format(
-                self.__class__.__name__, self.rid)
-            )
+            logging.info(f'Migrating `{self.__class__.__name__}`:`{self.rid}`, from 0.0.0 -> 1.0.0')
             # Migrate list formalizations to use dict
             self.hanfor_version = '1.0.0'
             if type(self.formalizations) is list:

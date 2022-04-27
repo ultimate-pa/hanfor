@@ -624,7 +624,7 @@ def generate_csv_file_content(app, filter_list=None, invert_filter=False):
     rows = [r.csv_row for r in requirements]
     with StringIO() as out_csv:
         csv.register_dialect('ultimate', delimiter=',')
-        writer = csv.DictWriter(out_csv, session_dict['csv_fieldnames'], dialect=session_dict['csv_dialect'])
+        writer = csv.DictWriter(out_csv, session_dict['csv_fieldnames'])
         writer.writeheader()
         writer.writerows(rows)
         result = out_csv.getvalue()
