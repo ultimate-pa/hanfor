@@ -115,7 +115,7 @@ class TestInit(TestCase):
              'type': 'req'
              }
         ]
-        self.assertListEqual(result.json['data'], desired_reqs)
+        self.assertListEqual( desired_reqs, result.json['data'])
 
         result = self.app.get('api/req/get?id=SysRS FooXY_42')
         desired_req = {
@@ -141,7 +141,7 @@ class TestInit(TestCase):
             'formalizations_html': '',
             'revision_diff': {}
         }
-        self.assertDictEqual(result.json, desired_req)
+        self.assertDictEqual(desired_req, result.json)
 
     def tearDown(self):
         # Clean test dir.
