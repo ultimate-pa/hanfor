@@ -7,6 +7,7 @@ import sys
 import time
 
 import logging
+import unittest
 
 from app import app, api, set_session_config_vars, create_revision, user_request_new_revision, startup_hanfor
 import os
@@ -93,6 +94,7 @@ class TestVariableScriptEvaluation(TestCase):
         startup_hanfor(args, HERE)
         app.config['TEMPLATES_FOLDER'] = os.path.join(HERE, '..', '..', 'templates')
 
+    @unittest.skipIf(os.name == 'nt', "not available on windows systems")
     def test_simple_script(self):
         # Starting each version to trigger migrations.
         for version_slug, version_tag in VERSION_TAGS.items():
