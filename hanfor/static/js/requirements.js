@@ -504,9 +504,16 @@ function add_tag_table_row(tag_name){
     //todo: we need to fill the fields with the actional comments (maybe name the fields and
     // add comments later)
     var table_row = "<tr id='tag_table_" + tag_name + "'>" +
-//    "<td><input type='checkbox' name='record'></td>" +
-    "<td>" + tag_name + "</td><td><input type='text' name='comment'></td>";
+        "<td>" + tag_name + "</td><td><input type='text' name='comment'></td>";
     $("#tags_comments_table tbody").append(table_row);
+    var seen = {};
+    $('#tags_comments_table tr').each(function() {
+    var txt = $(this).text();
+    if (seen[txt])
+        $(this).remove();
+    else
+        seen[txt] = true;
+    });
 }
 
 function bind_tag_field_events(){
@@ -518,7 +525,7 @@ function bind_tag_field_events(){
                         if (tag_name.value === e.attrs.value)
                             e.preventDefault();
                     });
-                add_tag_table_row(e.attrs.value);
+                   add_tag_table_row(e.attrs.value);
             }
         )
         .on('tokenfield:removedtoken',
