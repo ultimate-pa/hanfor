@@ -508,13 +508,13 @@ function add_tag_table_row(tag_name){
     $("#tags_comments_table tbody").append(table_row);
     var seen = {};
     $('#tags_comments_table tr').each(function() {
-    var txt = $(this).text();
-    if (seen[txt])
-        $(this).remove();
-    else
-        seen[txt] = true;
-    });
-}
+        var text = $(this).text();
+        if (seen[text])
+            $(this).remove();
+        else
+            seen[text] = true;
+        });
+    }
 
 function bind_tag_field_events(){
     $("#requirement_tag_field")
