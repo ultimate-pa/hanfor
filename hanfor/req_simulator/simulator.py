@@ -110,7 +110,7 @@ class Simulator:
         results = []
 
         for sat_result in self.sat_results:
-            model = ' ; '.join([f'{k} = {v}' for k, v in sat_result.model.items() if self.variables[k][-1] is None])
+            model = '; '.join([f'{k} = {v}' for k, v in sat_result.model.items() if self.variables[k][-1] is None])
             results.append(model if model != '' else 'True')
 
         return results
