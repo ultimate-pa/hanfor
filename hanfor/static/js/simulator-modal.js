@@ -7,6 +7,7 @@ function init_simulator_modal(data) {
     const scenario_save_btn = simulator_modal.find('#simulator-scenario-save-btn')
     const scenario_load_input = simulator_modal.find('#simulator-scenario-load-input')
     const scenario_exit_btn = simulator_modal.find('#simulator-scenario-exit-btn')
+    const transitions_table = simulator_modal.find('#simulator-transitions-table')
     const step_transition_select = simulator_modal.find('#simulator-step-transition-select')
     const max_results_input = simulator_modal.find('#simulator-max-results-input')
     const time_step_input = simulator_modal.find('#simulator-time-step-input')
@@ -19,7 +20,7 @@ function init_simulator_modal(data) {
     const variable_input_prepends = find_variable_input_prepends(simulator_modal, data.variables)
     const dc_phase_codes = find_dc_phase_codes(simulator_modal)
 
-    update(modal_title_span, step_transition_select, scenario_exit_btn, max_results_input, time_step_input,
+    update(modal_title_span, transitions_table, step_transition_select, scenario_exit_btn, max_results_input, time_step_input,
         variable_inputs, dc_phase_codes, data)
 
     init_variable_input_prepends(variable_input_prepends, variable_colors)
@@ -40,7 +41,7 @@ function init_simulator_modal(data) {
                         return
                     }
 
-                    update(modal_title_span, step_transition_select, scenario_exit_btn, max_results_input,
+                    update(modal_title_span, transitions_table, step_transition_select, scenario_exit_btn, max_results_input,
                         time_step_input, variable_inputs, dc_phase_codes, response.data)
 
                     chart.destroy()
@@ -83,7 +84,7 @@ function init_simulator_modal(data) {
                     return
                 }
 
-                update(modal_title_span, step_transition_select, scenario_exit_btn, max_results_input,
+                update(modal_title_span, transitions_table, step_transition_select, scenario_exit_btn, max_results_input,
                     time_step_input, variable_inputs, dc_phase_codes, response.data)
 
                 chart.destroy()
@@ -108,7 +109,7 @@ function init_simulator_modal(data) {
                     return
                 }
 
-                update(modal_title_span, step_transition_select, scenario_exit_btn, max_results_input,
+                update(modal_title_span, transitions_table, step_transition_select, scenario_exit_btn, max_results_input,
                     time_step_input, variable_inputs, dc_phase_codes, response.data)
             }
         })
@@ -119,14 +120,14 @@ function init_simulator_modal(data) {
             type: 'POST', url: 'simulator', async: false, data: { // TODO: Allow async.
                 command: 'step_next',
                 simulator_id: data.simulator_id,
-                transition_id: step_transition_select.val()
+                transition_id: read_transitions_table(transitions_table) //step_transition_select.val()
             }, success: function (response) {
                 if (response['success'] === false) {
                     alert(response['errormsg'])
                     return
                 }
 
-                update(modal_title_span, step_transition_select, scenario_exit_btn, max_results_input,
+                update(modal_title_span, transitions_table, step_transition_select, scenario_exit_btn, max_results_input,
                     time_step_input, variable_inputs, dc_phase_codes, response.data)
 
                 add_chart_data(chart, response.data)
@@ -145,7 +146,7 @@ function init_simulator_modal(data) {
                     return
                 }
 
-                update(modal_title_span, step_transition_select, scenario_exit_btn, max_results_input,
+                update(modal_title_span, transitions_table, step_transition_select, scenario_exit_btn, max_results_input,
                     time_step_input, variable_inputs, dc_phase_codes, response.data)
 
                 remove_chart_data(chart, response.data)
@@ -363,6 +364,10 @@ function find_dc_phase_codes(simulator_modal) {
     return result
 }
 
+function read_transitions_table(transitions_table) {
+    return transitions_table.find("input:radio:checked").val()
+}
+
 function read_variable_inputs(inputs) {
     const result = {}
 
@@ -373,10 +378,11 @@ function read_variable_inputs(inputs) {
     return result
 }
 
-function update(modal_title_span, step_transition_select, scenario_exit_btn, max_results_input, time_step_input,
-                variable_inputs, dc_phase_codes, data) {
+function update(modal_title_span, transitions_table, step_transition_select, scenario_exit_btn, max_results_input,
+                time_step_input, variable_inputs, dc_phase_codes, data) {
 
     update_modal_title_span(modal_title_span, data)
+    update_transitions_table(transitions_table, data)
     update_step_transition_select(step_transition_select, data)
     update_scenario_exit_btn(scenario_exit_btn, data)
     update_max_results_input(max_results_input, data)
@@ -397,6 +403,31 @@ function update_step_transition_select(step_transition_select, data) {
 
     $.each(data.transitions, function (index, value) {
         step_transition_select.append($('<option></option>').val(index).text(value).addClass('text-break'))
+    })
+}
+
+function update_transitions_table(transitions_table, data) {
+    transitions_table.children('tbody').empty()
+
+    $.each(data.transitions, function (index, value) {
+        transitions_table.append(
+            `<tr>
+    	        <td><input type="radio" name="transition" value="${index}"></td>
+    	        <td class="w-100">${value}</td>
+            </tr>`
+        )
+    })
+
+    tr_first = transitions_table.find('tbody tr:first')
+    tr_first.children('td').css('border', 'none')
+    tr_first.find('input:radio[name=transition]').prop('checked', true)
+    tr_first.addClass('table-active')
+
+    transitions_table.on('click', 'tr', function () {
+        transitions_table.find('tr').removeClass('table-active')
+
+        $(this).find('input:radio[name=transition]').prop('checked', true)
+        $(this).addClass('table-active')
     })
 }
 

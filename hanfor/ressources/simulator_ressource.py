@@ -208,7 +208,7 @@ class SimulatorRessource(Ressource):
         simulator_id = self.request.form.get('simulator_id')
         transition_id = self.request.form.get('transition_id')
 
-        if transition_id == '':
+        if transition_id is None or transition_id == '':
             self.response.success = False
             self.response.errormsg = 'No transition id given.'
             return

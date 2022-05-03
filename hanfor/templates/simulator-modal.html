@@ -11,22 +11,30 @@
             </div>
             <div class="modal-body">
                 <div class="container-fluid">
-                    <div class="row py-2">
-                        <div class="col" style="height: 300px; resize: vertical; overflow: auto">
-                            <canvas id="chart-canvas" style="width: 100%; max-height: 100%"></canvas>
-                        </div>
-                    </div>
-                    <div class="row py-2">
+                    <div class="row py-3">
                         <div class="col">
-                            <select id="simulator-step-transition-select" class="custom-select"></select>
+                            <div style="height: 300px; resize: vertical; overflow: auto">
+                                <canvas id="chart-canvas" style="max-height: 100%"></canvas>
+                            </div>
                         </div>
                     </div>
-                    <div class="row py-2">
+                    <div class="row py-3">
+                        <div class="col">
+                            <div class="border rounded" style="height: calc(3 * 2.1rem + 4px); overflow: auto; resize: vertical">
+                                <table id="simulator-transitions-table" class="table table-sm table-hover">
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+
+                            <!--<select id="simulator-step-transition-select" class="custom-select"></select>-->
+                        </div>
+                    </div>
+                    <div class="row py-3">
                         <div class="col">
                             {% include "simulator-modal-controls.html" %}
                         </div>
                     </div>
-                    <div class="row py-2">
+                    <div class="row py-3">
                         <div class="col">
                             {% include "simulator-modal-variables.html" %}
                         </div>
