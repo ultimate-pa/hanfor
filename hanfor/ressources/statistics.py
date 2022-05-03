@@ -1,5 +1,6 @@
 import itertools
 import random
+from collections import defaultdict
 
 from reqtransformer import Requirement, VariableCollection
 from ressources import Ressource
@@ -62,49 +63,29 @@ class Statistics(Ressource):
         # Gather most used variables.
         var_collection = VariableCollection.load(self.app.config['SESSION_VARIABLE_COLLECTION'])
         var_usage = []
+
+        var_nodes = dict()
+        req_nodes = set()
+
         for name, used_by in var_collection.var_req_mapping.items():
-            var_usage.append((len(used_by), name))
+            var_nodes[name] = "#%06x" % random.randint(0, 0xFFFFFF)
+            for req in used_by: req_nodes.add(req)
 
-        var_usage.sort(reverse=True)
+        for var, color in var_nodes.items():
+            data['variable_graph'].append({'data': {'id': var, 'size': 10, 'color': color}})
+        for req in req_nodes:
+            data['variable_graph'].append({'data': {'id': req, 'size': 20, 'color': '#000000'}})
 
-        # Create the variable graph
-        # Limit the ammount of data.
-        if len(var_usage) > 100:
-            var_usage = var_usage[:100]
-        # First create the edges data.
-        edges = dict()
-        available_names = [v[1] for v in var_usage]
-        for co_occuring_vars in var_collection.req_var_mapping.values():
-            name_combinations = itertools.combinations(co_occuring_vars, 2)
-            for name_combination in name_combinations:
-                name = '_'.join(name_combination)
-                if name_combination[0] in available_names and name_combination[1] in available_names:
-                    if name not in edges:
-                        edges[name] = {'source': name_combination[0], 'target': name_combination[1], 'weight': 0}
-                    edges[name]['weight'] += 1
-
-        for count, name in var_usage:
-            if count > 0:
+        for var, used_by in var_collection.var_req_mapping.items():
+            for user in used_by:
                 data['variable_graph'].append(
                     {
-                        'data': {
-                            'id': name,
-                            'size': count
-                        }
-
+                        'data': {'id': var + "_" + user, 'source': var, 'target': user,
+                                  "color": var_nodes[var]}
                     }
                 )
 
-        for edge, values in edges.items():
-            data['variable_graph'].append(
-                {
-                    'data': {'id': edge, 'source': values['source'], 'target': values['target']}
-                }
-            )
-
-        if len(var_usage) > 10:
-            var_usage = var_usage[:10]
-
+        # most used variables
         for count, name in var_usage:
             data['top_variable_names'].append(name)
             data['top_variables_counts'].append(count)

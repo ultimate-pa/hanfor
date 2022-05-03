@@ -218,7 +218,7 @@ $(document).ready(function () {
                 {
                   selector: 'node',
                   style: {
-                    'background-color': '#666',
+                    'background-color': 'data(color)',
                     'label': 'data(id)',
                       'height': 'data(size)',
                       'font-size': 13,
@@ -232,8 +232,8 @@ $(document).ready(function () {
                     "curve-style": "bezier",
                     "haystack-radius": "0.5",
                     "opacity": "0.4",
-                    "line-color": "#bbb",
-                    "width": "mapData(weight, 0, 1, 1, 8)",
+                    "line-color": "data(color)",
+                    "width": "2px",
                     "overlay-padding": "3px"
                   }
                 }
