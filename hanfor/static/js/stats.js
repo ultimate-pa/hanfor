@@ -1,4 +1,4 @@
-require('chart.js');
+require('chart.js/dist/chart.min');
 let cytoscape = require('cytoscape');
 
 window.chartColors = {
