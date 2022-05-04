@@ -215,9 +215,11 @@ function init_chart(chart_canvas, data, variable_colors) {
             label: index,
             backgroundColor: variable_colors[index],
             borderColor: variable_colors[index],
+            borderWidth: 2,
             data: models[index],
             stepped: 'after',
             yAxisID: 'y_' + index,
+            normalized: true
         })
     })
 
