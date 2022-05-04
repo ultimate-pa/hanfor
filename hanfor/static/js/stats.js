@@ -195,8 +195,8 @@ $(document).ready(function () {
 
             layout: {
                 name: 'cose',
-                idealEdgeLength: 50,
-                nodeOverlap: 20,
+                idealEdgeLength: 150,
+                nodeOverlap: 40,
                 refresh: 20,
                 fit: true,
                 padding: 30,
@@ -223,7 +223,7 @@ $(document).ready(function () {
                     'background-color': 'data(color)',
                     'label': 'data(id)',
                       'height': 'data(size)',
-                      'font-size': 13,
+                      'font-size': 10,
                       'width': 'data(size)'
                   }
                 },

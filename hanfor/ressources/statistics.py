@@ -1,4 +1,3 @@
-import itertools
 import random
 from collections import defaultdict
 
@@ -65,18 +64,25 @@ class Statistics(Ressource):
         var_usage = []
 
         var_nodes = dict()
+        var_nodes_weight = defaultdict(int)
         req_nodes = set()
 
         for name, used_by in var_collection.var_req_mapping.items():
             var_nodes[name] = "#%06x" % random.randint(0, 0xFFFFFF)
+            var_nodes_weight[name] += len(used_by)
             for req in used_by: req_nodes.add(req)
 
+        # limit the percentage of connections of a variable to something meaningful (e.g. < 60%)
+        var_clutter_cutoff = .6 * len(req_nodes)
+
         for var, color in var_nodes.items():
-            data['variable_graph'].append({'data': {'id': var, 'size': 10, 'color': color}})
+            node_size = 10 + (40 * (var_nodes_weight[var] / len(req_nodes)))
+            data['variable_graph'].append({'data': {'id': var, 'size': int(node_size), 'color': color}})
         for req in req_nodes:
             data['variable_graph'].append({'data': {'id': req, 'size': 20, 'color': '#000000'}})
 
         for var, used_by in var_collection.var_req_mapping.items():
+            if var_nodes_weight[var] > var_clutter_cutoff: continue
             for user in used_by:
                 data['variable_graph'].append(
                     {
