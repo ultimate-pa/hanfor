@@ -1,4 +1,6 @@
 require('../css/simulator-modal.css')
+require('chart.js/dist/chart.min')
+require('chartjs-plugin-annotation')
 
 function init_simulator_modal(data) {
     const simulator_modal = $(data['html'])

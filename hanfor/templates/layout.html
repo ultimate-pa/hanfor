@@ -84,9 +84,6 @@
         let search_query = '{{ query|tojson }}';
         let _PATTERNS = JSON.parse('{{ patterns|tojson }}');
     </script>
-    <!-- TODO: Fix this import. It is needed for simulator-modal and stats, but require doesn't work. -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/1.4.0/chartjs-plugin-annotation.js"></script>
     {% block scripts %}
     {% endblock %}
     </body>
