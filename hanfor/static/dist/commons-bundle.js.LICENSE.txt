@@ -159,6 +159,35 @@
  * 2015-2021 SpryMedia Ltd - datatables.net/license/mit
  */
 
+/**
+ * @license
+ * File:        ColReorderWithResize.js
+ * Version:     3.0
+ * CVS:         $Id$
+ * Description: Allow columns to be reordered in a DataTable
+ * Author:      Allan Jardine (www.sprymedia.co.uk)
+ * Author:      Christophe Battarel (www.altairis.fr)
+ * Created:     Wed Sep 15 18:23:29 BST 2010
+ * Modified:    July 2011 by Christophe Battarel - christophe.battarel@altairis.fr (columns resizable)
+ * Modified:    February 2012 by Martin Marchetta - martin.marchetta@gmail.com
+ *  1. Made the "hot area" for resizing a little wider (it was a little difficult to hit the exact border of a column for resizing)
+ *  2. Resizing didn't work at all when using scroller (that plugin splits the table into 2 different tables: one for the header and another one for the body, so when you resized the header, the data columns didn't follow)
+ *  3. Fixed collateral effects of sorting feature
+ *  4. If sScrollX is enabled (i.e. horizontal scrolling), when resizing a column the width of the other columns is not changed, but the whole
+ *     table is resized to give an Excel-like behavior (good suggestion by Allan)
+ * Modified:    February 2012 by Christophe Battarel - christophe.battarel@altairis.fr (ColReorder v1.0.5 adaptation)
+ * Modified:    September 16th 2012 by Hassan Kamara - h@phrmc.com
+ * Modified:    June 2017 by Jeff Walter - jeffreydwalter@gmail.com
+ *  1. ColReorder v1.3.3 adaptation.
+ *  2. Fixed issues with column width calculations which allowed column headers to become misaligned with table body when using scroller plugin.
+ * Modified:    June 2018 by Jeff Walter - jeffreydwalter@gmail.com
+ *  1. Took a second stab at this plugin. Made things work for both scroller and non-scroller tables.
+ * Language:    Javascript
+ * License:     MIT
+ * Project:     DataTables
+ *
+ */
+
 /**!
  * @fileOverview Kickass library to create and place poppers near their reference elements.
  * @version 1.16.1

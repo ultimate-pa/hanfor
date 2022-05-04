@@ -22,6 +22,8 @@ from req_simulator.utils import get_countertrace_parser
 from reqtransformer import Requirement, Formalization, VariableCollection
 from ressources import Ressource
 
+from patterns import PATTERNS
+
 
 class SimulatorRessource(Ressource):
     simulator_cache: dict[str, Simulator] = {}
@@ -288,7 +290,7 @@ class SimulatorRessource(Ressource):
             scope = formalization.scoped_pattern.scope.name
             pattern = formalization.scoped_pattern.pattern.name
 
-            if len(app.config['PATTERNS'][pattern]['countertraces'][scope]) <= 0:
+            if len(PATTERNS[pattern]['countertraces'][scope]) <= 0:
                 raise ValueError(f'No countertrace given: {scope}, {pattern}')
 
             expressions = {}
@@ -296,7 +298,7 @@ class SimulatorRessource(Ressource):
                 tree = boogie_parser.parse(v.raw_expression)
                 expressions[k] = BoogiePysmtTransformer(var_collection.collection).transform(tree)
 
-            for i, ct_str in enumerate(app.config['PATTERNS'][pattern]['countertraces'][scope]):
+            for i, ct_str in enumerate(PATTERNS[pattern]['countertraces'][scope]):
                 ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
                 pea = build_automaton(ct, f'c_{requirement.rid}_{formalization.id}_{i}_')
 
