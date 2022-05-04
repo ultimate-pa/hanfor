@@ -506,14 +506,6 @@ function add_tag_table_row(tag_name){
     var table_row = "<tr id='tag_table_" + tag_name + "'>" +
         "<td>" + tag_name + "</td><td><input type='text' name='comment'></td>";
     $("#tags_comments_table tbody").append(table_row);
-    var seen = {};
-    $('#tags_comments_table tr').each(function() {
-        var text = $(this).text();
-        if (seen[text])
-            $(this).remove();
-        else
-            seen[text] = true;
-        });
     }
 
 function bind_tag_field_events(){
@@ -581,6 +573,8 @@ function load_requirement(row_idx) {
         $('#requirement_scope').val(data.scope);
         $('#requirement_pattern').val(data.pattern);
 
+        // remove all lines from the tag comment table
+        $('#tags_comments_table').find("tr:gt(0)").remove();
         // Set the tags
         $('#requirement_tag_field').tokenfield('setTokens', data.tags);
         $('#requirement_status').val(data.status);
