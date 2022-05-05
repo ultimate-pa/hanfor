@@ -44,9 +44,14 @@ We recommend using a [virtual environment](https://docs.python.org/3/tutorial/ve
     hanfor_venv\Scripts\activate.bat
     ```
 
-Then, install all Python dependencies. 
+Install all Python dependencies. 
 ``` bash
 pip install -r requirements.txt
+```
+
+Install the Z3 Theorem Prover.
+``` bash
+pysmt-install --z3
 ```
 
 ## Configuration
