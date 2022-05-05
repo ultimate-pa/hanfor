@@ -27,11 +27,15 @@
                     <span id="{{ variable }}_variable_input_prepend" class="input-group-text" style="border: 0"></span>
                 </div>
 
-                <input id="{{ variable }}_variable_input" class="form-control" type="text">
+                <!--<input id="{{ variable }}_variable_input" class="form-control" type="text" pattern="^0|False|1|True$">-->
+                <input id="{{ variable }}_variable_input" class="form-control" type="text" pattern="{{ valid_patterns[variable.symbol_type()] }}">
                 <label for="{{ variable }}_variable_input">
                     <span class="lhs text-truncate">{{ variable }}</span>
                     <span class="rhs">{{ variable.symbol_type() }}</span>
                 </label>
+                <div class="invalid-tooltip">
+                    Please provide a valid value.
+                </div>
             </div>
         </div>
     {% endfor %}

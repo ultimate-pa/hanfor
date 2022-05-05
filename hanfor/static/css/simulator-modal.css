@@ -54,3 +54,7 @@
     overflow: hidden;
     text-align:right;
 }
+
+.simulator-variables .was-validated .form-control:invalid, .simulator-variables .form-control.is-invalid {
+    background-position-y: calc(1.25rem + 0.1875rem);
+}

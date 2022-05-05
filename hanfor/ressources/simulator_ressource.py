@@ -24,6 +24,11 @@ from ressources import Ressource
 
 from patterns import PATTERNS
 
+validation_patterns = {
+    BOOL: '^0|false|1|true$',
+    INT: '^[+-]?\d+$',
+    REAL: '^[+-]?\d*[.]?\d+$'
+}
 
 class SimulatorRessource(Ressource):
     simulator_cache: dict[str, Simulator] = {}
@@ -111,7 +116,7 @@ class SimulatorRessource(Ressource):
             return
 
         simulator = self.simulator_cache[self.response.data['simulator_id']]
-        self.response.data['html'] = render_template('simulator-modal.html', simulator=simulator)
+        self.response.data['html'] = render_template('simulator-modal.html', simulator=simulator, valid_patterns=validation_patterns)
 
     def scenario_save(self) -> None:
         if not self.get_simulator():

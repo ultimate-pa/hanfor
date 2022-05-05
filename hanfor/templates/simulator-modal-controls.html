@@ -7,8 +7,20 @@
     <button id="simulator-scenario-save-btn" class="btn btn-secondary mr-2">Save Scenario</button>
     <button id="simulator-scenario-exit-btn" class="btn btn-secondary mr-2">Exit Scenario Mode</button>
 
-    <input id="simulator-max-results-input" class="form-control mr-2" type="number" min="-1" title="Max. results">
-    <input id="simulator-time-step-input" class="form-control mr-2" type="number" min="0" title="Duration">
+    <div class="position-relative">
+        <input id="simulator-max-results-input" class="form-control mr-2" type="number" min="-1" title="Max. results">
+        <div class="invalid-tooltip">
+            Please provide a valid value.
+        </div>
+    </div>
+
+    <div class="position-relative">
+        <input id="simulator-time-step-input" class="form-control mr-2" type="number" min="0" title="Duration">
+        <div class="invalid-tooltip">
+            Please provide a valid value.
+        </div>
+    </div>
+
     <button id="simulator-step-check-btn" class="btn btn-secondary mr-2" type="button">Check</button>
     <button id="simulator-step-next-btn" class="btn btn-secondary mr-2" type="button">Next</button>
     <button id="simulator-step-back-btn" class="btn btn-secondary" type="button">Back</button>

@@ -96,6 +96,33 @@ function init_simulator_modal(data) {
     })
 
     step_check_btn.click(function () {
+        let isValid = true
+
+        $.each(variable_inputs, function(index, value) {
+            value.removeClass('is-invalid')
+
+            if (!value[0].checkValidity()) {
+                value.addClass('is-invalid')
+                isValid = false
+            }
+        })
+
+        time_step_input.removeClass('is-invalid')
+        if (!time_step_input[0].checkValidity()) {
+            time_step_input.addClass('is-invalid')
+            isValid = false
+        }
+
+        max_results_input.removeClass('is-invalid')
+        if (!max_results_input[0].checkValidity()) {
+            max_results_input.addClass('is-invalid')
+            isValid = false
+        }
+
+        if (!isValid) {
+            return
+        }
+
         step_transition_select.empty()
 
         $.ajax({
