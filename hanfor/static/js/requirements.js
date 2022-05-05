@@ -109,7 +109,6 @@ function store_requirement(requirements_table) {
 
     const req_id = $('#requirement_id').val();
     const req_tags = $('#requirement_tag_field').val();
-    console.log(req_tags);
     const req_status = $('#requirement_status').val();
     const updated_formalization = $('#requirement_modal').data('updated_formalization');
     const associated_row_id = parseInt($('#modal_associated_row_index').val());
@@ -139,6 +138,13 @@ function store_requirement(requirements_table) {
         formalizations[formalization['id']] = formalization;
     });
 
+    let tag_comments = {};
+    $('#requirement_tag_field').tokenfield('getTokens').forEach(function(element) {
+        let comment = $('#tag_comment_input_' + element.value).val();
+        tag_comments[element.value] =  comment;
+    });
+
+
     // Store the requirement.
     $.post("api/req/update",
         {
@@ -146,6 +152,7 @@ function store_requirement(requirements_table) {
             row_idx: associated_row_id,
             update_formalization: updated_formalization,
             tags: req_tags,
+            tags_comments:  JSON.stringify(tag_comments),
             status: req_status,
             formalizations: JSON.stringify(formalizations)
         },
@@ -504,7 +511,7 @@ function add_tag_table_row(tag_name){
     //todo: we need to fill the fields with the actional comments (maybe name the fields and
     // add comments later)
     var table_row = "<tr id='tag_table_" + tag_name + "'>" +
-        "<td>" + tag_name + "</td><td><input type='text' name='comment'></td>";
+        "<td>" + tag_name + "</td><td><input id='tag_comment_input_"+ tag_name +"' type='text' name='comment'></td>";
     $("#tags_comments_table tbody").append(table_row);
     }
 

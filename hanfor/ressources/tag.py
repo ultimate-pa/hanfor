@@ -81,8 +81,8 @@ class Tag(Ressource):
                     if os.path.exists(filepath) and os.path.isfile(filepath):
                         requirement = Requirement.load(filepath)
                         logging.info('Update tags in requirement `{}`'.format(requirement.rid))
-                        requirement.tags.discard(tag_name_old)
-                        requirement.tags.add(tag_name)
+                        comment = requirement.tags.pop(tag_name_old)
+                        requirement.tags[tag_name] = comment
                         requirement.store()
 
             # Store the color into meta settings.
@@ -105,15 +105,15 @@ class Tag(Ressource):
     def DELETE(self):
         tag_name = self.request.form.get('name', '').strip()
         occurences = self.request.form.get('occurences', '').strip().split(',')
-        logging.info('Delete Tag `{}`'.format(tag_name))
+        logging.info(f'Delete Tag `{tag_name}`')
         self.response['has_changes'] = True
 
         if len(occurences) > 0:
             self.response['rebuild_table'] = True
             for rid in occurences:
-                filepath = os.path.join(self.app.config['REVISION_FOLDER'], '{}.pickle'.format(rid))
+                filepath = os.path.join(self.app.config['REVISION_FOLDER'], f'{rid}.pickle')
                 if os.path.exists(filepath) and os.path.isfile(filepath):
                     requirement = Requirement.load(filepath)
-                    logging.info('Delete tag `{}` in requirement `{}`'.format(tag_name, requirement.rid))
-                    requirement.tags.discard(tag_name)
+                    logging.info(f'Delete tag `{tag_name}` in requirement `{requirement.rid}`')
+                    requirement.tags.pop(tag_name)
                     requirement.store()

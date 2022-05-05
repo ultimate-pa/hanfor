@@ -89,7 +89,6 @@ def tools_api(command):
 @nocache
 def table_api():
     result = utils.get_datatable_additional_cols(app)
-
     return jsonify(result)
 
 
@@ -170,8 +169,8 @@ def api(resource, command):
                 try:
                     req = Requirement.load(filename)
                     result['data'].append(req.to_dict())
-                except:
-                    continue
+                except Exception as e:
+                    logging.debug(e)
             return jsonify(result)
 
         # Update a requirement
@@ -187,31 +186,17 @@ def api(resource, command):
                 new_status = request.form.get('status', '')
                 if requirement.status != new_status:
                     requirement.status = new_status
-                    utils.add_msg_to_flask_session_log(
-                        app, 'Set status to `{}` for requirement'.format(new_status), id
-                    )
-                    logging.debug('Requirement status set to `{}`'.format(requirement.status))
+                    utils.add_msg_to_flask_session_log(app, f'Set status to {new_status} for requirement', id)
+                    logging.debug(f'Requirement status set to {requirement.status}')
 
-                new_tag_set = set(t.strip() for t in request.form.get('tags', '').split(','))
+                new_tag_set = {t.strip(): "" for t in request.form.get('tags', '').split(',')}
                 if requirement.tags != new_tag_set:
-                    added_tags = new_tag_set - requirement.tags
-                    removed_tags = requirement.tags - new_tag_set
+                    added_tags = new_tag_set.keys() - requirement.tags.keys()
+                    removed_tags = requirement.tags.keys() - new_tag_set.keys()
                     requirement.tags = new_tag_set
-                    if added_tags:
-                        utils.add_msg_to_flask_session_log(
-                            app, 'Added tags `{}` to requirement'.format(', '.join(added_tags)), id
-
-                        )
-                        logging.debug(
-                            'Added tags `{}` to requirement `{}`'.format(', '.join(added_tags), requirement.tags)
-                        )
-                    if removed_tags:
-                        utils.add_msg_to_flask_session_log(
-                            app, 'Removed tags `{}` from requirement'.format(', '.join(removed_tags)), id
-                        )
-                        logging.debug(
-                            'Removed tags `{}` from requirement `{}`'.format(', '.join(removed_tags), requirement.tags)
-                        )
+                    # do logging
+                    utils.add_msg_to_flask_session_log(app, f'Tags: + {added_tags} and - {removed_tags} to requirement', id)
+                    logging.debug(f'Tags: + {added_tags} and - {removed_tags} to requirement {requirement.tags}')
 
                 # Update formalization.
                 if request.form.get('update_formalization') == 'true':
@@ -297,8 +282,8 @@ def api(resource, command):
                     requirement = Requirement.load_requirement_by_id(rid, app)
                     if requirement is not None:
                         logging.info('Updating requirement `{}`'.format(rid))
-                        requirement.tags.discard(remove_tag)
-                        requirement.tags.add(add_tag)
+                        requirement.tags.pop(remove_tag)
+                        requirement.tags[add_tag] = ""
                         if set_status:
                             requirement.status = set_status
                         requirement.store()
@@ -886,7 +871,7 @@ def varcollection_consistency_check(app, args=None):
 
 
 def requirements_version_migrations(app, args):
-    logging.info('Check requirements consistency.')
+    logging.info('Running requirements version migration...')
     filenames = get_filenames_from_dir(app.config['REVISION_FOLDER'])
     var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
 
@@ -898,6 +883,9 @@ def requirements_version_migrations(app, args):
         changes = False
         if req.formalizations is None:
             req.formalizations = dict()
+            changes = True
+        if isinstance(req.tags, set):
+            req.tags = {tag: "" for tag in req.tags}
             changes = True
         if type(req.type_in_csv) is tuple:
             changes = True
