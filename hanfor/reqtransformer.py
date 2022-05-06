@@ -451,7 +451,7 @@ class Requirement(HanforVersioned, Pickleable):
 
     def update_formalizations(self, formalizations: dict, app):
         if 'Type_inference_error' in self.tags: self.tags.pop('Type_inference_error')
-        logging.debug('Updating formalizatioins of requirement {}.'.format(self.rid))
+        logging.debug(f'Updating formalisations of requirement {self.rid}.')
         variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
         # Reset the var mapping.
         variable_collection.req_var_mapping[self.rid] = set()
@@ -469,7 +469,7 @@ class Requirement(HanforVersioned, Pickleable):
                     variable_collection=variable_collection
                 )
             except Exception as e:
-                logging.error('Could not update Formalization: {}'.format(e.__str__()))
+                logging.error(f'Could not update Formalization: {e.__str__()}')
                 raise e
 
     def reload_type_inference(self, var_collection, app):

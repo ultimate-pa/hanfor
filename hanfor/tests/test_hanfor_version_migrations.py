@@ -128,7 +128,7 @@ class TestHanforVersionMigrations(TestCase):
                     'id': 'SysRS FooXY_42',
                     'row_idx': '0',
                     'update_formalization': 'true',
-                    'tags': '',
+                    'tags': json.dumps({}),
                     'status': 'Todo',
                     'formalizations': json.dumps(update)
                 }
@@ -161,7 +161,7 @@ class TestHanforVersionMigrations(TestCase):
                     'id': 'SysRS FooXY_42',
                     'row_idx': '0',
                     'update_formalization': 'false',
-                    'tags': 'yolo',
+                    'tags': json.dumps({'yolo': ""}),
                     'status': 'Todo',
                     'formalizations': json.dumps(update)
                 }
