@@ -138,12 +138,11 @@ function store_requirement(requirements_table) {
         formalizations[formalization['id']] = formalization;
     });
 
-    let tag_comments = {};
+    let tag_comments = new Map();
     $('#requirement_tag_field').tokenfield('getTokens').forEach(function(element) {
         let comment = $('#tag_comment_input_' + element.value).val();
-        tag_comments[element.value] =  comment;
+        tag_comments.set(element.value, comment);
     });
-
 
     // Store the requirement.
     $.post("api/req/update",
@@ -151,8 +150,7 @@ function store_requirement(requirements_table) {
             id: req_id,
             row_idx: associated_row_id,
             update_formalization: updated_formalization,
-            tags: req_tags,
-            tags_comments:  JSON.stringify(tag_comments),
+            tags: JSON.stringify(Object.fromEntries(tag_comments)),
             status: req_status,
             formalizations: JSON.stringify(formalizations)
         },
@@ -511,20 +509,27 @@ function add_tag_table_row(tag_name){
     //todo: we need to fill the fields with the actional comments (maybe name the fields and
     // add comments later)
     var table_row = "<tr id='tag_table_" + tag_name + "'>" +
-        "<td>" + tag_name + "</td><td><input id='tag_comment_input_"+ tag_name +"' type='text' name='comment'></td>";
+        "<td>" + tag_name + "</td>" +
+        "<td><textarea rows='1' class='form-control w-100' id='tag_comment_input_" + tag_name + "' type='text'>" +
+            "</textarea>" +
+        "</td>";
     $("#tags_comments_table tbody").append(table_row);
     }
 
 function bind_tag_field_events(){
     $("#requirement_tag_field")
+        .on('tokenfield:createtoken',
+            function(e) {
+                // Check token for dublicates and well-formednes
+                if (!/^[a-zA-Z][a-zA-Z0-9_\-?]*$/.test(e.attrs.value)) return false;
+                let existingTokens = $(this).tokenfield('getTokens');
+                for (const token of existingTokens) {
+                    if (e.attrs.value === token.value) return false;
+                }
+            })
         .on('tokenfield:createdtoken',
             function(e){
-                let existingTokens = $(this).tokenfield('getTokens');
-                    $.each(existingTokens, function (index, tag_name) {
-                        if (tag_name.value === e.attrs.value)
-                            e.preventDefault();
-                    });
-                   add_tag_table_row(e.attrs.value);
+               add_tag_table_row(e.attrs.value);
             }
         )
         .on('tokenfield:removedtoken',
@@ -560,7 +565,6 @@ function load_requirement(row_idx) {
             alert('Could Not load the Requirement: ' + data.errormsg);
             return;
         }
-
         // Meta information
         $('#requirement_id').val(data.id);
         $('#modal_associated_row_index').val(row_idx);
@@ -583,14 +587,18 @@ function load_requirement(row_idx) {
         // remove all lines from the tag comment table
         $('#tags_comments_table').find("tr:gt(0)").remove();
         // Set the tags
-        $('#requirement_tag_field').tokenfield('setTokens', data.tags);
+        $('#requirement_tag_field').tokenfield('setTokens', data.tags)
+        //todo: this
+        for (const tag of data.tags){
+            $('#tag_comment_input_' + tag).val(data.tags_comments[tag])
+        }
         $('#requirement_status').val(data.status);
-
         // Set csv_data
         let csv_row_content = $('#csv_content_accordion');
         csv_row_content.html('');
         csv_row_content.collapse('hide');
         let csv_data = data.csv_data;
+        //todo : this
         for (const key in csv_data) {
             if (csv_data.hasOwnProperty(key)) {
                 const value = csv_data[key];

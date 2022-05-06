@@ -250,42 +250,32 @@ def api(resource, command):
 
             # Update all requirements given by the rid_list
             if result['success']:
-                log_msg = 'Update {} requirements.'.format(len(rid_list))
+                log_msg = f'Update {len(rid_list)} requirements.'
                 if len(add_tag) > 0:
-                    log_msg += ' Adding tag `{}`'.format(add_tag)
+                    log_msg += f'Adding tag `{add_tag}`'
                     utils.add_msg_to_flask_session_log(
-                        app, 'Adding tag `{}` to requirements.'.format(
-                            add_tag
-                        ),
-                        rid_list=rid_list
-                    )
+                        app, f'Adding tag `{add_tag}` to requirements.', rid_list=rid_list)
                 if len(remove_tag) > 0:
-                    log_msg += ', removing Tag `{}` (is present)'.format(remove_tag)
+                    log_msg += f', removing Tag `{remove_tag}` (is present)'
                     utils.add_msg_to_flask_session_log(
-                        app, 'Removing tag `{}` from requirements.'.format(
-                            remove_tag
-                        ),
-                        rid_list=rid_list
-                    )
+                        app, f'Removing tag `{remove_tag}` from requirements.', rid_list=rid_list)
                 if len(set_status) > 0:
                     log_msg += ', set Status=`{}`.'.format(set_status)
                     utils.add_msg_to_flask_session_log(
-                        app, 'Set status to `{}` for requirements. '.format(
-                            set_status
-                        ),
-                        rid_list=rid_list
-                    )
+                        app, f'Set status to `{set_status}` for requirements. ', rid_list=rid_list)
                 logging.info(log_msg)
 
                 for rid in rid_list:
                     requirement = Requirement.load_requirement_by_id(rid, app)
-                    if requirement is not None:
-                        logging.info('Updating requirement `{}`'.format(rid))
+                    if requirement is None: continue
+                    logging.info(f'Updating requirement `{rid}`')
+                    if (remove_tag in requirement.tags):
                         requirement.tags.pop(remove_tag)
+                    if add_tag and add_tag not in requirement.tags:
                         requirement.tags[add_tag] = ""
-                        if set_status:
-                            requirement.status = set_status
-                        requirement.store()
+                    if set_status:
+                        requirement.status = set_status
+                    requirement.store()
 
             return jsonify(result)
 
