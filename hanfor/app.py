@@ -181,7 +181,7 @@ def api(resource, command):
             error_msg = ''
 
             if requirement:
-                logging.debug('Updating requirement: {}'.format(requirement.rid))
+                logging.debug(f'Updating requirement: {requirement.rid}')
 
                 new_status = request.form.get('status', '')
                 if requirement.status != new_status:
@@ -189,7 +189,7 @@ def api(resource, command):
                     utils.add_msg_to_flask_session_log(app, f'Set status to {new_status} for requirement', id)
                     logging.debug(f'Requirement status set to {requirement.status}')
 
-                new_tag_set = {t.strip(): "" for t in request.form.get('tags', '').split(',')}
+                new_tag_set = json.loads(request.form.get('tags', ''))
                 if requirement.tags != new_tag_set:
                     added_tags = new_tag_set.keys() - requirement.tags.keys()
                     removed_tags = requirement.tags.keys() - new_tag_set.keys()
@@ -207,16 +207,15 @@ def api(resource, command):
                         utils.add_msg_to_flask_session_log(app, 'Updated requirement formalization', id)
                     except KeyError as e:
                         error = True
-                        error_msg = 'Could not set formalization: Missing expression/variable for {}'.format(e)
+                        error_msg = f'Could not set formalization: Missing expression/variable for {e}'
                     except Exception as e:
                         error = True
-                        error_msg = 'Could not parse formalization: `{}`'.format(e)
+                        error_msg = f'Could not parse formalization: `{e}`'
                 else:
                     logging.debug('Skipping formalization update.')
 
                 if error:
-                    logging.error('We got an error parsing the expressions: {}. Omitting requirement update.'.format(
-                        error_msg))
+                    logging.error(f'We got an error parsing the expressions: {error_msg}. Omitting requirement update.')
                     return jsonify({
                         'success': False,
                         'errormsg': error_msg

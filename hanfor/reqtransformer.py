@@ -14,7 +14,7 @@ import re
 import string
 import subprocess
 
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
@@ -278,12 +278,12 @@ class Requirement(HanforVersioned, Pickleable):
         HanforVersioned.__init__(self)
         Pickleable.__init__(self, None)
         self.rid = rid
-        self.formalizations = dict()  # type: Dict[int, Formalization]
+        self.formalizations: Dict[int, Formalization] = dict()
         self.description = description
         self.type_in_csv = type_in_csv
         self.csv_row = csv_row
         self.pos_in_csv = pos_in_csv
-        self.tags = dict()
+        self.tags: OrderedDict[str, str] = OrderedDict()
         self.status = 'Todo'
         self._revision_diff = dict()
 
@@ -301,7 +301,8 @@ class Requirement(HanforVersioned, Pickleable):
             'id': self.rid,
             'desc': self.description,
             'type': self.type_in_csv if type(self.type_in_csv) is str else self.type_in_csv[0],
-            'tags': sorted(list(self.tags)),
+            'tags': list(self.tags.keys()), # this is because api reasons
+            'tags_comments': self.tags,
             'formal': [f.get_string() for f in self.formalizations.values()],
             'scope': 'None',  # TODO: remove: This is obsolete since a requirement can hold multiple Formalizations.
             'pattern': 'None',  # TODO: remove: This is obsolete since a requirement can hold multiple Formalizations.
@@ -449,7 +450,7 @@ class Requirement(HanforVersioned, Pickleable):
             self.tags['Type_inference_error'] = ""
 
     def update_formalizations(self, formalizations: dict, app):
-        self.tags.pop('Type_inference_error')
+        if 'Type_inference_error' in self.tags: self.tags.pop('Type_inference_error')
         logging.debug('Updating formalizatioins of requirement {}.'.format(self.rid))
         variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
         # Reset the var mapping.
