@@ -303,7 +303,6 @@ class Requirement(HanforVersioned, Pickleable):
             'id': self.rid,
             'desc': self.description,
             'type': self.type_in_csv if type(self.type_in_csv) is str else self.type_in_csv[0],
-            'tags': [tag for tag in self.tags],
             'tags': list(self.tags.keys()), 
             'tags_comments': self.tags,
             'formal': [f.get_string() for f in self.formalizations.values()],
