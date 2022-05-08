@@ -874,7 +874,8 @@ def requirements_version_migrations(app, args):
             req.formalizations = dict()
             changes = True
         if isinstance(req.tags, set):
-            req.tags = {tag: "" for tag in req.tags}
+            sanitize = lambda t: t.strip().replace(" ","_").replace("<","geq").replace(">","geq")
+            req.tags = {sanitize(tag): "" for tag in req.tags}
             changes = True
         if type(req.type_in_csv) is tuple:
             changes = True
@@ -1138,7 +1139,7 @@ def fetch_hanfor_version():
         app.config['HANFOR_COMMIT_HASH'] = subprocess.check_output(
             ['git', 'rev-parse', 'HEAD']).decode("utf-8").strip()
     except Exception as e:
-        logging.info('Could not get Hanfor version. Is git installed and Hanfor run from its repo?: {}'.format(e))
+        logging.info(f'Could not get Hanfor version. Is git installed and Hanfor run from its repo?: {e}')
         app.config['HANFOR_VERSION'] = '?'
         app.config['HANFOR_COMMIT_HASH'] = '?'
 

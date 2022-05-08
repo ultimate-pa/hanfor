@@ -23,7 +23,7 @@ from flask import current_app
 from config import PATTERNS
 from static_utils import choice, get_filenames_from_dir, replace_prefix
 from threading import Thread
-from typing import Dict
+from typing import Dict, Tuple
 
 __version__ = '1.0.3'
 
@@ -348,7 +348,7 @@ class Requirement(HanforVersioned, Pickleable):
         for filename in filenames:
             try:
                 yield cls.load(filename)
-            except:
+            except Exception:
                 logging.error(f'Loading {filename} failed spectaularly!')
 
     def store(self, path=None):
@@ -385,21 +385,12 @@ class Requirement(HanforVersioned, Pickleable):
             i += 1
         return i
 
-    def add_empty_formalization(self):
-        """ Add an empty formalization to the formalizations list.
-
-        :return: The id of the requirement (pos in list)
-        :rtype: int
-        """
+    def add_empty_formalization(self) -> Tuple[int, 'Formalization']:
+        """ Add an empty formalization to the formalizations list."""
         return self.add_formalization(Formalization())
 
-    def add_formalization(self, formalization):
-        """ Add given formalization to this requirement
-
-        :type formalization: Formalization
-        :param formalization: The Formalization
-        :return: (int, Formalization) The formalization ID and the Formalization itself.
-        """
+    def add_formalization(self, formalization: 'Formalization') -> Tuple[int, 'Formalization']:
+        """ Add given formalization to this requirement."""
         if self.formalizations is None:
             self.formalizations = dict()
 
@@ -490,7 +481,7 @@ class Requirement(HanforVersioned, Pickleable):
         # TODO: implement this. (Used to print the whole formalization into the csv).
         return ''
 
-    def get_formalizations_json(self):
+    def get_formalizations_json(self) -> str:
         """ Fetch all formalizations in json format. Used to reload formalizations.
 
         Returns:
