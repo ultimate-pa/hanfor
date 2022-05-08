@@ -686,7 +686,8 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
         work_sheet.cell(HEADER_OFFSET + i, 2, requirement.rid)
         work_sheet.cell(HEADER_OFFSET + i, 3, requirement.description)
         work_sheet.cell(HEADER_OFFSET + i, 4, requirement.type_in_csv)
-        work_sheet.cell(HEADER_OFFSET + i, 5, "".join([f"{t}: {c} \n" for t, c in requirement.tags.items()]))
+        work_sheet.cell(HEADER_OFFSET + i, 5, ""
+                        .join([f"{t}: {c} \n" if c else f"{t}\n" for t, c in requirement.tags.items()]))
         work_sheet.cell(HEADER_OFFSET + i, 6, requirement.status)
         work_sheet.cell(HEADER_OFFSET + i, 7,
                          "\n".join([f.get_string() for f in requirement.formalizations.values()]))
