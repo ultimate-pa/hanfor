@@ -140,13 +140,19 @@ function store_requirement(requirements_table) {
         formalizations[formalization['id']] = formalization;
     });
 
+    let tag_comments = new Map();
+    $('#requirement_tag_field').tokenfield('getTokens').forEach(function(element) {
+        let comment = $('#tag_comment_input_' + element.value).val();
+        tag_comments.set(element.value, comment);
+    });
+
     // Store the requirement.
     $.post("api/req/update",
         {
             id: req_id,
             row_idx: associated_row_id,
             update_formalization: updated_formalization,
-            tags: req_tags,
+            tags: JSON.stringify(Object.fromEntries(tag_comments)),
             status: req_status,
             formalizations: JSON.stringify(formalizations)
         },
@@ -375,35 +381,6 @@ function update_formalization() {
 }
 
 
-function add_formalization() {
-    // Request a new Formalization. And add its edit elements to the modal.
-    let requirement_modal_content = $('.modal-content');
-    requirement_modal_content.LoadingOverlay('show');
-
-    const req_id = $('#requirement_id').val();
-    $.post("api/req/new_formalization",
-        {
-            id: req_id
-        },
-        function (data) {
-            requirement_modal_content.LoadingOverlay('hide', true);
-            if (data['success'] === false) {
-                alert(data['errormsg']);
-            } else {
-                let formalization = $(data['html']);
-                formalization.find('.reqirement-variable').each(function () {
-                    add_var_autocomplete(this);
-                });
-                formalization.appendTo('#formalization_accordion');
-            }
-        }).done(function () {
-        update_vars();
-        update_formalization();
-        update_logs();
-    });
-}
-
-
 function add_formalization_from_guess(scope, pattern, mapping) {
     // Request a new Formalization. And add its edit elements to the modal.
     let requirement_modal_content = $('.modal-content');
@@ -530,15 +507,39 @@ function bind_var_autocomplete() {
     });
 }
 
+function add_tag_table_row(tag_name){
+    //todo: we need to fill the fields with the actional comments (maybe name the fields and
+    // add comments later)
+    var table_row = "<tr id='tag_table_" + tag_name + "'>" +
+        "<td>" + tag_name + "</td>" +
+        "<td><textarea rows='1' class='form-control w-100' id='tag_comment_input_" + tag_name + "' type='text'>" +
+            "</textarea>" +
+        "</td>";
+    $("#tags_comments_table tbody").append(table_row);
+    }
 
-function prevent_double_token_insert() {
-    $('#requirement_tag_field').on('tokenfield:createtoken', function (event) {
+function bind_tag_field_events(){
+    $("#requirement_tag_field")
+        .on('tokenfield:createtoken',
+            function(e) {
+                // Check token for dublicates and well-formednes
+                if (!/^[a-zA-Z][a-zA-Z0-9_\-?]*$/.test(e.attrs.value)) return false;
         let existingTokens = $(this).tokenfield('getTokens');
-        $.each(existingTokens, function (index, token) {
-            if (token.value === event.attrs.value)
-                event.preventDefault();
-        });
-    });
+                for (const token of existingTokens) {
+                    if (e.attrs.value === token.value) return false;
+                }
+            })
+        .on('tokenfield:createdtoken',
+            function(e){
+               add_tag_table_row(e.attrs.value);
+            }
+        )
+        .on('tokenfield:removedtoken',
+            function(e){
+                var tag_name = e.attrs.value;
+                $("#tag_table_" + tag_name).remove();
+            }
+        )
 }
 
 
@@ -566,7 +567,6 @@ function load_requirement(row_idx) {
             alert('Could Not load the Requirement: ' + data.errormsg);
             return;
         }
-
         // Meta information
         $('#requirement_id').val(data.id);
         $('#modal_associated_row_index').val(row_idx);
@@ -586,10 +586,14 @@ function load_requirement(row_idx) {
         $('#requirement_scope').val(data.scope);
         $('#requirement_pattern').val(data.pattern);
 
+        // remove all lines from the tag comment table
+        $('#tags_comments_table').find("tr:gt(0)").remove();
         // Set the tags
-        $('#requirement_tag_field').tokenfield('setTokens', data.tags);
+        $('#requirement_tag_field').tokenfield('setTokens', data.tags)
+        for (const tag of data.tags){
+            $('#tag_comment_input_' + tag).val(data.tags_comments[tag])
+        }
         $('#requirement_status').val(data.status);
-
         // Set csv_data
         let csv_row_content = $('#csv_content_accordion');
         csv_row_content.html('');
@@ -635,13 +639,8 @@ function load_requirement(row_idx) {
         });
 
     }).done(function () {
-        // Update visible Vars.
         update_vars();
-        // Handle autocompletion for variables.
         bind_var_autocomplete();
-        // Update available vars based on the selection of requirement and pattern.
-        // Prevent inserting a token twice on enter
-        prevent_double_token_insert();
         update_formalization();
         $('#requirement_modal').data({
             'unsaved_changes': false,
@@ -650,6 +649,7 @@ function load_requirement(row_idx) {
         requirement_modal_content.LoadingOverlay('hide', true);
     });
 }
+
 
 /**
  * Bind the Links to open a requirement modal.
@@ -1493,4 +1493,5 @@ $(document).ready(function () {
         autosize($(this));
         autosize.update($(this));
     });
+    bind_tag_field_events();
 });

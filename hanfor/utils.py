@@ -690,7 +690,8 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
         work_sheet.cell(HEADER_OFFSET + i, 2, requirement.rid)
         work_sheet.cell(HEADER_OFFSET + i, 3, requirement.description)
         work_sheet.cell(HEADER_OFFSET + i, 4, requirement.type_in_csv)
-        work_sheet.cell(HEADER_OFFSET + i, 5, "".join([f"{tag}: \n" for tag in requirement.tags]))
+        work_sheet.cell(HEADER_OFFSET + i, 5, ""
+                        .join([f"{t}: {c} \n" if c else f"{t}\n" for t, c in requirement.tags.items()]))
         work_sheet.cell(HEADER_OFFSET + i, 6, requirement.status)
         work_sheet.cell(HEADER_OFFSET + i, 7,
                          "\n".join([f.get_string() for f in requirement.formalizations.values()]))
@@ -732,7 +733,7 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
         tag_sheet.cell(HEADER_OFFSET + i, 2, req.rid)
         tag_sheet.cell(HEADER_OFFSET + i, 3, req.description)
         tag_sheet.cell(HEADER_OFFSET + i, 4, tag)
-        tag_sheet.cell(HEADER_OFFSET + i, 5, "") # Tags do currently not have comments
+        tag_sheet.cell(HEADER_OFFSET + i, 5, req.tags[tag]) # Tags do currently not have comments
         tag_sheet.cell(HEADER_OFFSET + i, 6, "TODO")
         tag_sheet.cell(HEADER_OFFSET + i, 7, "TODO")
 
@@ -1527,9 +1528,7 @@ class Revision:
             # Tag newly introduced requirements.
             if rid not in old_reqs.keys():
                 logging.info('Add newly introduced requirement `{}`'.format(rid))
-                new_reqs[rid]['req'].tags.add(
-                    '{}_to_{}_new_requirement'.format(self.base_revision_name, self.revision_name)
-                )
+                new_reqs[rid]['req'].tags[f'{self.base_revision_name}_to_{self.revision_name}_new_requirement'] = ""
                 continue
 
             # Migrate tags and status.
@@ -1538,19 +1537,12 @@ class Revision:
             new_reqs[rid]['req'].revision_diff = old_reqs[rid]['req']
 
             if len(new_reqs[rid]['req'].revision_diff) > 0:
-                logging.info(
-                    'CSV entry changed. Add `revision_data_changed` tag to `{}`.'.format(rid)
-                )
-                new_reqs[rid]['req'].tags.add(
-                    '{}_to_{}_data_changed'.format(self.base_revision_name, self.revision_name)
-                )
+                logging.info(f'CSV entry changed. Add `revision_data_changed` tag to `{rid}`.')
+                new_reqs[rid]['req'].tags[f'{self.base_revision_name}_to_{self.revision_name}_data_changed'] = ""
 
             if new_reqs[rid]['req'].description != old_reqs[rid]['req'].description:
-                logging.info(
-                    'Description changed. Add `description_changed` tag to `{}`.'.format(rid)
-                )
-                new_reqs[rid]['req'].tags.add(
-                    '{}_to_{}_description_changed'.format(self.base_revision_name, self.revision_name))
+                logging.info(f'Description changed. Add `description_changed` tag to `{rid}`.')
+                new_reqs[rid]['req'].tags[f'{self.base_revision_name}_to_{self.revision_name}_description_changed'] = ""
                 new_reqs[rid]['req'].status = 'Todo'
 
             # If the new formalization is empty: just migrate the formalization.

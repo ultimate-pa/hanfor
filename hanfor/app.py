@@ -102,7 +102,6 @@ def tools_api(command):
 @nocache
 def table_api():
     result = utils.get_datatable_additional_cols(app)
-
     return jsonify(result)
 
 
@@ -181,8 +180,8 @@ def api(resource, command):
                 try:
                     req = Requirement.load(filename)
                     result['data'].append(req.to_dict())
-                except:
-                    continue
+                except Exception as e:
+                    logging.debug(e)
             return jsonify(result)
 
         # Update a requirement
@@ -193,35 +192,22 @@ def api(resource, command):
             error_msg = ''
 
             if requirement:
-                logging.debug('Updating requirement: {}'.format(requirement.rid))
+                logging.debug(f'Updating requirement: {requirement.rid}')
 
                 new_status = request.form.get('status', '')
                 if requirement.status != new_status:
                     requirement.status = new_status
-                    utils.add_msg_to_flask_session_log(
-                        app, 'Set status to `{}` for requirement'.format(new_status), id
-                    )
-                    logging.debug('Requirement status set to `{}`'.format(requirement.status))
+                    utils.add_msg_to_flask_session_log(app, f'Set status to {new_status} for requirement', id)
+                    logging.debug(f'Requirement status set to {requirement.status}')
 
-                new_tag_set = set(t.strip() for t in request.form.get('tags', '').split(','))
+                new_tag_set = json.loads(request.form.get('tags', ''))
                 if requirement.tags != new_tag_set:
-                    added_tags = new_tag_set - requirement.tags
-                    removed_tags = requirement.tags - new_tag_set
+                    added_tags = new_tag_set.keys() - requirement.tags.keys()
+                    removed_tags = requirement.tags.keys() - new_tag_set.keys()
                     requirement.tags = new_tag_set
-                    if added_tags:
-                        utils.add_msg_to_flask_session_log(
-                            app, 'Added tags `{}` to requirement'.format(', '.join(added_tags)), id
-                        )
-                        logging.debug(
-                            'Added tags `{}` to requirement `{}`'.format(', '.join(added_tags), requirement.tags)
-                        )
-                    if removed_tags:
-                        utils.add_msg_to_flask_session_log(
-                            app, 'Removed tags `{}` from requirement'.format(', '.join(removed_tags)), id
-                        )
-                        logging.debug(
-                            'Removed tags `{}` from requirement `{}`'.format(', '.join(removed_tags), requirement.tags)
-                        )
+                    # do logging
+                    utils.add_msg_to_flask_session_log(app, f'Tags: + {added_tags} and - {removed_tags} to requirement', id)
+                    logging.debug(f'Tags: + {added_tags} and - {removed_tags} to requirement {requirement.tags}')
 
                 # Update formalization.
                 if request.form.get('update_formalization') == 'true':
@@ -232,16 +218,15 @@ def api(resource, command):
                         utils.add_msg_to_flask_session_log(app, 'Updated requirement formalization', id)
                     except KeyError as e:
                         error = True
-                        error_msg = 'Could not set formalization: Missing expression/variable for {}'.format(e)
+                        error_msg = f'Could not set formalization: Missing expression/variable for {e}'
                     except Exception as e:
                         error = True
-                        error_msg = 'Could not parse formalization: `{}`'.format(e)
+                        error_msg = f'Could not parse formalization: `{e}`'
                 else:
                     logging.debug('Skipping formalization update.')
 
                 if error:
-                    logging.error('We got an error parsing the expressions: {}. Omitting requirement update.'.format(
-                        error_msg))
+                    logging.error(f'We got an error parsing the expressions: {error_msg}. Omitting requirement update.')
                     return jsonify({
                         'success': False,
                         'errormsg': error_msg
@@ -276,42 +261,32 @@ def api(resource, command):
 
             # Update all requirements given by the rid_list
             if result['success']:
-                log_msg = 'Update {} requirements.'.format(len(rid_list))
+                log_msg = f'Update {len(rid_list)} requirements.'
                 if len(add_tag) > 0:
-                    log_msg += ' Adding tag `{}`'.format(add_tag)
+                    log_msg += f'Adding tag `{add_tag}`'
                     utils.add_msg_to_flask_session_log(
-                        app, 'Adding tag `{}` to requirements.'.format(
-                            add_tag
-                        ),
-                        rid_list=rid_list
-                    )
+                        app, f'Adding tag `{add_tag}` to requirements.', rid_list=rid_list)
                 if len(remove_tag) > 0:
-                    log_msg += ', removing Tag `{}` (is present)'.format(remove_tag)
+                    log_msg += f', removing Tag `{remove_tag}` (is present)'
                     utils.add_msg_to_flask_session_log(
-                        app, 'Removing tag `{}` from requirements.'.format(
-                            remove_tag
-                        ),
-                        rid_list=rid_list
-                    )
+                        app, f'Removing tag `{remove_tag}` from requirements.', rid_list=rid_list)
                 if len(set_status) > 0:
                     log_msg += ', set Status=`{}`.'.format(set_status)
                     utils.add_msg_to_flask_session_log(
-                        app, 'Set status to `{}` for requirements. '.format(
-                            set_status
-                        ),
-                        rid_list=rid_list
-                    )
+                        app, f'Set status to `{set_status}` for requirements. ', rid_list=rid_list)
                 logging.info(log_msg)
 
                 for rid in rid_list:
                     requirement = Requirement.load_requirement_by_id(rid, app)
-                    if requirement is not None:
-                        logging.info('Updating requirement `{}`'.format(rid))
-                        requirement.tags.discard(remove_tag)
-                        requirement.tags.add(add_tag)
-                        if set_status:
-                            requirement.status = set_status
-                        requirement.store()
+                    if requirement is None: continue
+                    logging.info(f'Updating requirement `{rid}`')
+                    if (remove_tag in requirement.tags):
+                        requirement.tags.pop(remove_tag)
+                    if add_tag and add_tag not in requirement.tags:
+                        requirement.tags[add_tag] = ""
+                    if set_status:
+                        requirement.status = set_status
+                    requirement.store()
 
             return jsonify(result)
 
@@ -900,7 +875,7 @@ def varcollection_consistency_check(app, args=None):
 
 
 def requirements_version_migrations(app, args):
-    logging.info('Check requirements consistency.')
+    logging.info('Running requirements version migration...')
     filenames = get_filenames_from_dir(app.config['REVISION_FOLDER'])
     var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
 
@@ -912,6 +887,10 @@ def requirements_version_migrations(app, args):
         changes = False
         if req.formalizations is None:
             req.formalizations = dict()
+            changes = True
+        if isinstance(req.tags, set):
+            sanitize = lambda t: t.strip().replace(" ","_").replace("<","geq").replace(">","geq")
+            req.tags = {sanitize(tag): "" for tag in req.tags}
             changes = True
         if type(req.type_in_csv) is tuple:
             changes = True
@@ -1175,7 +1154,7 @@ def fetch_hanfor_version():
         app.config['HANFOR_COMMIT_HASH'] = subprocess.check_output(
             ['git', 'rev-parse', 'HEAD']).decode("utf-8").strip()
     except Exception as e:
-        logging.info('Could not get Hanfor version. Is git installed and Hanfor run from its repo?: {}'.format(e))
+        logging.info(f'Could not get Hanfor version. Is git installed and Hanfor run from its repo?: {e}')
         app.config['HANFOR_VERSION'] = '?'
         app.config['HANFOR_COMMIT_HASH'] = '?'
 

@@ -12,7 +12,7 @@ import pickle
 import re
 import string
 import subprocess
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
@@ -24,6 +24,8 @@ from flask import current_app
 import boogie_parsing
 from patterns import PATTERNS
 from static_utils import choice, get_filenames_from_dir, replace_prefix
+from threading import Thread
+from typing import Dict, Tuple
 
 __version__ = '1.0.3'
 
@@ -248,8 +250,8 @@ class RequirementCollection(HanforVersioned, Pickleable):
             if self.csv_meta['import_formalizations']:
                 # Set the tags
                 if self.csv_meta['tags_header'] is not None:
-                    tags = [t.strip() for t in row[self.csv_meta['tags_header']].split(',')]
-                    requirement.tags = requirement.tags.union(tags)
+                    tags = {t.strip(): "" for t in row[self.csv_meta['tags_header']].split(',')}
+                    requirement.tags = requirement.tags.update(tags)
                 # Set the status
                 if self.csv_meta['status_header'] is not None:
                     status = row[self.csv_meta['status_header']].strip()
@@ -278,12 +280,12 @@ class Requirement(HanforVersioned, Pickleable):
         HanforVersioned.__init__(self)
         Pickleable.__init__(self, None)
         self.rid = id
-        self.formalizations = dict()  # type: Dict[int, Formalization]
+        self.formalizations: Dict[int, Formalization] = dict()
         self.description = description
         self.type_in_csv = type_in_csv
         self.csv_row = csv_row
         self.pos_in_csv = pos_in_csv
-        self.tags = set()
+        self.tags: OrderedDict[str, str] = OrderedDict()
         self.status = 'Todo'
         self._revision_diff = dict()
 
@@ -301,7 +303,9 @@ class Requirement(HanforVersioned, Pickleable):
             'id': self.rid,
             'desc': self.description,
             'type': self.type_in_csv if type(self.type_in_csv) is str else self.type_in_csv[0],
-            'tags': sorted([tag for tag in self.tags]),
+            'tags': [tag for tag in self.tags],
+            'tags': list(self.tags.keys()), 
+            'tags_comments': self.tags,
             'formal': [f.get_string() for f in self.formalizations.values()],
             'scope': 'None',  # TODO: remove: This is obsolete since a requirement can hold multiple Formalizations.
             'pattern': 'None',  # TODO: remove: This is obsolete since a requirement can hold multiple Formalizations.
@@ -315,7 +319,7 @@ class Requirement(HanforVersioned, Pickleable):
         return d
 
     @classmethod
-    def load_requirement_by_id(cls, id, app) -> 'Requirement':
+    def load_requirement_by_id(cls, id: str, app) -> 'Requirement':
         """ Loads requirement from session folder if it exists.
 
         :param id: requirement_id
@@ -334,11 +338,7 @@ class Requirement(HanforVersioned, Pickleable):
             raise TypeError
 
         if me.has_version_mismatch:
-            logging.info('`{}` needs upgrade `{}` -> `{}`'.format(
-                me,
-                me.hanfor_version,
-                __version__
-            ))
+            logging.info(f'`{me}` needs upgrade `{me.hanfor_version}` -> `{__version__}`')
             me.run_version_migrations()
             me.store()
 
@@ -346,15 +346,13 @@ class Requirement(HanforVersioned, Pickleable):
 
     @classmethod
     def requirements(cls):
-        """ Iterator for all requirements.
-
-        """
+        """ Iterator for all requirements."""
         filenames = get_filenames_from_dir(current_app.config['REVISION_FOLDER'])
         for filename in filenames:
             try:
                 yield cls.load(filename)
-            except:
-                continue
+            except Exception:
+                logging.error(f'Loading {filename} failed spectaularly!')
 
     def store(self, path=None):
         super().store(path)
@@ -398,21 +396,12 @@ class Requirement(HanforVersioned, Pickleable):
             i += 1
         return i
 
-    def add_empty_formalization(self):
-        """ Add an empty formalization to the formalizations list.
-
-        :return: The id of the requirement (pos in list)
-        :rtype: int
-        """
+    def add_empty_formalization(self) -> Tuple[int, 'Formalization']:
+        """ Add an empty formalization to the formalizations list."""
         return self.add_formalization(Formalization())
 
-    def add_formalization(self, formalization):
-        """ Add given formalization to this requirement
-
-        :type formalization: Formalization
-        :param formalization: The Formalization
-        :return: (int, Formalization) The formalization ID and the Formalization itself.
-        """
+    def add_formalization(self, formalization: 'Formalization') -> Tuple[int, 'Formalization']:
+        """ Add given formalization to this requirement."""
         if self.formalizations is None:
             self.formalizations = dict()
 
@@ -461,11 +450,11 @@ class Requirement(HanforVersioned, Pickleable):
             logging.debug('Type inference Error in formalization at {}.'.format(
                 [n for n in self.formalizations[formalization_id].type_inference_errors.keys()]
             ))
-            self.tags.add('Type_inference_error')
+            self.tags['Type_inference_error'] = ""
 
     def update_formalizations(self, formalizations: dict, app):
-        self.tags.discard('Type_inference_error')
-        logging.debug('Updating formalizatioins of requirement {}.'.format(self.rid))
+        if 'Type_inference_error' in self.tags: self.tags.pop('Type_inference_error')
+        logging.debug(f'Updating formalisations of requirement {self.rid}.')
         variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
         # Reset the var mapping.
         variable_collection.req_var_mapping[self.rid] = set()
@@ -483,31 +472,28 @@ class Requirement(HanforVersioned, Pickleable):
                     variable_collection=variable_collection
                 )
             except Exception as e:
-                logging.error('Could not update Formalization: {}'.format(e.__str__()))
+                logging.error(f'Could not update Formalization: {e.__str__()}')
                 raise e
 
     def reload_type_inference(self, var_collection, app):
         logging.info('Reload type inference for `{}`'.format(self.rid))
-        self.tags.discard('Type_inference_error')
+        self.tags.pop('Type_inference_error')
         for id in self.formalizations.keys():
             try:
                 self.formalizations[id].type_inference_check(var_collection)
                 if len(self.formalizations[id].type_inference_errors) > 0:
-                    self.tags.add('Type_inference_error')
+                    # todo: use information about the type inference to update tag
+                    self.tags.add['Type_inference_error'] = ""
             except AttributeError as e:
                 # Probably No pattern set.
-                logging.info('Could not derive type inference for requirement `{}`, Formalization No. {}. {}'.format(
-                    self.rid,
-                    id,
-                    e
-                ))
+                logging.info(f'Could not derive type inference for requirement `{self.rid}`, Formalization No. {id}. {e}')
         self.store()
 
     def get_formalization_string(self):
         # TODO: implement this. (Used to print the whole formalization into the csv).
         return ''
 
-    def get_formalizations_json(self):
+    def get_formalizations_json(self) -> str:
         """ Fetch all formalizations in json format. Used to reload formalizations.
 
         Returns:
@@ -528,8 +514,7 @@ class Requirement(HanforVersioned, Pickleable):
             # Migrate list formalizations to use dict
             self.hanfor_version = '1.0.0'
             if type(self.formalizations) is list:
-                formalizations = dict(enumerate(self.formalizations))
-                self.formalizations = formalizations
+                self.formalizations = dict(enumerate(self.formalizations))
             self.store()
         super().run_version_migrations()
 

@@ -241,7 +241,7 @@ class TestEnums(TestCase):
                 'id': 'SysRS FooXY_91',
                 'row_idx': '1',
                 'update_formalization': 'true',
-                'tags': 'unseen',
+                'tags': json.dumps({"unseen": ""}),
                 'status': 'Todo',
                 'formalizations': json.dumps(update)
             }

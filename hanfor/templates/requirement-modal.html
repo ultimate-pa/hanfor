@@ -37,12 +37,25 @@
                     </button>
                 </h5>
                 <div id="formalization_accordion"></div>
-                <h5 class="top-padding">Tags</h5>
+                <h5 class="top-padding">Tag</h5>
+
                 <div class="input-group">
                     <input type="text" class="form-control" id="requirement_tag_field" value=""
                            aria-label="Tags" aria-describedby="requirement-tags-addon">
                 </div>
                 <label for="requirement_tag_field">Hit "Enter" to actually set a new tag.</label>
+
+                <table class="table table-sm" id="tags_comments_table">
+                  <thead>
+                    <tr>
+                      <th class="col-2" scope="col">Tag</th>
+                      <th scope="col">Comment</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+
                 <h5>Status</h5>
                 <div class="form-group">
                     <div class="row form-inline">
@@ -113,6 +126,7 @@
                     <span class="sr-only">Close</span>
                 </button>
             </div>
+
             <div class="modal-body">
                 <h6>Description</h6>
                 <div class="form-group">

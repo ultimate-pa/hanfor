@@ -4,6 +4,7 @@ Test initializing a new plain hanfor session from csv.
 Init a new session from ./test_sessions/test_init/simple.csv
 Check if API api/req/gets returns correct requirements.
 """
+import json
 
 from app import app, api, set_session_config_vars, create_revision, startup_hanfor
 import os
@@ -84,6 +85,7 @@ class TestInit(TestCase):
              'vars': [],
              'scope': 'None',
              'tags': [],
+             'tags_comments': {},
              'desc': 'Dont worry, be happy',
              'csv_data': {
                  'formal_header': 'Globally, it is never the case, that WORRY holds; Globally, it is always the case, that HAPPY holds.',
@@ -103,6 +105,7 @@ class TestInit(TestCase):
              'vars': [],
              'scope': 'None',
              'tags': [],
+             'tags_comments': {},
              'desc': 'always look on the bright side of life',
              'csv_data': {
                  'formal_header': 'Globally, it is always the case that POINT_OF_VIEW==BRIGHT_SIDE_OF_LIVE',
@@ -134,6 +137,7 @@ class TestInit(TestCase):
             'formal': [],
             'vars': [],
             'tags': [],
+            'tags_comments': {},
             'pattern': 'None',
             'pos': 1,
             'scope': 'None',
