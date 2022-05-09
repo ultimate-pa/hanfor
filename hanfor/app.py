@@ -889,7 +889,7 @@ def requirements_version_migrations(app, args):
             req.formalizations = dict()
             changes = True
         if isinstance(req.tags, set):
-            sanitize = lambda t: t.strip().replace(" ","_").replace("<","geq").replace(">","geq")
+            sanitize = lambda t: re.sub("[^a-zA-Z0-9_\-]", "_", t)
             req.tags = {sanitize(tag): "" for tag in req.tags}
             changes = True
         if type(req.type_in_csv) is tuple:

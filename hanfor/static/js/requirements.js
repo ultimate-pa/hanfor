@@ -550,7 +550,7 @@ function bind_tag_field_events(){
         .on('tokenfield:createtoken',
             function(e) {
                 // Check token for dublicates and well-formednes
-                if (!/^[a-zA-Z][a-zA-Z0-9_\-?]*$/.test(e.attrs.value)) return false;
+                if (!/^[a-zA-Z][a-zA-Z0-9_\-]*$/.test(e.attrs.value)) return false;
         let existingTokens = $(this).tokenfield('getTokens');
                 for (const token of existingTokens) {
                     if (e.attrs.value === token.value) return false;
