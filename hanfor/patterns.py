@@ -495,6 +495,22 @@ PATTERNS = {
         'group': 'Real-time',
         'pattern_order': 0
     },
+    # TODO: new pattern
+    'Initialization ': {
+        'pattern': 'it is always the case that initially {R} holds',
+        'countertraces': {
+            'GLOBALLY': ['⌈!R⌉;true'],
+            'BEFORE': ['⌈(!P && !R)⌉;true'],
+            'AFTER': ['true;⌈P⌉;⌈!R⌉;true'],
+            'BETWEEN': ['true;⌈(P && !Q)⌉;⌈(!Q && !R)⌉;true;⌈Q⌉;true'],
+            'AFTER_UNTIL': ['true;⌈P⌉;⌈(!Q && !R)⌉;true']
+        },
+        'env': {
+            'R': ['bool']
+        },
+        'group': 'Order',
+        'pattern_order': 6
+    },
     'NotFormalizable': {
         'pattern': '// not formalizable',
         'env': {},
