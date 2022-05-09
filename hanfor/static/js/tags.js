@@ -77,17 +77,6 @@ function store_tag(tags_datatable) {
     });
 }
 
-function add_tag_row() {
-    var counter = 1;
-    jQuery('#add_tag').click(function(event){
-    event.preventDefault();
-    counter++;
-    var newRow = jQuery('<tr><td><input type="text" name="first_name' +
-        counter + '"/></td><td><input type="text" name="last_name' +
-        counter + '"/></td></tr>');
-    jQuery('table.authors-list').append(newRow);
-});
-}
 function delete_tag(name) {
     let tag_modal_content = $('.modal-content');
     tag_modal_content.LoadingOverlay('show');

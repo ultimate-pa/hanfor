@@ -322,6 +322,33 @@ function parse_vars_to_link(formal_string) {
     return result;
 }
 
+function add_formalization() {
+    // Request a new Formalization. And add its edit elements to the modal.
+    let requirement_modal_content = $('.modal-content');
+    requirement_modal_content.LoadingOverlay('show');
+
+    const req_id = $('#requirement_id').val();
+    $.post("api/req/new_formalization",
+        {
+            id: req_id
+        },
+        function (data) {
+            requirement_modal_content.LoadingOverlay('hide', true);
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                let formalization = $(data['html']);
+                formalization.find('.reqirement-variable').each(function () {
+                    add_var_autocomplete(this);
+                });
+                formalization.appendTo('#formalization_accordion');
+            }
+        }).done(function () {
+        update_vars();
+        update_formalization();
+        update_logs();
+    });
+}
 
 /**
  * Updates the formalization textarea based on the selected scope and expressions in P, Q, R, S, T, ... .
