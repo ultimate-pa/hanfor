@@ -903,11 +903,12 @@ def requirements_version_migrations(app, args):
             req.description = req.description[0]
         # Derive type inference errors if not set.
         try:
-            for formalization in req.formalizations.values():
-                tmp = formalization.type_inference_errors
-        except:
-            logging.info('Update type inference results for `{}`'.format(req.rid))
-            req.reload_type_inference(var_collection, app)
+            for i, f in req.formalizations.items():
+                if not hasattr(f, "id") or not f.id:
+                    changes = True
+                    setattr(f, "id", i)
+        except Exception as e:
+            logging.info(f'Something when updating formalisations went terribly wrong `{req.rid}:\n {e}`')
         if args.reload_type_inference:
             req.reload_type_inference(var_collection, app)
         if changes:

@@ -475,7 +475,7 @@ class Requirement(HanforVersioned, Pickleable):
                 raise e
 
     def reload_type_inference(self, var_collection, app):
-        logging.info('Reload type inference for `{}`'.format(self.rid))
+        logging.info(f'Reload type inference for `{self.rid}`')
         self.tags.pop('Type_inference_error')
         for id in self.formalizations.keys():
             try:
@@ -534,7 +534,7 @@ class Requirement(HanforVersioned, Pickleable):
 class Formalization(HanforVersioned):
     def __init__(self):
         super().__init__()
-        self.id = None
+        self.id: int = None
         self.scoped_pattern = None
         self.expressions_mapping = dict()
         self.belongs_to_requirement = None
