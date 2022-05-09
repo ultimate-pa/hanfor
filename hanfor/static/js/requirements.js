@@ -110,7 +110,6 @@ function store_requirement(requirements_table) {
     requirement_modal_content.LoadingOverlay('show');
 
     const req_id = $('#requirement_id').val();
-    const req_tags = $('#requirement_tag_field').val();
     const req_status = $('#requirement_status').val();
     const updated_formalization = $('#requirement_modal').data('updated_formalization');
     const associated_row_id = parseInt($('#modal_associated_row_index').val());
@@ -141,10 +140,11 @@ function store_requirement(requirements_table) {
     });
 
     let tag_comments = new Map();
-    $('#requirement_tag_field').tokenfield('getTokens').forEach(function(element) {
-        let comment = $('#tag_comment_input_' + element.value).val();
-        tag_comments.set(element.value, comment);
-    });
+    $("#tags_comments_table tr:gt(0)").each(function(){
+        let tag = $(this).find("td:eq(0)").text();
+        let comment = $(this).find("textarea:eq(0)").val();
+        tag_comments.set(tag, comment);
+    })
 
     // Store the requirement.
     $.post("api/req/update",
@@ -537,9 +537,9 @@ function bind_var_autocomplete() {
 function add_tag_table_row(tag_name){
     //todo: we need to fill the fields with the actional comments (maybe name the fields and
     // add comments later)
-    var table_row = "<tr id='tag_table_" + tag_name + "'>" +
+    var table_row = "<tr>" +
         "<td>" + tag_name + "</td>" +
-        "<td><textarea rows='1' class='form-control w-100' id='tag_comment_input_" + tag_name + "' type='text'>" +
+        "<td><textarea rows='1' class='form-control w-100' type='text'>" +
             "</textarea>" +
         "</td>";
     $("#tags_comments_table tbody").append(table_row);
@@ -549,9 +549,7 @@ function bind_tag_field_events(){
     $("#requirement_tag_field")
         .on('tokenfield:createtoken',
             function(e) {
-                // Check token for dublicates and well-formednes
-                if (!/^[a-zA-Z][a-zA-Z0-9_\-]*$/.test(e.attrs.value)) return false;
-        let existingTokens = $(this).tokenfield('getTokens');
+                let existingTokens = $(this).tokenfield('getTokens');
                 for (const token of existingTokens) {
                     if (e.attrs.value === token.value) return false;
                 }
@@ -563,8 +561,11 @@ function bind_tag_field_events(){
         )
         .on('tokenfield:removedtoken',
             function(e){
-                var tag_name = e.attrs.value;
-                $("#tag_table_" + tag_name).remove();
+                $("#tags_comments_table tr:gt(0)").each(function(){
+                    let row = $(this);
+                    let tag = $(this).find("td:eq(0)").text();
+                        if (tag === e.attrs.value) row.remove();
+                })
             }
         )
 }
@@ -615,11 +616,13 @@ function load_requirement(row_idx) {
 
         // remove all lines from the tag comment table
         $('#tags_comments_table').find("tr:gt(0)").remove();
-        // Set the tags
+        // set Tag field and comments in Table (table rows are created via event)
         $('#requirement_tag_field').tokenfield('setTokens', data.tags)
-        for (const tag of data.tags){
-            $('#tag_comment_input_' + tag).val(data.tags_comments[tag])
-        }
+        $("#tags_comments_table tr:gt(0)").each(function(){
+            let tag = $(this).find("td:eq(0)").text();
+            $(this).find("textarea:eq(0)").val(data.tags_comments[tag]);
+        })
+
         $('#requirement_status').val(data.status);
         // Set csv_data
         let csv_row_content = $('#csv_content_accordion');
