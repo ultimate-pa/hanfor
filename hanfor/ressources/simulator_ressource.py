@@ -25,7 +25,7 @@ from ressources import Ressource
 from patterns import PATTERNS
 
 validation_patterns = {
-    BOOL: '^0|false|1|true$',
+    BOOL: '^0|false|False|1|true|True$',
     INT: '^[+-]?\d+$',
     REAL: '^[+-]?\d*[.]?\d+$'
 }
