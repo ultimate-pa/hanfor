@@ -11,7 +11,7 @@
 
 
 # Setup 
- * Hanfor is only tested with Python 3.6.x and requires Python.
+ * Hanfor is only tested with Python 3.9 and requires Python.
  * We recommend using a virtual environment, e.g., `virtualenv hanfor_python` followed by `source hanfor_python/bin/activate`. 
  * Use `pip install -r requirements.txt` to install dependencies. 
  * Copy `./hanfor/config.dist.py` to `./hanfor/config.py`.
