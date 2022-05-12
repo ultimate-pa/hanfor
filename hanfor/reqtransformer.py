@@ -597,13 +597,8 @@ class Formalization(HanforVersioned):
                 tree = boogie_parsing.get_parser_instance().parse(expression.raw_expression)
             except Exception as e:
                 logging.error(
-                    'Lark could not parse expression `{}`: \n {}. Skipping type inference'.format(
-                        expression.raw_expression,
-                        e
-                    )
-                )
+                    f'Lark could not parse expression `{expression.raw_expression}`: \n {e}. Skipping type inference')
                 continue
-            # Update the expression
             expression.set_expression(expression.raw_expression, variable_collection, None, expression.parent_rid)
 
             # Derive type for variables in expression and update missing or changed types.
@@ -615,11 +610,8 @@ class Formalization(HanforVersioned):
                         and variable_collection.collection[name].type.lower() in ['const', 'enum']):
                     continue
                 if variable_collection.collection[name].type not in boogie_parsing.BoogieType.aliases(type):
-                    logging.info('Update variable `{}` with derived type. Old: `{}` => New: `{}`.'.format(
-                        name,
-                        variable_collection.collection[name].type,
-                        type.name
-                    ))
+                    logging.info(f'Update variable `{name}` with derived type. '
+                                 f'Old: `{variable_collection.collection[name].type}` => New: `{type.name}`.')
                     variable_collection.set_type(name, type.name)
         variable_collection.store()
         self.type_inference_errors = type_inference_errors

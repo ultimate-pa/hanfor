@@ -135,12 +135,6 @@ class BoogieType(Enum):
         return BoogieType.get_alias_mapping()[name]
 
 
-class MyTransformer(Transformer):
-    def greater(self, args):
-        print(args)
-        return(Tree("ficken", [arg for arg in args if isinstance(arg, Tree)]))
-
-
 def infer_variable_types(tree: Tree, type_env: dict):
     class TypeNode:
 
