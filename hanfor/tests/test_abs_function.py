@@ -3,12 +3,15 @@ Test correct parsing and type derivation of the abs function.
 """
 
 import boogie_parsing
+from boogie_parsing import TypeInference, BoogieType
 from unittest import TestCase
-
 
 class TestAbsFunction(TestCase):
     def test_parse_expressions(self):
         parser = boogie_parsing.get_parser_instance()
+        # TODO: use for testing functions in general, not only abs
+        # only used abs at the moment, as this is the only function we have
+        # Let the type checker do decide if the funtion is typed right, not the grammar
         expressions = [
             ('abs(-10)', True),
             ('abs(10)', True),
@@ -16,12 +19,13 @@ class TestAbsFunction(TestCase):
             ('abs(foo)', True),
             ('abs(foo + 42)', True),
             ('abs(42 - foo)', True),
-            ('abs(+-foo)', True),
-            ('abs(42 > foo)', False),
-            ('abs(42 < foo)', False),
+            #('abs(+-foo)', True),
+            ('abs(42 > foo)', True),
+            ('abs(42 < foo)', True),
             ('abs()', False),
             ('abs(foo + bar) > 10', True),
             ('abs(bar + foo) == spam', True)
+            #TODO: ('old(bar) == spam', True)
         ]
         for expression, should_be_parseable in expressions:
             is_parseable = True
@@ -30,52 +34,38 @@ class TestAbsFunction(TestCase):
                 # pydot__tree_to_png(tree, "parse_tree.png")
             except Exception as e:
                 is_parseable = False
-            self.assertEqual(is_parseable, should_be_parseable, msg='Error parsing ' + expression)
+            self.assertEqual(is_parseable, should_be_parseable, msg=f"Error parsing {expression}")
 
-    def generic_test_type_inference(self, expression, given_env, expected_env, expected_expression_type):
-        """
-
-        Args:
-            expression:
-            given_env:
-            expected_env:
-        """
+    def generic_test_type_inference(self, expression, given_env, expected_env, expected_expression_type,
+                                    expected_errors: int = 0):
         parser = boogie_parsing.get_parser_instance()
         tree = parser.parse(expression)
-        t = boogie_parsing.infer_variable_types(tree, given_env)
-        t, type_env = t.derive_type()
+        ti = TypeInference(tree,  given_env)
+        t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
         for var, derived_type in type_env.items():
             self.assertEqual(
                 expected_env[var],
                 derived_type,
-                msg="Error deriving `{}` type for variable `{}`. Derived `{}` instead.".format(
-                    expected_env[var],
-                    var,
-                    derived_type
-                )
+                msg=f"Error deriving `{expected_env[var]}` type for variable `{var}`. Derived `{derived_type}` instead."
             )
         self.assertEqual(
             expected_expression_type,
             t,
-            msg="Error deriving expression type `{}`. Got `{}` instead.".format(
-                expected_expression_type,
-                t
-            )
+            msg=f"Error deriving expression type `{expected_expression_type}`. Got `{t}` instead."
         )
+        self.assertEqual(len(errors), expected_errors)
 
     def test_type_inference_for_abs_function_0(self):
-        # Given:
         expression = "abs(bar + foo) == spam"
         given_env = {
-            "bar": boogie_parsing.BoogieType.int
+            "bar": BoogieType.int
         }
-        # We expect:
         expected_env = {
-            "foo": boogie_parsing.BoogieType.int,
-            "bar": boogie_parsing.BoogieType.int,
-            "spam": boogie_parsing.BoogieType.int,
+            "foo": BoogieType.int,
+            "bar": BoogieType.int,
+            "spam": BoogieType.int,
         }
-        expected_expression_type = boogie_parsing.BoogieType.bool
+        expected_expression_type = BoogieType.bool
 
         # Run the test
         self.generic_test_type_inference(expression, given_env, expected_env, expected_expression_type)
@@ -84,16 +74,16 @@ class TestAbsFunction(TestCase):
         # Given:
         expression = "abs(bar + foo) + baz == spam"
         given_env = {
-            "bar": boogie_parsing.BoogieType.int
+            "bar": BoogieType.int
         }
         # We expect:
         expected_env = {
-            "foo": boogie_parsing.BoogieType.int,
-            "bar": boogie_parsing.BoogieType.int,
-            "spam": boogie_parsing.BoogieType.int,
-            "baz": boogie_parsing.BoogieType.int,
+            "foo": BoogieType.int,
+            "bar": BoogieType.int,
+            "spam": BoogieType.int,
+            "baz": BoogieType.int,
         }
-        expected_expression_type = boogie_parsing.BoogieType.bool
+        expected_expression_type = BoogieType.bool
 
         # Run the test
         self.generic_test_type_inference(expression, given_env, expected_env, expected_expression_type)
@@ -102,32 +92,32 @@ class TestAbsFunction(TestCase):
         # Given:
         expression = "abs(bar + foo) == spam"
         given_env = {
-            "bar": boogie_parsing.BoogieType.real
+            "bar": BoogieType.real
         }
         # We expect:
         expected_env = {
-            "foo": boogie_parsing.BoogieType.real,
-            "bar": boogie_parsing.BoogieType.real,
-            "spam": boogie_parsing.BoogieType.unknown,
+            "foo": BoogieType.real,
+            "bar": BoogieType.real,
+            "spam": BoogieType.int,
         }
-        expected_expression_type = boogie_parsing.BoogieType.error
+        expected_expression_type = BoogieType.bool
 
         # Run the test
-        self.generic_test_type_inference(expression, given_env, expected_env, expected_expression_type)
+        self.generic_test_type_inference(expression, given_env, expected_env, expected_expression_type, 1)
 
     def test_type_inference_for_abs_function_3(self):
         # Given:
         expression = "abs(bar + foo) + spam"
         given_env = {
-            "bar": boogie_parsing.BoogieType.int
+            "bar": BoogieType.int
         }
         # We expect:
         expected_env = {
-            "foo": boogie_parsing.BoogieType.int,
-            "bar": boogie_parsing.BoogieType.int,
-            "spam": boogie_parsing.BoogieType.int,
+            "foo": BoogieType.int,
+            "bar": BoogieType.int,
+            "spam": BoogieType.int,
         }
-        expected_expression_type = boogie_parsing.BoogieType.int
+        expected_expression_type = BoogieType.int
 
         # Run the test
         self.generic_test_type_inference(expression, given_env, expected_env, expected_expression_type)
@@ -136,15 +126,15 @@ class TestAbsFunction(TestCase):
         # Given:
         expression = "abs(- bar - foo * 5) > spam"
         given_env = {
-            "bar": boogie_parsing.BoogieType.int
+            "bar": BoogieType.int
         }
         # We expect:
         expected_env = {
-            "foo": boogie_parsing.BoogieType.int,
-            "bar": boogie_parsing.BoogieType.int,
-            "spam": boogie_parsing.BoogieType.int,
+            "foo": BoogieType.int,
+            "bar": BoogieType.int,
+            "spam": BoogieType.int,
         }
-        expected_expression_type = boogie_parsing.BoogieType.bool
+        expected_expression_type = BoogieType.bool
 
         # Run the test
         self.generic_test_type_inference(expression, given_env, expected_env, expected_expression_type)
@@ -153,27 +143,22 @@ class TestAbsFunction(TestCase):
         # Given:
         expression = "abs(foo)"
         given_env = {
-            "foo": boogie_parsing.BoogieType.int
+            "foo": BoogieType.int
         }
         # We expect:
         expected_env = {
-            "foo": boogie_parsing.BoogieType.int
+            "foo": BoogieType.int
         }
-        expected_expression_type = boogie_parsing.BoogieType.int
+        expected_expression_type = BoogieType.int
 
         # Run the test
         self.generic_test_type_inference(expression, given_env, expected_env, expected_expression_type)
 
     def test_type_inference_for_abs_function_6(self):
-        # Given:
         expression = "abs(foo)"
-        given_env = {
-        }
-        # We expect:
-        expected_env = {
-            "foo": boogie_parsing.BoogieType.int
-        }
-        expected_expression_type = boogie_parsing.BoogieType.int
+        given_env = {}
+        expected_env = {"foo": BoogieType.int}
+        expected_expression_type = BoogieType.int
 
         # Run the test
         self.generic_test_type_inference(expression, given_env, expected_env, expected_expression_type)
@@ -182,13 +167,13 @@ class TestAbsFunction(TestCase):
         # Given:
         expression = "abs(foo)"
         given_env = {
-            "foo": boogie_parsing.BoogieType.real
+            "foo": BoogieType.real
         }
         # We expect:
         expected_env = {
-            "foo": boogie_parsing.BoogieType.real
+            "foo": BoogieType.real
         }
-        expected_expression_type = boogie_parsing.BoogieType.error
+        expected_expression_type = BoogieType.error
 
         # Run the test
         self.generic_test_type_inference(expression, given_env, expected_env, expected_expression_type)
@@ -200,9 +185,9 @@ class TestAbsFunction(TestCase):
         }
         # We expect:
         expected_env = {
-            "foo": boogie_parsing.BoogieType.int
+            "foo": BoogieType.int
         }
-        expected_expression_type = boogie_parsing.BoogieType.int
+        expected_expression_type = BoogieType.int
 
         # Run the test
         self.generic_test_type_inference(expression, given_env, expected_env, expected_expression_type)
@@ -214,12 +199,12 @@ class TestAbsFunction(TestCase):
         }
         # We expect:
         expected_env = {
-            "foo": boogie_parsing.BoogieType.int,
-            "bar": boogie_parsing.BoogieType.int,
-            "baz": boogie_parsing.BoogieType.int,
-            "buz": boogie_parsing.BoogieType.bool,
+            "foo": BoogieType.int,
+            "bar": BoogieType.int,
+            "baz": BoogieType.int,
+            "buz": BoogieType.bool,
         }
-        expected_expression_type = boogie_parsing.BoogieType.bool
+        expected_expression_type = BoogieType.bool
 
         # Run the test
         self.generic_test_type_inference(expression, given_env, expected_env, expected_expression_type)
@@ -228,15 +213,15 @@ class TestAbsFunction(TestCase):
         # Given:
         expression = "abs(abs(foo) + abs(bar + bar) - 10 * 3) > baz"
         given_env = {
-            "baz": boogie_parsing.BoogieType.real
+            "baz": BoogieType.real
         }
         # We expect:
         expected_env = {
-            "foo": boogie_parsing.BoogieType.int,
-            "bar": boogie_parsing.BoogieType.int,
-            "baz": boogie_parsing.BoogieType.real,
+            "foo": BoogieType.int,
+            "bar": BoogieType.int,
+            "baz": BoogieType.real,
         }
-        expected_expression_type = boogie_parsing.BoogieType.error
+        expected_expression_type = BoogieType.bool
 
         # Run the test
-        self.generic_test_type_inference(expression, given_env, expected_env, expected_expression_type)
+        self.generic_test_type_inference(expression, given_env, expected_env, expected_expression_type, 1)

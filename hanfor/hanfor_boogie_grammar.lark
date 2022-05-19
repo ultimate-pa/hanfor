@@ -48,12 +48,10 @@ expr6: expr6ni TIMES expr7 -> times
 
 expr7: NOT expr7 -> negation
     | MINUS expr7 -> minus_unary
+    | PLUS expr7 -> plus_unary
     | expr8
 
-expr8: expr8ni LBKT exprcommaplus RBKT
-    | expr8ni LBKT exprcommaplus COLONEQUALS expr RBKT
-    | expr8ni NOT ID -> negation
-    | expr8ni LBKT NUMBER COLON NUMBER RBKT
+expr8: expr8ni NOT ID -> negation
     | expr9
 
 expr9: FALSE -> false
@@ -61,11 +59,11 @@ expr9: FALSE -> false
     | NUMBER -> number
     | REALNUMBER -> realnumber
     | ID -> id
-    | ID LPAR exprcommastar RPAR
-    | OLD LPAR expr RPAR
+    | ID _LPAR exprcommastar _RPAR
+    | OLD _LPAR expr _RPAR
     | IF expr THEN expr ELSE expr
     | LBRC idsexprcommaplus RBRC
-    | LPAR expr RPAR
+    | _LPAR expr _RPAR
     | function
 
 // expressions  without if-then-else
@@ -115,10 +113,7 @@ expr7ni: NOT expr7ni -> negation
     | MINUS expr7ni -> minus_unary
     | expr8ni
 
-expr8ni: expr8ni LBKT exprcommaplus RBKT
-    | expr8ni LBKT exprcommaplus COLONEQUALS expr RBKT
-    | expr8ni LBKT NUMBER COLON NUMBER RBKT
-    | expr8ni NOT ID -> negation
+expr8ni: expr8ni NOT ID -> negation
     | expr9ni
 
 expr9ni: FALSE -> false
@@ -126,10 +121,10 @@ expr9ni: FALSE -> false
     | NUMBER -> number
     | REALNUMBER -> realnumber
     | ID -> id
-    | ID LPAR exprcommastar RPAR
-    | OLD LPAR expr RPAR
+    | ID _LPAR exprcommastar _RPAR
+    | OLD _LPAR expr _RPAR
     | LBRC idsexprcommaplus RBRC
-    | LPAR expr RPAR
+    | _LPAR expr _RPAR
     | function
 
 quant: FORALL
@@ -140,19 +135,7 @@ idsexprcommaplus: ID COLON expr
 
 function: abs_function
 
-abs_function: ABS LPAR numeric RPAR
-
-numeric: ID -> id
-    | NUMBER -> number
-    | numeric numeric_operator numeric
-    | MINUS numeric -> minus_unary
-    | PLUS numeric -> plus
-    | abs_function
-
-numeric_operator: PLUS
-    | MINUS
-    | TIMES
-    | DIVIDE
+abs_function: ABS _LPAR expr1ni _RPAR
 
 // Terminals
 
@@ -178,7 +161,7 @@ IMPLIES: "==>"
 LBKT: "["
 LBRC: "{"
 LESS: "<"
-LPAR: "("
+_LPAR: "("
 LTEQ: "<="
 MINUS: "-"
 MOD: "%"
@@ -193,7 +176,7 @@ QSEP: "::"
 RBKT: "]"
 RBRC: "}"
 REALNUMBER: NUMBER "." /[0-9]+/
-RPAR: ")"
+_RPAR: ")"
 THEN.1: "then"
 TIMES: "*"
 TRUE.1: "true"

@@ -1,9 +1,14 @@
 from collections import defaultdict
 
 from enum import Enum
+
+from frozendict import frozendict
 from lark import Lark, Tree, Transformer
 from lark.lexer import Token
 from lark.reconstruct import Reconstructor
+from dataclasses import dataclass, field
+
+from lark.visitors import v_args
 
 
 def get_variables_list(tree):
@@ -26,7 +31,8 @@ lark = None
 def get_parser_instance():
     global lark
     if lark is None:
-        lark = Lark.open("hanfor_boogie_grammar.lark", rel_to=__file__, start='exprcommastar', parser='lalr')
+        lark = Lark.open("hanfor_boogie_grammar.lark", rel_to=__file__, start='exprcommastar', parser='lalr',
+                         propagate_positions=True)
     return lark
 
 
@@ -70,11 +76,11 @@ def replace_var_in_expression(expression, old_var, new_var, parser=None, matchin
 
 
 class BoogieType(Enum):
-    bool = 1
-    int = 2
-    real = 3
-    unknown = 0
-    error = -1
+    bool = "bool"
+    int = "int"
+    real = "real"
+    unknown = "unkown"
+    error = "error"
 
     @staticmethod
     def get_valid_types():
@@ -134,182 +140,181 @@ class BoogieType(Enum):
 
         return BoogieType.get_alias_mapping()[name]
 
+@dataclass(init=True)
+class TypeNode:
+    expr: str
+    t: BoogieType
+    type_leaf: list['TypeNode'] = field(default_factory=list)
+    children: list['TypeNode'] = field(default_factory=list)
 
-def infer_variable_types(tree: Tree, type_env: dict):
-    class TypeNode:
+    def __str__(self):
+        return self.expr
 
-        def __init__(self):
-            self.children = []
 
-        @staticmethod
-        def gen_type_tree(tree: Tree, father, type_env: dict):
-            op = None
-            for child in tree.children:
-                if isinstance(child, Token):
-                    if child.type in ["AND", "EXPLIES", "IFF", "IMPLIES", "NOT", "OR"]:
-                        op = LogicOperator(child.type)
-                        father.children.append(op)
-                    elif child.type in ["EQ", "GREATER", "GTEQ", "LESS", "LTEQ", "NEQ", "DIVIDE", "MINUS", "MOD",
-                                        "PLUS", "TIMES"]:
-                        op = RealIntOperator(child.type)
-                        father.children.append(op)
-                    elif child.type in ["ABS"]:
-                        op = FunctionOperator(child.type)
-                        father.children.append(op)
-            if op is None:
-                op = father
-            for child in tree.children:
-                if isinstance(child, Tree):
-                    TypeNode.gen_type_tree(child, op, type_env)
-                if isinstance(child, Token):
-                    if child.type == "REALNUMBER": op.children.append(Constant(str(child), BoogieType.real))
-                    if child.type == "NUMBER": op.children.append(Constant(str(child), BoogieType.int))
-                    if child.type == "TRUE": op.children.append(Constant(str(child), BoogieType.bool))
-                    if child.type == "FALSE": op.children.append(Constant(str(child), BoogieType.bool))
-                    if child.type == "ID":
-                        op.children.append(
-                            Variable(str(child), type_env[child] if child in type_env else BoogieType.unknown))
+@v_args(inline=True)
+class TypeInference(Transformer):
 
-        def derive_type(self):
-            op_type_env = {}
-            t, local, type_env = self.children[0].derive_type(None)
-            op_type_env.update(type_env)
-            if t is BoogieType.unknown:
-                t = BoogieType.bool
-            for id in local:
-                op_type_env[id] = t
-            return t, op_type_env
+    def __init__(self, tree: Tree, type_env: dict[str, BoogieType],  expected_type: BoogieType = None):
+        super().__init__()
+        self.type_env = type_env
+        self.type_errors = []
+        self.type_root = self.transform(tree)
+        if expected_type:
+            self.__propagate_type(self.type_root, expected_type)
 
-    class FunctionOperator(TypeNode):
-        def __init__(self, op_type):
-            super().__init__()
-            self.op_type = op_type
-            self.return_type = BoogieType.error
+    # Infer leafs (vars, consts)
+    def true(self, c: Token) -> TypeNode:
+        return TypeNode(c.value, BoogieType.bool, [])
 
-        def derive_type(self, next_op):
-            op_type_env = {}
-            child_types = set()
-            locals = set()
-            # Get child types and locals for function argument.
-            for child in self.children:
-                type, local, type_env = child.derive_type(self.op_type)
-                op_type_env.update(type_env)
-                locals |= local
-                child_types |= {type}
+    def false(self, c: Token) -> TypeNode:
+        return TypeNode(c.value, BoogieType.bool, [])
 
-            # Derive argument type
-            child_types -= {BoogieType.unknown}
-            if len(child_types) == 1:
-                t = child_types.pop()
-            elif len(child_types) == 0 and self.op_type in ["ABS"]:
-                # Assume type `int` for ABS function in case of still free argument type.
-                t = BoogieType.int
-            elif len(child_types) == 0:
-                t = BoogieType.unknown
+    def realnumber(self, c: Token) -> TypeNode:
+        return TypeNode(c.value, BoogieType.real, [])
+
+    def number(self, c: Token) -> TypeNode:
+        return TypeNode(c.value, BoogieType.int, [])
+
+    def id(self, c: Token) -> TypeNode:
+        name = c.value
+        if name not in self.type_env:
+            self.type_env[name] = BoogieType.unknown
+            return TypeNode(name, BoogieType.unknown, [])
+        type = self.type_env[name]
+        return TypeNode(name, type, [])
+
+    def __typecheck_args(self, arg_type: TypeNode, expected_arg_types: set[BoogieType]) -> list[str]:
+        # ignore errors as there is already an error reported and the subsequent errors are noise
+        if arg_type.t == BoogieType.unknown or arg_type.t == BoogieType.error:
+            return []
+        if arg_type.t not in expected_arg_types:
+            return [f"Wrong argument type: expected {expected_arg_types} but got {arg_type.t}.",]
+        return []
+
+    def __check_unaryop(self, op: Token, c: TypeNode, arg_type: set[BoogieType], return_type: BoogieType = None):
+        arg_error = self.__typecheck_args(c, arg_type)
+        self.type_errors += arg_error
+        type_leaf = [c] + c.type_leaf if not return_type else []
+        expr = f"{op} {c.expr}"
+        if arg_error:
+            return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c])
+        tn = TypeNode(expr, c.t, type_leaf, [c])
+        if len(arg_type) == 1:
+            t = arg_type.pop() # TODO: not nice
+            self.__propagate_type(c, t)
+            arg_type.add(t)
+        return tn
+
+    def minus_unary(self, o: Token, c: TypeNode) -> TypeNode:
+        return self.__check_unaryop(o, c, {BoogieType.real, BoogieType.int})
+
+    def plus_unary(self, o: Token, c: TypeNode) -> (BoogieType, set[str]):
+        return self.__check_unaryop(o, c, {BoogieType.real, BoogieType.int})
+
+    def negation(self, o: Token, c: TypeNode) -> TypeNode:
+        return self.__check_unaryop(o, c, {BoogieType.bool}, return_type=BoogieType.bool)
+
+    def __propagate_type(self, tn: TypeNode, t: BoogieType) -> bool:
+        for child in tn.type_leaf + [tn]: # tn is part of its leaf
+            if child.t != t and not child.t == BoogieType.unknown:
+                self.type_errors.append(f"Types inconsistent: {child} had Type {tn.t} should be updated to type {t}")
+                child.t = BoogieType.error
+                return False
+            child.t = t
+            if child.expr in self.type_env:
+                self.type_env[child.expr] = t
+        return True
+
+    # Infer binary operations
+    def __check_binaryop(self, c1: TypeNode, op: Token, c2: TypeNode, arg_type: set[BoogieType],
+                         return_type: BoogieType = None) -> TypeNode:
+        arg_errors = self.__typecheck_args(c1, arg_type) + self.__typecheck_args(c2, arg_type)
+        self.type_errors += arg_errors
+        expr = f"{c1.expr} {op} {c2.expr}"
+        # assume that the return type is the identity if no return type is given, thus all in this leaf are typed equal
+        type_leaf = [c1, c2] + c1.type_leaf + c2.type_leaf if not return_type else []
+        if arg_errors:
+            return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c1, c2])
+        if c1.t == BoogieType.error or c2.t == BoogieType.error:
+            return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c1, c2])
+        if c1.t == BoogieType.unknown and c2.t == BoogieType.unknown:
+            return TypeNode(expr, BoogieType.unknown if not return_type else return_type, type_leaf, [c1, c2])
+        if c1.t == c2.t:
+            return TypeNode(expr, c1.t if not return_type else return_type, type_leaf, [c1, c2])
+        if c1.t != BoogieType.unknown:
+            tn = TypeNode(expr, c1.t if not return_type else return_type, type_leaf, [c1, c2])
+            if self.__propagate_type(c2, c1.t):
+                return tn
             else:
-                t = BoogieType.error
-
-            # Set derived types for locals.
-            if t is not BoogieType.unknown:
-                for id in locals:
-                    op_type_env[id] = t if t is not BoogieType.error else BoogieType.unknown
-                locals = set()
-
-            # Handle wrong argument type.
-            if self.op_type in ["ABS"] and t is not BoogieType.int:
-                t = BoogieType.error
-
-            return t, locals, op_type_env
-
-    class LogicOperator(TypeNode):
-        def __init__(self, op_type):
-            super().__init__()
-            self.op_type = op_type
-            self.return_type = BoogieType.error
-
-        def derive_type(self, next_op):
-            op_type_env = {}
-            child_types = set()
-            for child in self.children:
-                child_type, local, type_env = child.derive_type(self.op_type)
-                op_type_env.update(type_env)
-                child_types |= {child_type}
-                for id in local:
-                    op_type_env[id] = BoogieType.bool
-            child_types -= {BoogieType.unknown}
-            if len(child_types) == 1:
-                t = list(child_types)[0]
-            elif len(child_types) == 0:
-                t = BoogieType.bool
+                return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c1, c2])
+        if c2.t != BoogieType.unknown:
+            tn = TypeNode(expr, c2.t if not return_type else return_type, type_leaf, [c1, c2])
+            self.__propagate_type(c1, c2.t)
+            if self.__propagate_type(c1, c2.t):
+                return tn
             else:
-                t = BoogieType.error
-            return t, set(), op_type_env
+                return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c1, c2])
+        return TypeNode(expr, BoogieType.error, type_leaf, [c1, c2])
 
-    class RealIntOperator(TypeNode):
-        def __init__(self, op_type):
-            super().__init__()
-            self.op_type = op_type
-            self.return_type = BoogieType.error
+    def neq(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
+        return self.__check_binaryop(c1, op, c2, arg_type={BoogieType.bool, BoogieType.int, BoogieType.real},
+                                     return_type=BoogieType.bool)
 
-        def derive_type(self, next_op):
-            op_type_env = {}
-            child_types = set()
-            locals = set()
-            for child in self.children:
-                type, local, type_env = child.derive_type(self.op_type)
-                op_type_env.update(type_env)
-                locals |= local
-                child_types |= {type}
-            child_types -= {BoogieType.unknown}
-            if len(child_types) == 1:
-                t = child_types.pop()
-            elif len(child_types) == 0:
-                t = BoogieType.unknown
-            # elif child_types == {BoogieType.real, BoogieType.int}:  # real + int gets casted to real.
-            #     t = BoogieType.real
-            else:
-                t = BoogieType.error
-            if next_op not in ["EQ", "GREATER", "GTEQ", "LESS", "LTEQ", "NEQ", "DIVIDE", "MINUS", "MOD", "PLUS",
-                               "TIMES"] or t is not BoogieType.unknown:
-                for id in locals:
-                    op_type_env[id] = t if t is not BoogieType.error else BoogieType.unknown
-                locals = set()
-            if self.op_type in ["DIVIDE", "MINUS", "MOD", "PLUS", "TIMES"] or t is BoogieType.error:
-                return (t, locals, op_type_env)
-            else:
-                return (BoogieType.bool, locals, op_type_env)
+    def eq(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
+        return self.__check_binaryop(c1, op, c2, arg_type={BoogieType.bool, BoogieType.int, BoogieType.real},
+                                     return_type=BoogieType.bool)
 
-    class Constant(TypeNode):
+    def conjunction(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
+        return self.__check_binaryop(c1, op, c2, arg_type={BoogieType.bool}, return_type=BoogieType.bool)
 
-        def __init__(self, content, type):
-            super().__init__()
-            self.type = type
-            self.content = content
+    def disjunction(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
+        return self.__check_binaryop(c1, op, c2, arg_type={BoogieType.bool}, return_type=BoogieType.bool)
 
-        def derive_type(self, next_op):
-            return self.type, set(), {}
+    def divide(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
+        return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real})
 
-    class Variable(TypeNode):
+    def explies(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
+        return self.__check_binaryop(c1, op, c2, {BoogieType.bool}, return_type=BoogieType.bool)
 
-        def __init__(self, var_name, type):
-            super().__init__()
+    def gt(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
+        return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real}, return_type=BoogieType.bool)
 
-            if type in BoogieType.get_valid_types():
-                self.type = type
-            else:
-                self.type = BoogieType.error
-            self.var_name = var_name
+    def gteq(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
+        return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real}, return_type=BoogieType.bool)
 
-        def derive_type(self, next_op):
-            # directly dreived type, direct children of the current op, children of a sub-op
-            local = {self.var_name} if self.type is BoogieType.unknown else set()
-            type_env = {self.var_name: self.type} if self.type is not BoogieType.unknown else set()
-            return self.type, local , type_env
+    def iff(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
+        return self.__check_binaryop(c1, op, c2, {BoogieType.bool}, return_type=BoogieType.bool)
 
-    type_node = TypeNode()
-    TypeNode.gen_type_tree(tree, type_node, type_env)
-    return type_node
+    def implies(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
+        return self.__check_binaryop(c1, op, c2, {BoogieType.bool}, return_type=BoogieType.bool)
 
+    def lt(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
+        return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real}, return_type=BoogieType.bool)
+
+    def lteq(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
+        return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real}, return_type=BoogieType.bool)
+
+    def minus(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
+        return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real})
+
+    def mod(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
+        return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real})
+
+    def plus(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
+        return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real})
+
+    def times(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
+        return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real})
+
+    def abs_function(self, o: Token, c1: TypeNode):
+        #TODO: replace by abstract handling of functions
+        return self.__check_unaryop(o, c1, {BoogieType.int}, return_type=BoogieType.int)
+
+    def __default__(self, data, children, meta):
+        if len(children) == 1:
+            return children[0]
+        self.type_errors += f"Unknown rule {data} found during parsing."
+        return TypeNode(data, BoogieType.error, [], children)
 
 class EvilTypeConfusion(Exception):
     def __init__(self, env=None):
