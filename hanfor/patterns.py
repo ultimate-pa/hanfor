@@ -511,6 +511,22 @@ PATTERNS = {
         'group': 'Order',
         'pattern_order': 6
     },
+    # TODO: new pattern
+    'Precedence': {
+        'pattern': 'it is always the case that if {R} holds, then it holds persistently',
+        'countertraces': {
+            'GLOBALLY': ['true;⌈R⌉;⌈!R⌉;true'],
+            'BEFORE': ['⌈!P⌉;⌈(!P && R)⌉;⌈(!P && !R)⌉;true'],
+            'AFTER': ['true;⌈P⌉;true;⌈R⌉;⌈!R⌉;true'],
+            'BETWEEN': ['true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !R)⌉;⌈!Q⌉;⌈Q⌉;true'],
+            'AFTER_UNTIL': ['true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !R)⌉;true']
+        },
+        'env': {
+            'R': ['bool']
+        },
+        'group': 'Order',
+        'pattern_order': 7
+    },
     'NotFormalizable': {
         'pattern': '// not formalizable',
         'env': {},
