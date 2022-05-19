@@ -15,6 +15,7 @@ Ultimate revision on Github that corresponds to this documention:
 --8<-- "includes/patterns/Initialization.md"
 --8<-- "includes/patterns/Invariance.md"
 --8<-- "includes/patterns/InvarianceBoundL2.md"
+--8<-- "includes/patterns/Persistence.md"
 --8<-- "includes/patterns/Precedence.md"
 --8<-- "includes/patterns/PrecedenceChain12.md"
 --8<-- "includes/patterns/PrecedenceChain21.md"
