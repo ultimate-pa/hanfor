@@ -512,7 +512,7 @@ PATTERNS = {
         'pattern_order': 6
     },
     # TODO: new pattern
-    'Precedence': {
+    'Persistence': {
         'pattern': 'it is always the case that if {R} holds, then it holds persistently',
         'countertraces': {
             'GLOBALLY': ['true;⌈R⌉;⌈!R⌉;true'],
