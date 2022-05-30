@@ -94,7 +94,7 @@ def tools_api(command):
     if command == 'xls_file':
         file = utils.generate_xls_file_content(app, filter_list=filter_list)
         file.seek(0)
-        return flask.send_file(file, attachment_filename=file_name+".xlsx", as_attachment=True)
+        return flask.send_file(file, download_name=file_name+".xlsx", as_attachment=True)
 
 
 
@@ -892,6 +892,12 @@ def requirements_version_migrations(app, args):
             sanitize = lambda t: t.replace("<", "leq").replace(">", "geq")
             req.tags = {sanitize(tag): "" for tag in req.tags}
             changes = True
+        if isinstance(req.tags, dict):
+            # clean up old data sets  with empty tags that mess up exporting (if necessary)
+            new_tags = {tag: comment for tag, comment in req.tags.items() if tag != ""}
+            if new_tags != req.tags:
+                req.tags = new_tags
+                changes = True
         if type(req.type_in_csv) is tuple:
             changes = True
             req.type_in_csv = req.type_in_csv[0]

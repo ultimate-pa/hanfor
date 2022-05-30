@@ -23,12 +23,13 @@ class Tag(Ressource):
             for tag in req.tags:
                 if len(tag) == 0:
                     continue
-                if tag not in self._available_tags.keys():
+                if tag not in self._available_tags:
                     self._available_tags[tag] = {
                         'name': tag,
                         'used_by': list(),
-                        'color': self.get_tag_color(tag),
-                        'description': self.get_tag_desc(tag)
+                        'color': self.__get_metaconfig_property("tag_colors", tag, '#5bc0de'),
+                        'description': self.__get_metaconfig_property("tag_descriptions", tag, ''),
+                        'internal': self.__get_metaconfig_property("tag_internal", tag, False)
                     }
                 self._available_tags[tag]['used_by'].append(req.rid)
 
@@ -36,29 +37,19 @@ class Tag(Ressource):
         for tag in self._available_tags.keys():
             self._available_tags[tag]['used_by'].sort()
 
-    def get_tag_color(self, tag_name):
-        col = '#5bc0de'
-        try:
-            col = self.meta_settings['tag_colors'][tag_name]
-        except KeyError:
-            pass
-        return col
-
-    def get_tag_desc(self, tag_name):
-        desc = ''
-        try:
-            desc = self.meta_settings['tag_descriptions'][tag_name]
-        except KeyError:
-            pass
-        return desc
+    def __get_metaconfig_property(self, key: str, tag_name: str, default):
+        if key not in self.meta_settings:
+            logging.info(f'Upgrading metaconfig with `{key}` store.')
+            self.meta_settings[key] = dict()
+        if tag_name in self.meta_settings[key]:
+            return self.meta_settings[key][tag_name]
+        return default
 
     @property
     def available_tags(self):
         return self._available_tags
 
     def GET(self):
-        """ Fetch a list of all available reports.
-        """
         self.response.data = [tag for tag in self.available_tags.values()]
 
     def POST(self):
@@ -68,39 +59,43 @@ class Tag(Ressource):
             occurences = self.request.form.get('occurences', '').strip().split(',')
             color = self.request.form.get('color', '#5bc0de').strip()  # Default = #5bc0de
             description = self.request.form.get('description', '').strip()
+            internal = self.request.form.get('internal', False) == "true"
 
             if tag_name != tag_name_old:
-                logging.info('Update Tag `{}` to new name `{}`'.format(tag_name_old, tag_name))
+                logging.info(f'Update Tag `{tag_name_old}` to new name `{tag_name}`')
                 self.response['has_changes'] = True
 
             if len(occurences) > 0:
                 # Todo: only rebuild if we have a merge.
                 self.response['rebuild_table'] = True
                 for rid in occurences:
-                    filepath = os.path.join(self.app.config['REVISION_FOLDER'], '{}.pickle'.format(rid))
+                    filepath = os.path.join(self.app.config['REVISION_FOLDER'], f'{rid}.pickle')
                     if os.path.exists(filepath) and os.path.isfile(filepath):
                         requirement = Requirement.load(filepath)
-                        logging.info('Update tags in requirement `{}`'.format(requirement.rid))
+                        logging.info(f'Update tags in requirement `{requirement.rid}`')
                         comment = requirement.tags.pop(tag_name_old)
                         requirement.tags[tag_name] = comment
                         requirement.store()
 
-            # Store the color into meta settings.
-            if 'tag_colors' not in self.meta_settings:
-                self.meta_settings['tag_colors'] = dict()
-            self.meta_settings['tag_colors'][tag_name] = color
+            self.__set_metaconfig_property('tag_colors', tag_name, color)
+            self.__set_metaconfig_property('tag_descriptions', tag_name, description)
+            self.__set_metaconfig_property('tag_internal', tag_name, internal)
 
-            # Store the tag description into meta settings.
-            if 'tag_descriptions' not in self.meta_settings:
-                self.meta_settings['tag_descriptions'] = dict()
-            self.meta_settings['tag_descriptions'][tag_name] = description
             self.meta_settings.update_storage()
             self.response.data = {
                 'name': tag_name,
                 'used_by': occurences,
                 'color': color,
-                'description': description
+                'description': description,
+                'internal': internal
             }
+
+    def __set_metaconfig_property(self, key: str, tag_name: str, value):
+        if key not in self.meta_settings:
+            #TODO: remove this when we are sure no old metaconfigs will break
+            logging.info(f'Upgrading metaconfig with `{key}` store. This should not be happening here!')
+            self.meta_settings[key] = dict()
+        self.meta_settings[key][tag_name] = value
 
     def DELETE(self):
         tag_name = self.request.form.get('name', '').strip()

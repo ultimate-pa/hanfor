@@ -639,6 +639,7 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
     requirements = get_requirements(app.config['REVISION_FOLDER'], filter_list=filter_list, invert_filter=invert_filter)
     var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
     session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])
+    meta_settings = MetaSettings(app.config['META_SETTINGS_PATH'])
 
     # create  styles
     MULTILINE = Alignment(vertical="top", wrap_text=True)
@@ -725,7 +726,14 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
     issue_value_validator.add("G4:G1048576")
 
 
-    for i, (req, tag) in enumerate([(req, tag) for req in requirements for tag in req.tags]):
+    issue_tags_reqs = []
+    for req in requirements:
+        for tag in req.tags:
+            if tag in meta_settings['tag_internal'] and meta_settings['tag_internal'][tag]:
+                continue
+            issue_tags_reqs.append((req,tag))
+
+    for i, (req, tag) in enumerate(issue_tags_reqs):
         for c in range(1, 8):
             tag_sheet.cell(HEADER_OFFSET + i, c).alignment = MULTILINE
         tag_sheet.cell(HEADER_OFFSET + i, 1, req.pos_in_csv)
