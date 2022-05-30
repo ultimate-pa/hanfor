@@ -51,6 +51,7 @@ function store_tag(tags_datatable) {
     let tag_color = $('#tag_color').val();
     let associated_row_id = parseInt($('#modal_associated_row_index').val());
     let tag_description = $('#tag-description').val();
+    let tag_internal = $('#tag_internal').prop("checked");
 
     // Store the tag.
     $.post( "api/tag/update",
@@ -59,7 +60,8 @@ function store_tag(tags_datatable) {
             name_old: tag_name_old,
             occurences: occurences,
             color: tag_color,
-            description: tag_description
+            description: tag_description,
+            internal: tag_internal
         },
         // Update tag table on success or show an error message.
         function( data ) {
@@ -244,6 +246,7 @@ $(document).ready(function() {
         $('#tag_name').val(data.name);
         $('#tag_color').val(data.color);
         $('#tag-description').val(data.description);
+        $('#tag_internal').prop("checked",data.internal);
 
         tag_modal_content.LoadingOverlay('hide');
     });

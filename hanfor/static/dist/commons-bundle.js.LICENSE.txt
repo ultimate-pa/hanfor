@@ -147,7 +147,7 @@
  * http://jquery.org/license
  */
 
-/*! DataTables 1.11.5
+/*! DataTables 1.11.3
  * ©2008-2021 SpryMedia Ltd - datatables.net/license
  */
 
