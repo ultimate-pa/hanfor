@@ -38,9 +38,6 @@ class Tag(Ressource):
             self._available_tags[tag]['used_by'].sort()
 
     def __get_metaconfig_property(self, key: str, tag_name: str, default):
-        if key not in self.meta_settings:
-            logging.info(f'Upgrading metaconfig with `{key}` store.')
-            self.meta_settings[key] = dict()
         if tag_name in self.meta_settings[key]:
             return self.meta_settings[key][tag_name]
         return default
@@ -80,8 +77,8 @@ class Tag(Ressource):
             self.__set_metaconfig_property('tag_colors', tag_name, color)
             self.__set_metaconfig_property('tag_descriptions', tag_name, description)
             self.__set_metaconfig_property('tag_internal', tag_name, internal)
-
             self.meta_settings.update_storage()
+            
             self.response.data = {
                 'name': tag_name,
                 'used_by': occurences,
@@ -91,10 +88,6 @@ class Tag(Ressource):
             }
 
     def __set_metaconfig_property(self, key: str, tag_name: str, value):
-        if key not in self.meta_settings:
-            #TODO: remove this when we are sure no old metaconfigs will break
-            logging.info(f'Upgrading metaconfig with `{key}` store. This should not be happening here!')
-            self.meta_settings[key] = dict()
         self.meta_settings[key][tag_name] = value
 
     def DELETE(self):

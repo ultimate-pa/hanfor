@@ -874,6 +874,21 @@ def varcollection_consistency_check(app, args=None):
     var_collection.store()
 
 
+def metasettings_version_migration(app, args):
+    logging.info('Running metaconfig version migration...')
+    meta_settings = utils.MetaSettings(app.config['META_SETTINGS_PATH'])
+
+    meta_settings_keys = ["tag_colors", "tag_descriptions", "tag_internal"]
+    changes = False
+    for key in meta_settings_keys:
+        if key not in meta_settings:
+            logging.info(f'Upgrading metaconfig with empty `{key}` store.')
+            meta_settings[key] = dict()
+            changes = True
+    if changes:
+       meta_settings.update_storage()
+
+
 def requirements_version_migrations(app, args):
     logging.info('Running requirements version migration...')
     filenames = get_filenames_from_dir(app.config['REVISION_FOLDER'])
@@ -1146,6 +1161,7 @@ def startup_hanfor(args, HERE):
     # Run version migrations
     varcollection_version_migrations(app, args)
     requirements_version_migrations(app, args)
+    metasettings_version_migration(app, args)
 
     # Run consistency checks.
     varcollection_consistency_check(app, args)
