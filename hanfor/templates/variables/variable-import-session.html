@@ -6,28 +6,27 @@
             <div class="card-header">
                 <ul class="nav nav-tabs" role="tablist">
                     <li class="nav-item">
-                        <a class="nav-link active" id="search-tab" data-toggle="tab" href="#search-pane" role="tab"
+                        <a class="nav-link active" id="search-tab" data-bs-toggle="tab" href="#search-pane" role="tab"
                            aria-controls="search" aria-selected="true">Search</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="tools-tab" data-toggle="tab" href="#tools-pane" role="tab"
+                        <a class="nav-link" id="tools-tab" data-bs-toggle="tab" href="#tools-pane" role="tab"
                            aria-controls="tools" aria-selected="false">Tools</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="help-tab" data-toggle="tab" href="#help-pane" role="tab"
+                        <a class="nav-link" id="help-tab" data-bs-toggle="tab" href="#help-pane" role="tab"
                            aria-controls="tools" aria-selected="false">Help</a>
                     </li>
                 </ul>
             </div>
 
             <div class="tab-content">
-                <div class="tab-pane fade show active" id="search-pane" role="tabpanel"
-                     aria-labelledby="search-tab">
-                    {% include 'search-bar.html' %}
+                <div class="tab-pane fade show active" id="search-pane" role="tabpanel" aria-labelledby="search-tab">
+                    {% include 'search-tab.html' %}
                 </div>
                 <div class="tab-pane fade" id="tools-pane" role="tabpanel" aria-labelledby="tools-tab">
                     <div class="btn-group">
-                        <button
+                        <button id="apply_import_btn"
                                 class="btn btn-success tools-btn"
                                 type="button"
                                 data-action="apply-import">
@@ -55,19 +54,19 @@
                         Control status change the way how a variable is handled during import.
                             <ul>
                                 <li>
-                                    <span class="badge badge-info">skip</span>
+                                    <span class="badge bg-info">skip</span>
                                     Do nothing for this variable.
                                 </li>
                                 <li>
-                                    <span class="badge badge-info">source</span>
+                                    <span class="badge bg-info">source</span>
                                     Use the version from the source colection.
                                 </li>
                                 <li>
-                                    <span class="badge badge-info">target</span>
+                                    <span class="badge bg-info">target</span>
                                     Use the version currently in the target collection.
                                 </li>
                                 <li>
-                                    <span class="badge badge-info">custom</span>
+                                    <span class="badge bg-info">custom</span>
                                     When this variable is edited here.
                                 </li>
                             </ul>
@@ -75,31 +74,31 @@
                         Attributes are added to variables to enable specific searching.
                         <ul>
                             <li>
-                                <span class="badge badge-info">match_in_source_and_target</span>
+                                <span class="badge bg-info">match_in_source_and_target</span>
                                 When this variable is available in both source and target.
                             </li>
                             <li>
-                                <span class="badge badge-info">no_match_in_source</span>
+                                <span class="badge bg-info">no_match_in_source</span>
                                 When this variable is missing in the source variable collection.
                             </li>
                             <li>
-                                <span class="badge badge-info">no_match_in_target</span>
+                                <span class="badge bg-info">no_match_in_target</span>
                                 When this variable is missing in the target variable collection.
                             </li>
                             <li>
-                                <span class="badge badge-info">unmatched_types</span>
+                                <span class="badge bg-info">unmatched_types</span>
                                 When the types of the variable differ from source to target.
                             </li>
                             <li>
-                                <span class="badge badge-info">same_types</span>
+                                <span class="badge bg-info">same_types</span>
                                 When the variable types match in source and target.
                             </li>
                             <li>
-                                <span class="badge badge-info">source_has_constraints</span>
+                                <span class="badge bg-info">source_has_constraints</span>
                                 When the variable in source has constraints.
                             </li>
                             <li>
-                                <span class="badge badge-info">target_has_constraints</span>
+                                <span class="badge bg-info">target_has_constraints</span>
                                 When the variable in target has constraints.
                             </li>
                         </ul>
@@ -160,7 +159,7 @@
             <tr></tr>
         </tbody>
     </table>
-{% include 'variable-import-session-modal.html' %}
+{% include 'variables/variable-import-session-modal.html' %}
 {% endblock %}
 {% block scripts %}
     <script type="text/javascript">

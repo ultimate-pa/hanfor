@@ -1,0 +1,34 @@
+<div class="row g-2">
+    <div class="col-12">
+        <form id="generate_req_form" method="post" action="{{ url_for('tools_api', command='req_file') }}"
+              target="_blank">
+            <input type="hidden" id="selected_requirement_ids" name="selected_requirement_ids" hidden/>
+        </form>
+
+        <button id="gen-req-from-selection" class="btn btn-secondary w-100" type="button">
+            Generate .req file from (filtered) requirements table.
+        </button>
+    </div>
+
+    <div class="col-12">
+        <form id="generate_csv_form" method="post" action="{{ url_for('tools_api', command='csv_file') }}"
+              target="_blank">
+            <input type="hidden" id="selected_csv_requirement_ids" name="selected_requirement_ids" hidden/>
+        </form>
+
+        <button id="gen-csv-from-selection" class="btn btn-secondary w-100" type="button">
+            Generate .csv file from (filtered) requirements table.
+        </button>
+    </div>
+
+    <div class="col-12">
+        <form id="generate_xls_form" method="post" action="{{ url_for('tools_api', command='xls_file') }}"
+              target="_blank">
+            <input type="hidden" id="selected_xls_requirement_ids" name="selected_requirement_ids" hidden/>
+        </form>
+
+        <button id="gen-xls-from-selection" class="btn btn-secondary w-100" type="button">
+            Generate .xls file from (filtered) requirements table.
+        </button>
+    </div>
+</div>

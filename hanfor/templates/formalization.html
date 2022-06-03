@@ -1,30 +1,26 @@
-<div class="card">
-    <div class="card-header"
-         id="formalization_heading__formal_id__"
-         data-toggle="collapse"
-         data-target="#collapse__formal_id__">
-        <h5 class="mb-0">
-            <button class="btn btn-link"
-                    data-toggle="collapse"
-                    data-target="#collapse__formal_id__">
-                __formal_desc__
-            </button>
-        </h5>
-    </div>
+<div class="accordion-item">
+    <h2 id="formalization_heading__formal_id__" class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapse__formal_id__">
+            __formal_desc__
+        </button>
+    </h2>
 
-    <div id="collapse__formal_id__" class="collapse" aria-labelledby="formalization_heading__formal_id__">
-        <div class="card-body formalization_card" title="__formal_id__">
+    <div id="collapse__formal_id__" class="accordion-collapse collapse"
+         aria-labelledby="formalization_heading__formal_id__">
+
+        <div class="accordion-body formalization_card" title="__formal_id__">
             <div class="form-group">
                 <h6>Formalization:</h6>
                 <div class="alert alert-secondary formalization-preview"
-                          id="current_formalization_textarea__formal_id__"
-                          rows="3" readonly
-                          title="Current formalization">__formalization_text__
+                     id="current_formalization_textarea__formal_id__"
+                     rows="3" readonly
+                     title="Current formalization">__formalization_text__
                 </div>
             </div>
-            <h6>Edit formalization</h6>
+            <h6>Edit formalization:</h6>
             <div class="form-group">
-                <div class="row form-inline">
+                <div class="row form-inline row-spacing">
                     <div class="form-group col-md-2">
                         <label for="requirement_scope">Scope</label>
                         <select id="requirement_scope__formal_id__"
@@ -42,84 +38,84 @@
                     <div class="form-group col-md-2">
                         <label>Delete me</label>
                         <button name="__formal_id__" class="delete_formalization btn btn-large btn-danger"
-                                data-toggle="confirmation"
+                                data-bs-toggle="confirmation"
                                 data-btn-ok-label="Yes"
                                 data-btn-ok-class="btn-success"
                                 data-btn-cancel-label="Nooo Stoooop!"
                                 data-btn-cancel-class="btn-danger"
                                 data-title="Sure?" data-content="Delete this Formalization?"
                                 style="width: 100%">
-                          Delete
+                            Delete
                         </button>
                     </div>
                 </div>
             </div>
             <div id="requirement_var_group_p__formal_id__" class="form-group requirement_var_group">
-                <div class="row form-inline">
+                <div class="row form-inline row-spacing">
                     <div class="input-group col-md-12">
                         <span class="input-group-prepend input-group-text" id="p-addon__formal_id__">P</span>
                         <textarea type="text" class="form-control reqirement-variable"
-                               id="formalization_var_p__formal_id__"
+                                  id="formalization_var_p__formal_id__"
                                   aria-describedby="p-addon" title="P">__expr_P_content__</textarea>
                     </div>
                 </div>
             </div>
             <div id="requirement_var_group_q__formal_id__" class="form-group requirement_var_group">
-                <div class="row form-inline">
+                <div class="row form-inline row-spacing">
                     <div class="input-group col-md-12">
                         <span class="input-group-prepend input-group-text" id="q-addon__formal_id__">Q</span>
                         <textarea type="text" class="form-control reqirement-variable"
-                               id="formalization_var_q__formal_id__"
+                                  id="formalization_var_q__formal_id__"
                                   aria-describedby="q-addon" title="Q">__expr_Q_content__</textarea>
                     </div>
                 </div>
             </div>
             <div id="requirement_var_group_r__formal_id__" class="form-group requirement_var_group">
-                <div class="row form-inline">
+                <div class="row form-inline row-spacing">
                     <div class="input-group col-md-12">
                         <span class="input-group-prepend input-group-text" id="r-addon__formal_id__">R</span>
                         <textarea type="text" class="form-control reqirement-variable"
-                               id="formalization_var_r__formal_id__"
+                                  id="formalization_var_r__formal_id__"
                                   aria-describedby="r-addon" aria-label="R" title="R">__expr_R_content__</textarea>
                     </div>
                 </div>
             </div>
             <div id="requirement_var_group_s__formal_id__" class="form-group requirement_var_group">
-                <div class="row form-inline">
+                <div class="row form-inline row-spacing">
                     <div class="input-group col-md-12">
                         <span class="input-group-prepend input-group-text" id="s-addon__formal_id__">S</span>
                         <textarea type="text" class="form-control reqirement-variable"
-                               id="formalization_var_s__formal_id__"
+                                  id="formalization_var_s__formal_id__"
                                   aria-describedby="s-addon" aria-label="S" title="S">__expr_S_content__</textarea>
                     </div>
                 </div>
             </div>
             <div id="requirement_var_group_t__formal_id__" class="form-group requirement_var_group">
-                <div class="row form-inline">
+                <div class="row form-inline row-spacing">
                     <div class="input-group col-md-12">
                         <span class="input-group-prepend input-group-text" id="t-addon__formal_id__">T</span>
                         <textarea type="text" class="form-control reqirement-variable"
-                               id="formalization_var_t__formal_id__"
+                                  id="formalization_var_t__formal_id__"
                                   aria-describedby="t-addon" aria-label="T" title="T">__expr_T_content__</textarea>
                     </div>
                 </div>
             </div>
             <div id="requirement_var_group_u__formal_id__" class="form-group requirement_var_group">
-                <div class="row form-inline">
+                <div class="row form-inline row-spacing">
                     <div class="input-group col-md-12">
                         <span class="input-group-prepend input-group-text" id="u-addon__formal_id__">U</span>
                         <textarea type="text" class="form-control reqirement-variable"
-                               id="formalization_var_u__formal_id__"
+                                  id="formalization_var_u__formal_id__"
                                   aria-describedby="u-addon" aria-label="U" title="U">__expr_U_content__</textarea>
                     </div>
                 </div>
             </div>
             <div id="requirement_var_group_v__formal_id__" class="form-group requirement_var_group">
-                <div class="row form-inline">
+                <div class="row form-inline row-spacing">
                     <div class="input-group col-md-12">
                         <span class="input-group-prepend input-group-text" id="v-addon__formal_id__">V</span>
                         <textarea type="text" class="form-control reqirement-variable"
-                               id="formalization_var_v__formal_id__"
+                                  id="formalization_var_v__formal_id__"
                                   aria-describedby="v-addon" aria-label="V" title="V">__expr_V_content__</textarea>
                     </div>
                 </div>
@@ -127,4 +123,3 @@
         </div>
     </div>
 </div>
-

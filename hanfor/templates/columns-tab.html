@@ -1,0 +1,28 @@
+<h5>Click on a button to toggle a column.</h5>
+<div class="row g-2">
+    {% for col in default_cols %}
+        <div class="col-2">
+            <button id="col_toggle_button_{{ col.target }}"
+                    class="btn btn-info btn-sm w-100 column-toggle-button"
+                    type="button" data-column="{{ col.target }}">
+                {{ col.name }} ({{ loop.index }})
+            </button>
+        </div>
+    {% endfor %}
+
+    {% for col in additional_cols %}
+        <div class="col-2">
+            <button id="col_toggle_button_{{ col.target }}"
+                    class="btn btn-info btn-sm w-100 column-toggle-button"
+                    type="button" data-column="{{ col.target }}">
+                {{ col.table_header_name|title }} ({{ loop.index + 7 }})
+            </button>
+        </div>
+    {% endfor %}
+
+    <div class="col-2">
+        <button class="btn btn-danger btn-sm w-100 reset-column-toggle">Reset</button>
+    </div>
+</div>
+
+

@@ -1,6 +1,5 @@
 .simulator-variables {
     position: relative;
-    margin-bottom: 1rem;
 }
 
 .simulator-variables input, .simulator-variables label, .simulator-variables .input-group-prepend span {

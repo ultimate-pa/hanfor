@@ -1,6 +1,9 @@
 require('../css/simulator-modal.css')
-require('chart.js/dist/chart.min')
-require('chartjs-plugin-annotation')
+const {Modal} = require('bootstrap')
+const {Chart, registerables} = require('chart.js')
+const annotationPlugin = require('chartjs-plugin-annotation/dist/chartjs-plugin-annotation')
+
+Chart.register(...registerables, annotationPlugin)
 
 function init_simulator_modal(data) {
     const simulator_modal = $(data['html'])
@@ -98,7 +101,7 @@ function init_simulator_modal(data) {
     step_check_btn.click(function () {
         let isValid = true
 
-        $.each(variable_inputs, function(index, value) {
+        $.each(variable_inputs, function (index, value) {
             value.removeClass('is-invalid')
 
             if (!value[0].checkValidity()) {
@@ -210,7 +213,9 @@ function init_simulator_modal(data) {
         })
     })
 
-    simulator_modal.modal('show')
+    //simulator_modal.modal('show')
+    Modal.getOrCreateInstance(simulator_modal).show()
+
     simulator_modal.on('hidden.bs.modal', function () {
         $('#simulator_modal').remove()
     })
@@ -556,4 +561,4 @@ function onChartLegendClick(evt, item, legend) {
 }
  */
 
-exports.init_simulator_modal = init_simulator_modal
+module.exports.init_simulator_modal = init_simulator_modal

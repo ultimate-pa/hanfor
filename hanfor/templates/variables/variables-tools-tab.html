@@ -1,0 +1,15 @@
+<div class="row g-2">
+    <div class="col-12">
+        <form id="generate_req_form" method="post" action="{{ url_for('api', resource='var', command='gen_req') }}"
+              target="_blank"></form>
+        <button id="generate_req" class="btn btn-secondary w-100" type="button">
+            Generate .req file for variables.
+        </button>
+    </div>
+    <div class="col-12">
+        <button class="btn btn-success w-100 add-new-enum" type="button" data-bs-toggle="modal"
+                data-bs-target="#variable_new_vaiable_modal">
+            + Add new Variable.
+        </button>
+    </div>
+</div>

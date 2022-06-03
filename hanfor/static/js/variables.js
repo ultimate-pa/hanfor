@@ -1,14 +1,15 @@
 require('gasparesganga-jquery-loading-overlay');
-require('bootstrap');
-require('bootstrap-confirmation2');
-require('datatables.net-bs4');
+const {Modal} = require("bootstrap");
+require('datatables.net-bs5');
 require('datatables.net-select');
 require('jquery-ui/ui/widgets/autocomplete');
 require('./bootstrap-tokenfield.js');
 require('jquery-ui/ui/effects/effect-highlight');
 require('awesomplete');
 require('awesomplete/awesomplete.css');
-require('datatables.net-colreorderwithresize-npm');
+//require('datatables.net-colreorderwithresize-npm');
+require('datatables.net-colreorder-bs5');
+require('./bootstrap-confirm-button');
 
 let utils = require('./hanfor-utils');
 
@@ -29,7 +30,6 @@ const {SearchNode} = require('./datatables-advanced-search.js');
 let search_tree = undefined;
 let visible_columns = [true, true, true, true, true];
 let get_query = JSON.parse(search_query); // search_query is set in layout.html
-
 
 /**
  * Apply search tree on datatables data.
@@ -168,7 +168,6 @@ function start_import_session() {
         });
 }
 
-
 /**
  * Open modal for the user to trigger variable import.
  * @param sess_name
@@ -181,7 +180,8 @@ function open_import_modal(sess_name, sess_revision) {
     $('#variable_import_sess_revision').val(sess_revision);
     $('#variable_import_modal_title').html('Import from Session: ' + sess_name + ' at: ' + sess_revision);
 
-    variable_import_modal.modal('show');
+    //variable_import_modal.modal('show');
+    Modal.getOrCreateInstance(variable_import_modal).show();
 
     // Load informations about selected var collection
     variable_import_modal.LoadingOverlay('show');
@@ -200,7 +200,6 @@ function open_import_modal(sess_name, sess_revision) {
             }
         });
 }
-
 
 /**
  * Apply multi edit on selected variables.
@@ -234,7 +233,6 @@ function apply_multi_edit(variables_table, del = false) {
             }
         });
 }
-
 
 /**
  * Enable/disable the active variables (P, Q, R, ...) in the requirement modal based on scope and pattern.
@@ -273,16 +271,25 @@ function update_displayed_constraint_inputs() {
 
         Object.keys(_PATTERNS[selected_pattern]['env']).forEach(function (key) {
             switch (key) {
-                case 'R': var_r.show(); break;
-                case 'S': var_s.show(); break;
-                case 'T': var_t.show(); break;
-                case 'U': var_u.show(); break;
-                case 'V': var_v.show(); break;
+                case 'R':
+                    var_r.show();
+                    break;
+                case 'S':
+                    var_s.show();
+                    break;
+                case 'T':
+                    var_t.show();
+                    break;
+                case 'U':
+                    var_u.show();
+                    break;
+                case 'V':
+                    var_v.show();
+                    break;
             }
         });
     });
 }
-
 
 /**
  * Updates the formalization textarea based on the selected scope and expressions in P, Q, R, S, T, U, V.
@@ -348,7 +355,6 @@ function update_formalization() {
     $('#variable_constraint_updated').val('true');
 }
 
-
 function delete_constraint(constraint_id) {
     let requirement_modal_content = $('.modal-content');
     requirement_modal_content.LoadingOverlay('show');
@@ -372,7 +378,6 @@ function delete_constraint(constraint_id) {
     });
 }
 
-
 function bind_expression_buttons() {
     $('.formalization_selector').change(function () {
         update_displayed_constraint_inputs();
@@ -381,13 +386,19 @@ function bind_expression_buttons() {
     $('.reqirement-variable, .req_var_type').change(function () {
         update_formalization();
     });
-    $('.delete_formalization').confirmation({
-        rootSelector: '.delete_formalization'
-    }).click(function () {
-        delete_constraint($(this).attr('name'));
-    });
-}
 
+    // $('.delete_formalization').confirmation({
+    //     rootSelector: '.delete_formalization'
+    // }).click(function () {
+    //     delete_constraint($(this).attr('name'));
+    // });
+
+    $('.delete_formalization').bootstrapConfirmButton({
+        onConfirm: function () {
+            delete_constraint($(this).attr('name'))
+        }
+    })
+}
 
 function add_constraint() {
     // Request a new Constraint/Formalization. And add its edit elements to the modal.
@@ -417,7 +428,6 @@ function add_constraint() {
     });
 }
 
-
 function get_variable_constraints_html(var_name) {
     $.post("api/var/get_constraints_html",
         {
@@ -436,7 +446,6 @@ function get_variable_constraints_html(var_name) {
         bind_expression_buttons();
     });
 }
-
 
 function is_constraint_link(name) {
     const regex = /^(Constraint_)(.*)(_[0-9]+$)/gm;
@@ -468,7 +477,6 @@ function get_rowidx_by_var_name(name) {
     return result;
 }
 
-
 /**
  * Show / Hide Value CONST value input for variables.
  * @param revert
@@ -480,7 +488,6 @@ function show_variable_val_input(revert) {
         $('#variable_value_form_group').show();
     }
 }
-
 
 function show_belongs_to_enum_input(revert = false) {
     if (revert === true) {
@@ -497,7 +504,6 @@ function show_enumerators_in_modal(revert = false) {
         $('.enum-controls').show();
     }
 }
-
 
 function load_enumerators_to_modal(var_name) {
     $.post("api/var/get_enumerators",
@@ -521,7 +527,6 @@ function load_enumerators_to_modal(var_name) {
     });
 }
 
-
 function load_variable(row_idx) {
     // Get row data
     let data = $('#variables_table').DataTable().row(row_idx).data();
@@ -531,7 +536,8 @@ function load_variable(row_idx) {
     show_variable_val_input(true);
     show_enumerators_in_modal(true);
     show_belongs_to_enum_input(true);
-    $('#variable_modal').modal('show');
+    // $('#variable_modal').modal('show');
+    Modal.getOrCreateInstance(document.getElementById('variable_modal')).show();
 
     // Meta information
     $('#modal_associated_row_index').val(row_idx);
@@ -585,7 +591,6 @@ function load_variable(row_idx) {
     var_modal_content.LoadingOverlay('hide');
 }
 
-
 function add_variable_via_modal() {
     const new_variable_name = $('#new_variable_name').val();
     const new_variable_type = $('#new_variable_type').val();
@@ -605,7 +610,6 @@ function add_variable_via_modal() {
         });
 }
 
-
 function add_enumerator_template(name, value) {
     const enumerator_template = `
         <div class="input-group enumerator-input">
@@ -617,7 +621,6 @@ function add_enumerator_template(name, value) {
         </div>`;
     $('#enumerators').append(enumerator_template);
 }
-
 
 function delete_enumerator(enum_name, enumerator_name, enum_dom) {
     let var_modal = $('#variable_modal');
@@ -635,7 +638,6 @@ function delete_enumerator(enum_name, enumerator_name, enum_dom) {
             }
         });
 }
-
 
 /**
  * Test if pasted_text has the form:
@@ -663,7 +665,6 @@ function has_smart_input_form(pasted_text) {
     return true;
 }
 
-
 /**
  * Create a 2D array from input like
  *   foo<TAB>12
@@ -683,7 +684,6 @@ function get_smart_input_array(pasted_text) {
     return result;
 }
 
-
 /**
  * Show the value input for new consts if type CONST is selected.
  */
@@ -692,7 +692,6 @@ function update_new_var_const_value_input() {
     let value_input = $('#new_variable_const_input');
     current_type === 'CONST' ? value_input.show() : value_input.hide();
 }
-
 
 $(document).ready(function () {
     // Prepare and load the variables table.
@@ -744,7 +743,7 @@ $(document).ready(function () {
                     let result = '';
                     let search_all = '';
                     if ($.inArray('Type_inference_error', row.tags) > -1) {
-                        result += '<span class="badge badge-danger">' +
+                        result += '<span class="badge bg-danger">' +
                             '<a href="#" class="variable_link" ' +
                             'data-name="' + row.name + '" >Has type inference error</a>' +
                             '</span> ';
@@ -753,13 +752,13 @@ $(document).ready(function () {
                         if (name.length > 0) {
                             let constraint_parent = is_constraint_link(name);
                             if (constraint_parent !== null) {
-                                result += '<span class="badge badge-success">' +
+                                result += '<span class="badge bg-success">' +
                                     '<a href="#" class="variable_link" ' +
                                     'data-name="' + constraint_parent + '" >' + name + '</a>' +
                                     '</span> ';
                             } else {
                                 let search_query = '?command=search&col=2&q=%5C%22' + name + '%5C%22';
-                                result += '<span class="badge badge-info">' +
+                                result += '<span class="badge bg-info">' +
                                     '<a href="./' + search_query + '" target="_blank">' + name + '</a>' +
                                     '</span> ';
                                 if (search_all.length > 0) {
@@ -771,12 +770,12 @@ $(document).ready(function () {
                         }
                     });
                     if (result.length < 1) {
-                        result += '<span class="badge badge-warning">' +
+                        result += '<span class="badge bg-warning">' +
                             '<a href="#">Not used</a>' +
                             '</span></br>';
                     } else {
                         if (data.length > 1) {
-                            result += '<span class="badge badge-info" style="background-color: #4275d8">' +
+                            result += '<span class="badge bg-info" style="background-color: #4275d8">' +
                                 '<a href="./' + search_all + '" target="_blank">Show all</a>' +
                                 '</span> ';
                         }
@@ -960,11 +959,26 @@ $(document).ready(function () {
     });
 
     // Multi Delete variables.
-    $('.delete_button').confirmation({
-        rootSelector: '.delete_button'
-    }).click(function () {
-        apply_multi_edit(variables_table, true);
-    });
+    // $('.delete_button').confirmation({
+    //     rootSelector: '.delete_button'
+    // }).click(function () {
+    //     apply_multi_edit(variables_table, true);
+    // });
+
+    $('body').on('click', '.delete_button', function () {
+        const element = $(this)
+
+        if (element.data('html') === undefined) {
+            element.outerWidth(element.outerWidth()).data('html', element.html()).html('Do it!')
+
+            setTimeout(function () {
+                element.html(element.data('html')).removeData('html').outerWidth('')
+            }, 2000)
+        } else {
+            element.html(element.data('html')).removeData('html').outerWidth('')
+            apply_multi_edit(variables_table, true)
+        }
+    })
 
     // Add new Constraint
     $('#add_constraint').click(function () {
@@ -1016,7 +1030,13 @@ $(document).ready(function () {
         variables_table.draw();
     });
 
-    $('#variable_new_vaiable_modal').on('show.bs.modal change', function () {
+    //$('#variable_new_vaiable_modal').on('show.bs.modal change', function () {
+    //    update_new_var_const_value_input();
+    //})
+    $('#variable_new_vaiable_modal')[0].addEventListener('show.bs.modal', function () {
         update_new_var_const_value_input();
-    })
+    });
+    $('#new_variable_type').on('change', function () {
+        update_new_var_const_value_input();
+    });
 });

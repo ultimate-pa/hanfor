@@ -1,12 +1,14 @@
 require('gasparesganga-jquery-loading-overlay');
 require('bootstrap');
-require('bootstrap-confirmation2');
-require('datatables.net-bs4');
+require('datatables.net-bs5');
 require('datatables.net-select');
 require('jquery-ui/ui/widgets/autocomplete');
 require('jquery-ui/ui/effects/effect-highlight');
 require('./bootstrap-tokenfield.js');
-require('datatables.net-colreorderwithresize-npm');
+//require('datatables.net-colreorderwithresize-npm');
+require('datatables.net-colreorder-bs5');
+require('./bootstrap-confirm-button');
+
 
 // Globals
 let available_types = ['bool', 'int', 'real', 'unknown', 'CONST', 'ENUM', 'ENUMERATOR'];
@@ -430,25 +432,25 @@ $(document).ready(function() {
                     const has_target = typeof(data.target.name) !== 'undefined';
 
                     if (has_source && has_target) {
-                        result += '<span class="badge badge-info">match_in_source_and_target</span>'
+                        result += '<span class="badge bg-info">match_in_source_and_target</span>'
                         if (data.source.type !== data.target.type) {
-                            result += '<span class="badge badge-info">unmatched_types</span>'
+                            result += '<span class="badge bg-info">unmatched_types</span>'
                         } else {
-                            result += '<span class="badge badge-info">same_types</span>'
+                            result += '<span class="badge bg-info">same_types</span>'
                         }
                     } else {
                         if (!has_source) {
-                            result += '<span class="badge badge-info">no_match_in_source</span>'
+                            result += '<span class="badge bg-info">no_match_in_source</span>'
                         }
                         if (!has_target) {
-                            result += '<span class="badge badge-info">no_match_in_target</span>'
+                            result += '<span class="badge bg-info">no_match_in_target</span>'
                         }
                     }
                     if (has_source && data.source.constraints.length > 0) {
-                        result += '<span class="badge badge-info">source_has_constraints</span>'
+                        result += '<span class="badge bg-info">source_has_constraints</span>'
                     }
                     if (has_target && data.target.constraints.length > 0) {
-                        result += '<span class="badge badge-info">target_has_constraints</span>'
+                        result += '<span class="badge bg-info">target_has_constraints</span>'
                     }
                     return result;
                 }
@@ -463,7 +465,7 @@ $(document).ready(function() {
                     let result = '';
                     if (typeof(data.name) !== 'undefined') {
                         result = '<p class="var_link" data-type="source" style="cursor: pointer"><code>' +
-                            data.name + '</code> <span class="badge badge-info">' + data.type + '</span></p>';
+                            data.name + '</code> <span class="badge bg-info">' + data.type + '</span></p>';
                     } else {
                         result = 'No match.'
                     }
@@ -481,7 +483,7 @@ $(document).ready(function() {
                     let result = '';
                     if (typeof(data.name) !== 'undefined') {
                         result = '<p class="var_link" data-type="target" style="cursor: pointer"><code>' +
-                            data.name + '</code><span class="badge badge-info">' + data.type + '</span>';
+                            data.name + '</code><span class="badge bg-info">' + data.type + '</span>';
                     } else {
                         result = 'No match.'
                     }
@@ -499,7 +501,7 @@ $(document).ready(function() {
                     let result = '';
                     if (typeof(data.name) !== 'undefined') {
                         result = '<p class="var_link" data-type="result" style="cursor: pointer"><code>' +
-                            data.name + '</code><span class="badge badge-info">' + data.type + '</span>';
+                            data.name + '</code><span class="badge bg-info">' + data.type + '</span>';
                     } else {
                         result = 'Skipped.'
                     }
@@ -600,14 +602,19 @@ $(document).ready(function() {
     });
 
     // Buttons that must be confirmed
-    $('#delete_session_button').confirmation({
-      rootSelector: '#delete_session_button'
-    });
+    // $('#delete_session_button').confirmation({
+    //   rootSelector: '#delete_session_button'
+    // });
 
     // Tools Buttons
-    $('.tools-btn').click(function (e) {
-        let action = $(this).attr('data-action');
-        apply_tools_action(var_import_table, action);
+    $('#delete_session_button').bootstrapConfirmButton({
+        onConfirm: function () {
+            apply_tools_action(var_import_table, $(this).attr('data-action'))
+        }
+    })
+
+    $('#apply_import_btn').click(function () {
+        apply_tools_action(var_import_table, $(this).attr('data-action'));
     });
 
     // Toggle "Select all rows to `off` on user specific selection."

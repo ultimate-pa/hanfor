@@ -1,0 +1,45 @@
+<h5>Change Meta Attributes.</h5>
+<div class="row row-spacing g-2">
+    <div class="col-12">
+        <div class="input-group">
+            <span class="input-group-text" id="multi-add-tag" style="width: 7em">Add tag</span>
+            <input class="form-control" id="multi-add-tag-input" type="text" aria-describedby="multi-add-tag">
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="input-group">
+            <span class="input-group-text" id="multi-remove-tag" style="width: 7em">Remove tag</span>
+            <input class="form-control" id="multi-remove-tag-input" type="text" aria-describedby="multi-remove-tag">
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="input-group">
+            <span class="input-group-text" id="multi-set-status" style="width: 7em">Set Status</span>
+            <input class="form-control" id="multi-set-status-input" type="text" aria-describedby="type-filter">
+        </div>
+    </div>
+    <div class="col">
+        <div class="input-group">
+            <button class="btn btn-primary apply-multi-edit" type="button">Apply changes to selected requirements.
+            </button>
+        </div>
+    </div>
+</div>
+
+<h5>Add top formalization guess to selected requirements.</h5>
+<div class="row g-2">
+    <div class="col-12">
+        <select class="form-select" id="top_guess_append_mode">
+            <option selected value="append">Append guess to existing formalizations.</option>
+            <option value="override">Override existing formalizations.</option>
+        </select>
+    </div>
+    <div class="col">
+        <button name="add-top-guess" class="add_top_guess_button btn btn-primary" data-toggle="confirmation"
+                data-btn-ok-label="Yes" data-btn-ok-class="btn-success" data-btn-cancel-label="Nooo Stoooop!"
+                data-btn-cancel-class="btn-danger" data-title="Sure?"
+                data-content="Add top ranked guess to all selected requirements?">
+            Add top guess to selected.
+        </button>
+    </div>
+</div>

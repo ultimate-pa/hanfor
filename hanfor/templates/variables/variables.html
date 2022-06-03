@@ -1,0 +1,85 @@
+{# templates/variables/variables.html #}
+{% extends "layout.html" %}
+{% block title %}Variables{% endblock %}
+{% block body %}
+    <div class="card">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link active" id="search-tab" data-bs-toggle="tab" href="#search-pane" role="tab"
+                       aria-controls="search" aria-selected="true">Search</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="import-tab" data-bs-toggle="tab" href="#import-pane" role="tab"
+                       aria-controls="import" aria-selected="false">Import</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="multi-edit-tab" data-bs-toggle="tab" href="#multi-edit-pane" role="tab"
+                       aria-controls="multi-edit" aria-selected="false">Edit Selected</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="tools-tab" data-bs-toggle="tab" href="#tools-pane" role="tab"
+                       aria-controls="tools" aria-selected="false">Tools</a>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="search-pane" role="tabpanel" aria-labelledby="search-tab">
+                    {% include 'search-tab.html' %}
+                </div>
+                <div class="tab-pane fade" id="import-pane" role="tabpanel" aria-labelledby="import-tab">
+                    {% include 'variables/import-tab.html' %}
+                </div>
+                <div class="tab-pane fade" id="multi-edit-pane" role="tabpanel" aria-labelledby="multi-edit-tab">
+                    {% include 'variables/edit-selected-tab.html' %}
+                </div>
+                <div class="tab-pane fade" id="tools-pane" role="tabpanel" aria-labelledby="tools-tab">
+                    {% include 'variables/variables-tools-tab.html' %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <table id="variables_table" class="table table-hover table-bordered" width="100%" cellspacing="0">
+        <thead>
+        <tr>
+            <td>
+                <button class="btn btn-secondary btn-sm select-all-button" type="button">All</button>
+            </td>
+            <th>Name (01)</th>
+            <th>Type (02)</th>
+            <th>Used by (03)</th>
+            <th>Script results (04)</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tfoot>
+        <tr>
+            <td>
+                <button class="btn btn-secondary btn-sm select-all-button" type="button">All</button>
+            </td>
+            <th>Name (01)</th>
+            <th>Type (02)</th>
+            <th>Used by (03)</th>
+            <th>Script results (04)</th>
+            <th></th>
+        </tr>
+        </tfoot>
+        <tbody>
+        <tr></tr>
+        <tr></tr>
+        <tr></tr>
+        <tr></tr>
+        <tr></tr>
+        </tbody>
+    </table>
+    {% include 'variables/variable-modal.html' %}
+    {% include 'variables/variable-import-modal.html' %}
+    {% include 'variables/variable-new-variable-modal.html' %}
+{% endblock %}
+{% block scripts %}
+    <script type="text/javascript">
+        var base_url = '{{ url_for('site', site='/') }}';
+    </script>
+    <script type="text/javascript" src="{{ url_for('static', filename='dist/variables-bundle.js') }}"></script>
+{% endblock %}

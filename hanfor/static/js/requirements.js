@@ -1,15 +1,15 @@
 require('gasparesganga-jquery-loading-overlay');
-require('bootstrap');
-require('bootstrap-confirmation2');
-require('datatables.net-bs4');
-require('datatables.net-select-bs4');
+const {Collapse, Modal} = require('bootstrap');
+require('datatables.net-bs5');
+require('datatables.net-select-bs5');
 require('jquery-ui/ui/widgets/autocomplete');
 require('jquery-ui/ui/effects/effect-highlight');
 require('./bootstrap-tokenfield.js');
 require('awesomplete');
 require('awesomplete/awesomplete.css');
-require('datatables.net-colreorderwithresize-npm');
-
+//require('datatables.net-bs5-colreorderwithresize-npm');
+require('datatables.net-colreorder-bs5');
+require('./bootstrap-confirm-button');
 
 let utils = require('./hanfor-utils');
 const autosize = require('autosize');
@@ -19,6 +19,7 @@ const {SearchNode} = require('./datatables-advanced-search.js');
 const {init_simulator_tab} = require('./simulator-tab.js');
 let Fuse = require('fuse.js');
 let {Textcomplete, Textarea} = require('textcomplete');
+//const {Modal} = require("bootstrap");
 let fuse = new Fuse([], {});
 
 let available_tags = ['', 'has_formalization'];
@@ -50,7 +51,6 @@ let filter_tag_string = sessionStorage.getItem('filter_tag_string');
 let filter_type_string = sessionStorage.getItem('filter_type_string');
 let search_tree = undefined;
 let filter_tree = undefined;
-
 
 /**
  * Update the search expression tree.
@@ -95,7 +95,6 @@ function update_filter() {
 
     filter_tree = SearchNode.searchArrayToTree(filter_search_array);
 }
-
 
 function evaluate_search(data) {
     return search_tree.evaluate(data, visible_columns) && filter_tree.evaluate(data, visible_columns);
@@ -163,13 +162,17 @@ function store_requirement(requirements_table) {
                 alert(data['errormsg']);
             } else {
                 requirements_table.row(associated_row_id).data(data);
-                $('#requirement_modal').data('unsaved_changes', false).modal('hide');
+
+                //$('#requirement_modal').data('unsaved_changes', false).modal('hide');
+                $('#requirement_modal').data('unsaved_changes', false)
+
+                const requirement_modal = document.querySelector('#requirement_modal')
+                Modal.getOrCreateInstance(requirement_modal).hide()
             }
         }).done(function () {
         update_logs();
     });
 }
-
 
 /***
  *
@@ -185,7 +188,6 @@ function get_selected_requirement_ids(requirements_table) {
 
     return selected_ids
 }
-
 
 function apply_multi_edit(requirements_table) {
     let page = $('body');
@@ -212,7 +214,6 @@ function apply_multi_edit(requirements_table) {
             }
         });
 }
-
 
 function add_top_guess_to_selected_requirements(requirements_table) {
     let page = $('body');
@@ -286,16 +287,25 @@ function update_vars() {
 
         Object.keys(_PATTERNS[selected_pattern]['env']).forEach(function (key) {
             switch (key) {
-                case 'R': var_r.show(); break;
-                case 'S': var_s.show(); break;
-                case 'T': var_t.show(); break;
-                case 'U': var_u.show(); break;
-                case 'V': var_v.show(); break;
+                case 'R':
+                    var_r.show();
+                    break;
+                case 'S':
+                    var_s.show();
+                    break;
+                case 'T':
+                    var_t.show();
+                    break;
+                case 'U':
+                    var_u.show();
+                    break;
+                case 'V':
+                    var_v.show();
+                    break;
             }
         });
     });
 }
-
 
 /**
  * Replace variables in a formalization string by links to that variable.
@@ -310,7 +320,7 @@ function parse_vars_to_link(formal_string) {
     // Split the formalization string on possible variable delimiters given by the boogie grammar.
     // We enclose the regular expression by /()/g to yield the delimiters itself: We want to keep them in the result.
     formal_string.split(/([\s&<>!()=:\[\]{}\-|+*,])/g).forEach(function (chunk) {
-        if ( available_vars.includes(chunk) ) {
+        if (available_vars.includes(chunk)) {
             let query = '?command=search&col=1&q=%5C%22' + chunk + '%5C%22';
             result += '<a href="./variables' + query + '" target="_blank"' +
                 '  title="Go to declaration of ' + chunk + '" class="alert-link">' + chunk + '</a>';
@@ -407,7 +417,6 @@ function update_formalization() {
     });
 }
 
-
 function add_formalization_from_guess(scope, pattern, mapping) {
     // Request a new Formalization. And add its edit elements to the modal.
     let requirement_modal_content = $('.modal-content');
@@ -436,7 +445,6 @@ function add_formalization_from_guess(scope, pattern, mapping) {
     });
 }
 
-
 function delete_formalization(formal_id, card) {
     let requirement_modal_content = $('.modal-content');
     requirement_modal_content.LoadingOverlay('show');
@@ -460,7 +468,6 @@ function delete_formalization(formal_id, card) {
     });
 }
 
-
 /**
  * Reload fuse the fuzzy search provider used for autocomplete.
  * fuse will be reloaded with available_vars.
@@ -479,7 +486,6 @@ function update_fuse() {
     fuse = new Fuse(available_vars, options);
 }
 
-
 /**
  * Search term in the fuse fuzzy search provider.
  * Fuse is initialized with the available_vars.
@@ -488,7 +494,6 @@ function update_fuse() {
 function fuzzy_search(term) {
     return fuse.search(term);
 }
-
 
 /**
  * Adds the variable autocompletion to a textarea given by dom_obj.
@@ -522,7 +527,6 @@ function add_var_autocomplete(dom_obj) {
         e.preventDefault();
     })
 }
-
 
 /**
  * Bind autocomplete trigger to all formalization input textareas.
@@ -570,7 +574,6 @@ function bind_tag_field_events(){
         )
 }
 
-
 function load_requirement(row_idx) {
     if (row_idx === -1) {
         alert("Requirement not found.");
@@ -582,7 +585,10 @@ function load_requirement(row_idx) {
 
     // Prepare requirement Modal
     let requirement_modal_content = $('.modal-content');
-    $('#requirement_modal').modal('show');
+
+    //$('#requirement_modal').modal('show');
+    Modal.getOrCreateInstance($('#requirement_modal')).show();
+
     requirement_modal_content.LoadingOverlay('show');
     $('#formalization_accordion').html('');
 
@@ -627,7 +633,10 @@ function load_requirement(row_idx) {
         // Set csv_data
         let csv_row_content = $('#csv_content_accordion');
         csv_row_content.html('');
-        csv_row_content.collapse('hide');
+
+        //csv_row_content.collapse('hide');
+        Collapse.getOrCreateInstance(csv_row_content).hide();
+
         let csv_data = data.csv_data;
         for (const key in csv_data) {
             if (csv_data.hasOwnProperty(key)) {
@@ -646,7 +655,10 @@ function load_requirement(row_idx) {
 
         let revision_diff_content = $('#revision_diff_accordion');
         revision_diff_content.html('');
-        revision_diff_content.collapse('hide');
+
+        //revision_diff_content.collapse('hide');
+        Collapse.getOrCreateInstance(revision_diff_content).hide();
+
         let revision_diff = data.revision_diff;
         for (const key in revision_diff) {
             if (revision_diff.hasOwnProperty(key)) {
@@ -658,13 +670,16 @@ function load_requirement(row_idx) {
         // Set used variables data.
         let used_variables_accordion = $('#used_variables_accordion');
         used_variables_accordion.html('');
-        used_variables_accordion.collapse('hide');
+
+        //used_variables_accordion.collapse('hide');
+        Collapse.getOrCreateInstance(used_variables_accordion).hide();
+
         data.vars.forEach(function (var_name) {
             let query = '?command=search&col=1&q=%5C%22' + var_name + '%5C%22';
             used_variables_accordion.append(
-              '<span class="badge badge-info">' +
-              '<a href="./variables' + query + '" target="_blank">' + var_name + '</a>' +
-              '</span>&numsp;'
+                '<span class="badge bg-info">' +
+                '<a href="./variables' + query + '" target="_blank">' + var_name + '</a>' +
+                '</span>&numsp;'
             );
         });
 
@@ -697,7 +712,6 @@ function bind_requirement_id_to_modals(requirements_table) {
     });
 }
 
-
 /**
  * Update the color of the column toggle buttons.
  * Column visible -> Button blue (btn-info).
@@ -718,7 +732,6 @@ function update_visible_columns_information() {
     });
     visible_columns = new_visible_columns;
 }
-
 
 /**
  * Clear all user input in filters and search bar. Reload the table.
@@ -830,7 +843,7 @@ function init_datatable_manipulators(requirements_table) {
     });
 
     // Column toggling
-    $('.colum-toggle-button').on('click', function (e) {
+    $('.column-toggle-button').on('click', function (e) {
         e.preventDefault();
 
         // Get the column API object
@@ -841,7 +854,7 @@ function init_datatable_manipulators(requirements_table) {
         update_visible_columns_information();
     });
 
-    $('.reset-colum-toggle').on('click', function (e) {
+    $('.reset-column-toggle').on('click', function (e) {
         e.preventDefault();
         requirements_table.columns('.default-col').visible(true);
         requirements_table.columns('.extra-col').visible(false);
@@ -889,11 +902,17 @@ function init_datatable_manipulators(requirements_table) {
         apply_multi_edit(requirements_table);
     });
 
-    $('.add_top_guess_button').confirmation({
-        rootSelector: '.add_top_guess_button'
-    }).click(function () {
-        add_top_guess_to_selected_requirements(requirements_table);
-    });
+    // $('.add_top_guess_button').confirmation({
+    //     rootSelector: '.add_top_guess_button'
+    // }).click(function () {
+    //     add_top_guess_to_selected_requirements(requirements_table);
+    // });
+
+    $('.add_top_guess_button').bootstrapConfirmButton({
+        onConfirm: function () {
+            add_top_guess_to_selected_requirements(requirements_table)
+        }
+    })
 }
 
 /**
@@ -913,7 +932,7 @@ function init_datatable(columnDefs) {
             style: 'os',
             selector: 'td:first-child'
         },
-        "order": [[ 1, "asc" ]],
+        "order": [[1, "asc"]],
         "pageLength": 50,
         "lengthMenu": [[10, 50, 100, 500, -1], [10, 50, 100, 500, "All"]],
         "dom": 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
@@ -975,14 +994,12 @@ function init_datatable(columnDefs) {
     new $.fn.dataTable.ColReorder(table, {});
 }
 
-
 /**
  * Get the color for a tag
  */
 function get_tag_color(tag_name) {
-    return tag_colors.hasOwnProperty(tag_name) ? tag_colors[tag_name] : '#5bc0de';
+    return tag_colors.hasOwnProperty(tag_name) ? tag_colors[tag_name] : '#0dcaf0';
 }
-
 
 /**
  * Load available guesses into the modal.
@@ -993,10 +1010,14 @@ function fetch_available_guesses() {
     let modal_content = $('.modal-content');
     let requirement_id = $('#requirement_id').val();
 
-    modal.modal({
-        keyboard: false
-    });
-    modal.modal('show');
+    //modal.modal({
+    //    keyboard: false
+    //});
+    new Modal(modal, {keyboard: false});
+
+    //modal.modal('show');
+    Modal.getOrCreateInstance(modal).show();
+
     modal_content.LoadingOverlay('show');
     available_guesses_cards.html('');
 
@@ -1037,7 +1058,6 @@ function fetch_available_guesses() {
         modal_content.LoadingOverlay('hide', true);
     });
 }
-
 
 /**
  * Load requirements datatable definitions. Trigger build of a fresh requirement datatable.
@@ -1105,12 +1125,12 @@ function load_datatable() {
                         ) {
                             if (!tagged_formal) {
                                 tagged_formal = true;
-                                result += '<span class="badge badge-success">has_formalization</span></br>';
+                                result += '<span class="badge bg-success">has_formalization</span></br>';
                             }
                         } else {
                             if (!tagged_incomplete) {
                                 tagged_incomplete = true;
-                                result += '<span class="badge badge-warning">incomplete_formalization</span></br>';
+                                result += '<span class="badge bg-warning">incomplete_formalization</span></br>';
                             }
                         }
                     });
@@ -1123,7 +1143,7 @@ function load_datatable() {
             "targets": [6],
             "data": "status",
             "render": function (data) {
-                return '<span class="badge badge-info">' + data + '</span></br>';
+                return '<span class="badge bg-info">' + data + '</span></br>';
             }
         },
         {
@@ -1165,6 +1185,8 @@ function load_datatable() {
  * @param event | the modal hiding event.
  */
 function modal_closing_routine(event) {
+    console.log('closing')
+
     const unsaved_changes = $('#requirement_modal').data('unsaved_changes');
     if (unsaved_changes === true) {
         const force_close = confirm("You have unsaved changes, do you really want to close?");
@@ -1180,6 +1202,7 @@ function modal_closing_routine(event) {
 function init_modal() {
     let requirement_modal = $('#requirement_modal');
     // Initialize tag autocomplete filed in the requirements modal.
+
     $('#requirement_tag_field')
         .tokenfield({
             autocomplete: {
@@ -1196,7 +1219,8 @@ function init_modal() {
         $('#requirement_modal').data('unsaved_changes', true);
     });
 
-    requirement_modal.on('hide.bs.modal', function (event) {
+    //requirement_modal.on('hide.bs.modal', function (event) {
+    requirement_modal[0].addEventListener('hide.bs.modal', function (event) {
         modal_closing_routine(event);
     });
 
@@ -1261,7 +1285,6 @@ function init_modal() {
     update_vars();
 }
 
-
 /**
  * Load the hanfor frontend meta settings.
  */
@@ -1296,7 +1319,6 @@ function load_meta_settings() {
     });
 }
 
-
 /**
  * Find the datatable row index for a requirement by its requirement id.
  * @param {number} rid the requirement id.
@@ -1318,7 +1340,6 @@ function get_rowidx_by_reqid(rid) {
     return result;
 }
 
-
 /**
  * Refresh the hanfor frontend logs.
  */
@@ -1333,7 +1354,6 @@ function update_logs() {
         $('#log_textarea').scrollTop(100000);
     });
 }
-
 
 /**
  * Evaluate the report queries given by the report_query_textarea.
@@ -1483,7 +1503,6 @@ function init_report_generation() {
     load_reports();
 }
 
-
 /**
  * Start the app.
  */
@@ -1497,28 +1516,72 @@ $(document).ready(function () {
 
     let body = $('body');
     // Bind formalization deletion.
-    body.confirmation({
-        rootSelector: '.delete_formalization',
+    // body.confirmation({
+    //     rootSelector: '.delete_formalization',
+    //     selector: '.delete_formalization',
+    //     onConfirm: function () {
+    //         delete_formalization($(this).attr('name'), $(this).closest('.card'));
+    //     }
+    // });
+
+    $('body').bootstrapConfirmButton({
         selector: '.delete_formalization',
         onConfirm: function () {
-            delete_formalization($(this).attr('name'), $(this).closest('.card'));
+            delete_formalization($(this).attr('name'), $(this).closest('.accordion-item'))
         }
-    });
+    })
 
-    // Bind formalization update.
+    body.on('click', '.delete_formalization1', function () {
+        console.log('delete')
+        bootstrapConfirmation({
+            yesCallBack: function () {
+                console.log('yes');
+            },
+            noCallBack: function () {
+                console.log('no');
+            },
+            config: {
+                closeIcon: true,
+                message: 'This is an example.',
+                title: 'Example',
+                no: {
+                    class: 'btn btn-danger',
+                    text: 'No'
+                },
+                yes: {
+                    class: 'btn btn-success',
+                    text: 'Yes'
+                }
+            }
+        });
+    })
+
+// Bind formalization update.
     body.on('change', '.formalization_selector, .reqirement-variable, .req_var_type', function () {
         update_formalization();
     });
-    // Bind formalization variable update.
+// Bind formalization variable update.
     body.on('change', '.formalization_selector', function () {
         update_vars();
     });
+
+    /*
     body.on('shown.bs.modal', '#requirement_modal', function () {
         $(this).find('textarea').each(function () {
             autosize($(this));
             autosize.update($(this));
         });
     });
+    */
+
+    const requirement_modal = document.getElementById('requirement_modal')
+    requirement_modal.addEventListener('shown.bs.modal', function () {
+        $(this).find('textarea').each(function () {
+            autosize($(this));
+            autosize.update($(this));
+        });
+    })
+
     body.on('change focus', 'textarea', function () {
         autosize($(this));
         autosize.update($(this));

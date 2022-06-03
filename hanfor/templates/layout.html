@@ -1,7 +1,7 @@
 {# templates/layout.html #}
 <!DOCTYPE html>
 <html lang="en">
-    <head>
+<head>
     {% block head %}
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -9,82 +9,88 @@
         <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
         <title>{% block title %}{% endblock %} | Hanfor.</title>
     {% endblock %}
-    </head>
-    <body>
-    {% block navbar %}
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbar_main" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    <a class="navbar-brand" href="{{ url_for('site', site='/') }}"
-       title="Hanfor helps analyzing and formalizing requirements.">Hanfor</a>
+</head>
+<body>
+{% block navbar %}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('site', site='/') }}"
+               title="Hanfor helps analyzing and formalizing requirements.">Hanfor</a>
 
-    <div class="collapse navbar-collapse" id="navbar_main">
-      <ul class="navbar-nav mr-auto">
-          <li class="nav-item{% if request.path == '/' %} active{% endif %}">
-            <a class="nav-link" href="{{ url_for('site', site='/') }}">Start</a>
-          </li>
-          <li class="nav-item{% if request.path == '/variables' %} active{% endif %}">
-            <a class="nav-link" href="{{ url_for('site', site='variables') }}">Variables</a>
-          </li>
-          <li class="nav-item{% if request.path == '/tags' %} active{% endif %}">
-            <a class="nav-link" href="{{ url_for('site', site='tags') }}">Tags</a>
-          </li>
-          <li class="nav-item{% if request.path == '/statistics' %} active{% endif %}">
-            <a class="nav-link" href="{{ url_for('site', site='statistics') }}">Statistics</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="https://ultimate-pa.github.io/hanfor/" target="_blank">Help</a>
-          </li>
-      </ul>
-      <span class="navbar-text" id="runtime-info">
-        Running <code>{{ config.SESSION_TAG }}</code> @ <code>{{ config.USING_REVISION }}</code>&nbsp;
-      </span>
-    </div>
-    <ul class="navbar-nav flex-row ml-md-auto d-none d-md-flex">
-        <li class="nav-item dropdown">
-          <a class="nav-item nav-link text-nowrap" href="#" id="bd-versions" data-toggle="dropdown"
-             aria-haspopup="true"
-             aria-expanded="false">
-            About &#x25BC;
-          </a>
-          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="bd-versions">
-            <h6 class="dropdown-header">Session Information</h6>
-            <span class="dropdown-item">
-                Running: <code>{{ config.SESSION_TAG }}</code> @ <code>{{ config.USING_REVISION }}</code>
-            </span>
-            <span class="dropdown-item">
-                CSV input: <code>{{ config.CSV_INPUT_FILE }}</code>
-            </span>
-            <div class="dropdown-divider"></div>
-            <div class="mx-4 custom-control custom-switch">
-                <input type="checkbox" class="custom-control-input" id="dark_theme_switch">
-                <label class="custom-control-label" for="dark_theme_switch">Dark Mode</label>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbar_main" aria-controls="navbarColor01" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbar_main">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item{% if request.path == '/' %} active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('site', site='/') }}">Start</a>
+                    </li>
+                    <li class="nav-item{% if request.path == '/variables' %} active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('site', site='variables') }}">Variables</a>
+                    </li>
+                    <li class="nav-item{% if request.path == '/tags' %} active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('site', site='tags') }}">Tags</a>
+                    </li>
+                    <li class="nav-item{% if request.path == '/statistics' %} active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('site', site='statistics') }}">Statistics</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://ultimate-pa.github.io/hanfor/" target="_blank">Help</a>
+                    </li>
+                </ul>
+                <span class="navbar-text" id="runtime-info">
+                    Running <code>{{ config.SESSION_TAG }}</code> @ <code>{{ config.USING_REVISION }}</code>&nbsp;
+                </span>
             </div>
-            <div class="dropdown-divider"></div>
-            <h6 class="dropdown-header">Hanfor Version</h6>
-            <a class="dropdown-item title-link" target="_blank"
-                href="https://github.com/ultimate-pa/hanfor/tree/{{ config.HANFOR_COMMIT_HASH }}">
-                Hanfor&nbsp;{{ config.HANFOR_VERSION }}
-            </a>
-          </div>
-        </li>
-    </ul>
-  </nav>
-    {% endblock %}
-    <main role="main">
-        <div class="container-fluid top-padding">
-            {% block body %}
-            {% endblock %}
+            <ul class="navbar-nav flex-row ms-md-auto d-none d-md-flex">
+                <li class="nav-item dropdown">
+                    <a class="nav-item nav-link text-nowrap" href="#" id="bd-versions" data-bs-toggle="dropdown"
+                       aria-haspopup="true" aria-expanded="false">
+                        About &#x25BC;
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="bd-versions">
+                        <h6 class="dropdown-header">Session Information</h6>
+                        <span class="dropdown-item">
+                            Running: <code>{{ config.SESSION_TAG }}</code> @ <code>{{ config.USING_REVISION }}</code>
+                        </span>
+                        <span class="dropdown-item">
+                            CSV input: <code>{{ config.CSV_INPUT_FILE }}</code>
+                        </span>
+                        <div class="dropdown-divider"></div>
+
+                        <div class="mx-3 form-check form-switch">
+                            <input class="form-check-input" id="dark_theme_switch" type="checkbox" role="switch">
+                            <label class="form-check-label" for="dark_theme_switch">Dark Mode</label>
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+                        <h6 class="dropdown-header">Hanfor Version</h6>
+                        <a class="dropdown-item title-link" target="_blank"
+                           href="https://github.com/ultimate-pa/hanfor/tree/{{ config.HANFOR_COMMIT_HASH }}">
+                            Hanfor&nbsp;{{ config.HANFOR_VERSION }}
+                        </a>
+                    </div>
+                </li>
+            </ul>
         </div>
-    </main>
-    <script type="text/javascript" src="{{ url_for('static', filename='dist/commons-bundle.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='dist/layout_globals-bundle.js') }}"></script>
-    <script type="text/javascript">
-        let search_query = '{{ query|tojson }}';
-        let _PATTERNS = JSON.parse('{{ patterns|tojson }}');
-    </script>
-    {% block scripts %}
-    {% endblock %}
-    </body>
+    </nav>
+{% endblock %}
+<main role="main">
+    <div class="container-fluid">
+        {% block body %}
+        {% endblock %}
+    </div>
+</main>
+<script type="text/javascript" src="{{ url_for('static', filename='dist/commons-bundle.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='dist/layout_globals-bundle.js') }}"></script>
+<script type="text/javascript">
+    let search_query = '{{ query|tojson }}';
+    let _PATTERNS = JSON.parse('{{ patterns|tojson }}');
+</script>
+{% block scripts %}
+{% endblock %}
+</body>
 </html>

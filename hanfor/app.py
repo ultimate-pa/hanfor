@@ -659,7 +659,7 @@ def api(resource, command):
 @app.route('/variable_import/<id>', methods=['GET'])
 @nocache
 def variable_import(id):
-    return render_template('variable-import-session.html', id=id, query=request.args)
+    return render_template('variables/variable-import-session.html', id=id, query=request.args, patterns=PATTERNS)
 
 
 @app.route('/variable_import/api/<session_id>/<command>', methods=['GET', 'POST'])
@@ -780,14 +780,14 @@ def site(site):
             )
             running_import_sessions = VarImportSessions.load_for_app(app).info()
             return render_template(
-                '{}.html'.format(site),
+                '{}.html'.format(site + '/' + site),
                 available_sessions=available_sessions,
                 running_import_sessions=running_import_sessions,
                 query=request.args,
                 patterns=PATTERNS
             )
         else:
-            return render_template('{}.html'.format(site), query=request.args, patterns=PATTERNS)
+            return render_template('{}.html'.format(site + '/' + site), query=request.args, patterns=PATTERNS)
     else:
         return render_template('404.html', query=request.args), 404
 

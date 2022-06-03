@@ -1,16 +1,18 @@
 require('gasparesganga-jquery-loading-overlay');
 require('bootstrap');
-require('bootstrap-confirmation2');
-require('datatables.net-bs4');
+require('datatables.net-bs5');
 require('jquery-ui/ui/widgets/autocomplete');
 require('jquery-ui/ui/effects/effect-highlight');
 require('./bootstrap-tokenfield.js');
 require('awesomplete');
 require('awesomplete/awesomplete.css');
-require('datatables.net-colreorderwithresize-npm');
+//require('datatables.net-colreorderwithresize-npm');
+require('datatables.net-colreorder-bs5');
+require('./bootstrap-confirm-button');
 
 const autosize = require('autosize');
-const { SearchNode } = require('./datatables-advanced-search.js');
+const {SearchNode} = require('./datatables-advanced-search.js');
+const {Modal} = require("bootstrap");
 let tag_search_string = sessionStorage.getItem('tag_search_string');
 let search_autocomplete = [
     ":AND:",
@@ -31,7 +33,7 @@ function update_search() {
 }
 
 
-function evaluate_search(data){
+function evaluate_search(data) {
     return search_tree.evaluate(data, [true, true, true]);
 }
 
@@ -54,7 +56,7 @@ function store_tag(tags_datatable) {
     let tag_internal = $('#tag_internal').prop("checked");
 
     // Store the tag.
-    $.post( "api/tag/update",
+    $.post("api/tag/update",
         {
             name: tag_name,
             name_old: tag_name_old,
@@ -64,7 +66,7 @@ function store_tag(tags_datatable) {
             internal: tag_internal
         },
         // Update tag table on success or show an error message.
-        function( data ) {
+        function (data) {
             tag_modal_content.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
@@ -76,7 +78,7 @@ function store_tag(tags_datatable) {
                     $('#tag_modal').modal('hide');
                 }
             }
-    });
+        });
 }
 
 function delete_tag(name) {
@@ -86,11 +88,11 @@ function delete_tag(name) {
     let tag_name = $('#tag_name').val();
     let occurences = $('#occurences').val();
     $.ajax({
-      type: "DELETE",
-      url: "api/tag/del_tag",
-      data: {name: tag_name, occurences: occurences},
-      success: function (data) {
-        tag_modal_content.LoadingOverlay('hide', true);
+        type: "DELETE",
+        url: "api/tag/del_tag",
+        data: {name: tag_name, occurences: occurences},
+        success: function (data) {
+            tag_modal_content.LoadingOverlay('hide', true);
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
@@ -98,14 +100,15 @@ function delete_tag(name) {
                     location.reload();
                 } else {
                     tags_datatable.row(associated_row_id).data(data.data).draw();
-                    $('#tag_modal').modal('hide');
+                    //$('#tag_modal').modal('hide');
+                    Modal.getOrCreateInstance($('#tag_modal')).hide();
                 }
             }
-      }
+        }
     });
 }
 
-$(document).ready(function() {
+$(document).ready(function () {
     // Prepare and load the tags table.
     let tags_table = $('#tags_table');
     let tags_datatable = tags_table.DataTable({
@@ -120,14 +123,14 @@ $(document).ready(function() {
         "columns": [
             {
                 "data": "name",
-                "render": function ( data, type, row, meta ) {
+                "render": function (data, type, row, meta) {
                     result = '<a class="modal-opener" href="#">' + data + '</span></br>';
                     return result;
                 }
             },
             {
                 "data": "description",
-                "render": function ( data, type, row, meta ) {
+                "render": function (data, type, row, meta) {
                     result = '<div class="white-space-pre">' + data + '</div>';
                     return result;
                 }
@@ -135,19 +138,19 @@ $(document).ready(function() {
             },
             {
                 "data": "used_by",
-                "render": function ( data, type, row, meta ) {
+                "render": function (data, type, row, meta) {
                     let result = '';
                     $(data).each(function (id, name) {
                         if (name.length > 0) {
                             search_query = '?command=search&col=2&q=%5C%22' + name + '%5C%22';
-                            result += '<span class="badge badge-info" style="background-color: ' + row.color +'">' +
+                            result += '<span class="badge bg-info" style="background-color: ' + row.color + '">' +
                                 '<a href="' + base_url + search_query + '" target="_blank">' + name + '</a>' +
                                 '</span> ';
                         }
                     });
                     if (data.length > 1 && result.length > 0) {
                         const search_all = '?command=search&col=5&q=' + row.name;
-                        result += '<span class="badge badge-info" style="background-color: #4275d8">' +
+                        result += '<span class="badge bg-info" style="background-color: #4275d8">' +
                             '<a href="./' + search_all + '" target="_blank">Show all</a>' +
                             '</span> ';
                     }
@@ -158,7 +161,7 @@ $(document).ready(function() {
                 "data": "used_by",
                 "visible": false,
                 "searchable": false,
-                "render": function ( data, type, row, meta ) {
+                "render": function (data, type, row, meta) {
                     result = '';
                     $(data).each(function (id, name) {
                         if (name.length > 0) {
@@ -172,13 +175,13 @@ $(document).ready(function() {
                 }
             }
         ],
-        initComplete : function() {
+        initComplete: function () {
             $('#search_bar').val(tag_search_string);
             update_search();
 
             // Enable Hanfor specific table filtering.
             $.fn.dataTable.ext.search.push(
-                function( settings, data, dataIndex ) {
+                function (settings, data, dataIndex) {
                     // data contains the row. data[0] is the content of the first column in the actual row.
                     // Return true to include the row into the data. false to exclude.
                     return evaluate_search(data);
@@ -190,30 +193,30 @@ $(document).ready(function() {
     tags_datatable.column(3).visible(false);
     new $.fn.dataTable.ColReorder(tags_datatable, {});
 
-    let search_bar = $( "#search_bar" );
+    let search_bar = $("#search_bar");
     // Bind big custom searchbar to search the table.
-    search_bar.keypress(function(e){
-        if(e.which === 13) { // Search on enter.
+    search_bar.keypress(function (e) {
+        if (e.which === 13) { // Search on enter.
             update_search();
             tags_datatable.draw();
         }
     });
 
     new Awesomplete(search_bar[0], {
-        filter: function(text, input) {
+        filter: function (text, input) {
             let result = false;
             // If we have an uneven number of ":"
             // We check if we have a match in the input tail starting from the last ":"
-            if ((input.split(":").length-1)%2 === 1) {
+            if ((input.split(":").length - 1) % 2 === 1) {
                 result = Awesomplete.FILTER_CONTAINS(text, input.match(/[^:]*$/)[0]);
             }
             return result;
         },
-        item: function(text, input) {
+        item: function (text, input) {
             // Match inside ":" enclosed item.
             return Awesomplete.ITEM(text, input.match(/(:)([\S]*$)/)[2]);
         },
-        replace: function(text) {
+        replace: function (text) {
             // Cut of the tail starting from the last ":" and replace by item text.
             const before = this.input.value.match(/(.*)(:(?!.*:).*$)/)[1];
             this.input.value = before + text;
@@ -234,7 +237,8 @@ $(document).ready(function() {
 
         // Prepare tag modal
         let tag_modal_content = $('.modal-content');
-        $('#tag_modal').modal('show');
+        //$('#tag_modal').modal('show');
+        Modal.getOrCreateInstance($('#tag_modal')).show();
         $('#modal_associated_row_index').val(row_id);
 
         // Meta information
@@ -256,11 +260,17 @@ $(document).ready(function() {
         store_tag(tags_datatable);
     });
 
-    $('.delete_tag').confirmation({
-      rootSelector: '.delete_tag'
-    }).click(function () {
-        delete_tag( $(this).attr('name') );
-    });
+    // $('.delete_tag').confirmation({
+    //     rootSelector: '.delete_tag'
+    // }).click(function () {
+    //     delete_tag($(this).attr('name'));
+    // });
+
+    $('.delete_tag').bootstrapConfirmButton({
+        onConfirm: function () {
+            delete_tag($(this).attr('name'))
+        }
+    })
 
     autosize($('#tag-description'));
 
@@ -273,4 +283,4 @@ $(document).ready(function() {
         update_search();
         tags_datatable.draw();
     });
-} );
+});

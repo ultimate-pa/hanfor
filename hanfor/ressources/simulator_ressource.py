@@ -116,7 +116,7 @@ class SimulatorRessource(Ressource):
             return
 
         simulator = self.simulator_cache[self.response.data['simulator_id']]
-        self.response.data['html'] = render_template('simulator-modal.html', simulator=simulator, valid_patterns=validation_patterns)
+        self.response.data['html'] = render_template('simulator-modal/modal.html', simulator=simulator, valid_patterns=validation_patterns)
 
     def scenario_save(self) -> None:
         if not self.get_simulator():
