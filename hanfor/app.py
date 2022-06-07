@@ -667,9 +667,7 @@ def variable_import(id):
 def var_import_session(session_id, command):
     result = {
         'success': False,
-        'errormsg': 'Command not found'
     }
-
     var_import_sessions = VarImportSessions.load_for_app(app)
 
     if command == 'get_var':
@@ -686,20 +684,18 @@ def var_import_session(session_id, command):
             if which_collection == 'result_link':
                 var_collection = var_collection.result_var_collection
             result = var_collection.collection[name].to_dict(var_collection.var_req_mapping)
+            return jsonify(result), 200
         except Exception as e:
             logging.info('Could not load var: {} from import session: {}'.format(name, session_id))
-
-        return jsonify(result), 200
 
     if command == 'get_table_data':
         result = dict()
         try:
             result = {'data': var_import_sessions.import_sessions[int(session_id)].to_datatables_data()}
+            return jsonify(result), 200
         except Exception as e:
             logging.info('Could not load session with id: {} ({})'.format(session_id, e))
             raise e
-
-        return jsonify(result), 200
 
     if command == 'store_table':
         rows = json.loads(request.form.get('rows', ''))
@@ -708,12 +704,11 @@ def var_import_session(session_id, command):
             var_import_sessions.import_sessions[int(session_id)].store_changes(rows)
             var_import_sessions.store()
             result['success'] = True
+            return jsonify(result), 200
         except Exception as e:
             logging.info('Could not store table: {}'.format(e))
             result['success'] = False
             result['errormsg'] = 'Could not store: {}'.format(e)
-
-        return jsonify(result), 200
 
     if command == 'store_variable':
         row = json.loads(request.form.get('row', ''))
@@ -722,11 +717,11 @@ def var_import_session(session_id, command):
             var_import_sessions.import_sessions[int(session_id)].store_variable(row)
             var_import_sessions.store()
             result['success'] = True
+            return jsonify(result), 200
         except Exception as e:
             logging.info('Could not store table: {}'.format(e))
             result['success'] = False
             result['errormsg'] = 'Could not store: {}'.format(e)
-        return jsonify(result), 200
 
     if command == 'apply_import':
         try:
@@ -739,28 +734,26 @@ def var_import_session(session_id, command):
             var_collection.store()
             varcollection_consistency_check(app)
             result['success'] = True
+            return jsonify(result), 200
         except Exception as e:
             logging.info('Could not apply import: {}'.format(e))
             result['success'] = False
             result['errormsg'] = 'Could not apply import: {}'.format(e)
 
-        return jsonify(result), 200
-
     if command == 'delete_me':
         try:
-            logging.info('Deleting variable import session id: {}'.format(session_id))
-            del var_import_sessions.import_sessions[int(session_id)]
+            logging.info(f'Deleting variable import session id: {session_id}')
+            var_import_sessions.import_sessions.pop(int(session_id))
             var_import_sessions.store()
             result['success'] = True
+            return jsonify(result), 200
         except Exception as e:
-            error_msg = 'Could not delete session with id {} due to: {}'.format(session_id, e)
+            error_msg = f'Could not delete session with id {session_id} due to: {e}'
             logging.info(error_msg)
             result['success'] = False
             result['errormsg'] = error_msg
 
-        return jsonify(result), 200
-
-    return jsonify(result), 200
+    return jsonify(result), 400
 
 
 @app.route('/<site>')
