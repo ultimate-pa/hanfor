@@ -41,7 +41,7 @@
                 {% for sess_id, ses in running_import_sessions.items() %}
                     {% if config.SESSION_TAG == ses.target[2] %}
                         <h6>
-                            <a href="{{ url_for('site', site='/') }}/variable_import/{{ ses.id }}" target="_blank">
+                            <a href="{{ url_for('site', site='variable_import/' + ses.id|string) }}" target="_blank">
                                 <code>Session{{ ses.id }}</code>
                             </a>
                         </h6>
