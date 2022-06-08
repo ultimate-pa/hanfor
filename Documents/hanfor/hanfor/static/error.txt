@@ -1,0 +1,4 @@
+
+> hanfor@0.1.0 dev-build
+> webpack --progress -d --config webpack.config.js
+

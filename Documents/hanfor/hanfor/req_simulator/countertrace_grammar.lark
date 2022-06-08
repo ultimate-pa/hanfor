@@ -1,0 +1,32 @@
+countertrace: phase_ (";" phase_)* ";" phase_true_ -> countertrace
+
+phase_: phase_true_
+    | true_ "∧" "ℓ" bound_type_ variable_ -> phase
+    | true_ "∧" "ℓ" bound_type_ "₀" variable_ -> phase_e
+    | "⌈" predicate_ "⌉" -> phase_unbounded
+    | "⌈" predicate_ "⌉" "∧" "ℓ" bound_type_ variable_ -> phase
+    | "⌈" predicate_ "⌉" "∧" "ℓ" bound_type_ "₀" variable_ -> phase_e
+
+predicate_: expression_
+
+expression_: "(" expression_ ")"
+    | expression_ "&&" expression_ -> conjunction
+    | expression_ "||" expression_ -> disjunction
+    | "!" variable_ -> negation
+    | variable_
+
+bound_type_: "<" -> bound_type_lt
+    | "≤" -> bound_type_lteq
+    | ">" -> bound_type_gt
+    | "≥" -> bound_type_gteq
+
+variable_: VARIABLE -> variable
+
+phase_true_: "true" -> phase_t
+
+true_: "true" -> true
+
+VARIABLE: /[A-Z]/
+
+%import common.WS
+%ignore WS

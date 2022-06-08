@@ -1,0 +1,10 @@
+{# templates/tools.html #}
+{% extends "layout.html" %}
+{% block title %}Tools{% endblock %}
+{% block body %}
+    <h1><a id="Hanfor_0"></a>Generate output files</h1>
+    <h4>.req File</h4>
+    <a href="{{ url_for('tools_api', command='req_file') }}">Generate the formal .req file for this session.</a>
+    <h4>.csv File</h4>
+    <a href="{{ url_for('tools_api', command='csv_file') }}">Generate the .csv file for this session.</a>
+{% endblock %}

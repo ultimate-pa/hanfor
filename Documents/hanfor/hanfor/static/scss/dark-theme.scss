@@ -1,0 +1,50 @@
+$white: #252e36;
+$gray-100: #f8f9fa;
+$gray-200: #ecf0f1;
+$gray-300: #dee2e6;
+$gray-400: #ced4da;
+$gray-500: #b4bcc2;
+$gray-600: #95a5a6;
+$gray-700: #7b8a8b;
+$gray-800: #343a40;
+$gray-900: #212529;
+$black: #000;
+$blue: #2C3E50;
+$indigo: #6610f2;
+$purple: #6f42c1;
+$pink: #e83e8c;
+$red: #E74C3C;
+$orange: #fd7e14;
+$yellow: #F39C12;
+$green: #18BC9C;
+$teal: #20c997;
+$cyan: #3498DB;
+$primary: $blue;
+$secondary: $gray-600;
+$success: $green;
+$info: $cyan;
+$warning: $yellow;
+$danger: $red;
+$light: $gray-200;
+$dark: $gray-800;
+$dropdown-link-color: $gray-700;
+$dropdown-link-hover-color: $white;
+$dropdown-link-hover-bg: $primary;
+$navbar-dark-color: $gray-800;
+$navbar-dark-hover-color: $success;
+
+main { background-color: $white; color: $light; }
+.navbar { background-color: $blue; }
+.dropdown-menu { background-color: $gray-800; }
+.card { background-color: $gray-800; }
+.nav-tabs .nav-link.active, .nav-tabs .nav-item.show .nav-link { background-color: $navbar-dark-color; }
+.form-control { background-color: $gray-600; }
+.input-group-text { background-color: $gray-700; }
+.table thead th { background-color: $gray-800; }
+.bg-primary { background-color: $primary !important; }
+.table-warning, .table-warning th, .table-warning td, .table-warning thead th, .table-warning tbody + tbody { background-color: $warning !important; }
+.table-info, .table-info > th, .table-info > td { background-color: $info !important; }
+.modal-content { background-color: $white; }
+.table { color: $gray-300; }
+.table-hover tbody tr:hover { color: $gray-100; }
+#requirements_table td a { color: $gray-300; }
