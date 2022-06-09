@@ -51,6 +51,8 @@ let filter_type_string = sessionStorage.getItem('filter_type_string');
 let search_tree = undefined;
 let filter_tree = undefined;
 
+let tags_to_be_added = [];
+
 
 /**
  * Update the search expression tree.
@@ -185,15 +187,20 @@ function get_selected_requirement_ids(requirements_table) {
 
     return selected_ids
 }
+//todo we receive the input field as a single tag, which now needs to be changed to multiple tags
 function apply_multi_edit(requirements_table) {
+    console.log("apply multi edit");
     let page = $('body');
     page.LoadingOverlay('show');
+    // let add_tag = tags_to_be_added[0];
     let add_tag = $('#multi-add-tag-input').val().trim();
     let remove_tag = $('#multi-remove-tag-input').val().trim();
     let set_status = $('#multi-set-status-input').val().trim();
     let selected_ids = get_selected_requirement_ids(requirements_table);
 
-
+    // for(const tag of tags_to_be_added) {
+    //     add_tag_table_row(tag);
+    // }
 
 
     $.post("api/req/multi_update",
@@ -558,7 +565,7 @@ function bind_multiple_tags_added_events() {
 
         })
         .on('tokenfield:createdtoken', function (e) {
-            add_tag_table_row(e.attrs.value);
+            tags_to_be_added.push(e.attrs.value);
         })
 }
 
@@ -593,7 +600,7 @@ function load_requirement(row_idx) {
         return
     }
 
-    // Get row data
+    // Get row dataa
     let data = $('#requirements_table').DataTable().row(row_idx).data();
 
     // Prepare requirement Modal
