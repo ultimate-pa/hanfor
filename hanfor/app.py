@@ -85,10 +85,7 @@ def tools_api(command):
 
     if command == 'csv_file':
         file = utils.generate_csv_file_content(app, filter_list=filter_list)
-        name = '{}_{}_out.csv'.format(
-            app.config['SESSION_TAG'],
-            app.config['USING_REVISION']
-        )
+        name = f"{app.config['SESSION_TAG']}_{app.config['USING_REVISION']}_out.csv"
         return utils.generate_file_response(file, name, mimetype='text/csv')
 
     if command == 'xls_file':
@@ -150,7 +147,7 @@ def api(resource, command):
         return jsonify({
             'success': False,
             'errormsg': 'sorry, request not supported.'
-        }), 200
+        }), 404
 
     if resource == 'req':
         # Get a single requirement.

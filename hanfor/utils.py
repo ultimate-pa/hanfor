@@ -864,7 +864,8 @@ def generate_req_file_content(app, filter_list=None, invert_filter=False, variab
                         index,
                         constraint.get_string()
                     ))
-            except:
+            except Exception:
+                #TODO: this is not a nice way to solve this
                 pass
     content_list.sort()
     constants_list.sort()
