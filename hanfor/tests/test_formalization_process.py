@@ -165,3 +165,29 @@ class TestFormalizationProcess(TestCase):
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
         self.assertListEqual(result.json['formal'], [])
         self.assertListEqual(result.json['vars'], [])
+
+    def test_setting_status(self):
+        self.mock_hanfor.startup_hanfor('simple.csv', 'simple', [])
+
+        # Check current formalization for `SysRS FooXY_42`
+        result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
+        self.assertListEqual(result.json['formal'], ['Globally, it is never the case that "foo != bar" holds'])
+        self.assertCountEqual(result.json['vars'], ['bar', 'foo'])
+
+        # Check current available variables.
+        self.assertCountEqual(result.json['available_vars'], ["spam_ham", "bar", "foo", "spam_egg", "spam"])
+
+        self.mock_hanfor.app.post(
+            'api/req/update',
+            data={
+                'id': 'SysRS FooXY_42',
+                'row_idx': '0',
+                'update_formalization': 'true',
+                'tags': json.dumps({}),
+                'status': 'Done',
+                'formalizations': json.dumps({})
+            }
+        )
+        # Check if content is correct.
+        result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
+        self.assertEqual(result.json['status'], 'Done')
