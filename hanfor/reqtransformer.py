@@ -27,7 +27,7 @@ from static_utils import choice, get_filenames_from_dir, replace_prefix
 from threading import Thread
 from typing import Dict, Tuple
 
-__version__ = '1.0.3'
+__version__ = '1.0.4'
 
 
 class HanforVersioned:
@@ -38,7 +38,6 @@ class HanforVersioned:
     def hanfor_version(self) -> str:
         if not hasattr(self, '_hanfor_version'):
             self._hanfor_version = '0.0.0'
-
         return self._hanfor_version
 
     @hanfor_version.setter
@@ -50,7 +49,12 @@ class HanforVersioned:
         return __version__ != self.hanfor_version
 
     def run_version_migrations(self):
-        self._hanfor_version = __version__
+        if StrictVersion(self._hanfor_version) < StrictVersion(__version__):
+            self._hanfor_version = __version__
+            # this is a shortcut to skip explicit update code for all things that did not change in a version.
+            # TODO: non the less this should be solved differently
+            if isinstance(self, Pickleable):
+                self.store()
 
 
 class Pickleable:
@@ -326,7 +330,7 @@ class Requirement(HanforVersioned, Pickleable):
         :param app: The flask app.
         :rtype: Requirement
         """
-        path = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(id))
+        path = os.path.join(app.config['REVISION_FOLDER'], f'{id}.pickle')
         if os.path.exists(path) and os.path.isfile(path):
             return Requirement.load(path)
 
@@ -355,14 +359,6 @@ class Requirement(HanforVersioned, Pickleable):
 
     def store(self, path=None):
         super().store(path)
-
-        # Create PEAs
-        #from ressources.simulator_ressource import SimulatorRessource
-
-        #var_collection = VariableCollection.load(current_app.config['SESSION_VARIABLE_COLLECTION'])
-        #peas = SimulatorRessource.create_phase_event_automata(self, var_collection, current_app)
-        #SimulatorRessource.delete_phase_event_automata(self.rid, current_app)
-        #SimulatorRessource.store_phase_event_automata(peas, current_app)
 
     @property
     def revision_diff(self) -> Dict[str, str]:
@@ -928,28 +924,21 @@ class VariableCollection(HanforVersioned, Pickleable):
         for var in used_variables:
             self.req_var_mapping[rid].add(var)
 
-    def rename(self, old_name, new_name, app):
+    def rename(self, old_name: str, new_name: str, app):
         """ Rename a var in the collection. Merges the variables if new_name variable exists.
 
         :param old_name: The old var name.
-        :type old_name: str
         :param new_name: The new var name.
-        :type new_name: str
         :returns affected_enumerators List [(old_enumerator_name, new_enumerator_name)] of potentially affected
         enumerators.
         """
-        logging.info('Rename `{}` -> `{}`'.format(old_name, new_name))
+        logging.info(f'Rename `{old_name}` -> `{new_name}`')
         # Store constraints to restore later on.
         tmp_constraints = []
-        try:
+        if old_name in self.collection:
             tmp_constraints += self.collection[old_name].get_constraints().values()
-        except:
-            pass
-        try:
+        if new_name in self.collection:
             tmp_constraints += self.collection[new_name].get_constraints().values()
-        except:
-            pass
-
         tmp_constraints = dict(enumerate(tmp_constraints))
 
         # Copy to new location.
@@ -971,7 +960,7 @@ class VariableCollection(HanforVersioned, Pickleable):
             try:
                 self.collection[affected_var_name].rename_var_in_constraints(old_name, new_name)
             except Exception as e:
-                logging.debug('`{}` constraints not updatable: {}'.format(affected_var_name, e))
+                logging.debug(f'`{affected_var_name}` constraints not updatable: {e}')
 
         # Update the constraint names if any
         def rename_constraint(name: str, old_name: str, new_name: str):
@@ -1306,6 +1295,7 @@ class Variable(HanforVersioned):
         self.tags = set()
         self.script_results = ''
         self.belongs_to_enum = ''
+        self.constraints = dict()
 
     def to_dict(self, var_req_mapping):
         used_by = []
@@ -1333,29 +1323,19 @@ class Variable(HanforVersioned):
         return d
 
     def add_tag(self, tag_name):
-        try:
-            self.tags.add(tag_name)
-        except AttributeError:
-            self.tags = {tag_name}
+        self.tags.add(tag_name)
 
     def remove_tag(self, tag_name):
-        try:
-            self.tags.discard(tag_name)
-        except AttributeError:
-            self.tags = {}
+        self.tags.discard(tag_name)
 
     def get_tags(self):
-        try:
-            return self.tags
-        except AttributeError:
-            return set()
+        return self.tags
 
     def set_type(self, new_type):
         allowed_types = ['CONST']
         allowed_types += boogie_parsing.BoogieType.get_valid_type_names()
-        # return True
         if new_type not in allowed_types:
-            raise ValueError('Illegal variable type: `{}`. Allowed types are: `{}`'.format(new_type, allowed_types))
+            raise ValueError(f'Illegal variable type: `{new_type}`. Allowed types are: `{allowed_types}`')
 
         self.type = new_type
 
@@ -1374,12 +1354,7 @@ class Variable(HanforVersioned):
         :return: (index: int, The constraint: Formalization)
         """
         id = self._next_free_constraint_id()
-        try:
-            self.constraints[id] = Formalization()
-        except:
-            self.constraints = dict()
-            self.constraints[id] = Formalization()
-
+        self.constraints[id] = Formalization()
         return id, self.constraints[id]
 
     def del_constraint(self, id):
@@ -1387,30 +1362,23 @@ class Variable(HanforVersioned):
             del self.constraints[id]
             return True
         except:
-            logging.debug('Constraint id `{}` not found in var `{}`'.format(id, self.name))
+            logging.debug(f'Constraint id `{id}` not found in var `{self.name}`')
             return False
 
     def get_constraints(self):
-        try:
-            return self.constraints
-        except:
-            return dict()
+        return self.constraints
 
     def reload_constraints_type_inference_errors(self, var_collection):
-        logging.info('Reload type inference for variable `{}` constraints'.format(self.name))
+        logging.info(f'Reload type inference for variable `{self.name}` constraints')
         self.remove_tag('Type_inference_error')
-        for id in self.get_constraints().keys():
+        for id in self.constraints:
             try:
                 self.constraints[id].type_inference_check(var_collection)
                 if len(self.constraints[id].type_inference_errors) > 0:
                     self.tags.add('Type_inference_error')
             except AttributeError as e:
                 # Probably No pattern set.
-                logging.info('Could not derive type inference for variable `{}` constraint No. {}. {}'.format(
-                    self.name,
-                    id,
-                    e
-                ))
+                logging.info(f'Could not derive type inference for variable `{self.name}` constraint No. {id}. { e}')
 
     def update_constraint(self, constraint_id, scope_name, pattern_name, mapping, app, variable_collection):
         """ Update a single constraint
@@ -1535,26 +1503,24 @@ class Variable(HanforVersioned):
 
     def run_version_migrations(self):
         if self.hanfor_version == '0.0.0':
-            logging.info('Migrating `{}`:`{}`, from 0.0.0 -> 1.0.0'.format(
-                self.__class__.__name__, self.name)
-            )
-            self.constraints = dict(enumerate(self.get_constraints()))
+            logging.info(f'Migrating `{self.__class__.__name__}`:`{self.name}`, from 0.0.0 -> 1.0.0')
+            if hasattr(self, 'constraints'):
+                self.constraints = dict(enumerate(self.constraints))
+            else:
+                self.constraints = dict()
             self.hanfor_version = '1.0.0'
         if self.hanfor_version == '1.0.0':
-            logging.info('Migrating `{}`:`{}`, from 1.0.0 -> 1.0.1'.format(
-                self.__class__.__name__, self.name)
-            )
+            logging.info(f'Migrating `{self.__class__.__name__}`:`{self.name}`, from 1.0.0 -> 1.0.1')
             self.script_results = ''
             self.hanfor_version = '1.0.1'
         if self.hanfor_version in ['1.0.1', '1.0.2']:
-            logging.info('Migrating `{}`:`{}`, from {} -> 1.0.3'.format(
-                self.__class__.__name__, self.name, self.hanfor_version)
-            )
+            logging.info(f'Migrating `{self.__class__.__name__}`:`{ self.name}`, from {self.hanfor_version} -> 1.0.3')
             self.belongs_to_enum = ''
             self.hanfor_version = '1.0.3'
             if self.type == 'ENUM':
-                logging.info('Migrate old ENUM `{}` to new ENUM_INT, ENUM_REAL'.format(self.name))
-
+                logging.info(f'Migrate old ENUM `{self.name}` to new ENUM_INT, ENUM_REAL')
+        if not hasattr(self, 'constraints') or not isinstance(self.constraints, dict):
+            setattr(self, 'constraints', dict())
         super().run_version_migrations()
 
 

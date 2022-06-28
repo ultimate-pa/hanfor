@@ -830,7 +830,7 @@ def update_var_usage(var_collection):
 
 
 def varcollection_version_migrations(app, args):
-    # Migrate from old Hanfor versions
+    """migrate old collection format"""
     try:
         VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
     except ImportError:
