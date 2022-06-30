@@ -72,8 +72,8 @@ class Statistics(Ressource):
             var_nodes_weight[name] += len(used_by)
             for req in used_by: req_nodes.add(req)
 
-        # limit the percentage of connections of a variable to something meaningful (e.g. < 60%)
-        var_clutter_cutoff = .6 * len(req_nodes)
+        # limit the percentage of connections of a variable to something meaningful (e.g. < 40%)
+        var_clutter_cutoff = .4 * len(req_nodes)
 
         for var, color in var_nodes.items():
             node_size = 10 + (40 * (var_nodes_weight[var] / len(req_nodes)))
