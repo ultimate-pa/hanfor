@@ -989,7 +989,8 @@ class VariableCollection(HanforVersioned, Pickleable):
                     old_enumerator_name = var.name
                     new_enumerator_name = replace_prefix(var.name, old_name, new_name)
                     affected_enumerators.append((old_enumerator_name, new_enumerator_name))
-                    self.rename(old_enumerator_name, new_enumerator_name, app)
+        for old_enumerator_name, new_enumerator_name in affected_enumerators:
+            self.rename(old_enumerator_name, new_enumerator_name, app)
         return affected_enumerators
 
     def get_boogie_type_env(self):

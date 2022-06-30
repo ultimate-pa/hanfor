@@ -157,6 +157,84 @@ class TestEnums(TestCase):
         self.assertIn('CONST my_first_enum_bar IS 11', req_file_content)
         self.assertIn('CONST my_first_enum_foo IS 12', req_file_content)
 
+
+    def test_int_enumerator_renaming(self):
+        """Test renaming a enumeration while more than one enum exit."""
+        self.mock_hanfor.startup_hanfor('simple.csv', 'simple_enum', [])
+
+        # Fetch the initial vars.
+        initial_vars = self.mock_hanfor.app.get('api/var/gets').json['data']  # type: list
+
+        # We create a new ENUM "my_first_enum"
+        response = self.mock_hanfor.app.post(
+            'api/var/add_new_variable', data={'name': 'my_first_enum', 'type': 'ENUM_INT'}
+        )
+        self.assertEqual(response.json['success'], True)
+        # We add 2 enumerators for "my_first_enum".
+        response = self.mock_hanfor.app.post(
+            'api/var/update',
+            data={
+                'name': 'my_first_enum',
+                'name_old': 'my_first_enum',
+                'type': 'ENUM_INT',
+                'const_val': '',
+                'const_val_old': '',
+                'type_old': 'ENUM_INT',
+                'occurrences': '',
+                'constraints': json.dumps({}),
+                'updated_constraints': False,
+                'enumerators': json.dumps([["foo", "12"],["bar", "11"]])
+            }
+        )
+        # Add another enum for populated data structures
+        response = self.mock_hanfor.app.post(
+            'api/var/add_new_variable', data={'name': 'my_second_enum', 'type': 'ENUM_INT'}
+        )
+        self.assertEqual(response.json['success'], True)
+        # We add 2 enumerators for "my_first_enum".
+        response = self.mock_hanfor.app.post(
+            'api/var/update',
+            data={
+                'name': 'my_second_enum',
+                'name_old': 'my_second_enum',
+                'type': 'ENUM_INT',
+                'const_val': '',
+                'const_val_old': '',
+                'type_old': 'ENUM_INT',
+                'occurrences': '',
+                'constraints': json.dumps({}),
+                'updated_constraints': False,
+                'enumerators': json.dumps([["fupp", "5"],["flii", "6"]])
+            }
+        )
+        # Test renaming the first enum
+        self.assertEqual(response.json['success'], True)
+        response = self.mock_hanfor.app.post(
+            'api/var/update',
+            data={
+                'name': 'my_renamed_enum',
+                'name_old': 'my_first_enum',
+                'type': 'ENUM_INT',
+                'const_val': '',
+                'const_val_old': '',
+                'type_old': 'ENUM_INT',
+                'occurrences': '',
+                'constraints': json.dumps({}),
+                'updated_constraints': False,
+                'enumerators': json.dumps([["foo", "12"],["bar", "11"]])
+            }
+        )
+        self.assertEqual(response.json['success'], True)
+
+        # We expect the introduced ENUMERATORS are now also in the generated .req file.
+        req_file_content = self.mock_hanfor.app.get('/api/tools/req_file').data.decode('utf-8').replace('\r\n', '\n')
+        self.assertIn('CONST my_second_enum_fupp IS 5', req_file_content)
+        self.assertIn('CONST my_second_enum_flii IS 6', req_file_content)
+        self.assertIn('CONST my_renamed_enum_bar IS 11', req_file_content)
+        self.assertIn('CONST my_renamed_enum_foo IS 12', req_file_content)
+        self.assertNotIn('CONST my_first_enum IS 11', req_file_content)
+        self.assertNotIn('CONST my_first_enum IS 12', req_file_content)
+
     def test_new_real_enumerator_generation(self):
         self.mock_hanfor.startup_hanfor('simple.csv', 'simple_enum', [])
 
