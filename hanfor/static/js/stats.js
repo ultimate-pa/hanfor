@@ -1,6 +1,10 @@
 const cytoscape = require('cytoscape')
+const cola = require('cytoscape-cola')
+const euler = require('cytoscape-euler')
+const fcose = require('cytoscape-fcose')
 const {Chart, registerables} = require('chart.js')
 
+cytoscape.use(fcose)
 Chart.register(...registerables)
 
 window.chartColors = {
@@ -40,6 +44,7 @@ Chart.plugins.register({
 $(document).ready(function () {
     $.get('api/stats/gets', function (result) {
         const data = result.data;
+
         // Processed requirements pie
         new Chart(
             document.getElementById("processed_pie").getContext('2d'),
@@ -215,10 +220,9 @@ $(document).ready(function () {
             },
 
             elements: data.variable_graph,
-
             wheelSensitivity: 0.05,
 
-            style: [ // the stylesheet for the graph
+            style: [
                 {
                     selector: 'node',
                     style: {
@@ -229,19 +233,49 @@ $(document).ready(function () {
                         'width': 'data(size)'
                     }
                 },
-
                 {
                     selector: 'edge',
                     style: {
-                        "curve-style": "bezier",
-                        "haystack-radius": "0.5",
-                        "opacity": "0.4",
-                        "line-color": "data(color)",
-                        "width": "2px",
-                        "overlay-padding": "3px"
+                        'width': '2px',
+                        'line-color': 'data(color)',
+                        'curve-style': 'bezier',
+                        'haystack-radius': '0.5',
+                        'opacity': '0.4',
+                        'overlay-padding': '3px'
                     }
                 }
             ]
         });
+
+        /*
+        // cytoscape variable graph.
+        cytoscape({
+            container: $('#cy'),
+            elements: data.variable_graph,
+            wheelSensitivity: 0.05,
+
+            layout: {
+                name: 'fcose',
+            },
+
+            style: [
+                {
+                    selector: 'node',
+                    style: {
+                        'width': 'data(size)',
+                        'height': 'data(size)',
+                        'background-color': '#2B65EC',
+                    }
+                },
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 3,
+                        "line-color": '#2B65EC',
+                    }
+                }
+            ],
+        });
+        */
     });
 });
