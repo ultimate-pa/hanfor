@@ -17,9 +17,13 @@ const autosize = require('autosize');
 // Globals
 const {SearchNode} = require('./datatables-advanced-search.js');
 const {init_simulator_tab} = require('./simulator-tab.js');
-let Fuse = require('fuse.js');
-let {Textcomplete, Textarea} = require('textcomplete');
+
+const {Textcomplete} = require('@textcomplete/core')
+const {TextareaEditor} = require('@textcomplete/textarea')
+
 //const {Modal} = require("bootstrap");
+
+let Fuse = require('fuse.js');
 let fuse = new Fuse([], {});
 
 let available_tags = ['', 'has_formalization'];
@@ -139,7 +143,7 @@ function store_requirement(requirements_table) {
     });
 
     let tag_comments = new Map();
-    $("#tags_comments_table tr:gt(0)").each(function(){
+    $("#tags_comments_table tr:gt(0)").each(function () {
         let tag = $(this).find("td:eq(0)").text();
         let comment = $(this).find("textarea:eq(0)").val();
         tag_comments.set(tag, comment);
@@ -500,32 +504,35 @@ function fuzzy_search(term) {
  * @param dom_obj
  */
 function add_var_autocomplete(dom_obj) {
-    let editor = new Textarea(dom_obj);
-    let textcomplete = new Textcomplete(editor, {
-        dropdown: {
-            maxCount: 10
-        }
-    });
-    textcomplete.register([{
-        match: /(^|\s|[!=&\|>]+)(\w+)$/,
-        search: function (term, callback) {
-            let include_elems = fuzzy_search(term);
-
-            let result = [];
-            for (let i = 0; i < Math.min(10, include_elems.length); i++) {
-                result.push(available_vars[include_elems[i]]);
+    const textcomplete = new Textcomplete(new TextareaEditor(dom_obj),
+        [
+            {
+                match: /(^|\s|[!=&\|>]+)(\w+)$/,
+                index: 2,
+                search: function (term, callback, match) {
+                    let include_elems = fuzzy_search(term);
+                    let result = [];
+                    for (let i = 0; i < Math.min(10, include_elems.length); i++) {
+                        result.push(available_vars[include_elems[i]]);
+                    }
+                    callback(result);
+                },
+                replace: function (result) {
+                    return '$1' + result + ' ';
+                }
             }
-            callback(result);
-        },
-        replace: function (value) {
-            return '$1' + value + ' ';
+        ],
+        {
+            dropdown: {
+                maxCount: 10,
+                parent: $('#requirement_modal')[0],
+                item: {
+                    className: "dropdown-item",
+                    activeClassName: "dropdown-item active",
+                }
+            }
         }
-    }]);
-    // Close dropdown if textarea is no longer focused.
-    $(dom_obj).on('blur click', function (e) {
-        textcomplete.dropdown.deactivate();
-        e.preventDefault();
-    })
+    )
 }
 
 /**
@@ -538,37 +545,37 @@ function bind_var_autocomplete() {
     });
 }
 
-function add_tag_table_row(tag_name){
+function add_tag_table_row(tag_name) {
     //todo: we need to fill the fields with the actional comments (maybe name the fields and
     // add comments later)
     var table_row = "<tr>" +
         "<td>" + tag_name + "</td>" +
         "<td><textarea rows='1' class='form-control w-100' type='text'>" +
-            "</textarea>" +
+        "</textarea>" +
         "</td>";
     $("#tags_comments_table tbody").append(table_row);
-    }
+}
 
-function bind_tag_field_events(){
+function bind_tag_field_events() {
     $("#requirement_tag_field")
         .on('tokenfield:createtoken',
-            function(e) {
+            function (e) {
                 let existingTokens = $(this).tokenfield('getTokens');
                 for (const token of existingTokens) {
                     if (e.attrs.value === token.value) return false;
                 }
             })
         .on('tokenfield:createdtoken',
-            function(e){
-               add_tag_table_row(e.attrs.value);
+            function (e) {
+                add_tag_table_row(e.attrs.value);
             }
         )
         .on('tokenfield:removedtoken',
-            function(e){
-                $("#tags_comments_table tr:gt(0)").each(function(){
+            function (e) {
+                $("#tags_comments_table tr:gt(0)").each(function () {
                     let row = $(this);
                     let tag = $(this).find("td:eq(0)").text();
-                        if (tag === e.attrs.value) row.remove();
+                    if (tag === e.attrs.value) row.remove();
                 })
             }
         )
@@ -624,7 +631,7 @@ function load_requirement(row_idx) {
         $('#tags_comments_table').find("tr:gt(0)").remove();
         // set Tag field and comments in Table (table rows are created via event)
         $('#requirement_tag_field').tokenfield('setTokens', data.tags)
-        $("#tags_comments_table tr:gt(0)").each(function(){
+        $("#tags_comments_table tr:gt(0)").each(function () {
             let tag = $(this).find("td:eq(0)").text();
             $(this).find("textarea:eq(0)").val(data.tags_comments[tag]);
         })

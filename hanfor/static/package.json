@@ -32,7 +32,8 @@
     "js-cookie": "^2.2.0",
     "npm-clean": "^1.0.3",
     "@popperjs/core": "^2.11.5",
-    "textcomplete": "^0.17.1",
+    "@textcomplete/core": "^0.1.12",
+    "@textcomplete/textarea": "^0.1.12",
     "yargs": "^17.4.0"
   },
   "devDependencies": {
