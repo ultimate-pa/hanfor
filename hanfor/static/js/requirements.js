@@ -525,7 +525,7 @@ function add_var_autocomplete(dom_obj) {
         {
             dropdown: {
                 maxCount: 10,
-                style: { zIndex: '9999' },
+                style: {zIndex: '9999'},
                 parent: document.querySelector('#requirement_modal'),
                 item: {
                     className: "dropdown-item",
@@ -537,8 +537,8 @@ function add_var_autocomplete(dom_obj) {
 
     // Close dropdown if textarea is no longer focused.
     $(dom_obj).on('blur click', function (e) {
-        //textcomplete.dropdown.deactivate();
         textcomplete.hide()
+        //textcomplete.dropdown.deactivate();
         //e.preventDefault();
     })
 }
@@ -1215,18 +1215,15 @@ function modal_closing_routine(event) {
 function init_modal() {
     let requirement_modal = $('#requirement_modal');
     // Initialize tag autocomplete filed in the requirements modal.
-
-    $('#requirement_tag_field')
-        .tokenfield({
-            autocomplete: {
-                source: available_tags,
-                delay: 100
-            },
-            showAutocompleteOnFocus: true
-        })
-        .change(function () {
-            requirement_modal.data('unsaved_changes', true);
-        });
+    $('#requirement_tag_field').tokenfield({
+        autocomplete: {
+            source: available_tags,
+            delay: 100
+        },
+        showAutocompleteOnFocus: true
+    }).change(function () {
+        requirement_modal.data('unsaved_changes', true);
+    });
 
     $('#requirement_status').change(function () {
         $('#requirement_modal').data('unsaved_changes', true);
