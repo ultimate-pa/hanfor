@@ -526,7 +526,7 @@ function add_var_autocomplete(dom_obj) {
             dropdown: {
                 maxCount: 10,
                 style: {zIndex: '9999'},
-                parent: document.querySelector('#requirement_modal'),
+                //parent: document.querySelector('#requirement_modal'),
                 item: {
                     className: "dropdown-item",
                     activeClassName: "dropdown-item active",
