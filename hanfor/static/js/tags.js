@@ -160,7 +160,7 @@ $(document).ready(function () {
             {
                 "data": "internal",
                 "render": function (data, type, row, meta) {
-                    result = '<input class="form-check-input" type="checkbox" ' + (data ? 'checked' : '') + '>'
+                    result = '<input class="form-check-input" type="checkbox" disabled ' + (data ? 'checked' : '') + '>'
                     return result;
                 }
             },
