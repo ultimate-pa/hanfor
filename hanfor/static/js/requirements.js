@@ -525,7 +525,8 @@ function add_var_autocomplete(dom_obj) {
         {
             dropdown: {
                 maxCount: 10,
-                parent: $('#requirement_modal')[0],
+                style: { zIndex: '9999' },
+                parent: document.querySelector('#requirement_modal'),
                 item: {
                     className: "dropdown-item",
                     activeClassName: "dropdown-item active",
@@ -533,6 +534,13 @@ function add_var_autocomplete(dom_obj) {
             }
         }
     )
+
+    // Close dropdown if textarea is no longer focused.
+    $(dom_obj).on('blur click', function (e) {
+        //textcomplete.dropdown.deactivate();
+        textcomplete.hide()
+        //e.preventDefault();
+    })
 }
 
 /**
@@ -594,7 +602,7 @@ function load_requirement(row_idx) {
     let requirement_modal_content = $('.modal-content');
 
     //$('#requirement_modal').modal('show');
-    Modal.getOrCreateInstance($('#requirement_modal')).show();
+    Modal.getOrCreateInstance('#requirement_modal').show();
 
     requirement_modal_content.LoadingOverlay('show');
     $('#formalization_accordion').html('');
@@ -1192,8 +1200,6 @@ function load_datatable() {
  * @param event | the modal hiding event.
  */
 function modal_closing_routine(event) {
-    console.log('closing')
-
     const unsaved_changes = $('#requirement_modal').data('unsaved_changes');
     if (unsaved_changes === true) {
         const force_close = confirm("You have unsaved changes, do you really want to close?");
@@ -1240,9 +1246,11 @@ function init_modal() {
             if (focused_input.length === 0) {
                 // First hide the autoguess modal
                 if ($('#requirement_guess_modal:visible').length) {
-                    $('#requirement_guess_modal').modal('hide');
+                    //$('#requirement_guess_modal').modal('hide');
+                    Modal.getOrCreateInstance('#requirement_guess_modal').hide()
                 } else {
-                    $('#requirement_modal').modal('hide');
+                    //$('#requirement_modal').modal('hide');
+                    Modal.getOrCreateInstance('#requirement_modal').hide()
                 }
             } else {
                 // Defocus input elements.
