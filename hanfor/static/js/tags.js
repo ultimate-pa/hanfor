@@ -101,7 +101,7 @@ function delete_tag(name) {
                 } else {
                     tags_datatable.row(associated_row_id).data(data.data).draw();
                     //$('#tag_modal').modal('hide');
-                    Modal.getOrCreateInstance($('#tag_modal')).hide();
+                    Modal.getOrCreateInstance(document.getElementById('tag_modal')).hide();
                 }
             }
         }
@@ -158,6 +158,13 @@ $(document).ready(function () {
                 }
             },
             {
+                "data": "internal",
+                "render": function (data, type, row, meta) {
+                    result = '<input class="form-check-input" type="checkbox" ' + (data ? 'checked' : '') + '>'
+                    return result;
+                }
+            },
+            {
                 "data": "used_by",
                 "visible": false,
                 "searchable": false,
@@ -173,7 +180,7 @@ $(document).ready(function () {
                     });
                     return result;
                 }
-            }
+            },
         ],
         initComplete: function () {
             $('#search_bar').val(tag_search_string);
@@ -190,7 +197,7 @@ $(document).ready(function () {
             this.api().draw();
         }
     });
-    tags_datatable.column(3).visible(false);
+    tags_datatable.column(4).visible(false);
     new $.fn.dataTable.ColReorder(tags_datatable, {});
 
     let search_bar = $("#search_bar");
