@@ -525,8 +525,8 @@ function add_var_autocomplete(dom_obj) {
         {
             dropdown: {
                 maxCount: 10,
-                style: { zIndex: '9999' },
-                parent: document.querySelector('#requirement_modal'),
+                style: {zIndex: '9999'},
+                //parent: document.querySelector('#requirement_modal'),
                 item: {
                     className: "dropdown-item",
                     activeClassName: "dropdown-item active",
@@ -537,8 +537,8 @@ function add_var_autocomplete(dom_obj) {
 
     // Close dropdown if textarea is no longer focused.
     $(dom_obj).on('blur click', function (e) {
-        //textcomplete.dropdown.deactivate();
         textcomplete.hide()
+        //textcomplete.dropdown.deactivate();
         //e.preventDefault();
     })
 }
@@ -649,9 +649,6 @@ function load_requirement(row_idx) {
         let csv_row_content = $('#csv_content_accordion');
         csv_row_content.html('');
 
-        //csv_row_content.collapse('hide');
-        Collapse.getOrCreateInstance(csv_row_content).hide();
-
         let csv_data = data.csv_data;
         for (const key in csv_data) {
             if (csv_data.hasOwnProperty(key)) {
@@ -671,9 +668,6 @@ function load_requirement(row_idx) {
         let revision_diff_content = $('#revision_diff_accordion');
         revision_diff_content.html('');
 
-        //revision_diff_content.collapse('hide');
-        Collapse.getOrCreateInstance(revision_diff_content).hide();
-
         let revision_diff = data.revision_diff;
         for (const key in revision_diff) {
             if (revision_diff.hasOwnProperty(key)) {
@@ -685,9 +679,6 @@ function load_requirement(row_idx) {
         // Set used variables data.
         let used_variables_accordion = $('#used_variables_accordion');
         used_variables_accordion.html('');
-
-        //used_variables_accordion.collapse('hide');
-        Collapse.getOrCreateInstance(used_variables_accordion).hide();
 
         data.vars.forEach(function (var_name) {
             let query = '?command=search&col=1&q=%5C%22' + var_name + '%5C%22';
@@ -1215,18 +1206,15 @@ function modal_closing_routine(event) {
 function init_modal() {
     let requirement_modal = $('#requirement_modal');
     // Initialize tag autocomplete filed in the requirements modal.
-
-    $('#requirement_tag_field')
-        .tokenfield({
-            autocomplete: {
-                source: available_tags,
-                delay: 100
-            },
-            showAutocompleteOnFocus: true
-        })
-        .change(function () {
-            requirement_modal.data('unsaved_changes', true);
-        });
+    $('#requirement_tag_field').tokenfield({
+        autocomplete: {
+            source: available_tags,
+            delay: 100
+        },
+        showAutocompleteOnFocus: true
+    }).change(function () {
+        requirement_modal.data('unsaved_changes', true);
+    });
 
     $('#requirement_status').change(function () {
         $('#requirement_modal').data('unsaved_changes', true);

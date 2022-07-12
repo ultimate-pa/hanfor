@@ -22,3 +22,15 @@
 .input-group div.awesomplete .form-control {
     border-radius: 0;
 }
+
+/* Fix jQuery UI */
+.ui-front {
+    z-index: 9999999 !important;
+}
+
+/* Fix Tokenfield close button */
+.tokenfield .close {
+    color: #000;
+    opacity: .2;
+    text-decoration: none;
+}
