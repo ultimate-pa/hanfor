@@ -168,7 +168,6 @@ class TestFormalizationProcess(TestCase):
 
     def test_setting_status(self):
         self.mock_hanfor.startup_hanfor('simple.csv', 'simple', [])
-
         # Check current formalization for `SysRS FooXY_42`
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
         self.assertListEqual(result.json['formal'], ['Globally, it is never the case that "foo != bar" holds'])
@@ -191,3 +190,33 @@ class TestFormalizationProcess(TestCase):
         # Check if content is correct.
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
         self.assertEqual(result.json['status'], 'Done')
+
+    def test_multi_update(self):
+        self.mock_hanfor.startup_hanfor('simple.csv', 'simple', [])
+        # Check current formalization for `SysRS FooXY_42`
+        # result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
+        # self.assertListEqual(result.json['formal'], ['Globally, it is never the case that "foo != bar" holds'])
+        # self.assertCountEqual(result.json['vars'], ['bar', 'foo'])
+
+        self.mock_hanfor.app.post(
+            'api/req/multi_update',
+            data={
+                'id': 'SysRS FooXY_42',
+                'row_idx': '0',
+                'update_formalization': 'true',
+                'tags': 'add_tag',
+                'status': 'Done',
+                'formalizations': json.dumps({}),
+                'success': True,
+                'errormsg': ""
+            }
+        )
+        # Check if content is correct.
+        result = self.mock_hanfor.app.post('api/req/get?id=SysRS FooXY_42')
+        # self.assertEqual(result.json['success'], True)
+        # self.assertEqual(result.json['tags'], 'add_tag')
+        # self.assertEqual(result.json['status'], 'Done')
+        print(result.json['errormsg'])
+        self.assertEqual(result.json['errormsg'], "")
+        # self.assertNotEqual(result.json['tag'], 'remove_tag')
+

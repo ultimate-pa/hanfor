@@ -277,7 +277,7 @@ def api(resource, command):
                     requirement = Requirement.load_requirement_by_id(rid, app)
                     if requirement is None: continue
                     logging.info(f'Updating requirement `{rid}`')
-                    if (remove_tag in requirement.tags):
+                    if remove_tag in requirement.tags:
                         requirement.tags.pop(remove_tag)
                     if add_tag and add_tag not in requirement.tags:
                         requirement.tags[add_tag] = ""
