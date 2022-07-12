@@ -14,14 +14,7 @@ const autosize = require('autosize');
 const {SearchNode} = require('./datatables-advanced-search.js');
 const {Modal} = require("bootstrap");
 let tag_search_string = sessionStorage.getItem('tag_search_string');
-let search_autocomplete = [
-    ":AND:",
-    ":OR:",
-    ":NOT:",
-    ":COL_INDEX_00:",
-    ":COL_INDEX_01:",
-    ":COL_INDEX_02:",
-];
+let search_autocomplete = [":AND:", ":OR:", ":NOT:", ":COL_INDEX_00:", ":COL_INDEX_01:", ":COL_INDEX_02:",];
 
 /**
  * Update the search expression tree.
@@ -56,16 +49,14 @@ function store_tag(tags_datatable) {
     let tag_internal = $('#tag_internal').prop("checked");
 
     // Store the tag.
-    $.post("api/tag/update",
-        {
+    $.post("api/tag/update", {
             name: tag_name,
             name_old: tag_name_old,
             occurences: occurences,
             color: tag_color,
             description: tag_description,
             internal: tag_internal
-        },
-        // Update tag table on success or show an error message.
+        }, // Update tag table on success or show an error message.
         function (data) {
             tag_modal_content.LoadingOverlay('hide', true);
             if (data['success'] === false) {
@@ -120,80 +111,65 @@ $(document).ready(function () {
         "dom": 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
         "ajax": "api/tag/gets",
         "deferRender": true,
-        "columns": [
-            {
-                "data": "name",
-                "render": function (data, type, row, meta) {
-                    result = '<a class="modal-opener" href="#">' + data + '</span></br>';
-                    return result;
-                }
-            },
-            {
-                "data": "description",
-                "render": function (data, type, row, meta) {
-                    result = '<div class="white-space-pre">' + data + '</div>';
-                    return result;
-                }
+        "columns": [{
+            "data": "name",
+            "render": function (data, type, row, meta) {
+                result = '<a class="modal-opener" href="#">' + data + '</span></br>';
+                return result;
+            }
+        }, {
+            "data": "description",
+            "render": function (data, type, row, meta) {
+                result = '<div class="white-space-pre">' + data + '</div>';
+                return result;
+            }
 
-            },
-            {
-                "data": "used_by",
-                "render": function (data, type, row, meta) {
-                    let result = '';
-                    $(data).each(function (id, name) {
-                        if (name.length > 0) {
-                            search_query = '?command=search&col=2&q=%5C%22' + name + '%5C%22';
-                            result += '<span class="badge bg-info" style="background-color: ' + row.color + '">' +
-                                '<a href="' + base_url + search_query + '" target="_blank">' + name + '</a>' +
-                                '</span> ';
-                        }
-                    });
-                    if (data.length > 1 && result.length > 0) {
-                        const search_all = '?command=search&col=5&q=' + row.name;
-                        result += '<span class="badge bg-info" style="background-color: #4275d8">' +
-                            '<a href="./' + search_all + '" target="_blank">Show all</a>' +
-                            '</span> ';
+        }, {
+            "data": "used_by",
+            "render": function (data, type, row, meta) {
+                let result = '';
+                $(data).each(function (id, name) {
+                    if (name.length > 0) {
+                        search_query = '?command=search&col=2&q=%5C%22' + name + '%5C%22';
+                        result += '<span class="badge bg-info" style="background-color: ' + row.color + '">' + '<a href="' + base_url + search_query + '" target="_blank">' + name + '</a>' + '</span> ';
                     }
-                    return result;
+                });
+                if (data.length > 1 && result.length > 0) {
+                    const search_all = '?command=search&col=5&q=' + row.name;
+                    result += '<span class="badge bg-info" style="background-color: #4275d8">' + '<a href="./' + search_all + '" target="_blank">Show all</a>' + '</span> ';
                 }
-            },
-            {
-                "data": "internal",
-                "render": function (data, type, row, meta) {
-                    result = '<input class="form-check-input" type="checkbox" disabled ' + (data ? 'checked' : '') + '>'
-                    return result;
-                }
-            },
-            {
-                "data": "used_by",
-                "visible": false,
-                "searchable": false,
-                "render": function (data, type, row, meta) {
-                    result = '';
-                    $(data).each(function (id, name) {
-                        if (name.length > 0) {
-                            if (result.length > 1) {
-                                result += ', '
-                            }
-                            result += name;
+                return result;
+            }
+        }, {
+            "data": "internal",
+            "render": function (data, type, row, meta) {
+                result = '<input class="form-check-input internal-checkbox" type="checkbox" ' + (data ? 'checked' : '') + '>'
+                return result;
+            }
+        }, {
+            "data": "used_by", "visible": false, "searchable": false, "render": function (data, type, row, meta) {
+                result = '';
+                $(data).each(function (id, name) {
+                    if (name.length > 0) {
+                        if (result.length > 1) {
+                            result += ', '
                         }
-                    });
-                    return result;
-                }
-            },
-        ],
+                        result += name;
+                    }
+                });
+                return result;
+            }
+        },],
         initComplete: function () {
             $('#search_bar').val(tag_search_string);
             update_search();
 
             // Enable Hanfor specific table filtering.
-            $.fn.dataTable.ext.search.push(
-                function (settings, data, dataIndex) {
-                    // data contains the row. data[0] is the content of the first column in the actual row.
-                    // Return true to include the row into the data. false to exclude.
-                    return evaluate_search(data);
-                }
-            );
+            $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+                // data contains the row. data[0] is the content of the first column in the actual row.
+                // Return true to include the row into the data. false to exclude.
+                return evaluate_search(data);
+            });
             this.api().draw();
         }
     });
@@ -218,19 +194,14 @@ $(document).ready(function () {
                 result = Awesomplete.FILTER_CONTAINS(text, input.match(/[^:]*$/)[0]);
             }
             return result;
-        },
-        item: function (text, input) {
+        }, item: function (text, input) {
             // Match inside ":" enclosed item.
             return Awesomplete.ITEM(text, input.match(/(:)([\S]*$)/)[2]);
-        },
-        replace: function (text) {
+        }, replace: function (text) {
             // Cut of the tail starting from the last ":" and replace by item text.
             const before = this.input.value.match(/(.*)(:(?!.*:).*$)/)[1];
             this.input.value = before + text;
-        },
-        list: search_autocomplete,
-        minChars: 1,
-        autoFirst: true
+        }, list: search_autocomplete, minChars: 1, autoFirst: true
     });
 
     // Add listener for tag link to modal.
@@ -257,7 +228,7 @@ $(document).ready(function () {
         $('#tag_name').val(data.name);
         $('#tag_color').val(data.color);
         $('#tag-description').val(data.description);
-        $('#tag_internal').prop("checked",data.internal);
+        $('#tag_internal').prop("checked", data.internal);
 
         tag_modal_content.LoadingOverlay('hide');
     });
@@ -266,6 +237,35 @@ $(document).ready(function () {
     $('#save_tag_modal').click(function () {
         store_tag(tags_datatable);
     });
+
+    tags_datatable.on('click', '.internal-checkbox', function (event) {
+        event.preventDefault()
+
+        let checkbox = event.currentTarget
+        let data = tags_datatable.row(checkbox.parentNode).data()
+
+        $.ajax({
+            type: 'POST',
+            url: 'api/tag/update',
+            data: {
+                name: data.name,
+                name_old: data.name,
+                occurences: data.used_by,
+                color: data.color,
+                description: data.description,
+                internal: checkbox.checked
+            },
+            success: function (response) {
+                if (response['success'] === false) {
+                    alert(response['errormsg'])
+                    return
+                }
+
+                checkbox.checked = response.data.internal
+                data.internal = response.data.internal
+            }
+        })
+    })
 
     // $('.delete_tag').confirmation({
     //     rootSelector: '.delete_tag'
