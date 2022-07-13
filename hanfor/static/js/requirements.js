@@ -1477,7 +1477,9 @@ function open_report_modal(source = false) {
     report_name.val(name).change();
     report_title.html(name);
     $('#save_report').attr('data-id', report_id);
-    report_modal.modal('show');
+
+    Modal.getOrCreateInstance(document.querySelector('#report_modal')).show()
+    //report_modal.modal('show');
 }
 
 /**
