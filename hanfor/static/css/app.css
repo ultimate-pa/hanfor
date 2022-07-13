@@ -13,6 +13,10 @@
   display: block;
 }
 
+.type-error {
+    background-color: var(--bs-danger);
+}
+
 /* TODO: Fix it ... awesomplete builds div around input */
 .input-group div.awesomplete {
     flex: 1 1 auto;
