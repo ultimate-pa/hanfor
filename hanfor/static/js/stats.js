@@ -45,6 +45,7 @@ $(document).ready(function () {
     $.get('api/stats/gets', function (result) {
         const data = result.data;
 
+
         // Processed requirements pie
         new Chart(
             document.getElementById("processed_pie").getContext('2d'),
@@ -256,6 +257,7 @@ $(document).ready(function () {
 
             layout: {
                 name: 'fcose',
+                animate: false,
             },
 
             style: [
@@ -277,5 +279,6 @@ $(document).ready(function () {
             ],
         });
         */
+
     });
 });
