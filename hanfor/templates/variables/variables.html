@@ -79,6 +79,11 @@
 {% endblock %}
 {% block scripts %}
     <script type="text/javascript">
+        let search_query = '{{ query|tojson }}';
+        let _PATTERNS = JSON.parse('{{ patterns|tojson }}');
+    </script>
+
+    <script type="text/javascript">
         var base_url = '{{ url_for('site', site='/') }}';
     </script>
     <script type="text/javascript" src="{{ url_for('static', filename='dist/variables-bundle.js') }}"></script>
