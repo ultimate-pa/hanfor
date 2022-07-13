@@ -12,6 +12,7 @@ import sys
 from functools import wraps, update_wrapper
 
 import flask
+from example_bp import example_bp
 
 import utils
 
@@ -34,6 +35,8 @@ from patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
 # Create the app
 app = Flask(__name__)
 app.config.from_object('config')
+
+app.register_blueprint(example_bp.blueprint, url_prefix='/example_bp')
 
 
 if 'USE_SENTRY' in app.config and app.config['USE_SENTRY']:
