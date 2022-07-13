@@ -1004,7 +1004,7 @@ function init_datatable(columnDefs) {
  * Get the color for a tag
  */
 function get_tag_color(tag_name) {
-    return tag_colors.hasOwnProperty(tag_name) ? tag_colors[tag_name] : '#0dcaf0';
+    return tag_colors.hasOwnProperty(tag_name) ? tag_colors[tag_name] : 'var(--bs-info)';
 }
 
 /**

@@ -1,10 +1,10 @@
 import logging
 import os
 
+from defaults import COLOR_BS_INFO
 from reqtransformer import Requirement
 from ressources import Ressource
 from static_utils import get_filenames_from_dir
-
 
 class Tag(Ressource):
     def __init__(self, app, request):
@@ -27,7 +27,7 @@ class Tag(Ressource):
                     self._available_tags[tag] = {
                         'name': tag,
                         'used_by': list(),
-                        'color': self.__get_metaconfig_property("tag_colors", tag, '#5bc0de'),
+                        'color': self.__get_metaconfig_property("tag_colors", tag, COLOR_BS_INFO),
                         'description': self.__get_metaconfig_property("tag_descriptions", tag, ''),
                         'internal': self.__get_metaconfig_property("tag_internal", tag, False)
                     }
@@ -54,7 +54,7 @@ class Tag(Ressource):
             tag_name = self.request.form.get('name', '').strip()
             tag_name_old = self.request.form.get('name_old', '').strip()
             occurences = self.request.form.get('occurences', '').strip().split(',')
-            color = self.request.form.get('color', '#5bc0de').strip()  # Default = #5bc0de
+            color = self.request.form.get('color', COLOR_BS_INFO).strip()
             description = self.request.form.get('description', '').strip()
             internal = self.request.form.get('internal', False) == "true"
 

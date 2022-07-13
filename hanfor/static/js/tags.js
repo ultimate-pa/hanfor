@@ -6,7 +6,6 @@ require('jquery-ui/ui/effects/effect-highlight');
 require('./bootstrap-tokenfield.js');
 require('awesomplete');
 require('awesomplete/awesomplete.css');
-//require('datatables.net-colreorderwithresize-npm');
 require('datatables.net-colreorder-bs5');
 require('./bootstrap-confirm-button');
 
@@ -16,93 +15,10 @@ const {Modal} = require("bootstrap");
 let tag_search_string = sessionStorage.getItem('tag_search_string');
 let search_autocomplete = [":AND:", ":OR:", ":NOT:", ":COL_INDEX_00:", ":COL_INDEX_01:", ":COL_INDEX_02:",];
 
-/**
- * Update the search expression tree.
- */
-function update_search() {
-    tag_search_string = $('#search_bar').val().trim();
-    sessionStorage.setItem('tag_search_string', tag_search_string);
-    search_tree = SearchNode.fromQuery(tag_search_string);
-}
-
-
-function evaluate_search(data) {
-    return search_tree.evaluate(data, [true, true, true]);
-}
-
-
-/**
- * Store the currently active (in the modal) tag.
- * @param tags_datatable
- */
-function store_tag(tags_datatable) {
-    let tag_modal_content = $('.modal-content');
-    tag_modal_content.LoadingOverlay('show');
-
-    // Get data.
-    let tag_name = $('#tag_name').val();
-    let tag_name_old = $('#tag_name_old').val();
-    let occurences = $('#occurences').val();
-    let tag_color = $('#tag_color').val();
-    let associated_row_id = parseInt($('#modal_associated_row_index').val());
-    let tag_description = $('#tag-description').val();
-    let tag_internal = $('#tag_internal').prop("checked");
-
-    // Store the tag.
-    $.post("api/tag/update", {
-            name: tag_name,
-            name_old: tag_name_old,
-            occurences: occurences,
-            color: tag_color,
-            description: tag_description,
-            internal: tag_internal
-        }, // Update tag table on success or show an error message.
-        function (data) {
-            tag_modal_content.LoadingOverlay('hide', true);
-            if (data['success'] === false) {
-                alert(data['errormsg']);
-            } else {
-                if (data.rebuild_table) {
-                    location.reload();
-                } else {
-                    tags_datatable.row(associated_row_id).data(data.data).draw();
-                    $('#tag_modal').modal('hide');
-                }
-            }
-        });
-}
-
-function delete_tag(name) {
-    let tag_modal_content = $('.modal-content');
-    tag_modal_content.LoadingOverlay('show');
-
-    let tag_name = $('#tag_name').val();
-    let occurences = $('#occurences').val();
-    $.ajax({
-        type: "DELETE",
-        url: "api/tag/del_tag",
-        data: {name: tag_name, occurences: occurences},
-        success: function (data) {
-            tag_modal_content.LoadingOverlay('hide', true);
-            if (data['success'] === false) {
-                alert(data['errormsg']);
-            } else {
-                if (data.rebuild_table) {
-                    location.reload();
-                } else {
-                    tags_datatable.row(associated_row_id).data(data.data).draw();
-                    //$('#tag_modal').modal('hide');
-                    Modal.getOrCreateInstance(document.getElementById('tag_modal')).hide();
-                }
-            }
-        }
-    });
-}
-
 $(document).ready(function () {
     // Prepare and load the tags table.
-    let tags_table = $('#tags_table');
-    let tags_datatable = tags_table.DataTable({
+    let tagsTable = $('#tags-table');
+    let tagsDataTable = tagsTable.DataTable({
         "paging": true,
         "stateSave": true,
         "pageLength": 50,
@@ -173,15 +89,15 @@ $(document).ready(function () {
             this.api().draw();
         }
     });
-    tags_datatable.column(4).visible(false);
-    new $.fn.dataTable.ColReorder(tags_datatable, {});
+    tagsDataTable.column(4).visible(false);
+    new $.fn.dataTable.ColReorder(tagsDataTable, {});
 
     let search_bar = $("#search_bar");
     // Bind big custom searchbar to search the table.
     search_bar.keypress(function (e) {
         if (e.which === 13) { // Search on enter.
             update_search();
-            tags_datatable.draw();
+            tagsDataTable.draw();
         }
     });
 
@@ -205,13 +121,13 @@ $(document).ready(function () {
     });
 
     // Add listener for tag link to modal.
-    tags_table.find('tbody').on('click', 'a.modal-opener', function (event) {
+    tagsTable.find('tbody').on('click', 'a.modal-opener', function (event) {
         // prevent body to be scrolled to the top.
         event.preventDefault();
 
         // Get row data
-        let data = tags_datatable.row($(event.target).parent()).data();
-        let row_id = tags_datatable.row($(event.target).parent()).index();
+        let data = tagsDataTable.row($(event.target).parent()).data();
+        let row_id = tagsDataTable.row($(event.target).parent()).index();
 
         // Prepare tag modal
         let tag_modal_content = $('.modal-content');
@@ -235,14 +151,14 @@ $(document).ready(function () {
 
     // Store changes on tag on save.
     $('#save_tag_modal').click(function () {
-        store_tag(tags_datatable);
+        store_tag(tagsDataTable);
     });
 
-    tags_datatable.on('click', '.internal-checkbox', function (event) {
+    tagsDataTable.on('click', '.internal-checkbox', function (event) {
         event.preventDefault()
 
         let checkbox = event.currentTarget
-        let data = tags_datatable.row(checkbox.parentNode).data()
+        let data = tagsDataTable.row(checkbox.parentNode).data()
 
         $.ajax({
             type: 'POST',
@@ -288,6 +204,89 @@ $(document).ready(function () {
     $('.clear-all-filters').click(function () {
         $('#search_bar').val('').effect("highlight", {color: 'green'}, 500);
         update_search();
-        tags_datatable.draw();
+        tagsDataTable.draw();
     });
 });
+
+/**
+ * Update the search expression tree.
+ */
+function update_search() {
+    tag_search_string = $('#search_bar').val().trim();
+    sessionStorage.setItem('tag_search_string', tag_search_string);
+    search_tree = SearchNode.fromQuery(tag_search_string);
+}
+
+
+function evaluate_search(data) {
+    return search_tree.evaluate(data, [true, true, true]);
+}
+
+
+/**
+ * Store the currently active (in the modal) tag.
+ * @param tagsDataTable
+ */
+function store_tag(tagsDataTable) {
+    let tag_modal_content = $('.modal-content');
+    tag_modal_content.LoadingOverlay('show');
+
+    // Get data.
+    let tag_name = $('#tag_name').val();
+    let tag_name_old = $('#tag_name_old').val();
+    let occurences = $('#occurences').val();
+    let tag_color = $('#tag_color').val();
+    let associated_row_id = parseInt($('#modal_associated_row_index').val());
+    let tag_description = $('#tag-description').val();
+    let tag_internal = $('#tag_internal').prop("checked");
+
+    // Store the tag.
+    $.post("api/tag/update", {
+            name: tag_name,
+            name_old: tag_name_old,
+            occurences: occurences,
+            color: tag_color,
+            description: tag_description,
+            internal: tag_internal
+        }, // Update tag table on success or show an error message.
+        function (data) {
+            tag_modal_content.LoadingOverlay('hide', true);
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                if (data.rebuild_table) {
+                    location.reload();
+                } else {
+                    tagsDataTable.row(associated_row_id).data(data.data).draw();
+                    $('#tag_modal').modal('hide');
+                }
+            }
+        });
+}
+
+function delete_tag(name) {
+    let tag_modal_content = $('.modal-content');
+    tag_modal_content.LoadingOverlay('show');
+
+    let tag_name = $('#tag_name').val();
+    let occurences = $('#occurences').val();
+    $.ajax({
+        type: "DELETE",
+        url: "api/tag/del_tag",
+        data: {name: tag_name, occurences: occurences},
+        success: function (data) {
+            tag_modal_content.LoadingOverlay('hide', true);
+            if (data['success'] === false) {
+                alert(data['errormsg']);
+            } else {
+                if (data.rebuild_table) {
+                    location.reload();
+                } else {
+                    tagsDataTable.row(associated_row_id).data(data.data).draw();
+                    //$('#tag_modal').modal('hide');
+                    Modal.getOrCreateInstance(document.getElementById('tag_modal')).hide();
+                }
+            }
+        }
+    });
+}
