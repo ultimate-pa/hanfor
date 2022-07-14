@@ -1,8 +1,8 @@
 const cytoscape = require('cytoscape')
-const cola = require('cytoscape-cola')
-const euler = require('cytoscape-euler')
 const fcose = require('cytoscape-fcose')
+const download = require('downloadjs')
 const {Chart, registerables} = require('chart.js')
+
 
 cytoscape.use(fcose)
 Chart.register(...registerables)
@@ -24,27 +24,9 @@ let dynamicColors = function () {
     return "rgb(" + r + "," + g + "," + b + ")";
 };
 
-/*
-Chart.plugins.register({
-    afterInit: function (chart) {
-        if (chart.config.options.show_total) {
-            //Get ctx from string
-            let counts = chart.config.data.datasets[0].data;
-            const total_count = counts.reduce((l, r) => l + r, 0);
-            chart.config.options.title = {
-                display: true,
-                position: 'bottom',
-                text: 'Total count: ' + total_count
-            };
-        }
-    }
-});
-*/
-
 $(document).ready(function () {
     $.get('api/stats/gets', function (result) {
         const data = result.data;
-
 
         // Processed requirements pie
         new Chart(
@@ -198,26 +180,66 @@ $(document).ready(function () {
             });
 
         // cytoscape variable graph.
-        cytoscape({
+        var varReqGraph = cytoscape({
             container: $('#cy'),
 
             layout: {
-                name: 'cose',
-                idealEdgeLength: 150,
-                nodeOverlap: 40,
-                refresh: 20,
-                fit: true,
-                padding: 30,
-                randomize: false,
-                componentSpacing: 100,
-                nodeRepulsion: 400000,
-                edgeElasticity: 100,
-                nestingFactor: 5,
-                gravity: 80,
-                numIter: 1000,
-                initialTemp: 200,
-                coolingFactor: 0.95,
-                minTemp: 1.0
+              name: 'fcose',
+              quality: "proof",
+              // Use random node positions at beginning of layout
+              // if this is set to false, then quality option must be "proof"
+              randomize: true,
+              // Whether or not to animate the layout
+              animate: false,
+              // Fit the viewport to the repositioned nodes
+              fit: true,
+              // Padding around layout
+              padding: 30,
+              // Whether or not simple nodes (non-compound nodes) are of uniform dimensions
+              uniformNodeDimensions: false,
+
+                avoidOverlap: true, // prevents node overlap, may overflow boundingBox if not enough space
+                avoidOverlapPadding: 100, // extra spacing around nodes when avoidOverlap: true
+                nodeDimensionsIncludeLabels: true, // Excludes the label when calculating node bounding boxes for the layout algorithm
+                spacingFactor: undefined,
+
+              // False for random, true for greedy sampling
+              samplingType: false,
+              // Sample size to construct distance matrix
+              sampleSize: 25,
+              // Separation amount between nodes
+              nodeSeparation: 400,
+              // Power iteration tolerance
+              piTol: 0.0000001,
+
+              /* incremental layout options */
+
+              // Node repulsion (non overlapping) multiplier
+              nodeRepulsion: function( node ){ return node._private.data.calculatedrepulsion; },
+              // Ideal edge (non nested) length
+              idealEdgeLength: function( edge ){ return edge._private.data.calculatedlength; },
+              // Divisor to compute edge forces
+              edgeElasticity: function( edge ){ return edge._private.data.calculatedelasticity; },
+              // Nesting factor (multiplier) to compute ideal edge length for nested edges
+              nestingFactor: 0.1,
+              // Maximum number of iterations to perform - this is a suggested value and might be adjusted by the algorithm as required
+              numIter: 5000,
+              // For enabling tiling
+              tile: true,
+              // Represents the amount of the vertical space to put between the zero degree members during the tiling operation(can also be a function)
+              tilingPaddingVertical: 1000,
+              // Represents the amount of the horizontal space to put between the zero degree members during the tiling operation(can also be a function)
+              tilingPaddingHorizontal: 1000,
+              // Gravity force (constant)
+              gravity: 0.25,
+              // Gravity range (constant) for compounds
+              gravityRangeCompound: 1.5,
+              // Gravity force (constant) for compounds
+              gravityCompound: 1.0,
+              // Gravity range (constant)
+              gravityRange: 3.8,
+              // Initial cooling factor for incremental layout
+              initialEnergyOnIncremental: 0.3,
             },
 
             elements: data.variable_graph,
@@ -237,10 +259,10 @@ $(document).ready(function () {
                 {
                     selector: 'edge',
                     style: {
-                        'width': '2px',
+                        'width': '5px',
                         'line-color': 'data(color)',
-                        'curve-style': 'bezier',
-                        'haystack-radius': '0.5',
+                        'curve-style': 'heystack',
+                        'haystack-radius': '0',
                         'opacity': '0.4',
                         'overlay-padding': '3px'
                     }
@@ -248,37 +270,10 @@ $(document).ready(function () {
             ]
         });
 
-        /*
-        // cytoscape variable graph.
-        cytoscape({
-            container: $('#cy'),
-            elements: data.variable_graph,
-            wheelSensitivity: 0.05,
-
-            layout: {
-                name: 'fcose',
-                animate: false,
-            },
-
-            style: [
-                {
-                    selector: 'node',
-                    style: {
-                        'width': 'data(size)',
-                        'height': 'data(size)',
-                        'background-color': '#2B65EC',
-                    }
-                },
-                {
-                    selector: 'edge',
-                    style: {
-                        'width': 3,
-                        "line-color": '#2B65EC',
-                    }
-                }
-            ],
-        });
-        */
-
+        $("#save-graph").click(function(){
+            var png64 = varReqGraph.png({full: true,scale: 1});
+            download(png64, "requirementgraph.png", "image/png")
+            }
+        )
     });
 });

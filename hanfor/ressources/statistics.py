@@ -1,3 +1,4 @@
+import math
 import random
 from collections import defaultdict
 
@@ -74,12 +75,15 @@ class Statistics(Ressource):
 
         # limit the percentage of connections of a variable to something meaningful (e.g. < 40%)
         var_clutter_cutoff = .4 * len(req_nodes)
+        reqnum = len(req_nodes)
 
         for var, color in var_nodes.items():
-            node_size = 10 + (40 * (var_nodes_weight[var] / len(req_nodes)))
-            data['variable_graph'].append({'data': {'id': var, 'size': int(node_size), 'color': color}})
+            node_size = 10 + (290 * (var_nodes_weight[var] / len(req_nodes)))
+            data['variable_graph'].append({'data': {'id': var, 'size': int(node_size), 'color': color,
+                "calculatedrepulsion": 100 + (((var_nodes_weight[var] / var_clutter_cutoff)) * 7000)}})
         for req in req_nodes:
-            data['variable_graph'].append({'data': {'id': req, 'size': 20, 'color': '#000000'}})
+            data['variable_graph'].append({'data': {'id': req, 'size': 20, 'color': '#000000',
+                                                    "calculatedrepulsion": "1000"}})
 
         for var, used_by in var_collection.var_req_mapping.items():
             if var_nodes_weight[var] > var_clutter_cutoff: continue
@@ -87,7 +91,11 @@ class Statistics(Ressource):
                 data['variable_graph'].append(
                     {
                         'data': {'id': var + "_" + user, 'source': var, 'target': user,
-                                  "color": var_nodes[var]}
+                                "color": var_nodes[var],
+                                 # space nodes further away from crowded nodes; give more space if more nodes are there
+                                 "calculatedlength": 100 + (((var_nodes_weight[var] / var_clutter_cutoff))  * reqnum * 10),
+                                 # if we are at a crowded node, allow more jiggeling
+                                 "calculatedelasticity":  math.log(((var_nodes_weight[var] / var_clutter_cutoff)) * reqnum)}
                     }
                 )
 
