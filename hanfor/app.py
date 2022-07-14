@@ -649,8 +649,8 @@ def api(resource, command):
 
     return jsonify({
         'success': False,
-        'errormsg': 'sorry, could not parse your request.'
-    }), 200
+        'errormsg': 'This is not an api-enpoint.'
+    }), 404
 
 
 @app.route('/variable_import/<id>', methods=['GET'])
