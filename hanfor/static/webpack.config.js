@@ -1,4 +1,5 @@
 const webpack = require('webpack');
+const path = require("path");
 
 const config = {
     entry: {
@@ -10,6 +11,7 @@ const config = {
         tags: __dirname + '/js/tags.js',
         simulator_tab: __dirname + '/js/simulator-tab.js',
         simulator_modal: __dirname + '/js/simulator-modal.js',
+        example_bp: '../example_bp/static/example_bp.js'
     },
     output: {
         path: __dirname + '/dist',
@@ -17,7 +19,8 @@ const config = {
         filename: '[name]-bundle.js',
     },
     resolve: {
-        extensions: ['.js', '.jsx', '.css']
+        extensions: ['.js', '.jsx', '.css'],
+        modules: [path.resolve(__dirname, 'node_modules'), 'node_modules']
     },
     module: {
         rules: [
