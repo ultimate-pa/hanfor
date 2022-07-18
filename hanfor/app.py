@@ -12,6 +12,8 @@ import sys
 from functools import wraps, update_wrapper
 
 import flask
+from werkzeug.exceptions import HTTPException
+
 from example_bp import example_bp
 
 import utils
@@ -38,7 +40,6 @@ app.config.from_object('config')
 
 app.register_blueprint(example_bp.blueprint, url_prefix='/example_bp')
 
-
 if 'USE_SENTRY' in app.config and app.config['USE_SENTRY']:
     import sentry_sdk
     from sentry_sdk.integrations.flask import FlaskIntegration
@@ -53,6 +54,7 @@ def nocache(view):
     """ Decorator for a flask view. If applied this will prevent caching.
 
     """
+
     @wraps(view)
     def no_cache(*args, **kwargs):
         response = make_response(view(*args, **kwargs))
@@ -84,7 +86,7 @@ def tools_api(command):
 
     if command == 'req_file':
         content = utils.generate_req_file_content(app, filter_list=filter_list)
-        return utils.generate_file_response(content, file_name+".req")
+        return utils.generate_file_response(content, file_name + ".req")
 
     if command == 'csv_file':
         file = utils.generate_csv_file_content(app, filter_list=filter_list)
@@ -94,8 +96,7 @@ def tools_api(command):
     if command == 'xls_file':
         file = utils.generate_xls_file_content(app, filter_list=filter_list)
         file.seek(0)
-        return flask.send_file(file, download_name=file_name+".xlsx", as_attachment=True)
-
+        return flask.send_file(file, download_name=file_name + ".xlsx", as_attachment=True)
 
 
 @app.route('/api/table/colum_defs', methods=['GET'])
@@ -206,7 +207,8 @@ def api(resource, command):
                     removed_tags = requirement.tags.keys() - new_tag_set.keys()
                     requirement.tags = new_tag_set
                     # do logging
-                    utils.add_msg_to_flask_session_log(app, f'Tags: + {added_tags} and - {removed_tags} to requirement', id)
+                    utils.add_msg_to_flask_session_log(app, f'Tags: + {added_tags} and - {removed_tags} to requirement',
+                                                       id)
                     logging.debug(f'Tags: + {added_tags} and - {removed_tags} to requirement {requirement.tags}')
 
                 # Update formalization.
@@ -472,7 +474,7 @@ def api(resource, command):
 
             # Update all requirements given by the rid_list
             if result['success']:
-                if len(change_type) > 0: # Change the var type.
+                if len(change_type) > 0:  # Change the var type.
                     logging.debug('Change type to `{}`.\nAffected Vars:\n{}'.format(change_type, '\n'.join(var_list)))
                     var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
                     for var_name in var_list:
@@ -648,7 +650,7 @@ def api(resource, command):
             return utils.get_flask_session_log(app, html=True)
 
     if resource == 'report':
-            return Report(app, request).apply_request()
+        return Report(app, request).apply_request()
 
     return jsonify({
         'success': False,
@@ -801,6 +803,7 @@ def index():
                            patterns=PATTERNS)
 
 
+'''
 @app.errorhandler(500)
 def internal_server_error(error):
     app.logger.error('Server Error: {}'.format(error))
@@ -816,6 +819,7 @@ def internal_server_error(error):
 def unhandled_exception(exception):
     if hasattr(exception, 'code') and exception.code in range(300, 309):
         return exception
+
     app.logger.error('Unhandled Exception: {}'.format(exception))
     logging.exception(exception)
 
@@ -823,6 +827,27 @@ def unhandled_exception(exception):
         'success': False,
         'errormsg': repr(exception)
     })
+'''
+
+
+@app.errorhandler(Exception)
+def unhandled_exception(e):
+    # Pass through HTTP errors in range 300-308.
+    if isinstance(e, HTTPException) and e.code in range(300, 309):
+        return e
+
+    app.logger.error('Unhandled Exception: {}'.format(e))
+    logging.exception(e)
+
+    # Pass through HTTP errors.
+    if isinstance(e, HTTPException):
+        return e
+
+    # Handle non-HTTP errors.
+    return jsonify({
+        'success': False,
+        'errormsg': repr(e)
+    }), 500
 
 
 def update_var_usage(var_collection):
@@ -879,7 +904,7 @@ def metasettings_version_migration(app, args):
             meta_settings[key] = dict()
             changes = True
     if changes:
-       meta_settings.update_storage()
+        meta_settings.update_storage()
 
 
 def requirements_version_migrations(app, args):
