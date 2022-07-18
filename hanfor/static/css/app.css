@@ -38,3 +38,8 @@
     opacity: .2;
     text-decoration: none;
 }
+
+#var_import_table > tbody > tr > td,
+#requirements_table > tbody > tr > td {
+    word-break: break-all;
+}
