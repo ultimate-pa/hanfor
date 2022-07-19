@@ -194,29 +194,38 @@ class TestFormalizationProcess(TestCase):
     def test_multi_update(self):
         self.mock_hanfor.startup_hanfor('simple.csv', 'simple', [])
         # Check current formalization for `SysRS FooXY_42`
-        # result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
+        result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
         # self.assertListEqual(result.json['formal'], ['Globally, it is never the case that "foo != bar" holds'])
         # self.assertCountEqual(result.json['vars'], ['bar', 'foo'])
 
-        self.mock_hanfor.app.post(
+        # result = self.mock_hanfor.app.post(
+        #     'api/var/multi_update',
+        #     data={
+        #         'change_type': '',
+        #         'selected_vars': json.dumps(["ham"]),
+        #         'del': 'true'
+        #     }
+        # )
+
+        # self.assertEqual(True, result.json['success'])
+        result = self.mock_hanfor.app.post(
             'api/req/multi_update',
             data={
-                'id': 'SysRS FooXY_42',
-                'row_idx': '0',
-                'update_formalization': 'true',
-                'tags': 'add_tag',
-                'status': 'Done',
-                'formalizations': json.dumps({}),
-                'success': True,
-                'errormsg': ""
+                'add_tag': 'add_tag',
+                'remove_tag': 'remove_tag',
+                'set_status': 'set_status',
+                'selected_ids': ['SysRS FooXY_42', 'SysRS FooXY_43']
             }
         )
         # Check if content is correct.
-        result = self.mock_hanfor.app.post('api/req/get?id=SysRS FooXY_42')
+
+        # self.assertEqual(result.json['add_tag'], 'add_tag')
+        self.assertEqual(result.json['status'], 'Done')
+
         # self.assertEqual(result.json['success'], True)
         # self.assertEqual(result.json['tags'], 'add_tag')
         # self.assertEqual(result.json['status'], 'Done')
-        print(result.json['errormsg'])
-        self.assertEqual(result.json['errormsg'], "")
+        # print(result.json['errormsg'])
+        # self.assertEqual(result.json['errormsg'], "")
         # self.assertNotEqual(result.json['tag'], 'remove_tag')
 
