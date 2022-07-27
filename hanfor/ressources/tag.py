@@ -28,11 +28,12 @@ class Tag(Ressource):
                     self._available_tags[tag] = {
                         'name': tag,
                         'used_by': list(),
-                        'color': self.__get_metaconfig_property("tag_colors", tag, Color.BS_INFO),
+                        'color': self.__get_metaconfig_property("tag_colors", tag, Color.BS_INFO.value),
                         'description': self.__get_metaconfig_property("tag_descriptions", tag, ''),
                         'internal': self.__get_metaconfig_property("tag_internal", tag, False)
                     }
                 self._available_tags[tag]['used_by'].append(req.rid)
+            pass
 
     def sort_used_by_field(self):
         for tag in self._available_tags.keys():
@@ -55,7 +56,7 @@ class Tag(Ressource):
             tag_name = self.request.form.get('name', '').strip()
             tag_name_old = self.request.form.get('name_old', '').strip()
             occurences = self.request.form.get('occurences', '').strip().split(',')
-            color = self.request.form.get('color', Color.BS_INFO).strip()
+            color = self.request.form.get('color', Color.BS_INFO.value).strip()
             description = self.request.form.get('description', '').strip()
             internal = self.request.form.get('internal', False) == "true"
 
