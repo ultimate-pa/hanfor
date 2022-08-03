@@ -198,7 +198,7 @@ class TypeInference(Transformer):
         expr = f"{op} {c.expr}"
         if arg_error:
             return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c])
-        tn = TypeNode(expr, c.t, type_leaf, [c])
+        tn = TypeNode(expr, c.t if not return_type else return_type, type_leaf, [c])
         if len(arg_type) == 1:
             t = arg_type.pop() # TODO: not nice
             self.__propagate_type(c, t)

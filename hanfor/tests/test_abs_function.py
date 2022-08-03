@@ -171,12 +171,14 @@ class TestAbsFunction(TestCase):
         }
         # We expect:
         expected_env = {
+            # type stays if it was not unknown, even if there is an error
             "foo": BoogieType.real
         }
-        expected_expression_type = BoogieType.error
+        expected_expression_type = BoogieType.int
 
         # Run the test
-        self.generic_test_type_inference(expression, given_env, expected_env, expected_expression_type)
+        self.generic_test_type_inference(expression, given_env, expected_env, expected_expression_type,
+                                         expected_errors=1)
 
     def test_type_inference_for_abs_function_8(self):
         # Given:
