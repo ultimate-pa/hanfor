@@ -69,6 +69,7 @@ class Statistics(Ressource):
         req_nodes = set()
 
         for name, used_by in var_collection.var_req_mapping.items():
+            if var_collection.get_type(name) == "CONST": continue
             var_nodes[name] = "#%06x" % random.randint(0, 0xFFFFFF)
             var_nodes_weight[name] += len(used_by)
             for req in used_by: req_nodes.add(req)
@@ -86,6 +87,7 @@ class Statistics(Ressource):
                                                     "calculatedrepulsion": "1000"}})
 
         for var, used_by in var_collection.var_req_mapping.items():
+            if var_collection.get_type(var) == "CONST": continue
             if var_nodes_weight[var] > var_clutter_cutoff: continue
             for user in used_by:
                 data['variable_graph'].append(

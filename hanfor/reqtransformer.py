@@ -848,22 +848,14 @@ class VariableCollection(HanforVersioned, Pickleable):
             raise TypeError
 
         if me.has_version_mismatch:
-            logging.info('`{}` needs upgrade `{}` -> `{}`'.format(
-                me,
-                me.hanfor_version,
-                __version__
-            ))
+            logging.info(f'`{me}` needs upgrade `{me.hanfor_version}` -> `{__version__}`')
             me.run_version_migrations()
             me.store()
 
         return me
 
     def get_available_vars_list(self, sort_by=None, used_only=False, exclude_types=frozenset()):
-        """ Returns a list of all available var names.
-
-        :return:
-        :rtype:
-        """
+        """ Returns a list of all available var names."""
 
         def in_result(var) -> bool:
             if used_only:
@@ -897,7 +889,7 @@ class VariableCollection(HanforVersioned, Pickleable):
         if not self.var_name_exists(var_name):
             if variable is None:
                 variable = Variable(var_name, None, None)
-            logging.debug('Adding variable `{}` to collection.'.format(var_name))
+            logging.debug(f'Adding variable `{var_name}` to collection.')
             self.collection[variable.name] = variable
 
     def store(self, path=None):
@@ -912,13 +904,8 @@ class VariableCollection(HanforVersioned, Pickleable):
         return newdict
 
     def map_req_to_vars(self, rid, used_variables):
-        """ Map a requirement by rid to used vars.
+        """ Map a requirement by rid to used vars."""
 
-        :param rid:
-        :type rid:
-        :param used_variables:
-        :type used_variables:
-        """
         if rid not in self.req_var_mapping.keys():
             self.req_var_mapping[rid] = set()
         for var in used_variables:
@@ -1042,6 +1029,9 @@ class VariableCollection(HanforVersioned, Pickleable):
                 raise TypeError('ENUM type mismatch')
 
         self.collection[name].set_type(type)
+
+    def get_type(self, name):
+        return self.collection[name].type
 
     def add_new_constraint(self, var_name):
         """ Add a new empty constraint to var_name variable.
