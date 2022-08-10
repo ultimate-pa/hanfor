@@ -76,11 +76,11 @@ def replace_var_in_expression(expression, old_var, new_var, parser=None, matchin
 
 
 class BoogieType(Enum):
-    bool = "bool"
-    int = "int"
-    real = "real"
-    unknown = "unkown"
-    error = "error"
+    bool = 1
+    int = 2
+    real = 3
+    unknown = 4
+    error = 5
 
     @staticmethod
     def get_valid_types():
