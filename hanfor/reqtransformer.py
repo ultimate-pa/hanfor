@@ -440,10 +440,20 @@ class Requirement(HanforVersioned, Pickleable):
             rid=self.rid
         )
         if len(self.formalizations[formalization_id].type_inference_errors) > 0:
-            logging.debug('Type inference Error in formalization at {}.'.format(
-                [n for n in self.formalizations[formalization_id].type_inference_errors.keys()]
-            ))
-            self.tags['Type_inference_error'] = ""
+            formatted_errors = self.format_error_tag(self.formalizations[formalization_id])
+            self.tags['Type_inference_error'] = formatted_errors
+
+    def format_error_tag(self, formalisation: 'Formalization') -> str:
+        result = ""
+        if not formalisation.type_inference_errors:
+            return result
+        for key, value in formalisation.type_inference_errors.items():
+            result += str(formalisation.belongs_to_requirement) + "_" + str(formalisation.id) + "_"
+            result += key + ": "
+            result += "\n".join(value)
+        return result
+
+
 
     def update_formalizations(self, formalizations: dict, app):
         if 'Type_inference_error' in self.tags: self.tags.pop('Type_inference_error')
@@ -475,10 +485,10 @@ class Requirement(HanforVersioned, Pickleable):
             try:
                 self.formalizations[id].type_inference_check(var_collection)
                 if len(self.formalizations[id].type_inference_errors) > 0:
-                    # todo: use information about the type inference to update tag
-                    self.tags.add['Type_inference_error'] = ""
+                    self.tags.add['Type_inference_error'] = self.format_error_tag(self.formalizations[id])
             except AttributeError as e:
                 # Probably No pattern set.
+                #TODO: check this gracefully and not as try-catch
                 logging.info(f'Could not derive type inference for requirement `{self.rid}`, Formalization No. {id}. {e}')
         self.store()
 
@@ -606,11 +616,12 @@ class Formalization(HanforVersioned):
                     logging.info(f'Update variable `{name}` with derived type. '
                                  f'Old: `{variable_collection.collection[name].type}` => New: `{var_type.name}`.')
                     variable_collection.set_type(name, var_type.name)
-            #TODO: include type errors for which the expression type can be infered correctly
             if type_errors:
                 self.type_inference_errors[key] = type_errors
+            elif key in self.type_inference_errors:
+                #TODO: refactor the whole error handling process, as this gets too complex
+                del self.type_inference_errors[key]
         variable_collection.store()
-        # self.type_inference_errors = type_inference_errors
 
     def to_dict(self):
         d = {
