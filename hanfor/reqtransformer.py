@@ -596,12 +596,8 @@ class Formalization(HanforVersioned):
             expression.set_expression(expression.raw_expression, variable_collection, None, expression.parent_rid)
 
             # Derive type for variables in expression and update missing or changed types.
-            # TODO: Correctly determine allowed type.
-            ti = TypeInference(tree, var_env, expected_type = allowed_types[key][0] if len(allowed_types[key]) == 1 else None)
+            ti = TypeInference(tree, var_env, expected_types = allowed_types[key])
             expression_type, type_env, type_errors = ti.type_root.t, ti.type_env, ti.type_errors
-            if expression_type not in allowed_types[key]:  # We have derived error, mark this expression as type error.
-                # ToDo: Why do we assign type_env here?
-                type_inference_errors[key] = type_env
             for name, var_type in type_env.items():  # Update the hanfor variable types.
                 if (variable_collection.collection[name].type
                         and variable_collection.collection[name].type.lower() in ['const', 'enum']):
@@ -612,9 +608,9 @@ class Formalization(HanforVersioned):
                     variable_collection.set_type(name, var_type.name)
             #TODO: include type errors for which the expression type can be infered correctly
             if type_errors:
-                type_inference_errors[key] = type_errors
+                self.type_inference_errors[key] = type_errors
         variable_collection.store()
-        self.type_inference_errors = type_inference_errors
+        # self.type_inference_errors = type_inference_errors
 
     def to_dict(self):
         d = {

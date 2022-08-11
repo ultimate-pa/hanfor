@@ -53,7 +53,7 @@ class TestAbsFunction(TestCase):
             t,
             msg=f"Error deriving expression type `{expected_expression_type}`. Got `{t}` instead."
         )
-        self.assertEqual(len(errors), expected_errors)
+        self.assertEqual(expected_errors, len(errors))
 
     def test_type_inference_for_abs_function_0(self):
         expression = "abs(bar + foo) == spam"

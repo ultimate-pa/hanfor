@@ -53,7 +53,7 @@ class TestParseExpressions(TestCase):
 
     def test_single_prop_must_be_bool(self):
         tree = self.parse("x")
-        ti = TypeInference(tree, {}, expected_type=BoogieType.bool)
+        ti = TypeInference(tree, {}, expected_types=[BoogieType.bool])
         t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
         self.assertEqual(BoogieType.bool, type_env["x"], msg="Error deriving variable type")
         self.assertEqual(BoogieType.bool, t, msg="Error deriving expression type")
@@ -77,7 +77,7 @@ class TestParseExpressions(TestCase):
     def test_not_expr(self):
         for type in [BoogieType.real, BoogieType.int]:
             tree = self.parse("-y")
-            ti = TypeInference(tree, {"y": type}, expected_type=type)
+            ti = TypeInference(tree, {"y": type}, expected_types=[type])
             t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
             self.assertEqual(type, t, msg="Error deriving bool from TRUE")
             self.assertEqual(type, type_env["y"], msg="Error deriving bool from TRUE")
@@ -95,7 +95,7 @@ class TestParseExpressions(TestCase):
     def test_eq_expr(self):
         for type in [BoogieType.bool, BoogieType.real, BoogieType.int]:
             tree = self.parse("x == y")
-            ti = TypeInference(tree, {"x": type, "y": type}, expected_type=BoogieType.bool)
+            ti = TypeInference(tree, {"x": type, "y": type}, expected_types=[BoogieType.bool])
             t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
             self.assertEqual(BoogieType.bool, t, msg="Error deriving bool from x == y")
             self.assertEqual(type, type_env["x"], msg=f"Error keeping x: {type} from x == y")
@@ -105,7 +105,7 @@ class TestParseExpressions(TestCase):
     def test_neq_expr(self):
         for type in [BoogieType.bool, BoogieType.real, BoogieType.int]:
             tree = self.parse("x != y")
-            ti = TypeInference(tree, {"x": type, "y": type}, expected_type=BoogieType.bool)
+            ti = TypeInference(tree, {"x": type, "y": type}, expected_types=[BoogieType.bool])
             t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
             self.assertEqual(BoogieType.bool, t, msg="Error deriving bool from TRUE")
             self.assertEqual(type, type_env["x"], msg="Error deriving bool from TRUE")
@@ -171,7 +171,7 @@ class TestParseExpressions(TestCase):
         for type in [BoogieType.error, "bloarg"]:
             tree = self.parse("x")
             # the type universe may not contain illegal types. Check after retrieval.
-            ti = TypeInference(tree, {"x": type}, expected_type=BoogieType.bool)
+            ti = TypeInference(tree, {"x": type}, expected_types=[BoogieType.bool])
             t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
             self.assertEqual(BoogieType.error, t, msg="Error deriving bool from TRUE")
             #self.assertEqual(type, type_env["x"], msg="Error deriving bool from TRUE")

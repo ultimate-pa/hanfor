@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from enum import Enum
+from typing import List
 
 from frozendict import frozendict
 from lark import Lark, Tree, Transformer
@@ -154,13 +155,18 @@ class TypeNode:
 @v_args(inline=True)
 class TypeInference(Transformer):
 
-    def __init__(self, tree: Tree, type_env: dict[str, BoogieType],  expected_type: BoogieType = None):
+    def __init__(self, tree: Tree, type_env: dict[str, BoogieType],  expected_types: List[BoogieType] = None):
         super().__init__()
         self.type_env = type_env
         self.type_errors = []
         self.type_root = self.transform(tree)
-        if expected_type:
-            self.__propagate_type(self.type_root, expected_type)
+        if expected_types:
+            errors = []
+            for possible_type in expected_types:
+                errors = self.__propagate_type(self.type_root, possible_type)
+                if not errors:
+                    break
+            self.type_errors += errors
 
     # Infer leafs (vars, consts)
     def true(self, c: Token) -> TypeNode:
@@ -214,16 +220,17 @@ class TypeInference(Transformer):
     def negation(self, o: Token, c: TypeNode) -> TypeNode:
         return self.__check_unaryop(o, c, {BoogieType.bool}, return_type=BoogieType.bool)
 
-    def __propagate_type(self, tn: TypeNode, t: BoogieType) -> bool:
+    def __propagate_type(self, tn: TypeNode, t: BoogieType) -> List[str]:
+        type_errors = []
         for child in tn.type_leaf + [tn]: # tn is part of its leaf
             if child.t != t and not child.t == BoogieType.unknown:
-                self.type_errors.append(f"Types inconsistent: {child} had Type {tn.t} should be updated to type {t}")
+                type_errors.append(f"Types inconsistent: {child} had Type {tn.t} inferred as {t}")
                 child.t = BoogieType.error
-                return False
+                return type_errors
             child.t = t
             if child.expr in self.type_env:
                 self.type_env[child.expr] = t
-        return True
+        return type_errors
 
     # Infer binary operations
     def __check_binaryop(self, c1: TypeNode, op: Token, c2: TypeNode, arg_type: set[BoogieType],
@@ -243,17 +250,18 @@ class TypeInference(Transformer):
             return TypeNode(expr, c1.t if not return_type else return_type, type_leaf, [c1, c2])
         if c1.t != BoogieType.unknown:
             tn = TypeNode(expr, c1.t if not return_type else return_type, type_leaf, [c1, c2])
-            if self.__propagate_type(c2, c1.t):
+            errors = self.__propagate_type(c2, c1.t)
+            if not errors:
                 return tn
-            else:
-                return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c1, c2])
+            self.type_errors += errors
+            return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c1, c2])
         if c2.t != BoogieType.unknown:
             tn = TypeNode(expr, c2.t if not return_type else return_type, type_leaf, [c1, c2])
-            self.__propagate_type(c1, c2.t)
-            if self.__propagate_type(c1, c2.t):
+            errors = self.__propagate_type(c1, c2.t)
+            if not errors:
                 return tn
-            else:
-                return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c1, c2])
+            self.type_errors += errors
+            return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c1, c2])
         return TypeNode(expr, BoogieType.error, type_leaf, [c1, c2])
 
     def neq(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
