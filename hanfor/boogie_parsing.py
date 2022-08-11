@@ -315,22 +315,3 @@ class TypeInference(Transformer):
             return children[0]
         self.type_errors += f"Unknown rule {data} found during parsing."
         return TypeNode(data, BoogieType.error, [], children)
-
-class EvilTypeConfusion(Exception):
-    def __init__(self, env=None):
-        """
-
-        :param env: type environment.
-        :type env: dict
-        """
-        candidates = ''
-        if env:
-            candidates = 'Error candidates: `{}`.'.format(
-                ', '.join([
-                    name for name in env.keys() if env[name] == BoogieType.error
-                ])
-            )
-        Exception.__init__(
-            self,
-            "Error in deriving expression type. {}".format(candidates)
-        )
