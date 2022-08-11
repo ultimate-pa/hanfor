@@ -597,7 +597,7 @@ class Formalization(HanforVersioned):
 
             # Derive type for variables in expression and update missing or changed types.
             # TODO: Correctly determine allowed type.
-            ti = TypeInference(tree, var_env, expected_type = allowed_types[key][0] if len(allowed_types) == 1 else None)
+            ti = TypeInference(tree, var_env, expected_type = allowed_types[key][0] if len(allowed_types[key]) == 1 else None)
             expression_type, type_env, type_errors = ti.type_root.t, ti.type_env, ti.type_errors
             if expression_type not in allowed_types[key]:  # We have derived error, mark this expression as type error.
                 type_inference_errors[key] = type_env
