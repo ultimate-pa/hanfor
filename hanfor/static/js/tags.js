@@ -206,6 +206,14 @@ $(document).ready(function () {
         update_search();
         tagsDataTable.draw();
     });
+
+    $('#add-standard-tags').click(function () {
+        $.post("api/tag/add_standard",
+            {},
+            function (data) {
+            location.reload();
+                })
+    });
 });
 
 /**

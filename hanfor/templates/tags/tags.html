@@ -3,8 +3,31 @@
 {% block title %}Tags{% endblock %}
 {% block body %}
     <div class="card">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link active" id="search-tab" data-bs-toggle="tab" href="#search-pane" role="tab"
+                       aria-controls="search" aria-selected="true">Search</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="tools-tab" data-bs-toggle="tab" href="#tools-pane" role="tab"
+                       aria-controls="tools" aria-selected="false">Tools</a>
+                </li>
+            </ul>
+        </div>
         <div class="card-body">
-            {% include 'search-tab.html' %}
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="search-pane" role="tabpanel" aria-labelledby="search-tab">
+                    {% include 'search-tab.html' %}
+                </div>
+                <div class="tab-pane fade" id="tools-pane" role="tabpanel" aria-labelledby="filter-tab">
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <button id="add-standard-tags" class="btn btn-secondary w-100" type="button">Add standard tags.</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <table id="tags-table" class="table table-hover table-bordered" width="100%" cellspacing="0">

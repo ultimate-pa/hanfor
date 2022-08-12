@@ -145,7 +145,8 @@ def api(resource, command):
         'add_new_variable',
         'get_enumerators',
         'start_import_session',
-        'gen_req'
+        'gen_req',
+        'add_standard'
     ]
     if resource not in resources or command not in commands:
         return jsonify({
@@ -202,13 +203,18 @@ def api(resource, command):
                     logging.debug(f'Requirement status set to {requirement.status}')
 
                 new_tag_set = json.loads(request.form.get('tags', ''))
+                #pop all tags that are generated dependand on status information autmatically
+                if "Type_inference_error" in new_tag_set :
+                    new_tag_set.pop("Type_inference_error")
                 if requirement.tags != new_tag_set:
                     added_tags = new_tag_set.keys() - requirement.tags.keys()
+                    tags = Tag(app, request)
+                    for tag in added_tags:
+                        tags.add(tag)
                     removed_tags = requirement.tags.keys() - new_tag_set.keys()
                     requirement.tags = new_tag_set
                     # do logging
-                    utils.add_msg_to_flask_session_log(app, f'Tags: + {added_tags} and - {removed_tags} to requirement',
-                                                       id)
+                    utils.add_msg_to_flask_session_log(app, f'Tags: + {added_tags} and - {removed_tags} to requirement', id)
                     logging.debug(f'Tags: + {added_tags} and - {removed_tags} to requirement {requirement.tags}')
 
                 # Update formalization.
@@ -280,7 +286,8 @@ def api(resource, command):
 
                 for rid in rid_list:
                     requirement = Requirement.load_requirement_by_id(rid, app)
-                    if requirement is None: continue
+                    if requirement is None:
+                        continue
                     logging.info(f'Updating requirement `{rid}`')
                     if (remove_tag in requirement.tags):
                         requirement.tags.pop(remove_tag)
@@ -639,6 +646,8 @@ def api(resource, command):
         return Statistics(app, request).apply_request()
 
     if resource == 'tag':
+        if command == "add_standard":
+            return Tag(app, request).add_standard_tags()
         return Tag(app, request).apply_request()
 
     if resource == 'meta':
@@ -897,14 +906,23 @@ def metasettings_version_migration(app, args):
     meta_settings = utils.MetaSettings(app.config['META_SETTINGS_PATH'])
 
     meta_settings_keys = ["tag_colors", "tag_descriptions", "tag_internal"]
-    changes = False
     for key in meta_settings_keys:
         if key not in meta_settings:
             logging.info(f'Upgrading metaconfig with empty `{key}` store.')
             meta_settings[key] = dict()
-            changes = True
-    if changes:
-        meta_settings.update_storage()
+    for filename in get_filenames_from_dir(app.config['REVISION_FOLDER']):
+        try:
+            req = Requirement.load(filename)
+        except TypeError:
+            continue
+        for tag in req.tags:
+            if tag not in meta_settings["tag_colors"]:
+                meta_settings["tag_colors"][tag] = "#5bc0de"
+            if tag not in meta_settings["tag_descriptions"]:
+                meta_settings["tag_descriptions"][tag] = ""
+            if tag not in meta_settings["tag_internal"]:
+                meta_settings["tag_internal"][tag] = False
+    meta_settings.update_storage()
 
 
 def requirements_version_migrations(app, args):
