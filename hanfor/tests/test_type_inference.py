@@ -5,7 +5,7 @@ from unittest import TestCase
 
 from lark import Tree
 
-from boogie_parsing import BoogieType, TypeInference
+from boogie_parsing import BoogieType, TypeInference, run_typecheck_fixpoint
 import boogie_parsing
 
 
@@ -216,4 +216,31 @@ class TestParseExpressions(TestCase):
                 BoogieType.real,
                 f"Failed deriving `{t}` for `{expr}` with: `{initial_type_env}`. Expected `{BoogieType.real}`."
             )
+            self.assertFalse(errors)
+
+    def test_inference_chain(self):
+        expressions = [
+            'a < b && b < c && c < d && d == 0.2',
+            'a < b && b < c && c < d && d == 5'
+        ]
+        expected = [
+            BoogieType.real,
+            BoogieType.int
+        ]
+
+        for expr, exp_t in zip(expressions, expected):
+            tree = self.parse(expr)
+            ti = run_typecheck_fixpoint(tree, {})
+            t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
+            self.assertEqual(
+                t,
+                BoogieType.bool,
+                f"Failed deriving `{BoogieType.bool}` for `{expr}`."
+            )
+            for v, vt in type_env.items():
+                self.assertEqual(
+                    vt,
+                    exp_t,
+                    f"Failed deriving `{exp_t}` for `{v}`."
+                )
             self.assertFalse(errors)
