@@ -448,9 +448,8 @@ class Requirement(HanforVersioned, Pickleable):
         if not formalisation.type_inference_errors:
             return result
         for key, value in formalisation.type_inference_errors.items():
-            result += str(formalisation.belongs_to_requirement) + "_" + str(formalisation.id) + "_"
-            result += key + ": "
-            result += "\n".join(value)
+            result += f"{str(formalisation.belongs_to_requirement)}_{str(formalisation.id)} ({key}): \n- "
+            result += "\n- ".join(value)
         return result
 
 
