@@ -16,12 +16,10 @@ from collections import defaultdict, OrderedDict
 from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
-from threading import Thread
-from typing import Dict
-
 from flask import current_app
 
 import boogie_parsing
+from boogie_parsing import TypeInference, BoogieType, run_typecheck_fixpoint
 from patterns import PATTERNS
 from static_utils import choice, get_filenames_from_dir, replace_prefix
 from threading import Thread
@@ -442,10 +440,19 @@ class Requirement(HanforVersioned, Pickleable):
             rid=self.rid
         )
         if len(self.formalizations[formalization_id].type_inference_errors) > 0:
-            logging.debug('Type inference Error in formalization at {}.'.format(
-                [n for n in self.formalizations[formalization_id].type_inference_errors.keys()]
-            ))
-            self.tags['Type_inference_error'] = ""
+            formatted_errors = self.format_error_tag(self.formalizations[formalization_id])
+            self.tags['Type_inference_error'] = formatted_errors
+
+    def format_error_tag(self, formalisation: 'Formalization') -> str:
+        result = ""
+        if not formalisation.type_inference_errors:
+            return result
+        for key, value in formalisation.type_inference_errors.items():
+            result += f"{str(formalisation.belongs_to_requirement)}_{str(formalisation.id)} ({key}): \n- "
+            result += "\n- ".join(value)
+        return result
+
+
 
     def update_formalizations(self, formalizations: dict, app):
         if 'Type_inference_error' in self.tags: self.tags.pop('Type_inference_error')
@@ -477,10 +484,10 @@ class Requirement(HanforVersioned, Pickleable):
             try:
                 self.formalizations[id].type_inference_check(var_collection)
                 if len(self.formalizations[id].type_inference_errors) > 0:
-                    # todo: use information about the type inference to update tag
-                    self.tags.add['Type_inference_error'] = ""
+                    self.tags.add['Type_inference_error'] = self.format_error_tag(self.formalizations[id])
             except AttributeError as e:
                 # Probably No pattern set.
+                #TODO: check this gracefully and not as try-catch
                 logging.info(f'Could not derive type inference for requirement `{self.rid}`, Formalization No. {id}. {e}')
         self.store()
 
@@ -598,19 +605,22 @@ class Formalization(HanforVersioned):
             expression.set_expression(expression.raw_expression, variable_collection, None, expression.parent_rid)
 
             # Derive type for variables in expression and update missing or changed types.
-            type, type_env = boogie_parsing.infer_variable_types(tree, var_env).derive_type()
-            if type not in allowed_types[key]:  # We have derived error, mark this expression as type error.
-                type_inference_errors[key] = type_env
-            for name, type in type_env.items():  # Update the hanfor variable types.
-                if (variable_collection.collection[name].type is not None
+            ti = run_typecheck_fixpoint(tree, var_env, expected_types = allowed_types[key])
+            expression_type, type_env, type_errors = ti.type_root.t, ti.type_env, ti.type_errors
+            for name, var_type in type_env.items():  # Update the hanfor variable types.
+                if (variable_collection.collection[name].type
                         and variable_collection.collection[name].type.lower() in ['const', 'enum']):
                     continue
-                if variable_collection.collection[name].type not in boogie_parsing.BoogieType.aliases(type):
+                if variable_collection.collection[name].type not in boogie_parsing.BoogieType.aliases(var_type):
                     logging.info(f'Update variable `{name}` with derived type. '
-                                 f'Old: `{variable_collection.collection[name].type}` => New: `{type.name}`.')
-                    variable_collection.set_type(name, type.name)
+                                 f'Old: `{variable_collection.collection[name].type}` => New: `{var_type.name}`.')
+                    variable_collection.set_type(name, var_type.name)
+            if type_errors:
+                self.type_inference_errors[key] = type_errors
+            elif key in self.type_inference_errors:
+                #TODO: refactor the whole error handling process, as this gets too complex
+                del self.type_inference_errors[key]
         variable_collection.store()
-        self.type_inference_errors = type_inference_errors
 
     def to_dict(self):
         d = {
@@ -1151,20 +1161,14 @@ class VariableCollection(HanforVersioned, Pickleable):
 
     def run_version_migrations(self):
         logging.info(
-            'Migrating `{}`:`{}`, from {} -> {}'.format(
-                self.__class__.__name__,
-                self.my_path,
-                self.hanfor_version,
-                __version__
-            )
-        )
+            f'Migrating `{self.__class__.__name__}`:`{self.my_path}`, from {self.hanfor_version} -> {__version__}')
         for name, variable in self.collection.items():  # type: (str, Variable)
             variable.run_version_migrations()
         if StrictVersion(self.hanfor_version) < StrictVersion('1.0.3'):
             # Migrate for introduction of ENUM_INT and ENUM_REAL.
             for name, variable in self.collection.items():  # type: (str, Variable)
                 if variable.type == 'ENUM':
-                    logging.info('Migrate old ENUM `{}` to new ENUM_INT, ENUM_REAL'.format(variable.name))
+                    logging.info(f'Migrate old ENUM `{variable.name}` to new ENUM_INT, ENUM_REAL')
                     enumerators = []
                     for other_var_name, other_var in self.collection.items():  # type: str, Variable
                         if (len(other_var_name) > len(variable.name)
@@ -1273,6 +1277,7 @@ class VariableCollection(HanforVersioned, Pickleable):
                 pass
             else:
                 self.collection[var_name] = variable
+
 
 
 class Variable(HanforVersioned):
@@ -1493,25 +1498,28 @@ class Variable(HanforVersioned):
         return result
 
     def run_version_migrations(self):
-        if self.hanfor_version == '0.0.0':
+        if StrictVersion(self.hanfor_version) <= StrictVersion('0.0.0'):
             logging.info(f'Migrating `{self.__class__.__name__}`:`{self.name}`, from 0.0.0 -> 1.0.0')
             if hasattr(self, 'constraints'):
                 self.constraints = dict(enumerate(self.constraints))
             else:
                 self.constraints = dict()
-            self.hanfor_version = '1.0.0'
-        if self.hanfor_version == '1.0.0':
+        if StrictVersion(self.hanfor_version) <= StrictVersion('1.0.0'):
             logging.info(f'Migrating `{self.__class__.__name__}`:`{self.name}`, from 1.0.0 -> 1.0.1')
             self.script_results = ''
-            self.hanfor_version = '1.0.1'
-        if self.hanfor_version in ['1.0.1', '1.0.2']:
+        if StrictVersion(self.hanfor_version) <= StrictVersion('1.0.2'):
             logging.info(f'Migrating `{self.__class__.__name__}`:`{ self.name}`, from {self.hanfor_version} -> 1.0.3')
             self.belongs_to_enum = ''
-            self.hanfor_version = '1.0.3'
             if self.type == 'ENUM':
                 logging.info(f'Migrate old ENUM `{self.name}` to new ENUM_INT, ENUM_REAL')
         if not hasattr(self, 'constraints') or not isinstance(self.constraints, dict):
             setattr(self, 'constraints', dict())
+        """if StrictVersion(self.hanfor_version) <= StrictVersion('1.0.5'):
+            logging.info(f'Migrating `{self.__class__.__name__}`:`{ self.name}`, from {self.hanfor_version} -> 1.0.5')
+            if self.type == 1: self.type = BoogieType.bool
+            elif self.type == 2: self.type = BoogieType.int
+            elif self.type == 3: self.type = BoogieType.real
+            else: self.type == BoogieType.unknown"""
         super().run_version_migrations()
 
 

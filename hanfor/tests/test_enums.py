@@ -362,6 +362,7 @@ class TestEnums(TestCase):
             ("bar == ham_bool", {'0': ['r']}),
             ("bar_one == foo_one", {'0': ['r']}),
             ("bar == foo_one", {'0': ['r']}),
+            ("spam_int + spam_real", {'0': ['r']}),
         ]
 
         for expression, expected_type_error in expressions:
@@ -486,7 +487,7 @@ class TestEnums(TestCase):
             expression
         )
 
-        # Now we expect there is an real "new_real_1"
+        # Now we expect there is a real "new_real_1"
         updated_vars = self.mock_hanfor.app.get('api/var/gets').json['data']
         new_variable = {
             'name': 'new_real_1',
