@@ -19,7 +19,7 @@ from enum import Enum
 from flask import current_app
 
 import boogie_parsing
-from boogie_parsing import TypeInference, BoogieType
+from boogie_parsing import TypeInference, BoogieType, run_typecheck_fixpoint
 from patterns import PATTERNS
 from static_utils import choice, get_filenames_from_dir, replace_prefix
 from threading import Thread
@@ -606,7 +606,7 @@ class Formalization(HanforVersioned):
             expression.set_expression(expression.raw_expression, variable_collection, None, expression.parent_rid)
 
             # Derive type for variables in expression and update missing or changed types.
-            ti = TypeInference(tree, var_env, expected_types = allowed_types[key])
+            ti = run_typecheck_fixpoint(tree, var_env, expected_types = allowed_types[key])
             expression_type, type_env, type_errors = ti.type_root.t, ti.type_env, ti.type_errors
             for name, var_type in type_env.items():  # Update the hanfor variable types.
                 if (variable_collection.collection[name].type

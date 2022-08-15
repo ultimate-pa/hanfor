@@ -3,7 +3,7 @@ Test correct parsing and type derivation of the abs function.
 """
 
 import boogie_parsing
-from boogie_parsing import TypeInference, BoogieType
+from boogie_parsing import TypeInference, BoogieType, run_typecheck_fixpoint
 from unittest import TestCase
 
 class TestAbsFunction(TestCase):
@@ -40,7 +40,7 @@ class TestAbsFunction(TestCase):
                                     expected_errors: int = 0):
         parser = boogie_parsing.get_parser_instance()
         tree = parser.parse(expression)
-        ti = TypeInference(tree,  given_env)
+        ti = run_typecheck_fixpoint(tree,  given_env)
         t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
         for var, derived_type in type_env.items():
             self.assertEqual(
