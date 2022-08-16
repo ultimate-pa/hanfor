@@ -486,7 +486,7 @@ def update_variable_in_collection(app, request):
                 var_collection.add_var(enumerator_name)
                 new_enumerators.append(enumerator_name)
 
-            var_collection.collection[enumerator_name].set_type('ENUMERATOR_{}'.format(var_type[5:]))
+            var_collection.collection[enumerator_name].set_type(f'ENUMERATOR_{var_type[5:]}')
             var_collection.collection[enumerator_name].value = enumerator_value
             var_collection.collection[enumerator_name].belongs_to_enum = var_name
 

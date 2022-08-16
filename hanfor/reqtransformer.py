@@ -20,7 +20,7 @@ from flask import current_app
 from lark import LarkError
 
 import boogie_parsing
-from boogie_parsing import TypeInference, BoogieType, run_typecheck_fixpoint
+from boogie_parsing import run_typecheck_fixpoint
 from patterns import PATTERNS
 from static_utils import choice, get_filenames_from_dir, replace_prefix
 from threading import Thread
@@ -450,7 +450,7 @@ class Requirement(HanforVersioned, Pickleable):
             return result
         for key, value in formalisation.type_inference_errors.items():
             result += f"{str(formalisation.belongs_to_requirement)}_{str(formalisation.id)} ({key}): \n- "
-            result += "\n- ".join(value)
+            result += "\n- ".join(value) + "\n"
         return result
 
 
@@ -671,9 +671,7 @@ class Expression(HanforVersioned):
         """
         self.raw_expression = expression
         self.parent_rid = parent_rid
-        logging.debug(
-            'Setting expression: `{}`'.format(expression)
-        )
+        logging.debug(f'Setting expression: `{expression}`')
         # Get the vars occurring in the expression.
         parser = boogie_parsing.get_parser_instance()
         tree = parser.parse(expression)
