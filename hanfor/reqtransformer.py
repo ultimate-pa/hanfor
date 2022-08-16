@@ -24,7 +24,7 @@ from boogie_parsing import run_typecheck_fixpoint
 from patterns import PATTERNS
 from static_utils import choice, get_filenames_from_dir, replace_prefix
 from threading import Thread
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List, Any
 
 __version__ = '1.0.4'
 
@@ -85,6 +85,7 @@ class Pickleable:
 
 
 class RequirementCollection(HanforVersioned, Pickleable):
+
     def __init__(self):
         HanforVersioned.__init__(self)
         Pickleable.__init__(self, None)
@@ -126,15 +127,13 @@ class RequirementCollection(HanforVersioned, Pickleable):
         self.process_csv_hanfor_data_import(available_sessions=available_sessions, app=app)
         self.parse_csv_rows_into_requirements(app)
 
-    def load_csv(self, csv_file, input_encoding):
+    def load_csv(self, csv_file: str, input_encoding: str):
         """ Reads a csv file into `csv_all_rows`. Stores csv_dialect and csv_fieldnames in `csv_meta`
 
         :param csv_file: Path to csv file.
-        :type csv_file: str
         :param input_encoding: Encoding of the csv file.
-        :type input_encoding: str
         """
-        logging.info('Load Input : {}'.format(csv_file))
+        logging.info(f'Load Input : {csv_file}')
         with open(csv_file, 'r', encoding=input_encoding) as csvfile:
             try:
                 dialect = csv.Sniffer().sniff(csvfile.read(2048), delimiters="\t,;")
@@ -547,7 +546,6 @@ class Formalization(HanforVersioned):
 
         :type mapping: dict
         :param mapping: {'P': 'foo > 0', 'Q': 'expression for Q', ...}
-        :type app: Flask
         :type variable_collection: VariableCollection
         :param variable_collection: Currently used VariableCollection.
         :type rid: str
@@ -1476,7 +1474,7 @@ class Variable(HanforVersioned):
             for other_var_name in variable_collection.collection.keys():
                 if (len(self.name) < len(other_var_name)
                         and variable_collection.collection[other_var_name].type == 'ENUMERATOR'
-                        and self.other_var_name.startswith(self.name)):
+                        and other_var_name.startswith(self.name)):
                     result.append(other_var_name)
                     break
         return result

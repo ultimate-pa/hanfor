@@ -3,6 +3,8 @@ import os
 import pickle
 import re
 import shlex
+from typing import List
+
 import colorama
 
 from colorama import Style, Fore, Back
@@ -45,16 +47,13 @@ def get_filenames_from_dir(input_dir):
     return [os.path.join(input_dir, f) for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, f))]
 
 
-def choice(choices, default):
+def choice(choices: List[str], default: str) -> str:
     """ Asks the user which string he wants from a list of strings.
     Returns the selected string.
 
     :param choices: List of choices (one choice is a string)
-    :type choices: list
     :param default: One element from the choices list.
-    :type default: str
     :return: The choice selected by the user.
-    :rtype: str
     """
     idx = 0
     data = list()
