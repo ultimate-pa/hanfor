@@ -40,6 +40,7 @@ app.config.from_object('config')
 
 app.register_blueprint(example_bp.blueprint, url_prefix='/example_bp')
 
+
 if 'USE_SENTRY' in app.config and app.config['USE_SENTRY']:
     import sentry_sdk
     from sentry_sdk.integrations.flask import FlaskIntegration
@@ -48,6 +49,12 @@ if 'USE_SENTRY' in app.config and app.config['USE_SENTRY']:
         dsn=app.config['SENTRY_DSN'],
         integrations=[FlaskIntegration()]
     )
+
+logging.basicConfig(
+    format='[%(asctime)s %(filename)s:%(lineno)d] %(levelname)s - %(message)s',
+    datefmt='%y-%m-%d %H:%M:%S',
+    level=logging.DEBUG
+)
 
 
 def nocache(view):
