@@ -220,8 +220,8 @@ class TestParseExpressions(TestCase):
 
     def test_inference_chain(self):
         expressions = [
-            'a < b && b < c && c < d && d == 0.2',
-            'a < b && b < c && c < d && d == 5'
+            'a < b && b < c && c < d && d < e && e < f && f == 0.2',
+            'a < b && b < c && c < d && d < e && e < f && f == 23'
         ]
         expected = [
             BoogieType.real,
