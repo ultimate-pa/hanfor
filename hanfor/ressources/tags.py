@@ -1,11 +1,21 @@
 import logging
 import os
+from dataclasses import dataclass, field
 
 from defaults import Color
 from reqtransformer import Requirement
 from ressources import Ressource
 from static_utils import get_filenames_from_dir
 from configuration.tags import STANDARD_TAGS
+
+@dataclass
+class Tag:
+
+    name: str
+    color: str
+    internal: bool
+    description: str
+    used_by: list = field(default_factory=list)
 
 
 class Tags(Ressource):
@@ -14,41 +24,46 @@ class Tags(Ressource):
         super().__init__(app, request)
         self.filenames = get_filenames_from_dir(self.app.config['REVISION_FOLDER'])
         self._available_tags = dict()
-        self.load_available_tags()
+        self.__load()
         self.sort_used_by_field()
-
-    def load_available_tags(self):
-        for tag, color in self.meta_settings["tag_colors"].items():
-            self._available_tags[tag] = {
-                'name': tag,
-                'used_by': list(),
-                'color': color,
-                'description': self.meta_settings["tag_descriptions"][tag],
-                'internal': self.meta_settings["tag_internal"][tag]
-            }
-        for filename in self.filenames:
-            try:
-                req = Requirement.load(filename)
-            except TypeError:
-                continue
-            for tag in req.tags:
-                self._available_tags[tag]['used_by'].append(req.rid)
 
     def sort_used_by_field(self):
         for tag in self._available_tags.keys():
-            self._available_tags[tag]['used_by'].sort()
+            self._available_tags.get(tag).used_by.sort()
 
     def __get_metaconfig_property(self, key: str, tag_name: str, default):
         if tag_name in self.meta_settings[key]:
             return self.meta_settings[key][tag_name]
         return default
 
+    def get(self, tag_name):
+        if tag_name not in self._available_tags:
+            self.add(tag_name)
+        return self._available_tags[tag_name]
+
     def add(self, tag_name: str, tag_color: str = Color.BS_INFO.value, tag_internal: bool = False, tag_description: str = ""):
         if tag_name not in self._available_tags:
-            self.meta_settings['tag_colors'][tag_name] = tag_color
-            self.meta_settings['tag_descriptions'][tag_name] = tag_description
-            self.meta_settings['tag_internal'][tag_name] = tag_internal
-            self.meta_settings.update_storage()
+            self._available_tags[tag_name] = Tag(tag_name, tag_color, tag_internal, tag_description)
+        self.__store()
+
+    def __store(self):
+        for tag_name, tag in self._available_tags.items():
+            self.meta_settings['tag_colors'][tag_name] = tag.color
+            self.meta_settings['tag_internal'][tag_name] = tag.internal
+            self.meta_settings['tag_descriptions'][tag_name] = tag.description
+        self.meta_settings.update_storage()
+
+    def __load(self):
+        for tag, color in self.meta_settings["tag_colors"].items():
+            self._available_tags[tag] = Tag(tag, color, self.meta_settings["tag_descriptions"][tag],
+                                            self.meta_settings["tag_internal"][tag])
+        for filename in self.filenames:
+            try:
+                req = Requirement.load(filename)
+            except TypeError:
+                continue
+            for tag in req.tags:
+                self.get(tag).used_by.append(req.rid)
 
     @property
     def available_tags(self):
