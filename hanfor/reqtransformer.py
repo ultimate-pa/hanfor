@@ -17,6 +17,7 @@ from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
 from flask import current_app
+from lark import LarkError
 
 import boogie_parsing
 from boogie_parsing import TypeInference, BoogieType, run_typecheck_fixpoint
@@ -182,7 +183,7 @@ class RequirementCollection(HanforVersioned, Pickleable):
             self.csv_meta['desc_header'] = choice(available_headers, 'Object Text')
             print('Select formalization header')
             self.csv_meta['formal_header'] = choice(
-                available_headers + ['Add new Formalization'], 'Hanfor_Formalization'
+available_headers + ['Add new Formalization'], 'Hanfor_Formalization'
             )
             if self.csv_meta['formal_header'] == 'Add new Formalization':
                 self.csv_meta['formal_header'] = 'Hanfor_Formalization'
@@ -408,7 +409,7 @@ class Requirement(HanforVersioned, Pickleable):
         formalization_id = int(formalization_id)
         variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
 
-        # Remove formalizatioin
+        # Remove formalization
         del self.formalizations[formalization_id]
         # Collect remaining vars.
         remaining_vars = set()
@@ -477,23 +478,15 @@ class Requirement(HanforVersioned, Pickleable):
                 logging.error(f'Could not update Formalization: {e.__str__()}')
                 raise e
 
-    def reload_type_inference(self, var_collection, app):
+    def run_typeinference(self, var_collection):
         logging.info(f'Reload type inference for `{self.rid}`')
-        self.tags.pop('Type_inference_error')
+        if 'Type_inference_error' in self.tags:
+            self.tags.pop('Type_inference_error')
         for id in self.formalizations.keys():
-            try:
-                self.formalizations[id].type_inference_check(var_collection)
-                if len(self.formalizations[id].type_inference_errors) > 0:
-                    self.tags.add['Type_inference_error'] = self.format_error_tag(self.formalizations[id])
-            except AttributeError as e:
-                # Probably No pattern set.
-                #TODO: check this gracefully and not as try-catch
-                logging.info(f'Could not derive type inference for requirement `{self.rid}`, Formalization No. {id}. {e}')
+            self.formalizations[id].type_inference_check(var_collection)
+            if len(self.formalizations[id].type_inference_errors) > 0:
+                self.tags['Type_inference_error'] = self.format_error_tag(self.formalizations[id])
         self.store()
-
-    def get_formalization_string(self):
-        # TODO: implement this. (Used to print the whole formalization into the csv).
-        return ''
 
     def get_formalizations_json(self) -> str:
         """ Fetch all formalizations in json format. Used to reload formalizations.
@@ -584,7 +577,6 @@ class Formalization(HanforVersioned):
 
         :param variable_collection: The current VariableCollection
         """
-        type_inference_errors = dict()
         allowed_types = self.scoped_pattern.get_allowed_types()
         var_env = variable_collection.get_boogie_type_env()
 
@@ -598,7 +590,7 @@ class Formalization(HanforVersioned):
             # Else there is a syntax error in the expression.
             try:
                 tree = boogie_parsing.get_parser_instance().parse(expression.raw_expression)
-            except Exception as e:
+            except LarkError as e:
                 logging.error(
                     f'Lark could not parse expression `{expression.raw_expression}`: \n {e}. Skipping type inference')
                 continue

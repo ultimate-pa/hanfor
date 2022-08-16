@@ -8,7 +8,7 @@ from static_utils import get_filenames_from_dir
 from configuration.tags import STANDARD_TAGS
 
 
-class Tag(Ressource):
+class Tags(Ressource):
     def __init__(self, app, request):
         super().__init__(app, request)
         self.filenames = get_filenames_from_dir(self.app.config['REVISION_FOLDER'])

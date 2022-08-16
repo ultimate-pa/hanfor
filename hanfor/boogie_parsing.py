@@ -199,19 +199,19 @@ class TypeInference(Transformer):
         type = self.type_env[name]
         return TypeNode(name, type, [])
 
-    def __typecheck_args(self, arg_type: TypeNode, expected_arg_types: set[BoogieType]) -> list[str]:
+    def __typecheck_args(self, expr: str,  arg_type: TypeNode, expected_arg_types: set[BoogieType]) -> list[str]:
         # ignore errors as there is already an error reported and the subsequent errors are noise
         if arg_type.t == BoogieType.unknown or arg_type.t == BoogieType.error:
             return []
         if arg_type.t not in expected_arg_types:
-            return [f"Wrong argument type: expected {expected_arg_types} but got {arg_type.t}.",]
+            return [f"Wrong argument type in {expr}: expected {expected_arg_types} but got {arg_type.t}."]
         return []
 
     def __check_unaryop(self, op: Token, c: TypeNode, arg_type: set[BoogieType], return_type: BoogieType = None):
-        arg_error = self.__typecheck_args(c, arg_type)
+        expr = f"{op} {c.expr}"
+        arg_error = self.__typecheck_args(expr, c, arg_type)
         self.type_errors += arg_error
         type_leaf = [c] + c.type_leaf if not return_type else []
-        expr = f"{op} {c.expr}"
         if arg_error:
             return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c])
         tn = TypeNode(expr, c.t if not return_type else return_type, type_leaf, [c])
@@ -245,9 +245,9 @@ class TypeInference(Transformer):
     # Infer binary operations
     def __check_binaryop(self, c1: TypeNode, op: Token, c2: TypeNode, arg_type: set[BoogieType],
                          return_type: BoogieType = None) -> TypeNode:
-        arg_errors = self.__typecheck_args(c1, arg_type) + self.__typecheck_args(c2, arg_type)
-        self.type_errors += arg_errors
         expr = f"{c1.expr} {op} {c2.expr}"
+        arg_errors = self.__typecheck_args(expr, c1, arg_type) + self.__typecheck_args(expr, c2, arg_type)
+        self.type_errors += arg_errors
         # assume that the return type is the identity if no return type is given, thus all in this leaf are typed equal
         type_leaf = [c1, c2] + c1.type_leaf + c2.type_leaf if not return_type else []
         if arg_errors:

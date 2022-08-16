@@ -28,7 +28,7 @@ import utils
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from reqtransformer import Requirement, VariableCollection, Variable, VarImportSessions
-from ressources import Report, Tag, Statistics, QueryAPI
+from ressources import Report, Tags, Statistics, QueryAPI
 from ressources.simulator_ressource import SimulatorRessource
 from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, \
     hash_file_sha1
@@ -203,12 +203,9 @@ def api(resource, command):
                     logging.debug(f'Requirement status set to {requirement.status}')
 
                 new_tag_set = json.loads(request.form.get('tags', ''))
-                #pop all tags that are generated dependand on status information autmatically
-                if "Type_inference_error" in new_tag_set :
-                    new_tag_set.pop("Type_inference_error")
                 if requirement.tags != new_tag_set:
                     added_tags = new_tag_set.keys() - requirement.tags.keys()
-                    tags = Tag(app, request)
+                    tags = Tags(app, request)
                     for tag in added_tags:
                         tags.add(tag)
                     removed_tags = requirement.tags.keys() - new_tag_set.keys()
@@ -647,8 +644,8 @@ def api(resource, command):
 
     if resource == 'tag':
         if command == "add_standard":
-            return Tag(app, request).add_standard_tags()
-        return Tag(app, request).apply_request()
+            return Tags(app, request).add_standard_tags()
+        return Tags(app, request).apply_request()
 
     if resource == 'meta':
         if command == 'get':
