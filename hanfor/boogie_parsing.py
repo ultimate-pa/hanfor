@@ -157,7 +157,7 @@ def run_typecheck_fixpoint(tree: Tree, type_env: dict[str, BoogieType],
                            expected_types: List[BoogieType] = None) -> 'TypeInference':
     tn = TypeInference(tree, type_env, expected_types)
     while True:
-        stn = TypeInference(tree, {k:v for k,v in tn.type_env.items()}, expected_types)
+        stn = TypeInference(tree, {k: v for k, v in tn.type_env.items()}, expected_types)
         if tn.type_env == stn.type_env:
             return stn
         tn = stn
