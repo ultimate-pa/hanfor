@@ -434,12 +434,9 @@ class Requirement(HanforVersioned, Pickleable):
         # set parent
         self.formalizations[formalization_id].belongs_to_requirement = self.rid
         # Parse and set the expressions.
-        self.formalizations[formalization_id].set_expressions_mapping(
-            mapping=mapping,
-            variable_collection=variable_collection,
-            app=app,
-            rid=self.rid
-        )
+        self.formalizations[formalization_id].set_expressions_mapping(mapping=mapping,
+                                                                      variable_collection=variable_collection,
+                                                                      rid=self.rid)
         if len(self.formalizations[formalization_id].type_inference_errors) > 0:
             formatted_errors = self.format_error_tag(self.formalizations[formalization_id])
             self.tags['Type_inference_error'] = formatted_errors
@@ -479,7 +476,7 @@ class Requirement(HanforVersioned, Pickleable):
                 raise e
 
     def run_typeinference(self, var_collection):
-        logging.info(f'Reload type inference for `{self.rid}`')
+        logging.info(f'Run type inference for `{self.rid}`')
         if 'Type_inference_error' in self.tags:
             self.tags.pop('Type_inference_error')
         for id in self.formalizations.keys():
@@ -543,7 +540,7 @@ class Formalization(HanforVersioned):
             result += exp.get_used_variables()
         return list(set(result))
 
-    def set_expressions_mapping(self, mapping, variable_collection, app, rid):
+    def set_expressions_mapping(self, mapping, variable_collection, rid):
         """ Parse expression mapping.
             + Extract variables. Replace by their ID. Create new Variables if they do not exist.
             + For used variables and update the "used_by_requirements" set.
@@ -563,8 +560,7 @@ class Formalization(HanforVersioned):
             if len(expression_string) == 0:
                 continue
             expression = Expression()
-            expression.set_expression(
-                expression_string, variable_collection, app, rid)
+            expression.set_expression(expression_string, variable_collection, rid)
             if self.expressions_mapping is None:
                 self.expressions_mapping = dict()
             self.expressions_mapping[key] = expression
@@ -594,7 +590,7 @@ class Formalization(HanforVersioned):
                 logging.error(
                     f'Lark could not parse expression `{expression.raw_expression}`: \n {e}. Skipping type inference')
                 continue
-            expression.set_expression(expression.raw_expression, variable_collection, None, expression.parent_rid)
+            expression.set_expression(expression.raw_expression, variable_collection, expression.parent_rid)
 
             # Derive type for variables in expression and update missing or changed types.
             ti = run_typecheck_fixpoint(tree, var_env, expected_types = allowed_types[key])
@@ -659,7 +655,7 @@ class Expression(HanforVersioned):
         else:
             return []
 
-    def set_expression(self, expression: str, variable_collection: 'VariableCollection', app, parent_rid):
+    def set_expression(self, expression: str, variable_collection: 'VariableCollection', parent_rid):
         """ Parses the Expression using the boogie grammar.
             * Extract variables.
                 + Create new ones if not in Variable collection.
@@ -684,14 +680,16 @@ class Expression(HanforVersioned):
                 variable_collection.add_var(var_name)
                 new_vars.append(var_name)
 
-        if len(new_vars) > 0:
-            variable_collection.reload_script_results(app, new_vars)
+        # TODO: restore if needed, not clear what this does
+        # further app was not always available here, thus this has to be refactored
+        #if len(new_vars) > 0:
+        #    variable_collection.reload_script_results(app, new_vars)
 
         variable_collection.map_req_to_vars(parent_rid, self.used_variables)
-        try:
-            variable_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
-        except:
-            pass
+        #try:
+        #    variable_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
+        #except:
+        #    pass
 
     def __str__(self):
         result = '"{}"'.format(self.raw_expression)
@@ -1366,7 +1364,7 @@ class Variable(HanforVersioned):
                 # Probably No pattern set.
                 logging.info(f'Could not derive type inference for variable `{self.name}` constraint No. {id}. { e}')
 
-    def update_constraint(self, constraint_id, scope_name, pattern_name, mapping, app, variable_collection):
+    def update_constraint(self, constraint_id, scope_name, pattern_name, mapping, variable_collection):
         """ Update a single constraint
 
         :param constraint_id:
@@ -1386,9 +1384,8 @@ class Variable(HanforVersioned):
             if len(expression_string) == 0:
                 continue
             expression = Expression()
-            expression.set_expression(
-                expression_string, variable_collection, app, 'Constraint_{}_{}'.format(self.name, constraint_id)
-            )
+            expression.set_expression(expression_string, variable_collection,
+                                      'Constraint_{}_{}'.format(self.name, constraint_id))
             if self.constraints[constraint_id].expressions_mapping is None:
                 self.constraints[constraint_id].expressions_mapping = dict()
             self.constraints[constraint_id].expressions_mapping[key] = expression
@@ -1421,14 +1418,11 @@ class Variable(HanforVersioned):
             logging.debug('Updating formalizatioin No. {}.'.format(constraint['id']))
             logging.debug('Scope: `{}`, Pattern: `{}`.'.format(constraint['scope'], constraint['pattern']))
             try:
-                variable_collection = self.update_constraint(
-                    constraint_id=int(constraint['id']),
-                    scope_name=constraint['scope'],
-                    pattern_name=constraint['pattern'],
-                    mapping=constraint['expression_mapping'],
-                    app=app,
-                    variable_collection=variable_collection
-                )
+                variable_collection = self.update_constraint(constraint_id=int(constraint['id']),
+                                                             scope_name=constraint['scope'],
+                                                             pattern_name=constraint['pattern'],
+                                                             mapping=constraint['expression_mapping'],
+                                                             variable_collection=variable_collection)
             except Exception as e:
                 logging.error('Could not update Constraint: {}'.format(e.__str__()))
                 raise e
