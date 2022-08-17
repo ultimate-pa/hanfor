@@ -7,7 +7,7 @@ from typing import List
 
 import colorama
 
-from colorama import Style, Fore, Back
+from colorama import Style, Fore
 from terminaltables import DoubleTable
 
 

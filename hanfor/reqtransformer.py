@@ -24,7 +24,7 @@ from boogie_parsing import run_typecheck_fixpoint
 from patterns import PATTERNS
 from static_utils import choice, get_filenames_from_dir, replace_prefix
 from threading import Thread
-from typing import Dict, Tuple, List, Any
+from typing import Dict, Tuple
 
 __version__ = '1.0.4'
 
@@ -61,7 +61,7 @@ class Pickleable:
         self.my_path = path
 
     @classmethod
-    def load(self, path):
+    def load(cls, path):
         path_size = os.path.getsize(path)
 
         if not path_size > 0:
@@ -69,7 +69,7 @@ class Pickleable:
 
         with open(path, mode='rb') as f:
             me = pickle.load(f)
-            if not isinstance(me, self):
+            if not isinstance(me, cls):
                 raise TypeError
 
         me.my_path = path
@@ -181,9 +181,8 @@ class RequirementCollection(HanforVersioned, Pickleable):
             print('Select requirements description header')
             self.csv_meta['desc_header'] = choice(available_headers, 'Object Text')
             print('Select formalization header')
-            self.csv_meta['formal_header'] = choice(
-available_headers + ['Add new Formalization'], 'Hanfor_Formalization'
-            )
+            self.csv_meta['formal_header'] = choice(available_headers + ['Add new Formalization'],
+                                                    'Hanfor_Formalization')
             if self.csv_meta['formal_header'] == 'Add new Formalization':
                 self.csv_meta['formal_header'] = 'Hanfor_Formalization'
             print('Select type header.')
@@ -372,7 +371,7 @@ class Requirement(HanforVersioned, Pickleable):
         """
         self._revision_diff = dict()
         for csv_key in self.csv_row.keys():
-            if not csv_key in other.csv_row.keys():
+            if csv_key not in other.csv_row.keys():
                 other.csv_row[csv_key] = ''
             if self.csv_row[csv_key] is None:
                 # This can happen if we revision with an CSV that is missing the csv_key now.
@@ -1256,7 +1255,7 @@ class VariableCollection(HanforVersioned, Pickleable):
     def import_session(self, import_collection):
         """ Import another VariableCollection into this.
 
-        :param import_session: The other VariableCollection
+        :param import_collection: The other VariableCollection
         """
         for var_name, variable in import_collection.collection.items():
             if var_name in self.collection:
@@ -1370,7 +1369,6 @@ class Variable(HanforVersioned):
         :param scope_name:
         :param pattern_name:
         :param mapping:
-        :param app:
         :param variable_collection:
         :return:
         """

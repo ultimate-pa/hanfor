@@ -9,7 +9,6 @@ import shutil
 from collections import defaultdict
 from io import StringIO
 
-import boogie_parsing
 import csv
 import datetime
 import html
@@ -110,7 +109,7 @@ def get_default_pattern_options():
     return result
 
 
-def get_formalization_template(templates_folder, requirement, formalization_id, formalization):
+def get_formalization_template(templates_folder, formalization_id, formalization):
     result = {'success': True, 'html': formalization_html(
         templates_folder,
         formalization_id,
@@ -549,10 +548,10 @@ def get_requirements(input_dir, filter_list=None, invert_filter=False):
     """ Load all requirements from session folder and return in a list.
     Orders the requirements based on their position in the CSV used to create the session (pos_in_csv).
 
-    :param tag: Session tag
-    :type tag: str
-    :param filter: A list of requirement IDs to be included in the result. All if not set.
-    :type filter: list (of strings)
+    :param input_dir:
+    :type input_dir:
+    :param filter_list: A list of requirement IDs to be included in the result. All if not set.
+    :type filter_list: list (of strings)
     :param invert_filter: Exclude filter
     :type invert_filter: bool
     """
@@ -588,8 +587,6 @@ def generate_csv_file_content(app, filter_list=None, invert_filter=False):
 
     :param app: Current hanfor app for context.
     :type app: Flaskapp
-    :param output_file: Where to store the file
-    :type output_file: str
     :param filter_list: (Optional) A list of requirement IDs to be included in the result. All if not set.
     :type filter_list: list (of strings)
     :param invert_filter: Exclude filter

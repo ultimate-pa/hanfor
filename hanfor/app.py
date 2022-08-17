@@ -16,10 +16,6 @@ from werkzeug.exceptions import HTTPException
 
 from example_bp import example_bp
 
-import utils
-
-from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, \
-    hash_file_sha1
 from flask import Flask, render_template, request, jsonify, make_response, json
 from flask_debugtoolbar import DebugToolbarExtension
 
@@ -312,7 +308,6 @@ def api(resource, command):
             utils.add_msg_to_flask_session_log(app, 'Added new Formalization to requirement', id)
             result = utils.get_formalization_template(
                 app.config['TEMPLATES_FOLDER'],
-                requirement,
                 formalization_id,
                 formalization
             )
@@ -397,7 +392,6 @@ def api(resource, command):
 
             result = utils.get_formalization_template(
                 app.config['TEMPLATES_FOLDER'],
-                requirement,
                 formalization_id,
                 requirement.formalizations[formalization_id]
             )

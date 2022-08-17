@@ -1,10 +1,7 @@
-import logging
 from collections import defaultdict
-
 from enum import Enum
 from typing import List
 
-from frozendict import frozendict
 from lark import Lark, Tree, Transformer
 from lark.lexer import Token
 from lark.reconstruct import Reconstructor
@@ -14,7 +11,7 @@ from lark.visitors import v_args
 
 
 def get_variables_list(tree):
-    """ Returns a list of variables in a expression.
+    """ Returns a list of variables in an expression.
 
     :param tree: An lark parsed tree.
     :type tree: Tree
@@ -60,14 +57,14 @@ def replace_var_in_expression(expression, old_var, new_var, parser=None, matchin
     recons = Reconstructor(parser)
 
     for node in tree.iter_subtrees():  # type: Tree
-        #children = []
-        #for child in node.children:
+        # children = []
+        # for child in node.children:
         #    if isinstance(child, Token) and child.type in matching_terminal_names and child.value == old_var:
         #        children.append(child.update(value=new_var))
         #    else:
         #        children.append(child)
 
-        #node.set(data=node.data, children=children)
+        # node.set(data=node.data, children=children)
 
         for child in node.children:
             if isinstance(child, Token) and child.type in matching_terminal_names:
@@ -107,7 +104,7 @@ class BoogieType(Enum):
 
     @staticmethod
     def alias_env_to_instanciated_env(alias_env):
-        """ Return a copy of a Boogie type alias environment to a instanciated one
+        """ Return a copy of a Boogie type alias environment to an instanciated one
 
         Args:
             alias_env (dict): {'R': ['bool']}
@@ -121,7 +118,6 @@ class BoogieType(Enum):
             result[position] = [alias_mapping[alias] for alias in alias_env[position]]
 
         return result
-
 
     @staticmethod
     def aliases(type):
@@ -216,7 +212,7 @@ class TypeInference(Transformer):
             return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c])
         tn = TypeNode(expr, c.t if not return_type else return_type, type_leaf, [c])
         if len(arg_type) == 1:
-            t = arg_type.pop() # TODO: not nice
+            t = arg_type.pop()  # TODO: not nice
             self.__propagate_type(c, t)
             arg_type.add(t)
         return tn
@@ -232,7 +228,7 @@ class TypeInference(Transformer):
 
     def __propagate_type(self, tn: TypeNode, t: BoogieType) -> List[str]:
         type_errors = []
-        for child in tn.type_leaf + [tn]: # tn is part of its leaf
+        for child in tn.type_leaf + [tn]:  # tn is part of its leaf
             if child.t != t and not child.t == BoogieType.unknown:
                 type_errors.append(f"Types inconsistent: {child} had Type {tn.t} inferred as {t}")
                 child.t = BoogieType.error
@@ -325,7 +321,7 @@ class TypeInference(Transformer):
         return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real})
 
     def abs_function(self, o: Token, c1: TypeNode):
-        #TODO: replace by abstract handling of functions
+        # TODO: replace by abstract handling of functions
         return self.__check_unaryop(o, c1, {BoogieType.int}, return_type=BoogieType.int)
 
     def __default__(self, data, children, meta):
