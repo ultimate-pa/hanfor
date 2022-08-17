@@ -530,20 +530,6 @@ def rename_variable_in_expressions(app, occurrences, var_name_old, var_name):
             logging.debug('Updated variables in requirement id: `{}`.'.format(requirement.rid))
             requirement.store(filepath)
 
-
-def rename_variable_in_constraints(app, occurrences, var_name_old, var_name, variable_collection):
-    """ Renames the variable in
-
-    :param app:
-    :param occurrences:
-    :param var_name_old:
-    :param var_name:
-    :param variable_collection:
-    """
-    if var_name_old in variable_collection.collection.keys():
-        pass
-
-
 def get_requirements(input_dir, filter_list=None, invert_filter=False):
     """ Load all requirements from session folder and return in a list.
     Orders the requirements based on their position in the CSV used to create the session (pos_in_csv).
