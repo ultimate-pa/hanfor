@@ -4,9 +4,8 @@ Test initializing a new plain hanfor session from csv.
 Init a new session from ./test_sessions/test_init/simple.csv
 Check if API api/req/gets returns correct requirements.
 """
-import json
 
-from app import app, api, set_session_config_vars, create_revision, startup_hanfor
+from app import app, startup_hanfor
 import os
 import shutil
 import utils
@@ -27,7 +26,7 @@ def mock_user_input(*args, **kwargs) -> str:
     global count
     try:
         count += 1
-    except:
+    except Exception:
         count = 0
 
     if count == len(mock_results):
@@ -109,7 +108,7 @@ class TestInit(TestCase):
              'desc': 'always look on the bright side of life',
              'csv_data': {
                  'formal_header': 'Globally, it is always the case that POINT_OF_VIEW==BRIGHT_SIDE_OF_LIVE',
-                  'id_header': 'SysRS FooXY_91',
+                 'id_header': 'SysRS FooXY_91',
                  'type_header': 'req',
                  'desc_header': 'always look on the bright side of life'
              },
@@ -118,7 +117,7 @@ class TestInit(TestCase):
              'type': 'req'
              }
         ]
-        self.assertListEqual( desired_reqs, result.json['data'])
+        self.assertListEqual(desired_reqs, result.json['data'])
 
         result = self.app.get('api/req/get?id=SysRS FooXY_42')
         desired_req = {

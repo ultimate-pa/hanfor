@@ -3,7 +3,6 @@ import os
 import pickle
 import re
 import shlex
-from typing import List
 
 import colorama
 
@@ -99,7 +98,7 @@ def choice(choices: list[str], default: str) -> str:
             print('Illegal choice "' + str(choice) + '", choose again')
             continue
 
-        if choice >= 0 and choice < idx:
+        if 0 <= choice < idx:
             return choices[choice]
 
         print('Illegal choice "' + str(choice) + '", choose again')

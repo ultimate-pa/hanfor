@@ -61,7 +61,7 @@ def config_check(app_config):
     # Check pattern groups set correctly.
     pattern_groups_used = set((pattern['group'] for pattern in PATTERNS.values()))
     pattern_groups_set = set((group for group in app_config['PATTERNS_GROUP_ORDER']))
-    # Pattern group for downwards compatiblitiy: Legacy patterns are not shown in dropdown (but still deserialisable)
+    # Pattern group for downwards compatibility: Legacy patterns are not shown in dropdown (but still deserializable)
     pattern_groups_set.add("Legacy")
 
     if not pattern_groups_used == pattern_groups_set:
@@ -373,9 +373,9 @@ def update_variable_in_collection(app, request):
         if var_name_old != var_name:
             affected_enumerators = []
             logging.debug('Change name of var `{}` to `{}`'.format(var_name_old, var_name))
-            #  Case: New name which does not exist -> remove the old var and replace in reqs ocurring.
+            #  Case: New name which does not exist -> remove the old var and replace in reqs occurring.
             if var_name not in var_collection:
-                logging.debug('`{}` is a new var name. Rename the var, replace occurences.'.format(
+                logging.debug('`{}` is a new var name. Rename the var, replace occurrences.'.format(
                     var_name
                 ))
                 # Rename the var (Copy to new name and remove the old item. Rename it)
@@ -497,20 +497,20 @@ def update_variable_in_collection(app, request):
     return result
 
 
-def rename_variable_in_expressions(app, occurences, var_name_old, var_name):
-    """ Updates (replace) the variables in the requirement expressioins.
+def rename_variable_in_expressions(app, occurrences, var_name_old, var_name):
+    """ Updates (replace) the variables in the requirement expressions.
 
     :param app: Flask app (used for session).
     :type app: Flask
-    :param occurences: Requirement ids to be taken into account.
-    :type occurences: list (of str)
+    :param occurrences: Requirement ids to be taken into account.
+    :type occurrences: list (of str)
     :param var_name_old: The current name in the expressions.
     :type var_name_old: str
     :param var_name: The new name.
     :type var_name: str
     """
     logging.debug('Update requirements using old var `{}` to `{}`'.format(var_name_old, var_name))
-    for rid in occurences:
+    for rid in occurrences:
         filepath = os.path.join(app.config['REVISION_FOLDER'], '{}.pickle'.format(rid))
         if os.path.exists(filepath) and os.path.isfile(filepath):
             requirement = Requirement.load(filepath)
@@ -531,11 +531,11 @@ def rename_variable_in_expressions(app, occurences, var_name_old, var_name):
             requirement.store(filepath)
 
 
-def rename_variable_in_constraints(app, occurences, var_name_old, var_name, variable_collection):
+def rename_variable_in_constraints(app, occurrences, var_name_old, var_name, variable_collection):
     """ Renames the variable in
 
     :param app:
-    :param occurences:
+    :param occurrences:
     :param var_name_old:
     :param var_name:
     :param variable_collection:
@@ -644,18 +644,19 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
     WHITE = Font(color="FFFFFF", bold=True)
     FILLED = PatternFill(fill_type="solid", start_color="2a6ebb", end_color="2a6ebb")
     META = PatternFill(fill_type="solid", start_color="004a99", end_color="004a99")
-    #create excel template
+    # create excel template
     work_book = Workbook()
     work_sheet = work_book.active
     work_sheet.title = "Requirements"
 
     HEADER_OFFSET = 4
+
     def make_header(work_sheet):
         work_sheet.freeze_panes = "A4"
         for c in range(1, 10):
             for r in range(1, 3):
                 work_sheet.cell(r, c).fill = META
-        work_sheet.cell(1, 2, value= "HANFOR Report")
+        work_sheet.cell(1, 2, value="HANFOR Report")
         work_sheet.cell(1, 2).font = WHITE
         work_sheet.cell(1, 3, value=session_dict['csv_input_file'])
         work_sheet.cell(1, 3).font = Font(color="FFFFFF")
@@ -663,7 +664,6 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
             work_sheet.cell(HEADER_OFFSET - 1, c).fill = FILLED
             work_sheet.cell(HEADER_OFFSET - 1, c).font = WHITE
     make_header(work_sheet)
-
 
     # Set column widths and headings
     work_sheet.column_dimensions['A'].width = 5
@@ -691,8 +691,7 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
         work_sheet.cell(HEADER_OFFSET + i, 5, ""
                         .join([f"{t}: {c} \n" if c else f"{t}\n" for t, c in requirement.tags.items()]))
         work_sheet.cell(HEADER_OFFSET + i, 6, requirement.status)
-        work_sheet.cell(HEADER_OFFSET + i, 7,
-                         "\n".join([f.get_string() for f in requirement.formalizations.values()]))
+        work_sheet.cell(HEADER_OFFSET + i, 7, "\n".join([f.get_string() for f in requirement.formalizations.values()]))
 
     # make severity sheet
     tag_sheet = work_book.create_sheet("Findings")
@@ -722,13 +721,12 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
     tag_sheet.add_data_validation(issue_value_validator)
     issue_value_validator.add("G4:G1048576")
 
-
     issue_tags_reqs = []
     for req in requirements:
         for tag in req.tags:
             if tag in meta_settings['tag_internal'] and meta_settings['tag_internal'][tag]:
                 continue
-            issue_tags_reqs.append((req,tag))
+            issue_tags_reqs.append((req, tag))
 
     for i, (req, tag) in enumerate(issue_tags_reqs):
         for c in range(1, 8):
@@ -738,10 +736,9 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
         tag_sheet.cell(HEADER_OFFSET + i, 2, req.rid)
         tag_sheet.cell(HEADER_OFFSET + i, 3, req.description)
         tag_sheet.cell(HEADER_OFFSET + i, 4, tag)
-        tag_sheet.cell(HEADER_OFFSET + i, 5, req.tags[tag]) # Tags do currently not have comments
+        tag_sheet.cell(HEADER_OFFSET + i, 5, req.tags[tag])  # Tags do currently not have comments
         tag_sheet.cell(HEADER_OFFSET + i, 6, "TODO")
         tag_sheet.cell(HEADER_OFFSET + i, 7, "TODO")
-
 
     # make sheet with variables
     var_sheet = work_book.create_sheet("Variables")
@@ -776,7 +773,7 @@ def clean_identifier_for_ultimate_parser(slug: str, used_slugs: Set[str]) -> (st
     :param used_slugs: Set of already used slugs.
     :return: (save_slug, used_slugs) save_slug a save to use form of slug. save_slug added to used_slugs.
     """
-    # Replace any occurence of [whitespace, `.`, `-`] with `_`
+    # Replace any occurrence of [whitespace, `.`, `-`] with `_`
     slug = re.sub(r"[\s+.-]+", '_', slug.strip())
 
     # Resolve illegal start by prepending the slug with ID_ in case it does not start with a letter.
@@ -825,7 +822,7 @@ def generate_req_file_content(app, filter_list=None, invert_filter=False, variab
                 used_in = var_collection.var_req_mapping[var['name']]
                 if used_in & target_set:
                     available_vars.append(var)
-            except:
+            except Exception:
                 logging.debug('Ignoring variable `{}`'.format(var))
     else:
         available_vars = var_collection.get_available_vars_list(sort_by='name')
@@ -862,7 +859,7 @@ def generate_req_file_content(app, filter_list=None, invert_filter=False, variab
                         constraint.get_string()
                     ))
             except Exception:
-                #TODO: this is not a nice way to solve this
+                # TODO: this is not a nice way to solve this
                 pass
     content_list.sort()
     constants_list.sort()
@@ -991,7 +988,7 @@ def get_revisions_with_stats(session_path):
         )
         try:
             num_vars = len(VariableCollection.load(revision_var_collection_path).collection)
-        except:
+        except Exception:
             num_vars = -1
 
         revisions_stats[revision] = {
@@ -1338,7 +1335,7 @@ class HanforArgumentParser(argparse.ArgumentParser):
         )
 
 
-class MetaSettings():
+class MetaSettings:
     """ Just an auto saving minimal dict. """
 
     def __init__(self, path):
@@ -1395,7 +1392,7 @@ class Revision:
             self._try_save(self._merge_with_base_revision, ' Could not merge with base session')
 
     def _try_save(self, what, error_msg):
-        """ Safely run a method. Cleanup the revision in case of a exception.
+        """ Safely run a method. Cleanup the revision in case of an exception.
 
         Args:
             what: Method to run.
@@ -1415,7 +1412,7 @@ class Revision:
         if not self.base_revision_name:
             logging.info('No revisions for `{}`. Creating initial revision.'.format(self.args.tag))
             self.revision_name = 'revision_0'
-        # Revision based on a existing revision
+        # Revision based on an existing revision
         else:
             new_revision_count = max(
                 [int(name.split('_')[1]) for name in get_available_revisions(self.app.config)]) + 1

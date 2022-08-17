@@ -84,6 +84,7 @@ class Pickleable:
         with open(self.my_path, mode='wb') as out_file:
             pickle.dump(self, out_file)
 
+
 @dataclass
 class CsvConfig:
     """Representation of structure of csv being imported"""
@@ -98,6 +99,7 @@ class CsvConfig:
     tags_header: str = None
     status_header: str = None
     import_formalizations: bool = False
+
 
 class RequirementCollection(HanforVersioned, Pickleable):
 
@@ -185,8 +187,7 @@ class RequirementCollection(HanforVersioned, Pickleable):
             print('Select requirements description header')
             self.csv_meta.desc_header = choice(available_headers, 'Object Text')
             print('Select formalization header')
-            self.csv_meta.formal_header = choice(available_headers + ['Add new Formalization'],
-                                                    'Hanfor_Formalization')
+            self.csv_meta.formal_header = choice(available_headers + ['Add new Formalization'], 'Hanfor_Formalization')
             if self.csv_meta.formal_header == 'Add new Formalization':
                 self.csv_meta.formal_header = 'Hanfor_Formalization'
             print('Select type header.')
@@ -356,7 +357,7 @@ class Requirement(HanforVersioned, Pickleable):
             try:
                 yield cls.load(filename)
             except Exception:
-                logging.error(f'Loading {filename} failed spectaularly!')
+                logging.error(f'Loading {filename} failed spectacularly!')
 
     def store(self, path=None):
         super().store(path)
@@ -452,10 +453,9 @@ class Requirement(HanforVersioned, Pickleable):
             result += "\n- ".join(value) + "\n"
         return result
 
-
-
     def update_formalizations(self, formalizations: dict, app):
-        if 'Type_inference_error' in self.tags: self.tags.pop('Type_inference_error')
+        if 'Type_inference_error' in self.tags:
+            self.tags.pop('Type_inference_error')
         logging.debug(f'Updating formalisations of requirement {self.rid}.')
         variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
         # Reset the var mapping.
@@ -594,7 +594,7 @@ class Formalization(HanforVersioned):
             expression.set_expression(expression.raw_expression, variable_collection, expression.parent_rid)
 
             # Derive type for variables in expression and update missing or changed types.
-            ti = run_typecheck_fixpoint(tree, var_env, expected_types = allowed_types[key])
+            ti = run_typecheck_fixpoint(tree, var_env, expected_types=allowed_types[key])
             expression_type, type_env, type_errors = ti.type_root.t, ti.type_env, ti.type_errors
             for name, var_type in type_env.items():  # Update the hanfor variable types.
                 if (variable_collection.collection[name].type
@@ -607,7 +607,7 @@ class Formalization(HanforVersioned):
             if type_errors:
                 self.type_inference_errors[key] = type_errors
             elif key in self.type_inference_errors:
-                #TODO: refactor the whole error handling process, as this gets too complex
+                # TODO: refactor the whole error handling process, as this gets too complex
                 del self.type_inference_errors[key]
         variable_collection.store()
 
@@ -624,7 +624,7 @@ class Formalization(HanforVersioned):
         result = ''
         try:
             result = self.scoped_pattern.get_string(self.expressions_mapping)
-        except:
+        except Exception:
             logging.debug('Formalization can not be instantiated. There is no scoped pattern set.')
         return result
 
@@ -633,7 +633,7 @@ class Formalization(HanforVersioned):
 
 
 class Expression(HanforVersioned):
-    """ Representing a Expression in a ScopedPattern.
+    """ Representing an Expression in a ScopedPattern.
     For example: Let
        `Globally, {P} is always true.`
     be a Scoped pattern. One might replace {P} by
@@ -662,9 +662,6 @@ class Expression(HanforVersioned):
                 + Create new ones if not in Variable collection.
                 + Replace Variables by their identifier.
             * Store set of used variables to `self.used_variables`
-
-        :param expression:
-        :type expression: str
         """
         self.raw_expression = expression
         self.parent_rid = parent_rid
@@ -683,13 +680,13 @@ class Expression(HanforVersioned):
 
         # TODO: restore if needed, not clear what this does
         # further app was not always available here, thus this has to be refactored
-        #if len(new_vars) > 0:
+        # if len(new_vars) > 0:
         #    variable_collection.reload_script_results(app, new_vars)
 
         variable_collection.map_req_to_vars(parent_rid, self.used_variables)
-        #try:
+        # try:
         #    variable_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
-        #except:
+        # except:
         #    pass
 
     def __str__(self):
@@ -807,18 +804,14 @@ class ScopedPattern:
         return self.regex_pattern
 
     def get_scope_slug(self):
-        try:
-            slug = self.scope.get_slug()
-        except:
-            slug = 'None'
-        return slug
+        if self.scope:
+            return self.scope.get_slug()
+        return "None"
 
     def get_pattern_slug(self):
-        try:
-            slug = self.pattern.name
-        except:
-            slug = 'None'
-        return slug
+        if self.pattern:
+            return self.pattern.name
+        return "None"
 
     def __str__(self):
         return str(self.scope) + ', ' + str(self.pattern)
@@ -841,9 +834,9 @@ class VariableCollection(HanforVersioned, Pickleable):
         return item in self.collection.keys()
 
     @classmethod
-    def load(self, path) -> 'VariableCollection':
+    def load(cls, path) -> 'VariableCollection':
         me = Pickleable.load(path)
-        if not isinstance(me, self):
+        if not isinstance(me, cls):
             raise TypeError
 
         if me.has_version_mismatch:
@@ -966,7 +959,7 @@ class VariableCollection(HanforVersioned, Pickleable):
         # Update the variable script results.
         self.reload_script_results(app, [new_name])
 
-        # Rename the enumerators in case this renaming affects a enum.
+        # Rename the enumerators in case this renaming affects an enum.
         affected_enumerators = []
         if self.collection[new_name].type in ['ENUM_INT', 'ENUM_REAL']:
             for var in self.collection.values():
@@ -1001,7 +994,7 @@ class VariableCollection(HanforVersioned, Pickleable):
                 # Check for int, real or unknown based on value.
                 try:
                     float(var.value)
-                except Exception as e:
+                except Exception:
                     type_env[name] = mapping['unknown']
                     continue
 
@@ -1054,21 +1047,21 @@ class VariableCollection(HanforVersioned, Pickleable):
             match = re.match(Variable.CONSTRAINT_REGEX, constraint_name)
             if match:
                 constraint_variable_name = match.group(2)
-                if not constraint_variable_name in self.collection.keys():
+                if constraint_variable_name not in self.collection.keys():
                     # The referenced variable is no longer existing.
                     try:
                         self.req_var_mapping[constraint_name].discard(var_name)
-                    except:
+                    except Exception:
                         pass
                     return True
                 else:
-                    # The variable exists. Now check if var_name occures in one of its constraints.
+                    # The variable exists. Now check if var_name occurs in one of its constraints.
                     for constraint in self.collection[constraint_variable_name].get_constraints().values():
                         if var_name in constraint.get_string():
                             return False
                     try:
                         self.req_var_mapping[constraint_name].discard(var_name)
-                    except:
+                    except Exception:
                         pass
                     return True
 
@@ -1129,8 +1122,8 @@ class VariableCollection(HanforVersioned, Pickleable):
         if var_name not in self.var_req_mapping:
             deletable = True
         else:
-            constrainr_pref = 'Constraint_{}'.format(var_name)
-            affected_constraints = len([f for f in self.var_req_mapping[var_name] if constrainr_pref in f])
+            constraint_pref = 'Constraint_{}'.format(var_name)
+            affected_constraints = len([f for f in self.var_req_mapping[var_name] if constraint_pref in f])
             total_usages = len(self.var_req_mapping[var_name])
             if affected_constraints == total_usages:
                 deletable = True
@@ -1171,7 +1164,7 @@ class VariableCollection(HanforVersioned, Pickleable):
                     for enumerator_name in enumerators:
                         try:
                             int(self.collection[enumerator_name].value)
-                        except:
+                        except Exception:
                             new_type = 'REAL'
                     # Set new types.
                     variable.type = 'ENUM_{}'.format(new_type)
@@ -1268,7 +1261,6 @@ class VariableCollection(HanforVersioned, Pickleable):
                 self.collection[var_name] = variable
 
 
-
 class Variable(HanforVersioned):
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
 
@@ -1291,7 +1283,7 @@ class Variable(HanforVersioned):
                 type_inference_errors[index] = [key.lower() for key in f.type_inference_errors.keys()]
         try:
             used_by = sorted(list(var_req_mapping[self.name]))
-        except:
+        except Exception:
             pass
 
         d = {
@@ -1330,7 +1322,7 @@ class Variable(HanforVersioned):
         try:
             while i in self.constraints.keys():
                 i += 1
-        except:
+        except Exception:
             pass
         return i
 
@@ -1347,7 +1339,7 @@ class Variable(HanforVersioned):
         try:
             del self.constraints[id]
             return True
-        except:
+        except Exception:
             logging.debug(f'Constraint id `{id}` not found in var `{self.name}`')
             return False
 
@@ -1416,7 +1408,7 @@ class Variable(HanforVersioned):
             variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
 
         for constraint in constraints.values():
-            logging.debug('Updating formalizatioin No. {}.'.format(constraint['id']))
+            logging.debug('Updating formalization No. {}.'.format(constraint['id']))
             logging.debug('Scope: `{}`, Pattern: `{}`.'.format(constraint['scope'], constraint['pattern']))
             try:
                 variable_collection = self.update_constraint(constraint_id=int(constraint['id']),
@@ -1615,7 +1607,7 @@ class VarImportSession(HanforVersioned):
         try:
             const_val = int(row['result']['const_val'])
             self.result_var_collection.collection[row['name']].value = const_val
-        except:
+        except Exception:
             pass
 
     def apply_constraint_selection(self):
@@ -1643,7 +1635,7 @@ class VarImportSession(HanforVersioned):
 
         # Include missing vars used by constraints.
         for var_name in used_variables:
-            if not var_name in self.result_var_collection.collection:
+            if var_name not in self.result_var_collection.collection:
                 logging.debug('Var: `{}` not marked to be in result but used in a constraint -> auto include.'.format(
                     var_name
                 ))
@@ -1696,9 +1688,9 @@ class VarImportSessions(HanforVersioned, Pickleable):
         self.import_sessions = list()
 
     @classmethod
-    def load(self, path) -> 'VarImportSessions':
+    def load(cls, path) -> 'VarImportSessions':
         me = Pickleable.load(path)
-        if not isinstance(me, self):
+        if not isinstance(me, cls):
             raise TypeError
 
         if me.has_version_mismatch:
@@ -1713,7 +1705,7 @@ class VarImportSessions(HanforVersioned, Pickleable):
         return me
 
     @classmethod
-    def load_for_app(self, app):
+    def load_for_app(cls, app):
         var_import_sessions_path = os.path.join(
             app.config['SESSION_BASE_FOLDER'],
             'variable_import_sessions.pickle'
