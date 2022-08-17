@@ -214,7 +214,8 @@ def api(resource, command):
                     removed_tags = requirement.tags.keys() - new_tag_set.keys()
                     requirement.tags = new_tag_set
                     # do logging
-                    utils.add_msg_to_flask_session_log(app, f'Tags: + {added_tags} and - {removed_tags} to requirement', id)
+                    utils.add_msg_to_flask_session_log(app, f'Tags: + {added_tags} and - {removed_tags} to requirement',
+                                                       id)
                     logging.debug(f'Tags: + {added_tags} and - {removed_tags} to requirement {requirement.tags}')
 
                 # Update formalization.
@@ -289,7 +290,7 @@ def api(resource, command):
                     if requirement is None:
                         continue
                     logging.info(f'Updating requirement `{rid}`')
-                    if (remove_tag in requirement.tags):
+                    if remove_tag in requirement.tags:
                         requirement.tags.pop(remove_tag)
                     if add_tag and add_tag not in requirement.tags:
                         requirement.tags[add_tag] = ""
@@ -379,7 +380,7 @@ def api(resource, command):
             # Add an empty Formalization.
             requirement = Requirement.load_requirement_by_id(requirement_id, app)
             formalization_id, formalization = requirement.add_empty_formalization()
-            # Add add content to the formalization.
+            # Add content to the formalization.
             requirement.update_formalization(
                 formalization_id=formalization_id,
                 scope_name=scope,
@@ -432,7 +433,7 @@ def api(resource, command):
                                         requirement.delete_formalization(f_id, app)
                                 for score, scoped_pattern, mapping in top_guesses:
                                     formalization_id, formalization = requirement.add_empty_formalization()
-                                    # Add add content to the formalization.
+                                    # Add content to the formalization.
                                     requirement.update_formalization(
                                         formalization_id=formalization_id,
                                         scope_name=scoped_pattern.scope.name,
@@ -585,7 +586,7 @@ def api(resource, command):
             if variable_type == 'CONST':
                 try:
                     float(variable_value)
-                except Exception as e:
+                except Exception:
                     result = {
                         'success': False,
                         'errormsg': 'Const value not valid.'
@@ -694,7 +695,7 @@ def var_import_session(session_id, command):
                 var_collection = var_collection.result_var_collection
             result = var_collection.collection[name].to_dict(var_collection.var_req_mapping)
             return jsonify(result), 200
-        except Exception as e:
+        except Exception:
             logging.info('Could not load var: {} from import session: {}'.format(name, session_id))
 
     if command == 'get_table_data':
@@ -984,7 +985,7 @@ def create_revision(args, base_revision_name):
 
 
 def load_revision(revision_id):
-    """ Loads a revision to by served by hanfor by setting the config.
+    """ Loads a revision to be served by hanfor by setting the config.
 
     :param revision_id: An existing revision name
     :type revision_id: str
@@ -1153,7 +1154,7 @@ def startup_hanfor(args, HERE):
         # If there is no session with given tag: Create a new (initial) revision.
         if not os.path.exists(app.config['SESSION_FOLDER']):
             create_revision(args, None)
-        # If this is a already existing session, ask the user which revision to start.
+        # If this is an already existing session, ask the user which revision to start.
         else:
             revision_choice = user_choose_start_revision()
             logging.info('Loading session `{}` at `{}`'.format(app.config['SESSION_TAG'], revision_choice))

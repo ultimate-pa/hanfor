@@ -25,7 +25,9 @@ def get_variables_list(tree):
 
     return result
 
+
 lark = None
+
 
 def get_parser_instance():
     global lark
@@ -35,7 +37,7 @@ def get_parser_instance():
     return lark
 
 
-def replace_var_in_expression(expression, old_var, new_var, parser=None, matching_terminal_names=('ID')):
+def replace_var_in_expression(expression, old_var, new_var, parser=None, matching_terminal_names='ID'):
     """ Replaces all occurrences of old_var in expression with new_var.
 
     :param matching_terminal_names: Token names according to the grammar taken into account for replacement.
@@ -103,8 +105,8 @@ class BoogieType(Enum):
         return BoogieType.get_alias_mapping().keys()
 
     @staticmethod
-    def alias_env_to_instanciated_env(alias_env):
-        """ Return a copy of a Boogie type alias environment to an instanciated one
+    def alias_env_to_instantiated_env(alias_env):
+        """ Return a copy of a Boogie type alias environment to an instantiated one
 
         Args:
             alias_env (dict): {'R': ['bool']}
@@ -138,6 +140,7 @@ class BoogieType(Enum):
 
         return BoogieType.get_alias_mapping()[name]
 
+
 @dataclass(init=True)
 class TypeNode:
     expr: str
@@ -157,6 +160,7 @@ def run_typecheck_fixpoint(tree: Tree, type_env: dict[str, BoogieType],
         if tn.type_env == stn.type_env:
             return stn
         tn = stn
+
 
 @v_args(inline=True)
 class TypeInference(Transformer):
@@ -327,5 +331,5 @@ class TypeInference(Transformer):
     def __default__(self, data, children, meta):
         if len(children) == 1:
             return children[0]
-        self.type_errors += f"Unknown rule {data} found during parsing."
+        self.type_errors += [f"Unknown rule {data} found during parsing."]
         return TypeNode(data, BoogieType.error, [], children)

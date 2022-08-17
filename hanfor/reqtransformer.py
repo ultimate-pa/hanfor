@@ -21,7 +21,7 @@ from flask import current_app
 from lark import LarkError
 
 import boogie_parsing
-from boogie_parsing import run_typecheck_fixpoint
+from boogie_parsing import run_typecheck_fixpoint, BoogieType
 from patterns import PATTERNS
 from static_utils import choice, get_filenames_from_dir, replace_prefix
 from threading import Thread
@@ -462,8 +462,8 @@ class Requirement(HanforVersioned, Pickleable):
         variable_collection.req_var_mapping[self.rid] = set()
 
         for formalization in formalizations.values():
-            logging.debug('Updating formalization No. {}.'.format(formalization['id']))
-            logging.debug('Scope: `{}`, Pattern: `{}`.'.format(formalization['scope'], formalization['pattern']))
+            logging.debug(f"Updating formalization No. {formalization['id']}.")
+            logging.debug(f"Scope: `{formalization['scope']}`, Pattern: `{formalization['pattern']}`.")
             try:
                 self.update_formalization(
                     formalization_id=int(formalization['id']),
@@ -769,7 +769,7 @@ class Pattern:
         return self.pattern
 
     def get_allowed_types(self):
-        return boogie_parsing.BoogieType.alias_env_to_instanciated_env(
+        return BoogieType.alias_env_to_instantiated_env(
             PATTERNS[self.name]['env']
         )
 

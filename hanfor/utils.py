@@ -530,6 +530,7 @@ def rename_variable_in_expressions(app, occurrences, var_name_old, var_name):
             logging.debug('Updated variables in requirement id: `{}`.'.format(requirement.rid))
             requirement.store(filepath)
 
+
 def get_requirements(input_dir, filter_list=None, invert_filter=False):
     """ Load all requirements from session folder and return in a list.
     Orders the requirements based on their position in the CSV used to create the session (pos_in_csv).
@@ -703,7 +704,8 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
     tag_sheet.add_data_validation(accept_state_validator)
     accept_state_validator.add("F4:F1048576")
     issue_value_validator = DataValidation(type="list",
-          formula1='"TODO, 0 (no value),1 (nice to have),2 (useful),3 (possible desaster)"', allow_blank=True)
+                                           formula1='"TODO, 0 (no value),1 (nice to have),2 (useful),3 (possible desaster)"',
+                                           allow_blank=True)
     tag_sheet.add_data_validation(issue_value_validator)
     issue_value_validator.add("G4:G1048576")
 
@@ -875,7 +877,7 @@ def generate_req_file_content(app, filter_list=None, invert_filter=False, variab
                     if formalization.scoped_pattern.get_pattern_slug() in ['NotFormalizable', 'None']:
                         continue
                     if len(formalization.get_string()) == 0:
-                        # formalizatioin string is empty if expressions are missing or none set. Ignore in output
+                        # Formalization string is empty if expressions are missing or none set. Ignore in output
                         continue
                     content += '{}_{}: {}\n'.format(
                         slug,
@@ -1021,7 +1023,7 @@ def enable_logging(log_level=logging.ERROR, to_file=False, filename='reqtransfor
 
     :param log_level: Log level
     :type log_level: int
-    :param to_file: Wether output should be stored in a file.
+    :param to_file: Whether output should be stored in a file.
     :type to_file: bool
     :param filename: Filename to log to.
     :type filename: str
@@ -1092,7 +1094,7 @@ def add_msg_to_flask_session_log(app, msg, rid=None, rid_list=None, clear=False,
     :param rid: Affected requirement id
     :param app: The flask app
     :param msg: Log message string
-    :param clear: Turncate the logs if set to true (false on default).
+    :param clear: Truncate the logs if set to true (false on default).
     """
     session = pickle_load_from_dump(app.config['FRONTEND_LOGS_PATH'])  # type: dict
     template = '[{timestamp}] {message}'
@@ -1119,7 +1121,7 @@ def add_msg_to_flask_session_log(app, msg, rid=None, rid_list=None, clear=False,
 
 
 def get_flask_session_log(app, html=False) -> Union[list, str]:
-    """ Get the frontent log messages from frontend_logs.
+    """ Get the frontend log messages from frontend_logs.
 
     :param app: The flask app
     :param html: Return formatted html version.
@@ -1349,7 +1351,7 @@ class Revision:
         self.is_initial_revision = True
         self.base_revision_folder = None
         self.base_revision_settings = None
-        self.base_revision_var_collectioin_path = None
+        self.base_revision_var_collection_path = None
         self.available_sessions = None
         self.requirement_collection = None
 
@@ -1426,7 +1428,7 @@ class Revision:
 
     def _set_base_revision_var_collection_path(self):
         if not self.is_initial_revision:
-            self.base_revision_var_collectioin_path = os.path.join(
+            self.base_revision_var_collection_path = os.path.join(
                 self.base_revision_folder,
                 'session_variable_collection.pickle'
             )
@@ -1560,5 +1562,5 @@ class Revision:
 
         # Store the variables collection in the new revision.
         logging.info('Migrate variables from `{}` to `{}`'.format(self.base_revision_name, self.revision_name))
-        base_var_collection = VariableCollection.load(self.base_revision_var_collectioin_path)
+        base_var_collection = VariableCollection.load(self.base_revision_var_collection_path)
         base_var_collection.store(self.app.config['SESSION_VARIABLE_COLLECTION'])
