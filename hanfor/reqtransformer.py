@@ -14,6 +14,7 @@ import string
 import subprocess
 from collections import defaultdict, OrderedDict
 from copy import deepcopy
+from dataclasses import dataclass, field
 from distutils.version import StrictVersion
 from enum import Enum
 from flask import current_app
@@ -83,24 +84,27 @@ class Pickleable:
         with open(self.my_path, mode='wb') as out_file:
             pickle.dump(self, out_file)
 
+@dataclass
+class CsvConfig:
+    """Representation of structure of csv being imported"""
+    
+    dialect: str = None
+    fieldnames: str = None
+    headers: list = field(default_factory=list)
+    id_header: str = None
+    desc_header: str = None
+    formal_header: str = None
+    type_header: str = None
+    tags_header: str = None
+    status_header: str = None
+    import_formalizations: bool = False
 
 class RequirementCollection(HanforVersioned, Pickleable):
 
     def __init__(self):
         HanforVersioned.__init__(self)
         Pickleable.__init__(self, None)
-        self.csv_meta = {
-            'dialect': None,
-            'fieldnames': None,
-            'headers': list(),
-            'id_header': None,
-            'desc_header': None,
-            'formal_header': None,
-            'type_header': None,
-            'tags_header': None,
-            'status_header': None,
-            'import_formalizations': False
-        }
+        self.csv_meta = CsvConfig()
         self.csv_all_rows = None
         self.requirements = list()
 
@@ -144,8 +148,8 @@ class RequirementCollection(HanforVersioned, Pickleable):
             csvfile.seek(0)
             reader = csv.DictReader(csvfile, dialect=dialect)
             self.csv_all_rows = list(reader)
-            self.csv_meta['fieldnames'] = reader.fieldnames
-            self.csv_meta['headers'] = sorted(list(self.csv_all_rows[0].keys()))
+            self.csv_meta.fieldnames = reader.fieldnames
+            self.csv_meta.headers = sorted(list(self.csv_all_rows[0].keys()))
 
     def select_headers(self, base_revision_headers=None, user_provided_headers=None):
         """ Determines which of the csv headers correspond to our needed data.
@@ -161,32 +165,32 @@ class RequirementCollection(HanforVersioned, Pickleable):
 
         if user_provided_headers:
             print(user_provided_headers)
-            self.csv_meta['id_header'] = user_provided_headers['csv_id_header']
-            self.csv_meta['desc_header'] = user_provided_headers['csv_desc_header']
-            self.csv_meta['formal_header'] = user_provided_headers['csv_formal_header']
-            self.csv_meta['type_header'] = user_provided_headers['csv_type_header']
+            self.csv_meta.id_header = user_provided_headers['csv_id_header']
+            self.csv_meta.desc_header = user_provided_headers['csv_desc_header']
+            self.csv_meta.formal_header = user_provided_headers['csv_formal_header']
+            self.csv_meta.type_header = user_provided_headers['csv_type_header']
         elif base_revision_headers and use_old_headers == 'yes':
-            self.csv_meta['id_header'] = base_revision_headers['csv_id_header']
-            self.csv_meta['desc_header'] = base_revision_headers['csv_desc_header']
-            self.csv_meta['formal_header'] = base_revision_headers['csv_formal_header']
-            self.csv_meta['type_header'] = base_revision_headers['csv_type_header']
+            self.csv_meta.id_header = base_revision_headers['csv_id_header']
+            self.csv_meta.desc_header = base_revision_headers['csv_desc_header']
+            self.csv_meta.formal_header = base_revision_headers['csv_formal_header']
+            self.csv_meta.type_header = base_revision_headers['csv_type_header']
         else:
-            available_headers = set(self.csv_meta['headers'])
+            available_headers = set(self.csv_meta.headers)
             available_headers.discard('Hanfor_Tags')
             available_headers.discard('Hanfor_Status')
             available_headers = sorted(available_headers)
 
             print('Select ID header')
-            self.csv_meta['id_header'] = choice(available_headers, 'ID')
+            self.csv_meta.id_header = choice(available_headers, 'ID')
             print('Select requirements description header')
-            self.csv_meta['desc_header'] = choice(available_headers, 'Object Text')
+            self.csv_meta.desc_header = choice(available_headers, 'Object Text')
             print('Select formalization header')
-            self.csv_meta['formal_header'] = choice(available_headers + ['Add new Formalization'],
+            self.csv_meta.formal_header = choice(available_headers + ['Add new Formalization'],
                                                     'Hanfor_Formalization')
-            if self.csv_meta['formal_header'] == 'Add new Formalization':
-                self.csv_meta['formal_header'] = 'Hanfor_Formalization'
+            if self.csv_meta.formal_header == 'Add new Formalization':
+                self.csv_meta.formal_header = 'Hanfor_Formalization'
             print('Select type header.')
-            self.csv_meta['type_header'] = choice(available_headers, 'RB_Classification')
+            self.csv_meta.type_header = choice(available_headers, 'RB_Classification')
 
     def process_csv_hanfor_data_import(self, available_sessions, app):
         if app.config['USING_REVISION'] != 'revision_0':  # We only support importing formalizations for base revisions
@@ -199,14 +203,14 @@ class RequirementCollection(HanforVersioned, Pickleable):
         print('Do you want to import Formalizations from CSV?')
         import_formalizations = choice(['no', 'yes'], 'no')
         if import_formalizations == 'yes':
-            self.csv_meta['import_formalizations'] = True
+            self.csv_meta.import_formalizations = True
 
         print('Do you want to import Hanfor tags and status from CSV?')
         if choice(['no', 'yes'], 'no') == 'yes':
             print('Select the Hanfor Tags header.')
-            self.csv_meta['tags_header'] = choice(self.csv_meta['headers'], 'Hanfor_Tags')
+            self.csv_meta.tags_header = choice(self.csv_meta.headers, 'Hanfor_Tags')
             print('Select the Hanfor Status header.')
-            self.csv_meta['status_header'] = choice(self.csv_meta['headers'], 'Hanfor_Status')
+            self.csv_meta.status_header = choice(self.csv_meta.headers, 'Hanfor_Status')
 
         print('Do you want to import a base Variable collection?')
         if choice(['no', 'yes'], 'yes') == 'yes':
@@ -214,16 +218,16 @@ class RequirementCollection(HanforVersioned, Pickleable):
             available_sessions_names = [s['name'] for s in available_sessions]
             if len(available_sessions_names) > 0:
                 print('Choose the Variable Collection to import.')
-                choosen_session = choice(available_sessions_names, available_sessions_names[0])
-                print('Choose the revision for session {}'.format(choosen_session))
+                chosen_session = choice(available_sessions_names, available_sessions_names[0])
+                print('Choose the revision for session {}'.format(chosen_session))
                 available_revisions = [r for r in available_sessions[
-                    available_sessions_names.index(choosen_session)
+                    available_sessions_names.index(chosen_session)
                 ]['revisions']]
                 revision_choice = choice(available_revisions, available_revisions[0])
                 imported_var_collection = VariableCollection.load(
                     os.path.join(
                         app.config['SESSION_BASE_FOLDER'],
-                        choosen_session,
+                        chosen_session,
                         revision_choice,
                         'session_variable_collection.pickle'
                     )
@@ -242,26 +246,26 @@ class RequirementCollection(HanforVersioned, Pickleable):
         for index, row in enumerate(self.csv_all_rows):
             # Todo: Use utils.slugify to make the rid save for a filename.
             requirement = Requirement(
-                id=row[self.csv_meta['id_header']],
-                description=row[self.csv_meta['desc_header']],
-                type_in_csv=row[self.csv_meta['type_header']],
+                id=row[self.csv_meta.id_header],
+                description=row[self.csv_meta.desc_header],
+                type_in_csv=row[self.csv_meta.type_header],
                 csv_row=row,
                 pos_in_csv=index
             )
-            if self.csv_meta['import_formalizations']:
+            if self.csv_meta.import_formalizations:
                 # Set the tags
-                if self.csv_meta['tags_header'] is not None:
-                    tags = {t.strip(): "" for t in row[self.csv_meta['tags_header']].split(',')}
+                if self.csv_meta.tags_header is not None:
+                    tags = {t.strip(): "" for t in row[self.csv_meta.tags_header].split(',')}
                     requirement.tags = requirement.tags.update(tags)
                 # Set the status
-                if self.csv_meta['status_header'] is not None:
-                    status = row[self.csv_meta['status_header']].strip()
+                if self.csv_meta.status_header is not None:
+                    status = row[self.csv_meta.status_header].strip()
                     if status not in ['Todo', 'Review', 'Done']:
                         logging.debug('Status {} not supported. Set to `Todo`'.format(status))
                         status = 'Todo'
                     requirement.status = status
                 # Parse and set the requirements.
-                formalizations = json.loads(row[self.csv_meta['formal_header']])
+                formalizations = json.loads(row[self.csv_meta.formal_header])
                 for key, formalization_dict in formalizations.items():
                     formalization = Formalization()
                     requirement.formalizations[int(key)] = formalization
@@ -525,7 +529,7 @@ class Requirement(HanforVersioned, Pickleable):
 class Formalization(HanforVersioned):
     def __init__(self):
         super().__init__()
-        self.id: int = None
+        self.id: None | int = None
         self.scoped_pattern = None
         self.expressions_mapping = dict()
         self.belongs_to_requirement = None

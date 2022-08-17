@@ -47,7 +47,7 @@ def get_filenames_from_dir(input_dir):
     return [os.path.join(input_dir, f) for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, f))]
 
 
-def choice(choices: List[str], default: str) -> str:
+def choice(choices: list[str], default: str) -> str:
     """ Asks the user which string he wants from a list of strings.
     Returns the selected string.
 

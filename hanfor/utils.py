@@ -1515,17 +1515,17 @@ class Revision:
         # Generate the session dict: Store some meta information.
         session = dict()
         session['csv_input_file'] = self.args.input_csv
-        session['csv_fieldnames'] = self.requirement_collection.csv_meta['fieldnames']
-        session['csv_id_header'] = self.requirement_collection.csv_meta['id_header']
-        session['csv_formal_header'] = self.requirement_collection.csv_meta['formal_header']
-        session['csv_type_header'] = self.requirement_collection.csv_meta['type_header']
-        session['csv_desc_header'] = self.requirement_collection.csv_meta['desc_header']
+        session['csv_fieldnames'] = self.requirement_collection.csv_meta.fieldnames
+        session['csv_id_header'] = self.requirement_collection.csv_meta.id_header
+        session['csv_formal_header'] = self.requirement_collection.csv_meta.formal_header
+        session['csv_type_header'] = self.requirement_collection.csv_meta.type_header
+        session['csv_desc_header'] = self.requirement_collection.csv_meta.desc_header
         session['csv_hash'] = hash_file_sha1(self.args.input_csv)
         pickle_dump_obj_to_file(session, self.app.config['SESSION_STATUS_PATH'])
 
     def _merge_with_base_revision(self):
         # Merge the old revision into the new revision
-        logging.info('Merging `{}` into `{}`.'.format(self.base_revision_name, self.revision_name))
+        logging.info(f'Merging `{self.base_revision_name}` into `{self.revision_name}`.')
         old_reqs = get_requirements_in_folder(self.base_revision_folder)
         new_reqs = get_requirements_in_folder(self.app.config['REVISION_FOLDER'])
 
