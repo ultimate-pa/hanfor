@@ -26,7 +26,7 @@ class TestFormalizationProcess(TestCase):
         # Adding a new (empty) Formalization:
         self.mock_hanfor.app.post('api/req/new_formalization', data={'id': 'SysRS FooXY_42'})
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
-        self.assertListEqual(result.json['formal'], ['Globally, it is never the case that "foo != bar" holds', ''])
+        self.assertListEqual(result.json['formal'], ['Globally, it is never the case that "foo != bar" holds', '// None, no pattern set'])
         self.assertListEqual(result.json['vars'], ['bar', 'foo'])
 
         # Add content to the Formalization

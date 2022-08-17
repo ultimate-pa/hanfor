@@ -530,7 +530,7 @@ class Formalization(HanforVersioned):
     def __init__(self):
         super().__init__()
         self.id: None | int = None
-        self.scoped_pattern = None
+        self.scoped_pattern = ScopedPattern()
         self.expressions_mapping = dict()
         self.belongs_to_requirement = None
         self.type_inference_errors = dict()
@@ -755,12 +755,9 @@ class Scope(Enum):
 
 
 class Pattern:
-    def __init__(self, name, pattern=None):
+    def __init__(self, name: str = "NotFormalizable"):
         self.name = name
-        if pattern is None:
-            self.pattern = PATTERNS[name]['pattern']
-        else:
-            self.pattern = pattern
+        self.pattern = PATTERNS[name]['pattern']
 
     def instantiate(self, scope, *args):
         return scope + ', ' + self.pattern.format(*args)
@@ -775,8 +772,10 @@ class Pattern:
 
 
 class ScopedPattern:
-    def __init__(self, scope, pattern):
+    def __init__(self, scope: Scope = Scope.NONE, pattern: Pattern = None):
         self.scope = scope
+        if not pattern:
+            pattern = Pattern()
         self.pattern = pattern
         self.regex_pattern = None
 

@@ -528,7 +528,7 @@ PATTERNS = {
         'pattern_order': 7
     },
     'NotFormalizable': {
-        'pattern': '// not formalizable',
+        'pattern': 'no pattern set',
         'env': {},
         'group': 'not_formalizable',
         'pattern_order': 0
