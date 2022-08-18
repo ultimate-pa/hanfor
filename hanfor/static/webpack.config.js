@@ -42,7 +42,7 @@ const config = {
                     options: {
                         postcssOptions: { // post css plugins, can be exported to postcss.config.js
                             plugins: [
-                                require('precss-v8'),
+                                //require('precss-v8'),
                                 require('autoprefixer')
                             ]
                         }
