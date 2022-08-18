@@ -4,7 +4,7 @@ Test the hanfor variable manipulation edge cases.
 """
 import json
 
-from app import app, api, set_session_config_vars, create_revision, user_request_new_revision, startup_hanfor
+from app import app, startup_hanfor
 import os
 import shutil
 import utils
@@ -96,11 +96,11 @@ class TestHanforVersionMigrations(TestCase):
                 'occurrences': 'SysRS+FooXY_91',
                 'constraints': json.dumps(
                     {
-                        "0":{
-                            "id":"0",
-                            "scope":"GLOBALLY",
-                            "pattern":"Universality",
-                            "expression_mapping":{"P":"","Q":"","R":"egg > 10","S":"","T":"","U":""}
+                        "0": {
+                            "id": "0",
+                            "scope": "GLOBALLY",
+                            "pattern": "Universality",
+                            "expression_mapping": {"P": "", "Q": "", "R": "egg > 10", "S": "", "T": "", "U": ""}
                         }
                     }),
                 'updated_constraints': 'true',

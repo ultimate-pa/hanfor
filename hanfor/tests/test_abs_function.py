@@ -3,15 +3,16 @@ Test correct parsing and type derivation of the abs function.
 """
 
 import boogie_parsing
-from boogie_parsing import TypeInference, BoogieType, run_typecheck_fixpoint
+from boogie_parsing import BoogieType, run_typecheck_fixpoint
 from unittest import TestCase
+
 
 class TestAbsFunction(TestCase):
     def test_parse_expressions(self):
         parser = boogie_parsing.get_parser_instance()
         # TODO: use for testing functions in general, not only abs
         # only used abs at the moment, as this is the only function we have
-        # Let the type checker do decide if the funtion is typed right, not the grammar
+        # Let the type checker do decide if the function is typed right, not the grammar
         expressions = [
             ('abs(-10)', True),
             ('abs(10)', True),
@@ -19,20 +20,20 @@ class TestAbsFunction(TestCase):
             ('abs(foo)', True),
             ('abs(foo + 42)', True),
             ('abs(42 - foo)', True),
-            #('abs(+-foo)', True),
+            # ('abs(+-foo)', True),
             ('abs(42 > foo)', True),
             ('abs(42 < foo)', True),
             ('abs()', False),
             ('abs(foo + bar) > 10', True),
             ('abs(bar + foo) == spam', True)
-            #TODO: ('old(bar) == spam', True)
+            # TODO: ('old(bar) == spam', True)
         ]
         for expression, should_be_parseable in expressions:
             is_parseable = True
             try:
                 tree = parser.parse(expression)
                 # pydot__tree_to_png(tree, "parse_tree.png")
-            except Exception as e:
+            except Exception:
                 is_parseable = False
             self.assertEqual(is_parseable, should_be_parseable, msg=f"Error parsing {expression}")
 

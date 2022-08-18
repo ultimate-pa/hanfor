@@ -104,7 +104,7 @@ class TestEnums(TestCase):
                 'occurrences': '',
                 'constraints': json.dumps({}),
                 'updated_constraints': False,
-                'enumerators': json.dumps([["foo", "12"],["bar", "11"]])
+                'enumerators': json.dumps([["foo", "12"], ["bar", "11"]])
             }
         )
         self.assertEqual(response.json['success'], True)
@@ -157,9 +157,8 @@ class TestEnums(TestCase):
         self.assertIn('CONST my_first_enum_bar IS 11', req_file_content)
         self.assertIn('CONST my_first_enum_foo IS 12', req_file_content)
 
-
     def test_int_enumerator_renaming(self):
-        """Test renaming a enumeration while more than one enum exit."""
+        """Test renaming an enumeration while more than one enum exit."""
         self.mock_hanfor.startup_hanfor('simple.csv', 'simple_enum', [])
 
         # Fetch the initial vars.
@@ -183,7 +182,7 @@ class TestEnums(TestCase):
                 'occurrences': '',
                 'constraints': json.dumps({}),
                 'updated_constraints': False,
-                'enumerators': json.dumps([["foo", "12"],["bar", "11"]])
+                'enumerators': json.dumps([["foo", "12"], ["bar", "11"]])
             }
         )
         # Add another enum for populated data structures
@@ -204,7 +203,7 @@ class TestEnums(TestCase):
                 'occurrences': '',
                 'constraints': json.dumps({}),
                 'updated_constraints': False,
-                'enumerators': json.dumps([["fupp", "5"],["flii", "6"]])
+                'enumerators': json.dumps([["fupp", "5"], ["flii", "6"]])
             }
         )
         # Test renaming the first enum
@@ -221,7 +220,7 @@ class TestEnums(TestCase):
                 'occurrences': '',
                 'constraints': json.dumps({}),
                 'updated_constraints': False,
-                'enumerators': json.dumps([["foo", "12"],["bar", "11"]])
+                'enumerators': json.dumps([["foo", "12"], ["bar", "11"]])
             }
         )
         self.assertEqual(response.json['success'], True)
@@ -259,7 +258,7 @@ class TestEnums(TestCase):
                 'occurrences': '',
                 'constraints': json.dumps({}),
                 'updated_constraints': False,
-                'enumerators': json.dumps([["foo", "12.123"],["bar", "11.123"]])
+                'enumerators': json.dumps([["foo", "12.123"], ["bar", "11.123"]])
             }
         )
         self.assertEqual(response.json['success'], True)
@@ -327,7 +326,6 @@ class TestEnums(TestCase):
         self.assertEqual('200 OK', result.status)
         self.assertEqual('application/json', result.mimetype)
         return result
-
 
     def test_type_inferences_with_enums(self):
         self.mock_hanfor.startup_hanfor('simple.csv', 'inference_tests', [])
@@ -462,7 +460,7 @@ class TestEnums(TestCase):
             expression
         )
 
-        # Now we expect there is an real "new_real"
+        # Now we expect there is a real "new_real"
         updated_vars = self.mock_hanfor.app.get('api/var/gets').json['data']
         new_variable = {
             'name': 'new_real',

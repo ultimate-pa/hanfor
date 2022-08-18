@@ -4,7 +4,7 @@ Test the hanfor version migrations.
 """
 import json
 
-from app import app, api, set_session_config_vars, create_revision, user_request_new_revision, startup_hanfor
+from app import app, startup_hanfor
 import os
 import shutil
 import utils

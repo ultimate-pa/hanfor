@@ -1,5 +1,3 @@
-import json
-
 from tests.mock_hanfor import MockHanfor
 from unittest import TestCase
 

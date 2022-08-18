@@ -2,16 +2,16 @@
 Test creating a new hanfor revision using a changed csv.
 
 This test will
-* Create a initial session from ./test_init/simple.csv
+* Create an initial session from ./test_init/simple.csv
 * Creating a revision of this session using ./test_init/simple_changed_description.csv
-* Check if the description is succesfully migrated.
+* Check if the description is successfully migrated.
 * Check if the correct migration tags are added to the requirement.
 * Check if the revision diff is correct.
 * Do the checks for ./test_init/simple_real_rev_0.csv -> /test_init/simple_real_rev_1.csv
   These csv are obfuscated versions of real world data.
 """
 
-from app import app, api, set_session_config_vars, create_revision, user_request_new_revision, startup_hanfor
+from app import app, startup_hanfor
 import os
 import shutil
 import utils
@@ -84,7 +84,7 @@ desired_reqs = [
              'desc': 'always look on the bright side of life',
              'csv_data': {
                  'formal_header': 'Globally, it is always the case that POINT_OF_VIEW==BRIGHT_SIDE_OF_LIVE',
-                  'id_header': 'SysRS FooXY_91',
+                 'id_header': 'SysRS FooXY_91',
                  'type_header': 'req',
                  'desc_header': 'always look on the bright side of life'
              },
@@ -182,7 +182,7 @@ class TestMigrations(TestCase):
         self.startup_hanfor(args, user_mock_answers=[0, 0])
 
         # Load the second revision.
-        args = utils.HanforArgumentParser(app).parse_args([TEST_TAGS['real'], '-c',CSV_FILES['test_real_rev_1']])
+        args = utils.HanforArgumentParser(app).parse_args([TEST_TAGS['real'], '-c', CSV_FILES['test_real_rev_1']])
         self.startup_hanfor(args, user_mock_answers=[1])
         # Get available requirements from new revision.
         new_revision_req_gets = self.app.get('api/req/gets')

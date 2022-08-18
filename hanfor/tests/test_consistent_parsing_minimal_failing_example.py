@@ -3,7 +3,7 @@ Test consistent lark parsing.
 This test regards the issue
 https://github.com/ultimate-pa/hanfor/issues/24
 
-Lark has in a few cases nondeterministic resuts, which leads utimately to false type
+Lark has in a few cases nondeterministic results, which leads ultimately to false type
 derivations. See this bugs:
 https://github.com/lark-parser/lark/issues/201
 https://github.com/lark-parser/lark/issues/191

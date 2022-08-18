@@ -26,7 +26,8 @@ class TestFormalizationProcess(TestCase):
         # Adding a new (empty) Formalization:
         self.mock_hanfor.app.post('api/req/new_formalization', data={'id': 'SysRS FooXY_42'})
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
-        self.assertListEqual(result.json['formal'], ['Globally, it is never the case that "foo != bar" holds', '// None, no pattern set'])
+        self.assertListEqual(result.json['formal'], ['Globally, it is never the case that "foo != bar" holds',
+                                                     '// None, no pattern set'])
         self.assertListEqual(result.json['vars'], ['bar', 'foo'])
 
         # Add content to the Formalization
@@ -50,7 +51,7 @@ class TestFormalizationProcess(TestCase):
                 'id': 'SysRS FooXY_42',
                 'row_idx': '0',
                 'update_formalization': 'true',
-                'tags': json.dumps({"tag1": "comment 1 with some character", "tag2": "äüö%&/+= coment330+-# chars"}),
+                'tags': json.dumps({"tag1": "comment 1 with some character", "tag2": "äüö%&/+= comment330+-# chars"}),
                 'status': 'Todo',
                 'formalizations': json.dumps(update)
             }
@@ -67,7 +68,7 @@ class TestFormalizationProcess(TestCase):
         self.assertListEqual(result.json['vars'], ['bar', 'foo', 'ham', 'spam', 'the_world_sinks'])
         self.assertListEqual(result.json['tags'], ["tag1", "tag2"])
         self.assertDictEqual(result.json['tags_comments'],
-            {"tag1": "comment 1 with some character", "tag2": "äüö%&/+= coment330+-# chars"})
+                             {"tag1": "comment 1 with some character", "tag2": "äüö%&/+= comment330+-# chars"})
         result = self.mock_hanfor.app.get('api/tag/get')
         self.assertTrue("tag1" in [tag["name"] for tag in result.json["data"] if "name" in tag])
 

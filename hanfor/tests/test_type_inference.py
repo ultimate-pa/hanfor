@@ -5,7 +5,7 @@ from unittest import TestCase
 
 from lark import Tree
 
-from boogie_parsing import BoogieType, TypeInference, run_typecheck_fixpoint
+from boogie_parsing import BoogieType, run_typecheck_fixpoint
 import boogie_parsing
 
 
@@ -159,8 +159,8 @@ class TestParseExpressions(TestCase):
             tree = self.parse("x")
             ti = run_typecheck_fixpoint(tree, {"x": type})
             t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
-            self.assertEqual(type, t, msg=f"Error deriving {type} from single vairable")
-            self.assertEqual(type, type_env["x"], msg=f"Error deriving {type} from single vairable")
+            self.assertEqual(type, t, msg=f"Error deriving {type} from single variable")
+            self.assertEqual(type, type_env["x"], msg=f"Error deriving {type} from single variable")
             self.assertFalse(errors)
 
     def test_singleton_bad(self):
@@ -174,14 +174,14 @@ class TestParseExpressions(TestCase):
             ti = run_typecheck_fixpoint(tree, {"x": type}, expected_types=[BoogieType.bool])
             t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
             self.assertEqual(BoogieType.error, t, msg="Error deriving bool from TRUE")
-            #self.assertEqual(type, type_env["x"], msg="Error deriving bool from TRUE")
+            # self.assertEqual(type, type_env["x"], msg="Error deriving bool from TRUE")
             self.assertTrue(errors)
 
     def test_type_tree_gen2(self):
         tree = self.parse("(23.1 + 47.2 + x) < 44 && (b && a)")
         ti = run_typecheck_fixpoint(tree,  {"a": BoogieType.bool, "x": BoogieType.real})
         t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
-        self.assertEqual(BoogieType.bool, type_env["b"], msg="Infering bool from mixed expression failed.")
+        self.assertEqual(BoogieType.bool, type_env["b"], msg="Inferring bool from mixed expression failed.")
         self.assertEqual(BoogieType.real, type_env["x"], msg="Detecting variable in real/int mixed expression failed.")
         self.assertEqual(BoogieType.bool, t, msg="Error deriving expression type")
         self.assertTrue(errors)

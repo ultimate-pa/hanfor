@@ -4,7 +4,7 @@ Test the hanfor version migrations.
 """
 import json
 
-from app import app, api, set_session_config_vars, create_revision, user_request_new_revision, startup_hanfor
+from app import app, startup_hanfor
 import os
 import shutil
 import utils
@@ -109,17 +109,17 @@ class TestHanforVersionMigrations(TestCase):
             self.assertEqual('200 OK', new_formalization_result.status)
             self.assertEqual('application/json', new_formalization_result.mimetype)
             update = {
-                "0":{
-                    "id":"0",
-                    "scope":"GLOBALLY",
-                    "pattern":"Absence",
-                    "expression_mapping":{"P":"","Q":"","R":"foo!= bar","S":"","T":"","U":""}
+                "0": {
+                    "id": "0",
+                    "scope": "GLOBALLY",
+                    "pattern": "Absence",
+                    "expression_mapping": {"P": "", "Q": "", "R": "foo!= bar", "S": "", "T": "", "U": ""}
                 },
-                "1":{
-                    "id":"1",
-                    "scope":"BEFORE",
-                    "pattern":"Existence",
-                    "expression_mapping":{"P":"foo","Q":"","R":"something_else","S":"","T":"","U":""}
+                "1": {
+                    "id": "1",
+                    "scope": "BEFORE",
+                    "pattern": "Existence",
+                    "expression_mapping": {"P": "foo", "Q": "", "R": "something_else", "S": "", "T": "", "U": ""}
                 }
             }
             add_formalization = self.app.post(
@@ -148,11 +148,11 @@ class TestHanforVersionMigrations(TestCase):
             )
             self.startup_hanfor(args, user_mock_answers=[])
             update = {
-                "0":{
-                    "id":"0",
-                    "scope":"GLOBALLY",
-                    "pattern":"Absence",
-                    "expression_mapping":{"P":"","Q":"","R":"foo!= bar","S":"","T":"","U":""}
+                "0": {
+                    "id": "0",
+                    "scope": "GLOBALLY",
+                    "pattern": "Absence",
+                    "expression_mapping": {"P": "", "Q": "", "R": "foo!= bar", "S": "", "T": "", "U": ""}
                 }
             }
             add_formalization = self.app.post(
@@ -181,7 +181,8 @@ class TestHanforVersionMigrations(TestCase):
             )
             self.startup_hanfor(args, user_mock_answers=[])
             reqs = self.app.get('api/req/gets')
-            self.assertEqual('Globally, it is never the case that "foo != bar" holds', reqs.json['data'][0]['formal'][0])
+            self.assertEqual('Globally, it is never the case that "foo != bar" holds',
+                             reqs.json['data'][0]['formal'][0])
             add_formalization = self.app.post(
                 'api/req/del_formalization',
                 data={
@@ -247,7 +248,7 @@ class TestHanforVersionMigrations(TestCase):
             # Mark variables to be imported.
             self.app.post(
                 'variable_import/api/0/store_table',
-                data={'rows': json.dumps({"enum_with_constraint":{"action":"source"}})}
+                data={'rows': json.dumps({"enum_with_constraint": {"action": "source"}})}
             )
             # Mark variables to be imported.
             self.app.post('variable_import/api/0/apply_import', data={})
