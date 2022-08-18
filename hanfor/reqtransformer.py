@@ -1138,7 +1138,7 @@ class VariableCollection(HanforVersioned, Pickleable):
             return True
         return False
 
-    def get_enumerators(self, enum_name):
+    def get_enumerators(self, enum_name: str) -> list['Variable']:
         enumerators = []
         for other_var in self.collection.values():
             if other_var.belongs_to_enum == enum_name:
@@ -1269,14 +1269,15 @@ class VariableCollection(HanforVersioned, Pickleable):
 class Variable(HanforVersioned):
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
 
-    def __init__(self, name, type, value):
+    def __init__(self, name:str, type:str, value:str):
         super().__init__()
-        self.name = name
-        self.type = type
-        self.value = value
-        self.tags = set()
-        self.script_results = ''
-        self.belongs_to_enum = ''
+        self.name: str = name
+        self.type: str = type
+        self.value: str = value
+        #TODO: Show variables (e.g. typing errors) or remove tags from variables; show them or remove them
+        self.tags: set[str] = set()
+        self.script_results: str = ''
+        self.belongs_to_enum: str = ''
         self.constraints = dict()
 
     def to_dict(self, var_req_mapping):

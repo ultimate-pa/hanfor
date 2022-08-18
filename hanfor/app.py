@@ -615,7 +615,7 @@ def api(resource, command):
             try:
                 enum_results.sort(key=lambda x: float(x[1]))
             except Exception as e:
-                logging.info('Cloud not sort ENUMERATORS: {}'.format(e))
+                logging.info(f'Cloud not sort ENUMERATORS: {e}')
             result['enumerators'] = enum_results
 
             return jsonify(result)
