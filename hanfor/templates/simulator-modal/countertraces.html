@@ -26,7 +26,7 @@
                                             {% for dc_phase in pea.countertrace.dc_phases %}
                                                 {{ ";" if loop.index > 1 }}
                                                 <code id="{{ "%s_%s_%s_%s_dc_phase" % (requirement.rid, formalization.id, countertrace_id, loop.index - 1) }}"
-                                                      class="text-dark">{{ dc_phase }}</code>
+                                                      class="text-dark bg-opacity-25">{{ dc_phase }}</code>
                                             {% endfor %}
                                         </li>
                                     {% endfor %}

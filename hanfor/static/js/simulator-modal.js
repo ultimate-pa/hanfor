@@ -491,19 +491,19 @@ function update_variable_inputs(variable_inputs, data) {
 
 function update_dc_phases(dc_phase_codes, data) {
     $.each(dc_phase_codes, function (index, value) {
-        value.removeClass('alert-success')
+        value.removeClass('bg-success')
         if ($.inArray(index, data['active_dc_phases']['complete']) !== -1) {
-            value.addClass('alert-success')
+            value.addClass('bg-success')
         }
 
-        value.removeClass('alert-warning')
+        value.removeClass('bg-warning')
         if ($.inArray(index, data['active_dc_phases']['waiting']) !== -1) {
-            value.addClass('alert-warning')
+            value.addClass('bg-warning')
         }
 
-        value.removeClass('alert-danger')
+        value.removeClass('bg-danger')
         if ($.inArray(index, data['active_dc_phases']['exceeded']) !== -1) {
-            value.addClass('alert-danger')
+            value.addClass('bg-danger')
         }
     })
 }
