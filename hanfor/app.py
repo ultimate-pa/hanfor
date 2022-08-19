@@ -1116,7 +1116,7 @@ def startup_hanfor(args, HERE):
             load_revision(revision_choice)
 
     # Check CSV file change.
-    session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PATH'])  # type: dict
+    session_dict = pickle_load_from_dump(app.config['SESSION_STATUS_PAWe want to calculate the PAM1 matrix based on the following two sequence alignments of the DNA sequences a, b, c and d.TH'])  # type: dict
     if 'csv_hash' not in session_dict and args.input_csv is not None:
         session_dict['csv_hash'] = hash_file_sha1(args.input_csv)
     elif args.input_csv is not None:
