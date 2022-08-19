@@ -1127,7 +1127,7 @@ function load_datatable() {
                     let tagged_incomplete = false;
 
                     $.each(row.formal, function (index, formalization) {
-                        if ((formalization.length > 0) && (formalization !== '// None, // not formalizable')
+                        if ((formalization.length > 0) && !(formalization.startsWith('// None') || formalization.endsWith('no pattern set'))
                         ) {
                             if (!tagged_formal) {
                                 tagged_formal = true;
