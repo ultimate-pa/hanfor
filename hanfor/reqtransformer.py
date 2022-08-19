@@ -531,7 +531,7 @@ class Formalization(HanforVersioned):
         super().__init__()
         self.id: None | int = None
         self.scoped_pattern = ScopedPattern()
-        self.expressions_mapping = dict()
+        self.expressions_mapping: dict[str, Expression] = dict()
         self.belongs_to_requirement = None
         self.type_inference_errors = dict()
 
@@ -539,7 +539,7 @@ class Formalization(HanforVersioned):
     def used_variables(self):
         result = []
         for exp in self.expressions_mapping.values():  # type: Expression
-            result += exp.get_used_variables()
+            result += exp.used_variables
         return list(set(result))
 
     def set_expressions_mapping(self, mapping, variable_collection, rid):
@@ -621,12 +621,7 @@ class Formalization(HanforVersioned):
         return d
 
     def get_string(self):
-        result = ''
-        try:
-            result = self.scoped_pattern.get_string(self.expressions_mapping)
-        except Exception:
-            logging.debug('Formalization can not be instantiated. There is no scoped pattern set.')
-        return result
+        return self.scoped_pattern.get_string(self.expressions_mapping)
 
     def has_type_inference_errors(self):
         return len(self.type_inference_errors) > 0
@@ -642,19 +637,10 @@ class Expression(HanforVersioned):
      """
 
     def __init__(self):
-        """ Create an empty new expression.
-
-        """
         super().__init__()
-        self.used_variables = None
+        self.used_variables: list[str] = list()
         self.raw_expression = None
         self.parent_rid = None
-
-    def get_used_variables(self):
-        if self.used_variables is not None:
-            return self.used_variables
-        else:
-            return []
 
     def set_expression(self, expression: str, variable_collection: 'VariableCollection', parent_rid):
         """ Parses the Expression using the boogie grammar.
@@ -690,12 +676,7 @@ class Expression(HanforVersioned):
         #    pass
 
     def __str__(self):
-        result = '"{}"'.format(self.raw_expression)
-        # If the var is a number,
-        if re.search(r'^\d+$', self.raw_expression) or re.search(r'^\d+\.\d+$', self.raw_expression):
-            # do not quote.
-            result = self.raw_expression
-        return result
+        return f'"{self.raw_expression}"'
 
 
 class Scope(Enum):
@@ -1104,7 +1085,7 @@ class VariableCollection(HanforVersioned, Pickleable):
         for var in self.collection.values():
             for constraint in var.get_constraints().values():
                 for constraint_id, expression in enumerate(constraint.expressions_mapping.values()):
-                    for var_name in expression.get_used_variables():
+                    for var_name in expression.used_variables:
                         if var_name not in mapping.keys():
                             mapping[var_name] = set()
                         mapping[var_name].add('Constraint_{}_{}'.format(var.name, constraint_id))

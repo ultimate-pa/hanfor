@@ -1262,7 +1262,7 @@ function init_modal() {
         add_formalization();
     });
 
-    // Listener for adding new geussed formalizations.
+    // Listener for adding new guessed formalizations.
     $('#add_gussed_formalization').click(function () {
         fetch_available_guesses();
     });
