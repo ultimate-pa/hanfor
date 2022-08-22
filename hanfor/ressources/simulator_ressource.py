@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import fnmatch
 import json
+import logging
 import multiprocessing
 import os
 import time
@@ -206,7 +207,7 @@ class SimulatorRessource(Ressource):
             self.response.success = False
             self.response.errormsg = simulator.sat_error
             return
-        print('Check sat:', time.time() - start)
+        logging.debug(f'Did sat-check. Took {time.time() - start} sec')
 
         self.get_simulator()
 
