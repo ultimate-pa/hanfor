@@ -1047,7 +1047,7 @@ def set_session_config_vars(args, HERE):
 
 
 def init_import_sessions():
-    # Check for Import sessions
+    """Create import session file"""
     var_import_sessions_path = os.path.join(app.config['SESSION_BASE_FOLDER'], 'variable_import_sessions.pickle')
     try:
         VarImportSessions.load(var_import_sessions_path)
@@ -1057,9 +1057,7 @@ def init_import_sessions():
 
 
 def init_meta_settings():
-    """ Initializes META_SETTINGS_PATH and creates a new meta_settings dict, if none is existent.
-
-    """
+    """Create meta setting file"""
     app.config['META_SETTINGS_PATH'] = os.path.join(app.config['SESSION_FOLDER'], 'meta_settings.pickle')
     if not os.path.exists(app.config['META_SETTINGS_PATH']):
         meta_settings = dict()

@@ -45,11 +45,12 @@ class HanforVersioned:
         self._hanfor_version = val
 
     @property
-    def has_version_mismatch(self) -> bool:
-        return __version__ != self.hanfor_version
+    def outdated(self) -> bool:
+        return StrictVersion(self.hanfor_version) < StrictVersion(__version__)
 
     def run_version_migrations(self):
-        if StrictVersion(self._hanfor_version) < StrictVersion(__version__):
+        if self.outdated:
+            logging.debug(f"Migration (noop) {self}: from {self.hanfor_version} -> {__version__}")
             self._hanfor_version = __version__
             # this is a shortcut to skip explicit update code for all things that did not change in a version.
             # TODO: non the less this should be solved differently
@@ -285,7 +286,7 @@ class Requirement(HanforVersioned, Pickleable):
     def __init__(self, id, description, type_in_csv, csv_row, pos_in_csv):
         HanforVersioned.__init__(self)
         Pickleable.__init__(self, None)
-        self.rid = id
+        self.rid: str = id
         self.formalizations: Dict[int, Formalization] = dict()
         self.description = description
         self.type_in_csv = type_in_csv
@@ -298,7 +299,7 @@ class Requirement(HanforVersioned, Pickleable):
     def to_dict(self, include_used_vars=False):
         type_inference_errors = dict()
         used_variables = set()
-        for index, f in self.formalizations.items():  # type: Formalization
+        for index, f in self.formalizations.items():
             if f.has_type_inference_errors():
                 type_inference_errors[index] = [key.lower() for key in f.type_inference_errors.keys()]
             if include_used_vars:
@@ -342,7 +343,7 @@ class Requirement(HanforVersioned, Pickleable):
         if not isinstance(me, cls):
             raise TypeError
 
-        if me.has_version_mismatch:
+        if me.outdated:
             logging.info(f'`{me}` needs upgrade `{me.hanfor_version}` -> `{__version__}`')
             me.run_version_migrations()
             me.store()
@@ -837,7 +838,7 @@ class VariableCollection(HanforVersioned, Pickleable):
         if not isinstance(me, cls):
             raise TypeError
 
-        if me.has_version_mismatch:
+        if me.outdated:
             logging.info(f'`{me}` needs upgrade `{me.hanfor_version}` -> `{__version__}`')
             me.run_version_migrations()
             me.store()
@@ -1489,31 +1490,7 @@ class Variable(HanforVersioned):
                 logging.info(f'Migrate old ENUM `{self.name}` to new ENUM_INT, ENUM_REAL')
         if not hasattr(self, 'constraints') or not isinstance(self.constraints, dict):
             setattr(self, 'constraints', dict())
-        """if StrictVersion(self.hanfor_version) <= StrictVersion('1.0.5'):
-            logging.info(f'Migrating `{self.__class__.__name__}`:`{ self.name}`, from {self.hanfor_version} -> 1.0.5')
-            if self.type == 1: self.type = BoogieType.bool
-            elif self.type == 2: self.type = BoogieType.int
-            elif self.type == 3: self.type = BoogieType.real
-            else: self.type == BoogieType.unknown"""
         super().run_version_migrations()
-
-
-class Tag:
-    def __init__(self, name, color='#5bc0de'):
-        self.name = name
-        self.color = color
-
-    def __str__(self):
-        return self.name
-
-    def __hash__(self):
-        return hash(self.name)
-
-    def __eq__(self, other):
-        return self.name == other.name
-
-    def __ne__(self, other):
-        return self.name != other.name
 
 
 class VarImportSession(HanforVersioned):
@@ -1691,7 +1668,7 @@ class VarImportSessions(HanforVersioned, Pickleable):
         if not isinstance(me, cls):
             raise TypeError
 
-        if me.has_version_mismatch:
+        if me.outdated:
             logging.info(f'`{me}` needs upgrade `{me.hanfor_version}` -> `{__version__}`')
             me.run_version_migrations()
             me.store()
