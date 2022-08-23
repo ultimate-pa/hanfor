@@ -300,7 +300,7 @@ class Requirement(HanforVersioned, Pickleable):
         type_inference_errors = dict()
         used_variables = set()
         for index, f in self.formalizations.items():
-            if f.has_type_inference_errors():
+            if f.type_inference_errors:
                 type_inference_errors[index] = [key.lower() for key in f.type_inference_errors.keys()]
             if include_used_vars:
                 for name in f.used_variables:
@@ -641,9 +641,6 @@ class Formalization(HanforVersioned):
 
     def get_string(self):
         return self.scoped_pattern.get_string(self.expressions_mapping)
-
-    def has_type_inference_errors(self):
-        return len(self.type_inference_errors) > 0
 
 
 class Expression(HanforVersioned):
@@ -1278,7 +1275,7 @@ class Variable(HanforVersioned):
         used_by = []
         type_inference_errors = dict()
         for index, f in self.get_constraints().items():
-            if f.has_type_inference_errors():
+            if f.type_inference_errors:
                 type_inference_errors[index] = [key.lower() for key in f.type_inference_errors.keys()]
         try:
             used_by = sorted(list(var_req_mapping[self.name]))

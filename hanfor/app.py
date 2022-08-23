@@ -23,7 +23,7 @@ import reqtransformer
 import utils
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
-from reqtransformer import Requirement, VariableCollection, Variable, VarImportSessions
+from reqtransformer import Requirement, VariableCollection, Variable, VarImportSessions, Formalization
 from ressources import Report, Tags, Statistics, QueryAPI
 from ressources.simulator_ressource import SimulatorRessource
 from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, \
@@ -965,6 +965,18 @@ def requirements_version_migrations(app, args):
                     setattr(f, "id", i)
         except Exception as e:
             logging.info(f'Something when updating formalisations went terribly wrong `{req.rid}:\n {e}`')
+        # ensure some well-formedness of requirements objects
+        for k, f in req.formalizations.items():
+            if not isinstance(f, Formalization):
+                del req.formalizations[k]
+                changes = True
+            else:
+                if not f.scoped_pattern:
+                    f.scoped_pattern = reqtransformer.ScopedPattern()
+                    changes = True
+                if not f.scoped_pattern.scope or not f.scoped_pattern.pattern:
+                    f.scoped_pattern = reqtransformer.ScopedPattern()
+                    changes = True
         if args.reload_type_inference:
             req.reload_type_inference(var_collection, app)
         if changes:
