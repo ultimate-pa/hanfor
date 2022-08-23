@@ -395,17 +395,8 @@ class Requirement(HanforVersioned, Pickleable):
 
     def add_empty_formalization(self) -> Tuple[int, 'Formalization']:
         """ Add an empty formalization to the formalizations list."""
-        return self.add_formalization(Formalization())
-
-    def add_formalization(self, formalization: 'Formalization') -> Tuple[int, 'Formalization']:
-        """ Add given formalization to this requirement."""
-        if self.formalizations is None:
-            self.formalizations = dict()
-
         id = self._next_free_formalization_id()
-        formalization.id = id
-        self.formalizations[id] = formalization
-
+        self.formalizations[id] = Formalization(id)
         return id, self.formalizations[id]
 
     def delete_formalization(self, formalization_id, app):
@@ -547,9 +538,9 @@ class Requirement(HanforVersioned, Pickleable):
 
 
 class Formalization(HanforVersioned):
-    def __init__(self):
+    def __init__(self, id: int):
         super().__init__()
-        self.id: None | int = None
+        self.id: int = id
         self.scoped_pattern = ScopedPattern()
         self.expressions_mapping: dict[str, Expression] = dict()
         self.belongs_to_requirement = None
@@ -1271,12 +1262,12 @@ class VariableCollection(HanforVersioned, Pickleable):
 class Variable(HanforVersioned):
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
 
-    def __init__(self, name:str, type:str, value:str):
+    def __init__(self, name: str, type: str, value: str):
         super().__init__()
         self.name: str = name
         self.type: str = type
         self.value: str = value
-        #TODO: Show variables (e.g. typing errors) or remove tags from variables; show them or remove them
+        # TODO: Show variables (e.g. typing errors) or remove tags from variables; show them or remove them
         self.tags: set[str] = set()
         self.script_results: str = ''
         self.belongs_to_enum: str = ''
@@ -1339,7 +1330,7 @@ class Variable(HanforVersioned):
         :return: (index: int, The constraint: Formalization)
         """
         id = self._next_free_constraint_id()
-        self.constraints[id] = Formalization()
+        self.constraints[id] = Formalization(id)
         return id, self.constraints[id]
 
     def del_constraint(self, id):
