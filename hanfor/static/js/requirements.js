@@ -507,7 +507,7 @@ function add_var_autocomplete(dom_obj) {
     const textcomplete = new Textcomplete(new TextareaEditor(dom_obj),
         [
             {
-                match: /(^|\s|[!=&\|>]+)(\w+)$/,
+                match: /(|\s|[!=&\|>]+)(\w+)$/,
                 index: 2,
                 search: function (term, callback, match) {
                     let include_elems = fuzzy_search(term);
