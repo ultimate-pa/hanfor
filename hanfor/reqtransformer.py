@@ -1683,7 +1683,7 @@ class VarImportSessions(HanforVersioned, Pickleable):
     def __init__(self, path=None):
         HanforVersioned.__init__(self)
         Pickleable.__init__(self, path)
-        self.import_sessions = list()
+        self.import_sessions: list[VarImportSession] = list()
 
     @classmethod
     def load(cls, path) -> 'VarImportSessions':
@@ -1692,20 +1692,16 @@ class VarImportSessions(HanforVersioned, Pickleable):
             raise TypeError
 
         if me.has_version_mismatch:
-            logging.info('`{}` needs upgrade `{}` -> `{}`'.format(
-                me,
-                me.hanfor_version,
-                __version__
-            ))
+            logging.info(f'`{me}` needs upgrade `{me.hanfor_version}` -> `{__version__}`')
             me.run_version_migrations()
             me.store()
 
         return me
 
     @classmethod
-    def load_for_app(cls, app):
+    def load_for_app(cls, session_base_path: str):
         var_import_sessions_path = os.path.join(
-            app.config['SESSION_BASE_FOLDER'],
+            session_base_path,
             'variable_import_sessions.pickle'
         )
         return VarImportSessions.load(var_import_sessions_path)
@@ -1734,14 +1730,8 @@ class VarImportSessions(HanforVersioned, Pickleable):
 
     def run_version_migrations(self):
         logging.info(
-            'Migrating `{}`:`{}`, from {} -> {}'.format(
-                self.__class__.__name__,
-                self.my_path,
-                self.hanfor_version,
-                __version__
-            )
-        )
-        for import_session in self.import_sessions:  # type: VarImportSession
+            f'Migrating `{self.__class__.__name__}`:`{self.my_path}`, from {self.hanfor_version} -> {__version__}')
+        for import_session in self.import_sessions:
             import_session.run_version_migrations()
         super().run_version_migrations()
 

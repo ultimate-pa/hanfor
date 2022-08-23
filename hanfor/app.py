@@ -678,7 +678,7 @@ def var_import_session(session_id, command):
     result = {
         'success': False,
     }
-    var_import_sessions = VarImportSessions.load_for_app(app)
+    var_import_sessions = VarImportSessions.load_for_app(app.config['SESSION_BASE_FOLDER'])
 
     if command == 'get_var':
         result = dict()
@@ -781,7 +781,7 @@ def site(site):
                 only_names=True,
                 with_revisions=True
             )
-            running_import_sessions = VarImportSessions.load_for_app(app).info()
+            running_import_sessions = VarImportSessions.load_for_app(app.config['SESSION_BASE_FOLDER']).info()
             return render_template(
                 '{}.html'.format(site + '/' + site),
                 available_sessions=available_sessions,
