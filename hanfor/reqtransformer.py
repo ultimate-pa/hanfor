@@ -444,6 +444,12 @@ class Requirement(HanforVersioned, Pickleable):
             formatted_errors = self.format_error_tag(self.formalizations[formalization_id])
             self.tags['Type_inference_error'] = formatted_errors
 
+        vars_with_unknown_type = []
+        vars_with_unknown_type = self.formalizations[formalization_id].unknown_types_check(variable_collection,
+                                                                                           vars_with_unknown_type)
+        if vars_with_unknown_type:
+            self.tags['unknown_type'] = self.format_unknown_type_tag(vars_with_unknown_type)
+
     def format_error_tag(self, formalisation: 'Formalization') -> str:
         result = ""
         if not formalisation.type_inference_errors:
@@ -453,9 +459,14 @@ class Requirement(HanforVersioned, Pickleable):
             result += "\n- ".join(value) + "\n"
         return result
 
+    def format_unknown_type_tag(self, vars) -> str:
+        return ", ".join(sorted(vars))
+
     def update_formalizations(self, formalizations: dict, app):
         if 'Type_inference_error' in self.tags:
             self.tags.pop('Type_inference_error')
+        if 'unknown_type' in self.tags:
+            self.tags.pop('unknown_type')
         logging.debug(f'Updating formalisations of requirement {self.rid}.')
         variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
         # Reset the var mapping.
@@ -477,14 +488,23 @@ class Requirement(HanforVersioned, Pickleable):
                 logging.error(f'Could not update Formalization: {e.__str__()}')
                 raise e
 
-    def run_typeinference(self, var_collection):
-        logging.info(f'Run type inference for `{self.rid}`')
+    def run_type_checks(self, var_collection):
+        logging.info(f'Run type inference and unknown check for `{self.rid}`')
         if 'Type_inference_error' in self.tags:
             self.tags.pop('Type_inference_error')
+        if 'unknown_type' in self.tags:
+            self.tags.pop('unknown_type')
+        vars_with_unknown_type = []
         for id in self.formalizations.keys():
+            # Run type inference check
             self.formalizations[id].type_inference_check(var_collection)
             if len(self.formalizations[id].type_inference_errors) > 0:
                 self.tags['Type_inference_error'] = self.format_error_tag(self.formalizations[id])
+
+            # Check for variables of type 'unknown' in formalization
+            vars_with_unknown_type = self.formalizations[id].unknown_types_check(var_collection, vars_with_unknown_type)
+            if vars_with_unknown_type:
+                self.tags['unknown_type'] = self.format_unknown_type_tag(vars_with_unknown_type)
         self.store()
 
     def get_formalizations_json(self) -> str:
@@ -610,6 +630,13 @@ class Formalization(HanforVersioned):
                 # TODO: refactor the whole error handling process, as this gets too complex
                 del self.type_inference_errors[key]
         variable_collection.store()
+
+    def unknown_types_check(self, variable_collection, unknowns):
+        for k, v in self.expressions_mapping.items():
+            for var in v.used_variables:
+                if variable_collection.get_type(var) == BoogieType.unknown.name:
+                    unknowns.append(var)
+        return unknowns
 
     def to_dict(self):
         d = {

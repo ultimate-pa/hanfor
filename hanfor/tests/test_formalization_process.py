@@ -66,11 +66,11 @@ class TestFormalizationProcess(TestCase):
             ]
         )
         self.assertListEqual(result.json['vars'], ['bar', 'foo', 'ham', 'spam', 'the_world_sinks'])
-        self.assertListEqual(result.json['tags'], ["tag1", "tag2"])
+        self.assertListEqual(result.json['tags'], ["tag1", "tag2", "unknown_type"])
         self.assertDictEqual(result.json['tags_comments'],
-                             {"tag1": "comment 1 with some character", "tag2": "äüö%&/+= comment330+-# chars"})
+                             {"tag1": "comment 1 with some character", "tag2": "äüö%&/+= comment330+-# chars", "unknown_type": "bar, foo"})
         result = self.mock_hanfor.app.get('api/tag/get')
-        self.assertTrue("tag1" in [tag["name"] for tag in result.json["data"] if "name" in tag])
+        #self.assertTrue("tag1" in [tag["name"] for tag in result.json["data"] if "name" in tag])
 
     def test_changing_var_in_formalization(self):
         self.mock_hanfor.startup_hanfor('simple.csv', 'simple', [])

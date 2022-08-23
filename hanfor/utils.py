@@ -452,7 +452,7 @@ def update_variable_in_collection(app, request):
             for rid in var_collection.var_req_mapping[var_name]:
                 requirement = Requirement.load_requirement_by_id(rid, app)
                 if requirement:
-                    requirement.run_typeinference(var_collection)
+                    requirement.run_type_checks(var_collection)
 
     if var_type in ['ENUM_INT', 'ENUM_REAL']:
         new_enumerators = []
