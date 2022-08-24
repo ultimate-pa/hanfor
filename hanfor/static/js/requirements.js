@@ -1122,25 +1122,6 @@ function load_datatable() {
                         }
                     }
                 });
-                if (row.formal.length > 0) {
-                    let tagged_formal = false;
-                    let tagged_incomplete = false;
-
-                    $.each(row.formal, function (index, formalization) {
-                        if ((formalization.length > 0) && !(formalization.startsWith('// None') || formalization.endsWith('no pattern set'))
-                        ) {
-                            if (!tagged_formal) {
-                                tagged_formal = true;
-                                result += '<span class="badge bg-success">has_formalization</span></br>';
-                            }
-                        } else {
-                            if (!tagged_incomplete) {
-                                tagged_incomplete = true;
-                                result += '<span class="badge bg-warning">incomplete_formalization</span></br>';
-                            }
-                        }
-                    });
-                }
                 return result;
             }
 
