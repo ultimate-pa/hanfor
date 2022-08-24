@@ -42,8 +42,7 @@ class Tags(Ressource):
         return self._available_tags[tag_name]
 
     def add(self, tag_name: str, tag_color: str = Color.BS_INFO.value, tag_internal: bool = False, tag_description: str = ""):
-        if tag_name not in self._available_tags:
-            self._available_tags[tag_name] = Tag(tag_name, tag_color, tag_internal, tag_description)
+        self._available_tags[tag_name] = Tag(tag_name, tag_color, tag_internal, tag_description)
         self.__store()
 
     def __store(self):
@@ -55,8 +54,8 @@ class Tags(Ressource):
 
     def __load(self):
         for tag, color in self.meta_settings["tag_colors"].items():
-            self._available_tags[tag] = Tag(tag, color, self.meta_settings["tag_descriptions"][tag],
-                                            self.meta_settings["tag_internal"][tag])
+            self._available_tags[tag] = Tag(name=tag, color=color, description=self.meta_settings["tag_descriptions"][tag],
+                                            internal=self.meta_settings["tag_internal"][tag])
         for filename in self.filenames:
             try:
                 req = Requirement.load(filename)
