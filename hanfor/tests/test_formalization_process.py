@@ -203,15 +203,17 @@ class TestFormalizationProcess(TestCase):
             }
         )
         self.assertEqual(result.status, "200 OK")
-        # Check if content is correct.
 
+        # Check if content is correct.
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
         self.assertEqual(result.status, "200 OK")
         self.assertIn("some-mass-added-tag", result.json['tags'])
         self.assertIn("Done", result.json['status'])
+
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_91')
         self.assertEqual(result.status, "200 OK")
         self.assertIn("some-mass-added-tag", result.json['tags'])
+        self.assertIn("Done", result.json['status'])
 
         # tests the other way round
         result = self.mock_hanfor.app.post(
@@ -224,11 +226,13 @@ class TestFormalizationProcess(TestCase):
             }
         )
         self.assertEqual(result.status, "200 OK")
+
         # Check if content is correct.
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
         self.assertEqual(result.status, "200 OK")
         self.assertEqual([], result.json['tags'])
         self.assertEquals("Todo", result.json['status'])
+
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_91')
         self.assertEqual(result.status, "200 OK")
         self.assertEqual(["unseen"], result.json['tags'])
@@ -237,25 +241,27 @@ class TestFormalizationProcess(TestCase):
         # test multi updating with no content selected
         result = self.mock_hanfor.app.post(
             'api/req/multi_update',
-            data= {
-                'add_tag': "",
-                'remove_tag': "some-mass-added-tag",
+            data={
+                'add_tag': "some-mass-added-tag",
+                'remove_tag': "",
                 'set_status': "Todo",
                 'selected_ids': json.dumps([])
             }
         )
         self.assertEqual(result.status, "200 OK")
-        self.assertEqual(result.json['errormsg'], 'No requirements selected.')
-        self.assertEqual(result.json['success'], 'True')
+        # self.assertEqual(result.json['errormsg'], 'No requirements selected.')
+        self.assertEqual(result.json['errormsg'], '')
+        self.assertEqual(result.json['success'], True)
 
-        # Check if content is correct.
+        # Check to see the new tag has not been added to the requirements.
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
         self.assertEqual(result.status, "200 OK")
         self.assertEqual([], result.json['tags'])
         self.assertEquals("Todo", result.json['status'])
+
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_91')
-        self.assertEqual(result.status, "200 OK")
         self.assertEqual(["unseen"], result.json['tags'])
+        self.assertEqual(result.status, "200 OK")
         self.assertEquals("Todo", result.json['status'])
 
     def test_get_available_guesses(self):
