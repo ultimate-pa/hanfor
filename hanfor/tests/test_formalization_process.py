@@ -66,9 +66,9 @@ class TestFormalizationProcess(TestCase):
             ]
         )
         self.assertListEqual(result.json['vars'], ['bar', 'foo', 'ham', 'spam', 'the_world_sinks'])
-        self.assertListEqual(result.json['tags'], ["tag1", "tag2", "unknown_type"])
+        self.assertListEqual(result.json['tags'], ["tag1", "tag2", "unknown_type", "has_formalization"])
         self.assertDictEqual(result.json['tags_comments'],
-                             {"tag1": "comment 1 with some character", "tag2": "äüö%&/+= comment330+-# chars", "unknown_type": "bar, foo"})
+                             {"tag1": "comment 1 with some character", "tag2": "äüö%&/+= comment330+-# chars", "unknown_type": "bar, foo", 'has_formalization': ''})
         result = self.mock_hanfor.app.get('api/tag/get')
         #self.assertTrue("tag1" in [tag["name"] for tag in result.json["data"] if "name" in tag])
 
