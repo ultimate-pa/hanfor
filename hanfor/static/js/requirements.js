@@ -1115,7 +1115,7 @@ function load_datatable() {
                 $(data).each(function (id, tag) {
                     if (tag.length > 0) {
                         result += '<span class="badge" style="background-color: ' + get_tag_color(tag) + '">' +
-                            utils.escapeHtml(tag) + '</span></br>';
+                            utils.escapeHtml(tag) + '</span></br>' + " ";
                         // Add tag to available tags
                         if (available_tags.indexOf(tag) <= -1) {
                             available_tags.push(tag);
