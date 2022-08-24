@@ -745,7 +745,7 @@ $(document).ready(function () {
                     if ($.inArray('Type_inference_error', row.tags) > -1) {
                         result += '<span class="badge bg-danger">' +
                             '<a href="#" class="variable_link" ' +
-                            'data-name="' + row.name + '" >Has type inference error</a>' +
+                            'data-name="' + row.name + '" >Type-error in Constraint</a>' +
                             '</span> ';
                     }
                     $(data).each(function (id, name) {

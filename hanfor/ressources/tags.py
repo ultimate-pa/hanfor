@@ -2,6 +2,7 @@ import logging
 import os
 from dataclasses import dataclass, field
 
+import defaults
 from defaults import Color
 from reqtransformer import Requirement
 from ressources import Ressource
@@ -23,18 +24,20 @@ class Tags(Ressource):
     def __init__(self, app, request):
         super().__init__(app, request)
         self.filenames = get_filenames_from_dir(self.app.config['REVISION_FOLDER'])
-        self._available_tags = dict()
+        self._available_tags: dict[str, Tag] = self.__initial_tags()
         self.__load()
         self.sort_used_by_field()
+
+    def __initial_tags(self) -> dict[str, Tag]:
+        tags = {Tag('Type_inference_error', defaults.Color.BS_DANGER.value, True, ""),
+                Tag('incomplete_formalization', defaults.Color.BS_WARNING.value, True, ""),
+                Tag('has_formalization', defaults.Color.BS_SUCCESS.value, True, ""),
+                Tag('unknown_type', defaults.Color.BS_DANGER.value, True, "")}
+        return {v.name: v for v in tags}
 
     def sort_used_by_field(self):
         for tag in self._available_tags.keys():
             self._available_tags.get(tag).used_by.sort()
-
-    def __get_metaconfig_property(self, key: str, tag_name: str, default):
-        if tag_name in self.meta_settings[key]:
-            return self.meta_settings[key][tag_name]
-        return default
 
     def get(self, tag_name):
         if tag_name not in self._available_tags:
@@ -46,10 +49,9 @@ class Tags(Ressource):
         self.__store()
 
     def __store(self):
-        for tag_name, tag in self._available_tags.items():
-            self.meta_settings['tag_colors'][tag_name] = tag.color
-            self.meta_settings['tag_internal'][tag_name] = tag.internal
-            self.meta_settings['tag_descriptions'][tag_name] = tag.description
+        self.meta_settings['tag_colors'] = {t.name: t.color for _, t in self._available_tags.items()}
+        self.meta_settings['tag_internal'] = {t.name: t.internal for _, t in self._available_tags.items()}
+        self.meta_settings['tag_descriptions'] = {t.name: t.description for _, t in self._available_tags.items()}
         self.meta_settings.update_storage()
 
     def __load(self):
@@ -64,12 +66,8 @@ class Tags(Ressource):
             for tag in req.tags:
                 self.get(tag).used_by.append(req.rid)
 
-    @property
-    def available_tags(self):
-        return self._available_tags
-
     def GET(self):
-        self.response.data = [tag for tag in self.available_tags.values()]
+        self.response.data = [tag for tag in self._available_tags.values()]
 
     def POST(self):
         if self.request.view_args['command'] == 'update':
@@ -121,8 +119,8 @@ class Tags(Ressource):
                     logging.info(f'Delete tag `{tag_name}` in requirement `{requirement.rid}`')
                     requirement.tags.pop(tag_name)
                     requirement.store()
-        self.meta_settings["tag_colors"].pop(tag_name)
-        self.meta_settings.update_storage()
+        self._available_tags.pop(tag_name)
+        self.__store()
 
     def add_standard_tags(self):
         logging.info(f'Adding standard Tags...')

@@ -432,16 +432,25 @@ class Requirement(HanforVersioned, Pickleable):
         self.formalizations[formalization_id].set_expressions_mapping(mapping=mapping,
                                                                       variable_collection=variable_collection,
                                                                       rid=self.rid)
+
+        # Add 'Type_inference_error' tag
         if len(self.formalizations[formalization_id].type_inference_errors) > 0:
             formatted_errors = self.format_error_tag(self.formalizations[formalization_id])
             self.tags['Type_inference_error'] = formatted_errors
 
+        # Add 'unknown_type' tag
         vars_with_unknown_type = []
         vars_with_unknown_type = self.formalizations[formalization_id].unknown_types_check(variable_collection,
                                                                                            vars_with_unknown_type)
         if vars_with_unknown_type:
             self.tags['unknown_type'] = self.format_unknown_type_tag(vars_with_unknown_type)
 
+        if (self.formalizations[formalization_id].scoped_pattern.scope != Scope.NONE and
+            self.formalizations[formalization_id].scoped_pattern.pattern.name != "NotFormalizable"):
+            self.tags['has_formalization'] = ""
+        else:
+            self.tags['incomplete_formalization'] = ""
+            
     def format_error_tag(self, formalisation: 'Formalization') -> str:
         result = ""
         if not formalisation.type_inference_errors:
@@ -459,6 +468,10 @@ class Requirement(HanforVersioned, Pickleable):
             self.tags.pop('Type_inference_error')
         if 'unknown_type' in self.tags:
             self.tags.pop('unknown_type')
+        if 'incomplete_formalization' in self.tags:
+            self.tags.pop('incomplete_formalization')
+        if 'has_formalization' in self.tags:
+            self.tags.pop('has_formalization')
         logging.debug(f'Updating formalisations of requirement {self.rid}.')
         variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
         # Reset the var mapping.
