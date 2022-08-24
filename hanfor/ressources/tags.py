@@ -29,10 +29,10 @@ class Tags(Ressource):
         self.sort_used_by_field()
 
     def __initial_tags(self) -> dict[str, Tag]:
-        tags = {Tag('Type_inference_error', defaults.Color.BS_DANGER.value, True, ""),
+        tags = [Tag('Type_inference_error', defaults.Color.BS_DANGER.value, True, ""),
                 Tag('incomplete_formalization', defaults.Color.BS_WARNING.value, True, ""),
                 Tag('has_formalization', defaults.Color.BS_SUCCESS.value, True, ""),
-                Tag('unknown_type', defaults.Color.BS_DANGER.value, True, "")}
+                Tag('unknown_type', defaults.Color.BS_DANGER.value, True, "")]
         return {v.name: v for v in tags}
 
     def sort_used_by_field(self):
