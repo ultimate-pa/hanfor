@@ -14,7 +14,7 @@ from functools import wraps, update_wrapper
 import flask
 from werkzeug.exceptions import HTTPException
 
-from example_bp import example_bp
+from example_blueprint import example_blueprint
 
 from flask import Flask, render_template, request, jsonify, make_response, json
 from flask_debugtoolbar import DebugToolbarExtension
@@ -34,7 +34,7 @@ from patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
 app = Flask(__name__)
 app.config.from_object('config')
 
-app.register_blueprint(example_bp.blueprint, url_prefix='/example_bp')
+app.register_blueprint(example_blueprint.example_bp, url_prefix='/example_blueprint')
 
 
 if 'USE_SENTRY' in app.config and app.config['USE_SENTRY']:
