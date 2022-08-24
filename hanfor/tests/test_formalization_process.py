@@ -237,7 +237,7 @@ class TestFormalizationProcess(TestCase):
         # test multi updating with no content selected
         result = self.mock_hanfor.app.post(
             'api/req/multi_update',
-            data={
+            data= {
                 'add_tag': "",
                 'remove_tag': "some-mass-added-tag",
                 'set_status': "Todo",
