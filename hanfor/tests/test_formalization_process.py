@@ -26,7 +26,8 @@ class TestFormalizationProcess(TestCase):
         # Adding a new (empty) Formalization:
         self.mock_hanfor.app.post('api/req/new_formalization', data={'id': 'SysRS FooXY_42'})
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
-        self.assertListEqual(result.json['formal'], ['Globally, it is never the case that "foo != bar" holds', ''])
+        self.assertListEqual(result.json['formal'], ['Globally, it is never the case that "foo != bar" holds',
+                                                     '// None, no pattern set'])
         self.assertListEqual(result.json['vars'], ['bar', 'foo'])
 
         # Add content to the Formalization
@@ -65,9 +66,9 @@ class TestFormalizationProcess(TestCase):
             ]
         )
         self.assertListEqual(result.json['vars'], ['bar', 'foo', 'ham', 'spam', 'the_world_sinks'])
-        self.assertListEqual(result.json['tags'], ["tag1","tag2"])
-        self.assertDictEqual(result.json['tags_comments'],
-            {"tag1": "comment 1 with some character", "tag2": "äüö%&/+= coment330+-# chars"})
+        self.assertListEqual(result.json['tags'], ["tag1", "tag2", 'unknown_type', 'has_formalization'])
+        self.assertDictContainsSubset({"tag1": "comment 1 with some character",
+                                       "tag2": "äüö%&/+= coment330+-# chars"}, result.json['tags_comments'])
 
     def test_changing_var_in_formalization(self):
         self.mock_hanfor.startup_hanfor('simple.csv', 'simple', [])
@@ -283,7 +284,7 @@ class TestFormalizationProcess(TestCase):
                 'requirement_id': 'SysRS FooXY_42',
                 'scope': 'Globally',
                 'pattern': 'It is always the case that if "{R}" holds then "{S}" eventually holds',
-                'mapping': ''
+                'mapping': '{"R": "", "S": ""}'
             }
         )
         self.assertEqual(result.status, "200 OK")
