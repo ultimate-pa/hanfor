@@ -307,16 +307,6 @@ class TestFormalizationProcess(TestCase):
     #     self.assertEqual(True, delete_constraint.json['success'])
 
 
-    def test_deleting_vars(self):
-        # We create a new ENUM "my_first_enum"
-        response = self.mock_hanfor.app.post(
-            'api/var/add_new_variable',
-            data={'name': 'my_first_enum', 'type': 'ENUM_INT'}
-        )
-        # We expect the creation to be successful.
-        self.assertEqual(response.json['success'], True)
-
-
 
 
 
