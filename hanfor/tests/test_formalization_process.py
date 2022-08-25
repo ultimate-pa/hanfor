@@ -289,6 +289,39 @@ class TestFormalizationProcess(TestCase):
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
         self.assertEqual(result.status, "200 OK")
 
+    # def test_delete_constraint(self):
+    #     # First we test adding a constraint.
+    #     add_constraint = self.mock_hanfor.app.post(
+    #         'api/var/new_constraint',
+    #         data={'name': 'egg'}
+    #     )
+    #     self.assertEqual(True, add_constraint.json['success'])
+    #
+    #     # # Now we test removing the added constraint
+    #     #
+    #     delete_constraint = self.mock_hanfor.app.post(
+    #             "api/var/del_constraint",
+    #            data={
+    #                'name': 'egg',
+    #            })
+    #     self.assertEqual(True, delete_constraint.json['success'])
+
+
+    def test_deleting_vars(self):
+        # We create a new ENUM "my_first_enum"
+        response = self.mock_hanfor.app.post(
+            'api/var/add_new_variable',
+            data={'name': 'my_first_enum', 'type': 'ENUM_INT'}
+        )
+        # We expect the creation to be successful.
+        self.assertEqual(response.json['success'], True)
+
+
+
+
+
+
+
 
 
 

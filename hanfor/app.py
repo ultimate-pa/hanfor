@@ -523,6 +523,7 @@ def api(resource, command):
                 pass
 
             return jsonify(result)
+        #todo
         elif command == 'del_constraint':
             result = {'success': True, 'errormsg': ''}
             var_name = request.form.get('name', '').strip()
@@ -534,6 +535,7 @@ def api(resource, command):
             var_collection.store()
             result['html'] = utils.formalizations_to_html(app, var_collection.collection[var_name].get_constraints())
             return jsonify(result)
+        #todo
         elif command == 'del_var':
             result = {'success': True, 'errormsg': ''}
             var_name = request.form.get('name', '').strip()
