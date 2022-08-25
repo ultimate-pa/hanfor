@@ -87,9 +87,8 @@ class TestHanforVersionMigrations(TestCase):
 
         delete_constraint = self.app.post(
             "api/var/del_constraint",
-            data={
-                'name': 'egg',
-            })
+            data={'name': 'egg'}
+        )
         self.assertEqual(True, delete_constraint.json['success'])
         change_type = self.app.post(
             'api/var/update',
