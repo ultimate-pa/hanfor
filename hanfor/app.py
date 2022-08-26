@@ -541,7 +541,7 @@ def api(resource, command):
             constraint_id = request.form.get('constraint_id', '').strip()
 
             var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
-            var_collection.del_constraint(var_name=var_name, constraint_id=int(constraint_id))
+            var_collection.del_constraint(var_name=var_name, constraint_id=constraint_id)
             var_collection.collection[var_name].reload_constraints_type_inference_errors(var_collection)
             var_collection.store()
             result['html'] = utils.formalizations_to_html(app, var_collection.collection[var_name].get_constraints())
