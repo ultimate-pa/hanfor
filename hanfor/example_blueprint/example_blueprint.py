@@ -1,7 +1,10 @@
 from flask import Blueprint, render_template, request, current_app, jsonify
 
 BUNDLE_JS = 'dist/example_blueprint-bundle.js'
-example_bp = Blueprint('example_blueprint', __name__, template_folder='templates')
+example_bp = Blueprint('example', __name__, template_folder='templates', url_prefix='/example_blueprint')
+
+api_example_bp = Blueprint('api', __name__, url_prefix='/api')
+example_bp.register_blueprint(api_example_bp)
 
 
 @example_bp.route('/', methods=['GET'])
@@ -16,3 +19,8 @@ def index():
 def get_message():
     response = {'message': 'Hello World'}
     return jsonify(response)
+
+
+@api_example_bp.route('/', methods=['GET'])
+def get():
+    return "there u go"
