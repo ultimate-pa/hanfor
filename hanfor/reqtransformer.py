@@ -583,8 +583,8 @@ class Formalization(HanforVersioned):
         :rtype: dict
         """
         for key, expression_string in mapping.items():
-            if len(expression_string) == 0:
-                continue
+            #if len(expression_string) == 0:
+            #    continue
             expression = Expression()
             expression.set_expression(expression_string, variable_collection, rid)
             if self.expressions_mapping is None:

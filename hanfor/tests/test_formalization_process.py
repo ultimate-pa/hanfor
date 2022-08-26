@@ -279,12 +279,14 @@ class TestFormalizationProcess(TestCase):
         self.assertEqual(result.status, "200 OK")
 
     def test_add_formalization_from_guess(self):
+        self.mock_hanfor.startup_hanfor('simple.csv', 'simple', [])
+
         result = self.mock_hanfor.app.post(
             'api/req/add_formalization_from_guess',
             data={
                 'requirement_id': 'SysRS FooXY_42',
-                'scope': 'Globally',
-                'pattern': 'It is always the case that if "{R}" holds then "{S}" eventually holds',
+                'scope': 'GLOBALLY',
+                'pattern': 'Response',
                 'mapping': '{"R": "", "S": ""}'
             }
         )
