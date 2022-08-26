@@ -769,6 +769,9 @@ class Pattern:
         self.name = name
         self.pattern = PATTERNS[name]['pattern']
 
+    def is_instantiatable(self):
+        return self.name != "NotFormalizable"
+
     def instantiate(self, scope, *args):
         return scope + ', ' + self.pattern.format(*args)
 
@@ -791,6 +794,9 @@ class ScopedPattern:
 
     def get_string(self, expression_mapping: dict):
         return self.__str__().format(**expression_mapping).replace('\n', ' ').replace('\r', ' ')
+
+    def is_instantiatable(self) -> bool:
+        return self.scope != Scope.NONE and self.pattern.is_instantiatable()
 
     def instantiate(self, *args):
         return self.pattern.instantiate(self.scope, *args)
