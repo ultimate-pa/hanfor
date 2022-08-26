@@ -267,6 +267,7 @@ class TestFormalizationProcess(TestCase):
         self.assertEquals("Todo", result.json['status'])
 
     def test_get_available_guesses(self):
+        self.mock_hanfor.startup_hanfor('simple.csv', 'simple', [])
         result = self.mock_hanfor.app.post(
             'api/req/get_available_guesses',
             data={
