@@ -1,6 +1,7 @@
 from collections import defaultdict
 from enum import Enum
 from typing import List
+from copy import deepcopy
 
 from lark import Lark, Tree, Transformer
 from lark.lexer import Token
@@ -173,8 +174,10 @@ class TypeInference(Transformer):
         if expected_types:
             errors = []
             for possible_type in expected_types:
-                errors = self.__propagate_type(self.type_root, possible_type)
+                # Todo: solution with deep-copy is a hack. Solve without
+                errors = self.__propagate_type(deepcopy(self.type_root), possible_type)
                 if not errors:
+                    self.__propagate_type(self.type_root, possible_type)
                     break
             self.type_errors += errors
 
@@ -213,7 +216,7 @@ class TypeInference(Transformer):
         self.type_errors += arg_error
         type_leaf = [c] + c.type_leaf if not return_type else []
         if arg_error:
-            return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c])
+            return TypeNode(expr, BoogieType.unknown if not return_type else return_type, type_leaf, [c])
         tn = TypeNode(expr, c.t if not return_type else return_type, type_leaf, [c])
         if len(arg_type) == 1:
             t = arg_type.pop()  # TODO: not nice
@@ -232,12 +235,16 @@ class TypeInference(Transformer):
 
     def __propagate_type(self, tn: TypeNode, t: BoogieType) -> List[str]:
         type_errors = []
+        # try applying type to whole sub-tree (not changing anything for now)
         for child in tn.type_leaf + [tn]:  # tn is part of its leaf
             if child.t != t and not child.t == BoogieType.unknown:
-                type_errors.append(f"Types inconsistent: {child} had Type {tn.t} inferred as {t}")
-                child.t = BoogieType.error
+                # Do not store an additional error text for syntax errors (with BoogieType.errror)
+                # but only for real type inference errors.
+                if (child.t != BoogieType.error):
+                    type_errors.append(f"Types inconsistent: {child} had Type {tn.t} inferred as {t}")
                 return type_errors
             child.t = t
+            # if expression is a variable (i.e. in type_env)
             if child.expr in self.type_env:
                 self.type_env[child.expr] = t
         return type_errors
@@ -251,9 +258,9 @@ class TypeInference(Transformer):
         # assume that the return type is the identity if no return type is given, thus all in this leaf are typed equal
         type_leaf = [c1, c2] + c1.type_leaf + c2.type_leaf if not return_type else []
         if arg_errors:
-            return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c1, c2])
-        if c1.t == BoogieType.error or c2.t == BoogieType.error:
-            return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c1, c2])
+            return TypeNode(expr, BoogieType.unknown if not return_type else return_type, type_leaf, [c1, c2])
+        #if c1.t == BoogieType.error or c2.t == BoogieType.error:
+        #   return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c1, c2])
         if c1.t == BoogieType.unknown and c2.t == BoogieType.unknown:
             return TypeNode(expr, BoogieType.unknown if not return_type else return_type, type_leaf, [c1, c2])
         if c1.t == c2.t:
@@ -264,15 +271,15 @@ class TypeInference(Transformer):
             if not errors:
                 return tn
             self.type_errors += errors
-            return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c1, c2])
+            return TypeNode(expr, BoogieType.unknown if not return_type else return_type, type_leaf, [c1, c2])
         if c2.t != BoogieType.unknown:
             tn = TypeNode(expr, c2.t if not return_type else return_type, type_leaf, [c1, c2])
             errors = self.__propagate_type(c1, c2.t)
             if not errors:
                 return tn
             self.type_errors += errors
-            return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c1, c2])
-        return TypeNode(expr, BoogieType.error, type_leaf, [c1, c2])
+            return TypeNode(expr, BoogieType.unknown if not return_type else return_type, type_leaf, [c1, c2])
+        return TypeNode(expr, BoogieType.unknown, type_leaf, [c1, c2])
 
     def neq(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
         return self.__check_binaryop(c1, op, c2, arg_type={BoogieType.bool, BoogieType.int, BoogieType.real},
@@ -328,8 +335,9 @@ class TypeInference(Transformer):
         # TODO: replace by abstract handling of functions
         return self.__check_unaryop(o, c1, {BoogieType.int}, return_type=BoogieType.int)
 
+    @v_args(meta=True)
     def __default__(self, data, children, meta):
         if len(children) == 1:
             return children[0]
-        self.type_errors += [f"Unknown rule {data} found during parsing."]
+        self.type_errors += ["Syntax Error: input is not a valid expression."]
         return TypeNode(data, BoogieType.error, [], children)

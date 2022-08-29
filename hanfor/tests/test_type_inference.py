@@ -31,7 +31,8 @@ class TestParseExpressions(TestCase):
         ti = run_typecheck_fixpoint(tree, {"a": BoogieType.real})
         t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
         self.assertEqual(BoogieType.real, type_env["b"], msg="Error deriving real type")
-        self.assertEqual(BoogieType.error, t, msg="Error propagating the error type")
+        self.assertEqual(BoogieType.unknown, t, msg="Error propagating the error type")
+        self.assertEqual(errors, ['Types inconsistent: 23 had Type BoogieType.int inferred as BoogieType.real'])
         self.assertTrue(errors)
 
     def test_type_nested_inf(self):
@@ -162,20 +163,6 @@ class TestParseExpressions(TestCase):
             self.assertEqual(type, t, msg=f"Error deriving {type} from single variable")
             self.assertEqual(type, type_env["x"], msg=f"Error deriving {type} from single variable")
             self.assertFalse(errors)
-
-    def test_singleton_bad(self):
-        # what do we want to do here,
-        # error  -> error
-        # unknown -> ?
-        # bloarg -> error
-        for type in [BoogieType.error, "bloarg"]:
-            tree = self.parse("x")
-            # the type universe may not contain illegal types. Check after retrieval.
-            ti = run_typecheck_fixpoint(tree, {"x": type}, expected_types=[BoogieType.bool])
-            t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
-            self.assertEqual(BoogieType.error, t, msg="Error deriving bool from TRUE")
-            # self.assertEqual(type, type_env["x"], msg="Error deriving bool from TRUE")
-            self.assertTrue(errors)
 
     def test_type_tree_gen2(self):
         tree = self.parse("(23.1 + 47.2 + x) < 44 && (b && a)")
