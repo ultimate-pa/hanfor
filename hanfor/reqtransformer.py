@@ -449,7 +449,7 @@ class Requirement(HanforVersioned, Pickleable):
             self.formalizations[formalization_id].scoped_pattern.pattern.name != "NotFormalizable"):
             self.tags['has_formalization'] = ""
         else:
-            self.tags['incomplete_formalization'] = ""
+            self.tags['incomplete_formalization'] = self.format_incomplete_formalization_tag(formalization_id)
             
     def format_error_tag(self, formalisation: 'Formalization') -> str:
         result = ""
@@ -462,6 +462,13 @@ class Requirement(HanforVersioned, Pickleable):
 
     def format_unknown_type_tag(self, vars) -> str:
         return ", ".join(sorted(vars))
+
+    def format_incomplete_formalization_tag(self, fid: int) -> str:
+        rid_fid = self.rid + "_" + fid.__str__()
+        if not self.tags.get('incomplete_formalization'):
+            return "- " + rid_fid
+        else:
+            return self.tags.get('incomplete_formalization') + "\n- " + rid_fid
 
     def update_formalizations(self, formalizations: dict, app):
         if 'Type_inference_error' in self.tags:
