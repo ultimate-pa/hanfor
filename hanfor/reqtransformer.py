@@ -452,7 +452,11 @@ class Requirement(HanforVersioned, Pickleable):
             self.tags['incomplete_formalization'] = self.format_incomplete_formalization_tag(formalization_id)
             
     def format_error_tag(self, formalisation: 'Formalization') -> str:
-        result = ""
+        if not self.tags.get('Type_inference_error'):
+            result = ""
+        else:
+            result = self.tags.get('Type_inference_error')
+
         if not formalisation.type_inference_errors:
             return result
         for key, value in formalisation.type_inference_errors.items():
