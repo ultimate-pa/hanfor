@@ -632,6 +632,13 @@ class Formalization(HanforVersioned):
             # Derive type for variables in expression and update missing or changed types.
             ti = run_typecheck_fixpoint(tree, var_env, expected_types=allowed_types[key])
             expression_type, type_env, type_errors = ti.type_root.t, ti.type_env, ti.type_errors
+
+            # Add type error if a variable is used in a timing expression
+            if allowed_types[key] != [BoogieType.bool]:
+                for var in expression.used_variables:
+                    if variable_collection.collection[var].type != 'CONST':
+                        type_errors.append(f"Variable '{var}' used in time bound.")
+
             for name, var_type in type_env.items():  # Update the hanfor variable types.
                 if (variable_collection.collection[name].type
                         and variable_collection.collection[name].type.lower() in ['const', 'enum']):
