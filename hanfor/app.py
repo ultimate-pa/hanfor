@@ -538,7 +538,7 @@ def api(resource, command):
         elif command == 'del_constraint':
             result = {'success': True, 'errormsg': ''}
             var_name = request.form.get('name', '').strip()
-            constraint_id = request.form.get('constraint_id', '').strip()
+            constraint_id = int(request.form.get('constraint_id', '').strip())
 
             var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
             var_collection.del_constraint(var_name=var_name, constraint_id=constraint_id)
