@@ -517,7 +517,8 @@ class TestEnums(TestCase):
             }
         )
         self.assertEqual(response.json['success'], False)
-        self.assertEqual(response.json['errormsg'], "KeyError('SESSION_VARIABLE_COLLECTION')")
+        self.assertEqual(response.json['errormsg'], "KeyError('SESSION_VARIABLE_COLLECTION')") # IS THIS OK??
+
 
     def apply_update(self, update):
         result = self.mock_hanfor.app.post(
