@@ -778,9 +778,10 @@ $(document).ready(function () {
                                 '<a href="./' + search_query + '" target="_blank" class="link-light">' + name + '</a>' +
                                 '</span> ';
                             if (search_all.length > 0) {
-                                search_all += '%3AOR%3A%5C%22' + name + '%5C%22';
+                                /* ToDo: Simplify search query */
+                                search_all += '%3AOR%3A' + '%3ACOL_INDEX_02%3A' + '%5C%22' + name + '%5C%22';
                             } else {
-                                search_all += '?command=search&col=2&q=%5C%22' + name + '%5C%22';
+                                search_all += search_query;
                             }
                         }
                     });
@@ -790,7 +791,7 @@ $(document).ready(function () {
                             '</span></br>';
                     } else {
                         if (data.length > 1) {
-                            result += '<span class="badge bg-info" style="background-color: #4275d8">' +
+                            result += '<span class="badge bg-info">' +
                                 '<a href="./' + search_all + '" target="_blank" class="link-light">Show all</a>' +
                                 '</span> ';
                         }
