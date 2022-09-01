@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Example Blueprint
+{% endblock %}
+
+{% block body %}
+    <div class="container py-3">
+        <h3>Example Blueprint</h3>
+        <p>Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit...</p>
+        <button id="my-button" class="btn btn-primary" type="button">Get awesome message</button>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript" src="{{ url_for('static', filename=BUNDLE_JS) }}"></script>
+{% endblock %}

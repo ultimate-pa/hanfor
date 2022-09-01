@@ -11,7 +11,7 @@ const config = {
         tags: __dirname + '/js/tags.js',
         simulator_tab: __dirname + '/js/simulator-tab.js',
         simulator_modal: __dirname + '/js/simulator-modal.js',
-        example_bp: '../example_bp/static/example_bp.js'
+        example_blueprint: '../example_blueprint/static/example_blueprint.js'
     },
     output: {
         path: __dirname + '/dist',

@@ -51,7 +51,7 @@ $(document).ready(function () {
                     }
                 });
                 if (data.length > 1 && result.length > 0) {
-                    const search_all = '?command=search&col=5&q=' + row.name;
+                    const search_all = '?command=search&col=5&q=%5C%22' + row.name + '%5C%22';
                     result += '<span class="badge bg-info" style="background-color: #4275d8">' + '<a href="./' + search_all + '" target="_blank">Show all</a>' + '</span> ';
                 }
                 return result;

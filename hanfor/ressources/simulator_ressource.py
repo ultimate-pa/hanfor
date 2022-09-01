@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import fnmatch
 import json
+import logging
 import multiprocessing
 import os
 import time
@@ -206,7 +207,7 @@ class SimulatorRessource(Ressource):
             self.response.success = False
             self.response.errormsg = simulator.sat_error
             return
-        print('Check sat:', time.time() - start)
+        logging.debug(f'Did sat-check. Took {time.time() - start} sec')
 
         self.get_simulator()
 
@@ -288,8 +289,9 @@ class SimulatorRessource(Ressource):
         boogie_parser = boogie_parsing.get_parser_instance()
 
         for formalization in requirement.formalizations.values():
-            if formalization.scoped_pattern is None or formalization.has_type_inference_errors() or \
-                    SimulatorRessource.has_variable_with_unknown_type(formalization, variables):
+            if not formalization.scoped_pattern.is_instantiatable():
+                return None
+            if SimulatorRessource.has_variable_with_unknown_type(formalization, variables) or formalization.type_inference_errors :
                 return None
 
             scope = formalization.scoped_pattern.scope.name
@@ -300,6 +302,9 @@ class SimulatorRessource(Ressource):
 
             expressions = {}
             for k, v in formalization.expressions_mapping.items():
+                #Todo: hack to detect empty expressions (why is this necessary now)?
+                if not v.raw_expression:
+                    continue
                 tree = boogie_parser.parse(v.raw_expression)
                 expressions[k] = BoogiePysmtTransformer(var_collection.collection).transform(tree)
 

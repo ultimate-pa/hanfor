@@ -45,11 +45,12 @@ class HanforVersioned:
         self._hanfor_version = val
 
     @property
-    def has_version_mismatch(self) -> bool:
-        return __version__ != self.hanfor_version
+    def outdated(self) -> bool:
+        return StrictVersion(self.hanfor_version) < StrictVersion(__version__)
 
     def run_version_migrations(self):
-        if StrictVersion(self._hanfor_version) < StrictVersion(__version__):
+        if self.outdated:
+            logging.debug(f"Migration (noop) {self}: from {self.hanfor_version} -> {__version__}")
             self._hanfor_version = __version__
             # this is a shortcut to skip explicit update code for all things that did not change in a version.
             # TODO: non the less this should be solved differently
@@ -285,7 +286,7 @@ class Requirement(HanforVersioned, Pickleable):
     def __init__(self, id, description, type_in_csv, csv_row, pos_in_csv):
         HanforVersioned.__init__(self)
         Pickleable.__init__(self, None)
-        self.rid = id
+        self.rid: str = id
         self.formalizations: Dict[int, Formalization] = dict()
         self.description = description
         self.type_in_csv = type_in_csv
@@ -298,8 +299,8 @@ class Requirement(HanforVersioned, Pickleable):
     def to_dict(self, include_used_vars=False):
         type_inference_errors = dict()
         used_variables = set()
-        for index, f in self.formalizations.items():  # type: Formalization
-            if f.has_type_inference_errors():
+        for index, f in self.formalizations.items():
+            if f.type_inference_errors:
                 type_inference_errors[index] = [key.lower() for key in f.type_inference_errors.keys()]
             if include_used_vars:
                 for name in f.used_variables:
@@ -342,7 +343,7 @@ class Requirement(HanforVersioned, Pickleable):
         if not isinstance(me, cls):
             raise TypeError
 
-        if me.has_version_mismatch:
+        if me.outdated:
             logging.info(f'`{me}` needs upgrade `{me.hanfor_version}` -> `{__version__}`')
             me.run_version_migrations()
             me.store()
@@ -395,17 +396,8 @@ class Requirement(HanforVersioned, Pickleable):
 
     def add_empty_formalization(self) -> Tuple[int, 'Formalization']:
         """ Add an empty formalization to the formalizations list."""
-        return self.add_formalization(Formalization())
-
-    def add_formalization(self, formalization: 'Formalization') -> Tuple[int, 'Formalization']:
-        """ Add given formalization to this requirement."""
-        if self.formalizations is None:
-            self.formalizations = dict()
-
         id = self._next_free_formalization_id()
-        formalization.id = id
-        self.formalizations[id] = formalization
-
+        self.formalizations[id] = Formalization(id)
         return id, self.formalizations[id]
 
     def delete_formalization(self, formalization_id, app):
@@ -440,12 +432,31 @@ class Requirement(HanforVersioned, Pickleable):
         self.formalizations[formalization_id].set_expressions_mapping(mapping=mapping,
                                                                       variable_collection=variable_collection,
                                                                       rid=self.rid)
+
+        # Add 'Type_inference_error' tag
         if len(self.formalizations[formalization_id].type_inference_errors) > 0:
             formatted_errors = self.format_error_tag(self.formalizations[formalization_id])
             self.tags['Type_inference_error'] = formatted_errors
 
+        # Add 'unknown_type' tag
+        vars_with_unknown_type = []
+        vars_with_unknown_type = self.formalizations[formalization_id].unknown_types_check(variable_collection,
+                                                                                           vars_with_unknown_type)
+        if vars_with_unknown_type:
+            self.tags['unknown_type'] = self.format_unknown_type_tag(vars_with_unknown_type)
+
+        if (self.formalizations[formalization_id].scoped_pattern.scope != Scope.NONE and
+            self.formalizations[formalization_id].scoped_pattern.pattern.name != "NotFormalizable"):
+            self.tags['has_formalization'] = ""
+        else:
+            self.tags['incomplete_formalization'] = self.format_incomplete_formalization_tag(formalization_id)
+            
     def format_error_tag(self, formalisation: 'Formalization') -> str:
-        result = ""
+        if not self.tags.get('Type_inference_error'):
+            result = ""
+        else:
+            result = self.tags.get('Type_inference_error')
+
         if not formalisation.type_inference_errors:
             return result
         for key, value in formalisation.type_inference_errors.items():
@@ -453,9 +464,25 @@ class Requirement(HanforVersioned, Pickleable):
             result += "\n- ".join(value) + "\n"
         return result
 
+    def format_unknown_type_tag(self, vars) -> str:
+        return ", ".join(sorted(vars))
+
+    def format_incomplete_formalization_tag(self, fid: int) -> str:
+        rid_fid = self.rid + "_" + fid.__str__()
+        if not self.tags.get('incomplete_formalization'):
+            return "- " + rid_fid
+        else:
+            return self.tags.get('incomplete_formalization') + "\n- " + rid_fid
+
     def update_formalizations(self, formalizations: dict, app):
         if 'Type_inference_error' in self.tags:
             self.tags.pop('Type_inference_error')
+        if 'unknown_type' in self.tags:
+            self.tags.pop('unknown_type')
+        if 'incomplete_formalization' in self.tags:
+            self.tags.pop('incomplete_formalization')
+        if 'has_formalization' in self.tags:
+            self.tags.pop('has_formalization')
         logging.debug(f'Updating formalisations of requirement {self.rid}.')
         variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
         # Reset the var mapping.
@@ -477,14 +504,23 @@ class Requirement(HanforVersioned, Pickleable):
                 logging.error(f'Could not update Formalization: {e.__str__()}')
                 raise e
 
-    def run_typeinference(self, var_collection):
-        logging.info(f'Run type inference for `{self.rid}`')
+    def run_type_checks(self, var_collection):
+        logging.info(f'Run type inference and unknown check for `{self.rid}`')
         if 'Type_inference_error' in self.tags:
             self.tags.pop('Type_inference_error')
+        if 'unknown_type' in self.tags:
+            self.tags.pop('unknown_type')
+        vars_with_unknown_type = []
         for id in self.formalizations.keys():
+            # Run type inference check
             self.formalizations[id].type_inference_check(var_collection)
             if len(self.formalizations[id].type_inference_errors) > 0:
                 self.tags['Type_inference_error'] = self.format_error_tag(self.formalizations[id])
+
+            # Check for variables of type 'unknown' in formalization
+            vars_with_unknown_type = self.formalizations[id].unknown_types_check(var_collection, vars_with_unknown_type)
+            if vars_with_unknown_type:
+                self.tags['unknown_type'] = self.format_unknown_type_tag(vars_with_unknown_type)
         self.store()
 
     def get_formalizations_json(self) -> str:
@@ -527,11 +563,11 @@ class Requirement(HanforVersioned, Pickleable):
 
 
 class Formalization(HanforVersioned):
-    def __init__(self):
+    def __init__(self, id: int):
         super().__init__()
-        self.id: None | int = None
+        self.id: int = id
         self.scoped_pattern = ScopedPattern()
-        self.expressions_mapping = dict()
+        self.expressions_mapping: dict[str, Expression] = dict()
         self.belongs_to_requirement = None
         self.type_inference_errors = dict()
 
@@ -539,7 +575,7 @@ class Formalization(HanforVersioned):
     def used_variables(self):
         result = []
         for exp in self.expressions_mapping.values():  # type: Expression
-            result += exp.get_used_variables()
+            result += exp.used_variables
         return list(set(result))
 
     def set_expressions_mapping(self, mapping, variable_collection, rid):
@@ -558,8 +594,8 @@ class Formalization(HanforVersioned):
         :rtype: dict
         """
         for key, expression_string in mapping.items():
-            if len(expression_string) == 0:
-                continue
+            #if len(expression_string) == 0:
+            #    continue
             expression = Expression()
             expression.set_expression(expression_string, variable_collection, rid)
             if self.expressions_mapping is None:
@@ -596,6 +632,13 @@ class Formalization(HanforVersioned):
             # Derive type for variables in expression and update missing or changed types.
             ti = run_typecheck_fixpoint(tree, var_env, expected_types=allowed_types[key])
             expression_type, type_env, type_errors = ti.type_root.t, ti.type_env, ti.type_errors
+
+            # Add type error if a variable is used in a timing expression
+            if allowed_types[key] != [BoogieType.bool]:
+                for var in expression.used_variables:
+                    if variable_collection.collection[var].type != 'CONST':
+                        type_errors.append(f"Variable '{var}' used in time bound.")
+
             for name, var_type in type_env.items():  # Update the hanfor variable types.
                 if (variable_collection.collection[name].type
                         and variable_collection.collection[name].type.lower() in ['const', 'enum']):
@@ -611,6 +654,13 @@ class Formalization(HanforVersioned):
                 del self.type_inference_errors[key]
         variable_collection.store()
 
+    def unknown_types_check(self, variable_collection, unknowns):
+        for k, v in self.expressions_mapping.items():
+            for var in v.used_variables:
+                if variable_collection.get_type(var) == BoogieType.unknown.name:
+                    unknowns.append(var)
+        return unknowns
+
     def to_dict(self):
         d = {
             'scope': self.scoped_pattern.scope.name,
@@ -621,15 +671,7 @@ class Formalization(HanforVersioned):
         return d
 
     def get_string(self):
-        result = ''
-        try:
-            result = self.scoped_pattern.get_string(self.expressions_mapping)
-        except Exception:
-            logging.debug('Formalization can not be instantiated. There is no scoped pattern set.')
-        return result
-
-    def has_type_inference_errors(self):
-        return len(self.type_inference_errors) > 0
+        return self.scoped_pattern.get_string(self.expressions_mapping)
 
 
 class Expression(HanforVersioned):
@@ -642,19 +684,10 @@ class Expression(HanforVersioned):
      """
 
     def __init__(self):
-        """ Create an empty new expression.
-
-        """
         super().__init__()
-        self.used_variables = None
+        self.used_variables: list[str] = list()
         self.raw_expression = None
         self.parent_rid = None
-
-    def get_used_variables(self):
-        if self.used_variables is not None:
-            return self.used_variables
-        else:
-            return []
 
     def set_expression(self, expression: str, variable_collection: 'VariableCollection', parent_rid):
         """ Parses the Expression using the boogie grammar.
@@ -690,12 +723,7 @@ class Expression(HanforVersioned):
         #    pass
 
     def __str__(self):
-        result = '"{}"'.format(self.raw_expression)
-        # If the var is a number,
-        if re.search(r'^\d+$', self.raw_expression) or re.search(r'^\d+\.\d+$', self.raw_expression):
-            # do not quote.
-            result = self.raw_expression
-        return result
+        return f'"{self.raw_expression}"'
 
 
 class Scope(Enum):
@@ -759,6 +787,9 @@ class Pattern:
         self.name = name
         self.pattern = PATTERNS[name]['pattern']
 
+    def is_instantiatable(self):
+        return self.name != "NotFormalizable"
+
     def instantiate(self, scope, *args):
         return scope + ', ' + self.pattern.format(*args)
 
@@ -781,6 +812,9 @@ class ScopedPattern:
 
     def get_string(self, expression_mapping: dict):
         return self.__str__().format(**expression_mapping).replace('\n', ' ').replace('\r', ' ')
+
+    def is_instantiatable(self) -> bool:
+        return self.scope != Scope.NONE and self.pattern.is_instantiatable()
 
     def instantiate(self, *args):
         return self.pattern.instantiate(self.scope, *args)
@@ -838,7 +872,7 @@ class VariableCollection(HanforVersioned, Pickleable):
         if not isinstance(me, cls):
             raise TypeError
 
-        if me.has_version_mismatch:
+        if me.outdated:
             logging.info(f'`{me}` needs upgrade `{me.hanfor_version}` -> `{__version__}`')
             me.run_version_migrations()
             me.store()
@@ -1104,7 +1138,7 @@ class VariableCollection(HanforVersioned, Pickleable):
         for var in self.collection.values():
             for constraint in var.get_constraints().values():
                 for constraint_id, expression in enumerate(constraint.expressions_mapping.values()):
-                    for var_name in expression.get_used_variables():
+                    for var_name in expression.used_variables:
                         if var_name not in mapping.keys():
                             mapping[var_name] = set()
                         mapping[var_name].add('Constraint_{}_{}'.format(var.name, constraint_id))
@@ -1263,12 +1297,12 @@ class VariableCollection(HanforVersioned, Pickleable):
 class Variable(HanforVersioned):
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
 
-    def __init__(self, name:str, type:str, value:str):
+    def __init__(self, name: str, type: str, value: str):
         super().__init__()
         self.name: str = name
         self.type: str = type
         self.value: str = value
-        #TODO: Show variables (e.g. typing errors) or remove tags from variables; show them or remove them
+        # TODO: Show variables (e.g. typing errors) or remove tags from variables; show them or remove them
         self.tags: set[str] = set()
         self.script_results: str = ''
         self.belongs_to_enum: str = ''
@@ -1278,7 +1312,7 @@ class Variable(HanforVersioned):
         used_by = []
         type_inference_errors = dict()
         for index, f in self.get_constraints().items():
-            if f.has_type_inference_errors():
+            if f.type_inference_errors:
                 type_inference_errors[index] = [key.lower() for key in f.type_inference_errors.keys()]
         try:
             used_by = sorted(list(var_req_mapping[self.name]))
@@ -1331,7 +1365,7 @@ class Variable(HanforVersioned):
         :return: (index: int, The constraint: Formalization)
         """
         id = self._next_free_constraint_id()
-        self.constraints[id] = Formalization()
+        self.constraints[id] = Formalization(id)
         return id, self.constraints[id]
 
     def del_constraint(self, id):
@@ -1490,31 +1524,7 @@ class Variable(HanforVersioned):
                 logging.info(f'Migrate old ENUM `{self.name}` to new ENUM_INT, ENUM_REAL')
         if not hasattr(self, 'constraints') or not isinstance(self.constraints, dict):
             setattr(self, 'constraints', dict())
-        """if StrictVersion(self.hanfor_version) <= StrictVersion('1.0.5'):
-            logging.info(f'Migrating `{self.__class__.__name__}`:`{ self.name}`, from {self.hanfor_version} -> 1.0.5')
-            if self.type == 1: self.type = BoogieType.bool
-            elif self.type == 2: self.type = BoogieType.int
-            elif self.type == 3: self.type = BoogieType.real
-            else: self.type == BoogieType.unknown"""
         super().run_version_migrations()
-
-
-class Tag:
-    def __init__(self, name, color='#5bc0de'):
-        self.name = name
-        self.color = color
-
-    def __str__(self):
-        return self.name
-
-    def __hash__(self):
-        return hash(self.name)
-
-    def __eq__(self, other):
-        return self.name == other.name
-
-    def __ne__(self, other):
-        return self.name != other.name
 
 
 class VarImportSession(HanforVersioned):
@@ -1684,7 +1694,7 @@ class VarImportSessions(HanforVersioned, Pickleable):
     def __init__(self, path=None):
         HanforVersioned.__init__(self)
         Pickleable.__init__(self, path)
-        self.import_sessions = list()
+        self.import_sessions: list[VarImportSession] = list()
 
     @classmethod
     def load(cls, path) -> 'VarImportSessions':
@@ -1692,21 +1702,17 @@ class VarImportSessions(HanforVersioned, Pickleable):
         if not isinstance(me, cls):
             raise TypeError
 
-        if me.has_version_mismatch:
-            logging.info('`{}` needs upgrade `{}` -> `{}`'.format(
-                me,
-                me.hanfor_version,
-                __version__
-            ))
+        if me.outdated:
+            logging.info(f'`{me}` needs upgrade `{me.hanfor_version}` -> `{__version__}`')
             me.run_version_migrations()
             me.store()
 
         return me
 
     @classmethod
-    def load_for_app(cls, app):
+    def load_for_app(cls, session_base_path: str):
         var_import_sessions_path = os.path.join(
-            app.config['SESSION_BASE_FOLDER'],
+            session_base_path,
             'variable_import_sessions.pickle'
         )
         return VarImportSessions.load(var_import_sessions_path)
@@ -1735,14 +1741,8 @@ class VarImportSessions(HanforVersioned, Pickleable):
 
     def run_version_migrations(self):
         logging.info(
-            'Migrating `{}`:`{}`, from {} -> {}'.format(
-                self.__class__.__name__,
-                self.my_path,
-                self.hanfor_version,
-                __version__
-            )
-        )
-        for import_session in self.import_sessions:  # type: VarImportSession
+            f'Migrating `{self.__class__.__name__}`:`{self.my_path}`, from {self.hanfor_version} -> {__version__}')
+        for import_session in self.import_sessions:
             import_session.run_version_migrations()
         super().run_version_migrations()
 

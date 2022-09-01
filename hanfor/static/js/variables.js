@@ -737,46 +737,61 @@ $(document).ready(function () {
                 }
             },
             {
-                "data": "used_by",
+                "data": "constraints",
                 "targets": [3],
+                "render": function (data) {
+                    let result = '';
+
+                    $(data).each(function (id, name) {
+                        if (name.length > 0) {
+                            result += name;
+                        }
+                    });
+                    return result;
+                }
+            },
+            {
+                "data": "tags",
+                "targets": [4],
+                "render": function (data) {
+                    let result = '';
+
+                    $(data).each(function (id, name) {
+                        if (name.length > 0) {
+                            result += '<span class="badge bg-danger">' + name +
+                            '</span>';
+                        }
+                    });
+                    return result;
+                }
+            },
+            {
+                "data": "used_by",
+                "targets": [5],
                 "render": function (data, type, row) {
                     let result = '';
                     let search_all = '';
-                    if ($.inArray('Type_inference_error', row.tags) > -1) {
-                        result += '<span class="badge bg-danger">' +
-                            '<a href="#" class="variable_link" ' +
-                            'data-name="' + row.name + '" >Has type inference error</a>' +
-                            '</span> ';
-                    }
                     $(data).each(function (id, name) {
-                        if (name.length > 0) {
-                            let constraint_parent = is_constraint_link(name);
-                            if (constraint_parent !== null) {
-                                result += '<span class="badge bg-success">' +
-                                    '<a href="#" class="variable_link" ' +
-                                    'data-name="' + constraint_parent + '" >' + name + '</a>' +
-                                    '</span> ';
+                        if (name.length > 0 && !is_constraint_link(name)) {
+                            let search_query = '?command=search&col=2&q=%5C%22' + name + '%5C%22';
+                            result += '<span class="badge bg-info">' +
+                                '<a href="./' + search_query + '" target="_blank" class="link-light">' + name + '</a>' +
+                                '</span> ';
+                            if (search_all.length > 0) {
+                                search_all += '%3AOR%3A%5C%22' + name + '%5C%22';
                             } else {
-                                let search_query = '?command=search&col=2&q=%5C%22' + name + '%5C%22';
-                                result += '<span class="badge bg-info">' +
-                                    '<a href="./' + search_query + '" target="_blank">' + name + '</a>' +
-                                    '</span> ';
-                                if (search_all.length > 0) {
-                                    search_all += '%3AOR%3A%5C%22' + name + '%5C%22';
-                                } else {
-                                    search_all += '?command=search&col=2&q=%5C%22' + name + '%5C%22';
-                                }
+                                search_all += '?command=search&col=2&q=%5C%22' + name + '%5C%22';
                             }
                         }
                     });
                     if (result.length < 1) {
                         result += '<span class="badge bg-warning">' +
-                            '<a href="#">Not used</a>' +
+                            'unused' +
                             '</span></br>';
                     } else {
                         if (data.length > 1) {
                             result += '<span class="badge bg-info" style="background-color: #4275d8">' +
-                                '<a href="./' + search_all + '" target="_blank">Show all</a>' +
+                                '<a href="./' + search_all + '" target="_blank" class="link-light">Show all</a>' +
                                 '</span> ';
                         }
                     }
@@ -786,14 +801,14 @@ $(document).ready(function () {
             },
             {
                 "data": "script_results",
-                "targets": [4],
+                "targets": [6],
                 "render": function (data) {
                     return data;
                 }
             },
             {
                 "data": "used_by",
-                "targets": [5],
+                "targets": [7],
                 "visible": false,
                 "searchable": false,
                 "render": function (data) {
@@ -843,8 +858,9 @@ $(document).ready(function () {
             this.api().draw();
         }
     });
-    variables_table.column(4).visible(true);
-    variables_table.column(5).visible(false);
+    variables_table.column(6).visible(false);
+    variables_table.column(7).visible(false);
+
     new $.fn.dataTable.ColReorder(variables_table, {});
 
     let search_bar = $('#search_bar');

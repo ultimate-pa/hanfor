@@ -69,11 +69,11 @@ class SearchNode:
                             (
                                 # and token is left associative and precedence <= to that of prev_op,
                                 (token in SearchNode.leftAssoc
-                                and (SearchNode.precedenceOf[token] <= SearchNode.precedenceOf[prev_op]) )
+                                    and (SearchNode.precedenceOf[token] <= SearchNode.precedenceOf[prev_op]))
                             or
                                 # or token is right associative and its precedence < to that of prev_op,
                                 (token in SearchNode.rightAssoc
-                                and (SearchNode.precedenceOf[token] < SearchNode.precedenceOf[prev_op]) )
+                                    and (SearchNode.precedenceOf[token] < SearchNode.precedenceOf[prev_op]))
                             )
                     ):
                         # Pop last two subtrees and make them children of a new subtree (with prev_op as root).
@@ -95,7 +95,7 @@ class SearchNode:
             elif token == ")":
                 has_opening_match = False
 
-                # Search for opening paranthesis in op_stack.
+                # Search for opening parenthesis in op_stack.
                 while len(op_stack):
                     op = op_stack.pop()
                     if op == "(":
@@ -278,7 +278,7 @@ class QueryAPI(Ressource):
         self.store()
 
     def update_query(self, name):
-        """ Update a existing query.
+        """ Update an existing query.
         """
         raise NotImplementedError
 
@@ -302,7 +302,6 @@ class QueryAPI(Ressource):
         }
 
         return result
-
 
     @staticmethod
     def get_target_names():

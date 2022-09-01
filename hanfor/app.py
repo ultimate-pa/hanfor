@@ -14,7 +14,7 @@ from functools import wraps, update_wrapper
 import flask
 from werkzeug.exceptions import HTTPException
 
-from example_bp import example_bp
+from example_blueprint import example_blueprint
 
 from flask import Flask, render_template, request, jsonify, make_response, json
 from flask_debugtoolbar import DebugToolbarExtension
@@ -23,7 +23,7 @@ import reqtransformer
 import utils
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
-from reqtransformer import Requirement, VariableCollection, Variable, VarImportSessions
+from reqtransformer import Requirement, VariableCollection, Variable, VarImportSessions, Formalization
 from ressources import Report, Tags, Statistics, QueryAPI
 from ressources.simulator_ressource import SimulatorRessource
 from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, \
@@ -34,7 +34,7 @@ from patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
 app = Flask(__name__)
 app.config.from_object('config')
 
-app.register_blueprint(example_bp.blueprint, url_prefix='/example_bp')
+app.register_blueprint(example_blueprint.example_bp, url_prefix='/example_blueprint')
 
 
 if 'USE_SENTRY' in app.config and app.config['USE_SENTRY']:
@@ -534,17 +534,19 @@ def api(resource, command):
                 pass
 
             return jsonify(result)
+
         elif command == 'del_constraint':
             result = {'success': True, 'errormsg': ''}
             var_name = request.form.get('name', '').strip()
             constraint_id = request.form.get('constraint_id', '').strip()
 
             var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
-            var_collection.del_constraint(var_name=var_name, constraint_id=int(constraint_id))
+            var_collection.del_constraint(var_name=var_name, constraint_id=constraint_id)
             var_collection.collection[var_name].reload_constraints_type_inference_errors(var_collection)
             var_collection.store()
             result['html'] = utils.formalizations_to_html(app, var_collection.collection[var_name].get_constraints())
             return jsonify(result)
+
         elif command == 'del_var':
             result = {'success': True, 'errormsg': ''}
             var_name = request.form.get('name', '').strip()
@@ -662,8 +664,8 @@ def api(resource, command):
 
     return jsonify({
         'success': False,
-        'errormsg': 'sorry, could not parse your request.'
-    }), 200
+        'errormsg': 'This is not an api-enpoint.'
+    }), 404
 
 
 @app.route('/variable_import/<id>', methods=['GET'])
@@ -678,7 +680,7 @@ def var_import_session(session_id, command):
     result = {
         'success': False,
     }
-    var_import_sessions = VarImportSessions.load_for_app(app)
+    var_import_sessions = VarImportSessions.load_for_app(app.config['SESSION_BASE_FOLDER'])
 
     if command == 'get_var':
         result = dict()
@@ -781,7 +783,7 @@ def site(site):
                 only_names=True,
                 with_revisions=True
             )
-            running_import_sessions = VarImportSessions.load_for_app(app).info()
+            running_import_sessions = VarImportSessions.load_for_app(app.config['SESSION_BASE_FOLDER']).info()
             return render_template(
                 '{}.html'.format(site + '/' + site),
                 available_sessions=available_sessions,
@@ -965,6 +967,18 @@ def requirements_version_migrations(app, args):
                     setattr(f, "id", i)
         except Exception as e:
             logging.info(f'Something when updating formalisations went terribly wrong `{req.rid}:\n {e}`')
+        # ensure some well-formedness of requirements objects
+        for k, f in req.formalizations.items():
+            if not isinstance(f, Formalization):
+                del req.formalizations[k]
+                changes = True
+            else:
+                if not f.scoped_pattern:
+                    f.scoped_pattern = reqtransformer.ScopedPattern()
+                    changes = True
+                if not f.scoped_pattern.scope or not f.scoped_pattern.pattern:
+                    f.scoped_pattern = reqtransformer.ScopedPattern()
+                    changes = True
         if args.reload_type_inference:
             req.reload_type_inference(var_collection, app)
         if changes:
@@ -1047,7 +1061,7 @@ def set_session_config_vars(args, HERE):
 
 
 def init_import_sessions():
-    # Check for Import sessions
+    """Create import session file"""
     var_import_sessions_path = os.path.join(app.config['SESSION_BASE_FOLDER'], 'variable_import_sessions.pickle')
     try:
         VarImportSessions.load(var_import_sessions_path)
@@ -1057,9 +1071,7 @@ def init_import_sessions():
 
 
 def init_meta_settings():
-    """ Initializes META_SETTINGS_PATH and creates a new meta_settings dict, if none is existent.
-
-    """
+    """Create meta setting file"""
     app.config['META_SETTINGS_PATH'] = os.path.join(app.config['SESSION_FOLDER'], 'meta_settings.pickle')
     if not os.path.exists(app.config['META_SETTINGS_PATH']):
         meta_settings = dict()

@@ -51,7 +51,7 @@ class TestFormalizationProcess(TestCase):
                 'id': 'SysRS FooXY_42',
                 'row_idx': '0',
                 'update_formalization': 'true',
-                'tags': json.dumps({"tag1": "comment 1 with some character", "tag2": "äüö%&/+= comment330+-# chars"}),
+                'tags': json.dumps({"tag1": "comment 1 with some character", "tag2": "äüö%&/+= coment330+-# chars"}),
                 'status': 'Todo',
                 'formalizations': json.dumps(update)
             }
@@ -66,11 +66,9 @@ class TestFormalizationProcess(TestCase):
             ]
         )
         self.assertListEqual(result.json['vars'], ['bar', 'foo', 'ham', 'spam', 'the_world_sinks'])
-        self.assertListEqual(result.json['tags'], ["tag1", "tag2"])
-        self.assertDictEqual(result.json['tags_comments'],
-                             {"tag1": "comment 1 with some character", "tag2": "äüö%&/+= comment330+-# chars"})
-        result = self.mock_hanfor.app.get('api/tag/get')
-        self.assertTrue("tag1" in [tag["name"] for tag in result.json["data"] if "name" in tag])
+        self.assertListEqual(result.json['tags'], ["tag1", "tag2", 'unknown_type', 'has_formalization'])
+        self.assertDictContainsSubset({"tag1": "comment 1 with some character",
+                                       "tag2": "äüö%&/+= coment330+-# chars"}, result.json['tags_comments'])
 
     def test_changing_var_in_formalization(self):
         self.mock_hanfor.startup_hanfor('simple.csv', 'simple', [])
@@ -194,3 +192,116 @@ class TestFormalizationProcess(TestCase):
         # Check if content is correct.
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
         self.assertEqual(result.json['status'], 'Done')
+
+    def test_multi_update(self):
+        self.mock_hanfor.startup_hanfor('simple.csv', 'simple', [])
+        result = self.mock_hanfor.app.post(
+            'api/req/multi_update',
+            data={
+                'add_tag': "some-mass-added-tag",
+                'remove_tag': "",
+                'set_status': "Done",
+                'selected_ids': json.dumps(["SysRS FooXY_42", "SysRS FooXY_91"])
+            }
+        )
+        self.assertEqual(result.status, "200 OK")
+
+        # Check if content is correct.
+        result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
+        self.assertEqual(result.status, "200 OK")
+        self.assertIn("some-mass-added-tag", result.json['tags'])
+        self.assertIn("Done", result.json['status'])
+
+        result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_91')
+        self.assertEqual(result.status, "200 OK")
+        self.assertIn("some-mass-added-tag", result.json['tags'])
+        self.assertIn("Done", result.json['status'])
+
+        # tests the other way round
+        result = self.mock_hanfor.app.post(
+            'api/req/multi_update',
+            data={
+                'add_tag': "",
+                'remove_tag': "some-mass-added-tag",
+                'set_status': "Todo",
+                'selected_ids': json.dumps(["SysRS FooXY_42", "SysRS FooXY_91"])
+            }
+        )
+        self.assertEqual(result.status, "200 OK")
+
+        # Check if content is correct.
+        result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
+        self.assertEqual(result.status, "200 OK")
+        self.assertEqual([], result.json['tags'])
+        self.assertEquals("Todo", result.json['status'])
+
+        result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_91')
+        self.assertEqual(result.status, "200 OK")
+        self.assertEqual(["unseen"], result.json['tags'])
+        self.assertEquals("Todo", result.json['status'])
+
+        # test multi updating with no content selected
+        result = self.mock_hanfor.app.post(
+            'api/req/multi_update',
+            data={
+                'add_tag': "some-mass-added-tag",
+                'remove_tag': "",
+                'set_status': "Todo",
+                'selected_ids': json.dumps([])
+            }
+        )
+        self.assertEqual(result.status, "200 OK")
+        # self.assertEqual(result.json['errormsg'], 'No requirements selected.')
+        self.assertEqual(result.json['errormsg'], '')
+        self.assertEqual(result.json['success'], True)
+
+        # Check to see the new tag has not been added to the requirements.
+        result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
+        self.assertEqual(result.status, "200 OK")
+        self.assertEqual([], result.json['tags'])
+        self.assertEquals("Todo", result.json['status'])
+
+        result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_91')
+        self.assertEqual(["unseen"], result.json['tags'])
+        self.assertEqual(result.status, "200 OK")
+        self.assertEquals("Todo", result.json['status'])
+
+    def test_get_available_guesses(self):
+        self.mock_hanfor.startup_hanfor('simple.csv', 'simple', [])
+        result = self.mock_hanfor.app.post(
+            'api/req/get_available_guesses',
+            data={
+                'requirement_id': 'SysRS FooXY_42',
+            }
+        )
+        self.assertEqual(result.status, "200 OK")
+        result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
+        self.assertEqual(result.status, "200 OK")
+
+    def test_add_formalization_from_guess(self):
+        self.mock_hanfor.startup_hanfor('simple.csv', 'simple', [])
+
+        result = self.mock_hanfor.app.post(
+            'api/req/add_formalization_from_guess',
+            data={
+                'requirement_id': 'SysRS FooXY_42',
+                'scope': 'GLOBALLY',
+                'pattern': 'Response',
+                'mapping': '{"R": "", "S": ""}'
+            }
+        )
+        self.assertEqual(result.status, "200 OK")
+        result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
+        self.assertEqual(result.status, "200 OK")
+
+
+
+
+
+
+
+
+
+
+
+

@@ -507,7 +507,7 @@ function add_var_autocomplete(dom_obj) {
     const textcomplete = new Textcomplete(new TextareaEditor(dom_obj),
         [
             {
-                match: /(^|\s|[!=&\|>]+)(\w+)$/,
+                match: /(|\s|[!=&\|>]+)(\w+)$/,
                 index: 2,
                 search: function (term, callback, match) {
                     let include_elems = fuzzy_search(term);
@@ -1115,32 +1115,13 @@ function load_datatable() {
                 $(data).each(function (id, tag) {
                     if (tag.length > 0) {
                         result += '<span class="badge" style="background-color: ' + get_tag_color(tag) + '">' +
-                            utils.escapeHtml(tag) + '</span></br>';
+                            utils.escapeHtml(tag) + '</span></br>' + " ";
                         // Add tag to available tags
                         if (available_tags.indexOf(tag) <= -1) {
                             available_tags.push(tag);
                         }
                     }
                 });
-                if (row.formal.length > 0) {
-                    let tagged_formal = false;
-                    let tagged_incomplete = false;
-
-                    $.each(row.formal, function (index, formalization) {
-                        if ((formalization.length > 0) && (formalization !== '// None, // not formalizable')
-                        ) {
-                            if (!tagged_formal) {
-                                tagged_formal = true;
-                                result += '<span class="badge bg-success">has_formalization</span></br>';
-                            }
-                        } else {
-                            if (!tagged_incomplete) {
-                                tagged_incomplete = true;
-                                result += '<span class="badge bg-warning">incomplete_formalization</span></br>';
-                            }
-                        }
-                    });
-                }
                 return result;
             }
 
@@ -1262,7 +1243,7 @@ function init_modal() {
         add_formalization();
     });
 
-    // Listener for adding new geussed formalizations.
+    // Listener for adding new guessed formalizations.
     $('#add_gussed_formalization').click(function () {
         fetch_available_guesses();
     });
