@@ -446,8 +446,8 @@ class Requirement(HanforVersioned, Pickleable):
             self.tags['unknown_type'] = self.format_unknown_type_tag(vars_with_unknown_type)
 
         if (self.formalizations[formalization_id].scoped_pattern.scope != Scope.NONE and
-            self.formalizations[formalization_id].scoped_pattern.pattern.name != "NotFormalizable"):
-            self.tags['has_formalization'] = ""
+                self.formalizations[formalization_id].scoped_pattern.pattern.name != "NotFormalizable"):
+                self.tags['has_formalization'] = ""
         else:
             self.tags['incomplete_formalization'] = self.format_incomplete_formalization_tag(formalization_id)
             
@@ -594,7 +594,7 @@ class Formalization(HanforVersioned):
         :rtype: dict
         """
         for key, expression_string in mapping.items():
-            #if len(expression_string) == 0:
+            # if len(expression_string) == 0:
             #    continue
             expression = Expression()
             expression.set_expression(expression_string, variable_collection, rid)
@@ -1372,7 +1372,7 @@ class Variable(HanforVersioned):
         try:
             del self.constraints[id]
             return True
-        except Exception:
+        except Exception as e:
             logging.debug(f'Constraint id `{id}` not found in var `{self.name}`')
             return False
 
@@ -1435,14 +1435,14 @@ class Variable(HanforVersioned):
 
         :return: updated VariableCollection
         """
-        logging.debug('Updating constraints for variable `{}`.'.format(self.name))
+        logging.debug(f"Updating constraints for variable `{self.name}`.")
         self.remove_tag('Type_inference_error')
         if variable_collection is None:
             variable_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
 
         for constraint in constraints.values():
-            logging.debug('Updating formalization No. {}.'.format(constraint['id']))
-            logging.debug('Scope: `{}`, Pattern: `{}`.'.format(constraint['scope'], constraint['pattern']))
+            logging.debug(f"Updating formalization No. {constraint['id']}.")
+            logging.debug(f"Scope: `{constraint['scope']}`, Pattern: `{constraint['pattern']}`.")
             try:
                 variable_collection = self.update_constraint(constraint_id=int(constraint['id']),
                                                              scope_name=constraint['scope'],
@@ -1450,7 +1450,7 @@ class Variable(HanforVersioned):
                                                              mapping=constraint['expression_mapping'],
                                                              variable_collection=variable_collection)
             except Exception as e:
-                logging.error('Could not update Constraint: {}'.format(e.__str__()))
+                logging.error(f'Could not update Constraint: {e.__str__()}.')
                 raise e
 
         return variable_collection
