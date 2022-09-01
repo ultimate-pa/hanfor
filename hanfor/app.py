@@ -1179,6 +1179,7 @@ def startup_hanfor(args, HERE):
     elif args.input_csv is not None:
         logging.info('Check CSV integrity.')
         current_hash = hash_file_sha1(args.input_csv)
+        #todo
         if current_hash != session_dict['csv_hash']:
             print('Sha-1 hash mismatch between: \n`{}`\nand\n`{}`.'.format(
                 session_dict['csv_input_file'],

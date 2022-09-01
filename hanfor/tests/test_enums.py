@@ -467,57 +467,21 @@ class TestEnums(TestCase):
         self.assertNotIn('CONST my_third_enum_foo IS 12.123', req_file_content)
 
     def test_add_var_with_no_name(self):
+        self.mock_hanfor.startup_hanfor('simple.csv', 'simple_enum', [])
         response = self.mock_hanfor.app.post(
             'api/var/add_new_variable', data={'name': '', 'type': 'INT'}
         )
         self.assertEqual(response.json['success'], False)
-        # self.assertEqual(response.json['errormsg'], 'Illegal Variable name. Must Be at least 1 Char and only alphanum + { -, _}')
-
-        # We add 1 enumerator for the var with no name.
-        # response = self.mock_hanfor.app.post(
-        #     'api/var/update',
-        #     data={
-        #         'name': '',
-        #         'name_old': '',
-        #         'type': 'INT',
-        #         'const_val': '',
-        #         'const_val_old': '',
-        #         'type_old': 'INT',
-        #         'occurrences': '',
-        #         'constraints': json.dumps({}),
-        #         'updated_constraints': False,
-        #         'enumerators': json.dumps(["foo", "12.123"])
-        #     }
-        # )
-        # self.assertEqual(response.json['success'], False)
-        #
-        # updated_vars = self.mock_hanfor.app.get('api/var/gets').json['data']
+        # todo: Check well-formed input and return the right status code
+        # self.assertEqual(response.status_code, 422)
 
     def test_add_oddly_named_var(self):
         response = self.mock_hanfor.app.post(
             'api/var/add_new_variable', data={'name': '._', 'type': 'INT'}
         )
         self.assertEqual(response.json['success'], False)
-        # self.assertEqual(response.json['errormsg'], 'Illegal Variable name. Must Be at least 1 Char and only alphanum + { -, _}')
-
-        # We add 1 enumerator for the var with no name.
-        response = self.mock_hanfor.app.post(
-            'api/var/update',
-            data={
-                'name': '._',
-                'name_old': '._',
-                'type': 'INT',
-                'const_val': '',
-                'const_val_old': '',
-                'type_old': 'INT',
-                'occurrences': '',
-                'constraints': json.dumps({}),
-                'updated_constraints': False,
-                'enumerators': json.dumps(["foo", "12.123"])
-            }
-        )
-        self.assertEqual(response.json['success'], False)
-        self.assertEqual(response.json['errormsg'], "KeyError('SESSION_VARIABLE_COLLECTION')") # IS THIS OK??
+        # todo: Check well-formed input and return the right status code
+        # self.assertEqual(response.status_code, 422)
 
 
     def apply_update(self, update):
