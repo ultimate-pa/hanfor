@@ -313,6 +313,46 @@ class TestEnums(TestCase):
         self.assertIn('CONST my_first_enum_bar IS 11.123', req_file_content)
         self.assertIn('CONST my_first_enum_foo IS 12.123', req_file_content)
 
+    def test_get_enumerators(self):
+        self.mock_hanfor.startup_hanfor('simple.csv', 'simple_enum', [])
+
+        # Fetch the initial vars.
+        initial_vars = self.mock_hanfor.app.get('api/var/gets').json['data']  # type: list
+
+        # We create a new ENUM "my_third_enum"
+        response = self.mock_hanfor.app.post(
+            'api/var/add_new_variable', data={'name': 'my_third_enum', 'type': 'ENUM_REAL'}
+        )
+
+        self.assertEqual(response.json['success'], True)
+
+        # We add 2 enumerators for "my_third_enum".
+        response = self.mock_hanfor.app.post(
+            'api/var/update',
+            data={
+                'name': 'my_third_enum',
+                'name_old': 'my_third_enum',
+                'type': 'ENUM_REAL',
+                'const_val': '',
+                'const_val_old': '',
+                'type_old': 'ENUM_REAL',
+                'occurrences': '',
+                'constraints': json.dumps({}),
+                'updated_constraints': False,
+                'enumerators': json.dumps([["foo", "12.123"], ["bar", "11.123"]])
+            }
+        )
+        self.assertEqual(response.json['success'], True)
+
+        response = self.mock_hanfor.app.get(
+            'api/var/get_enumerators',
+            data={
+                'name': 'my_third_enum'
+            }
+        )
+        self.assertEqual(response.json['enumerators'][0][0], 'my_third_enum_bar')
+        self.assertEqual(response.json['enumerators'][1][0], 'my_third_enum_foo')
+
     def test_delete_var(self):
         self.mock_hanfor.startup_hanfor('simple.csv', 'simple_enum', [])
 
@@ -392,20 +432,6 @@ class TestEnums(TestCase):
         req_file_content = self.mock_hanfor.app.get('/api/tools/req_file').data.decode('utf-8').replace('\r\n', '\n')
         self.assertIn('CONST my_third_enum_bar IS 11.123', req_file_content)
         self.assertIn('CONST my_third_enum_foo IS 12.123', req_file_content)
-
-        # We get the enums for the newly added variable
-        response = self.mock_hanfor.app.get(
-            'api/var/get_enumerators',
-            data={
-                'name': 'my_third_enum'
-            }
-        )
-        self.assertEqual(response.json['enumerators'][0][0], 'my_third_enum_bar')
-        self.assertEqual(response.json['enumerators'][1][0], 'my_third_enum_foo')
-
-
-
-
 
         # We remove one of the added vars
         response = self.mock_hanfor.app.post(
