@@ -519,7 +519,6 @@ class TestEnums(TestCase):
         self.assertEqual(response.json['success'], False)
         self.assertEqual(response.json['errormsg'], "KeyError('SESSION_VARIABLE_COLLECTION')")
 
-
     def apply_update(self, update):
         result = self.mock_hanfor.app.post(
             'api/req/update',
