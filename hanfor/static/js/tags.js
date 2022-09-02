@@ -47,12 +47,12 @@ $(document).ready(function () {
                 $(data).each(function (id, name) {
                     if (name.length > 0) {
                         search_query = '?command=search&col=2&q=%5C%22' + name + '%5C%22';
-                        result += '<span class="badge bg-info" style="background-color: ' + row.color + '">' + '<a href="' + base_url + search_query + '" target="_blank" class="link-light">' + name + '</a>' + '</span> ';
+                        result += '<span class="badge bg-info">' + '<a href="' + base_url + search_query + '" target="_blank" class="link-light">' + name + '</a>' + '</span> ';
                     }
                 });
                 if (data.length > 1 && result.length > 0) {
                     const search_all = '?command=search&col=5&q=%5C%22' + row.name + '%5C%22';
-                    result += '<span class="badge bg-info" style="background-color: #4275d8">' + '<a href="./' + search_all + '" target="_blank" class="link-light">Show all</a>' + '</span> ';
+                    result += '<span class="badge bg-info" >' + '<a href="./' + search_all + '" target="_blank" class="link-light">Show all</a>' + '</span> ';
                 }
                 return result;
             }
