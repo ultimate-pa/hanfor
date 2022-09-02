@@ -1542,11 +1542,11 @@ $(document).ready(function () {
         });
     })
 
-// Bind formalization update.
+    // Bind formalization update.
     body.on('change', '.formalization_selector, .reqirement-variable, .req_var_type', function () {
         update_formalization();
     });
-// Bind formalization variable update.
+    // Bind formalization variable update.
     body.on('change', '.formalization_selector', function () {
         update_vars();
     });
