@@ -923,6 +923,12 @@ def metasettings_version_migration(app, args):
                 meta_settings["tag_descriptions"][tag] = ""
             if tag not in meta_settings["tag_internal"]:
                 meta_settings["tag_internal"][tag] = False
+
+    # TODO: Hacky. @Vincent pls fix
+    for tag in meta_settings['tag_colors'].keys():
+        if tag not in meta_settings["tag_internal"]:
+            meta_settings["tag_internal"][tag] = False
+
     meta_settings.update_storage()
 
 
