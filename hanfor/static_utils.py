@@ -163,3 +163,4 @@ def try_cast_string(data: Any) -> str:
         return str(data)
     except TypeError as e:
         logging.warning(f"Failed string cast:\n {e}")
+    return "CSV-None"
