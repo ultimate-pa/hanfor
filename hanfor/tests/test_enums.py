@@ -476,6 +476,7 @@ class TestEnums(TestCase):
         # self.assertEqual(response.status_code, 422)
 
     def test_add_oddly_named_var(self):
+        self.mock_hanfor.startup_hanfor('simple.csv', 'simple_enum', [])
         response = self.mock_hanfor.app.post(
             'api/var/add_new_variable', data={'name': '._', 'type': 'INT'}
         )
