@@ -23,7 +23,7 @@ from lark import LarkError
 import boogie_parsing
 from boogie_parsing import run_typecheck_fixpoint, BoogieType
 from patterns import PATTERNS
-from static_utils import choice, get_filenames_from_dir, replace_prefix
+from static_utils import choice, get_filenames_from_dir, replace_prefix, try_cast_string
 from threading import Thread
 from typing import Dict, Tuple
 
@@ -100,7 +100,6 @@ class CsvConfig:
     tags_header: str = None
     status_header: str = None
     import_formalizations: bool = False
-
 
 class RequirementCollection(HanforVersioned, Pickleable):
 
@@ -249,8 +248,8 @@ class RequirementCollection(HanforVersioned, Pickleable):
             # Todo: Use utils.slugify to make the rid save for a filename.
             requirement = Requirement(
                 id=row[self.csv_meta.id_header],
-                description=row[self.csv_meta.desc_header],
-                type_in_csv=row[self.csv_meta.type_header],
+                description=try_cast_string(row[self.csv_meta.desc_header]),
+                type_in_csv=try_cast_string(row[self.csv_meta.type_header]),
                 csv_row=row,
                 pos_in_csv=index
             )
@@ -283,7 +282,7 @@ class RequirementCollection(HanforVersioned, Pickleable):
 
 
 class Requirement(HanforVersioned, Pickleable):
-    def __init__(self, id, description, type_in_csv, csv_row, pos_in_csv):
+    def __init__(self, id: str, description: str, type_in_csv: str, csv_row: dict[str, str], pos_in_csv: int):
         HanforVersioned.__init__(self)
         Pickleable.__init__(self, None)
         self.rid: str = id
@@ -309,7 +308,8 @@ class Requirement(HanforVersioned, Pickleable):
         d = {
             'id': self.rid,
             'desc': self.description,
-            'type': self.type_in_csv if type(self.type_in_csv) is str else self.type_in_csv[0],
+            # Typecheck is for downwards compatibility (please do not remove)
+            'type': self.type_in_csv if isinstance(self.type_in_csv, str) else "None",
             'tags': list(self.tags.keys()), 
             'tags_comments': self.tags,
             'formal': [f.get_string() for f in self.formalizations.values()],

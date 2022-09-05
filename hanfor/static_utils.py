@@ -1,8 +1,10 @@
 import hashlib
+import logging
 import os
 import pickle
 import re
 import shlex
+from typing import Any
 
 import colorama
 
@@ -154,3 +156,10 @@ def get_valid_filename(ugly_string, collision_candidates=()):
         prefix = '_' + str(counter)
         counter += 1
     return result + prefix
+
+
+def try_cast_string(data: Any) -> str:
+    try:
+        return str(data)
+    except TypeError as e:
+        logging.warning(f"Failed string cast:\n {e}")
