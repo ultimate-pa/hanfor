@@ -1150,7 +1150,7 @@ def set_app_config_paths(args, HERE):
     app.config['TEMPLATES_FOLDER'] = os.path.join(HERE, 'templates')
 
 
-def startup_hanfor(args, HERE):
+def startup_hanfor(args, HERE) -> bool:
     """ Setup session config Variables.
      Trigger:
      Revision creation/loading.
@@ -1159,6 +1159,7 @@ def startup_hanfor(args, HERE):
      Consistency checks.
 
     :param args:
+    :returns: True if startup should continue
     """
     set_session_config_vars(args, HERE)
     set_app_config_paths(args, HERE)
@@ -1185,14 +1186,12 @@ def startup_hanfor(args, HERE):
         csv_hash = hash_file_sha1(args.input_csv)
         if 'csv_hash' not in session_dict:
             session_dict['csv_hash'] = csv_hash
-        #todo
         if csv_hash != session_dict['csv_hash']:
             print(f"Sha-1 hash mismatch between: \n`{session_dict['csv_input_file']}`\nand\n`{args.input_csv}`.")
             print('Consider starting a new revision.\nShould I stop loading?')
             if choice(['Yes', 'No'], default='Yes') == 'Yes':
-                exit(0)
-            else:
-                session_dict['csv_hash'] = csv_hash
+                return False
+            session_dict['csv_hash'] = csv_hash
         session_dict['csv_input_file'] = args.input_csv
 
     app.config['CSV_INPUT_FILE'] = os.path.basename(session_dict['csv_input_file'])
@@ -1215,6 +1214,7 @@ def startup_hanfor(args, HERE):
 
     # Run consistency checks.
     varcollection_consistency_check(app, args)
+    return True
 
 
 def fetch_hanfor_version():
@@ -1264,7 +1264,5 @@ if __name__ == '__main__':
 
     # Parse python args and startup hanfor session.
     args = utils.HanforArgumentParser(app).parse_args()
-    startup_hanfor(args, HERE)
-
-    # Run the app
-    app.run(**get_app_options())
+    if startup_hanfor(args, HERE):
+        app.run(**get_app_options())

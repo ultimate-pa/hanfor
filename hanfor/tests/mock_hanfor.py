@@ -54,7 +54,7 @@ class MockHanfor:
         app.config['LOG_LEVEL'] = 'DEBUG'
 
     @patch('builtins.input', mock_user_input)
-    def startup_hanfor(self, csv_file, session_tag, user_mock_answers):
+    def startup_hanfor(self, csv_file, session_tag, user_mock_answers) -> bool:
         global mock_results
         global count
         count = -1
@@ -63,8 +63,9 @@ class MockHanfor:
         args = utils.HanforArgumentParser(app).parse_args([session_tag, '-c', csv_file])
         mock_results = user_mock_answers
 
-        startup_hanfor(args, self.here)
+        success = startup_hanfor(args, self.here)
         app.config['TEMPLATES_FOLDER'] = os.path.join(self.here, '..', 'templates')
+        return success
 
     def tearDown(self):
         # Clean test dir.

@@ -1,0 +1,3 @@
+"id_header","desc_header","formal_header","type_header"
+"SysRS FooXY_91","if life gives you melons, make melonade","Globally, it is always the case that POINT_OF_VIEW==BRIGHT_SIDE_OF_LIVE","req"
+"SysRS FooXY_42","Dont worry, be happy","Globally, it is never the case, that WORRY holds; Globally, it is always the case, that HAPPY holds.","req"

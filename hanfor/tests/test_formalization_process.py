@@ -295,7 +295,10 @@ class TestFormalizationProcess(TestCase):
         self.assertEqual(result.status, "200 OK")
 
 
-
+    def test_update_csv_hashcollision(self):
+        self.mock_hanfor.startup_hanfor('simple.csv', 'simple', [])
+        success = self.mock_hanfor.startup_hanfor('simple_hashcollision.csv', 'simple', [1])
+        self.assertTrue(success, "Startup procedure was not successful")
 
 
 
