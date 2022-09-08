@@ -39,3 +39,22 @@ true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(!Q && S)⌉;⌈(!Q &&
 ![](../img/patterns/ConstrainedChainPattern_Between_2.svg)
 
 
+
+### ConstrainedChain Between
+```
+Between "P" and "Q", it is always the case that if "R" holds, then "S" eventually holds and is succeeded by "T" where "U" does not hold between "S" and "T"
+```
+
+#### Countertraces
+```
+true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !S)⌉;⌈Q⌉;true
+true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(!Q && S)⌉;⌈(!Q && !T)⌉;⌈Q⌉;true
+true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(!Q && S)⌉;⌈(!Q && !T)⌉;⌈(!Q && (!T && U))⌉;⌈!Q⌉;⌈(!Q && T)⌉;⌈!Q⌉;⌈Q⌉;true
+```
+
+#### Phase Event Automata
+![](../img/patterns/ConstrainedChainPattern_Between_0.svg)
+![](../img/patterns/ConstrainedChainPattern_Between_1.svg)
+![](../img/patterns/ConstrainedChainPattern_Between_2.svg)
+
+
