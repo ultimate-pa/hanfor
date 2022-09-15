@@ -985,6 +985,13 @@ def requirements_version_migrations(app, args):
                 if not f.scoped_pattern.scope or not f.scoped_pattern.pattern:
                     f.scoped_pattern = reqtransformer.ScopedPattern()
                     changes = True
+            # Add tags for requirements with (incomplete) formalizations.
+            if f.scoped_pattern.scope != reqtransformer.Scope.NONE and f.scoped_pattern.pattern.name != "NotFormalizable":
+                req.tags['has_formalization'] = ""
+                changes = True
+            else:
+                req.tags['incomplete_formalization'] = req.format_incomplete_formalization_tag(f.id)
+                changes = True
         if args.reload_type_inference:
             req.reload_type_inference(var_collection, app)
         if changes:
