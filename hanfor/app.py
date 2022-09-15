@@ -36,7 +36,6 @@ app.config.from_object('config')
 
 app.register_blueprint(example_blueprint.example_bp, url_prefix='/example_blueprint')
 
-
 if 'USE_SENTRY' in app.config and app.config['USE_SENTRY']:
     import sentry_sdk
     from sentry_sdk.integrations.flask import FlaskIntegration
@@ -986,7 +985,8 @@ def requirements_version_migrations(app, args):
                     f.scoped_pattern = reqtransformer.ScopedPattern()
                     changes = True
             # Add tags for requirements with (incomplete) formalizations.
-            if f.scoped_pattern.scope != reqtransformer.Scope.NONE and f.scoped_pattern.pattern.name != "NotFormalizable":
+            if f.scoped_pattern.scope != reqtransformer.Scope.NONE and \
+                    f.scoped_pattern.pattern.name != "NotFormalizable":
                 req.tags['has_formalization'] = ""
                 changes = True
             else:

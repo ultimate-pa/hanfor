@@ -232,7 +232,7 @@ class TestFormalizationProcess(TestCase):
         # Check if content is correct.
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
         self.assertEqual(result.status, "200 OK")
-        self.assertEqual([], result.json['tags'])
+        self.assertNotIn("some-mass-added-tag", result.json['tags'])
         self.assertEquals("Todo", result.json['status'])
 
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_91')
@@ -258,7 +258,7 @@ class TestFormalizationProcess(TestCase):
         # Check to see the new tag has not been added to the requirements.
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
         self.assertEqual(result.status, "200 OK")
-        self.assertEqual([], result.json['tags'])
+        self.assertNotIn("some-mass-added-tag", result.json['tags'])
         self.assertEquals("Todo", result.json['status'])
 
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_91')
