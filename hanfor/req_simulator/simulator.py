@@ -243,11 +243,13 @@ class Simulator:
         return result
 
     def check_sat(self) -> bool:
-        if not self.time_steps[-1] > 0.0:
-            raise ValueError('Time step must be greater than zero.')
-
         self.sat_results = []
         self.sat_error = None
+
+        if not self.time_steps[-1] > 0.0:
+            self.sat_error = 'Time step must be greater than zero.'
+            #raise ValueError('Time step must be greater than zero.')
+            return False
 
         # primed_vars = {}
         # primed_vars_mapping = {}
