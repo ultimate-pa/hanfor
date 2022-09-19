@@ -230,8 +230,15 @@ class Simulator:
             # Check whether at least one transition is enabled.
             # If not store an error message.
             if len(result_) <= 0:
-                reason = 'inconsistency' if len(transitions) <= 0 else \
-                    'unrealizable input, ' + str(get_unsat_core(conjunctive_partition(last_fail)))
+                reason = ''
+                if len(transitions) <= 0:
+                    reason += 'inconsistency'
+                else:
+                    core = '\n' + ', '.join([f.serialize() for f in get_unsat_core(conjunctive_partition(last_fail))])
+                    reason += 'unrealizable input, ' + core
+
+                #reason = 'inconsistency' if len(transitions) <= 0 else \
+                #    'unrealizable input, ' + get_unsat_core(conjunctive_partition(last_fail))
 
                 self.sat_error = 'Requirement violation: %s, Formalization: %s, Countertrace: %s\nReason: %s' % (
                     self.peas[i].requirement.rid, self.peas[i].formalization.id, self.peas[i].countertrace_id, reason)
@@ -373,9 +380,11 @@ class Simulator:
             else:
                 reason += 'inconsistency' if self.current_phases[-1][0] == None else 'rt-inconsistency'
 
+            core = '\n' + ', '.join([f.serialize() for f in get_unsat_core(conjunctive_partition(self.last_fail))])
+
             self.sat_error = 'Requirement violation: %s, Formalization: %s, Countertrace: %s\nReason: %s, %s' % (
                 self.peas[i].requirement.rid, self.peas[i].formalization.id, self.peas[i].countertrace_id,
-                reason, get_unsat_core(conjunctive_partition(self.last_fail)))
+                reason, core)
 
         return result
 
