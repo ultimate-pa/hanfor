@@ -7,6 +7,7 @@ Chart.register(...registerables, annotationPlugin)
 
 function init_simulator_modal(data) {
     const simulator_modal = $(data['html'])
+
     const modal_title_span = simulator_modal.find('#simulator-modal-title span')
     const chart_canvas = simulator_modal.find('#chart-canvas')
     const scenario_save_btn = simulator_modal.find('#simulator-scenario-save-btn')
@@ -213,10 +214,9 @@ function init_simulator_modal(data) {
         })
     })
 
-    //simulator_modal.modal('show')
     Modal.getOrCreateInstance(simulator_modal).show()
 
-    simulator_modal.on('hidden.bs.modal', function () {
+    simulator_modal[0].addEventListener('hidden.bs.modal', function () {
         $('#simulator_modal').remove()
     })
 }

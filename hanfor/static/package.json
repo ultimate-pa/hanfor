@@ -18,7 +18,7 @@
     "@textcomplete/textarea": "^0.1.12",
     "autosize": "^4.0.2",
     "awesomplete": "^1.1.5",
-    "bootstrap": "^5.2.0",
+    "bootstrap": "^5.2.1",
     "chart.js": "^3.7.1",
     "chartjs-plugin-annotation": "^1.4.0",
     "cytoscape": "^3.2.0",
