@@ -416,10 +416,11 @@ function add_constraint() {
         // Update var table on success or show an error message.
         function (data) {
             var_modal_content.LoadingOverlay('hide', true);
+            let constraint = $(data['html'])
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
-                $('#formalization_accordion').html(data['html']);
+                constraint.appendTo('#formalization_accordion');
             }
         }).done(function () {
         update_displayed_constraint_inputs();

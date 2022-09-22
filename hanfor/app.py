@@ -511,9 +511,9 @@ def api(resource, command):
             var_name = request.form.get('name', '').strip()
 
             var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
-            var_collection.add_new_constraint(var_name=var_name)
+            cid = var_collection.add_new_constraint(var_name=var_name)
             var_collection.store()
-            result['html'] = utils.formalizations_to_html(app, var_collection.collection[var_name].constraints)
+            result['html'] = utils.formalizations_to_html(app, {cid: var_collection.collection[var_name].constraints[cid]})
             return jsonify(result)
         elif command == 'get_constraints_html':
             result = {

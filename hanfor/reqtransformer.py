@@ -1366,7 +1366,7 @@ class Variable(HanforVersioned):
         """
         id = self._next_free_constraint_id()
         self.constraints[id] = Formalization(id)
-        return id, self.constraints[id]
+        return id
 
     def del_constraint(self, id):
         try:
