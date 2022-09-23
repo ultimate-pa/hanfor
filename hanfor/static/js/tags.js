@@ -9,7 +9,7 @@ require('awesomplete/awesomplete.css');
 require('datatables.net-colreorder-bs5');
 require('./bootstrap-confirm-button');
 
-const autosize = require('autosize');
+const autosize = require('autosize/dist/autosize');
 const {SearchNode} = require('./datatables-advanced-search.js');
 const {Modal} = require("bootstrap");
 let tag_search_string = sessionStorage.getItem('tag_search_string');
