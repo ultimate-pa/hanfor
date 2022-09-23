@@ -209,7 +209,7 @@ def api(resource, command):
                     added_tags = new_tag_set.keys() - requirement.tags.keys()
                     tags = Tags(app, request)
                     for tag in added_tags:
-                        tags.add(tag)
+                        tags.add_if_new(tag)
                     removed_tags = requirement.tags.keys() - new_tag_set.keys()
                     requirement.tags = new_tag_set
                     # do logging

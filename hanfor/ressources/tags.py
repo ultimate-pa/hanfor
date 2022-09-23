@@ -44,6 +44,10 @@ class Tags(Ressource):
             self.add(tag_name)
         return self._available_tags[tag_name]
 
+    def add_if_new(self, tag_name: str):
+        if tag_name not in self._available_tags:
+            self.add(tag_name)
+
     def add(self, tag_name: str, tag_color: str = Color.BS_INFO.value, tag_internal: bool = False, tag_description: str = ""):
         self._available_tags[tag_name] = Tag(tag_name, tag_color, tag_internal, tag_description)
         self.__store()
