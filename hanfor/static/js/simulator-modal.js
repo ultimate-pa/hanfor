@@ -104,9 +104,11 @@ function init_simulator_modal(data) {
 
         $.each(variable_inputs, function (index, value) {
             value.removeClass('is-invalid')
+            value.parent().removeClass('is-invalid')
 
             if (!value[0].checkValidity()) {
                 value.addClass('is-invalid')
+                value.parent().addClass('is-invalid')
                 isValid = false
             }
         })
