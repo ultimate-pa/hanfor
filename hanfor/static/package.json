@@ -16,7 +16,7 @@
     "@popperjs/core": "^2.11.5",
     "@textcomplete/core": "^0.1.12",
     "@textcomplete/textarea": "^0.1.12",
-    "autosize": "^4.0.2",
+    "autosize": "^5.0.1",
     "awesomplete": "^1.1.5",
     "bootstrap": "^5.2.1",
     "chart.js": "^3.7.1",

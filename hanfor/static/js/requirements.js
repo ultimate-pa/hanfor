@@ -12,7 +12,7 @@ require('datatables.net-colreorder-bs5');
 require('./bootstrap-confirm-button');
 
 let utils = require('./hanfor-utils');
-const autosize = require('autosize');
+const autosize = require('autosize/dist/autosize');
 
 // Globals
 const {SearchNode} = require('./datatables-advanced-search.js');
