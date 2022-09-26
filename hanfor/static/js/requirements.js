@@ -43,7 +43,6 @@ let search_autocomplete = [
 let available_types = [''];
 let available_vars = [''];
 let available_reports = [];
-let available_search_strings = [''];
 let visible_columns = [true, true, true, true, true, true];
 let filter_search_array = [];
 let get_query = JSON.parse(search_query); // search_query is set in layout.html
@@ -1268,33 +1267,30 @@ function init_modal() {
 /**
  * Load the hanfor frontend meta settings.
  */
-function load_meta_settings() {
-    $.get("api/meta/get", '', function (data) {
-        available_search_strings = data['available_search_strings'];
-        let search_bar = $("#search_bar");
-        new Awesomplete(search_bar[0], {
-            filter: function (text, input) {
-                let result = false;
-                // If we have an uneven number of ":"
-                // We check if we have a match in the input tail starting from the last ":"
-                if ((input.split(":").length - 1) % 2 === 1) {
-                    result = Awesomplete.FILTER_CONTAINS(text, input.match(/[^:]*$/)[0]);
-                }
-                return result;
-            },
-            item: function (text, input) {
-                // Match inside ":" enclosed item.
-                return Awesomplete.ITEM(text, input.match(/(:)([\S]*$)/)[2]);
-            },
-            replace: function (text) {
-                // Cut of the tail starting from the last ":" and replace by item text.
-                const before = this.input.value.match(/(.*)(:(?!.*:).*$)/)[1];
-                this.input.value = before + text;
-            },
-            list: search_autocomplete,
-            minChars: 1,
-            autoFirst: true
-        });
+function initialise_search_bar() {
+    let search_bar = $("#search_bar");
+    new Awesomplete(search_bar[0], {
+        filter: function (text, input) {
+            let result = false;
+            // If we have an uneven number of ":"
+            // We check if we have a match in the input tail starting from the last ":"
+            if ((input.split(":").length - 1) % 2 === 1) {
+                result = Awesomplete.FILTER_CONTAINS(text, input.match(/[^:]*$/)[0]);
+            }
+            return result;
+        },
+        item: function (text, input) {
+            // Match inside ":" enclosed item.
+            return Awesomplete.ITEM(text, input.match(/(:)([\S]*$)/)[2]);
+        },
+        replace: function (text) {
+            // Cut of the tail starting from the last ":" and replace by item text.
+            const before = this.input.value.match(/(.*)(:(?!.*:).*$)/)[1];
+            this.input.value = before + text;
+        },
+        list: search_autocomplete,
+        minChars: 1,
+        autoFirst: true
     });
 }
 
@@ -1484,7 +1480,7 @@ function init_report_generation() {
     load_reports();
 }
 
-function load_tag_completion(){
+function load_tags(){
         $.ajax({
         type: "GET",
         url: "api/tag/get",
@@ -1501,8 +1497,8 @@ function load_tag_completion(){
  * Start the app.
  */
 $(document).ready(function () {
-    load_meta_settings();
-    load_tag_completion();
+    load_tags();
+    initialise_search_bar();
     load_datatable();
     init_modal();
     update_logs();
