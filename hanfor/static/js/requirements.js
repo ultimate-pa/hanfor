@@ -1270,7 +1270,6 @@ function init_modal() {
  */
 function load_meta_settings() {
     $.get("api/meta/get", '', function (data) {
-        tag_colors = data['tag_colors'];
         available_search_strings = data['available_search_strings'];
         let search_bar = $("#search_bar");
         new Awesomplete(search_bar[0], {
@@ -1490,8 +1489,9 @@ function load_tag_completion(){
         type: "GET",
         url: "api/tag/get",
             success:  function (data) {
-                for (tag of data["data"]) {
+                for (let tag of data["data"]) {
                     available_tags.push(tag["name"]);
+                    tag_colors[tag["name"]] = tag["color"];
                 }
             }
     });
@@ -1502,12 +1502,12 @@ function load_tag_completion(){
  */
 $(document).ready(function () {
     load_meta_settings();
+    load_tag_completion();
     load_datatable();
     init_modal();
     update_logs();
     init_report_generation();
     init_simulator_tab();
-    load_tag_completion();
 
     let body = $('body');
     // Bind formalization deletion.
