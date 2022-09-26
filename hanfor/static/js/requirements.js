@@ -594,6 +594,8 @@ function load_requirement(row_idx) {
         return
     }
 
+    load_tags();
+
     // Get row data
     let data = $('#requirements_table').DataTable().row(row_idx).data();
 
@@ -1485,6 +1487,7 @@ function load_tags(){
         type: "GET",
         url: "api/tag/get",
             success:  function (data) {
+                available_tags = []
                 for (let tag of data["data"]) {
                     available_tags.push(tag["name"]);
                     tag_colors[tag["name"]] = tag["color"];
