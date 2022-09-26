@@ -1116,10 +1116,6 @@ function load_datatable() {
                     if (tag.length > 0) {
                         result += '<span class="badge" style="background-color: ' + get_tag_color(tag) + '">' +
                             utils.escapeHtml(tag) + '</span></br>' + " ";
-                        // Add tag to available tags
-                        if (available_tags.indexOf(tag) <= -1) {
-                            available_tags.push(tag);
-                        }
                     }
                 });
                 return result;
@@ -1489,6 +1485,18 @@ function init_report_generation() {
     load_reports();
 }
 
+function load_tag_completion(){
+        $.ajax({
+        type: "GET",
+        url: "api/tag/get",
+            success:  function (data) {
+                for (tag of data["data"]) {
+                    available_tags.push(tag["name"]);
+                }
+            }
+    });
+}
+
 /**
  * Start the app.
  */
@@ -1499,6 +1507,7 @@ $(document).ready(function () {
     update_logs();
     init_report_generation();
     init_simulator_tab();
+    load_tag_completion();
 
     let body = $('body');
     // Bind formalization deletion.
