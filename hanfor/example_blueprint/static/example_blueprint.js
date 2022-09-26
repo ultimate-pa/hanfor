@@ -1,20 +1,28 @@
-MY_BUTTON = $('#my-button')
+const AWESOME_MESSAGE_BUTTON = $('#awesome-message-button')
 
 $(document).ready(function () {
-    MY_BUTTON.click(function () {
-
+    AWESOME_MESSAGE_BUTTON.click(function () {
+        /**
+         * Performs an asynchronous HTTP request: https://api.jquery.com/jquery.ajax
+         * HTTP response status codes: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+         */
         $.ajax({
             type: 'GET',
-            //url: 'get_awesome_message',
-            url: 'api',
-            data: {}
+            url: '/api/example_blueprint' + '/0123x',
+            data: {
+                id: '0123x',
+                data: 'some data'
+            }
         }).done(function (data, textStatus, jqXHR) {
             console.log('data:', data, 'textStatus:', textStatus, 'jqXHR:', jqXHR)
-            //alert(data['message'])
             alert(data)
         }).fail(function (jqXHR, textStatus, errorThrown) {
             console.log('jqXHR:', jqXHR, 'textStatus:', textStatus, 'errorThrown:', errorThrown)
-            alert(errorThrown)
+            alert(
+                errorThrown + '\n\n' +
+                jqXHR['responseJSON']['errormsg']
+            )
+            console.log(jqXHR['responseJSON']['errormsg'])
         })
     })
 })

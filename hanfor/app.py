@@ -1,5 +1,4 @@
 """ 
-
 @copyright: 2018 Samuel Roth <samuel@smel.de>
 @licence: GPLv3
 """
@@ -12,12 +11,9 @@ import sys
 from functools import wraps, update_wrapper
 
 import flask
-from werkzeug.exceptions import HTTPException
-
-from example_blueprint import example_blueprint
-
 from flask import Flask, render_template, request, jsonify, make_response, json
 from flask_debugtoolbar import DebugToolbarExtension
+from werkzeug.exceptions import HTTPException
 
 import reqtransformer
 import utils
@@ -26,15 +22,17 @@ from guesser.guesser_registerer import REGISTERED_GUESSERS
 from reqtransformer import Requirement, VariableCollection, Variable, VarImportSessions, Formalization
 from ressources import Report, Tags, Statistics, QueryAPI
 from ressources.simulator_ressource import SimulatorRessource
-from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, \
-    hash_file_sha1
+from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, hash_file_sha1
 from patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
 
 # Create the app
 app = Flask(__name__)
 app.config.from_object('config')
 
-app.register_blueprint(example_blueprint.example_bp)
+from example_blueprint import example_blueprint
+
+app.register_blueprint(example_blueprint.bp)
+app.register_blueprint(example_blueprint.api_bp)
 
 if 'USE_SENTRY' in app.config and app.config['USE_SENTRY']:
     import sentry_sdk
@@ -513,7 +511,8 @@ def api(resource, command):
             var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
             cid = var_collection.add_new_constraint(var_name=var_name)
             var_collection.store()
-            result['html'] = utils.formalizations_to_html(app, {cid: var_collection.collection[var_name].constraints[cid]})
+            result['html'] = utils.formalizations_to_html(app,
+                                                          {cid: var_collection.collection[var_name].constraints[cid]})
             return jsonify(result)
         elif command == 'get_constraints_html':
             result = {

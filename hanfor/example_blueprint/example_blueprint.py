@@ -1,26 +1,53 @@
-from flask import Blueprint, render_template, request, current_app, jsonify
+from flask import Blueprint, render_template, request, jsonify, Response
+from flask.views import MethodView
+from flask_pydantic import validate
+from pydantic import BaseModel
 
 BUNDLE_JS = 'dist/example_blueprint-bundle.js'
-example_bp = Blueprint('example', __name__, template_folder='templates', url_prefix='/example_blueprint')
-
-api_example_bp = Blueprint('api', __name__, url_prefix='/api')
-example_bp.register_blueprint(api_example_bp)
+bp = Blueprint('example_blueprint', __name__, template_folder='templates', url_prefix='/example_blueprint')
 
 
-@example_bp.route('/', methods=['GET'])
+# Flask: Modular Applications with Blueprints. https://flask.palletsprojects.com/en/2.2.x/blueprints/
+@bp.route('/', methods=['GET'])
 def index():
-    # Get config from application context.
-    config = current_app.config
-
     return render_template('example_blueprint/index.html', BUNDLE_JS=BUNDLE_JS)
 
 
-@example_bp.route('/get_awesome_message', methods=['GET'])
-def get_message():
-    response = {'message': 'Hello World'}
-    return jsonify(response)
+class RequestData(BaseModel):
+    id: int
+    data: str
 
 
-@api_example_bp.route('/', methods=['GET'])
-def get():
-    return "there u go"
+# Flask: Method Dispatching and APIs. https://flask.palletsprojects.com/en/2.2.x/views/#method-dispatching-and-apis
+# HTTP request methods. https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+class ExampleBlueprintApi(MethodView):
+    # The HTTP GET method requests a representation of the specified resource. Requests using GET should only be used to
+    # request data (they shouldn't include data).
+    @validate()
+    def get(self, id: int) -> str | dict | tuple | Response:
+        return f'HTTP GET for id `{id}` received.'
+
+    # The HTTP POST method sends data to the server. The type of the body of the request is indicated by the
+    # Content-Type header.
+    def post(self, id: int) -> str | dict | tuple | Response:
+        data = RequestData.parse_obj(request.form)
+        return f'HTTP POST received.'
+
+    # The HTTP PUT request method creates a new resource or replaces a representation of the target resource with the
+    # request payload.
+    def put(self, id: int) -> str | dict | tuple | Response:
+        return f'HTTP PUT for id `{id}` received.'
+
+    # The HTTP PATCH request method applies partial modifications to a resource.
+    def patch(self, id: int) -> str | dict | tuple | Response:
+        return f'HTTP PATCH for id `{id}` received.'
+
+    # The HTTP DELETE request method deletes the specified resource.
+    def delete(self, id: int) -> str | dict | tuple | Response:
+        return f'HTTP DELETE for id `{id}` received.'
+
+
+view = ExampleBlueprintApi.as_view('example_blueprint_api')
+api_bp = Blueprint('api_example_blueprint', __name__, url_prefix='/api/example_blueprint')
+api_bp.add_url_rule('/', defaults={'id': None}, view_func=view, methods=['GET', 'POST'])
+api_bp.add_url_rule('/<id>', view_func=view, methods=['GET', 'PUT', 'PATCH', 'DELETE'])

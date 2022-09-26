@@ -1523,7 +1523,6 @@ $(document).ready(function () {
     })
 
     body.on('click', '.delete_formalization1', function () {
-        console.log('delete')
         bootstrapConfirmation({
             yesCallBack: function () {
                 console.log('yes');

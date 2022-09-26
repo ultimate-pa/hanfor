@@ -15,6 +15,7 @@ class Color(Enum):
     BS_WHITE = '#fff'
     BS_GRAY = '#6c757d'
     BS_GRAY_DARK = '#343a40'
+
     BS_PRIMARY = '#0d6efd'
     BS_SECONDARY = '#6c757d'
     BS_SUCCESS = '#198754'
