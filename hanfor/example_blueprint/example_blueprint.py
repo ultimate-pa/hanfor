@@ -1,13 +1,20 @@
+from typing import Type
+
 from flask import Blueprint, render_template, request, jsonify, Response
 from flask.views import MethodView
 from flask_pydantic import validate
 from pydantic import BaseModel
 
+# Flask: Modular Applications with Blueprints. https://flask.palletsprojects.com/en/2.2.x/blueprints/
+# Flask: Method Dispatching and APIs. https://flask.palletsprojects.com/en/2.2.x/views/#method-dispatching-and-apis
+# HTTP request methods. https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+# Pydantic: Models. https://pydantic-docs.helpmanual.io/usage/models
+
 BUNDLE_JS = 'dist/example_blueprint-bundle.js'
 bp = Blueprint('example_blueprint', __name__, template_folder='templates', url_prefix='/example_blueprint')
+api_bp = Blueprint('api_example_blueprint', __name__, url_prefix='/api/example_blueprint')
 
 
-# Flask: Modular Applications with Blueprints. https://flask.palletsprojects.com/en/2.2.x/blueprints/
 @bp.route('/', methods=['GET'])
 def index():
     return render_template('example_blueprint/index.html', BUNDLE_JS=BUNDLE_JS)
@@ -18,18 +25,22 @@ class RequestData(BaseModel):
     data: str
 
 
-# Flask: Method Dispatching and APIs. https://flask.palletsprojects.com/en/2.2.x/views/#method-dispatching-and-apis
-# HTTP request methods. https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+def register_api(blueprint: Blueprint, method_view: Type[MethodView]) -> None:
+    view = method_view.as_view('example_blueprint_api')
+    blueprint.add_url_rule('/', defaults={'id': None}, view_func=view, methods=['GET'])
+    blueprint.add_url_rule('/', defaults={}, view_func=view, methods=['POST'])
+    blueprint.add_url_rule('/<int:id>', view_func=view, methods=['GET', 'PUT', 'PATCH', 'DELETE'])
+
+
 class ExampleBlueprintApi(MethodView):
     # The HTTP GET method requests a representation of the specified resource. Requests using GET should only be used to
     # request data (they shouldn't include data).
-    @validate()
     def get(self, id: int) -> str | dict | tuple | Response:
         return f'HTTP GET for id `{id}` received.'
 
     # The HTTP POST method sends data to the server. The type of the body of the request is indicated by the
     # Content-Type header.
-    def post(self, id: int) -> str | dict | tuple | Response:
+    def post(self) -> str | dict | tuple | Response:
         data = RequestData.parse_obj(request.form)
         return f'HTTP POST received.'
 
@@ -47,7 +58,4 @@ class ExampleBlueprintApi(MethodView):
         return f'HTTP DELETE for id `{id}` received.'
 
 
-view = ExampleBlueprintApi.as_view('example_blueprint_api')
-api_bp = Blueprint('api_example_blueprint', __name__, url_prefix='/api/example_blueprint')
-api_bp.add_url_rule('/', defaults={'id': None}, view_func=view, methods=['GET', 'POST'])
-api_bp.add_url_rule('/<id>', view_func=view, methods=['GET', 'PUT', 'PATCH', 'DELETE'])
+register_api(api_bp, ExampleBlueprintApi)

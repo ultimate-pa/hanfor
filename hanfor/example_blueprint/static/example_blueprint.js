@@ -7,10 +7,10 @@ $(document).ready(function () {
          * HTTP response status codes: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
          */
         $.ajax({
-            type: 'GET',
-            url: '/api/example_blueprint' + '/0123x',
+            type: 'POST',
+            url: '/api/example_blueprint' + '',
             data: {
-                id: '0123x',
+                id: '0123',
                 data: 'some data'
             }
         }).done(function (data, textStatus, jqXHR) {
@@ -20,9 +20,8 @@ $(document).ready(function () {
             console.log('jqXHR:', jqXHR, 'textStatus:', textStatus, 'errorThrown:', errorThrown)
             alert(
                 errorThrown + '\n\n' +
-                jqXHR['responseJSON']['errormsg']
+                jqXHR['responseText']
             )
-            console.log(jqXHR['responseJSON']['errormsg'])
         })
     })
 })
