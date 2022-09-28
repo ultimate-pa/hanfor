@@ -10,6 +10,7 @@ from req_simulator.phase_event_automaton import build_automaton
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
 from req_simulator.utils import get_countertrace_parser
+from reqtransformer import Requirement, Formalization
 from tests.test_req_simulator import test_counter_trace
 
 testcases = [
@@ -63,7 +64,7 @@ testcases = [
      }"""),
 
     ('response_delay_globally',
-     {'R': Equals(Symbol('x', INT), Int(17)), 'S': GE(Symbol('y', REAL), Real(3.14)), 'T': Symbol('T', REAL)},
+     {'R': Equals(Symbol('x', INT), Int(17)), 'S': GE(Symbol('y', REAL), Real(3.14)), 'T': Real(1.1)},
      """{
         "head": {
             "duration": 7,
@@ -88,10 +89,16 @@ class TestSimulator(TestCase):
     @parameterized.expand(testcases)
     def test_simulator(self, pattern_name: str, expressions: dict[str, FNode], yaml_str: str):
         _, ct_str, _ = test_counter_trace.testcases[pattern_name]
-        expressions['T'] = Real(5)
+        #expressions['T'] = Real(5)
 
         ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
         pea = build_automaton(ct)
+
+        # TODO: Fix this hack.
+        pea.requirement = Requirement(id='0', description='', type_in_csv='', csv_row={}, pos_in_csv=0)
+        pea.formalization = Formalization(id=0)
+        pea.countertrace_id = 0
+
         scenario = Scenario.from_json_string(yaml_str)
         simulator = Simulator([pea], scenario, test=True)
 
@@ -99,14 +106,19 @@ class TestSimulator(TestCase):
         for i in range(len(scenario.times)):
             actual = False
 
+            s = simulator.check_sat()
+
             if not simulator.check_sat():
                 break
 
-            if len(simulator.sat_results) != 1:
-                break
+            #if len(simulator.sat_results) != 1:
+            #    break
 
             if i == len(scenario.times) - 1:
                 actual = True
+                break
+
+            simulator.step_next(0)
 
 
 
