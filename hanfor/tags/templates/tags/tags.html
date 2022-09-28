@@ -1,0 +1,60 @@
+{# templates/tags.html #}
+{% extends "layout.html" %}
+{% block title %}Tags{% endblock %}
+{% block body %}
+    <div class="card">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link active" id="search-tab" data-bs-toggle="tab" href="#search-pane" role="tab"
+                       aria-controls="search" aria-selected="true">Search</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="tools-tab" data-bs-toggle="tab" href="#tools-pane" role="tab"
+                       aria-controls="tools" aria-selected="false">Tools</a>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="search-pane" role="tabpanel" aria-labelledby="search-tab">
+                    {% include 'search-tab.html' %}
+                </div>
+                <div class="tab-pane fade" id="tools-pane" role="tabpanel" aria-labelledby="filter-tab">
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <button id="add-standard-tags" class="btn btn-secondary w-100" type="button">Add standard tags.</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <table id="tags-table" class="table table-hover table-bordered" width="100%" cellspacing="0">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Used by</th>
+            <th>Internal</th>
+        </tr>
+        </thead>
+        <tfoot>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Used by</th>
+            <th>Internal</th>
+        </tr>
+        </tfoot>
+        <tbody></tbody>
+    </table>
+    <!-- TODO: Fix this. -->
+    {% include '../tags/templates/tags/tags-modal.html' %}
+{% endblock %}
+{% block scripts %}
+    <script type="text/javascript">
+        var base_url = '{{ url_for('site', site='/') }}';
+    </script>
+    <script type="text/javascript" src="{{ url_for('static', filename='dist/tags-bundle.js') }}"></script>
+{% endblock %}

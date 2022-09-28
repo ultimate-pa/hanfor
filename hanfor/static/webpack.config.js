@@ -8,15 +8,16 @@ const config = {
         variables: __dirname + '/js/variables.js',
         variable_import: __dirname + '/js/variable-import.js',
         stats: __dirname + '/js/stats.js',
-        tags: __dirname + '/js/tags.js',
+        //tags: __dirname + '/js/tags.js',
         simulator_tab: __dirname + '/js/simulator-tab.js',
         simulator_modal: __dirname + '/js/simulator-modal.js',
-        example_blueprint: '../example_blueprint/static/example_blueprint.js'
+        example_blueprint: __dirname + '/../example_blueprint/static/example_blueprint.js',
+        tags: __dirname + '/../tags/static/tags.js'
     },
     output: {
-        path: __dirname + '/dist',
-        publicPath: "./static/dist/",
         filename: '[name]-bundle.js',
+        path: __dirname + '/dist',
+        publicPath: "./static/dist/"
     },
     resolve: {
         extensions: ['.js', '.jsx', '.css'],

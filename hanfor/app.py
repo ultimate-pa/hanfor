@@ -30,9 +30,12 @@ app = Flask(__name__)
 app.config.from_object('config')
 
 from example_blueprint import example_blueprint
+from tags import tags
 
-app.register_blueprint(example_blueprint.bp)
-app.register_blueprint(example_blueprint.api_bp)
+app.register_blueprint(example_blueprint.blueprint)
+app.register_blueprint(example_blueprint.api_blueprint)
+app.register_blueprint(tags.blueprint)
+app.register_blueprint(tags.api_blueprint)
 
 if 'USE_SENTRY' in app.config and app.config['USE_SENTRY']:
     import sentry_sdk
@@ -205,6 +208,7 @@ def api(resource, command):
                 new_tag_set = json.loads(request.form.get('tags', ''))
                 if requirement.tags != new_tag_set:
                     added_tags = new_tag_set.keys() - requirement.tags.keys()
+                    # TODO: refactor Tags
                     tags = Tags(app, request)
                     for tag in added_tags:
                         tags.add_if_new(tag)
@@ -644,10 +648,11 @@ def api(resource, command):
     if resource == 'stats':
         return Statistics(app, request).apply_request()
 
-    if resource == 'tag':
-        if command == "add_standard":
-            return Tags(app, request).add_standard_tags()
-        return Tags(app, request).apply_request()
+    # TODO: refactor Tags
+    #if resource == 'tag':
+    #    if command == "add_standard":
+    #        return Tags(app, request).add_standard_tags()
+    #    return Tags(app, request).apply_request()
 
     if resource == 'meta':
         if command == 'get':
@@ -772,7 +777,8 @@ def site(site):
         'help',
         'statistics',
         'variables',
-        'tags'
+        # TODO: Refactor this.
+        #'tags'
     ]
     if site in available_sites:
         if site == 'variables':

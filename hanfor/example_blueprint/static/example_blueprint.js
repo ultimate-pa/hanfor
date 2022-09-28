@@ -1,4 +1,9 @@
+//const {Button} = require('bootstrap')
+require('bootstrap')
+const bootstrap = require('bootstrap')
+
 const AWESOME_MESSAGE_BUTTON = $('#awesome-message-button')
+const bsButton = bootstrap.Button.getOrCreateInstance('#awesome-message-button')
 
 $(document).ready(function () {
     AWESOME_MESSAGE_BUTTON.click(function () {
@@ -18,10 +23,7 @@ $(document).ready(function () {
             alert(data)
         }).fail(function (jqXHR, textStatus, errorThrown) {
             console.log('jqXHR:', jqXHR, 'textStatus:', textStatus, 'errorThrown:', errorThrown)
-            alert(
-                errorThrown + '\n\n' +
-                jqXHR['responseText']
-            )
+            alert(errorThrown + '\n\n' + jqXHR['responseText'])
         })
     })
 })

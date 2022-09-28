@@ -11,11 +11,11 @@ from pydantic import BaseModel
 # Pydantic: Models. https://pydantic-docs.helpmanual.io/usage/models
 
 BUNDLE_JS = 'dist/example_blueprint-bundle.js'
-bp = Blueprint('example_blueprint', __name__, template_folder='templates', url_prefix='/example_blueprint')
-api_bp = Blueprint('api_example_blueprint', __name__, url_prefix='/api/example_blueprint')
+blueprint = Blueprint('example_blueprint', __name__, template_folder='templates', url_prefix='/example_blueprint')
+api_blueprint = Blueprint('api_example_blueprint', __name__, url_prefix='/api/example_blueprint')
 
 
-@bp.route('/', methods=['GET'])
+@blueprint.route('/', methods=['GET'])
 def index():
     return render_template('example_blueprint/index.html', BUNDLE_JS=BUNDLE_JS)
 
@@ -25,11 +25,11 @@ class RequestData(BaseModel):
     data: str
 
 
-def register_api(blueprint: Blueprint, method_view: Type[MethodView]) -> None:
+def register_api(bp: Blueprint, method_view: Type[MethodView]) -> None:
     view = method_view.as_view('example_blueprint_api')
-    blueprint.add_url_rule('/', defaults={'id': None}, view_func=view, methods=['GET'])
-    blueprint.add_url_rule('/', defaults={}, view_func=view, methods=['POST'])
-    blueprint.add_url_rule('/<int:id>', view_func=view, methods=['GET', 'PUT', 'PATCH', 'DELETE'])
+    bp.add_url_rule('/', defaults={'id': None}, view_func=view, methods=['GET'])
+    bp.add_url_rule('/', defaults={}, view_func=view, methods=['POST'])
+    bp.add_url_rule('/<int:id>', view_func=view, methods=['GET', 'PUT', 'PATCH', 'DELETE'])
 
 
 class ExampleBlueprintApi(MethodView):
@@ -58,4 +58,4 @@ class ExampleBlueprintApi(MethodView):
         return f'HTTP DELETE for id `{id}` received.'
 
 
-register_api(api_bp, ExampleBlueprintApi)
+register_api(api_blueprint, ExampleBlueprintApi)

@@ -64,7 +64,7 @@ testcases = [
      }"""),
 
     ('response_delay_globally',
-     {'R': Equals(Symbol('x', INT), Int(17)), 'S': GE(Symbol('y', REAL), Real(3.14)), 'T': Real(1.1)},
+     {'R': Equals(Symbol('x', INT), Int(17)), 'S': GE(Symbol('y', REAL), Real(3.14)), 'T': Symbol('T', REAL)},
      """{
         "head": {
             "duration": 7,

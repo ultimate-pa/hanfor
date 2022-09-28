@@ -1482,18 +1482,20 @@ function init_report_generation() {
     load_reports();
 }
 
-function load_tags(){
-        $.ajax({
-        type: "GET",
-        url: "api/tag/get",
-            success:  function (data) {
-                available_tags = []
-                for (let tag of data["data"]) {
-                    available_tags.push(tag["name"]);
-                    tag_colors[tag["name"]] = tag["color"];
-                }
-            }
-    });
+function load_tags() {
+    $.ajax({
+        type: 'GET',
+        url: '/api/tags/get'
+    }).done(function (data) {
+        available_tags = []
+        for (let tag of data) {
+            available_tags.push(tag['name']);
+            tag_colors[tag['name']] = tag['color'];
+        }
+    }).fail(function (jqXHR, textStatus, errorThrown) {
+        console.log('jqXHR:', jqXHR, 'textStatus:', textStatus, 'errorThrown:', errorThrown)
+        alert(errorThrown + '\n\n' + jqXHR['responseText'])
+    })
 }
 
 /**
