@@ -1,8 +1,6 @@
 from typing import Type
-
 from flask import Blueprint, render_template, request, jsonify, Response
 from flask.views import MethodView
-from flask_pydantic import validate
 from pydantic import BaseModel
 
 # Flask: Modular Applications with Blueprints. https://flask.palletsprojects.com/en/2.2.x/blueprints/
@@ -11,18 +9,13 @@ from pydantic import BaseModel
 # Pydantic: Models. https://pydantic-docs.helpmanual.io/usage/models
 
 BUNDLE_JS = 'dist/example_blueprint-bundle.js'
-blueprint = Blueprint('example_blueprint', __name__, template_folder='templates', url_prefix='/example_blueprint')
-api_blueprint = Blueprint('api_example_blueprint', __name__, url_prefix='/api/example_blueprint')
+blueprint = Blueprint('example_blueprint', __name__, template_folder='templates', url_prefix='/example-blueprint')
+api_blueprint = Blueprint('api_example_blueprint', __name__, url_prefix='/api/example-blueprint')
 
 
 @blueprint.route('/', methods=['GET'])
 def index():
     return render_template('example_blueprint/index.html', BUNDLE_JS=BUNDLE_JS)
-
-
-class RequestData(BaseModel):
-    id: int
-    data: str
 
 
 def register_api(bp: Blueprint, method_view: Type[MethodView]) -> None:
@@ -41,7 +34,12 @@ class ExampleBlueprintApi(MethodView):
     # The HTTP POST method sends data to the server. The type of the body of the request is indicated by the
     # Content-Type header.
     def post(self) -> str | dict | tuple | Response:
-        data = RequestData.parse_obj(request.form)
+        class RequestData(BaseModel):
+            id: int
+            data: str
+
+        request_data = RequestData.parse_obj(request.json)
+
         return f'HTTP POST received.'
 
     # The HTTP PUT request method creates a new resource or replaces a representation of the target resource with the

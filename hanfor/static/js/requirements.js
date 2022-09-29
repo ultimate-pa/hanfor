@@ -1485,7 +1485,7 @@ function init_report_generation() {
 function load_tags() {
     $.ajax({
         type: 'GET',
-        url: '/api/tags/get'
+        url: '/api/tags/'
     }).done(function (data) {
         available_tags = []
         for (let tag of data) {
@@ -1493,7 +1493,6 @@ function load_tags() {
             tag_colors[tag['name']] = tag['color'];
         }
     }).fail(function (jqXHR, textStatus, errorThrown) {
-        console.log('jqXHR:', jqXHR, 'textStatus:', textStatus, 'errorThrown:', errorThrown)
         alert(errorThrown + '\n\n' + jqXHR['responseText'])
     })
 }

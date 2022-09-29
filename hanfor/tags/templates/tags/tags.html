@@ -1,4 +1,4 @@
-{# templates/tags.html #}
+{# templates/tags/tags.html #}
 {% extends "layout.html" %}
 {% block title %}Tags{% endblock %}
 {% block body %}
@@ -50,7 +50,7 @@
         <tbody></tbody>
     </table>
     <!-- TODO: Fix this. -->
-    {% include '../tags/templates/tags/tags-modal.html' %}
+    {% include 'tags/tag-modal.html' %}
 {% endblock %}
 {% block scripts %}
     <script type="text/javascript">

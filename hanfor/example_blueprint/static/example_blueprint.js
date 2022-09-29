@@ -12,12 +12,11 @@ $(document).ready(function () {
          * HTTP response status codes: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
          */
         $.ajax({
-            type: 'POST',
-            url: '/api/example_blueprint' + '',
-            data: {
-                id: '0123',
+            type: 'POST', url: '/api/example-blueprint', contentType: 'application/json',
+            data: JSON.stringify({
+                id: 123,
                 data: 'some data'
-            }
+            })
         }).done(function (data, textStatus, jqXHR) {
             console.log('data:', data, 'textStatus:', textStatus, 'jqXHR:', jqXHR)
             alert(data)

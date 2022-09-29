@@ -24,6 +24,7 @@ from ressources import Report, Tags, Statistics, QueryAPI
 from ressources.simulator_ressource import SimulatorRessource
 from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, hash_file_sha1
 from patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
+from tags.tags import TagsApi
 
 # Create the app
 app = Flask(__name__)
@@ -208,8 +209,7 @@ def api(resource, command):
                 new_tag_set = json.loads(request.form.get('tags', ''))
                 if requirement.tags != new_tag_set:
                     added_tags = new_tag_set.keys() - requirement.tags.keys()
-                    # TODO: refactor Tags
-                    tags = Tags(app, request)
+                    tags = TagsApi()
                     for tag in added_tags:
                         tags.add_if_new(tag)
                     removed_tags = requirement.tags.keys() - new_tag_set.keys()

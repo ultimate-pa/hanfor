@@ -1,11 +1,11 @@
-<div id="tag_modal" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="tag-modal" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 id="tag_modal_title" class="modal-title"></h5>
-                <input type="hidden" id="tag_name_old" hidden/>
+                <h5 id="tag-modal-title" class="modal-title"></h5>
+                <input type="hidden" id="tag-name-old" hidden/>
                 <input type="hidden" id="occurences" hidden/>
-                <input type="hidden" id="modal_associated_row_index" hidden/>
+                <input type="hidden" id="modal-associated-row-index" hidden/>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -15,7 +15,7 @@
                     <div class="col-12">
                         <div class="input-group">
                             <span class="input-group-text" id="name-addon" style="width: 5em">Name</span>
-                            <input type="text" class="form-control reqirement-tag" id="tag_name"
+                            <input type="text" class="form-control reqirement-tag" id="tag-name"
                                    aria-describedby="name-addon" aria-label="Name" title="Name">
                         </div>
                     </div>
@@ -23,20 +23,20 @@
                     <div class="col-6">
                         <div class="input-group">
                             <span class="input-group-text" id="color-addon" style="width: 5em">Color</span>
-                            <input type="color" class="form-control" style="height: 2.5rem" id="tag_color"
+                            <input type="color" class="form-control" style="height: 2.5rem" id="tag-color"
                                    aria-describedby="color-addon" aria-label="Color" title="Color">
                         </div>
                     </div>
 
                     <div class="col-6">
-                        <input type="checkbox" class="btn-check" id="tag_internal" autocomplete="off">
-                        <label class="btn btn-outline-success col-12" for="tag_internal">Process</label>
+                        <input type="checkbox" class="btn-check" id="tag-internal" autocomplete="off">
+                        <label class="btn btn-outline-success col-12" for="tag-internal">Process</label>
                     </div>
 
                     <!--
                     <div class="input-group col-6">
                         <span class="input-group-text" id="internal-addon" style="width: 5em">Process</span>
-                        <input type="checkbox" class="form-control" style="height: 2.5rem" id="tag_internal">
+                        <input type="checkbox" class="form-control" style="height: 2.5rem" id="tag-internal">
                     </div>
 
                     <input type="checkbox" class="btn-check" id="btn-check" autocomplete="off">
@@ -52,9 +52,9 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="save_tag_modal" type="button" class="btn btn-primary col-2">Save changes</button>
+                <button id="save-tag-modal" type="button" class="btn btn-primary col-2">Save changes</button>
                 <button name="delete"
-                        class="delete_tag btn btn-large btn-danger col-2"
+                        class="delete-tag btn btn-large btn-danger col-2"
                         data-toggle="confirmation"
                         data-btn-ok-label="Yes"
                         data-btn-ok-class="btn-success"
