@@ -50,12 +50,12 @@ class TagsApi(MethodView):
         self.app = current_app
         self.meta_settings = MetaSettings(self.app.config['META_SETTINGS_PATH'])
         self.filenames = get_filenames_from_dir(self.app.config['REVISION_FOLDER'])
-        self._available_tags: dict[str, Tag] = {k: Tag(k, **v) for k, v in self.INIT_TAGS.items()}
+        self.__available_tags: dict[str, Tag] = {k: Tag(k, **v) for k, v in self.INIT_TAGS.items()}
         self.__load()
 
     def __load(self):
         for tag_name in self.meta_settings['tag_colors']:
-            self._available_tags[tag_name] = Tag(
+            self.__available_tags[tag_name] = Tag(
                 name=tag_name,
                 color=self.meta_settings['tag_colors'][tag_name],
                 description=self.meta_settings['tag_descriptions'][tag_name],
@@ -69,31 +69,31 @@ class TagsApi(MethodView):
 
             for tag_name in req.tags:
                 self.add_if_new(tag_name)
-                self._available_tags[tag_name].used_by.append(req.rid)
+                self.__available_tags[tag_name].used_by.append(req.rid)
 
-        for tag in self._available_tags.values():
+        for tag in self.__available_tags.values():
             tag.used_by.sort()
 
     def __store(self):
-        self.meta_settings['tag_colors'] = {t.name: t.color for _, t in self._available_tags.items()}
-        self.meta_settings['tag_internal'] = {t.name: t.internal for _, t in self._available_tags.items()}
-        self.meta_settings['tag_descriptions'] = {t.name: t.description for _, t in self._available_tags.items()}
+        self.meta_settings['tag_colors'] = {t.name: t.color for _, t in self.__available_tags.items()}
+        self.meta_settings['tag_internal'] = {t.name: t.internal for _, t in self.__available_tags.items()}
+        self.meta_settings['tag_descriptions'] = {t.name: t.description for _, t in self.__available_tags.items()}
         self.meta_settings.update_storage()
 
     def add_if_new(self, tag_name: str) -> None:
-        if tag_name not in self._available_tags:
+        if tag_name not in self.__available_tags:
             self.add(tag_name)
 
     def add(self, tag_name: str, tag_color: str = Color.BS_INFO.value, tag_internal: bool = False,
             tag_description: str = '') -> None:
-        self._available_tags[tag_name] = Tag(tag_name, tag_color, tag_internal, tag_description)
+        self.__available_tags[tag_name] = Tag(tag_name, tag_color, tag_internal, tag_description)
         self.__store()
 
     def get(self, name: str) -> str | dict | tuple | Response:
-        response_data = jsonify([tag for tag in self._available_tags.values()])
+        response_data = jsonify([tag for tag in self.__available_tags.values()])
 
         if name is not None:
-            response_data = self._available_tags[name]
+            response_data = self.__available_tags[name]
 
         return response_data
 
@@ -120,6 +120,9 @@ class TagsApi(MethodView):
             description: str = ''
             internal: bool = False
 
+            class Config:
+                anystr_strip_whitespace = True
+
         request_data = RequestData.parse_obj(request.json)
         response_data = {}
 
@@ -131,6 +134,7 @@ class TagsApi(MethodView):
                 requirement.tags[request_data.name_new] = comment
                 requirement.store()
 
+        self.__available_tags.pop(name)
         self.add(request_data.name_new, request_data.color, request_data.internal, request_data.description)
 
         return response_data
@@ -138,6 +142,9 @@ class TagsApi(MethodView):
     def delete(self, name: str) -> str | dict | tuple | Response:
         class RequestData(BaseModel):
             occurrences: list[str]
+
+            class Config:
+                anystr_strip_whitespace = True
 
         request_data = RequestData.parse_obj(request.json)
         response_data = {}
@@ -149,7 +156,7 @@ class TagsApi(MethodView):
                 requirement.tags.pop(name)
                 requirement.store()
 
-        self._available_tags.pop(name)
+        self.__available_tags.pop(name)
         self.__store()
 
         return response_data
