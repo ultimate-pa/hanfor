@@ -1,8 +1,8 @@
+require('bootstrap')
 const cytoscape = require('cytoscape')
 const fcose = require('cytoscape-fcose')
 const download = require('downloadjs')
 const {Chart, registerables} = require('chart.js')
-
 
 cytoscape.use(fcose)
 Chart.register(...registerables)

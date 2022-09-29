@@ -47,11 +47,11 @@
             </div>
             <ul class="navbar-nav flex-row ms-md-auto d-none d-md-flex">
                 <li class="nav-item dropdown">
-                    <a class="nav-item nav-link text-nowrap" href="#" id="bd-versions" data-bs-toggle="dropdown"
-                       aria-haspopup="true" aria-expanded="false">
-                        About &#x25BC;
+                    <a class="nav-link dropdown-toggle" href="#" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        About
                     </a>
-                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="bd-versions">
+                    <div class="dropdown-menu dropdown-menu-end">
                         <h6 class="dropdown-header">Session Information</h6>
                         <span class="dropdown-item">
                             Running: <code>{{ config.SESSION_TAG }}</code> @ <code>{{ config.USING_REVISION }}</code>
