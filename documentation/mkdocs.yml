@@ -15,6 +15,7 @@ theme:
     - search.share
     - search.suggest
     - toc.integrate
+    - content.tabs.link
   font: false
 
 extra_css:
