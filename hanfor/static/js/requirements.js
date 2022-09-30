@@ -1485,7 +1485,7 @@ function init_report_generation() {
 function load_tags() {
     $.ajax({
         type: 'GET',
-        url: '/api/tags/'
+        url: 'api/tags/'
     }).done(function (data) {
         available_tags = []
         for (let tag of data) {
