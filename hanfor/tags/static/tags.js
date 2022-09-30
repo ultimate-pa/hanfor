@@ -245,12 +245,12 @@ const dataTableColumns = [
             $(data).each(function (id, name) {
                 if (name.length > 0) {
                     const searchQuery = `?command=search&col=2&q=%5C%22${name}%5C%22`
-                    result += `<span class="badge bg-info"><a href="/${searchQuery}" target="_blank" class="link-light">${name}</a></span> `
+                    result += `<span class="badge bg-info"><a href="${base_url}${searchQuery}" target="_blank" class="link-light">${name}</a></span> `
                 }
             })
             if (data.length > 1 && result.length > 0) {
                 const searchQuery = `?command=search&col=5&q=%5C%22${row.name}%5C%22`
-                result += `<span class="badge bg-info"><a href="/${searchQuery}" target="_blank" class="link-light">Show all</a></span> `
+                result += `<span class="badge bg-info"><a href="${base_url}${searchQuery}" target="_blank" class="link-light">Show all</a></span> `
             }
             return result
         }
