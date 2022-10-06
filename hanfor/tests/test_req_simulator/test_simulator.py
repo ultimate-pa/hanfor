@@ -14,70 +14,70 @@ from reqtransformer import Requirement, Formalization
 from tests.test_req_simulator import test_counter_trace
 
 testcases = [
-    ('false',
-     test_counter_trace.testcases['false'].expressions,
-     """{
-        "head": {
-            "duration": 6,
-            "times": [0.0, 5.0]
-        },
-        "data": {
-            "R": {
-                "type": "Bool",
-                "values": [false, true]
-            }
-        }
-     }"""),
-
-    ('absence_globally',
-     test_counter_trace.testcases['absence_globally'].expressions,
-     """{
-        "head": {
-            "duration": 6,
-            "times": [0.0, 5.0]
-        },
-        "data": {
-            "R": {
-                "type": "Bool",
-                "values": [false, false]
-            }
-        }
-     }"""),
-
-    ('absence_before',
-     test_counter_trace.testcases['absence_before'].expressions,
-     """{
-        "head": {
-            "duration": 8,
-            "times": [0.0, 3.0, 7.0]
-        },
-        "data": {
-            "P": {
-                "type": "Bool",
-                "values": [false, true, false]
-            },
-            "R": {
-                "type": "Bool",
-                "values": [false, false, true]
-            }
-        }
-     }"""),
+    # ('false',
+    #  test_counter_trace.testcases['false'].expressions,
+    #  """{
+    #     "head": {
+    #         "duration": 6,
+    #         "times": [0.0, 5.0]
+    #     },
+    #     "data": {
+    #         "R": {
+    #             "type": "Bool",
+    #             "values": [false, true]
+    #         }
+    #     }
+    #  }"""),
+    #
+    # ('absence_globally',
+    #  test_counter_trace.testcases['absence_globally'].expressions,
+    #  """{
+    #     "head": {
+    #         "duration": 6,
+    #         "times": [0.0, 5.0]
+    #     },
+    #     "data": {
+    #         "R": {
+    #             "type": "Bool",
+    #             "values": [false, false]
+    #         }
+    #     }
+    #  }"""),
+    #
+    # ('absence_before',
+    #  test_counter_trace.testcases['absence_before'].expressions,
+    #  """{
+    #     "head": {
+    #         "duration": 8,
+    #         "times": [0.0, 3.0, 7.0]
+    #     },
+    #     "data": {
+    #         "P": {
+    #             "type": "Bool",
+    #             "values": [false, true, false]
+    #         },
+    #         "R": {
+    #             "type": "Bool",
+    #             "values": [false, false, true]
+    #         }
+    #     }
+    #  }"""),
 
     ('response_delay_globally',
-     {'R': Equals(Symbol('x', INT), Int(17)), 'S': GE(Symbol('y', REAL), Real(3.14)), 'T': Symbol('T', REAL)},
+     {'R': Equals(Symbol('x', INT), Int(5)), 'S': GE(Symbol('y', REAL), Real(3.14)), 'T': Real(5.0)},
      """{
         "head": {
-            "duration": 7,
-            "times": [0.0, 1.0, 5.0, 6.0]
+            "duration": 11,
+            "times": [0.0, 5.0, 7.0, 10.0]
         },
         "data": {
             "x": {
                 "type": "Int",
-                "values": [3, 17, 7, 7]
+                "values": [5, 5, 5, 0]
             },
             "y": {
                 "type": "Real",
-                "values": [0.0, 2.14, 2.14, 3.14]
+                "values": [0.0, 3.14, 0.0, 0.0]
             }
         }
      }"""),
@@ -105,8 +105,6 @@ class TestSimulator(TestCase):
         actual = False
         for i in range(len(scenario.times)):
             actual = False
-
-            s = simulator.check_sat()
 
             if not simulator.check_sat():
                 break

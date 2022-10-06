@@ -436,6 +436,9 @@ class Simulator:
         if self.scenario is not None and self.times[-1] >= self.scenario.times[-1]:
             raise ValueError('Scenario end reached.')
 
+        if self.time_steps[-1] < 1e-5:
+            raise ValueError('Timestep is too small.')
+
         sat_result = self.sat_results[enabled_transition_index]
 
         # Save state
@@ -468,9 +471,22 @@ class Simulator:
         if self.scenario is None or self.times[-1] >= self.scenario.times[-1]:
             return
 
-        self.time_steps[-1] = self.scenario.times[len(self.times)] - self.scenario.times[len(self.times) - 1]
+        #self.time_steps[-1] = self.scenario.times[len(self.times)] - self.scenario.times[len(self.times) - 1]
+        scenario_index = self.calculate_scenario_index(self.times[-1], self.scenario.times)
+        self.time_steps[-1] = self.scenario.times[scenario_index + 1] - self.times[-1]
+
         for k, v in self.variables.items():
-            v[-1] = self.scenario.variables[k][len(self.times)]
+            #v[-1] = self.scenario.variables[k][len(self.times)]
+            v[-1] = self.scenario.variables[k][scenario_index + 1]
+
+    def calculate_scenario_index(self, time: float, times: list[float]) -> int:
+        i = 0
+
+        for i in range(len(times) - 1):
+            if times[i] <= time < times[i + 1]:
+                result = i
+
+        return result
 
     def step_back(self) -> bool:
         if len(self.times) < 2:
