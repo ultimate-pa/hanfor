@@ -7,4 +7,4 @@
 # Hanfor
 **Hanfor** **h**elps **an**alyzing **an**d **for**malizing **r**equirements.
 
-**For installation instructions, visit our [documentation](https://ultimate-pa.github.io/hanfor).**
+For installation instructions, visit our [documentation](https://ultimate-pa.github.io/hanfor).
