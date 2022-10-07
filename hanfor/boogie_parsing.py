@@ -224,6 +224,14 @@ class TypeInference(Transformer):
             arg_type.add(t)
         return tn
 
+    def max(self, op: Token, c1: TypeNode, c2: TypeNode):
+        # TODO: replace by abstract handling of functions
+        return self.__check_binaryop(c1, op, c2, {BoogieType.int}, return_type=BoogieType.int)
+
+    def min(self, op: Token, c1: TypeNode, c2: TypeNode):
+        # TODO: replace by abstract handling of functions
+        return self.__check_binaryop(c1, op, c2, {BoogieType.int}, return_type=BoogieType.int)
+
     def minus_unary(self, o: Token, c: TypeNode) -> TypeNode:
         return self.__check_unaryop(o, c, {BoogieType.real, BoogieType.int})
 
@@ -331,7 +339,7 @@ class TypeInference(Transformer):
     def times(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
         return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real})
 
-    def abs_function(self, o: Token, c1: TypeNode):
+    def abs(self, o: Token, c1: TypeNode):
         # TODO: replace by abstract handling of functions
         return self.__check_unaryop(o, c1, {BoogieType.int}, return_type=BoogieType.int)
 

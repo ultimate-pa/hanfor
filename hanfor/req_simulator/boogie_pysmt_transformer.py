@@ -90,11 +90,11 @@ class BoogiePysmtTransformer(Transformer):
 
     @staticmethod
     def max(children) -> FNode:
-        return Max(children[1], children[3])
+        return Max(children[1], children[2])
 
     @staticmethod
     def min(children) -> FNode:
-        return Min(children[1], children[3])
+        return Min(children[1], children[2])
 
     @staticmethod
     def minus(children) -> FNode:

@@ -134,8 +134,8 @@ idsexprcommaplus: ID COLON expr
     | idsexprcommaplus COMMA ID COLON expr
 
 function: ABS _LPAR expr1ni _RPAR -> abs
-    | MIN _LPAR expr1ni COMMA expr1ni _RPAR -> min
-    | MAX _LPAR expr1ni COMMA expr1ni _RPAR -> max
+    | MIN _LPAR expr1ni _COMMA expr1ni _RPAR -> min
+    | MAX _LPAR expr1ni _COMMA expr1ni _RPAR -> max
 
 
 // Terminals
@@ -145,6 +145,7 @@ AND: "&&"
 COLON: ":"
 COLONEQUALS: ":="
 COMMA: ","
+_COMMA: ","
 CONCAT: "++"
 DIVIDE: "/"
 ELSE.1: "else"
