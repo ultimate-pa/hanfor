@@ -1,16 +1,36 @@
 import math
 import random
 from collections import defaultdict
+from typing import Type
+
+from flask import Blueprint, render_template, Response, current_app
+from flask.views import MethodView
 
 from reqtransformer import Requirement, VariableCollection
-from ressources import Ressource
 from static_utils import get_filenames_from_dir
 
+BUNDLE_JS = 'dist/statistics-bundle.js'
+blueprint = Blueprint('statistics', __name__, template_folder='templates', url_prefix='/statistics')
+api_blueprint = Blueprint('api_statistics', __name__, url_prefix='/api/statistics')
 
-class Statistics(Ressource):
-    def __init__(self, app, request):
-        super().__init__(app, request)
+
+@blueprint.route('/', methods=['GET'])
+def index():
+    return render_template('statistics/index.html', BUNDLE_JS=BUNDLE_JS)
+
+
+def register_api(bp: Blueprint, method_view: Type[MethodView]) -> None:
+    view = method_view.as_view('statistics_api')
+    bp.add_url_rule('/', view_func=view, methods=['GET'])
+
+
+class StatisticsApi(MethodView):
+    def __init__(self):
+        self.app = current_app
         self.filenames = get_filenames_from_dir(self.app.config['REVISION_FOLDER'])
+
+    def get(self) -> str | dict | tuple | Response:
+        return self.fetch_statistics()
 
     def fetch_statistics(self):
         data = {
@@ -81,7 +101,8 @@ class Statistics(Ressource):
         for var, color in var_nodes.items():
             node_size = 10 + (290 * (var_nodes_weight[var] / len(req_nodes)))
             data['variable_graph'].append({'data': {'id': var, 'size': int(node_size), 'color': color,
-                "calculatedrepulsion": 100 + (((var_nodes_weight[var] / var_clutter_cutoff)) * 7000)}})
+                                                    "calculatedrepulsion": 100 + (((
+                                                            var_nodes_weight[var] / var_clutter_cutoff)) * 7000)}})
         for req in req_nodes:
             data['variable_graph'].append({'data': {'id': req, 'size': 20, 'color': '#000000',
                                                     "calculatedrepulsion": "1000"}})
@@ -93,11 +114,13 @@ class Statistics(Ressource):
                 data['variable_graph'].append(
                     {
                         'data': {'id': var + "_" + user, 'source': var, 'target': user,
-                                "color": var_nodes[var],
+                                 "color": var_nodes[var],
                                  # space nodes further away from crowded nodes; give more space if more nodes are there
-                                 "calculatedlength": 100 + (((var_nodes_weight[var] / var_clutter_cutoff))  * reqnum * 10),
+                                 "calculatedlength": 100 + (
+                                         ((var_nodes_weight[var] / var_clutter_cutoff)) * reqnum * 10),
                                  # if we are at a crowded node, allow more jiggeling
-                                 "calculatedelasticity":  math.log(((var_nodes_weight[var] / var_clutter_cutoff)) * reqnum)}
+                                 "calculatedelasticity": math.log(
+                                     ((var_nodes_weight[var] / var_clutter_cutoff)) * reqnum)}
                     }
                 )
 
@@ -107,13 +130,7 @@ class Statistics(Ressource):
             data['top_variables_counts'].append(count)
             data['top_variable_colors'].append("#%06x" % random.randint(0, 0xFFFFFF))
 
-        self.response.data = data
+        return data
 
-    def GET(self):
-        self.fetch_statistics()
 
-    def POST(self):
-        raise NotImplementedError
-
-    def DELETE(self):
-        raise NotImplementedError
+register_api(api_blueprint, StatisticsApi)

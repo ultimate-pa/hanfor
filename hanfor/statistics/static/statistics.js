@@ -25,8 +25,8 @@ let dynamicColors = function () {
 };
 
 $(document).ready(function () {
-    $.get('api/stats/gets', function (result) {
-        const data = result.data;
+    $.get('../api/statistics', function (result) {
+        const data = result;
 
         // Processed requirements pie
         new Chart(

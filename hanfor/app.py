@@ -20,7 +20,7 @@ import utils
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from reqtransformer import Requirement, VariableCollection, Variable, VarImportSessions, Formalization
-from ressources import Report, Tags, Statistics, QueryAPI
+from ressources import Report, Tags, QueryAPI
 from ressources.simulator_ressource import SimulatorRessource
 from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, hash_file_sha1
 from patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
@@ -32,11 +32,17 @@ app.config.from_object('config')
 
 from example_blueprint import example_blueprint
 from tags import tags
+from statistics import statistics
 
+# Example Blueprint
 app.register_blueprint(example_blueprint.blueprint)
 app.register_blueprint(example_blueprint.api_blueprint)
+# Tags
 app.register_blueprint(tags.blueprint)
 app.register_blueprint(tags.api_blueprint)
+# Statistics
+app.register_blueprint(statistics.blueprint)
+app.register_blueprint(statistics.api_blueprint)
 
 if 'USE_SENTRY' in app.config and app.config['USE_SENTRY']:
     import sentry_sdk
@@ -775,9 +781,8 @@ def var_import_session(session_id, command):
 def site(site):
     available_sites = [
         'help',
-        'statistics',
+        #'statistics',
         'variables',
-        # TODO: Refactor this.
         #'tags'
     ]
     if site in available_sites:
