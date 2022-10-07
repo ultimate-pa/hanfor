@@ -13,6 +13,12 @@ from req_simulator.utils import load_json_or_yaml_file, parse_json_or_yaml_strin
 
 
 @dataclass
+class Configuration:
+    time: float
+    variables: dict[FNode, FNode]
+
+
+@dataclass
 class Scenario:
     times: list[float]
     variables: dict[FNode, list[FNode]]
@@ -34,6 +40,17 @@ class Scenario:
 
     def difference(self, variables: list[FNode]) -> list[FNode]:
         return [k for k in self.variables if k not in variables]
+
+    def get_configuration(self, time: float) -> Configuration:
+        result = None
+
+        for i in range(len(self.times) - 1):
+            if self.times[i] <= time < self.times[i + 1]:
+                result = Configuration(
+                    time=self.times[i + 1],
+                    variables={k: v[i + 1] for k, v in self.variables.items()})
+
+        return result
 
     @staticmethod
     def from_object(object: Any) -> Scenario | None:

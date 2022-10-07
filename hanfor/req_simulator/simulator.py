@@ -237,7 +237,7 @@ class Simulator:
                     core = '\n' + ', '.join([f.serialize() for f in get_unsat_core(conjunctive_partition(last_fail))])
                     reason += 'unrealizable input, ' + core
 
-                #reason = 'inconsistency' if len(transitions) <= 0 else \
+                # reason = 'inconsistency' if len(transitions) <= 0 else \
                 #    'unrealizable input, ' + get_unsat_core(conjunctive_partition(last_fail))
 
                 self.sat_error = 'Requirement violation: %s, Formalization: %s, Countertrace: %s\nReason: %s' % (
@@ -255,7 +255,7 @@ class Simulator:
 
         if not self.time_steps[-1] > 0.0:
             self.sat_error = 'Time step must be greater than zero.'
-            #raise ValueError('Time step must be greater than zero.')
+            # raise ValueError('Time step must be greater than zero.')
             return False
 
         # primed_vars = {}
@@ -341,8 +341,9 @@ class Simulator:
 
         return True
 
-    def cartesian_check(self, phases: list[list[Transition]], var_asserts, clock_asserts, i: int = 0, guard=None, trs=(),
-                        max_results=20, num_transitions = 1) -> list[SatResult]:
+    def cartesian_check(self, phases: list[list[Transition]], var_asserts, clock_asserts, i: int = 0, guard=None,
+                        trs=(),
+                        max_results=20, num_transitions=1) -> list[SatResult]:
 
         # Terminate if tuple of transitions is complete.
         if i >= len(phases):
@@ -467,26 +468,18 @@ class Simulator:
         self.sat_results = []
         self.times[-1] += self.time_steps[-1]
 
-        # TODO: fix scenario
-        if self.scenario is None or self.times[-1] >= self.scenario.times[-1]:
+        if self.scenario is None:
             return
 
-        #self.time_steps[-1] = self.scenario.times[len(self.times)] - self.scenario.times[len(self.times) - 1]
-        scenario_index = self.calculate_scenario_index(self.times[-1], self.scenario.times)
-        self.time_steps[-1] = self.scenario.times[scenario_index + 1] - self.times[-1]
+        configuration = self.scenario.get_configuration(self.times[-1])
+
+        if configuration is None:
+            return
+
+        self.time_steps[-1] = configuration.time - self.times[-1]
 
         for k, v in self.variables.items():
-            #v[-1] = self.scenario.variables[k][len(self.times)]
-            v[-1] = self.scenario.variables[k][scenario_index + 1]
-
-    def calculate_scenario_index(self, time: float, times: list[float]) -> int:
-        i = 0
-
-        for i in range(len(times) - 1):
-            if times[i] <= time < times[i + 1]:
-                result = i
-
-        return result
+            v[-1] = configuration.variables[k]
 
     def step_back(self) -> bool:
         if len(self.times) < 2:
