@@ -31,10 +31,10 @@ expr3: expr4ni LESS expr4 -> lt
     | expr4ni GTEQ expr4 -> gteq
     | expr4ni EQ expr4 -> eq
     | expr4ni NEQ expr4 -> neq
-    | expr4ni PARTORDER expr4
+    | expr4ni PARTORDER expr4 -> partorder
     | expr4
 
-expr4: expr4ni CONCAT expr5
+expr4: expr4ni CONCAT expr5 -> concat
     | expr5
 
 expr5: expr5ni PLUS expr6 -> plus
@@ -60,7 +60,7 @@ expr9: FALSE -> false
     | REALNUMBER -> realnumber
     | ID -> id
     | ID _LPAR exprcommastar _RPAR
-    | OLD _LPAR expr _RPAR
+    | OLD _LPAR expr _RPAR -> old
     | IF expr THEN expr ELSE expr
     | LBRC idsexprcommaplus RBRC
     | _LPAR expr _RPAR
@@ -94,10 +94,10 @@ expr3ni: expr4ni LESS expr4ni -> lt
     | expr4ni GTEQ expr4ni -> gteq
     | expr4ni EQ expr4ni -> eq
     | expr4ni NEQ expr4ni -> neq
-    | expr4ni PARTORDER expr4ni
+    | expr4ni PARTORDER expr4ni -> partorder
     | expr4ni
 
-expr4ni: expr4ni CONCAT expr5ni
+expr4ni: expr4ni CONCAT expr5ni -> concat
     | expr5ni
 
 expr5ni: expr5ni PLUS expr6ni -> plus
@@ -122,7 +122,7 @@ expr9ni: FALSE -> false
     | REALNUMBER -> realnumber
     | ID -> id
     | ID _LPAR exprcommastar _RPAR
-    | OLD _LPAR expr _RPAR
+    | OLD _LPAR expr _RPAR -> old
     | LBRC idsexprcommaplus RBRC
     | _LPAR expr _RPAR
     | function
@@ -133,9 +133,10 @@ quant: FORALL
 idsexprcommaplus: ID COLON expr
     | idsexprcommaplus COMMA ID COLON expr
 
-function: abs_function
+function: ABS _LPAR expr1ni _RPAR -> abs
+    | MIN _LPAR expr1ni COMMA expr1ni _RPAR -> min
+    | MAX _LPAR expr1ni COMMA expr1ni _RPAR -> max
 
-abs_function: ABS _LPAR expr1ni _RPAR
 
 // Terminals
 
@@ -163,6 +164,8 @@ LBRC: "{"
 LESS: "<"
 _LPAR: "("
 LTEQ: "<="
+MAX: "max"
+MIN: "min"
 MINUS: "-"
 MOD: "%"
 NEQ: "!="

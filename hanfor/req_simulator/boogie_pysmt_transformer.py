@@ -2,7 +2,7 @@ from lark import Transformer, Token
 from pysmt.fnode import FNode
 from pysmt.shortcuts import And, Or, Div, FALSE, TRUE, GT, GE, Symbol, Iff, Implies, LT, LE, Minus, Not, \
     NotEquals, \
-    Int, Plus, Real, Times, EqualsOrIff
+    Int, Plus, Real, Times, EqualsOrIff, Max, Min
 from pysmt.typing import INT, BOOL, REAL
 
 from reqtransformer import Variable
@@ -26,6 +26,14 @@ class BoogiePysmtTransformer(Transformer):
         self.variables = variables
 
     @staticmethod
+    def abs(children) -> FNode:
+        raise NotImplementedError
+
+    @staticmethod
+    def concat(children) -> FNode:
+        raise NotImplementedError
+
+    @staticmethod
     def conjunction(children) -> FNode:
         return And(children[0], children[2])
 
@@ -43,7 +51,7 @@ class BoogiePysmtTransformer(Transformer):
 
     @staticmethod
     def explies(children) -> FNode:
-        raise NotImplementedError("Unsupported operation 'explies'.")
+        raise NotImplementedError
 
     @staticmethod
     def false(children) -> FNode:
@@ -81,6 +89,14 @@ class BoogiePysmtTransformer(Transformer):
         return LE(children[0], children[2])
 
     @staticmethod
+    def max(children) -> FNode:
+        return Max(children[1], children[3])
+
+    @staticmethod
+    def min(children) -> FNode:
+        return Min(children[1], children[3])
+
+    @staticmethod
     def minus(children) -> FNode:
         return Minus(children[0], children[2])
 
@@ -90,7 +106,7 @@ class BoogiePysmtTransformer(Transformer):
 
     @staticmethod
     def mod(children) -> None:
-        raise NotImplementedError("Unsupported operation 'mod'.")
+        raise NotImplementedError
 
     @staticmethod
     def negation(children) -> FNode:
@@ -103,6 +119,14 @@ class BoogiePysmtTransformer(Transformer):
     @staticmethod
     def number(children) -> FNode:
         return Int(int(children[0]))
+
+    @staticmethod
+    def old(children) -> FNode:
+        raise NotImplementedError
+
+    @staticmethod
+    def partorder(children) -> FNode:
+        raise NotImplementedError
 
     @staticmethod
     def plus(children) -> FNode:

@@ -20,7 +20,7 @@ import utils
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from reqtransformer import Requirement, VariableCollection, Variable, VarImportSessions, Formalization
-from ressources import Report, Tags, QueryAPI
+from ressources import Report, QueryAPI
 from ressources.simulator_ressource import SimulatorRessource
 from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, hash_file_sha1
 from patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
