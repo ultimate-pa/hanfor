@@ -2,7 +2,7 @@ from lark import Transformer, Token
 from pysmt.fnode import FNode
 from pysmt.shortcuts import And, Or, Div, FALSE, TRUE, GT, GE, Symbol, Iff, Implies, LT, LE, Minus, Not, \
     NotEquals, \
-    Int, Plus, Real, Times, EqualsOrIff, Max, Min
+    Int, Plus, Real, Times, EqualsOrIff, Max, Min, Ite
 from pysmt.typing import INT, BOOL, REAL
 
 from reqtransformer import Variable
@@ -27,7 +27,7 @@ class BoogiePysmtTransformer(Transformer):
 
     @staticmethod
     def abs(children) -> FNode:
-        raise NotImplementedError
+        return Ite(children[1] < 0, -children[1], children[1])
 
     @staticmethod
     def concat(children) -> FNode:
