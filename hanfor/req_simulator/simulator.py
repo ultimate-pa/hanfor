@@ -347,7 +347,8 @@ class Simulator:
 
         # Terminate if tuple of transitions is complete.
         if i >= len(phases):
-            model = get_model(guard, solver_name=SOLVER_NAME, logic=LOGIC)
+            #model = get_model(guard, solver_name=SOLVER_NAME, logic=LOGIC)
+            model = get_model(And(guard, var_asserts, clock_asserts), solver_name=SOLVER_NAME, logic=LOGIC)
             values = model.get_values(self.variables.keys())
             values.update({k: v[-1] for k, v in self.variables.items() if v[-1] is not None})
 

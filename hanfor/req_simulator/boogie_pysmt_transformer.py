@@ -2,7 +2,7 @@ from lark import Transformer, Token
 from pysmt.fnode import FNode
 from pysmt.shortcuts import And, Or, Div, FALSE, TRUE, GT, GE, Symbol, Iff, Implies, LT, LE, Minus, Not, \
     NotEquals, \
-    Int, Plus, Real, Times, EqualsOrIff, Max, Min, Ite
+    Int, Plus, Real, Times, EqualsOrIff, Max, Min, Ite, get_env, Equals, Solver
 from pysmt.typing import INT, BOOL, REAL
 
 from reqtransformer import Variable
@@ -24,6 +24,10 @@ class BoogiePysmtTransformer(Transformer):
     def __init__(self, variables: dict[str, Variable]) -> None:
         super().__init__()
         self.variables = variables
+        self.additional_assertions = []
+
+    def exprcommastar(self, children) -> FNode:
+        return And(children[0], *self.additional_assertions)
 
     @staticmethod
     def abs(children) -> FNode:
@@ -104,9 +108,11 @@ class BoogiePysmtTransformer(Transformer):
     def minus_unary(children) -> FNode:
         return -children[1]
 
-    @staticmethod
-    def mod(children) -> None:
-        raise NotImplementedError
+    #@staticmethod
+    def mod(self, children) -> None:
+        D, d = children[0], children[2]
+        self.additional_assertions.append(NotEquals(d, Int(0)))
+        return Minus(D, Times(d, Div(D, d)))
 
     @staticmethod
     def negation(children) -> FNode:

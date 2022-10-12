@@ -11,7 +11,7 @@ from pysmt.fnode import FNode
 from pysmt.shortcuts import Symbol, substitute
 
 SOLVER_NAME = 'z3'
-LOGIC = 'QF_LRA'
+LOGIC = 'QF_NRA'
 CT_PARSER = None
 
 

@@ -1,6 +1,6 @@
 // Expressions
 // Start with exprcommastar
-?exprcommastar: exprcommaplus?
+?exprcommastar: exprcommaplus? -> exprcommastar
 
 exprcommaplus: expr
     | exprcommaplus COMMA expr

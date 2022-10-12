@@ -331,7 +331,7 @@ class TypeInference(Transformer):
         return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real})
 
     def mod(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
-        return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real})
+        return self.__check_binaryop(c1, op, c2, {BoogieType.int}, return_type=BoogieType.int)
 
     def plus(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
         return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real})
