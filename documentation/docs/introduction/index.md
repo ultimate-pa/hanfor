@@ -24,46 +24,77 @@ To make it possible for a computer to check a set of requirements for a given cr
 In this method we make use of a simple pattern language. The language is based on a restricted English grammar and hence looks like natural language. Requirements formalized in this specification language can automatically be translated into logics.
 
 
-### Specification language
+### Specification Language
 The grammar of the specification language is given below. A requirement is defined by an ID, a scope and a pattern. Scope and pattern are parameterised by expressions over system observables and durations. Some patterns require a more detailed description concerning the order or the realtime occurence of events. Note that not all combinations of scope and pattern are supported within the **Hanfor** tool. For more information, have a look at our [pattern section](../references/patterns.md "Patterns").
-```
-REQ      ::= ID: SCOPE, PATTERN.
 
-SCOPE    ::= Globally  | Before EXPR  | After EXPR | Between EXPR and EXPR  | After EXPR until EXPR
+???+ note "Grammar: Requirements"
+    ```
+    REQ       ::= ID: SCOPE, PATTERN.
 
-PATTERN  ::= It is never the case that EXPR holds
-           | It is always the case that EXPR holds
-           | It is always the case that initially EXPR holds 
-           | It is always the case that if EXPR holds, then EXPR holds as well
-           | Transitions to states in which EXPR holds occur at most twice
-           | It is always the case that ORDER
-           | It is always the case that REALTIME
+    SCOPE     ::= Globally | Before EXPR | After EXPR | Between EXPR and EXPR | After EXPR until EXPR
 
-ORDER    ::= If EXPR holds, then EXPR previously held
-           | If EXPR holds and is succeded by EXPR, then EXPR previously held
-           | If EXPR holds, then EXPR previously held and was preceeded by EXPR
-           | If EXPR holds, then EXPR eventually holds and is succeeded by EXPR
-           | If EXPR holds, then EXPR eventually holds
-           | If EXPR holds, then EXPR eventually holds and is succeeded by EXPR where 
-                EXPR does not hold between EXPR and EXPR
+    PATTERN   ::= It is never the case that EXPR holds
+                | It is always the case that EXPR holds
+                | It is always the case that initially EXPR holds 
+                | It is always the case that if EXPR holds, then EXPR holds as well
+                | Transitions to states in which EXPR holds occur at most twice
+                | It is always the case that ORDER
+                | It is always the case that REALTIME
 
-REALTIME ::= Once EXPR becomes satisfied, it holds for at least DURATION
-           | Once EXPR becomes satisfied, it holds for less than DURATION
-           | Once EXPR becomes satisfied, EXPR holds for at least DURATION
-           | Once EXPR becomes satisfied and holds for at most DURATION, then EXPR holds afterwards
-           | Once EXPR becomes satisfied, EXPR holds after at most DURATION
-           | Once EXPR becomes satisfied, EXPR holds after at most DURATION for at least DURATION
-           | EXPR holds at least every DURATION
-           | EXPR holds after at most DURATION
-           | If EXPR holds, then EXPR holds after at most DURATION
-           | If EXPR holds for at least DURATION, then EXPR holds afterwards for at least DURATION
-           | If EXPR holds for at least DURATION, then EXPR holds after at most DURATION
-           | If EXPR holds for at least DURATION, then EXPR holds afterwards
-           | If EXPR holds, then EXPR holds after at most DURATION for at least DURATION
-           | If EXPR holds, then EXPR holds for at least DURATION
-	       | After EXPR holds for at least DURATION and EXPR holds, then EXPR holds
-           | After EXPR holds for at least DURATION and EXPR holds, then EXPR holds after at most DURATION
-```
+    ORDER     ::= If EXPR holds, then EXPR previously held
+                | If EXPR holds and is succeded by EXPR, then EXPR previously held
+                | If EXPR holds, then EXPR previously held and was preceeded by EXPR
+                | If EXPR holds, then EXPR eventually holds and is succeeded by EXPR
+                | If EXPR holds, then EXPR eventually holds
+                | If EXPR holds, then EXPR eventually holds and is succeeded by EXPR where 
+                     EXPR does not hold between EXPR and EXPR
+
+    REALTIME  ::= Once EXPR becomes satisfied, it holds for at least DURATION
+                | Once EXPR becomes satisfied, it holds for less than DURATION
+                | Once EXPR becomes satisfied, EXPR holds for at least DURATION
+                | Once EXPR becomes satisfied and holds for at most DURATION, then EXPR holds afterwards
+                | Once EXPR becomes satisfied, EXPR holds after at most DURATION
+                | Once EXPR becomes satisfied, EXPR holds after at most DURATION for at least DURATION
+                | EXPR holds at least every DURATION
+                | EXPR holds after at most DURATION
+                | If EXPR holds, then EXPR holds after at most DURATION
+                | If EXPR holds for at least DURATION, then EXPR holds afterwards for at least DURATION
+                | If EXPR holds for at least DURATION, then EXPR holds after at most DURATION
+                | If EXPR holds for at least DURATION, then EXPR holds afterwards
+                | If EXPR holds, then EXPR holds after at most DURATION for at least DURATION
+                | If EXPR holds, then EXPR holds for at least DURATION
+                | After EXPR holds for at least DURATION and EXPR holds, then EXPR holds
+                | After EXPR holds for at least DURATION and EXPR holds, then EXPR holds after at most DURATION
+
+    ```
+
+???+ note "Grammar: Expressions"
+    ```
+    EXPR      ::= EXPR_BOOL
+                | EXPR_INT
+                | EXPR_REAL
+                | EXPR <==> EXPR
+                | EXPR ==> EXPR
+                | EXPR && EXPR
+                | EXPR || EXPR
+                | EXPR == EXPR
+                | EXPR != EXPR
+                | !EXPR
+                        
+    EXPR_BOOL ::= true | false | ID_BOOL
+
+    EXPR_INT  ::= INT OP INT
+
+    EXPR_REAL ::= REAL OP REAL
+
+    INT       ::= NUMBER_INT | ID_INT | OP_UNARY INT
+
+    REAL      ::= NUMBER_REAL | ID_REAL | OP_UNARY REAL
+
+    OP        ::= == | != | < | <= | > | >= | + | - | * | /
+
+    OP_UNARY  ::= + | -
+    ```
 
 Figure 2 shows the toolchain for the translation of an informal requirement into a formalized version. In the first step, the informal requirement, given in natural language, is translated into the specification language. This process is done manually. The requirement expressed in the specification language is then automatically translated into a formula in realtime logic (the Duration Calculus).
 
