@@ -1,8 +1,8 @@
 from lark import Transformer, Token
 from pysmt.fnode import FNode
-from pysmt.shortcuts import And, Or, Div, FALSE, TRUE, GT, GE, Symbol, Iff, Implies, LT, LE, Minus, Not, \
+from pysmt.shortcuts import And, Or, Div, FALSE, TRUE, GT, GE, Symbol, Implies, LT, LE, Minus, Not, \
     NotEquals, \
-    Int, Plus, Real, Times, EqualsOrIff, Max, Min, Ite, get_env, Equals, Solver
+    Int, Plus, Real, Times, EqualsOrIff, Max, Min, Ite
 from pysmt.typing import INT, BOOL, REAL
 
 from reqtransformer import Variable
@@ -26,16 +26,8 @@ class BoogiePysmtTransformer(Transformer):
         self.variables = variables
         self.additional_assertions = []
 
-    def exprcommastar(self, children) -> FNode:
+    def expr(self, children) -> FNode:
         return And(children[0], *self.additional_assertions)
-
-    @staticmethod
-    def abs(children) -> FNode:
-        return Ite(children[1] < 0, -children[1], children[1])
-
-    @staticmethod
-    def concat(children) -> FNode:
-        raise NotImplementedError
 
     @staticmethod
     def conjunction(children) -> FNode:
@@ -52,10 +44,6 @@ class BoogiePysmtTransformer(Transformer):
     @staticmethod
     def eq(children) -> FNode:
         return EqualsOrIff(children[0], children[2])
-
-    @staticmethod
-    def explies(children) -> FNode:
-        raise NotImplementedError
 
     @staticmethod
     def false(children) -> FNode:
@@ -77,10 +65,6 @@ class BoogiePysmtTransformer(Transformer):
         return self.hanfor_to_pysmt_mapping[type](name, value)
 
     @staticmethod
-    def iff(children) -> FNode:
-        return Iff(children[0], children[2])
-
-    @staticmethod
     def implies(children) -> FNode:
         return Implies(children[0], children[2])
 
@@ -93,14 +77,6 @@ class BoogiePysmtTransformer(Transformer):
         return LE(children[0], children[2])
 
     @staticmethod
-    def max(children) -> FNode:
-        return Max(children[1], children[2])
-
-    @staticmethod
-    def min(children) -> FNode:
-        return Min(children[1], children[2])
-
-    @staticmethod
     def minus(children) -> FNode:
         return Minus(children[0], children[2])
 
@@ -108,7 +84,7 @@ class BoogiePysmtTransformer(Transformer):
     def minus_unary(children) -> FNode:
         return -children[1]
 
-    #@staticmethod
+    # @staticmethod
     def mod(self, children) -> None:
         D, d = children[0], children[2]
         self.additional_assertions.append(NotEquals(d, Int(0)))
@@ -127,20 +103,8 @@ class BoogiePysmtTransformer(Transformer):
         return Int(int(children[0]))
 
     @staticmethod
-    def old(children) -> FNode:
-        raise NotImplementedError
-
-    @staticmethod
-    def partorder(children) -> FNode:
-        raise NotImplementedError
-
-    @staticmethod
     def plus(children) -> FNode:
         return Plus(children[0], children[2])
-
-    @staticmethod
-    def plus_unary(children) -> FNode:
-        return +children[1]
 
     @staticmethod
     def realnumber(children) -> FNode:
@@ -153,6 +117,22 @@ class BoogiePysmtTransformer(Transformer):
     @staticmethod
     def true(children) -> FNode:
         return TRUE()
+
+    @staticmethod
+    def abs(children) -> FNode:
+        return Ite(children[1] < 0, -children[1], children[1])
+
+    @staticmethod
+    def min(children) -> FNode:
+        return Min(children[1], children[2])
+
+    @staticmethod
+    def max(children) -> FNode:
+        return Max(children[1], children[2])
+
+    @staticmethod
+    def old(children) -> FNode:
+        raise NotImplementedError
 
     @staticmethod
     def __default__(data, children, meta):

@@ -33,7 +33,7 @@ lark = None
 def get_parser_instance():
     global lark
     if lark is None:
-        lark = Lark.open("hanfor_boogie_grammar.lark", rel_to=__file__, start='exprcommastar', parser='lalr',
+        lark = Lark.open("hanfor_boogie_grammar.lark", rel_to=__file__, start='expr', parser='lalr',
                          propagate_positions=True)
     return lark
 
@@ -181,27 +181,6 @@ class TypeInference(Transformer):
                     break
             self.type_errors += errors
 
-    # Infer leafs (vars, consts)
-    def true(self, c: Token) -> TypeNode:
-        return TypeNode(c.value, BoogieType.bool, [])
-
-    def false(self, c: Token) -> TypeNode:
-        return TypeNode(c.value, BoogieType.bool, [])
-
-    def realnumber(self, c: Token) -> TypeNode:
-        return TypeNode(c.value, BoogieType.real, [])
-
-    def number(self, c: Token) -> TypeNode:
-        return TypeNode(c.value, BoogieType.int, [])
-
-    def id(self, c: Token) -> TypeNode:
-        name = c.value
-        if name not in self.type_env:
-            self.type_env[name] = BoogieType.unknown
-            return TypeNode(name, BoogieType.unknown, [])
-        type = self.type_env[name]
-        return TypeNode(name, type, [])
-
     def __typecheck_args(self, expr: str,  arg_type: TypeNode, expected_arg_types: set[BoogieType]) -> list[str]:
         # ignore errors as there is already an error reported and the subsequent errors are noise
         if arg_type.t == BoogieType.unknown or arg_type.t == BoogieType.error:
@@ -223,23 +202,6 @@ class TypeInference(Transformer):
             self.__propagate_type(c, t)
             arg_type.add(t)
         return tn
-
-    def max(self, op: Token, c1: TypeNode, c2: TypeNode):
-        # TODO: replace by abstract handling of functions
-        return self.__check_binaryop(c1, op, c2, {BoogieType.int}, return_type=BoogieType.int)
-
-    def min(self, op: Token, c1: TypeNode, c2: TypeNode):
-        # TODO: replace by abstract handling of functions
-        return self.__check_binaryop(c1, op, c2, {BoogieType.int}, return_type=BoogieType.int)
-
-    def minus_unary(self, o: Token, c: TypeNode) -> TypeNode:
-        return self.__check_unaryop(o, c, {BoogieType.real, BoogieType.int})
-
-    def plus_unary(self, o: Token, c: TypeNode) -> (BoogieType, set[str]):
-        return self.__check_unaryop(o, c, {BoogieType.real, BoogieType.int})
-
-    def negation(self, o: Token, c: TypeNode) -> TypeNode:
-        return self.__check_unaryop(o, c, {BoogieType.bool}, return_type=BoogieType.bool)
 
     def __propagate_type(self, tn: TypeNode, t: BoogieType) -> List[str]:
         type_errors = []
@@ -289,6 +251,33 @@ class TypeInference(Transformer):
             return TypeNode(expr, BoogieType.unknown if not return_type else return_type, type_leaf, [c1, c2])
         return TypeNode(expr, BoogieType.unknown, type_leaf, [c1, c2])
 
+    # Infer leafs (vars, consts)
+    def true(self, c: Token) -> TypeNode:
+        return TypeNode(c.value, BoogieType.bool, [])
+
+    def false(self, c: Token) -> TypeNode:
+        return TypeNode(c.value, BoogieType.bool, [])
+
+    def realnumber(self, c: Token) -> TypeNode:
+        return TypeNode(c.value, BoogieType.real, [])
+
+    def number(self, c: Token) -> TypeNode:
+        return TypeNode(c.value, BoogieType.int, [])
+
+    def id(self, c: Token) -> TypeNode:
+        name = c.value
+        if name not in self.type_env:
+            self.type_env[name] = BoogieType.unknown
+            return TypeNode(name, BoogieType.unknown, [])
+        type = self.type_env[name]
+        return TypeNode(name, type, [])
+
+    def minus_unary(self, o: Token, c: TypeNode) -> TypeNode:
+        return self.__check_unaryop(o, c, {BoogieType.real, BoogieType.int})
+
+    def negation(self, o: Token, c: TypeNode) -> TypeNode:
+        return self.__check_unaryop(o, c, {BoogieType.bool}, return_type=BoogieType.bool)
+
     def neq(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
         return self.__check_binaryop(c1, op, c2, arg_type={BoogieType.bool, BoogieType.int, BoogieType.real},
                                      return_type=BoogieType.bool)
@@ -306,17 +295,11 @@ class TypeInference(Transformer):
     def divide(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
         return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real})
 
-    def explies(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
-        return self.__check_binaryop(c1, op, c2, {BoogieType.bool}, return_type=BoogieType.bool)
-
     def gt(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
         return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real}, return_type=BoogieType.bool)
 
     def gteq(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
         return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real}, return_type=BoogieType.bool)
-
-    def iff(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
-        return self.__check_binaryop(c1, op, c2, {BoogieType.bool}, return_type=BoogieType.bool)
 
     def implies(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
         return self.__check_binaryop(c1, op, c2, {BoogieType.bool}, return_type=BoogieType.bool)
@@ -339,9 +322,18 @@ class TypeInference(Transformer):
     def times(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
         return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real})
 
+    # TODO: replace by abstract handling of functions
     def abs(self, o: Token, c1: TypeNode):
-        # TODO: replace by abstract handling of functions
         return self.__check_unaryop(o, c1, {BoogieType.int}, return_type=BoogieType.int)
+
+    def min(self, op: Token, c1: TypeNode, c2: TypeNode):
+        return self.__check_binaryop(c1, op, c2, {BoogieType.int}, return_type=BoogieType.int)
+
+    def max(self, op: Token, c1: TypeNode, c2: TypeNode):
+        return self.__check_binaryop(c1, op, c2, {BoogieType.int}, return_type=BoogieType.int)
+
+    def old(self, op: Token, c1: TypeNode):
+        raise NotImplementedError
 
     @v_args(meta=True)
     def __default__(self, data, children, meta):
