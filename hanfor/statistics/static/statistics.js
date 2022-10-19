@@ -25,7 +25,21 @@ let dynamicColors = function () {
 };
 
 $(document).ready(function () {
-    $.get('../api/statistics', function (result) {
+
+
+    $.ajax({
+        type: 'GET', url: '../api/statistics/', contentType: 'application/json'
+    }).done(function (data, textStatus, jqXHR) {
+        console.log('data:', data, 'textStatus:', textStatus, 'jqXHR:', jqXHR)
+        alert(data)
+    }).fail(function (jqXHR, textStatus, errorThrown) {
+        console.log('jqXHR:', jqXHR, 'textStatus:', textStatus, 'errorThrown:', errorThrown)
+        alert(errorThrown + '\n\n' + jqXHR['responseText'])
+    })
+
+    return
+
+    $.get('../api/statistics/', function (result) {
         const data = result;
 
         // Processed requirements pie
@@ -184,62 +198,68 @@ $(document).ready(function () {
             container: $('#cy'),
 
             layout: {
-              name: 'fcose',
-              quality: "proof",
-              // Use random node positions at beginning of layout
-              // if this is set to false, then quality option must be "proof"
-              randomize: true,
-              // Whether or not to animate the layout
-              animate: false,
-              // Fit the viewport to the repositioned nodes
-              fit: true,
-              // Padding around layout
-              padding: 30,
-              // Whether or not simple nodes (non-compound nodes) are of uniform dimensions
-              uniformNodeDimensions: false,
+                name: 'fcose',
+                quality: "proof",
+                // Use random node positions at beginning of layout
+                // if this is set to false, then quality option must be "proof"
+                randomize: true,
+                // Whether or not to animate the layout
+                animate: false,
+                // Fit the viewport to the repositioned nodes
+                fit: true,
+                // Padding around layout
+                padding: 30,
+                // Whether or not simple nodes (non-compound nodes) are of uniform dimensions
+                uniformNodeDimensions: false,
 
                 avoidOverlap: true, // prevents node overlap, may overflow boundingBox if not enough space
                 avoidOverlapPadding: 100, // extra spacing around nodes when avoidOverlap: true
                 nodeDimensionsIncludeLabels: true, // Excludes the label when calculating node bounding boxes for the layout algorithm
                 spacingFactor: undefined,
 
-              // False for random, true for greedy sampling
-              samplingType: false,
-              // Sample size to construct distance matrix
-              sampleSize: 25,
-              // Separation amount between nodes
-              nodeSeparation: 400,
-              // Power iteration tolerance
-              piTol: 0.0000001,
+                // False for random, true for greedy sampling
+                samplingType: false,
+                // Sample size to construct distance matrix
+                sampleSize: 25,
+                // Separation amount between nodes
+                nodeSeparation: 400,
+                // Power iteration tolerance
+                piTol: 0.0000001,
 
-              /* incremental layout options */
+                /* incremental layout options */
 
-              // Node repulsion (non overlapping) multiplier
-              nodeRepulsion: function( node ){ return node._private.data.calculatedrepulsion; },
-              // Ideal edge (non nested) length
-              idealEdgeLength: function( edge ){ return edge._private.data.calculatedlength; },
-              // Divisor to compute edge forces
-              edgeElasticity: function( edge ){ return edge._private.data.calculatedelasticity; },
-              // Nesting factor (multiplier) to compute ideal edge length for nested edges
-              nestingFactor: 0.1,
-              // Maximum number of iterations to perform - this is a suggested value and might be adjusted by the algorithm as required
-              numIter: 5000,
-              // For enabling tiling
-              tile: true,
-              // Represents the amount of the vertical space to put between the zero degree members during the tiling operation(can also be a function)
-              tilingPaddingVertical: 1000,
-              // Represents the amount of the horizontal space to put between the zero degree members during the tiling operation(can also be a function)
-              tilingPaddingHorizontal: 1000,
-              // Gravity force (constant)
-              gravity: 0.25,
-              // Gravity range (constant) for compounds
-              gravityRangeCompound: 1.5,
-              // Gravity force (constant) for compounds
-              gravityCompound: 1.0,
-              // Gravity range (constant)
-              gravityRange: 3.8,
-              // Initial cooling factor for incremental layout
-              initialEnergyOnIncremental: 0.3,
+                // Node repulsion (non overlapping) multiplier
+                nodeRepulsion: function (node) {
+                    return node._private.data.calculatedrepulsion;
+                },
+                // Ideal edge (non nested) length
+                idealEdgeLength: function (edge) {
+                    return edge._private.data.calculatedlength;
+                },
+                // Divisor to compute edge forces
+                edgeElasticity: function (edge) {
+                    return edge._private.data.calculatedelasticity;
+                },
+                // Nesting factor (multiplier) to compute ideal edge length for nested edges
+                nestingFactor: 0.1,
+                // Maximum number of iterations to perform - this is a suggested value and might be adjusted by the algorithm as required
+                numIter: 5000,
+                // For enabling tiling
+                tile: true,
+                // Represents the amount of the vertical space to put between the zero degree members during the tiling operation(can also be a function)
+                tilingPaddingVertical: 1000,
+                // Represents the amount of the horizontal space to put between the zero degree members during the tiling operation(can also be a function)
+                tilingPaddingHorizontal: 1000,
+                // Gravity force (constant)
+                gravity: 0.25,
+                // Gravity range (constant) for compounds
+                gravityRangeCompound: 1.5,
+                // Gravity force (constant) for compounds
+                gravityCompound: 1.0,
+                // Gravity range (constant)
+                gravityRange: 3.8,
+                // Initial cooling factor for incremental layout
+                initialEnergyOnIncremental: 0.3,
             },
 
             elements: data.variable_graph,
@@ -270,9 +290,9 @@ $(document).ready(function () {
             ]
         });
 
-        $("#save-graph").click(function(){
-            var png64 = varReqGraph.png({full: true,scale: 1});
-            download(png64, "requirementgraph.png", "image/png")
+        $("#save-graph").click(function () {
+                var png64 = varReqGraph.png({full: true, scale: 1});
+                download(png64, "requirementgraph.png", "image/png")
             }
         )
     });
