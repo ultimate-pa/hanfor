@@ -30,18 +30,6 @@ $(document).ready(function () {
     $.ajax({
         type: 'GET', url: '../api/statistics/', contentType: 'application/json'
     }).done(function (data, textStatus, jqXHR) {
-        console.log('data:', data, 'textStatus:', textStatus, 'jqXHR:', jqXHR)
-        alert(data)
-    }).fail(function (jqXHR, textStatus, errorThrown) {
-        console.log('jqXHR:', jqXHR, 'textStatus:', textStatus, 'errorThrown:', errorThrown)
-        alert(errorThrown + '\n\n' + jqXHR['responseText'])
-    })
-
-    return
-
-    $.get('../api/statistics/', function (result) {
-        const data = result;
-
         // Processed requirements pie
         new Chart(
             document.getElementById("processed_pie").getContext('2d'),
@@ -295,5 +283,8 @@ $(document).ready(function () {
                 download(png64, "requirementgraph.png", "image/png")
             }
         )
-    });
+    }).fail(function (jqXHR, textStatus, errorThrown) {
+        console.log('jqXHR:', jqXHR, 'textStatus:', textStatus, 'errorThrown:', errorThrown)
+        alert(errorThrown + '\n\n' + jqXHR['responseText'])
+    })
 });
