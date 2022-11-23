@@ -244,6 +244,7 @@ class RequirementCollection(HanforVersioned, Pickleable):
             app (Flask): Hanfor Flask app..
 
         """
+        # TODO csv checking
         for index, row in enumerate(self.csv_all_rows):
             # Todo: Use utils.slugify to make the rid save for a filename.
             requirement = Requirement(
@@ -253,6 +254,7 @@ class RequirementCollection(HanforVersioned, Pickleable):
                 csv_row=row,
                 pos_in_csv=index
             )
+
             if self.csv_meta.import_formalizations:
                 # Set the tags
                 if self.csv_meta.tags_header is not None:
