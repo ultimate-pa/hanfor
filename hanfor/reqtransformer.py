@@ -811,7 +811,14 @@ class ScopedPattern:
         self.regex_pattern = None
 
     def get_string(self, expression_mapping: dict):
-        return self.__str__().format(**expression_mapping).replace('\n', ' ').replace('\r', ' ')
+        #TODO: avoid having this problem in the first place
+        try:
+            return self.__str__().format(**expression_mapping).replace('\n', ' ').replace('\r', ' ')
+        except KeyError as e:
+            logging.error(f"Pattern {self.pattern.name}: insufficient "
+                          f"keys in expression mapping {str(expression_mapping)}")
+        return "Pattern error - please delete formalisation."
+
 
     def is_instantiatable(self) -> bool:
         return self.scope != Scope.NONE and self.pattern.is_instantiatable()
