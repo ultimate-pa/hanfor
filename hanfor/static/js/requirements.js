@@ -523,22 +523,22 @@ function add_var_autocomplete(dom_obj) {
         ],
         {
             dropdown: {
+                className: 'dropdown-menu textcomplete-dropdown',
                 maxCount: 10,
-                style: {zIndex: '9999'},
-                //parent: document.querySelector('#requirement_modal'),
+                style: {display: 'none', position: 'absolute', zIndex: '9999'},
+                // parent: dom_obj.parentNode, // Does not work in modal.
                 item: {
-                    className: "dropdown-item",
-                    activeClassName: "dropdown-item active",
+                    className: 'dropdown-item',
+                    activeClassName: 'dropdown-item active',
                 }
             }
         }
     )
 
-    // Close dropdown if textarea is no longer focused.
-    $(dom_obj).on('blur click', function (e) {
-        textcomplete.hide()
-        //textcomplete.dropdown.deactivate();
-        //e.preventDefault();
+    $(document).on('click', function(event) {
+        if (textcomplete !== event.target) {
+            textcomplete.hide()
+        }
     })
 }
 

@@ -8,5 +8,5 @@
  */
 
 /*! Bootstrap 5 styling wrapper for Select
- * ©2021 SpryMedia Ltd - datatables.net/license
+ * © SpryMedia Ltd - datatables.net/license
  */
