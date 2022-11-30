@@ -19,7 +19,7 @@ api_blueprint = Blueprint('api_tags', __name__, url_prefix='/api/tags')
 
 @blueprint.route('/', methods=['GET'])
 def index():
-    return render_template('tags/tags.html', BUNDLE_JS=BUNDLE_JS)
+    return render_template('tags/index.html', BUNDLE_JS=BUNDLE_JS)
 
 
 @dataclass
