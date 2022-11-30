@@ -1061,6 +1061,7 @@ def setup_logging(app):
 
 
 def register_assets(app):
+    # TODO: Unused functionality.
     bundles = {
 
     }

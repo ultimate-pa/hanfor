@@ -110,12 +110,12 @@
     {% include 'report-modal.html' %}
 {% endblock %}
 {% block scripts %}
+    {{ super() }}
+
     <script type="text/javascript">
         let search_query = '{{ query|tojson }}';
         let _PATTERNS = JSON.parse('{{ patterns|tojson }}');
     </script>
 
-    {% assets "main" %}
-        <script type="text/javascript" src="{{ url_for('static', filename='dist/requirements-bundle.js') }}"></script>
-    {% endassets %}
+    <script type="text/javascript" src="{{ url_for('static', filename='dist/requirements-bundle.js') }}"></script>
 {% endblock %}

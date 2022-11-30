@@ -54,5 +54,7 @@
     </div>
 {% endblock %}
 {% block scripts %}
+    {{ super() }}
+
     <script type="text/javascript" src="{{ url_for('static', filename=BUNDLE_JS) }}"></script>
 {% endblock %}
