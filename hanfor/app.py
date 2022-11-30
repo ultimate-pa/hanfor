@@ -651,15 +651,6 @@ def api(resource, command):
 
         return jsonify(result)
 
-    if resource == 'stats':
-        return Statistics(app, request).apply_request()
-
-    # TODO: refactor Tags
-    #if resource == 'tag':
-    #    if command == "add_standard":
-    #        return Tags(app, request).add_standard_tags()
-    #    return Tags(app, request).apply_request()
-
     if resource == 'meta':
         if command == 'get':
             return jsonify(utils.MetaSettings(app.config['META_SETTINGS_PATH']).__dict__)
