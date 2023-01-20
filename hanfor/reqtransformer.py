@@ -125,6 +125,7 @@ class RequirementCollection(HanforVersioned, Pickleable):
             user_provided_headers (dict):
             available_sessions (tuple):
         """
+        self.pre_process_csv(csv_file)
         self.load_csv(csv_file, input_encoding)
         self.select_headers(
             base_revision_headers=base_revision_headers,
@@ -237,12 +238,32 @@ class RequirementCollection(HanforVersioned, Pickleable):
             else:
                 print('No sessions available. Skipping')
 
+    def pre_process_csv(self, csv_file):
+        with open(csv_file, 'r') as f:
+            reader = csv.reader(f)
+            header = next(reader)
+
+            # checking for duplicate IDs
+            id_index = header.index('ID')
+            id_set = set()
+            for row in reader:
+                id = row[id_index]
+                if id in id_set:
+                    logging.info(f'Duplicate IDs present in CSV File')
+                    break
+                id_set.add(id)
+
+            # checking for unusually long rows
+            num_headers = len(header)
+            for row in reader:
+                if len(row) > num_headers:
+                    logging.info(f'Unusually Long Row Found in CSV File')
+                    break
     def parse_csv_rows_into_requirements(self, app):
         """ Parse each row in csv_all_rows into one Requirement.
-
+        
         Args:
             app (Flask): Hanfor Flask app..
-
         """
         for index, row in enumerate(self.csv_all_rows):
             # Todo: Use utils.slugify to make the rid save for a filename.
