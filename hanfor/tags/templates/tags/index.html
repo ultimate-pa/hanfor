@@ -1,7 +1,6 @@
-{# templates/tags/tags.html #}
 {% extends "layout.html" %}
 {% block title %}Tags{% endblock %}
-{% block body %}
+{% block content %}
     <div class="card">
         <div class="card-header">
             <ul class="nav nav-tabs card-header-tabs" role="tablist">
@@ -53,8 +52,11 @@
     {% include 'tags/tag-modal.html' %}
 {% endblock %}
 {% block scripts %}
+    {{ super() }}
+
     <script type="text/javascript">
         var base_url = '{{ url_for('site', site='/') }}';
     </script>
+
     <script type="text/javascript" src="{{ url_for('static', filename=BUNDLE_JS) }}"></script>
 {% endblock %}

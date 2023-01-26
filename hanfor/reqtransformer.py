@@ -89,7 +89,7 @@ class Pickleable:
 @dataclass
 class CsvConfig:
     """Representation of structure of csv being imported"""
-    
+
     dialect: str = None
     fieldnames: str = None
     headers: list = field(default_factory=list)
@@ -100,6 +100,7 @@ class CsvConfig:
     tags_header: str = None
     status_header: str = None
     import_formalizations: bool = False
+
 
 class RequirementCollection(HanforVersioned, Pickleable):
 
@@ -125,6 +126,8 @@ class RequirementCollection(HanforVersioned, Pickleable):
             user_provided_headers (dict):
             available_sessions (tuple):
         """
+        # pre processing csv
+        self.pre_process_csv(csv_file)
         self.load_csv(csv_file, input_encoding)
         self.select_headers(
             base_revision_headers=base_revision_headers,
@@ -237,12 +240,33 @@ class RequirementCollection(HanforVersioned, Pickleable):
             else:
                 print('No sessions available. Skipping')
 
+    def pre_process_csv(self, csv_file):
+        with open(csv_file, 'r') as f:
+            reader = csv.reader(f)
+            header = next(reader)
+
+            # checking for duplicate IDs
+            id_index = header.index('ID')
+            id_set = set()
+            for row in reader:
+                id = row[id_index]
+                if id in id_set:
+                    logging.info(f'Duplicate IDs present in CSV File')
+                    break
+                id_set.add(id)
+
+            # checking for unusually long rows
+            num_headers = len(header)
+            for row in reader:
+                if len(row) > num_headers:
+                    logging.info(f'Unusually Long Row Found in CSV File')
+                    break
+
     def parse_csv_rows_into_requirements(self, app):
         """ Parse each row in csv_all_rows into one Requirement.
-
+        
         Args:
             app (Flask): Hanfor Flask app..
-
         """
         # TODO csv checking
         for index, row in enumerate(self.csv_all_rows):
@@ -312,7 +336,7 @@ class Requirement(HanforVersioned, Pickleable):
             'desc': self.description,
             # Typecheck is for downwards compatibility (please do not remove)
             'type': self.type_in_csv if isinstance(self.type_in_csv, str) else "None",
-            'tags': list(self.tags.keys()), 
+            'tags': list(self.tags.keys()),
             'tags_comments': self.tags,
             'formal': [f.get_string() for f in self.formalizations.values()],
             'scope': 'None',  # TODO: remove: This is obsolete since a requirement can hold multiple Formalizations.
@@ -449,10 +473,10 @@ class Requirement(HanforVersioned, Pickleable):
 
         if (self.formalizations[formalization_id].scoped_pattern.scope != Scope.NONE and
                 self.formalizations[formalization_id].scoped_pattern.pattern.name != "NotFormalizable"):
-                self.tags['has_formalization'] = ""
+            self.tags['has_formalization'] = ""
         else:
             self.tags['incomplete_formalization'] = self.format_incomplete_formalization_tag(formalization_id)
-            
+
     def format_error_tag(self, formalisation: 'Formalization') -> str:
         if not self.tags.get('Type_inference_error'):
             result = ""
@@ -813,7 +837,13 @@ class ScopedPattern:
         self.regex_pattern = None
 
     def get_string(self, expression_mapping: dict):
-        return self.__str__().format(**expression_mapping).replace('\n', ' ').replace('\r', ' ')
+        # TODO: avoid having this problem in the first place
+        try:
+            return self.__str__().format(**expression_mapping).replace('\n', ' ').replace('\r', ' ')
+        except KeyError as e:
+            logging.error(f"Pattern {self.pattern.name}: insufficient "
+                          f"keys in expression mapping {str(expression_mapping)}")
+        return "Pattern error - please delete formalisation."
 
     def is_instantiatable(self) -> bool:
         return self.scope != Scope.NONE and self.pattern.is_instantiatable()
@@ -1391,7 +1421,7 @@ class Variable(HanforVersioned):
                     self.tags.add('Type_inference_error')
             except AttributeError as e:
                 # Probably No pattern set.
-                logging.info(f'Could not derive type inference for variable `{self.name}` constraint No. {id}. { e}')
+                logging.info(f'Could not derive type inference for variable `{self.name}` constraint No. {id}. {e}')
 
     def update_constraint(self, constraint_id, scope_name, pattern_name, mapping, variable_collection):
         """ Update a single constraint
@@ -1520,7 +1550,7 @@ class Variable(HanforVersioned):
             logging.info(f'Migrating `{self.__class__.__name__}`:`{self.name}`, from 1.0.0 -> 1.0.1')
             self.script_results = ''
         if StrictVersion(self.hanfor_version) <= StrictVersion('1.0.2'):
-            logging.info(f'Migrating `{self.__class__.__name__}`:`{ self.name}`, from {self.hanfor_version} -> 1.0.3')
+            logging.info(f'Migrating `{self.__class__.__name__}`:`{self.name}`, from {self.hanfor_version} -> 1.0.3')
             self.belongs_to_enum = ''
             if self.type == 'ENUM':
                 logging.info(f'Migrate old ENUM `{self.name}` to new ENUM_INT, ENUM_REAL')

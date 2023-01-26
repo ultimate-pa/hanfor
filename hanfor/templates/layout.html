@@ -1,4 +1,3 @@
-{# templates/layout.html #}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -80,13 +79,13 @@
 {% endblock %}
 <main role="main">
     <div class="container-fluid">
-        {% block body %}
+        {% block content %}
         {% endblock %}
     </div>
 </main>
-<script type="text/javascript" src="{{ url_for('static', filename='dist/commons-bundle.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='dist/layout_globals-bundle.js') }}"></script>
 {% block scripts %}
+    <script type="text/javascript" src="{{ url_for('static', filename='dist/commons-bundle.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='dist/layout_globals-bundle.js') }}"></script>
 {% endblock %}
 </body>
 </html>

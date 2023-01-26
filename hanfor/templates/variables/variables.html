@@ -1,7 +1,6 @@
-{# templates/variables/variables.html #}
 {% extends "layout.html" %}
 {% block title %}Variables{% endblock %}
-{% block body %}
+{% block content %}
     <div class="card">
         <div class="card-header">
             <ul class="nav nav-tabs card-header-tabs" role="tablist">
@@ -82,6 +81,8 @@
     {% include 'variables/variable-new-variable-modal.html' %}
 {% endblock %}
 {% block scripts %}
+    {{ super() }}
+
     <script type="text/javascript">
         let search_query = '{{ query|tojson }}';
         let _PATTERNS = JSON.parse('{{ patterns|tojson }}');
@@ -90,5 +91,6 @@
     <script type="text/javascript">
         var base_url = '{{ url_for('site', site='/') }}';
     </script>
+
     <script type="text/javascript" src="{{ url_for('static', filename='dist/variables-bundle.js') }}"></script>
 {% endblock %}
