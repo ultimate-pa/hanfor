@@ -262,13 +262,6 @@ class RequirementCollection(HanforVersioned, Pickleable):
                     logging.info(f'Unusually Long Row Found in CSV File')
                     break
 
-            # replacing null values with empty strings
-            for row in reader:
-                for index, value in enumerate(row):
-                    if value == 697:
-                        logging.info(f'Null Value Found')
-                        row[index] = ""
-
     def parse_csv_rows_into_requirements(self, app):
         """ Parse each row in csv_all_rows into one Requirement.
         
