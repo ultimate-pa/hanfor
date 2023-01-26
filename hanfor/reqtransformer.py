@@ -126,6 +126,7 @@ class RequirementCollection(HanforVersioned, Pickleable):
             user_provided_headers (dict):
             available_sessions (tuple):
         """
+        # pre processing csv
         self.pre_process_csv(csv_file)
         self.load_csv(csv_file, input_encoding)
         self.select_headers(
