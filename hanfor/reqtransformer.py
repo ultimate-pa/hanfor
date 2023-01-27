@@ -241,30 +241,34 @@ class RequirementCollection(HanforVersioned, Pickleable):
                 print('No sessions available. Skipping')
 
     def pre_process_csv(self, csv_file):
-        with open(csv_file, 'r') as f:
-            reader = csv.reader(f)
-            header = next(reader)
+        try:
+            with open(csv_file, 'r') as f:
+                reader = csv.DictReader(f)
+                header = next(reader)
 
-            # checking for duplicate IDs
-            id_index = header.index('ID')
-            id_set = set()
-            for row in reader:
-                id = row[id_index]
-                if id in id_set:
-                    logging.info(f'Duplicate IDs present in CSV File')
-                    break
-                id_set.add(id)
+                # checking for duplicate IDs
+                id_set = set()
+                for row in reader:
+                    id = row['id']
+                    if id in id_set:
+                        logging.info(f'Duplicate ID {id} found in CSV File')
+                        return
+                    id_set.add(id)
+                logging.info(f'No duplicate IDs found in CSV File')
+        except FileNotFoundError as e:
+            logging.error(f"The file {csv_file} does not exist.")
+        except Exception as e:
+            logging.error(f"An error occurred: {e}")
 
             # checking for unusually long rows
-            num_headers = len(header)
-            for row in reader:
-                if len(row) > num_headers:
-                    logging.info(f'Unusually Long Row Found in CSV File')
-                    break
+            # num_headers = len(header)
+            # for row in reader:
+            #     if len(row) > num_headers:
+            #         logging.info(f'Unusually Long Row Found in CSV File')
+            #         break
 
     def parse_csv_rows_into_requirements(self, app):
         """ Parse each row in csv_all_rows into one Requirement.
-        
         Args:
             app (Flask): Hanfor Flask app..
         """
