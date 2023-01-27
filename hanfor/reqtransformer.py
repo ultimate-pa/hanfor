@@ -244,28 +244,21 @@ class RequirementCollection(HanforVersioned, Pickleable):
         try:
             with open(csv_file, 'r') as f:
                 reader = csv.DictReader(f)
-                header = next(reader)
+                header = reader.fieldnames
 
                 # checking for duplicate IDs
                 id_set = set()
                 for row in reader:
-                    id = row['id']
-                    if id in id_set:
-                        logging.info(f'Duplicate ID {id} found in CSV File')
+                    temp_id = row[header[0]].split(';')[0]
+                    if temp_id in id_set:
+                        logging.info(f'Duplicate ID {temp_id} found in CSV File')
                         return
-                    id_set.add(id)
+                    id_set.add(temp_id)
                 logging.info(f'No duplicate IDs found in CSV File')
         except FileNotFoundError as e:
             logging.error(f"The file {csv_file} does not exist.")
         except Exception as e:
             logging.error(f"An error occurred: {e}")
-
-            # checking for unusually long rows
-            # num_headers = len(header)
-            # for row in reader:
-            #     if len(row) > num_headers:
-            #         logging.info(f'Unusually Long Row Found in CSV File')
-            #         break
 
     def parse_csv_rows_into_requirements(self, app):
         """ Parse each row in csv_all_rows into one Requirement.
