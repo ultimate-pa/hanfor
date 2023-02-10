@@ -243,22 +243,44 @@ class RequirementCollection(HanforVersioned, Pickleable):
     def pre_process_csv(self, csv_file):
         try:
             with open(csv_file, 'r') as f:
-                reader = csv.DictReader(f)
-                header = reader.fieldnames
+                dict_reader = csv.DictReader(f)
+                header = dict_reader.fieldnames
+
+                # checking headers
+                reader = csv.reader(f)
+                row_count = sum(1 for row in reader)
+                f.seek(0)
+                header = next(reader)
+                if row_count == 1:
+                    logging.info(f'CSV does not have headers')
+                    return
+
+                # checking for long rows
+                for row in dict_reader:
+                    counter = 0
+                    for char in reversed(row[header[0]]):
+                        if char == ';':
+                            counter += 1
+                        if counter >= 2:
+                            logging.info(f'Unusually Long Rows Found in CSV File')
+                            return
 
                 # checking for duplicate IDs
                 id_set = set()
-                for row in reader:
+                for row in dict_reader:
                     temp_id = row[header[0]].split(';')[0]
                     if temp_id in id_set:
                         logging.info(f'Duplicate ID {temp_id} found in CSV File')
                         return
                     id_set.add(temp_id)
-                logging.info(f'No duplicate IDs found in CSV File')
+            logging.info(f'No duplicate IDs found in CSV File')
+
         except FileNotFoundError as e:
             logging.error(f"The file {csv_file} does not exist.")
         except Exception as e:
             logging.error(f"An error occurred: {e}")
+
+
 
     def parse_csv_rows_into_requirements(self, app):
         """ Parse each row in csv_all_rows into one Requirement.
