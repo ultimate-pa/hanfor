@@ -32,10 +32,14 @@ def pickle_load_from_dump(filename):
     :return: Object dumped in file
     :rtype: object
     """
-    if os.path.getsize(filename) > 0:
+    if os.path.getsize(filename) <= 0:
+        return dict()
+
+    try:
         with open(filename, mode='rb') as f:
             return pickle.load(f)
-
+    except EOFError:
+        return dict()
 
 def get_filenames_from_dir(input_dir):
     """ Returns the list of filepaths for all files in input_dir.

@@ -151,7 +151,7 @@ class RequirementCollection(HanforVersioned, Pickleable):
             reader = csv.DictReader(csvfile, dialect=dialect)
             self.csv_all_rows = list(reader)
             self.csv_meta.fieldnames = reader.fieldnames
-            self.csv_meta.headers = sorted(list(self.csv_all_rows[0].keys()))
+            self.csv_meta.headers = sorted(list(reader.fieldnames))
 
     def select_headers(self, base_revision_headers=None, user_provided_headers=None):
         """ Determines which of the csv headers correspond to our needed data.
@@ -1314,6 +1314,7 @@ class Variable(HanforVersioned):
         self.script_results: str = ''
         self.belongs_to_enum: str = ''
         self.constraints = dict()
+        self.description: str = ''
 
     def to_dict(self, var_req_mapping):
         used_by = []
@@ -1531,6 +1532,8 @@ class Variable(HanforVersioned):
                 logging.info(f'Migrate old ENUM `{self.name}` to new ENUM_INT, ENUM_REAL')
         if not hasattr(self, 'constraints') or not isinstance(self.constraints, dict):
             setattr(self, 'constraints', dict())
+        if not hasattr(self, 'description') or not isinstance(self.constraints, str):
+            setattr(self, 'description', str())
         super().run_version_migrations()
 
 

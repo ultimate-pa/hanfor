@@ -1057,4 +1057,24 @@ $(document).ready(function () {
     $('#new_variable_type').on('change', function () {
         update_new_var_const_value_input();
     });
+
+    $('#import-variables-from-csv-input').change(function () {
+        const file_reader = new FileReader()
+        file_reader.onload = function () {
+            $.ajax({
+                type: 'POST', url: 'api/var/import_csv', data: {
+                    variables_csv_str: file_reader.result
+                }, success: function (response) {
+                    if (response['success'] === false) {
+                        alert(response['errormsg'])
+                        return
+                    }
+
+                    location.reload();
+                }
+            })
+        }
+
+        file_reader.readAsText($('#import-variables-from-csv-input').prop('files')[0]);
+    })
 });

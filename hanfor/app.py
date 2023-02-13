@@ -2,6 +2,7 @@
 @copyright: 2018 Samuel Roth <samuel@smel.de>
 @licence: GPLv3
 """
+import csv
 import datetime
 import logging
 import os
@@ -19,7 +20,7 @@ import reqtransformer
 import utils
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
-from reqtransformer import Requirement, VariableCollection, Variable, VarImportSessions, Formalization
+from reqtransformer import Requirement, VariableCollection, Variable, VarImportSessions, Formalization, Scope
 from ressources import Report, QueryAPI
 from ressources.simulator_ressource import SimulatorRessource
 from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, hash_file_sha1
@@ -156,7 +157,8 @@ def api(resource, command):
         'get_enumerators',
         'start_import_session',
         'gen_req',
-        'add_standard'
+        'add_standard',
+        'import_csv'
     ]
     if resource not in resources or command not in commands:
         return jsonify({
@@ -648,6 +650,37 @@ def api(resource, command):
             )
 
             return utils.generate_file_response(content, name)
+        elif command == 'import_csv':
+            result = {'success': True, 'errormsg': ''}
+
+            variables_csv_str = request.form.get('variables_csv_str', '')
+            var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
+
+            dict_reader = csv.DictReader(variables_csv_str.splitlines())
+            variables = list(dict_reader)
+
+            for variable in variables:
+                var_name = variable['name']
+                var_type = variable['type'].lower() if variable['type'].lower() in ['bool', 'int', 'real', 'unknown'] \
+                    else variable['type'].upper()
+
+                if var_name == '' or var_collection.var_name_exists(var_name):
+                    continue
+
+                var_collection.add_var(var_name)
+                if var_type in ['ENUMERATOR_INT', 'ENUMERATOR_REAL']:
+                    var_collection.collection[var_name].belongs_to_enum = variable['enum_name']
+                var_collection.set_type(var_name, var_type)
+                var_collection.collection[var_name].value = variable['value']
+                var_collection.collection[var_name].description = variable['description']
+
+                if variable['constraint'] != '':
+                    constraint_id = var_collection.collection[var_name].add_constraint()
+                    var_collection.collection[var_name].update_constraint(
+                        constraint_id, Scope.GLOBALLY.name, 'Universality', {'R': variable['constraint']},
+                        var_collection)
+
+            var_collection.store()
 
         return jsonify(result)
 
@@ -772,9 +805,9 @@ def var_import_session(session_id, command):
 def site(site):
     available_sites = [
         'help',
-        #'statistics',
+        # 'statistics',
         'variables',
-        #'tags'
+        # 'tags'
     ]
     if site in available_sites:
         if site == 'variables':
