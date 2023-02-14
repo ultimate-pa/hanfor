@@ -74,15 +74,15 @@ class TestVariableImport(TestCase):
     def test_import_from_csv(self):
         csv_str = dedent("""\
             "name","enum_name","description","type","value","constraint"
-            "integer_constant",,"variable description","const","0","integer_constant >= 0 && integer_constant <= 0"
-            "real_constant",,"variable description","const","0.0","real_constant >= 0.0 && real_constant <= 0.0"
+            "integer_constant",,"variable description","CONST","0","integer_constant >= 0 && integer_constant <= 0"
+            "real_constant",,"variable description","CONST","0.0","real_constant >= 0.0 && real_constant <= 0.0"
             "boolean_variable",,"variable description","bool",,"boolean_variable != false"
             "integer_variable",,"variable description","int",,"integer_variable >= 0 && integer_variable <= 10"
             "real_variable",,"variable description","real",,"real_variable >= 0.0 && real_variable <= 10.0"
-            "integer_enum",,"variable description","enum_int",,"integer_enum >= 0 && integer_enum <= 10"
-            "integer_enum_enumerator_0","integer_enum","variable description","enumerator_int","0",
-            "real_enum",,"variable description","enum_real",,"real_enum >= 0.0 && real_enum <= 10.0"
-            "real_enum_enumerator_0","real_enum","variable description","enumerator_real","0.0",
+            "integer_enum",,"variable description","ENUM_INT",,"integer_enum >= 0 && integer_enum <= 10"
+            "integer_enum_enumerator_0","integer_enum","variable description","ENUMERATOR_INT","0",
+            "real_enum",,"variable description","ENUM_REAL",,"real_enum >= 0.0 && real_enum <= 10.0"
+            "real_enum_enumerator_0","real_enum","variable description","ENUMERATOR_REAL","0.0",
         """)
 
         args = utils.HanforArgumentParser(app).parse_args(

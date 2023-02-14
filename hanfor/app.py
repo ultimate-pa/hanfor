@@ -659,24 +659,26 @@ def api(resource, command):
             dict_reader = csv.DictReader(variables_csv_str.splitlines())
             variables = list(dict_reader)
 
-            for variable in variables:
-                var_name = variable['name']
-                var_type = variable['type'].lower() if variable['type'].lower() in ['bool', 'int', 'real', 'unknown'] \
-                    else variable['type'].upper()
+            missing_fieldnames = {'name', 'enum_name', 'description', 'type', 'value', 'constraint'}.difference(
+                dict_reader.fieldnames)
+            if len(missing_fieldnames) > 0:
+                result['errormsg'] = f'Import failed due to missing fieldnames: {missing_fieldnames}.'
+                result['success'] = False
+                return jsonify(result)
 
-                if var_name == '' or var_collection.var_name_exists(var_name):
+            for variable in variables:
+                if variable['name'] == '' or var_collection.var_name_exists(variable['name']):
                     continue
 
-                var_collection.add_var(var_name)
-                if var_type in ['ENUMERATOR_INT', 'ENUMERATOR_REAL']:
-                    var_collection.collection[var_name].belongs_to_enum = variable['enum_name']
-                var_collection.set_type(var_name, var_type)
-                var_collection.collection[var_name].value = variable['value']
-                var_collection.collection[var_name].description = variable['description']
+                var_collection.add_var(variable['name'])
+                var_collection.collection[variable['name']].belongs_to_enum = variable['enum_name']
+                var_collection.set_type(variable['name'], variable['type'])
+                var_collection.collection[variable['name']].value = variable['value']
+                var_collection.collection[variable['name']].description = variable['description']
 
                 if variable['constraint'] != '':
-                    constraint_id = var_collection.collection[var_name].add_constraint()
-                    var_collection.collection[var_name].update_constraint(
+                    constraint_id = var_collection.collection[variable['name']].add_constraint()
+                    var_collection.collection[variable['name']].update_constraint(
                         constraint_id, Scope.GLOBALLY.name, 'Universality', {'R': variable['constraint']},
                         var_collection)
 
