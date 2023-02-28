@@ -34,6 +34,7 @@ app.config.from_object('config')
 from example_blueprint import example_blueprint
 from tags import tags
 from statistics import statistics
+from ultimate import ultimate
 
 # Example Blueprint
 app.register_blueprint(example_blueprint.blueprint)
@@ -44,6 +45,9 @@ app.register_blueprint(tags.api_blueprint)
 # Statistics
 app.register_blueprint(statistics.blueprint)
 app.register_blueprint(statistics.api_blueprint)
+# ultimate
+app.register_blueprint(ultimate.api_blueprint)
+
 
 if 'USE_SENTRY' in app.config and app.config['USE_SENTRY']:
     import sentry_sdk
@@ -82,7 +86,6 @@ def nocache(view):
 @nocache
 def simulator():
     return SimulatorRessource(app, request).apply_request()
-
 
 @app.route('/api/tools/<command>', methods=['GET', 'POST'])
 @nocache
