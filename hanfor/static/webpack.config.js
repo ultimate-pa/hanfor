@@ -13,7 +13,8 @@ const config = {
         simulator_modal: __dirname + '/js/simulator-modal.js',
         example_blueprint: __dirname + '/../example_blueprint/static/example_blueprint.js',
         tags: __dirname + '/../tags/static/tags.js',
-        statistics: __dirname + '/../statistics/static/statistics.js'
+        statistics: __dirname + '/../statistics/static/statistics.js',
+        ultimate: __dirname + '/../ultimate/static/ultimate.js'
     },
     output: {
         filename: '[name]-bundle.js',

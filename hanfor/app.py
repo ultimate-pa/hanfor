@@ -46,6 +46,7 @@ app.register_blueprint(tags.api_blueprint)
 app.register_blueprint(statistics.blueprint)
 app.register_blueprint(statistics.api_blueprint)
 # ultimate
+app.register_blueprint(ultimate.blueprint)
 app.register_blueprint(ultimate.api_blueprint)
 
 
