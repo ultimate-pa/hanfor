@@ -1,7 +1,37 @@
+import os
 import requests
 import json
 
-from configuration.ultimate_config import ULTIMATE_API_URL
+from configuration.ultimate_config import ULTIMATE_API_URL, ULTIMATE_USER_SETTINGS_FOLDER, ULTIMATE_TOOLCHAIN_FOLDER
+
+
+def get_user_settings(settings_name: str = "default") -> str | int:
+    if ULTIMATE_USER_SETTINGS_FOLDER == "":
+        path = "configuration/ultimate/user_settings/"
+    else:
+        path = ULTIMATE_USER_SETTINGS_FOLDER
+        if not path.endswith("/"):
+            path += "/"
+    path += settings_name + ".json"
+    if not os.path.isfile(path):
+        return -1  # File does not exist
+    with open(path, "r") as settings_file:
+        tmp_json = json.loads(settings_file.read())
+        return json.dumps(tmp_json)
+
+
+def get_toolchain(toolchain_name: str) -> str | int:
+    if ULTIMATE_TOOLCHAIN_FOLDER == "":
+        path = "configuration/ultimate/toolchains/"
+    else:
+        path = ULTIMATE_TOOLCHAIN_FOLDER
+        if not path.endswith("/"):
+            path += "/"
+    path += toolchain_name + ".xml"
+    if not os.path.isfile(path):
+        return -1  # File does not exist
+    with open(path, "r") as toolchain_file:
+        return toolchain_file.read()
 
 
 class UltimateConnector:
@@ -21,15 +51,15 @@ class UltimateConnector:
         return ''
 
     @staticmethod
-    def start_job(code: str, toolchain_id: str, code_file_extension: str,
-                  user_settings: str, ultimate_toolchain_xml: str) -> (str, str):
+    def start_job(code: str, code_file_extension: str, toolchain_id: str,
+                  user_settings_name: str) -> (str, str):
         url = ULTIMATE_API_URL
         payload = {'action': 'execute',
                    'code': code,
                    'toolchain[id]': toolchain_id,
                    "code_file_extension": code_file_extension,
-                   "user_settings": user_settings,
-                   "ultimate_toolchain_xml": ultimate_toolchain_xml}
+                   "user_settings": get_user_settings(user_settings_name),
+                   "ultimate_toolchain_xml": get_toolchain(toolchain_id)}
         r = requests.post(url, data=payload, headers={'Content-Type': 'application/x-www-form-urlencoded'})
         content = json.loads(r.text)
         return content

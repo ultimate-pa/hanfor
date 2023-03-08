@@ -1,0 +1,246 @@
+{
+  "user_settings": [
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.cacsl2boogietranslator",
+      "default": "ASSUME",
+      "visible": false,
+      "name": "Pointer+base+address+is+valid+at+dereference",
+      "options": [
+        "IGNORE",
+        "ASSUME",
+        "ASSERTandASSUME"
+      ],
+      "id": "cacsl2boogietranslator.pointer.base.address.is.valid.at.dereference",
+      "type": "string",
+      "key": "Pointer+base+address+is+valid+at+dereference"
+    },
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.cacsl2boogietranslator",
+      "default": false,
+      "visible": false,
+      "name": "Check+if+freed+pointer+was+valid",
+      "id": "cacsl2boogietranslator.check.if.freed.pointer.was.valid",
+      "type": "bool",
+      "key": "Check+if+freed+pointer+was+valid",
+      "value": false
+    },
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.cacsl2boogietranslator",
+      "default": false,
+      "visible": false,
+      "name": "Check+unreachability+of+error+function+in+SV-COMP+mode",
+      "id": "cacsl2boogietranslator.check.unreachability.of.error.function.in.sv-comp.mode",
+      "type": "bool",
+      "key": "Check+unreachability+of+error+function+in+SV-COMP+mode",
+      "value": false
+    },
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.cacsl2boogietranslator",
+      "default": "ASSUME",
+      "visible": false,
+      "name": "If+two+pointers+are+subtracted+or+compared+they+have+the+same+base+address",
+      "options": [
+        "IGNORE",
+        "ASSUME",
+        "ASSERTandASSUME"
+      ],
+      "id": "cacsl2boogietranslator.if.two.pointers.are.subtracted.or.compared.they.have.the.same.base.address",
+      "type": "string",
+      "key": "If+two+pointers+are+subtracted+or+compared+they+have+the+same+base+address"
+    },
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.cacsl2boogietranslator",
+      "default": "ASSUME",
+      "visible": false,
+      "name": "Check+array+bounds+for+arrays+that+are+off+heap",
+      "options": [
+        "IGNORE",
+        "ASSUME",
+        "ASSERTandASSUME"
+      ],
+      "id": "cacsl2boogietranslator.check.array.bounds.for.arrays.that.are.off.heap",
+      "type": "string",
+      "key": "Check+array+bounds+for+arrays+that+are+off+heap"
+    },
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.cacsl2boogietranslator",
+      "default": true,
+      "visible": false,
+      "name": "Use+constant+arrays",
+      "id": "cacsl2boogietranslator.use.constant.arrays",
+      "type": "bool",
+      "key": "Use+constant+arrays",
+      "value": false
+    },
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.cacsl2boogietranslator",
+      "default": "IGNORE",
+      "visible": false,
+      "name": "Check+division+by+zero",
+      "options": [
+        "IGNORE",
+        "ASSUME",
+        "ASSERTandASSUME"
+      ],
+      "id": "cacsl2boogietranslator.check.division.by.zero",
+      "type": "string",
+      "key": "Check+division+by+zero"
+    },
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.cacsl2boogietranslator",
+      "default": true,
+      "visible": false,
+      "name": "Overapproximate+operations+on+floating+types",
+      "id": "cacsl2boogietranslator.overapproximate.operations.on.floating.types",
+      "type": "bool",
+      "key": "Overapproximate+operations+on+floating+types",
+      "value": false
+    },
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.cacsl2boogietranslator",
+      "default": "ASSUME",
+      "visible": false,
+      "name": "Pointer+to+allocated+memory+at+dereference",
+      "options": [
+        "IGNORE",
+        "ASSUME",
+        "ASSERTandASSUME"
+      ],
+      "id": "cacsl2boogietranslator.pointer.to.allocated.memory.at.dereference",
+      "type": "string",
+      "key": "Pointer+to+allocated+memory+at+dereference"
+    },
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+      "default": "CAMEL",
+      "visible": false,
+      "name": "Trace+refinement+strategy",
+      "options": [
+        "FIXED_PREFERENCES",
+        "TAIPAN",
+        "RUBBER_TAIPAN",
+        "LAZY_TAIPAN",
+        "TOOTHLESS_TAIPAN",
+        "PENGUIN",
+        "WALRUS",
+        "CAMEL",
+        "CAMEL_NO_AM",
+        "CAMEL_SMT_AM",
+        "LIZARD",
+        "BADGER",
+        "WOLF",
+        "BEAR",
+        "WARTHOG",
+        "WARTHOG_NO_AM",
+        "MAMMOTH",
+        "MAMMOTH_NO_AM",
+        "SMTINTERPOL",
+        "DACHSHUND",
+        "SIFA_TAIPAN",
+        "TOOTHLESS_SIFA_TAIPAN",
+        "MCR"
+      ],
+      "id": "traceabstraction.trace.refinement.strategy",
+      "type": "string",
+      "key": "Trace+refinement+strategy"
+    },
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.buchiautomizer",
+      "default": false,
+      "visible": false,
+      "name": "Try+twofold+refinement",
+      "id": "buchiautomizer.try.twofold.refinement",
+      "type": "bool",
+      "key": "Try+twofold+refinement",
+      "value": false
+    },
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.buchiautomizer",
+      "default": false,
+      "visible": false,
+      "name": "Use+old+map+elimination",
+      "id": "buchiautomizer.use.old.map.elimination",
+      "type": "bool",
+      "key": "Use+old+map+elimination",
+      "value": false
+    },
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.blockencoding",
+      "default": true,
+      "visible": false,
+      "name": "Use+SBE",
+      "id": "blockencoding.use.sbe",
+      "type": "bool",
+      "key": "Use+SBE",
+      "value": false
+    },
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.blockencoding",
+      "default": true,
+      "visible": false,
+      "name": "Minimize+states+even+if+more+edges+are+added+than+removed.",
+      "id": "blockencoding.minimize.states.even.if.more.edges.are.added.than.removed",
+      "type": "bool",
+      "key": "Minimize+states+even+if+more+edges+are+added+than+removed.",
+      "value": false
+    },
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.blockencoding",
+      "default": true,
+      "visible": false,
+      "name": "Rewrite+not-equals",
+      "id": "blockencoding.rewrite.not-equals",
+      "type": "bool",
+      "key": "Rewrite+not-equals",
+      "value": false
+    },
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.blockencoding",
+      "default": false,
+      "visible": false,
+      "name": "Create+parallel+compositions+if+possible",
+      "id": "blockencoding.create.parallel.compositions.if.possible",
+      "type": "bool",
+      "key": "Create+parallel+compositions+if+possible",
+      "value": false
+    },
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.blockencoding",
+      "default": "NONE",
+      "visible": false,
+      "name": "Minimize+states+using+LBE+with+the+strategy",
+      "options": [
+        "NONE",
+        "SINGLE",
+        "SINGLE_NODE_MULTI_EDGE",
+        "MULTI"
+      ],
+      "id": "blockencoding.minimize.states.using.lbe.with.the.strategy",
+      "type": "string",
+      "key": "Minimize+states+using+LBE+with+the+strategy"
+    },
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.rcfgbuilder",
+      "default": "SingleStatement",
+      "visible": false,
+      "name": "Size+of+a+code+block",
+      "options": [
+        "SingleStatement",
+        "SequenceOfStatements",
+        "LoopFreeBlock"
+      ],
+      "id": "rcfgbuilder.size.of.a.code.block",
+      "type": "string",
+      "key": "Size+of+a+code+block"
+    },
+    {
+      "plugin_id": "de.uni_freiburg.informatik.ultimate.core",
+      "default": "de.uni_freiburg.informatik.ultimate.lib.smtlibutils.quantifier.QuantifierPusher=ERROR;",
+      "visible": false,
+      "name": "Log+level+for+class",
+      "id": "core.log.level.for.class",
+      "type": "string",
+      "key": "Log+level+for+class"
+    }
+  ]
+}
