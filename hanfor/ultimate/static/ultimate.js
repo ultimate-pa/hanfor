@@ -1,33 +1,56 @@
 require('gasparesganga-jquery-loading-overlay')
 require('bootstrap')
-require('datatables.net-bs5')
-require('jquery-ui/ui/widgets/autocomplete')
 require('jquery-ui/ui/effects/effect-highlight')
 require('../../static/js/bootstrap-tokenfield.js')
-require('awesomplete')
-require('awesomplete/awesomplete.css')
-require('datatables.net-colreorder-bs5')
 require('../../static/js/bootstrap-confirm-button')
 
+/*
 $(document).ajaxStart(function () {
     $.LoadingOverlay('show')
 })
 
 $(document).ajaxStop(function () {
     $.LoadingOverlay('hide')
-})
+})*/
+
+function addToResult(status, requestID, message) {
+   let newRow = $("<tr></tr>");
+   let col1 = $("<td>" + status + "</td>");
+   let col2 = $("<td>" + requestID + "</td>");
+   let col3 = $("<td>" + message + "</td>");
+   newRow.append(col1,col2,col3).prependTo("#result");
+}
 
 $(document).ready(function () {
 
-    $('#btnTest').click(function () {
-        console.log("test was pressed!")
-        $('#btnTest').text("test was pressed")
-        /*$.ajax({
-            type: 'POST', url: '../api/tags/add_standard',
+    $('#btnPush').click(function () {
+        $.ajax({
+            type: 'POST', url: '../api/ultimate/job',
         }).done(function (data) {
-            location.reload()
+            $('#requestID').val(data['requestId']);
+            addToResult(data['status'], data['requestId'], 'Post');
         }).fail(function (jqXHR, textStatus, errorThrown) {
             alert(errorThrown + '\n\n' + jqXHR['responseText'])
-        })*/
+        })
+    })
+
+    $('#btnGet').click(function () {
+        $.ajax({
+            type: 'GET', url: '../api/ultimate/job/' + $('#requestID').val(),
+        }).done(function (data) {
+            addToResult(data['status'], data['requestId'], JSON.stringify(data['result']));
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            alert(errorThrown + '\n\n' + jqXHR['responseText'])
+        })
+    })
+
+    $('#btnDelete').click(function () {
+        $.ajax({
+            type: 'DELETE', url: '../api/ultimate/job/' + $('#requestID').val(),
+        }).done(function (data) {
+            addToResult(data['status'], data['requestId'], JSON.stringify(data['result']));
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            alert(errorThrown + '\n\n' + jqXHR['responseText'])
+        })
     })
 })

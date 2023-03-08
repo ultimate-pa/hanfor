@@ -32,25 +32,31 @@ class UltimateConnector:
                    "ultimate_toolchain_xml": ultimate_toolchain_xml}
         r = requests.post(url, data=payload, headers={'Content-Type': 'application/x-www-form-urlencoded'})
         content = json.loads(r.text)
-        # return content['requestId'], content['status']
         return content
 
     @staticmethod
-    def get_job(job_id: str) -> str:
+    def get_job(job_id: str) -> dict | str:
         url = ULTIMATE_API_URL + 'job/get/' + job_id
         r = requests.get(url, headers={'Cache-Control': 'no-cache'})
         if r.status_code != 200:
             return ''
         content = json.loads(r.text)
+        message = ""
+        if 'results' in content.keys():
+            message = content['results']
         print(content)
-        return content['status']
+        return {'status': content['status'],
+                'requestId': content['requestId'],
+                'result': message}
 
     @staticmethod
-    def delete_job(job_id: str):
+    def delete_job(job_id: str) -> dict | str:
         url = ULTIMATE_API_URL + 'job/delete/' + job_id
         r = requests.get(url, headers={'Cache-Control': 'no-cache'})
         if r.status_code != 200:
             return ''
         content = json.loads(r.text)
         print(content)
-        return content['status']
+        return {'status': content['status'],
+                'requestId': '',
+                'result': content['msg']}
