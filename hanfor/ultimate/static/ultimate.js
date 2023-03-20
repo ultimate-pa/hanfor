@@ -24,16 +24,28 @@ function addToResult(status, requestID, message) {
 $(document).ready(function () {
 
     $('#btnPush').click(function () {
+        $('#btnPush').text("Processing request")
         $.ajax({
-            type: 'POST',
-            url: '../api/ultimate/job',
-            data: $('#reqfile').text()
+            type: 'GET',
+            url: '../api/tools/req_file',
         }).done(function (data) {
-            $('#requestID').val(data['requestId']);
-            addToResult(data['status'], data['requestId'], 'Post');
+            console.log(data)
+            $.ajax({
+                type: 'POST',
+                url: '../api/ultimate/job',
+                data: data
+            }).done(function (data) {
+                $('#requestID').val(data['requestId']);
+                addToResult(data['status'], data['requestId'], 'Post');
+                $('#btnPush').text("Send Request")
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                alert(errorThrown + '\n\n' + jqXHR['responseText'])
+            })
         }).fail(function (jqXHR, textStatus, errorThrown) {
             alert(errorThrown + '\n\n' + jqXHR['responseText'])
         })
+
+
     })
 
     $('#btnGet').click(function () {
@@ -58,14 +70,6 @@ $(document).ready(function () {
         })
     })
     $('#btnReq').click(function () {
-        $.ajax({
-            type: 'GET',
-            url: '../api/tools/req_file' + $('#requestID').val(),
-        }).done(function (data) {
-            $('#reqfile').text(data);
-            console.log(data)
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            alert(errorThrown + '\n\n' + jqXHR['responseText'])
-        })
+
     })
 })

@@ -1,9 +1,13 @@
+import os
 from typing import Type
 
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, current_app
 from flask.views import MethodView
 
+from os import path
+
 from ultimate.ultimate_connector import UltimateConnector
+from ultimate.ultimate_job import UltimateJob
 
 BUNDLE_JS = 'dist/ultimate-bundle.js'
 blueprint = Blueprint('ultimate', __name__, template_folder='templates', url_prefix='/ultimate')
@@ -33,22 +37,35 @@ def register_api(bp: Blueprint, method_view: Type[MethodView]) -> None:
 
 class UltimateApi(MethodView):
     def __init__(self):
+        self.data_folder = path.join(current_app.config['REVISION_FOLDER'], 'ultimate_jobs')
+        if not path.exists(self.data_folder):
+            os.mkdir(self.data_folder)
         self.ultimate = UltimateConnector
 
     def get(self, command: str, job_id: str) -> str:
         if command == 'version':
             return self.ultimate.get_version()
         elif command == 'job':
-            return self.ultimate.get_job(job_id)
+            job = UltimateJob.from_file(self.data_folder, job_id)
+            if job.job_status == 'done':
+                pass
+            elif job.job_status == 'scheduled':
+                job.update(self.ultimate.get_job(job_id))
+            else:
+                pass
+            return job.get()
 
     def post(self) -> str:
         data = request.get_data()
-        return self.ultimate.start_job(
+        job_id = self.ultimate.start_job(
             data,
             ".req",
             "ReqCheck",
             "ReqCheck-non-lin"
         )
+        job = UltimateJob(job_id['requestId'], self.data_folder)
+        job.save_to_file()
+        return job_id
 
     def delete(self, command: str, job_id: str) -> str:
         if command == 'job':
