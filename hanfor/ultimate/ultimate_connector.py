@@ -3,6 +3,7 @@ import requests
 import json
 
 from configuration.ultimate_config import ULTIMATE_API_URL, ULTIMATE_USER_SETTINGS_FOLDER, ULTIMATE_TOOLCHAIN_FOLDER
+from static_utils import get_filenames_from_dir
 
 
 def get_user_settings(settings_name: str = "default") -> str | int:

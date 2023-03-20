@@ -25,7 +25,9 @@ $(document).ready(function () {
 
     $('#btnPush').click(function () {
         $.ajax({
-            type: 'POST', url: '../api/ultimate/job',
+            type: 'POST',
+            url: '../api/ultimate/job',
+            data: $('#reqfile').text()
         }).done(function (data) {
             $('#requestID').val(data['requestId']);
             addToResult(data['status'], data['requestId'], 'Post');
@@ -36,7 +38,8 @@ $(document).ready(function () {
 
     $('#btnGet').click(function () {
         $.ajax({
-            type: 'GET', url: '../api/ultimate/job/' + $('#requestID').val(),
+            type: 'GET',
+            url: '../api/ultimate/job/' + $('#requestID').val(),
         }).done(function (data) {
             addToResult(data['status'], data['requestId'], JSON.stringify(data['result']));
         }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -46,9 +49,21 @@ $(document).ready(function () {
 
     $('#btnDelete').click(function () {
         $.ajax({
-            type: 'DELETE', url: '../api/ultimate/job/' + $('#requestID').val(),
+            type: 'DELETE',
+            url: '../api/ultimate/job/' + $('#requestID').val(),
         }).done(function (data) {
             addToResult(data['status'], data['requestId'], JSON.stringify(data['result']));
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            alert(errorThrown + '\n\n' + jqXHR['responseText'])
+        })
+    })
+    $('#btnReq').click(function () {
+        $.ajax({
+            type: 'GET',
+            url: '../api/tools/req_file' + $('#requestID').val(),
+        }).done(function (data) {
+            $('#reqfile').text(data);
+            console.log(data)
         }).fail(function (jqXHR, textStatus, errorThrown) {
             alert(errorThrown + '\n\n' + jqXHR['responseText'])
         })

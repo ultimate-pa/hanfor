@@ -1,0 +1,414 @@
+{
+    "user_settings": [
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.core",
+            "default": "Library-ModelCheckerUtils",
+            "visible": false,
+            "name": "ultimate.logging.details",
+            "id": "core.ultimate.logging.details",
+            "type": "string",
+            "key": "ultimate.logging.details"
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.core",
+            "default": "de.uni_freiburg.informatik.ultimate.lib.smtlibutils.quantifier.QuantifierPusher=ERROR",
+            "visible": false,
+            "name": "Log+level+for+class",
+            "id": "core.Log.level.for.class",
+            "type": "string",
+            "key": "Log+level+for+class"
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.rcfgbuilder",
+            "default": false,
+            "visible": false,
+            "name": "Add+additional+assume+for+each+assert",
+            "id": "rcfgbuilder.Add.additional.assume.for.each.assert",
+            "type": "bool",
+            "key": "Add+additional+assume+for+each+assert",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.rcfgbuilder",
+            "default": false,
+            "visible": false,
+            "name": "Convert+code+blocks+to+CNF",
+            "id": "rcfgbuilder.Convert.code.blocks.to.CNF",
+            "type": "bool",
+            "key": "Convert+code+blocks+to+CNF",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.rcfgbuilder",
+            "default": "z3 SMTLIB2_COMPLIANT",
+            "visible": false,
+            "name": "Command+for+external+solver",
+            "id": "rcfgbuilder.Command.for.external.solver",
+            "type": "string",
+            "key": "Command+for+external+solver"
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.rcfgbuilder",
+            "default": false,
+            "visible": false,
+            "name": "Dump+SMT+script+to+file",
+            "id": "rcfgbuilder.Dump.SMT.script.to.file",
+            "type": "bool",
+            "key": "Dump+SMT+script+to+file",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.rcfgbuilder",
+            "default": false,
+            "visible": false,
+            "name": "Dump+main+track+benchmark+to+file",
+            "id": "rcfgbuilder.Dump.main.track.benchmark.to.file",
+            "type": "bool",
+            "key": "Dump+main+track+benchmark+to+file",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.rcfgbuilder",
+            "default": false,
+            "visible": false,
+            "name": "Dump+unsat+core+track+benchmark+to+file",
+            "id": "rcfgbuilder.Dump.unsat.core.track.benchmark.to.file",
+            "type": "bool",
+            "key": "Dump+unsat+core+track+benchmark+to+file",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.rcfgbuilder",
+            "default": false,
+            "visible": false,
+            "name": "Fake+non-incremental+script",
+            "id": "rcfgbuilder.Fake.non-incremental.script",
+            "type": "bool",
+            "key": "Fake+non-incremental+script",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.rcfgbuilder",
+            "default": false,
+            "visible": false,
+            "name": "Remove+goto+edges+from+RCFG",
+            "id": "rcfgbuilder.Remove.goto.edges.from.RCFG",
+            "type": "bool",
+            "key": "Remove+goto+edges+from+RCFG",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.rcfgbuilder",
+            "default": false,
+            "visible": false,
+            "name": "Simplify+code+blocks",
+            "id": "rcfgbuilder.Simplify.code.blocks",
+            "type": "bool",
+            "key": "Simplify+code+blocks",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.rcfgbuilder",
+            "default": true,
+            "visible": false,
+            "name": "Skolemize+terms",
+            "id": "rcfgbuilder.Skolemize.terms",
+            "type": "bool",
+            "key": "Skolemize+terms",
+            "value": true
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.rcfgbuilder",
+            "default": false,
+            "visible": false,
+            "name": "Translate+Boogie+integers+to+SMT+bitvectors",
+            "id": "rcfgbuilder.Translate.Boogie.integers.to.SMT.bitvectors",
+            "type": "bool",
+            "key": "Translate+Boogie+integers+to+SMT+bitvectors",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.rcfgbuilder",
+            "default": "External_DefaultMode",
+            "visible": false,
+            "name": "SMT+solver",
+            "id": "rcfgbuilder.SMT.solver",
+            "type": "string",
+            "key": "SMT+solver"
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": false,
+            "visible": false,
+            "name": "Compute+Hoare+Annotation+of+negated+interpolant+automaton,+abstraction+and+CFG",
+            "id": "traceabstraction.Compute.Hoare.Annotation.of.negated.interpolant.automaton,.abstraction.and.CFG",
+            "type": "bool",
+            "key": "Compute+Hoare+Annotation+of+negated+interpolant+automaton,+abstraction+and+CFG",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": false,
+            "visible": false,
+            "name": "Compute+trace+for+counterexample+result",
+            "id": "traceabstraction.Compute.trace.for.counterexample.result",
+            "type": "bool",
+            "key": "Compute+trace+for+counterexample+result",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": false,
+            "visible": false,
+            "name": "Compute+statistics+for+interpolant+sequences",
+            "id": "traceabstraction.Compute.statistics.for.interpolant.sequences",
+            "type": "bool",
+            "key": "Compute+statistics+for+interpolant+sequences",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": false,
+            "visible": false,
+            "name": "DifferenceSenwa+operation+instead+classical+Difference",
+            "id": "traceabstraction.DifferenceSenwa.operation.instead.classical.Difference",
+            "type": "bool",
+            "key": "DifferenceSenwa+operation+instead+classical+Difference",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": false,
+            "visible": false,
+            "name": "Dump+SMT+script+to+file",
+            "id": "traceabstraction.Dump.SMT.script.to.file",
+            "type": "bool",
+            "key": "Dump+SMT+script+to+file",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": false,
+            "visible": false,
+            "name": "Dump+automata+to+files",
+            "id": "traceabstraction.Dump.automata.to.files",
+            "type": "bool",
+            "key": "Dump+automata+to+files",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": false,
+            "visible": false,
+            "name": "Dump+only+reuse-automata",
+            "id": "traceabstraction.Dump.only.reuse-automata",
+            "type": "bool",
+            "key": "Dump+only+reuse-automata",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": false,
+            "visible": false,
+            "name": "Fake+non-incremental+script",
+            "id": "traceabstraction.Fake.non-incremental.script",
+            "type": "bool",
+            "key": "Fake+non-incremental+script",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": false,
+            "visible": false,
+            "name": "Flow-sensitive+error+trace+relevance+analysis",
+            "id": "traceabstraction.Flow-sensitive.error.trace.relevance.analysis",
+            "type": "bool",
+            "key": "Flow-sensitive+error+trace+relevance+analysis",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": "NONE",
+            "visible": false,
+            "name": "Highlight+relevant+statements+in+error+traces",
+            "id": "traceabstraction.Highlight.relevant.statements.in.error.traces",
+            "type": "string",
+            "key": "Highlight+relevant+statements+in+error+traces"
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": false,
+            "visible": false,
+            "name": "Interpolants+consolidation",
+            "id": "traceabstraction.Interpolants.consolidation",
+            "type": "bool",
+            "key": "Interpolants+consolidation",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": true,
+            "visible": false,
+            "name": "Interprocedural+analysis+(Nested+Interpolants)",
+            "id": "traceabstraction.Interprocedural.analysis.(Nested.Interpolants)",
+            "type": "bool",
+            "key": "Interprocedural+analysis+(Nested+Interpolants)",
+            "value": true
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": "1000000",
+            "visible": false,
+            "name": "Iterations+until+the+model+checker+surrenders",
+            "id": "traceabstraction.Iterations.until.the.model.checker.surrenders",
+            "type": "string",
+            "key": "Iterations+until+the+model+checker+surrenders"
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": false,
+            "visible": false,
+            "name": "Non-flow-sensitive+error+trace+relevance+analysis",
+            "id": "traceabstraction.Non-flow-sensitive.error.trace.relevance.analysis",
+            "type": "bool",
+            "key": "Non-flow-sensitive+error+trace+relevance+analysis",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": "1000000",
+            "visible": false,
+            "name": "Number+of+iteration+whose+artifact+is+visualized",
+            "id": "traceabstraction.Number.of.iteration.whose.artifact.is.visualized",
+            "type": "string",
+            "key": "Number+of+iteration+whose+artifact+is+visualized"
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": false,
+            "visible": false,
+            "name": "Refine+always+when+using+abstract+interpretation",
+            "id": "traceabstraction.Refine.always.when.using.abstract.interpretation",
+            "type": "bool",
+            "key": "Refine+always+when+using+abstract+interpretation",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": "External_DefaultMode",
+            "visible": false,
+            "name": "SMT+solver",
+            "id": "traceabstraction.SMT.solver",
+            "type": "string",
+            "key": "SMT+solver"
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": false,
+            "visible": false,
+            "name": "Stop+after+first+violation+was+found",
+            "id": "traceabstraction.Stop.after.first.violation.was.found",
+            "type": "bool",
+            "key": "Stop+after+first+violation+was+found",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": false,
+            "visible": false,
+            "name": "Use+abstract+interpretation+in+PathInvariants",
+            "id": "traceabstraction.Use.abstract.interpretation.in.PathInvariants",
+            "type": "bool",
+            "key": "Use+abstract+interpretation+in+PathInvariants",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": true,
+            "visible": false,
+            "name": "Use+live+variables",
+            "id": "traceabstraction.Use.live.variables",
+            "type": "bool",
+            "key": "Use+live+variables",
+            "value": true
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": false,
+            "visible": false,
+            "name": "Use+nonlinear+constraints+in+PathInvariants",
+            "id": "traceabstraction.Use.nonlinear.constraints.in.PathInvariants",
+            "type": "bool",
+            "key": "Use+nonlinear+constraints+in+PathInvariants",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": true,
+            "visible": false,
+            "name": "Use+separate+solver+for+trace+checks",
+            "id": "traceabstraction.Use.separate.solver.for.trace.checks",
+            "type": "bool",
+            "key": "Use+separate+solver+for+trace+checks",
+            "value": true
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": false,
+            "visible": false,
+            "name": "Use+unsat+cores+in+PathInvariants",
+            "id": "traceabstraction.Use.unsat.cores.in.PathInvariants",
+            "type": "bool",
+            "key": "Use+unsat+cores+in+PathInvariants",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": false,
+            "visible": false,
+            "name": "Use+weakest+precondition+in+PathInvariants",
+            "id": "traceabstraction.Use.weakest.precondition.in.PathInvariants",
+            "type": "bool",
+            "key": "Use+weakest+precondition+in+PathInvariants",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": true,
+            "visible": false,
+            "name": "cut-off+requires+same+transition",
+            "id": "traceabstraction.cut-off.requires.same.transition",
+            "type": "bool",
+            "key": "cut-off+requires+same+transition",
+            "value": true
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": false,
+            "visible": false,
+            "name": "use+unfolding+as+abstraction",
+            "id": "traceabstraction.use.unfolding.as.abstraction",
+            "type": "bool",
+            "key": "use+unfolding+as+abstraction",
+            "value": false
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": "BADGER",
+            "visible": false,
+            "name": "Trace+refinement+strategy",
+            "id": "traceabstraction.Trace.refinement.strategy",
+            "type": "string",
+            "key": "Trace+refinement+strategy"
+        },
+        {
+            "plugin_id": "de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction",
+            "default": "UNKNOWN",
+            "visible": false,
+            "name": "Trace+refinement+exception+blacklist",
+            "id": "traceabstraction.Trace.refinement.exception.blacklist",
+            "type": "string",
+            "key": "Trace+refinement+exception+blacklist"
+        }
+    ]
+}
