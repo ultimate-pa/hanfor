@@ -584,10 +584,10 @@ def api(resource, command):
             var_collection = VariableCollection.load(app.config['SESSION_VARIABLE_COLLECTION'])
 
             # Apply some tests if the new Variable is legal.
-            if len(variable_name) == 0 or not re.match('^[a-zA-Z0-9_-]+$', variable_name):
+            if len(variable_name) == 0 or not re.match('^[a-zA-Z0-9_]+$', variable_name):
                 result = {
                     'success': False,
-                    'errormsg': 'Illegal Variable name. Must Be at least 1 Char and only alphanum + { -, _}'
+                    'errormsg': 'Illegal Variable name. Must Be at least 1 Char and only alphanum + {_}'
                 }
             elif var_collection.var_name_exists(variable_name):
                 result = {
