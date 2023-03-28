@@ -46,9 +46,9 @@ class UltimateApi(MethodView):
             mkdir(self.data_folder)
         self.ultimate = UltimateConnector
 
-    def get(self, command: str, job_id: str) -> str | dict:
+    def get(self, command: str, job_id: str) -> dict:
         if command == 'version':
-            return self.ultimate.get_version()
+            return {'version': self.ultimate.get_version()}
         elif command == 'jobs':
             jobs: list[UltimateJob] = []
             for jf in get_filenames_from_dir(self.data_folder):
@@ -64,7 +64,7 @@ class UltimateApi(MethodView):
                 pass
             return job.get()
 
-    def post(self) -> str:
+    def post(self) -> dict:
         data = request.get_data()
         job = self.ultimate.start_job(
             data,
@@ -75,7 +75,7 @@ class UltimateApi(MethodView):
         job.save_to_file(self.data_folder)
         return job.get()
 
-    def delete(self, command: str, job_id: str) -> str:
+    def delete(self, command: str, job_id: str) -> dict:
         if command == 'job':
             return self.ultimate.delete_job(job_id)
 
