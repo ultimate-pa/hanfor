@@ -3,7 +3,7 @@ import requests
 import json
 
 from configuration.ultimate_config import ULTIMATE_API_URL, ULTIMATE_USER_SETTINGS_FOLDER, ULTIMATE_TOOLCHAIN_FOLDER
-from static_utils import get_filenames_from_dir
+from ultimate.ultimate_job import UltimateJob
 
 
 def get_user_settings(settings_name: str = "default") -> str | int:
@@ -52,8 +52,8 @@ class UltimateConnector:
         return ''
 
     @staticmethod
-    def start_job(code: str, code_file_extension: str, toolchain_id: str,
-                  user_settings_name: str) -> (str, str):
+    def start_job(code: bytes, code_file_extension: str, toolchain_id: str,
+                  user_settings_name: str) -> UltimateJob:
         url = ULTIMATE_API_URL
         payload = {'action': 'execute',
                    'code': code,
@@ -63,7 +63,13 @@ class UltimateConnector:
                    "ultimate_toolchain_xml": get_toolchain(toolchain_id)}
         r = requests.post(url, data=payload, headers={'Content-Type': 'application/x-www-form-urlencoded'})
         content = json.loads(r.text)
-        return content
+        uj = UltimateJob(job_id=content['requestId'],
+                         requirement_file=code.decode("utf-8"),
+                         toolchain_id=toolchain_id,
+                         toolchain_xml=get_toolchain(toolchain_id),
+                         usersettings_name=user_settings_name,
+                         usersettings_json=get_user_settings(user_settings_name))
+        return uj
 
     @staticmethod
     def get_job(job_id: str) -> dict | str:
@@ -75,7 +81,6 @@ class UltimateConnector:
         message = ""
         if 'results' in content.keys():
             message = content['results']
-        print(content)
         return {'status': content['status'],
                 'requestId': content['requestId'],
                 'result': message}
@@ -87,7 +92,6 @@ class UltimateConnector:
         if r.status_code != 200:
             return ''
         content = json.loads(r.text)
-        print(content)
         return {'status': content['status'],
                 'requestId': '',
                 'result': content['msg']}
