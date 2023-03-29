@@ -14,7 +14,8 @@ const config = {
         example_blueprint: __dirname + '/../example_blueprint/static/example_blueprint.js',
         tags: __dirname + '/../tags/static/tags.js',
         statistics: __dirname + '/../statistics/static/statistics.js',
-        ultimate: __dirname + '/../ultimate/static/ultimate.js'
+        ultimate: __dirname + '/../ultimate/static/ultimate.js',
+        ultimate_tab: __dirname + '/../ultimate/static/ultimate-tab.js'
     },
     output: {
         filename: '[name]-bundle.js',

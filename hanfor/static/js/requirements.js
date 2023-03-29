@@ -17,6 +17,7 @@ const autosize = require('autosize/dist/autosize');
 // Globals
 const {SearchNode} = require('./datatables-advanced-search.js');
 const {init_simulator_tab} = require('./simulator-tab.js');
+const {init_ultimate_tab} = require('../../ultimate/static/ultimate-tab.js');
 
 const {Textcomplete} = require('@textcomplete/core')
 const {TextareaEditor} = require('@textcomplete/textarea')
@@ -57,6 +58,7 @@ $(document).ready(function () {
     update_logs();
     init_report_generation();
     init_simulator_tab();
+    init_ultimate_tab();
 
     let body = $('body');
     // Bind formalization deletion.

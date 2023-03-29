@@ -37,15 +37,13 @@ $(document).ready(function () {
             }).done(function (data) {
                 $('#requestID').val(data['requestId']);
                 addToResult(data['status'], data['requestId'], 'Post');
-                $('#btnPush').text("Send Request")
+                $('#btnPush').text("Send Request");
             }).fail(function (jqXHR, textStatus, errorThrown) {
-                alert(errorThrown + '\n\n' + jqXHR['responseText'])
+                alert(errorThrown + '\n\n' + jqXHR['responseText']);
             })
         }).fail(function (jqXHR, textStatus, errorThrown) {
-            alert(errorThrown + '\n\n' + jqXHR['responseText'])
+            alert(errorThrown + '\n\n' + jqXHR['responseText']);
         })
-
-
     })
 
     $('#btnGet').click(function () {
@@ -55,7 +53,7 @@ $(document).ready(function () {
         }).done(function (data) {
             addToResult(data['status'], data['requestId'], JSON.stringify(data['result']));
         }).fail(function (jqXHR, textStatus, errorThrown) {
-            alert(errorThrown + '\n\n' + jqXHR['responseText'])
+            alert(errorThrown + '\n\n' + jqXHR['responseText']);
         })
     })
 
@@ -66,10 +64,7 @@ $(document).ready(function () {
         }).done(function (data) {
             addToResult(data['status'], data['requestId'], JSON.stringify(data['result']));
         }).fail(function (jqXHR, textStatus, errorThrown) {
-            alert(errorThrown + '\n\n' + jqXHR['responseText'])
+            alert(errorThrown + '\n\n' + jqXHR['responseText']);
         })
-    })
-    $('#btnReq').click(function () {
-
     })
 })
