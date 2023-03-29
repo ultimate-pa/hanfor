@@ -21,7 +21,7 @@ def index():
 
 def register_api(bp: Blueprint, method_view: Type[MethodView]) -> None:
     view = method_view.as_view('ultimate_api')
-    'version, jobs, configurations'
+    'version, jobs, configurations, update-all'
     bp.add_url_rule('/<string:command>',
                     defaults={'job_id': None},
                     view_func=view,
@@ -47,12 +47,16 @@ class UltimateApi(MethodView):
         if command == 'version':
             return {'version': self.ultimate.get_version()}
         elif command == 'jobs':
-            jobs: list[UltimateJob] = []
-            for jf in get_filenames_from_dir(self.data_folder):
-                jobs.append(UltimateJob.from_file(file_name=jf))
+            jobs: list[UltimateJob] = get_all_jobs(self.data_folder)
             return {'data': [j.get() for j in jobs]}
         elif command == 'configurations':
             return self.ultimate.get_ultimate_configurations()
+        elif command == 'update-all':
+            jobs: list[UltimateJob] = get_all_jobs(self.data_folder)
+            for j in jobs:
+                if j.job_status == 'scheduled':
+                    j.update(self.ultimate.get_job(j.job_id), self.data_folder)
+            return {'status': 'done'}
         elif command == 'job':
             job = UltimateJob.from_file(save_dir=self.data_folder, job_id=job_id)
             if job.job_status == 'done':
@@ -75,6 +79,13 @@ class UltimateApi(MethodView):
     def delete(self, command: str, job_id: str) -> dict:
         if command == 'job':
             return self.ultimate.delete_job(job_id)
+
+
+def get_all_jobs(data_folder: str) -> list[UltimateJob]:
+    jobs: list[UltimateJob] = []
+    for jf in get_filenames_from_dir(data_folder):
+        jobs.append(UltimateJob.from_file(file_name=jf))
+    return jobs
 
 
 register_api(api_blueprint, UltimateApi)
