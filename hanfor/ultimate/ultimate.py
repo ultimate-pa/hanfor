@@ -66,12 +66,8 @@ class UltimateApi(MethodView):
 
     def post(self) -> dict:
         data = request.get_data()
-        job = self.ultimate.start_job(
-            data,
-            ".req",
-            "ReqCheck",
-            "ReqCheck-non-lin"
-        )
+        configuration = request.args.get('configuration')
+        job = self.ultimate.start_requirement_job(data, configuration)
         job.save_to_file(self.data_folder)
         return job.get()
 

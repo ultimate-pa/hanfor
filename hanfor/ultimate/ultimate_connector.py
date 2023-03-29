@@ -1,8 +1,9 @@
-import os
-import requests
 import json
+import os
 
-from configuration.ultimate_config import ULTIMATE_API_URL, ULTIMATE_USER_SETTINGS_FOLDER, ULTIMATE_TOOLCHAIN_FOLDER
+import requests
+
+from configuration.ultimate_config import ULTIMATE_API_URL, ULTIMATE_USER_SETTINGS_FOLDER, ULTIMATE_TOOLCHAIN_FOLDER, ULTIMATE_CONFIGURATIONS
 from ultimate.ultimate_job import UltimateJob
 
 
@@ -52,27 +53,37 @@ class UltimateConnector:
         return ''
 
     @staticmethod
-    def start_job(code: bytes, code_file_extension: str, toolchain_id: str,
-                  user_settings_name: str) -> UltimateJob:
+    def start_requirement_job(requirements: bytes, ultimate_configuration: str) -> UltimateJob:
         url = ULTIMATE_API_URL
+
+        # load configuration, user_settings and toolchain
+        if ultimate_configuration not in ULTIMATE_CONFIGURATIONS:
+            raise Exception('Unknown Ultimate configuration')
+        configuration = ULTIMATE_CONFIGURATIONS[ultimate_configuration]
+        user_settings_name = configuration['user_settings']
+        toolchain_id = configuration['toolchain']
         user_settings = get_user_settings(user_settings_name)
         if user_settings == '':
             raise Exception(f"usersettings {user_settings_name} not found")
         toolchain = get_toolchain(toolchain_id)
         if toolchain == '':
             raise Exception(f"toolchain {toolchain_id} not found")
+
+        # prepare and send request to Ultimate API
         payload = {'action': 'execute',
-                   'code': code,
+                   'code': requirements,
                    'toolchain[id]': toolchain_id,
-                   "code_file_extension": code_file_extension,
+                   "code_file_extension": '.req',
                    "user_settings": user_settings,
                    "ultimate_toolchain_xml": toolchain}
         r = requests.post(url, data=payload, headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
+        # process result and generate UltimateJob
         if r.status_code != 200:
             raise Exception('request was not successful')
         content = json.loads(r.text)
         uj = UltimateJob(job_id=content['requestId'],
-                         requirement_file=code.decode("utf-8"),
+                         requirement_file=requirements.decode("utf-8"),
                          toolchain_id=toolchain_id,
                          toolchain_xml=toolchain,
                          usersettings_name=user_settings_name,

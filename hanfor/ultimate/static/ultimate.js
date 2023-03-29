@@ -32,7 +32,7 @@ $(document).ready(function () {
             console.log(data)
             $.ajax({
                 type: 'POST',
-                url: '../api/ultimate/job',
+                url: '../api/ultimate/job?configuration=' + 'Standard',
                 data: data
             }).done(function (data) {
                 $('#requestID').val(data['requestId']);
