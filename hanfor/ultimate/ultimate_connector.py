@@ -3,7 +3,8 @@ import os
 
 import requests
 
-from configuration.ultimate_config import ULTIMATE_API_URL, ULTIMATE_USER_SETTINGS_FOLDER, ULTIMATE_TOOLCHAIN_FOLDER, ULTIMATE_CONFIGURATIONS
+from configuration.ultimate_config import (ULTIMATE_API_URL, ULTIMATE_USER_SETTINGS_FOLDER, ULTIMATE_TOOLCHAIN_FOLDER,
+                                           ULTIMATE_CONFIGURATIONS)
 from ultimate.ultimate_job import UltimateJob
 
 
@@ -119,3 +120,7 @@ class UltimateConnector:
         return {'status': content['status'],
                 'requestId': '',
                 'result': content['msg']}
+
+    @staticmethod
+    def get_ultimate_configurations() -> dict:
+        return ULTIMATE_CONFIGURATIONS

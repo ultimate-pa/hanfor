@@ -21,12 +21,9 @@ def index():
 
 def register_api(bp: Blueprint, method_view: Type[MethodView]) -> None:
     view = method_view.as_view('ultimate_api')
-    bp.add_url_rule('/version',
-                    defaults={'command': 'version', 'job_id': None},
-                    view_func=view,
-                    methods=['GET'])
-    bp.add_url_rule('/jobs',
-                    defaults={'command': 'jobs', 'job_id': None},
+    'version, jobs, configurations'
+    bp.add_url_rule('/<string:command>',
+                    defaults={'job_id': None},
                     view_func=view,
                     methods=['GET'])
     bp.add_url_rule('/job',
@@ -54,6 +51,8 @@ class UltimateApi(MethodView):
             for jf in get_filenames_from_dir(self.data_folder):
                 jobs.append(UltimateJob.from_file(file_name=jf))
             return {'data': [j.get() for j in jobs]}
+        elif command == 'configurations':
+            return self.ultimate.get_ultimate_configurations()
         elif command == 'job':
             job = UltimateJob.from_file(save_dir=self.data_folder, job_id=job_id)
             if job.job_status == 'done':
@@ -63,6 +62,8 @@ class UltimateApi(MethodView):
             else:
                 pass
             return job.get()
+        else:
+            return {'status': 'error', 'message': 'unknown command'}
 
     def post(self) -> dict:
         data = request.get_data()
