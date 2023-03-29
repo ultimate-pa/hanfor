@@ -16,6 +16,7 @@ class UltimateJob:
     toolchain_xml: str
     usersettings_name: str
     usersettings_json: str
+    api_url: str = ''
     job_status: str = 'scheduled'
     request_time: str = datetime.now().strftime("%Y.%m.%y, %H:%M:%S.%f")
     last_update: str = datetime.now().strftime("%Y.%m.%y, %H:%M:%S.%f")

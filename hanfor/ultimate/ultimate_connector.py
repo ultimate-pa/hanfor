@@ -76,7 +76,8 @@ class UltimateConnector:
                          toolchain_id=toolchain_id,
                          toolchain_xml=toolchain,
                          usersettings_name=user_settings_name,
-                         usersettings_json=user_settings)
+                         usersettings_json=user_settings,
+                         api_url=url)
         return uj
 
     @staticmethod
