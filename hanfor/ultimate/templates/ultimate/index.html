@@ -2,45 +2,46 @@
 {% block title %}Ultimate{% endblock %}
 {% block content %}
     <div class="card">
-        <div class="card-header">
-            <ul class="nav nav-tabs card-header-tabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <a class="nav-link active" id="tools-tab" data-bs-toggle="tab" href="#tools-pane" role="tab"
-                       aria-controls="tools" aria-selected="false">Tools</a>
-                </li>
-            </ul>
-        </div>
         <div class="card-body">
             <div class="tab-content">
-                <div class="tab-pane fade  show active" id="tools-pane" role="tabpanel" aria-labelledby="filter-tab">
-                    <div class="row g-2">
-                        <div class="col-12">
-                            <button id="btnPush" class="btn btn-secondary w-100" type="button">Send Request</button>
-                        </div>
-                        <div class="col-12 input-group">
-                            <span class="input-group-text" id="id-addon" style="width: 8em">RequestID</span>
-                            <input type="text" class="form-control" id="requestID"
-                                   aria-describedby="id-addon" aria-label="RequestID" title="RequestID">
-                        </div>
-                        <div class="col-12">
-                            <button id="btnGet" class="btn btn-secondary w-100" type="button">Get Request</button>
-                        </div>
-                        <div class="col-12">
-                            <button id="btnDelete" class="btn btn-secondary w-100" type="button">Delete Request</button>
-                        </div>
+                <div class="col-12">
+                    <label for="ultimate-job-select">Available analyses</label>
+                </div>
+                <div class="row g-2">
+                    <div class="col flex-column ">
+                        <select id="ultimate-job-select" class="form-select" aria-describedby="id-addon"></select>
+                    </div>
+                    <div class="col-auto">
+                        <button id="ultimate-job-load-btn" class="btn btn-secondary" type="button">load analysis</button>
+                    </div>
+                    <div class="col-auto">
+                        <button id="ultimate-job-refresh-btn" class="btn btn-secondary" type="button">refresh</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <p id="reqfile">
-    </p>
-    <table id="result" style="width:100%" class="table table-hover table-bordered">
+    <table id="ultimate-job-meta-tbl" class="table table-hover table-bordered w-100">
         <thead>
             <tr>
-                <th style="width:10%">status</th>
-                <th style="width:20%">requestID</th>
-                <th>text</th>
+                <th class="w-25">Field</th>
+                <th class="w-75">Value</th>
+            </tr>
+            <tr>
+                <td>Request ID</td>
+                <td id="ultimate-job-request-id"></td>
+            </tr>
+            <tr>
+                <td>Request Time</td>
+                <td id="ultimate-job-request-time"></td>
+            </tr>
+            <tr>
+                <td>Last Update</td>
+                <td id="ultimate-job-last-update"></td>
+            </tr>
+            <tr>
+                <td>Request Status</td>
+                <td id="ultimate-job-request-status"></td>
             </tr>
         </thead>
     </table>

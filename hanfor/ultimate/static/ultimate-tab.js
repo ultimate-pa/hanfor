@@ -10,8 +10,8 @@ function check_ultimate_version() {
         url: '../api/ultimate/version'
     }).done(function (data) {
         if (data['version'] !== '') {
-            let tab = $('#ultimate-tab');
-            tab.css({ display: "block" })
+            $('#ultimate-tab').css({ display: "block" });
+            $('#ultimate-nav').css({ display: "block" });
         } else {
             console.log('no ultimate connection found!');
         }
