@@ -11,7 +11,6 @@ function check_ultimate_version() {
     }).done(function (data) {
         if (data['version'] !== '') {
             $('#ultimate-tab').css({ display: "block" });
-            $('#ultimate-nav').css({ display: "block" });
         } else {
             console.log('no ultimate connection found!');
         }
