@@ -39,9 +39,9 @@ $(document).ready(function () {
     $('#ultimate-job-download-btn').click(function () {
         $.ajax({
             type: 'GET',
-            url: '../api/ultimate/job/' + $('#ultimate-job-select').val() + '?download',
+            url: '../api/ultimate/job/' + $('#ultimate-job-select').val() + '?download=true',
         }).done(function (data) {
-            download(data['requestId'] + '.json', JSON.stringify(data, null, 4));
+            download(data['job_id'] + '.json', JSON.stringify(data, null, 4));
         }).fail(function (jqXHR, textStatus, errorThrown) {
             alert(errorThrown + '\n\n' + jqXHR['responseText']);
         })

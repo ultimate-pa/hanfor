@@ -43,11 +43,11 @@ class UltimateJob:
         job = cls.from_dict(data)
         return job
 
-    def save_to_file(self, save_dir: str):
+    def save_to_file(self, save_dir: str) -> None:
         with open(path.join(save_dir, f"{self.job_id}.json"), 'w') as save_file:
             save_file.write(json.dumps(self.to_dict(), indent=4))
 
-    def update(self, data: dict, save_dir: str):
+    def update(self, data: dict, save_dir: str) -> None:
         if not data['requestId'] == self.job_id:
             raise Exception("Missmatch of requestID")
         object.__setattr__(self, 'last_update', datetime.now().strftime("%Y.%m.%y, %H:%M:%S.%f"))
@@ -55,12 +55,12 @@ class UltimateJob:
         object.__setattr__(self, 'results', data['result'])
         self.save_to_file(save_dir)
 
-    def get(self):
+    def get(self) -> dict:
         return {'status': self.job_status,
                 'requestId': self.job_id,
                 'result': self.results,
                 'request_time': self.request_time,
                 'last_update': self.last_update}
 
-    def get_download(self):
+    def get_download(self) -> dict:
         return self.to_dict()
