@@ -61,3 +61,6 @@ class UltimateJob:
                 'result': self.results,
                 'request_time': self.request_time,
                 'last_update': self.last_update}
+
+    def get_download(self):
+        return self.to_dict()

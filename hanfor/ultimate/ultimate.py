@@ -58,6 +58,7 @@ class UltimateApi(MethodView):
                     j.update(self.ultimate.get_job(j.job_id), self.data_folder)
             return {'status': 'done'}
         elif command == 'job':
+            download = request.args.get('download', default=False, type=bool)
             job = UltimateJob.from_file(save_dir=self.data_folder, job_id=job_id)
             if job.job_status == 'done':
                 pass
@@ -65,6 +66,8 @@ class UltimateApi(MethodView):
                 job.update(self.ultimate.get_job(job_id), self.data_folder)
             else:
                 pass
+            if download:
+                return job.get_download()
             return job.get()
         else:
             return {'status': 'error', 'message': 'unknown command'}

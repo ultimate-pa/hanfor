@@ -35,6 +35,17 @@ $(document).ready(function () {
             alert(errorThrown + '\n\n' + jqXHR['responseText']);
         })
     });
+
+    $('#ultimate-job-download-btn').click(function () {
+        $.ajax({
+            type: 'GET',
+            url: '../api/ultimate/job/' + $('#ultimate-job-select').val() + '?download',
+        }).done(function (data) {
+            download(data['requestId'] + '.json', JSON.stringify(data, null, 4));
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            alert(errorThrown + '\n\n' + jqXHR['responseText']);
+        })
+    });
 })
 
 function load_all_jobs() {
@@ -61,4 +72,17 @@ function clearTable(table) {
   for (let i = 1; i < x; i++) {
     table.deleteRow(1);
   }
+}
+
+function download(filename, text) {
+    let element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
 }
