@@ -1,10 +1,17 @@
-<h5>Create new analysis.</h5>
+<div class="d-flex justify-content-between">
+    <h5>Create new analysis.</h5>
+    <div >
+        Ultimate status:
+        <img id="ultimate-tab-ultimate-status-img" src="{{ url_for('static', filename='img/icons/disconnected.svg') }}" title="No Ultimate API connected" alt="Ultimate status">
+    </div>
+</div>
+
 <div class="row g-2 row-spacing">
     <div class="col-12 flex-column">
         <label for="ultimate-tab-configuration-select">Ultimate configuration:</label>
         <select id="ultimate-tab-configuration-select" class="form-select"></select>
     </div>
     <div class="col-12">
-        <button id="ultimate-tab-create-unfiltered-btn" class="btn btn-secondary w-100" type="button">create analysis</button>
+        <button id="ultimate-tab-create-unfiltered-btn" class="btn btn-secondary w-100" type="button" disabled>Create Analysis</button>
     </div>
 </div>

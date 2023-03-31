@@ -23,21 +23,6 @@ function update_color_theme() {
   }
 }
 
-function check_ultimate_version() {
-    $.ajax({
-        type: 'GET',
-        url: '../api/ultimate/version'
-    }).done(function (data) {
-        if (data['version'] !== '') {
-            $('#ultimate-nav').css({ display: "block" });
-        } else {
-            console.log('no ultimate connection found!');
-        }
-    }).fail(function (jqXHR, textStatus, errorThrown) {
-        alert(errorThrown + '\n\n' + jqXHR['responseText']);
-    });
-}
-
 $('#dark_theme_switch').on('change', function() {
   if ($(this).is(':checked')) {
     localStorage.setItem('color_mode', 'dark');
@@ -50,5 +35,4 @@ $('#dark_theme_switch').on('change', function() {
 
 window.addEventListener('load', function() {
   update_color_theme();
-  check_ultimate_version();
 });

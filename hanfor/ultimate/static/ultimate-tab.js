@@ -10,7 +10,11 @@ function check_ultimate_version() {
         url: '../api/ultimate/version'
     }).done(function (data) {
         if (data['version'] !== '') {
-            $('#ultimate-tab').css({ display: "block" });
+            let img = $('#ultimate-tab-ultimate-status-img')
+            let img_src = img.attr("src");
+            img.attr("src", img_src.replace('/disconnected.svg', '/connected.svg'));
+            img.attr('title', 'Ultimate Api connected: ' + data['version'])
+            $('#ultimate-tab-create-unfiltered-btn').prop("disabled",false);
         } else {
             console.log('no ultimate connection found!');
         }
@@ -38,7 +42,7 @@ function update_configurations() {
     });
 
     $('#ultimate-tab-create-unfiltered-btn').click(function () {
-        $('#ultimate-tab-create-unfiltered-btn').text("Processing request")
+        $('#ultimate-tab-create-unfiltered-btn').text("Processing Request")
         $.ajax({
             type: 'GET',
             url: '../api/tools/req_file',
@@ -52,7 +56,7 @@ function update_configurations() {
             }).done(function (data) {
                 console.log(data['requestId'])
                 // TODO inform user about new analysis
-                $('#ultimate-tab-create-unfiltered-btn').text("Send Request");
+                $('#ultimate-tab-create-unfiltered-btn').text("Create Analysis");
             }).fail(function (jqXHR, textStatus, errorThrown) {
                 alert(errorThrown + '\n\n' + jqXHR['responseText']);
             })
