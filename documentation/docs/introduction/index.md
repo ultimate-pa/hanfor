@@ -3,7 +3,7 @@ toc_depth: 4
 # What is Hanfor?
 **Hanfor** is a tool that **h**elps **an**alyzing and **fo**rmalizing **r**equirements.
 
-The specification of requirements is a critical activity in software and system development. A defect in a requirement specification can result in a situation where a software or system is delivered that fullfills the given requirements, but does not satisfy the customer's needs due to erroneous requirments.
+The specification of requirements is a critical activity in software and system development. A defect in a requirement specification can result in a situation where a software or system is delivered that fulfills the given requirements, but does not satisfy the customer's needs due to erroneous requirements.
 
 Requirement analysis, as a human activity, is error-prone. Especially for large sets of requirements, it is difficult and time consuming to manually check whether a given property is satisfied or not.
 
