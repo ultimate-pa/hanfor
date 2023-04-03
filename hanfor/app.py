@@ -27,6 +27,11 @@ from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice
 from patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
 from tags.tags import TagsApi
 
+import mimetypes
+mimetypes.add_type('text/css', '.css')
+mimetypes.add_type('text/javascript', '.js')
+
+
 # Create the app
 app = Flask(__name__)
 app.config.from_object('config')
