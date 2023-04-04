@@ -89,11 +89,15 @@ class TagsApi(MethodView):
         self.__available_tags[tag_name] = Tag(tag_name, tag_color, tag_internal, tag_description)
         self.__store()
 
-    def get(self, name: str) -> str | dict | tuple | Response:
+    def get(self, name: str | None) -> str | dict | tuple | Response:
         response_data = jsonify([tag for tag in self.__available_tags.values()])
 
         if name is not None:
-            response_data = self.__available_tags[name]
+            if name in self.__available_tags:
+                # TODO this is not working when called by http request
+                response_data = self.__available_tags[name]
+            else:
+                response_data = {}
 
         return response_data
 
