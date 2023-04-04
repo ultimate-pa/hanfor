@@ -3,37 +3,55 @@ require('bootstrap')
 require('jquery-ui/ui/effects/effect-highlight')
 require('../../static/js/bootstrap-tokenfield.js')
 require('../../static/js/bootstrap-confirm-button')
-
+require('datatables.net-colreorder-bs5')
 
 
 $(document).ready(function () {
     load_all_jobs()
+
+    const ultimateTbl = $('#ultimate-job-result-tbl')
+    const ultimateDataTable = ultimateTbl.DataTable({
+        paging: true,
+        stateSave: true,
+        pageLength: 50,
+        responsive: true,
+        lengthMenu: [[10, 50, 100, 500, -1], [10, 50, 100, 500, 'All']],
+        dom: 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
+        //ajax: {url: '../api/ultimate/job/' + $('#ultimate-job-select').val(), dataSrc: ''},
+        deferRender: true,
+        columns: [
+                    {data: 'logLvl'},
+                    {data: 'type'},
+                    {data: 'shortDesc'},
+                    {data: 'longDesc'}
+                 ],
+        initComplete: function () {
+            this.api().draw()
+        }
+    });
+
+    new $.fn.dataTable.ColReorder(ultimateDataTable, {})
 
     $('#ultimate-job-refresh-btn').click(function () {
         load_all_jobs()
     });
 
     $('#ultimate-job-load-btn').click(function () {
+        let table = $('#ultimate-job-result-tbl').DataTable()
         $.ajax({
-            type: 'GET',
-            url: '../api/ultimate/job/' + $('#ultimate-job-select').val(),
+            type: "GET",
+            url: '../api/ultimate/job/' + $('#ultimate-job-select').val()
         }).done(function (data) {
             $('#ultimate-job-request-id').text(data['requestId']);
             $('#ultimate-job-request-time').text(data['request_time']);
             $('#ultimate-job-last-update').text(data['last_update']);
             $('#ultimate-job-request-status').text(data['status']);
-            let resultTable = $('#ultimate-job-result-tbl');
-            clearTable(resultTable[0]);
-            for (let i = 0; i < data['result'].length; i++) {
-                let row = resultTable[0].insertRow(-1);
-                row.insertCell(-1).innerHTML = data['result'][i]['logLvl'];
-                row.insertCell(-1).innerHTML = data['result'][i]['type'];
-                row.insertCell(-1).innerHTML = data['result'][i]['shortDesc'];
-                row.insertCell(-1).innerHTML = data['result'][i]['longDesc'];
-            }
+            table.clear();
+            table.rows.add(data['result']);
+            table.draw();
         }).fail(function (jqXHR, textStatus, errorThrown) {
             alert(errorThrown + '\n\n' + jqXHR['responseText']);
-        })
+        });
     });
 
     $('#ultimate-job-download-btn').click(function () {
@@ -65,13 +83,6 @@ function load_all_jobs() {
     }).fail(function (jqXHR, textStatus, errorThrown) {
         alert(errorThrown + '\n\n' + jqXHR['responseText']);
     });
-}
-
-function clearTable(table) {
-  let x = table.rows.length;
-  for (let i = 1; i < x; i++) {
-    table.deleteRow(1);
-  }
 }
 
 function download(filename, text) {
