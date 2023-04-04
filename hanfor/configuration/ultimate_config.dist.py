@@ -15,3 +15,11 @@ Ultimate configurations
 ULTIMATE_CONFIGURATIONS = {
     'Standard': {'toolchain': 'ReqCheck', 'user_settings': 'ReqCheck-non-lin'}
 }
+
+"""
+Automated Tags
+If this option is enabled Hanfor will add tags to the corresponding requirements automatically when the Ultimate-PA job 
+is done.
+"""
+
+AUTOMATED_TAGS = False

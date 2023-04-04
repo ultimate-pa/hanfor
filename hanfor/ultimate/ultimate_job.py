@@ -3,8 +3,51 @@ from dataclasses_json import dataclass_json
 import json
 from datetime import datetime
 from os import path
+from flask import current_app
+from utils import get_requirements
+
+from defaults import Color
+from configuration.ultimate_config import AUTOMATED_TAGS
+from tags.tags import TagsApi
+from reqtransformer import Requirement
 
 FILE_VERSION = 0
+
+
+def check_ultimate_tag_is_available() -> None:
+    tags_api = TagsApi()
+    if tags_api.get('Ultimate_raw_data') == {}:
+        # ultimate_raw_data tag is not available
+        tags_api.add('Ultimate_raw_data', Color.BS_GRAY.value, False, '')
+
+
+def get_all_requirement_ids() -> list[str]:
+    requirements = get_requirements(current_app.config['REVISION_FOLDER'])
+    result = []
+    for requirement in requirements:
+        result.append(requirement.rid.replace('-', '_') + '_')
+    return result
+
+
+def add_ultimate_result_to_requirement(requirement_id: str, ultimate_result: dict) -> None:
+    requirement = Requirement.load_requirement_by_id(requirement_id, current_app)
+    if not requirement:
+        return
+    if 'Ultimate_raw_data' in requirement.tags:
+        requirement.tags['Ultimate_raw_data'] += f"\n{ultimate_result['type']}: {ultimate_result['longDesc']}"
+    else:
+        requirement.tags['Ultimate_raw_data'] = f"{ultimate_result['type']}: {ultimate_result['longDesc']}"
+
+    requirement.store()
+
+
+def add_tags(results: list[dict]) -> None:
+    check_ultimate_tag_is_available()
+    requirements = get_all_requirement_ids()
+    for result in results:
+        for requirement in requirements:
+            if requirement in result['longDesc']:
+                add_ultimate_result_to_requirement(requirement[:-1].replace('_', '-'), result)
 
 
 @dataclass_json
@@ -50,10 +93,13 @@ class UltimateJob:
     def update(self, data: dict, save_dir: str) -> None:
         if not data['requestId'] == self.job_id:
             raise Exception("Missmatch of requestID")
+        last_status = self.job_status
         object.__setattr__(self, 'last_update', datetime.now().strftime("%Y.%m.%y, %H:%M:%S.%f"))
         object.__setattr__(self, 'job_status', data['status'])
         object.__setattr__(self, 'results', data['result'])
         self.save_to_file(save_dir)
+        if AUTOMATED_TAGS and last_status == 'scheduled' and self.job_status == 'done':
+            add_tags(data['result'])
 
     def get(self) -> dict:
         return {'status': self.job_status,
