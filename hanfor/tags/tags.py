@@ -90,16 +90,13 @@ class TagsApi(MethodView):
         self.__store()
 
     def get(self, name: str | None) -> str | dict | tuple | Response:
-        response_data = jsonify([tag for tag in self.__available_tags.values()])
+        if name is None:
+            return jsonify([tag for tag in self.__available_tags.values()])
 
-        if name is not None:
-            if name in self.__available_tags:
-                # TODO this is not working when called by http request
-                response_data = self.__available_tags[name]
-            else:
-                response_data = {}
+        if name in self.__available_tags:
+            return jsonify(self.__available_tags[name])
 
-        return response_data
+        raise ValueError(f'Unknown tag `{name}`.')
 
     def post(self, command: str) -> str | dict | tuple | Response:
         response_data = {}
