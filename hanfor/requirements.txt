@@ -15,4 +15,4 @@ PyYAML==6.0
 uuid==1.30
 jsbeautifier==1.11.0
 requests==2.28.2
-dataclasses_json==0.5.7
+dataclasses_json==0.5.7 # TODO: Remove and use pydantic instead.
