@@ -257,7 +257,7 @@ class RequirementCollection(HanforVersioned, Pickleable):
                 # Set the tags
                 if self.csv_meta.tags_header is not None:
                     tags = {t.strip(): "" for t in row[self.csv_meta.tags_header].split(',')}
-                    requirement.tags = requirement.tags.update(tags)
+                    requirement.tags.update(tags)
                 # Set the status
                 if self.csv_meta.status_header is not None:
                     status = row[self.csv_meta.status_header].strip()
@@ -268,7 +268,7 @@ class RequirementCollection(HanforVersioned, Pickleable):
                 # Parse and set the requirements.
                 formalizations = json.loads(row[self.csv_meta.formal_header])
                 for key, formalization_dict in formalizations.items():
-                    formalization = Formalization()
+                    formalization = Formalization(int(key))
                     requirement.formalizations[int(key)] = formalization
                     requirement.update_formalization(
                         formalization_id=int(key),
