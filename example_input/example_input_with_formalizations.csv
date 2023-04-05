@@ -1,0 +1,10 @@
+ID,Description,Type,Hanfor_Formalization,Hanfor_Tags,Hanfor_Status
+META1,This is an example for some requirements,meta,{},,Todo
+META2,Next we define some requirements,meta,{},,Todo
+REQ1,var1 is always greater than 5,requirement,"{""0"": {""expressions"": {""P"": """", ""Q"": """", ""R"": ""var1 > 5"", ""S"": ""MAX_TIME"", ""T"": """", ""U"": """", ""V"": """"}, ""pattern"": ""UniversalityDelay"", ""scope"": ""GLOBALLY""}}",has_formalization,Todo
+REQ2,var2 is always smaller than 10,requirement,"{""0"": {""expressions"": {""P"": """", ""Q"": """", ""R"": ""var2 < 10"", ""S"": ""MAX_TIME "", ""T"": """", ""U"": """", ""V"": """"}, ""pattern"": ""UniversalityDelay"", ""scope"": ""GLOBALLY""}}",has_formalization,Todo
+REQ3,constraint1 always holds,requirement,"{""0"": {""expressions"": {""P"": """", ""Q"": """", ""R"": ""constraint1"", ""S"": ""MAX_TIME "", ""T"": """", ""U"": """", ""V"": """"}, ""pattern"": ""UniversalityDelay"", ""scope"": ""GLOBALLY""}}",has_formalization,Todo
+REQ4,constraint2 never holds,requirement,"{""0"": {""expressions"": {""P"": """", ""Q"": """", ""R"": ""!constraint2"", ""S"": ""MAX_TIME "", ""T"": """", ""U"": """", ""V"": """"}, ""pattern"": ""UniversalityDelay"", ""scope"": ""GLOBALLY""}}",has_formalization,Todo
+REQ6,constraint1 and constraint2 never hold at the same time,requirement,"{""0"": {""expressions"": {""P"": """", ""Q"": """", ""R"": ""!(constraint1 && constraint2)"", ""S"": ""MAX_TIME "", ""T"": """", ""U"": """", ""V"": """"}, ""pattern"": ""UniversalityDelay"", ""scope"": ""GLOBALLY""}}",has_formalization,Todo
+REQ7,if var3 = True then var4 = 0,requirement,"{""0"": {""expressions"": {""P"": """", ""Q"": """", ""R"": ""var3"", ""S"": ""var4 == 0"", ""T"": ""MAX_TIME "", ""U"": """", ""V"": """"}, ""pattern"": ""BoundedResponse"", ""scope"": ""GLOBALLY""}}",has_formalization,Todo
+REQ8,if var3 = True then var4 = 1,requirement,"{""0"": {""expressions"": {""P"": """", ""Q"": """", ""R"": ""var3"", ""S"": ""var4 == 1"", ""T"": ""MAX_TIME "", ""U"": """", ""V"": """"}, ""pattern"": ""BoundedResponse"", ""scope"": ""GLOBALLY""}}",has_formalization,Todo
