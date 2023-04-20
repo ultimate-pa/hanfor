@@ -1,10 +1,10 @@
-from dataclasses import dataclass, field
-from dataclasses_json import dataclass_json
+from dataclasses import dataclass, field, asdict
 import json
 from datetime import datetime
 from os import path
 from flask import current_app
 from utils import get_requirements
+from pydantic import parse_obj_as
 
 from defaults import Color
 from configuration.ultimate_config import AUTOMATED_TAGS
@@ -50,7 +50,6 @@ def add_tags(results: list[dict]) -> None:
                 add_ultimate_result_to_requirement(requirement[:-1].replace('_', '-'), result)
 
 
-@dataclass_json
 @dataclass(frozen=True, kw_only=True)
 class UltimateJob:
     job_id: str
@@ -59,11 +58,11 @@ class UltimateJob:
     toolchain_xml: str
     usersettings_name: str
     usersettings_json: str
+    results: list[dict] = field(default_factory=list)
     api_url: str = ''
     job_status: str = 'scheduled'
-    request_time: str = datetime.now().strftime("%Y.%m.%y, %H:%M:%S.%f")
-    last_update: str = datetime.now().strftime("%Y.%m.%y, %H:%M:%S.%f")
-    results: list[dict] = field(default_factory=list)
+    request_time: str = datetime.now().strftime("%Y.%m.%d, %H:%M:%S.%f")
+    last_update: str = datetime.now().strftime("%Y.%m.%d, %H:%M:%S.%f")
 
     @classmethod
     def from_file(cls, *, save_dir: str = None, job_id: str = None, file_name: str = None):
@@ -83,20 +82,22 @@ class UltimateJob:
         with open(file_name, 'r') as save_file:
             data = json.load(save_file)
         # TODO: check for old file version
-        job = cls.from_dict(data)
+        job = parse_obj_as(cls, data)
         return job
 
     def save_to_file(self, save_dir: str) -> None:
         with open(path.join(save_dir, f"{self.job_id}.json"), 'w') as save_file:
-            save_file.write(json.dumps(self.to_dict(), indent=4))
+            save_file.write(json.dumps(asdict(self), indent=4))
 
     def update(self, data: dict, save_dir: str) -> None:
         if not data['requestId'] == self.job_id:
             raise Exception("Missmatch of requestID")
         last_status = self.job_status
-        object.__setattr__(self, 'last_update', datetime.now().strftime("%Y.%m.%y, %H:%M:%S.%f"))
+        print(data)
+        object.__setattr__(self, 'last_update', datetime.now().strftime("%Y.%m.%d, %H:%M:%S.%f"))
         object.__setattr__(self, 'job_status', data['status'])
-        object.__setattr__(self, 'results', data['result'])
+        if not data['result'] == '':
+            object.__setattr__(self, 'results', data['result'])
         self.save_to_file(save_dir)
         if AUTOMATED_TAGS and last_status == 'scheduled' and self.job_status == 'done':
             add_tags(data['result'])
@@ -109,4 +110,4 @@ class UltimateJob:
                 'last_update': self.last_update}
 
     def get_download(self) -> dict:
-        return self.to_dict()
+        return asdict(self)
