@@ -14,42 +14,6 @@ from reqtransformer import Requirement
 FILE_VERSION = 0
 
 
-def check_ultimate_tag_is_available() -> None:
-    tags_api = TagsApi()
-    if tags_api.get('Ultimate_raw_data') == {}:
-        # ultimate_raw_data tag is not available
-        tags_api.add('Ultimate_raw_data', Color.BS_GRAY.value, False, '')
-
-
-def get_all_requirement_ids() -> list[str]:
-    requirements = get_requirements(current_app.config['REVISION_FOLDER'])
-    result = []
-    for requirement in requirements:
-        result.append(requirement.rid.replace('-', '_') + '_')
-    return result
-
-
-def add_ultimate_result_to_requirement(requirement_id: str, ultimate_result: dict) -> None:
-    requirement = Requirement.load_requirement_by_id(requirement_id, current_app)
-    if not requirement:
-        return
-    if 'Ultimate_raw_data' in requirement.tags:
-        requirement.tags['Ultimate_raw_data'] += f"\n{ultimate_result['type']}: {ultimate_result['longDesc']}"
-    else:
-        requirement.tags['Ultimate_raw_data'] = f"{ultimate_result['type']}: {ultimate_result['longDesc']}"
-
-    requirement.store()
-
-
-def add_tags(results: list[dict]) -> None:
-    check_ultimate_tag_is_available()
-    requirements = get_all_requirement_ids()
-    for result in results:
-        for requirement in requirements:
-            if requirement in result['longDesc']:
-                add_ultimate_result_to_requirement(requirement[:-1].replace('_', '-'), result)
-
-
 @dataclass(frozen=True, kw_only=True)
 class UltimateJob:
     job_id: str
@@ -93,14 +57,13 @@ class UltimateJob:
         if not data['requestId'] == self.job_id:
             raise Exception("Missmatch of requestID")
         last_status = self.job_status
-        print(data)
         object.__setattr__(self, 'last_update', datetime.now().strftime("%Y.%m.%d, %H:%M:%S.%f"))
         object.__setattr__(self, 'job_status', data['status'])
         if not data['result'] == '':
             object.__setattr__(self, 'results', data['result'])
         self.save_to_file(save_dir)
         if AUTOMATED_TAGS and last_status == 'scheduled' and self.job_status == 'done':
-            add_tags(data['result'])
+            add_tags(self)
 
     def get(self) -> dict:
         return {'status': self.job_status,
@@ -111,3 +74,54 @@ class UltimateJob:
 
     def get_download(self) -> dict:
         return asdict(self)
+
+
+def check_ultimate_tag_is_available() -> None:
+    tags_api = TagsApi()
+    if tags_api.get('Ultimate_raw_data') == {}:
+        # ultimate_raw_data tag is not available
+        tags_api.add('Ultimate_raw_data', Color.BS_GRAY.value, False, '')
+
+
+def get_all_requirement_ids() -> list[(str, str)]:
+    """"
+    returns a list of (requirementID, requirementID without -)
+    """
+    requirements = get_requirements(current_app.config['REVISION_FOLDER'])
+    result = []
+    for requirement in requirements:
+        result.append((requirement.rid, requirement.rid.replace('-', '_') + '_'))
+    return result
+
+
+def add_ultimate_result_to_requirement(requirement_id: str,
+                                       ultimate_results: list[dict],
+                                       ultimate_job: UltimateJob) -> None:
+    requirement = Requirement.load_requirement_by_id(requirement_id, current_app)
+    if not requirement:
+        return
+    tmp = f"# {ultimate_job.job_id} ({ultimate_job.last_update})\n"
+    for result in ultimate_results:
+        result_text = result['longDesc'].replace('\n ', '\n\t')
+        tmp += f"\n{result['type']}: {result_text}"
+    if 'Ultimate_raw_data' in requirement.tags:
+        requirement.tags['Ultimate_raw_data'] = f"{tmp}\n\n---\n\n{requirement.tags['Ultimate_raw_data']}"
+    else:
+        requirement.tags['Ultimate_raw_data'] = f"{tmp}"
+
+    requirement.store()
+
+
+def add_tags(ultimate_job: UltimateJob) -> None:
+    check_ultimate_tag_is_available()
+    requirements = get_all_requirement_ids()
+    tags: dict[str, list[dict]] = {}
+    for result in ultimate_job.results:
+        for requirement in requirements:
+            if requirement[1] in result['longDesc']:
+                if requirement[0] in tags:
+                    tags[requirement[0]].append(result)
+                else:
+                    tags[requirement[0]] = [result]
+    for requirement, results in tags.items():
+        add_ultimate_result_to_requirement(requirement, results, ultimate_job)
