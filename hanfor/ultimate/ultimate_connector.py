@@ -54,7 +54,9 @@ class UltimateConnector:
         return ''
 
     @staticmethod
-    def start_requirement_job(requirements: bytes, ultimate_configuration: str) -> UltimateJob:
+    def start_requirement_job(requirements: str,
+                              ultimate_configuration: str,
+                              selected_requirement_ids: list[str]) -> UltimateJob:
         url = ULTIMATE_API_URL
 
         # load configuration, user_settings and toolchain
@@ -83,13 +85,14 @@ class UltimateConnector:
         if r.status_code != 200:
             raise Exception('request was not successful')
         content = json.loads(r.text)
-        uj = UltimateJob(job_id=content['requestId'],
-                         requirement_file=requirements.decode("utf-8"),
-                         toolchain_id=toolchain_id,
-                         toolchain_xml=toolchain,
-                         usersettings_name=user_settings_name,
-                         usersettings_json=user_settings,
-                         api_url=url)
+        uj = UltimateJob.make(job_id=content['requestId'],
+                              requirement_file=requirements,
+                              toolchain_id=toolchain_id,
+                              toolchain_xml=toolchain,
+                              usersettings_name=user_settings_name,
+                              usersettings_json=user_settings,
+                              api_url=url,
+                              selected_requirements=selected_requirement_ids)
         return uj
 
     @staticmethod

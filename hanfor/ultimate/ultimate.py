@@ -4,6 +4,8 @@ from typing import Type
 from flask import Blueprint, render_template, request, current_app
 from flask.views import MethodView
 
+import json
+
 from static_utils import get_filenames_from_dir
 
 from ultimate.ultimate_connector import UltimateConnector
@@ -73,10 +75,9 @@ class UltimateApi(MethodView):
             return {'status': 'error', 'message': 'unknown command'}
 
     def post(self) -> dict:
-        data = request.get_data()
-        configuration = request.args.get('configuration')
-        job = self.ultimate.start_requirement_job(data, configuration)
-        job.save_to_file(self.data_folder)
+        data = json.loads(request.get_data())
+        job = self.ultimate.start_requirement_job(data['req_file'], data['configuration'], data['req_ids'])
+        job.save_to_file(save_dir=self.data_folder)
         return job.get()
 
     def delete(self, command: str, job_id: str) -> dict:

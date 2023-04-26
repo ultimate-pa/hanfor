@@ -18,6 +18,7 @@ const autosize = require('autosize/dist/autosize');
 const {SearchNode} = require('./datatables-advanced-search.js');
 const {init_simulator_tab} = require('./simulator-tab.js');
 const {init_ultimate_tab} = require('../../ultimate/static/ultimate-tab.js');
+const {init_ultimate_requirements_table_connection} = require('../../ultimate/static/ultimate-tab.js');
 
 const {Textcomplete} = require('@textcomplete/core')
 const {TextareaEditor} = require('@textcomplete/textarea')
@@ -182,6 +183,7 @@ function init_datatable(columnDefs) {
             let requirements_table = this.api();
             bind_requirement_id_to_modals(requirements_table);
             init_datatable_manipulators(requirements_table);
+            init_ultimate_requirements_table_connection(requirements_table);
 
             utils.process_url_query(get_query);
             update_search();

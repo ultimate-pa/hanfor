@@ -2,6 +2,37 @@
 function init_ultimate_tab() {
     check_ultimate_version();
     update_configurations();
+
+    $('#ultimate-tab-create-unfiltered-btn').click(function () {
+        let btn = $('#ultimate-tab-create-unfiltered-btn')
+        create_ultimate_analysis(btn, "all");
+    });
+
+
+}
+
+function init_ultimate_requirements_table_connection(requirements_table) {
+    $('#ultimate-tab-create-filtered-btn').click(function () {
+        let req_ids = [];
+        requirements_table.rows({search: 'applied'}).every(function () {
+            let d = this.data();
+            req_ids.push(d['id']);
+        });
+
+        let btn = $('#ultimate-tab-create-filtered-btn')
+        create_ultimate_analysis(btn, req_ids);
+    });
+
+    $('#ultimate-tab-create-selected-btn').click(function () {
+        let req_ids = [];
+        requirements_table.rows({selected: true}).every(function () {
+            let d = this.data();
+            req_ids.push(d['id']);
+        });
+
+        let btn = $('#ultimate-tab-create-selected-btn')
+        create_ultimate_analysis(btn, req_ids);
+    });
 }
 
 function check_ultimate_version() {
@@ -15,6 +46,8 @@ function check_ultimate_version() {
             img.attr("src", img_src.replace('/disconnected.svg', '/connected.svg'));
             img.attr('title', 'Ultimate Api connected: ' + data['version'])
             $('#ultimate-tab-create-unfiltered-btn').prop("disabled",false);
+            $('#ultimate-tab-create-filtered-btn').prop("disabled",false);
+            $('#ultimate-tab-create-selected-btn').prop("disabled",false);
         } else {
             console.log('no ultimate connection found!');
         }
@@ -40,30 +73,35 @@ function update_configurations() {
     }).fail(function (jqXHR, textStatus, errorThrown) {
         alert(errorThrown + '\n\n' + jqXHR['responseText']);
     });
+}
 
-    $('#ultimate-tab-create-unfiltered-btn').click(function () {
-        $('#ultimate-tab-create-unfiltered-btn').text("Processing Request")
+function create_ultimate_analysis(btn, req_ids) {
+    let old_text = btn.text()
+    btn.text("Processing Request")
+    $.ajax({
+        type: 'POST',
+        url: '../api/tools/req_file',
+        data: {'selected_requirement_ids': JSON.stringify(req_ids)}
+    }).done(function (data) {
+        let select = $('#ultimate-tab-configuration-select');
+        let configuration = select.val();
         $.ajax({
-            type: 'GET',
-            url: '../api/tools/req_file',
+            type: 'POST',
+            url: '../api/ultimate/job',
+            data: JSON.stringify({"configuration": configuration,
+                   "req_file": data,
+                   "req_ids": req_ids})
         }).done(function (data) {
-            let select = $('#ultimate-tab-configuration-select');
-            let configuration = select.val();
-            $.ajax({
-                type: 'POST',
-                url: '../api/ultimate/job?configuration=' + configuration,
-                data: data
-            }).done(function (data) {
-                console.log(data['requestId'])
-                // TODO inform user about new analysis
-                $('#ultimate-tab-create-unfiltered-btn').text("Create Analysis");
-            }).fail(function (jqXHR, textStatus, errorThrown) {
-                alert(errorThrown + '\n\n' + jqXHR['responseText']);
-            })
+            console.log(data['requestId'])
+            // TODO inform user about new analysis
+            btn.text(old_text);
         }).fail(function (jqXHR, textStatus, errorThrown) {
             alert(errorThrown + '\n\n' + jqXHR['responseText']);
         })
-    })
+    }).fail(function (jqXHR, textStatus, errorThrown) {
+        alert(errorThrown + '\n\n' + jqXHR['responseText']);
+    });
 }
 
 module.exports.init_ultimate_tab = init_ultimate_tab
+module.exports.init_ultimate_requirements_table_connection = init_ultimate_requirements_table_connection
