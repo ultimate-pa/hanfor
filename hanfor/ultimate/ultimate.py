@@ -10,6 +10,7 @@ from static_utils import get_filenames_from_dir
 
 from ultimate.ultimate_connector import UltimateConnector
 from ultimate.ultimate_job import UltimateJob
+from configuration.ultimate_config import DISPLAY_REQUIREMENTS_WITHOUT_FORMALISATION
 
 BUNDLE_JS = 'dist/ultimate-bundle.js'
 blueprint = Blueprint('ultimate', __name__, template_folder='templates', url_prefix='/ultimate')
@@ -18,7 +19,9 @@ api_blueprint = Blueprint('api_ultimate', __name__, url_prefix='/api/ultimate')
 
 @blueprint.route('/', methods=['GET'])
 def index():
-    return render_template('ultimate/index.html', BUNDLE_JS=BUNDLE_JS)
+    return render_template('ultimate/index.html',
+                           BUNDLE_JS=BUNDLE_JS,
+                           DISPLAY_REQUIREMENTS_WITHOUT_FORMALISATION=DISPLAY_REQUIREMENTS_WITHOUT_FORMALISATION)
 
 
 def register_api(bp: Blueprint, method_view: Type[MethodView]) -> None:

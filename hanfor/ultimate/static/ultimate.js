@@ -1,88 +1,188 @@
 require('gasparesganga-jquery-loading-overlay')
 require('bootstrap')
+require('datatables.net-bs5')
 require('jquery-ui/ui/effects/effect-highlight')
 require('../../static/js/bootstrap-tokenfield.js')
 require('../../static/js/bootstrap-confirm-button')
 require('datatables.net-colreorder-bs5')
 
+const {SearchNode} = require("../../static/js/datatables-advanced-search");
+const ultimateSearchString = sessionStorage.getItem('ultimateSearchString')
+const {Modal} = require('bootstrap')
+
+let search_tree
 
 $(document).ready(function () {
-    load_all_jobs()
-
-    const ultimateTbl = $('#ultimate-job-result-tbl')
-    const ultimateDataTable = ultimateTbl.DataTable({
+    const searchInput = $('#search_bar')
+    const ultimateJobsTable = $('#ultimate-jobs-tbl')
+    const ultimateJobsDataTable = ultimateJobsTable.DataTable({
         paging: true,
         stateSave: true,
         pageLength: 50,
         responsive: true,
         lengthMenu: [[10, 50, 100, 500, -1], [10, 50, 100, 500, 'All']],
         dom: 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
-        //ajax: {url: '../api/ultimate/job/' + $('#ultimate-job-select').val(), dataSrc: ''},
+        ajax: {
+            url: '../api/ultimate/jobs'
+        },
         deferRender: true,
-        columns: [
-                    {data: 'logLvl'},
-                    {data: 'type'},
-                    {data: 'shortDesc'},
-                    {data: 'longDesc'}
-                 ],
+        columns: dataTableColumns,
+        initComplete: function () {
+            searchInput.val(ultimateSearchString);
+            update_search(searchInput.val().trim());
+
+            // Enable Hanfor specific table filtering.
+            $.fn.dataTable.ext.search.push(function (settings, data) {
+                // data contains the row. data[0] is the content of the first column in the actual row.
+                // Return true to include the row into the data. false to exclude.
+                return evaluate_search(data);
+            })
+            this.api().draw();
+        }
+    });
+
+    // Bind big custom searchbar to search the table.
+    searchInput.keypress(function (e) {
+        if (e.which === 13) { // Search on enter.
+            update_search(searchInput.val().trim());
+            ultimateJobsDataTable.draw();
+        }
+    });
+
+    $('.clear-all-filters').click(function () {
+        searchInput.val('').effect('highlight', {color: 'green'}, 500);
+        update_search(searchInput.val().trim());
+        ultimateJobsDataTable.draw();
+    });
+
+    const ultimateResultTable = $('#ultimate-job-modal-result-tbl')
+    const ultimateResultDataTable = ultimateResultTable.DataTable({
+        paging: true,
+        stateSave: true,
+        pageLength: 50,
+        responsive: true,
+        lengthMenu: [[10, 50, 100, 500, -1], [10, 50, 100, 500, 'All']],
+        dom: 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
+        deferRender: true,
+        columns: resultDataTableColumns,
         initComplete: function () {
             this.api().draw()
         }
     });
 
-    new $.fn.dataTable.ColReorder(ultimateDataTable, {})
+    // Add listener for job_link link to modal.
+    ultimateJobsTable.find('tbody').on('click', 'a.modal-opener', function (event) {
+        // prevent body to be scrolled to the top.
+        event.preventDefault();
 
-    $('#ultimate-job-refresh-btn').click(function () {
-        load_all_jobs()
-    });
+        // Get row data
+        let data = ultimateJobsDataTable.row($(event.target).parent()).data();
 
-    $('#ultimate-job-load-btn').click(function () {
-        let table = $('#ultimate-job-result-tbl').DataTable()
-        $.ajax({
-            type: "GET",
-            url: '../api/ultimate/job/' + $('#ultimate-job-select').val()
-        }).done(function (data) {
-            $('#ultimate-job-request-id').text(data['requestId']);
-            $('#ultimate-job-request-time').text(data['request_time']);
-            $('#ultimate-job-last-update').text(data['last_update']);
-            $('#ultimate-job-request-status').text(data['status']);
-            table.clear();
-            table.rows.add(data['result']);
-            table.draw();
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            alert(errorThrown + '\n\n' + jqXHR['responseText']);
+        Modal.getOrCreateInstance($('#ultimate-job-modal')).show();
+        $('#ultimate-job-modal-title').html('Job ID: ' + data['requestId']);
+
+        $('#ultimate-job-modal-request-time').text(data['request_time']);
+        $('#ultimate-job-modal-last-update').text(data['last_update']);
+        $('#ultimate-job-modal-request-status').text(data['status']);
+        ultimateResultDataTable.clear();
+        ultimateResultDataTable.rows.add(data['result']);
+        ultimateResultDataTable.draw();
+
+        $('#ultimate-tag-modal-download-btn').click(function () {
+            download_req(data['requestId']);
         });
-    });
 
-    $('#ultimate-job-download-btn').click(function () {
-        $.ajax({
-            type: 'GET',
-            url: '../api/ultimate/job/' + $('#ultimate-job-select').val() + '?download=true',
-        }).done(function (data) {
-            download(data['job_id'] + '.json', JSON.stringify(data, null, 4));
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            alert(errorThrown + '\n\n' + jqXHR['responseText']);
-        })
-    });
-})
+    })
+});
 
-function load_all_jobs() {
+const dataTableColumns = [
+    {
+        data: 'requestId',
+        render: function (data) {
+            return `<a class="modal-opener" href="#">${data}</a>`
+        }
+    }, {
+        data: 'request_time',
+        order: 'asc',
+        render: function (data) {
+            return `<div class="white-space-pre">${data}</div>`
+        }
+    }, {
+        data: 'last_update',
+        render: function (data) {
+            return `<div class="white-space-pre">${data}</div>`
+        }
+    }, {
+        data: 'status',
+        render: function (data) {
+            return `<div class="white-space-pre">${data}</div>`
+        }
+    }, {
+        data: 'selected_requirements',
+        render: function (data) {
+            let result = ''
+            for (let i = 0; i < data.length; i++) {
+                let name = data[i][0]
+                let count = data[i][1]
+                if (display_req_without_formalisation !== "True" && count === 0) continue;
+                const searchQuery = `?command=search&col=2&q=%5C%22${name}%5C%22`
+                const color = count === 0 ? 'bg-light' : 'bg-info'
+                result += `<span class="badge ${color}"><a href="${base_url}${searchQuery}" target="_blank" class="link-light text-muted">${name} (${count})</a></span> `
+            }
+            return result;
+        }
+    }, {
+        data: 'result_requirements',
+        render: function (data) {
+            let result = ''
+            for (let i = 0; i < data.length; i++) {
+                let name = data[i][0]
+                let count = data[i][1]
+                const searchQuery = `?command=search&col=2&q=%5C%22${name}%5C%22`
+                const color = count === 0 ? 'bg-light' : 'bg-info'
+                result += `<span class="badge ${color}"><a href="${base_url}${searchQuery}" target="_blank" class="link-light text-muted">${name} (${count})</a></span> `
+            }
+            return result;
+        }
+    }
+]
+
+const resultDataTableColumns = [
+    {
+        data: 'logLvl'
+    }, {
+        data: 'type'
+    }, {
+        data: 'shortDesc',
+        render: function (data) {
+            return `${data.replaceAll("\n", "<br/>")}`
+        }
+    }, {
+        data: 'longDesc',
+        render: function (data) {
+            return `${data.replaceAll("\n", "<br/>")}`
+        }
+    }
+]
+
+function update_search(string) {
+    sessionStorage.setItem('ultimateSearchString', string)
+    search_tree = SearchNode.fromQuery(string)
+}
+
+function evaluate_search(data) {
+    return search_tree.evaluate(data, [true, true, true])
+}
+
+function download_req(req_id) {
     $.ajax({
         type: 'GET',
-        url: '../api/ultimate/jobs'
+        url: '../api/ultimate/job/' + req_id + '?download=true',
     }).done(function (data) {
-        let select = $('#ultimate-job-select');
-        select.empty();
-        let jobs = data['data'];
-        for (let i = 0; i < jobs.length; i++) {
-            let displayed_name = jobs[i]['requestId'];
-            displayed_name += ' ' + jobs[i]['request_time'];
-            displayed_name += ' (' + jobs[i]['status'] + ')';
-            select.append($('<option></option>').val(jobs[i]['requestId']).text(displayed_name));
-        }
+        download(data['job_id'] + '.json', JSON.stringify(data, null, 4));
     }).fail(function (jqXHR, textStatus, errorThrown) {
         alert(errorThrown + '\n\n' + jqXHR['responseText']);
-    });
+    })
 }
 
 function download(filename, text) {

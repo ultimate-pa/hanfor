@@ -2,77 +2,55 @@
 {% block title %}Ultimate{% endblock %}
 {% block content %}
     <div class="card">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link active" id="search-tab" data-bs-toggle="tab" href="#search-pane" role="tab"
+                       aria-controls="search" aria-selected="true">Search</a>
+                </li>
+            </ul>
+        </div>
         <div class="card-body">
             <div class="tab-content">
-                <div class="col-12">
-                    <label for="ultimate-job-select">Available analyses</label>
-                </div>
-                <div class="row g-2">
-                    <div class="col flex-column ">
-                        <select id="ultimate-job-select" class="form-select" aria-describedby="id-addon"></select>
-                    </div>
-                    <div class="col-auto">
-                        <button id="ultimate-job-load-btn" class="btn btn-secondary" type="button">load analysis</button>
-                    </div>
-                    <div class="col-auto">
-                        <button id="ultimate-job-refresh-btn" class="btn btn-secondary" type="button">refresh</button>
-                    </div>
-                    <div class="col-auto">
-                        <button id="ultimate-job-download-btn" class="btn btn-secondary" type="button">download job</button>
-                    </div>
+                <div class="tab-pane fade show active" id="search-pane" role="tabpanel" aria-labelledby="search-tab">
+                    {% include 'search-tab.html' %}
                 </div>
             </div>
         </div>
     </div>
-    <table id="ultimate-job-meta-tbl" class="table table-hover table-bordered w-100">
+
+    <table id="ultimate-jobs-tbl" class="table table-hover table-bordered w-100">
         <thead>
             <tr>
-                <th class="w-25">Field</th>
-                <th class="w-75">Value</th>
-            </tr>
-            <tr>
-                <td>Request ID</td>
-                <td id="ultimate-job-request-id"></td>
-            </tr>
-            <tr>
-                <td>Request Time</td>
-                <td id="ultimate-job-request-time"></td>
-            </tr>
-            <tr>
-                <td>Last Update</td>
-                <td id="ultimate-job-last-update"></td>
-            </tr>
-            <tr>
-                <td>Request Status</td>
-                <td id="ultimate-job-request-status"></td>
-            </tr>
-        </thead>
-    </table>
-    <table id="ultimate-job-result-tbl" class="table table-hover table-bordered w-100">
-        <thead>
-            <tr>
-                <th style="width: 5%">Log Level</th>
-                <th style="width: 5%">Type</th>
-                <th>Short Description</th>
-                <th>Long Description</th>
+                <th class='w-auto' data-column-index='0'>Job ID</th>
+                <th class='w-auto' data-column-index='1'>Started</th>
+                <th class='w-auto' data-column-index='2'>Last Update</th>
+                <th class='w-auto' data-column-index='3'>status</th>
+                <th class='w-auto' data-column-index='4'>Selected Requirements</th>
+                <th class='w-auto' data-column-index='5'>Requirements with results</th>
             </tr>
         </thead>
         <tfoot>
             <tr>
-                <th style="width: 5%">Log Level</th>
-                <th style="width: 5%">Type</th>
-                <th>Short Description</th>
-                <th>Long Description</th>
+                <th>Job ID</th>
+                <th>Started</th>
+                <th>Last Update</th>
+                <th>status</th>
+                <th>Selected Requirements</th>
+                <th>Requirements with results</th>
             </tr>
         </tfoot>
         <tbody></tbody>
     </table>
+    {% include 'ultimate/ultimate-job-modal.html' %}
 {% endblock %}
 {% block scripts %}
     {{ super() }}
 
     <script type="text/javascript">
         let base_url = '{{ url_for('site', site='/') }}';
+        let static_url = '{{ url_for('static', filename='') }}'
+        let display_req_without_formalisation = '{{ DISPLAY_REQUIREMENTS_WITHOUT_FORMALISATION }}'
     </script>
 
     <script type="text/javascript" src="{{ url_for('static', filename=BUNDLE_JS) }}"></script>

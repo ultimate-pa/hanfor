@@ -124,7 +124,9 @@ class UltimateJob:
                 'requestId': self.job_id,
                 'result': self.results,
                 'request_time': self.request_time,
-                'last_update': self.last_update}
+                'last_update': self.last_update,
+                'selected_requirements': self.selected_requirements,
+                'result_requirements': self.result_requirements}
 
     def get_download(self) -> dict:
         return asdict(self)

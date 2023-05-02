@@ -23,3 +23,8 @@ is done.
 """
 
 AUTOMATED_TAGS = False
+
+"""
+Display Requirements without formalisation at the analysis page
+"""
+DISPLAY_REQUIREMENTS_WITHOUT_FORMALISATION = True

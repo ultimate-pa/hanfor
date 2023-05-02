@@ -1,0 +1,54 @@
+<div  id="ultimate-job-modal" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="ultimate-job-modal-title" class="modal-title"></h5>
+            </div>
+            <div class="modal-body">
+                <table id="ultimate-job-modal-meta-tbl" class="table table-hover table-bordered w-100">
+                    <thead>
+                        <tr>
+                            <th class="w-25">Field</th>
+                            <th class="w-75">Value</th>
+                        </tr>
+                        <tr>
+                            <td>Request Time</td>
+                            <td id="ultimate-job-modal-request-time"></td>
+                        </tr>
+                        <tr>
+                            <td>Last Update</td>
+                            <td id="ultimate-job-modal-last-update"></td>
+                        </tr>
+                        <tr>
+                            <td>Request Status</td>
+                            <td id="ultimate-job-modal-request-status"></td>
+                        </tr>
+                    </thead>
+                </table>
+                <table id="ultimate-job-modal-result-tbl" class="table table-hover table-bordered w-100">
+                    <thead>
+                        <tr>
+                            <th class="w-auto">Log Level</th>
+                            <th class="w-auto">Type</th>
+                            <th class="w-auto">Short Description</th>
+                            <th class="w-auto">Long Description</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th style="width: 5%">Log Level</th>
+                            <th style="width: 5%">Type</th>
+                            <th>Short Description</th>
+                            <th>Long Description</th>
+                        </tr>
+                    </tfoot>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button id="ultimate-tag-modal-download-btn" type="button" class="btn btn-primary col-2">Download Job</button>
+                <button type="button" class="btn btn-secondary col-2" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
