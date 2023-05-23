@@ -14,4 +14,4 @@ inquirerpy==0.3.4
 PyYAML==6.0
 uuid==1.30
 jsbeautifier==1.14.7
-requests==2.28.2
+requests==2.31.0
