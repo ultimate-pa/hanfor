@@ -68,6 +68,19 @@ Copy the default config file `config.dist.py` to `config.py`.
 
 The config file `config.py` allows you to change various parameters -- see the comments in [`config.dist.py`](https://github.com/ultimate-pa/hanfor/blob/master/hanfor/config.dist.py).
 
+Copy the default ultimate config file `configuration/ultimate_config.dist.py` to `configuration/ultimate_config.py`.
+
+=== ":material-linux: Linux"
+    ``` bash
+    cp configuration/ultimate_config.dist.py configuration/ultimate_config.py
+    ```
+=== ":fontawesome-brands-windows: Windows"
+    ``` bash
+    copy configuration/ultimate_config.dist.py configuration/ultimate_config.py
+    ```
+
+The config file `ultimate_config.py` allows you to change various parameters for the ultimate backend -- see the comments in [`ultimate_config.dist.py`](https://github.com/ultimate-pa/hanfor/blob/master/hanfor/configuration/ultimate_config.dist.py).
+
 ## Launch a Hanfor session
 
 ### Launch a new session
