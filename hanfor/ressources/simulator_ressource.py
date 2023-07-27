@@ -52,6 +52,9 @@ class SimulatorRessource(Ressource):
         if command == 'scenario_save':
             self.scenario_save()
 
+        if command == 'get_ct':
+            self.get_ct()
+
     def POST(self):
         command = self.request.form.get('command')
 
@@ -156,6 +159,51 @@ class SimulatorRessource(Ressource):
             'simulator_id': simulator_id,
             'simulator_name': simulator_name
         }
+
+    def get_ct(self):
+        request = self.request.args if len(self.request.args) > 0 else self.request.form
+        requirement_ids = json.loads(request.get('req'))
+        if len(requirement_ids) <= 0:
+            self.response.success = False
+            self.response.errormsg = 'No requirement ids given.'
+            return
+
+        result = {'requirements': {},
+                  'variables': []}
+
+        var_collection = VariableCollection.load(self.app.config['SESSION_VARIABLE_COLLECTION'])
+        variables = {k: v.type for k, v in var_collection.collection.items()}
+        result['variables'] = [{'name': k, 'type': v.type, 'value': v.value} for k, v in var_collection.collection.items()]
+
+        for requirement_id in requirement_ids:
+            requirement = Requirement.load_requirement_by_id(requirement_id, self.app)
+            formalizations = {}
+            for formalization in requirement.formalizations.values():
+                counter_traces = []
+                if not formalization.scoped_pattern.is_instantiatable():
+                    return None
+                if SimulatorRessource.has_variable_with_unknown_type(formalization,
+                                                                     variables) or formalization.type_inference_errors:
+                    return None
+
+                scope = formalization.scoped_pattern.scope.name
+                pattern = formalization.scoped_pattern.pattern.name
+
+                if len(PATTERNS[pattern]['countertraces'][scope]) <= 0:
+                    raise ValueError(f'No countertrace given: {scope}, {pattern}')
+
+                expressions = {}
+                for k, v in formalization.expressions_mapping.items():
+                    expressions[k] = v.raw_expression
+
+                for i, ct_str in enumerate(PATTERNS[pattern]['countertraces'][scope]):
+                    counter_traces.append({'ct_str': ct_str,
+                                          'expressions': expressions})
+                formalizations[formalization.id] = counter_traces
+
+            result['requirements'][requirement_id] = formalizations
+
+        self.response.data = result
 
     def scenario_load(self) -> None:
         simulator_id = self.request.form.get('simulator_id')
