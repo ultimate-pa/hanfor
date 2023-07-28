@@ -24,7 +24,7 @@ extra_css:
 markdown_extensions:
   - admonition
   - attr_list
-  - figureAltCaption
+  - markdown_captions
   - footnotes
   - md_in_html
   - meta

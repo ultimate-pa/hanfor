@@ -60,9 +60,9 @@ A **run** of a PEA is a sequence of configurations such that the following condi
 !!! example "Example 2: Run of a PEA"
 	Consider the PEA for *req1* (Figure 1). It contains the variables "R, Q", the clock variable "c0", and the locations "st0, st01W, st01". The following sequence of three configurations describes a **run** of the given PEA:
 	<p style="text-align: center;">
-	(st0, {R=*false*, Q=*false*}, {c0=2}, 4);<br>
-	(st01W, {R=*true*, Q=*true*}, {c0=4}, 1);<br>
-	(st01, {R=*true*, Q=*true*}, {c0=7}, 3)
+	(st0, {R=*false*, Q=*false*}, {c0=0}, 1);<br>
+	(st01W, {R=*true*, Q=*false*}, {c0=0}, 5);<br>
+	(st01, {R=*true*, Q=*true*}, {c0=5}, 2)
 	</p>
 	
 	Let us check whether the conditions for a run are satisfied for all configurations in the sequence:
@@ -71,15 +71,15 @@ A **run** of a PEA is a sequence of configurations such that the following condi
 
 	  * The location "st0" is initial as it has an incoming edge without source. 
 	  * The phase invariant "!R" is fulfilled by the valuation "R=*false*". 
-	  * The clock invariant *true* can not be violated. 
-	  * There is an edge from location "st0" to the location "st01W" of the second configuration. The guard is *true* and can not be violated.
+	  * The clock invariant *true* cannot be violated. 
+	  * There is an edge from location "st0" to location "st01W" of the second configuration. The guard is *true* and can not be violated.
 		
 
 	**2. Configuration:**
 
 	  * The phase invariant "R" is fulfilled by the valuation "R=*true*". 
-	  * The clock invariant "c0<=5" is fulfilled by the clock valuation "c0=4" and also holds for the entire duration of "1". 
-	  * There is an edge from location "st01W" to the location "st01" of the third configuration with the guarding expression "c0>=5". The guard is fulfilled by the clock valuation increased by the duration.
+	  * The clock invariant "c0<=5" is fulfilled by the clock valuation "c0=0" (as the clock was reset) and also holds for the entire duration of "5". 
+	  * There is an edge from location "st01W" to location "st01" of the third configuration with the guarding expression "c0>=5". The guard is fulfilled by the clock valuation increased by the duration.
 
 	**3. Configuration:**
 
@@ -108,12 +108,10 @@ A **run** of a PEA is a sequence of configurations such that the following condi
 	  * The phase invariant "Q && R" is **violated** by the valuation "Q=*false*". 
 	  * The clock invariant is "*true*" and hence trivially satisfied.
 
-	As the phase invariant conditio is violated in the second configuration, the given sequence is not included in the given PEA.
+	As the phase invariant condition is violated in the second configuration, the given sequence is not included in the given PEA.
 
 
 ## Timing Diagram
-As the tupel representation of a run is not necessarily intuitive, we often depict a run in form of a timing diagram. Below you find the timing diagram representation of the (not) included runs described in Example 1 and Example 2. 
+As the tupel representation of a run is not necessarily intuitive, we often depict a run in form of a timing diagram. Below you find the timing diagram representation of the run described in Example 1. 
 
-![Figure 3: TODO: change picture! Timing diagram representation of a run included in the PEA of *req1*.](../img/example_pea_run.svg "Figure 3")
-
-![Figure 4: TODO: change picture! Timing diagram representation of a run not included in the PEA of *req1*.](../img/counterexample_pea_run.svg "Figure 4")
+![Figure 3: Timing diagram representation of a run included in the PEA of *req1*.](../img/example_pea_run.png "Figure 3")
