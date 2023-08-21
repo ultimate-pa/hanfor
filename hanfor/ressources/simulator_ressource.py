@@ -197,9 +197,9 @@ class SimulatorRessource(Ressource):
                     expressions[k] = v.raw_expression
 
                 for i, ct_str in enumerate(PATTERNS[pattern]['countertraces'][scope]):
-                    counter_traces.append({'ct_str': ct_str,
-                                          'expressions': expressions})
-                formalizations[formalization.id] = counter_traces
+                    counter_traces.append(ct_str)
+                formalizations[formalization.id] = {'counter_traces': counter_traces,
+                                                    'expressions': expressions}
 
             result['requirements'][requirement_id] = formalizations
 
