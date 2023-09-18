@@ -1,83 +1,35 @@
 [
     {
-        "ID": 0,
-        "Description": "Light_Off to Parking_Light",
-        "Type": "requirement",
-        "Action": "switch_right",
-        "stateVal": "State_Light_Off",
-        "variable": "Light_Off"
+        "Init": ["None", "no_op", "None"]
     },
     {
-        "ID": 1,
-        "Description": "Light_Off to Light_Off",
-        "Type": "requirement",
-        "Action": "no_op",
-        "stateVal": "State_Light_Off",
-        "variable": "Light_Off"
+        "Transition": ["Light_Off", "switch_right", "Parking_Light"]
     },
     {
-        "ID": 2,
-        "Description": "Parking_Light to Head_Light",
-        "Type": "requirement",
-        "Action": "switch_right",
-        "stateVal": "State_Parking_Light",
-        "variable": "Parking_Light"
+        "Transition": ["Light_Off", "no_op", "Light_Off"]
     },
     {
-        "ID": 3,
-        "Description": "Parking_Light to Light_Off",
-        "Type": "requirement",
-        "Action": "switch_left",
-        "stateVal": "State_Parking_Light",
-        "variable": "Parking_Light"
+        "Transition": ["Parking_Light", "switch_right", "Head_Light"]
     },
     {
-        "ID": 4,
-        "Description": "Parking_Light to Parking_Light",
-        "Type": "requirement",
-        "Action": "no_op",
-        "stateVal": "State_Parking_Light",
-        "variable": "Parking_Light"
+        "Transition": ["Parking_Light", "switch_left", "Light_Off"]
     },
     {
-        "ID": 5,
-        "Description": "Head_Light to Fog_Light",
-        "Type": "requirement",
-        "Action": "switch_right",
-        "stateVal": "State_Head_Light",
-        "variable": "Head_Light"
+        "Transition": ["Parking_Light", "no_op", "Parking_Light"]
     },
     {
-        "ID": 6,
-        "Description": "Head_Light to Parking_Light",
-        "Type": "requirement",
-        "Action": "switch_left",
-        "stateVal": "State_Head_Light",
-        "variable": "Head_Light"
+        "Transition": ["Head_Light", "switch_right", "Fog_Light"]
     },
     {
-        "ID": 7,
-        "Description": "Head_Light to Head_Light",
-        "Type": "requirement",
-        "Action": "no_op",
-        "stateVal": "State_Head_Light",
-        "variable": "Head_Light"
+        "Transition": ["Head_Light", "switch_left", "Parking_Light"]
     },
     {
-        "ID": 8,
-        "Description": "Fog_Light to Head_Light",
-        "Type": "requirement",
-        "Action": "switch_left",
-        "stateVal": "State_Fog_Light",
-        "variable": "Fog_Light"
+        "Transition": ["Head_Light", "no_op", "Head_Light"]
     },
     {
-        "ID": 9,
-        "Description": "Fog_Light to Fog_Light",
-        "Type": "requirement",
-        "Action": "no_op",
-        "stateVal": "State_Fog_Light",
-        "variable": "Fog_Light"
+        "Transition": ["Fog_Light", "switch_left", "Head_Light"]
+    },
+    {
+        "Transition": ["Fog_Light", "no_op", "Fog_Light"]
     }
 ]
-

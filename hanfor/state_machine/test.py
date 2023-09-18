@@ -10,22 +10,20 @@ with open('stateMachine_LightSwitch.json', 'r') as stateMachine:
     data = json.load(stateMachine)
 
     # Process each JSON object
+    print(f"# transitions: {len(data)}")
     for item in data:
-        id = item["ID"]
-        description = item["Description"]
-        type = item["Type"]
-        action = item["Action"]
-        stateVal = item["stateVal"]
-        variable = item["variable"]
-        print(f"ID: {id}, Description: {description}, Type: {type}, stateVal: {stateVal}")
+        # print(item)
+        # print(item.keys())
+        if "Init" in item.keys():
+            # print("Inside Init")
+            init = item["Init"]
+            print(f"Init: {init}")
+        elif "Transition" in item.keys():
+            # print("Inside Transition")
+            transition = item["Transition"]
+            print(f"Transition: {transition}")
 
-print(len(data))
-print("It is", data[0]["ID"])
-print("Test")gi
-for item in data:
-    print(item)
-    if item["ID"] == 2:
-        print(f"Key with Value 2: {item}")
+
 # for key, value in data.items():
   #  if value == 2:
    #     print(f"Key: {key}, Value: {value}")
