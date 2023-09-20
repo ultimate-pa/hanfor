@@ -22,6 +22,17 @@ with open('stateMachine_LightSwitch.json', 'r') as stateMachine:
             # print("Inside Transition")
             transition = item["Transition"]
             print(f"Transition: {transition}")
+            current_state = transition[0]
+            action = transition[1]
+            next_state = transition[2]
+            print(f"current state: {current_state}, action: {action}, next state: {next_state}")
+
+# ToDo: Which form does hanfor need?
+# ToDO: each transition form a current state, action and next state -> bring this in a data structure
+#        Which one should we use?
+# Should we directly use the structure of hanfor, to make it easy?
+# first data structure of state machine, or directly into hanfor requirement?
+
 
 
 # for key, value in data.items():
