@@ -6,8 +6,8 @@ from pysmt.fnode import FNode
 from pysmt.shortcuts import Symbol, FALSE, And, Equals, Int, Real
 from pysmt.typing import REAL, INT
 
-from req_simulator.countertrace import CountertraceTransformer
-from req_simulator.utils import get_countertrace_parser
+from lib_pea.countertrace import CountertraceTransformer
+from lib_pea.utils import get_countertrace_parser
 
 Test = namedtuple('Test', 'expressions ct_str expected')
 

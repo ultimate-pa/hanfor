@@ -3,9 +3,9 @@ from unittest import TestCase
 from pysmt.shortcuts import Symbol, And, LT, GE, Or, LE, TRUE, Not
 from pysmt.typing import REAL
 
-from req_simulator.countertrace import CountertraceTransformer
-from req_simulator.phase_event_automaton import build_automaton, PhaseEventAutomaton, Transition, Phase, Sets
-from req_simulator.utils import get_countertrace_parser
+from lib_pea.countertrace import CountertraceTransformer
+from lib_pea.phase_event_automaton import build_automaton, PhaseEventAutomaton, Transition, Phase, Sets
+from lib_pea.utils import get_countertrace_parser
 from tests.test_req_simulator.test_counter_trace import testcases
 
 

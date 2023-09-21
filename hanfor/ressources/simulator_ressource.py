@@ -14,12 +14,12 @@ from pysmt.shortcuts import Bool, Int, Real
 from pysmt.typing import BOOL, INT, REAL
 
 import boogie_parsing
-from req_simulator.boogie_pysmt_transformer import BoogiePysmtTransformer
-from req_simulator.countertrace import CountertraceTransformer
-from req_simulator.phase_event_automaton import PhaseEventAutomaton, build_automaton
+from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
+from lib_pea.countertrace import CountertraceTransformer
+from lib_pea import PhaseEventAutomaton, build_automaton
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
-from req_simulator.utils import get_countertrace_parser
+from lib_pea.utils import get_countertrace_parser
 from reqtransformer import Requirement, Formalization, VariableCollection
 from ressources import Ressource
 

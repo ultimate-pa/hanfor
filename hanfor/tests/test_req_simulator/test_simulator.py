@@ -5,13 +5,13 @@ from pysmt.fnode import FNode
 from pysmt.shortcuts import Real, Symbol, GE, Int, Equals
 from pysmt.typing import REAL, INT
 
-from req_simulator.countertrace import CountertraceTransformer
-from req_simulator.phase_event_automaton import build_automaton
+from lib_pea.countertrace import CountertraceTransformer
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
-from req_simulator.utils import get_countertrace_parser
+from lib_pea.utils import get_countertrace_parser
 from reqtransformer import Requirement, Formalization
 from tests.test_req_simulator import test_counter_trace
+from lib_pea import build_automaton
 
 testcases = [
     ('false',

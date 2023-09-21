@@ -10,7 +10,7 @@ from pysmt.formula import FormulaManager
 from pysmt.shortcuts import TRUE, And, FALSE, Or, Not, Symbol, LT, GE, LE, is_valid, Iff, is_sat, get_env
 from pysmt.typing import REAL
 
-from req_simulator.countertrace import Countertrace
+from lib_pea.countertrace import Countertrace
 from req_simulator.utils import substitute_free_variables, SOLVER_NAME, LOGIC
 from reqtransformer import Pickleable, Requirement, Formalization
 
