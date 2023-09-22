@@ -1,4 +1,3 @@
-import math
 from lark import Lark
 from pysmt.fnode import FNode
 from pysmt.shortcuts import Symbol, substitute
@@ -22,9 +21,7 @@ def get_countertrace_parser() -> Lark:
     return CT_PARSER
 
 
-def substitute_free_variables(
-    fnode: FNode, suffix: str = "_", do_nothing: bool = True
-) -> FNode:
+def substitute_free_variables(fnode: FNode, suffix: str = "_", do_nothing: bool = True) -> FNode:
     if do_nothing:
         return fnode
 
@@ -32,7 +29,3 @@ def substitute_free_variables(
     subs = {s: Symbol(s.symbol_name() + suffix, s.symbol_type()) for s in symbols}
     result = substitute(fnode, subs)
     return result
-
-
-def num_zeros(x: float) -> int:
-    return 0 if x >= 1 else -math.floor(math.log10(x)) - 1

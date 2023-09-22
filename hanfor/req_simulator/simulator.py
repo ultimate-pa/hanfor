@@ -11,8 +11,9 @@ from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, get_model, i
 from pysmt.typing import REAL
 
 from lib_pea import PhaseEventAutomaton, Phase, Transition, complete
+from lib_pea.utils import SOLVER_NAME, LOGIC
 from req_simulator.scenario import Scenario
-from req_simulator.utils import SOLVER_NAME, LOGIC, num_zeros
+from req_simulator.utils import num_zeros
 from reqtransformer import Requirement, Formalization
 
 

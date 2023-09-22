@@ -11,7 +11,7 @@ from pysmt.shortcuts import (
     get_env,
 )
 from lib_pea.countertrace import Countertrace
-from req_simulator.utils import SOLVER_NAME, LOGIC
+from lib_pea.utils import SOLVER_NAME, LOGIC
 from reqtransformer import Pickleable, Requirement, Formalization
 
 

@@ -7,7 +7,6 @@ from pysmt.fnode import FNode
 from pysmt.formula import FormulaManager
 from pysmt.shortcuts import TRUE, Not, And, Or, get_free_variables, get_env
 
-from req_simulator.utils import substitute_free_variables
 from reqtransformer import Pickleable
 
 
@@ -102,11 +101,11 @@ class Countertrace(Pickleable):
 
         def is_upper_bound(self) -> bool:
             return self.bound_type == Countertrace.BoundTypes.LESS or \
-                   self.bound_type == Countertrace.BoundTypes.LESSEQUAL
+                self.bound_type == Countertrace.BoundTypes.LESSEQUAL
 
         def is_lower_bound(self) -> bool:
             return self.bound_type == Countertrace.BoundTypes.GREATER or \
-                   self.bound_type == Countertrace.BoundTypes.GREATEREQUAL
+                self.bound_type == Countertrace.BoundTypes.GREATEREQUAL
 
         def extract_variables(self) -> set[FNode]:
             return set(get_free_variables(self.invariant))

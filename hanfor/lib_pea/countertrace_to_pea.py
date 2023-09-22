@@ -17,7 +17,7 @@ from pysmt.shortcuts import (
 from pysmt.typing import REAL
 
 from lib_pea.countertrace import Countertrace
-from req_simulator.utils import substitute_free_variables, SOLVER_NAME, LOGIC
+from lib_pea.utils import substitute_free_variables, SOLVER_NAME, LOGIC
 from lib_pea.phase_event_automaton import PhaseEventAutomaton, Sets, Phase, Transition
 
 
