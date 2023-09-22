@@ -145,7 +145,7 @@ class ReqSyntaxTree(object):
                 | "OR logic"
         UNIT: /[\(\)A-Za-z]+/
         ENUMVALUE : /"[0-9A-Za-z_ ]+"/ | /"[0-9A-Za-z_ ]+/ | /[0-9A-Za-z_ ]+"/
-        SET_CONDITION_ACTIVE.1000: /set condition active for /
+        SET_CONDITION_ACTIVE: /set condition active for /
         RECEIVED: /(is)* received/
         NOT_RECEIVED: /(is)* not received/
         AVAILABLE: /(is)* available/
