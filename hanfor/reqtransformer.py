@@ -19,6 +19,7 @@ from distutils.version import StrictVersion
 from enum import Enum
 from flask import current_app
 from lark import LarkError
+from packaging import version
 
 import boogie_parsing
 from boogie_parsing import run_typecheck_fixpoint, BoogieType
@@ -46,7 +47,7 @@ class HanforVersioned:
 
     @property
     def outdated(self) -> bool:
-        return StrictVersion(self.hanfor_version) < StrictVersion(__version__)
+        return version.parse(self.hanfor_version) < version.parse(__version__)
 
     def run_version_migrations(self):
         if self.outdated:
@@ -1186,7 +1187,7 @@ class VariableCollection(HanforVersioned, Pickleable):
             f'Migrating `{self.__class__.__name__}`:`{self.my_path}`, from {self.hanfor_version} -> {__version__}')
         for name, variable in self.collection.items():  # type: (str, Variable)
             variable.run_version_migrations()
-        if StrictVersion(self.hanfor_version) < StrictVersion('1.0.3'):
+        if version.parse(self.hanfor_version) < version.parse('1.0.3'):
             # Migrate for introduction of ENUM_INT and ENUM_REAL.
             for name, variable in self.collection.items():  # type: (str, Variable)
                 if variable.type == 'ENUM':
@@ -1516,16 +1517,16 @@ class Variable(HanforVersioned):
         return result
 
     def run_version_migrations(self):
-        if StrictVersion(self.hanfor_version) <= StrictVersion('0.0.0'):
+        if version.parse(self.hanfor_version) <= version.parse('0.0.0'):
             logging.info(f'Migrating `{self.__class__.__name__}`:`{self.name}`, from 0.0.0 -> 1.0.0')
             if hasattr(self, 'constraints'):
                 self.constraints = dict(enumerate(self.constraints))
             else:
                 self.constraints = dict()
-        if StrictVersion(self.hanfor_version) <= StrictVersion('1.0.0'):
+        if version.parse(self.hanfor_version) <= version.parse('1.0.0'):
             logging.info(f'Migrating `{self.__class__.__name__}`:`{self.name}`, from 1.0.0 -> 1.0.1')
             self.script_results = ''
-        if StrictVersion(self.hanfor_version) <= StrictVersion('1.0.2'):
+        if version.parse(self.hanfor_version) <= version.parse('1.0.2'):
             logging.info(f'Migrating `{self.__class__.__name__}`:`{ self.name}`, from {self.hanfor_version} -> 1.0.3')
             self.belongs_to_enum = ''
             if self.type == 'ENUM':
