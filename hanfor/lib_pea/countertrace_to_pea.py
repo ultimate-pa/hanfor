@@ -1,6 +1,8 @@
+import graphviz
 from pysmt.fnode import FNode
-from pysmt.shortcuts import TRUE, And, FALSE, Or, Not, Symbol, LT, GE, LE, is_sat
+from pysmt.shortcuts import TRUE, And, FALSE, Or, Not, Symbol, LT, GE, LE, is_sat, Solver, is_valid, Iff
 from pysmt.typing import REAL
+from z3 import Then, Tactic, With
 
 from lib_pea.countertrace import Countertrace
 from lib_pea.phase_event_automaton import PhaseEventAutomaton, Sets, Phase, Transition
@@ -70,7 +72,7 @@ def compute_clock_invariant(ct: Countertrace, p: Sets, cp: str) -> FNode:
 def build_successors(i: int, p: Sets, p_: Sets, resets: set[str], guard: FNode, ct: Countertrace,
                      enter: dict[int, FNode], keep: dict[int, FNode], cp: str) -> list[tuple[Sets, FNode, set[str]]]:
     result = []
-    guard = guard.simplify()
+    guard = simplify_with_z3(guard)
 
     # Terminate if guard is unsatisfiable.
     if guard != TRUE() and (guard == FALSE() or not is_sat(guard, solver_name=SOLVER_NAME, logic=LOGIC)):
@@ -180,7 +182,7 @@ def compute_enter_keep(ct: Countertrace, p: Sets, init: bool, cp: str) -> tuple[
         for i in range(-1, len(ct.dc_phases)):
             inv = substitute_free_variables(ct.dc_phases[i].invariant)
             enter_[i] = (TRUE() if i < 0 else And(enter_[i - 1],
-                         TRUE() if ct.dc_phases[i - 1].allow_empty else FALSE(), inv))
+                                                  TRUE() if ct.dc_phases[i - 1].allow_empty else FALSE(), inv))
             # enter_[i] = TRUE() if i < 0 else And(
             #   enter_[i - 1],
             #   TRUE() if ct.dc_phases[i - 1].allow_empty else FALSE(),
@@ -231,3 +233,33 @@ def complete(ct: Countertrace, p: Sets, i: int, cp: str) -> FNode:
 
 def can_seep(p: Sets, i: int) -> FNode:
     return TRUE() if i - 1 in p.active.difference(p.wait) else FALSE()
+
+
+def simplify_with_z3(f: FNode) -> FNode:
+    solver = Solver(name="z3")
+    tactic = Then(With(Tactic("simplify"), elim_and=True), Tactic("propagate-values"))
+    z3_f = solver.converter.convert(f)
+    z3_f = tactic(z3_f).as_expr()
+    f_simplified = solver.converter.back(z3_f)
+
+    assert is_valid(Iff(f, f_simplified)), f"Failed to simplify. {f} is not equivalent to {f_simplified}"
+
+    return f_simplified
+
+
+def render_pea(pea: PhaseEventAutomaton, filename: str, view=False) -> None:
+    dot = graphviz.Digraph(comment='Phase Event Automaton')
+    for phase, transitions in pea.phases.items():
+        src_label = str(phase.sets) if phase is not None else 'None'
+        dot.node(src_label)
+
+        for transition in transitions:
+            dst_label = str(transition.dst.sets) if transition.dst is not None else 'None'
+            guard_str = transition.guard.serialize()
+
+            for clock in pea.clocks:
+                guard_str = guard_str.replace(clock, "c" + guard_str.split("_")[-1])
+
+            dot.edge(src_label, dst_label, label=guard_str)
+
+    dot.render(filename, view=view)
