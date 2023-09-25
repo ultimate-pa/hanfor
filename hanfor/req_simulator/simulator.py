@@ -236,8 +236,9 @@ class Simulator:
                 if len(transitions) <= 0:
                     reason += 'inconsistency'
                 else:
-                    core = '\n' + ', '.join([f.serialize() for f in get_unsat_core(conjunctive_partition(last_fail))])
-                    reason += 'unrealizable input, ' + core
+                    unsat_core = get_unsat_core(conjunctive_partition(last_fail))
+                    unsat_core = "Unknown" if not unsat_core else '\n' + ', '.join([f.serialize() for f in unsat_core])
+                    reason += 'unrealizable input, ' + unsat_core
 
                 # reason = 'inconsistency' if len(transitions) <= 0 else \
                 #    'unrealizable input, ' + get_unsat_core(conjunctive_partition(last_fail))
