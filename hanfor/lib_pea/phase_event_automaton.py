@@ -7,7 +7,6 @@ from pysmt.formula import FormulaManager
 from pysmt.shortcuts import (TRUE, is_valid, Iff, get_env)
 from lib_pea.countertrace import Countertrace
 from lib_pea.settings import SOLVER_NAME, LOGIC
-from reqtransformer import Pickleable, Requirement, Formalization
 
 
 @dataclass(frozen=True)
@@ -176,27 +175,25 @@ class Transition:
             self.guard = formula_manager.normalize(self.guard)
 
 
-class PhaseEventAutomaton(Pickleable):
+class PhaseEventAutomaton:
     def __init__(self, countertrace: Countertrace = None, path: str = None):
         # TODO: Rename to transitions
         self.phases: defaultdict[Phase, set[Transition]] = defaultdict(set)
         self.countertrace: Countertrace = countertrace
         self.clocks: set[str] = set()
-        self.requirement: Requirement = None
-        self.formalization: Formalization = None
+        self.requirement = None
+        self.formalization = None
         self.countertrace_id: int = None
-
-        super().__init__(path)
 
     def __eq__(self, o: "PhaseEventAutomaton") -> bool:
         return isinstance(o, PhaseEventAutomaton) and o.phases == self.phases
 
     @classmethod
     def load(cls, path: str) -> "PhaseEventAutomaton":
-        pea = super().load(path)
-        pea.normalize(get_env().formula_manager)
-
-        return pea
+        #pea = super().load(path)
+        #pea.normalize(get_env().formula_manager)
+        #return pea
+        raise NotImplementedError
 
     def normalize(self, formula_manager: FormulaManager) -> None:
         self.countertrace.normalize(formula_manager)

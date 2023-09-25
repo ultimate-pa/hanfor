@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from lark import Transformer, Token
 from pysmt.fnode import FNode
 from pysmt.shortcuts import And, Or, Div, FALSE, TRUE, GT, GE, Symbol, Implies, LT, LE, Minus, Not, \
@@ -5,7 +7,12 @@ from pysmt.shortcuts import And, Or, Div, FALSE, TRUE, GT, GE, Symbol, Implies, 
     Int, Plus, Real, Times, EqualsOrIff, Max, Min, Ite
 from pysmt.typing import INT, BOOL, REAL
 
-from reqtransformer import Variable
+
+@dataclass
+class Variable:
+    name: str
+    type: str
+    value: str
 
 
 class BoogiePysmtTransformer(Transformer):
