@@ -10,8 +10,9 @@ from pysmt.rewritings import conjunctive_partition
 from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, get_model, is_sat, FALSE, get_unsat_core
 from pysmt.typing import REAL
 
-from lib_pea import PhaseEventAutomaton, Phase, Transition, complete
-from lib_pea.utils import SOLVER_NAME, LOGIC
+from lib_pea.countertrace_to_pea import complete
+from lib_pea.phase_event_automaton import PhaseEventAutomaton, Phase, Transition
+from lib_pea.settings import SOLVER_NAME, LOGIC
 from req_simulator.scenario import Scenario
 from req_simulator.utils import num_zeros
 from reqtransformer import Requirement, Formalization

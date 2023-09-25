@@ -6,12 +6,12 @@ from pysmt.shortcuts import Real, Symbol, GE, Int, Equals
 from pysmt.typing import REAL, INT
 
 from lib_pea.countertrace import CountertraceTransformer
+from lib_pea.countertrace_to_pea import build_automaton
+from lib_pea.utils import get_countertrace_parser
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
-from lib_pea.utils import get_countertrace_parser
 from reqtransformer import Requirement, Formalization
 from tests.test_req_simulator import test_counter_trace
-from lib_pea import build_automaton
 
 testcases = [
     ('false',
@@ -89,7 +89,7 @@ class TestSimulator(TestCase):
     @parameterized.expand(testcases)
     def test_simulator(self, pattern_name: str, expressions: dict[str, FNode], yaml_str: str):
         _, ct_str, _ = test_counter_trace.testcases[pattern_name]
-        #expressions['T'] = Real(5)
+        # expressions['T'] = Real(5)
 
         ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
         pea = build_automaton(ct)
@@ -109,7 +109,7 @@ class TestSimulator(TestCase):
             if not simulator.check_sat():
                 break
 
-            #if len(simulator.sat_results) != 1:
+            # if len(simulator.sat_results) != 1:
             #    break
 
             if i == len(scenario.times) - 1:
@@ -117,7 +117,5 @@ class TestSimulator(TestCase):
                 break
 
             simulator.step_next(0)
-
-
 
         self.assertEqual(True, actual, msg="Error while simulating scenario.")

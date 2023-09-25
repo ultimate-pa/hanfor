@@ -4,14 +4,9 @@ from fractions import Fraction
 
 from pysmt.fnode import FNode
 from pysmt.formula import FormulaManager
-from pysmt.shortcuts import (
-    TRUE,
-    is_valid,
-    Iff,
-    get_env,
-)
+from pysmt.shortcuts import (TRUE, is_valid, Iff, get_env)
 from lib_pea.countertrace import Countertrace
-from lib_pea.utils import SOLVER_NAME, LOGIC
+from lib_pea.settings import SOLVER_NAME, LOGIC
 from reqtransformer import Pickleable, Requirement, Formalization
 
 

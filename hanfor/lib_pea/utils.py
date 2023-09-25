@@ -1,9 +1,10 @@
+import graphviz
 from lark import Lark
 from pysmt.fnode import FNode
 from pysmt.shortcuts import Symbol, substitute
 
-SOLVER_NAME = "z3"
-LOGIC = "QF_NRA"
+from lib_pea.phase_event_automaton import PhaseEventAutomaton
+
 CT_PARSER = None
 
 
@@ -29,3 +30,21 @@ def substitute_free_variables(fnode: FNode, suffix: str = "_", do_nothing: bool 
     subs = {s: Symbol(s.symbol_name() + suffix, s.symbol_type()) for s in symbols}
     result = substitute(fnode, subs)
     return result
+
+
+def render_pea(pea: PhaseEventAutomaton, filename: str, view=False) -> None:
+    dot = graphviz.Digraph(comment='Phase Event Automaton')
+    for phase, transitions in pea.phases.items():
+        src_label = str(phase.sets) if phase is not None else 'None'
+        dot.node(src_label)
+
+        for transition in transitions:
+            dst_label = str(transition.dst.sets) if transition.dst is not None else 'None'
+            guard_str = transition.guard.serialize()
+
+            for clock in pea.clocks:
+                guard_str = guard_str.replace(clock, "c" + guard_str.split("_")[-1])
+
+            dot.edge(src_label, dst_label, label=guard_str)
+
+    dot.render(filename, view=view)

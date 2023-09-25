@@ -16,7 +16,8 @@ from pysmt.typing import BOOL, INT, REAL
 import boogie_parsing
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
 from lib_pea.countertrace import CountertraceTransformer
-from lib_pea import PhaseEventAutomaton, build_automaton
+from lib_pea.countertrace_to_pea import build_automaton
+from lib_pea.phase_event_automaton import PhaseEventAutomaton
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
 from lib_pea.utils import get_countertrace_parser

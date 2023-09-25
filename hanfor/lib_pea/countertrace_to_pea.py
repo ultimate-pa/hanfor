@@ -1,4 +1,3 @@
-import graphviz
 from pysmt.fnode import FNode
 from pysmt.shortcuts import TRUE, And, FALSE, Or, Not, Symbol, LT, GE, LE, is_sat, Solver, is_valid, Iff
 from pysmt.typing import REAL
@@ -6,7 +5,8 @@ from z3 import Then, Tactic, With
 
 from lib_pea.countertrace import Countertrace
 from lib_pea.phase_event_automaton import PhaseEventAutomaton, Sets, Phase, Transition
-from lib_pea.utils import substitute_free_variables, SOLVER_NAME, LOGIC
+from lib_pea.settings import SOLVER_NAME, LOGIC
+from lib_pea.utils import substitute_free_variables
 
 
 def build_automaton(ct: Countertrace, cp: str = "c") -> PhaseEventAutomaton:
@@ -245,21 +245,3 @@ def simplify_with_z3(f: FNode) -> FNode:
     assert is_valid(Iff(f, f_simplified)), f"Failed to simplify. {f} is not equivalent to {f_simplified}"
 
     return f_simplified
-
-
-def render_pea(pea: PhaseEventAutomaton, filename: str, view=False) -> None:
-    dot = graphviz.Digraph(comment='Phase Event Automaton')
-    for phase, transitions in pea.phases.items():
-        src_label = str(phase.sets) if phase is not None else 'None'
-        dot.node(src_label)
-
-        for transition in transitions:
-            dst_label = str(transition.dst.sets) if transition.dst is not None else 'None'
-            guard_str = transition.guard.serialize()
-
-            for clock in pea.clocks:
-                guard_str = guard_str.replace(clock, "c" + guard_str.split("_")[-1])
-
-            dot.edge(src_label, dst_label, label=guard_str)
-
-    dot.render(filename, view=view)

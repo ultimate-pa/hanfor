@@ -3,6 +3,7 @@ Flask-DebugToolbar==0.13.1
 lark-parser==0.12.0
 Flask-Assets==2.0 # TODO: Unused functionality. Check if it can be removed.
 Flask-Pydantic==0.11.0
+graphviz~=0.20.1
 pydantic==1.10.7
 jinja2==3.1.2
 colorama==0.4.6
@@ -15,3 +16,8 @@ PyYAML==6.0
 uuid==1.30
 jsbeautifier==1.14.7
 requests==2.28.2
+parameterized~=0.8.1
+pyfakefs~=4.7.0
+werkzeug~=2.3.7
+pytest~=7.1.2
+packaging~=23.1
