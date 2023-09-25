@@ -385,11 +385,12 @@ class Simulator:
             else:
                 reason += 'inconsistency' if self.current_phases[-1][0] == None else 'rt-inconsistency'
 
-            core = '\n' + ', '.join([f.serialize() for f in get_unsat_core(conjunctive_partition(self.last_fail))])
+            unsat_core = get_unsat_core(conjunctive_partition(self.last_fail))
+            unsat_core = "Unknown" if not unsat_core else '\n' + ', '.join([f.serialize() for f in unsat_core])
 
             self.sat_error = 'Requirement violation: %s, Formalization: %s, Countertrace: %s\nReason: %s, %s' % (
                 self.peas[i].requirement.rid, self.peas[i].formalization.id, self.peas[i].countertrace_id,
-                reason, core)
+                reason, unsat_core)
 
         return result
 
