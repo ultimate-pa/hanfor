@@ -1,23 +1,21 @@
-Flask==2.2.3
-Flask-DebugToolbar==0.13.1
-lark-parser==0.12.0
-Flask-Assets==2.0 # TODO: Unused functionality. Check if it can be removed.
-Flask-Pydantic==0.11.0
-graphviz~=0.20.1
-pydantic==1.10.7
-jinja2==3.1.2
-colorama==0.4.6
-terminaltables==3.1.10
-sentry-sdk==1.19.0
-openpyxl==3.1.2
-PySMT==0.9.5
-inquirerpy==0.3.4
-PyYAML==6.0
-uuid==1.30
-jsbeautifier==1.14.7
-requests==2.28.2
-parameterized~=0.8.1
-pyfakefs~=4.7.0
+Flask~=2.3.3
+Flask-DebugToolbar~=0.13.1
+lark-parser~=0.12.0
+Flask-Assets~=2.0 # TODO: Unused functionality. Check if it can be removed.
+Flask-Pydantic~=0.11.0
+pydantic~=2.4.0
+jinja2~=3.1.2
+colorama~=0.4.6
+terminaltables~=3.1.10
+sentry-sdk~=1.31.0
+openpyxl~=3.1.2
+PySMT~=0.9.5
+inquirerpy~=0.3.4
+PyYAML~=6.0.1
+uuid~=1.30
+jsbeautifier~=1.14.9
+requests~=2.31.0
 werkzeug~=2.3.7
-pytest~=7.1.2
 packaging~=23.1
+
+-r lib_pea/requirements.txt
