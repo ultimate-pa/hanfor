@@ -4,7 +4,8 @@ from fractions import Fraction
 
 from pysmt.fnode import FNode
 from pysmt.formula import FormulaManager
-from pysmt.shortcuts import (TRUE, is_valid, Iff, get_env)
+from pysmt.shortcuts import (TRUE, is_valid, Iff)
+
 from lib_pea.countertrace import Countertrace
 from lib_pea.settings import SOLVER_NAME, LOGIC
 
@@ -22,24 +23,16 @@ class Sets:
         for i in self.active:
             result += str(i)
             result += (
-                "ᴳ"
-                if i in self.gteq
-                else "ᵂ"
-                if i in self.wait
-                else "ᴸ"
-                if i in self.less
-                else ""
+                "ᴳ" if i in self.gteq else
+                "ᵂ" if i in self.wait else
+                "ᴸ" if i in self.less else
+                ""
             )
 
         return result
 
     def is_empty(self) -> bool:
-        return (
-            len(self.gteq) == 0
-            and len(self.wait) == 0
-            and len(self.less) == 0
-            and len(self.active) == 0
-        )
+        return len(self.gteq) == 0 and len(self.wait) == 0 and len(self.less) == 0 and len(self.active) == 0
 
     def add_gteq(self, i: int) -> "Sets":
         return Sets(
@@ -50,25 +43,13 @@ class Sets:
         )
 
     def add_wait(self, i: int) -> "Sets":
-        return Sets(
-            self.gteq.copy(),
-            self.wait.union({i}),
-            self.less.copy(),
-            self.active.union({i}),
-        )
+        return Sets(self.gteq.copy(), self.wait.union({i}), self.less.copy(), self.active.union({i}))
 
     def add_less(self, i: int) -> "Sets":
-        return Sets(
-            self.gteq.copy(),
-            self.wait.copy(),
-            self.less.union({i}),
-            self.active.union({i}),
-        )
+        return Sets(self.gteq.copy(), self.wait.copy(), self.less.union({i}), self.active.union({i}))
 
     def add_active(self, i: int) -> "Sets":
-        return Sets(
-            self.gteq.copy(), self.wait.copy(), self.less.copy(), self.active.union({i})
-        )
+        return Sets(self.gteq.copy(), self.wait.copy(), self.less.copy(), self.active.union({i}))
 
 
 @dataclass()
@@ -80,20 +61,9 @@ class Phase:
     sets: Sets() = Sets()
 
     def __eq__(self, o: "Phase") -> bool:
-        return (
-            isinstance(o, Phase)
-            and o.sets == self.sets
-            and is_valid(
-                Iff(o.state_invariant, self.state_invariant),
-                solver_name=SOLVER_NAME,
-                logic=LOGIC,
-            )
-            and is_valid(
-                Iff(o.clock_invariant, self.clock_invariant),
-                solver_name=SOLVER_NAME,
-                logic=LOGIC,
-            )
-        )
+        return (isinstance(o, Phase) and o.sets == self.sets and
+                is_valid(Iff(o.state_invariant, self.state_invariant), solver_name=SOLVER_NAME, logic=LOGIC) and
+                is_valid(Iff(o.clock_invariant, self.clock_invariant), solver_name=SOLVER_NAME, logic=LOGIC))
 
     def __hash__(self) -> int:
         return hash((self.sets))
@@ -142,13 +112,8 @@ class Transition:
     resets: frozenset[str] = frozenset()
 
     def __eq__(self, o: "Transition") -> bool:
-        return (
-            isinstance(o, Transition)
-            and o.src == self.src
-            and o.dst == self.dst
-            and o.resets == self.resets
-            and is_valid(Iff(o.guard, self.guard), solver_name=SOLVER_NAME, logic=LOGIC)
-        )
+        return (isinstance(o, Transition) and o.src == self.src and o.dst == self.dst and o.resets == self.resets and
+                is_valid(Iff(o.guard, self.guard), solver_name=SOLVER_NAME, logic=LOGIC))
 
     def __hash__(self) -> int:
         return hash((self.src, self.dst, self.resets))
@@ -190,9 +155,9 @@ class PhaseEventAutomaton:
 
     @classmethod
     def load(cls, path: str) -> "PhaseEventAutomaton":
-        #pea = super().load(path)
-        #pea.normalize(get_env().formula_manager)
-        #return pea
+        # pea = super().load(path)
+        # pea.normalize(get_env().formula_manager)
+        # return pea
         raise NotImplementedError
 
     def normalize(self, formula_manager: FormulaManager) -> None:
