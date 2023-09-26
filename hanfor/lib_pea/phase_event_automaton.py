@@ -99,7 +99,7 @@ class Phase:
         return hash((self.sets))
 
     def __str__(self) -> str:
-        return f's_inv: ({self.state_invariant.serialize()}" | c_inv: "{self.clock_invariant.serialize()}" | sets: "{self.__sets})'
+        return f's_inv: ({self.state_invariant.serialize()}" | c_inv: "{self.clock_invariant.serialize()}" | sets: "{self.sets})'
 
     def __repr__(self):
         return str(self.sets)
