@@ -11,8 +11,10 @@ from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, get_model, i
 from pysmt.typing import REAL
 
 from lib_pea.countertrace_to_pea import complete
-from lib_pea.phase_event_automaton import PhaseEventAutomaton, Phase, Transition
-from lib_pea.settings import SOLVER_NAME, LOGIC
+from lib_pea.pea import PhaseSetsPea
+from lib_pea.transition import PhaseSetsTransition
+from lib_pea.location import PhaseSetsLocation
+from lib_pea.config import SOLVER_NAME, LOGIC
 from req_simulator.scenario import Scenario
 from req_simulator.utils import num_zeros
 from reqtransformer import Requirement, Formalization
@@ -21,11 +23,11 @@ from reqtransformer import Requirement, Formalization
 class Simulator:
     @dataclass
     class SatResult:
-        transitions: Tuple[Transition]
+        transitions: Tuple[PhaseSetsTransition]
         model: dict[FNode, FNode]
         guard: FNode
 
-    def __init__(self, peas: list[PhaseEventAutomaton], scenario: Scenario = None, name: str = 'unnamed',
+    def __init__(self, peas: list[PhaseSetsPea], scenario: Scenario = None, name: str = 'unnamed',
                  test: bool = False) -> None:
         self.name: str = name
         self.scenario: Scenario = scenario
@@ -33,8 +35,8 @@ class Simulator:
         self.times: list[float] = [0.0]  # history
         self.time_steps: list[float] = [1.0]  # history
 
-        self.peas: list[PhaseEventAutomaton] = peas
-        self.current_phases: list[list[Phase | None]] = [[None] * len(self.peas)]  # history
+        self.peas: list[PhaseSetsPea] = peas
+        self.current_phases: list[list[PhaseSetsLocation | None]] = [[None] * len(self.peas)]  # history
         self.clocks: list[dict[str, float]] = [{vv: 0.0 for v in self.peas for vv in v.clocks}]  # history
         self.sat_results: list[Simulator.SatResult] = []
         self.sat_error: str | None = None
@@ -60,7 +62,7 @@ class Simulator:
         return len(self.variables) == len([k for k, v in self.variables.items() if v[-1] is None])
 
     def get_cartesian_size(self) -> str:
-        return str(math.prod(len(self.peas[i].phases[v]) for i, v in enumerate(self.current_phases[-1])))
+        return str(math.prod(len(self.peas[i].transitions[v]) for i, v in enumerate(self.current_phases[-1])))
 
     def get_times(self) -> list[str]:
         return [str(v) for v in self.times]
@@ -92,15 +94,15 @@ class Simulator:
         for i, current_phase in enumerate(self.current_phases[-1]):
             prefix = f'{self.peas[i].requirement.rid}_{self.peas[i].formalization.id}_{self.peas[i].countertrace_id}_'
 
-            for v in current_phase.sets.active:
-                is_complete = is_sat(And(complete(self.peas[i].countertrace, current_phase.sets, v, 'c_' + prefix),
+            for v in current_phase.label.active:
+                is_complete = is_sat(And(complete(self.peas[i].countertrace, current_phase.label, v, 'c_' + prefix),
                                          clock_assertions), solver_name=SOLVER_NAME, logic=LOGIC)
 
                 if is_complete:
                     result['complete'].append(prefix + str(v))
                     continue
 
-                if v not in current_phase.sets.less:
+                if v not in current_phase.label.less:
                     result['waiting'].append(prefix + str(v))
                     continue
 
@@ -117,7 +119,7 @@ class Simulator:
 
         return results
 
-    def get_pea_mapping(self) -> dict[Requirement, dict[Formalization, dict[str, PhaseEventAutomaton]]]:
+    def get_pea_mapping(self) -> dict[Requirement, dict[Formalization, dict[str, PhaseSetsPea]]]:
         result = defaultdict(lambda: defaultdict(dict))
 
         for pea in self.peas:
@@ -171,7 +173,7 @@ class Simulator:
         return f
     '''
 
-    def calculate_max_time_step(self, transition: Transition, clocks: dict[str, float], time_step: float):
+    def calculate_max_time_step(self, transition: PhaseSetsTransition, clocks: dict[str, float], time_step: float):
         k, v = transition.dst.get_min_clock_bound()
 
         if k is not None and v is not None:
@@ -205,7 +207,7 @@ class Simulator:
 
         return min(result_, result)
 
-    def pre_check(self, phases: list[Phase], var_asserts: FNode, clock_asserts: FNode) -> list[list[Transition]]:
+    def pre_check(self, phases: list[PhaseSetsLocation], var_asserts: FNode, clock_asserts: FNode) -> list[list[PhaseSetsTransition]]:
         result = []
 
         for i, transitions in enumerate(phases):
@@ -275,7 +277,7 @@ class Simulator:
         var_asserts = self.build_variables_assertion({k: v[-1] for k, v in self.variables.items()})
         clock_asserts = self.build_clocks_assertion(self.clocks[-1])
 
-        inputs = self.pre_check([v.phases[self.current_phases[-1][i]] for i, v in enumerate(self.peas)],
+        inputs = self.pre_check([v.transitions[self.current_phases[-1][i]] for i, v in enumerate(self.peas)],
                                 var_asserts, clock_asserts)
 
         if self.sat_error is not None:
@@ -344,7 +346,7 @@ class Simulator:
 
         return True
 
-    def cartesian_check(self, phases: list[list[Transition]], var_asserts, clock_asserts, i: int = 0, guard=None,
+    def cartesian_check(self, phases: list[list[PhaseSetsTransition]], var_asserts, clock_asserts, i: int = 0, guard=None,
                         trs=(),
                         max_results=20, num_transitions=1) -> list[SatResult]:
 

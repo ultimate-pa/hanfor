@@ -17,7 +17,7 @@ import boogie_parsing
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
 from lib_pea.countertrace import CountertraceTransformer
 from lib_pea.countertrace_to_pea import build_automaton
-from lib_pea.phase_event_automaton import PhaseEventAutomaton
+from lib_pea.pea import PhaseSetsPea
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
 from lib_pea.utils import get_countertrace_parser
@@ -304,12 +304,12 @@ class SimulatorRessource(Ressource):
 
         dir = app.config['REVISION_FOLDER']
         for file in fnmatch.filter(os.listdir(dir), f'{requirement_id}_*_PEA.pickle'):
-            result.append(PhaseEventAutomaton.load(os.path.join(dir, file)))
+            result.append(PhaseSetsPea.load(os.path.join(dir, file)))
 
         return result
 
     @staticmethod
-    def store_phase_event_automata(peas: list[PhaseEventAutomaton], app: Flask) -> None:
+    def store_phase_event_automata(peas: list[PhaseSetsPea], app: Flask) -> None:
         for pea in peas:
             file = f'{pea.requirement.rid}_{pea.formalization.id}_{pea.countertrace_id}_PEA.pickle'
             pea.store(os.path.join(app.config['REVISION_FOLDER'], file))
@@ -329,7 +329,7 @@ class SimulatorRessource(Ressource):
         return False
 
     @staticmethod
-    def create_phase_event_automata(requirement_id: str, var_collection, app: Flask) -> list[PhaseEventAutomaton] | None:
+    def create_phase_event_automata(requirement_id: str, var_collection, app: Flask) -> list[PhaseSetsPea] | None:
         result = []
 
         requirement = Requirement.load_requirement_by_id(requirement_id, app)

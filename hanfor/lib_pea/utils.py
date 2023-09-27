@@ -3,7 +3,7 @@ from lark import Lark
 from pysmt.fnode import FNode
 from pysmt.shortcuts import Symbol, substitute
 
-from lib_pea.phase_event_automaton import PhaseEventAutomaton
+from lib_pea.pea import PhaseSetsPea
 
 CT_PARSER = None
 
@@ -32,14 +32,14 @@ def substitute_free_variables(fnode: FNode, suffix: str = "_", do_nothing: bool 
     return result
 
 
-def render_pea(pea: PhaseEventAutomaton, filename: str, view=False) -> None:
+def render_pea(pea: PhaseSetsPea, filename: str, view=False) -> None:
     dot = graphviz.Digraph(comment='Phase Event Automaton')
-    for phase, transitions in pea.phases.items():
-        src_label = str(phase.sets) if phase is not None else 'None'
+    for phase, transitions in pea.transitions.items():
+        src_label = str(phase.label) if phase is not None else 'None'
         dot.node(src_label)
 
         for transition in transitions:
-            dst_label = str(transition.dst.sets) if transition.dst is not None else 'None'
+            dst_label = str(transition.dst.label) if transition.dst is not None else 'None'
             guard_str = transition.guard.serialize()
 
             for clock in pea.clocks:

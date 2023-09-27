@@ -1,2 +1,0 @@
-SOLVER_NAME = "z3"
-LOGIC = "QF_NRA"

@@ -4,42 +4,45 @@ from pysmt.typing import REAL
 from z3 import Then, Tactic, With
 
 from lib_pea.countertrace import Countertrace
-from lib_pea.phase_event_automaton import PhaseEventAutomaton, Sets, Phase, Transition
-from lib_pea.settings import SOLVER_NAME, LOGIC
+from lib_pea.pea import PhaseSetsPea, Pea
+from lib_pea.transition import PhaseSetsTransition
+from lib_pea.location import PhaseSetsLocation
+from lib_pea.phase_sets import PhaseSets
+from lib_pea.config import SOLVER_NAME, LOGIC
 from lib_pea.utils import substitute_free_variables
 
 
-def build_automaton(ct: Countertrace, cp: str = "c") -> PhaseEventAutomaton:
-    pea = PhaseEventAutomaton(ct)
+def build_automaton(ct: Countertrace, cp: str = "c") -> PhaseSetsPea:
+    pea = PhaseSetsPea(ct)
     visited, pending = set(), set()
     init = True
 
     while pending or init:
         if init:
-            p = Sets()
+            p = PhaseSets()
             src = None
         else:
             p = pending.pop()
             visited.add(p)
-            src = Phase(compute_state_invariant(ct, p), compute_clock_invariant(ct, p, cp), p)
+            src = PhaseSetsLocation(compute_state_invariant(ct, p), compute_clock_invariant(ct, p, cp), p)
 
         enter, keep = compute_enter_keep(ct, p, init, cp)
-        successors = build_successors(0, p, Sets(), set(), TRUE(), ct, enter, keep, cp)
+        successors = build_successors(0, p, PhaseSets(), set(), TRUE(), ct, enter, keep, cp)
 
         for s in successors:
-            dst = Phase(compute_state_invariant(ct, s[0]), compute_clock_invariant(ct, s[0], cp), s[0])
+            dst = PhaseSetsLocation(compute_state_invariant(ct, s[0]), compute_clock_invariant(ct, s[0], cp), s[0])
 
             if s[0] not in visited.union(pending):
                 pending.add(s[0])
 
-            pea.add_transition(Transition(src, dst, s[1], frozenset(s[2])))
+            pea.add_transition(PhaseSetsTransition(src, dst, s[1], frozenset(s[2])))
 
         init = False
 
     return pea
 
 
-def compute_state_invariant(ct: Countertrace, p: Sets) -> FNode:
+def compute_state_invariant(ct: Countertrace, p: PhaseSets) -> FNode:
     inactive = {*range(len(ct.dc_phases))} - p.active
 
     result = And(*[ct.dc_phases[i].invariant for i in p.active],
@@ -47,7 +50,7 @@ def compute_state_invariant(ct: Countertrace, p: Sets) -> FNode:
     return result
 
 
-def compute_clock_invariant(ct: Countertrace, p: Sets, cp: str) -> FNode:
+def compute_clock_invariant(ct: Countertrace, p: PhaseSets, cp: str) -> FNode:
     result = []
 
     # TODO: check this
@@ -69,8 +72,8 @@ def compute_clock_invariant(ct: Countertrace, p: Sets, cp: str) -> FNode:
     return And(result)
 
 
-def build_successors(i: int, p: Sets, p_: Sets, resets: set[str], guard: FNode, ct: Countertrace,
-                     enter: dict[int, FNode], keep: dict[int, FNode], cp: str) -> list[tuple[Sets, FNode, set[str]]]:
+def build_successors(i: int, p: PhaseSets, p_: PhaseSets, resets: set[str], guard: FNode, ct: Countertrace,
+                     enter: dict[int, FNode], keep: dict[int, FNode], cp: str) -> list[tuple[PhaseSets, FNode, set[str]]]:
     result = []
     guard = simplify_with_z3(guard)
 
@@ -175,7 +178,7 @@ def build_successors(i: int, p: Sets, p_: Sets, resets: set[str], guard: FNode, 
     return result
 
 
-def compute_enter_keep(ct: Countertrace, p: Sets, init: bool, cp: str) -> tuple[dict[int, FNode], dict[int, FNode]]:
+def compute_enter_keep(ct: Countertrace, p: PhaseSets, init: bool, cp: str) -> tuple[dict[int, FNode], dict[int, FNode]]:
     enter_, keep_ = {}, {}
 
     if init:
@@ -196,17 +199,17 @@ def compute_enter_keep(ct: Countertrace, p: Sets, init: bool, cp: str) -> tuple[
     return enter_, keep_
 
 
-def enter(ct: Countertrace, p: Sets, i: int, cp: str) -> FNode:
+def enter(ct: Countertrace, p: PhaseSets, i: int, cp: str) -> FNode:
     inv = substitute_free_variables(ct.dc_phases[i].invariant)
     return And(complete(ct, p, i - 1, cp), inv)  # return And(complete(ct, p, i - 1), ct.dc_phases[i].invariant)
 
 
-def seep(ct: Countertrace, p: Sets, i: int) -> FNode:
+def seep(ct: Countertrace, p: PhaseSets, i: int) -> FNode:
     inv = substitute_free_variables(ct.dc_phases[i].invariant)
     return And(can_seep(p, i), inv)  # return And(can_seep(p, i), ct.dc_phases[i].invariant)
 
 
-def keep(ct: Countertrace, p: Sets, i: int, cp: str) -> FNode:
+def keep(ct: Countertrace, p: PhaseSets, i: int, cp: str) -> FNode:
     inv = substitute_free_variables(ct.dc_phases[i].invariant)
     return And(TRUE() if i in p.active else FALSE(), inv,
                LT(Symbol(cp + str(i), REAL), ct.dc_phases[i].bound)
@@ -217,7 +220,7 @@ def keep(ct: Countertrace, p: Sets, i: int, cp: str) -> FNode:
     #           if ct.dc_phases[i].is_upper_bound() and can_seep(p, i) == FALSE() else TRUE())
 
 
-def complete(ct: Countertrace, p: Sets, i: int, cp: str) -> FNode:
+def complete(ct: Countertrace, p: PhaseSets, i: int, cp: str) -> FNode:
     result = TRUE() if i in p.active else FALSE()
 
     if i in p.wait:
@@ -231,7 +234,7 @@ def complete(ct: Countertrace, p: Sets, i: int, cp: str) -> FNode:
     return result
 
 
-def can_seep(p: Sets, i: int) -> FNode:
+def can_seep(p: PhaseSets, i: int) -> FNode:
     return TRUE() if i - 1 in p.active.difference(p.wait) else FALSE()
 
 
@@ -242,6 +245,6 @@ def simplify_with_z3(f: FNode) -> FNode:
     z3_f = tactic(z3_f).as_expr()
     f_simplified = solver.converter.back(z3_f)
 
-    assert is_valid(Iff(f, f_simplified)), f"Failed to simplify. {f} is not equivalent to {f_simplified}"
+    assert is_valid(Iff(f, f_simplified)), f"Failed to simplify: {f} is not equivalent to {f_simplified}"
 
     return f_simplified
