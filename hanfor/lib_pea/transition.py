@@ -20,8 +20,6 @@ class Transition:
 class PhaseSetsTransition(Transition):
     src: PhaseSetsLocation = None
     dst: PhaseSetsLocation = None
-    guard: FNode = TRUE()
-    resets: frozenset[str] = frozenset()
 
     def __eq__(self, o: "PhaseSetsTransition") -> bool:
         return (isinstance(o, PhaseSetsTransition) and o.src == self.src and o.dst == self.dst and
