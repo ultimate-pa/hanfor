@@ -76,7 +76,7 @@ Copy the default ultimate config file `configuration/ultimate_config.dist.py` to
     ```
 === ":fontawesome-brands-windows: Windows"
     ``` bash
-    copy configuration/ultimate_config.dist.py configuration/ultimate_config.py
+    copy configuration\ultimate_config.dist.py configuration\ultimate_config.py
     ```
 
 The config file `ultimate_config.py` allows you to change various parameters for the ultimate backend -- see the comments in [`ultimate_config.dist.py`](https://github.com/ultimate-pa/hanfor/blob/master/hanfor/configuration/ultimate_config.dist.py).
