@@ -27,6 +27,13 @@ with open('stateMachine_LightSwitch.json', 'r') as stateMachine:
             next_state = transition[2]
             print(f"current state: {current_state}, action: {action}, next state: {next_state}")
 
+# do class instances for each requirement
+# Reqtransfomer does requirements, but loads it from csv data
+
+# one transition is one requirement
+# requirement has specific pattern
+# initial requirement, has specific pattern
+
 # ToDo: Which form does hanfor need?
 # ToDO: each transition form a current state, action and next state -> bring this in a data structure
 #        Which one should we use?
