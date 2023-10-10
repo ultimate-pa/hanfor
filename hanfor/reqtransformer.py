@@ -15,7 +15,6 @@ import subprocess
 from collections import defaultdict, OrderedDict
 from copy import deepcopy
 from dataclasses import dataclass, field
-from distutils.version import StrictVersion
 from enum import Enum
 from flask import current_app
 from lark import LarkError

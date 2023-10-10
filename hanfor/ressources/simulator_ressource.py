@@ -7,7 +7,6 @@ import multiprocessing
 import os
 import time
 import uuid
-from distutils.util import strtobool
 
 from flask import Flask, render_template
 from pysmt.shortcuts import Bool, Int, Real
@@ -20,7 +19,7 @@ from lib_pea.countertrace_to_pea import build_automaton
 from lib_pea.pea import PhaseSetsPea
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
-from lib_pea.utils import get_countertrace_parser
+from lib_pea.utils import get_countertrace_parser, strtobool
 from reqtransformer import Requirement, Formalization, VariableCollection
 from ressources import Ressource
 
