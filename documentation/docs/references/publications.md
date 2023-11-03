@@ -46,8 +46,9 @@ In *IEEE Workshop on Formal Requirements (FORMREQ) 2020*.
       title={Formal Requirements in an Informal World},
       booktitle={2020 IEEE Workshop on Formal Requirements (FORMREQ)},
       year={2020},
-      pages={14-20}
-      doi={10.1109/FORMREQ51202.2020.00010}}
+      pages={14-20},
+      doi={10.1109/FORMREQ51202.2020.00010}
+    }
     ```
 
 
