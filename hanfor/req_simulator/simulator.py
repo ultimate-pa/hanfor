@@ -10,11 +10,11 @@ from pysmt.rewritings import conjunctive_partition
 from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, get_model, is_sat, FALSE, get_unsat_core
 from pysmt.typing import REAL
 
+from lib_pea.config import SOLVER_NAME, LOGIC
 from lib_pea.countertrace_to_pea import complete
+from lib_pea.location import PhaseSetsLocation
 from lib_pea.pea import PhaseSetsPea
 from lib_pea.transition import PhaseSetsTransition
-from lib_pea.location import PhaseSetsLocation
-from lib_pea.config import SOLVER_NAME, LOGIC
 from req_simulator.scenario import Scenario
 from req_simulator.utils import num_zeros
 from reqtransformer import Requirement, Formalization
@@ -207,7 +207,8 @@ class Simulator:
 
         return min(result_, result)
 
-    def pre_check(self, phases: list[PhaseSetsLocation], var_asserts: FNode, clock_asserts: FNode) -> list[list[PhaseSetsTransition]]:
+    def pre_check(self, phases: list[PhaseSetsLocation], var_asserts: FNode, clock_asserts: FNode) -> list[
+        list[PhaseSetsTransition]]:
         result = []
 
         for i, transitions in enumerate(phases):
@@ -346,13 +347,14 @@ class Simulator:
 
         return True
 
-    def cartesian_check(self, phases: list[list[PhaseSetsTransition]], var_asserts, clock_asserts, i: int = 0, guard=None,
+    def cartesian_check(self, phases: list[list[PhaseSetsTransition]], var_asserts, clock_asserts, i: int = 0,
+                        guard=None,
                         trs=(),
                         max_results=20, num_transitions=1) -> list[SatResult]:
 
         # Terminate if tuple of transitions is complete.
         if i >= len(phases):
-            #model = get_model(guard, solver_name=SOLVER_NAME, logic=LOGIC)
+            # model = get_model(guard, solver_name=SOLVER_NAME, logic=LOGIC)
             model = get_model(And(guard, var_asserts, clock_asserts), solver_name=SOLVER_NAME, logic=LOGIC)
             values = model.get_values(self.variables.keys())
             values.update({k: v[-1] for k, v in self.variables.items() if v[-1] is not None})
@@ -504,3 +506,10 @@ class Simulator:
             v.pop()
 
         return True
+
+    def variable_constraints(self):
+        # TODO: Do not modify existing member variables ;-)
+        print("Called function variable constraints ...")
+
+        current_phases = self.current_phases[-1]
+        print(current_phases)

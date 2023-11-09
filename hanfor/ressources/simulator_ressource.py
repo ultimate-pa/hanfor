@@ -3,7 +3,6 @@ from __future__ import annotations
 import fnmatch
 import json
 import logging
-import multiprocessing
 import os
 import time
 import uuid
@@ -17,19 +16,19 @@ from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
 from lib_pea.countertrace import CountertraceTransformer
 from lib_pea.countertrace_to_pea import build_automaton
 from lib_pea.pea import PhaseSetsPea
+from lib_pea.utils import get_countertrace_parser, strtobool
+from patterns import PATTERNS
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
-from lib_pea.utils import get_countertrace_parser, strtobool
 from reqtransformer import Requirement, Formalization, VariableCollection
 from ressources import Ressource
-
-from patterns import PATTERNS
 
 validation_patterns = {
     BOOL: '^0|false|False|1|true|True$',
     INT: '^[+-]?\d+$',
     REAL: '^[+-]?\d*[.]?\d+$'
 }
+
 
 class SimulatorRessource(Ressource):
     simulator_cache: dict[str, Simulator] = {}
@@ -54,6 +53,9 @@ class SimulatorRessource(Ressource):
 
         if command == 'get_ct':
             self.get_ct()
+
+        if command == 'variable_constraints':
+            self.variable_constraints()
 
     def POST(self):
         command = self.request.form.get('command')
@@ -120,7 +122,8 @@ class SimulatorRessource(Ressource):
             return
 
         simulator = self.simulator_cache[self.response.data['simulator_id']]
-        self.response.data['html'] = render_template('simulator-modal/modal.html', simulator=simulator, valid_patterns=validation_patterns)
+        self.response.data['html'] = render_template('simulator-modal/modal.html', simulator=simulator,
+                                                     valid_patterns=validation_patterns)
 
     def scenario_save(self) -> None:
         if not self.get_simulator():
@@ -173,7 +176,8 @@ class SimulatorRessource(Ressource):
 
         var_collection = VariableCollection.load(self.app.config['SESSION_VARIABLE_COLLECTION'])
         variables = {k: v.type for k, v in var_collection.collection.items()}
-        result['variables'] = [{'name': k, 'type': v.type, 'value': v.value} for k, v in var_collection.collection.items()]
+        result['variables'] = [{'name': k, 'type': v.type, 'value': v.value} for k, v in
+                               var_collection.collection.items()]
 
         for requirement_id in requirement_ids:
             requirement = Requirement.load_requirement_by_id(requirement_id, self.app)
@@ -204,6 +208,12 @@ class SimulatorRessource(Ressource):
             result['requirements'][requirement_id] = formalizations
 
         self.response.data = result
+
+    def variable_constraints(self) -> None:
+        simulator_id = self.request.args.get('simulator_id')
+
+        simulator = self.simulator_cache[simulator_id]
+        simulator.variable_constraints()
 
     def scenario_load(self) -> None:
         simulator_id = self.request.form.get('simulator_id')
@@ -258,7 +268,6 @@ class SimulatorRessource(Ressource):
         logging.debug(f'Did sat-check. Took {time.time() - start} sec')
 
         self.get_simulator()
-
 
     def step_next(self) -> None:
         simulator_id = self.request.form.get('simulator_id')
@@ -339,7 +348,8 @@ class SimulatorRessource(Ressource):
         for formalization in requirement.formalizations.values():
             if not formalization.scoped_pattern.is_instantiatable():
                 return None
-            if SimulatorRessource.has_variable_with_unknown_type(formalization, variables) or formalization.type_inference_errors :
+            if SimulatorRessource.has_variable_with_unknown_type(formalization,
+                                                                 variables) or formalization.type_inference_errors:
                 return None
 
             scope = formalization.scoped_pattern.scope.name
@@ -350,7 +360,7 @@ class SimulatorRessource(Ressource):
 
             expressions = {}
             for k, v in formalization.expressions_mapping.items():
-                #Todo: hack to detect empty expressions (why is this necessary now)?
+                # Todo: hack to detect empty expressions (why is this necessary now)?
                 if not v.raw_expression:
                     continue
                 tree = boogie_parser.parse(v.raw_expression)
