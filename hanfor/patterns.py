@@ -79,7 +79,8 @@ PATTERNS = {
         'env': {
             'R': ['bool'],
             'S': ['bool'],
-            'T': ['bool']
+            'T': ['bool'],
+            'U': ['bool']
         },
         'group': 'Order',
         'pattern_order': 3
