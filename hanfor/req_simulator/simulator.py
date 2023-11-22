@@ -511,5 +511,6 @@ class Simulator:
         # TODO: Do not modify existing member variables ;-)
         print("Called function variable constraints ...")
 
-        current_phases = self.current_phases[-1]
-        print(current_phases)
+    def inconsistency_pre_check(self):
+        # TODO: Do not modify existing member variables ;-)
+        print("Called function inconsistency pre check ...")

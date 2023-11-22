@@ -57,6 +57,9 @@ class SimulatorRessource(Ressource):
         if command == 'variable_constraints':
             self.variable_constraints()
 
+        if command == 'inconsistency_pre_check':
+            self.inconsistency_pre_check()
+
     def POST(self):
         command = self.request.form.get('command')
 
@@ -122,8 +125,11 @@ class SimulatorRessource(Ressource):
             return
 
         simulator = self.simulator_cache[self.response.data['simulator_id']]
-        self.response.data['html'] = render_template('simulator-modal/modal.html', simulator=simulator,
-                                                     valid_patterns=validation_patterns)
+        self.response.data['html'] = render_template(
+            'simulator-modal/modal.html',
+            simulator=simulator,
+            valid_patterns=validation_patterns,
+            feature_flags=self.app.config['FEATURE_FLAGS'])
 
     def scenario_save(self) -> None:
         if not self.get_simulator():
@@ -214,6 +220,12 @@ class SimulatorRessource(Ressource):
 
         simulator = self.simulator_cache[simulator_id]
         simulator.variable_constraints()
+
+    def inconsistency_pre_check(self) -> None:
+        simulator_id = self.request.args.get('simulator_id')
+
+        simulator = self.simulator_cache[simulator_id]
+        simulator.inconsistency_pre_check()
 
     def scenario_load(self) -> None:
         simulator_id = self.request.form.get('simulator_id')

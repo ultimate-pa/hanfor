@@ -100,3 +100,9 @@ PATTERNS_GROUP_ORDER = [
     'Real-time',
     'not_formalizable'
 ]
+
+# Set feature flags to enable/disable features
+FEATURE_FLAGS = {
+    'variable_constraints': False,
+    'inconsistency_pre_check': False,
+}
