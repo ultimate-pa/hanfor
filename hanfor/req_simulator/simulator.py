@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import math
 from collections import defaultdict
+from copy import copy
 from dataclasses import dataclass
 from typing import Tuple
 
 from pysmt.fnode import FNode
 from pysmt.rewritings import conjunctive_partition
-from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, get_model, is_sat, FALSE, get_unsat_core
-from pysmt.typing import REAL
+from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, get_model, is_sat, is_unsat, FALSE, get_unsat_core, \
+    Iff, Not, TRUE
+from pysmt.typing import REAL, BOOL
 
 from lib_pea.config import SOLVER_NAME, LOGIC
 from lib_pea.countertrace_to_pea import complete
@@ -508,8 +510,112 @@ class Simulator:
         return True
 
     def variable_constraints(self):
+        """Determines variable constraints in the next time step.
+
+        This is done based on the history of the simulation but also takes user input into account.
+        Requirement errors otherwise recognized by the simulator are not handled here.
+        """
+
         # TODO: Do not modify existing member variables ;-)
         print("Called function variable constraints ...")
-
         current_phases = self.current_phases[-1]
-        print(current_phases)
+
+        # ---------------------------------------------------------------------------------------------
+        def check_variable_on_transition(var_name, var_value, trans, var_info, cl):
+            """Checks for which valuations a given variable can take a given transition."""
+
+            # update clocks that are reset on given transition
+            temp_clocks = copy(cl)
+            for clock in trans.resets:
+                temp_clocks[clock] = 0.0
+
+            # requirements mit den '<' clocks können geprüft werden, indem das src clock invariant mit der
+            # geupdateten clock verglichen wird. dies kann man allerdings nicht für alle locations machen,
+            # also muss man erstmal prüfen, ob man in einer solchen location ist.
+            '''
+            # requirements with the '<' clock invariants can be checked when the next step's clock
+            # values are checked against the current location's clock invariant
+            next_step_clocks = copy(temp_clocks)
+            for l in next_step_clocks:
+                next_step_clocks[l] += (self.time_steps[-1])
+            next_clock_check = TRUE() if is_sat(And(trans.src.clock_invariant, 
+                                                    self.build_clocks_assertion(next_step_clocks)), 
+                                                solver_name=SOLVER_NAME, logic=LOGIC) else FALSE()
+            print(next_clock_check)
+            '''
+
+            # TODO: handle enum/int/real types, get_atoms(),
+            # currently only works for bools. other types must be checked differently
+            # idea enums: check each value
+            # idea int/real: check based on state invariant
+                # how to access invariants as strings? parts of invariants?
+
+            # check for either valuation of var along with updated clocks satisfy both the transition guard and the next
+            # state's invariants
+            if is_sat(And(EqualsOrIff(var_name, TRUE()), trans.guard, trans.dst.state_invariant,
+                          trans.dst.clock_invariant, self.build_clocks_assertion(temp_clocks)),
+                      solver_name=SOLVER_NAME, logic=LOGIC):
+                '''
+                # possible solution for special case for '<' clock invariant?
+                if '<' in trans.dst.clock_invariant and '<=' not in trans.dst.clock_invariant:
+                    if next_clock_check:
+                        var_info[var_name][0] = True
+                else:
+                     var_info[var_name][0] = True
+                '''
+                var_info[var_name][0] = True
+
+            if is_sat(And(EqualsOrIff(var_name, FALSE()), trans.guard, trans.dst.state_invariant,
+                          trans.dst.clock_invariant, self.build_clocks_assertion(temp_clocks)),
+                      solver_name=SOLVER_NAME, logic=LOGIC):
+                var_info[var_name][1] = True
+            return var_info
+
+        # ---------------------------------------------------------------------------------------------
+
+        # check next step by adding next time step to clocks
+        current_clocks = copy(self.clocks[-1])
+        for c in current_clocks:
+            # can't check next step after full time step,
+            # otherwise it can't take into account forced restrictions at current time
+            # this doesn't work for '<' clock invariants... maybe create extra case for only those
+            # how can we check constraints on variables in that case?
+            current_clocks[c] += 0.5*(self.time_steps[-1])
+
+        # variable name : [can var remain the same?, can var be different, [range var is restricted to]]
+        variable_info = dict()
+        for var in self.models:
+            variable_info[var] = [0, 0, None]
+
+        for pea in self.peas:
+            for transition in pea.transitions:
+                # if "variable constraints button is clicked before anything else
+                if current_phases[0] is None:
+                    for enabled in pea.transitions[transition]:
+                        # for each variable, check it on current transition
+                        for var in self.models:
+                            variable_info = check_variable_on_transition(var, self.models[var][-1], enabled,
+                                                                         variable_info, current_clocks)
+                # for any other locations than initial ones
+                else:
+                    if transition is not None:
+                        # TODO: when handling multiple PEAs, know which PEA a label is in since they use the same ones.
+                        if transition.label == current_phases[0].label:
+                            for enabled in pea.transitions[transition]:
+                                # for each variable, check it on current transition
+                                for var in self.models:
+                                    variable_info = check_variable_on_transition(var, self.models[var][-1], enabled,
+                                                                                 variable_info, current_clocks)
+
+        # if a variable couldn't both remain the same and change, return its constraints
+        for var in variable_info:
+            if not (variable_info[var][0] and variable_info[var][1]):
+                if not variable_info[var][0]:
+                    variable_info[var][2] = False
+                if not variable_info[var][1]:
+                    variable_info[var][2] = True
+                print(var, "must have the value", variable_info[var][2])
+                # TODO: print time of constraint
+            else:
+                # TODO: add variable name
+                print("No restrictions.")
