@@ -1,5 +1,5 @@
 from unittest import TestCase
-from json_db_connector.json_db import DatabaseTable, DatabaseID
+from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField
 
 
 class TestJsonDatabase(TestCase):
@@ -114,6 +114,81 @@ class TestJsonDatabase(TestCase):
                          '\'test_json_database.db_test_id_decorator_with_2_decorators.TestClass\'> '
                          'already has an id field.',
                          str(em.exception))
+
+    def test_field_decorator(self):
+        # test field definition without brackets
+        with self.assertRaises(Exception) as em:
+            from test_json_database.db_test_field_decorator_without_brackets import TestClass
+            _ = TestClass
+        self.assertEqual('DatabaseField must be set to the name and type of an field of the class: <class '
+                         '\'test_json_database.db_test_field_decorator_without_brackets.TestClass\'>',
+                         str(em.exception))
+
+        # test id definition without arguments
+        with self.assertRaises(Exception) as em:
+            from test_json_database.db_test_field_decorator_without_arguments import TestClass
+            _ = TestClass
+        self.assertEqual('DatabaseField must be set to the name and type of an field of the class: <class '
+                         '\'test_json_database.db_test_field_decorator_without_arguments.TestClass\'>',
+                         str(em.exception))
+
+        # test id definition with 1 incorrect argument
+        with self.assertRaises(Exception) as em:
+            from test_json_database.db_test_field_decorator_with_1_incorrect_argument import TestClass
+            _ = TestClass
+        self.assertEqual('Name of DatabaseField must be of type str: <class '
+                         '\'test_json_database.db_test_field_decorator_with_1_incorrect_argument.TestClass\'>',
+                         str(em.exception))
+
+        # test id definition with 1 correct argument
+        with self.assertRaises(Exception) as em:
+            from test_json_database.db_test_field_decorator_with_1_argument import TestClass
+            _ = TestClass
+        self.assertEqual('Type of DatabaseField must be provided: <class '
+                         '\'test_json_database.db_test_field_decorator_with_1_argument.TestClass\'>',
+                         str(em.exception))
+
+        # test id definition with 1 correct argument and 1 incorrect argument
+        with self.assertRaises(Exception) as em:
+            from test_json_database.db_test_field_decorator_with_2_incorrect_arguments import TestClass
+            _ = TestClass
+        self.assertEqual('Type of DatabaseField must be of type type: <class '
+                         '\'test_json_database.db_test_field_decorator_with_2_incorrect_arguments.TestClass\'>',
+                         str(em.exception))
+
+        # test id definition with 2 decorators
+        with self.assertRaises(Exception) as em:
+            from test_json_database.db_test_field_decorator_with_2_decorators import TestClass
+            _ = TestClass
+        self.assertEqual('DatabaseField with name job_id already exists in class <class '
+                         '\'test_json_database.db_test_field_decorator_with_2_decorators.TestClass\'>.',
+                         str(em.exception))
+
+        DatabaseField.registry.clear()
+
+        # test well-formed definition for id
+        from test_json_database.db_test_simple_table import TestClassFile, TestClassFolder
+        _ = TestClassFile
+        _ = TestClassFolder
+        field_dict: dict[str, dict[str, any]] = {'TestClassFile': {'att_bool': bool,
+                                                                   'att_str': str,
+                                                                   'att_int': int,
+                                                                   'att_float': float,
+                                                                   'att_tuple': tuple[int, str],
+                                                                   'att_list': list[str],
+                                                                   'att_dict': dict[int, str],
+                                                                   'att_set': set[int]
+                                                                   },
+                                                 'TestClassFolder': {'att_bool': bool,
+                                                                     'att_str': str,
+                                                                     'att_int': int,
+                                                                     'att_float': float,
+                                                                     'att_class_file': TestClassFile
+                                                                     }
+                                                 }
+        print(field_dict)
+        print(DatabaseField.registry)
+        self.assertDictEqual(DatabaseField.registry, field_dict)
 
     def tearDown(self):
         pass
