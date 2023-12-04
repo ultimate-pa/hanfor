@@ -2,14 +2,16 @@ from unittest import TestCase
 from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField
 
 
+def clear_all_registries():
+    DatabaseTable.registry.clear()
+    DatabaseID.registry.clear()
+    DatabaseField.registry.clear()
+
+
 class TestJsonDatabase(TestCase):
 
-    def setUp(self):
-        # reset all json db decorator classes
-        DatabaseTable.registry.clear()
-        DatabaseID.registry.clear()
-
     def test_table_decorator(self):
+        clear_all_registries()
         # test table definition without brackets
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_table_decorator_without_brackets import TestClass
@@ -35,7 +37,7 @@ class TestJsonDatabase(TestCase):
                          str(em.exception))
 
         # test well-formed definition for file and folder
-        from test_json_database.db_test_simple_table import TestClassFile, TestClassFolder
+        from test_json_database.db_test_table_decorator_simple import TestClassFile, TestClassFolder
         _ = TestClassFile
         _ = TestClassFolder
         classes_dict: dict[str, str] = {'TestClassFile': 'file', 'TestClassFolder': 'folder'}
@@ -49,6 +51,7 @@ class TestJsonDatabase(TestCase):
                          str(em.exception))
 
     def test_id_decorator(self):
+        clear_all_registries()
         # test id definition without brackets
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_id_decorator_without_brackets import TestClass
@@ -99,7 +102,7 @@ class TestJsonDatabase(TestCase):
                          str(em.exception))
 
         # test well-formed definition for id
-        from test_json_database.db_test_simple_table import TestClassFile, TestClassFolder
+        from test_json_database.db_test_id_decorator_simple import TestClassFile, TestClassFolder
         _ = TestClassFile
         _ = TestClassFolder
         id_dict: dict[str, (str, type)] = {'TestClassFile': ('job_id', str),
@@ -116,6 +119,7 @@ class TestJsonDatabase(TestCase):
                          str(em.exception))
 
     def test_field_decorator(self):
+        clear_all_registries()
         # test field definition without brackets
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_field_decorator_without_brackets import TestClass
@@ -167,7 +171,7 @@ class TestJsonDatabase(TestCase):
         DatabaseField.registry.clear()
 
         # test well-formed definition for id
-        from test_json_database.db_test_simple_table import TestClassFile, TestClassFolder
+        from test_json_database.db_test_field_decorator_simple import TestClassFile, TestClassFolder
         _ = TestClassFile
         _ = TestClassFolder
         field_dict: dict[str, dict[str, any]] = {'TestClassFile': {'att_bool': bool,
@@ -186,9 +190,4 @@ class TestJsonDatabase(TestCase):
                                                                      'att_class_file': TestClassFile
                                                                      }
                                                  }
-        print(field_dict)
-        print(DatabaseField.registry)
         self.assertDictEqual(DatabaseField.registry, field_dict)
-
-    def tearDown(self):
-        pass
