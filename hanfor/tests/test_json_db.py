@@ -1,17 +1,16 @@
 from unittest import TestCase
-from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField
-
-
-def clear_all_registries():
-    DatabaseTable.registry.clear()
-    DatabaseID.registry.clear()
-    DatabaseField.registry.clear()
+from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField, DatabaseFieldType
 
 
 class TestJsonDatabase(TestCase):
 
+    def setUp(self) -> None:
+        DatabaseTable.registry.clear()
+        DatabaseID.registry.clear()
+        DatabaseField.registry.clear()
+        DatabaseFieldType.registry.clear()
+
     def test_table_decorator(self):
-        clear_all_registries()
         # test table definition without brackets
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_table_decorator_without_brackets import TestClass
@@ -51,7 +50,6 @@ class TestJsonDatabase(TestCase):
                          str(em.exception))
 
     def test_id_decorator(self):
-        clear_all_registries()
         # test id definition without brackets
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_id_decorator_without_brackets import TestClass
@@ -119,7 +117,6 @@ class TestJsonDatabase(TestCase):
                          str(em.exception))
 
     def test_field_decorator(self):
-        clear_all_registries()
         # test field definition without brackets
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_field_decorator_without_brackets import TestClass
@@ -191,3 +188,18 @@ class TestJsonDatabase(TestCase):
                                                                      }
                                                  }
         self.assertDictEqual(DatabaseField.registry, field_dict)
+
+    def test_field_type_decorator(self):
+        # test field definition without brackets
+        with self.assertRaises(Exception) as em:
+            from test_json_database.db_test_field_type_decorator_without_brackets import TestClass
+            _ = TestClass
+        self.assertEqual('DatabaseFieldType must be called with brackets: <class '
+                         '\'test_json_database.db_test_field_type_decorator_without_brackets.TestClass\'>',
+                         str(em.exception))
+
+        # test well-formed database field type definition
+        from test_json_database.db_test_field_type_decorator_simple import TestClass
+        _ = TestClass
+        type_set: set[type] = {TestClass}
+        self.assertSetEqual(DatabaseFieldType.registry, type_set)

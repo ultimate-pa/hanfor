@@ -85,3 +85,15 @@ class DatabaseField:
             raise Exception(f"DatabaseField with name {self._field} already exists in class {cls}.")
         self.registry[cls.__name__][self._field] = self._type
         return cls
+
+
+class DatabaseFieldType:
+    registry: set[type] = set()
+
+    def __init__(self, cls: type = None):
+        if cls:
+            raise Exception(f"DatabaseFieldType must be called with brackets: {cls}")
+
+    def __call__(self, cls: type):
+        self.registry.add(cls)
+        return cls
