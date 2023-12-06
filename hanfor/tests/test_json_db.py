@@ -39,7 +39,7 @@ class TestJsonDatabase(TestCase):
         from test_json_database.db_test_table_decorator_simple import TestClassFile, TestClassFolder
         _ = TestClassFile
         _ = TestClassFolder
-        classes_dict: dict[str, str] = {'TestClassFile': 'file', 'TestClassFolder': 'folder'}
+        classes_dict: dict[type, str] = {TestClassFile: 'file', TestClassFolder: 'folder'}
         self.assertDictEqual(DatabaseTable.registry, classes_dict)
 
         # test duplicated name of table
@@ -103,8 +103,8 @@ class TestJsonDatabase(TestCase):
         from test_json_database.db_test_id_decorator_simple import TestClassFile, TestClassFolder
         _ = TestClassFile
         _ = TestClassFolder
-        id_dict: dict[str, (str, type)] = {'TestClassFile': ('job_id', str),
-                                           'TestClassFolder': ('job_id', int)}
+        id_dict: dict[type, (str, type)] = {TestClassFile: ('job_id', str),
+                                            TestClassFolder: ('job_id', int)}
         self.assertDictEqual(DatabaseID.registry, id_dict)
 
         # test id definition with 2 decorators
@@ -171,22 +171,22 @@ class TestJsonDatabase(TestCase):
         from test_json_database.db_test_field_decorator_simple import TestClassFile, TestClassFolder
         _ = TestClassFile
         _ = TestClassFolder
-        field_dict: dict[str, dict[str, any]] = {'TestClassFile': {'att_bool': bool,
-                                                                   'att_str': str,
-                                                                   'att_int': int,
-                                                                   'att_float': float,
-                                                                   'att_tuple': tuple[int, str],
-                                                                   'att_list': list[str],
-                                                                   'att_dict': dict[int, str],
-                                                                   'att_set': set[int]
-                                                                   },
-                                                 'TestClassFolder': {'att_bool': bool,
-                                                                     'att_str': str,
-                                                                     'att_int': int,
-                                                                     'att_float': float,
-                                                                     'att_class_file': TestClassFile
-                                                                     }
-                                                 }
+        field_dict: dict[type, dict[str, any]] = {TestClassFile: {'att_bool': bool,
+                                                                  'att_str': str,
+                                                                  'att_int': int,
+                                                                  'att_float': float,
+                                                                  'att_tuple': tuple[int, str],
+                                                                  'att_list': list[str],
+                                                                  'att_dict': dict[int, str],
+                                                                  'att_set': set[int]
+                                                                  },
+                                                  TestClassFolder: {'att_bool': bool,
+                                                                    'att_str': str,
+                                                                    'att_int': int,
+                                                                    'att_float': float,
+                                                                    'att_class_file': TestClassFile
+                                                                    }
+                                                  }
         self.assertDictEqual(DatabaseField.registry, field_dict)
 
     def test_field_type_decorator(self):

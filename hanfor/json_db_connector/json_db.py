@@ -3,7 +3,7 @@ from types import GenericAlias
 
 
 class DatabaseTable:
-    registry: dict[str, str] = {}
+    registry: dict[type, str] = {}
 
     def __init__(self, cls: type = None, folder: bool = False, file: bool = False):
         self._folder: bool = folder
@@ -16,14 +16,14 @@ class DatabaseTable:
             # empty brackets
             raise Exception(f"DatabaseTable must be set to file or folder: {cls}")
         # check if class with name exists already
-        if cls.__name__ in self.registry:
+        if cls.__name__ in [c.__name__ for c in self.registry]:
             raise Exception(f"DatabaseTable with name {cls.__name__} already exists.")
-        self.registry[cls.__name__] = 'folder' if self._folder else 'file'
+        self.registry[cls] = 'folder' if self._folder else 'file'
         return cls
 
 
 class DatabaseID:
-    registry: dict[str, (str, type)] = {}
+    registry: dict[type, (str, type)] = {}
 
     def __init__(self, field: str = None, f_type: type = None):
         self._id_field = field
@@ -48,9 +48,9 @@ class DatabaseID:
         if not (self._type is str or self._type is int):
             raise Exception(f"Type of DatabaseID must be of type str or int: {cls}")
         # check if class with name exists already
-        if cls.__name__ in self.registry:
+        if cls in self.registry:
             raise Exception(f"DatabaseTable with name {cls} already has an id field.")
-        self.registry[cls.__name__] = (self._id_field, self._type)
+        self.registry[cls] = (self._id_field, self._type)
         return cls
 
 
@@ -78,12 +78,12 @@ class DatabaseField:
             raise Exception(f"Type of DatabaseField must be provided: {cls}")
         if type(self._type) not in [type, GenericAlias]:
             raise Exception(f"Type of DatabaseField must be of type type: {cls}")
-        if cls.__name__ not in self.registry:
-            self.registry[cls.__name__] = {}
+        if cls not in self.registry:
+            self.registry[cls] = {}
         # check if field of class with name exists already
-        if self._field in self.registry[cls.__name__]:
+        if self._field in self.registry[cls]:
             raise Exception(f"DatabaseField with name {self._field} already exists in class {cls}.")
-        self.registry[cls.__name__][self._field] = self._type
+        self.registry[cls][self._field] = self._type
         return cls
 
 
