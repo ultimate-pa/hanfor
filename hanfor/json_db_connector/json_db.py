@@ -1,5 +1,6 @@
 import inspect
 from types import GenericAlias
+from uuid import UUID
 
 
 class DatabaseTable:
@@ -25,9 +26,12 @@ class DatabaseTable:
 class DatabaseID:
     registry: dict[type, (str, type)] = {}
 
-    def __init__(self, field: str = None, f_type: type = None):
+    def __init__(self, field: str = None, f_type: type = None, use_uuid: bool = False):
         self._id_field = field
         self._type = f_type
+        self._user_uuid = use_uuid
+        if use_uuid:
+            return
         if field is None:
             # empty brackets
             return
@@ -35,6 +39,11 @@ class DatabaseID:
             raise Exception(f"DatabaseID must be set to the name and type of an field of the class: {field}")
 
     def __call__(self, cls):
+        if cls in self.registry:
+            raise Exception(f"DatabaseTable with name {cls} already has an id field.")
+        if self._user_uuid:
+            self.registry[cls] = (None, UUID)
+            return cls
         if self._id_field is None:
             # empty brackets
             raise Exception(f"DatabaseID must be set to the name and type of an field of the class: {cls}")
@@ -48,8 +57,6 @@ class DatabaseID:
         if not (self._type is str or self._type is int):
             raise Exception(f"Type of DatabaseID must be of type str or int: {cls}")
         # check if class with name exists already
-        if cls in self.registry:
-            raise Exception(f"DatabaseTable with name {cls} already has an id field.")
         self.registry[cls] = (self._id_field, self._type)
         return cls
 

@@ -29,3 +29,9 @@ class TestClassFolder:
     att_dict: dict[int, str]
     att_set: set[int]
     att_class_file: TestClassFile
+
+
+@DatabaseID(use_uuid=True)
+@dataclass()
+class TestClassUuid:
+    job_id: int

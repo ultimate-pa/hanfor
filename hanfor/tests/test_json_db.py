@@ -1,5 +1,6 @@
 from unittest import TestCase
 from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField, DatabaseFieldType
+from uuid import UUID
 
 
 class TestJsonDatabase(TestCase):
@@ -100,11 +101,13 @@ class TestJsonDatabase(TestCase):
                          str(em.exception))
 
         # test well-formed definition for id
-        from test_json_database.db_test_id_decorator_simple import TestClassFile, TestClassFolder
+        from test_json_database.db_test_id_decorator_simple import TestClassFile, TestClassFolder, TestClassUuid
         _ = TestClassFile
         _ = TestClassFolder
+        _ = TestClassUuid
         id_dict: dict[type, (str, type)] = {TestClassFile: ('job_id', str),
-                                            TestClassFolder: ('job_id', int)}
+                                            TestClassFolder: ('job_id', int),
+                                            TestClassUuid: (None, UUID)}
         self.assertDictEqual(DatabaseID.registry, id_dict)
 
         # test id definition with 2 decorators
