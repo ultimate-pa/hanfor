@@ -2,6 +2,8 @@
 Mirko Werling, University of Freiburg, Department of Computer Science
 """
 
+"""
+# for loading a json file with the the data of the state machine
 import json
 
 # Open the JSON file for reading
@@ -26,6 +28,21 @@ with open('stateMachine_LightSwitch.json', 'r') as stateMachine:
             action = transition[1]
             next_state = transition[2]
             print(f"current state: {current_state}, action: {action}, next state: {next_state}")
+"""
+
+# import ...
+# import hanfor.hanfor.app as app
+import hanfor.hanfor.reqtransformer as req
+
+if __name__ == "__main__":
+    print("Loading state machine in Hanfor.")
+
+    requirements = req.RequirementCollection()
+    print(requirements)
+
+    print("ENDING")
+
+
 
 # do class instances for each requirement
 # Reqtransfomer does requirements, but loads it from csv data
