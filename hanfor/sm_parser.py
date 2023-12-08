@@ -36,23 +36,22 @@ import reqtransformer as req
 
 if __name__ == "__main__":
     print("Loading state machine in Hanfor.")
-    req01 = req.Requirement(id="01", description="From OFF to ON.", type_in_csv="requirement", csv_row="01",
-                            pos_in_csv="01")
-    req02 = req.Requirement(id="02", description="From ON to OFF.", type_in_csv="requirement", csv_row="01",
-                            pos_in_csv="02")
+    req01 = req.Requirement(id="01", description="From OFF to ON.", type_in_csv="requirement", csv_row={"1": "1"},
+                            pos_in_csv=1)
+    req02 = req.Requirement(id="02", description="From ON to OFF.", type_in_csv="requirement", csv_row={"2": "2"},
+                            pos_in_csv=2)
+
+    formreq01 = req.Formalization(1)
+    formreq01.scoped_pattern = "BoundedResponse"
+
+    formreq02 = req.Formalization(2)
+    formreq02.scoped_pattern = "BoundedResponse"
+
+    print(formreq01.scoped_pattern)
+
+    print(formreq02)
+
     All_Req = req.RequirementCollection()
-    print(All_Req)
-    print(All_Req.requirements)
-
-    print(req01, req01.csv_row)
-    print(req02, req02.csv_row)
-
-    All_Req.requirements.append(req01)
-    All_Req.requirements.append(req02)
-
-    print(All_Req)
-    print(All_Req.requirements)
-
 
     print("ENDING")
 
