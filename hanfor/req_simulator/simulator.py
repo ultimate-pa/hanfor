@@ -2,17 +2,18 @@ from __future__ import annotations
 
 import math
 from collections import defaultdict
-from copy import copy
+from copy import copy, deepcopy
 from dataclasses import dataclass
 from typing import Tuple
 
 from pysmt.fnode import FNode
 from pysmt.rewritings import conjunctive_partition
 from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, get_model, is_sat, is_unsat, FALSE, get_unsat_core, \
-    Iff, Not, TRUE
+    Iff, Not, TRUE, is_valid, LT, LE
 from pysmt.typing import REAL, BOOL
 
 from lib_pea.config import SOLVER_NAME, LOGIC
+from lib_pea.countertrace import Countertrace # added by abby, is this ok?
 from lib_pea.countertrace_to_pea import complete
 from lib_pea.location import PhaseSetsLocation
 from lib_pea.pea import PhaseSetsPea
@@ -521,101 +522,187 @@ class Simulator:
         current_phases = self.current_phases[-1]
 
         # ---------------------------------------------------------------------------------------------
-        def check_variable_on_transition(var_name, var_value, trans, var_info, cl):
-            """Checks for which valuations a given variable can take a given transition."""
+        def check_variable_on_transition(var_name, var_value, trans, var_info):
+            """Checks for which valuations a given variable can take a given transition.
+            """
+            def sat_check(check_against):
+                """ Performs the transition sat check for a given variable valuation.
+                """
+                #print("sat check:", check_against, trans.guard, trans.dst.state_invariant,
+                #                  trans.dst.clock_invariant, self.build_clocks_assertion(temp_clocks))
+                return is_sat(And(check_against, trans.guard, trans.dst.state_invariant,
+                                  trans.dst.clock_invariant, self.build_clocks_assertion(temp_clocks)),
+                              solver_name=SOLVER_NAME, logic=LOGIC)
+            def lt_check():
+                """ Updates clocks by a full time step and checks if they satisfy the current state's invariant.
+                """
+                # build clock statuses for next full time step
+                next_step_clocks = deepcopy(temp_clocks)
+                for next_clock in next_step_clocks:
+                    next_step_clocks[next_clock] += (self.time_steps[-1])
+                # check if new clock values satisfy a complete time step
+                next_clock_check = TRUE() if is_sat(And(trans.src.clock_invariant if trans.src is not None else
+                                                        TRUE(), self.build_clocks_assertion(next_step_clocks)),
+                                                    solver_name=SOLVER_NAME, logic=LOGIC) else FALSE()
+                return next_clock_check == TRUE()
+
+            def bound_sat_check(bound_type, bound):
+                # maybe return false for satisfied less than checks
+                if bound_type == Countertrace.BoundTypes.LESS:
+                    if self.times[-1] < bound is True:
+                        return True
+                elif bound_type == Countertrace.BoundTypes.LESSEQUAL:
+                    if self.times[-1] <= bound is True:
+                        return True
+                elif bound_type == Countertrace.BoundTypes.GREATER:
+                    if self.times[-1] > bound is True:
+                        return True
+                elif bound_type == Countertrace.BoundTypes.GREATEREQUAL:
+                    if self.times[-1] >= bound is True:
+                        return True
+                else:
+                    return False
 
             # update clocks that are reset on given transition
-            temp_clocks = copy(cl)
+            temp_clocks = deepcopy(self.clocks[-1])
             for clock in trans.resets:
                 temp_clocks[clock] = 0.0
 
-            # requirements mit den '<' clocks können geprüft werden, indem das src clock invariant mit der
-            # geupdateten clock verglichen wird. dies kann man allerdings nicht für alle locations machen,
-            # also muss man erstmal prüfen, ob man in einer solchen location ist.
-            '''
-            # requirements with the '<' clock invariants can be checked when the next step's clock
-            # values are checked against the current location's clock invariant
-            next_step_clocks = copy(temp_clocks)
-            for l in next_step_clocks:
-                next_step_clocks[l] += (self.time_steps[-1])
-            next_clock_check = TRUE() if is_sat(And(trans.src.clock_invariant, 
-                                                    self.build_clocks_assertion(next_step_clocks)), 
-                                                solver_name=SOLVER_NAME, logic=LOGIC) else FALSE()
-            print(next_clock_check)
-            '''
-
-            # TODO: handle enum/int/real types, get_atoms(),
-            # currently only works for bools. other types must be checked differently
-            # idea enums: check each value
-            # idea int/real: check based on state invariant
-                # how to access invariants as strings? parts of invariants?
-
-            # check for either valuation of var along with updated clocks satisfy both the transition guard and the next
-            # state's invariants
-            if is_sat(And(EqualsOrIff(var_name, TRUE()), trans.guard, trans.dst.state_invariant,
-                          trans.dst.clock_invariant, self.build_clocks_assertion(temp_clocks)),
-                      solver_name=SOLVER_NAME, logic=LOGIC):
-                '''
-                # possible solution for special case for '<' clock invariant?
-                if '<' in trans.dst.clock_invariant and '<=' not in trans.dst.clock_invariant:
-                    if next_clock_check:
+            # check for either possible valuation of bool var along with updated clocks satisfy both the transition
+            # guard and the next state's invariant
+            if var_name.get_type() is BOOL:
+                if sat_check(EqualsOrIff(var_name, TRUE())):
+                    # extra check for "less than" clock invariant
+                    if trans.dst.clock_invariant.is_lt() and not lt_check():
+                        var_info[var_name][0] = False
+                    else:
                         var_info[var_name][0] = True
+
+                if sat_check(EqualsOrIff(var_name, FALSE())):
+                    if trans.dst.clock_invariant.is_lt() and not lt_check():
+                        var_info[var_name][1] = False
+                    else:
+                        var_info[var_name][1] = True
+
+            # for values other than bools: check the countertrace. this shows the restrictions
+            # or lack thereof more clearly and is more accessible.
+            # TODO: for l in dc_phase: how to tell if clock or time is meant?
+            else:
+                #print(pea.countertrace.dc_phases[0].invariant.arg(0))
+                # find last active phase in current phases for current pea
+                check_phase_idx = {0}
+                letter = ""
+                check_phase = 0
+                if current_phases[current_phases_iterator] is not None:
+                    for i in str(current_phases[current_phases_iterator].label):
+                        if i.isdigit():
+                            check_phase_idx.add(int(i))
+                        else:
+                            letter = i
+                    # TODO: change to check for all (next, if not activated) phases in label
+                    check_phase = max(check_phase_idx)
+                    dc_phase = pea.countertrace.dc_phases[check_phase + 1]
                 else:
-                     var_info[var_name][0] = True
-                '''
-                var_info[var_name][0] = True
+                    dc_phase = pea.countertrace.dc_phases[0]
+                var_in_inv = False
+                for atom in dc_phase.invariant.get_atoms():
+                    if var_name in atom.args():
+                        var_in_inv = True
+                # if the var is in the invariant, check it
+                if var_in_inv:
+                    print("var in inv", dc_phase.invariant)
+                    print("so test if valid:", Not(dc_phase.invariant))
+                    if is_valid(Not(dc_phase.invariant), solver_name=SOLVER_NAME, logic=LOGIC):
+                        # extra check for "less than" clock invariant if var value also valid in next time step
+                        if trans.dst.clock_invariant.is_lt() and not lt_check():
+                            var_info[var_name][0] = False
+                    else:
+                        var_info[var_name][0] = False
+                var_in_inv = False
+                print("var_info after normal check:", var_info)
 
-            if is_sat(And(EqualsOrIff(var_name, FALSE()), trans.guard, trans.dst.state_invariant,
-                          trans.dst.clock_invariant, self.build_clocks_assertion(temp_clocks)),
-                      solver_name=SOLVER_NAME, logic=LOGIC):
-                var_info[var_name][1] = True
+                # TODO: extra check if the current dc_phase has already occurred or not!
+                # TODO: understand the symbols in labels and check accordingly
+                # currently doesn't work when phase is yellow and hasn't yet occured
+                if letter == "ᴳ":
+                    print("letter was G")
+                    print("check:", pea.countertrace.dc_phases[check_phase].invariant)
+                    # check if invariant satisfies the state of the pea and if the bound has been reached
+                    print(pea.countertrace.dc_phases[check_phase].bound_type)
+                    if (sat_check(pea.countertrace.dc_phases[check_phase].invariant)
+                            and bound_sat_check(pea.countertrace.dc_phases[check_phase].bound_type,
+                                                pea.countertrace.dc_phases[check_phase].bound)):
+                        print("phase inv and phase bound satisfied")
+                        if is_valid(Not(dc_phase.invariant), solver_name=SOLVER_NAME, logic=LOGIC):
+                            # extra check for "less than" clock invariant if var value also valid in next time step
+                            if trans.dst.clock_invariant.is_lt() and not lt_check():
+                                var_info[var_name][0] = False
+                        else:
+                            var_info[var_name][0] = False
+                print("var_info after letter check:", var_info)
+
+                # TODO: move outside of function
+                #
+                if not var_info[var][0]:
+                    var_info[var][2].add(Not(dc_phase.invariant.simplify()))
+                else:
+                    if dc_phase.invariant.simplify() in var_info[var][2]:
+                        var_info[var][2].remove(dc_phase.invariant.simplify())
+
+                # reset var_info for check on next transition
+                # only uses index 0, so no need to reset other
+                var_info[var][0] = True
+
             return var_info
-
         # ---------------------------------------------------------------------------------------------
-
-        # check next step by adding next time step to clocks
-        current_clocks = copy(self.clocks[-1])
-        for c in current_clocks:
-            # can't check next step after full time step,
-            # otherwise it can't take into account forced restrictions at current time
-            # this doesn't work for '<' clock invariants... maybe create extra case for only those
-            # how can we check constraints on variables in that case?
-            current_clocks[c] += 0.5*(self.time_steps[-1])
+        # TODO: have less duplicate code
 
         # variable name : [can var remain the same?, can var be different, [range var is restricted to]]
         variable_info = dict()
         for var in self.models:
-            variable_info[var] = [0, 0, None]
+            variable_info[var] = [None, None, set()]
+        # holds restriction information for each pea
+        current_phases_iterator = 0
 
         for pea in self.peas:
+            # reset variable info for next pea check
+            for var in self.models:
+                variable_info[var][0] = None if var.get_type() is BOOL else True
+                variable_info[var][1] = None if var.get_type() is BOOL else True
             for transition in pea.transitions:
-                # if "variable constraints button is clicked before anything else
-                if current_phases[0] is None:
+                # if "variable constraints" button is clicked before anything or the pea have already been entered
+                if current_phases[current_phases_iterator] is None:
                     for enabled in pea.transitions[transition]:
-                        # for each variable, check it on current transition
-                        for var in self.models:
-                            variable_info = check_variable_on_transition(var, self.models[var][-1], enabled,
-                                                                         variable_info, current_clocks)
-                # for any other locations than initial ones
+                        # was this necessary?
+                        #if enabled.src is None:
+                            for var in pea.countertrace.extract_variables():
+                                variable_info = check_variable_on_transition(var, self.models[var][-1], enabled,
+                                                                             variable_info)
                 else:
-                    if transition is not None:
-                        # TODO: when handling multiple PEAs, know which PEA a label is in since they use the same ones.
-                        if transition.label == current_phases[0].label:
-                            for enabled in pea.transitions[transition]:
-                                # for each variable, check it on current transition
-                                for var in self.models:
-                                    variable_info = check_variable_on_transition(var, self.models[var][-1], enabled,
-                                                                                 variable_info, current_clocks)
+                    if transition is not None and transition.label == current_phases[current_phases_iterator].label:
+                        for enabled in pea.transitions[transition]:
+                            for var in pea.countertrace.extract_variables():
+                                variable_info = check_variable_on_transition(var, self.models[var][-1], enabled,
+                                                                             variable_info)
 
-        # if a variable couldn't both remain the same and change, return its constraints
+            current_phases_iterator += 1
+
+            # check for each pea what each variable must be if there are restrictions
+            # TODO: return readable reals
+            for var in pea.countertrace.extract_variables():
+                if var.get_type() is BOOL:
+                    if not (variable_info[var][0] and variable_info[var][1]):
+                        if not variable_info[var][0]:
+                            variable_info[var][2].add(False)
+                        if not variable_info[var][1]:
+                            variable_info[var][2].add(True)
+
+        # TODO simplify returns constraints
         for var in variable_info:
-            if not (variable_info[var][0] and variable_info[var][1]):
-                if not variable_info[var][0]:
-                    variable_info[var][2] = False
-                if not variable_info[var][1]:
-                    variable_info[var][2] = True
-                print(var, "must have the value", variable_info[var][2])
-                # TODO: print time of constraint
+            if len(variable_info[var][2]) > 0:
+                # TODO: come up with better output for non-bools
+                print(var, "must have the value(s)", end=" ")
+                print(*variable_info[var][2], sep=" and ", end=" ")
+                print("at time", self.times[-1])
             else:
-                # TODO: add variable name
-                print("No restrictions.")
+                print("No restrictions on", var, "at time", self.times[-1])
