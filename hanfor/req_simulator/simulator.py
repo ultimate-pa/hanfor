@@ -9,12 +9,13 @@ from typing import Tuple
 from pysmt.fnode import FNode
 from pysmt.rewritings import conjunctive_partition
 from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, get_model, is_sat, is_unsat, FALSE, get_unsat_core, \
-    Iff, Not, TRUE, is_valid, LT, LE
+    Iff, Not, TRUE, is_valid, LT, LE, Solver, Or
 from pysmt.typing import REAL, BOOL
+from z3 import Tactic, Then, With
 
 from lib_pea.config import SOLVER_NAME, LOGIC
 from lib_pea.countertrace import Countertrace # added by abby, is this ok?
-from lib_pea.countertrace_to_pea import complete
+from lib_pea.countertrace_to_pea import complete, simplify_with_z3
 from lib_pea.location import PhaseSetsLocation
 from lib_pea.pea import PhaseSetsPea
 from lib_pea.transition import PhaseSetsTransition
@@ -522,17 +523,28 @@ class Simulator:
         current_phases = self.current_phases[-1]
 
         # ---------------------------------------------------------------------------------------------
-        def check_variable_on_transition(var_name, var_value, trans, var_info):
+        def check_variable_on_transition(var_name, var_value, source, trans, var_info):
             """Checks for which valuations a given variable can take a given transition.
             """
-            def sat_check(check_against):
+            def sat_check(check_against, edge, t_clocks):
                 """ Performs the transition sat check for a given variable valuation.
                 """
-                #print("sat check:", check_against, trans.guard, trans.dst.state_invariant,
-                #                  trans.dst.clock_invariant, self.build_clocks_assertion(temp_clocks))
-                return is_sat(And(check_against, trans.guard, trans.dst.state_invariant,
-                                  trans.dst.clock_invariant, self.build_clocks_assertion(temp_clocks)),
+                print(check_against, edge.guard, edge.dst.state_invariant,
+                      edge.dst.clock_invariant, self.build_clocks_assertion(t_clocks))
+                return is_sat(And(check_against, edge.guard, edge.dst.state_invariant,
+                                  edge.dst.clock_invariant, self.build_clocks_assertion(t_clocks)),
                               solver_name=SOLVER_NAME, logic=LOGIC)
+
+            def step_sat_check(check_against, edges, t_clocks):
+                """ Performs the transition sat check for a given variable valuation.
+                                """
+                transition_info = []
+                for edge in edges:
+                    transition_info.append(And(edge.guard, edge.dst.state_invariant, edge.dst.clock_invariant))
+                transition_or = Or(t for t in transition_info)
+                return is_sat(And(check_against, transition_or, self.build_clocks_assertion(t_clocks)),
+                              solver_name=SOLVER_NAME, logic=LOGIC)
+
             def lt_check():
                 """ Updates clocks by a full time step and checks if they satisfy the current state's invariant.
                 """
@@ -546,22 +558,32 @@ class Simulator:
                                                     solver_name=SOLVER_NAME, logic=LOGIC) else FALSE()
                 return next_clock_check == TRUE()
 
-            def bound_sat_check(bound_type, bound):
-                # maybe return false for satisfied less than checks
-                if bound_type == Countertrace.BoundTypes.LESS:
-                    if self.times[-1] < bound is True:
-                        return True
-                elif bound_type == Countertrace.BoundTypes.LESSEQUAL:
-                    if self.times[-1] <= bound is True:
-                        return True
-                elif bound_type == Countertrace.BoundTypes.GREATER:
-                    if self.times[-1] > bound is True:
-                        return True
-                elif bound_type == Countertrace.BoundTypes.GREATEREQUAL:
-                    if self.times[-1] >= bound is True:
-                        return True
+            def formula_checker(f, v, v_info):
+                """ Checks validity of each sub-formula containing transition restrictions.
+                    Saves sub-formula containing the given variable that lead to invalidity.
+                """
+                if is_valid(f, solver_name=SOLVER_NAME, logic=LOGIC):
+                    return v_info
                 else:
-                    return False
+                    for sub_f in f.args():
+                        # done substituting in formula
+                        if all(arg == var for arg in f.get_free_variables()):
+                            v_info[v][0] = simplify_with_z3(f)
+                        elif v not in sub_f.get_free_variables() and (len(sub_f.args()) > 0 or sub_f.is_not()):
+                            if f.is_and():
+                                v_info[v][0] = simplify_with_z3(f.substitute({sub_f: TRUE()}))
+                                formula_checker(f.substitute({sub_f: TRUE()}), v, v_info)
+                                print(f.substitute({sub_f: TRUE()}))
+                            if f.is_or():
+                                v_info[v][0] = simplify_with_z3(f.substitute({sub_f: FALSE()}))
+                                formula_checker(f.substitute({sub_f: FALSE()}), v, v_info)
+                                print(f.substitute({sub_f: FALSE()}))
+                            # TODO: how to handle implies and iff? does simplify get rid of them?
+
+                        elif v in sub_f.get_free_variables() and len(sub_f.args()) > 0 and not sub_f.is_not():
+                            formula_checker(sub_f, v, v_info)
+
+                return v_info
 
             # update clocks that are reset on given transition
             temp_clocks = deepcopy(self.clocks[-1])
@@ -571,91 +593,56 @@ class Simulator:
             # check for either possible valuation of bool var along with updated clocks satisfy both the transition
             # guard and the next state's invariant
             if var_name.get_type() is BOOL:
-                if sat_check(EqualsOrIff(var_name, TRUE())):
+                if sat_check(EqualsOrIff(var_name, TRUE()), trans, temp_clocks):
                     # extra check for "less than" clock invariant
                     if trans.dst.clock_invariant.is_lt() and not lt_check():
                         var_info[var_name][0] = False
                     else:
                         var_info[var_name][0] = True
 
-                if sat_check(EqualsOrIff(var_name, FALSE())):
+                if sat_check(EqualsOrIff(var_name, FALSE()), trans, temp_clocks):
                     if trans.dst.clock_invariant.is_lt() and not lt_check():
                         var_info[var_name][1] = False
                     else:
                         var_info[var_name][1] = True
 
-            # for values other than bools: check the countertrace. this shows the restrictions
-            # or lack thereof more clearly and is more accessible.
-            # TODO: for l in dc_phase: how to tell if clock or time is meant?
+            # check for int/real/enum
             else:
-                #print(pea.countertrace.dc_phases[0].invariant.arg(0))
-                # find last active phase in current phases for current pea
-                check_phase_idx = {0}
-                letter = ""
-                check_phase = 0
-                if current_phases[current_phases_iterator] is not None:
-                    for i in str(current_phases[current_phases_iterator].label):
-                        if i.isdigit():
-                            check_phase_idx.add(int(i))
-                        else:
-                            letter = i
-                    # TODO: change to check for all (next, if not activated) phases in label
-                    check_phase = max(check_phase_idx)
-                    dc_phase = pea.countertrace.dc_phases[check_phase + 1]
-                else:
-                    dc_phase = pea.countertrace.dc_phases[0]
-                var_in_inv = False
-                for atom in dc_phase.invariant.get_atoms():
-                    if var_name in atom.args():
-                        var_in_inv = True
-                # if the var is in the invariant, check it
-                if var_in_inv:
-                    print("var in inv", dc_phase.invariant)
-                    print("so test if valid:", Not(dc_phase.invariant))
-                    if is_valid(Not(dc_phase.invariant), solver_name=SOLVER_NAME, logic=LOGIC):
-                        # extra check for "less than" clock invariant if var value also valid in next time step
-                        if trans.dst.clock_invariant.is_lt() and not lt_check():
-                            var_info[var_name][0] = False
-                    else:
+                # rewrite union of transition guard and invariant into negation normal form
+                solver = Solver(name="z3")
+                tactic = Tactic("nnf")
+                z3_f = solver.converter.convert(simplify_with_z3(And(trans.guard, trans.dst.state_invariant)))
+                z3_f = tactic(z3_f).as_expr()
+                f_simplified = solver.converter.back(z3_f)
+                print("with nnf after cpt function:", f_simplified)
+
+                # for non bools: {var : [saves last transition restriction,
+                #                   saves if var is unrestricted on a transition,
+                #                   {set of restrictions on different transitions}]}
+
+                # check validity of each part against transition
+                if var in f_simplified.get_free_variables() and sat_check(f_simplified, trans, temp_clocks):
+                    if is_valid(f_simplified, solver_name=SOLVER_NAME, logic=LOGIC):
+                        var_info[var_name][1] = True
+                        var_info[var_name][2].clear()
+                    # if transition isn't valid, check for restrictions
+                    if var_info[var_name][1] is not True:
+                        formula_checker(f_simplified, var, var_info)
+                        print("var_info after checker:", var_info)
+                        # if the formula checker found potential restrictions, check if it's negation is satisfiable
+                        if var_info[var_name][0] is not False:
+                            # if the transaction can't be taken when the var condition doesn't hold
+                            if not sat_check(Not(var_info[var_name][0]), trans, temp_clocks):
+                                if not step_sat_check(Not(var_info[var_name][0]), source, temp_clocks):
+
+                                    print("!cond could not satisfy the transition")
+                                    # if the condition combined with ones on other transitions can be false
+                                    var_info[var][2].add(var_info[var_name][0])
                         var_info[var_name][0] = False
-                var_in_inv = False
-                print("var_info after normal check:", var_info)
-
-                # TODO: extra check if the current dc_phase has already occurred or not!
-                # TODO: understand the symbols in labels and check accordingly
-                # currently doesn't work when phase is yellow and hasn't yet occured
-                if letter == "ᴳ":
-                    print("letter was G")
-                    print("check:", pea.countertrace.dc_phases[check_phase].invariant)
-                    # check if invariant satisfies the state of the pea and if the bound has been reached
-                    print(pea.countertrace.dc_phases[check_phase].bound_type)
-                    if (sat_check(pea.countertrace.dc_phases[check_phase].invariant)
-                            and bound_sat_check(pea.countertrace.dc_phases[check_phase].bound_type,
-                                                pea.countertrace.dc_phases[check_phase].bound)):
-                        print("phase inv and phase bound satisfied")
-                        if is_valid(Not(dc_phase.invariant), solver_name=SOLVER_NAME, logic=LOGIC):
-                            # extra check for "less than" clock invariant if var value also valid in next time step
-                            if trans.dst.clock_invariant.is_lt() and not lt_check():
-                                var_info[var_name][0] = False
-                        else:
-                            var_info[var_name][0] = False
-                print("var_info after letter check:", var_info)
-
-                # TODO: move outside of function
-                #
-                if not var_info[var][0]:
-                    var_info[var][2].add(Not(dc_phase.invariant.simplify()))
-                else:
-                    if dc_phase.invariant.simplify() in var_info[var][2]:
-                        var_info[var][2].remove(dc_phase.invariant.simplify())
-
-                # reset var_info for check on next transition
-                # only uses index 0, so no need to reset other
-                var_info[var][0] = True
+                print("end var_info:", var_info)
 
             return var_info
         # ---------------------------------------------------------------------------------------------
-        # TODO: have less duplicate code
 
         # variable name : [can var remain the same?, can var be different, [range var is restricted to]]
         variable_info = dict()
@@ -667,23 +654,24 @@ class Simulator:
         for pea in self.peas:
             # reset variable info for next pea check
             for var in self.models:
-                variable_info[var][0] = None if var.get_type() is BOOL else True
-                variable_info[var][1] = None if var.get_type() is BOOL else True
+                variable_info[var][0] = None if var.get_type() is BOOL else False
+                variable_info[var][1] = None if var.get_type() is BOOL else False
             for transition in pea.transitions:
                 # if "variable constraints" button is clicked before anything or the pea have already been entered
+                edges_to_check = []
                 if current_phases[current_phases_iterator] is None:
                     for enabled in pea.transitions[transition]:
                         # was this necessary?
-                        #if enabled.src is None:
-                            for var in pea.countertrace.extract_variables():
-                                variable_info = check_variable_on_transition(var, self.models[var][-1], enabled,
-                                                                             variable_info)
+                        if enabled.src is None:
+                            edges_to_check.append(enabled)
                 else:
                     if transition is not None and transition.label == current_phases[current_phases_iterator].label:
                         for enabled in pea.transitions[transition]:
-                            for var in pea.countertrace.extract_variables():
-                                variable_info = check_variable_on_transition(var, self.models[var][-1], enabled,
-                                                                             variable_info)
+                            edges_to_check.append(enabled)
+                for var in pea.countertrace.extract_variables():
+                    for enabled in edges_to_check:
+                        variable_info = check_variable_on_transition(var, self.models[var][-1], edges_to_check, enabled,
+                                                                     variable_info)
 
             current_phases_iterator += 1
 
@@ -696,8 +684,14 @@ class Simulator:
                             variable_info[var][2].add(False)
                         if not variable_info[var][1]:
                             variable_info[var][2].add(True)
+                else:
+                    if variable_info[var][1] is True:
+                        variable_info[var][2].clear()
+                    else:
+                        if is_valid(Or(c for c in variable_info[var][2]), solver_name=SOLVER_NAME, logic=LOGIC):
+                            variable_info[var][2].clear()
 
-        # TODO simplify returns constraints
+        # TODO: simplify returns constraints
         for var in variable_info:
             if len(variable_info[var][2]) > 0:
                 # TODO: come up with better output for non-bools
