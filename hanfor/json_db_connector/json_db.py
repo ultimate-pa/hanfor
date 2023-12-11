@@ -1,5 +1,6 @@
 import inspect
-from types import GenericAlias
+from types import GenericAlias, UnionType
+from typing import get_origin, get_args
 from uuid import UUID
 
 
@@ -63,7 +64,7 @@ class DatabaseID:
 
 # noinspection DuplicatedCode
 class DatabaseField:
-    registry: dict[str, dict[str, any]] = {}
+    registry: dict[type, dict[str, any]] = {}
 
     def __init__(self, field: str = None, f_type: type = None):
         self._field = field
@@ -104,3 +105,77 @@ class DatabaseFieldType:
     def __call__(self, cls: type):
         self.registry.add(cls)
         return cls
+
+
+class JsonDatabase:
+
+    def __init__(self):
+        pass
+
+    def init_tables(self):
+        tables: set[type] = set(DatabaseTable.registry.keys())
+        id_fields: set[type] = set(DatabaseID.registry.keys())
+        db_fields: set[type] = set(DatabaseField.registry.keys())
+        field_types: set[type] = DatabaseFieldType.registry
+
+        # check if decorated classes are well-formed tables and field types
+        if tables & field_types:
+            raise Exception(f"The following classes are marked as DatabaseTable and DatabaseFieldType:\n"
+                            f"{tables & field_types}")
+
+        if tables.difference(id_fields):
+            raise Exception(f"The following classes are marked as DatabaseTable but don\'t have an id field:\n"
+                            f"{tables.difference(id_fields)}")
+
+        if id_fields.difference(tables):
+            raise Exception(f"The following classes are marked with an id field but not as an DatabaseTable:\n"
+                            f"{id_fields.difference(tables)}")
+
+        if db_fields.difference(tables.union(field_types)):
+            raise Exception(f"The following classes are marked with fields but not as an DatabaseTable or "
+                            f"DatabaseFieldType:\n"
+                            f"{db_fields.difference(tables.union(field_types))}")
+
+        if tables.difference(db_fields):
+            raise Exception(f"The following classes are marked as DatabaseTable but don\'t have any fields:\n"
+                            f"{tables.difference(db_fields)}")
+
+        if field_types.difference(db_fields):
+            raise Exception(f"The following classes are marked as DatabaseFieldType but don\'t have any fields:\n"
+                            f"{field_types.difference(db_fields)}")
+
+        # check if all used types are serializable
+        for cls, field_dict in DatabaseField.registry.items():
+            for field, f_type in field_dict.items():
+                res = is_serializable(f_type, list(tables.union(field_types)))
+                if not res[0]:
+                    raise Exception(f"The following type of class {cls} is not serializable:\n{field}: {res[1]}")
+
+
+def is_serializable(f_type: any, additional_types: list[type] = None) -> tuple[bool, str]:
+    if additional_types is None:
+        additional_types = []
+    if f_type is bool:
+        return True, ''
+    if f_type is str:
+        return True, ''
+    if f_type is int:
+        return True, ''
+    if f_type is float:
+        return True, ''
+    if type(f_type) is GenericAlias:
+        if get_origin(f_type) in [tuple, list, dict, set]:
+            for arg in get_args(f_type):
+                res = is_serializable(arg)
+                if not res[0]:
+                    return False, res[1]
+            return True, ''
+    if type(f_type) is UnionType:
+        for arg in get_args(f_type):
+            res = is_serializable(arg)
+            if not res[0]:
+                return False, res[1]
+        return True, ''
+    if f_type in additional_types:
+        return True, ''
+    return False, str(f_type)

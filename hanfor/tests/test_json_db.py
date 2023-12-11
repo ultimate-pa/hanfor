@@ -1,5 +1,6 @@
 from unittest import TestCase
-from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField, DatabaseFieldType
+from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField, DatabaseFieldType, JsonDatabase, \
+    is_serializable
 from uuid import UUID
 
 
@@ -10,6 +11,7 @@ class TestJsonDatabase(TestCase):
         DatabaseID.registry.clear()
         DatabaseField.registry.clear()
         DatabaseFieldType.registry.clear()
+        self._db = JsonDatabase()
 
     def test_table_decorator(self):
         # test table definition without brackets
@@ -206,3 +208,132 @@ class TestJsonDatabase(TestCase):
         _ = TestClass
         type_set: set[type] = {TestClass}
         self.assertSetEqual(DatabaseFieldType.registry, type_set)
+
+    def test_json_db_init_tables_ok(self):
+        from test_json_database.db_test_simple_table import TestClassFile, TestClassFolder, TestClassFieldType
+        _ = TestClassFile
+        _ = TestClassFolder
+        _ = TestClassFieldType
+        self._db.init_tables()
+
+    def test_json_db_init_tables_table_and_field_type(self):
+        from test_json_database.db_test_init_tables_table_and_type import TestClass, TestClassTable, TestClassFieldType
+        _ = TestClass
+        _ = TestClassTable
+        _ = TestClassFieldType
+        with self.assertRaises(Exception) as em:
+            self._db.init_tables()
+        self.assertEqual('The following classes are marked as DatabaseTable and DatabaseFieldType:\n'
+                         '{<class \'test_json_database.db_test_init_tables_table_and_type.TestClass\'>}',
+                         str(em.exception))
+
+    def test_json_db_init_tables_table_without_id(self):
+        from test_json_database.db_test_init_tables_table_without_id import TestClass, TestClassWithoutID
+        _ = TestClass
+        _ = TestClassWithoutID
+        with self.assertRaises(Exception) as em:
+            self._db.init_tables()
+        self.assertEqual('The following classes are marked as DatabaseTable but don\'t have an id field:\n'
+                         '{<class \'test_json_database.db_test_init_tables_table_without_id.TestClassWithoutID\'>}',
+                         str(em.exception))
+
+    def test_json_db_init_tables_id_without_table(self):
+        from test_json_database.db_test_init_tables_id_without_table import TestClass, TestClassWithoutTable
+        _ = TestClass
+        _ = TestClassWithoutTable
+        with self.assertRaises(Exception) as em:
+            self._db.init_tables()
+        self.assertEqual('The following classes are marked with an id field but not as an DatabaseTable:\n'
+                         '{<class \'test_json_database.db_test_init_tables_id_without_table.TestClassWithoutTable\'>}',
+                         str(em.exception))
+
+    def test_json_db_init_tables_fields_without_table(self):
+        from test_json_database.db_test_init_tables_fields_without_table import TestClass, TestClassWithoutTable
+        _ = TestClass
+        _ = TestClassWithoutTable
+        with self.assertRaises(Exception) as em:
+            self._db.init_tables()
+        self.assertEqual('The following classes are marked with fields but not as an DatabaseTable or '
+                         'DatabaseFieldType:\n'
+                         '{<class \'test_json_database.db_test_init_tables_fields_without_table.'
+                         'TestClassWithoutTable\'>}',
+                         str(em.exception))
+
+    def test_json_db_init_tables_table_without_fields(self):
+        from test_json_database.db_test_init_tables_table_without_fields import TestClass, TestClassWithoutFields
+        _ = TestClass
+        _ = TestClassWithoutFields
+        with self.assertRaises(Exception) as em:
+            self._db.init_tables()
+        self.assertEqual('The following classes are marked as DatabaseTable but don\'t have any fields:\n'
+                         '{<class \'test_json_database.db_test_init_tables_table_without_fields.'
+                         'TestClassWithoutFields\'>}',
+                         str(em.exception))
+
+    def test_json_db_init_tables_field_type_without_fields(self):
+        from test_json_database.db_test_init_tables_field_type_without_fields import TestClass, TestClassWithoutFields
+        _ = TestClass
+        _ = TestClassWithoutFields
+        with self.assertRaises(Exception) as em:
+            self._db.init_tables()
+        self.assertEqual('The following classes are marked as DatabaseFieldType but don\'t have any fields:\n'
+                         '{<class \'test_json_database.db_test_init_tables_field_type_without_fields.'
+                         'TestClassWithoutFields\'>}',
+                         str(em.exception))
+
+    def test_json_db_init_tables_unserializable_fields(self):
+        from test_json_database.db_test_init_tables_unserializable_fields import TestClassFile, TestClassFolder, \
+            TestClassFieldType
+        _ = TestClassFile
+        _ = TestClassFolder
+        _ = TestClassFieldType
+        with self.assertRaises(Exception) as em:
+            self._db.init_tables()
+        self.assertEqual('The following type of class <class \'test_json_database.'
+                         'db_test_init_tables_unserializable_fields.TestClassFolder\'> is not serializable:\n'
+                         'att_class_file: <class \'json_db_connector.json_db.DatabaseTable\'>',
+                         str(em.exception))
+
+    def test_json_db_is_serializable_function(self):
+        res = is_serializable(DatabaseTable)
+        self.assertFalse(res[0])
+        self.assertEqual(res[1], '<class \'json_db_connector.json_db.DatabaseTable\'>')
+        res = is_serializable(bool)
+        self.assertTrue(res[0])
+        self.assertEqual(res[1], '')
+        res = is_serializable(str)
+        self.assertTrue(res[0])
+        self.assertEqual(res[1], '')
+        res = is_serializable(int)
+        self.assertTrue(res[0])
+        self.assertEqual(res[1], '')
+        res = is_serializable(float)
+        self.assertTrue(res[0])
+        self.assertEqual(res[1], '')
+        res = is_serializable(tuple[int, float, str])
+        self.assertTrue(res[0])
+        self.assertEqual(res[1], '')
+        res = is_serializable(tuple[int, float, DatabaseTable])
+        self.assertFalse(res[0])
+        self.assertEqual(res[1], '<class \'json_db_connector.json_db.DatabaseTable\'>')
+        res = is_serializable(list[int])
+        self.assertTrue(res[0])
+        self.assertEqual(res[1], '')
+        res = is_serializable(list[int | float])
+        self.assertTrue(res[0])
+        self.assertEqual(res[1], '')
+        res = is_serializable(list[DatabaseTable])
+        self.assertFalse(res[0])
+        self.assertEqual(res[1], '<class \'json_db_connector.json_db.DatabaseTable\'>')
+        res = is_serializable(dict[int, str])
+        self.assertTrue(res[0])
+        self.assertEqual(res[1], '')
+        res = is_serializable(set[int])
+        self.assertTrue(res[0])
+        self.assertEqual(res[1], '')
+        res = is_serializable(DatabaseTable, [DatabaseTable])
+        self.assertTrue(res[0])
+        self.assertEqual(res[1], '')
+        res = is_serializable(DatabaseTable, [DatabaseField])
+        self.assertFalse(res[0])
+        self.assertEqual(res[1], '<class \'json_db_connector.json_db.DatabaseTable\'>')

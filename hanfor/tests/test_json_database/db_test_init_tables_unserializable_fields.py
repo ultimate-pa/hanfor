@@ -31,7 +31,7 @@ class TestClassFile:
 @DatabaseField('att_str', str)
 @DatabaseField('att_int', int)
 @DatabaseField('att_float', float)
-@DatabaseField('att_class_file', TestClassFile)
+@DatabaseField('att_class_file', DatabaseTable)
 @dataclass()
 class TestClassFolder:
     job_id: int
@@ -43,7 +43,7 @@ class TestClassFolder:
     att_list: list[str]
     att_dict: dict[int, str]
     att_set: set[int]
-    att_class_file: TestClassFile
+    att_class_file: DatabaseTable
 
 
 @DatabaseFieldType()
