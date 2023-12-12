@@ -9,7 +9,7 @@ from typing import Tuple
 from pysmt.fnode import FNode
 from pysmt.rewritings import conjunctive_partition
 from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, get_model, is_sat, is_unsat, FALSE, get_unsat_core, \
-    Iff, Not, TRUE, is_valid, LT, LE, Solver, Or
+    Iff, Not, TRUE, is_valid, LT, LE, Solver, Or, Implies
 from pysmt.typing import REAL, BOOL
 from z3 import Tactic, Then, With
 
@@ -531,18 +531,27 @@ class Simulator:
                 """
                 print(check_against, edge.guard, edge.dst.state_invariant,
                       edge.dst.clock_invariant, self.build_clocks_assertion(t_clocks))
-                return is_sat(And(check_against, edge.guard, edge.dst.state_invariant,
-                                  edge.dst.clock_invariant, self.build_clocks_assertion(t_clocks)),
-                              solver_name=SOLVER_NAME, logic=LOGIC)
+                if is_sat(And(check_against, edge.guard, edge.dst.state_invariant,
+                              edge.dst.clock_invariant, self.build_clocks_assertion(t_clocks)),
+                          solver_name=SOLVER_NAME, logic=LOGIC):
+                    if edge.dst.clock_invariant.is_lt() and not lt_check():
+                        return False
+                    else:
+                        return True
+                else:
+                    return False
 
             def step_sat_check(check_against, edges, t_clocks):
-                """ Performs the transition sat check for a given variable valuation.
-                                """
+                """ Performs the transition sat check for all enabled edges for a given variable valuation.
+                """
                 transition_info = []
                 for edge in edges:
-                    transition_info.append(And(edge.guard, edge.dst.state_invariant, edge.dst.clock_invariant))
+                    # doesn't check against transitions into "<"-clock states
+                    if not (edge.dst.clock_invariant.is_lt() and not lt_check()):
+                        transition_info.append(And(edge.guard, edge.dst.state_invariant, edge.dst.clock_invariant))
                 transition_or = Or(t for t in transition_info)
-                return is_sat(And(check_against, transition_or, self.build_clocks_assertion(t_clocks)),
+                print("sat check", check_against, transition_or, self.build_clocks_assertion(t_clocks))
+                return is_sat(Not(Implies(check_against, (And(transition_or, self.build_clocks_assertion(t_clocks))))),
                               solver_name=SOLVER_NAME, logic=LOGIC)
 
             def lt_check():
@@ -573,11 +582,11 @@ class Simulator:
                             if f.is_and():
                                 v_info[v][0] = simplify_with_z3(f.substitute({sub_f: TRUE()}))
                                 formula_checker(f.substitute({sub_f: TRUE()}), v, v_info)
-                                print(f.substitute({sub_f: TRUE()}))
+                                # print(f.substitute({sub_f: TRUE()}))
                             if f.is_or():
                                 v_info[v][0] = simplify_with_z3(f.substitute({sub_f: FALSE()}))
                                 formula_checker(f.substitute({sub_f: FALSE()}), v, v_info)
-                                print(f.substitute({sub_f: FALSE()}))
+                                # print(f.substitute({sub_f: FALSE()}))
                             # TODO: how to handle implies and iff? does simplify get rid of them?
 
                         elif v in sub_f.get_free_variables() and len(sub_f.args()) > 0 and not sub_f.is_not():
@@ -594,52 +603,55 @@ class Simulator:
             # guard and the next state's invariant
             if var_name.get_type() is BOOL:
                 if sat_check(EqualsOrIff(var_name, TRUE()), trans, temp_clocks):
-                    # extra check for "less than" clock invariant
-                    if trans.dst.clock_invariant.is_lt() and not lt_check():
-                        var_info[var_name][0] = False
-                    else:
-                        var_info[var_name][0] = True
-
+                    var_info[var_name][0] = True
+                print(var_info)
                 if sat_check(EqualsOrIff(var_name, FALSE()), trans, temp_clocks):
-                    if trans.dst.clock_invariant.is_lt() and not lt_check():
-                        var_info[var_name][1] = False
-                    else:
-                        var_info[var_name][1] = True
+                    var_info[var_name][1] = True
+                print(var_info)
 
             # check for int/real/enum
+
+            # What exactly is the definition of restricted?
+            # Possible restrictions are collected on each transition. If the collected formula isn't valid on the
+            #   transition, it's added to the set of possible constraints.
+            # But when is this restriction a constraint? Variable valuations contradicting the formula could
+            #   satisfy other transitions from the current location.
+            # A formula could belong in the final set of constraints if not all valuations of its complement
+            #   satisfy a transition from the current location
+
             else:
+                # TODO: check weird clocks here too
                 # rewrite union of transition guard and invariant into negation normal form
                 solver = Solver(name="z3")
                 tactic = Tactic("nnf")
                 z3_f = solver.converter.convert(simplify_with_z3(And(trans.guard, trans.dst.state_invariant)))
                 z3_f = tactic(z3_f).as_expr()
                 f_simplified = solver.converter.back(z3_f)
-                print("with nnf after cpt function:", f_simplified)
+                # print("with nnf after cpt function:", f_simplified)
 
-                # for non bools: {var : [saves last transition restriction,
-                #                   saves if var is unrestricted on a transition,
-                #                   {set of restrictions on different transitions}]}
+                # variable_info for non bools: {var : [saves last transition restriction,
+                #                               saves if var is unrestricted on a transition,
+                #                               {set of restrictions on different transitions}]}
 
                 # check validity of each part against transition
+                print("check if trans can be taken")
                 if var in f_simplified.get_free_variables() and sat_check(f_simplified, trans, temp_clocks):
+                    print("transition can be taken")
                     if is_valid(f_simplified, solver_name=SOLVER_NAME, logic=LOGIC):
                         var_info[var_name][1] = True
+                        print("was valid:", f_simplified)
                         var_info[var_name][2].clear()
                     # if transition isn't valid, check for restrictions
                     if var_info[var_name][1] is not True:
                         formula_checker(f_simplified, var, var_info)
-                        print("var_info after checker:", var_info)
-                        # if the formula checker found potential restrictions, check if it's negation is satisfiable
+                        print("var_info after formula checker:", var_info)
+                        # check based on definition of "restricted"
                         if var_info[var_name][0] is not False:
-                            # if the transaction can't be taken when the var condition doesn't hold
-                            if not sat_check(Not(var_info[var_name][0]), trans, temp_clocks):
-                                if not step_sat_check(Not(var_info[var_name][0]), source, temp_clocks):
-
-                                    print("!cond could not satisfy the transition")
-                                    # if the condition combined with ones on other transitions can be false
-                                    var_info[var][2].add(var_info[var_name][0])
+                            if step_sat_check(Not(var_info[var_name][0]), source, temp_clocks):
+                                var_info[var][2].add(var_info[var_name][0])
+                                print("end var_info:", var_info)
                         var_info[var_name][0] = False
-                print("end var_info:", var_info)
+                # print("end var_info:", var_info)
 
             return var_info
         # ---------------------------------------------------------------------------------------------
@@ -684,6 +696,7 @@ class Simulator:
                             variable_info[var][2].add(False)
                         if not variable_info[var][1]:
                             variable_info[var][2].add(True)
+
                 else:
                     if variable_info[var][1] is True:
                         variable_info[var][2].clear()
@@ -696,7 +709,7 @@ class Simulator:
             if len(variable_info[var][2]) > 0:
                 # TODO: come up with better output for non-bools
                 print(var, "must have the value(s)", end=" ")
-                print(*variable_info[var][2], sep=" and ", end=" ")
+                print(*variable_info[var][2], sep=" and " if var.get_type() is BOOL else " or ", end=" ")
                 print("at time", self.times[-1])
             else:
                 print("No restrictions on", var, "at time", self.times[-1])
