@@ -2,6 +2,7 @@ from unittest import TestCase
 from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField, DatabaseFieldType, JsonDatabase, \
     is_serializable
 from uuid import UUID
+from os import path, mkdir, rmdir, remove
 
 
 class TestJsonDatabase(TestCase):
@@ -12,6 +13,15 @@ class TestJsonDatabase(TestCase):
         DatabaseField.registry.clear()
         DatabaseFieldType.registry.clear()
         self._db = JsonDatabase()
+        self._data_path = path.join(path.dirname(path.realpath(__file__)), 'test_json_database', 'test_data')
+        if not path.isdir(path.join(self._data_path, 'init_tables_ok')):
+            mkdir(path.join(self._data_path, 'init_tables_ok'))
+
+    def tearDown(self):
+        if path.isdir(path.join(self._data_path, 'init_tables_ok', 'TestClassFolder')):
+            rmdir(path.join(self._data_path, 'init_tables_ok', 'TestClassFolder'))
+        if path.isfile(path.join(self._data_path, 'init_tables_ok', 'TestClassFile.json')):
+            remove(path.join(self._data_path, 'init_tables_ok', 'TestClassFile.json'))
 
     def test_table_decorator(self):
         # test table definition without brackets
@@ -109,7 +119,7 @@ class TestJsonDatabase(TestCase):
         _ = TestClassUuid
         id_dict: dict[type, (str, type)] = {TestClassFile: ('job_id', str),
                                             TestClassFolder: ('job_id', int),
-                                            TestClassUuid: (None, UUID)}
+                                            TestClassUuid: ('', UUID)}
         self.assertDictEqual(DatabaseID.registry, id_dict)
 
         # test id definition with 2 decorators
@@ -214,7 +224,30 @@ class TestJsonDatabase(TestCase):
         _ = TestClassFile
         _ = TestClassFolder
         _ = TestClassFieldType
-        self._db.init_tables()
+        self._db.init_tables(path.join(self._data_path, 'init_tables_ok'))
+        tables_dict = {TestClassFile: ('file', 'job_id', str, {
+            'att_bool': bool,
+            'att_str': str,
+            'att_int': int,
+            'att_float': float,
+            'att_tuple': tuple[int, str],
+            'att_list': list[str],
+            'att_dict': dict[int, str],
+            'att_set': set[int]
+        }),
+                       TestClassFolder: ('folder', 'job_id', int,
+                                         {'att_bool': bool,
+                                          'att_str': str,
+                                          'att_int': int,
+                                          'att_float': float,
+                                          'att_class_file': TestClassFile
+                                          })
+                       }
+        self.assertDictEqual(self._db._tables, tables_dict)
+        field_type_dict = {TestClassFieldType: {'job_id': str}}
+        self.assertDictEqual(self._db._field_types, field_type_dict)
+        self.assertTrue(path.isdir(path.join(self._data_path, 'init_tables_ok', 'TestClassFolder')))
+        self.assertTrue(path.isfile(path.join(self._data_path, 'init_tables_ok', 'TestClassFile.json')))
 
     def test_json_db_init_tables_table_and_field_type(self):
         from test_json_database.db_test_init_tables_table_and_type import TestClass, TestClassTable, TestClassFieldType
@@ -222,7 +255,7 @@ class TestJsonDatabase(TestCase):
         _ = TestClassTable
         _ = TestClassFieldType
         with self.assertRaises(Exception) as em:
-            self._db.init_tables()
+            self._db.init_tables(self._data_path)
         self.assertEqual('The following classes are marked as DatabaseTable and DatabaseFieldType:\n'
                          '{<class \'test_json_database.db_test_init_tables_table_and_type.TestClass\'>}',
                          str(em.exception))
@@ -232,7 +265,7 @@ class TestJsonDatabase(TestCase):
         _ = TestClass
         _ = TestClassWithoutID
         with self.assertRaises(Exception) as em:
-            self._db.init_tables()
+            self._db.init_tables(self._data_path)
         self.assertEqual('The following classes are marked as DatabaseTable but don\'t have an id field:\n'
                          '{<class \'test_json_database.db_test_init_tables_table_without_id.TestClassWithoutID\'>}',
                          str(em.exception))
@@ -242,7 +275,7 @@ class TestJsonDatabase(TestCase):
         _ = TestClass
         _ = TestClassWithoutTable
         with self.assertRaises(Exception) as em:
-            self._db.init_tables()
+            self._db.init_tables(self._data_path)
         self.assertEqual('The following classes are marked with an id field but not as an DatabaseTable:\n'
                          '{<class \'test_json_database.db_test_init_tables_id_without_table.TestClassWithoutTable\'>}',
                          str(em.exception))
@@ -252,7 +285,7 @@ class TestJsonDatabase(TestCase):
         _ = TestClass
         _ = TestClassWithoutTable
         with self.assertRaises(Exception) as em:
-            self._db.init_tables()
+            self._db.init_tables(self._data_path)
         self.assertEqual('The following classes are marked with fields but not as an DatabaseTable or '
                          'DatabaseFieldType:\n'
                          '{<class \'test_json_database.db_test_init_tables_fields_without_table.'
@@ -264,7 +297,7 @@ class TestJsonDatabase(TestCase):
         _ = TestClass
         _ = TestClassWithoutFields
         with self.assertRaises(Exception) as em:
-            self._db.init_tables()
+            self._db.init_tables(self._data_path)
         self.assertEqual('The following classes are marked as DatabaseTable but don\'t have any fields:\n'
                          '{<class \'test_json_database.db_test_init_tables_table_without_fields.'
                          'TestClassWithoutFields\'>}',
@@ -275,20 +308,18 @@ class TestJsonDatabase(TestCase):
         _ = TestClass
         _ = TestClassWithoutFields
         with self.assertRaises(Exception) as em:
-            self._db.init_tables()
+            self._db.init_tables(self._data_path)
         self.assertEqual('The following classes are marked as DatabaseFieldType but don\'t have any fields:\n'
                          '{<class \'test_json_database.db_test_init_tables_field_type_without_fields.'
                          'TestClassWithoutFields\'>}',
                          str(em.exception))
 
     def test_json_db_init_tables_unserializable_fields(self):
-        from test_json_database.db_test_init_tables_unserializable_fields import TestClassFile, TestClassFolder, \
-            TestClassFieldType
+        from test_json_database.db_test_init_tables_unserializable_fields import TestClassFile, TestClassFolder
         _ = TestClassFile
         _ = TestClassFolder
-        _ = TestClassFieldType
         with self.assertRaises(Exception) as em:
-            self._db.init_tables()
+            self._db.init_tables(self._data_path)
         self.assertEqual('The following type of class <class \'test_json_database.'
                          'db_test_init_tables_unserializable_fields.TestClassFolder\'> is not serializable:\n'
                          'att_class_file: <class \'json_db_connector.json_db.DatabaseTable\'>',

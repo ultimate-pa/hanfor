@@ -2,6 +2,7 @@ import inspect
 from types import GenericAlias, UnionType
 from typing import get_origin, get_args
 from uuid import UUID
+from os import path, mkdir
 
 
 class DatabaseTable:
@@ -25,7 +26,7 @@ class DatabaseTable:
 
 
 class DatabaseID:
-    registry: dict[type, (str, type)] = {}
+    registry: dict[type, tuple[str, type]] = {}
 
     def __init__(self, field: str = None, f_type: type = None, use_uuid: bool = False):
         self._id_field = field
@@ -43,7 +44,7 @@ class DatabaseID:
         if cls in self.registry:
             raise Exception(f"DatabaseTable with name {cls} already has an id field.")
         if self._user_uuid:
-            self.registry[cls] = (None, UUID)
+            self.registry[cls] = ('', UUID)
             return cls
         if self._id_field is None:
             # empty brackets
@@ -110,9 +111,19 @@ class DatabaseFieldType:
 class JsonDatabase:
 
     def __init__(self):
-        pass
+        self._data_folder: str = ''
+        # class: (table_type, id_field, id_type, dict of fields(field_name, type))
+        self._tables: dict[type, tuple[str, str, type, dict[str, any]]] = {}
+        # class: (dict of fields(field_name, type))
+        self._field_types: dict[type, dict[str, any]] = {}
+        # class: dict of objects(id, data))
+        self._data: dict[type, dict[str | int, any]] = {}
+        self._data_old: dict[type, dict[str | int, any]] = {}
 
-    def init_tables(self):
+    def init_tables(self, data_folder: str) -> None:
+        if data_folder == '':
+            raise Exception(f"The data_folder is required")
+        self._data_folder = data_folder
         tables: set[type] = set(DatabaseTable.registry.keys())
         id_fields: set[type] = set(DatabaseID.registry.keys())
         db_fields: set[type] = set(DatabaseField.registry.keys())
@@ -150,6 +161,34 @@ class JsonDatabase:
                 res = is_serializable(f_type, list(tables.union(field_types)))
                 if not res[0]:
                     raise Exception(f"The following type of class {cls} is not serializable:\n{field}: {res[1]}")
+
+        # create tables
+        for cls, table_type in DatabaseTable.registry.items():
+            id_field = DatabaseID.registry[cls][0]
+            id_type = DatabaseID.registry[cls][1]
+            fields = {}
+            for f_name, f_type in DatabaseField.registry[cls].items():
+                fields[f_name] = f_type
+            self._tables[cls] = table_type, id_field, id_type, fields
+
+        # create field types
+        for cls in DatabaseFieldType.registry:
+            fields = {}
+            for f_name, f_type in DatabaseField.registry[cls].items():
+                fields[f_name] = f_type
+            self._field_types[cls] = fields
+
+        # create folders and files is not exist
+        for cls, (table_type, _, _, _) in self._tables.items():
+            if table_type == 'file':
+                table_file = path.join(self._data_folder, f"{cls.__name__}.json")
+                if not path.isfile(table_file):
+                    file = open(table_file, 'w')
+                    file.close()
+            elif table_type == 'folder':
+                table_folder = path.join(self._data_folder, cls.__name__)
+                if not path.isdir(table_folder):
+                    mkdir(table_folder)
 
 
 def is_serializable(f_type: any, additional_types: list[type] = None) -> tuple[bool, str]:
