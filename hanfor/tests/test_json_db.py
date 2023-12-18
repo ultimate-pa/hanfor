@@ -3,6 +3,7 @@ from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField, 
     is_serializable
 from uuid import UUID
 from os import path, mkdir, rmdir, remove
+from dataclasses import dataclass
 
 
 class TestJsonDatabase(TestCase):
@@ -22,6 +23,18 @@ class TestJsonDatabase(TestCase):
             rmdir(path.join(self._data_path, 'init_tables_ok', 'TestClassFolder'))
         if path.isfile(path.join(self._data_path, 'init_tables_ok', 'TestClassFile.json')):
             remove(path.join(self._data_path, 'init_tables_ok', 'TestClassFile.json'))
+        if path.isfile(path.join(self._data_path, 'serialize_helper', 'TestClassFile.json')):
+            remove(path.join(self._data_path, 'serialize_helper', 'TestClassFile.json'))
+        if path.isfile(path.join(self._data_path, 'serialize_helper', 'TestClassReference.json')):
+            remove(path.join(self._data_path, 'serialize_helper', 'TestClassReference.json'))
+        if path.isfile(path.join(self._data_path, 'add_object', 'TestClass1.json')):
+            remove(path.join(self._data_path, 'add_object', 'TestClass1.json'))
+        if path.isfile(path.join(self._data_path, 'add_object', 'TestClass2.json')):
+            remove(path.join(self._data_path, 'add_object', 'TestClass2.json'))
+        if path.isfile(path.join(self._data_path, 'add_object', 'TestClass3.json')):
+            remove(path.join(self._data_path, 'add_object', 'TestClass3.json'))
+        if path.isfile(path.join(self._data_path, 'add_object', 'TestClass4.json')):
+            remove(path.join(self._data_path, 'add_object', 'TestClass4.json'))
 
     def test_table_decorator(self):
         # test table definition without brackets
@@ -324,6 +337,163 @@ class TestJsonDatabase(TestCase):
                          'db_test_init_tables_unserializable_fields.TestClassFolder\'> is not serializable:\n'
                          'att_class_file: <class \'json_db_connector.json_db.DatabaseTable\'>',
                          str(em.exception))
+
+    def test_json_db_add_object(self):
+        from test_json_database.db_test_add_object import TestClass1, TestClass2, TestClass3, TestClass4
+
+        @dataclass()
+        class TestClass:
+            f1: str
+
+        self._db.init_tables(path.join(self._data_path, 'add_object'))
+
+        # test class of object is not in database
+        tmp = TestClass(f1='Hello World')
+        with self.assertRaises(Exception) as em:
+            self._db.add_object(tmp)
+        self.assertEqual('<class \'test_json_db.TestJsonDatabase.test_json_db_add_object.<locals>.'
+                         'TestClass\'> is not part of the Database.',
+                         str(em.exception))
+
+        # instance test objects
+        tc1_1 = TestClass1(job_id='one', att_str='att')
+        tc1_2 = TestClass1(job_id='two', att_str='att2')
+        tc1_3 = TestClass1(job_id='three', att_str='att3')
+        tc1_4 = TestClass1(job_id='', att_str='att4')
+        tc1_5 = TestClass1(job_id='one', att_str='att5')
+        tc1_6 = TestClass1(job_id=1, att_str='att5')  # noqa disables the waring for false type
+        tc2_1 = TestClass2(job_id=1, att_int=10, att_ref=None)
+        tc2_2 = TestClass2(job_id=2, att_int=20, att_ref=tc1_1)
+        tc2_3 = TestClass2(job_id=3, att_int=30, att_ref=tc1_3)
+        tc2_4 = TestClass2(job_id=None, att_int=40, att_ref=None)
+        tc3_1 = TestClass3(att_str='uuid')
+        tc4_1 = TestClass4(job_id=100, att_ref=tc3_1)
+
+        # add normal object
+        self._db.add_object(tc1_1)
+        dict_do: dict[type, dict[int, int | str]] = {TestClass1: {id(tc1_1): 'one'}, TestClass2: {}, TestClass3: {},
+                                                     TestClass4: {}}
+        dict_di: dict[type, dict[int | str, object]] = {TestClass1: {'one': tc1_1}, TestClass2: {}, TestClass3: {},
+                                                        TestClass4: {}}
+        dict_jd: dict[type, dict[int | str, any]] = {TestClass1: {'one': {'att_str': 'att'}}, TestClass2: {},
+                                                     TestClass3: {}, TestClass4: {}}
+        self.assertDictEqual(self._db._data_obj, dict_do)
+        self.assertDictEqual(self._db._data_id, dict_di)
+        self.assertDictEqual(self._db._json_data, dict_jd)
+        # add object with empty reference field
+        self._db.add_object(tc1_2)
+        self._db.add_object(tc2_1)
+        dict_do[TestClass1][id(tc1_2)] = 'two'
+        dict_di[TestClass1]['two'] = tc1_2
+        dict_jd[TestClass1]['two'] = {'att_str': 'att2'}
+        dict_do[TestClass2][id(tc2_1)] = 1
+        dict_di[TestClass2][1] = tc2_1
+        dict_jd[TestClass2][1] = {'att_int': 10}
+        self.assertDictEqual(self._db._data_obj, dict_do)
+        self.assertDictEqual(self._db._data_id, dict_di)
+        self.assertDictEqual(self._db._json_data, dict_jd)
+        # add object with filled reference field
+        self._db.add_object(tc2_2)
+        dict_do[TestClass2][id(tc2_2)] = 2
+        dict_di[TestClass2][2] = tc2_2
+        dict_jd[TestClass2][2] = {'att_int': 20, 'att_ref': 'one'}
+        self.assertDictEqual(self._db._data_obj, dict_do)
+        self.assertDictEqual(self._db._data_id, dict_di)
+        self.assertDictEqual(self._db._json_data, dict_jd)
+        # add object with filled reference field but with an unknown object -> test call add @ _serialize_helper
+        self._db.add_object(tc2_3)
+        dict_do[TestClass1][id(tc1_3)] = 'three'
+        dict_di[TestClass1]['three'] = tc1_3
+        dict_jd[TestClass1]['three'] = {'att_str': 'att3'}
+        dict_do[TestClass2][id(tc2_3)] = 3
+        dict_di[TestClass2][3] = tc2_3
+        dict_jd[TestClass2][3] = {'att_int': 30, 'att_ref': 'three'}
+        self.assertDictEqual(self._db._data_obj, dict_do)
+        self.assertDictEqual(self._db._data_id, dict_di)
+        self.assertDictEqual(self._db._json_data, dict_jd)
+        # add object with uuid as id
+        self._db.add_object(tc3_1)
+        uid = self._db._data_obj[TestClass3][id(tc3_1)]
+        dict_do[TestClass3][id(tc3_1)] = uid
+        dict_di[TestClass3][uid] = tc3_1
+        dict_jd[TestClass3][uid] = {'att_str': 'uuid'}
+        self.assertDictEqual(self._db._data_obj, dict_do)
+        self.assertDictEqual(self._db._data_id, dict_di)
+        self.assertDictEqual(self._db._json_data, dict_jd)
+        # add object with reference to an object with an uuid as id
+        self._db.add_object(tc4_1)
+        dict_do[TestClass4][id(tc4_1)] = 100
+        dict_di[TestClass4][100] = tc4_1
+        dict_jd[TestClass4][100] = {'att_ref': uid}
+        self.assertDictEqual(self._db._data_obj, dict_do)
+        self.assertDictEqual(self._db._data_id, dict_di)
+        self.assertDictEqual(self._db._json_data, dict_jd)
+        # add object with empty str as id
+        with self.assertRaises(Exception) as em:
+            self._db.add_object(tc1_4)
+        self.assertEqual(f"The id field \'job_id\' of object {tc1_4} is empty.",
+                         str(em.exception))
+        self.assertDictEqual(self._db._data_obj, dict_do)
+        self.assertDictEqual(self._db._data_id, dict_di)
+        self.assertDictEqual(self._db._json_data, dict_jd)
+        # add object with None as id
+        with self.assertRaises(Exception) as em:
+            self._db.add_object(tc2_4)
+        self.assertEqual(f"The id field \'job_id\' of object {tc2_4} is empty.",
+                         str(em.exception))
+        self.assertDictEqual(self._db._data_obj, dict_do)
+        self.assertDictEqual(self._db._data_id, dict_di)
+        self.assertDictEqual(self._db._json_data, dict_jd)
+        # add object with already existing id
+        with self.assertRaises(Exception) as em:
+            self._db.add_object(tc1_5)
+        self.assertEqual(f"The id \'one\' already exists in table {type(tc1_5)}.",
+                         str(em.exception))
+        self.assertDictEqual(self._db._data_obj, dict_do)
+        self.assertDictEqual(self._db._data_id, dict_di)
+        self.assertDictEqual(self._db._json_data, dict_jd)
+        # add object with already existing id
+        with self.assertRaises(Exception) as em:
+            self._db.add_object(tc1_6)
+        self.assertEqual(f"The id field \'job_id\' of object {tc1_6} is not of type \'{str}\'.",
+                         str(em.exception))
+        self.assertDictEqual(self._db._data_obj, dict_do)
+        self.assertDictEqual(self._db._data_id, dict_di)
+        self.assertDictEqual(self._db._json_data, dict_jd)
+
+    def test_json_db_serialize_helper(self):
+        from test_json_database.db_test_serialize_helper import TestClassFieldType, TestClassReference
+        self._db.init_tables(path.join(self._data_path, 'serialize_helper'))
+        res = self._db._serialize_helper(True)
+        self.assertTrue(res)
+        res = self._db._serialize_helper('Hello World')
+        self.assertEqual(res, 'Hello World')
+        res = self._db._serialize_helper(42)
+        self.assertEqual(res, 42)
+        res = self._db._serialize_helper(3.14)
+        self.assertEqual(res, 3.14)
+        res = self._db._serialize_helper(3.0)
+        self.assertEqual(res, 3.0)
+        res = self._db._serialize_helper([1, 2, 3, 'Hello', 'World', 3.14])
+        self.assertCountEqual(res, [1, 2, 3, 'Hello', 'World', 3.14])
+        res = self._db._serialize_helper((1, 2, 3, 'Hello', 'World', 3.14))
+        self.assertCountEqual(res, [1, 2, 3, 'Hello', 'World', 3.14])
+        res = self._db._serialize_helper({1, 2, 3, 'Hello', 'World', 3.14})
+        self.assertCountEqual(res, [1, 2, 3, 'Hello', 'World', 3.14])
+        res = self._db._serialize_helper({1: 'one', 'two': 2, 3.14: 'float'})
+        self.assertDictEqual({1: 'one', 'two': 2, 3.14: 'float'}, res)
+        res = self._db._serialize_helper({'list': [1, 2, 3], 'tuple': (1, 2, 3), 'set': {1, 2, 3},
+                                          'dict': {1: 'one', 'two': 2, 3.14: 'float'}})
+        self.assertDictEqual({'list': [1, 2, 3], 'tuple': [1, 2, 3], 'set': [1, 2, 3],
+                             'dict': {1: 'one', 'two': 2, 3.14: 'float'}}, res)
+        tmp_1 = TestClassFieldType(att_bool=True, att_str='Hello', att_int=42, att_float=3.14)
+        res = self._db._serialize_helper(tmp_1)
+        self.assertDictEqual({'att_bool': True, 'att_str': 'Hello', 'att_int': 42, 'att_float': 3.14}, res)
+        tcr1 = TestClassReference(job_id='tcr1', att_str='Hello')
+        self._db._data_obj[type(tcr1)][id(tcr1)] = 'tcr1'
+        self._db._data_id[type(tcr1)]['tcr1'] = tcr1
+        res = self._db._serialize_helper(tcr1)
+        self.assertEqual(res, 'tcr1')
 
     def test_json_db_is_serializable_function(self):
         res = is_serializable(DatabaseTable)

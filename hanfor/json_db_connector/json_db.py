@@ -1,7 +1,7 @@
 import inspect
 from types import GenericAlias, UnionType
 from typing import get_origin, get_args
-from uuid import UUID
+from uuid import UUID, uuid4
 from os import path, mkdir
 
 
@@ -117,8 +117,12 @@ class JsonDatabase:
         # class: (dict of fields(field_name, type))
         self._field_types: dict[type, dict[str, any]] = {}
         # class: dict of objects(id, data))
-        self._data: dict[type, dict[str | int, any]] = {}
-        self._data_old: dict[type, dict[str | int, any]] = {}
+        self._json_data: dict[type, dict[str | int, any]] = {}
+        # object storage
+        # class: id(object): id
+        self._data_obj: dict[type, dict[int, str | int]] = {}
+        # class: id: object
+        self._data_id: dict[type, dict[str | int, object]] = {}
 
     def init_tables(self, data_folder: str) -> None:
         if data_folder == '':
@@ -170,6 +174,9 @@ class JsonDatabase:
             for f_name, f_type in DatabaseField.registry[cls].items():
                 fields[f_name] = f_type
             self._tables[cls] = table_type, id_field, id_type, fields
+            self._data_obj[cls] = {}
+            self._data_id[cls] = {}
+            self._json_data[cls] = {}
 
         # create field types
         for cls in DatabaseFieldType.registry:
@@ -177,6 +184,10 @@ class JsonDatabase:
             for f_name, f_type in DatabaseField.registry[cls].items():
                 fields[f_name] = f_type
             self._field_types[cls] = fields
+
+        # create database folder if not exist
+        if not path.isdir(self._data_folder):
+            mkdir(self._data_folder)
 
         # create folders and files is not exist
         for cls, (table_type, _, _, _) in self._tables.items():
@@ -189,6 +200,78 @@ class JsonDatabase:
                 table_folder = path.join(self._data_folder, cls.__name__)
                 if not path.isdir(table_folder):
                     mkdir(table_folder)
+
+    def add_object(self, obj: object) -> None:
+        # check if object is part of the database
+        if type(obj) not in self._tables.keys():
+            raise Exception(f"{type(obj)} is not part of the Database.")
+        if id(obj) in self._data_obj[type(obj)].keys():
+            # object already in database -> do update of this object?
+            pass
+        _, id_f_name, id_f_type, fields = self._tables[type(obj)]
+        if id_f_type is UUID:
+            obj_id = str(uuid4())
+        else:
+            # check if id is already in db
+            obj_id = getattr(obj, id_f_name, None)
+            if obj_id is None or obj_id == '':
+                raise Exception(f"The id field \'{id_f_name}\' of object {obj} is empty.")
+            if obj_id in self._data_id[type(obj)].keys():
+                raise Exception(f"The id \'{obj_id}\' already exists in table {type(obj)}.")
+            if type(obj_id) != id_f_type:
+                raise Exception(f"The id field \'{id_f_name}\' of object {obj} is not of type \'{id_f_type}\'.")
+        # save object to db
+        self._data_obj[type(obj)][id(obj)] = obj_id
+        self._data_id[type(obj)][obj_id] = obj
+        # TODO insert into data tracing
+        obj_data = {}
+        for field, f_type in fields.items():
+            field_data = getattr(obj, field, None)
+            # if type(field_data) != f_type:  # TODO should I do this here? Question: type Uniontype/None will fail?!
+            #     raise Exception(f"The field \'{field}\' of object {obj} is not of type \'{f_type}\'.")
+            field_data_serialized = self._serialize_helper(field_data)
+            if field_data_serialized is not None:
+                obj_data[field] = field_data_serialized
+        self._json_data[type(obj)][obj_id] = obj_data
+        # TODO save changes
+
+    def _serialize_helper(self, data: any) -> any:
+        if data is None:
+            return None
+        f_type = type(data)
+        if f_type in [bool, str, int, float]:
+            return data
+        if f_type in [tuple, list, set]:
+            res = []
+            for item in data:  # TODO should I check if item is serializable?
+                tmp = self._serialize_helper(item)
+                if tmp is None:
+                    continue
+                res.append(tmp)
+            return None if len(res) == 0 else res
+        if f_type is dict:
+            res = {}
+            for k, v in data.items():  # TODO should I check if k, v is serializable?
+                k_serialized = self._serialize_helper(k)
+                v_serialized = self._serialize_helper(v)
+                if k_serialized is not None and v_serialized is not None:
+                    res[k_serialized] = v_serialized
+            return None if len(res) == 0 else res
+        if f_type in self._tables.keys():
+            if id(data) not in self._data_obj[f_type]:
+                self.add_object(data)  # TODO should I do this here?
+            return self._data_obj[f_type][id(data)]
+        if f_type in self._field_types.keys():
+            res = {}
+            for field, ft_f_type in self._field_types[f_type].items():
+                field_data = getattr(data, field, None)
+                if type(field_data) != ft_f_type:  # TODO should I do this here?
+                    raise Exception(f"The id field \'{field}\' of object {data} is not of type \'{ft_f_type}\'.")
+                field_data_serialized = self._serialize_helper(field_data)
+                if field_data_serialized is not None:
+                    res[field] = field_data_serialized
+            return None if len(res) == 0 else res
+        return None
 
 
 def is_serializable(f_type: any, additional_types: list[type] = None) -> tuple[bool, str]:
