@@ -229,13 +229,13 @@ class JsonDatabase:
             field_data = getattr(obj, field, None)
             # if type(field_data) != f_type:  # TODO should I do this here? Question: type Uniontype/None will fail?!
             #     raise Exception(f"The field \'{field}\' of object {obj} is not of type \'{f_type}\'.")
-            field_data_serialized = self._serialize_helper(field_data)
+            field_data_serialized = self._data_to_json(field_data)
             if field_data_serialized is not None:
                 obj_data[field] = field_data_serialized
         self._json_data[type(obj)][obj_id] = obj_data
         # TODO save changes
 
-    def _serialize_helper(self, data: any) -> any:
+    def _data_to_json(self, data: any) -> any:
         if data is None:
             return None
         f_type = type(data)
@@ -244,7 +244,7 @@ class JsonDatabase:
         if f_type in [tuple, list, set]:
             res = []
             for item in data:  # TODO should I check if item is serializable?
-                tmp = self._serialize_helper(item)
+                tmp = self._data_to_json(item)
                 if tmp is None:
                     continue
                 res.append(tmp)
@@ -252,8 +252,8 @@ class JsonDatabase:
         if f_type is dict:
             res = {}
             for k, v in data.items():  # TODO should I check if k, v is serializable?
-                k_serialized = self._serialize_helper(k)
-                v_serialized = self._serialize_helper(v)
+                k_serialized = self._data_to_json(k)
+                v_serialized = self._data_to_json(v)
                 if k_serialized is not None and v_serialized is not None:
                     res[k_serialized] = v_serialized
             return None if len(res) == 0 else res
@@ -267,7 +267,7 @@ class JsonDatabase:
                 field_data = getattr(data, field, None)
                 if type(field_data) != ft_f_type:  # TODO should I do this here?
                     raise Exception(f"The id field \'{field}\' of object {data} is not of type \'{ft_f_type}\'.")
-                field_data_serialized = self._serialize_helper(field_data)
+                field_data_serialized = self._data_to_json(field_data)
                 if field_data_serialized is not None:
                     res[field] = field_data_serialized
             return None if len(res) == 0 else res

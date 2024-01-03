@@ -4,6 +4,7 @@ from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField, 
 from uuid import UUID
 from os import path, mkdir, rmdir, remove
 from dataclasses import dataclass
+import json
 
 
 class TestJsonDatabase(TestCase):
@@ -15,6 +16,8 @@ class TestJsonDatabase(TestCase):
         DatabaseFieldType.registry.clear()
         self._db = JsonDatabase()
         self._data_path = path.join(path.dirname(path.realpath(__file__)), 'test_json_database', 'test_data')
+        if not path.isdir(self._data_path):
+            mkdir(self._data_path)
         if not path.isdir(path.join(self._data_path, 'init_tables_ok')):
             mkdir(path.join(self._data_path, 'init_tables_ok'))
 
@@ -35,6 +38,15 @@ class TestJsonDatabase(TestCase):
             remove(path.join(self._data_path, 'add_object', 'TestClass3.json'))
         if path.isfile(path.join(self._data_path, 'add_object', 'TestClass4.json')):
             remove(path.join(self._data_path, 'add_object', 'TestClass4.json'))
+
+    def test_json_int_float(self):
+        tmp = {'int': 0, 'float': 1.2}
+        self.assertEqual(json.dumps(tmp), '{"int": 0, "float": 1.2}')
+        tmp = {'int': 0, 'float': 0.0}
+        self.assertEqual(json.dumps(tmp), '{"int": 0, "float": 0.0}')
+        loaded = json.loads('{"int": 0, "float": 0.0}')
+        self.assertEqual(type(loaded['int']), int)
+        self.assertEqual(type(loaded['float']), float)
 
     def test_table_decorator(self):
         # test table definition without brackets
@@ -461,38 +473,38 @@ class TestJsonDatabase(TestCase):
         self.assertDictEqual(self._db._data_id, dict_di)
         self.assertDictEqual(self._db._json_data, dict_jd)
 
-    def test_json_db_serialize_helper(self):
-        from test_json_database.db_test_serialize_helper import TestClassFieldType, TestClassReference
-        self._db.init_tables(path.join(self._data_path, 'serialize_helper'))
-        res = self._db._serialize_helper(True)
+    def test_json_db_data_to_json(self):
+        from test_json_database.db_test_data_to_json import TestClassFieldType, TestClassReference
+        self._db.init_tables(path.join(self._data_path, 'data_to_json'))
+        res = self._db._data_to_json(True)
         self.assertTrue(res)
-        res = self._db._serialize_helper('Hello World')
+        res = self._db._data_to_json('Hello World')
         self.assertEqual(res, 'Hello World')
-        res = self._db._serialize_helper(42)
+        res = self._db._data_to_json(42)
         self.assertEqual(res, 42)
-        res = self._db._serialize_helper(3.14)
+        res = self._db._data_to_json(3.14)
         self.assertEqual(res, 3.14)
-        res = self._db._serialize_helper(3.0)
+        res = self._db._data_to_json(3.0)
         self.assertEqual(res, 3.0)
-        res = self._db._serialize_helper([1, 2, 3, 'Hello', 'World', 3.14])
+        res = self._db._data_to_json([1, 2, 3, 'Hello', 'World', 3.14])
         self.assertCountEqual(res, [1, 2, 3, 'Hello', 'World', 3.14])
-        res = self._db._serialize_helper((1, 2, 3, 'Hello', 'World', 3.14))
+        res = self._db._data_to_json((1, 2, 3, 'Hello', 'World', 3.14))
         self.assertCountEqual(res, [1, 2, 3, 'Hello', 'World', 3.14])
-        res = self._db._serialize_helper({1, 2, 3, 'Hello', 'World', 3.14})
+        res = self._db._data_to_json({1, 2, 3, 'Hello', 'World', 3.14})
         self.assertCountEqual(res, [1, 2, 3, 'Hello', 'World', 3.14])
-        res = self._db._serialize_helper({1: 'one', 'two': 2, 3.14: 'float'})
+        res = self._db._data_to_json({1: 'one', 'two': 2, 3.14: 'float'})
         self.assertDictEqual({1: 'one', 'two': 2, 3.14: 'float'}, res)
-        res = self._db._serialize_helper({'list': [1, 2, 3], 'tuple': (1, 2, 3), 'set': {1, 2, 3},
+        res = self._db._data_to_json({'list': [1, 2, 3], 'tuple': (1, 2, 3), 'set': {1, 2, 3},
                                           'dict': {1: 'one', 'two': 2, 3.14: 'float'}})
         self.assertDictEqual({'list': [1, 2, 3], 'tuple': [1, 2, 3], 'set': [1, 2, 3],
                              'dict': {1: 'one', 'two': 2, 3.14: 'float'}}, res)
         tmp_1 = TestClassFieldType(att_bool=True, att_str='Hello', att_int=42, att_float=3.14)
-        res = self._db._serialize_helper(tmp_1)
+        res = self._db._data_to_json(tmp_1)
         self.assertDictEqual({'att_bool': True, 'att_str': 'Hello', 'att_int': 42, 'att_float': 3.14}, res)
         tcr1 = TestClassReference(job_id='tcr1', att_str='Hello')
         self._db._data_obj[type(tcr1)][id(tcr1)] = 'tcr1'
         self._db._data_id[type(tcr1)]['tcr1'] = tcr1
-        res = self._db._serialize_helper(tcr1)
+        res = self._db._data_to_json(tcr1)
         self.assertEqual(res, 'tcr1')
 
     def test_json_db_is_serializable_function(self):
