@@ -412,7 +412,7 @@ class TestJsonDatabase(TestCase):
         json_data[TestClass1]['two'] = {'att_str': 'att2'}
         data_obj[TestClass2][id(tc2_1)] = 1
         data_id[TestClass2][1] = tc2_1
-        json_data[TestClass2][1] = {'att_int': 10}
+        json_data[TestClass2][1] = {'att_int': 10, 'att_ref': None}
         self.assertDictEqual(self._db._data_obj, data_obj)
         self.assertDictEqual(self._db._data_id, data_id)
         self.assertDictEqual(self._db._json_data, json_data)

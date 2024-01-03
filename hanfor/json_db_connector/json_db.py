@@ -234,11 +234,8 @@ class JsonDatabase:
         obj_data = {}
         for field, f_type in fields.items():
             field_data = getattr(obj, field, None)
-            # if type(field_data) != f_type:  # TODO should I do this here? Question: type Uniontype/None will fail?!
-            #     raise Exception(f"The field \'{field}\' of object {obj} is not of type \'{f_type}\'.")
             field_data_serialized = self._data_to_json(field_data)
-            if field_data_serialized is not None:
-                obj_data[field] = field_data_serialized
+            obj_data[field] = field_data_serialized
         self._json_data[type(obj)][obj_id] = obj_data
         # TODO save changes
 
@@ -266,13 +263,13 @@ class JsonDatabase:
             return {'type': 'dict', 'data': res}
         if f_type in self._tables.keys():
             if id(data) not in self._data_obj[f_type]:
-                self.add_object(data)  # TODO should I do this here?
+                self.add_object(data)
             return {'type': f_type.__name__, 'data': self._data_obj[f_type][id(data)]}
         if f_type in self._field_types.keys():
             res = {}
             for field, ft_f_type in self._field_types[f_type].items():
                 field_data = getattr(data, field, None)
-                if type(field_data) != ft_f_type:  # TODO should I do this here?
+                if type(field_data) != ft_f_type:
                     raise Exception(f"The id field \'{field}\' of object {data} is not of type \'{ft_f_type}\'.")
                 field_data_serialized = self._data_to_json(field_data)
                 if field_data_serialized is not None:
