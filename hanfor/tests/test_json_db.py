@@ -10,6 +10,7 @@ import json
 class TestJsonDatabase(TestCase):
 
     def setUp(self) -> None:
+        self.maxDiff = None
         DatabaseTable.registry.clear()
         DatabaseID.registry.clear()
         DatabaseField.registry.clear()
@@ -40,13 +41,17 @@ class TestJsonDatabase(TestCase):
             remove(path.join(self._data_path, 'add_object', 'TestClass4.json'))
 
     def test_json_int_float(self):
-        tmp = {'int': 0, 'float': 1.2}
-        self.assertEqual(json.dumps(tmp), '{"int": 0, "float": 1.2}')
+        tmp = {'int': 0, 'float': 1.2, 'bool': True}
+        self.assertEqual(json.dumps(tmp), '{"int": 0, "float": 1.2, "bool": true}')
         tmp = {'int': 0, 'float': 0.0}
         self.assertEqual(json.dumps(tmp), '{"int": 0, "float": 0.0}')
         loaded = json.loads('{"int": 0, "float": 0.0}')
         self.assertEqual(type(loaded['int']), int)
         self.assertEqual(type(loaded['float']), float)
+        tmp = {'None': None}
+        self.assertEqual(json.dumps(tmp), '{"None": null}')
+        tmp = {'empty': []}
+        self.assertEqual(json.dumps(tmp), '{"empty": []}')
 
     def test_table_decorator(self):
         # test table definition without brackets
@@ -383,95 +388,95 @@ class TestJsonDatabase(TestCase):
 
         # add normal object
         self._db.add_object(tc1_1)
-        dict_do: dict[type, dict[int, int | str]] = {TestClass1: {id(tc1_1): 'one'}, TestClass2: {}, TestClass3: {},
-                                                     TestClass4: {}}
-        dict_di: dict[type, dict[int | str, object]] = {TestClass1: {'one': tc1_1}, TestClass2: {}, TestClass3: {},
+        data_obj: dict[type, dict[int, int | str]] = {TestClass1: {id(tc1_1): 'one'}, TestClass2: {}, TestClass3: {},
+                                                      TestClass4: {}}
+        data_id: dict[type, dict[int | str, object]] = {TestClass1: {'one': tc1_1}, TestClass2: {}, TestClass3: {},
                                                         TestClass4: {}}
-        dict_jd: dict[type, dict[int | str, any]] = {TestClass1: {'one': {'att_str': 'att'}}, TestClass2: {},
-                                                     TestClass3: {}, TestClass4: {}}
-        self.assertDictEqual(self._db._data_obj, dict_do)
-        self.assertDictEqual(self._db._data_id, dict_di)
-        self.assertDictEqual(self._db._json_data, dict_jd)
+        json_data: dict[type, dict[int | str, any]] = {TestClass1: {'one': {'att_str': 'att'}}, TestClass2: {},
+                                                       TestClass3: {}, TestClass4: {}}
+        self.assertDictEqual(self._db._data_obj, data_obj)
+        self.assertDictEqual(self._db._data_id, data_id)
+        self.assertDictEqual(self._db._json_data, json_data)
         # add object with empty reference field
         self._db.add_object(tc1_2)
         self._db.add_object(tc2_1)
-        dict_do[TestClass1][id(tc1_2)] = 'two'
-        dict_di[TestClass1]['two'] = tc1_2
-        dict_jd[TestClass1]['two'] = {'att_str': 'att2'}
-        dict_do[TestClass2][id(tc2_1)] = 1
-        dict_di[TestClass2][1] = tc2_1
-        dict_jd[TestClass2][1] = {'att_int': 10}
-        self.assertDictEqual(self._db._data_obj, dict_do)
-        self.assertDictEqual(self._db._data_id, dict_di)
-        self.assertDictEqual(self._db._json_data, dict_jd)
+        data_obj[TestClass1][id(tc1_2)] = 'two'
+        data_id[TestClass1]['two'] = tc1_2
+        json_data[TestClass1]['two'] = {'att_str': 'att2'}
+        data_obj[TestClass2][id(tc2_1)] = 1
+        data_id[TestClass2][1] = tc2_1
+        json_data[TestClass2][1] = {'att_int': 10}
+        self.assertDictEqual(self._db._data_obj, data_obj)
+        self.assertDictEqual(self._db._data_id, data_id)
+        self.assertDictEqual(self._db._json_data, json_data)
         # add object with filled reference field
         self._db.add_object(tc2_2)
-        dict_do[TestClass2][id(tc2_2)] = 2
-        dict_di[TestClass2][2] = tc2_2
-        dict_jd[TestClass2][2] = {'att_int': 20, 'att_ref': 'one'}
-        self.assertDictEqual(self._db._data_obj, dict_do)
-        self.assertDictEqual(self._db._data_id, dict_di)
-        self.assertDictEqual(self._db._json_data, dict_jd)
+        data_obj[TestClass2][id(tc2_2)] = 2
+        data_id[TestClass2][2] = tc2_2
+        json_data[TestClass2][2] = {'att_int': 20, 'att_ref': {'type': 'TestClass1', 'data': 'one'}}
+        self.assertDictEqual(self._db._data_obj, data_obj)
+        self.assertDictEqual(self._db._data_id, data_id)
+        self.assertDictEqual(self._db._json_data, json_data)
         # add object with filled reference field but with an unknown object -> test call add @ _data_to_json
         self._db.add_object(tc2_3)
-        dict_do[TestClass1][id(tc1_3)] = 'three'
-        dict_di[TestClass1]['three'] = tc1_3
-        dict_jd[TestClass1]['three'] = {'att_str': 'att3'}
-        dict_do[TestClass2][id(tc2_3)] = 3
-        dict_di[TestClass2][3] = tc2_3
-        dict_jd[TestClass2][3] = {'att_int': 30, 'att_ref': 'three'}
-        self.assertDictEqual(self._db._data_obj, dict_do)
-        self.assertDictEqual(self._db._data_id, dict_di)
-        self.assertDictEqual(self._db._json_data, dict_jd)
+        data_obj[TestClass1][id(tc1_3)] = 'three'
+        data_id[TestClass1]['three'] = tc1_3
+        json_data[TestClass1]['three'] = {'att_str': 'att3'}
+        data_obj[TestClass2][id(tc2_3)] = 3
+        data_id[TestClass2][3] = tc2_3
+        json_data[TestClass2][3] = {'att_int': 30, 'att_ref': {'type': 'TestClass1', 'data': 'three'}}
+        self.assertDictEqual(self._db._data_obj, data_obj)
+        self.assertDictEqual(self._db._data_id, data_id)
+        self.assertDictEqual(self._db._json_data, json_data)
         # add object with uuid as id
         self._db.add_object(tc3_1)
         uid = self._db._data_obj[TestClass3][id(tc3_1)]
-        dict_do[TestClass3][id(tc3_1)] = uid
-        dict_di[TestClass3][uid] = tc3_1
-        dict_jd[TestClass3][uid] = {'att_str': 'uuid'}
-        self.assertDictEqual(self._db._data_obj, dict_do)
-        self.assertDictEqual(self._db._data_id, dict_di)
-        self.assertDictEqual(self._db._json_data, dict_jd)
+        data_obj[TestClass3][id(tc3_1)] = uid
+        data_id[TestClass3][uid] = tc3_1
+        json_data[TestClass3][uid] = {'att_str': 'uuid'}
+        self.assertDictEqual(self._db._data_obj, data_obj)
+        self.assertDictEqual(self._db._data_id, data_id)
+        self.assertDictEqual(self._db._json_data, json_data)
         # add object with reference to an object with an uuid as id
         self._db.add_object(tc4_1)
-        dict_do[TestClass4][id(tc4_1)] = 100
-        dict_di[TestClass4][100] = tc4_1
-        dict_jd[TestClass4][100] = {'att_ref': uid}
-        self.assertDictEqual(self._db._data_obj, dict_do)
-        self.assertDictEqual(self._db._data_id, dict_di)
-        self.assertDictEqual(self._db._json_data, dict_jd)
+        data_obj[TestClass4][id(tc4_1)] = 100
+        data_id[TestClass4][100] = tc4_1
+        json_data[TestClass4][100] = {'att_ref': {'type': 'TestClass3', 'data': uid}}
+        self.assertDictEqual(self._db._data_obj, data_obj)
+        self.assertDictEqual(self._db._data_id, data_id)
+        self.assertDictEqual(self._db._json_data, json_data)
         # add object with empty str as id
         with self.assertRaises(Exception) as em:
             self._db.add_object(tc1_4)
         self.assertEqual(f"The id field \'job_id\' of object {tc1_4} is empty.",
                          str(em.exception))
-        self.assertDictEqual(self._db._data_obj, dict_do)
-        self.assertDictEqual(self._db._data_id, dict_di)
-        self.assertDictEqual(self._db._json_data, dict_jd)
+        self.assertDictEqual(self._db._data_obj, data_obj)
+        self.assertDictEqual(self._db._data_id, data_id)
+        self.assertDictEqual(self._db._json_data, json_data)
         # add object with None as id
         with self.assertRaises(Exception) as em:
             self._db.add_object(tc2_4)
         self.assertEqual(f"The id field \'job_id\' of object {tc2_4} is empty.",
                          str(em.exception))
-        self.assertDictEqual(self._db._data_obj, dict_do)
-        self.assertDictEqual(self._db._data_id, dict_di)
-        self.assertDictEqual(self._db._json_data, dict_jd)
+        self.assertDictEqual(self._db._data_obj, data_obj)
+        self.assertDictEqual(self._db._data_id, data_id)
+        self.assertDictEqual(self._db._json_data, json_data)
         # add object with already existing id
         with self.assertRaises(Exception) as em:
             self._db.add_object(tc1_5)
         self.assertEqual(f"The id \'one\' already exists in table {type(tc1_5)}.",
                          str(em.exception))
-        self.assertDictEqual(self._db._data_obj, dict_do)
-        self.assertDictEqual(self._db._data_id, dict_di)
-        self.assertDictEqual(self._db._json_data, dict_jd)
-        # add object with already existing id
+        self.assertDictEqual(self._db._data_obj, data_obj)
+        self.assertDictEqual(self._db._data_id, data_id)
+        self.assertDictEqual(self._db._json_data, json_data)
+        # add object with false type of id
         with self.assertRaises(Exception) as em:
             self._db.add_object(tc1_6)
         self.assertEqual(f"The id field \'job_id\' of object {tc1_6} is not of type \'{str}\'.",
                          str(em.exception))
-        self.assertDictEqual(self._db._data_obj, dict_do)
-        self.assertDictEqual(self._db._data_id, dict_di)
-        self.assertDictEqual(self._db._json_data, dict_jd)
+        self.assertDictEqual(self._db._data_obj, data_obj)
+        self.assertDictEqual(self._db._data_id, data_id)
+        self.assertDictEqual(self._db._json_data, json_data)
 
     def test_json_db_data_to_json(self):
         from test_json_database.db_test_data_to_json import TestClassFieldType, TestClassReference
@@ -487,25 +492,28 @@ class TestJsonDatabase(TestCase):
         res = self._db._data_to_json(3.0)
         self.assertEqual(res, 3.0)
         res = self._db._data_to_json([1, 2, 3, 'Hello', 'World', 3.14])
-        self.assertCountEqual(res, [1, 2, 3, 'Hello', 'World', 3.14])
+        self.assertCountEqual(res, {'type': 'list', 'data': [1, 2, 3, 'Hello', 'World', 3.14]})
         res = self._db._data_to_json((1, 2, 3, 'Hello', 'World', 3.14))
-        self.assertCountEqual(res, [1, 2, 3, 'Hello', 'World', 3.14])
+        self.assertCountEqual(res, {'type': 'tuple', 'data': [1, 2, 3, 'Hello', 'World', 3.14]})
         res = self._db._data_to_json({1, 2, 3, 'Hello', 'World', 3.14})
-        self.assertCountEqual(res, [1, 2, 3, 'Hello', 'World', 3.14])
+        self.assertCountEqual(res, {'type': 'set', 'data': [1, 2, 3, 'Hello', 'World', 3.14]})
         res = self._db._data_to_json({1: 'one', 'two': 2, 3.14: 'float'})
-        self.assertDictEqual({1: 'one', 'two': 2, 3.14: 'float'}, res)
+        self.assertDictEqual({'type': 'dict', 'data': {1: 'one', 'two': 2, 3.14: 'float'}}, res)
         res = self._db._data_to_json({'list': [1, 2, 3], 'tuple': (1, 2, 3), 'set': {1, 2, 3},
                                      'dict': {1: 'one', 'two': 2, 3.14: 'float'}})
-        self.assertDictEqual({'list': [1, 2, 3], 'tuple': [1, 2, 3], 'set': [1, 2, 3],
-                             'dict': {1: 'one', 'two': 2, 3.14: 'float'}}, res)
+        self.assertDictEqual({'type': 'dict', 'data': {'list': {'type': 'list', 'data': [1, 2, 3]},
+                             'tuple': {'type': 'tuple', 'data': [1, 2, 3]},
+                             'set': {'type': 'set', 'data': [1, 2, 3]},
+                             'dict': {'type': 'dict', 'data': {1: 'one', 'two': 2, 3.14: 'float'}}}}, res)
         tmp_1 = TestClassFieldType(att_bool=True, att_str='Hello', att_int=42, att_float=3.14)
         res = self._db._data_to_json(tmp_1)
-        self.assertDictEqual({'att_bool': True, 'att_str': 'Hello', 'att_int': 42, 'att_float': 3.14}, res)
+        self.assertDictEqual({'type': 'TestClassFieldType', 'data': {'att_bool': True, 'att_str': 'Hello',
+                                                                     'att_int': 42, 'att_float': 3.14}}, res)
         tcr1 = TestClassReference(job_id='tcr1', att_str='Hello')
         self._db._data_obj[type(tcr1)][id(tcr1)] = 'tcr1'
         self._db._data_id[type(tcr1)]['tcr1'] = tcr1
         res = self._db._data_to_json(tcr1)
-        self.assertEqual(res, 'tcr1')
+        self.assertDictEqual(res, {'type': 'TestClassReference', 'data': 'tcr1'})
 
     def test_json_db_is_serializable_function(self):
         res = is_serializable(DatabaseTable)

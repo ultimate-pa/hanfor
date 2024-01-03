@@ -248,7 +248,7 @@ class JsonDatabase:
                 if tmp is None:
                     continue
                 res.append(tmp)
-            return None if len(res) == 0 else res
+            return {'type': f_type.__name__, 'data': res}
         if f_type is dict:
             res = {}
             for k, v in data.items():  # TODO should I check if k, v is serializable?
@@ -256,11 +256,11 @@ class JsonDatabase:
                 v_serialized = self._data_to_json(v)
                 if k_serialized is not None and v_serialized is not None:
                     res[k_serialized] = v_serialized
-            return None if len(res) == 0 else res
+            return {'type': 'dict', 'data': res}
         if f_type in self._tables.keys():
             if id(data) not in self._data_obj[f_type]:
                 self.add_object(data)  # TODO should I do this here?
-            return self._data_obj[f_type][id(data)]
+            return {'type': f_type.__name__, 'data': self._data_obj[f_type][id(data)]}
         if f_type in self._field_types.keys():
             res = {}
             for field, ft_f_type in self._field_types[f_type].items():
@@ -270,7 +270,7 @@ class JsonDatabase:
                 field_data_serialized = self._data_to_json(field_data)
                 if field_data_serialized is not None:
                     res[field] = field_data_serialized
-            return None if len(res) == 0 else res
+            return {'type': f_type.__name__, 'data': res}
         return None
 
 
