@@ -249,6 +249,13 @@ class TestJsonDatabase(TestCase):
         type_set: set[type] = {TestClass}
         self.assertSetEqual(DatabaseFieldType.registry, type_set)
 
+        with self.assertRaises(Exception) as em:
+            from test_json_database.db_test_field_type_decorator_simple_2 import TestClass as Tc2
+            _ = Tc2
+        self.assertEqual(f"Name of DatabaseFieldType exists already:\nexisting: {TestClass}\nnew     : <class "
+                         "'test_json_database.db_test_field_type_decorator_simple_2.TestClass'>",
+                         str(em.exception))
+
     def test_json_db_init_tables_ok(self):
         from test_json_database.db_test_simple_table import TestClassFile, TestClassFolder, TestClassFieldType
         _ = TestClassFile

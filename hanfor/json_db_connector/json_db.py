@@ -104,6 +104,13 @@ class DatabaseFieldType:
             raise Exception(f"DatabaseFieldType must be called with brackets: {cls}")
 
     def __call__(self, cls: type):
+        if cls.__name__ in [c.__name__ for c in self.registry]:
+            existing = None
+            for c in self.registry:
+                if c.__name__ == cls.__name__:
+                    existing = c
+                    break
+            raise Exception(f"Name of DatabaseFieldType exists already:\nexisting: {existing}\nnew     : {cls}")
         self.registry.add(cls)
         return cls
 
