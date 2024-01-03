@@ -27,10 +27,16 @@ class TestJsonDatabase(TestCase):
             rmdir(path.join(self._data_path, 'init_tables_ok', 'TestClassFolder'))
         if path.isfile(path.join(self._data_path, 'init_tables_ok', 'TestClassFile.json')):
             remove(path.join(self._data_path, 'init_tables_ok', 'TestClassFile.json'))
+        if path.isdir(path.join(self._data_path, 'init_tables_ok')):
+            rmdir(path.join(self._data_path, 'init_tables_ok'))
+
         if path.isfile(path.join(self._data_path, 'data_to_json', 'TestClassFile.json')):
             remove(path.join(self._data_path, 'data_to_json', 'TestClassFile.json'))
         if path.isfile(path.join(self._data_path, 'data_to_json', 'TestClassReference.json')):
             remove(path.join(self._data_path, 'data_to_json', 'TestClassReference.json'))
+        if path.isdir(path.join(self._data_path, 'data_to_json')):
+            rmdir(path.join(self._data_path, 'data_to_json'))
+
         if path.isfile(path.join(self._data_path, 'add_object', 'TestClass1.json')):
             remove(path.join(self._data_path, 'add_object', 'TestClass1.json'))
         if path.isfile(path.join(self._data_path, 'add_object', 'TestClass2.json')):
@@ -39,6 +45,19 @@ class TestJsonDatabase(TestCase):
             remove(path.join(self._data_path, 'add_object', 'TestClass3.json'))
         if path.isfile(path.join(self._data_path, 'add_object', 'TestClass4.json')):
             remove(path.join(self._data_path, 'add_object', 'TestClass4.json'))
+        if path.isdir(path.join(self._data_path, 'add_object')):
+            rmdir(path.join(self._data_path, 'add_object'))
+
+        if path.isfile(path.join(self._data_path, 'save', 'TestSzene', '0.json')):
+            remove(path.join(self._data_path, 'save', 'TestSzene', '0.json'))
+        if path.isfile(path.join(self._data_path, 'save', 'TestSzene', '1.json')):
+            remove(path.join(self._data_path, 'save', 'TestSzene', '1.json'))
+        if path.isdir(path.join(self._data_path, 'save', 'TestSzene')):
+            rmdir(path.join(self._data_path, 'save', 'TestSzene'))
+        if path.isfile(path.join(self._data_path, 'save', 'TestRectangle.json')):
+            remove(path.join(self._data_path, 'save', 'TestRectangle.json'))
+        if path.isdir(path.join(self._data_path, 'save')):
+            rmdir(path.join(self._data_path, 'save'))
 
     def test_json_int_float(self):
         tmp = {'int': 0, 'float': 1.2, 'bool': True}
@@ -484,6 +503,35 @@ class TestJsonDatabase(TestCase):
         self.assertDictEqual(self._db._data_obj, data_obj)
         self.assertDictEqual(self._db._data_id, data_id)
         self.assertDictEqual(self._db._json_data, json_data)
+
+    def test_json_db_save(self):
+        from test_json_database.db_test_save import TestColor, TestRectangle, TestSzene, SZENE1_JSON, SZENE0_JSON,\
+            RECTANGLES_JSON
+        blue = TestColor('blue', (0., 0., 1.))
+        green = TestColor('green', (0., 1., 0.))
+        rect0 = TestRectangle('rect0', True, {'x': 0, 'y': 0}, green)
+        rect1 = TestRectangle('rect1', False, {'x': 1, 'y': 1}, blue)
+        rect2 = TestRectangle('rect2', True, {'x': 2, 'y': 2}, None)
+        szene0 = TestSzene(0, {'zero'}, [rect0, rect1, rect2])
+        szene1 = TestSzene(1, {'one'}, [])
+        self._db.init_tables(path.join(self._data_path, 'save'))
+        self._db.add_object(szene1)
+        with open(path.join(self._data_path, 'save', 'TestSzene', '1.json')) as tmp:
+            data_szene1 = tmp.read()
+        self.assertEqual(SZENE1_JSON, data_szene1)
+        with open(path.join(self._data_path, 'save', 'TestRectangle.json')) as tmp:
+            data_rectangles = tmp.read()
+        self.assertEqual('{}', data_rectangles)
+        self._db.add_object(szene0)
+        with open(path.join(self._data_path, 'save', 'TestSzene', '1.json')) as tmp:
+            data_szene1 = tmp.read()
+        self.assertEqual(SZENE1_JSON, data_szene1)
+        with open(path.join(self._data_path, 'save', 'TestSzene', '0.json')) as tmp:
+            data_szene0 = tmp.read()
+        self.assertEqual(SZENE0_JSON, data_szene0)
+        with open(path.join(self._data_path, 'save', 'TestRectangle.json')) as tmp:
+            data_rectangles = tmp.read()
+        self.assertEqual(RECTANGLES_JSON, data_rectangles)
 
     def test_json_db_data_to_json(self):
         from test_json_database.db_test_data_to_json import TestClassFieldType, TestClassReference

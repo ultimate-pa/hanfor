@@ -1,4 +1,5 @@
 import inspect
+import json
 from types import GenericAlias, UnionType
 from typing import get_origin, get_args
 from uuid import UUID, uuid4
@@ -237,7 +238,7 @@ class JsonDatabase:
             field_data_serialized = self._data_to_json(field_data)
             obj_data[field] = field_data_serialized
         self._json_data[type(obj)][obj_id] = obj_data
-        # TODO save changes
+        self.__save_data()
 
     def _data_to_json(self, data: any) -> any:
         if data is None:
@@ -269,13 +270,24 @@ class JsonDatabase:
             res = {}
             for field, ft_f_type in self._field_types[f_type].items():
                 field_data = getattr(data, field, None)
-                if type(field_data) != ft_f_type:
-                    raise Exception(f"The id field \'{field}\' of object {data} is not of type \'{ft_f_type}\'.")
                 field_data_serialized = self._data_to_json(field_data)
                 if field_data_serialized is not None:
                     res[field] = field_data_serialized
             return {'type': f_type.__name__, 'data': res}
         return None
+
+    def __save_data(self):
+        for cls, (table_type, _, _, _) in self._tables.items():
+            if table_type == 'file':
+                table_file = path.join(self._data_folder, f"{cls.__name__}.json")
+                with open(table_file, 'w') as json_file:
+                    json.dump(self._json_data[cls], json_file, indent=4)
+            elif table_type == 'folder':
+                table_folder = path.join(self._data_folder, cls.__name__)
+                for obj_id, obj_data in self._json_data[cls].items():
+                    file_name = path.join(table_folder, f"{obj_id}.json")
+                    with open(file_name, 'w') as json_file:
+                        json.dump(obj_data, json_file, indent=4)
 
 
 def is_serializable(f_type: any, additional_types: list[type] = None) -> tuple[bool, str]:
@@ -286,13 +298,13 @@ def is_serializable(f_type: any, additional_types: list[type] = None) -> tuple[b
     if type(f_type) is GenericAlias:
         if get_origin(f_type) in [tuple, list, set]:
             for arg in get_args(f_type):
-                res = is_serializable(arg)
+                res = is_serializable(arg, additional_types)
                 if not res[0]:
                     return False, res[1]
             return True, ''
     if type(f_type) is UnionType:
         for arg in get_args(f_type):
-            res = is_serializable(arg)
+            res = is_serializable(arg, additional_types)
             if not res[0]:
                 return False, res[1]
         return True, ''
