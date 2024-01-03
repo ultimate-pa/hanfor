@@ -277,16 +277,10 @@ class JsonDatabase:
 def is_serializable(f_type: any, additional_types: list[type] = None) -> tuple[bool, str]:
     if additional_types is None:
         additional_types = []
-    if f_type is bool:
-        return True, ''
-    if f_type is str:
-        return True, ''
-    if f_type is int:
-        return True, ''
-    if f_type is float:
+    if f_type in [bool, str, int, float, dict]:
         return True, ''
     if type(f_type) is GenericAlias:
-        if get_origin(f_type) in [tuple, list, dict, set]:
+        if get_origin(f_type) in [tuple, list, set]:
             for arg in get_args(f_type):
                 res = is_serializable(arg)
                 if not res[0]:

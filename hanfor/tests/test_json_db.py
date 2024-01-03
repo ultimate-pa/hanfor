@@ -26,10 +26,10 @@ class TestJsonDatabase(TestCase):
             rmdir(path.join(self._data_path, 'init_tables_ok', 'TestClassFolder'))
         if path.isfile(path.join(self._data_path, 'init_tables_ok', 'TestClassFile.json')):
             remove(path.join(self._data_path, 'init_tables_ok', 'TestClassFile.json'))
-        if path.isfile(path.join(self._data_path, 'serialize_helper', 'TestClassFile.json')):
-            remove(path.join(self._data_path, 'serialize_helper', 'TestClassFile.json'))
-        if path.isfile(path.join(self._data_path, 'serialize_helper', 'TestClassReference.json')):
-            remove(path.join(self._data_path, 'serialize_helper', 'TestClassReference.json'))
+        if path.isfile(path.join(self._data_path, 'data_to_json', 'TestClassFile.json')):
+            remove(path.join(self._data_path, 'data_to_json', 'TestClassFile.json'))
+        if path.isfile(path.join(self._data_path, 'data_to_json', 'TestClassReference.json')):
+            remove(path.join(self._data_path, 'data_to_json', 'TestClassReference.json'))
         if path.isfile(path.join(self._data_path, 'add_object', 'TestClass1.json')):
             remove(path.join(self._data_path, 'add_object', 'TestClass1.json'))
         if path.isfile(path.join(self._data_path, 'add_object', 'TestClass2.json')):
@@ -257,7 +257,7 @@ class TestJsonDatabase(TestCase):
             'att_float': float,
             'att_tuple': tuple[int, str],
             'att_list': list[str],
-            'att_dict': dict[int, str],
+            'att_dict': dict,
             'att_set': set[int]
         }),
                        TestClassFolder: ('folder', 'job_id', int,
@@ -412,7 +412,7 @@ class TestJsonDatabase(TestCase):
         self.assertDictEqual(self._db._data_obj, dict_do)
         self.assertDictEqual(self._db._data_id, dict_di)
         self.assertDictEqual(self._db._json_data, dict_jd)
-        # add object with filled reference field but with an unknown object -> test call add @ _serialize_helper
+        # add object with filled reference field but with an unknown object -> test call add @ _data_to_json
         self._db.add_object(tc2_3)
         dict_do[TestClass1][id(tc1_3)] = 'three'
         dict_di[TestClass1]['three'] = tc1_3
@@ -495,7 +495,7 @@ class TestJsonDatabase(TestCase):
         res = self._db._data_to_json({1: 'one', 'two': 2, 3.14: 'float'})
         self.assertDictEqual({1: 'one', 'two': 2, 3.14: 'float'}, res)
         res = self._db._data_to_json({'list': [1, 2, 3], 'tuple': (1, 2, 3), 'set': {1, 2, 3},
-                                          'dict': {1: 'one', 'two': 2, 3.14: 'float'}})
+                                     'dict': {1: 'one', 'two': 2, 3.14: 'float'}})
         self.assertDictEqual({'list': [1, 2, 3], 'tuple': [1, 2, 3], 'set': [1, 2, 3],
                              'dict': {1: 'one', 'two': 2, 3.14: 'float'}}, res)
         tmp_1 = TestClassFieldType(att_bool=True, att_str='Hello', att_int=42, att_float=3.14)
@@ -538,7 +538,7 @@ class TestJsonDatabase(TestCase):
         res = is_serializable(list[DatabaseTable])
         self.assertFalse(res[0])
         self.assertEqual(res[1], '<class \'json_db_connector.json_db.DatabaseTable\'>')
-        res = is_serializable(dict[int, str])
+        res = is_serializable(dict)
         self.assertTrue(res[0])
         self.assertEqual(res[1], '')
         res = is_serializable(set[int])

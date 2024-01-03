@@ -10,7 +10,7 @@ from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField, 
 @DatabaseField('att_float', float)
 @DatabaseField('att_tuple', tuple[int, str])
 @DatabaseField('att_list', list[str])
-@DatabaseField('att_dict', dict[int, str])
+@DatabaseField('att_dict', dict)
 @DatabaseField('att_set', set[int])
 @dataclass()
 class TestClassFile:
