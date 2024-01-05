@@ -92,10 +92,16 @@ RECTANGLES_JSON = '{\n' \
                   '        },\n' \
                   '        "position": {\n' \
                   '            "type": "dict",\n' \
-                  '            "data": {\n' \
-                  '                "x": 0,\n' \
-                  '                "y": 0\n' \
-                  '            }\n' \
+                  '            "data": [\n' \
+                  '                {\n' \
+                  '                    "key": "x",\n' \
+                  '                    "value": 0\n' \
+                  '                },\n' \
+                  '                {\n' \
+                  '                    "key": "y",\n' \
+                  '                    "value": 0\n' \
+                  '                }\n' \
+                  '            ]\n' \
                   '        },\n' \
                   '        "visible": true\n' \
                   '    },\n' \
@@ -116,10 +122,16 @@ RECTANGLES_JSON = '{\n' \
                   '        },\n' \
                   '        "position": {\n' \
                   '            "type": "dict",\n' \
-                  '            "data": {\n' \
-                  '                "x": 1,\n' \
-                  '                "y": 1\n' \
-                  '            }\n' \
+                  '            "data": [\n' \
+                  '                {\n' \
+                  '                    "key": "x",\n' \
+                  '                    "value": 1\n' \
+                  '                },\n' \
+                  '                {\n' \
+                  '                    "key": "y",\n' \
+                  '                    "value": 1\n' \
+                  '                }\n' \
+                  '            ]\n' \
                   '        },\n' \
                   '        "visible": false\n' \
                   '    },\n' \
@@ -127,10 +139,16 @@ RECTANGLES_JSON = '{\n' \
                   '        "color": null,\n' \
                   '        "position": {\n' \
                   '            "type": "dict",\n' \
-                  '            "data": {\n' \
-                  '                "x": 2,\n' \
-                  '                "y": 2\n' \
-                  '            }\n' \
+                  '            "data": [\n' \
+                  '                {\n' \
+                  '                    "key": "x",\n' \
+                  '                    "value": 2\n' \
+                  '                },\n' \
+                  '                {\n' \
+                  '                    "key": "y",\n' \
+                  '                    "value": 2\n' \
+                  '                }\n' \
+                  '            ]\n' \
                   '        },\n' \
                   '        "visible": true\n' \
                   '    }\n' \
