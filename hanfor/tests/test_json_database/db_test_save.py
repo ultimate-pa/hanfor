@@ -35,6 +35,14 @@ class TestSzene:
     rectangles: list[TestRectangle]
 
 
+@DatabaseTable(file=True)
+@DatabaseID(use_uuid=True)
+@DatabaseField('att_str', str)
+@dataclass()
+class TestUUID:
+    att_str: str
+
+
 SZENE0_JSON = '{\n' \
               '    "rectangles": {\n' \
               '        "type": "list",\n' \
@@ -153,3 +161,18 @@ RECTANGLES_JSON = '{\n' \
                   '        "visible": true\n' \
                   '    }\n' \
                   '}'
+
+UUID1_JSON = '{\n' \
+             '    "%s": {\n' \
+             '        "att_str": "one"\n' \
+             '    }\n' \
+             '}'
+
+UUID2_JSON = '{\n' \
+             '    "%s": {\n' \
+             '        "att_str": "one"\n' \
+             '    },\n' \
+             '    "%s": {\n' \
+             '        "att_str": "two"\n' \
+             '    }\n' \
+             '}'

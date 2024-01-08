@@ -52,6 +52,8 @@ class TestJsonDatabase(TestCase):
             rmdir(path.join(self._data_path, 'save', 'TestSzene'))
         if path.isfile(path.join(self._data_path, 'save', 'TestRectangle.json')):
             remove(path.join(self._data_path, 'save', 'TestRectangle.json'))
+        if path.isfile(path.join(self._data_path, 'save', 'TestUUID.json')):
+            remove(path.join(self._data_path, 'save', 'TestUUID.json'))
         if path.isdir(path.join(self._data_path, 'save')):
             rmdir(path.join(self._data_path, 'save'))
 
@@ -509,7 +511,7 @@ class TestJsonDatabase(TestCase):
 
     def test_json_db_save(self):
         from test_json_database.db_test_save import TestColor, TestRectangle, TestSzene, SZENE1_JSON, SZENE0_JSON, \
-            RECTANGLES_JSON
+            RECTANGLES_JSON, TestUUID, UUID1_JSON, UUID2_JSON
         blue = TestColor('blue', (0., 0., 1.))
         green = TestColor('green', (0., 1., 0.))
         rect0 = TestRectangle('rect0', True, {'x': 0, 'y': 0}, green)
@@ -517,6 +519,8 @@ class TestJsonDatabase(TestCase):
         rect2 = TestRectangle('rect2', True, {'x': 2, 'y': 2}, None)
         szene0 = TestSzene(0, {'zero'}, [rect0, rect1, rect2])
         szene1 = TestSzene(1, {'one'}, [])
+        uuid1 = TestUUID('one')
+        uuid2 = TestUUID('two')
         self._db.init_tables(path.join(self._data_path, 'save'))
         self._db.add_object(szene1)
         with open(path.join(self._data_path, 'save', 'TestSzene', '1.json')) as tmp:
@@ -535,9 +539,18 @@ class TestJsonDatabase(TestCase):
         with open(path.join(self._data_path, 'save', 'TestRectangle.json')) as tmp:
             data_rectangles = tmp.read()
         self.assertEqual(RECTANGLES_JSON, data_rectangles)
+        self._db.add_object(uuid1)
+        with open(path.join(self._data_path, 'save', 'TestUUID.json')) as tmp:
+            data_uuid = tmp.read()
+        self.assertEqual(UUID1_JSON % self._db._data_obj[TestUUID][id(uuid1)], data_uuid)
+        self._db.add_object(uuid2)
+        with open(path.join(self._data_path, 'save', 'TestUUID.json')) as tmp:
+            data_uuid = tmp.read()
+        self.assertEqual(UUID2_JSON % (self._db._data_obj[TestUUID][id(uuid1)],
+                                       self._db._data_obj[TestUUID][id(uuid2)]), data_uuid)
 
     def test_json_db_load(self):
-        from test_json_database.db_test_load import TestClassFieldType, TestClassFile, TestClassFolder
+        from test_json_database.db_test_load import TestClassFieldType, TestClassFile, TestClassFolder, TestUUID
         tft0 = TestClassFieldType(False, 'false', 0, 0.0)
         tft1 = TestClassFieldType(True, 'true', 1, 1.0)
         self._db.init_tables(path.join(self._data_path, 'load'))
@@ -557,6 +570,10 @@ class TestJsonDatabase(TestCase):
                          self._db._data_id[TestClassFolder][200])
         self.assertEqual(TestClassFolder(300, [self._db._data_id[TestClassFile]['job0']]),
                          self._db._data_id[TestClassFolder][300])
+        self.assertEqual(TestUUID("one"),
+                         self._db._data_id[TestUUID]['cad3bea2-36d0-4119-ba42-fa7fc1192582'])
+        self.assertEqual(TestUUID("two"),
+                         self._db._data_id[TestUUID]['55f0895b-8861-4af6-b20a-415f58a7839c'])
 
     def test_json_db_data_to_json(self):
         from test_json_database.db_test_data_to_json import TestClassFieldType, TestClassReference

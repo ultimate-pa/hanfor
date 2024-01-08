@@ -36,3 +36,10 @@ class TestClassFolder:
     job_id: int
     att_list: list[TestClassFile]
 
+
+@DatabaseTable(file=True)
+@DatabaseID(use_uuid=True)
+@DatabaseField('att_str', str)
+@dataclass()
+class TestUUID:
+    att_str: str
