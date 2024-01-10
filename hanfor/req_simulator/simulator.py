@@ -2,19 +2,18 @@ from __future__ import annotations
 
 import math
 from collections import defaultdict
-from copy import copy, deepcopy
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import Tuple
 
 from pysmt.fnode import FNode
 from pysmt.rewritings import conjunctive_partition
-from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, get_model, is_sat, is_unsat, FALSE, get_unsat_core, \
-    Iff, Not, TRUE, is_valid, LT, LE, Solver, Or, Implies
+from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, get_model, is_sat, FALSE, get_unsat_core, \
+    Not, TRUE, is_valid, Solver, Or, Implies, is_unsat
 from pysmt.typing import REAL, BOOL
-from z3 import Tactic, Then, With
+from z3 import Tactic
 
 from lib_pea.config import SOLVER_NAME, LOGIC
-from lib_pea.countertrace import Countertrace # added by abby, is this ok?
 from lib_pea.countertrace_to_pea import complete, simplify_with_z3
 from lib_pea.location import PhaseSetsLocation
 from lib_pea.pea import PhaseSetsPea
@@ -523,23 +522,42 @@ class Simulator:
         current_phases = self.current_phases[-1]
 
         # ---------------------------------------------------------------------------------------------
+        # TODO: name things better
         def check_variable_on_transition(var_name, var_value, source, trans, var_info):
             """Checks for which valuations a given variable can take a given transition.
+            ----------update description and name!
             """
             def sat_check(check_against, edge, t_clocks):
                 """ Performs the transition sat check for a given variable valuation.
                 """
-                print(check_against, edge.guard, edge.dst.state_invariant,
-                      edge.dst.clock_invariant, self.build_clocks_assertion(t_clocks))
                 if is_sat(And(check_against, edge.guard, edge.dst.state_invariant,
-                              edge.dst.clock_invariant, self.build_clocks_assertion(t_clocks)),
-                          solver_name=SOLVER_NAME, logic=LOGIC):
+                              edge.dst.clock_invariant, self.build_clocks_assertion(t_clocks),
+                              And(i for i in constraints)), solver_name=SOLVER_NAME, logic=LOGIC):
                     if edge.dst.clock_invariant.is_lt() and not lt_check():
                         return False
                     else:
                         return True
                 else:
                     return False
+
+            '''
+            def step_sat_check(check_against, edges, t_clocks):
+                """ Performs the transition sat check for all enabled edges for a given variable valuation.
+                """
+                transition_info = []
+                for edge in edges:
+                    # doesn't check against transitions into "<"-clock states
+                    if not (edge.dst.clock_invariant.is_lt() and not lt_check()):
+                        transition_info.append(And(edge.guard, edge.dst.state_invariant, edge.dst.clock_invariant))
+                transition_or = Or(t for t in transition_info)
+                print(Not(Implies(check_against, (And(transition_or, self.build_clocks_assertion(t_clocks))))))
+                if is_sat(Not(Implies(check_against, (And(transition_or, self.build_clocks_assertion(t_clocks))))),
+                              solver_name=SOLVER_NAME, logic=LOGIC):
+                    print("assignment exists so that inversion is satisfied:", check_against,
+                          "implies", (And(transition_or, self.build_clocks_assertion(t_clocks))))
+                return is_sat(Not(Implies(check_against, (And(transition_or, self.build_clocks_assertion(t_clocks))))),
+                              solver_name=SOLVER_NAME, logic=LOGIC)
+            
 
             def step_sat_check(check_against, edges, t_clocks):
                 """ Performs the transition sat check for all enabled edges for a given variable valuation.
@@ -550,9 +568,35 @@ class Simulator:
                     if not (edge.dst.clock_invariant.is_lt() and not lt_check()):
                         transition_info.append(And(edge.guard, edge.dst.state_invariant, edge.dst.clock_invariant))
                 transition_or = Or(t for t in transition_info)
-                print("sat check", check_against, transition_or, self.build_clocks_assertion(t_clocks))
-                return is_sat(Not(Implies(check_against, (And(transition_or, self.build_clocks_assertion(t_clocks))))),
-                              solver_name=SOLVER_NAME, logic=LOGIC)
+                if is_sat((And(transition_or, self.build_clocks_assertion(t_clocks))),
+                          solver_name=SOLVER_NAME, logic=LOGIC) \
+                    and is_unsat(And(check_against, And(i for i in constraints), transition_or,
+                                     self.build_clocks_assertion(t_clocks)),
+                                 solver_name=SOLVER_NAME, logic=LOGIC):
+                    return True
+                else:
+                    return False
+                '''
+
+            def step_sat_check(check_against, edges, t_clocks):
+                """ Performs the transition sat check for all enabled edges for a given variable valuation.
+                """
+                transition_info = []
+                for edge in edges:
+                    # doesn't check against transitions into "<"-clock states
+                    if not (edge.dst.clock_invariant.is_lt() and not lt_check()):
+                        temp_c = deepcopy(t_clocks)
+                        for to_reset in edge.resets:
+                            temp_c[to_reset] = 0.0
+                        transition_info.append(And(edge.guard, edge.dst.state_invariant, edge.dst.clock_invariant,
+                                                   self.build_clocks_assertion(temp_c)))
+                transition_or = Or(t for t in transition_info)
+                if is_sat(transition_or, solver_name=SOLVER_NAME, logic=LOGIC) \
+                        and is_unsat(And(check_against, And(i for i in constraints), transition_or),
+                                     solver_name=SOLVER_NAME, logic=LOGIC):
+                    return True
+                else:
+                    return False
 
             def lt_check():
                 """ Updates clocks by a full time step and checks if they satisfy the current state's invariant.
@@ -568,8 +612,7 @@ class Simulator:
                 return next_clock_check == TRUE()
 
             def formula_checker(f, v, v_info):
-                """ Checks validity of each sub-formula containing transition restrictions.
-                    Saves sub-formula containing the given variable that lead to invalidity.
+                """ Saves non-valid sub-formula containing only the given variable in variable_info list.
                 """
                 if is_valid(f, solver_name=SOLVER_NAME, logic=LOGIC):
                     return v_info
@@ -582,12 +625,10 @@ class Simulator:
                             if f.is_and():
                                 v_info[v][0] = simplify_with_z3(f.substitute({sub_f: TRUE()}))
                                 formula_checker(f.substitute({sub_f: TRUE()}), v, v_info)
-                                # print(f.substitute({sub_f: TRUE()}))
                             if f.is_or():
                                 v_info[v][0] = simplify_with_z3(f.substitute({sub_f: FALSE()}))
                                 formula_checker(f.substitute({sub_f: FALSE()}), v, v_info)
-                                # print(f.substitute({sub_f: FALSE()}))
-                            # TODO: how to handle implies and iff? does simplify get rid of them?
+                            # TODO: how to handle implies and iff? does simplifying get rid of them?
 
                         elif v in sub_f.get_free_variables() and len(sub_f.args()) > 0 and not sub_f.is_not():
                             formula_checker(sub_f, v, v_info)
@@ -599,117 +640,137 @@ class Simulator:
             for clock in trans.resets:
                 temp_clocks[clock] = 0.0
 
-            # check for either possible valuation of bool var along with updated clocks satisfy both the transition
-            # guard and the next state's invariant
             if var_name.get_type() is BOOL:
                 if sat_check(EqualsOrIff(var_name, TRUE()), trans, temp_clocks):
                     var_info[var_name][0] = True
-                print(var_info)
                 if sat_check(EqualsOrIff(var_name, FALSE()), trans, temp_clocks):
                     var_info[var_name][1] = True
-                print(var_info)
 
-            # check for int/real/enum
-
-            # What exactly is the definition of restricted?
-            # Possible restrictions are collected on each transition. If the collected formula isn't valid on the
-            #   transition, it's added to the set of possible constraints.
-            # But when is this restriction a constraint? Variable valuations contradicting the formula could
-            #   satisfy other transitions from the current location.
-            # A formula could belong in the final set of constraints if not all valuations of its complement
-            #   satisfy a transition from the current location
-
+            # check for ints/reals/enums
             else:
-                # TODO: check weird clocks here too
                 # rewrite union of transition guard and invariant into negation normal form
                 solver = Solver(name="z3")
                 tactic = Tactic("nnf")
                 z3_f = solver.converter.convert(simplify_with_z3(And(trans.guard, trans.dst.state_invariant)))
                 z3_f = tactic(z3_f).as_expr()
                 f_simplified = solver.converter.back(z3_f)
-                # print("with nnf after cpt function:", f_simplified)
 
-                # variable_info for non bools: {var : [saves last transition restriction,
-                #                               saves if var is unrestricted on a transition,
-                #                               {set of restrictions on different transitions}]}
-
-                # check validity of each part against transition
-                print("check if trans can be taken")
                 if var in f_simplified.get_free_variables() and sat_check(f_simplified, trans, temp_clocks):
-                    print("transition can be taken")
                     if is_valid(f_simplified, solver_name=SOLVER_NAME, logic=LOGIC):
                         var_info[var_name][1] = True
-                        print("was valid:", f_simplified)
                         var_info[var_name][2].clear()
                     # if transition isn't valid, check for restrictions
                     if var_info[var_name][1] is not True:
                         formula_checker(f_simplified, var, var_info)
-                        print("var_info after formula checker:", var_info)
-                        # check based on definition of "restricted"
+                        # check based on definition of restricted
                         if var_info[var_name][0] is not False:
                             if step_sat_check(Not(var_info[var_name][0]), source, temp_clocks):
-                                var_info[var][2].add(var_info[var_name][0])
-                                print("end var_info:", var_info)
+                                var_info[var][2 if check_type == 0 else check_type + 3].add(var_info[var_name][0])
+                                for n in constraints:
+                                    if not EqualsOrIff(n, var_info[var_name][0]):
+                                        constraint_implications.add(var_info[var_name][0])
                         var_info[var_name][0] = False
-                # print("end var_info:", var_info)
 
             return var_info
         # ---------------------------------------------------------------------------------------------
 
-        # variable name : [can var remain the same?, can var be different, [range var is restricted to]]
         variable_info = dict()
         for var in self.models:
-            variable_info[var] = [None, None, set()]
-        # holds restriction information for each pea
-        current_phases_iterator = 0
+            variable_info[var] = [None, None, set(), set(), set(), set()]
+            if self.variables[var][-1] is not None:
+                variable_info[var][3].add(EqualsOrIff(var, self.variables[var][-1]))
+                variable_info[var][5].add(EqualsOrIff(var, self.variables[var][-1]))
+        constraints = set()
+        constraint_implications = set()
+        check_type = 0
 
-        for pea in self.peas:
-            # reset variable info for next pea check
-            for var in self.models:
-                variable_info[var][0] = None if var.get_type() is BOOL else False
-                variable_info[var][1] = None if var.get_type() is BOOL else False
-            for transition in pea.transitions:
-                # if "variable constraints" button is clicked before anything or the pea have already been entered
-                edges_to_check = []
-                if current_phases[current_phases_iterator] is None:
-                    for enabled in pea.transitions[transition]:
-                        # was this necessary?
-                        if enabled.src is None:
-                            edges_to_check.append(enabled)
+        # do whole check three times, once to get initial constraints, once to find implicated constraints, and once
+        # for implicated constraints (including user input)
+        for x in range(0, 3):
+            propagation_done = 0
+            if check_type >= 1:
+                for var in variable_info:
+                    for constraint in variable_info[var][2]:
+                        constraints.add(constraint)
+                    if check_type == 2:
+                        for user_input in variable_info[var][3]:
+                            constraints.add(user_input)
+            while not propagation_done:
+                propagation_done = 1
+                for c in constraint_implications:
+                    constraints.add(c)
+                current_phases_iterator = 0
+                for pea in self.peas:
+                    # reset variable info for next pea check
+                    for var in self.models:
+                        variable_info[var][0] = None if var.get_type() is BOOL else False
+                        variable_info[var][1] = None if var.get_type() is BOOL else False
+                    for transition in pea.transitions:
+                        # if "variable constraints" button is clicked before anything
+                        # or the pea have already been entered
+                        edges_to_check = []
+                        if current_phases[current_phases_iterator] is None:
+                            for enabled in pea.transitions[transition]:
+                                # was this necessary?
+                                if enabled.src is None:
+                                    edges_to_check.append(enabled)
+                        else:
+                            if transition is not None and transition.label == current_phases[current_phases_iterator].label:
+                                for enabled in pea.transitions[transition]:
+                                    edges_to_check.append(enabled)
+                        for var in pea.countertrace.extract_variables():
+                            for enabled in edges_to_check:
+                                variable_info = check_variable_on_transition(var, self.models[var][-1], edges_to_check,
+                                                                             enabled, variable_info)
+
+                    current_phases_iterator += 1
+
+                    # check for each pea what each variable must be if there are restrictions
+                    # TODO: return readable reals
+                    for var in pea.countertrace.extract_variables():
+                        if var.get_type() is BOOL:
+                            if not (variable_info[var][0] and variable_info[var][1]):
+                                if not variable_info[var][0]:
+                                    variable_info[var][2 if check_type == 0 else check_type + 3].add(EqualsOrIff(var, FALSE()))
+                                    for c in constraints:
+                                        if not EqualsOrIff(c, EqualsOrIff(var, FALSE())):
+                                            constraint_implications.add(EqualsOrIff(var, FALSE()))
+                                if not variable_info[var][1]:
+                                    variable_info[var][2 if check_type == 0 else check_type + 3].add(EqualsOrIff(var, TRUE()))
+                                    for c in constraints:
+                                        if not EqualsOrIff(c, EqualsOrIff(var, TRUE())):
+                                            constraint_implications.add(EqualsOrIff(var, TRUE()))
+
+                        else:
+                            if variable_info[var][1] is True:
+                                variable_info[var][2].clear()
+                            else:
+                                if is_valid(Or(c for c in variable_info[var][2]), solver_name=SOLVER_NAME, logic=LOGIC):
+                                    variable_info[var][2].clear()
+
+                if not check_type == 0 and not constraint_implications == set():
+                    propagation_done = 0
+
+                constraint_implications = set()
+
+            check_type += 1
+
+        # TODO: simplify returned constraints
+        # TODO: clean up print statements
+        for x in {2, 3, 4, 5}:
+            if x == 2:
+                print("Naive constraints:")
+            # print both user input and naive implications
+            if x == 3:
+                print("Naive constraints including user input:")
+            if x == 4:
+                print("Implicated constraints:")
+            if x == 5:
+                print("Implicated constraints including user input:")
+            for var in variable_info:
+                if len(variable_info[var][x]) > 0:
+                    print(var, "must have the value(s)", end=" ")
+                    print(*variable_info[var][x], sep=" and ", end=" ")
+                    print("at time", self.times[-1])
                 else:
-                    if transition is not None and transition.label == current_phases[current_phases_iterator].label:
-                        for enabled in pea.transitions[transition]:
-                            edges_to_check.append(enabled)
-                for var in pea.countertrace.extract_variables():
-                    for enabled in edges_to_check:
-                        variable_info = check_variable_on_transition(var, self.models[var][-1], edges_to_check, enabled,
-                                                                     variable_info)
-
-            current_phases_iterator += 1
-
-            # check for each pea what each variable must be if there are restrictions
-            # TODO: return readable reals
-            for var in pea.countertrace.extract_variables():
-                if var.get_type() is BOOL:
-                    if not (variable_info[var][0] and variable_info[var][1]):
-                        if not variable_info[var][0]:
-                            variable_info[var][2].add(False)
-                        if not variable_info[var][1]:
-                            variable_info[var][2].add(True)
-
-                else:
-                    if variable_info[var][1] is True:
-                        variable_info[var][2].clear()
-                    else:
-                        if is_valid(Or(c for c in variable_info[var][2]), solver_name=SOLVER_NAME, logic=LOGIC):
-                            variable_info[var][2].clear()
-
-        # TODO: simplify returns constraints
-        for var in variable_info:
-            if len(variable_info[var][2]) > 0:
-                # TODO: come up with better output for non-bools
-                print(var, "must have the value(s)", end=" ")
-                print(*variable_info[var][2], sep=" and " if var.get_type() is BOOL else " or ", end=" ")
-                print("at time", self.times[-1])
-            else:
-                print("No restrictions on", var, "at time", self.times[-1])
+                    print(f'No restrictions on {var} at time {self.times[-1]}')
