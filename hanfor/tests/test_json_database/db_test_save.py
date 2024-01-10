@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField, DatabaseFieldType
+from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField, DatabaseFieldType, TableType
 
 
 @DatabaseFieldType()
@@ -11,7 +11,7 @@ class TestColor:
     rgb: tuple[float, float, float]
 
 
-@DatabaseTable(file=True)
+@DatabaseTable(TableType.File)
 @DatabaseID('name', str)
 @DatabaseField('visible', bool)
 @DatabaseField('position', dict)
@@ -24,7 +24,7 @@ class TestRectangle:
     color: TestColor | None
 
 
-@DatabaseTable(folder=True)
+@DatabaseTable(TableType.Folder)
 @DatabaseID('szene_id', int)
 @DatabaseField('keywords', set[str])
 @DatabaseField('rectangles', list[TestRectangle])
@@ -35,7 +35,7 @@ class TestSzene:
     rectangles: list[TestRectangle]
 
 
-@DatabaseTable(file=True)
+@DatabaseTable(TableType.File)
 @DatabaseID(use_uuid=True)
 @DatabaseField('att_str', str)
 @dataclass()

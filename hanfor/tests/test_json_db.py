@@ -1,6 +1,6 @@
 from unittest import TestCase
 from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField, DatabaseFieldType, JsonDatabase, \
-    is_serializable
+    is_serializable, TableType
 from uuid import UUID
 from os import path, rmdir, remove
 from dataclasses import dataclass
@@ -94,19 +94,11 @@ class TestJsonDatabase(TestCase):
                          '\'test_json_database.db_test_table_decorator_without_arguments.TestClass\'>',
                          str(em.exception))
 
-        # test table definition with file and folder argument
-        with self.assertRaises(Exception) as em:
-            from test_json_database.db_test_table_decorator_with_file_and_folder_argument import TestClass
-            _ = TestClass
-        self.assertEqual('DatabaseTable must be set to file or folder: <class '
-                         '\'test_json_database.db_test_table_decorator_with_file_and_folder_argument.TestClass\'>',
-                         str(em.exception))
-
         # test well-formed definition for file and folder
         from test_json_database.db_test_table_decorator_simple import TestClassFile, TestClassFolder
         _ = TestClassFile
         _ = TestClassFolder
-        classes_dict: dict[type, str] = {TestClassFile: 'file', TestClassFolder: 'folder'}
+        classes_dict: dict[type, str] = {TestClassFile: TableType.File, TestClassFolder: TableType.Folder}
         self.assertDictEqual(DatabaseTable.registry, classes_dict)
 
         # test duplicated name of table
@@ -286,7 +278,7 @@ class TestJsonDatabase(TestCase):
         _ = TestClassFolder
         _ = TestClassFieldType
         self._db.init_tables(path.join(self._data_path, 'init_tables_ok'))
-        tables_dict = {TestClassFile: ('file', 'job_id', str, {
+        tables_dict = {TestClassFile: (TableType.File, 'job_id', str, {
             'att_bool': (bool, None),
             'att_str': (str, None),
             'att_int': (int, None),
@@ -296,7 +288,7 @@ class TestJsonDatabase(TestCase):
             'att_dict': (dict, None),
             'att_set': (set[int], None)
         }),
-                       TestClassFolder: ('folder', 'job_id', int,
+                       TestClassFolder: (TableType.Folder, 'job_id', int,
                                          {'att_bool': (bool, True),
                                           'att_str': (str, 'default'),
                                           'att_int': (int, 42),

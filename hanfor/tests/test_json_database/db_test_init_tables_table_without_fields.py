@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField
+from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField, TableType
 
 
-@DatabaseTable(file=True)
+@DatabaseTable(TableType.File)
 @DatabaseID('job_id', str)
 @DatabaseField('att_bool', bool)
 @DatabaseField('att_str', str)
@@ -15,7 +15,7 @@ class TestClass:
     att_int: int
 
 
-@DatabaseTable(file=True)
+@DatabaseTable(TableType.File)
 @DatabaseID('job_id', str)
 @dataclass()
 class TestClassWithoutFields:

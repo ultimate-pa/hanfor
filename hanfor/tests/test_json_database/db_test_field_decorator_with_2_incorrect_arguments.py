@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from json_db_connector.json_db import DatabaseField
 
 
-@DatabaseField('job_id', 'str')
+@DatabaseField('job_id', 'str')  # noqa
 @dataclass()
 class TestClass:
     job_id: str

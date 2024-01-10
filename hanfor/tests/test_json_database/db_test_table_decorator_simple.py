@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from json_db_connector.json_db import DatabaseTable
+from json_db_connector.json_db import DatabaseTable, TableType
 
 
-@DatabaseTable(file=True)
+@DatabaseTable(TableType.File)
 @dataclass()
 class TestClassFile:
     job_id: str
@@ -16,7 +16,7 @@ class TestClassFile:
     att_set: set[int]
 
 
-@DatabaseTable(folder=True)
+@DatabaseTable(TableType.Folder)
 @dataclass()
 class TestClassFolder:
     job_id: int

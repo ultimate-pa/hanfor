@@ -6,27 +6,33 @@ from uuid import UUID, uuid4
 from os import path, mkdir
 from static_utils import get_filenames_from_dir
 from copy import deepcopy
+from enum import Enum
 
 T = TypeVar('T')
 
 
-class DatabaseTable:
-    registry: dict[type, str] = {}
+class TableType(Enum):
+    File = 'file'
+    Folder = 'folder'
+    NotSet = None
 
-    def __init__(self, cls: type = None, folder: bool = False, file: bool = False):
-        self._folder: bool = folder
-        self.file: bool = file
-        if cls:
-            raise Exception(f"DatabaseTable must be set to file or folder: {cls}")
+
+class DatabaseTable:
+    registry: dict[type, TableType] = {}
+
+    def __init__(self, table_type: TableType = TableType.NotSet):
+        self._table_type: TableType = table_type
+        if inspect.isclass(table_type):
+            raise Exception(f"DatabaseTable must be set to file or folder: {table_type}")
 
     def __call__(self, cls: type):
-        if self._folder == self.file:
+        if self._table_type == TableType.NotSet:
             # empty brackets
             raise Exception(f"DatabaseTable must be set to file or folder: {cls}")
         # check if class with name exists already
         if cls.__name__ in [c.__name__ for c in self.registry]:
             raise Exception(f"DatabaseTable with name {cls.__name__} already exists.")
-        self.registry[cls] = 'folder' if self._folder else 'file'
+        self.registry[cls] = self._table_type
         return cls
 
 
@@ -126,7 +132,7 @@ class JsonDatabase:
     def __init__(self) -> None:
         self._data_folder: str = ''
         # class: (table_type, id_field, id_type, dict of fields(field_name, (type, default)))
-        self._tables: dict[Type[T], tuple[str, str, type, dict[str, tuple[any, any]]]] = {}
+        self._tables: dict[Type[T], tuple[TableType, str, type, dict[str, tuple[any, any]]]] = {}
         # class: (dict of fields(field_name, (type, default)))
         self._field_types: dict[Type[T], dict[str, tuple[any, any]]] = {}
         # class: dict of objects(id, data))
@@ -204,13 +210,13 @@ class JsonDatabase:
 
         # create folders and files is not exist
         for cls, (table_type, _, _, _) in self._tables.items():
-            if table_type == 'file':
+            if table_type == TableType.File:
                 table_file = path.join(self._data_folder, f"{cls.__name__}.json")
                 if not path.isfile(table_file):
                     file = open(table_file, 'w')
                     file.write("{}")
                     file.close()
-            elif table_type == 'folder':
+            elif table_type == TableType.Folder:
                 table_folder = path.join(self._data_folder, cls.__name__)
                 if not path.isdir(table_folder):
                     mkdir(table_folder)
@@ -284,11 +290,11 @@ class JsonDatabase:
 
     def __save_data(self) -> None:
         for cls, (table_type, _, _, _) in self._tables.items():
-            if table_type == 'file':
+            if table_type == TableType.File:
                 table_file = path.join(self._data_folder, f"{cls.__name__}.json")
                 with open(table_file, 'w') as json_file:
                     json.dump(self._json_data[cls], json_file, indent=4)
-            elif table_type == 'folder':
+            elif table_type == TableType.Folder:
                 table_folder = path.join(self._data_folder, cls.__name__)
                 for obj_id, obj_data in self._json_data[cls].items():
                     file_name = path.join(table_folder, f"{obj_id}.json")
@@ -298,7 +304,7 @@ class JsonDatabase:
     def __load_data(self) -> None:
         # load json data from files and create objects without data
         for cls, (table_type, id_field, id_type, _) in self._tables.items():
-            if table_type == 'file':
+            if table_type == TableType.File:
                 table_file = path.join(self._data_folder, f"{cls.__name__}.json")
                 with open(table_file, 'r') as json_file:
                     for obj_id, obj_data in json.load(json_file).items():
@@ -308,7 +314,7 @@ class JsonDatabase:
                         elif id_type in [str, UUID]:
                             self._json_data[cls][obj_id] = obj_data
                             self.__create_and_insert_object(cls, obj_id)
-            elif table_type == 'folder':
+            elif table_type == TableType.Folder:
                 table_folder = path.join(self._data_folder, cls.__name__)
                 for file_name in get_filenames_from_dir(table_folder):
                     with open(file_name, 'r') as json_file:
