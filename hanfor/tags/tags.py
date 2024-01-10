@@ -80,9 +80,10 @@ class TagsApi(MethodView):
         self.meta_settings['tag_descriptions'] = {t.name: t.description for _, t in self.__available_tags.items()}
         self.meta_settings.update_storage()
 
-    def add_if_new(self, tag_name: str) -> None:
+    def add_if_new(self, tag_name: str, tag_color: str = Color.BS_INFO.value, tag_internal: bool = False,
+            tag_description: str = '') -> None:
         if tag_name not in self.__available_tags:
-            self.add(tag_name)
+            self.add(tag_name, tag_color, tag_internal, tag_description)
 
     def add(self, tag_name: str, tag_color: str = Color.BS_INFO.value, tag_internal: bool = False,
             tag_description: str = '') -> None:

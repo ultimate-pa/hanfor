@@ -152,9 +152,7 @@ def calculate_req_id_occurrence(requirement_file: str, selected_requirements: li
 
 def check_ultimate_tag_is_available() -> None:
     tags_api = TagsApi()
-    if tags_api.get('Ultimate_raw_data') == {}:
-        # ultimate_raw_data tag is not available
-        tags_api.add('Ultimate_raw_data', Color.BS_GRAY.value, False, '')
+    tags_api.add_if_new('Ultimate_raw_data', Color.BS_GRAY.value, False, '')
 
 
 def get_all_requirement_ids() -> list[str]:
