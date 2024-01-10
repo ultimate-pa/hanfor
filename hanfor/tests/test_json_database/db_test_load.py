@@ -3,10 +3,10 @@ from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField, 
 
 
 @DatabaseFieldType()
-@DatabaseField('att_bool', bool)
-@DatabaseField('att_str', str)
-@DatabaseField('att_int', int)
-@DatabaseField('att_float', float)
+@DatabaseField('att_bool', bool, True)
+@DatabaseField('att_str', str, 'default')
+@DatabaseField('att_int', int, 42)
+@DatabaseField('att_float', float, 3.14)
 @dataclass()
 class TestClassFieldType:
     att_bool: bool
@@ -17,9 +17,9 @@ class TestClassFieldType:
 
 @DatabaseTable(file=True)
 @DatabaseID('job_id', str)
-@DatabaseField('att_tuple', tuple[int, int])
-@DatabaseField('att_dict', dict)
-@DatabaseField('att_set', set[int])
+@DatabaseField('att_tuple', tuple[int, int], (42, 42))
+@DatabaseField('att_dict', dict, {42: None})
+@DatabaseField('att_set', set[int], {42})
 @dataclass()
 class TestClassFile:
     job_id: str
@@ -30,7 +30,7 @@ class TestClassFile:
 
 @DatabaseTable(folder=True)
 @DatabaseID('job_id', int)
-@DatabaseField('att_list', list[TestClassFile])
+@DatabaseField('att_list', list[TestClassFile], [None])
 @dataclass()
 class TestClassFolder:
     job_id: int
@@ -39,7 +39,7 @@ class TestClassFolder:
 
 @DatabaseTable(file=True)
 @DatabaseID(use_uuid=True)
-@DatabaseField('att_str', str)
+@DatabaseField('att_str', str, 'default')
 @dataclass()
 class TestUUID:
     att_str: str

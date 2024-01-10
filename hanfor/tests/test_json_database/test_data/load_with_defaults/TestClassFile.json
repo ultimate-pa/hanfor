@@ -1,0 +1,28 @@
+{
+  "job0": {
+  },
+  "job1": {
+  },
+  "job2": {
+    "att_bool": false,
+    "att_str": "not default",
+    "att_int": 84,
+    "att_float": 2.71,
+    "att_ft" : {
+      "type": "TestClassFieldType",
+      "data": {
+      }
+    }
+  },
+  "job3": {
+    "att_bool": false,
+    "att_str": "not default",
+    "att_int": 84,
+    "att_float": 2.71,
+    "att_ft" : {
+      "type": "TestClassFieldType",
+      "data": {
+      }
+    }
+  }
+}

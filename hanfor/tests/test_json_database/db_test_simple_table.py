@@ -27,10 +27,10 @@ class TestClassFile:
 
 @DatabaseTable(folder=True)
 @DatabaseID('job_id', int)
-@DatabaseField('att_bool', bool)
-@DatabaseField('att_str', str)
-@DatabaseField('att_int', int)
-@DatabaseField('att_float', float)
+@DatabaseField('att_bool', bool, True)
+@DatabaseField('att_str', str, 'default')
+@DatabaseField('att_int', int, 42)
+@DatabaseField('att_float', float, 3.14)
 @DatabaseField('att_class_file', TestClassFile)
 @dataclass()
 class TestClassFolder:

@@ -8,7 +8,7 @@ from json_db_connector.json_db import DatabaseField
 @DatabaseField('att_float', float)
 @DatabaseField('att_tuple', tuple[int, str])
 @DatabaseField('att_list', list[str])
-@DatabaseField('att_dict', dict[int, str])
+@DatabaseField('att_dict', dict)
 @DatabaseField('att_set', set[int])
 @dataclass()
 class TestClassFile:
@@ -23,10 +23,10 @@ class TestClassFile:
     att_set: set[int]
 
 
-@DatabaseField('att_bool', bool)
-@DatabaseField('att_str', str)
-@DatabaseField('att_int', int)
-@DatabaseField('att_float', float)
+@DatabaseField('att_bool', bool, True)
+@DatabaseField('att_str', str, 'default')
+@DatabaseField('att_int', int, 42)
+@DatabaseField('att_float', float, 3.14)
 @DatabaseField('att_class_file', TestClassFile)
 @dataclass()
 class TestClassFolder:

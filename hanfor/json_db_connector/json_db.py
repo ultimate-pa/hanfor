@@ -5,6 +5,7 @@ from typing import get_origin, get_args, Type, TypeVar
 from uuid import UUID, uuid4
 from os import path, mkdir
 from static_utils import get_filenames_from_dir
+from copy import deepcopy
 
 T = TypeVar('T')
 
@@ -69,11 +70,12 @@ class DatabaseID:
 
 # noinspection DuplicatedCode
 class DatabaseField:
-    registry: dict[type, dict[str, any]] = {}
+    registry: dict[type, dict[str, tuple[any, any]]] = {}
 
-    def __init__(self, field: str = None, f_type: type = None):
+    def __init__(self, field: str = None, f_type: type = None, default: any = None):
         self._field = field
         self._type = f_type
+        self._default = default
         if field is None:
             # empty brackets
             return
@@ -96,7 +98,7 @@ class DatabaseField:
         # check if field of class with name exists already
         if self._field in self.registry[cls]:
             raise Exception(f"DatabaseField with name {self._field} already exists in class {cls}.")
-        self.registry[cls][self._field] = self._type
+        self.registry[cls][self._field] = self._type, self._default
         return cls
 
 
@@ -123,10 +125,10 @@ class JsonDatabase:
 
     def __init__(self) -> None:
         self._data_folder: str = ''
-        # class: (table_type, id_field, id_type, dict of fields(field_name, type))
-        self._tables: dict[Type[T], tuple[str, str, type, dict[str, any]]] = {}
-        # class: (dict of fields(field_name, type))
-        self._field_types: dict[Type[T], dict[str, any]] = {}
+        # class: (table_type, id_field, id_type, dict of fields(field_name, (type, default)))
+        self._tables: dict[Type[T], tuple[str, str, type, dict[str, tuple[any, any]]]] = {}
+        # class: (dict of fields(field_name, (type, default)))
+        self._field_types: dict[Type[T], dict[str, tuple[any, any]]] = {}
         # class: dict of objects(id, data))
         self._json_data: dict[Type[T], dict[str | int, any]] = {}
         # object storage
@@ -172,7 +174,7 @@ class JsonDatabase:
 
         # check if all used types are serializable
         for cls, field_dict in DatabaseField.registry.items():
-            for field, f_type in field_dict.items():
+            for field, (f_type, _) in field_dict.items():
                 res = is_serializable(f_type, list(tables.union(field_types)))
                 if not res[0]:
                     raise Exception(f"The following type of class {cls} is not serializable:\n{field}: {res[1]}")
@@ -182,8 +184,8 @@ class JsonDatabase:
             id_field = DatabaseID.registry[cls][0]
             id_type = DatabaseID.registry[cls][1]
             fields = {}
-            for f_name, f_type in DatabaseField.registry[cls].items():
-                fields[f_name] = f_type
+            for f_name, (f_type, f_default) in DatabaseField.registry[cls].items():
+                fields[f_name] = f_type, f_default
             self._tables[cls] = table_type, id_field, id_type, fields
             self._data_obj[cls] = {}
             self._data_id[cls] = {}
@@ -192,8 +194,8 @@ class JsonDatabase:
         # create field types
         for cls in DatabaseFieldType.registry:
             fields = {}
-            for f_name, f_type in DatabaseField.registry[cls].items():
-                fields[f_name] = f_type
+            for f_name, (f_type, f_default) in DatabaseField.registry[cls].items():
+                fields[f_name] = f_type, f_default
             self._field_types[cls] = fields
 
         # create database folder if not exist
@@ -337,7 +339,11 @@ class JsonDatabase:
             if field in obj_data:
                 setattr(obj, field, self._json_to_value(obj_data[field]))
             else:
-                setattr(obj, field, None)  # TODO insert default value?
+                # insert default value
+                if type(table_fields[field][1]) in [str, int, float, bool, tuple]:
+                    setattr(obj, field, table_fields[field][1])
+                else:
+                    setattr(obj, field, deepcopy(table_fields[field][1]))
 
     def _json_to_value(self, data: any) -> any:
         data_type = type(data)
@@ -374,7 +380,11 @@ class JsonDatabase:
                     if field in data['data']:
                         setattr(obj, field, self._json_to_value(data['data'][field]))
                     else:
-                        setattr(obj, field, None)  # TODO insert default value?
+                        # insert default value
+                        if type(fields[field][1]) in [str, int, float, bool, tuple]:
+                            setattr(obj, field, fields[field][1])
+                        else:
+                            setattr(obj, field, deepcopy(fields[field][1]))
                 return obj
             tmp = {k.__name__: k for k in self._tables}
             if data['type'] in tmp:

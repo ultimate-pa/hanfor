@@ -240,20 +240,20 @@ class TestJsonDatabase(TestCase):
         from test_json_database.db_test_field_decorator_simple import TestClassFile, TestClassFolder
         _ = TestClassFile
         _ = TestClassFolder
-        field_dict: dict[type, dict[str, any]] = {TestClassFile: {'att_bool': bool,
-                                                                  'att_str': str,
-                                                                  'att_int': int,
-                                                                  'att_float': float,
-                                                                  'att_tuple': tuple[int, str],
-                                                                  'att_list': list[str],
-                                                                  'att_dict': dict[int, str],
-                                                                  'att_set': set[int]
+        field_dict: dict[type, dict[str, any]] = {TestClassFile: {'att_bool': (bool, None),
+                                                                  'att_str': (str, None),
+                                                                  'att_int': (int, None),
+                                                                  'att_float': (float, None),
+                                                                  'att_tuple': (tuple[int, str], None),
+                                                                  'att_list': (list[str], None),
+                                                                  'att_dict': (dict, None),
+                                                                  'att_set': (set[int], None),
                                                                   },
-                                                  TestClassFolder: {'att_bool': bool,
-                                                                    'att_str': str,
-                                                                    'att_int': int,
-                                                                    'att_float': float,
-                                                                    'att_class_file': TestClassFile
+                                                  TestClassFolder: {'att_bool': (bool, True),
+                                                                    'att_str': (str, 'default'),
+                                                                    'att_int': (int, 42),
+                                                                    'att_float': (float, 3.14),
+                                                                    'att_class_file': (TestClassFile, None),
                                                                     }
                                                   }
         self.assertDictEqual(DatabaseField.registry, field_dict)
@@ -287,25 +287,25 @@ class TestJsonDatabase(TestCase):
         _ = TestClassFieldType
         self._db.init_tables(path.join(self._data_path, 'init_tables_ok'))
         tables_dict = {TestClassFile: ('file', 'job_id', str, {
-            'att_bool': bool,
-            'att_str': str,
-            'att_int': int,
-            'att_float': float,
-            'att_tuple': tuple[int, str],
-            'att_list': list[str],
-            'att_dict': dict,
-            'att_set': set[int]
+            'att_bool': (bool, None),
+            'att_str': (str, None),
+            'att_int': (int, None),
+            'att_float': (float, None),
+            'att_tuple': (tuple[int, str], None),
+            'att_list': (list[str], None),
+            'att_dict': (dict, None),
+            'att_set': (set[int], None)
         }),
                        TestClassFolder: ('folder', 'job_id', int,
-                                         {'att_bool': bool,
-                                          'att_str': str,
-                                          'att_int': int,
-                                          'att_float': float,
-                                          'att_class_file': TestClassFile
+                                         {'att_bool': (bool, True),
+                                          'att_str': (str, 'default'),
+                                          'att_int': (int, 42),
+                                          'att_float': (float, 3.14),
+                                          'att_class_file': (TestClassFile, None)
                                           })
                        }
         self.assertDictEqual(self._db._tables, tables_dict)
-        field_type_dict = {TestClassFieldType: {'job_id': str}}
+        field_type_dict = {TestClassFieldType: {'job_id': (str, None)}}
         self.assertDictEqual(self._db._field_types, field_type_dict)
         self.assertTrue(path.isdir(path.join(self._data_path, 'init_tables_ok', 'TestClassFolder')))
         self.assertTrue(path.isfile(path.join(self._data_path, 'init_tables_ok', 'TestClassFile.json')))
@@ -574,6 +574,51 @@ class TestJsonDatabase(TestCase):
                          self._db._data_id[TestUUID]['cad3bea2-36d0-4119-ba42-fa7fc1192582'])
         self.assertEqual(TestUUID("two"),
                          self._db._data_id[TestUUID]['55f0895b-8861-4af6-b20a-415f58a7839c'])
+
+    def test_json_db_load_with_defaults(self):
+        from test_json_database.db_test_load_with_defaults import TestClassFieldType, TestClassFile
+        self._db.init_tables(path.join(self._data_path, 'load_with_defaults'))
+        tft0 = TestClassFieldType(False, 'individual', 21, 9.81, [])
+        tft_default = TestClassFieldType(True, 'default', 42, 3.14, [1, 2])
+        self.assertEqual(TestClassFile('job0', True, 'default', 42, 3.14, (1, 2), {0: 'zero', 1: 'one'}, {1, 2}, [tft0],
+                                       None),
+                         self._db._data_id[TestClassFile]['job0'])
+        self.assertEqual(TestClassFile('job1', True, 'default', 42, 3.14, (1, 2), {0: 'zero', 1: 'one'}, {1, 2}, [tft0],
+                                       None),
+                         self._db._data_id[TestClassFile]['job1'])
+        self.assertEqual(TestClassFile('job2', False, 'not default', 84, 2.71, (1, 2), {0: 'zero', 1: 'one'}, {1, 2},
+                                       [tft0], tft_default),
+                         self._db._data_id[TestClassFile]['job2'])
+        self.assertEqual(TestClassFile('job3', False, 'not default', 84, 2.71, (1, 2), {0: 'zero', 1: 'one'}, {1, 2},
+                                       [tft0], tft_default),
+                         self._db._data_id[TestClassFile]['job3'])
+        self._db._data_id[TestClassFile]['job0'].att_bool = False
+        self.assertNotEqual(self._db._data_id[TestClassFile]['job0'].att_bool,
+                            self._db._data_id[TestClassFile]['job1'].att_bool)
+        self._db._data_id[TestClassFile]['job0'].att_str = 'new val'
+        self.assertNotEqual(self._db._data_id[TestClassFile]['job0'].att_str,
+                            self._db._data_id[TestClassFile]['job1'].att_str)
+        self._db._data_id[TestClassFile]['job0'].att_int = 1
+        self.assertNotEqual(self._db._data_id[TestClassFile]['job0'].att_int,
+                            self._db._data_id[TestClassFile]['job1'].att_int)
+        self._db._data_id[TestClassFile]['job0'].att_float = 1.61
+        self.assertNotEqual(self._db._data_id[TestClassFile]['job0'].att_float,
+                            self._db._data_id[TestClassFile]['job1'].att_float)
+        self._db._data_id[TestClassFile]['job0'].att_tuple = (3, 4)
+        self.assertNotEqual(self._db._data_id[TestClassFile]['job0'].att_tuple,
+                            self._db._data_id[TestClassFile]['job1'].att_tuple)
+        self._db._data_id[TestClassFile]['job0'].att_dict[0] = 'null'
+        self.assertNotEqual(self._db._data_id[TestClassFile]['job0'].att_dict,
+                            self._db._data_id[TestClassFile]['job1'].att_dict)
+        self._db._data_id[TestClassFile]['job0'].att_set.add(3)
+        self.assertNotEqual(self._db._data_id[TestClassFile]['job0'].att_set,
+                            self._db._data_id[TestClassFile]['job1'].att_set)
+        self._db._data_id[TestClassFile]['job0'].att_list.append(tft_default)
+        self.assertNotEqual(self._db._data_id[TestClassFile]['job0'].att_list,
+                            self._db._data_id[TestClassFile]['job1'].att_list)
+        self._db._data_id[TestClassFile]['job2'].att_ft.att_list.append(3)
+        self.assertNotEqual(self._db._data_id[TestClassFile]['job2'].att_ft,
+                            self._db._data_id[TestClassFile]['job3'].att_ft)
 
     def test_json_db_data_to_json(self):
         from test_json_database.db_test_data_to_json import TestClassFieldType, TestClassReference
