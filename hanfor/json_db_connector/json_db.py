@@ -251,7 +251,7 @@ class JsonDatabase:
             field_data_serialized = self._data_to_json(field_data)
             obj_data[field] = field_data_serialized
         self._json_data[type(obj)][obj_id] = obj_data
-        self.__save_data()
+        self.__save_data(type(obj))
 
     def _data_to_json(self, data: any) -> any:
         if data is None:
@@ -261,7 +261,7 @@ class JsonDatabase:
             return data
         if f_type in [tuple, list, set]:
             res = []
-            for item in data:  # TODO should I check if item is serializable?
+            for item in data:
                 tmp = self._data_to_json(item)
                 if tmp is None:
                     continue
@@ -269,7 +269,7 @@ class JsonDatabase:
             return {'type': f_type.__name__, 'data': res}
         if f_type is dict:
             res = []
-            for k, v in data.items():  # TODO should I check if k, v is serializable?
+            for k, v in data.items():
                 k_serialized = self._data_to_json(k)
                 v_serialized = self._data_to_json(v)
                 res.append({'key': k_serialized, 'value': v_serialized})
@@ -286,20 +286,20 @@ class JsonDatabase:
                 if field_data_serialized is not None:
                     res[field] = field_data_serialized
             return {'type': f_type.__name__, 'data': res}
-        return None
+        raise Exception(f"The following data is not serializable:\n{data}.")
 
-    def __save_data(self) -> None:
-        for cls, (table_type, _, _, _) in self._tables.items():
-            if table_type == TableType.File:
-                table_file = path.join(self._data_folder, f"{cls.__name__}.json")
-                with open(table_file, 'w') as json_file:
-                    json.dump(self._json_data[cls], json_file, indent=4)
-            elif table_type == TableType.Folder:
-                table_folder = path.join(self._data_folder, cls.__name__)
-                for obj_id, obj_data in self._json_data[cls].items():
-                    file_name = path.join(table_folder, f"{obj_id}.json")
-                    with open(file_name, 'w') as json_file:
-                        json.dump(obj_data, json_file, indent=4)
+    def __save_data(self, cls: type) -> None:
+        table_type, _, _, _ = self._tables[cls]
+        if table_type == TableType.File:
+            table_file = path.join(self._data_folder, f"{cls.__name__}.json")
+            with open(table_file, 'w') as json_file:
+                json.dump(self._json_data[cls], json_file, indent=4)
+        elif table_type == TableType.Folder:
+            table_folder = path.join(self._data_folder, cls.__name__)
+            for obj_id, obj_data in self._json_data[cls].items():
+                file_name = path.join(table_folder, f"{obj_id}.json")
+                with open(file_name, 'w') as json_file:
+                    json.dump(obj_data, json_file, indent=4)
 
     def __load_data(self) -> None:
         # load json data from files and create objects without data
