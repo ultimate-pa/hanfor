@@ -227,8 +227,9 @@ class JsonDatabase:
         if type(obj) not in self._tables.keys():
             raise Exception(f"{type(obj)} is not part of the Database.")
         if id(obj) in self._data_obj[type(obj)].keys():
-            # object already in database -> TODO do update of this object
-            pass
+            # object already in database -> update db
+            self.__save_data()
+            return
         _, id_f_name, id_f_type, fields = self._tables[type(obj)]
         if id_f_type is UUID:
             obj_id = str(uuid4())
@@ -244,14 +245,23 @@ class JsonDatabase:
         # save object to db
         self._data_obj[type(obj)][id(obj)] = obj_id
         self._data_id[type(obj)][obj_id] = obj
-        # TODO insert into data tracing
+        self.__save_data()
+
+    def __serialize_object(self, obj: object) -> dict:
+        if type(obj) not in self._tables.keys():
+            raise Exception(f"The following class is not serializable:\n{type(obj)}.")
         obj_data = {}
-        for field, f_type in fields.items():
+        for field, f_type in self._tables[type(obj)][3].items():
             field_data = getattr(obj, field, None)
             field_data_serialized = self._data_to_json(field_data)
             obj_data[field] = field_data_serialized
-        self._json_data[type(obj)][obj_id] = obj_data
-        self.__save_data(type(obj))
+        return obj_data
+
+    def __serialize_table(self, cls: type) -> dict:
+        json_data = {}
+        for obj_id, obj in self._data_id[cls].items():
+            json_data[obj_id] = self.__serialize_object(obj)
+        return json_data
 
     def _data_to_json(self, data: any) -> any:
         if data is None:
@@ -288,18 +298,22 @@ class JsonDatabase:
             return {'type': f_type.__name__, 'data': res}
         raise Exception(f"The following data is not serializable:\n{data}.")
 
-    def __save_data(self, cls: type) -> None:
-        table_type, _, _, _ = self._tables[cls]
-        if table_type == TableType.File:
-            table_file = path.join(self._data_folder, f"{cls.__name__}.json")
-            with open(table_file, 'w') as json_file:
-                json.dump(self._json_data[cls], json_file, indent=4)
-        elif table_type == TableType.Folder:
-            table_folder = path.join(self._data_folder, cls.__name__)
-            for obj_id, obj_data in self._json_data[cls].items():
-                file_name = path.join(table_folder, f"{obj_id}.json")
-                with open(file_name, 'w') as json_file:
-                    json.dump(obj_data, json_file, indent=4)
+    def __save_data(self) -> None:
+        for cls, (table_type, _, _, _) in self._tables.items():
+            json_data = self.__serialize_table(cls)
+            # TODO create diff and insert into data tracing
+            diff = dict_diff(self._json_data[cls], json_data)
+            self._json_data[cls] = json_data
+            if table_type == TableType.File:
+                table_file = path.join(self._data_folder, f"{cls.__name__}.json")
+                with open(table_file, 'w') as json_file:
+                    json.dump(json_data, json_file, indent=4)
+            elif table_type == TableType.Folder:
+                table_folder = path.join(self._data_folder, cls.__name__)
+                for obj_id, obj_data in json_data.items():
+                    file_name = path.join(table_folder, f"{obj_id}.json")
+                    with open(file_name, 'w') as json_file:
+                        json.dump(obj_data, json_file, indent=4)
 
     def __load_data(self) -> None:
         # load json data from files and create objects without data
@@ -330,6 +344,7 @@ class JsonDatabase:
         for cls in self._tables:
             for obj_id, data in self._json_data[cls].items():
                 self.__fill_object_from_dict(self._data_id[cls][obj_id], data)
+        # TODO save object because of default value insertions
 
     def __create_and_insert_object(self, cls: Type[T], obj_id: int | str) -> None:
         _, id_field, id_type, _ = self._tables[cls]
@@ -422,3 +437,8 @@ def is_serializable(f_type: any, additional_types: list[type] = None) -> tuple[b
     if f_type in additional_types:
         return True, ''
     return False, str(f_type)
+
+
+def dict_diff(old: dict, new: dict) -> dict:
+    result = {}
+    return result
