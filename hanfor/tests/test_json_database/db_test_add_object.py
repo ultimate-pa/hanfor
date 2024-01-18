@@ -23,7 +23,7 @@ class TestClass2:
 
 
 @DatabaseTable(TableType.File)
-@DatabaseID(use_uuid=True)
+@DatabaseID('uuid', use_uuid=True)
 @DatabaseField('att_str', str)
 @dataclass()
 class TestClass3:

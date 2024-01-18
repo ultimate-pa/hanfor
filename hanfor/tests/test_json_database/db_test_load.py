@@ -38,7 +38,7 @@ class TestClassFolder:
 
 
 @DatabaseTable(TableType.File)
-@DatabaseID(use_uuid=True)
+@DatabaseID('uuid', use_uuid=True)
 @DatabaseField('att_str', str, 'default')
 @dataclass()
 class TestUUID:

@@ -98,7 +98,7 @@ class TestJsonDatabase(TestCase):
         from test_json_database.db_test_table_decorator_simple import TestClassFile, TestClassFolder
         _ = TestClassFile
         _ = TestClassFolder
-        classes_dict: dict[type, str] = {TestClassFile: TableType.File, TestClassFolder: TableType.Folder}
+        classes_dict: dict[type, TableType] = {TestClassFile: TableType.File, TestClassFolder: TableType.Folder}
         self.assertDictEqual(DatabaseTable.registry, classes_dict)
 
         # test duplicated name of table
@@ -158,6 +158,14 @@ class TestJsonDatabase(TestCase):
                          '\'test_json_database.db_test_id_decorator_with_2_incorrect_arguments_2.TestClass\'>',
                          str(em.exception))
 
+        # test use_uuid without field name
+        with self.assertRaises(Exception) as em:
+            from test_json_database.db_test_id_decorator_uuid_without_field import TestClassUuid
+            _ = TestClassUuid
+        self.assertEqual('DatabaseID must be set to the name and type of an field of the class: <class '
+                         '\'test_json_database.db_test_id_decorator_uuid_without_field.TestClassUuid\'>',
+                         str(em.exception))
+
         # test well-formed definition for id
         from test_json_database.db_test_id_decorator_simple import TestClassFile, TestClassFolder, TestClassUuid
         _ = TestClassFile
@@ -165,7 +173,7 @@ class TestJsonDatabase(TestCase):
         _ = TestClassUuid
         id_dict: dict[type, (str, type)] = {TestClassFile: ('job_id', str),
                                             TestClassFolder: ('job_id', int),
-                                            TestClassUuid: ('', UUID)}
+                                            TestClassUuid: ('uuid', UUID)}
         self.assertDictEqual(DatabaseID.registry, id_dict)
 
         # test id definition with 2 decorators
@@ -562,10 +570,16 @@ class TestJsonDatabase(TestCase):
                          self._db._data_id[TestClassFolder][200])
         self.assertEqual(TestClassFolder(300, [self._db._data_id[TestClassFile]['job0']]),
                          self._db._data_id[TestClassFolder][300])
+        self.assertTrue('cad3bea2-36d0-4119-ba42-fa7fc1192582' in self._db._data_id[TestUUID])
+        self.assertTrue('55f0895b-8861-4af6-b20a-415f58a7839c' in self._db._data_id[TestUUID])
         self.assertEqual(TestUUID("one"),
                          self._db._data_id[TestUUID]['cad3bea2-36d0-4119-ba42-fa7fc1192582'])
+        self.assertEqual(self._db._data_id[TestUUID]['cad3bea2-36d0-4119-ba42-fa7fc1192582'].uuid,
+                         'cad3bea2-36d0-4119-ba42-fa7fc1192582')
         self.assertEqual(TestUUID("two"),
                          self._db._data_id[TestUUID]['55f0895b-8861-4af6-b20a-415f58a7839c'])
+        self.assertEqual(self._db._data_id[TestUUID]['55f0895b-8861-4af6-b20a-415f58a7839c'].uuid,
+                         '55f0895b-8861-4af6-b20a-415f58a7839c')
 
     def test_json_db_load_with_defaults(self):
         from test_json_database.db_test_load_with_defaults import TestClassFieldType, TestClassFile

@@ -42,8 +42,8 @@ class DatabaseID:
     def __init__(self, field: str = None, f_type: type = None, use_uuid: bool = False):
         self._id_field = field
         self._type = f_type
-        self._user_uuid = use_uuid
         if use_uuid:
+            self._type = UUID
             return
         if field is None:
             # empty brackets
@@ -54,9 +54,6 @@ class DatabaseID:
     def __call__(self, cls):
         if cls in self.registry:
             raise Exception(f"DatabaseTable with name {cls} already has an id field.")
-        if self._user_uuid:
-            self.registry[cls] = ('', UUID)
-            return cls
         if self._id_field is None:
             # empty brackets
             raise Exception(f"DatabaseID must be set to the name and type of an field of the class: {cls}")
@@ -67,7 +64,7 @@ class DatabaseID:
             raise Exception(f"Type of DatabaseID must be provided: {cls}")
         if type(self._type) is not type:
             raise Exception(f"Type of DatabaseID must be of type type: {cls}")
-        if not (self._type is str or self._type is int):
+        if self._type not in [str, int, UUID]:
             raise Exception(f"Type of DatabaseID must be of type str or int: {cls}")
         # check if class with name exists already
         self.registry[cls] = (self._id_field, self._type)
@@ -226,13 +223,14 @@ class JsonDatabase:
         # check if object is part of the database
         if type(obj) not in self._tables.keys():
             raise Exception(f"{type(obj)} is not part of the Database.")
-        if id(obj) in self._data_obj[type(obj)].keys():
+        if id(obj) in self._data_obj[type(obj)].keys():  # TODO implement new check
             # object already in database -> update db
             self.__save_data()
             return
         _, id_f_name, id_f_type, fields = self._tables[type(obj)]
         if id_f_type is UUID:
             obj_id = str(uuid4())
+            setattr(obj, id_f_name, obj_id)
         else:
             # check if id is already in db
             obj_id = getattr(obj, id_f_name, None)
@@ -349,8 +347,7 @@ class JsonDatabase:
     def __create_and_insert_object(self, cls: Type[T], obj_id: int | str) -> None:
         _, id_field, id_type, _ = self._tables[cls]
         obj = object.__new__(cls)
-        if id_type in [str, int]:
-            setattr(obj, id_field, obj_id)
+        setattr(obj, id_field, obj_id)
         self._data_obj[cls][id(obj)] = obj_id
         self._data_id[cls][obj_id] = obj
 

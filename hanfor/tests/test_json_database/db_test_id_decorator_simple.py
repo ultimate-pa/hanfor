@@ -31,7 +31,7 @@ class TestClassFolder:
     att_class_file: TestClassFile
 
 
-@DatabaseID(use_uuid=True)
+@DatabaseID('uuid', use_uuid=True)
 @dataclass()
 class TestClassUuid:
-    job_id: int
+    job_id: str
