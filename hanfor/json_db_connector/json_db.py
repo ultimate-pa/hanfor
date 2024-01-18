@@ -1,14 +1,16 @@
-import inspect
 import json
+import inspect
+from enum import Enum
 from types import GenericAlias, UnionType
-from typing import get_origin, get_args, Type, TypeVar
+from typing import get_origin, get_args, Type, TypeVar, Callable
 from uuid import UUID, uuid4
 from os import path, mkdir
 from static_utils import get_filenames_from_dir
 from copy import deepcopy
-from enum import Enum
 
 T = TypeVar('T')
+TABLE = TypeVar('TABLE')
+ID_TYPE = TypeVar('ID_TYPE')
 
 
 class TableType(Enum):
@@ -127,23 +129,19 @@ class DatabaseFieldType:
 class JsonDatabase:
 
     def __init__(self) -> None:
-        self._data_folder: str = ''
-        # class: (table_type, id_field, id_type, dict of fields(field_name, (type, default)))
-        self._tables: dict[Type[T], tuple[TableType, str, type, dict[str, tuple[any, any]]]] = {}
+        self.__data_folder: str = ''
+        self._tables: dict[Type[T], JsonDatabaseTable] = {}
         # class: (dict of fields(field_name, (type, default)))
         self._field_types: dict[Type[T], dict[str, tuple[any, any]]] = {}
-        # class: dict of objects(id, data))
-        self._json_data: dict[Type[T], dict[str | int, any]] = {}
-        # object storage
-        # class: id(object): id
-        self._data_obj: dict[Type[T], dict[int, str | int]] = {}
-        # class: id: object
-        self._data_id: dict[Type[T], dict[str | int, T]] = {}
+
+    @property
+    def data_folder(self):
+        return self.__data_folder
 
     def init_tables(self, data_folder: str) -> None:
         if data_folder == '':
             raise Exception(f"The data_folder is required")
-        self._data_folder = data_folder
+        self.__data_folder = data_folder
         tables: set[type] = set(DatabaseTable.registry.keys())
         id_fields: set[type] = set(DatabaseID.registry.keys())
         db_fields: set[type] = set(DatabaseField.registry.keys())
@@ -182,6 +180,10 @@ class JsonDatabase:
                 if not res[0]:
                     raise Exception(f"The following type of class {cls} is not serializable:\n{field}: {res[1]}")
 
+        # create database folder if not exist
+        if not path.isdir(self.__data_folder):
+            mkdir(self.__data_folder)
+
         # create tables
         for cls, table_type in DatabaseTable.registry.items():
             id_field = DatabaseID.registry[cls][0]
@@ -189,10 +191,7 @@ class JsonDatabase:
             fields = {}
             for f_name, (f_type, f_default) in DatabaseField.registry[cls].items():
                 fields[f_name] = f_type, f_default
-            self._tables[cls] = table_type, id_field, id_type, fields
-            self._data_obj[cls] = {}
-            self._data_id[cls] = {}
-            self._json_data[cls] = {}
+            self._tables[cls] = JsonDatabaseTable(self, cls, table_type, id_field, id_type, fields)
 
         # create field types
         for cls in DatabaseFieldType.registry:
@@ -201,67 +200,22 @@ class JsonDatabase:
                 fields[f_name] = f_type, f_default
             self._field_types[cls] = fields
 
-        # create database folder if not exist
-        if not path.isdir(self._data_folder):
-            mkdir(self._data_folder)
+        # load json data from files
+        fill_functions = []
+        for _, table in self._tables.items():
+            fill_functions.append(table.load())
 
-        # create folders and files is not exist
-        for cls, (table_type, _, _, _) in self._tables.items():
-            if table_type == TableType.File:
-                table_file = path.join(self._data_folder, f"{cls.__name__}.json")
-                if not path.isfile(table_file):
-                    file = open(table_file, 'w')
-                    file.write("{}")
-                    file.close()
-            elif table_type == TableType.Folder:
-                table_folder = path.join(self._data_folder, cls.__name__)
-                if not path.isdir(table_folder):
-                    mkdir(table_folder)
-        self.__load_data()
+        for f in fill_functions:
+            f()
 
     def add_object(self, obj: object) -> None:
         # check if object is part of the database
         if type(obj) not in self._tables.keys():
             raise Exception(f"{type(obj)} is not part of the Database.")
-        if id(obj) in self._data_obj[type(obj)].keys():  # TODO implement new check
-            # object already in database -> update db
-            self.__save_data()
-            return
-        _, id_f_name, id_f_type, fields = self._tables[type(obj)]
-        if id_f_type is UUID:
-            obj_id = str(uuid4())
-            setattr(obj, id_f_name, obj_id)
-        else:
-            # check if id is already in db
-            obj_id = getattr(obj, id_f_name, None)
-            if obj_id is None or obj_id == '':
-                raise Exception(f"The id field \'{id_f_name}\' of object {obj} is empty.")
-            if obj_id in self._data_id[type(obj)].keys():
-                raise Exception(f"The id \'{obj_id}\' already exists in table {type(obj)}.")
-            if type(obj_id) != id_f_type:
-                raise Exception(f"The id field \'{id_f_name}\' of object {obj} is not of type \'{id_f_type}\'.")
-        # save object to db
-        self._data_obj[type(obj)][id(obj)] = obj_id
-        self._data_id[type(obj)][obj_id] = obj
+        self._tables[type(obj)].add_object(obj)
         self.__save_data()
 
-    def __serialize_object(self, obj: object) -> dict:
-        if type(obj) not in self._tables.keys():
-            raise Exception(f"The following class is not serializable:\n{type(obj)}.")
-        obj_data = {}
-        for field, f_type in self._tables[type(obj)][3].items():
-            field_data = getattr(obj, field, None)
-            field_data_serialized = self._data_to_json(field_data)
-            obj_data[field] = field_data_serialized
-        return obj_data
-
-    def __serialize_table(self, cls: type) -> dict:
-        json_data = {}
-        for obj_id, obj in self._data_id[cls].items():
-            json_data[obj_id] = self.__serialize_object(obj)
-        return json_data
-
-    def _data_to_json(self, data: any) -> any:
+    def data_to_json(self, data: any) -> any:
         if data is None:
             return None
         f_type = type(data)
@@ -270,100 +224,35 @@ class JsonDatabase:
         if f_type in [tuple, list, set]:
             res = []
             for item in data:
-                tmp = self._data_to_json(item)
-                if tmp is None:
-                    continue
+                tmp = self.data_to_json(item)
                 res.append(tmp)
             return {'type': f_type.__name__, 'data': res}
         if f_type is dict:
             res = []
             for k, v in data.items():
-                k_serialized = self._data_to_json(k)
-                v_serialized = self._data_to_json(v)
+                k_serialized = self.data_to_json(k)
+                v_serialized = self.data_to_json(v)
                 res.append({'key': k_serialized, 'value': v_serialized})
             return {'type': 'dict', 'data': res}
         if f_type in self._tables.keys():
-            if id(data) not in self._data_obj[f_type]:
+            if not self._tables[f_type].object_in_table(data):
                 self.add_object(data)
-            return {'type': f_type.__name__, 'data': self._data_obj[f_type][id(data)]}
+            return {'type': f_type.__name__, 'data': self._tables[f_type].get_key_of_object(data)}
         if f_type in self._field_types.keys():
             res = {}
             for field, ft_f_type in self._field_types[f_type].items():
                 field_data = getattr(data, field, None)
-                field_data_serialized = self._data_to_json(field_data)
+                field_data_serialized = self.data_to_json(field_data)
                 if field_data_serialized is not None:
                     res[field] = field_data_serialized
             return {'type': f_type.__name__, 'data': res}
         raise Exception(f"The following data is not serializable:\n{data}.")
 
     def __save_data(self) -> None:
-        for cls, (table_type, _, _, _) in self._tables.items():
-            json_data = self.__serialize_table(cls)
-            # TODO create diff and insert into data tracing
-            diff = dict_diff(self._json_data[cls], json_data)
-            self._json_data[cls] = json_data
-            if table_type == TableType.File:
-                table_file = path.join(self._data_folder, f"{cls.__name__}.json")
-                with open(table_file, 'w') as json_file:
-                    json.dump(json_data, json_file, indent=4)
-            elif table_type == TableType.Folder:
-                table_folder = path.join(self._data_folder, cls.__name__)
-                for obj_id, obj_data in json_data.items():
-                    file_name = path.join(table_folder, f"{obj_id}.json")
-                    with open(file_name, 'w') as json_file:
-                        json.dump(obj_data, json_file, indent=4)
+        for _, table in self._tables.items():
+            table.save()
 
-    def __load_data(self) -> None:
-        # load json data from files and create objects without data
-        for cls, (table_type, id_field, id_type, _) in self._tables.items():
-            if table_type == TableType.File:
-                table_file = path.join(self._data_folder, f"{cls.__name__}.json")
-                with open(table_file, 'r') as json_file:
-                    for obj_id, obj_data in json.load(json_file).items():
-                        if id_type is int:
-                            self._json_data[cls][int(obj_id)] = obj_data
-                            self.__create_and_insert_object(cls, int(obj_id))
-                        elif id_type in [str, UUID]:
-                            self._json_data[cls][obj_id] = obj_data
-                            self.__create_and_insert_object(cls, obj_id)
-            elif table_type == TableType.Folder:
-                table_folder = path.join(self._data_folder, cls.__name__)
-                for file_name in get_filenames_from_dir(table_folder):
-                    with open(file_name, 'r') as json_file:
-                        obj_data = json.load(json_file)
-                        obj_id = path.splitext(path.basename(file_name))[0]
-                        if id_type is int:
-                            self._json_data[cls][int(obj_id)] = obj_data
-                            self.__create_and_insert_object(cls, int(obj_id))
-                        elif id_type in [str, UUID]:
-                            self._json_data[cls][obj_id] = obj_data
-                            self.__create_and_insert_object(cls, obj_id)
-        # fill objects with data
-        for cls in self._tables:
-            for obj_id, data in self._json_data[cls].items():
-                self.__fill_object_from_dict(self._data_id[cls][obj_id], data)
-        # TODO save object because of default value insertions
-
-    def __create_and_insert_object(self, cls: Type[T], obj_id: int | str) -> None:
-        _, id_field, id_type, _ = self._tables[cls]
-        obj = object.__new__(cls)
-        setattr(obj, id_field, obj_id)
-        self._data_obj[cls][id(obj)] = obj_id
-        self._data_id[cls][obj_id] = obj
-
-    def __fill_object_from_dict(self, obj: object, obj_data: dict[str | int, any]) -> None:
-        _, _, _, table_fields = self._tables[type(obj)]
-        for field in table_fields:
-            if field in obj_data:
-                setattr(obj, field, self._json_to_value(obj_data[field]))
-            else:
-                # insert default value
-                if type(table_fields[field][1]) in [str, int, float, bool, tuple]:
-                    setattr(obj, field, table_fields[field][1])
-                else:
-                    setattr(obj, field, deepcopy(table_fields[field][1]))
-
-    def _json_to_value(self, data: any) -> any:
+    def json_to_value(self, data: any) -> any:
         data_type = type(data)
         if data_type in [str, int, float, bool, None]:
             return data
@@ -373,30 +262,33 @@ class JsonDatabase:
             if data['type'] == 'list':
                 res = []
                 for i in data['data']:
-                    res.append(self._json_to_value(i))
+                    res.append(self.json_to_value(i))
                 return res
             if data['type'] == 'set':
                 res = set()
                 for i in data['data']:
-                    res.add(self._json_to_value(i))
+                    res.add(self.json_to_value(i))
                 return res
             if data['type'] == 'dict':
                 res = {}
                 for i in data['data']:
-                    res[self._json_to_value(i['key'])] = self._json_to_value(i['value'])
+                    res[self.json_to_value(i['key'])] = self.json_to_value(i['value'])
                 return res
             if data['type'] == 'tuple':
                 res = []
                 for i in data['data']:
-                    res.append(self._json_to_value(i))
+                    res.append(self.json_to_value(i))
                 return tuple(res)
+            # check if field is of type FieldType
+            # key: name of FieldType
+            # value: (class, fields of FieldType)
             tmp = {k.__name__: (k, v) for k, v in self._field_types.items()}
             if data['type'] in tmp:
                 cls, fields = tmp[data['type']]
                 obj = object.__new__(cls)
                 for field in fields:
                     if field in data['data']:
-                        setattr(obj, field, self._json_to_value(data['data'][field]))
+                        setattr(obj, field, self.json_to_value(data['data'][field]))
                     else:
                         # insert default value
                         if type(fields[field][1]) in [str, int, float, bool, tuple]:
@@ -404,13 +296,158 @@ class JsonDatabase:
                         else:
                             setattr(obj, field, deepcopy(fields[field][1]))
                 return obj
-            tmp = {k.__name__: k for k in self._tables}
+            # check if field is of type DatabaseTable
+            # key: name of DatabaseTable
+            # value: JsonDatabaseTable
+            tmp = {k.__name__: v for k, v in self._tables.items()}
             if data['type'] in tmp:
-                if data['data'] in self._data_id[tmp[data['type']]]:
-                    return self._data_id[tmp[data['type']]][data['data']]
+                if tmp[data['type']].key_in_table(data['data']):
+                    return tmp[data['type']].get_object(data['data'])
                 else:
                     raise Exception(f"The id \'{data['data']}\' can not be found in Table \'{data['type']}\'.")
         raise Exception(f"The following data is not well formed:\n{data}.")
+
+
+class JsonDatabaseTable:
+
+    def __init__(self, db: JsonDatabase, cls: type, table_type: TableType, id_field: str, id_type: type,
+                 fields: dict[str, tuple[any, any]]) -> None:
+        self.__db: JsonDatabase = db
+        self.cls: TABLE = cls
+        self.table_type: TableType = table_type
+        self.id_field: str = id_field
+        self.id_type: ID_TYPE = id_type
+        self.fields: dict[str, tuple[any, any]] = fields
+        self.__data: dict[ID_TYPE, TABLE] = {}
+        self.__json_data: dict[str | int, any] = {}
+
+        # create folders and files is not exist
+        if self.table_type == TableType.File:
+            table_file = path.join(self.__db.data_folder, f"{cls.__name__}.json")
+            if not path.isfile(table_file):
+                file = open(table_file, 'w')
+                file.write("{}")
+                file.close()
+        elif self.table_type == TableType.Folder:
+            table_folder = path.join(self.__db.data_folder, cls.__name__)
+            if not path.isdir(table_folder):
+                mkdir(table_folder)
+
+    def add_object(self, obj: object) -> None:
+        if not type(obj) == self.cls:
+            raise Exception(f"{obj} does not belong to this table.")
+        if id(obj) in [id(i) for i in self.__data.values()]:
+            # object already in database -> update db
+            return
+        if self.id_type is UUID:
+            obj_id = str(uuid4())
+            setattr(obj, self.id_field, obj_id)
+        else:
+            # check if id is already in db
+            obj_id = getattr(obj, self.id_field, None)
+            if obj_id is None or obj_id == '':
+                raise Exception(f"The id field \'{self.id_field}\' of object {obj} is empty.")
+            if obj_id in self.__data.keys():
+                raise Exception(f"The id \'{obj_id}\' already exists in table {type(obj)}.")
+            if type(obj_id) != self.id_type:
+                raise Exception(f"The id field \'{self.id_field}\' of object {obj} is not of type "
+                                f"\'{self.id_type}\'.")
+        # save object to db
+        self.__data[obj_id] = obj
+        self.__serialize()
+
+    def key_in_table(self, key: ID_TYPE) -> bool:
+        return key in self.__data.keys()
+
+    def object_in_table(self, obj: TABLE) -> bool:
+        if not type(obj) == self.cls:
+            return False
+        return getattr(obj, self.id_field, None) in self.__data.keys()
+
+    def get_key_of_object(self, obj: TABLE) -> int | str:
+        if not type(obj) == self.cls or getattr(obj, self.id_field, None) not in self.__data:
+            raise Exception(f"Object {obj} not in this table.")
+        return getattr(obj, self.id_field, None)
+
+    def get_object(self, key: ID_TYPE) -> T:
+        if key not in self.__data.keys():
+            raise Exception(f"No object with key {key} in this table.")
+        return self.__data[key]
+
+    def get_objects(self) -> dict[Type[ID_TYPE], Type[TABLE]]:
+        return self.__data
+
+    def __serialize(self) -> dict:
+        json_data = {}
+        for obj_id, obj in self.__data.items():
+            obj_data = {}
+            for field in self.fields.keys():
+                field_data = getattr(obj, field, None)
+                field_data_serialized = self.__db.data_to_json(field_data)
+                obj_data[field] = field_data_serialized
+            json_data[obj_id] = obj_data
+        return json_data
+
+    def save(self) -> None:
+        json_data = self.__serialize()
+        # TODO diff and write diff to data tracing
+        self.__json_data = json_data
+        if self.table_type == TableType.File:
+            table_file = path.join(self.__db.data_folder, f"{self.cls.__name__}.json")
+            with open(table_file, 'w') as json_file:
+                json.dump(json_data, json_file, indent=4)
+        elif self.table_type == TableType.Folder:
+            table_folder = path.join(self.__db.data_folder, self.cls.__name__)
+            for obj_id, obj_data in json_data.items():
+                file_name = path.join(table_folder, f"{obj_id}.json")
+                with open(file_name, 'w') as json_file:
+                    json.dump(obj_data, json_file, indent=4)
+
+    def load(self) -> Callable[[], None]:
+        if self.table_type == TableType.File:
+            table_file = path.join(self.__db.data_folder, f"{self.cls.__name__}.json")
+            with open(table_file, 'r') as json_file:
+                for obj_id, obj_data in json.load(json_file).items():
+                    if self.id_type is int:
+                        self.__json_data[int(obj_id)] = obj_data
+                        self.__create_and_insert_object(int(obj_id))
+                    elif self.id_type in [str, UUID]:
+                        self.__json_data[obj_id] = obj_data
+                        self.__create_and_insert_object(obj_id)
+        elif self.table_type == TableType.Folder:
+            table_folder = path.join(self.__db.data_folder, self.cls.__name__)
+            for file_name in get_filenames_from_dir(table_folder):
+                with open(file_name, 'r') as json_file:
+                    obj_data = json.load(json_file)
+                    obj_id = path.splitext(path.basename(file_name))[0]
+                    if self.id_type is int:
+                        self.__json_data[int(obj_id)] = obj_data
+                        self.__create_and_insert_object(int(obj_id))
+                    elif self.id_type in [str, UUID]:
+                        self.__json_data[obj_id] = obj_data
+                        self.__create_and_insert_object(obj_id)
+        return self.__fill_objects
+
+    def __fill_objects(self) -> None:
+        for obj_id, data in self.__json_data.items():
+            self.__fill_object_from_dict(self.__data[obj_id], data)
+        # TODO save object because of default value insertions?
+
+    def __create_and_insert_object(self, obj_id: int | str) -> None:
+        obj = TABLE.__new__(self.cls)
+        setattr(obj, self.id_field, obj_id)
+        self.__data[obj_id] = obj
+
+    def __fill_object_from_dict(self, obj: object, obj_data: dict[str | int, any]) -> None:
+        for field in self.fields:
+            if field in obj_data:
+                setattr(obj, field, self.__db.json_to_value(obj_data[field]))
+            else:
+                # insert default value
+                if type(self.fields[field][1]) in [str, int, float, bool, tuple]:
+                    setattr(obj, field, self.fields[field][1])
+                else:
+                    setattr(obj, field, deepcopy(self.fields[field][1]))
 
 
 def is_serializable(f_type: any, additional_types: list[type] = None) -> tuple[bool, str]:
@@ -434,8 +471,3 @@ def is_serializable(f_type: any, additional_types: list[type] = None) -> tuple[b
     if f_type in additional_types:
         return True, ''
     return False, str(f_type)
-
-
-def dict_diff(old: dict, new: dict) -> dict:
-    result = {}
-    return result
