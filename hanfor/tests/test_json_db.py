@@ -168,13 +168,20 @@ class TestJsonDatabase(TestCase):
 
         # test well-formed definition for id
         from test_json_database.db_test_id_decorator_simple import TestClassFile, TestClassFolder, TestClassUuid
-        _ = TestClassFile
         _ = TestClassFolder
         _ = TestClassUuid
         id_dict: dict[type, (str, type)] = {TestClassFile: ('job_id', str),
                                             TestClassFolder: ('job_id', int),
                                             TestClassUuid: ('uuid', UUID)}
         self.assertDictEqual(DatabaseID.registry, id_dict)
+        tmp = TestClassFile('abc', True, 'str', 42, 3.14, (1, 'one'), [], {}, set())
+        with self.assertRaises(Exception) as em:
+            tmp.job_id = 'def'
+        self.assertEqual('The id field of an object can not be changed!\n'
+                         'TestClassFile(job_id=\'abc\', att_bool=True, att_str=\'str\', att_int=42, '
+                         'att_float=3.14, att_tuple=(1, \'one\'), att_list=[], att_dict={}, '
+                         'att_set=set())',
+                         str(em.exception))
 
         # test id definition with 2 decorators
         with self.assertRaises(Exception) as em:

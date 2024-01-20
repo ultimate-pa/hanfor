@@ -68,7 +68,22 @@ class DatabaseID:
             raise Exception(f"Type of DatabaseID must be of type type: {cls}")
         if self._type not in [str, int, UUID]:
             raise Exception(f"Type of DatabaseID must be of type str or int: {cls}")
-        # check if class with name exists already
+
+        # Define getter and setter method
+        private_attribute_name = f"__{self._id_field}"
+
+        def getter(getter_self: object):
+            return getattr(getter_self, private_attribute_name)
+
+        def setter(setter_self: object, value):
+            if getattr(setter_self, private_attribute_name) is None:
+                setattr(setter_self, private_attribute_name, value)
+            else:
+                raise Exception(f"The id field of an object can not be changed!\n{setter_self}")
+
+        setattr(cls, private_attribute_name, None)
+        setattr(cls, self._id_field, property(getter, setter))
+
         self.registry[cls] = (self._id_field, self._type)
         return cls
 
