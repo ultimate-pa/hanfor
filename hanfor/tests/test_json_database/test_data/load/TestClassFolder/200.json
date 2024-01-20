@@ -11,5 +11,10 @@
                 "data": "job1"
             }
         ]
+    },
+    "$meta": {
+        "type": "JsonDatabaseMetaData",
+        "data": {
+        }
     }
 }

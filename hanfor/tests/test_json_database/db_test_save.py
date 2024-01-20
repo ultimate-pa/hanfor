@@ -66,6 +66,12 @@ SZENE0_JSON = '{\n' \
               '        "data": [\n' \
               '            "zero"\n' \
               '        ]\n' \
+              '    },\n' \
+              '    "$meta": {\n' \
+              '        "type": "JsonDatabaseMetaData",\n' \
+              '        "data": {\n' \
+              '            "is_deleted": false\n' \
+              '        }\n' \
               '    }\n' \
               '}'
 
@@ -79,6 +85,12 @@ SZENE1_JSON = '{\n' \
               '        "data": [\n' \
               '            "one"\n' \
               '        ]\n' \
+              '    },\n' \
+              '    "$meta": {\n' \
+              '        "type": "JsonDatabaseMetaData",\n' \
+              '        "data": {\n' \
+              '            "is_deleted": false\n' \
+              '        }\n' \
               '    }\n' \
               '}'
 
@@ -111,7 +123,13 @@ RECTANGLES_JSON = '{\n' \
                   '                }\n' \
                   '            ]\n' \
                   '        },\n' \
-                  '        "visible": true\n' \
+                  '        "visible": true,\n' \
+                  '        "$meta": {\n' \
+                  '            "type": "JsonDatabaseMetaData",\n' \
+                  '            "data": {\n' \
+                  '                "is_deleted": false\n' \
+                  '            }\n' \
+                  '        }\n' \
                   '    },\n' \
                   '    "rect1": {\n' \
                   '        "color": {\n' \
@@ -141,7 +159,13 @@ RECTANGLES_JSON = '{\n' \
                   '                }\n' \
                   '            ]\n' \
                   '        },\n' \
-                  '        "visible": false\n' \
+                  '        "visible": false,\n' \
+                  '        "$meta": {\n' \
+                  '            "type": "JsonDatabaseMetaData",\n' \
+                  '            "data": {\n' \
+                  '                "is_deleted": false\n' \
+                  '            }\n' \
+                  '        }\n' \
                   '    },\n' \
                   '    "rect2": {\n' \
                   '        "color": null,\n' \
@@ -158,21 +182,45 @@ RECTANGLES_JSON = '{\n' \
                   '                }\n' \
                   '            ]\n' \
                   '        },\n' \
-                  '        "visible": true\n' \
+                  '        "visible": true,\n' \
+                  '        "$meta": {\n' \
+                  '            "type": "JsonDatabaseMetaData",\n' \
+                  '            "data": {\n' \
+                  '                "is_deleted": false\n' \
+                  '            }\n' \
+                  '        }\n' \
                   '    }\n' \
                   '}'
 
 UUID1_JSON = '{\n' \
              '    "%s": {\n' \
-             '        "att_str": "one"\n' \
+             '        "att_str": "one",\n' \
+             '        "$meta": {\n' \
+             '            "type": "JsonDatabaseMetaData",\n' \
+             '            "data": {\n' \
+             '                "is_deleted": false\n' \
+             '            }\n' \
+             '        }\n' \
              '    }\n' \
              '}'
 
 UUID2_JSON = '{\n' \
              '    "%s": {\n' \
-             '        "att_str": "one"\n' \
+             '        "att_str": "one",\n' \
+             '        "$meta": {\n' \
+             '            "type": "JsonDatabaseMetaData",\n' \
+             '            "data": {\n' \
+             '                "is_deleted": false\n' \
+             '            }\n' \
+             '        }\n' \
              '    },\n' \
              '    "%s": {\n' \
-             '        "att_str": "two"\n' \
+             '        "att_str": "two",\n' \
+             '        "$meta": {\n' \
+             '            "type": "JsonDatabaseMetaData",\n' \
+             '            "data": {\n' \
+             '                "is_deleted": false\n' \
+             '            }\n' \
+             '        }\n' \
              '    }\n' \
              '}'

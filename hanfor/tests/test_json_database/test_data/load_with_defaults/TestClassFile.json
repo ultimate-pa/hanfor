@@ -1,7 +1,17 @@
 {
   "job0": {
+      "$meta": {
+          "type": "JsonDatabaseMetaData",
+          "data": {
+          }
+      }
   },
   "job1": {
+      "$meta": {
+          "type": "JsonDatabaseMetaData",
+          "data": {
+          }
+      }
   },
   "job2": {
     "att_bool": false,
@@ -12,7 +22,12 @@
       "type": "TestClassFieldType",
       "data": {
       }
-    }
+    },
+      "$meta": {
+          "type": "JsonDatabaseMetaData",
+          "data": {
+          }
+      }
   },
   "job3": {
     "att_bool": false,
@@ -23,6 +38,11 @@
       "type": "TestClassFieldType",
       "data": {
       }
-    }
+    },
+      "$meta": {
+          "type": "JsonDatabaseMetaData",
+          "data": {
+          }
+      }
   }
 }

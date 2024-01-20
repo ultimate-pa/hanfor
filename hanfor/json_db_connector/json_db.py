@@ -7,6 +7,7 @@ from uuid import UUID, uuid4
 from os import path, mkdir
 from static_utils import get_filenames_from_dir
 from copy import deepcopy
+from dataclasses import dataclass
 
 T = TypeVar('T')
 TABLE = TypeVar('TABLE')
@@ -334,6 +335,7 @@ class JsonDatabaseTable:
         self.id_type: ID_TYPE = id_type
         self.fields: dict[str, tuple[any, any]] = fields
         self.__data: dict[ID_TYPE, TABLE] = {}
+        self.__meta_data: dict[ID_TYPE, JsonDatabaseMetaData] = {}
         self.__json_data: dict[str | int, any] = {}
 
         # create folders and files is not exist
@@ -369,6 +371,7 @@ class JsonDatabaseTable:
                                 f"\'{self.id_type}\'.")
         # save object to db
         self.__data[obj_id] = obj
+        self.__meta_data[obj_id] = JsonDatabaseMetaData()
         self.__serialize()
 
     def key_in_table(self, key: ID_TYPE) -> bool:
@@ -400,6 +403,7 @@ class JsonDatabaseTable:
                 field_data = getattr(obj, field, None)
                 field_data_serialized = self.__db.data_to_json(field_data)
                 obj_data[field] = field_data_serialized
+            obj_data['$meta'] = self.__db.data_to_json(self.__meta_data[obj_id])
             json_data[obj_id] = obj_data
         return json_data
 
@@ -424,11 +428,9 @@ class JsonDatabaseTable:
             with open(table_file, 'r') as json_file:
                 for obj_id, obj_data in json.load(json_file).items():
                     if self.id_type is int:
-                        self.__json_data[int(obj_id)] = obj_data
-                        self.__create_and_insert_object(int(obj_id))
+                        self.__create_and_insert_object(int(obj_id), obj_data)
                     elif self.id_type in [str, UUID]:
-                        self.__json_data[obj_id] = obj_data
-                        self.__create_and_insert_object(obj_id)
+                        self.__create_and_insert_object(obj_id, obj_data)
         elif self.table_type == TableType.Folder:
             table_folder = path.join(self.__db.data_folder, self.cls.__name__)
             for file_name in get_filenames_from_dir(table_folder):
@@ -436,11 +438,9 @@ class JsonDatabaseTable:
                     obj_data = json.load(json_file)
                     obj_id = path.splitext(path.basename(file_name))[0]
                     if self.id_type is int:
-                        self.__json_data[int(obj_id)] = obj_data
-                        self.__create_and_insert_object(int(obj_id))
+                        self.__create_and_insert_object(int(obj_id), obj_data)
                     elif self.id_type in [str, UUID]:
-                        self.__json_data[obj_id] = obj_data
-                        self.__create_and_insert_object(obj_id)
+                        self.__create_and_insert_object(obj_id, obj_data)
         return self.__fill_objects
 
     def __fill_objects(self) -> None:
@@ -448,10 +448,12 @@ class JsonDatabaseTable:
             self.__fill_object_from_dict(self.__data[obj_id], data)
         # TODO save object because of default value insertions?
 
-    def __create_and_insert_object(self, obj_id: int | str) -> None:
+    def __create_and_insert_object(self, obj_id: int | str, obj_data: dict) -> None:
         obj = TABLE.__new__(self.cls)
         setattr(obj, self.id_field, obj_id)
         self.__data[obj_id] = obj
+        self.__json_data[obj_id] = obj_data
+        self.__meta_data[obj_id] = self.__db.json_to_value(obj_data['$meta'])
 
     def __fill_object_from_dict(self, obj: object, obj_data: dict[str | int, any]) -> None:
         for field in self.fields:
@@ -463,6 +465,16 @@ class JsonDatabaseTable:
                     setattr(obj, field, self.fields[field][1])
                 else:
                     setattr(obj, field, deepcopy(self.fields[field][1]))
+
+
+# When adding new fields to the JsonDatabaseMetaData class you have to insert them to:
+# - the setUp function in tests/test_json_db.py
+# - SZENE0_JSON, SZENE1_JSON, RECTANGLES_JSON, UUID1_JSON, UUID2_JSON in tests/test_json_database/db_test_save.py
+@dataclass()
+@DatabaseFieldType()
+@DatabaseField('is_deleted', bool, False)
+class JsonDatabaseMetaData:
+    is_deleted: bool = False
 
 
 def is_serializable(f_type: any, additional_types: list[type] = None) -> tuple[bool, str]:

@@ -2,5 +2,10 @@
     "att_list": {
         "type": "list",
         "data": []
+    },
+    "$meta": {
+        "type": "JsonDatabaseMetaData",
+        "data": {
+        }
     }
 }

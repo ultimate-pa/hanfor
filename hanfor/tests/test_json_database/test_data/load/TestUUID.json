@@ -1,8 +1,18 @@
 {
     "cad3bea2-36d0-4119-ba42-fa7fc1192582": {
-        "att_str": "one"
+        "att_str": "one",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+            }
+        }
     },
     "55f0895b-8861-4af6-b20a-415f58a7839c": {
-        "att_str": "two"
+        "att_str": "two",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+            }
+        }
     }
 }

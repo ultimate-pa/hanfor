@@ -7,5 +7,10 @@
                 "data": "job0"
             }
         ]
+    },
+    "$meta": {
+        "type": "JsonDatabaseMetaData",
+        "data": {
+        }
     }
 }

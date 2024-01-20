@@ -1,6 +1,6 @@
 from unittest import TestCase
 from json_db_connector.json_db import JsonDatabase, is_serializable, TableType, DatabaseTable, DatabaseID, \
-    DatabaseField, DatabaseFieldType
+    DatabaseField, DatabaseFieldType, JsonDatabaseMetaData
 from uuid import UUID
 from os import path, rmdir, remove
 from dataclasses import dataclass
@@ -17,6 +17,11 @@ class TestJsonDatabase(TestCase):
         DatabaseFieldType.registry.clear()
         self._db = JsonDatabase()
         self._data_path = path.join(path.dirname(path.realpath(__file__)), 'test_json_database', 'test_data')
+        DatabaseFieldType.registry.add(JsonDatabaseMetaData)
+        DatabaseField.registry[JsonDatabaseMetaData] = {
+            'is_deleted': (bool, False)
+            # Add new fields here
+        }
 
     def tearDown(self):
         if path.isdir(path.join(self._data_path, 'init_tables_ok', 'TestClassFolder')):
@@ -277,7 +282,7 @@ class TestJsonDatabase(TestCase):
         # test well-formed database field type definition
         from test_json_database.db_test_field_type_decorator_simple import TestClass
         _ = TestClass
-        type_set: set[type] = {TestClass}
+        type_set: set[type] = {TestClass, JsonDatabaseMetaData}
         self.assertSetEqual(DatabaseFieldType.registry, type_set)
 
         with self.assertRaises(Exception) as em:
@@ -318,8 +323,7 @@ class TestJsonDatabase(TestCase):
                                                                         'att_float': (float, 3.14),
                                                                         'att_class_file': (TestClassFile, None)
                                                                         })
-        field_type_dict = {TestClassFieldType: {'job_id': (str, None)}}
-        self.assertDictEqual(self._db._field_types, field_type_dict)
+        self.assertDictEqual(self._db._field_types[TestClassFieldType], {'job_id': (str, None)})
         self.assertTrue(path.isdir(path.join(self._data_path, 'init_tables_ok', 'TestClassFolder')))
         self.assertTrue(path.isfile(path.join(self._data_path, 'init_tables_ok', 'TestClassFile.json')))
 
@@ -559,6 +563,7 @@ class TestJsonDatabase(TestCase):
 
     def test_json_db_load_with_defaults(self):
         from test_json_database.db_test_load_with_defaults import TestClassFieldType, TestClassFile
+        default_meta_dat = JsonDatabaseMetaData()
         self._db.init_tables(path.join(self._data_path, 'load_with_defaults'))
         tft0 = TestClassFieldType(False, 'individual', 21, 9.81, [])
         tft_default = TestClassFieldType(True, 'default', 42, 3.14, [1, 2])
