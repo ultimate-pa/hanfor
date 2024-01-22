@@ -39,6 +39,7 @@ $(document).ready(function () {
                 return evaluate_search(data);
             })
             this.api().draw();
+            updateTableData()
         }
     });
 
@@ -93,8 +94,11 @@ $(document).ready(function () {
             download_req(data['requestId']);
         });
 
+        $('#ultimate-tag-modal-cancel-btn').click(function () {
+            cancel_job(data['requestId']);
+        });
+
     })
-    updateTableData()
 });
 
 const dataTableColumns = [
@@ -182,6 +186,18 @@ function download_req(req_id) {
         url: '../api/ultimate/job/' + req_id + '?download=true',
     }).done(function (data) {
         download(data['job_id'] + '.json', JSON.stringify(data, null, 4))
+        updateTableData()
+    }).fail(function (jqXHR, textStatus, errorThrown) {
+        alert(errorThrown + '\n\n' + jqXHR['responseText'])
+    })
+}
+
+function cancel_job(job_id) {
+    console.log("delete")
+    $.ajax({
+        type: 'DELETE',
+        url: '../api/ultimate/job/' + job_id,
+    }).done(function (data) {
         updateTableData()
     }).fail(function (jqXHR, textStatus, errorThrown) {
         alert(errorThrown + '\n\n' + jqXHR['responseText'])
