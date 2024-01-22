@@ -1,6 +1,6 @@
 /*!
-  * Bootstrap v5.3.2 (https://getbootstrap.com/)
-  * Copyright 2011-2023 The Bootstrap Authors (https://github.com/twbs/bootstrap/graphs/contributors)
+  * Bootstrap v5.2.3 (https://getbootstrap.com/)
+  * Copyright 2011-2022 The Bootstrap Authors (https://github.com/twbs/bootstrap/graphs/contributors)
   * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
   */
 
@@ -16,6 +16,17 @@
  * https://www.chartjs.org
  * (c) 2022 Chart.js Contributors
  * Released under the MIT License
+ */
+
+/*!
+ * Sizzle CSS Selector Engine v2.3.9
+ * https://sizzlejs.com/
+ *
+ * Copyright JS Foundation and other contributors
+ * Released under the MIT license
+ * https://js.foundation/
+ *
+ * Date: 2022-12-19
  */
 
 /*!
@@ -36,14 +47,17 @@
  */
 
 /*!
- * jQuery JavaScript Library v3.7.1
+ * jQuery JavaScript Library v3.6.3
  * https://jquery.com/
+ *
+ * Includes Sizzle.js
+ * https://sizzlejs.com/
  *
  * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license
  * https://jquery.org/license
  *
- * Date: 2023-08-28T13:37Z
+ * Date: 2022-12-20T21:28Z
  */
 
 /*!
@@ -127,11 +141,15 @@
  * Released under the MIT License
  */
 
-/*! ColReorder 1.7.0
- * © SpryMedia Ltd - datatables.net/license
+/*! Bootstrap 5 styling wrapper for ColReorder
+ * ©2018 SpryMedia Ltd - datatables.net/license
  */
 
-/*! DataTables 1.13.7
+/*! ColReorder 1.6.1
+ * ©2010-2022 SpryMedia Ltd - datatables.net/license
+ */
+
+/*! DataTables 1.13.3
  * ©2008-2023 SpryMedia Ltd - datatables.net/license
  */
 
@@ -139,6 +157,6 @@
  * 2020 SpryMedia Ltd - datatables.net/license
  */
 
-/*! Select for DataTables 1.7.0
- * © SpryMedia Ltd - datatables.net/license/mit
+/*! Select for DataTables 1.6.1
+ * 2015-2023 SpryMedia Ltd - datatables.net/license/mit
  */

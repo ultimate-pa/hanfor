@@ -11,6 +11,7 @@ const ultimateSearchString = sessionStorage.getItem('ultimateSearchString')
 const {Modal} = require('bootstrap')
 
 let search_tree
+let reload_timer
 
 $(document).ready(function () {
     const searchInput = $('#search_bar')
@@ -93,6 +94,7 @@ $(document).ready(function () {
         });
 
     })
+    updateTableData()
 });
 
 const dataTableColumns = [
@@ -179,9 +181,10 @@ function download_req(req_id) {
         type: 'GET',
         url: '../api/ultimate/job/' + req_id + '?download=true',
     }).done(function (data) {
-        download(data['job_id'] + '.json', JSON.stringify(data, null, 4));
+        download(data['job_id'] + '.json', JSON.stringify(data, null, 4))
+        updateTableData()
     }).fail(function (jqXHR, textStatus, errorThrown) {
-        alert(errorThrown + '\n\n' + jqXHR['responseText']);
+        alert(errorThrown + '\n\n' + jqXHR['responseText'])
     })
 }
 
@@ -196,4 +199,28 @@ function download(filename, text) {
     element.click();
 
     document.body.removeChild(element);
+}
+
+function updateTableData() {
+    stoppReloadTimer()
+    $.ajax({
+        type: 'GET',
+        url: '../api/ultimate/update-all'
+    }).done(function (data) {
+        if (data['status'] === 'done') {
+            const ultimateJobsTable = $('#ultimate-jobs-tbl')
+            ultimateJobsTable.DataTable().ajax.reload()
+        }
+        startReloadTimer()
+    }).fail(function (jqXHR, textStatus, errorThrown) {
+        alert(errorThrown + '\n\n' + jqXHR['responseText']);
+    })
+}
+
+function startReloadTimer(){
+    reload_timer = setTimeout(updateTableData, 60000)
+}
+
+function stoppReloadTimer() {
+    clearInterval(reload_timer)
 }
