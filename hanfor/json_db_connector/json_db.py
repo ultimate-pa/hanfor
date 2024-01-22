@@ -26,15 +26,15 @@ class DatabaseTable:
     def __init__(self, table_type: TableType = TableType.NotSet):
         self._table_type: TableType = table_type
         if inspect.isclass(table_type):
-            raise Exception(f"DatabaseTable must be set to file or folder: {table_type}")
+            raise DatabaseDefinitionError(f"DatabaseTable must be set to file or folder: {table_type}")
 
     def __call__(self, cls: type):
         if self._table_type == TableType.NotSet:
             # empty brackets
-            raise Exception(f"DatabaseTable must be set to file or folder: {cls}")
+            raise DatabaseDefinitionError(f"DatabaseTable must be set to file or folder: {cls}")
         # check if class with name exists already
         if cls.__name__ in [c.__name__ for c in self.registry]:
-            raise Exception(f"DatabaseTable with name {cls.__name__} already exists.")
+            raise DatabaseDefinitionError(f"DatabaseTable with name {cls.__name__} already exists.")
         self.registry[cls] = self._table_type
         return cls
 
@@ -52,23 +52,25 @@ class DatabaseID:
             # empty brackets
             return
         if inspect.isclass(field):
-            raise Exception(f"DatabaseID must be set to the name and type of an field of the class: {field}")
+            raise DatabaseDefinitionError(f"DatabaseID must be set to the name and type of an field of the class: "
+                                          f"{field}")
 
     def __call__(self, cls):
         if cls in self.registry:
-            raise Exception(f"DatabaseTable with name {cls} already has an id field.")
+            raise DatabaseDefinitionError(f"DatabaseTable with name {cls} already has an id field.")
         if self._id_field is None:
             # empty brackets
-            raise Exception(f"DatabaseID must be set to the name and type of an field of the class: {cls}")
+            raise DatabaseDefinitionError(f"DatabaseID must be set to the name and type of an field of the class: "
+                                          f"{cls}")
         if not type(self._id_field) is str:
             # first argument is not a string
-            raise Exception(f"Name of DatabaseID must be of type str: {cls}")
+            raise DatabaseDefinitionError(f"Name of DatabaseID must be of type str: {cls}")
         if self._type is None:
-            raise Exception(f"Type of DatabaseID must be provided: {cls}")
+            raise DatabaseDefinitionError(f"Type of DatabaseID must be provided: {cls}")
         if type(self._type) is not type:
-            raise Exception(f"Type of DatabaseID must be of type type: {cls}")
+            raise DatabaseDefinitionError(f"Type of DatabaseID must be of type type: {cls}")
         if self._type not in [str, int, UUID]:
-            raise Exception(f"Type of DatabaseID must be of type str or int: {cls}")
+            raise DatabaseDefinitionError(f"Type of DatabaseID must be of type str or int: {cls}")
 
         # Define getter and setter method
         private_attribute_name = f"__{self._id_field}"
@@ -80,7 +82,7 @@ class DatabaseID:
             if getattr(setter_self, private_attribute_name) is None:
                 setattr(setter_self, private_attribute_name, value)
             else:
-                raise Exception(f"The id field of an object can not be changed!\n{setter_self}")
+                raise DatabaseKeyError(f"The id field of an object can not be changed!\n{setter_self}")
 
         setattr(cls, private_attribute_name, None)
         setattr(cls, self._id_field, property(getter, setter))
@@ -101,24 +103,26 @@ class DatabaseField:
             # empty brackets
             return
         if inspect.isclass(field):
-            raise Exception(f"DatabaseField must be set to the name and type of an field of the class: {field}")
+            raise DatabaseDefinitionError(f"DatabaseField must be set to the name and type of an field of the class: "
+                                          f"{field}")
 
     def __call__(self, cls):
         if self._field is None:
             # empty brackets
-            raise Exception(f"DatabaseField must be set to the name and type of an field of the class: {cls}")
+            raise DatabaseDefinitionError(f"DatabaseField must be set to the name and type of an field of the class: "
+                                          f"{cls}")
         if not type(self._field) is str:
             # first argument is not a string
-            raise Exception(f"Name of DatabaseField must be of type str: {cls}")
+            raise DatabaseDefinitionError(f"Name of DatabaseField must be of type str: {cls}")
         if self._type is None:
-            raise Exception(f"Type of DatabaseField must be provided: {cls}")
+            raise DatabaseDefinitionError(f"Type of DatabaseField must be provided: {cls}")
         if type(self._type) not in [type, GenericAlias]:
-            raise Exception(f"Type of DatabaseField must be of type type: {cls}")
+            raise DatabaseDefinitionError(f"Type of DatabaseField must be of type type: {cls}")
         if cls not in self.registry:
             self.registry[cls] = {}
         # check if field of class with name exists already
         if self._field in self.registry[cls]:
-            raise Exception(f"DatabaseField with name {self._field} already exists in class {cls}.")
+            raise DatabaseDefinitionError(f"DatabaseField with name {self._field} already exists in class {cls}.")
         self.registry[cls][self._field] = self._type, self._default
         return cls
 
@@ -128,7 +132,7 @@ class DatabaseFieldType:
 
     def __init__(self, cls: type = None):
         if cls:
-            raise Exception(f"DatabaseFieldType must be called with brackets: {cls}")
+            raise DatabaseDefinitionError(f"DatabaseFieldType must be called with brackets: {cls}")
 
     def __call__(self, cls: type):
         if cls.__name__ in [c.__name__ for c in self.registry]:
@@ -137,7 +141,8 @@ class DatabaseFieldType:
                 if c.__name__ == cls.__name__:
                     existing = c
                     break
-            raise Exception(f"Name of DatabaseFieldType exists already:\nexisting: {existing}\nnew     : {cls}")
+            raise DatabaseDefinitionError(f"Name of DatabaseFieldType exists already:\nexisting: {existing}\n"
+                                          f"new     : {cls}")
         self.registry.add(cls)
         return cls
 
@@ -156,7 +161,7 @@ class JsonDatabase:
 
     def init_tables(self, data_folder: str) -> None:
         if data_folder == '':
-            raise Exception(f"The data_folder is required")
+            raise DatabaseInitialisationError(f"The data_folder is required")
         self.__data_folder = data_folder
         tables: set[type] = set(DatabaseTable.registry.keys())
         id_fields: set[type] = set(DatabaseID.registry.keys())
@@ -165,36 +170,37 @@ class JsonDatabase:
 
         # check if decorated classes are well-formed tables and field types
         if tables & field_types:
-            raise Exception(f"The following classes are marked as DatabaseTable and DatabaseFieldType:\n"
-                            f"{tables & field_types}")
+            raise DatabaseInitialisationError(f"The following classes are marked as DatabaseTable and "
+                                              f"DatabaseFieldType:\n{tables & field_types}")
 
         if tables.difference(id_fields):
-            raise Exception(f"The following classes are marked as DatabaseTable but don\'t have an id field:\n"
-                            f"{tables.difference(id_fields)}")
+            raise DatabaseInitialisationError(f"The following classes are marked as DatabaseTable but don\'t have an "
+                                              f"id field:\n{tables.difference(id_fields)}")
 
         if id_fields.difference(tables):
-            raise Exception(f"The following classes are marked with an id field but not as an DatabaseTable:\n"
-                            f"{id_fields.difference(tables)}")
+            raise DatabaseInitialisationError(f"The following classes are marked with an id field but not as an "
+                                              f"DatabaseTable:\n{id_fields.difference(tables)}")
 
         if db_fields.difference(tables.union(field_types)):
-            raise Exception(f"The following classes are marked with fields but not as an DatabaseTable or "
-                            f"DatabaseFieldType:\n"
-                            f"{db_fields.difference(tables.union(field_types))}")
+            raise DatabaseInitialisationError(f"The following classes are marked with fields but not as an "
+                                              f"DatabaseTable or DatabaseFieldType:\n"
+                                              f"{db_fields.difference(tables.union(field_types))}")
 
         if tables.difference(db_fields):
-            raise Exception(f"The following classes are marked as DatabaseTable but don\'t have any fields:\n"
-                            f"{tables.difference(db_fields)}")
+            raise DatabaseInitialisationError(f"The following classes are marked as DatabaseTable but don\'t have any "
+                                              f"fields:\n{tables.difference(db_fields)}")
 
         if field_types.difference(db_fields):
-            raise Exception(f"The following classes are marked as DatabaseFieldType but don\'t have any fields:\n"
-                            f"{field_types.difference(db_fields)}")
+            raise DatabaseInitialisationError(f"The following classes are marked as DatabaseFieldType but don\'t have "
+                                              f"any fields:\n{field_types.difference(db_fields)}")
 
         # check if all used types are serializable
         for cls, field_dict in DatabaseField.registry.items():
             for field, (f_type, _) in field_dict.items():
                 res = is_serializable(f_type, list(tables.union(field_types)))
                 if not res[0]:
-                    raise Exception(f"The following type of class {cls} is not serializable:\n{field}: {res[1]}")
+                    raise DatabaseInitialisationError(f"The following type of class {cls} is not serializable:\n"
+                                                      f"{field}: {res[1]}")
 
         # create database folder if not exist
         if not path.isdir(self.__data_folder):
@@ -227,7 +233,7 @@ class JsonDatabase:
     def add_object(self, obj: object) -> None:
         # check if object is part of the database
         if type(obj) not in self._tables.keys():
-            raise Exception(f"{type(obj)} is not part of the Database.")
+            raise DatabaseInsertionError(f"{type(obj)} is not part of the Database.")
         self._tables[type(obj)].add_object(obj)
         self.__save_data()
 
@@ -262,7 +268,7 @@ class JsonDatabase:
                 if field_data_serialized is not None:
                     res[field] = field_data_serialized
             return {'type': f_type.__name__, 'data': res}
-        raise Exception(f"The following data is not serializable:\n{data}.")
+        raise DatabaseSaveError(f"The following data is not serializable:\n{data}.")
 
     def __save_data(self) -> None:
         for _, table in self._tables.items():
@@ -274,7 +280,7 @@ class JsonDatabase:
             return data
         if data_type is dict:
             if 'type' not in data or 'data' not in data:
-                raise Exception(f"The following data is not well formed:\n{data}.")
+                raise DatabaseLoadError(f"The following data is not well formed:\n{data}.")
             if data['type'] == 'list':
                 res = []
                 for i in data['data']:
@@ -320,8 +326,9 @@ class JsonDatabase:
                 if tmp[data['type']].key_in_table(data['data']):
                     return tmp[data['type']].get_object(data['data'])
                 else:
-                    raise Exception(f"The id \'{data['data']}\' can not be found in Table \'{data['type']}\'.")
-        raise Exception(f"The following data is not well formed:\n{data}.")
+                    raise DatabaseLoadError(f"The id \'{data['data']}\' can not be found in Table "
+                                               f"\'{data['type']}\'.")
+        raise DatabaseLoadError(f"The following data is not well formed:\n{data}.")
 
 
 class JsonDatabaseTable:
@@ -352,7 +359,7 @@ class JsonDatabaseTable:
 
     def add_object(self, obj: object) -> None:
         if not type(obj) == self.cls:
-            raise Exception(f"{obj} does not belong to this table.")
+            raise DatabaseInsertionError(f"{obj} does not belong to this table.")
         if id(obj) in [id(i) for i in self.__data.values()]:
             # object already in database -> update db
             return
@@ -363,12 +370,12 @@ class JsonDatabaseTable:
             # check if id is already in db
             obj_id = getattr(obj, self.id_field, None)
             if obj_id is None or obj_id == '':
-                raise Exception(f"The id field \'{self.id_field}\' of object {obj} is empty.")
+                raise DatabaseInsertionError(f"The id field \'{self.id_field}\' of object {obj} is empty.")
             if obj_id in self.__data.keys():
-                raise Exception(f"The id \'{obj_id}\' already exists in table {type(obj)}.")
+                raise DatabaseInsertionError(f"The id \'{obj_id}\' already exists in table {type(obj)}.")
             if type(obj_id) != self.id_type:
-                raise Exception(f"The id field \'{self.id_field}\' of object {obj} is not of type "
-                                f"\'{self.id_type}\'.")
+                raise DatabaseInsertionError(f"The id field \'{self.id_field}\' of object {obj} is not of type "
+                                             f"\'{self.id_type}\'.")
         # save object to db
         self.__data[obj_id] = obj
         self.__meta_data[obj_id] = JsonDatabaseMetaData()
@@ -384,12 +391,12 @@ class JsonDatabaseTable:
 
     def get_key_of_object(self, obj: TABLE) -> int | str:
         if not type(obj) == self.cls or getattr(obj, self.id_field, None) not in self.__data:
-            raise Exception(f"Object {obj} not in this table.")
+            raise DatabaseKeyError(f"Object {obj} not in this table.")
         return getattr(obj, self.id_field, None)
 
     def get_object(self, key: ID_TYPE) -> T:
         if key not in self.__data.keys():
-            raise Exception(f"No object with key {key} in this table.")
+            raise DatabaseKeyError(f"No object with key {key} in this table.")
         return self.__data[key]
 
     def get_objects(self) -> dict[Type[ID_TYPE], Type[TABLE]]:
@@ -498,3 +505,33 @@ def is_serializable(f_type: any, additional_types: list[type] = None) -> tuple[b
     if f_type in additional_types:
         return True, ''
     return False, str(f_type)
+
+
+class DatabaseDefinitionError(Exception):
+    def __init__(self, message):
+        super().__init__(f"DatabaseDefinitionError: {message}")
+
+
+class DatabaseInitialisationError(Exception):
+    def __init__(self, message):
+        super().__init__(f"DatabaseInitialisationError: {message}")
+
+
+class DatabaseInsertionError(Exception):
+    def __init__(self, message):
+        super().__init__(f"DatabaseInsertionError: {message}")
+
+
+class DatabaseLoadError(Exception):
+    def __init__(self, message):
+        super().__init__(f"DatabaseLoadError: {message}")
+
+
+class DatabaseSaveError(Exception):
+    def __init__(self, message):
+        super().__init__(f"DatabaseSaveError: {message}")
+
+
+class DatabaseKeyError(Exception):
+    def __init__(self, message):
+        super().__init__(f"DatabaseKeyError: {message}")

@@ -87,7 +87,7 @@ class TestJsonDatabase(TestCase):
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_table_decorator_without_brackets import TestClass
             _ = TestClass
-        self.assertEqual('DatabaseTable must be set to file or folder: <class '
+        self.assertEqual('DatabaseDefinitionError: DatabaseTable must be set to file or folder: <class '
                          '\'test_json_database.db_test_table_decorator_without_brackets.TestClass\'>',
                          str(em.exception))
 
@@ -95,7 +95,7 @@ class TestJsonDatabase(TestCase):
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_table_decorator_without_arguments import TestClass
             _ = TestClass
-        self.assertEqual('DatabaseTable must be set to file or folder: <class '
+        self.assertEqual('DatabaseDefinitionError: DatabaseTable must be set to file or folder: <class '
                          '\'test_json_database.db_test_table_decorator_without_arguments.TestClass\'>',
                          str(em.exception))
 
@@ -110,7 +110,7 @@ class TestJsonDatabase(TestCase):
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_simple_table_duplicate import TestClassFile
             _ = TestClassFile
-        self.assertEqual('DatabaseTable with name TestClassFile already exists.',
+        self.assertEqual('DatabaseDefinitionError: DatabaseTable with name TestClassFile already exists.',
                          str(em.exception))
 
     def test_id_decorator(self):
@@ -118,23 +118,23 @@ class TestJsonDatabase(TestCase):
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_id_decorator_without_brackets import TestClass
             _ = TestClass
-        self.assertEqual('DatabaseID must be set to the name and type of an field of the class: <class '
-                         '\'test_json_database.db_test_id_decorator_without_brackets.TestClass\'>',
+        self.assertEqual('DatabaseDefinitionError: DatabaseID must be set to the name and type of an field of the '
+                         'class: <class \'test_json_database.db_test_id_decorator_without_brackets.TestClass\'>',
                          str(em.exception))
 
         # test id definition without arguments
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_id_decorator_without_arguments import TestClass
             _ = TestClass
-        self.assertEqual('DatabaseID must be set to the name and type of an field of the class: <class '
-                         '\'test_json_database.db_test_id_decorator_without_arguments.TestClass\'>',
+        self.assertEqual('DatabaseDefinitionError: DatabaseID must be set to the name and type of an field of the '
+                         'class: <class \'test_json_database.db_test_id_decorator_without_arguments.TestClass\'>',
                          str(em.exception))
 
         # test id definition with 1 incorrect argument
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_id_decorator_with_1_incorrect_argument import TestClass
             _ = TestClass
-        self.assertEqual('Name of DatabaseID must be of type str: <class '
+        self.assertEqual('DatabaseDefinitionError: Name of DatabaseID must be of type str: <class '
                          '\'test_json_database.db_test_id_decorator_with_1_incorrect_argument.TestClass\'>',
                          str(em.exception))
 
@@ -142,7 +142,7 @@ class TestJsonDatabase(TestCase):
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_id_decorator_with_1_argument import TestClass
             _ = TestClass
-        self.assertEqual('Type of DatabaseID must be provided: <class '
+        self.assertEqual('DatabaseDefinitionError: Type of DatabaseID must be provided: <class '
                          '\'test_json_database.db_test_id_decorator_with_1_argument.TestClass\'>',
                          str(em.exception))
 
@@ -151,7 +151,7 @@ class TestJsonDatabase(TestCase):
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_id_decorator_with_2_incorrect_arguments import TestClass
             _ = TestClass
-        self.assertEqual('Type of DatabaseID must be of type type: <class '
+        self.assertEqual('DatabaseDefinitionError: Type of DatabaseID must be of type type: <class '
                          '\'test_json_database.db_test_id_decorator_with_2_incorrect_arguments.TestClass\'>',
                          str(em.exception))
 
@@ -159,7 +159,7 @@ class TestJsonDatabase(TestCase):
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_id_decorator_with_2_incorrect_arguments_2 import TestClass
             _ = TestClass
-        self.assertEqual('Type of DatabaseID must be of type str or int: <class '
+        self.assertEqual('DatabaseDefinitionError: Type of DatabaseID must be of type str or int: <class '
                          '\'test_json_database.db_test_id_decorator_with_2_incorrect_arguments_2.TestClass\'>',
                          str(em.exception))
 
@@ -167,8 +167,8 @@ class TestJsonDatabase(TestCase):
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_id_decorator_uuid_without_field import TestClassUuid
             _ = TestClassUuid
-        self.assertEqual('DatabaseID must be set to the name and type of an field of the class: <class '
-                         '\'test_json_database.db_test_id_decorator_uuid_without_field.TestClassUuid\'>',
+        self.assertEqual('DatabaseDefinitionError: DatabaseID must be set to the name and type of an field of the '
+                         'class: <class \'test_json_database.db_test_id_decorator_uuid_without_field.TestClassUuid\'>',
                          str(em.exception))
 
         # test well-formed definition for id
@@ -179,10 +179,12 @@ class TestJsonDatabase(TestCase):
                                             TestClassFolder: ('job_id', int),
                                             TestClassUuid: ('uuid', UUID)}
         self.assertDictEqual(DatabaseID.registry, id_dict)
+
+        # Test change of key
         tmp = TestClassFile('abc', True, 'str', 42, 3.14, (1, 'one'), [], {}, set())
         with self.assertRaises(Exception) as em:
             tmp.job_id = 'def'
-        self.assertEqual('The id field of an object can not be changed!\n'
+        self.assertEqual('DatabaseKeyError: The id field of an object can not be changed!\n'
                          'TestClassFile(job_id=\'abc\', att_bool=True, att_str=\'str\', att_int=42, '
                          'att_float=3.14, att_tuple=(1, \'one\'), att_list=[], att_dict={}, '
                          'att_set=set())',
@@ -192,7 +194,7 @@ class TestJsonDatabase(TestCase):
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_id_decorator_with_2_decorators import TestClass
             _ = TestClass
-        self.assertEqual('DatabaseTable with name <class '
+        self.assertEqual('DatabaseDefinitionError: DatabaseTable with name <class '
                          '\'test_json_database.db_test_id_decorator_with_2_decorators.TestClass\'> '
                          'already has an id field.',
                          str(em.exception))
@@ -202,23 +204,23 @@ class TestJsonDatabase(TestCase):
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_field_decorator_without_brackets import TestClass
             _ = TestClass
-        self.assertEqual('DatabaseField must be set to the name and type of an field of the class: <class '
-                         '\'test_json_database.db_test_field_decorator_without_brackets.TestClass\'>',
+        self.assertEqual('DatabaseDefinitionError: DatabaseField must be set to the name and type of an field of the '
+                         'class: <class \'test_json_database.db_test_field_decorator_without_brackets.TestClass\'>',
                          str(em.exception))
 
         # test id definition without arguments
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_field_decorator_without_arguments import TestClass
             _ = TestClass
-        self.assertEqual('DatabaseField must be set to the name and type of an field of the class: <class '
-                         '\'test_json_database.db_test_field_decorator_without_arguments.TestClass\'>',
+        self.assertEqual('DatabaseDefinitionError: DatabaseField must be set to the name and type of an field of the '
+                         'class: <class \'test_json_database.db_test_field_decorator_without_arguments.TestClass\'>',
                          str(em.exception))
 
         # test id definition with 1 incorrect argument
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_field_decorator_with_1_incorrect_argument import TestClass
             _ = TestClass
-        self.assertEqual('Name of DatabaseField must be of type str: <class '
+        self.assertEqual('DatabaseDefinitionError: Name of DatabaseField must be of type str: <class '
                          '\'test_json_database.db_test_field_decorator_with_1_incorrect_argument.TestClass\'>',
                          str(em.exception))
 
@@ -226,7 +228,7 @@ class TestJsonDatabase(TestCase):
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_field_decorator_with_1_argument import TestClass
             _ = TestClass
-        self.assertEqual('Type of DatabaseField must be provided: <class '
+        self.assertEqual('DatabaseDefinitionError: Type of DatabaseField must be provided: <class '
                          '\'test_json_database.db_test_field_decorator_with_1_argument.TestClass\'>',
                          str(em.exception))
 
@@ -234,7 +236,7 @@ class TestJsonDatabase(TestCase):
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_field_decorator_with_2_incorrect_arguments import TestClass
             _ = TestClass
-        self.assertEqual('Type of DatabaseField must be of type type: <class '
+        self.assertEqual('DatabaseDefinitionError: Type of DatabaseField must be of type type: <class '
                          '\'test_json_database.db_test_field_decorator_with_2_incorrect_arguments.TestClass\'>',
                          str(em.exception))
 
@@ -242,7 +244,7 @@ class TestJsonDatabase(TestCase):
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_field_decorator_with_2_decorators import TestClass
             _ = TestClass
-        self.assertEqual('DatabaseField with name job_id already exists in class <class '
+        self.assertEqual('DatabaseDefinitionError: DatabaseField with name job_id already exists in class <class '
                          '\'test_json_database.db_test_field_decorator_with_2_decorators.TestClass\'>.',
                          str(em.exception))
 
@@ -275,7 +277,7 @@ class TestJsonDatabase(TestCase):
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_field_type_decorator_without_brackets import TestClass
             _ = TestClass
-        self.assertEqual('DatabaseFieldType must be called with brackets: <class '
+        self.assertEqual('DatabaseDefinitionError: DatabaseFieldType must be called with brackets: <class '
                          '\'test_json_database.db_test_field_type_decorator_without_brackets.TestClass\'>',
                          str(em.exception))
 
@@ -288,8 +290,8 @@ class TestJsonDatabase(TestCase):
         with self.assertRaises(Exception) as em:
             from test_json_database.db_test_field_type_decorator_simple_2 import TestClass as Tc2
             _ = Tc2
-        self.assertEqual(f"Name of DatabaseFieldType exists already:\nexisting: {TestClass}\nnew     : <class "
-                         "'test_json_database.db_test_field_type_decorator_simple_2.TestClass'>",
+        self.assertEqual(f"DatabaseDefinitionError: Name of DatabaseFieldType exists already:\nexisting: {TestClass}"
+                         f"\nnew     : <class 'test_json_database.db_test_field_type_decorator_simple_2.TestClass'>",
                          str(em.exception))
 
     def test_json_db_init_tables_ok(self):
@@ -334,7 +336,8 @@ class TestJsonDatabase(TestCase):
         _ = TestClassFieldType
         with self.assertRaises(Exception) as em:
             self._db.init_tables(self._data_path)
-        self.assertEqual('The following classes are marked as DatabaseTable and DatabaseFieldType:\n'
+        self.assertEqual('DatabaseInitialisationError: The following classes are marked as DatabaseTable and '
+                         'DatabaseFieldType:\n'
                          '{<class \'test_json_database.db_test_init_tables_table_and_type.TestClass\'>}',
                          str(em.exception))
 
@@ -344,7 +347,8 @@ class TestJsonDatabase(TestCase):
         _ = TestClassWithoutID
         with self.assertRaises(Exception) as em:
             self._db.init_tables(self._data_path)
-        self.assertEqual('The following classes are marked as DatabaseTable but don\'t have an id field:\n'
+        self.assertEqual('DatabaseInitialisationError: The following classes are marked as DatabaseTable but don\'t '
+                         'have an id field:\n'
                          '{<class \'test_json_database.db_test_init_tables_table_without_id.TestClassWithoutID\'>}',
                          str(em.exception))
 
@@ -354,7 +358,8 @@ class TestJsonDatabase(TestCase):
         _ = TestClassWithoutTable
         with self.assertRaises(Exception) as em:
             self._db.init_tables(self._data_path)
-        self.assertEqual('The following classes are marked with an id field but not as an DatabaseTable:\n'
+        self.assertEqual('DatabaseInitialisationError: The following classes are marked with an id field but not as an '
+                         'DatabaseTable:\n'
                          '{<class \'test_json_database.db_test_init_tables_id_without_table.TestClassWithoutTable\'>}',
                          str(em.exception))
 
@@ -364,8 +369,8 @@ class TestJsonDatabase(TestCase):
         _ = TestClassWithoutTable
         with self.assertRaises(Exception) as em:
             self._db.init_tables(self._data_path)
-        self.assertEqual('The following classes are marked with fields but not as an DatabaseTable or '
-                         'DatabaseFieldType:\n'
+        self.assertEqual('DatabaseInitialisationError: The following classes are marked with fields but not as an '
+                         'DatabaseTable or DatabaseFieldType:\n'
                          '{<class \'test_json_database.db_test_init_tables_fields_without_table.'
                          'TestClassWithoutTable\'>}',
                          str(em.exception))
@@ -376,8 +381,8 @@ class TestJsonDatabase(TestCase):
         _ = TestClassWithoutFields
         with self.assertRaises(Exception) as em:
             self._db.init_tables(self._data_path)
-        self.assertEqual('The following classes are marked as DatabaseTable but don\'t have any fields:\n'
-                         '{<class \'test_json_database.db_test_init_tables_table_without_fields.'
+        self.assertEqual('DatabaseInitialisationError: The following classes are marked as DatabaseTable but don\'t '
+                         'have any fields:\n{<class \'test_json_database.db_test_init_tables_table_without_fields.'
                          'TestClassWithoutFields\'>}',
                          str(em.exception))
 
@@ -387,7 +392,8 @@ class TestJsonDatabase(TestCase):
         _ = TestClassWithoutFields
         with self.assertRaises(Exception) as em:
             self._db.init_tables(self._data_path)
-        self.assertEqual('The following classes are marked as DatabaseFieldType but don\'t have any fields:\n'
+        self.assertEqual('DatabaseInitialisationError: The following classes are marked as DatabaseFieldType but '
+                         'don\'t have any fields:\n'
                          '{<class \'test_json_database.db_test_init_tables_field_type_without_fields.'
                          'TestClassWithoutFields\'>}',
                          str(em.exception))
@@ -398,7 +404,7 @@ class TestJsonDatabase(TestCase):
         _ = TestClassFolder
         with self.assertRaises(Exception) as em:
             self._db.init_tables(self._data_path)
-        self.assertEqual('The following type of class <class \'test_json_database.'
+        self.assertEqual('DatabaseInitialisationError: The following type of class <class \'test_json_database.'
                          'db_test_init_tables_unserializable_fields.TestClassFolder\'> is not serializable:\n'
                          'att_class_file: <class \'json_db_connector.json_db.DatabaseTable\'>',
                          str(em.exception))
@@ -416,8 +422,9 @@ class TestJsonDatabase(TestCase):
         tmp = TestClass(f1='Hello World')
         with self.assertRaises(Exception) as em:
             self._db.add_object(tmp)
-        self.assertEqual('<class \'test_json_db.TestJsonDatabase.test_json_db_add_object.<locals>.'
-                         'TestClass\'> is not part of the Database.',
+        self.assertEqual('DatabaseInsertionError: <class '
+                         '\'test_json_db.TestJsonDatabase.test_json_db_add_object.<locals>.TestClass\'> is not part of '
+                         'the Database.',
                          str(em.exception))
 
         # instance test objects
@@ -467,25 +474,25 @@ class TestJsonDatabase(TestCase):
         # add object with empty str as id
         with self.assertRaises(Exception) as em:
             self._db.add_object(tc1_4)
-        self.assertEqual(f"The id field \'job_id\' of object {tc1_4} is empty.",
+        self.assertEqual(f"DatabaseInsertionError: The id field \'job_id\' of object {tc1_4} is empty.",
                          str(em.exception))
         self.assertDictEqual(table_objects, data_id)
         # add object with None as id
         with self.assertRaises(Exception) as em:
             self._db.add_object(tc2_4)
-        self.assertEqual(f"The id field \'job_id\' of object {tc2_4} is empty.",
+        self.assertEqual(f"DatabaseInsertionError: The id field \'job_id\' of object {tc2_4} is empty.",
                          str(em.exception))
         self.assertDictEqual(table_objects, data_id)
         # add object with already existing id
         with self.assertRaises(Exception) as em:
             self._db.add_object(tc1_5)
-        self.assertEqual(f"The id \'one\' already exists in table {type(tc1_5)}.",
+        self.assertEqual(f"DatabaseInsertionError: The id \'one\' already exists in table {type(tc1_5)}.",
                          str(em.exception))
         self.assertDictEqual(table_objects, data_id)
         # add object with false type of id
         with self.assertRaises(Exception) as em:
             self._db.add_object(tc1_6)
-        self.assertEqual(f"The id field \'job_id\' of object {tc1_6} is not of type \'{str}\'.",
+        self.assertEqual(f"DatabaseInsertionError: The id field \'job_id\' of object {tc1_6} is not of type \'{str}\'.",
                          str(em.exception))
         self.assertDictEqual(table_objects, data_id)
 
@@ -563,7 +570,6 @@ class TestJsonDatabase(TestCase):
 
     def test_json_db_load_with_defaults(self):
         from test_json_database.db_test_load_with_defaults import TestClassFieldType, TestClassFile
-        default_meta_dat = JsonDatabaseMetaData()
         self._db.init_tables(path.join(self._data_path, 'load_with_defaults'))
         tft0 = TestClassFieldType(False, 'individual', 21, 9.81, [])
         tft_default = TestClassFieldType(True, 'default', 42, 3.14, [1, 2])
@@ -678,12 +684,12 @@ class TestJsonDatabase(TestCase):
         self.assertEqual(self._db.json_to_value(self._db.data_to_json(tcr1)), tcr1)
         with self.assertRaises(Exception) as em:
             self._db.json_to_value({'type': 'TestClassReference', 'data': 'tcr2'})
-        self.assertEqual('The id \'tcr2\' can not be found in Table \'TestClassReference\'.',
+        self.assertEqual('DatabaseLoadError: The id \'tcr2\' can not be found in Table \'TestClassReference\'.',
                          str(em.exception))
         for d in [['Type'], {'set'}, ('tuple', 'tuple'), {'Type': 't', 'data': 'd'}, {'type': 't', 'Data': 'd'}]:
             with self.assertRaises(Exception) as em:
                 self._db.json_to_value(d)
-            self.assertEqual(f"The following data is not well formed:\n{d}.", str(em.exception))
+            self.assertEqual(f"DatabaseLoadError: The following data is not well formed:\n{d}.", str(em.exception))
 
     def test_json_db_is_serializable_function(self):
         res = is_serializable(DatabaseTable)
