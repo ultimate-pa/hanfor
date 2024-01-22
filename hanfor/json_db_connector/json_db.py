@@ -327,7 +327,7 @@ class JsonDatabase:
                     return tmp[data['type']].get_object(data['data'])
                 else:
                     raise DatabaseLoadError(f"The id \'{data['data']}\' can not be found in Table "
-                                               f"\'{data['type']}\'.")
+                                            f"\'{data['type']}\'.")
         raise DatabaseLoadError(f"The following data is not well formed:\n{data}.")
 
 
