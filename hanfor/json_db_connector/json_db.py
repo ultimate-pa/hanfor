@@ -416,7 +416,6 @@ class JsonDatabaseTable:
     def save(self) -> None:
         json_data = self.__serialize()
         # TODO diff and write diff to data tracing
-        self.__json_data = json_data
         if self.table_type == TableType.File:
             table_file = path.join(self.__db.data_folder, f"{self.cls.__name__}.json")
             with open(table_file, 'w') as json_file:
@@ -427,6 +426,7 @@ class JsonDatabaseTable:
                 file_name = path.join(table_folder, f"{obj_id}.json")
                 with open(file_name, 'w') as json_file:
                     json.dump(obj_data, json_file, indent=4)
+        self.__json_data = json_data
 
     def load(self) -> Callable[[], None]:
         if self.table_type == TableType.File:
