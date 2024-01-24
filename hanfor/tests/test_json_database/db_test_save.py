@@ -94,6 +94,86 @@ SZENE1_JSON = '{\n' \
               '    }\n' \
               '}'
 
+SZENE1_JSON_1 = '{\n' \
+              '    "rectangles": {\n' \
+              '        "type": "list",\n' \
+              '        "data": [\n' \
+              '            {\n' \
+              '                "type": "TestRectangle",\n' \
+              '                "data": "rect0"\n' \
+              '            }\n' \
+              '        ]\n' \
+              '    },\n' \
+              '    "keywords": {\n' \
+              '        "type": "set",\n' \
+              '        "data": [\n' \
+              '            "one"\n' \
+              '        ]\n' \
+              '    },\n' \
+              '    "$meta": {\n' \
+              '        "type": "JsonDatabaseMetaData",\n' \
+              '        "data": {\n' \
+              '            "is_deleted": false\n' \
+              '        }\n' \
+              '    }\n' \
+              '}'
+
+SZENE1_JSON_2 = '{\n' \
+              '    "rectangles": {\n' \
+              '        "type": "list",\n' \
+              '        "data": [\n' \
+              '            {\n' \
+              '                "type": "TestRectangle",\n' \
+              '                "data": "rect0"\n' \
+              '            },\n' \
+              '            {\n' \
+              '                "type": "TestRectangle",\n' \
+              '                "data": "rect0"\n' \
+              '            }\n' \
+              '        ]\n' \
+              '    },\n' \
+              '    "keywords": {\n' \
+              '        "type": "set",\n' \
+              '        "data": [\n' \
+              '            "one"\n' \
+              '        ]\n' \
+              '    },\n' \
+              '    "$meta": {\n' \
+              '        "type": "JsonDatabaseMetaData",\n' \
+              '        "data": {\n' \
+              '            "is_deleted": false\n' \
+              '        }\n' \
+              '    }\n' \
+              '}'
+
+SZENE1_JSON_3 = '{\n' \
+              '    "rectangles": {\n' \
+              '        "type": "list",\n' \
+              '        "data": [\n' \
+              '            {\n' \
+              '                "type": "TestRectangle",\n' \
+              '                "data": "rect0"\n' \
+              '            },\n' \
+              '            {\n' \
+              '                "type": "TestRectangle",\n' \
+              '                "data": "rect0"\n' \
+              '            }\n' \
+              '        ]\n' \
+              '    },\n' \
+              '    "keywords": {\n' \
+              '        "type": "set",\n' \
+              '        "data": [\n' \
+              '            "one"\n' \
+              '        ]\n' \
+              '    },\n' \
+              '    "$meta": {\n' \
+              '        "type": "JsonDatabaseMetaData",\n' \
+              '        "data": {\n' \
+              '            "is_deleted": true\n' \
+              '        }\n' \
+              '    }\n' \
+              '}'
+
 RECTANGLES_JSON = '{\n' \
                   '    "rect0": {\n' \
                   '        "color": {\n' \

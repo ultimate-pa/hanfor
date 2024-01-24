@@ -511,9 +511,9 @@ class TestJsonDatabase(TestCase):
         for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
             self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
 
-    def test_json_db_save(self):
+    def test_json_db_save_and_update(self):
         from test_json_database.db_test_save import TestColor, TestRectangle, TestSzene, SZENE1_JSON, SZENE0_JSON, \
-            RECTANGLES_JSON, TestUUID, UUID1_JSON, UUID2_JSON
+            RECTANGLES_JSON, TestUUID, UUID1_JSON, UUID2_JSON, SZENE1_JSON_1, SZENE1_JSON_2, SZENE1_JSON_3
         blue = TestColor('blue', (0., 0., 1.))
         green = TestColor('green', (0., 1., 0.))
         rect0 = TestRectangle('rect0', True, {'x': 0, 'y': 0}, green)
@@ -550,6 +550,24 @@ class TestJsonDatabase(TestCase):
             data_uuid = tmp.read()
         self.assertEqual(UUID2_JSON % (self._db._tables[TestUUID].get_key_of_object(uuid1),
                                        self._db._tables[TestUUID].get_key_of_object(uuid2)), data_uuid)
+        # test update
+        szene1.rectangles.append(rect0)
+        with open(path.join(self._data_path, 'save', 'TestSzene', '1.json')) as tmp:
+            data_szene1 = tmp.read()
+        self.assertEqual(SZENE1_JSON, data_szene1)
+        self._db.update()
+        with open(path.join(self._data_path, 'save', 'TestSzene', '1.json')) as tmp:
+            data_szene1 = tmp.read()
+        self.assertEqual(SZENE1_JSON_1, data_szene1)
+        szene1.rectangles.append(rect0)
+        self._db.add_object(szene1)
+        with open(path.join(self._data_path, 'save', 'TestSzene', '1.json')) as tmp:
+            data_szene1 = tmp.read()
+        self.assertEqual(SZENE1_JSON_2, data_szene1)
+        self._db.remove_object(szene1)
+        with open(path.join(self._data_path, 'save', 'TestSzene', '1.json')) as tmp:
+            data_szene1 = tmp.read()
+        self.assertEqual(SZENE1_JSON_3, data_szene1)
 
     def test_json_db_load(self):
         from test_json_database.db_test_load import TestClassFieldType, TestClassFile, TestClassFolder, TestUUID
