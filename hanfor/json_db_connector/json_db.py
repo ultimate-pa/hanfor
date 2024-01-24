@@ -2,15 +2,17 @@ import json
 import inspect
 from enum import Enum
 from types import GenericAlias, UnionType
-from typing import get_origin, get_args, TypeVar, Callable
+from typing import get_origin, get_args, TypeVar, Callable, Type
 from uuid import UUID, uuid4
 from os import path, mkdir
 from static_utils import get_filenames_from_dir
 from copy import deepcopy
 from dataclasses import dataclass
+from immutabledict import immutabledict
 
 CLS_TYPE = TypeVar('CLS_TYPE')
 ID_TYPE = TypeVar('ID_TYPE')
+GET_TYPE = TypeVar('GET_TYPE')
 
 
 class TableType(Enum):
@@ -234,7 +236,21 @@ class JsonDatabase:
         if type(obj) not in self._tables.keys():
             raise DatabaseInsertionError(f"{type(obj)} is not part of the Database.")
         self._tables[type(obj)].add_object(obj)
-        self.__save_data()
+        self.update()
+
+    def get_objects(self, tbl: Type[GET_TYPE]) -> immutabledict[int | str, GET_TYPE]:
+        return self._tables[tbl].get_objects()
+
+    def update(self) -> None:
+        for _, table in self._tables.items():
+            table.save()
+
+    def remove_object(self, obj: object) -> None:
+        # check if object is part of the database
+        if type(obj) not in self._tables.keys():
+            raise DatabaseInsertionError(f"{type(obj)} is not part of the Database.")
+        self._tables[type(obj)].remove_object(obj)
+        self.update()
 
     def data_to_json(self, data: any) -> any:
         if data is None:
@@ -268,10 +284,6 @@ class JsonDatabase:
                     res[field] = field_data_serialized
             return {'type': f_type.__name__, 'data': res}
         raise DatabaseSaveError(f"The following data is not serializable:\n{data}.")
-
-    def __save_data(self) -> None:
-        for _, table in self._tables.items():
-            table.save()
 
     def json_to_value(self, data: any) -> any:
         data_type = type(data)
@@ -378,7 +390,15 @@ class JsonDatabaseTable:
         # save object to db
         self.__data[obj_id] = obj
         self.__meta_data[obj_id] = JsonDatabaseMetaData()
+        # serialize all objects to catch contained objects from other tables witch are not saved in the other tabel
         self.__serialize()
+
+    def remove_object(self, obj: CLS_TYPE) -> None:
+        if not type(obj) == self.cls:
+            raise DatabaseKeyError(f"{obj} does not belong to this table.")
+        if not self.object_in_table(obj):
+            return
+        self.__meta_data[self.get_key_of_object(obj)].is_deleted = True
 
     def key_in_table(self, key: ID_TYPE) -> bool:
         return key in self.__data.keys()
@@ -389,17 +409,25 @@ class JsonDatabaseTable:
         return getattr(obj, self.id_field, None) in self.__data.keys()
 
     def get_key_of_object(self, obj: CLS_TYPE) -> ID_TYPE:
-        if not type(obj) == self.cls or getattr(obj, self.id_field, None) not in self.__data:
-            raise DatabaseKeyError(f"Object {obj} not in this table.")
+        if not type(obj) == self.cls:
+            raise DatabaseKeyError(f"{obj} does not belong to this table.")
         return getattr(obj, self.id_field, None)
 
     def get_object(self, key: ID_TYPE) -> CLS_TYPE:
         if key not in self.__data.keys():
             raise DatabaseKeyError(f"No object with key {key} in this table.")
+        if self.__meta_data[key].is_deleted:
+            # TODO insert to logging
+            pass
         return self.__data[key]
 
-    def get_objects(self) -> dict[ID_TYPE, CLS_TYPE]:
-        return self.__data
+    def get_objects(self) -> immutabledict[ID_TYPE, CLS_TYPE]:
+        res = {}
+        for k, obj in self.__data.items():
+            if self.__meta_data[k].is_deleted:
+                continue
+            res[k] = obj
+        return immutabledict(res)
 
     def __serialize(self) -> dict:
         json_data = {}

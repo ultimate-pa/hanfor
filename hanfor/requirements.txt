@@ -17,5 +17,6 @@ jsbeautifier~=1.14.9
 requests~=2.31.0
 werkzeug~=2.3.7
 packaging~=23.1
+immutabledict~=4.1.0
 
 -r lib_pea/requirements.txt
