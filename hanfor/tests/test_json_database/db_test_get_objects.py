@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField, DatabaseFieldType, TableType
+from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField, TableType
 
 
 @DatabaseTable(TableType.File)

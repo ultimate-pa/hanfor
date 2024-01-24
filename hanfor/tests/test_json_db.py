@@ -75,6 +75,11 @@ class TestJsonDatabase(TestCase):
         if path.isdir(path.join(self._data_path, 'get_objects')):
             rmdir(path.join(self._data_path, 'get_objects'))
 
+        if path.isfile(path.join(self._data_path, 'normal_class', 'TestClassFile.json')):
+            remove(path.join(self._data_path, 'normal_class', 'TestClassFile.json'))
+        if path.isdir(path.join(self._data_path, 'normal_class')):
+            rmdir(path.join(self._data_path, 'normal_class'))
+
     def test_json_int_float(self):
         tmp = {'int': 0, 'float': 1.2, 'bool': True}
         self.assertEqual(json.dumps(tmp), '{"int": 0, "float": 1.2, "bool": true}')
@@ -568,6 +573,24 @@ class TestJsonDatabase(TestCase):
         with open(path.join(self._data_path, 'save', 'TestSzene', '1.json')) as tmp:
             data_szene1 = tmp.read()
         self.assertEqual(SZENE1_JSON_3, data_szene1)
+
+    def test_json_db_normal_class(self):
+        from test_json_database.db_test_normal_class import TestClassFile
+        # create objects and save them
+        self._db.init_tables(path.join(self._data_path, 'normal_class'))
+        t0 = TestClassFile('job0', 'zero', 0)
+        t1 = TestClassFile('job1', 'one', 1)
+        t2 = TestClassFile('job2', 'two', 2)
+        self._db.add_object(t0)
+        self._db.add_object(t1)
+        self._db.add_object(t2)
+
+        # reset db to load saved objects
+        self._db = JsonDatabase()
+        self._db.init_tables(path.join(self._data_path, 'normal_class'))
+        self.assertEqual(self._db._tables[TestClassFile].get_object('job0').get_values(), t0.get_values())
+        self.assertEqual(self._db._tables[TestClassFile].get_object('job1').get_values(), t1.get_values())
+        self.assertEqual(self._db._tables[TestClassFile].get_object('job2').get_values(), t2.get_values())
 
     def test_json_db_load(self):
         from test_json_database.db_test_load import TestClassFieldType, TestClassFile, TestClassFolder, TestUUID
