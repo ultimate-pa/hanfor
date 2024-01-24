@@ -2,15 +2,14 @@ import json
 import inspect
 from enum import Enum
 from types import GenericAlias, UnionType
-from typing import get_origin, get_args, Type, TypeVar, Callable
+from typing import get_origin, get_args, TypeVar, Callable
 from uuid import UUID, uuid4
 from os import path, mkdir
 from static_utils import get_filenames_from_dir
 from copy import deepcopy
 from dataclasses import dataclass
 
-T = TypeVar('T')
-TABLE = TypeVar('TABLE')
+CLS_TYPE = TypeVar('CLS_TYPE')
 ID_TYPE = TypeVar('ID_TYPE')
 
 
@@ -151,9 +150,9 @@ class JsonDatabase:
 
     def __init__(self) -> None:
         self.__data_folder: str = ''
-        self._tables: dict[Type[T], JsonDatabaseTable] = {}
+        self._tables: dict[type, JsonDatabaseTable] = {}
         # class: (dict of fields(field_name, (type, default)))
-        self._field_types: dict[Type[T], dict[str, tuple[any, any]]] = {}
+        self._field_types: dict[type, dict[str, tuple[any, any]]] = {}
 
     @property
     def data_folder(self):
@@ -336,12 +335,12 @@ class JsonDatabaseTable:
     def __init__(self, db: JsonDatabase, cls: type, table_type: TableType, id_field: str, id_type: type,
                  fields: dict[str, tuple[any, any]]) -> None:
         self.__db: JsonDatabase = db
-        self.cls: TABLE = cls
+        self.cls: CLS_TYPE = cls
         self.table_type: TableType = table_type
         self.id_field: str = id_field
         self.id_type: ID_TYPE = id_type
         self.fields: dict[str, tuple[any, any]] = fields
-        self.__data: dict[ID_TYPE, TABLE] = {}
+        self.__data: dict[ID_TYPE, CLS_TYPE] = {}
         self.__meta_data: dict[ID_TYPE, JsonDatabaseMetaData] = {}
         self.__json_data: dict[str | int, any] = {}
 
@@ -384,22 +383,22 @@ class JsonDatabaseTable:
     def key_in_table(self, key: ID_TYPE) -> bool:
         return key in self.__data.keys()
 
-    def object_in_table(self, obj: TABLE) -> bool:
+    def object_in_table(self, obj: CLS_TYPE) -> bool:
         if not type(obj) == self.cls:
             return False
         return getattr(obj, self.id_field, None) in self.__data.keys()
 
-    def get_key_of_object(self, obj: TABLE) -> int | str:
+    def get_key_of_object(self, obj: CLS_TYPE) -> ID_TYPE:
         if not type(obj) == self.cls or getattr(obj, self.id_field, None) not in self.__data:
             raise DatabaseKeyError(f"Object {obj} not in this table.")
         return getattr(obj, self.id_field, None)
 
-    def get_object(self, key: ID_TYPE) -> T:
+    def get_object(self, key: ID_TYPE) -> CLS_TYPE:
         if key not in self.__data.keys():
             raise DatabaseKeyError(f"No object with key {key} in this table.")
         return self.__data[key]
 
-    def get_objects(self) -> dict[Type[ID_TYPE], Type[TABLE]]:
+    def get_objects(self) -> dict[ID_TYPE, CLS_TYPE]:
         return self.__data
 
     def __serialize(self) -> dict:
@@ -455,14 +454,14 @@ class JsonDatabaseTable:
             self.__fill_object_from_dict(self.__data[obj_id], data)
         # TODO save object because of default value insertions?
 
-    def __create_and_insert_object(self, obj_id: int | str, obj_data: dict) -> None:
-        obj = TABLE.__new__(self.cls)
+    def __create_and_insert_object(self, obj_id: ID_TYPE, obj_data: dict) -> None:
+        obj = CLS_TYPE.__new__(self.cls)
         setattr(obj, self.id_field, obj_id)
         self.__data[obj_id] = obj
         self.__json_data[obj_id] = obj_data
         self.__meta_data[obj_id] = self.__db.json_to_value(obj_data['$meta'])
 
-    def __fill_object_from_dict(self, obj: object, obj_data: dict[str | int, any]) -> None:
+    def __fill_object_from_dict(self, obj: CLS_TYPE, obj_data: dict[ID_TYPE, any]) -> None:
         for field in self.fields:
             if field in obj_data:
                 setattr(obj, field, self.__db.json_to_value(obj_data[field]))
