@@ -9,6 +9,7 @@ from static_utils import get_filenames_from_dir
 from copy import deepcopy
 from dataclasses import dataclass
 from immutabledict import immutabledict
+import logging
 
 CLS_TYPE = TypeVar('CLS_TYPE')
 ID_TYPE = TypeVar('ID_TYPE')
@@ -230,6 +231,7 @@ class JsonDatabase:
 
         for f in fill_functions:
             f()
+        logging.info('Database fully loaded.')
 
     def add_object(self, obj: object) -> None:
         # check if object is part of the database
@@ -417,8 +419,7 @@ class JsonDatabaseTable:
         if key not in self.__data.keys():
             raise DatabaseKeyError(f"No object with key {key} in this table.")
         if self.__meta_data[key].is_deleted:
-            # TODO insert to logging
-            pass
+            logging.warning(f"Deleted object from table {self.cls.__name__} with key {key} is requested.")
         return self.__data[key]
 
     def get_objects(self) -> immutabledict[ID_TYPE, CLS_TYPE]:
@@ -480,7 +481,6 @@ class JsonDatabaseTable:
     def __fill_objects(self) -> None:
         for obj_id, data in self.__json_data.items():
             self.__fill_object_from_dict(self.__data[obj_id], data)
-        # TODO save object because of default value insertions?
 
     def __create_and_insert_object(self, obj_id: ID_TYPE, obj_data: dict) -> None:
         obj = CLS_TYPE.__new__(self.cls)

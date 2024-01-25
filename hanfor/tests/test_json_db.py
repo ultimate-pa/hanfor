@@ -1,3 +1,4 @@
+import logging
 from unittest import TestCase
 from json_db_connector.json_db import JsonDatabase, is_serializable, TableType, DatabaseTable, DatabaseID, \
     DatabaseField, DatabaseFieldType, JsonDatabaseMetaData
@@ -310,7 +311,9 @@ class TestJsonDatabase(TestCase):
         _ = TestClassFile
         _ = TestClassFolder
         _ = TestClassFieldType
-        self._db.init_tables(path.join(self._data_path, 'init_tables_ok'))
+        with self.assertLogs(level='INFO') as cm:
+            self._db.init_tables(path.join(self._data_path, 'init_tables_ok'))
+            self.assertEqual(cm.output, ['INFO:root:Database fully loaded.'])
         self.assertTrue(TestClassFile in self._db._tables)
         self.assertTrue(TestClassFolder in self._db._tables)
         self.assertEqual(self._db._tables[TestClassFile].cls, TestClassFile)
@@ -596,11 +599,22 @@ class TestJsonDatabase(TestCase):
         from test_json_database.db_test_load import TestClassFieldType, TestClassFile, TestClassFolder, TestUUID
         tft0 = TestClassFieldType(False, 'false', 0, 0.0)
         tft1 = TestClassFieldType(True, 'true', 1, 1.0)
-        self._db.init_tables(path.join(self._data_path, 'load'))
+        with self.assertLogs(level=logging.INFO) as cm:
+            self._db.init_tables(path.join(self._data_path, 'load'))
+            self.assertEqual(cm.output, ['WARNING:root:Deleted object from table TestClassFile with key job0 is '
+                                         'requested.',
+                                         'WARNING:root:Deleted object from table TestClassFile with key job0 is '
+                                         'requested.',
+                                         'INFO:root:Database fully loaded.'
+                                         ])
         self.assertTrue(self._db._tables[TestClassFile].key_in_table('job0'))
         self.assertTrue(self._db._tables[TestClassFile].key_in_table('job1'))
-        self.assertEqual(TestClassFile('job0', (0, 1), {0: tft1, 1: tft0}, {0, 1}),
-                         self._db._tables[TestClassFile].get_object('job0'))
+        with self.assertLogs(level=logging.INFO) as cm:
+            self.assertEqual(TestClassFile('job0', (0, 1), {0: tft1, 1: tft0}, {0, 1}),
+                             self._db._tables[TestClassFile].get_object('job0'))
+            self.assertEqual(cm.output, ['WARNING:root:Deleted object from table TestClassFile with key job0 is '
+                                         'requested.'
+                                         ])
         self.assertEqual(TestClassFile('job1', (1, 2), {1: tft1, 0: tft0}, {1, 2}),
                          self._db._tables[TestClassFile].get_object('job1'))
         self.assertTrue(self._db._tables[TestClassFolder].key_in_table(100))

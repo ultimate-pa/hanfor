@@ -47,6 +47,7 @@
         "$meta": {
             "type": "JsonDatabaseMetaData",
             "data": {
+                "is_deleted": true
             }
         }
     },
