@@ -27,8 +27,8 @@ class UltimateJob:
     result_requirements: list[tuple[str, int]] = field(default_factory=list)  # (requirement_id, # of formalisations)
     api_url: str = ''
     job_status: str = 'scheduled'
-    request_time: str = datetime.now().strftime("%Y.%m.%d, %H:%M:%S.%f")
-    last_update: str = datetime.now().strftime("%Y.%m.%d, %H:%M:%S.%f")
+    request_time: str = ''
+    last_update: str = ''
 
     @classmethod
     def make(cls,
@@ -43,14 +43,17 @@ class UltimateJob:
         if selected_requirements == 'all':
             selected_requirements = get_all_requirement_ids()
         requirements = calculate_req_id_occurrence(requirement_file, selected_requirements)
-        return cls(job_id=job_id,
-                   requirement_file=requirement_file,
-                   toolchain_id=toolchain_id,
-                   toolchain_xml=toolchain_xml,
-                   usersettings_name=usersettings_name,
-                   usersettings_json=usersettings_json,
-                   api_url=api_url,
-                   selected_requirements=requirements)
+        obj = cls(job_id=job_id,
+                  requirement_file=requirement_file,
+                  toolchain_id=toolchain_id,
+                  toolchain_xml=toolchain_xml,
+                  usersettings_name=usersettings_name,
+                  usersettings_json=usersettings_json,
+                  api_url=api_url,
+                  selected_requirements=requirements,
+                  request_time=datetime.now().strftime("%Y.%m.%d, %H:%M:%S.%f"),
+                  last_update=datetime.now().strftime("%Y.%m.%d, %H:%M:%S.%f"))
+        return obj
 
     @classmethod
     def from_file(cls, *, save_dir: str = None, job_id: str = None, file_name: str = None):
