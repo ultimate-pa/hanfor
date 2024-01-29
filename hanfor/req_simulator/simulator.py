@@ -530,7 +530,8 @@ class Simulator:
                 """
                 if is_sat(And(check_against, enabled.guard, enabled.dst.state_invariant,
                               enabled.dst.clock_invariant, self.build_clocks_assertion(temp_clocks),
-                              And(i for i in constraints if not (check_type == 2 and i in var_input))), solver_name=SOLVER_NAME, logic=LOGIC):
+                              And(i for i in constraints if not (check_type == 2 and i in var_input))),
+                          solver_name=SOLVER_NAME, logic=LOGIC):
                     if enabled.dst.clock_invariant.is_lt() and not lt_check():
                         return False
                     else:
@@ -593,17 +594,6 @@ class Simulator:
                                 return False
                     parts_of_f_to_check.add(f)
 
-            def substitute_user_input(f):
-                """ Substitute any occurrence of the current variable in f with its user input.
-                """
-                for sub_f in f.args():
-                    if sub_f in self.variables:
-                        if not sub_f == var and self.variables[sub_f][-1] is not None:
-                            f = f.substitute({sub_f: self.variables[sub_f][-1]})
-                    else:
-                        f = f.substitute({sub_f: substitute_user_input(sub_f)})
-                return f
-
             # update clocks that are reset on given transition
             temp_clocks = deepcopy(self.clocks[-1])
             for clock in enabled.resets:
@@ -623,36 +613,49 @@ class Simulator:
                 z3_f = solver.converter.convert(And(enabled.guard, enabled.dst.state_invariant))
                 # z3_f = solver.converter.convert(simplify_with_z3(And(enabled.guard, enabled.dst.state_invariant)))
                 z3_f = tactic(z3_f).as_expr()
-                f_simplified = solver.converter.back(z3_f)
+                f_nnf = solver.converter.back(z3_f)
 
                 sub_formulae = set()
 
-                get_subformulae(f_simplified)
+                get_subformulae(f_nnf)
 
-                if var in f_simplified.get_free_variables() and transition_sat_check(f_simplified):
-                    if is_valid(f_simplified, solver_name=SOLVER_NAME, logic=LOGIC):
-                        variable_info[var][1] = True
-                        variable_info[var][2].clear()
+                if var in f_nnf.get_free_variables() and transition_sat_check(f_nnf):
+                    #if is_valid(f_nnf, solver_name=SOLVER_NAME, logic=LOGIC):
+                    #    variable_info[var][1] = True
+                    #    variable_info[var][2].clear()
+                    #    print(f'constraints for {var} were cleared 1')
+                     #   print(f_nnf)
                     # if transition isn't valid, check for restrictions
-                    if variable_info[var][1] is not True:
+                    #if variable_info[var][1] is not True:
 
-                        parts_of_f_to_check = set()
-                        for formula in sub_formulae:
-                            filter_subformulae(formula)
+                    parts_of_f_to_check = set()
+                    for formula in sub_formulae:
+                        filter_subformulae(formula)
 
-                        # check based on definition of restricted
-                        if not parts_of_f_to_check == set():
-                            for p in parts_of_f_to_check:
-                                if step_sat_check(Not(p)):
-                                    variable_info[var][2 if check_type == 0 else check_type + 2].add(
-                                        substitute_user_input(p) if check_type == 2 else p)  # TODO: substitute yes/no?
-                                    if p not in var_input:
-                                        constraint_origins[var].add(pea.requirement.rid)
-                                    if p not in constraints:
-                                        constraint_implications.add(p)
-                        # variable_info[var][0] = False
+                    # check based on definition of restricted
+                    if not parts_of_f_to_check == set():
+                        for p in parts_of_f_to_check:
+                            if step_sat_check(Not(p)):
+                                variable_info[var][2 if check_type == 0 else check_type + 2].add(p)
+                                #print(p)
+                                if p not in var_input:
+                                    constraint_origins[var].add(pea.requirement.rid)
+                                if p not in constraints:
+                                    constraint_implications.add(p)
+                    # variable_info[var][0] = False
 
             return variable_info
+
+        # TODO: make work for any output formula
+        def filter_result(f):
+            """ Remove subformulae of f that don't affect var's constraints.
+            Only a quick fix and assumes f is in CNF.
+            """
+            if f.is_and():
+                for sub_f in f.args():
+                    if var not in sub_f.get_free_variables():
+                        f = f.substitute({sub_f: TRUE()})
+            return simplify_with_z3(f)
 
         print("Called function variable constraints ...")
         current_phases = self.current_phases[-1]
@@ -676,6 +679,7 @@ class Simulator:
             if check_type >= 1:
                 for var in variable_info:
                     for constraint in variable_info[var][2]:
+                        variable_info[var][check_type + 2].add(constraint)
                         constraints.add(constraint)
                     if check_type == 2:
                         for user_input in variable_info[var][4]:
@@ -715,7 +719,8 @@ class Simulator:
                     # TODO: return readable reals
                     for var in pea.countertrace.extract_variables():
                         if var.get_type() is BOOL:
-                            if not (variable_info[var][0] and variable_info[var][1]):
+                            if (not (variable_info[var][0] and variable_info[var][1]) and
+                                    (variable_info[var][0] or variable_info[var][1])):
                                 if not variable_info[var][0]:
                                     variable_info[var][2 if check_type == 0
                                                        else check_type + 2].add(EqualsOrIff(var, FALSE()))
@@ -730,18 +735,21 @@ class Simulator:
                                         constraint_implications.add(EqualsOrIff(var, TRUE()))
 
                         else:
-                            if variable_info[var][1] is True:
+                            #if variable_info[var][1] is True:
+                            #    variable_info[var][2].clear()
+                            #    print(f'constraints for {var} were cleared 2')
+                            #else:
+                            if is_valid(Or(c for c in variable_info[var][2]), solver_name=SOLVER_NAME, logic=LOGIC):
                                 variable_info[var][2].clear()
-                            else:
-                                if is_valid(Or(c for c in variable_info[var][2]), solver_name=SOLVER_NAME, logic=LOGIC):
-                                    variable_info[var][2].clear()
+                                print(f'constraints for {var} were cleared 3')
 
                 if not check_type == 0 and not constraint_implications == set():
                     propagation_done = 0
 
             check_type += 1
 
-        # TODO: transform constraint formulae (var op ...)
+        # TODO: transform constraint formulae output to be more readable (would also probably replace last filter)
+            # for example: transform constraint for var1 "var3 < var1 + 1" to "var1 > var3 - 1"
         for x in {2, 3, 4}:
             if x == 2:
                 print("Naive constraints:")
@@ -759,30 +767,30 @@ class Simulator:
                     print(f'No restrictions on {var} at time {self.times[-1]}')
             print()
 
-        # TODO: filter to only get those parts including var (see pic)
-
         print()
         print("Simplified constraints:")
         print()
 
-        for x in {2, 3, 4}:
-            if x == 2:
-                print("Naive constraints:")
+        for x in {3, 4}:
             if x == 3:
-                print("Implicated constraints:")
+                print("Constraints irrespective of user input:")
             if x == 4:
-                print("Implicated constraints including user input:")
+                print("Constraints including user input:")
             for var in variable_info:
-                # TODO: better fix for contradicting constraints (bool 1 if contradicting, 0 if not)
                 if len(variable_info[var][x]) > 0:
-                    if not simplify_with_z3(And(*variable_info[var][x])) == FALSE():
-                        print(var, "must have the value(s)", end=" ")
-                        print(simplify_with_z3(And(*variable_info[var][x])), sep=" and ", end=" ")
-                        print("at time", self.times[-1])
+                    if not (simplify_with_z3(And(*variable_info[var][2])) == FALSE() or
+                            simplify_with_z3(And(*variable_info[var][x])) == FALSE()):
+                        # print(f'{var} must have the value(s) {simplify_with_z3(And(And(*variable_info[var][x]), And(i for i in var_input)))} at time {self.times[-1]}')
+                        output_to_filter = simplify_with_z3(And(And(*variable_info[var][x]), And(i for i in var_input)))
+                        print(f'{var} must have the value(s) {filter_result(output_to_filter)} at time {self.times[-1]}')
                     else:
                         print(f'{var} has contradicting constraints')
+                        #print("2 :", variable_info[var][2])
+                        #print(x, ":", variable_info[var][x])
                 else:
                     print(f'No restrictions on {var} at time {self.times[-1]}')
             print()
 
-        print(constraint_origins)
+        #for d in variable_info:
+        #    print(d, variable_info[d])
+        #print(constraint_origins)
