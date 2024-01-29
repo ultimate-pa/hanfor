@@ -78,10 +78,14 @@ function update_configurations() {
 function create_ultimate_analysis(btn, req_ids) {
     let old_text = btn.text()
     btn.text("Processing Request")
+    let request_data = {'selected_requirement_ids': JSON.stringify(req_ids)}
+    if (req_ids === "all") {
+        request_data = {}
+    }
     $.ajax({
         type: 'POST',
         url: '../api/tools/req_file',
-        data: {'selected_requirement_ids': JSON.stringify(req_ids)}
+        data: request_data
     }).done(function (data) {
         let select = $('#ultimate-tab-configuration-select');
         let configuration = select.val();

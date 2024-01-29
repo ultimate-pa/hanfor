@@ -1,3 +1,4 @@
+import logging
 from os import path, mkdir
 from typing import Type
 
@@ -60,7 +61,11 @@ class UltimateApi(MethodView):
             jobs: list[UltimateJob] = get_all_jobs(self.data_folder)
             for j in jobs:
                 if j.job_status == 'scheduled':
-                    j.update(self.ultimate.get_job(j.job_id), self.data_folder)
+                    result = self.ultimate.get_job(j.job_id)
+                    if result['requestId'] == '':
+                        logging.warning(f"job id was not found: {j.job_id}\n{result}")
+                        continue
+                    j.update(result, self.data_folder)
             return {'status': 'done'}
         elif command == 'job':
             download = request.args.get('download', default=False, type=bool)
