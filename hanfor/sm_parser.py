@@ -36,10 +36,20 @@ import reqtransformer as req
 
 if __name__ == "__main__":
     print("Loading state machine in Hanfor.")
-    req01 = req.Requirement(id="01", description="From OFF to ON.", type_in_csv="requirement", csv_row={"1": "1"},
-                            pos_in_csv=1)
-    req02 = req.Requirement(id="02", description="From ON to OFF.", type_in_csv="requirement", csv_row={"2": "2"},
-                            pos_in_csv=2)
+    req01 = req.Requirement(
+        id="01",
+        description="From OFF to ON.",
+        type_in_csv="requirement",
+        csv_row={"1": "1"},
+        pos_in_csv=1
+    )
+    req02 = req.Requirement(
+        id="02",
+        description="From ON to OFF.",
+        type_in_csv="requirement",
+        csv_row={"2": "2"},
+        pos_in_csv=2
+    )
 
     formreq01 = req.Formalization(1)
     formreq01.scoped_pattern = "BoundedResponse"
@@ -47,31 +57,23 @@ if __name__ == "__main__":
     formreq02 = req.Formalization(2)
     formreq02.scoped_pattern = "BoundedResponse"
 
-    print(formreq01.scoped_pattern)
+    print(req01.formalizations.keys())
 
-    print(formreq02)
+  #  print(formreq01.scoped_pattern)
+  #  print(formreq02.scoped_pattern)
+
+  #  print(formreq01)
+  #  print(formreq02)
+
+    freeform = req.Requirement._next_free_formalization_id(req02)
+
+    print(freeform)
 
     All_Req = req.RequirementCollection()
 
+    # ToDo
+    #   - Create requirements with content
+    #   - Add pattern to requirement
+
     print("ENDING")
 
-
-
-# do class instances for each requirement
-# Reqtransfomer does requirements, but loads it from csv data
-
-# one transition is one requirement
-# requirement has specific pattern
-# initial requirement, has specific pattern
-
-# ToDo: Which form does hanfor need?
-# ToDO: each transition form a current state, action and next state -> bring this in a data structure
-#        Which one should we use?
-# Should we directly use the structure of hanfor, to make it easy?
-# first data structure of state machine, or directly into hanfor requirement?
-
-
-
-# for key, value in data.items():
-  #  if value == 2:
-   #     print(f"Key: {key}, Value: {value}")

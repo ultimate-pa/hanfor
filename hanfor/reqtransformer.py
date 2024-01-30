@@ -109,6 +109,7 @@ class RequirementCollection(HanforVersioned, Pickleable):
         self.csv_meta = CsvConfig()
         self.csv_all_rows = None
         self.requirements = list()
+        print("LOADING Definition class RequirementCollection - Mirko Werling")
 
     def create_from_csv(
             self, csv_file, app, input_encoding='utf8', base_revision_headers=None,
@@ -294,6 +295,7 @@ class Requirement(HanforVersioned, Pickleable):
         self.tags: OrderedDict[str, str] = OrderedDict()
         self.status = 'Todo'
         self._revision_diff = dict()
+        print("LOADING Definition class Requirement - Mirko Werling")
 
     def to_dict(self, include_used_vars=False):
         type_inference_errors = dict()
