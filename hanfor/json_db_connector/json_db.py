@@ -231,6 +231,8 @@ class JsonDatabase:
 
         for f in fill_functions:
             f()
+        # Save DB to save all new inserted default values
+        self.update()
         logging.info('Database fully loaded.')
 
     def add_object(self, obj: object) -> None:
