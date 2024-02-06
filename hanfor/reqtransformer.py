@@ -431,8 +431,8 @@ class Requirement(HanforVersioned, Pickleable):
         # Parse and set the expressions.
         self.formalizations[formalization_id].set_expressions_mapping(mapping=mapping,
                                                                       variable_collection=variable_collection,
-                                                                      rid=self.rid)
-
+                                                                    rid=self.rid)
+        # Run type inference check
         # Add 'Type_inference_error' tag
         if len(self.formalizations[formalization_id].type_inference_errors) > 0:
             formatted_errors = self.format_error_tag(self.formalizations[formalization_id])
@@ -593,13 +593,12 @@ class Formalization(HanforVersioned):
         :return: type_inference_errors dict {key: type_env, ...}
         :rtype: dict
         """
+        if self.expressions_mapping is None:
+            self.expressions_mapping = dict()
         for key, expression_string in mapping.items():
-            # if len(expression_string) == 0:
-            #    continue
             expression = Expression()
-            expression.set_expression(expression_string, variable_collection, rid)
-            if self.expressions_mapping is None:
-                self.expressions_mapping = dict()
+            if key in self.scoped_pattern.environment:
+                expression.set_expression(expression_string, variable_collection, rid)
             self.expressions_mapping[key] = expression
         self.get_string()
         self.type_inference_check(variable_collection)
@@ -785,6 +784,7 @@ class Scope(Enum):
 class Pattern:
     def __init__(self, name: str = "NotFormalizable"):
         self.name = name
+        self.environment = PATTERNS[name]["env"]
         self.pattern = PATTERNS[name]['pattern']
 
     def is_instantiatable(self):
@@ -809,6 +809,7 @@ class ScopedPattern:
             pattern = Pattern()
         self.pattern = pattern
         self.regex_pattern = None
+        self.environment = pattern.environment | scope.get_allowed_types()
 
     def get_string(self, expression_mapping: dict):
         #TODO: avoid having this problem in the first place
