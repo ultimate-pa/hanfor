@@ -159,7 +159,7 @@ class JsonDatabase:
         self._tables: dict[type, JsonDatabaseTable] = {}
         # class: (dict of fields(field_name, (type, default)))
         self._field_types: dict[type, dict[str, tuple[any, any]]] = {}
-        self.__test_mode = test_mode
+        self.__test_mode = test_mode  # testmode disables data tracing and update files at load of database
         if test_mode:
             logging.warning('JsonDatabase is running in test mode')
         self.__data_tracing_logger: Logger | None = None
