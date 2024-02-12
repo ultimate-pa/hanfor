@@ -251,7 +251,7 @@ class JsonDatabase:
         # check if object is part of the database
         if type(obj) not in self._tables.keys():
             raise DatabaseInsertionError(f"{type(obj)} is not part of the Database.")
-        self._tables[type(obj)].add_object(obj)
+        self._tables[type(obj)].add_object(obj, user)
         self.update(user)
 
     def get_objects(self, tbl: Type[GET_TYPE]) -> immutabledict[int | str, GET_TYPE]:
@@ -272,7 +272,7 @@ class JsonDatabase:
         self._tables[type(obj)].remove_object(obj)
         self.update(user)
 
-    def data_to_json(self, data: any) -> any:
+    def data_to_json(self, data: any, user: str) -> any:
         if data is None:
             return None
         f_type = type(data)
@@ -281,25 +281,25 @@ class JsonDatabase:
         if f_type in [tuple, list, set]:
             res = []
             for item in data:
-                tmp = self.data_to_json(item)
+                tmp = self.data_to_json(item, user)
                 res.append(tmp)
             return {'type': f_type.__name__, 'data': res}
         if f_type is dict:
             res = []
             for k, v in data.items():
-                k_serialized = self.data_to_json(k)
-                v_serialized = self.data_to_json(v)
+                k_serialized = self.data_to_json(k, user)
+                v_serialized = self.data_to_json(v, user)
                 res.append({'key': k_serialized, 'value': v_serialized})
             return {'type': 'dict', 'data': res}
         if f_type in self._tables.keys():
             if not self._tables[f_type].object_in_table(data):
-                self.add_object(data)
+                self.add_object(data, user)
             return {'type': f_type.__name__, 'data': self._tables[f_type].get_key_of_object(data)}
         if f_type in self._field_types.keys():
             res = {}
             for field, ft_f_type in self._field_types[f_type].items():
                 field_data = getattr(data, field, None)
-                field_data_serialized = self.data_to_json(field_data)
+                field_data_serialized = self.data_to_json(field_data, user)
                 if field_data_serialized is not None:
                     res[field] = field_data_serialized
             return {'type': f_type.__name__, 'data': res}
@@ -416,7 +416,7 @@ class JsonDatabaseTable:
             if not path.isdir(table_folder):
                 mkdir(table_folder)
 
-    def add_object(self, obj: object) -> None:
+    def add_object(self, obj: object, user: str) -> None:
         if not type(obj) == self.cls:
             raise DatabaseInsertionError(f"{obj} does not belong to this table.")
         if id(obj) in [id(i) for i in self.__data.values()]:
@@ -439,7 +439,7 @@ class JsonDatabaseTable:
         self.__data[obj_id] = obj
         self.__meta_data[obj_id] = JsonDatabaseMetaData()
         # serialize all objects to catch contained objects from other tables witch are not saved in the other tabel
-        self.__serialize()
+        self.__serialize(user)
 
     def remove_object(self, obj: CLS_TYPE) -> None:
         if not type(obj) == self.cls:
@@ -476,20 +476,20 @@ class JsonDatabaseTable:
             res[k] = obj
         return immutabledict(res)
 
-    def __serialize(self) -> dict:
+    def __serialize(self, user: str) -> dict:
         json_data = {}
         for obj_id, obj in self.__data.items():
             obj_data = {}
             for field in self.fields.keys():
                 field_data = getattr(obj, field, None)
-                field_data_serialized = self.__db.data_to_json(field_data)
+                field_data_serialized = self.__db.data_to_json(field_data, user)
                 obj_data[field] = field_data_serialized
-            obj_data['$meta'] = self.__db.data_to_json(self.__meta_data[obj_id])
+            obj_data['$meta'] = self.__db.data_to_json(self.__meta_data[obj_id], user)
             json_data[obj_id] = obj_data
         return json_data
 
     def save(self, user: str) -> None:
-        json_data = self.__serialize()
+        json_data = self.__serialize(user)
         # check for changes and write them to data tracing
         changes = False
         new_keys = set(json_data.keys())
