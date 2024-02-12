@@ -1,9 +1,9 @@
 import logging
 from unittest import TestCase
 from json_db_connector.json_db import JsonDatabase, is_serializable, TableType, DatabaseTable, DatabaseID, \
-    DatabaseField, DatabaseFieldType, JsonDatabaseMetaData
+    DatabaseField, DatabaseFieldType, JsonDatabaseMetaData, DataTracingFileHandler
 from uuid import UUID
-from os import path, rmdir, remove
+from os import path, rmdir, remove, mkdir
 from dataclasses import dataclass
 import json
 from immutabledict import immutabledict
@@ -17,7 +17,7 @@ class TestJsonDatabase(TestCase):
         DatabaseID.registry.clear()
         DatabaseField.registry.clear()
         DatabaseFieldType.registry.clear()
-        self._db = JsonDatabase()
+        self._db = JsonDatabase(test_mode=True)
         self._data_path = path.join(path.dirname(path.realpath(__file__)), 'test_json_database', 'test_data')
         DatabaseFieldType.registry.add(JsonDatabaseMetaData)
         DatabaseField.registry[JsonDatabaseMetaData] = {
@@ -30,6 +30,9 @@ class TestJsonDatabase(TestCase):
             rmdir(path.join(self._data_path, 'init_tables_ok', 'TestClassFolder'))
         if path.isfile(path.join(self._data_path, 'init_tables_ok', 'TestClassFile.json')):
             remove(path.join(self._data_path, 'init_tables_ok', 'TestClassFile.json'))
+        if path.isfile(path.join(self._data_path, 'init_tables_ok', '.DataTracing', 'log.csv')):
+            remove(path.join(self._data_path, 'init_tables_ok', '.DataTracing', 'log.csv'))
+            rmdir(path.join(self._data_path, 'init_tables_ok', '.DataTracing'))
         if path.isdir(path.join(self._data_path, 'init_tables_ok')):
             rmdir(path.join(self._data_path, 'init_tables_ok'))
 
@@ -37,6 +40,9 @@ class TestJsonDatabase(TestCase):
             remove(path.join(self._data_path, 'data_to_json', 'TestClassFile.json'))
         if path.isfile(path.join(self._data_path, 'data_to_json', 'TestClassReference.json')):
             remove(path.join(self._data_path, 'data_to_json', 'TestClassReference.json'))
+        if path.isfile(path.join(self._data_path, 'data_to_json', '.DataTracing', 'log.csv')):
+            remove(path.join(self._data_path, 'data_to_json', '.DataTracing', 'log.csv'))
+            rmdir(path.join(self._data_path, 'data_to_json', '.DataTracing'))
         if path.isdir(path.join(self._data_path, 'data_to_json')):
             rmdir(path.join(self._data_path, 'data_to_json'))
 
@@ -48,6 +54,9 @@ class TestJsonDatabase(TestCase):
             remove(path.join(self._data_path, 'add_object', 'TestClass3.json'))
         if path.isfile(path.join(self._data_path, 'add_object', 'TestClass4.json')):
             remove(path.join(self._data_path, 'add_object', 'TestClass4.json'))
+        if path.isfile(path.join(self._data_path, 'add_object', '.DataTracing', 'log.csv')):
+            remove(path.join(self._data_path, 'add_object', '.DataTracing', 'log.csv'))
+            rmdir(path.join(self._data_path, 'add_object', '.DataTracing'))
         if path.isdir(path.join(self._data_path, 'add_object')):
             rmdir(path.join(self._data_path, 'add_object'))
 
@@ -61,6 +70,9 @@ class TestJsonDatabase(TestCase):
             remove(path.join(self._data_path, 'save', 'TestRectangle.json'))
         if path.isfile(path.join(self._data_path, 'save', 'TestUUID.json')):
             remove(path.join(self._data_path, 'save', 'TestUUID.json'))
+        if path.isfile(path.join(self._data_path, 'save', '.DataTracing', 'log.csv')):
+            remove(path.join(self._data_path, 'save', '.DataTracing', 'log.csv'))
+            rmdir(path.join(self._data_path, 'save', '.DataTracing'))
         if path.isdir(path.join(self._data_path, 'save')):
             rmdir(path.join(self._data_path, 'save'))
 
@@ -68,18 +80,40 @@ class TestJsonDatabase(TestCase):
             remove(path.join(self._data_path, 'json_to_value', 'TestClassFile.json'))
         if path.isfile(path.join(self._data_path, 'json_to_value', 'TestClassReference.json')):
             remove(path.join(self._data_path, 'json_to_value', 'TestClassReference.json'))
+        if path.isfile(path.join(self._data_path, 'json_to_value', '.DataTracing', 'log.csv')):
+            remove(path.join(self._data_path, 'json_to_value', '.DataTracing', 'log.csv'))
+            rmdir(path.join(self._data_path, 'json_to_value', '.DataTracing'))
         if path.isdir(path.join(self._data_path, 'json_to_value')):
             rmdir(path.join(self._data_path, 'json_to_value'))
 
         if path.isfile(path.join(self._data_path, 'get_objects', 'TestClassFile.json')):
             remove(path.join(self._data_path, 'get_objects', 'TestClassFile.json'))
+        if path.isfile(path.join(self._data_path, 'get_objects', '.DataTracing', 'log.csv')):
+            remove(path.join(self._data_path, 'get_objects', '.DataTracing', 'log.csv'))
+            rmdir(path.join(self._data_path, 'get_objects', '.DataTracing'))
         if path.isdir(path.join(self._data_path, 'get_objects')):
             rmdir(path.join(self._data_path, 'get_objects'))
 
         if path.isfile(path.join(self._data_path, 'normal_class', 'TestClassFile.json')):
             remove(path.join(self._data_path, 'normal_class', 'TestClassFile.json'))
+        if path.isfile(path.join(self._data_path, 'normal_class', '.DataTracing', 'log.csv')):
+            remove(path.join(self._data_path, 'normal_class', '.DataTracing', 'log.csv'))
+            rmdir(path.join(self._data_path, 'normal_class', '.DataTracing'))
         if path.isdir(path.join(self._data_path, 'normal_class')):
             rmdir(path.join(self._data_path, 'normal_class'))
+
+        logger = logging.getLogger('JsonDbDataTracing')
+        for handler in logger.handlers:
+            handler.close()
+            logger.removeHandler(handler)
+        if path.isfile(path.join(self._data_path, 'DataTracing', 'log.csv')):
+            remove(path.join(self._data_path, 'DataTracing', 'log.csv'))
+        if path.isfile(path.join(self._data_path, 'DataTracing', 'log.csv.1')):
+            remove(path.join(self._data_path, 'DataTracing', 'log.csv.1'))
+        if path.isfile(path.join(self._data_path, 'DataTracing', 'log.csv.2')):
+            remove(path.join(self._data_path, 'DataTracing', 'log.csv.2'))
+        if path.isdir(path.join(self._data_path, 'DataTracing')):
+            rmdir(path.join(self._data_path, 'DataTracing'))
 
     def test_json_int_float(self):
         tmp = {'int': 0, 'float': 1.2, 'bool': True}
@@ -589,7 +623,7 @@ class TestJsonDatabase(TestCase):
         self._db.add_object(t2)
 
         # reset db to load saved objects
-        self._db = JsonDatabase()
+        self._db = JsonDatabase(test_mode=True)
         self._db.init_tables(path.join(self._data_path, 'normal_class'))
         self.assertEqual(self._db._tables[TestClassFile].get_object('job0').get_values(), t0.get_values())
         self.assertEqual(self._db._tables[TestClassFile].get_object('job1').get_values(), t1.get_values())
@@ -818,3 +852,64 @@ class TestJsonDatabase(TestCase):
         res = is_serializable(DatabaseTable, [DatabaseField])
         self.assertFalse(res[0])
         self.assertEqual(res[1], '<class \'json_db_connector.json_db.DatabaseTable\'>')
+
+    def test_json_db_data_tracing_file_handler(self):
+        # initialize logger
+        if not path.isdir(path.join(self._data_path, 'DataTracing')):
+            mkdir(path.join(self._data_path, 'DataTracing'))
+        logfile = path.join(self._data_path, 'DataTracing', 'log.csv')
+        logger = logging.getLogger('JsonDbDataTracing')
+        logger.setLevel(logging.INFO)
+        logger.propagate = False
+
+        file_handler = DataTracingFileHandler(logfile, 50)
+        logger.addHandler(file_handler)
+
+        formatter = logging.Formatter('%(message)s')
+
+        file_handler.setFormatter(formatter)
+
+        self.assertTrue(path.isfile(logfile))
+        self.assertFalse(path.isfile(f"{logfile}.1"))
+        self.assertFalse(path.isfile(f"{logfile}.2"))
+        logger.info('this is a test')
+        self.assertTrue(path.isfile(logfile))
+        self.assertFalse(path.isfile(f"{logfile}.1"))
+        self.assertFalse(path.isfile(f"{logfile}.2"))
+        logger.info('this is another test')
+        self.assertTrue(path.isfile(logfile))
+        self.assertFalse(path.isfile(f"{logfile}.1"))
+        self.assertFalse(path.isfile(f"{logfile}.2"))
+        with open(logfile) as tmp:
+            logfile0 = tmp.read()
+        self.assertEqual(logfile0, 'this is a test\nthis is another test\n')
+        logger.info('this is the 3rd test')
+        self.assertTrue(path.isfile(logfile))
+        self.assertTrue(path.isfile(f"{logfile}.1"))
+        self.assertFalse(path.isfile(f"{logfile}.2"))
+        with open(logfile) as tmp:
+            logfile0 = tmp.read()
+        with open(f"{logfile}.1") as tmp:
+            logfile1 = tmp.read()
+        self.assertEqual(logfile0, 'this is the 3rd test\n')
+        self.assertEqual(logfile1, 'this is a test\nthis is another test\n')
+        logger.info('this is the 4th test')
+        with open(logfile) as tmp:
+            logfile0 = tmp.read()
+        with open(f"{logfile}.1") as tmp:
+            logfile1 = tmp.read()
+        self.assertEqual(logfile0, 'this is the 3rd test\nthis is the 4th test\n')
+        self.assertEqual(logfile1, 'this is a test\nthis is another test\n')
+        logger.info('this is the 5th test')
+        self.assertTrue(path.isfile(logfile))
+        self.assertTrue(path.isfile(f"{logfile}.1"))
+        self.assertTrue(path.isfile(f"{logfile}.2"))
+        with open(logfile) as tmp:
+            logfile0 = tmp.read()
+        with open(f"{logfile}.1") as tmp:
+            logfile1 = tmp.read()
+        with open(f"{logfile}.2") as tmp:
+            logfile2 = tmp.read()
+        self.assertEqual(logfile0, 'this is the 5th test\n')
+        self.assertEqual(logfile1, 'this is a test\nthis is another test\n')
+        self.assertEqual(logfile2, 'this is the 3rd test\nthis is the 4th test\n')

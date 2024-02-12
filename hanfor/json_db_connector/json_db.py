@@ -1,3 +1,4 @@
+import itertools
 import json
 import inspect
 from enum import Enum
@@ -10,6 +11,8 @@ from copy import deepcopy
 from dataclasses import dataclass
 from immutabledict import immutabledict
 import logging
+from logging import Logger
+from logging.handlers import RotatingFileHandler
 
 CLS_TYPE = TypeVar('CLS_TYPE')
 ID_TYPE = TypeVar('ID_TYPE')
@@ -151,11 +154,15 @@ class DatabaseFieldType:
 
 class JsonDatabase:
 
-    def __init__(self) -> None:
+    def __init__(self, *, test_mode: bool = False) -> None:
         self.__data_folder: str = ''
         self._tables: dict[type, JsonDatabaseTable] = {}
         # class: (dict of fields(field_name, (type, default)))
         self._field_types: dict[type, dict[str, tuple[any, any]]] = {}
+        self.__test_mode = test_mode
+        if test_mode:
+            logging.warning('JsonDatabase is running in test mode')
+        self.__data_tracing_logger: Logger | None = None
 
     @property
     def data_folder(self):
@@ -208,6 +215,8 @@ class JsonDatabase:
         if not path.isdir(self.__data_folder):
             mkdir(self.__data_folder)
 
+        self.__data_tracing_logger = self.__setup_data_tracing_logger()
+
         # create tables
         for cls, table_type in DatabaseTable.registry.items():
             id_field = DatabaseID.registry[cls][0]
@@ -232,29 +241,36 @@ class JsonDatabase:
         for f in fill_functions:
             f()
         # Save DB to save all new inserted default values
-        self.update()
+        if not self.__test_mode:
+            self.update('system')
         logging.info('Database fully loaded.')
 
-    def add_object(self, obj: object) -> None:
+    def add_object(self, obj: object, user: str = None) -> None:
+        if user is None:
+            logging.warning(f"JsonDatabase.add_object should be called with the user parameter.")
         # check if object is part of the database
         if type(obj) not in self._tables.keys():
             raise DatabaseInsertionError(f"{type(obj)} is not part of the Database.")
         self._tables[type(obj)].add_object(obj)
-        self.update()
+        self.update(user)
 
     def get_objects(self, tbl: Type[GET_TYPE]) -> immutabledict[int | str, GET_TYPE]:
         return self._tables[tbl].get_objects()
 
-    def update(self) -> None:
+    def update(self, user: str = None) -> None:
+        if user is None:
+            logging.warning(f"JsonDatabase.update should be called with the user parameter.")
         for _, table in self._tables.items():
-            table.save()
+            table.save(user)
 
-    def remove_object(self, obj: object) -> None:
+    def remove_object(self, obj: object, user: str = None) -> None:
+        if user is None:
+            logging.warning(f"JsonDatabase.remove_object should be called with the user parameter.")
         # check if object is part of the database
         if type(obj) not in self._tables.keys():
             raise DatabaseInsertionError(f"{type(obj)} is not part of the Database.")
         self._tables[type(obj)].remove_object(obj)
-        self.update()
+        self.update(user)
 
     def data_to_json(self, data: any) -> any:
         if data is None:
@@ -291,8 +307,10 @@ class JsonDatabase:
 
     def json_to_value(self, data: any) -> any:
         data_type = type(data)
-        if data_type in [str, int, float, bool, None]:
+        if data_type in [str, int, float, bool]:
             return data
+        if data is None:
+            return None
         if data_type is dict:
             if 'type' not in data or 'data' not in data:
                 raise DatabaseLoadError(f"The following data is not well formed:\n{data}.")
@@ -344,6 +362,32 @@ class JsonDatabase:
                     raise DatabaseLoadError(f"The id \'{data['data']}\' can not be found in Table "
                                             f"\'{data['type']}\'.")
         raise DatabaseLoadError(f"The following data is not well formed:\n{data}.")
+
+    def write_data_trace(self, user: str, table_name: str, obj_id: int | str, old_data: dict) -> None:
+        if self.__test_mode:
+            return
+        if self.__data_tracing_logger is None:
+            raise DatabaseInitialisationError('JsonDatabase write_data_trace is called before init_tables is called')
+        self.__data_tracing_logger.info(f"{user};{table_name};{obj_id};{json.dumps(old_data)}")
+
+    def __setup_data_tracing_logger(self) -> Logger | None:
+        if self.__test_mode:
+            return
+        if not path.isdir(path.join(self.__data_folder, '.DataTracing')):
+            mkdir(path.join(self.__data_folder, '.DataTracing'))
+        logfile = path.join(self.__data_folder, '.DataTracing', 'log.csv')
+        logger = logging.getLogger('JsonDbDataTracing')
+        logger.setLevel(logging.INFO)
+        logger.propagate = False  # disables console prints
+
+        formatter = logging.Formatter('%(asctime)s;%(message)s')
+
+        file_handler = DataTracingFileHandler(logfile, 500 * 1024 * 1024)
+        file_handler.setLevel(logging.INFO)
+        logger.addHandler(file_handler)
+
+        file_handler.setFormatter(formatter)
+        return logger
 
 
 class JsonDatabaseTable:
@@ -444,9 +488,21 @@ class JsonDatabaseTable:
             json_data[obj_id] = obj_data
         return json_data
 
-    def save(self) -> None:
+    def save(self, user: str) -> None:
         json_data = self.__serialize()
-        # TODO diff and write diff to data tracing
+        # check for changes and write them to data tracing
+        changes = False
+        new_keys = set(json_data.keys())
+        old_keys = set(self.__json_data.keys())
+        for new_element in new_keys.difference(old_keys):
+            changes = True
+            self.__db.write_data_trace(user, self.cls.__name__, new_element, {})
+        for old_element in old_keys.intersection(old_keys):
+            if dict_changed(self.__json_data[old_element], json_data[old_element]):
+                changes = True
+                self.__db.write_data_trace(user, self.cls.__name__, old_element, self.__json_data[old_element])
+        if not changes:
+            return
         if self.table_type == TableType.File:
             table_file = path.join(self.__db.data_folder, f"{self.cls.__name__}.json")
             with open(table_file, 'w') as json_file:
@@ -503,6 +559,32 @@ class JsonDatabaseTable:
                     setattr(obj, field, deepcopy(self.fields[field][1]))
 
 
+class DataTracingFileHandler(RotatingFileHandler):
+
+    def __init__(self, filename: str, max_bytes: int = 0):
+        self.last_backup_cnt = 0
+        super().__init__(filename=filename,
+                         mode='a',
+                         maxBytes=max_bytes,
+                         backupCount=1,
+                         encoding=None,
+                         delay=False)
+
+    # override
+    def doRollover(self):
+        if self.stream:
+            self.stream.close()
+            self.stream = None  # noqa
+        # find first free log backup number and backup current log file to it
+        for i in itertools.count(1):
+            next_name = "%s.%d" % (self.baseFilename, i)
+            if not path.exists(next_name):
+                self.rotate(self.baseFilename, next_name)
+                break
+        if not self.delay:
+            self.stream = self._open()
+
+
 # When adding new fields to the JsonDatabaseMetaData class you have to insert them to:
 # - the setUp function in tests/test_json_db.py
 # - SZENE0_JSON, SZENE1_JSON, RECTANGLES_JSON, UUID1_JSON, UUID2_JSON in tests/test_json_database/db_test_save.py
@@ -536,6 +618,55 @@ def is_serializable(f_type: any, additional_types: list[type] = None) -> tuple[b
     return False, str(f_type)
 
 
+def dict_changed(old: dict, new: dict) -> bool:
+    new_keys = set(old.keys())
+    old_keys = set(new.keys())
+    if len(new_keys.symmetric_difference(old_keys)) != 0:
+        return True
+    # catch dict representing a set
+    if 'type' in new_keys and old['type'] == 'set':
+        if new['type'] != 'set':
+            return True
+        if len(set(old['data']).symmetric_difference(set(new['data']))) != 0:
+            return True
+        return False
+    for key in new_keys:
+        if isinstance(old[key], type(new[key])):
+            return True
+        if type(old[key]) in [bool, str, int, float]:
+            if old[key] != new[key]:
+                return True
+        elif type(old[key]) is list:
+            if list_changed(old[key], new[key]):
+                return True
+        elif type(old[key]) is dict:
+            if dict_changed(old[key], new[key]):
+                return True
+        else:
+            raise DictDiffError(f"{type(old[key])} is not diff able")
+    return False
+
+
+def list_changed(old: list, new: list) -> bool:
+    if len(old) != len(new):
+        return True
+    for o, n in old, new:
+        if isinstance(o, type(n)):
+            return True
+        if type(o) in [bool, str, int, float]:
+            if o != n:
+                return True
+        elif type(o) is list:
+            if list_changed(o, n):
+                return True
+        elif type(o) is dict:
+            if dict_changed(o, n):
+                return True
+        else:
+            raise DictDiffError(f"{type(o)} is not diff able")
+    return False
+
+
 class DatabaseDefinitionError(Exception):
     def __init__(self, message):
         super().__init__(f"DatabaseDefinitionError: {message}")
@@ -564,3 +695,8 @@ class DatabaseSaveError(Exception):
 class DatabaseKeyError(Exception):
     def __init__(self, message):
         super().__init__(f"DatabaseKeyError: {message}")
+
+
+class DictDiffError(Exception):
+    def __init__(self, message):
+        super().__init__(f"DictDiffError: {message}")
