@@ -1,0 +1,11 @@
+"ID","Text",Type
+"other004","headlights of a modern car are no longer simply switched on and off by a simple mechanical switch but the exterior light system integrates various subsystems, like the control of turn signals and comfort functions such as a cornering light. Specifically the following light system functions, among others, are described in detail in this study:
+ Low beam headlights: Control of the low beam headlights. If daytime running light is activated, low beam headlights are active all the time and ambient light illuminates the vehicle surrounding while leaving the car during darkness. The function low beam headlight also includes parking light.
+ Cornering light: Control of additional headlights that illuminate the cornering area separately when turning left or right.
+ Adaptive high beam: Control of the high beam headlights. Emergency brake light: Following drivers are warned by a flashing brake light in case of an emergency brake.",Other
+"other005","The light rotary switch has the following positions: Off, Auto, On (see Fig. 2). The light rotary switch position is transmitted via the signal lightRotarySwitch.
+The control lever attached to the steering column is called pitman arm and allows for the following movements (see Fig. 3). The pitman arm position is transmitted via the signal pitmanArm.
+By pushing away from the driver 4 (backward): Permanent activation of the adaptive high beam (with pitman arm engaged).
+By pulling towards the driver 1 (forward): Temporary activation of the high beam (without engaging, so-called flasher).
+By moving up or down 2 / 3 : Temporary or permanent activation of the direction indicator to the left or right. The temporary activation (so called tip-blinking) happens by a deflection of about 5 (Downward5, Upward5), the permanent activation (engage) by about 7 deflection (Downward7, Upward7). The engagement is released either manually or automatically by a mechanical reset mechanism if the steering wheel has been turned more than 10.",Other
+"ELS-1","a ""quoted variable"", with some text afterwards.",ELS
