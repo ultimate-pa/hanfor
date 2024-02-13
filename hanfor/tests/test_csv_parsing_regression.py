@@ -13,8 +13,8 @@ from tests.mock_hanfor import startup_hanfor
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 TESTS_BASE_FOLDER = os.path.join(HERE, 'test_sessions')
-TEST_CSV = os.path.join(HERE, 'test_sessions/test_csv_parsing_regression/test_csv_parsing_regression.csv')
-TEST_TAG = 'daimler'
+TEST_CSV = os.path.join(HERE, 'test_sessions/test_csv_parsing/csv_parsing.csv')
+TEST_TAG = 'csv_parsing'
 
 
 def mock_user_input(*args, **kwargs) -> str:
