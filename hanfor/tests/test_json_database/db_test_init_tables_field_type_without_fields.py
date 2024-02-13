@@ -3,9 +3,9 @@ from json_db_connector.json_db import DatabaseFieldType, DatabaseID, DatabaseFie
 
 
 @DatabaseFieldType()
-@DatabaseField('att_bool', bool)
-@DatabaseField('att_str', str)
-@DatabaseField('att_int', int)
+@DatabaseField("att_bool", bool)
+@DatabaseField("att_str", str)
+@DatabaseField("att_int", int)
 @dataclass()
 class TestClass:
     job_id: str
@@ -18,5 +18,3 @@ class TestClass:
 @dataclass()
 class TestClassWithoutFields:
     job_id: str
-
-

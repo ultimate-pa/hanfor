@@ -1,12 +1,17 @@
 from dataclasses import dataclass
-from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField, TableType
+from json_db_connector.json_db import (
+    DatabaseTable,
+    DatabaseID,
+    DatabaseField,
+    TableType,
+)
 
 
 @DatabaseTable(TableType.File)
-@DatabaseID('job_id', str)
-@DatabaseField('att_bool', bool)
-@DatabaseField('att_str', str)
-@DatabaseField('att_int', int)
+@DatabaseID("job_id", str)
+@DatabaseField("att_bool", bool)
+@DatabaseField("att_str", str)
+@DatabaseField("att_int", int)
 @dataclass()
 class TestClass:
     job_id: str
@@ -16,9 +21,7 @@ class TestClass:
 
 
 @DatabaseTable(TableType.File)
-@DatabaseID('job_id', str)
+@DatabaseID("job_id", str)
 @dataclass()
 class TestClassWithoutFields:
     job_id: str
-
-

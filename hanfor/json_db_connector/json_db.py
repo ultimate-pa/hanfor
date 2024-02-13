@@ -14,14 +14,14 @@ import logging
 from logging import Logger
 from logging.handlers import RotatingFileHandler
 
-CLS_TYPE = TypeVar('CLS_TYPE')
-ID_TYPE = TypeVar('ID_TYPE')
-GET_TYPE = TypeVar('GET_TYPE')
+CLS_TYPE = TypeVar("CLS_TYPE")
+ID_TYPE = TypeVar("ID_TYPE")
+GET_TYPE = TypeVar("GET_TYPE")
 
 
 class TableType(Enum):
-    File = 'file'
-    Folder = 'folder'
+    File = "file"
+    Folder = "folder"
     NotSet = None
 
 
@@ -31,15 +31,21 @@ class DatabaseTable:
     def __init__(self, table_type: TableType = TableType.NotSet):
         self._table_type: TableType = table_type
         if inspect.isclass(table_type):
-            raise DatabaseDefinitionError(f"DatabaseTable must be set to file or folder: {table_type}")
+            raise DatabaseDefinitionError(
+                f"DatabaseTable must be set to file or folder: {table_type}"
+            )
 
     def __call__(self, cls: type):
         if self._table_type == TableType.NotSet:
             # empty brackets
-            raise DatabaseDefinitionError(f"DatabaseTable must be set to file or folder: {cls}")
+            raise DatabaseDefinitionError(
+                f"DatabaseTable must be set to file or folder: {cls}"
+            )
         # check if class with name exists already
         if cls.__name__ in [c.__name__ for c in self.registry]:
-            raise DatabaseDefinitionError(f"DatabaseTable with name {cls.__name__} already exists.")
+            raise DatabaseDefinitionError(
+                f"DatabaseTable with name {cls.__name__} already exists."
+            )
         self.registry[cls] = self._table_type
         return cls
 
@@ -57,25 +63,37 @@ class DatabaseID:
             # empty brackets
             return
         if inspect.isclass(field):
-            raise DatabaseDefinitionError(f"DatabaseID must be set to the name and type of an field of the class: "
-                                          f"{field}")
+            raise DatabaseDefinitionError(
+                f"DatabaseID must be set to the name and type of an field of the class: "
+                f"{field}"
+            )
 
     def __call__(self, cls):
         if cls in self.registry:
-            raise DatabaseDefinitionError(f"DatabaseTable with name {cls} already has an id field.")
+            raise DatabaseDefinitionError(
+                f"DatabaseTable with name {cls} already has an id field."
+            )
         if self._id_field is None:
             # empty brackets
-            raise DatabaseDefinitionError(f"DatabaseID must be set to the name and type of an field of the class: "
-                                          f"{cls}")
+            raise DatabaseDefinitionError(
+                f"DatabaseID must be set to the name and type of an field of the class: "
+                f"{cls}"
+            )
         if not type(self._id_field) is str:
             # first argument is not a string
-            raise DatabaseDefinitionError(f"Name of DatabaseID must be of type str: {cls}")
+            raise DatabaseDefinitionError(
+                f"Name of DatabaseID must be of type str: {cls}"
+            )
         if self._type is None:
             raise DatabaseDefinitionError(f"Type of DatabaseID must be provided: {cls}")
         if type(self._type) is not type:
-            raise DatabaseDefinitionError(f"Type of DatabaseID must be of type type: {cls}")
+            raise DatabaseDefinitionError(
+                f"Type of DatabaseID must be of type type: {cls}"
+            )
         if self._type not in [str, int, UUID]:
-            raise DatabaseDefinitionError(f"Type of DatabaseID must be of type str or int: {cls}")
+            raise DatabaseDefinitionError(
+                f"Type of DatabaseID must be of type str or int: {cls}"
+            )
 
         # Define getter and setter method
         private_attribute_name = f"__{self._id_field}"
@@ -87,7 +105,9 @@ class DatabaseID:
             if getattr(setter_self, private_attribute_name) is None:
                 setattr(setter_self, private_attribute_name, value)
             else:
-                raise DatabaseKeyError(f"The id field of an object can not be changed!\n{setter_self}")
+                raise DatabaseKeyError(
+                    f"The id field of an object can not be changed!\n{setter_self}"
+                )
 
         setattr(cls, private_attribute_name, None)
         setattr(cls, self._id_field, property(getter, setter))
@@ -108,26 +128,38 @@ class DatabaseField:
             # empty brackets
             return
         if inspect.isclass(field):
-            raise DatabaseDefinitionError(f"DatabaseField must be set to the name and type of an field of the class: "
-                                          f"{field}")
+            raise DatabaseDefinitionError(
+                f"DatabaseField must be set to the name and type of an field of the class: "
+                f"{field}"
+            )
 
     def __call__(self, cls):
         if self._field is None:
             # empty brackets
-            raise DatabaseDefinitionError(f"DatabaseField must be set to the name and type of an field of the class: "
-                                          f"{cls}")
+            raise DatabaseDefinitionError(
+                f"DatabaseField must be set to the name and type of an field of the class: "
+                f"{cls}"
+            )
         if not type(self._field) is str:
             # first argument is not a string
-            raise DatabaseDefinitionError(f"Name of DatabaseField must be of type str: {cls}")
+            raise DatabaseDefinitionError(
+                f"Name of DatabaseField must be of type str: {cls}"
+            )
         if self._type is None:
-            raise DatabaseDefinitionError(f"Type of DatabaseField must be provided: {cls}")
+            raise DatabaseDefinitionError(
+                f"Type of DatabaseField must be provided: {cls}"
+            )
         if type(self._type) not in [type, GenericAlias]:
-            raise DatabaseDefinitionError(f"Type of DatabaseField must be of type type: {cls}")
+            raise DatabaseDefinitionError(
+                f"Type of DatabaseField must be of type type: {cls}"
+            )
         if cls not in self.registry:
             self.registry[cls] = {}
         # check if field of class with name exists already
         if self._field in self.registry[cls]:
-            raise DatabaseDefinitionError(f"DatabaseField with name {self._field} already exists in class {cls}.")
+            raise DatabaseDefinitionError(
+                f"DatabaseField with name {self._field} already exists in class {cls}."
+            )
         self.registry[cls][self._field] = self._type, self._default
         return cls
 
@@ -137,7 +169,9 @@ class DatabaseFieldType:
 
     def __init__(self, cls: type = None):
         if cls:
-            raise DatabaseDefinitionError(f"DatabaseFieldType must be called with brackets: {cls}")
+            raise DatabaseDefinitionError(
+                f"DatabaseFieldType must be called with brackets: {cls}"
+            )
 
     def __call__(self, cls: type):
         if cls.__name__ in [c.__name__ for c in self.registry]:
@@ -146,8 +180,10 @@ class DatabaseFieldType:
                 if c.__name__ == cls.__name__:
                     existing = c
                     break
-            raise DatabaseDefinitionError(f"Name of DatabaseFieldType exists already:\nexisting: {existing}\n"
-                                          f"new     : {cls}")
+            raise DatabaseDefinitionError(
+                f"Name of DatabaseFieldType exists already:\nexisting: {existing}\n"
+                f"new     : {cls}"
+            )
         self.registry.add(cls)
         return cls
 
@@ -155,13 +191,13 @@ class DatabaseFieldType:
 class JsonDatabase:
 
     def __init__(self, *, test_mode: bool = False) -> None:
-        self.__data_folder: str = ''
+        self.__data_folder: str = ""
         self._tables: dict[type, JsonDatabaseTable] = {}
         # class: (dict of fields(field_name, (type, default)))
         self._field_types: dict[type, dict[str, tuple[any, any]]] = {}
         self.__test_mode = test_mode  # testmode disables data tracing and update files at load of database
         if test_mode:
-            logging.warning('JsonDatabase is running in test mode')
+            logging.warning("JsonDatabase is running in test mode")
         self.__data_tracing_logger: Logger | None = None
 
     @property
@@ -169,7 +205,7 @@ class JsonDatabase:
         return self.__data_folder
 
     def init_tables(self, data_folder: str) -> None:
-        if data_folder == '':
+        if data_folder == "":
             raise DatabaseInitialisationError(f"The data_folder is required")
         self.__data_folder = data_folder
         tables: set[type] = set(DatabaseTable.registry.keys())
@@ -179,37 +215,51 @@ class JsonDatabase:
 
         # check if decorated classes are well-formed tables and field types
         if tables & field_types:
-            raise DatabaseInitialisationError(f"The following classes are marked as DatabaseTable and "
-                                              f"DatabaseFieldType:\n{tables & field_types}")
+            raise DatabaseInitialisationError(
+                f"The following classes are marked as DatabaseTable and "
+                f"DatabaseFieldType:\n{tables & field_types}"
+            )
 
         if tables.difference(id_fields):
-            raise DatabaseInitialisationError(f"The following classes are marked as DatabaseTable but don\'t have an "
-                                              f"id field:\n{tables.difference(id_fields)}")
+            raise DatabaseInitialisationError(
+                f"The following classes are marked as DatabaseTable but don't have an "
+                f"id field:\n{tables.difference(id_fields)}"
+            )
 
         if id_fields.difference(tables):
-            raise DatabaseInitialisationError(f"The following classes are marked with an id field but not as an "
-                                              f"DatabaseTable:\n{id_fields.difference(tables)}")
+            raise DatabaseInitialisationError(
+                f"The following classes are marked with an id field but not as an "
+                f"DatabaseTable:\n{id_fields.difference(tables)}"
+            )
 
         if db_fields.difference(tables.union(field_types)):
-            raise DatabaseInitialisationError(f"The following classes are marked with fields but not as an "
-                                              f"DatabaseTable or DatabaseFieldType:\n"
-                                              f"{db_fields.difference(tables.union(field_types))}")
+            raise DatabaseInitialisationError(
+                f"The following classes are marked with fields but not as an "
+                f"DatabaseTable or DatabaseFieldType:\n"
+                f"{db_fields.difference(tables.union(field_types))}"
+            )
 
         if tables.difference(db_fields):
-            raise DatabaseInitialisationError(f"The following classes are marked as DatabaseTable but don\'t have any "
-                                              f"fields:\n{tables.difference(db_fields)}")
+            raise DatabaseInitialisationError(
+                f"The following classes are marked as DatabaseTable but don't have any "
+                f"fields:\n{tables.difference(db_fields)}"
+            )
 
         if field_types.difference(db_fields):
-            raise DatabaseInitialisationError(f"The following classes are marked as DatabaseFieldType but don\'t have "
-                                              f"any fields:\n{field_types.difference(db_fields)}")
+            raise DatabaseInitialisationError(
+                f"The following classes are marked as DatabaseFieldType but don't have "
+                f"any fields:\n{field_types.difference(db_fields)}"
+            )
 
         # check if all used types are serializable
         for cls, field_dict in DatabaseField.registry.items():
             for field, (f_type, _) in field_dict.items():
                 res = is_serializable(f_type, list(tables.union(field_types)))
                 if not res[0]:
-                    raise DatabaseInitialisationError(f"The following type of class {cls} is not serializable:\n"
-                                                      f"{field}: {res[1]}")
+                    raise DatabaseInitialisationError(
+                        f"The following type of class {cls} is not serializable:\n"
+                        f"{field}: {res[1]}"
+                    )
 
         # create database folder if not exist
         if not path.isdir(self.__data_folder):
@@ -224,7 +274,9 @@ class JsonDatabase:
             fields = {}
             for f_name, (f_type, f_default) in DatabaseField.registry[cls].items():
                 fields[f_name] = f_type, f_default
-            self._tables[cls] = JsonDatabaseTable(self, cls, table_type, id_field, id_type, fields)
+            self._tables[cls] = JsonDatabaseTable(
+                self, cls, table_type, id_field, id_type, fields
+            )
 
         # create field types
         for cls in DatabaseFieldType.registry:
@@ -242,12 +294,14 @@ class JsonDatabase:
             f()
         # Save DB to save all new inserted default values
         if not self.__test_mode:
-            self.update('system')
-        logging.info('Database fully loaded.')
+            self.update("system")
+        logging.info("Database fully loaded.")
 
     def add_object(self, obj: object, user: str = None) -> None:
         if user is None:
-            logging.warning(f"JsonDatabase.add_object should be called with the user parameter.")
+            logging.warning(
+                f"JsonDatabase.add_object should be called with the user parameter."
+            )
         # check if object is part of the database
         if type(obj) not in self._tables.keys():
             raise DatabaseInsertionError(f"{type(obj)} is not part of the Database.")
@@ -259,13 +313,17 @@ class JsonDatabase:
 
     def update(self, user: str = None) -> None:
         if user is None:
-            logging.warning(f"JsonDatabase.update should be called with the user parameter.")
+            logging.warning(
+                f"JsonDatabase.update should be called with the user parameter."
+            )
         for _, table in self._tables.items():
             table.save(user)
 
     def remove_object(self, obj: object, user: str = None) -> None:
         if user is None:
-            logging.warning(f"JsonDatabase.remove_object should be called with the user parameter.")
+            logging.warning(
+                f"JsonDatabase.remove_object should be called with the user parameter."
+            )
         # check if object is part of the database
         if type(obj) not in self._tables.keys():
             raise DatabaseInsertionError(f"{type(obj)} is not part of the Database.")
@@ -283,18 +341,21 @@ class JsonDatabase:
             for item in data:
                 tmp = self.data_to_json(item, user)
                 res.append(tmp)
-            return {'type': f_type.__name__, 'data': res}
+            return {"type": f_type.__name__, "data": res}
         if f_type is dict:
             res = []
             for k, v in data.items():
                 k_serialized = self.data_to_json(k, user)
                 v_serialized = self.data_to_json(v, user)
-                res.append({'key': k_serialized, 'value': v_serialized})
-            return {'type': 'dict', 'data': res}
+                res.append({"key": k_serialized, "value": v_serialized})
+            return {"type": "dict", "data": res}
         if f_type in self._tables.keys():
             if not self._tables[f_type].object_in_table(data):
                 self.add_object(data, user)
-            return {'type': f_type.__name__, 'data': self._tables[f_type].get_key_of_object(data)}
+            return {
+                "type": f_type.__name__,
+                "data": self._tables[f_type].get_key_of_object(data),
+            }
         if f_type in self._field_types.keys():
             res = {}
             for field, ft_f_type in self._field_types[f_type].items():
@@ -302,7 +363,7 @@ class JsonDatabase:
                 field_data_serialized = self.data_to_json(field_data, user)
                 if field_data_serialized is not None:
                     res[field] = field_data_serialized
-            return {'type': f_type.__name__, 'data': res}
+            return {"type": f_type.__name__, "data": res}
         raise DatabaseSaveError(f"The following data is not serializable:\n{data}.")
 
     def json_to_value(self, data: any) -> any:
@@ -312,38 +373,40 @@ class JsonDatabase:
         if data is None:
             return None
         if data_type is dict:
-            if 'type' not in data or 'data' not in data:
-                raise DatabaseLoadError(f"The following data is not well formed:\n{data}.")
-            if data['type'] == 'list':
+            if "type" not in data or "data" not in data:
+                raise DatabaseLoadError(
+                    f"The following data is not well formed:\n{data}."
+                )
+            if data["type"] == "list":
                 res = []
-                for i in data['data']:
+                for i in data["data"]:
                     res.append(self.json_to_value(i))
                 return res
-            if data['type'] == 'set':
+            if data["type"] == "set":
                 res = set()
-                for i in data['data']:
+                for i in data["data"]:
                     res.add(self.json_to_value(i))
                 return res
-            if data['type'] == 'dict':
+            if data["type"] == "dict":
                 res = {}
-                for i in data['data']:
-                    res[self.json_to_value(i['key'])] = self.json_to_value(i['value'])
+                for i in data["data"]:
+                    res[self.json_to_value(i["key"])] = self.json_to_value(i["value"])
                 return res
-            if data['type'] == 'tuple':
+            if data["type"] == "tuple":
                 res = []
-                for i in data['data']:
+                for i in data["data"]:
                     res.append(self.json_to_value(i))
                 return tuple(res)
             # check if field is of type FieldType
             # key: name of FieldType
             # value: (class, fields of FieldType)
             tmp = {k.__name__: (k, v) for k, v in self._field_types.items()}
-            if data['type'] in tmp:
-                cls, fields = tmp[data['type']]
-                obj = object.__new__(cls)
+            if data["type"] in tmp:
+                cls, fields = tmp[data["type"]]
+                obj = cls.__new__(cls)  # noqa
                 for field in fields:
-                    if field in data['data']:
-                        setattr(obj, field, self.json_to_value(data['data'][field]))
+                    if field in data["data"]:
+                        setattr(obj, field, self.json_to_value(data["data"][field]))
                     else:
                         # insert default value
                         if type(fields[field][1]) in [str, int, float, bool, tuple]:
@@ -355,32 +418,40 @@ class JsonDatabase:
             # key: name of DatabaseTable
             # value: JsonDatabaseTable
             tmp = {k.__name__: v for k, v in self._tables.items()}
-            if data['type'] in tmp:
-                if tmp[data['type']].key_in_table(data['data']):
-                    return tmp[data['type']].get_object(data['data'])
+            if data["type"] in tmp:
+                if tmp[data["type"]].key_in_table(data["data"]):
+                    return tmp[data["type"]].get_object(data["data"])
                 else:
-                    raise DatabaseLoadError(f"The id \'{data['data']}\' can not be found in Table "
-                                            f"\'{data['type']}\'.")
+                    raise DatabaseLoadError(
+                        f"The id '{data['data']}' can not be found in Table "
+                        f"'{data['type']}'."
+                    )
         raise DatabaseLoadError(f"The following data is not well formed:\n{data}.")
 
-    def write_data_trace(self, user: str, table_name: str, obj_id: int | str, old_data: dict) -> None:
+    def write_data_trace(
+        self, user: str, table_name: str, obj_id: int | str, old_data: dict
+    ) -> None:
         if self.__test_mode:
             return
         if self.__data_tracing_logger is None:
-            raise DatabaseInitialisationError('JsonDatabase write_data_trace is called before init_tables is called')
-        self.__data_tracing_logger.info(f"{user};{table_name};{obj_id};{json.dumps(old_data)}")
+            raise DatabaseInitialisationError(
+                "JsonDatabase write_data_trace is called before init_tables is called"
+            )
+        self.__data_tracing_logger.info(
+            f"{user};{table_name};{obj_id};{json.dumps(old_data)}"
+        )
 
     def __setup_data_tracing_logger(self) -> Logger | None:
         if self.__test_mode:
             return
-        if not path.isdir(path.join(self.__data_folder, '.DataTracing')):
-            mkdir(path.join(self.__data_folder, '.DataTracing'))
-        logfile = path.join(self.__data_folder, '.DataTracing', 'log.csv')
-        logger = logging.getLogger('JsonDbDataTracing')
+        if not path.isdir(path.join(self.__data_folder, ".DataTracing")):
+            mkdir(path.join(self.__data_folder, ".DataTracing"))
+        logfile = path.join(self.__data_folder, ".DataTracing", "log.csv")
+        logger = logging.getLogger("JsonDbDataTracing")
         logger.setLevel(logging.INFO)
         logger.propagate = False  # disables console prints
 
-        formatter = logging.Formatter('%(asctime)s;%(message)s')
+        formatter = logging.Formatter("%(asctime)s;%(message)s")
 
         file_handler = DataTracingFileHandler(logfile, 500 * 1024 * 1024)
         file_handler.setLevel(logging.INFO)
@@ -392,8 +463,15 @@ class JsonDatabase:
 
 class JsonDatabaseTable:
 
-    def __init__(self, db: JsonDatabase, cls: type, table_type: TableType, id_field: str, id_type: type,
-                 fields: dict[str, tuple[any, any]]) -> None:
+    def __init__(
+        self,
+        db: JsonDatabase,
+        cls: type,
+        table_type: TableType,
+        id_field: str,
+        id_type: type,
+        fields: dict[str, tuple[any, any]],
+    ) -> None:
         self.__db: JsonDatabase = db
         self.cls: CLS_TYPE = cls
         self.table_type: TableType = table_type
@@ -408,7 +486,7 @@ class JsonDatabaseTable:
         if self.table_type == TableType.File:
             table_file = path.join(self.__db.data_folder, f"{cls.__name__}.json")
             if not path.isfile(table_file):
-                file = open(table_file, 'w')
+                file = open(table_file, "w")
                 file.write("{}")
                 file.close()
         elif self.table_type == TableType.Folder:
@@ -417,7 +495,7 @@ class JsonDatabaseTable:
                 mkdir(table_folder)
 
     def add_object(self, obj: object, user: str) -> None:
-        if not type(obj) == self.cls:
+        if type(obj) is not self.cls:
             raise DatabaseInsertionError(f"{obj} does not belong to this table.")
         if id(obj) in [id(i) for i in self.__data.values()]:
             # object already in database -> update db
@@ -428,13 +506,19 @@ class JsonDatabaseTable:
         else:
             # check if id is already in db
             obj_id = getattr(obj, self.id_field, None)
-            if obj_id is None or obj_id == '':
-                raise DatabaseInsertionError(f"The id field \'{self.id_field}\' of object {obj} is empty.")
+            if obj_id is None or obj_id == "":
+                raise DatabaseInsertionError(
+                    f"The id field '{self.id_field}' of object {obj} is empty."
+                )
             if obj_id in self.__data.keys():
-                raise DatabaseInsertionError(f"The id \'{obj_id}\' already exists in table {type(obj)}.")
-            if type(obj_id) != self.id_type:
-                raise DatabaseInsertionError(f"The id field \'{self.id_field}\' of object {obj} is not of type "
-                                             f"\'{self.id_type}\'.")
+                raise DatabaseInsertionError(
+                    f"The id '{obj_id}' already exists in table {type(obj)}."
+                )
+            if type(obj_id) is not self.id_type:
+                raise DatabaseInsertionError(
+                    f"The id field '{self.id_field}' of object {obj} is not of type "
+                    f"'{self.id_type}'."
+                )
         # save object to db
         self.__data[obj_id] = obj
         self.__meta_data[obj_id] = JsonDatabaseMetaData()
@@ -442,7 +526,7 @@ class JsonDatabaseTable:
         self.__serialize(user)
 
     def remove_object(self, obj: CLS_TYPE) -> None:
-        if not type(obj) == self.cls:
+        if type(obj) is not self.cls:
             raise DatabaseKeyError(f"{obj} does not belong to this table.")
         if not self.object_in_table(obj):
             return
@@ -452,12 +536,12 @@ class JsonDatabaseTable:
         return key in self.__data.keys()
 
     def object_in_table(self, obj: CLS_TYPE) -> bool:
-        if not type(obj) == self.cls:
+        if type(obj) is not self.cls:
             return False
         return getattr(obj, self.id_field, None) in self.__data.keys()
 
     def get_key_of_object(self, obj: CLS_TYPE) -> ID_TYPE:
-        if not type(obj) == self.cls:
+        if type(obj) is not self.cls:
             raise DatabaseKeyError(f"{obj} does not belong to this table.")
         return getattr(obj, self.id_field, None)
 
@@ -465,7 +549,9 @@ class JsonDatabaseTable:
         if key not in self.__data.keys():
             raise DatabaseKeyError(f"No object with key {key} in this table.")
         if self.__meta_data[key].is_deleted:
-            logging.warning(f"Deleted object from table {self.cls.__name__} with key {key} is requested.")
+            logging.warning(
+                f"Deleted object from table {self.cls.__name__} with key {key} is requested."
+            )
         return self.__data[key]
 
     def get_objects(self) -> immutabledict[ID_TYPE, CLS_TYPE]:
@@ -484,7 +570,7 @@ class JsonDatabaseTable:
                 field_data = getattr(obj, field, None)
                 field_data_serialized = self.__db.data_to_json(field_data, user)
                 obj_data[field] = field_data_serialized
-            obj_data['$meta'] = self.__db.data_to_json(self.__meta_data[obj_id], user)
+            obj_data["$meta"] = self.__db.data_to_json(self.__meta_data[obj_id], user)
             json_data[obj_id] = obj_data
         return json_data
 
@@ -500,25 +586,27 @@ class JsonDatabaseTable:
         for old_element in old_keys.intersection(old_keys):
             if dict_changed(self.__json_data[old_element], json_data[old_element]):
                 changes = True
-                self.__db.write_data_trace(user, self.cls.__name__, old_element, self.__json_data[old_element])
+                self.__db.write_data_trace(
+                    user, self.cls.__name__, old_element, self.__json_data[old_element]
+                )
         if not changes:
             return
         if self.table_type == TableType.File:
             table_file = path.join(self.__db.data_folder, f"{self.cls.__name__}.json")
-            with open(table_file, 'w') as json_file:
+            with open(table_file, "w") as json_file:
                 json.dump(json_data, json_file, indent=4)
         elif self.table_type == TableType.Folder:
             table_folder = path.join(self.__db.data_folder, self.cls.__name__)
             for obj_id, obj_data in json_data.items():
                 file_name = path.join(table_folder, f"{obj_id}.json")
-                with open(file_name, 'w') as json_file:
+                with open(file_name, "w") as json_file:
                     json.dump(obj_data, json_file, indent=4)
         self.__json_data = json_data
 
     def load(self) -> Callable[[], None]:
         if self.table_type == TableType.File:
             table_file = path.join(self.__db.data_folder, f"{self.cls.__name__}.json")
-            with open(table_file, 'r') as json_file:
+            with open(table_file, "r") as json_file:
                 for obj_id, obj_data in json.load(json_file).items():
                     if self.id_type is int:
                         self.__create_and_insert_object(int(obj_id), obj_data)
@@ -527,7 +615,7 @@ class JsonDatabaseTable:
         elif self.table_type == TableType.Folder:
             table_folder = path.join(self.__db.data_folder, self.cls.__name__)
             for file_name in get_filenames_from_dir(table_folder):
-                with open(file_name, 'r') as json_file:
+                with open(file_name, "r") as json_file:
                     obj_data = json.load(json_file)
                     obj_id = path.splitext(path.basename(file_name))[0]
                     if self.id_type is int:
@@ -545,9 +633,11 @@ class JsonDatabaseTable:
         setattr(obj, self.id_field, obj_id)
         self.__data[obj_id] = obj
         self.__json_data[obj_id] = obj_data
-        self.__meta_data[obj_id] = self.__db.json_to_value(obj_data['$meta'])
+        self.__meta_data[obj_id] = self.__db.json_to_value(obj_data["$meta"])
 
-    def __fill_object_from_dict(self, obj: CLS_TYPE, obj_data: dict[ID_TYPE, any]) -> None:
+    def __fill_object_from_dict(
+        self, obj: CLS_TYPE, obj_data: dict[ID_TYPE, any]
+    ) -> None:
         for field in self.fields:
             if field in obj_data:
                 setattr(obj, field, self.__db.json_to_value(obj_data[field]))
@@ -563,12 +653,14 @@ class DataTracingFileHandler(RotatingFileHandler):
 
     def __init__(self, filename: str, max_bytes: int = 0):
         self.last_backup_cnt = 0
-        super().__init__(filename=filename,
-                         mode='a',
-                         maxBytes=max_bytes,
-                         backupCount=1,
-                         encoding=None,
-                         delay=False)
+        super().__init__(
+            filename=filename,
+            mode="a",
+            maxBytes=max_bytes,
+            backupCount=1,
+            encoding=None,
+            delay=False,
+        )
 
     # override
     def doRollover(self):
@@ -590,31 +682,33 @@ class DataTracingFileHandler(RotatingFileHandler):
 # - SZENE0_JSON, SZENE1_JSON, RECTANGLES_JSON, UUID1_JSON, UUID2_JSON in tests/test_json_database/db_test_save.py
 @dataclass()
 @DatabaseFieldType()
-@DatabaseField('is_deleted', bool, False)
+@DatabaseField("is_deleted", bool, False)
 class JsonDatabaseMetaData:
     is_deleted: bool = False
 
 
-def is_serializable(f_type: any, additional_types: list[type] = None) -> tuple[bool, str]:
+def is_serializable(
+    f_type: any, additional_types: list[type] = None
+) -> tuple[bool, str]:
     if additional_types is None:
         additional_types = []
     if f_type in [bool, str, int, float, dict]:
-        return True, ''
+        return True, ""
     if type(f_type) is GenericAlias:
         if get_origin(f_type) in [tuple, list, set]:
             for arg in get_args(f_type):
                 res = is_serializable(arg, additional_types)
                 if not res[0]:
                     return False, res[1]
-            return True, ''
+            return True, ""
     if type(f_type) is UnionType:
         for arg in get_args(f_type):
             res = is_serializable(arg, additional_types)
             if not res[0]:
                 return False, res[1]
-        return True, ''
+        return True, ""
     if f_type in additional_types:
-        return True, ''
+        return True, ""
     return False, str(f_type)
 
 
@@ -624,10 +718,10 @@ def dict_changed(old: dict, new: dict) -> bool:
     if len(new_keys.symmetric_difference(old_keys)) != 0:
         return True
     # catch dict representing a set
-    if 'type' in new_keys and old['type'] == 'set':
-        if new['type'] != 'set':
+    if "type" in new_keys and old["type"] == "set":
+        if new["type"] != "set":
             return True
-        if len(set(old['data']).symmetric_difference(set(new['data']))) != 0:
+        if len(set(old["data"]).symmetric_difference(set(new["data"]))) != 0:
             return True
         return False
     for key in new_keys:

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from json_db_connector.json_db import DatabaseID
 
 
-@DatabaseID('job_id', str)
+@DatabaseID("job_id", str)
 @dataclass()
 class TestClassFile:
     job_id: str
@@ -16,7 +16,7 @@ class TestClassFile:
     att_set: set[int]
 
 
-@DatabaseID('job_id', int)
+@DatabaseID("job_id", int)
 @dataclass()
 class TestClassFolder:
     job_id: int
@@ -31,7 +31,7 @@ class TestClassFolder:
     att_class_file: TestClassFile
 
 
-@DatabaseID('uuid', use_uuid=True)
+@DatabaseID("uuid", use_uuid=True)
 @dataclass()
 class TestClassUuid:
     job_id: str

@@ -1,10 +1,16 @@
 from dataclasses import dataclass
-from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseField, DatabaseFieldType, TableType
+from json_db_connector.json_db import (
+    DatabaseTable,
+    DatabaseID,
+    DatabaseField,
+    DatabaseFieldType,
+    TableType,
+)
 
 
 @DatabaseTable(TableType.File)
-@DatabaseID('job_id', str)
-@DatabaseField('att_str', str)
+@DatabaseID("job_id", str)
+@DatabaseField("att_str", str)
 @dataclass()
 class TestClassReference:
     job_id: str
@@ -12,8 +18,8 @@ class TestClassReference:
 
 
 @DatabaseTable(TableType.File)
-@DatabaseID('job_id', str)
-@DatabaseField('att_ref', TestClassReference)
+@DatabaseID("job_id", str)
+@DatabaseField("att_ref", TestClassReference)
 @dataclass()
 class TestClassFile:
     job_id: str
@@ -21,10 +27,10 @@ class TestClassFile:
 
 
 @DatabaseFieldType()
-@DatabaseField('att_bool', bool)
-@DatabaseField('att_str', str)
-@DatabaseField('att_int', int)
-@DatabaseField('att_float', float)
+@DatabaseField("att_bool", bool)
+@DatabaseField("att_str", str)
+@DatabaseField("att_int", int)
+@DatabaseField("att_float", float)
 @dataclass()
 class TestClassFieldType:
     att_bool: bool

@@ -1,9 +1,14 @@
 from dataclasses import dataclass
-from json_db_connector.json_db import DatabaseTable, DatabaseID, DatabaseFieldType, TableType
+from json_db_connector.json_db import (
+    DatabaseTable,
+    DatabaseID,
+    DatabaseFieldType,
+    TableType,
+)
 
 
 @DatabaseTable(TableType.File)
-@DatabaseID('job_id', str)
+@DatabaseID("job_id", str)
 @DatabaseFieldType()
 @dataclass()
 class TestClass:
@@ -11,7 +16,7 @@ class TestClass:
 
 
 @DatabaseTable(TableType.File)
-@DatabaseID('job_id', str)
+@DatabaseID("job_id", str)
 @dataclass()
 class TestClassTable:
     job_id: str
