@@ -103,6 +103,21 @@ def adding_implicit_transitions(sm, counter):
 
     return list_imp_trans
 
+def do_formalizations(reqs):
+    forms = []
+    for element in reqs:
+        rid = element.rid
+
+        form = reqtrans.Formalization(
+            id=rid
+        )
+        form.scoped_pattern = "BoundedResponse"
+        print(form)
+
+        forms.append(form)
+
+
+    return forms
 
 
 
@@ -115,15 +130,32 @@ if __name__ == "__main__":
         ["On", "turn_off", "Off"]
 
     ]
-    print("state machine: " + str(state_machine))
+    print("Take state machine:\n" + str(state_machine) + "\n")
+
+    # Create Requirements out of the state machine
+    print("Creating the requirements ... \n ")
+
     list_req = from_state_machine_to_requirement(state_machine)
 
-    print("list of all requirements" + str(list_req))
-
+    print("...\n " + str(list_req))
     # check the write requirements are existing.
     for element in list_req:
         print(element.description)
 
+    print("Done. Requirements are created successfully.\n")
+
+    # Create Formalizations
+    print("Starting the Formalization\n... Loading ...\n")
+
+    list_form = do_formalizations(list_req)
+
+    # check formalizations
+    print(str(list_form) + "\n")
+
+    print("Done. Formalizations are created successfully.\n")
+
+
+    """
     req01 = reqtrans.Requirement(
         id="01",
         description="From OFF to ON.",
@@ -158,7 +190,7 @@ if __name__ == "__main__":
     print(freeform)
 
     All_Req = reqtrans.RequirementCollection()
-
+    """
     # Done
     # - Create low state machine
     # - Read states and actions, and form them into requirements
@@ -167,5 +199,6 @@ if __name__ == "__main__":
     # ToDo
     #   - Add pattern to requirement
 
-    print("ENDING")
+
+    print("Transforming state machine into Hanfor successfull.")
 
