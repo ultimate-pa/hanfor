@@ -486,9 +486,8 @@ class JsonDatabaseTable:
         if self.table_type == TableType.File:
             table_file = path.join(self.__db.data_folder, f"{cls.__name__}.json")
             if not path.isfile(table_file):
-                file = open(table_file, "w")
-                file.write("{}")
-                file.close()
+                with open(table_file, "w") as file:
+                    file.write("{}")
         elif self.table_type == TableType.Folder:
             table_folder = path.join(self.__db.data_folder, cls.__name__)
             if not path.isdir(table_folder):
