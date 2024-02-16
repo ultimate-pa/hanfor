@@ -295,7 +295,7 @@ class Requirement(HanforVersioned, Pickleable):
         self.tags: OrderedDict[str, str] = OrderedDict()
         self.status = 'Todo'
         self._revision_diff = dict()
-        print("LOADING Definition class Requirement - Mirko Werling")
+        # print("LOADING Definition class Requirement - Mirko Werling")
 
     def to_dict(self, include_used_vars=False):
         type_inference_errors = dict()

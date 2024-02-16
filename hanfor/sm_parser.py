@@ -34,18 +34,24 @@ with open('stateMachine_LightSwitch.json', 'r') as stateMachine:
 # import hanfor.hanfor.app as app
 import reqtransformer as reqtrans
 
+# variable
+states = []
+
 def from_state_machine_to_requirement(sm):
     """
+    The function creates the requirements from the statemachine.
 
     :param sm: given state machine.
     :return: one list of requirements for each transition in state machine.
     """
-    print("Into the function.")
     counter = 1
     reqs = []
+    global states
     for transition in sm:
         # configure basics of state machine
         current_state = transition[0]
+        if current_state not in states:
+            states.append(current_state)
         successor_state = transition[2]
         action = transition[1]
 
@@ -67,21 +73,32 @@ def from_state_machine_to_requirement(sm):
         reqs.append(req)
         counter += 1
 
+    # adding also the implicit transitions
     for element in adding_implicit_transitions(sm, counter):
         reqs.append(element)
-    print(reqs)
 
     return reqs
 
 def adding_implicit_transitions(sm, counter):
-    list_imp_trans = []
+    """
+    Computing the implicit transitions as requirements.
 
+    :param sm: state machine
+    :param counter: counts the implicit transitions, start from last normal requirement
+    :return: list of implicit transitions
+    """
+    list_imp_trans = []
     counter_trans = counter
-    for transition in sm:
+
+    global states
+    # check states
+    # print(states)
+
+    for state in states:
         # configure basics of state machine
-        current_state = transition[0]
+        current_state = state
         successor_state = current_state
-        action = transition[1]
+        # action = transition[1]
 
         # preparing the requirement attributes
         id = "0" + str(counter_trans)
@@ -90,13 +107,12 @@ def adding_implicit_transitions(sm, counter):
         csv_row = {str(counter_trans): str(counter_trans)}
         # pos_in_csv = counter
 
-
         req = reqtrans.Requirement(
-        id=id,
-        description=description,
-        type_in_csv=type_in_csv,
-        csv_row=csv_row,
-        pos_in_csv=counter_trans
+            id=id,
+            description=description,
+            type_in_csv=type_in_csv,
+            csv_row=csv_row,
+            pos_in_csv=counter_trans
         )
         list_imp_trans.append(req)
         counter_trans += 1
@@ -104,6 +120,12 @@ def adding_implicit_transitions(sm, counter):
     return list_imp_trans
 
 def do_formalizations(reqs):
+    """
+    Creating formalization for all requirements.
+
+    :param reqs: list of all requirements.
+    :return: list of formalization
+    """
     forms = []
     for element in reqs:
         rid = element.rid
@@ -112,7 +134,7 @@ def do_formalizations(reqs):
             id=rid
         )
         form.scoped_pattern = "BoundedResponse"
-        print(form)
+        # print(form)
 
         forms.append(form)
 
@@ -125,34 +147,53 @@ def do_formalizations(reqs):
 
 if __name__ == "__main__":
     print("Starting loading state machine in Hanfor.")
-    state_machine = [
-        ["Off", "turn_on", "On"],
-        ["On", "turn_off", "Off"]
+    print("Which example do you want to load?\n")
+    print("0 - small example\n"
+          "1 - Light Switch example\n")
+    example_choice = input()
+    # print(example_choice, type(example_choice))
+    state_machine = []
+    if example_choice == "0":
+        state_machine = [
+            ["Off", "turn_on", "On"],
+            ["On", "turn_off", "Off"]
 
-    ]
-    print("Take state machine:\n" + str(state_machine) + "\n")
+        ]
+    elif example_choice == "1":
+        state_machine = [
+            ["Light_Off", "switch_right", "Parking_Light"],
+            ["Parking_Light", "switch_left", "Light_Off"],
+            ["Parking_Light", "switch_right", "Head_Light"],
+            ["Head_Light", "switch_left", "Parking_Light"],
+            ["Head_Light", "switch_right", "Fog_Light"],
+            ["Fog_Light", "switch_left", "Head_Light"],
+        ]
+    else:
+        print("Usage: Please type in one correct value !!!")
+        exit()
+    print("Take state machine with " + str(len(state_machine)) + " transitions:\n" + str(state_machine) + "\n")
 
     # Create Requirements out of the state machine
     print("Creating the requirements ... \n ")
 
     list_req = from_state_machine_to_requirement(state_machine)
 
-    print("...\n " + str(list_req))
     # check the write requirements are existing.
-    for element in list_req:
-        print(element.description)
+    # print("...\n " + str(list_req))
+    # for element in list_req:
+    #    print(element.description)
 
-    print("Done. Requirements are created successfully.\n")
+    print("Done. " + str(len(list_req)) + " Requirements are created successfully.\n")
 
     # Create Formalizations
-    print("Starting the Formalization\n... Loading ...\n")
+    print("Starting the formalization ... \n ")
 
     list_form = do_formalizations(list_req)
 
     # check formalizations
-    print(str(list_form) + "\n")
+    # print(str(list_form) + "\n")
 
-    print("Done. Formalizations are created successfully.\n")
+    print("Done. " + str(len(list_form)) + " Formalizations are created successfully.\n")
 
 
     """
@@ -197,7 +238,7 @@ if __name__ == "__main__":
     # - Create implicit transitions, and form them into requirements
 
     # ToDo
-    #   - Add pattern to requirement
+    #   - Add: Enumerators for actions
 
 
     print("Transforming state machine into Hanfor successfull.")
