@@ -16,6 +16,7 @@ from os import path, rmdir, remove, mkdir
 from dataclasses import dataclass
 import json
 from immutabledict import immutabledict
+from collections import defaultdict
 
 
 class TestJsonDatabase(TestCase):
@@ -928,6 +929,71 @@ class TestJsonDatabase(TestCase):
             self._db._tables[TestClassFile].get_object("job2").get_values(),
             t2.get_values(),
         )
+
+    def test_json_db_complex_normal_class_funky_keys(self):
+        """Database should not leak strange symbols to hard disk silently"""
+        # TODO: cleanup
+        from test_json_database.db_test_complex_normal_class import TestClassFile, DataClassThing
+        self._db.init_tables(path.join(self._data_path, "complex_normal_class_funky_keys"))
+
+        keys = ["job1", "job2.","034rjobxyz","ntfs:stream",".job.",
+                "/topleveldir/bob","job?=)%&\"§$", "job2a\n\rasdf"]
+        for i, k in enumerate(keys):
+            o = TestClassFile(k, DataClassThing(str(i)), i)
+            self._db.add_object(o)
+
+        # reset db to load saved objects
+        self._db = JsonDatabase(test_mode=True)
+        self._db.init_tables(path.join(self._data_path, "complex_normal_class_funky_keys"))
+
+        objects =  self._db.get_objects(TestClassFile)
+        self.assertIn(k, objects,
+                      f"funky db key '{k}' did not return from file system correctly")
+
+    def test_json_db_complex_normal_class_funky_values(self):
+        """Database should not leak strange strings into the json file, especially strings
+        containg Json like strings wihtout proper escaping and unescaping"""
+        # TODO: cleanup
+        from test_json_database.db_test_complex_normal_class import TestClassFile, DataClassThing
+        self._db.init_tables(path.join(self._data_path, "complex_normal_class_funky_values"))
+
+        keys = ["job1", "job2.","034rjobxyz","ntfs:stream",".job.","/job/bob",
+                "job?=)%&\"§$", "job2a\n\rasdf", "\"{Some,[Json]}", "}\", Closing:json, \"{"]
+        for i, k in enumerate(keys):
+            o = TestClassFile(f"job{i}",  DataClassThing(str(i)), k)
+            self._db.add_object(o, "test")
+
+        # reset db to load saved objects
+        self._db = JsonDatabase(test_mode=True)
+        self._db.init_tables(path.join(self._data_path, "complex_normal_class_funky_values"))
+
+        objects =  self._db.get_objects(TestClassFile)
+        self.assertIn(k, [o.x for o in objects.values()],
+                      f"funky value '{k}' did not deserialise correctly")
+
+    def test_json_db_cyclic_graph(self):
+        """Database should have be able to searialise and unserialise objects within a cyclic graph"""
+        # TODO: cleanup
+        from test_json_database.db_test_graph import Node
+        self._db.init_tables(path.join(self._data_path, "graph_test"))
+
+        nodes = [Node(f"Node {i}", i) for i in range(10)]
+        for i, n in enumerate(nodes):
+            n.successors.append(nodes[(i + 1) % 10])
+            n.predecessors.append(nodes[(i - 1) % 10])
+        for node in nodes:
+            self._db.add_object(node, "test")
+
+        # reset db to load saved objects
+        self._db = JsonDatabase(test_mode=True)
+        self._db.init_tables(path.join(self._data_path, "complex_normal_class_funky_values"))
+
+        nodes = list(self._db.get_objects(Node).values())
+        nodes.sort(key = lambda x: x)
+        for i, n in enumerate(nodes) :
+            self.assertTrue(n.successors[0].n == (i + 1) % 10 and n.predecessors[0].n == (i - 1) % 10,
+            f"Node {i} did not have correct neighbours: index is {i}, neighbours are" 
+            f"{n.successors[0].n} and {n.predecessors[0].n}")
 
     def test_json_db_load(self):
         from test_json_database.db_test_load import (
