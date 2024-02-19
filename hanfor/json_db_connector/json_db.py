@@ -13,10 +13,13 @@ from immutabledict import immutabledict
 import logging
 from logging import Logger
 from logging.handlers import RotatingFileHandler
+import re
 
 CLS_TYPE = TypeVar("CLS_TYPE")
 ID_TYPE = TypeVar("ID_TYPE")
 GET_TYPE = TypeVar("GET_TYPE")
+
+KEY_REGEX = re.compile(r"^[a-zA-Z0-9_\-.]+$")
 
 
 class TableType(Enum):
@@ -87,6 +90,8 @@ class DatabaseID:
 
         def setter(setter_self: object, value):
             if getattr(setter_self, private_attribute_name) is None:
+                if not KEY_REGEX.match(str(value)):
+                    raise DatabaseKeyError(f"The given id is invalid!\n{value} not in {KEY_REGEX.pattern}")
                 setattr(setter_self, private_attribute_name, value)
             else:
                 raise DatabaseKeyError(f"The id field of an object can not be changed!\n{setter_self}")

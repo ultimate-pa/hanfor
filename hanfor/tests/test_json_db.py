@@ -10,13 +10,13 @@ from json_db_connector.json_db import (
     DatabaseFieldType,
     JsonDatabaseMetaData,
     DataTracingFileHandler,
+    KEY_REGEX,
 )
 from uuid import UUID
 from os import path, rmdir, remove, mkdir
 from dataclasses import dataclass
 import json
 from immutabledict import immutabledict
-from collections import defaultdict
 
 
 class TestJsonDatabase(TestCase):
@@ -126,12 +126,22 @@ class TestJsonDatabase(TestCase):
             rmdir(path.join(self._data_path, "DataTracing"))
 
         for i in range(10):
-            if path.isfile(path.join(self._data_path, "graph_test", "Node", f"Node {i}.json")):
-                remove(path.join(self._data_path, "graph_test", "Node", f"Node {i}.json"))
+            if path.isfile(path.join(self._data_path, "graph_test", "Node", f"Node{i}.json")):
+                remove(path.join(self._data_path, "graph_test", "Node", f"Node{i}.json"))
         if path.isdir(path.join(self._data_path, "graph_test", "Node")):
             rmdir(path.join(self._data_path, "graph_test", "Node"))
         if path.isdir(path.join(self._data_path, "graph_test")):
             rmdir(path.join(self._data_path, "graph_test"))
+
+        if path.isfile(path.join(self._data_path, "funky_values", "TestClassFile.json")):
+            remove(path.join(self._data_path, "funky_values", "TestClassFile.json"))
+        if path.isdir(path.join(self._data_path, "funky_values")):
+            rmdir(path.join(self._data_path, "funky_values"))
+
+        if path.isfile(path.join(self._data_path, "funky_keys", "TestClassFile.json")):
+            remove(path.join(self._data_path, "funky_keys", "TestClassFile.json"))
+        if path.isdir(path.join(self._data_path, "funky_keys")):
+            rmdir(path.join(self._data_path, "funky_keys"))
 
     def test_json_int_float(self):
         tmp = {"int": 0, "float": 1.2, "bool": True}
@@ -426,8 +436,8 @@ class TestJsonDatabase(TestCase):
                 "att_bool": (bool, None),
                 "att_str": (str, None),
                 "att_int": (int, None),
-                "att_float": (float, None),
                 "att_tuple": (tuple[int, str], None),
+                "att_float": (float, None),
                 "att_list": (list[str], None),
                 "att_dict": (dict, None),
                 "att_set": (set[int], None),
@@ -677,8 +687,7 @@ class TestJsonDatabase(TestCase):
         tc1_1 = TestClass1(job_id="one", att_str="att")
         tc1_2 = TestClass1(job_id="two", att_str="att2")
         tc1_3 = TestClass1(job_id="three", att_str="att3")
-        tc1_4 = TestClass1(job_id="", att_str="att4")
-        tc1_5 = TestClass1(job_id="one", att_str="att5")
+        tc1_4 = TestClass1(job_id="one", att_str="att5")
         tc1_6 = TestClass1(job_id=1, att_str="att5")  # noqa disables the waring for false type
         tc2_1 = TestClass2(job_id=1, att_int=10, att_ref=None)
         tc2_2 = TestClass2(job_id=2, att_int=20, att_ref=tc1_1)
@@ -726,13 +735,6 @@ class TestJsonDatabase(TestCase):
         data_id[TestClass4][100] = tc4_1
         for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
             self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
-        # add object with empty str as id
-        with self.assertRaises(Exception) as em:
-            self._db.add_object(tc1_4, "test")
-        self.assertEqual(
-            f"DatabaseInsertionError: The id field 'job_id' of object {tc1_4} is empty.",
-            str(em.exception),
-        )
         for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
             self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with None as id
@@ -746,9 +748,9 @@ class TestJsonDatabase(TestCase):
             self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with already existing id
         with self.assertRaises(Exception) as em:
-            self._db.add_object(tc1_5, "test")
+            self._db.add_object(tc1_4, "test")
         self.assertEqual(
-            f"DatabaseInsertionError: The id 'one' already exists in table {type(tc1_5)}.",
+            f"DatabaseInsertionError: The id 'one' already exists in table {type(tc1_4)}.",
             str(em.exception),
         )
         for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
@@ -868,46 +870,33 @@ class TestJsonDatabase(TestCase):
             t2.get_values(),
         )
 
-    def test_json_db_complex_normal_class_funky_keys(self):
-        """Database should not leak strange symbols to hard disk silently"""
-        # TODO: cleanup
-        from test_json_database.db_test_complex_normal_class import TestClassFile, DataClassThing
+    def test_json_db_funky_keys(self):
+        from test_json_database.db_test_funky_keys import TestClassFile
 
-        self._db.init_tables(path.join(self._data_path, "complex_normal_class_funky_keys"))
+        self._db.init_tables(path.join(self._data_path, "funky_keys"))
 
         keys = [
-            "job1",
-            "job2.",
-            "034rjobxyz",
             "ntfs:stream",
-            ".job.",
-            "/topleveldir/bob",
+            "/toplevel-dir/bob",
             'job?=)%&"§$',
             "job2a\n\rasdf",
         ]
-        for i, k in enumerate(keys):
-            o = TestClassFile(k, DataClassThing(str(i)), i)
-            self._db.add_object(o)
+        for k in keys:
+            with self.assertRaises(Exception) as em:
+                _ = TestClassFile(k, 0)
+            self.assertEqual(
+                f"DatabaseKeyError: The given id is invalid!\n{k} not in {KEY_REGEX.pattern}", str(em.exception)
+            )
 
-        # reset db to load saved objects
-        self._db = JsonDatabase(test_mode=True)
-        self._db.init_tables(path.join(self._data_path, "complex_normal_class_funky_keys"))
+    def test_json_db_funky_values(self):
+        from test_json_database.db_test_funky_values import TestClassFile
 
-        objects = self._db.get_objects(TestClassFile)
-        self.assertIn(k, objects, f"funky db key '{k}' did not return from file system correctly")
+        self._db.init_tables(path.join(self._data_path, "funky_values"))
 
-    def test_json_db_complex_normal_class_funky_values(self):
-        """Database should not leak strange strings into the json file, especially strings
-        containg Json like strings wihtout proper escaping and unescaping"""
-        # TODO: cleanup
-        from test_json_database.db_test_complex_normal_class import TestClassFile, DataClassThing
-
-        self._db.init_tables(path.join(self._data_path, "complex_normal_class_funky_values"))
-
-        keys = [
+        funky_values = [
             "job1",
             "job2.",
-            "034rjobxyz",
+            "034rjobxyz",  # noqa
             "ntfs:stream",
             ".job.",
             "/job/bob",
@@ -916,23 +905,24 @@ class TestJsonDatabase(TestCase):
             '"{Some,[Json]}',
             '}", Closing:json, "{',
         ]
-        for i, k in enumerate(keys):
-            o = TestClassFile(f"job{i}", DataClassThing(str(i)), k)
+        for i, k in enumerate(funky_values):
+            o = TestClassFile(i, k)
             self._db.add_object(o, "test")
 
         # reset db to load saved objects
         self._db = JsonDatabase(test_mode=True)
-        self._db.init_tables(path.join(self._data_path, "complex_normal_class_funky_values"))
+        self._db.init_tables(path.join(self._data_path, "funky_values"))
 
         objects = self._db.get_objects(TestClassFile)
-        self.assertIn(k, [o.x for o in objects.values()], f"funky value '{k}' did not deserialise correctly")
+        for i, o in objects.items():
+            self.assertEqual(funky_values[i], o.att_str)
 
     def test_json_db_cyclic_graph(self):
         from test_json_database.db_test_graph import Node
 
         self._db.init_tables(path.join(self._data_path, "graph_test"))
 
-        nodes = [Node(f"Node {i}", i) for i in range(10)]
+        nodes = [Node(f"Node{i}", i) for i in range(10)]
         for i, n in enumerate(nodes):
             n.successors.append(nodes[(i + 1) % 10])
             n.predecessors.append(nodes[(i - 1) % 10])
