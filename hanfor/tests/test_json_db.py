@@ -28,9 +28,7 @@ class TestJsonDatabase(TestCase):
         DatabaseField.registry.clear()
         DatabaseFieldType.registry.clear()
         self._db = JsonDatabase(test_mode=True)
-        self._data_path = path.join(
-            path.dirname(path.realpath(__file__)), "test_json_database", "test_data"
-        )
+        self._data_path = path.join(path.dirname(path.realpath(__file__)), "test_json_database", "test_data")
         DatabaseFieldType.registry.add(JsonDatabaseMetaData)
         DatabaseField.registry[JsonDatabaseMetaData] = {
             "is_deleted": (bool, False)
@@ -40,36 +38,20 @@ class TestJsonDatabase(TestCase):
     def tearDown(self):
         if path.isdir(path.join(self._data_path, "init_tables_ok", "TestClassFolder")):
             rmdir(path.join(self._data_path, "init_tables_ok", "TestClassFolder"))
-        if path.isfile(
-            path.join(self._data_path, "init_tables_ok", "TestClassFile.json")
-        ):
+        if path.isfile(path.join(self._data_path, "init_tables_ok", "TestClassFile.json")):
             remove(path.join(self._data_path, "init_tables_ok", "TestClassFile.json"))
-        if path.isfile(
-            path.join(self._data_path, "init_tables_ok", ".DataTracing", "log.csv")
-        ):
-            remove(
-                path.join(self._data_path, "init_tables_ok", ".DataTracing", "log.csv")
-            )
+        if path.isfile(path.join(self._data_path, "init_tables_ok", ".DataTracing", "log.csv")):
+            remove(path.join(self._data_path, "init_tables_ok", ".DataTracing", "log.csv"))
             rmdir(path.join(self._data_path, "init_tables_ok", ".DataTracing"))
         if path.isdir(path.join(self._data_path, "init_tables_ok")):
             rmdir(path.join(self._data_path, "init_tables_ok"))
 
-        if path.isfile(
-            path.join(self._data_path, "data_to_json", "TestClassFile.json")
-        ):
+        if path.isfile(path.join(self._data_path, "data_to_json", "TestClassFile.json")):
             remove(path.join(self._data_path, "data_to_json", "TestClassFile.json"))
-        if path.isfile(
-            path.join(self._data_path, "data_to_json", "TestClassReference.json")
-        ):
-            remove(
-                path.join(self._data_path, "data_to_json", "TestClassReference.json")
-            )
-        if path.isfile(
-            path.join(self._data_path, "data_to_json", ".DataTracing", "log.csv")
-        ):
-            remove(
-                path.join(self._data_path, "data_to_json", ".DataTracing", "log.csv")
-            )
+        if path.isfile(path.join(self._data_path, "data_to_json", "TestClassReference.json")):
+            remove(path.join(self._data_path, "data_to_json", "TestClassReference.json"))
+        if path.isfile(path.join(self._data_path, "data_to_json", ".DataTracing", "log.csv")):
+            remove(path.join(self._data_path, "data_to_json", ".DataTracing", "log.csv"))
             rmdir(path.join(self._data_path, "data_to_json", ".DataTracing"))
         if path.isdir(path.join(self._data_path, "data_to_json")):
             rmdir(path.join(self._data_path, "data_to_json"))
@@ -82,9 +64,7 @@ class TestJsonDatabase(TestCase):
             remove(path.join(self._data_path, "add_object", "TestClass3.json"))
         if path.isfile(path.join(self._data_path, "add_object", "TestClass4.json")):
             remove(path.join(self._data_path, "add_object", "TestClass4.json"))
-        if path.isfile(
-            path.join(self._data_path, "add_object", ".DataTracing", "log.csv")
-        ):
+        if path.isfile(path.join(self._data_path, "add_object", ".DataTracing", "log.csv")):
             remove(path.join(self._data_path, "add_object", ".DataTracing", "log.csv"))
             rmdir(path.join(self._data_path, "add_object", ".DataTracing"))
         if path.isdir(path.join(self._data_path, "add_object")):
@@ -106,46 +86,28 @@ class TestJsonDatabase(TestCase):
         if path.isdir(path.join(self._data_path, "save")):
             rmdir(path.join(self._data_path, "save"))
 
-        if path.isfile(
-            path.join(self._data_path, "json_to_value", "TestClassFile.json")
-        ):
+        if path.isfile(path.join(self._data_path, "json_to_value", "TestClassFile.json")):
             remove(path.join(self._data_path, "json_to_value", "TestClassFile.json"))
-        if path.isfile(
-            path.join(self._data_path, "json_to_value", "TestClassReference.json")
-        ):
-            remove(
-                path.join(self._data_path, "json_to_value", "TestClassReference.json")
-            )
-        if path.isfile(
-            path.join(self._data_path, "json_to_value", ".DataTracing", "log.csv")
-        ):
-            remove(
-                path.join(self._data_path, "json_to_value", ".DataTracing", "log.csv")
-            )
+        if path.isfile(path.join(self._data_path, "json_to_value", "TestClassReference.json")):
+            remove(path.join(self._data_path, "json_to_value", "TestClassReference.json"))
+        if path.isfile(path.join(self._data_path, "json_to_value", ".DataTracing", "log.csv")):
+            remove(path.join(self._data_path, "json_to_value", ".DataTracing", "log.csv"))
             rmdir(path.join(self._data_path, "json_to_value", ".DataTracing"))
         if path.isdir(path.join(self._data_path, "json_to_value")):
             rmdir(path.join(self._data_path, "json_to_value"))
 
         if path.isfile(path.join(self._data_path, "get_objects", "TestClassFile.json")):
             remove(path.join(self._data_path, "get_objects", "TestClassFile.json"))
-        if path.isfile(
-            path.join(self._data_path, "get_objects", ".DataTracing", "log.csv")
-        ):
+        if path.isfile(path.join(self._data_path, "get_objects", ".DataTracing", "log.csv")):
             remove(path.join(self._data_path, "get_objects", ".DataTracing", "log.csv"))
             rmdir(path.join(self._data_path, "get_objects", ".DataTracing"))
         if path.isdir(path.join(self._data_path, "get_objects")):
             rmdir(path.join(self._data_path, "get_objects"))
 
-        if path.isfile(
-            path.join(self._data_path, "normal_class", "TestClassFile.json")
-        ):
+        if path.isfile(path.join(self._data_path, "normal_class", "TestClassFile.json")):
             remove(path.join(self._data_path, "normal_class", "TestClassFile.json"))
-        if path.isfile(
-            path.join(self._data_path, "normal_class", ".DataTracing", "log.csv")
-        ):
-            remove(
-                path.join(self._data_path, "normal_class", ".DataTracing", "log.csv")
-            )
+        if path.isfile(path.join(self._data_path, "normal_class", ".DataTracing", "log.csv")):
+            remove(path.join(self._data_path, "normal_class", ".DataTracing", "log.csv"))
             rmdir(path.join(self._data_path, "normal_class", ".DataTracing"))
         if path.isdir(path.join(self._data_path, "normal_class")):
             rmdir(path.join(self._data_path, "normal_class"))
@@ -551,17 +513,9 @@ class TestJsonDatabase(TestCase):
                 "att_class_file": (TestClassFile, None),
             },
         )
-        self.assertDictEqual(
-            self._db._field_types[TestClassFieldType], {"job_id": (str, None)}
-        )
-        self.assertTrue(
-            path.isdir(path.join(self._data_path, "init_tables_ok", "TestClassFolder"))
-        )
-        self.assertTrue(
-            path.isfile(
-                path.join(self._data_path, "init_tables_ok", "TestClassFile.json")
-            )
-        )
+        self.assertDictEqual(self._db._field_types[TestClassFieldType], {"job_id": (str, None)})
+        self.assertTrue(path.isdir(path.join(self._data_path, "init_tables_ok", "TestClassFolder")))
+        self.assertTrue(path.isfile(path.join(self._data_path, "init_tables_ok", "TestClassFile.json")))
 
     def test_json_db_init_tables_table_and_field_type(self):
         from test_json_database.db_test_init_tables_table_and_type import (
@@ -717,9 +671,7 @@ class TestJsonDatabase(TestCase):
         tc1_3 = TestClass1(job_id="three", att_str="att3")
         tc1_4 = TestClass1(job_id="", att_str="att4")
         tc1_5 = TestClass1(job_id="one", att_str="att5")
-        tc1_6 = TestClass1(
-            job_id=1, att_str="att5"
-        )  # noqa disables the waring for false type
+        tc1_6 = TestClass1(job_id=1, att_str="att5")  # noqa disables the waring for false type
         tc2_1 = TestClass2(job_id=1, att_int=10, att_ref=None)
         tc2_2 = TestClass2(job_id=2, att_int=20, att_ref=tc1_1)
         tc2_3 = TestClass2(job_id=3, att_int=30, att_ref=tc1_3)
@@ -736,48 +688,36 @@ class TestJsonDatabase(TestCase):
             TestClass4: {},
         }
         for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
-            self.assertEqual(
-                self._db._tables[t].get_objects(), immutabledict(data_id[t])
-            )
+            self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with empty reference field
         self._db.add_object(tc1_2, "test")
         self._db.add_object(tc2_1, "test")
         data_id[TestClass1]["two"] = tc1_2
         data_id[TestClass2][1] = tc2_1
         for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
-            self.assertEqual(
-                self._db._tables[t].get_objects(), immutabledict(data_id[t])
-            )
+            self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with filled reference field
         self._db.add_object(tc2_2, "test")
         data_id[TestClass2][2] = tc2_2
         for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
-            self.assertEqual(
-                self._db._tables[t].get_objects(), immutabledict(data_id[t])
-            )
+            self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with filled reference field but with an unknown object -> test call add @ _data_to_json
         self._db.add_object(tc2_3, "test")
         data_id[TestClass1]["three"] = tc1_3
         data_id[TestClass2][3] = tc2_3
         for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
-            self.assertEqual(
-                self._db._tables[t].get_objects(), immutabledict(data_id[t])
-            )
+            self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with uuid as id
         self._db.add_object(tc3_1, "test")
         uid = self._db._tables[TestClass3].get_key_of_object(tc3_1)
         data_id[TestClass3][uid] = tc3_1
         for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
-            self.assertEqual(
-                self._db._tables[t].get_objects(), immutabledict(data_id[t])
-            )
+            self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with reference to an object with an uuid as id
         self._db.add_object(tc4_1, "test")
         data_id[TestClass4][100] = tc4_1
         for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
-            self.assertEqual(
-                self._db._tables[t].get_objects(), immutabledict(data_id[t])
-            )
+            self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with empty str as id
         with self.assertRaises(Exception) as em:
             self._db.add_object(tc1_4, "test")
@@ -786,9 +726,7 @@ class TestJsonDatabase(TestCase):
             str(em.exception),
         )
         for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
-            self.assertEqual(
-                self._db._tables[t].get_objects(), immutabledict(data_id[t])
-            )
+            self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with None as id
         with self.assertRaises(Exception) as em:
             self._db.add_object(tc2_4, "test")
@@ -797,9 +735,7 @@ class TestJsonDatabase(TestCase):
             str(em.exception),
         )
         for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
-            self.assertEqual(
-                self._db._tables[t].get_objects(), immutabledict(data_id[t])
-            )
+            self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with already existing id
         with self.assertRaises(Exception) as em:
             self._db.add_object(tc1_5, "test")
@@ -808,9 +744,7 @@ class TestJsonDatabase(TestCase):
             str(em.exception),
         )
         for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
-            self.assertEqual(
-                self._db._tables[t].get_objects(), immutabledict(data_id[t])
-            )
+            self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with false type of id
         with self.assertRaises(Exception) as em:
             self._db.add_object(tc1_6, "test")
@@ -819,9 +753,7 @@ class TestJsonDatabase(TestCase):
             str(em.exception),
         )
         for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
-            self.assertEqual(
-                self._db._tables[t].get_objects(), immutabledict(data_id[t])
-            )
+            self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
 
     def test_json_db_save_and_update(self):
         from test_json_database.db_test_save import (
@@ -869,9 +801,7 @@ class TestJsonDatabase(TestCase):
         self._db.add_object(uuid1, "test")
         with open(path.join(self._data_path, "save", "TestUUID.json")) as tmp:
             data_uuid = tmp.read()
-        self.assertEqual(
-            UUID1_JSON % self._db._tables[TestUUID].get_key_of_object(uuid1), data_uuid
-        )
+        self.assertEqual(UUID1_JSON % self._db._tables[TestUUID].get_key_of_object(uuid1), data_uuid)
         self._db.add_object(uuid2, "test")
         with open(path.join(self._data_path, "save", "TestUUID.json")) as tmp:
             data_uuid = tmp.read()
@@ -934,10 +864,19 @@ class TestJsonDatabase(TestCase):
         """Database should not leak strange symbols to hard disk silently"""
         # TODO: cleanup
         from test_json_database.db_test_complex_normal_class import TestClassFile, DataClassThing
+
         self._db.init_tables(path.join(self._data_path, "complex_normal_class_funky_keys"))
 
-        keys = ["job1", "job2.","034rjobxyz","ntfs:stream",".job.",
-                "/topleveldir/bob","job?=)%&\"§$", "job2a\n\rasdf"]
+        keys = [
+            "job1",
+            "job2.",
+            "034rjobxyz",
+            "ntfs:stream",
+            ".job.",
+            "/topleveldir/bob",
+            'job?=)%&"§$',
+            "job2a\n\rasdf",
+        ]
         for i, k in enumerate(keys):
             o = TestClassFile(k, DataClassThing(str(i)), i)
             self._db.add_object(o)
@@ -946,35 +885,45 @@ class TestJsonDatabase(TestCase):
         self._db = JsonDatabase(test_mode=True)
         self._db.init_tables(path.join(self._data_path, "complex_normal_class_funky_keys"))
 
-        objects =  self._db.get_objects(TestClassFile)
-        self.assertIn(k, objects,
-                      f"funky db key '{k}' did not return from file system correctly")
+        objects = self._db.get_objects(TestClassFile)
+        self.assertIn(k, objects, f"funky db key '{k}' did not return from file system correctly")
 
     def test_json_db_complex_normal_class_funky_values(self):
         """Database should not leak strange strings into the json file, especially strings
         containg Json like strings wihtout proper escaping and unescaping"""
         # TODO: cleanup
         from test_json_database.db_test_complex_normal_class import TestClassFile, DataClassThing
+
         self._db.init_tables(path.join(self._data_path, "complex_normal_class_funky_values"))
 
-        keys = ["job1", "job2.","034rjobxyz","ntfs:stream",".job.","/job/bob",
-                "job?=)%&\"§$", "job2a\n\rasdf", "\"{Some,[Json]}", "}\", Closing:json, \"{"]
+        keys = [
+            "job1",
+            "job2.",
+            "034rjobxyz",
+            "ntfs:stream",
+            ".job.",
+            "/job/bob",
+            'job?=)%&"§$',
+            "job2a\n\rasdf",
+            '"{Some,[Json]}',
+            '}", Closing:json, "{',
+        ]
         for i, k in enumerate(keys):
-            o = TestClassFile(f"job{i}",  DataClassThing(str(i)), k)
+            o = TestClassFile(f"job{i}", DataClassThing(str(i)), k)
             self._db.add_object(o, "test")
 
         # reset db to load saved objects
         self._db = JsonDatabase(test_mode=True)
         self._db.init_tables(path.join(self._data_path, "complex_normal_class_funky_values"))
 
-        objects =  self._db.get_objects(TestClassFile)
-        self.assertIn(k, [o.x for o in objects.values()],
-                      f"funky value '{k}' did not deserialise correctly")
+        objects = self._db.get_objects(TestClassFile)
+        self.assertIn(k, [o.x for o in objects.values()], f"funky value '{k}' did not deserialise correctly")
 
     def test_json_db_cyclic_graph(self):
         """Database should have be able to searialise and unserialise objects within a cyclic graph"""
         # TODO: cleanup
         from test_json_database.db_test_graph import Node
+
         self._db.init_tables(path.join(self._data_path, "graph_test"))
 
         nodes = [Node(f"Node {i}", i) for i in range(10)]
@@ -989,11 +938,13 @@ class TestJsonDatabase(TestCase):
         self._db.init_tables(path.join(self._data_path, "complex_normal_class_funky_values"))
 
         nodes = list(self._db.get_objects(Node).values())
-        nodes.sort(key = lambda x: x)
-        for i, n in enumerate(nodes) :
-            self.assertTrue(n.successors[0].n == (i + 1) % 10 and n.predecessors[0].n == (i - 1) % 10,
-            f"Node {i} did not have correct neighbours: index is {i}, neighbours are" 
-            f"{n.successors[0].n} and {n.predecessors[0].n}")
+        nodes.sort(key=lambda x: x)
+        for i, n in enumerate(nodes):
+            self.assertTrue(
+                n.successors[0].n == (i + 1) % 10 and n.predecessors[0].n == (i - 1) % 10,
+                f"Node {i} did not have correct neighbours: index is {i}, neighbours are"
+                f"{n.successors[0].n} and {n.predecessors[0].n}",
+            )
 
     def test_json_db_load(self):
         from test_json_database.db_test_load import (
@@ -1010,10 +961,8 @@ class TestJsonDatabase(TestCase):
             self.assertEqual(
                 cm.output,
                 [
-                    "WARNING:root:Deleted object from table TestClassFile with key job0 is "
-                    "requested.",
-                    "WARNING:root:Deleted object from table TestClassFile with key job0 is "
-                    "requested.",
+                    "WARNING:root:Deleted object from table TestClassFile with key job0 is " "requested.",
+                    "WARNING:root:Deleted object from table TestClassFile with key job0 is " "requested.",
                     "INFO:root:Database fully loaded.",
                 ],
             )
@@ -1026,10 +975,7 @@ class TestJsonDatabase(TestCase):
             )
             self.assertEqual(
                 cm.output,
-                [
-                    "WARNING:root:Deleted object from table TestClassFile with key job0 is "
-                    "requested."
-                ],
+                ["WARNING:root:Deleted object from table TestClassFile with key job0 is " "requested."],
             )
         self.assertEqual(
             TestClassFile("job1", (1, 2), {1: tft1, 0: tft0}, {1, 2}),
@@ -1038,9 +984,7 @@ class TestJsonDatabase(TestCase):
         self.assertTrue(self._db._tables[TestClassFolder].key_in_table(100))
         self.assertTrue(self._db._tables[TestClassFolder].key_in_table(200))
         self.assertTrue(self._db._tables[TestClassFolder].key_in_table(300))
-        self.assertEqual(
-            TestClassFolder(100, []), self._db._tables[TestClassFolder].get_object(100)
-        )
+        self.assertEqual(TestClassFolder(100, []), self._db._tables[TestClassFolder].get_object(100))
         self.assertEqual(
             TestClassFolder(
                 200,
@@ -1055,38 +999,22 @@ class TestJsonDatabase(TestCase):
             TestClassFolder(300, [self._db._tables[TestClassFile].get_object("job0")]),
             self._db._tables[TestClassFolder].get_object(300),
         )
-        self.assertTrue(
-            self._db._tables[TestUUID].key_in_table(
-                "cad3bea2-36d0-4119-ba42-fa7fc1192582"
-            )
-        )
-        self.assertTrue(
-            self._db._tables[TestUUID].key_in_table(
-                "55f0895b-8861-4af6-b20a-415f58a7839c"
-            )
-        )
+        self.assertTrue(self._db._tables[TestUUID].key_in_table("cad3bea2-36d0-4119-ba42-fa7fc1192582"))
+        self.assertTrue(self._db._tables[TestUUID].key_in_table("55f0895b-8861-4af6-b20a-415f58a7839c"))
         self.assertEqual(
             TestUUID("one"),
-            self._db._tables[TestUUID].get_object(
-                "cad3bea2-36d0-4119-ba42-fa7fc1192582"
-            ),
+            self._db._tables[TestUUID].get_object("cad3bea2-36d0-4119-ba42-fa7fc1192582"),
         )
         self.assertEqual(
-            self._db._tables[TestUUID]
-            .get_object("cad3bea2-36d0-4119-ba42-fa7fc1192582")
-            .uuid,
+            self._db._tables[TestUUID].get_object("cad3bea2-36d0-4119-ba42-fa7fc1192582").uuid,
             "cad3bea2-36d0-4119-ba42-fa7fc1192582",
         )
         self.assertEqual(
             TestUUID("two"),
-            self._db._tables[TestUUID].get_object(
-                "55f0895b-8861-4af6-b20a-415f58a7839c"
-            ),
+            self._db._tables[TestUUID].get_object("55f0895b-8861-4af6-b20a-415f58a7839c"),
         )
         self.assertEqual(
-            self._db._tables[TestUUID]
-            .get_object("55f0895b-8861-4af6-b20a-415f58a7839c")
-            .uuid,
+            self._db._tables[TestUUID].get_object("55f0895b-8861-4af6-b20a-415f58a7839c").uuid,
             "55f0895b-8861-4af6-b20a-415f58a7839c",
         )
 
@@ -1244,17 +1172,11 @@ class TestJsonDatabase(TestCase):
         res = self._db.data_to_json(3.0, "test")
         self.assertEqual(res, 3.0)
         res = self._db.data_to_json([1, 2, 3, "Hello", "World", 3.14], "test")
-        self.assertCountEqual(
-            res, {"type": "list", "data": [1, 2, 3, "Hello", "World", 3.14]}
-        )
+        self.assertCountEqual(res, {"type": "list", "data": [1, 2, 3, "Hello", "World", 3.14]})
         res = self._db.data_to_json((1, 2, 3, "Hello", "World", 3.14), "test")
-        self.assertCountEqual(
-            res, {"type": "tuple", "data": [1, 2, 3, "Hello", "World", 3.14]}
-        )
+        self.assertCountEqual(res, {"type": "tuple", "data": [1, 2, 3, "Hello", "World", 3.14]})
         res = self._db.data_to_json({1, 2, 3, "Hello", "World", 3.14}, "test")
-        self.assertCountEqual(
-            res, {"type": "set", "data": [1, 2, 3, "Hello", "World", 3.14]}
-        )
+        self.assertCountEqual(res, {"type": "set", "data": [1, 2, 3, "Hello", "World", 3.14]})
         res = self._db.data_to_json({1: "one", "two": 2, 3.14: "float"}, "test")
         self.assertDictEqual(
             {
@@ -1298,9 +1220,7 @@ class TestJsonDatabase(TestCase):
             },
             res,
         )
-        tmp_1 = TestClassFieldType(
-            att_bool=True, att_str="Hello", att_int=42, att_float=3.14
-        )
+        tmp_1 = TestClassFieldType(att_bool=True, att_str="Hello", att_int=42, att_float=3.14)
         res = self._db.data_to_json(tmp_1, "test")
         self.assertDictEqual(
             {
@@ -1332,35 +1252,23 @@ class TestJsonDatabase(TestCase):
             "Hello World",
         )
         self.assertEqual(self._db.json_to_value(self._db.data_to_json(42, "test")), 42)
-        self.assertEqual(
-            self._db.json_to_value(self._db.data_to_json(3.14, "test")), 3.14
-        )
-        self.assertEqual(
-            self._db.json_to_value(self._db.data_to_json(3.0, "test")), 3.0
-        )
+        self.assertEqual(self._db.json_to_value(self._db.data_to_json(3.14, "test")), 3.14)
+        self.assertEqual(self._db.json_to_value(self._db.data_to_json(3.0, "test")), 3.0)
         self.assertListEqual(
-            self._db.json_to_value(
-                self._db.data_to_json([1, 2, 3, "Hello", "World", 3.14], "test")
-            ),
+            self._db.json_to_value(self._db.data_to_json([1, 2, 3, "Hello", "World", 3.14], "test")),
             [1, 2, 3, "Hello", "World", 3.14],
         )
         self.assertTupleEqual(
-            self._db.json_to_value(
-                self._db.data_to_json((1, 2, 3, "Hello", "World", 3.14), "test")
-            ),
+            self._db.json_to_value(self._db.data_to_json((1, 2, 3, "Hello", "World", 3.14), "test")),
             (1, 2, 3, "Hello", "World", 3.14),
         )
         self.assertCountEqual(
-            self._db.json_to_value(
-                self._db.data_to_json({1, 2, 3, "Hello", "World", 3.14}, "test")
-            ),
+            self._db.json_to_value(self._db.data_to_json({1, 2, 3, "Hello", "World", 3.14}, "test")),
             {1, 2, 3, "Hello", "World", 3.14},
         )
         self.assertDictEqual(
             {1: "one", "two": 2, 3.14: "float"},
-            self._db.json_to_value(
-                self._db.data_to_json({1: "one", "two": 2, 3.14: "float"}, "test")
-            ),
+            self._db.json_to_value(self._db.data_to_json({1: "one", "two": 2, 3.14: "float"}, "test")),
         )
         self.assertDictEqual(
             {
@@ -1381,16 +1289,12 @@ class TestJsonDatabase(TestCase):
                 )
             ),
         )
-        tmp_1 = TestClassFieldType(
-            att_bool=True, att_str="Hello", att_int=42, att_float=3.14
-        )
+        tmp_1 = TestClassFieldType(att_bool=True, att_str="Hello", att_int=42, att_float=3.14)
         tmp_1_clone = self._db.json_to_value(self._db.data_to_json(tmp_1, "test"))
         self.assertEqual(tmp_1, tmp_1_clone)
         tcr1 = TestClassReference(job_id="tcr1", att_str="Hello")
         self._db._tables[type(tcr1)].add_object(tcr1, "test")
-        self.assertEqual(
-            self._db.json_to_value(self._db.data_to_json(tcr1, "test")), tcr1
-        )
+        self.assertEqual(self._db.json_to_value(self._db.data_to_json(tcr1, "test")), tcr1)
         with self.assertRaises(Exception) as em:
             self._db.json_to_value({"type": "TestClassReference", "data": "tcr2"})
         self.assertEqual(
