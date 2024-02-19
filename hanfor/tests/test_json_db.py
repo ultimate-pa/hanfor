@@ -125,6 +125,14 @@ class TestJsonDatabase(TestCase):
         if path.isdir(path.join(self._data_path, "DataTracing")):
             rmdir(path.join(self._data_path, "DataTracing"))
 
+        for i in range(10):
+            if path.isfile(path.join(self._data_path, "graph_test", "Node", f"Node {i}.json")):
+                remove(path.join(self._data_path, "graph_test", "Node", f"Node {i}.json"))
+        if path.isdir(path.join(self._data_path, "graph_test", "Node")):
+            rmdir(path.join(self._data_path, "graph_test", "Node"))
+        if path.isdir(path.join(self._data_path, "graph_test")):
+            rmdir(path.join(self._data_path, "graph_test"))
+
     def test_json_int_float(self):
         tmp = {"int": 0, "float": 1.2, "bool": True}
         self.assertEqual(json.dumps(tmp), '{"int": 0, "float": 1.2, "bool": true}')
@@ -920,8 +928,6 @@ class TestJsonDatabase(TestCase):
         self.assertIn(k, [o.x for o in objects.values()], f"funky value '{k}' did not deserialise correctly")
 
     def test_json_db_cyclic_graph(self):
-        """Database should have be able to searialise and unserialise objects within a cyclic graph"""
-        # TODO: cleanup
         from test_json_database.db_test_graph import Node
 
         self._db.init_tables(path.join(self._data_path, "graph_test"))
@@ -930,15 +936,14 @@ class TestJsonDatabase(TestCase):
         for i, n in enumerate(nodes):
             n.successors.append(nodes[(i + 1) % 10])
             n.predecessors.append(nodes[(i - 1) % 10])
-        for node in nodes:
-            self._db.add_object(node, "test")
+
+        self._db.add_object(nodes[0], "test")
 
         # reset db to load saved objects
         self._db = JsonDatabase(test_mode=True)
-        self._db.init_tables(path.join(self._data_path, "complex_normal_class_funky_values"))
+        self._db.init_tables(path.join(self._data_path, "graph_test"))
 
         nodes = list(self._db.get_objects(Node).values())
-        nodes.sort(key=lambda x: x)
         for i, n in enumerate(nodes):
             self.assertTrue(
                 n.successors[0].n == (i + 1) % 10 and n.predecessors[0].n == (i - 1) % 10,

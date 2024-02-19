@@ -429,6 +429,7 @@ class JsonDatabaseTable:
         self.__data: dict[ID_TYPE, CLS_TYPE] = {}
         self.__meta_data: dict[ID_TYPE, JsonDatabaseMetaData] = {}
         self.__json_data: dict[str | int, any] = {}
+        self.__max_serialize_depth: int = 0
 
         # create folders and files is not exist
         if self.table_type == TableType.File:
@@ -503,15 +504,27 @@ class JsonDatabaseTable:
         return immutabledict(res)
 
     def __serialize(self, user: str) -> dict:
+        self.__max_serialize_depth += 1
+        my_serialize_depth = self.__max_serialize_depth
+        break_outer = False
         json_data = {}
         for obj_id, obj in self.__data.items():
             obj_data = {}
             for field in self.fields.keys():
                 field_data = getattr(obj, field, None)
                 field_data_serialized = self.__db.data_to_json(field_data, user)
+                if self.__max_serialize_depth > my_serialize_depth:
+                    break_outer = True
+                    break
                 obj_data[field] = field_data_serialized
+            if break_outer:
+                break
             obj_data["$meta"] = self.__db.data_to_json(self.__meta_data[obj_id], user)
             json_data[obj_id] = obj_data
+        if break_outer:
+            json_data = self.__serialize(user)
+        if my_serialize_depth == 1:
+            self.__max_serialize_depth = 0
         return json_data
 
     def save(self, user: str) -> None:
