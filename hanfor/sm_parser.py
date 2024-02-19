@@ -141,7 +141,26 @@ def do_formalizations(reqs):
 
     return forms
 
+def create_variables(sm):
+    """
 
+    :param sm:
+    :return:
+    """
+    global states
+    list_variables = []
+    counter = 0
+
+    for state in states:
+        var = reqtrans.Variable(
+            name= state,
+            type= "ENUM",
+            value= str(counter)
+        )
+        list_variables.append(var)
+        counter += 1
+
+    return list_variables
 
 
 
@@ -183,7 +202,7 @@ if __name__ == "__main__":
     # for element in list_req:
     #    print(element.description)
 
-    print("Done. " + str(len(list_req)) + " Requirements are created successfully.\n")
+    print("Done. " + str(len(list_req)) + " requirements are created successfully.\n")
 
     # Create Formalizations
     print("Starting the formalization ... \n ")
@@ -193,7 +212,19 @@ if __name__ == "__main__":
     # check formalizations
     # print(str(list_form) + "\n")
 
-    print("Done. " + str(len(list_form)) + " Formalizations are created successfully.\n")
+
+    print("Done. " + str(len(list_form)) + " formalizations are created successfully.\n")
+
+    print("Creating the variables ... \n ")
+
+    list_var = create_variables(state_machine)
+
+    # check the write variables are existing.
+    print("...\n " + str(list_req))
+    for element in list_var:
+        print(element.name, element.type, element.value)
+
+    print("Done. " + str(len(list_var)) + " variables are created successfully.\n")
 
 
     """
@@ -238,6 +269,8 @@ if __name__ == "__main__":
     # - Create implicit transitions, and form them into requirements
 
     # ToDo
+    #   - Fix: Enums or Enum Int, see in the example state machine in Hanfor
+    #   - search for the right variables in the hanfor examples
     #   - Add: Enumerators for actions
 
 
