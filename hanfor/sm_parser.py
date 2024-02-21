@@ -58,7 +58,7 @@ def from_state_machine_to_requirement(sm):
 
         action = transition[1]
         if action not in actions:
-            states.append(action)
+            actions.append(action)
 
         # preparing the requirement attributes
         id = "0" + str(counter)
@@ -163,24 +163,23 @@ def create_variables(sm):
         list_val = []
 
         if basic == "States":
-            print(basic)
             for state in states:
-                val = reqtrans.Variable(
+                sta = reqtrans.Variable(
                     name= state,
                     type= "ENUMERATOR",
                     value= str(counter),
                     # belongs_to_enum= basic
                 )
-                list_val.append(val)
+                list_val.append(sta)
+                counter += 1
             var = reqtrans.Variable(
                 name= basic,
                 type= "ENUM_INT",
                 value= list_val
             )
             list_variables.append(var)
-            counter += 1
+
         elif basic == "Actions":
-            print(basic)
             # creat the no_op action
             counter = 0
             act = reqtrans.Variable(
@@ -201,13 +200,14 @@ def create_variables(sm):
                     # belongs_to_enum= basic
                 )
                 list_val.append(act)
+                counter += 1
             var = reqtrans.Variable(
                 name= basic,
                 type= "ENUM_INT",
                 value= list_val
             )
             list_variables.append(var)
-            counter += 1
+
 
     return list_variables
 
@@ -264,18 +264,22 @@ if __name__ == "__main__":
 
     print("Done. " + str(len(list_form)) + " formalizations are created successfully.\n")
 
-    print("Creating the variables ... \n ")
+    print("Creating the variables ... ")
 
     list_var = create_variables(state_machine)
 
     # check the write variables are existing.
-    print("...\n " + str(list_var))
+    # print("...\n " + str(list_var))
+    count = 0
     for element in list_var:
-        print(element.name, element.type, element.value)
+        out = str()
+        count += 1
         for val in element.value:
-            print(val.name, val.type, val.value)
+            out = out + str([val.name, val.type, val.value]) + ", "
+            count += 1
+        print(element.name, element.type + " [" + out[:-2] + "]" )
 
-    print("Done. " + str(len(list_var)) + " variables are created successfully.\n")
+    print("\nDone. " + str(count) + " variables are created successfully.\n")
 
 
     """
