@@ -17,6 +17,7 @@ from os import path, rmdir, remove, mkdir
 from dataclasses import dataclass
 import json
 from immutabledict import immutabledict
+from typing import Callable
 
 
 class TestJsonDatabase(TestCase):
@@ -403,7 +404,7 @@ class TestJsonDatabase(TestCase):
 
             _ = TestClass
         self.assertEqual(
-            "DatabaseDefinitionError: Type of DatabaseField must be of type type: <class "
+            "DatabaseDefinitionError: Type of DatabaseField must be of type type or str: <class "
             "'test_json_database.db_test_field_decorator_with_2_incorrect_arguments.TestClass'>",
             str(em.exception),
         )
@@ -554,6 +555,38 @@ class TestJsonDatabase(TestCase):
             str(em.exception),
         )
 
+    def test_json_db_init_tables_table_and_custom_serializer(self):
+        from test_json_database.db_test_init_tables_table_and_custom_serializer import (
+            TestClass,
+        )
+
+        _ = TestClass
+        self._db.add_custom_serializer(TestClass, lambda a, b, c: {}, lambda a, b: None)
+        with self.assertRaises(Exception) as em:
+            self._db.init_tables(self._data_path)
+        self.assertEqual(
+            "DatabaseInitialisationError: The following classes are marked as DatabaseTable and "
+            "custom serializer:\n"
+            "{<class 'test_json_database.db_test_init_tables_table_and_custom_serializer.TestClass'>}",
+            str(em.exception),
+        )
+
+    def test_json_db_init_tables_field_type_and_custom_serializer(self):
+        from test_json_database.db_test_init_tables_field_type_and_custom_serializer import (
+            TestClass,
+        )
+
+        _ = TestClass
+        self._db.add_custom_serializer(TestClass, lambda a, b, c: {}, lambda a, b: None)
+        with self.assertRaises(Exception) as em:
+            self._db.init_tables(self._data_path)
+        self.assertEqual(
+            "DatabaseInitialisationError: The following classes are marked as DatabaseFieldType and "
+            "custom serializer:\n"
+            "{<class 'test_json_database.db_test_init_tables_field_type_and_custom_serializer.TestClass'>}",
+            str(em.exception),
+        )
+
     def test_json_db_init_tables_table_without_id(self):
         from test_json_database.db_test_init_tables_table_without_id import (
             TestClass,
@@ -603,23 +636,6 @@ class TestJsonDatabase(TestCase):
             "DatabaseTable or DatabaseFieldType:\n"
             "{<class 'test_json_database.db_test_init_tables_fields_without_table."
             "TestClassWithoutTable'>}",
-            str(em.exception),
-        )
-
-    def test_json_db_init_tables_table_without_fields(self):
-        from test_json_database.db_test_init_tables_table_without_fields import (
-            TestClass,
-            TestClassWithoutFields,
-        )
-
-        _ = TestClass
-        _ = TestClassWithoutFields
-        with self.assertRaises(Exception) as em:
-            self._db.init_tables(self._data_path)
-        self.assertEqual(
-            "DatabaseInitialisationError: The following classes are marked as DatabaseTable but don't "
-            "have any fields:\n{<class 'test_json_database.db_test_init_tables_table_without_fields."
-            "TestClassWithoutFields'>}",
             str(em.exception),
         )
 
@@ -1310,6 +1326,47 @@ class TestJsonDatabase(TestCase):
                 str(em.exception),
             )
 
+    def test_json_db_custom_serializer(self):
+        @dataclass()
+        class TestCustom:
+            field_0: str
+            field_1: int
+            field_2: dict
+
+        def serialize_test_custom(obj: TestCustom, db_serializer: Callable[[any, str], any], user: str) -> dict:
+            return {
+                "f0": db_serializer(obj.field_0, user),
+                "f1": db_serializer(obj.field_1, user),
+                "f2": db_serializer(obj.field_2, user),
+            }
+
+        def deserialize_test_custom(data: dict, db_deserializer: Callable[[any], any]) -> TestCustom:
+            return TestCustom(db_deserializer(data["f0"]), db_deserializer(data["f1"]), db_deserializer(data["f2"]))
+
+        self._db.add_custom_serializer(TestCustom, serialize_test_custom, deserialize_test_custom)
+        self._db.init_tables(path.join(self._data_path, "json_to_value"))
+
+        tc = TestCustom("Hello World", 42, {"foo": 21})
+        res = self._db.data_to_json(tc, "test")
+        print(res)
+        self.assertDictEqual(
+            res,
+            {
+                "type": "TestCustom",
+                "data": {
+                    "f0": "Hello World",
+                    "f1": 42,
+                    "f2": {
+                        "type": "dict",
+                        "data": [
+                            {"key": "foo", "value": 21},
+                        ],
+                    },
+                },
+            },
+        )
+        self.assertEqual(self._db.json_to_value(res), tc)
+
     def test_json_db_is_serializable_function(self):
         res = is_serializable(DatabaseTable)
         self.assertFalse(res[0])
@@ -1353,6 +1410,9 @@ class TestJsonDatabase(TestCase):
         res = is_serializable(DatabaseTable, [DatabaseField])
         self.assertFalse(res[0])
         self.assertEqual(res[1], "<class 'json_db_connector.json_db.DatabaseTable'>")
+        res = is_serializable("DatabaseTable", [DatabaseTable])
+        self.assertTrue(res[0])
+        self.assertEqual(res[1], "")
 
     def test_json_db_data_tracing_file_handler(self):
         # initialize logger

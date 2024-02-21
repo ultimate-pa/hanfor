@@ -18,6 +18,7 @@ import re
 CLS_TYPE = TypeVar("CLS_TYPE")
 ID_TYPE = TypeVar("ID_TYPE")
 GET_TYPE = TypeVar("GET_TYPE")
+SERIALIZER_TYPE = TypeVar("SERIALIZER_TYPE")
 
 KEY_REGEX = re.compile(r"^[a-zA-Z0-9_\-.]+$")
 
@@ -107,7 +108,7 @@ class DatabaseID:
 class DatabaseField:
     registry: dict[type, dict[str, tuple[any, any]]] = {}
 
-    def __init__(self, field: str = None, f_type: type = None, default: any = None):
+    def __init__(self, field: str = None, f_type: type | str = None, default: any = None):
         self._field = field
         self._type = f_type
         self._default = default
@@ -130,8 +131,8 @@ class DatabaseField:
             raise DatabaseDefinitionError(f"Name of DatabaseField must be of type str: {cls}")
         if self._type is None:
             raise DatabaseDefinitionError(f"Type of DatabaseField must be provided: {cls}")
-        if type(self._type) not in [type, GenericAlias]:
-            raise DatabaseDefinitionError(f"Type of DatabaseField must be of type type: {cls}")
+        if type(self._type) not in [type, GenericAlias, str]:
+            raise DatabaseDefinitionError(f"Type of DatabaseField must be of type type or str: {cls}")
         if cls not in self.registry:
             self.registry[cls] = {}
         # check if field of class with name exists already
@@ -169,6 +170,10 @@ class JsonDatabase:
         self._tables: dict[type, JsonDatabaseTable] = {}
         # class: (dict of fields(field_name, (type, default)))
         self._field_types: dict[type, dict[str, tuple[any, any]]] = {}
+        self.__custom_serializer: dict[
+            SERIALIZER_TYPE, Callable[[SERIALIZER_TYPE, Callable[[any, str], any], str], dict]
+        ] = {}
+        self.__custom_deserializer: dict[SERIALIZER_TYPE, Callable[[dict, Callable[[any], any]], SERIALIZER_TYPE]] = {}
         self.__test_mode = test_mode  # testmode disables data tracing and update files at load of database
         if test_mode:
             logging.warning("JsonDatabase is running in test mode")
@@ -178,6 +183,15 @@ class JsonDatabase:
     def data_folder(self):
         return self.__data_folder
 
+    def add_custom_serializer(
+        self,
+        cls: type,
+        serializer: Callable[[SERIALIZER_TYPE, Callable[[any, str], any], str], dict],
+        deserializer: Callable[[dict, Callable[[any], any]], SERIALIZER_TYPE],
+    ):
+        self.__custom_serializer[cls] = serializer
+        self.__custom_deserializer[cls] = deserializer
+
     def init_tables(self, data_folder: str) -> None:
         if data_folder == "":
             raise DatabaseInitialisationError(f"The data_folder is required")
@@ -186,11 +200,26 @@ class JsonDatabase:
         id_fields: set[type] = set(DatabaseID.registry.keys())
         db_fields: set[type] = set(DatabaseField.registry.keys())
         field_types: set[type] = DatabaseFieldType.registry
+        custom_serializer: set[type] = set(self.__custom_serializer.keys())
 
         # check if decorated classes are well-formed tables and field types
         if tables & field_types:
             raise DatabaseInitialisationError(
                 f"The following classes are marked as DatabaseTable and " f"DatabaseFieldType:\n{tables & field_types}"
+            )
+
+        # check if decorated classes are well-formed tables and custom serializer
+        if tables & custom_serializer:
+            raise DatabaseInitialisationError(
+                f"The following classes are marked as DatabaseTable and custom serializer:\n"
+                f"{tables & custom_serializer}"
+            )
+
+        # check if decorated classes are well-formed field types and custom serializer
+        if field_types & custom_serializer:
+            raise DatabaseInitialisationError(
+                f"The following classes are marked as DatabaseFieldType and custom serializer:\n"
+                f"{field_types & custom_serializer}"
             )
 
         if tables.difference(id_fields):
@@ -212,12 +241,6 @@ class JsonDatabase:
                 f"{db_fields.difference(tables.union(field_types))}"
             )
 
-        if tables.difference(db_fields):
-            raise DatabaseInitialisationError(
-                f"The following classes are marked as DatabaseTable but don't have any "
-                f"fields:\n{tables.difference(db_fields)}"
-            )
-
         if field_types.difference(db_fields):
             raise DatabaseInitialisationError(
                 f"The following classes are marked as DatabaseFieldType but don't have "
@@ -227,7 +250,7 @@ class JsonDatabase:
         # check if all used types are serializable
         for cls, field_dict in DatabaseField.registry.items():
             for field, (f_type, _) in field_dict.items():
-                res = is_serializable(f_type, list(tables.union(field_types)))
+                res = is_serializable(f_type, list(tables.union(field_types).union(self.__custom_serializer.keys())))
                 if not res[0]:
                     raise DatabaseInitialisationError(
                         f"The following type of class {cls} is not serializable:\n" f"{field}: {res[1]}"
@@ -245,6 +268,8 @@ class JsonDatabase:
             id_type = DatabaseID.registry[cls][1]
             fields = {}
             for f_name, (f_type, f_default) in DatabaseField.registry[cls].items():
+                if type(f_type) is str:
+                    f_type = self.__get_cls_from_cls_name(f_type)
                 fields[f_name] = f_type, f_default
             self._tables[cls] = JsonDatabaseTable(self, cls, table_type, id_field, id_type, fields)
 
@@ -252,6 +277,8 @@ class JsonDatabase:
         for cls in DatabaseFieldType.registry:
             fields = {}
             for f_name, (f_type, f_default) in DatabaseField.registry[cls].items():
+                if type(f_type) is str:
+                    f_type = self.__get_cls_from_cls_name(f_type)
                 fields[f_name] = f_type, f_default
             self._field_types[cls] = fields
 
@@ -328,6 +355,8 @@ class JsonDatabase:
                 if field_data_serialized is not None:
                     res[field] = field_data_serialized
             return {"type": f_type.__name__, "data": res}
+        if f_type in self.__custom_serializer.keys():
+            return {"type": f_type.__name__, "data": self.__custom_serializer[f_type](data, self.data_to_json, user)}
         raise DatabaseSaveError(f"The following data is not serializable:\n{data}.")
 
     def json_to_value(self, data: any) -> any:
@@ -385,6 +414,12 @@ class JsonDatabase:
                     return tmp[data["type"]].get_object(data["data"])
                 else:
                     raise DatabaseLoadError(f"The id '{data['data']}' can not be found in Table " f"'{data['type']}'.")
+            # check if field is of type DatabaseTable
+            # key: name of DatabaseTable
+            # value: deserialize function
+            tmp = {k.__name__: v for k, v in self.__custom_deserializer.items()}
+            if data["type"] in tmp:
+                return tmp[data["type"]](data["data"], self.json_to_value)
         raise DatabaseLoadError(f"The following data is not well formed:\n{data}.")
 
     def write_data_trace(self, user: str, table_name: str, obj_id: int | str, old_data: dict) -> None:
@@ -393,6 +428,15 @@ class JsonDatabase:
         if self.__data_tracing_logger is None:
             raise DatabaseInitialisationError("JsonDatabase write_data_trace is called before init_tables is called")
         self.__data_tracing_logger.info(f"{user};{table_name};{obj_id};{json.dumps(old_data)}")
+
+    def __get_cls_from_cls_name(self, cls_name: str) -> type:
+        for cls in self._tables.keys() | self._field_types.keys() | self.__custom_serializer.keys():
+            if cls_name == cls.__name__:
+                return cls
+        raise DatabaseInitialisationError(
+            f"Can not find a class with name '{cls_name}' in DatabaseTables, DatabaseFieldTypes or the custom "
+            f"serializer."
+        )
 
     def __setup_data_tracing_logger(self) -> Logger | None:
         if self.__test_mode:
@@ -661,6 +705,9 @@ def is_serializable(f_type: any, additional_types: list[type] = None) -> tuple[b
         return True, ""
     if f_type in additional_types:
         return True, ""
+    if type(f_type) is str:
+        if f_type in [cls.__name__ for cls in additional_types]:
+            return True, ""
     return False, str(f_type)
 
 
