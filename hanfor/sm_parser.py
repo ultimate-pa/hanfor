@@ -36,6 +36,7 @@ import reqtransformer as reqtrans
 
 # variable
 states = []
+actions = []
 
 def from_state_machine_to_requirement(sm):
     """
@@ -47,13 +48,17 @@ def from_state_machine_to_requirement(sm):
     counter = 1
     reqs = []
     global states
+    global actions
     for transition in sm:
         # configure basics of state machine
         current_state = transition[0]
         if current_state not in states:
             states.append(current_state)
         successor_state = transition[2]
+
         action = transition[1]
+        if action not in actions:
+            states.append(action)
 
         # preparing the requirement attributes
         id = "0" + str(counter)
@@ -148,17 +153,61 @@ def create_variables(sm):
     :return:
     """
     global states
+    global actions
     list_variables = []
     counter = 0
 
-    for state in states:
-        var = reqtrans.Variable(
-            name= state,
-            type= "ENUM",
-            value= str(counter)
-        )
-        list_variables.append(var)
-        counter += 1
+    basics = ["States", "Actions"]
+
+    for basic in basics:
+        list_val = []
+
+        if basic == "States":
+            print(basic)
+            for state in states:
+                val = reqtrans.Variable(
+                    name= state,
+                    type= "ENUMERATOR",
+                    value= str(counter),
+                    # belongs_to_enum= basic
+                )
+                list_val.append(val)
+            var = reqtrans.Variable(
+                name= basic,
+                type= "ENUM_INT",
+                value= list_val
+            )
+            list_variables.append(var)
+            counter += 1
+        elif basic == "Actions":
+            print(basic)
+            # creat the no_op action
+            counter = 0
+            act = reqtrans.Variable(
+                name="no_op",
+                type="ENUMERATOR",
+                value=str(counter),
+                # belongs_to_enum="Actions"
+            )
+            list_val.append(act)
+
+            # create the rest actions
+            counter += 1
+            for action in actions:
+                act = reqtrans.Variable(
+                    name= action,
+                    type= "ENUMERATOR",
+                    value= str(counter),
+                    # belongs_to_enum= basic
+                )
+                list_val.append(act)
+            var = reqtrans.Variable(
+                name= basic,
+                type= "ENUM_INT",
+                value= list_val
+            )
+            list_variables.append(var)
+            counter += 1
 
     return list_variables
 
@@ -220,9 +269,11 @@ if __name__ == "__main__":
     list_var = create_variables(state_machine)
 
     # check the write variables are existing.
-    print("...\n " + str(list_req))
+    print("...\n " + str(list_var))
     for element in list_var:
         print(element.name, element.type, element.value)
+        for val in element.value:
+            print(val.name, val.type, val.value)
 
     print("Done. " + str(len(list_var)) + " variables are created successfully.\n")
 
@@ -269,9 +320,8 @@ if __name__ == "__main__":
     # - Create implicit transitions, and form them into requirements
 
     # ToDo
-    #   - Fix: Enums or Enum Int, see in the example state machine in Hanfor
+    #   - Add: Enums with belongs to
     #   - search for the right variables in the hanfor examples
-    #   - Add: Enumerators for actions
 
 
     print("Transforming state machine into Hanfor successfull.")
