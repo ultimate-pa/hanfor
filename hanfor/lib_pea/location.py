@@ -21,9 +21,12 @@ class PhaseSetsLocation(Location):
     label: PhaseSets() = PhaseSets()
 
     def __eq__(self, o: "PhaseSetsLocation") -> bool:
-        return (isinstance(o, PhaseSetsLocation) and o.label == self.label and
-                is_valid(Iff(o.state_invariant, self.state_invariant), solver_name=SOLVER_NAME, logic=LOGIC) and
-                is_valid(Iff(o.clock_invariant, self.clock_invariant), solver_name=SOLVER_NAME, logic=LOGIC))
+        return (
+            isinstance(o, PhaseSetsLocation)
+            and o.label == self.label
+            and is_valid(Iff(o.state_invariant, self.state_invariant), solver_name=SOLVER_NAME, logic=LOGIC)
+            and is_valid(Iff(o.clock_invariant, self.clock_invariant), solver_name=SOLVER_NAME, logic=LOGIC)
+        )
 
     def __hash__(self) -> int:
         return hash((self.label))

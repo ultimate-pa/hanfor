@@ -13,12 +13,7 @@ class PhaseSets:
 
         for i in self.active:
             result += str(i)
-            result += (
-                "ᴳ" if i in self.gteq else
-                "ᵂ" if i in self.wait else
-                "ᴸ" if i in self.less else
-                ""
-            )
+            result += "ᴳ" if i in self.gteq else "ᵂ" if i in self.wait else "ᴸ" if i in self.less else ""
 
         return result
 

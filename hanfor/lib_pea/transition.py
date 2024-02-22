@@ -22,8 +22,13 @@ class PhaseSetsTransition(Transition):
     dst: PhaseSetsLocation = None
 
     def __eq__(self, o: "PhaseSetsTransition") -> bool:
-        return (isinstance(o, PhaseSetsTransition) and o.src == self.src and o.dst == self.dst and
-                o.resets == self.resets and is_valid(Iff(o.guard, self.guard), solver_name=SOLVER_NAME, logic=LOGIC))
+        return (
+            isinstance(o, PhaseSetsTransition)
+            and o.src == self.src
+            and o.dst == self.dst
+            and o.resets == self.resets
+            and is_valid(Iff(o.guard, self.guard), solver_name=SOLVER_NAME, logic=LOGIC)
+        )
 
     def __hash__(self) -> int:
         return hash((self.src, self.dst, self.resets))
@@ -33,7 +38,7 @@ class PhaseSetsTransition(Transition):
             None if self.src is None else self.src,
             self.dst,
             self.guard.serialize(),
-            {*self.resets} if self.resets else "{}"
+            {*self.resets} if self.resets else "{}",
         )
 
     def __repr__(self):

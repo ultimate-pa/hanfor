@@ -19,17 +19,17 @@ class SearchNode:
         self.update_target()
 
     def update_target(self):
-        """ Updates the data target if it is set in the string:
-             :DATA_TARGET:`the target name`
+        """Updates the data target if it is set in the string:
+        :DATA_TARGET:`the target name`
 
         """
-        target_index = self.value.find(':DATA_TARGET:')
+        target_index = self.value.find(":DATA_TARGET:")
         if target_index >= 0:
-            sub_string = self.value[target_index + 13:]
-            match = re.match(r'`(.+)`', sub_string)
+            sub_string = self.value[target_index + 13 :]
+            match = re.match(r"`(.+)`", sub_string)
             if match:
-                self.data_target = sub_string[match.span()[0] + 1: match.span()[1] - 1]
-                self.value = sub_string[match.span()[1]:]
+                self.data_target = sub_string[match.span()[0] + 1 : match.span()[1] - 1]
+                self.value = sub_string[match.span()[1] :]
 
     def evaluate(self, data):
         return SearchNode.evaluate_tree(self, data)
@@ -40,12 +40,12 @@ class SearchNode:
 
     @staticmethod
     def to_string(tree):
-        string = ''
+        string = ""
         if tree.left is not False:
-            string += SearchNode.to_string(tree.left) + ' '
+            string += SearchNode.to_string(tree.left) + " "
         string += tree.value
         if tree.right is not False:
-            string += ' ' + SearchNode.to_string(tree.right)
+            string += " " + SearchNode.to_string(tree.right)
         return string
 
     @staticmethod
@@ -65,16 +65,20 @@ class SearchNode:
                     prev_op = SearchNode.peek(op_stack)
                     if (
                         # As long as there is an operator (prev_op) at the top of the op_stack.
-                        prev_op in SearchNode.operators and
+                        prev_op in SearchNode.operators
+                        and (
+                            # and token is left associative and precedence <= to that of prev_op,
                             (
-                                # and token is left associative and precedence <= to that of prev_op,
-                                (token in SearchNode.leftAssoc
-                                    and (SearchNode.precedenceOf[token] <= SearchNode.precedenceOf[prev_op]))
-                            or
-                                # or token is right associative and its precedence < to that of prev_op,
-                                (token in SearchNode.rightAssoc
-                                    and (SearchNode.precedenceOf[token] < SearchNode.precedenceOf[prev_op]))
+                                token in SearchNode.leftAssoc
+                                and (SearchNode.precedenceOf[token] <= SearchNode.precedenceOf[prev_op])
                             )
+                            or
+                            # or token is right associative and its precedence < to that of prev_op,
+                            (
+                                token in SearchNode.rightAssoc
+                                and (SearchNode.precedenceOf[token] < SearchNode.precedenceOf[prev_op])
+                            )
+                        )
                     ):
                         # Pop last two subtrees and make them children of a new subtree (with prev_op as root).
                         right = output_tree_stack.pop()
@@ -111,16 +115,16 @@ class SearchNode:
                         output_tree_stack.append(sub_tree)
 
                 if not has_opening_match:
-                    raise SyntaxError('Search query parentheses mismatch.')
+                    raise SyntaxError("Search query parentheses mismatch.")
 
             else:
-                raise SyntaxError('Search query Token unknown: {}'.format(token))
+                raise SyntaxError("Search query Token unknown: {}".format(token))
 
         # No more tokens in input but operator tokens in the op_stack:
         while len(op_stack):
             op = op_stack.pop()
             if op == "(" or op == ")":
-                raise SyntaxError('Search query parentheses mismatch.')
+                raise SyntaxError("Search query parentheses mismatch.")
 
             # Create new subtree with op as root.
             right = output_tree_stack.pop()
@@ -132,7 +136,7 @@ class SearchNode:
 
         # Empty stack => create empty dummy Node.
         if len(output_tree_stack) == 0:
-            output_tree_stack.append(SearchNode(''))
+            output_tree_stack.append(SearchNode(""))
 
         # The last remaining node should be the root of our complete search tree.
         return output_tree_stack[0]
@@ -146,7 +150,7 @@ class SearchNode:
         return result
 
     @staticmethod
-    def from_query(query=''):
+    def from_query(query=""):
         return SearchNode.search_array_to_tree(SearchNode.query_splitter(query))
 
     @staticmethod
@@ -156,10 +160,10 @@ class SearchNode:
         #  * ""<inner>"" for exclusive match.
 
         if value.startswith('""') and value.endswith('""'):
-            value = r'^\s*' + re.escape(value[2:(len(value) - 2)]) + r'\s*$'
+            value = r"^\s*" + re.escape(value[2 : (len(value) - 2)]) + r"\s*$"
         else:
             value = re.escape(value)
-            value = value.replace(r'\"', r'\b')
+            value = value.replace(r"\"", r"\b")
 
         return bool(re.search(value, string))
 
@@ -172,7 +176,7 @@ class SearchNode:
         # Leaf node.
         if tree.left is False and tree.right is False:
             # First build the string to search.
-            string = ''
+            string = ""
             if tree.data_target is not None:
                 # We have a specific target.
                 string = data[tree.data_target]
@@ -181,10 +185,10 @@ class SearchNode:
                 for s in data.values():
                     string += s
 
-            invert_index = tree.value.find(':NOT:')
+            invert_index = tree.value.find(":NOT:")
             if invert_index >= 0:
                 # Invert search on :NOT: keyword.
-                return not SearchNode.check_value_in_string(tree.value[invert_index + 5:], string)
+                return not SearchNode.check_value_in_string(tree.value[invert_index + 5 :], string)
             else:
                 return SearchNode.check_value_in_string(tree.value, string)
 
@@ -195,15 +199,15 @@ class SearchNode:
         right_sub = SearchNode.evaluate_tree(tree.right, data)
 
         # Apply operations
-        if tree.value == ':AND:':
+        if tree.value == ":AND:":
             return left_sub and right_sub
 
-        if tree.value == ':OR:':
+        if tree.value == ":OR:":
             return left_sub or right_sub
 
 
 class Query(dict):
-    def __init__(self, name, query='', result=None):
+    def __init__(self, name, query="", result=None):
         super().__init__()
         self.name = name
         self.query = query
@@ -216,33 +220,33 @@ class Query(dict):
 
     @property
     def name(self):
-        return self['name']
+        return self["name"]
 
     @name.setter
     def name(self, value):
-        self['name'] = value
+        self["name"] = value
 
     @property
     def query(self):
-        return self['query']
+        return self["query"]
 
     @query.setter
     def query(self, value):
-        self['query'] = value
+        self["query"] = value
 
     @property
     def result(self):
-        return self['result']
+        return self["result"]
 
     @result.setter
     def result(self, value):
-        self['result'] = value
+        self["result"] = value
 
 
 class QueryAPI(Ressource):
     def __init__(self, app, request):
         super().__init__(app, request)
-        if 'queries' not in self.meta_settings:
+        if "queries" not in self.meta_settings:
             self.truncate_query_storage()
         self._requirement_data = None
 
@@ -256,20 +260,20 @@ class QueryAPI(Ressource):
 
     @property
     def queries(self):
-        return self.meta_settings['queries']
+        return self.meta_settings["queries"]
 
     def store(self):
         self.meta_settings.update_storage()
 
     def get_query(self, name):
-        """ Get a single query. Returns None is not found.
+        """Get a single query. Returns None is not found.
 
         :param name: str
         :return: Query
         """
         result = None
         if name in self.queries:
-            self.queries[name]['hits'] = self.queries[name].hits
+            self.queries[name]["hits"] = self.queries[name].hits
             result = self.queries[name]
         return result
 
@@ -278,8 +282,7 @@ class QueryAPI(Ressource):
         self.store()
 
     def update_query(self, name):
-        """ Update an existing query.
-        """
+        """Update an existing query."""
         raise NotImplementedError
 
     def set_response_to_enforce_json(self):
@@ -288,17 +291,17 @@ class QueryAPI(Ressource):
 
     @staticmethod
     def req_dict_to_search_dict(req_dict):
-        if len(req_dict['formal']) > 0:
-            req_dict['tags'].append('has_formalization')
+        if len(req_dict["formal"]) > 0:
+            req_dict["tags"].append("has_formalization")
 
         result = {
-            'Id': req_dict['id'],
-            'Description': req_dict['desc'],
-            'Type': req_dict['type'],
-            'Tags': ' '.join(req_dict['tags']),
-            **req_dict['csv_data'],
-            'Formalization': ' '.join(req_dict['formal']),
-            'Status': req_dict['status']
+            "Id": req_dict["id"],
+            "Description": req_dict["desc"],
+            "Type": req_dict["type"],
+            "Tags": " ".join(req_dict["tags"]),
+            **req_dict["csv_data"],
+            "Formalization": " ".join(req_dict["formal"]),
+            "Status": req_dict["status"],
         }
 
         return result
@@ -313,7 +316,7 @@ class QueryAPI(Ressource):
         return result
 
     def truncate_query_storage(self):
-        self.meta_settings['queries'] = dict()
+        self.meta_settings["queries"] = dict()
         self.store()
 
     def eval_query(self, name):
@@ -326,13 +329,12 @@ class QueryAPI(Ressource):
                     query.result.append(rid)
 
     def GET(self):
-        """ Returns the `name` associated query. Or all stored queries if no name is given.
-        """
-        name = self.request.args.get('name', '').strip()
-        show = self.request.args.get('show', '').strip()
-        reload = self.request.args.get('reload', '').strip()
+        """Returns the `name` associated query. Or all stored queries if no name is given."""
+        name = self.request.args.get("name", "").strip()
+        show = self.request.args.get("show", "").strip()
+        reload = self.request.args.get("reload", "").strip()
         if show:
-            if show == 'targets':
+            if show == "targets":
                 self.response.data = QueryAPI.get_target_names()
         elif name:
             if reload:
@@ -347,7 +349,7 @@ class QueryAPI(Ressource):
             self.response.data = self.queries
 
     def POST(self):
-        """ Add a new query. Expects json encoded data like
+        """Add a new query. Expects json encoded data like
         {
             "name": "query name, can be blank.",
             "query": "the search query"
@@ -356,9 +358,9 @@ class QueryAPI(Ressource):
         if not self.request.is_json:
             self.set_response_to_enforce_json()
         else:
-            name = self.request.json.get('name', '').__str__().strip()
-            query = self.request.json.get('query', '').__str__().strip()
-            store = self.request.json.get('store', True)
+            name = self.request.json.get("name", "").__str__().strip()
+            query = self.request.json.get("query", "").__str__().strip()
+            store = self.request.json.get("store", True)
 
             if not name:
                 name = str(id(query))
@@ -370,7 +372,7 @@ class QueryAPI(Ressource):
             self.store()
 
     def DELETE(self):
-        """ Delete one or multiple queries by name
+        """Delete one or multiple queries by name
         Expects a json data like
         a list of query names
         {
@@ -384,8 +386,8 @@ class QueryAPI(Ressource):
         if not self.request.is_json:
             self.set_response_to_enforce_json()
         else:
-            name = self.request.json.get('name', '').__str__().strip()
-            names = self.request.json.get('names', [])
+            name = self.request.json.get("name", "").__str__().strip()
+            names = self.request.json.get("names", [])
             if name in self.queries:
                 self.queries.pop(name)
             if isinstance(names, list):

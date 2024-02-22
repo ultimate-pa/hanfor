@@ -47,8 +47,8 @@ class Scenario:
         for i in range(len(self.times) - 1):
             if self.times[i] <= time < self.times[i + 1]:
                 result = Configuration(
-                    time=self.times[i + 1],
-                    variables={k: v[i + 1] for k, v in self.variables.items()})
+                    time=self.times[i + 1], variables={k: v[i + 1] for k, v in self.variables.items()}
+                )
 
         return result
 
@@ -58,21 +58,19 @@ class Scenario:
             return None
 
         var_map = {
-            'Bool': lambda v: Symbol(v, BOOL),
-            'Int': lambda v: Symbol(v, INT),
-            'Real': lambda v: Symbol(v, REAL)
+            "Bool": lambda v: Symbol(v, BOOL),
+            "Int": lambda v: Symbol(v, INT),
+            "Real": lambda v: Symbol(v, REAL),
         }
 
-        const_map = {
-            'Bool': lambda v: Bool(v == 1),
-            'Int': lambda v: Int(v),
-            'Real': lambda v: Real(v)
-        }
+        const_map = {"Bool": lambda v: Bool(v == 1), "Int": lambda v: Int(v), "Real": lambda v: Real(v)}
 
         scenario = Scenario(
-            object['head']['times'] + [object['head']['duration']],
-            {var_map[v['type']](k): [None] + [const_map[v['type']](vv) for vv in v['values']] for k, v in
-             object['data'].items()}
+            object["head"]["times"] + [object["head"]["duration"]],
+            {
+                var_map[v["type"]](k): [None] + [const_map[v["type"]](vv) for vv in v["values"]]
+                for k, v in object["data"].items()
+            },
         )
 
         return scenario
@@ -89,15 +87,15 @@ class Scenario:
         }
 
         head = {}
-        head['duration'] = scenario.times[-1]
-        head['times'] = [v for v in scenario.times[:-1]]
+        head["duration"] = scenario.times[-1]
+        head["times"] = [v for v in scenario.times[:-1]]
 
         data = defaultdict(dict)
         for k, v in scenario.variables.items():
-            data[str(k)]['type'] = str(k.get_type())
-            data[str(k)]['values'] = [const_map[scenario.types[k]](v_) for v_ in v[1:]]
+            data[str(k)]["type"] = str(k.get_type())
+            data[str(k)]["values"] = [const_map[scenario.types[k]](v_) for v_ in v[1:]]
 
-        return {'head': head, 'data': data}
+        return {"head": head, "data": data}
 
     @staticmethod
     def from_json_string(str: str) -> Scenario:
@@ -120,14 +118,14 @@ def main():
     scenario = Scenario(
         [0.0, 1.0, 2.0, 3.0],
         {
-            Symbol('A'): [None, TRUE(), TRUE(), TRUE()],
-            Symbol('B', INT): [None, Int(5), Int(10), Int(0)],
-            Symbol('C', REAL): [None, Real(5.0), Real(10.0), Real(0.0)]
-        }
+            Symbol("A"): [None, TRUE(), TRUE(), TRUE()],
+            Symbol("B", INT): [None, Int(5), Int(10), Int(0)],
+            Symbol("C", REAL): [None, Real(5.0), Real(10.0), Real(0.0)],
+        },
     )
 
-    Scenario.save_to_file(scenario, '/home/ubuntu/Desktop/test_scenario.json')
-    scenario = Scenario.load_from_file('/home/ubuntu/Desktop/test_scenario.json')
+    Scenario.save_to_file(scenario, "/home/ubuntu/Desktop/test_scenario.json")
+    scenario = Scenario.load_from_file("/home/ubuntu/Desktop/test_scenario.json")
 
 
 if __name__ == "__main__":

@@ -21,12 +21,10 @@ from unittest import TestCase
 class TestParseExpressions(TestCase):
     def test_used_variables(self):
         parsers = [
-            Lark.open("../hanfor_boogie_grammar.lark", rel_to=__file__, start='exprcommastar', parser='lalr') for _ in range(10)
+            Lark.open("../hanfor_boogie_grammar.lark", rel_to=__file__, start="exprcommastar", parser="lalr")
+            for _ in range(10)
         ]
-        expressions = [
-            'true',
-            'false'
-        ]
+        expressions = ["true", "false"]
         for parser in parsers:
             for expr in expressions:
                 tree = parser.parse(expr)
@@ -35,6 +33,6 @@ class TestParseExpressions(TestCase):
                         # Variables are called ID in the grammar.
                         if isinstance(child, Token):
                             self.assertTrue(
-                                child.type in ['TRUE', 'FALSE'],
-                                'Token `{}` has false type `{}`'.format(child.value, child.type)
+                                child.type in ["TRUE", "FALSE"],
+                                "Token `{}` has false type `{}`".format(child.value, child.type),
                             )

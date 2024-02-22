@@ -219,10 +219,10 @@ class ReqTransformer(Transformer):
     def assign_enumvalue(args):
         lhs = args[0]
         sep = args[1]
-        rhs = args[2].replace('"', '').upper().strip()
-        if rhs == 'TRUE':
+        rhs = args[2].replace('"', "").upper().strip()
+        if rhs == "TRUE":
             transformed = "%s" % lhs
-        elif rhs == 'FALSE':
+        elif rhs == "FALSE":
             transformed = "!%s" % lhs
         else:
             if isinstance(rhs, list):
@@ -238,7 +238,7 @@ class ReqTransformer(Transformer):
         return transformed
 
     def if_logic(self, args):
-        self.current_logic = " ".join(args).replace("(", '').replace(")", '').strip()
+        self.current_logic = " ".join(args).replace("(", "").replace(")", "").strip()
         return " ".join(args)
 
     @staticmethod
@@ -254,23 +254,23 @@ class ReqTransformer(Transformer):
         return merged_dict
 
     def if_part(self, args):
-        return {'if_part': list(flatten_list(args)), 'logic': self.current_logic}
+        return {"if_part": list(flatten_list(args)), "logic": self.current_logic}
 
     @staticmethod
     def then_part(args):
-        return {'then_part': list(flatten_list(args))}
+        return {"then_part": list(flatten_list(args))}
 
     @staticmethod
     def else_part(args):
-        return {'else_part': list(flatten_list(args))}
+        return {"else_part": list(flatten_list(args))}
 
     @staticmethod
     def comparison(args):
         lhs = args[0]
-        rhs = args[2].replace('"', '').upper().strip()
-        if rhs == 'TRUE':
+        rhs = args[2].replace('"', "").upper().strip()
+        if rhs == "TRUE":
             transformed = "%s" % lhs
-        elif rhs == 'FALSE':
+        elif rhs == "FALSE":
             transformed = "!%s" % lhs
         else:
             transformed = " ".join(list(flatten_list(args)))
@@ -280,10 +280,10 @@ class ReqTransformer(Transformer):
     def comparison_enumvalue(args):
         lhs = args[0]
         sep = args[1]
-        rhs = args[2].replace('"', '').upper().strip()
-        if rhs == 'TRUE':
+        rhs = args[2].replace('"', "").upper().strip()
+        if rhs == "TRUE":
             transformed = "%s" % lhs
-        elif rhs == 'FALSE':
+        elif rhs == "FALSE":
             transformed = "!%s" % lhs
         else:
             if isinstance(rhs, list):
@@ -325,19 +325,21 @@ class ReqTransformer(Transformer):
 # TESTING
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     s = ReqSyntaxTree()
     print("########## TREE #########")
     # @formatter:off
-    s.create_tree('set condition active for VAR1\n'
-        'VAR2 is received\n'
-        'VAR3 received\n'
-        'VAR4 is not received\n'
-        'VAR5 not received\n'
-        'VAR6 is available\n'
-        'VAR7 available\n'
-        'VAR8 is not available\n'
-        'VAR9 not available')
+    s.create_tree(
+        "set condition active for VAR1\n"
+        "VAR2 is received\n"
+        "VAR3 received\n"
+        "VAR4 is not received\n"
+        "VAR5 not received\n"
+        "VAR6 is available\n"
+        "VAR7 available\n"
+        "VAR8 is not available\n"
+        "VAR9 not available"
+    )
 
     # @formatter:on
     transformer = ReqTransformer()

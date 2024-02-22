@@ -33,13 +33,13 @@ def substitute_free_variables(fnode: FNode, suffix: str = "_", do_nothing: bool 
 
 
 def render_pea(pea: PhaseSetsPea, filename: str, view=False) -> None:
-    dot = graphviz.Digraph(comment='Phase Event Automaton')
+    dot = graphviz.Digraph(comment="Phase Event Automaton")
     for phase, transitions in pea.transitions.items():
-        src_label = str(phase.label) if phase is not None else 'None'
+        src_label = str(phase.label) if phase is not None else "None"
         dot.node(src_label)
 
         for transition in transitions:
-            dst_label = str(transition.dst.label) if transition.dst is not None else 'None'
+            dst_label = str(transition.dst.label) if transition.dst is not None else "None"
             guard_str = transition.guard.serialize()
 
             for clock in pea.clocks:

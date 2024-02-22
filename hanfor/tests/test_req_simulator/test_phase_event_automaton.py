@@ -16,9 +16,7 @@ from tests.test_req_simulator.test_counter_trace import testcases
 class TestPhaseEventAutomaton(TestCase):
     def test_false(self):
         expressions, ct_str, _ = testcases["false"]
-        ct = CountertraceTransformer(expressions).transform(
-            get_countertrace_parser().parse(ct_str)
-        )
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseSetsPea()
 
@@ -30,68 +28,47 @@ class TestPhaseEventAutomaton(TestCase):
         expected.transitions[p1].add(PhaseSetsTransition(p1, p1, p1_invariant))
 
         actual = build_automaton(ct)
-        self.assertEqual(
-            expected, actual, msg="Error while building phase event automaton."
-        )
+        self.assertEqual(expected, actual, msg="Error while building phase event automaton.")
 
     def test_true(self):
         expressions, ct_str, _ = testcases["true"]
-        ct = CountertraceTransformer(expressions).transform(
-            get_countertrace_parser().parse(ct_str)
-        )
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseSetsPea()
 
         actual = build_automaton(ct)
-        self.assertEqual(
-            expected, actual, msg="Error while building phase event automaton."
-        )
+        self.assertEqual(expected, actual, msg="Error while building phase event automaton.")
 
     def test_true_lower_bound_empty(self):
         expressions, ct_str, _ = testcases["true_lower_bound_empty"]
-        ct = CountertraceTransformer(expressions).transform(
-            get_countertrace_parser().parse(ct_str)
-        )
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseSetsPea()
 
         actual = build_automaton(ct)
-        self.assertEqual(
-            expected, actual, msg="Error while building phase event automaton."
-        )
+        self.assertEqual(expected, actual, msg="Error while building phase event automaton.")
 
     def test_true_lower_bound(self):
         expressions, ct_str, _ = testcases["true_lower_bound"]
-        ct = CountertraceTransformer(expressions).transform(
-            get_countertrace_parser().parse(ct_str)
-        )
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseSetsPea()
         T, c0 = expressions["T"], Symbol("c0", REAL)
 
         # ct0_st0W
         p1_invariant = TRUE()
-        p1 = PhaseSetsLocation(
-            p1_invariant, LE(c0, T), PhaseSets(wait=frozenset({0}), active=frozenset({0}))
-        )
+        p1 = PhaseSetsLocation(p1_invariant, LE(c0, T), PhaseSets(wait=frozenset({0}), active=frozenset({0})))
         # ct0_st0W
         expected.transitions[None].add(PhaseSetsTransition(None, p1, p1_invariant, frozenset({"c0"})))
         expected.transitions[p1].add(PhaseSetsTransition(p1, p1, And(p1_invariant, LT(c0, T))))
 
         actual = build_automaton(ct)
-        self.assertEqual(
-            expected, actual, msg="Error while building phase event automaton."
-        )
+        self.assertEqual(expected, actual, msg="Error while building phase event automaton.")
 
     def test_absence_globally(self):
         expressions, ct_str, _ = testcases["absence_globally"]
-        expressions_ = {
-            k + "_": Symbol(v.symbol_name() + "_", v.symbol_type())
-            for k, v in expressions.items()
-        }
-        ct = CountertraceTransformer(expressions).transform(
-            get_countertrace_parser().parse(ct_str)
-        )
+        expressions_ = {k + "_": Symbol(v.symbol_name() + "_", v.symbol_type()) for k, v in expressions.items()}
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseSetsPea()
         R = expressions["R"]
@@ -106,19 +83,12 @@ class TestPhaseEventAutomaton(TestCase):
         expected.transitions[p1].add(PhaseSetsTransition(p1, p1, Not(R_)))
 
         actual = build_automaton(ct)
-        self.assertEqual(
-            expected, actual, msg="Error while building phase event automaton."
-        )
+        self.assertEqual(expected, actual, msg="Error while building phase event automaton.")
 
     def test_absence_before(self):
         expressions, ct_str, _ = testcases["absence_before"]
-        expressions_ = {
-            k + "_": Symbol(v.symbol_name() + "_", v.symbol_type())
-            for k, v in expressions.items()
-        }
-        ct = CountertraceTransformer(expressions).transform(
-            get_countertrace_parser().parse(ct_str)
-        )
+        expressions_ = {k + "_": Symbol(v.symbol_name() + "_", v.symbol_type()) for k, v in expressions.items()}
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseSetsPea()
         P, R = expressions["P"], expressions["R"]
@@ -139,19 +109,12 @@ class TestPhaseEventAutomaton(TestCase):
         expected.transitions[p2].add(PhaseSetsTransition(p2, p2, TRUE()))
 
         actual = build_automaton(ct)
-        self.assertEqual(
-            expected, actual, msg="Error while building phase event automaton."
-        )
+        self.assertEqual(expected, actual, msg="Error while building phase event automaton.")
 
     def test_absence_after(self):
         expressions, ct_str, _ = testcases["absence_after"]
-        expressions_ = {
-            k + "_": Symbol(v.symbol_name() + "_", v.symbol_type())
-            for k, v in expressions.items()
-        }
-        ct = CountertraceTransformer(expressions).transform(
-            get_countertrace_parser().parse(ct_str)
-        )
+        expressions_ = {k + "_": Symbol(v.symbol_name() + "_", v.symbol_type()) for k, v in expressions.items()}
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseSetsPea()
         P, R = expressions["P"], expressions["R"]
@@ -178,19 +141,12 @@ class TestPhaseEventAutomaton(TestCase):
         expected.transitions[p3].add(PhaseSetsTransition(p3, p2, And(P_, Not(R_))))
 
         actual = build_automaton(ct)
-        self.assertEqual(
-            expected, actual, msg="Error while building phase event automaton."
-        )
+        self.assertEqual(expected, actual, msg="Error while building phase event automaton.")
 
     def test_duration_bound_l_pattern_globally(self):
         expressions, ct_str, _ = testcases["duration_bound_l_globally"]
-        expressions_ = {
-            k + "_": Symbol(v.symbol_name() + "_", v.symbol_type())
-            for k, v in expressions.items()
-        }
-        ct = CountertraceTransformer(expressions).transform(
-            get_countertrace_parser().parse(ct_str)
-        )
+        expressions_ = {k + "_": Symbol(v.symbol_name() + "_", v.symbol_type()) for k, v in expressions.items()}
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseSetsPea()
         R, T, c2 = expressions["R"], expressions["T"], Symbol("c2", REAL)
@@ -218,19 +174,12 @@ class TestPhaseEventAutomaton(TestCase):
         expected.transitions[p3].add(PhaseSetsTransition(p3, p2, And(Or(R_, GE(c2, T)), Not(R_))))
 
         actual = build_automaton(ct)
-        self.assertEqual(
-            expected, actual, msg="Error while building phase event automaton."
-        )
+        self.assertEqual(expected, actual, msg="Error while building phase event automaton.")
 
     def test_duration_bound_u_globally(self):
         expressions, ct_str, _ = testcases["duration_bound_u_globally"]
-        expressions_ = {
-            k + "_": Symbol(v.symbol_name() + "_", v.symbol_type())
-            for k, v in expressions.items()
-        }
-        ct = CountertraceTransformer(expressions).transform(
-            get_countertrace_parser().parse(ct_str)
-        )
+        expressions_ = {k + "_": Symbol(v.symbol_name() + "_", v.symbol_type()) for k, v in expressions.items()}
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseSetsPea()
         R, T, c1 = expressions["R"], expressions["T"], Symbol("c1", REAL)
@@ -256,19 +205,12 @@ class TestPhaseEventAutomaton(TestCase):
         expected.transitions[p2].add(PhaseSetsTransition(p2, p1, And(LT(c1, T), Not(R_))))
 
         actual = build_automaton(ct)
-        self.assertEqual(
-            expected, actual, msg="Error while building phase event automaton."
-        )
+        self.assertEqual(expected, actual, msg="Error while building phase event automaton.")
 
     def test_response_delay_globally(self):
         expressions, ct_str, _ = testcases["response_delay_globally"]
-        expressions_ = {
-            k + "_": Symbol(v.symbol_name() + "_", v.symbol_type())
-            for k, v in expressions.items()
-        }
-        ct = CountertraceTransformer(expressions).transform(
-            get_countertrace_parser().parse(ct_str)
-        )
+        expressions_ = {k + "_": Symbol(v.symbol_name() + "_", v.symbol_type()) for k, v in expressions.items()}
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseSetsPea()
         R, S, T, c2 = (
@@ -300,35 +242,22 @@ class TestPhaseEventAutomaton(TestCase):
         expected.transitions[p1].add(PhaseSetsTransition(p1, p1, Or(S_, Not(R_))))
         expected.transitions[p1].add(PhaseSetsTransition(p1, p2, And(R_, Not(S_)), frozenset({"c2"})))
         # ct0_st012W
-        expected.transitions[None].add(
-            PhaseSetsTransition(None, p2, And(R_, Not(S_)), frozenset({"c2"}))
-        )
+        expected.transitions[None].add(PhaseSetsTransition(None, p2, And(R_, Not(S_)), frozenset({"c2"})))
         expected.transitions[p2].add(PhaseSetsTransition(p2, p2, And(LT(c2, T), And(R_, Not(S_)))))
         expected.transitions[p2].add(PhaseSetsTransition(p2, p1, And(S_, Or(S_, Not(R_)))))
-        expected.transitions[p2].add(
-            PhaseSetsTransition(p2, p3, And(LT(c2, T), And(Not(R_), Not(S_))))
-        )
+        expected.transitions[p2].add(PhaseSetsTransition(p2, p3, And(LT(c2, T), And(Not(R_), Not(S_)))))
         # ct0_st02W
-        expected.transitions[p3].add(
-            PhaseSetsTransition(p3, p3, And(LT(c2, T), And(Not(R_), Not(S_))))
-        )
+        expected.transitions[p3].add(PhaseSetsTransition(p3, p3, And(LT(c2, T), And(Not(R_), Not(S_)))))
         expected.transitions[p3].add(PhaseSetsTransition(p3, p1, And(S_, Or(S_, Not(R_)))))
         expected.transitions[p3].add(PhaseSetsTransition(p3, p2, And(LT(c2, T), And(R_, Not(S_)))))
 
         actual = build_automaton(ct)
-        self.assertEqual(
-            expected, actual, msg="Error while building phase event automaton."
-        )
+        self.assertEqual(expected, actual, msg="Error while building phase event automaton.")
 
     def test_response_delay_before(self):
         expressions, ct_str, _ = testcases["response_delay_before"]
-        expressions_ = {
-            k + "_": Symbol(v.symbol_name() + "_", v.symbol_type())
-            for k, v in expressions.items()
-        }
-        ct = CountertraceTransformer(expressions).transform(
-            get_countertrace_parser().parse(ct_str)
-        )
+        expressions_ = {k + "_": Symbol(v.symbol_name() + "_", v.symbol_type()) for k, v in expressions.items()}
+        ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
 
         expected = PhaseSetsPea()
         P, R, S, T, c2 = (
@@ -361,40 +290,22 @@ class TestPhaseEventAutomaton(TestCase):
         # ct0_st0
         expected.transitions[None].add(PhaseSetsTransition(None, p1, And(Not(P_), Or(S_, Not(R_)))))
         expected.transitions[p1].add(PhaseSetsTransition(p1, p1, And(Not(P_), Or(S_, Not(R_)))))
-        expected.transitions[p1].add(
-            PhaseSetsTransition(p1, p2, And(Not(P_), And(R_, Not(S_))), frozenset({"c2"}))
-        )
+        expected.transitions[p1].add(PhaseSetsTransition(p1, p2, And(Not(P_), And(R_, Not(S_))), frozenset({"c2"})))
         expected.transitions[p1].add(PhaseSetsTransition(p1, p4, P_))
         # ct0_st012W
-        expected.transitions[None].add(
-            PhaseSetsTransition(None, p2, And(Not(P_), And(R_, Not(S_))), frozenset({"c2"}))
-        )
-        expected.transitions[p2].add(
-            PhaseSetsTransition(p2, p2, And(LT(c2, T), And(Not(P_), And(R_, Not(S_)))))
-        )
-        expected.transitions[p2].add(
-            PhaseSetsTransition(p2, p1, And(Or(P_, S_), And(Not(P_), Or(S_, Not(R_)))))
-        )
-        expected.transitions[p2].add(
-            PhaseSetsTransition(p2, p3, And(LT(c2, T), And(Not(P_), And(Not(R_), Not(S_)))))
-        )
+        expected.transitions[None].add(PhaseSetsTransition(None, p2, And(Not(P_), And(R_, Not(S_))), frozenset({"c2"})))
+        expected.transitions[p2].add(PhaseSetsTransition(p2, p2, And(LT(c2, T), And(Not(P_), And(R_, Not(S_))))))
+        expected.transitions[p2].add(PhaseSetsTransition(p2, p1, And(Or(P_, S_), And(Not(P_), Or(S_, Not(R_))))))
+        expected.transitions[p2].add(PhaseSetsTransition(p2, p3, And(LT(c2, T), And(Not(P_), And(Not(R_), Not(S_))))))
         expected.transitions[p2].add(PhaseSetsTransition(p2, p4, P_))
         # ct0_st02W
-        expected.transitions[p3].add(
-            PhaseSetsTransition(p3, p3, And(LT(c2, T), And(Not(P_), And(Not(R_), Not(S_)))))
-        )
-        expected.transitions[p3].add(
-            PhaseSetsTransition(p3, p1, And(Or(P_, S_), And(Not(P_), Or(S_, Not(R_)))))
-        )
-        expected.transitions[p3].add(
-            PhaseSetsTransition(p3, p2, And(LT(c2, T), And(Not(P_), And(R_, Not(S_)))))
-        )
+        expected.transitions[p3].add(PhaseSetsTransition(p3, p3, And(LT(c2, T), And(Not(P_), And(Not(R_), Not(S_))))))
+        expected.transitions[p3].add(PhaseSetsTransition(p3, p1, And(Or(P_, S_), And(Not(P_), Or(S_, Not(R_))))))
+        expected.transitions[p3].add(PhaseSetsTransition(p3, p2, And(LT(c2, T), And(Not(P_), And(R_, Not(S_))))))
         expected.transitions[p3].add(PhaseSetsTransition(p3, p4, P_))
         # ct0_st
         expected.transitions[None].add(PhaseSetsTransition(None, p4, P_))
         expected.transitions[p4].add(PhaseSetsTransition(p4, p4, TRUE()))
 
         actual: PhaseSetsPea = build_automaton(ct)
-        self.assertEqual(
-            expected, actual, msg="Error while building phase event automaton."
-        )
+        self.assertEqual(expected, actual, msg="Error while building phase event automaton.")
