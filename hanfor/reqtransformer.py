@@ -348,19 +348,6 @@ class Requirement:
             return Requirement.load(path)
 
     @classmethod
-    def load(cls, path):
-        me = Pickleable.load(path)
-        if not isinstance(me, cls):
-            raise TypeError
-
-        if me.outdated:
-            logging.info(f"`{me}` needs upgrade `{me.hanfor_version}` -> `{__version__}`")
-            me.run_version_migrations()
-            me.store()
-
-        return me
-
-    @classmethod
     def requirements(cls):
         """Iterator for all requirements."""
         filenames = get_filenames_from_dir(current_app.config["REVISION_FOLDER"])
@@ -534,7 +521,6 @@ class Requirement:
             vars_with_unknown_type = self.formalizations[id].unknown_types_check(var_collection, vars_with_unknown_type)
             if vars_with_unknown_type:
                 self.tags["unknown_type"] = self.format_unknown_type_tag(vars_with_unknown_type)
-        self.store()
 
     def get_formalizations_json(self) -> str:
         """Fetch all formalizations in json format. Used to reload formalizations.
@@ -550,16 +536,6 @@ class Requirement:
             result[str(key)] = formalization.to_dict()
 
         return json.dumps(result, sort_keys=True)
-
-    def run_version_migrations(self):
-        if self.hanfor_version == "0.0.0":
-            logging.info(f"Migrating `{self.__class__.__name__}`:`{self.rid}`, from 0.0.0 -> 1.0.0")
-            # Migrate list formalizations to use dict
-            self.hanfor_version = "1.0.0"
-            if type(self.formalizations) is list:
-                self.formalizations = dict(enumerate(self.formalizations))
-            self.store()
-        super().run_version_migrations()
 
     def uses_var(self, var_name):
         """Test is var_name is used in one of the requirements formalizations.

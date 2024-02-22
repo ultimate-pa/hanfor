@@ -1,7 +1,7 @@
 import itertools
 import json
 import inspect
-from enum import Enum
+from enum import Enum, EnumMeta
 from types import GenericAlias, UnionType
 from typing import get_origin, get_args, TypeVar, Callable, Type
 from uuid import UUID, uuid4
@@ -132,8 +132,10 @@ class DatabaseField:
             raise DatabaseDefinitionError(f"Name of DatabaseField must be of type str: {cls}")
         if self._type is None:
             raise DatabaseDefinitionError(f"Type of DatabaseField must be provided: {cls}")
-        if type(self._type) not in [type, GenericAlias, str]:
-            raise DatabaseDefinitionError(f"Type of DatabaseField must be of type type or str: {cls}")
+        if type(self._type) not in [type, GenericAlias, str, EnumMeta]:
+            raise DatabaseDefinitionError(
+                f"Type of DatabaseField must be of type type or str: {cls} field: {self._field}"
+            )
         if cls not in self.registry:
             self.registry[cls] = {}
         # check if field of class with name exists already
@@ -270,7 +272,9 @@ class JsonDatabase:
             fields = {}
             for f_name, (f_type, f_default) in DatabaseField.registry[cls].items():
                 if type(f_type) is str:
-                    f_type = self.__get_cls_from_cls_name(f_type)
+                    f_type = self.__get_cls_from_cls_name(
+                        f_type, tables.union(field_types).union(self.__custom_serializer.keys())
+                    )
                 fields[f_name] = f_type, f_default
             self._tables[cls] = JsonDatabaseTable(self, cls, table_type, id_field, id_type, fields)
 
@@ -279,7 +283,9 @@ class JsonDatabase:
             fields = {}
             for f_name, (f_type, f_default) in DatabaseField.registry[cls].items():
                 if type(f_type) is str:
-                    f_type = self.__get_cls_from_cls_name(f_type)
+                    f_type = self.__get_cls_from_cls_name(
+                        f_type, tables.union(field_types).union(self.__custom_serializer.keys())
+                    )
                 fields[f_name] = f_type, f_default
             self._field_types[cls] = fields
 
@@ -295,6 +301,10 @@ class JsonDatabase:
             self.update("system")
         logging.info("Database fully loaded.")
 
+    def change_data_folder_and_save(self, new_data_folder: str) -> None:
+        self.__data_folder = new_data_folder
+        self.update("system")
+
     def add_object(self, obj: object, user: str = None) -> None:
         if user is None:
             logging.warning(f"JsonDatabase.add_object should be called with the user parameter.")
@@ -306,6 +316,9 @@ class JsonDatabase:
 
     def get_objects(self, tbl: Type[GET_TYPE]) -> immutabledict[int | str, GET_TYPE]:
         return self._tables[tbl].get_objects()
+
+    def get_object(self, tbl: Type[GET_TYPE], id: str | int) -> GET_TYPE:
+        return self._tables[tbl].get_object(id)
 
     def update(self, user: str = None) -> None:
         if user is None:
@@ -430,8 +443,8 @@ class JsonDatabase:
             raise DatabaseInitialisationError("JsonDatabase write_data_trace is called before init_tables is called")
         self.__data_tracing_logger.info(f"{user};{table_name};{obj_id};{json.dumps(old_data)}")
 
-    def __get_cls_from_cls_name(self, cls_name: str) -> type:
-        for cls in self._tables.keys() | self._field_types.keys() | self.__custom_serializer.keys():
+    def __get_cls_from_cls_name(self, cls_name: str, classes: set) -> type:
+        for cls in classes:
             if cls_name == cls.__name__:
                 return cls
         raise DatabaseInitialisationError(
@@ -590,6 +603,13 @@ class JsonDatabaseTable:
             if dict_changed(self.__json_data[old_element], json_data[old_element]):
                 changes = True
                 self.__db.write_data_trace(user, self.cls.__name__, old_element, self.__json_data[old_element])
+
+        # check if file/folder exist for revision update
+        if self.table_type == TableType.File:
+            changes |= not path.isfile(path.join(self.__db.data_folder, f"{self.cls.__name__}.json"))
+        elif self.table_type == TableType.Folder:
+            changes |= not path.isdir(path.join(self.__db.data_folder, self.cls.__name__))
+
         if not changes:
             return
         if self.table_type == TableType.File:

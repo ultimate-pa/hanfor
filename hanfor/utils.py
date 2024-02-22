@@ -427,6 +427,7 @@ def update_variable_in_collection(app, request):
                 requirement = Requirement.load_requirement_by_id(rid, app)
                 if requirement:
                     requirement.run_type_checks(var_collection)
+            app.db.update()
 
     if var_type in ["ENUM_INT", "ENUM_REAL"]:
         new_enumerators = []
@@ -1305,6 +1306,7 @@ class Revision:
         self._set_config_vars()
         self._set_available_sessions()
         self._create_revision_folder()
+        self.app.db.init_tables(self.app.config["REVISION_FOLDER"])
         if self.is_initial_revision:
             try:
                 init_var_collection(self.app)
@@ -1313,7 +1315,8 @@ class Revision:
                 self._revert_and_cleanup()
                 raise e
         self._try_save(self._load_from_csv, "Could not read CSV")
-        self._try_save(self._store_requirements, "Could not store requirements")
+        for req in self.requirement_collection.requirements:
+            self.app.db.add_object(req)
         self._try_save(self._generate_session_dict, "Could not generate session")
         if not self.is_initial_revision:
             self._try_save(self._merge_with_base_revision, " Could not merge with base session")

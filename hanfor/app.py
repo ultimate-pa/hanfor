@@ -199,7 +199,7 @@ def api(resource, command):
         # Update a requirement
         if command == "update" and request.method == "POST":
             id = request.form.get("id", "")
-            requirement = Requirement.load_requirement_by_id(id, app)
+            requirement = app.db.get_object(Requirement, id)
             error = False
             error_msg = ""
 
@@ -246,7 +246,7 @@ def api(resource, command):
                     logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
                     return jsonify({"success": False, "errormsg": error_msg})
                 else:
-                    requirement.store()
+                    app.db.update()
                     return jsonify(requirement.to_dict()), 200
 
         # Multi Update Tags or Status.
@@ -295,9 +295,7 @@ def api(resource, command):
                 logging.info(log_msg)
 
                 for rid in rid_list:
-                    requirement = Requirement.load_requirement_by_id(rid, app)
-                    if requirement is None:
-                        continue
+                    requirement = app.db.get_object(Requirement, rid)
                     logging.info(f"Updating requirement `{rid}`")
                     if remove_tag in requirement.tags:
                         requirement.tags.pop(remove_tag)
@@ -305,16 +303,16 @@ def api(resource, command):
                         requirement.tags[add_tag] = ""
                     if set_status:
                         requirement.status = set_status
-                    requirement.store()
+                app.db.update()
 
             return jsonify(result)
 
         # Add a new empty formalization
         if command == "new_formalization" and request.method == "POST":
             id = request.form.get("id", "")
-            requirement = Requirement.load_requirement_by_id(id, app)  # type: Requirement
+            requirement = app.db.get_object(Requirement, id)  # type: Requirement
             formalization_id, formalization = requirement.add_empty_formalization()
-            requirement.store()
+            app.db.update()
             utils.add_msg_to_flask_session_log(app, "Added new Formalization to requirement", id)
             result = utils.get_formalization_template(app.config["TEMPLATES_FOLDER"], formalization_id, formalization)
             return jsonify(result)
@@ -324,9 +322,9 @@ def api(resource, command):
             result = dict()
             formalization_id = request.form.get("formalization_id", "")
             requirement_id = request.form.get("requirement_id", "")
-            requirement = Requirement.load_requirement_by_id(requirement_id, app)
+            requirement = app.db.get_object(Requirement, requirement_id)
             requirement.delete_formalization(formalization_id, app)
-            requirement.store()
+            app.db.store()
 
             utils.add_msg_to_flask_session_log(app, "Deleted formalization from requirement", requirement_id)
             result["html"] = utils.formalizations_to_html(app, requirement.formalizations)
@@ -383,13 +381,13 @@ def api(resource, command):
             mapping = json.loads(mapping)
 
             # Add an empty Formalization.
-            requirement = Requirement.load_requirement_by_id(requirement_id, app)
+            requirement = app.db.get_object(Requirement, requirement_id)
             formalization_id, formalization = requirement.add_empty_formalization()
             # Add content to the formalization.
             requirement.update_formalization(
                 formalization_id=formalization_id, scope_name=scope, pattern_name=pattern, mapping=mapping, app=app
             )
-            requirement.store()
+            app.db.update()
             utils.add_msg_to_flask_session_log(app, "Added formalization guess to requirement", requirement_id)
 
             result = utils.get_formalization_template(
@@ -410,7 +408,7 @@ def api(resource, command):
 
             var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
             for req_id in requirement_ids:
-                requirement = Requirement.load_requirement_by_id(req_id, app)
+                requirement = app.db.get_object(Requirement, req_id)
                 if requirement is not None:
                     logging.info("Add top guess to requirement `{}`".format(req_id))
                     tmp_guesses = list()
@@ -440,7 +438,7 @@ def api(resource, command):
                                         mapping=mapping,
                                         app=app,
                                     )
-                                    requirement.store()
+                                    app.db.update()
 
                         except ValueError as e:
                             result["success"] = False
@@ -1153,8 +1151,7 @@ def set_app_config_paths(args, HERE):
     app.config["TEMPLATES_FOLDER"] = os.path.join(HERE, "templates")
 
 
-def init_database(revision_folder: str) -> None:
-    app.db = JsonDatabase()
+def add_custom_serializer_to_database(database: JsonDatabase) -> None:
 
     def scope_serialize(obj: Scope, db_serializer: Callable[[any, str], any], user: str) -> dict:
         return db_serializer(obj.value, user)
@@ -1162,8 +1159,7 @@ def init_database(revision_folder: str) -> None:
     def scope_deserialize(data: dict, db_deserializer: Callable[[any], any]) -> Scope:
         return Scope(db_deserializer(data))
 
-    app.db.add_custom_serializer(Scope, scope_serialize, scope_deserialize)
-    app.db.init_tables(revision_folder)
+    database.add_custom_serializer(Scope, scope_serialize, scope_deserialize)
 
 
 def startup_hanfor(args, HERE) -> bool:
@@ -1177,6 +1173,9 @@ def startup_hanfor(args, HERE) -> bool:
     :param args:
     :returns: True if startup should continue
     """
+    app.db = JsonDatabase()
+    add_custom_serializer_to_database(app.db)
+
     set_session_config_vars(args, HERE)
     set_app_config_paths(args, HERE)
 
@@ -1194,8 +1193,6 @@ def startup_hanfor(args, HERE) -> bool:
             revision_choice = user_choose_start_revision()
             logging.info("Loading session `{}` at `{}`".format(app.config["SESSION_TAG"], revision_choice))
             load_revision(revision_choice)
-
-    init_database(app.config["REVISION_FOLDER"])
 
     # Check CSV file change.
     session_dict = pickle_load_from_dump(app.config["SESSION_STATUS_PATH"])  # type: dict
@@ -1227,8 +1224,8 @@ def startup_hanfor(args, HERE) -> bool:
 
     # Run version migrations
     varcollection_version_migrations(app, args)
-    requirements_version_migrations(app, args)
-    metasettings_version_migration(app, args)
+    # requirements_version_migrations(app, args)
+    # metasettings_version_migration(app, args)
 
     # Run consistency checks.
     varcollection_consistency_check(app, args)
