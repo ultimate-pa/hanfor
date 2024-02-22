@@ -17,6 +17,9 @@ from flask import Flask, render_template, request, jsonify, make_response, json
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import HTTPException
 
+from typing import Callable
+from json_db_connector.json_db import JsonDatabase
+
 import reqtransformer
 import utils
 from guesser.Guess import Guess
@@ -1150,6 +1153,19 @@ def set_app_config_paths(args, HERE):
     app.config["TEMPLATES_FOLDER"] = os.path.join(HERE, "templates")
 
 
+def init_database(revision_folder: str) -> None:
+    app.db = JsonDatabase()
+
+    def scope_serialize(obj: Scope, db_serializer: Callable[[any, str], any], user: str) -> dict:
+        return db_serializer(obj.value, user)
+
+    def scope_deserialize(data: dict, db_deserializer: Callable[[any], any]) -> Scope:
+        return Scope(db_deserializer(data))
+
+    app.db.add_custom_serializer(Scope, scope_serialize, scope_deserialize)
+    app.db.init_tables(revision_folder)
+
+
 def startup_hanfor(args, HERE) -> bool:
     """Setup session config Variables.
      Trigger:
@@ -1178,6 +1194,8 @@ def startup_hanfor(args, HERE) -> bool:
             revision_choice = user_choose_start_revision()
             logging.info("Loading session `{}` at `{}`".format(app.config["SESSION_TAG"], revision_choice))
             load_revision(revision_choice)
+
+    init_database(app.config["REVISION_FOLDER"])
 
     # Check CSV file change.
     session_dict = pickle_load_from_dump(app.config["SESSION_STATUS_PATH"])  # type: dict

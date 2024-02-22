@@ -15,6 +15,7 @@ from logging import Logger
 from logging.handlers import RotatingFileHandler
 import re
 
+
 CLS_TYPE = TypeVar("CLS_TYPE")
 ID_TYPE = TypeVar("ID_TYPE")
 GET_TYPE = TypeVar("GET_TYPE")

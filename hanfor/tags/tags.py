@@ -12,6 +12,9 @@ from reqtransformer import Requirement
 from static_utils import get_filenames_from_dir
 from utils import MetaSettings
 
+from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
+from uuid import UUID
+
 BUNDLE_JS = "dist/tags-bundle.js"
 blueprint = Blueprint("tags", __name__, template_folder="templates", url_prefix="/tags")
 api_blueprint = Blueprint("api_tags", __name__, url_prefix="/api/tags")
@@ -22,8 +25,16 @@ def index():
     return render_template("tags/index.html", BUNDLE_JS=BUNDLE_JS)
 
 
+@DatabaseTable(TableType.File)
+@DatabaseID("uuid", use_uuid=True)
+@DatabaseField("name", str)
+@DatabaseField("color", str)
+@DatabaseField("internal", bool)
+@DatabaseField("description", str)
+@DatabaseField("used_by", list[str])
 @dataclass
 class Tag:
+    uuid: UUID
     name: str
     color: str
     internal: bool
