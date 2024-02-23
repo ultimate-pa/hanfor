@@ -169,7 +169,7 @@ def api(resource, command):
         # Get a single requirement.
         if command == "get" and request.method == "GET":
             id = request.args.get("id", "")
-            requirement = Requirement.load_requirement_by_id(id, app)
+            requirement = app.db.get_object(Requirement, id)
             var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
 
             result = requirement.to_dict(include_used_vars=True)
@@ -188,12 +188,8 @@ def api(resource, command):
             filenames = get_filenames_from_dir(app.config["REVISION_FOLDER"])
             result = dict()
             result["data"] = list()
-            for filename in filenames:
-                try:
-                    req = Requirement.load(filename)
-                    result["data"].append(req.to_dict())
-                except Exception as e:
-                    logging.debug(e)
+            for req in app.db.get_objects(Requirement):
+                result["data"].append(req.to_dict())
             return jsonify(result)
 
         # Update a requirement
@@ -334,7 +330,7 @@ def api(resource, command):
         if command == "get_available_guesses" and request.method == "POST":
             result = {"success": True}
             requirement_id = request.form.get("requirement_id", "")
-            requirement = Requirement.load_requirement_by_id(requirement_id, app)
+            requirement = app.db.get_object(Requirement, requirement_id)
             if requirement is None:
                 result["success"] = False
                 result["errormsg"] = "Requirement `{}` not found".format(requirement_id)
@@ -917,18 +913,6 @@ def metasettings_version_migration(app, args):
         if key not in meta_settings:
             logging.info(f"Upgrading metaconfig with empty `{key}` store.")
             meta_settings[key] = dict()
-    for filename in get_filenames_from_dir(app.config["REVISION_FOLDER"]):
-        try:
-            req = Requirement.load(filename)
-        except TypeError:
-            continue
-        for tag in req.tags:
-            if tag not in meta_settings["tag_colors"]:
-                meta_settings["tag_colors"][tag] = "#5bc0de"
-            if tag not in meta_settings["tag_descriptions"]:
-                meta_settings["tag_descriptions"][tag] = ""
-            if tag not in meta_settings["tag_internal"]:
-                meta_settings["tag_internal"][tag] = False
 
     # TODO: Hacky. @Vincent pls fix
     for tag in meta_settings["tag_colors"].keys():
@@ -936,77 +920,6 @@ def metasettings_version_migration(app, args):
             meta_settings["tag_internal"][tag] = False
 
     meta_settings.update_storage()
-
-
-def requirements_version_migrations(app, args):
-    logging.info("Running requirements version migration...")
-    filenames = get_filenames_from_dir(app.config["REVISION_FOLDER"])
-    var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
-
-    for filename in filenames:
-        try:
-            req = Requirement.load(filename)
-        except TypeError:
-            continue
-        changes = False
-        if req.formalizations is None:
-            req.formalizations = dict()
-            changes = True
-        if isinstance(req.tags, set):
-            sanitize = lambda t: t.replace("<", "leq").replace(">", "geq")
-            req.tags = {sanitize(tag): "" for tag in req.tags}
-            changes = True
-        if isinstance(req.tags, dict):
-            # clean up old data sets  with empty tags that mess up exporting (if necessary)
-            new_tags = {tag: comment for tag, comment in req.tags.items() if tag != ""}
-            if new_tags != req.tags:
-                req.tags = new_tags
-                changes = True
-        if type(req.type_in_csv) is tuple:
-            changes = True
-            req.type_in_csv = req.type_in_csv[0]
-        if type(req.csv_row) is tuple:
-            changes = True
-            req.csv_row = req.csv_row[0]
-        if type(req.description) is tuple:
-            changes = True
-            req.description = req.description[0]
-        # Derive type inference errors if not set.
-        try:
-            for i, f in req.formalizations.items():
-                if not hasattr(f, "id") or not f.id:
-                    changes = True
-                    setattr(f, "id", i)
-        except Exception as e:
-            logging.info(f"Something when updating formalisations went terribly wrong `{req.rid}:\n {e}`")
-        # ensure some well-formedness of requirements objects
-        for k, f in req.formalizations.items():
-            if not isinstance(f, Formalization):
-                del req.formalizations[k]
-                changes = True
-            else:
-                if not f.scoped_pattern:
-                    f.scoped_pattern = reqtransformer.ScopedPattern()
-                    changes = True
-                if not f.scoped_pattern.scope or not f.scoped_pattern.pattern:
-                    f.scoped_pattern = reqtransformer.ScopedPattern()
-                    changes = True
-            # Add tags for requirements with (incomplete) formalizations.
-            if (
-                f.scoped_pattern.scope != reqtransformer.Scope.NONE
-                and f.scoped_pattern.pattern.name != "NotFormalizable"
-            ):
-                req.tags["has_formalization"] = ""
-                changes = True
-            else:
-                req.tags["incomplete_formalization"] = req.format_incomplete_formalization_tag(f.id)
-                changes = True
-        if args.reload_type_inference:
-            req.reload_type_inference(var_collection, app)
-        if changes:
-            req.store()
-
-    update_var_usage(var_collection)
 
 
 def create_revision(args, base_revision_name):

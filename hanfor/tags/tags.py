@@ -9,7 +9,6 @@ from pydantic import BaseModel
 from configuration.tags import STANDARD_TAGS
 from defaults import Color
 from reqtransformer import Requirement
-from static_utils import get_filenames_from_dir
 from utils import MetaSettings
 
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
@@ -60,7 +59,6 @@ class TagsApi(MethodView):
     def __init__(self):
         self.app = current_app
         self.meta_settings = MetaSettings(self.app.config["META_SETTINGS_PATH"])
-        self.filenames = get_filenames_from_dir(self.app.config["REVISION_FOLDER"])
         self.__available_tags: dict[str, Tag] = {k: Tag(k, **v) for k, v in self.INIT_TAGS.items()}
         self.__load()
 
@@ -73,12 +71,7 @@ class TagsApi(MethodView):
                 internal=self.meta_settings["tag_internal"][tag_name],
             )
 
-        for filename in self.filenames:
-            try:
-                req = Requirement.load(filename)
-            except TypeError:
-                continue
-
+        for req in self.app.db.get_objets(Requirement):
             for tag_name in req.tags:
                 self.add_if_new(tag_name)
                 self.__available_tags[tag_name].used_by.append(req.rid)
@@ -141,12 +134,10 @@ class TagsApi(MethodView):
         response_data = {}
 
         for rid in request_data.occurrences:
-            filepath = os.path.join(self.app.config["REVISION_FOLDER"], f"{rid}.pickle")
-            if os.path.exists(filepath) and os.path.isfile(filepath):
-                requirement = Requirement.load(filepath)
-                comment = requirement.tags.pop(name)
-                requirement.tags[request_data.name_new] = comment
-                requirement.store()
+            requirement = self.app.db.get_object(Requirement, rid)
+            comment = requirement.tags.pop(name)
+            requirement.tags[request_data.name_new] = comment
+        self.app.db.update()
 
         self.__available_tags.pop(name)
         self.add(request_data.name_new, request_data.color, request_data.internal, request_data.description)
@@ -164,11 +155,9 @@ class TagsApi(MethodView):
         response_data = {}
 
         for rid in request_data.occurrences:
-            filepath = os.path.join(self.app.config["REVISION_FOLDER"], f"{rid}.pickle")
-            if os.path.exists(filepath) and os.path.isfile(filepath):
-                requirement = Requirement.load(filepath)
-                requirement.tags.pop(name)
-                requirement.store()
+            requirement = self.app.db.get_object(Requirement, rid)
+            requirement.tags.pop(name)
+        self.app.db.update()
 
         self.__available_tags.pop(name)
         self.__store()

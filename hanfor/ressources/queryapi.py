@@ -254,7 +254,7 @@ class QueryAPI(Ressource):
     def requirement_data(self):
         if self._requirement_data is None:
             self._requirement_data = dict()
-            for req in Requirement.requirements():
+            for req in self.app.db.get_objects(Requirement):
                 self._requirement_data[req.rid] = QueryAPI.req_dict_to_search_dict(req.to_dict())
         return self._requirement_data
 
@@ -307,9 +307,9 @@ class QueryAPI(Ressource):
         return result
 
     @staticmethod
-    def get_target_names():
+    def get_target_names(app):
         result = list()
-        for req in Requirement.requirements():
+        for req in app.db.get_objects(Requirement):
             result = [key for key in QueryAPI.req_dict_to_search_dict(req.to_dict()).keys()]
             result = sorted(result)
             break
@@ -335,7 +335,7 @@ class QueryAPI(Ressource):
         reload = self.request.args.get("reload", "").strip()
         if show:
             if show == "targets":
-                self.response.data = QueryAPI.get_target_names()
+                self.response.data = QueryAPI.get_target_names(self.app)
         elif name:
             if reload:
                 self.eval_query(name)

@@ -7,7 +7,6 @@ from flask import Blueprint, render_template, Response, current_app
 from flask.views import MethodView
 
 from reqtransformer import Requirement, VariableCollection
-from static_utils import get_filenames_from_dir
 
 BUNDLE_JS = "dist/statistics-bundle.js"
 blueprint = Blueprint("statistics", __name__, template_folder="templates", url_prefix="/statistics")
@@ -27,7 +26,6 @@ def register_api(bp: Blueprint, method_view: Type[MethodView]) -> None:
 class StatisticsApi(MethodView):
     def __init__(self):
         self.app = current_app
-        self.filenames = get_filenames_from_dir(self.app.config["REVISION_FOLDER"])
 
     def get(self) -> str | dict | tuple | Response:
         return self.fetch_statistics()
@@ -49,11 +47,7 @@ class StatisticsApi(MethodView):
             "tags_per_type": dict(),
             "status_per_type": dict(),
         }
-        for requirement_filename in self.filenames:
-            try:
-                requirement = Requirement.load(requirement_filename)
-            except TypeError:
-                continue
+        for requirement in self.app.db.get_objects(Requirement):
             if hasattr(requirement, "type_in_csv"):
                 data["total"] += 1
                 if requirement.status == "Todo":

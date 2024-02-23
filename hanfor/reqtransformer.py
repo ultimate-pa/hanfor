@@ -339,24 +339,6 @@ class Requirement:
         }
         return d
 
-    @classmethod
-    def load_requirement_by_id(cls, id: str, app) -> "Requirement":
-        # TODO: loda
-
-        path = os.path.join(app.config["REVISION_FOLDER"], f"{id}.pickle")
-        if os.path.exists(path) and os.path.isfile(path):
-            return Requirement.load(path)
-
-    @classmethod
-    def requirements(cls):
-        """Iterator for all requirements."""
-        filenames = get_filenames_from_dir(current_app.config["REVISION_FOLDER"])
-        for filename in filenames:
-            try:
-                yield cls.load(filename)
-            except Exception:
-                logging.error(f"Loading {filename} failed spectacularly!")
-
     def store(self, path=None):
         super().store(path)
 
@@ -1112,15 +1094,10 @@ class VariableCollection(HanforVersioned, Pickleable):
                 self.collection[name] = var
 
     def refresh_var_usage(self, app):
-        filenames = get_filenames_from_dir(app.config["REVISION_FOLDER"])
         mapping = dict()
 
         # Add the requirements using this variable.
-        for filename in filenames:
-            try:
-                req = Requirement.load(filename)
-            except TypeError:
-                continue
+        for req in app.db.get_objects(Requirement):
             for formalization in req.formalizations.values():
                 try:
                     for var_name in formalization.used_variables:

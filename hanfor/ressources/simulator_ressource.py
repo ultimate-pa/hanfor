@@ -172,7 +172,7 @@ class SimulatorRessource(Ressource):
         ]
 
         for requirement_id in requirement_ids:
-            requirement = Requirement.load_requirement_by_id(requirement_id, self.app)
+            requirement = self.app.db.get_object(Requirement, requirement_id)
             formalizations = {}
             for formalization in requirement.formalizations.values():
                 counter_traces = []
@@ -328,7 +328,7 @@ class SimulatorRessource(Ressource):
     def create_phase_event_automata(requirement_id: str, var_collection, app: Flask) -> list[PhaseSetsPea] | None:
         result = []
 
-        requirement = Requirement.load_requirement_by_id(requirement_id, app)
+        requirement = app.db.get_object(Requirement, requirement_id)
 
         variables = {k: v.type for k, v in var_collection.collection.items()}
         boogie_parser = boogie_parsing.get_parser_instance()

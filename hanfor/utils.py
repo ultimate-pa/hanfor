@@ -384,7 +384,7 @@ def update_variable_in_collection(app, request):
             for old_enumerator_name, new_enumerator_name in affected_enumerators:
                 # Todo: Implement this more eff.
                 # Todo: Refactor Formalizations to use hashes as vars and fetch them in __str__ from the var collection.
-                requirements = get_requirements(app.config["REVISION_FOLDER"])
+                requirements = get_requirements(app)
                 affected_requirements = get_requirements_using_var(requirements, old_enumerator_name)
                 rename_variable_in_expressions(app, affected_requirements, old_enumerator_name, new_enumerator_name)
 
@@ -424,7 +424,7 @@ def update_variable_in_collection(app, request):
         logging.info("Update derived types by parsing affected formalizations.")
         if reload_type_inference and var_name in var_collection.var_req_mapping:
             for rid in var_collection.var_req_mapping[var_name]:
-                requirement = Requirement.load_requirement_by_id(rid, app)
+                requirement = app.db.get_object(Requirement, rid)
                 if requirement:
                     requirement.run_type_checks(var_collection)
             app.db.update()
@@ -483,25 +483,23 @@ def rename_variable_in_expressions(app, occurrences, var_name_old, var_name):
     """
     logging.debug("Update requirements using old var `{}` to `{}`".format(var_name_old, var_name))
     for rid in occurrences:
-        filepath = os.path.join(app.config["REVISION_FOLDER"], "{}.pickle".format(rid))
-        if os.path.exists(filepath) and os.path.isfile(filepath):
-            requirement = Requirement.load(filepath)
-            # replace in every formalization
-            for index, formalization in requirement.formalizations.items():
-                for key, expression in formalization.expressions_mapping.items():
-                    if var_name_old not in expression.raw_expression:
-                        continue
-                    new_expression = boogie_parsing.replace_var_in_expression(
-                        expression=expression.raw_expression, old_var=var_name_old, new_var=var_name
-                    )
-                    requirement.formalizations[index].expressions_mapping[key].raw_expression = new_expression
-                    requirement.formalizations[index].expressions_mapping[key].used_variables.discard(var_name_old)
-                    requirement.formalizations[index].expressions_mapping[key].used_variables.add(var_name)
-            logging.debug("Updated variables in requirement id: `{}`.".format(requirement.rid))
-            requirement.store(filepath)
+        requirement = app.db.get_object(Requirement, rid)
+        # replace in every formalization
+        for index, formalization in requirement.formalizations.items():
+            for key, expression in formalization.expressions_mapping.items():
+                if var_name_old not in expression.raw_expression:
+                    continue
+                new_expression = boogie_parsing.replace_var_in_expression(
+                    expression=expression.raw_expression, old_var=var_name_old, new_var=var_name
+                )
+                requirement.formalizations[index].expressions_mapping[key].raw_expression = new_expression
+                requirement.formalizations[index].expressions_mapping[key].used_variables.discard(var_name_old)
+                requirement.formalizations[index].expressions_mapping[key].used_variables.add(var_name)
+        logging.debug("Updated variables in requirement id: `{}`.".format(requirement.rid))
+    app.db.update()
 
 
-def get_requirements(input_dir, filter_list=None, invert_filter=False):
+def get_requirements(app, filter_list=None, invert_filter=False):
     """Load all requirements from session folder and return in a list.
     Orders the requirements based on their position in the CSV used to create the session (pos_in_csv).
 
@@ -512,9 +510,6 @@ def get_requirements(input_dir, filter_list=None, invert_filter=False):
     :param invert_filter: Exclude filter
     :type invert_filter: bool
     """
-    filenames = [
-        os.path.join(input_dir, f) for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, f))
-    ]
 
     def should_be_in_result(req) -> bool:
         if filter_list is None:
@@ -522,15 +517,10 @@ def get_requirements(input_dir, filter_list=None, invert_filter=False):
         return (req.rid in filter_list) != invert_filter
 
     requirements = list()
-    for filename in filenames:
-        try:
-            req = Requirement.load(filename)
-        except TypeError:
-            continue
-        if hasattr(req, "rid"):
-            if should_be_in_result(req):
-                logging.debug("Adding {} to results.".format(req.rid))
-                requirements.append(req)
+    for req in app.db.get_objects(Requirement):
+        if should_be_in_result(req):
+            logging.debug("Adding {} to results.".format(req.rid))
+            requirements.append(req)
 
     # We want to preserve the order of the generated CSV relative to the origin CSV.
     requirements.sort(key=lambda x: x.pos_in_csv)
@@ -551,7 +541,7 @@ def generate_csv_file_content(app, filter_list=None, invert_filter=False):
     :rtype: str
     """
     # Get requirements
-    requirements = get_requirements(app.config["REVISION_FOLDER"], filter_list=filter_list, invert_filter=invert_filter)
+    requirements = get_requirements(app, filter_list=filter_list, invert_filter=invert_filter)
 
     # get session status
     session_dict = pickle_load_from_dump(app.config["SESSION_STATUS_PATH"])  # type: dict
@@ -589,7 +579,7 @@ def generate_csv_file_content(app, filter_list=None, invert_filter=False):
 
 def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter: bool = False) -> io.BytesIO:
     """Generates the xlsx file content for a session."""
-    requirements = get_requirements(app.config["REVISION_FOLDER"], filter_list=filter_list, invert_filter=invert_filter)
+    requirements = get_requirements(app, filter_list=filter_list, invert_filter=invert_filter)
     var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
     session_dict = pickle_load_from_dump(app.config["SESSION_STATUS_PATH"])
     meta_settings = MetaSettings(app.config["META_SETTINGS_PATH"])
@@ -767,7 +757,7 @@ def generate_req_file_content(app, filter_list=None, invert_filter=False, variab
     """
     logging.info("Generating .req file content for session {}".format(app.config["SESSION_TAG"]))
     # Get requirements
-    requirements = get_requirements(app.config["REVISION_FOLDER"], filter_list=filter_list, invert_filter=invert_filter)
+    requirements = get_requirements(app, filter_list=filter_list, invert_filter=invert_filter)
 
     var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
     available_vars = []
@@ -1105,19 +1095,6 @@ def generate_file_response(content, name, mimetype="text/plain"):
     return response
 
 
-def get_requirements_in_folder(folder_path):
-    result = dict()
-    for filename in get_filenames_from_dir(folder_path):
-        try:
-            r = Requirement.load(filename)
-            result[r.rid] = {"req": r, "path": filename}
-        except TypeError:
-            continue
-        except Exception as e:
-            raise e
-    return result
-
-
 def init_var_collection(app):
     """Creates a new empty VariableCollection if non is existent for current session."""
     if not os.path.exists(app.config["SESSION_VARIABLE_COLLECTION"]):
@@ -1191,7 +1168,7 @@ class GenerateScopedPatternTrainingData(argparse.Action):
             for revision in revisions:
                 current_revision_folder = os.path.join(current_session_folder, revision)
                 logging.debug("Processing `{}`".format(current_revision_folder))
-                requirements = get_requirements(current_revision_folder)
+                requirements = get_requirements(self.app)
                 logging.debug("Found {} requirements .. fetching the formalized ones.".format(len(requirements)))
                 used_slugs = set()
                 for requirement in requirements:
@@ -1434,8 +1411,9 @@ class Revision:
     def _merge_with_base_revision(self):
         # Merge the old revision into the new revision
         logging.info(f"Merging `{self.base_revision_name}` into `{self.revision_name}`.")
-        old_reqs = get_requirements_in_folder(self.base_revision_folder)
-        new_reqs = get_requirements_in_folder(self.app.config["REVISION_FOLDER"])
+        # TODO Json DB
+        old_reqs = {}  # get_requirements_in_folder(self.base_revision_folder)
+        new_reqs = {}  # get_requirements_in_folder(self.app.config["REVISION_FOLDER"])
 
         # Diff the new requirements against the old ones.
         for rid in new_reqs.keys():

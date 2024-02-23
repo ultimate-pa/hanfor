@@ -167,14 +167,14 @@ def get_all_requirement_ids() -> list[str]:
     """ "
     returns a list of (requirementID, requirementID without -)
     """
-    requirements = get_requirements(current_app.config["REVISION_FOLDER"])
+    requirements = get_requirements(current_app)
     return [requirement.rid for requirement in requirements]
 
 
 def add_ultimate_result_to_requirement(
     requirement_id: str, ultimate_results: list[dict], ultimate_job: UltimateJob
 ) -> None:
-    requirement = Requirement.load_requirement_by_id(requirement_id, current_app)
+    requirement = current_app.db.get_object(Requirement, requirement_id)
     if not requirement:
         return
     tmp = f"# {ultimate_job.job_id} ({ultimate_job.last_update})\n"
