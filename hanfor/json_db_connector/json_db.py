@@ -145,6 +145,40 @@ class DatabaseField:
         return cls
 
 
+class DatabaseNonSavedField:
+    registry: dict[type, dict[str, any]] = {}
+
+    def __init__(self, field: str = None, default: any = None):
+        self._field = field
+        self._default = default
+        if field is None:
+            # empty brackets
+            return
+        if inspect.isclass(field):
+            raise DatabaseDefinitionError(
+                f"DatabaseNonSavedField must be set to the name and default value of an field of the class: " f"{field}"
+            )
+
+    def __call__(self, cls):
+        if self._field is None:
+            # empty brackets
+            raise DatabaseDefinitionError(
+                f"DatabaseNonSavedField must be set to the name and default value of an field of the class: " f"{cls}"
+            )
+        if not type(self._field) is str:
+            # first argument is not a string
+            raise DatabaseDefinitionError(f"Name of DatabaseNonSavedField must be of type str: {cls}")
+        if cls not in self.registry:
+            self.registry[cls] = {}
+        # check if field of class with name exists already
+        if self._field in self.registry[cls]:
+            raise DatabaseDefinitionError(
+                f"DatabaseNonSavedField with name {self._field} already exists in class {cls}."
+            )
+        self.registry[cls][self._field] = self._default
+        return cls
+
+
 class DatabaseFieldType:
     registry: set[type] = set()
 
@@ -202,6 +236,7 @@ class JsonDatabase:
         tables: set[type] = set(DatabaseTable.registry.keys())
         id_fields: set[type] = set(DatabaseID.registry.keys())
         db_fields: set[type] = set(DatabaseField.registry.keys())
+        db_non_saved_fields: set[type] = set(DatabaseNonSavedField.registry.keys())
         field_types: set[type] = DatabaseFieldType.registry
         custom_serializer: set[type] = set(self.__custom_serializer.keys())
 
@@ -244,6 +279,13 @@ class JsonDatabase:
                 f"{db_fields.difference(tables.union(field_types))}"
             )
 
+        if db_non_saved_fields.difference(tables.union(field_types)):
+            raise DatabaseInitialisationError(
+                f"The following classes are marked with non saved fields but not as an "
+                f"DatabaseTable or DatabaseFieldType:\n"
+                f"{db_fields.difference(tables.union(field_types))}"
+            )
+
         if field_types.difference(db_fields):
             raise DatabaseInitialisationError(
                 f"The following classes are marked as DatabaseFieldType but don't have "
@@ -270,13 +312,18 @@ class JsonDatabase:
             id_field = DatabaseID.registry[cls][0]
             id_type = DatabaseID.registry[cls][1]
             fields = {}
-            for f_name, (f_type, f_default) in DatabaseField.registry[cls].items():
-                if type(f_type) is str:
-                    f_type = self.__get_cls_from_cls_name(
-                        f_type, tables.union(field_types).union(self.__custom_serializer.keys())
-                    )
-                fields[f_name] = f_type, f_default
-            self._tables[cls] = JsonDatabaseTable(self, cls, table_type, id_field, id_type, fields)
+            if cls in DatabaseField.registry:
+                for f_name, (f_type, f_default) in DatabaseField.registry[cls].items():
+                    if type(f_type) is str:
+                        f_type = self.__get_cls_from_cls_name(
+                            f_type, tables.union(field_types).union(self.__custom_serializer.keys())
+                        )
+                    fields[f_name] = f_type, f_default
+            non_saved_fields = {}
+            if cls in DatabaseNonSavedField.registry:
+                for f_name, f_default in DatabaseNonSavedField.registry[cls].items():
+                    non_saved_fields[f_name] = f_default
+            self._tables[cls] = JsonDatabaseTable(self, cls, table_type, id_field, id_type, fields, non_saved_fields)
 
         # create field types
         for cls in DatabaseFieldType.registry:
@@ -485,6 +532,7 @@ class JsonDatabaseTable:
         id_field: str,
         id_type: type,
         fields: dict[str, tuple[any, any]],
+        non_saved_fields: dict[str, any],
     ) -> None:
         self.__db: JsonDatabase = db
         self.cls: CLS_TYPE = cls
@@ -492,6 +540,7 @@ class JsonDatabaseTable:
         self.id_field: str = id_field
         self.id_type: ID_TYPE = id_type
         self.fields: dict[str, tuple[any, any]] = fields
+        self.__non_saved_fields: dict[str, any] = non_saved_fields
         self.__data: dict[ID_TYPE, CLS_TYPE] = {}
         self.__meta_data: dict[ID_TYPE, JsonDatabaseMetaData] = {}
         self.__json_data: dict[str | int, any] = {}
@@ -653,6 +702,9 @@ class JsonDatabaseTable:
     def __fill_objects(self) -> None:
         for obj_id, data in self.__json_data.items():
             self.__fill_object_from_dict(self.__data[obj_id], data)
+        for obj in self.__data.values():
+            for field, default_value in self.__non_saved_fields.items():
+                setattr(obj, field, deepcopy(default_value))
 
     def __create_and_insert_object(self, obj_id: ID_TYPE, obj_data: dict) -> None:
         obj = CLS_TYPE.__new__(self.cls)

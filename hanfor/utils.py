@@ -34,7 +34,7 @@ except ModuleNotFoundError:
     logging.error(msg)
     raise FileNotFoundError(msg)
 
-from reqtransformer import VarImportSessions, VariableCollection, Requirement, ScriptEvals, RequirementCollection
+from reqtransformer import VariableCollection, Requirement, ScriptEvals, RequirementCollection
 from static_utils import (
     pickle_dump_obj_to_file,
     pickle_load_from_dump,
@@ -206,38 +206,6 @@ def varcollection_diff_info(app, request):
     result = {"tot_vars": len(requested_var_collection.collection), "new_vars": numb_new_vars}
 
     return result
-
-
-def varcollection_create_new_import_session(app, source_session_name, source_revision_name):
-    """Creates a new blank variable collection import session.
-    Returns the associated session_id or -1 if the creation fails.
-
-    :param app: Current flask app.
-    :param source_session_name:
-    :param source_revision_name:
-    """
-    current_var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
-    source_var_collection_path = os.path.join(
-        app.config["SESSION_BASE_FOLDER"],
-        source_session_name,
-        source_revision_name,
-        "session_variable_collection.pickle",
-    )
-    source_var_collection = VariableCollection.load(source_var_collection_path)
-
-    # load import_sessions
-    var_import_sessions_path = os.path.join(app.config["SESSION_BASE_FOLDER"], "variable_import_sessions.pickle")
-    try:
-        var_import_sessions = VarImportSessions.load(var_import_sessions_path)
-    except FileNotFoundError:
-        var_import_sessions = VarImportSessions(path=var_import_sessions_path)
-        var_import_sessions.store()
-
-    session_id = var_import_sessions.create_new_session(
-        source_collection=source_var_collection, target_collection=current_var_collection
-    )
-
-    return session_id
 
 
 def get_requirements_using_var(requirements: list, var_name: str):

@@ -2,6 +2,7 @@ import os
 from dataclasses import dataclass, field
 from typing import Type
 
+import uuid
 from flask import Blueprint, Response, current_app, jsonify, render_template, request
 from flask.views import MethodView
 from pydantic import BaseModel
@@ -11,7 +12,7 @@ from defaults import Color
 from reqtransformer import Requirement
 from utils import MetaSettings
 
-from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
+from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField, DatabaseNonSavedField
 from uuid import UUID
 
 BUNDLE_JS = "dist/tags-bundle.js"
@@ -30,15 +31,15 @@ def index():
 @DatabaseField("color", str)
 @DatabaseField("internal", bool)
 @DatabaseField("description", str)
-@DatabaseField("used_by", list[str])
+@DatabaseNonSavedField("used_by", [])
 @dataclass
 class Tag:
-    uuid: UUID
     name: str
     color: str
     internal: bool
     description: str
     used_by: list = field(default_factory=list)
+    uuid: UUID = None
 
 
 def register_api(bp: Blueprint, method_view: Type[MethodView]) -> None:
@@ -63,27 +64,19 @@ class TagsApi(MethodView):
         self.__load()
 
     def __load(self):
-        for tag_name in self.meta_settings["tag_colors"]:
-            self.__available_tags[tag_name] = Tag(
-                name=tag_name,
-                color=self.meta_settings["tag_colors"][tag_name],
-                description=self.meta_settings["tag_descriptions"][tag_name],
-                internal=self.meta_settings["tag_internal"][tag_name],
-            )
+        for tag in self.app.db.get_objects(Tag).values():
+            self.__available_tags[tag.name] = tag
+            tag.used_by.clear()
 
-        for req in self.app.db.get_objets(Requirement):
+        for req in self.app.db.get_objects(Requirement).values():
             for tag_name in req.tags:
-                self.add_if_new(tag_name)
                 self.__available_tags[tag_name].used_by.append(req.rid)
 
         for tag in self.__available_tags.values():
             tag.used_by.sort()
 
     def __store(self):
-        self.meta_settings["tag_colors"] = {t.name: t.color for _, t in self.__available_tags.items()}
-        self.meta_settings["tag_internal"] = {t.name: t.internal for _, t in self.__available_tags.items()}
-        self.meta_settings["tag_descriptions"] = {t.name: t.description for _, t in self.__available_tags.items()}
-        self.meta_settings.update_storage()
+        self.app.db.update()
 
     def add_if_new(self, tag_name: str) -> None:
         if tag_name not in self.__available_tags:
@@ -92,8 +85,7 @@ class TagsApi(MethodView):
     def add(
         self, tag_name: str, tag_color: str = Color.BS_INFO.value, tag_internal: bool = False, tag_description: str = ""
     ) -> None:
-        self.__available_tags[tag_name] = Tag(tag_name, tag_color, tag_internal, tag_description)
-        self.__store()
+        self.app.db.add_object(Tag(tag_name, tag_color, tag_internal, tag_description))
 
     def get(self, name: str | None) -> str | dict | tuple | Response:
         if name is None:
@@ -134,13 +126,21 @@ class TagsApi(MethodView):
         response_data = {}
 
         for rid in request_data.occurrences:
+            if rid == "":  # TODO frontend should not send an empty string
+                continue
             requirement = self.app.db.get_object(Requirement, rid)
             comment = requirement.tags.pop(name)
             requirement.tags[request_data.name_new] = comment
+
+        self.__available_tags[name].name = request_data.name_new
+        self.__available_tags[name].color = request_data.color
+        self.__available_tags[name].description = request_data.description
+        self.__available_tags[name].internal = request_data.internal
         self.app.db.update()
 
-        self.__available_tags.pop(name)
-        self.add(request_data.name_new, request_data.color, request_data.internal, request_data.description)
+        if name != request_data.name_new:
+            self.__available_tags[request_data.name_new] = self.__available_tags[name]
+            del self.__available_tags[name]
 
         return response_data
 

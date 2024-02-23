@@ -24,7 +24,7 @@ import reqtransformer
 import utils
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
-from reqtransformer import Requirement, VariableCollection, Variable, VarImportSessions, Formalization, Scope
+from reqtransformer import Requirement, VariableCollection, Variable, Scope
 from ressources import Report, QueryAPI
 from ressources.simulator_ressource import SimulatorRessource
 from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, hash_file_sha1
@@ -157,7 +157,6 @@ def api(resource, command):
         "del_constraint",
         "add_new_variable",
         "get_enumerators",
-        "start_import_session",
         "gen_req",
         "add_standard",
         "import_csv",
@@ -599,21 +598,6 @@ def api(resource, command):
             result["enumerators"] = enum_results
 
             return jsonify(result)
-        elif command == "start_import_session":
-            result = {"success": True, "errormsg": ""}
-            # create a new import session.
-            source_session_name = request.form.get("sess_name", "").strip()
-            source_revision_name = request.form.get("sess_revision", "").strip()
-
-            result["session_id"] = utils.varcollection_create_new_import_session(
-                app=app, source_session_name=source_session_name, source_revision_name=source_revision_name
-            )
-
-            if result["session_id"] < 0:
-                result["success"] = False
-                result["errormsg"] = "Could not create the import session."
-
-            return jsonify(result)
         elif command == "gen_req":
             content = utils.generate_req_file_content(app, variables_only=True)
             name = "{}_variables_only.req".format(app.config["CSV_INPUT_FILE"][:-4])
@@ -680,100 +664,6 @@ def variable_import(id):
     return render_template("variables/variable-import-session.html", id=id, query=request.args, patterns=PATTERNS)
 
 
-@app.route("/variable_import/api/<session_id>/<command>", methods=["GET", "POST"])
-@nocache
-def var_import_session(session_id, command):
-    result = {
-        "success": False,
-    }
-    var_import_sessions = VarImportSessions.load_for_app(app.config["SESSION_BASE_FOLDER"])
-
-    if command == "get_var":
-        result = dict()
-        name = request.form.get("name", "")
-        which_collection = request.form.get("which_collection", "")
-
-        try:
-            var_collection = var_import_sessions.import_sessions[int(session_id)]
-            if which_collection == "source_link":
-                var_collection = var_collection.source_var_collection
-            if which_collection == "target_link":
-                var_collection = var_collection.target_var_collection
-            if which_collection == "result_link":
-                var_collection = var_collection.result_var_collection
-            result = var_collection.collection[name].to_dict(var_collection.var_req_mapping)
-            return jsonify(result), 200
-        except Exception:
-            logging.info("Could not load var: {} from import session: {}".format(name, session_id))
-
-    if command == "get_table_data":
-        result = dict()
-        try:
-            result = {"data": var_import_sessions.import_sessions[int(session_id)].to_datatables_data()}
-            return jsonify(result), 200
-        except Exception as e:
-            logging.info("Could not load session with id: {} ({})".format(session_id, e))
-            raise e
-
-    if command == "store_table":
-        rows = json.loads(request.form.get("rows", ""))
-        try:
-            logging.info("Store changes for variable import session: {}".format(session_id))
-            var_import_sessions.import_sessions[int(session_id)].store_changes(rows)
-            var_import_sessions.store()
-            result["success"] = True
-            return jsonify(result), 200
-        except Exception as e:
-            logging.info("Could not store table: {}".format(e))
-            result["success"] = False
-            result["errormsg"] = "Could not store: {}".format(e)
-
-    if command == "store_variable":
-        row = json.loads(request.form.get("row", ""))
-        try:
-            logging.info('Store changes for variable "{}" of import session: {}'.format(row["name"], session_id))
-            var_import_sessions.import_sessions[int(session_id)].store_variable(row)
-            var_import_sessions.store()
-            result["success"] = True
-            return jsonify(result), 200
-        except Exception as e:
-            logging.info("Could not store table: {}".format(e))
-            result["success"] = False
-            result["errormsg"] = "Could not store: {}".format(e)
-
-    if command == "apply_import":
-        try:
-            logging.info("Apply import for variable import session: {}".format(session_id))
-            var_import_sessions.import_sessions[int(session_id)].apply_constraint_selection()
-            var_import_sessions.store()
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
-            import_collection = var_import_sessions.import_sessions[int(session_id)].result_var_collection
-            var_collection.import_session(import_collection)
-            var_collection.store()
-            varcollection_consistency_check(app)
-            result["success"] = True
-            return jsonify(result), 200
-        except Exception as e:
-            logging.info("Could not apply import: {}".format(e))
-            result["success"] = False
-            result["errormsg"] = "Could not apply import: {}".format(e)
-
-    if command == "delete_me":
-        try:
-            logging.info(f"Deleting variable import session id: {session_id}")
-            var_import_sessions.import_sessions.pop(int(session_id))
-            var_import_sessions.store()
-            result["success"] = True
-            return jsonify(result), 200
-        except Exception as e:
-            error_msg = f"Could not delete session with id {session_id} due to: {e}"
-            logging.info(error_msg)
-            result["success"] = False
-            result["errormsg"] = error_msg
-
-    return jsonify(result), 400
-
-
 @app.route("/<site>")
 def site(site):
     available_sites = [
@@ -784,14 +674,9 @@ def site(site):
     ]
     if site in available_sites:
         if site == "variables":
-            available_sessions = utils.get_stored_session_names(
-                app.config["SESSION_BASE_FOLDER"], only_names=True, with_revisions=True
-            )
-            running_import_sessions = VarImportSessions.load_for_app(app.config["SESSION_BASE_FOLDER"]).info()
             return render_template(
                 "{}.html".format(site + "/" + site),
-                available_sessions=available_sessions,
-                running_import_sessions=running_import_sessions,
+                available_sessions=[],
                 query=request.args,
                 patterns=PATTERNS,
             )
@@ -990,16 +875,6 @@ def set_session_config_vars(args, HERE):
     app.config["SESSION_FOLDER"] = os.path.join(app.config["SESSION_BASE_FOLDER"], app.config["SESSION_TAG"])
 
 
-def init_import_sessions():
-    """Create import session file"""
-    var_import_sessions_path = os.path.join(app.config["SESSION_BASE_FOLDER"], "variable_import_sessions.pickle")
-    try:
-        VarImportSessions.load(var_import_sessions_path)
-    except FileNotFoundError:
-        var_import_sessions = VarImportSessions(path=var_import_sessions_path)
-        var_import_sessions.store()
-
-
 def init_meta_settings():
     """Create meta setting file"""
     app.config["META_SETTINGS_PATH"] = os.path.join(app.config["SESSION_FOLDER"], "meta_settings.pickle")
@@ -1131,7 +1006,6 @@ def startup_hanfor(args, HERE) -> bool:
     # Initialize variables collection, import session, meta settings.
     init_script_eval_results()
     utils.init_var_collection(app)
-    init_import_sessions()
     init_meta_settings()
     init_frontend_logs()
     utils.config_check(app.config)
