@@ -169,7 +169,7 @@ def api(resource, command):
         if command == "get" and request.method == "GET":
             id = request.args.get("id", "")
             requirement = app.db.get_object(Requirement, id)
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            var_collection = VariableCollection(app)
 
             result = requirement.to_dict(include_used_vars=True)
             result["formalizations_html"] = utils.formalizations_to_html(app, requirement.formalizations)
@@ -336,7 +336,7 @@ def api(resource, command):
             else:
                 result["available_guesses"] = list()
                 tmp_guesses = list()
-                var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+                var_collection = VariableCollection(app)
 
                 for guesser in REGISTERED_GUESSERS:
                     try:
@@ -401,7 +401,7 @@ def api(resource, command):
                 result["success"] = False
                 result["errormsg"] = "No requirements selected."
 
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            var_collection = VariableCollection(app)
             for req_id in requirement_ids:
                 requirement = app.db.get_object(Requirement, req_id)
                 if requirement is not None:
@@ -471,7 +471,7 @@ def api(resource, command):
             if result["success"]:
                 if len(change_type) > 0:  # Change the var type.
                     logging.debug("Change type to `{}`.\nAffected Vars:\n{}".format(change_type, "\n".join(var_list)))
-                    var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+                    var_collection = VariableCollection(app)
                     for var_name in var_list:
                         try:
                             logging.debug(
@@ -486,7 +486,7 @@ def api(resource, command):
 
                 if delete == "true":
                     logging.info("Deleting variables.\nAffected Vars:\n{}".format("\n".join(var_list)))
-                    var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+                    var_collection = VariableCollection(app)
                     for var_name in var_list:
                         try:
                             logging.debug("Deleting `{}`".format(var_name))
@@ -500,7 +500,7 @@ def api(resource, command):
             result = {"success": True, "errormsg": ""}
             var_name = request.form.get("name", "").strip()
 
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            var_collection = VariableCollection(app)
             cid = var_collection.add_new_constraint(var_name=var_name)
             var_collection.store()
             result["html"] = utils.formalizations_to_html(
@@ -515,7 +515,7 @@ def api(resource, command):
                 "type_inference_errors": dict(),
             }
             var_name = request.form.get("name", "").strip()
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            var_collection = VariableCollection(app)
             try:
                 var = var_collection.collection[var_name]
                 var_dict = var.to_dict(var_collection.var_req_mapping)
@@ -531,7 +531,7 @@ def api(resource, command):
             var_name = request.form.get("name", "").strip()
             constraint_id = int(request.form.get("constraint_id", "").strip())
 
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            var_collection = VariableCollection(app)
             var_collection.del_constraint(var_name=var_name, constraint_id=constraint_id)
             var_collection.collection[var_name].reload_constraints_type_inference_errors(var_collection)
             var_collection.store()
@@ -542,7 +542,7 @@ def api(resource, command):
             result = {"success": True, "errormsg": ""}
             var_name = request.form.get("name", "").strip()
 
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            var_collection = VariableCollection(app)
             try:
                 logging.debug("Deleting `{}`".format(var_name))
                 success = var_collection.del_var(var_name)
@@ -558,7 +558,7 @@ def api(resource, command):
             variable_name = request.form.get("name", "").strip()
             variable_type = request.form.get("type", "").strip()
             variable_value = request.form.get("value", "").strip()
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            var_collection = VariableCollection(app)
 
             # Apply some tests if the new Variable is legal.
             if len(variable_name) == 0 or not re.match("^[a-zA-Z0-9_]+$", variable_name):
@@ -588,7 +588,7 @@ def api(resource, command):
         elif command == "get_enumerators":
             result = {"success": True, "errormsg": ""}
             enum_name = request.form.get("name", "").strip()
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            var_collection = VariableCollection(app)
             enumerators = var_collection.get_enumerators(enum_name)
             enum_results = [(enumerator.name, enumerator.value) for enumerator in enumerators]
             try:
@@ -607,7 +607,7 @@ def api(resource, command):
             result = {"success": True, "errormsg": ""}
 
             variables_csv_str = request.form.get("variables_csv_str", "")
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            var_collection = VariableCollection(app)
 
             dict_reader = csv.DictReader(variables_csv_str.splitlines())
             variables = list(dict_reader)
@@ -757,7 +757,7 @@ def update_var_usage(var_collection):
 def varcollection_version_migrations(app, args):
     """migrate old collection format"""
     try:
-        VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+        VariableCollection(app)
     except ImportError:
         # The "old" var_collection before the refactoring.
         sys.modules["reqtransformer.reqtransformer"] = reqtransformer
@@ -770,7 +770,7 @@ def varcollection_version_migrations(app, args):
         del sys.modules["reqtransformer.reqtransformer"]
         del sys.modules["reqtransformer.patterns"]
 
-        new_var_collection = VariableCollection(path=app.config["SESSION_VARIABLE_COLLECTION"])
+        new_var_collection = VariableCollection(app)
         for var in vars_to_collection:
             new_var_collection.collection[var["name"]] = Variable(var["name"], var["type"], var["value"])
         new_var_collection.store()
@@ -780,7 +780,7 @@ def varcollection_version_migrations(app, args):
 def varcollection_consistency_check(app, args=None):
     logging.info("Check Variables for consistency.")
     # Update usages and constraint type check.
-    var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+    var_collection = VariableCollection(app)
     if args is not None and args.reload_type_inference:
         var_collection.reload_type_inference_errors_in_constraints()
 
@@ -1005,7 +1005,6 @@ def startup_hanfor(args, HERE) -> bool:
 
     # Initialize variables collection, import session, meta settings.
     init_script_eval_results()
-    utils.init_var_collection(app)
     init_meta_settings()
     init_frontend_logs()
     utils.config_check(app.config)

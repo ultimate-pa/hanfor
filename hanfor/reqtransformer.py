@@ -232,15 +232,15 @@ class RequirementCollection(HanforVersioned, Pickleable):
                     r for r in available_sessions[available_sessions_names.index(chosen_session)]["revisions"]
                 ]
                 revision_choice = choice(available_revisions, available_revisions[0])
-                imported_var_collection = VariableCollection.load(
-                    os.path.join(
-                        app.config["SESSION_BASE_FOLDER"],
-                        chosen_session,
-                        revision_choice,
-                        "session_variable_collection.pickle",
-                    )
-                )
-                imported_var_collection.store(app.config["SESSION_VARIABLE_COLLECTION"])
+                # imported_var_collection = VariableCollection.load(
+                #     os.path.join(
+                #         app.config["SESSION_BASE_FOLDER"],
+                #         chosen_session,
+                #         revision_choice,
+                #         "session_variable_collection.pickle",
+                #     )
+                # )
+                # imported_var_collection.store(app.config["SESSION_VARIABLE_COLLECTION"])
             else:
                 print("No sessions available. Skipping")
 
@@ -381,7 +381,7 @@ class Requirement:
 
     def delete_formalization(self, formalization_id, app):
         formalization_id = int(formalization_id)
-        variable_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+        variable_collection = VariableCollection(app)
 
         # Remove formalization
         del self.formalizations[formalization_id]
@@ -395,11 +395,11 @@ class Requirement:
         # Update the mappings.
         variable_collection.req_var_mapping[self.rid] = remaining_vars
         variable_collection.var_req_mapping = variable_collection.invert_mapping(variable_collection.req_var_mapping)
-        variable_collection.store(app.config["SESSION_VARIABLE_COLLECTION"])
+        variable_collection.store()
 
     def update_formalization(self, formalization_id, scope_name, pattern_name, mapping, app, variable_collection=None):
         if variable_collection is None:
-            variable_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            variable_collection = VariableCollection(app)
 
         # set scoped pattern
         self.formalizations[formalization_id].scoped_pattern = ScopedPattern(
@@ -466,7 +466,7 @@ class Requirement:
         if "has_formalization" in self.tags:
             self.tags.pop("has_formalization")
         logging.debug(f"Updating formalisations of requirement {self.rid}.")
-        variable_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+        variable_collection = VariableCollection(app)
         # Reset the var mapping.
         variable_collection.req_var_mapping[self.rid] = set()
 
@@ -839,29 +839,20 @@ class ScopedPattern:
         return result
 
 
-class VariableCollection(HanforVersioned, Pickleable):
-    def __init__(self, path):
-        HanforVersioned.__init__(self)
-        Pickleable.__init__(self, path)
-        self.collection: Dict[str, Variable] = dict()
-        self.req_var_mapping = dict()
-        self.var_req_mapping = dict()
+class VariableCollection:
+    def __init__(self, app):
+        self.app = app
+        self.collection: Dict[str, Variable] = dict(app.db.get_objects(Variable))
+        self.req_var_mapping = defaultdict(set)
+        for req_id, req in app.db.get_objects(Requirement).items():  # type: Requirement
+            for formalization in req.formalizations.values():
+                for expression in formalization.expressions_mapping.values():
+                    for var in expression.used_variables:
+                        self.req_var_mapping[req_id].add(var)
+        self.var_req_mapping = self.invert_mapping(self.req_var_mapping)
 
     def __contains__(self, item):
         return item in self.collection.keys()
-
-    @classmethod
-    def load(cls, path) -> "VariableCollection":
-        me = Pickleable.load(path)
-        if not isinstance(me, cls):
-            raise TypeError
-
-        if me.outdated:
-            logging.info(f"`{me}` needs upgrade `{me.hanfor_version}` -> `{__version__}`")
-            me.run_version_migrations()
-            me.store()
-
-        return me
 
     def get_available_vars_list(self, sort_by=None, used_only=False, exclude_types=frozenset()):
         """Returns a list of all available var names."""
@@ -896,10 +887,11 @@ class VariableCollection(HanforVersioned, Pickleable):
                 variable = Variable(var_name, None, None)
             logging.debug(f"Adding variable `{var_name}` to collection.")
             self.collection[variable.name] = variable
+            self.app.db.add_object(variable)
 
-    def store(self, path=None):
+    def store(self):
         self.var_req_mapping = self.invert_mapping(self.req_var_mapping)
-        super().store(path)
+        self.app.db.update()
 
     def invert_mapping(self, mapping):
         newdict = {}
@@ -1412,7 +1404,7 @@ class Variable:
         logging.debug(f"Updating constraints for variable `{self.name}`.")
         self.remove_tag("Type_inference_error")
         if variable_collection is None:
-            variable_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            variable_collection = VariableCollection(app)
 
         for constraint in constraints.values():
             logging.debug(f"Updating formalization No. {constraint['id']}.")

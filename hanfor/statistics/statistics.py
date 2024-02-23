@@ -75,7 +75,7 @@ class StatisticsApi(MethodView):
             data["type_colors"].append("#%06x" % random.randint(0, 0xFFFFFF))
 
         # Gather most used variables.
-        var_collection = VariableCollection.load(self.app.config["SESSION_VARIABLE_COLLECTION"])
+        var_collection = VariableCollection(self.app)
         var_usage = []
 
         var_nodes = dict()

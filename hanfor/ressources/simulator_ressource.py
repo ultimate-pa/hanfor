@@ -138,7 +138,7 @@ class SimulatorRessource(Ressource):
             return
 
         peas = []
-        var_collection = VariableCollection.load(self.app.config["SESSION_VARIABLE_COLLECTION"])
+        var_collection = VariableCollection(self.app)
 
         for requirement_id in requirement_ids:
             peas_tmp = SimulatorRessource.create_phase_event_automata(requirement_id, var_collection, self.app)
@@ -165,7 +165,7 @@ class SimulatorRessource(Ressource):
 
         result = {"requirements": {}, "variables": []}
 
-        var_collection = VariableCollection.load(self.app.config["SESSION_VARIABLE_COLLECTION"])
+        var_collection = VariableCollection(self.app)
         variables = {k: v.type for k, v in var_collection.collection.items()}
         result["variables"] = [
             {"name": k, "type": v.type, "value": v.value} for k, v in var_collection.collection.items()

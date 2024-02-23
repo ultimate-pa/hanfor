@@ -2,7 +2,7 @@ import itertools
 import json
 import inspect
 from enum import Enum, EnumMeta
-from types import GenericAlias, UnionType
+from types import GenericAlias, UnionType, NoneType
 from typing import get_origin, get_args, TypeVar, Callable, Type
 from uuid import UUID, uuid4
 from os import path, mkdir
@@ -653,7 +653,7 @@ class JsonDatabaseTable:
         for new_element in new_keys.difference(old_keys):
             changes = True
             self.__db.write_data_trace(user, self.cls.__name__, new_element, {})
-        for old_element in old_keys.intersection(old_keys):
+        for old_element in old_keys.intersection(new_keys):
             if dict_changed(self.__json_data[old_element], json_data[old_element]):
                 changes = True
                 self.__db.write_data_trace(user, self.cls.__name__, old_element, self.__json_data[old_element])
@@ -802,9 +802,9 @@ def dict_changed(old: dict, new: dict) -> bool:
             return True
         return False
     for key in new_keys:
-        if isinstance(old[key], type(new[key])):
+        if not isinstance(old[key], type(new[key])):
             return True
-        if type(old[key]) in [bool, str, int, float]:
+        if type(old[key]) in [bool, str, int, float, NoneType]:
             if old[key] != new[key]:
                 return True
         elif type(old[key]) is list:
@@ -821,10 +821,10 @@ def dict_changed(old: dict, new: dict) -> bool:
 def list_changed(old: list, new: list) -> bool:
     if len(old) != len(new):
         return True
-    for o, n in old, new:
-        if isinstance(o, type(n)):
+    for o, n in zip(old, new):
+        if not isinstance(o, type(n)):
             return True
-        if type(o) in [bool, str, int, float]:
+        if type(o) in [bool, str, int, float, NoneType]:
             if o != n:
                 return True
         elif type(o) is list:

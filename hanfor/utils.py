@@ -168,7 +168,7 @@ def formalizations_to_html(app, formalizations):
 
 
 def get_available_vars(app, full=True, fetch_evals=False):
-    var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+    var_collection = VariableCollection(app)
     result = var_collection.get_available_vars_list(used_only=not full)
 
     if fetch_evals:
@@ -190,21 +190,22 @@ def varcollection_diff_info(app, request):
     :return: {'tot_vars': int, 'new_vars': int}
     :rtype: dict
     """
-    current_var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+    current_var_collection = VariableCollection(app)
     req_path = os.path.join(
         app.config["SESSION_BASE_FOLDER"],
         request.form.get("sess_name").strip(),
         request.form.get("sess_revision").strip(),
         "session_variable_collection.pickle",
     )
-    requested_var_collection = VariableCollection.load(req_path)
+    # TODO fix revision migration
+    # requested_var_collection = VariableCollection.load(req_path)
 
-    numb_new_vars = len(
-        set(requested_var_collection.collection.keys()).difference(current_var_collection.collection.keys())
-    )
-
-    result = {"tot_vars": len(requested_var_collection.collection), "new_vars": numb_new_vars}
-
+    # numb_new_vars = len(
+    #     set(requested_var_collection.collection.keys()).difference(current_var_collection.collection.keys())
+    # )
+    #
+    # result = {"tot_vars": len(requested_var_collection.collection), "new_vars": numb_new_vars}
+    result = {"tot_vars": 0, "new_vars": 0}
     return result
 
 
@@ -251,7 +252,7 @@ def update_variable_in_collection(app, request):
     occurrences = request.form.get("occurrences", "").strip().split(",")
     enumerators = json.loads(request.form.get("enumerators", ""))
 
-    var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+    var_collection = VariableCollection(app)
     result = {
         "success": True,
         "has_changes": False,
@@ -388,7 +389,7 @@ def update_variable_in_collection(app, request):
 
         logging.info("Store updated variables.")
         var_collection.refresh_var_constraint_mapping()
-        var_collection.store(app.config["SESSION_VARIABLE_COLLECTION"])
+        var_collection.store()
         logging.info("Update derived types by parsing affected formalizations.")
         if reload_type_inference and var_name in var_collection.var_req_mapping:
             for rid in var_collection.var_req_mapping[var_name]:
@@ -429,7 +430,7 @@ def update_variable_in_collection(app, request):
             var_collection.collection[enumerator_name].value = enumerator_value
             var_collection.collection[enumerator_name].belongs_to_enum = var_name
 
-        var_collection.store(app.config["SESSION_VARIABLE_COLLECTION"])
+        var_collection.store()
 
         if len(new_enumerators) > 0:
             var_collection.reload_script_results(app, new_enumerators)
@@ -548,7 +549,7 @@ def generate_csv_file_content(app, filter_list=None, invert_filter=False):
 def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter: bool = False) -> io.BytesIO:
     """Generates the xlsx file content for a session."""
     requirements = get_requirements(app, filter_list=filter_list, invert_filter=invert_filter)
-    var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+    var_collection = VariableCollection(app)
     session_dict = pickle_load_from_dump(app.config["SESSION_STATUS_PATH"])
     meta_settings = MetaSettings(app.config["META_SETTINGS_PATH"])
 
@@ -727,7 +728,7 @@ def generate_req_file_content(app, filter_list=None, invert_filter=False, variab
     # Get requirements
     requirements = get_requirements(app, filter_list=filter_list, invert_filter=invert_filter)
 
-    var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+    var_collection = VariableCollection(app)
     available_vars = []
     if filter_list is not None:
         # Filter the available vars to only include the ones actually used by a requirement.
@@ -894,10 +895,12 @@ def get_revisions_with_stats(session_path):
     for revision in revisions:
         revision_path = os.path.join(session_path, revision)
         revision_var_collection_path = os.path.join(revision_path, "session_variable_collection.pickle")
-        try:
-            num_vars = len(VariableCollection.load(revision_var_collection_path).collection)
-        except Exception:
-            num_vars = -1
+        num_vars = -1
+        # TODO fix revision migration
+        # try:
+        #     num_vars = len(VariableCollection.load(revision_var_collection_path).collection)
+        # except Exception:
+        #     num_vars = -1
 
         revisions_stats[revision] = {
             "name": revision,
@@ -1061,13 +1064,6 @@ def generate_file_response(content, name, mimetype="text/plain"):
     response = Response(content, mimetype=mimetype)
     response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{name}"
     return response
-
-
-def init_var_collection(app):
-    """Creates a new empty VariableCollection if non is existent for current session."""
-    if not os.path.exists(app.config["SESSION_VARIABLE_COLLECTION"]):
-        var_collection = VariableCollection(path=app.config["SESSION_VARIABLE_COLLECTION"])
-        var_collection.store()
 
 
 class PrefixMiddleware(object):
@@ -1252,13 +1248,6 @@ class Revision:
         self._set_available_sessions()
         self._create_revision_folder()
         self.app.db.init_tables(self.app.config["REVISION_FOLDER"])
-        if self.is_initial_revision:
-            try:
-                init_var_collection(self.app)
-            except Exception as e:
-                logging.error("Could not create initial variable Collection: {}".format(e))
-                self._revert_and_cleanup()
-                raise e
         self._try_save(self._load_from_csv, "Could not read CSV")
         for req in self.requirement_collection.requirements:
             self.app.db.add_object(req)
@@ -1433,5 +1422,5 @@ class Revision:
 
         # Store the variables collection in the new revision.
         logging.info("Migrate variables from `{}` to `{}`".format(self.base_revision_name, self.revision_name))
-        base_var_collection = VariableCollection.load(self.base_revision_var_collection_path)
-        base_var_collection.store(self.app.config["SESSION_VARIABLE_COLLECTION"])
+        # base_var_collection = VariableCollection.load(self.base_revision_var_collection_path)
+        # base_var_collection.store(self.app.config["SESSION_VARIABLE_COLLECTION"])
