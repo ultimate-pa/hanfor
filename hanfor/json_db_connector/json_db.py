@@ -307,7 +307,8 @@ class JsonDatabase:
 
     def add_object(self, obj: object, user: str = None) -> None:
         if user is None:
-            logging.warning(f"JsonDatabase.add_object should be called with the user parameter.")
+            # logging.warning(f"JsonDatabase.add_object should be called with the user parameter.")
+            pass
         # check if object is part of the database
         if type(obj) not in self._tables.keys():
             raise DatabaseInsertionError(f"{type(obj)} is not part of the Database.")
@@ -322,13 +323,15 @@ class JsonDatabase:
 
     def update(self, user: str = None) -> None:
         if user is None:
-            logging.warning(f"JsonDatabase.update should be called with the user parameter.")
+            # logging.warning(f"JsonDatabase.update should be called with the user parameter.")
+            pass
         for _, table in self._tables.items():
             table.save(user)
 
     def remove_object(self, obj: object, user: str = None) -> None:
         if user is None:
-            logging.warning(f"JsonDatabase.remove_object should be called with the user parameter.")
+            # logging.warning(f"JsonDatabase.remove_object should be called with the user parameter.")
+            pass
         # check if object is part of the database
         if type(obj) not in self._tables.keys():
             raise DatabaseInsertionError(f"{type(obj)} is not part of the Database.")
@@ -574,6 +577,8 @@ class JsonDatabaseTable:
         for obj_id, obj in self.__data.items():
             obj_data = {}
             for field in self.fields.keys():
+                if not hasattr(obj, field):
+                    logging.warning(f"The class {self.cls} has no field {field}. Adding field.")
                 field_data = getattr(obj, field, None)
                 field_data_serialized = self.__db.data_to_json(field_data, user)
                 if self.__max_serialize_depth > my_serialize_depth:

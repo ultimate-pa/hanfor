@@ -47,7 +47,7 @@ class StatisticsApi(MethodView):
             "tags_per_type": dict(),
             "status_per_type": dict(),
         }
-        for requirement in self.app.db.get_objects(Requirement):
+        for requirement in self.app.db.get_objects(Requirement).values():
             if hasattr(requirement, "type_in_csv"):
                 data["total"] += 1
                 if requirement.status == "Todo":

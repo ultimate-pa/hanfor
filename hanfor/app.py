@@ -188,7 +188,7 @@ def api(resource, command):
             filenames = get_filenames_from_dir(app.config["REVISION_FOLDER"])
             result = dict()
             result["data"] = list()
-            for req in app.db.get_objects(Requirement):
+            for req in app.db.get_objects(Requirement).values():
                 result["data"].append(req.to_dict())
             return jsonify(result)
 
@@ -949,6 +949,7 @@ def load_revision(revision_id):
         app.config["REVISION_FOLDER"], "session_variable_collection.pickle"
     )
     app.config["SESSION_STATUS_PATH"] = os.path.join(app.config["REVISION_FOLDER"], "session_status.pickle")
+    app.db.init_tables(app.config["REVISION_FOLDER"])
 
 
 def user_request_new_revision(args):

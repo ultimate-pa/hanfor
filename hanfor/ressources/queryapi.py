@@ -254,7 +254,7 @@ class QueryAPI(Ressource):
     def requirement_data(self):
         if self._requirement_data is None:
             self._requirement_data = dict()
-            for req in self.app.db.get_objects(Requirement):
+            for req in self.app.db.get_objects(Requirement).values():
                 self._requirement_data[req.rid] = QueryAPI.req_dict_to_search_dict(req.to_dict())
         return self._requirement_data
 
@@ -309,7 +309,7 @@ class QueryAPI(Ressource):
     @staticmethod
     def get_target_names(app):
         result = list()
-        for req in app.db.get_objects(Requirement):
+        for req in app.db.get_objects(Requirement).values():
             result = [key for key in QueryAPI.req_dict_to_search_dict(req.to_dict()).keys()]
             result = sorted(result)
             break

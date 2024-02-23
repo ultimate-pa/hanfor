@@ -517,7 +517,7 @@ def get_requirements(app, filter_list=None, invert_filter=False):
         return (req.rid in filter_list) != invert_filter
 
     requirements = list()
-    for req in app.db.get_objects(Requirement):
+    for req in app.db.get_objects(Requirement).values():
         if should_be_in_result(req):
             logging.debug("Adding {} to results.".format(req.rid))
             requirements.append(req)

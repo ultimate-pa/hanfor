@@ -290,7 +290,7 @@ class RequirementCollection(HanforVersioned, Pickleable):
 
 @DatabaseTable(TableType.Folder)
 @DatabaseID("rid", str)
-@DatabaseField("formalisations", dict)
+@DatabaseField("formalizations", dict)
 @DatabaseField("description", str)
 @DatabaseField("type_in_csv", str)
 @DatabaseField("csv_row", dict)
@@ -1097,7 +1097,7 @@ class VariableCollection(HanforVersioned, Pickleable):
         mapping = dict()
 
         # Add the requirements using this variable.
-        for req in app.db.get_objects(Requirement):
+        for req in app.db.get_objects(Requirement).values():
             for formalization in req.formalizations.values():
                 try:
                     for var_name in formalization.used_variables:
