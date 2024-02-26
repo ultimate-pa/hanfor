@@ -141,6 +141,10 @@ def do_formalizations(reqs):
         form.scoped_pattern = "BoundedResponse"
         # print(form)
 
+        # ToDo: for implicit transitions another scope pattern name 'Invariance'
+        #       implemented in pattern.py as 'Invariant'
+        # ToDo: get the formalization complete
+
         forms.append(form)
 
 
@@ -158,6 +162,8 @@ def create_variables(sm):
     counter = 0
 
     basics = ["States", "Actions"]
+
+    # ToDo: Adding the belongs_to attribute to ENUMS
 
     for basic in basics:
         list_val = []
@@ -297,52 +303,6 @@ if __name__ == "__main__":
         print(element.name, element.type + " [" + out[:-2] + "]" )
 
     print("\nDone. " + str(count) + " variables are created successfully.\n")
-
-
-    """
-    req01 = reqtrans.Requirement(
-        id="01",
-        description="From OFF to ON.",
-        type_in_csv="requirement",
-        csv_row={"1": "1"},
-        pos_in_csv=1
-    )
-    req02 = reqtrans.Requirement(
-        id="02",
-        description="From ON to OFF.",
-        type_in_csv="requirement",
-        csv_row={"2": "2"},
-        pos_in_csv=2
-    )
-
-    formreq01 = reqtrans.Formalization(1)
-    formreq01.scoped_pattern = "BoundedResponse"
-
-    formreq02 = reqtrans.Formalization(2)
-    formreq02.scoped_pattern = "BoundedResponse"
-
-    print(req01.formalizations.keys())
-
-  #  print(formreq01.scoped_pattern)
-  #  print(formreq02.scoped_pattern)
-
-  #  print(formreq01)
-  #  print(formreq02)
-
-    freeform = reqtrans.Requirement._next_free_formalization_id(req02)
-
-    print(freeform)
-
-    All_Req = reqtrans.RequirementCollection()
-    """
-    # Done
-    # - Create low state machine
-    # - Read states and actions, and form them into requirements
-    # - Create implicit transitions, and form them into requirements
-
-    # ToDo
-    #   - Add: Enums with belongs to
-    #   - search for the right variables in the hanfor examples
 
 
     print("Transforming state machine into Hanfor successfull.")
