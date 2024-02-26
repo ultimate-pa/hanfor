@@ -217,7 +217,8 @@ if __name__ == "__main__":
     print("Starting loading state machine in Hanfor.")
     print("Which example do you want to load?\n")
     print("0 - small example\n"
-          "1 - Light Switch example\n")
+          "1 - Light Switch example\n"
+          "2 - Car Key Control example")
     example_choice = input()
     # print(example_choice, type(example_choice))
     state_machine = []
@@ -235,6 +236,22 @@ if __name__ == "__main__":
             ["Head_Light", "switch_left", "Parking_Light"],
             ["Head_Light", "switch_right", "Fog_Light"],
             ["Fog_Light", "switch_left", "Head_Light"],
+        ]
+    elif example_choice == "2":
+        state_machine = [
+            ["Car_Locked", "key_u", "Car_Unlocked"],
+            ["Car_Locked", "key_flap_u", "Flap_Unlocked"],
+            ["Car_Locked", "key_trunk_u", "Trunk_Unlocked"],
+            ["Car_Unlocked", "key_l", "Car_Locked"],
+            ["Flap_Unlocked", "key_l", "Car_Locked"],
+            ["Flap_Unlocked", "key_u", "Car_Unlocked"],
+            ["Flap_Unlocked", "key_trunk_u", "Mixed_Unlocked"],
+            ["Trunk_Unlocked", "key_flap_u", "Mixed_Unlocked"],
+            ["Trunk_Unlocked", "key_l", "Car_Locked"],
+            ["Trunk_Unlocked", "key_u", "Car_Unlocked"],
+            ["Mixed_Unlocked", "key_l", "Car_Locked"],
+            ["Mixed_Unlocked", "key_u", "Car_Unlocked"],
+
         ]
     else:
         print("Usage: Please type in one correct value !!!")
