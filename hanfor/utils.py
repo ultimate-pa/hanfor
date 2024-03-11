@@ -1040,7 +1040,6 @@ def get_flask_session_log(app: Flask, html_format: bool = False) -> Union[list, 
     :param html_format: Return formatted html version.
     :return: list of messages or html string in case `html == True`
     """
-    # TODO: read logs from frontend logger initialized in app.py init_frontend_logs()
     history_elements = app.db.get_objects(RequirementEditHistory)
 
     if html_format:
