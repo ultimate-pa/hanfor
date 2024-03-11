@@ -59,7 +59,6 @@ class TagsApi(MethodView):
 
     def __init__(self):
         self.app = current_app
-        self.meta_settings = MetaSettings(self.app.config["META_SETTINGS_PATH"])
         self.__available_tags: dict[str, Tag] = {k: Tag(k, **v) for k, v in self.INIT_TAGS.items()}
         self.__load()
 

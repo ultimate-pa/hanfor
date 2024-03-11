@@ -41,6 +41,7 @@ mimetypes.add_type("text/javascript", ".js")
 # Create the app
 app = Flask(__name__)
 app.config.from_object("config")
+app.db = None
 
 from example_blueprint import example_blueprint
 from tags import tags
@@ -205,7 +206,9 @@ def api(resource, command):
                 new_status = request.form.get("status", "")
                 if requirement.status != new_status:
                     requirement.status = new_status
-                    utils.add_msg_to_flask_session_log(app, f"Set status to {new_status} for requirement", id)
+                    utils.add_msg_to_flask_session_log(
+                        app, f"Set status to {new_status} for requirement", [requirement]
+                    )
                     logging.debug(f"Requirement status set to {requirement.status}")
 
                 new_tag_set = json.loads(request.form.get("tags", ""))
@@ -218,7 +221,7 @@ def api(resource, command):
                     requirement.tags = new_tag_set
                     # do logging
                     utils.add_msg_to_flask_session_log(
-                        app, f"Tags: + {added_tags} and - {removed_tags} to requirement", id
+                        app, f"Tags: + {added_tags} and - {removed_tags} to requirement", [requirement]
                     )
                     logging.debug(f"Tags: + {added_tags} and - {removed_tags} to requirement {requirement.tags}")
 
@@ -228,7 +231,7 @@ def api(resource, command):
                     logging.debug("Updated Formalizations: {}".format(formalizations))
                     try:
                         requirement.update_formalizations(formalizations, app)
-                        utils.add_msg_to_flask_session_log(app, "Updated requirement formalization", id)
+                        utils.add_msg_to_flask_session_log(app, "Updated requirement formalization", [requirement])
                     except KeyError as e:
                         error = True
                         error_msg = f"Could not set formalization: Missing expression/variable for {e}"
@@ -272,27 +275,25 @@ def api(resource, command):
 
             # Update all requirements given by the rid_list
             if result["success"]:
+                requirements = [app.db.get_object(Requirement, rid) for rid in rid_list]
                 log_msg = f"Update {len(rid_list)} requirements."
                 if len(add_tag) > 0:
                     log_msg += f"Adding tag `{add_tag}`"
-                    utils.add_msg_to_flask_session_log(
-                        app, f"Adding tag `{add_tag}` to requirements.", rid_list=rid_list
-                    )
+                    utils.add_msg_to_flask_session_log(app, f"Adding tag `{add_tag}` to requirements.", requirements)
                 if len(remove_tag) > 0:
                     log_msg += f", removing Tag `{remove_tag}` (is present)"
                     utils.add_msg_to_flask_session_log(
-                        app, f"Removing tag `{remove_tag}` from requirements.", rid_list=rid_list
+                        app, f"Removing tag `{remove_tag}` from requirements.", requirements
                     )
                 if len(set_status) > 0:
                     log_msg += ", set Status=`{}`.".format(set_status)
                     utils.add_msg_to_flask_session_log(
-                        app, f"Set status to `{set_status}` for requirements. ", rid_list=rid_list
+                        app, f"Set status to `{set_status}` for requirements. ", requirements
                     )
                 logging.info(log_msg)
 
-                for rid in rid_list:
-                    requirement = app.db.get_object(Requirement, rid)
-                    logging.info(f"Updating requirement `{rid}`")
+                for requirement in requirements:
+                    logging.info(f"Updating requirement `{requirement.rid}`")
                     if remove_tag in requirement.tags:
                         requirement.tags.pop(remove_tag)
                     if add_tag and add_tag not in requirement.tags:
@@ -309,7 +310,7 @@ def api(resource, command):
             requirement = app.db.get_object(Requirement, id)  # type: Requirement
             formalization_id, formalization = requirement.add_empty_formalization()
             app.db.update()
-            utils.add_msg_to_flask_session_log(app, "Added new Formalization to requirement", id)
+            utils.add_msg_to_flask_session_log(app, "Added new Formalization to requirement", [requirement])
             result = utils.get_formalization_template(app.config["TEMPLATES_FOLDER"], formalization_id, formalization)
             return jsonify(result)
 
@@ -322,7 +323,7 @@ def api(resource, command):
             requirement.delete_formalization(formalization_id, app)
             app.db.store()
 
-            utils.add_msg_to_flask_session_log(app, "Deleted formalization from requirement", requirement_id)
+            utils.add_msg_to_flask_session_log(app, "Deleted formalization from requirement", [requirement])
             result["html"] = utils.formalizations_to_html(app, requirement.formalizations)
             return jsonify(result)
 
@@ -384,7 +385,7 @@ def api(resource, command):
                 formalization_id=formalization_id, scope_name=scope, pattern_name=pattern, mapping=mapping, app=app
             )
             app.db.update()
-            utils.add_msg_to_flask_session_log(app, "Added formalization guess to requirement", requirement_id)
+            utils.add_msg_to_flask_session_log(app, "Added formalization guess to requirement", [requirement])
 
             result = utils.get_formalization_template(
                 app.config["TEMPLATES_FOLDER"], formalization_id, requirement.formalizations[formalization_id]
@@ -402,11 +403,14 @@ def api(resource, command):
                 result["success"] = False
                 result["errormsg"] = "No requirements selected."
 
+            if not result["success"]:
+                return jsonify(result)
+
             var_collection = VariableCollection(app)
-            for req_id in requirement_ids:
-                requirement = app.db.get_object(Requirement, req_id)
+            requirements = [app.db.get_object(Requirement, rid) for rid in requirement_ids]
+            for requirement in requirements:
                 if requirement is not None:
-                    logging.info("Add top guess to requirement `{}`".format(req_id))
+                    logging.info("Add top guess to requirement `{}`".format(requirement.rid))
                     tmp_guesses = list()
                     for guesser in REGISTERED_GUESSERS:
                         try:
@@ -440,7 +444,7 @@ def api(resource, command):
                             result["success"] = False
                             result["errormsg"] = "Could not determine a guess: "
                             result["errormsg"] += e.__str__()
-            utils.add_msg_to_flask_session_log(app, "Added top guess to requirements", rid_list=requirement_ids)
+            utils.add_msg_to_flask_session_log(app, "Added top guess to requirements", requirements)
 
             return jsonify(result)
 
@@ -651,7 +655,7 @@ def api(resource, command):
 
     if resource == "logs":
         if command == "get":
-            return utils.get_flask_session_log(app, html=True)
+            return utils.get_flask_session_log(app, html_format=True)
 
     if resource == "report":
         return Report(app, request).apply_request()
@@ -884,15 +888,6 @@ def init_meta_settings():
         pickle_dump_obj_to_file(meta_settings, app.config["META_SETTINGS_PATH"])
 
 
-def init_frontend_logs():
-    """Initializes FRONTEND_LOGS_PATH and creates a new frontend_logs dict, if none is existent."""
-    app.config["FRONTEND_LOGS_PATH"] = os.path.join(app.config["SESSION_FOLDER"], "frontend_logs.pickle")
-    if not os.path.exists(app.config["FRONTEND_LOGS_PATH"]):
-        frontend_logs = dict()
-        frontend_logs["hanfor_log"] = list()
-        pickle_dump_obj_to_file(frontend_logs, app.config["FRONTEND_LOGS_PATH"])
-
-
 def init_script_eval_results():
     app.config["SCRIPT_EVAL_RESULTS_PATH"] = os.path.join(app.config["SESSION_FOLDER"], "script_eval_results.pickle")
     if not os.path.exists(app.config["SCRIPT_EVAL_RESULTS_PATH"]):
@@ -949,6 +944,14 @@ def add_custom_serializer_to_database(database: JsonDatabase) -> None:
         return Scope(db_deserializer(data))
 
     database.add_custom_serializer(Scope, scope_serialize, scope_deserialize)
+
+    def datetime_serialize(obj: datetime.datetime, db_serializer: Callable[[any, str], any], user: str) -> dict:
+        return db_serializer(obj.isoformat(), user)
+
+    def datetime_deserialize(data: dict, db_deserializer: Callable[[any], any]) -> datetime.datetime:
+        return datetime.datetime.fromisoformat(db_deserializer(data))
+
+    database.add_custom_serializer(datetime.datetime, datetime_serialize, datetime_deserialize)
 
 
 def startup_hanfor(args, HERE) -> bool:
@@ -1009,7 +1012,6 @@ def startup_hanfor(args, HERE) -> bool:
     # Initialize variables collection, import session, meta settings.
     init_script_eval_results()
     init_meta_settings()
-    init_frontend_logs()
     utils.config_check(app.config)
 
     # Run version migrations
