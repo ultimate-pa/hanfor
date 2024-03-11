@@ -26,6 +26,9 @@ from patterns import PATTERNS
 
 import boogie_parsing
 
+from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
+from dataclasses import dataclass
+
 # Here is the first time we use config. Check existence and raise a meaningful exception if not found.
 try:
     from config import PATTERNS_GROUP_ORDER
@@ -54,6 +57,15 @@ default_scope_options = """
     <option value="BETWEEN">Between "{P}" and "{Q}"</option>
     <option value="AFTER_UNTIL">After "{P}" until "{Q}"</option>
     """
+
+
+@DatabaseTable(TableType.File)
+@DatabaseID("name", str)
+@DatabaseField("value", dict)
+@dataclass()
+class SessionValue:
+    name: str
+    value: any
 
 
 def config_check(app_config):
@@ -513,24 +525,26 @@ def generate_csv_file_content(app, filter_list=None, invert_filter=False):
     requirements = get_requirements(app, filter_list=filter_list, invert_filter=invert_filter)
 
     # get session status
-    session_dict = pickle_load_from_dump(app.config["SESSION_STATUS_PATH"])  # type: dict
+    session_values = app.db.get_objects(SessionValue)
 
     # Add Formalization col if not existent in input CSV.
-    for csv_key in [session_dict["csv_formal_header"]]:
-        if csv_key not in session_dict["csv_fieldnames"]:
-            session_dict["csv_fieldnames"].append(csv_key)
+    for csv_key in [session_values["csv_formal_header"].value]:
+        if csv_key not in session_values["csv_fieldnames"].value:
+            session_values["csv_fieldnames"].value.append(csv_key)
+        app.db.update()
 
     # Add Hanfor Tag col to csv.
     # TODO: remove static column names and replace with config via user startup config dialog.
     tag_col_name = "Hanfor_Tags"
     status_col_name = "Hanfor_Status"
     for col_name in [tag_col_name, status_col_name]:
-        if col_name not in session_dict["csv_fieldnames"]:
-            session_dict["csv_fieldnames"].append(col_name)
+        if col_name not in session_values["csv_fieldnames"].value:
+            session_values["csv_fieldnames"].value.append(col_name)
+        app.db.update()
 
     # Update csv row of requirements to use their latest formalization and tags.
     for requirement in requirements:
-        requirement.csv_row[session_dict["csv_formal_header"]] = requirement.get_formalizations_json()
+        requirement.csv_row[session_values["csv_formal_header"].value] = requirement.get_formalizations_json()
         requirement.csv_row[tag_col_name] = ", ".join(requirement.tags)
         requirement.csv_row[status_col_name] = requirement.status
 
@@ -538,7 +552,7 @@ def generate_csv_file_content(app, filter_list=None, invert_filter=False):
     rows = [r.csv_row for r in requirements]
     with StringIO() as out_csv:
         csv.register_dialect("ultimate", delimiter=",")
-        writer = csv.DictWriter(out_csv, session_dict["csv_fieldnames"])
+        writer = csv.DictWriter(out_csv, session_values["csv_fieldnames"].value)
         writer.writeheader()
         writer.writerows(rows)
         result = out_csv.getvalue()
@@ -550,7 +564,6 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
     """Generates the xlsx file content for a session."""
     requirements = get_requirements(app, filter_list=filter_list, invert_filter=invert_filter)
     var_collection = VariableCollection(app)
-    session_dict = pickle_load_from_dump(app.config["SESSION_STATUS_PATH"])
     meta_settings = MetaSettings(app.config["META_SETTINGS_PATH"])
 
     # create  styles
@@ -573,7 +586,7 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
                 work_sheet.cell(r, c).fill = META
         work_sheet.cell(1, 2, value="HANFOR Report")
         work_sheet.cell(1, 2).font = WHITE
-        work_sheet.cell(1, 3, value=session_dict["csv_input_file"])
+        work_sheet.cell(1, 3, value=app.db.get_object(SessionValue, "csv_input_file").value)
         work_sheet.cell(1, 3).font = Font(color="FFFFFF")
         for c in range(1, 10):
             work_sheet.cell(HEADER_OFFSET - 1, c).fill = FILLED
@@ -983,9 +996,8 @@ def register_assets(app):
 def get_datatable_additional_cols(app):
     offset = 8  # we have 8 fixed cols.
     result = list()
-    session_dict = pickle_load_from_dump(app.config["SESSION_STATUS_PATH"])  # type: dict
 
-    for index, name in enumerate(session_dict["csv_fieldnames"]):
+    for index, name in enumerate(app.db.get_object(SessionValue, "csv_fieldnames").value):
         result.append(
             {
                 "target": index + offset,
@@ -1251,7 +1263,7 @@ class Revision:
         self._try_save(self._load_from_csv, "Could not read CSV")
         for req in self.requirement_collection.requirements:
             self.app.db.add_object(req)
-        self._try_save(self._generate_session_dict, "Could not generate session")
+        self._generate_session_dict()
         if not self.is_initial_revision:
             self._try_save(self._merge_with_base_revision, " Could not merge with base session")
 
@@ -1304,9 +1316,6 @@ class Revision:
         self.app.config["SESSION_VARIABLE_COLLECTION"] = os.path.join(
             self.app.config["REVISION_FOLDER"], "session_variable_collection.pickle"
         )
-        self.app.config["SESSION_STATUS_PATH"] = os.path.join(
-            self.app.config["REVISION_FOLDER"], "session_status.pickle"
-        )
 
     def _check_base_revision_available(self):
         if not self.is_initial_revision and self.base_revision_name not in get_available_revisions(self.app.config):
@@ -1355,15 +1364,13 @@ class Revision:
 
     def _generate_session_dict(self):
         # Generate the session dict: Store some meta information.
-        session = dict()
-        session["csv_input_file"] = self.args.input_csv
-        session["csv_fieldnames"] = self.requirement_collection.csv_meta.fieldnames
-        session["csv_id_header"] = self.requirement_collection.csv_meta.id_header
-        session["csv_formal_header"] = self.requirement_collection.csv_meta.formal_header
-        session["csv_type_header"] = self.requirement_collection.csv_meta.type_header
-        session["csv_desc_header"] = self.requirement_collection.csv_meta.desc_header
-        session["csv_hash"] = hash_file_sha1(self.args.input_csv)
-        pickle_dump_obj_to_file(session, self.app.config["SESSION_STATUS_PATH"])
+        self.app.db.add_object(SessionValue("csv_input_file", self.args.input_csv))
+        self.app.db.add_object(SessionValue("csv_fieldnames", self.requirement_collection.csv_meta.fieldnames))
+        self.app.db.add_object(SessionValue("csv_id_header", self.requirement_collection.csv_meta.id_header))
+        self.app.db.add_object(SessionValue("csv_formal_header", self.requirement_collection.csv_meta.formal_header))
+        self.app.db.add_object(SessionValue("csv_type_header", self.requirement_collection.csv_meta.type_header))
+        self.app.db.add_object(SessionValue("csv_desc_header", self.requirement_collection.csv_meta.desc_header))
+        self.app.db.add_object(SessionValue("csv_hash", hash_file_sha1(self.args.input_csv)))
 
     def _merge_with_base_revision(self):
         # Merge the old revision into the new revision

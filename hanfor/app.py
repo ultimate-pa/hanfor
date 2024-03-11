@@ -21,6 +21,7 @@ from typing import Callable
 from json_db_connector.json_db import JsonDatabase
 
 import reqtransformer
+from utils import SessionValue
 import utils
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
@@ -833,7 +834,6 @@ def load_revision(revision_id):
     app.config["SESSION_VARIABLE_COLLECTION"] = os.path.join(
         app.config["REVISION_FOLDER"], "session_variable_collection.pickle"
     )
-    app.config["SESSION_STATUS_PATH"] = os.path.join(app.config["REVISION_FOLDER"], "session_status.pickle")
     app.db.init_tables(app.config["REVISION_FOLDER"])
 
 
@@ -984,24 +984,27 @@ def startup_hanfor(args, HERE) -> bool:
             load_revision(revision_choice)
 
     # Check CSV file change.
-    session_dict = pickle_load_from_dump(app.config["SESSION_STATUS_PATH"])  # type: dict
+    session_values = app.db.get_objects(SessionValue)
     if args.input_csv:
         logging.info("Check CSV integrity.")
         csv_hash = hash_file_sha1(args.input_csv)
-        if "csv_hash" not in session_dict:
-            session_dict["csv_hash"] = csv_hash
-        if csv_hash != session_dict["csv_hash"]:
-            print(f"Sha-1 hash mismatch between: \n`{session_dict['csv_input_file']}`\nand\n`{args.input_csv}`.")
+        if "csv_hash" not in session_values:
+            app.db.add_object(SessionValue("csv_hash", csv_hash))
+            session_values = app.db.get_objects(SessionValue)
+        if csv_hash != session_values["csv_hash"].value:
+            print(
+                f"Sha-1 hash mismatch between: \n`{session_values['csv_input_file'].value}`\nand\n`{args.input_csv}`."
+            )
             print("Consider starting a new revision.\nShould I stop loading?")
             if choice(["Yes", "No"], default="Yes") == "Yes":
                 return False
-            session_dict["csv_hash"] = csv_hash
-        session_dict["csv_input_file"] = args.input_csv
+            session_values["csv_hash"].value = csv_hash
+            app.db.update()
+        session_values["csv_input_file"].value = args.input_csv
+        app.db.update()
 
-    app.config["CSV_INPUT_FILE"] = os.path.basename(session_dict["csv_input_file"])
-    app.config["CSV_INPUT_FILE_PATH"] = session_dict["csv_input_file"]
-
-    pickle_dump_obj_to_file(session_dict, app.config["SESSION_STATUS_PATH"])
+    app.config["CSV_INPUT_FILE"] = os.path.basename(session_values["csv_input_file"].value)
+    app.config["CSV_INPUT_FILE_PATH"] = session_values["csv_input_file"].value
 
     # Initialize variables collection, import session, meta settings.
     init_script_eval_results()
