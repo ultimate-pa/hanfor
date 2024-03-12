@@ -385,6 +385,9 @@ class JsonDatabase:
         self._tables[type(obj)].remove_object(obj)
         self.update(user)
 
+    def key_in_table(self, tbl: type, key: str | int) -> bool:
+        return self._tables[tbl].key_in_table(key)
+
     def data_to_json(self, data: any, user: str) -> any:
         if data is None:
             return None
@@ -647,24 +650,28 @@ class JsonDatabaseTable:
     def save(self, user: str) -> None:
         json_data = self.__serialize(user)
         # check for changes and write them to data tracing
-        changes = False
+        changes = set()
         new_keys = set(json_data.keys())
         old_keys = set(self.__json_data.keys())
         for new_element in new_keys.difference(old_keys):
-            changes = True
+            changes.add(new_element)
             self.__db.write_data_trace(user, self.cls.__name__, new_element, {})
         for old_element in old_keys.intersection(new_keys):
             if dict_changed(self.__json_data[old_element], json_data[old_element]):
-                changes = True
+                changes.add(old_element)
                 self.__db.write_data_trace(user, self.cls.__name__, old_element, self.__json_data[old_element])
 
         # check if file/folder exist for revision update
-        if self.table_type == TableType.File:
-            changes |= not path.isfile(path.join(self.__db.data_folder, f"{self.cls.__name__}.json"))
-        elif self.table_type == TableType.Folder:
-            changes |= not path.isdir(path.join(self.__db.data_folder, self.cls.__name__))
+        if self.table_type == TableType.File and not path.isfile(
+            path.join(self.__db.data_folder, f"{self.cls.__name__}.json")
+        ):
+            changes.add(None)
+        elif self.table_type == TableType.Folder and not path.isdir(
+            path.join(self.__db.data_folder, self.cls.__name__)
+        ):
+            changes = json_data.keys()
 
-        if not changes:
+        if len(changes) == 0:
             return
         if self.table_type == TableType.File:
             table_file = path.join(self.__db.data_folder, f"{self.cls.__name__}.json")
@@ -672,10 +679,10 @@ class JsonDatabaseTable:
                 json.dump(json_data, json_file, indent=4)
         elif self.table_type == TableType.Folder:
             table_folder = path.join(self.__db.data_folder, self.cls.__name__)
-            for obj_id, obj_data in json_data.items():
+            for obj_id in changes:
                 file_name = path.join(table_folder, f"{obj_id}.json")
                 with open(file_name, "w") as json_file:
-                    json.dump(obj_data, json_file, indent=4)
+                    json.dump(json_data[obj_id], json_file, indent=4)
         self.__json_data = json_data
 
     def load(self) -> Callable[[], None]:
