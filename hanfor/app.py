@@ -26,7 +26,7 @@ import utils
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from reqtransformer import Requirement, VariableCollection, Variable, Scope
-from ressources import Report, QueryAPI
+from ressources import Reports, QueryAPI
 from ressources.simulator_ressource import SimulatorRessource
 from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, hash_file_sha1
 from patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
@@ -658,7 +658,7 @@ def api(resource, command):
             return utils.get_flask_session_log(app, html_format=True)
 
     if resource == "report":
-        return Report(app, request).apply_request()
+        return Reports(app, request).apply_request()
 
     return jsonify({"success": False, "errormsg": "This is not an api-enpoint."}), 404
 
@@ -792,24 +792,6 @@ def varcollection_consistency_check(app, args=None):
     update_var_usage(var_collection)
     var_collection.reload_script_results(app)
     var_collection.store()
-
-
-def metasettings_version_migration(app, args):
-    logging.info("Running metaconfig version migration...")
-    meta_settings = utils.MetaSettings(app.config["META_SETTINGS_PATH"])
-
-    meta_settings_keys = ["tag_colors", "tag_descriptions", "tag_internal"]
-    for key in meta_settings_keys:
-        if key not in meta_settings:
-            logging.info(f"Upgrading metaconfig with empty `{key}` store.")
-            meta_settings[key] = dict()
-
-    # TODO: Hacky. @Vincent pls fix
-    for tag in meta_settings["tag_colors"].keys():
-        if tag not in meta_settings["tag_internal"]:
-            meta_settings["tag_internal"][tag] = False
-
-    meta_settings.update_storage()
 
 
 def create_revision(args, base_revision_name):

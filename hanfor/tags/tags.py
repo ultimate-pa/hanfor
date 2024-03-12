@@ -10,7 +10,6 @@ from pydantic import BaseModel
 from configuration.tags import STANDARD_TAGS
 from defaults import Color
 from reqtransformer import Requirement
-from utils import MetaSettings
 
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField, DatabaseNonSavedField
 from uuid import UUID

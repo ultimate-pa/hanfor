@@ -29,6 +29,7 @@ import boogie_parsing
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
 from dataclasses import dataclass
 from uuid import UUID
+from tags.tags import Tag
 
 # Here is the first time we use config. Check existence and raise a meaningful exception if not found.
 try:
@@ -578,7 +579,7 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
     """Generates the xlsx file content for a session."""
     requirements = get_requirements(app, filter_list=filter_list, invert_filter=invert_filter)
     var_collection = VariableCollection(app)
-    meta_settings = MetaSettings(app.config["META_SETTINGS_PATH"])
+    tags = {tag.name: tag.internal for tag in app.db.get_objects(Tag).values()}
 
     # create  styles
     MULTILINE = Alignment(vertical="top", wrap_text=True)
@@ -631,8 +632,13 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
         work_sheet.cell(HEADER_OFFSET + i, 2, requirement.rid)
         work_sheet.cell(HEADER_OFFSET + i, 3, requirement.description)
         work_sheet.cell(HEADER_OFFSET + i, 4, requirement.type_in_csv)
+
         work_sheet.cell(
-            HEADER_OFFSET + i, 5, "".join([f"{t}: {c} \n" if c else f"{t}\n" for t, c in requirement.tags.items()])
+            HEADER_OFFSET + i,
+            5,
+            "".join(
+                [f"{t}: {c} \n" if c else f"{t}\n" for t, c in requirement.tags.items() if t in tags and not tags[t]]
+            ),
         )
         work_sheet.cell(HEADER_OFFSET + i, 6, requirement.status)
         work_sheet.cell(HEADER_OFFSET + i, 7, "\n".join([f.get_string() for f in requirement.formalizations.values()]))
@@ -669,7 +675,7 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
     issue_tags_reqs = []
     for req in requirements:
         for tag in req.tags:
-            if tag in meta_settings["tag_internal"] and meta_settings["tag_internal"][tag]:
+            if tag in tags and tags[tag]:
                 continue
             issue_tags_reqs.append((req, tag))
 
