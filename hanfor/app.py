@@ -918,7 +918,7 @@ def add_custom_serializer_to_database(database: JsonDatabase) -> None:
     database.add_custom_serializer(datetime.datetime, datetime_serialize, datetime_deserialize)
 
 
-def startup_hanfor(args, HERE) -> bool:
+def startup_hanfor(args, HERE, *, db_test_mode: bool = False) -> bool:
     """Setup session config Variables.
      Trigger:
      Revision creation/loading.
@@ -929,7 +929,7 @@ def startup_hanfor(args, HERE) -> bool:
     :param args:
     :returns: True if startup should continue
     """
-    app.db = JsonDatabase()
+    app.db = JsonDatabase(test_mode=db_test_mode)
     add_custom_serializer_to_database(app.db)
 
     set_session_config_vars(args, HERE)
@@ -951,27 +951,28 @@ def startup_hanfor(args, HERE) -> bool:
             load_revision(revision_choice)
 
     # Check CSV file change.
-    session_values = app.db.get_objects(SessionValue)
     if args.input_csv:
         logging.info("Check CSV integrity.")
         csv_hash = hash_file_sha1(args.input_csv)
-        if "csv_hash" not in session_values:
+        if not app.db.key_in_table(SessionValue, "csv_hash"):
             app.db.add_object(SessionValue("csv_hash", csv_hash))
-            session_values = app.db.get_objects(SessionValue)
-        if csv_hash != session_values["csv_hash"].value:
+        if csv_hash != app.db.get_object(SessionValue, "csv_hash").value:
             print(
-                f"Sha-1 hash mismatch between: \n`{session_values['csv_input_file'].value}`\nand\n`{args.input_csv}`."
+                f"Sha-1 hash mismatch between: \n`{app.db.get_object(SessionValue, 'csv_input_file').value}`\nand\n`{args.input_csv}`."
             )
             print("Consider starting a new revision.\nShould I stop loading?")
             if choice(["Yes", "No"], default="Yes") == "Yes":
                 return False
-            session_values["csv_hash"].value = csv_hash
+            app.db.get_object(SessionValue, "csv_hash").value = csv_hash
             app.db.update()
-        session_values["csv_input_file"].value = args.input_csv
+        if not app.db.key_in_table(SessionValue, "csv_input_file"):
+            app.db.add_object(SessionValue("csv_input_file", args.input_csv))
+        else:
+            app.db.get_object(SessionValue, "csv_input_file").value = args.input_csv
         app.db.update()
 
-    app.config["CSV_INPUT_FILE"] = os.path.basename(session_values["csv_input_file"].value)
-    app.config["CSV_INPUT_FILE_PATH"] = session_values["csv_input_file"].value
+    app.config["CSV_INPUT_FILE"] = os.path.basename(app.db.get_object(SessionValue, "csv_input_file").value)
+    app.config["CSV_INPUT_FILE_PATH"] = app.db.get_object(SessionValue, "csv_input_file").value
 
     # Initialize variables collection, import session
     utils.config_check(app.config)

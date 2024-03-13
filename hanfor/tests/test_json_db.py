@@ -20,23 +20,28 @@ from immutabledict import immutabledict
 from typing import Callable
 
 
+def clear_Registries() -> None:
+    DatabaseTable.registry.clear()
+    DatabaseID.registry.clear()
+    DatabaseField.registry.clear()
+    DatabaseFieldType.registry.clear()
+    DatabaseFieldType.registry.add(JsonDatabaseMetaData)
+    DatabaseField.registry[JsonDatabaseMetaData] = {
+        "is_deleted": (bool, False)
+        # Add new fields here
+    }
+
+
 class TestJsonDatabase(TestCase):
 
     def setUp(self) -> None:
         self.maxDiff = None
-        DatabaseTable.registry.clear()
-        DatabaseID.registry.clear()
-        DatabaseField.registry.clear()
-        DatabaseFieldType.registry.clear()
+        clear_Registries()
         self._db = JsonDatabase(test_mode=True)
         self._data_path = path.join(path.dirname(path.realpath(__file__)), "test_json_database", "test_data")
-        DatabaseFieldType.registry.add(JsonDatabaseMetaData)
-        DatabaseField.registry[JsonDatabaseMetaData] = {
-            "is_deleted": (bool, False)
-            # Add new fields here
-        }
 
     def tearDown(self):
+        clear_Registries()
         if path.isdir(path.join(self._data_path, "init_tables_ok", "TestClassFolder")):
             rmdir(path.join(self._data_path, "init_tables_ok", "TestClassFolder"))
         if path.isfile(path.join(self._data_path, "init_tables_ok", "TestClassFile.json")):

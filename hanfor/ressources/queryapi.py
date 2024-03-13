@@ -224,7 +224,7 @@ class Query:
         return len(self.results)
 
     def get_dict(self) -> dict[str, str]:
-        return {"name": self.name, "query": self.query, "results": self.results}
+        return {"name": self.name, "query": self.query, "results": self.results, "hits": self.hits}
 
 
 class QueryAPI(Ressource):
