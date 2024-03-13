@@ -588,7 +588,6 @@ def api(resource, command):
                 if variable_type == "CONST":
                     var_collection.collection[variable_name].value = variable_value
                 var_collection.store()
-                var_collection.reload_script_results(app, [variable_name])
                 return jsonify(result)
         elif command == "get_enumerators":
             result = {"success": True, "errormsg": ""}
@@ -790,7 +789,6 @@ def varcollection_consistency_check(app, args=None):
         var_collection.reload_type_inference_errors_in_constraints()
 
     update_var_usage(var_collection)
-    var_collection.reload_script_results(app)
     var_collection.store()
 
 
@@ -859,13 +857,6 @@ def set_session_config_vars(args, HERE):
     if app.config["SESSION_BASE_FOLDER"] is None:
         app.config["SESSION_BASE_FOLDER"] = os.path.join(HERE, "data")
     app.config["SESSION_FOLDER"] = os.path.join(app.config["SESSION_BASE_FOLDER"], app.config["SESSION_TAG"])
-
-
-def init_script_eval_results():
-    app.config["SCRIPT_EVAL_RESULTS_PATH"] = os.path.join(app.config["SESSION_FOLDER"], "script_eval_results.pickle")
-    if not os.path.exists(app.config["SCRIPT_EVAL_RESULTS_PATH"]):
-        script_eval_results = reqtransformer.ScriptEvals(path=app.config["SCRIPT_EVAL_RESULTS_PATH"])
-        script_eval_results.store()
 
 
 def user_choose_start_revision():
@@ -982,8 +973,7 @@ def startup_hanfor(args, HERE) -> bool:
     app.config["CSV_INPUT_FILE"] = os.path.basename(session_values["csv_input_file"].value)
     app.config["CSV_INPUT_FILE_PATH"] = session_values["csv_input_file"].value
 
-    # Initialize variables collection, import session, meta settings.
-    init_script_eval_results()
+    # Initialize variables collection, import session
     utils.config_check(app.config)
 
     # Run version migrations

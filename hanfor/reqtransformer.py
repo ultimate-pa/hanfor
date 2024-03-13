@@ -962,9 +962,6 @@ class VariableCollection:
         # Update the req -> var mapping.
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
 
-        # Update the variable script results.
-        self.reload_script_results(app, [new_name])
-
         # Rename the enumerators in case this renaming affects an enum.
         affected_enumerators = []
         if self.collection[new_name].type in ["ENUM_INT", "ENUM_REAL"]:
@@ -1179,66 +1176,6 @@ class VariableCollection:
                             "Set type of `{}` to `{}`".format(enumerator_name, self.collection[enumerator_name].type)
                         )
         super().run_version_migrations()
-
-    def script_eval(self, env, script_filename, script, params_config, var_names, app):
-        with app.app_context():
-            results = dict()
-            for name in var_names:
-                params = [param.replace("$VAR_NAME", name) for param in params_config]
-                logging.debug("Eval script: `{}` using params `{}` for var `{}`".format(script_filename, params, name))
-                try:
-                    result = subprocess.check_output(
-                        [script] + params, shell=True, env=env, stderr=subprocess.DEVNULL
-                    ).decode()
-                except subprocess.CalledProcessError as e:
-                    result = "Output: {}".format(e.output.decode())
-                results[name] = "Results for `{}` <br> {} <br>".format(script_filename, result)
-            logging.info("Store script eval for script: {}".format(script_filename))
-
-            # Update script_results.
-            script_results = ScriptEvals.load(path=app.config["SCRIPT_EVAL_RESULTS_PATH"])
-            script_results.update_evals(results, script_filename)
-            script_results.store()
-
-    def start_script_eval_thread(self, env, script_filename, script, params_config, var_names, app):
-        Thread(target=self.script_eval, args=(env, script_filename, script, params_config, var_names, app)).start()
-
-    def reload_script_results(self, app, var_names=None):
-        """Run the script evaluations for the variables in this collection as set in the config.py
-
-        :param var_names: Iterable object of variable names the script should be reevaluated. Uses all if None
-        :param app: Hanfor flask app for context.
-        """
-        logging.info("Start variable script evaluations.")
-        if var_names is None:
-            var_names = self.collection.keys()
-
-        if "SCRIPT_EVALUATIONS" not in app.config:
-            logging.info("No SCRIPT_EVALUATIONS settings found in config.py. Skipping variable script evaluations.")
-            return
-
-        # Prepare the subprocess to use our environment.
-        env = os.environ.copy()
-        env["PATH"] = "/usr/sbin:/sbin:" + env["PATH"]
-
-        # Eval each script given by the config
-        for script_filename, params_config in app.config["SCRIPT_EVALUATIONS"].items():
-            # First load the script to prevent permission issues.
-            try:
-                script_path = os.path.join(app.config["SCRIPT_UTILS_PATH"], script_filename)
-                with open(script_path, "rb") as f:
-                    script = f.read()
-            except Exception as e:
-                logging.error("Could not load `{}` to eval variable scrypt results: `{}`".format(script_filename, e))
-                continue
-            self.start_script_eval_thread(
-                env=env,
-                script_filename=script_filename,
-                script=script,
-                params_config=params_config,
-                var_names=var_names,
-                app=app,
-            )
 
     def import_session(self, import_collection):
         """Import another VariableCollection into this.
@@ -1497,20 +1434,3 @@ class Variable:
         if not hasattr(self, "description") or not isinstance(self.constraints, str):
             setattr(self, "description", str())
         super().run_version_migrations()
-
-
-class ScriptEvals(Pickleable):
-    def __init__(self, path=None):
-        self.evals = defaultdict(defaultdict)
-        Pickleable.__init__(self, path)
-
-    def update_evals(self, results: dict, script_name):
-        for name, eval in results.items():
-            self.evals[name].update({script_name: eval})
-
-    def get_concatenated_evals(self):
-        result = dict()
-        for name, evals in self.evals.items():
-            result[name] = " ".join(sorted(evals.values()))
-
-        return result

@@ -39,7 +39,7 @@ except ModuleNotFoundError:
     logging.error(msg)
     raise FileNotFoundError(msg)
 
-from reqtransformer import VariableCollection, Requirement, ScriptEvals, RequirementCollection
+from reqtransformer import VariableCollection, Requirement, RequirementCollection
 from static_utils import (
     pickle_dump_obj_to_file,
     pickle_load_from_dump,
@@ -197,13 +197,6 @@ def formalizations_to_html(app, formalizations):
 def get_available_vars(app, full=True, fetch_evals=False):
     var_collection = VariableCollection(app)
     result = var_collection.get_available_vars_list(used_only=not full)
-
-    if fetch_evals:
-        script_results = ScriptEvals.load(path=app.config["SCRIPT_EVAL_RESULTS_PATH"]).get_concatenated_evals()
-        for variable_data in result:
-            if variable_data["name"] in script_results:
-                variable_data["script_results"] = script_results[variable_data["name"]]
-
     return result
 
 
@@ -458,9 +451,6 @@ def update_variable_in_collection(app, request):
             var_collection.collection[enumerator_name].belongs_to_enum = var_name
 
         var_collection.store()
-
-        if len(new_enumerators) > 0:
-            var_collection.reload_script_results(app, new_enumerators)
 
     return result
 
