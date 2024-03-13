@@ -321,7 +321,7 @@ def api(resource, command):
             requirement_id = request.form.get("requirement_id", "")
             requirement = app.db.get_object(Requirement, requirement_id)
             requirement.delete_formalization(formalization_id, app)
-            app.db.store()
+            app.db.update()
 
             utils.add_msg_to_flask_session_log(app, "Deleted formalization from requirement", [requirement])
             result["html"] = utils.formalizations_to_html(app, requirement.formalizations)
@@ -651,7 +651,7 @@ def api(resource, command):
 
     if resource == "meta":
         if command == "get":
-            return jsonify(utils.MetaSettings(app.config["META_SETTINGS_PATH"]).__dict__)
+            raise DeprecationWarning
 
     if resource == "logs":
         if command == "get":
@@ -861,15 +861,6 @@ def set_session_config_vars(args, HERE):
     app.config["SESSION_FOLDER"] = os.path.join(app.config["SESSION_BASE_FOLDER"], app.config["SESSION_TAG"])
 
 
-def init_meta_settings():
-    """Create meta setting file"""
-    app.config["META_SETTINGS_PATH"] = os.path.join(app.config["SESSION_FOLDER"], "meta_settings.pickle")
-    if not os.path.exists(app.config["META_SETTINGS_PATH"]):
-        meta_settings = dict()
-        meta_settings["tag_colors"] = dict()
-        pickle_dump_obj_to_file(meta_settings, app.config["META_SETTINGS_PATH"])
-
-
 def init_script_eval_results():
     app.config["SCRIPT_EVAL_RESULTS_PATH"] = os.path.join(app.config["SESSION_FOLDER"], "script_eval_results.pickle")
     if not os.path.exists(app.config["SCRIPT_EVAL_RESULTS_PATH"]):
@@ -993,13 +984,11 @@ def startup_hanfor(args, HERE) -> bool:
 
     # Initialize variables collection, import session, meta settings.
     init_script_eval_results()
-    init_meta_settings()
     utils.config_check(app.config)
 
     # Run version migrations
     varcollection_version_migrations(app, args)
     # requirements_version_migrations(app, args)
-    # metasettings_version_migration(app, args)
 
     # Run consistency checks.
     varcollection_consistency_check(app, args)

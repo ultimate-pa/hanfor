@@ -1,5 +1,4 @@
 from flask import jsonify
-from utils import MetaSettings
 
 
 class Ressource:
@@ -7,23 +6,18 @@ class Ressource:
         self.app = app
         self.request = request
         self.response = Response()
-        self._meta_settings = MetaSettings(self.app.config["META_SETTINGS_PATH"])
-
-    @property
-    def meta_settings(self):
-        return self._meta_settings
 
     def apply_request(self):
         getattr(self, self.request.method)()
         return jsonify(self.response), self.response.http_status
 
-    def GET(self):
+    def GET(self):  # noqa
         raise NotImplementedError
 
-    def POST(self):
+    def POST(self):  # noqa
         raise NotImplementedError
 
-    def DELETE(self):
+    def DELETE(self):  # noqa
         raise NotImplementedError
 
 

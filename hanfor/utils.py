@@ -1220,26 +1220,6 @@ class HanforArgumentParser(argparse.ArgumentParser):
         )
 
 
-class MetaSettings:
-    """Just an auto saving minimal dict."""
-
-    def __init__(self, path):
-        self.__dict__ = pickle_load_from_dump(path)  # type: dict
-        self.path = path
-
-    def update_storage(self):
-        pickle_dump_obj_to_file(self.__dict__, self.path)
-
-    def __contains__(self, item):
-        return self.__dict__.__contains__(item)
-
-    def __setitem__(self, key, value):
-        self.__dict__.__setitem__(key, value)
-
-    def __getitem__(self, item):
-        return self.__dict__.__getitem__(item)
-
-
 class Revision:
     def __init__(self, app, args, base_revision_name):
         self.app = app

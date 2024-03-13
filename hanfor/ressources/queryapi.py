@@ -1,14 +1,17 @@
 import re
-
 from reqtransformer import Requirement
 from ressources import Ressource
+from dataclasses import dataclass, field
+from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
+from immutabledict import immutabledict
+from uuid import uuid4
 
 
 class SearchNode:
     operators = {":AND:": 1, ":OR:": 1}
     leftAssoc = {":AND:": 1, ":OR:": 1}
     rightAssoc = {}
-    parantheses = {"(": 1, ")": 1}
+    parentheses = {"(": 1, ")": 1}
     precedenceOf = {":AND:": 3, ":OR:": 2}
 
     def __init__(self, value: str):
@@ -36,7 +39,7 @@ class SearchNode:
 
     @staticmethod
     def is_search_string(token):
-        return not (token in SearchNode.parantheses or token in SearchNode.operators)
+        return not (token in SearchNode.parentheses or token in SearchNode.operators)
 
     @staticmethod
     def to_string(tree):
@@ -206,48 +209,27 @@ class SearchNode:
             return left_sub or right_sub
 
 
-class Query(dict):
-    def __init__(self, name, query="", result=None):
-        super().__init__()
-        self.name = name
-        self.query = query
-        if result is None:
-            self.result = list()
+@DatabaseTable(TableType.Folder)
+@DatabaseID("name", str)
+@DatabaseField("query", str)
+@DatabaseField("results", list[str])
+@dataclass()
+class Query:
+    name: str
+    query: str = ""
+    results: list[str] = field(default_factory=list)
 
     @property
     def hits(self):
-        return len(self.result)
+        return len(self.results)
 
-    @property
-    def name(self):
-        return self["name"]
-
-    @name.setter
-    def name(self, value):
-        self["name"] = value
-
-    @property
-    def query(self):
-        return self["query"]
-
-    @query.setter
-    def query(self, value):
-        self["query"] = value
-
-    @property
-    def result(self):
-        return self["result"]
-
-    @result.setter
-    def result(self, value):
-        self["result"] = value
+    def get_dict(self) -> dict[str, str]:
+        return {"name": self.name, "query": self.query, "results": self.results}
 
 
 class QueryAPI(Ressource):
     def __init__(self, app, request):
         super().__init__(app, request)
-        if "queries" not in self.meta_settings:
-            self.truncate_query_storage()
         self._requirement_data = None
 
     @property
@@ -259,31 +241,18 @@ class QueryAPI(Ressource):
         return self._requirement_data
 
     @property
-    def queries(self):
-        return self.meta_settings["queries"]
+    def queries(self) -> immutabledict[str, Query]:
+        return self.app.db.get_objects(Query)
 
-    def store(self):
-        self.meta_settings.update_storage()
-
-    def get_query(self, name):
+    def get_query(self, name: str) -> Query | None:
         """Get a single query. Returns None is not found.
 
         :param name: str
         :return: Query
         """
-        result = None
-        if name in self.queries:
-            self.queries[name]["hits"] = self.queries[name].hits
-            result = self.queries[name]
-        return result
-
-    def add_query(self, query: Query):
-        self.queries[query.name] = query
-        self.store()
-
-    def update_query(self, name):
-        """Update an existing query."""
-        raise NotImplementedError
+        if self.app.db.key_in_table(Query, name):
+            return self.app.db.get_object(Query, name)
+        return None
 
     def set_response_to_enforce_json(self):
         self.response.errormsg = "Only json data supported."
@@ -315,18 +284,13 @@ class QueryAPI(Ressource):
             break
         return result
 
-    def truncate_query_storage(self):
-        self.meta_settings["queries"] = dict()
-        self.store()
-
-    def eval_query(self, name):
-        query = self.get_query(name)
-        query.result = []
-        if query is not None:
-            tree = SearchNode.from_query(query.query)
-            for rid, data in self.requirement_data.items():
-                if SearchNode.evaluate_tree(tree, data):
-                    query.result.append(rid)
+    def eval_query(self, query: Query):
+        query.results = []
+        tree = SearchNode.from_query(query.query)
+        for rid, data in self.requirement_data.items():
+            if SearchNode.evaluate_tree(tree, data):
+                query.results.append(rid)
+        self.app.db.update()
 
     def GET(self):
         """Returns the `name` associated query. Or all stored queries if no name is given."""
@@ -338,15 +302,13 @@ class QueryAPI(Ressource):
                 self.response.data = QueryAPI.get_target_names(self.app)
         elif name:
             if reload:
-                self.eval_query(name)
-                self.store()
-            self.response.data = self.get_query(name)
+                self.eval_query(self.get_query(name))
+            self.response.data = self.get_query(name).get_dict()
         else:
             if reload:
                 for name in self.queries.keys():
-                    self.eval_query(name)
-                self.store()
-            self.response.data = self.queries
+                    self.eval_query(self.get_query(name))
+            self.response.data = {k: v.get_dict() for k, v in self.queries.items()}
 
     def POST(self):
         """Add a new query. Expects json encoded data like
@@ -363,13 +325,18 @@ class QueryAPI(Ressource):
             store = self.request.json.get("store", True)
 
             if not name:
-                name = str(id(query))
-            self.add_query(Query(name, query))
-            self.eval_query(name)
-            self.response.data = self.get_query(name)
-            if not store:
-                self.queries.pop(name)
-            self.store()
+                name = str(uuid4())
+            if self.app.db.key_in_table(Query, name):
+                store = True
+                q = self.app.db.get_object(Query, name)
+                q.query = query
+                q.results = []
+            else:
+                q = Query(name, query)
+            self.eval_query(q)
+            self.response.data = q.get_dict()
+            if store:
+                self.app.db.add_object(q)
 
     def DELETE(self):
         """Delete one or multiple queries by name
@@ -388,10 +355,9 @@ class QueryAPI(Ressource):
         else:
             name = self.request.json.get("name", "").__str__().strip()
             names = self.request.json.get("names", [])
-            if name in self.queries:
-                self.queries.pop(name)
+            if self.app.db.key_in_table(Query, name):
+                self.app.db.remove_object(self.app.db.get_object(Query, name))
             if isinstance(names, list):
                 for name in names:
-                    if name in self.queries:
-                        self.queries.pop(name)
-            self.store()
+                    if self.app.db.key_in_table(Query, name):
+                        self.app.db.remove_object(self.app.db.get_object(Query, name))
