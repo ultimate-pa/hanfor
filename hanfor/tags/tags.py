@@ -1,8 +1,6 @@
-import os
 from dataclasses import dataclass, field
 from typing import Type
 
-import uuid
 from flask import Blueprint, Response, current_app, jsonify, render_template, request
 from flask.views import MethodView
 from pydantic import BaseModel
@@ -58,14 +56,23 @@ class TagsApi(MethodView):
 
     def __init__(self):
         self.app = current_app
-        self.__available_tags: dict[str, Tag] = {k: Tag(k, **v) for k, v in self.INIT_TAGS.items()}
+        self.__available_tags: dict[str, Tag] = {}
         self.__load()
 
     def __load(self):
+        # load tags
         for tag in self.app.db.get_objects(Tag).values():
             self.__available_tags[tag.name] = tag
             tag.used_by.clear()
 
+            # insert initial tags
+        for name, values in self.INIT_TAGS.items():
+            if name not in self.__available_tags.keys():
+                tag = Tag(name, **values)
+                self.app.db.add_object(tag)
+                self.__available_tags[tag.name] = tag
+
+        # create used by relation
         for req in self.app.db.get_objects(Requirement).values():
             for tag_name in req.tags:
                 self.__available_tags[tag_name].used_by.append(req.rid)
@@ -120,7 +127,7 @@ class TagsApi(MethodView):
             class Config:
                 anystr_strip_whitespace = True
 
-        request_data = RequestData.parse_obj(request.json)
+        request_data = RequestData.model_validate(request.json)
         response_data = {}
 
         for rid in request_data.occurrences:
@@ -149,7 +156,7 @@ class TagsApi(MethodView):
             class Config:
                 anystr_strip_whitespace = True
 
-        request_data = RequestData.parse_obj(request.json)
+        request_data = RequestData.model_validate(request.json)
         response_data = {}
 
         for rid in request_data.occurrences:
