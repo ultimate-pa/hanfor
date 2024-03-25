@@ -124,7 +124,7 @@ def adding_implicit_transitions(sm, counter):
 
     return list_imp_trans
 
-def do_formalizations(reqs):
+def do_formalizations(reqs, vars):
     """
     Creating formalization for all requirements.
 
@@ -132,6 +132,7 @@ def do_formalizations(reqs):
     :return: list of formalization
     """
     forms = []
+    variables = vars
     for element in reqs:
         rid = element.rid
 
@@ -139,7 +140,7 @@ def do_formalizations(reqs):
             id=rid
         )
         form.scoped_pattern = "BoundedResponse"
-        # print(form)
+        print(form.id, form.scoped_pattern, form.belongs_to_requirement)
 
         # ToDo: for implicit transitions another scope pattern name 'Invariance'
         #       implemented in pattern.py as 'Invariant'
@@ -161,39 +162,46 @@ def create_variables(sm):
     list_variables = []
     counter = 0
 
-    basics = ["States", "Actions"]
-
-    # ToDo: Adding the belongs_to attribute to ENUMS
+    basics = ["State", "Action"]
 
     for basic in basics:
         list_val = []
 
-        if basic == "States":
+        if basic == "State":
+            var = reqtrans.Variable(
+                name=basic,
+                type="ENUM_INT",  # enumerator_int
+                value=list_val
+            )
             for state in states:
                 sta = reqtrans.Variable(
                     name= state,
-                    type= "ENUMERATOR",
+                    type= "ENUMERATOR", # enum_int
                     value= str(counter),
-                    # belongs_to_enum= basic
                 )
+                sta.belongs_to_enum = basic
+                print(sta.name, sta.type, sta.value, sta.belongs_to_enum)
                 list_val.append(sta)
                 counter += 1
-            var = reqtrans.Variable(
-                name= basic,
-                type= "ENUM_INT",
-                value= list_val
-            )
+
             list_variables.append(var)
 
-        elif basic == "Actions":
+        elif basic == "Action":
+            # create action enum
+            var = reqtrans.Variable(
+                name=basic,
+                type="ENUM_INT",
+                value=list_val
+            )
+
             # creat the no_op action
             counter = 0
             act = reqtrans.Variable(
                 name="no_op",
                 type="ENUMERATOR",
                 value=str(counter),
-                # belongs_to_enum="Actions"
             )
+            act.belongs_to_enum = basic
             list_val.append(act)
 
             # create the rest actions
@@ -202,16 +210,13 @@ def create_variables(sm):
                 act = reqtrans.Variable(
                     name= action,
                     type= "ENUMERATOR",
-                    value= str(counter),
-                    # belongs_to_enum= basic
+                    value= str(counter)
                 )
+                act.belongs_to_enum = basic
+                print(act.name, act.type, act.value, act.belongs_to_enum)
                 list_val.append(act)
                 counter += 1
-            var = reqtrans.Variable(
-                name= basic,
-                type= "ENUM_INT",
-                value= list_val
-            )
+
             list_variables.append(var)
 
 
@@ -276,17 +281,7 @@ if __name__ == "__main__":
 
     print("Done. " + str(len(list_req)) + " requirements are created successfully.\n")
 
-    # Create Formalizations
-    print("Starting the formalization ... \n ")
-
-    list_form = do_formalizations(list_req)
-
-    # check formalizations
-    # print(str(list_form) + "\n")
-
-
-    print("Done. " + str(len(list_form)) + " formalizations are created successfully.\n")
-
+    # Create variables
     print("Creating the variables ... ")
 
     list_var = create_variables(state_machine)
@@ -300,9 +295,21 @@ if __name__ == "__main__":
         for val in element.value:
             out = out + str([val.name, val.type, val.value]) + ", "
             count += 1
-        print(element.name, element.type + " [" + out[:-2] + "]" )
+        print(element.name, element.type + " [" + out[:-2] + "]")
 
     print("\nDone. " + str(count) + " variables are created successfully.\n")
+
+
+    # Create Formalizations
+    print("Starting the formalization ... \n ")
+
+    list_form = do_formalizations(list_req, list_var)
+
+    # check formalizations
+    # print(str(list_form) + "\n")
+
+
+    print("Done. " + str(len(list_form)) + " formalizations are created successfully.\n")
 
 
     print("Transforming state machine into Hanfor successfull.")
