@@ -186,6 +186,7 @@ class TestVariableConstraints(TestCase):
                               msg="The inconsistent requirement wasn't detected.")
 
             if len(formalizations) == 4 and float(i) == 0.0:
+                print("tested case 1")
                 self.assertIn("constraint1 must be constraint1 at time 0.0", actual,
                               msg="Constraints weren't detected as expected for constraint1")
                 self.assertIn("constraint2 must be constraint2 at time 0.0", actual,
@@ -200,6 +201,7 @@ class TestVariableConstraints(TestCase):
                               msg="Constraints weren't detected as expected for var4")
 
             elif len(formalizations) == 4 and float(i) == 1.0:
+                print("tested case 1")
                 self.assertIn("constraint1 must be constraint1 at time 1.0", actual,
                               msg="Constraints weren't detected as expected for constraint1")
                 self.assertIn("constraint2 must be constraint2 at time 1.0", actual,
@@ -214,6 +216,7 @@ class TestVariableConstraints(TestCase):
                               msg="Constraints weren't detected as expected for var4")
 
             elif len(formalizations) == 4 and float(i) == 2.0:
+                print("tested case 1")
                 self.assertIn("constraint1 must be constraint1 at time 3.0", actual,
                               msg="Constraints weren't detected as expected for constraint1")
                 self.assertIn("No restrictions on constraint2 at time 3.0", actual,
@@ -227,7 +230,7 @@ class TestVariableConstraints(TestCase):
                 self.assertIn("var4 must be (! ((var2 + var4) <= 10.0)) at time 2.0", actual,
                               msg="Constraints weren't detected as expected for var4")
 
-            elif '' in formalizations[-1] and float(i) == 2.0:
+            elif 'edge_response_bound_u1_globally' in formalizations and float(i) == 2.0:
                 print("tested case 2")
                 print(log_stream.getvalue())
                 self.assertIn("No restrictions on var2 at time 3.0", actual,
@@ -235,8 +238,9 @@ class TestVariableConstraints(TestCase):
                 self.assertIn("No restrictions on var4 at time 3.0", actual,
                               msg="Constraints weren't detected as expected for var4")
 
-            elif 'edge_response_bound_u1_globally' in formalizations[-1] and float(i) == 1.0:
+            elif 'duration_bound_u_globally' in formalizations and float(i) == 1.0:
                 print("tested case 3")
+                # TODO: here, actual is empty. Why?
                 print(log_stream.getvalue())
                 self.assertIn("No restrictions on var1 at time 1.0", actual,
                               msg="Constraints weren't detected as expected for var1")
