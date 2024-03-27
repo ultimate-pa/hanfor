@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import math
 from collections import defaultdict
 from copy import deepcopy
@@ -9,7 +10,7 @@ from typing import Tuple
 from pysmt.fnode import FNode
 from pysmt.rewritings import conjunctive_partition
 from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, get_model, is_sat, FALSE, get_unsat_core, \
-    Not, TRUE, is_valid, Solver, Or, Implies, is_unsat
+    Not, TRUE, Solver, Or, is_unsat
 from pysmt.typing import REAL, BOOL
 from z3 import Tactic
 
@@ -655,7 +656,7 @@ class Simulator:
             - Constraints for each variable based on both the simulator history and user input
             - For each variable, from which requirements its constraints result from
         """
-        print("Called function variable constraints ...")
+        logging.log(logging.INFO, "Called function variable constraints ...")
         current_phases = self.current_phases[-1]
 
         constraint_origins = dict()
@@ -695,6 +696,7 @@ class Simulator:
                     if current_phases[current_pea] is None:
                         for location in pea.transitions:
                             if not pea.transitions[location]:  # no transition was built due to inconsistency in req
+                                logging.log(logging.INFO, "There is inconsistency in a requirement.")
                                 print("There is inconsistency in a requirement.")
                                 return False
                             for enabled in pea.transitions[location]:
@@ -726,38 +728,42 @@ class Simulator:
                             if not variable_info[var][0]:
                                 variable_info[var][2 if check_type == 0
                                                    else check_type + 2].add(EqualsOrIff(var, FALSE()))
-                                constraint_origins[var] = pea.requirement.rid
+                                constraint_origins[var].add(pea.requirement.rid)
                                 if not EqualsOrIff(var, FALSE()) in constraints:
                                     constraint_implications.add(EqualsOrIff(var, FALSE()))
                             if not variable_info[var][1]:
                                 variable_info[var][2 if check_type == 0
                                                    else check_type + 2].add(EqualsOrIff(var, TRUE()))
-                                constraint_origins[var] = pea.requirement.rid
+                                constraint_origins[var].add(pea.requirement.rid)
                                 if not EqualsOrIff(var, TRUE()) in constraints:
                                     constraint_implications.add(EqualsOrIff(var, TRUE()))
 
                 if not check_type == 0 and not constraint_implications == set():
                     propagation_done = 0
 
-    # temp print results------------------------------------------------------------------------------------------------
+    # results-----------------------------------------------------------------------------------------------------------
 
         # TODO: transform constraint formulae output to be more readable
             # for example: transform constraint for var1 "var3 < var1 + 1" to "var1 > var3 - 1"
-
-        for x in {3, 4}:
-            for var in variable_info:
-                if len(variable_info[var][x]) > 0:
-                    if x == 3:
-                        output_to_filter = simplify_with_z3(And(And(*variable_info[var][x]), And(*constraints)))
-                    if x == 4:
-                        output_to_filter = simplify_with_z3(And(And(*variable_info[var][x]),
-                                                                And(i for i in user_input), And(*constraints)))
-                    if not output_to_filter == FALSE():
-                        print(f'{var} must have the value(s) {self.filter_output_for_var(output_to_filter, var)} at time {self.times[-1]}')
-                    else:
-                        print(f'{var} has contradicting constraints')
+        vars_with_constraints = set()
+        x = 4
+        for var in variable_info:
+            if len(variable_info[var][x]) > 0:
+                output_to_filter = simplify_with_z3(And(And(*variable_info[var][x]),
+                                                            And(i for i in user_input), And(*constraints)))
+                if not output_to_filter == FALSE():
+                    vars_with_constraints.add(var)
+                    variable_info[var][x] = f'{var} must be {self.filter_output_for_var(output_to_filter, var)} at time {self.times[-1]}'
+                    logging.log(logging.INFO, f'{var} must be {self.filter_output_for_var(output_to_filter, var)} at time {self.times[-1]}')
                 else:
-                    print(f'No restrictions on {var} at time {self.times[-1]}')
-            print()
+                    vars_with_constraints.add(var)
+                    variable_info[var][x] = f'{var} has contradicting constraints'
+                    logging.log(logging.INFO, f'{var} has contradicting constraints')
+                    print(f'{var} has contradicting constraints')
+            else:
+                variable_info[var][x] = f'No restrictions on {var} at time {self.times[-1]}'
+                logging.log(logging.INFO, f'No restrictions on {var} at time {self.times[-1]}')
 
-        print(constraint_origins)
+        logging.log(logging.INFO, f' The following variable have constraints: {vars_with_constraints}')
+        #print(constraint_origins)
+        print("this was done")

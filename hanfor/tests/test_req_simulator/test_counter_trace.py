@@ -87,6 +87,21 @@ testcases = {
              'true;⌈R⌉ ∧ ℓ ≥ T;true',
              'True;⌈R⌉ ∧ ℓ ≥ T;True'),
 
+    'edge_response_bound_u1_globally':
+        Test({'R': Symbol('R'), 'S': Symbol('S'), 'T': Symbol('T', REAL)},
+             'true;⌈!R⌉;⌈R⌉ ∧ ℓ ≤ T;⌈(!R && !S)⌉;true',
+             'True;⌈(! R)⌉;⌈R⌉ ∧ ℓ ≤ T;⌈((! R) & (! S))⌉;True'),
+
+    'initialization_globally':
+        Test({'R': Symbol('R')},
+             '⌈!R⌉;true',
+             '⌈(! R)⌉;True'),
+
+    'invariance_bound_l2_globally':
+        Test({'R': Symbol('R'), 'S': Symbol('S'), 'T': Symbol('T', REAL)},
+             'true;⌈R⌉;⌈true⌉ ∧ ℓ < T;⌈!S⌉;true',
+             'false'),
+
     'response_delay_globally':
         Test({'R': Symbol('R'), 'S': Symbol('S'), 'T': Symbol('T', REAL)},
              'true;⌈(R && !S)⌉;⌈!S⌉ ∧ ℓ > T;true',
@@ -113,10 +128,17 @@ testcases = {
              'True;⌈P⌉;⌈(! Q)⌉;⌈((! Q) & (R & (! S)))⌉;⌈((! Q) & (! S))⌉ ∧ ℓ > T;True'),
 
     'universality_globally':
-        Test({'P': And(Equals(Symbol('int', INT), Int(1)), Equals(Symbol('real', REAL), Real(1.0)))},
-             'true;⌈P⌉;true',
-             'True;⌈((int = 1) & (real = 1.0))⌉;True')
+        Test({'R': Symbol('R')},
+             'true;⌈!R⌉;true',
+             'True;⌈(! R)⌉;True')
 }
+
+# TODO: be able to test patterns with multiple countertraces.
+
+#'edge_response_bound_l2_globally':
+#    Test({'R': Symbol('R'), 'S': Symbol('S'), 'T': Symbol('T', REAL)},
+#         'true;⌈!R⌉;⌈R⌉;⌈S⌉ ∧ ℓ < T;⌈!S⌉;true, true;⌈!R⌉;⌈(R && !S)⌉;true',
+#         'x'),
 
 
 class TestCounterTrace(TestCase):
