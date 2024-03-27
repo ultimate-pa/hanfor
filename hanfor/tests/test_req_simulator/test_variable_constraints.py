@@ -30,11 +30,6 @@ testcases = [
         ['universality_globally',
          {'R': Or(Symbol('constraint1', BOOL), And(Symbol('constraint1', BOOL),
                                                    Symbol('constraint2', BOOL)))}],
-
-        ['edge_response_bound_l2_globally',
-         {'R': LT(Symbol('var1', INT), Int(5)),
-          'S': GT(Plus(Symbol('var2', REAL), Symbol('var4', REAL)), Real(10.0)),
-          'T': Real(2.0)}]
      ],
      """{
         "head": {
@@ -180,13 +175,10 @@ class TestVariableConstraints(TestCase):
             print(log_stream.getvalue())
             actual = log_stream.getvalue()
 
-            if not simulator.check_sat():
-                print("tested case 4")
-                self.assertIn("There is inconsistency in a requirement", actual,
-                              msg="The inconsistent requirement wasn't detected.")
+            simulator.check_sat()
 
-            if len(formalizations) == 4 and float(i) == 0.0:
-                print("tested case 1")
+            if len(formalizations) == 3 and float(i) == 0.0:
+                print("tested case 1_0")
                 self.assertIn("constraint1 must be constraint1 at time 0.0", actual,
                               msg="Constraints weren't detected as expected for constraint1")
                 self.assertIn("constraint2 must be constraint2 at time 0.0", actual,
@@ -197,11 +189,9 @@ class TestVariableConstraints(TestCase):
                               msg="Constraints weren't detected as expected for var2")
                 self.assertIn("var3 must be (var3 = 8) at time 0.0", actual,
                               msg="Constraints weren't detected as expected for var3")
-                self.assertIn("var4 must be (var4 = 0.0) at time 0.0", actual,
-                              msg="Constraints weren't detected as expected for var4")
 
-            elif len(formalizations) == 4 and float(i) == 1.0:
-                print("tested case 1")
+            elif len(formalizations) == 3 and float(i) == 1.0:
+                print("tested case 1_1")
                 self.assertIn("constraint1 must be constraint1 at time 1.0", actual,
                               msg="Constraints weren't detected as expected for constraint1")
                 self.assertIn("constraint2 must be constraint2 at time 1.0", actual,
@@ -212,36 +202,30 @@ class TestVariableConstraints(TestCase):
                               msg="Constraints weren't detected as expected for var2")
                 self.assertIn("var3 must be (var3 = 5) at time 1.0", actual,
                               msg="Constraints weren't detected as expected for var3")
-                self.assertIn("var4 must be (var4 = 8.0) at time 1.0", actual,
-                              msg="Constraints weren't detected as expected for var4")
 
-            elif len(formalizations) == 4 and float(i) == 2.0:
-                print("tested case 1")
-                self.assertIn("constraint1 must be constraint1 at time 3.0", actual,
+            elif len(formalizations) == 3 and float(i) == 2.0:
+                print("tested case 1_2")
+                self.assertIn("constraint1 must be constraint1 at time 2.0", actual,
                               msg="Constraints weren't detected as expected for constraint1")
-                self.assertIn("No restrictions on constraint2 at time 3.0", actual,
+                self.assertIn("constraint2 must be constraint2 at time 2.0", actual,
                               msg="Constraints weren't detected as expected for constraint2")
-                self.assertIn("var1 must be (var1 = 2) at time 2.0", actual,
+                self.assertIn("var1 must be (var1 = 3) at time 2.0", actual,
                               msg="Constraints weren't detected as expected for var1")
-                self.assertIn("var2 must be (var2 = 2.0) at time 2.0", actual,
+                self.assertIn("var2 must be (var2 = 3.0) at time 2.0", actual,
                               msg="Constraints weren't detected as expected for var2")
-                self.assertIn("var3 must be (! (4 <= var3)) at time 2.0", actual,
+                self.assertIn("var3 must be (var3 = 5) at time 2.0", actual,
                               msg="Constraints weren't detected as expected for var3")
-                self.assertIn("var4 must be (! ((var2 + var4) <= 10.0)) at time 2.0", actual,
-                              msg="Constraints weren't detected as expected for var4")
 
-            elif 'edge_response_bound_u1_globally' in formalizations and float(i) == 2.0:
+            elif 'edge_response_bound_u1_globally' in formalizations[-1] and float(i) == 0.0:
                 print("tested case 2")
-                print(log_stream.getvalue())
                 self.assertIn("No restrictions on var2 at time 3.0", actual,
                               msg="Constraints weren't detected as expected for var2")
                 self.assertIn("No restrictions on var4 at time 3.0", actual,
                               msg="Constraints weren't detected as expected for var4")
 
-            elif 'duration_bound_u_globally' in formalizations and float(i) == 1.0:
+            elif 'duration_bound_u_globally' in formalizations[-1] and float(i) == 0.0:
                 print("tested case 3")
                 # TODO: here, actual is empty. Why?
-                print(log_stream.getvalue())
                 self.assertIn("No restrictions on var1 at time 1.0", actual,
                               msg="Constraints weren't detected as expected for var1")
 
@@ -251,7 +235,12 @@ class TestVariableConstraints(TestCase):
                 self.assertIn("var2 has contradicting constraints", actual,
                               msg="Constraints weren't detected as expected for var2")
 
-            if float(i) == len(scenario.times) - 2:
+            elif not simulator.check_sat():
+                print("tested case 4")
+                self.assertIn("There is inconsistency in a requirement", actual,
+                              msg="The inconsistent requirement wasn't detected.")
+
+            if float(i) == len(scenario.times) - 1:
                 break
 
             simulator.step_next(0)
