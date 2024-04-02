@@ -11,10 +11,26 @@ from configuration.ultimate_config import AUTOMATED_TAGS
 from tags.tags import TagsApi
 from reqtransformer import Requirement
 
+from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
+
 FILE_VERSION = 0
 
 
-@dataclass(frozen=True, kw_only=True)
+@DatabaseTable(TableType.Folder)
+@DatabaseID("job_id", str)
+@DatabaseField("requirement_file", str)
+@DatabaseField("toolchain_id", str)
+@DatabaseField("toolchain_xml", str)
+@DatabaseField("usersettings_name", str)
+@DatabaseField("usersettings_json", str)
+@DatabaseField("selected_requirements", list[tuple[str, int]], [])
+@DatabaseField("results", list[dict], [])
+@DatabaseField("result_requirements", list[tuple[str, int]], [])
+@DatabaseField("api_url", str)
+@DatabaseField("job_status", str)
+@DatabaseField("request_time", datetime)
+@DatabaseField("last_update", datetime)
+@dataclass(kw_only=True)
 class UltimateJob:
     job_id: str
     requirement_file: str
@@ -27,8 +43,8 @@ class UltimateJob:
     result_requirements: list[tuple[str, int]] = field(default_factory=list)  # (requirement_id, # of formalisations)
     api_url: str = ""
     job_status: str = "scheduled"
-    request_time: str = datetime.now().strftime("%Y.%m.%d, %H:%M:%S.%f")
-    last_update: str = datetime.now().strftime("%Y.%m.%d, %H:%M:%S.%f")
+    request_time: str = datetime.now()
+    last_update: str = datetime.now()
 
     @classmethod
     def make(
@@ -56,51 +72,6 @@ class UltimateJob:
             selected_requirements=requirements,
         )
 
-    @classmethod
-    def from_file(cls, *, save_dir: str = None, job_id: str = None, file_name: str = None):
-        # generate file_name from save_dir and job_id
-        if file_name is None:
-            if save_dir is None:
-                raise Exception("save_dir is not defined!")
-            if job_id is None:
-                raise Exception("job_id is not defined!")
-            file_name = path.join(save_dir, f"{job_id}.json")
-
-        # check if file exist
-        if not path.isfile(file_name):
-            raise Exception(f"{file_name} can not be found!")
-
-        # read file
-        with open(file_name, "r") as save_file:
-            data = json.load(save_file)
-        job = parse_obj_as(cls, data)
-        # check for old file version
-        # add all requirements
-        if not job.selected_requirements:
-            all_req_ids = get_all_requirement_ids()
-            selected_requirements = calculate_req_id_occurrence(job.requirement_file, all_req_ids)
-            object.__setattr__(job, "selected_requirements", selected_requirements)
-            job.save_to_file(file_name=file_name)
-        # add all requirements with results
-        if not job.result_requirements and job.job_status == "done":
-            requirements = []
-            for req, count in job.selected_requirements:
-                if count == 0:
-                    continue
-                requirements.append((req, req.replace("-", "_") + "_"))
-            req_results: dict[str, int] = {}
-            for result in job.results:
-                for requirement in requirements:
-                    if requirement[1] in result["longDesc"]:
-                        if requirement[0] in req_results:
-                            req_results[requirement[0]] += 1
-                        else:
-                            req_results[requirement[0]] = 1
-            req_results_list = [(req_id, val) for req_id, val in req_results.items()]
-            object.__setattr__(job, "result_requirements", req_results_list)
-            job.save_to_file(file_name=file_name)
-        return job
-
     def save_to_file(self, *, save_dir: str = None, file_name: str = None) -> None:
         if save_dir is not None:
             with open(path.join(save_dir, f"{self.job_id}.json"), "w") as save_file:
@@ -111,7 +82,7 @@ class UltimateJob:
         else:
             raise Exception("Job can not be saved without a file_name or the save_dir")
 
-    def update(self, data: dict, save_dir: str) -> None:
+    def update(self, data: dict) -> None:
         if not data["requestId"] == self.job_id:
             raise Exception("Missmatch of requestID")
         last_status = self.job_status
@@ -119,9 +90,8 @@ class UltimateJob:
         object.__setattr__(self, "job_status", data["status"])
         if not data["result"] == "":
             object.__setattr__(self, "results", data["result"])
-        self.save_to_file(save_dir=save_dir)
         if last_status == "scheduled" and self.job_status == "done":
-            process_result(self, save_dir)
+            process_result(self)
 
     def get(self) -> dict:
         return {
@@ -158,9 +128,12 @@ def calculate_req_id_occurrence(requirement_file: str, selected_requirements: li
 
 def check_ultimate_tag_is_available() -> None:
     tags_api = TagsApi()
-    if tags_api.get("Ultimate_raw_data") == {}:
+    try:
+        _ = tags_api.get("Ultimate_raw_data")
+    except ValueError:
         # ultimate_raw_data tag is not available
         tags_api.add("Ultimate_raw_data", Color.BS_GRAY.value, False, "")
+        pass
 
 
 def get_all_requirement_ids() -> list[str]:
@@ -189,7 +162,7 @@ def add_ultimate_result_to_requirement(
     requirement.store()
 
 
-def process_result(ultimate_job: UltimateJob, save_dir: str) -> None:
+def process_result(ultimate_job: UltimateJob) -> None:
     check_ultimate_tag_is_available()
     requirements = []
     for req, count in ultimate_job.selected_requirements:
@@ -209,7 +182,6 @@ def process_result(ultimate_job: UltimateJob, save_dir: str) -> None:
                     req_results[requirement[0]] = 1
     req_results_list = [(req_id, val) for req_id, val in req_results.items()]
     object.__setattr__(ultimate_job, "result_requirements", req_results_list)
-    ultimate_job.save_to_file(save_dir=save_dir)
     if AUTOMATED_TAGS:
         for requirement, results in tags.items():
             add_ultimate_result_to_requirement(requirement, results, ultimate_job)

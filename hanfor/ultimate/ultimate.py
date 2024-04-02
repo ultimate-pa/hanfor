@@ -36,32 +36,31 @@ def register_api(bp: Blueprint, method_view: Type[MethodView]) -> None:
 
 class UltimateApi(MethodView):
     def __init__(self):
-        self.data_folder = path.join(current_app.config["REVISION_FOLDER"], "ultimate_jobs")
-        if not path.exists(self.data_folder):
-            mkdir(self.data_folder)
         self.ultimate = UltimateConnector
 
     def get(self, command: str, job_id: str) -> dict:
         if command == "version":
             return {"version": self.ultimate.get_version()}
         elif command == "jobs":
-            jobs: list[UltimateJob] = get_all_jobs(self.data_folder)
+            jobs: list[UltimateJob] = get_all_jobs()
             return {"data": [j.get() for j in jobs]}
         elif command == "configurations":
             return self.ultimate.get_ultimate_configurations()
         elif command == "update-all":
-            jobs: list[UltimateJob] = get_all_jobs(self.data_folder)
+            jobs: list[UltimateJob] = get_all_jobs()
             for j in jobs:
                 if j.job_status == "scheduled":
-                    j.update(self.ultimate.get_job(j.job_id), self.data_folder)
+                    j.update(self.ultimate.get_job(j.job_id))
+                current_app.db.update()
             return {"status": "done"}
         elif command == "job":
             download = request.args.get("download", default=False, type=bool)
-            job = UltimateJob.from_file(save_dir=self.data_folder, job_id=job_id)
+            job = current_app.db.get_object(UltimateJob, job_id)
             if job.job_status == "done":
                 pass
             elif job.job_status == "scheduled":
-                job.update(self.ultimate.get_job(job_id), self.data_folder)
+                job.update(self.ultimate.get_job(job_id))
+                current_app.db.update()
             else:
                 pass
             if download:
@@ -73,7 +72,7 @@ class UltimateApi(MethodView):
     def post(self) -> dict:
         data = json.loads(request.get_data())
         job = self.ultimate.start_requirement_job(data["req_file"], data["configuration"], data["req_ids"])
-        job.save_to_file(save_dir=self.data_folder)
+        current_app.db.add_object(job)
         return job.get()
 
     def delete(self, command: str, job_id: str) -> dict:
@@ -81,10 +80,8 @@ class UltimateApi(MethodView):
             return self.ultimate.delete_job(job_id)
 
 
-def get_all_jobs(data_folder: str) -> list[UltimateJob]:
-    jobs: list[UltimateJob] = []
-    for jf in get_filenames_from_dir(data_folder):
-        jobs.append(UltimateJob.from_file(file_name=jf))
+def get_all_jobs() -> list[UltimateJob]:
+    jobs: list[UltimateJob] = [x for x in current_app.db.get_objects(UltimateJob).values()]
     return jobs
 
 
