@@ -4,11 +4,9 @@ from datetime import datetime
 from os import path
 from flask import current_app
 from utils import get_requirements
-from pydantic import parse_obj_as
+from static_utils import SessionValue
 
-from defaults import Color
 from configuration.ultimate_config import AUTOMATED_TAGS
-from tags.tags import TagsApi
 from reqtransformer import Requirement
 
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
@@ -126,16 +124,6 @@ def calculate_req_id_occurrence(requirement_file: str, selected_requirements: li
     return requirements
 
 
-def check_ultimate_tag_is_available() -> None:
-    tags_api = TagsApi()
-    try:
-        _ = tags_api.get("Ultimate_raw_data")
-    except ValueError:
-        # ultimate_raw_data tag is not available
-        tags_api.add("Ultimate_raw_data", Color.BS_GRAY.value, False, "")
-        pass
-
-
 def get_all_requirement_ids() -> list[str]:
     """ "
     returns a list of (requirementID, requirementID without -)
@@ -154,16 +142,16 @@ def add_ultimate_result_to_requirement(
     for result in ultimate_results:
         result_text = result["longDesc"].replace("\n ", "\n\t")
         tmp += f"\n{result['type']}: {result_text}"
-    if "Ultimate_raw_data" in requirement.tags:
-        requirement.tags["Ultimate_raw_data"] = f"{tmp}\n\n---\n\n{requirement.tags['Ultimate_raw_data']}"
+    ultimate_raw_data_tag = current_app.db.get_object(SessionValue, "TAG_Ultimate_raw_data").value
+    if ultimate_raw_data_tag in requirement.tags:
+        requirement.tags[ultimate_raw_data_tag] = f"{tmp}\n\n---\n\n{requirement.tags[ultimate_raw_data_tag]}"
     else:
-        requirement.tags["Ultimate_raw_data"] = f"{tmp}"
+        requirement.tags[ultimate_raw_data_tag] = f"{tmp}"
 
     requirement.store()
 
 
 def process_result(ultimate_job: UltimateJob) -> None:
-    check_ultimate_tag_is_available()
     requirements = []
     for req, count in ultimate_job.selected_requirements:
         if count == 0:

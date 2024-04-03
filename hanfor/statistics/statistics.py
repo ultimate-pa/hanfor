@@ -62,7 +62,7 @@ class StatisticsApi(MethodView):
                     data["types"][requirement.type_in_csv] = 1
                     data["tags_per_type"][requirement.type_in_csv] = dict()
                     data["status_per_type"][requirement.type_in_csv] = {"Todo": 0, "Review": 0, "Done": 0}
-                for tag in requirement.tags:
+                for tag in requirement.get_tag_name_comment_dict():
                     if len(tag) > 0:
                         if tag not in data["tags_per_type"][requirement.type_in_csv]:
                             data["tags_per_type"][requirement.type_in_csv][tag] = 0

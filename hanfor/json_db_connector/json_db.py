@@ -5,8 +5,7 @@ from enum import Enum, EnumMeta
 from types import GenericAlias, UnionType, NoneType
 from typing import get_origin, get_args, TypeVar, Callable, Type
 from uuid import UUID, uuid4
-from os import path, mkdir
-from static_utils import get_filenames_from_dir
+from os import path, mkdir, listdir
 from copy import deepcopy
 from dataclasses import dataclass
 from immutabledict import immutabledict
@@ -315,9 +314,15 @@ class JsonDatabase:
             if cls in DatabaseField.registry:
                 for f_name, (f_type, f_default) in DatabaseField.registry[cls].items():
                     if type(f_type) is str:
-                        f_type = self.__get_cls_from_cls_name(
+                        tmp = self.__get_cls_from_cls_name(
                             f_type, tables.union(field_types).union(self.__custom_serializer.keys())
                         )
+                        if tmp is None:
+                            raise DatabaseInitialisationError(
+                                f"Can not find a class with name '{f_type}' in DatabaseTables, "
+                                f"DatabaseFieldTypes or the custom serializer."
+                            )
+                        f_type = tmp
                     fields[f_name] = f_type, f_default
             non_saved_fields = {}
             if cls in DatabaseNonSavedField.registry:
@@ -330,9 +335,15 @@ class JsonDatabase:
             fields = {}
             for f_name, (f_type, f_default) in DatabaseField.registry[cls].items():
                 if type(f_type) is str:
-                    f_type = self.__get_cls_from_cls_name(
+                    tmp = self.__get_cls_from_cls_name(
                         f_type, tables.union(field_types).union(self.__custom_serializer.keys())
                     )
+                    if tmp is None:
+                        raise DatabaseInitialisationError(
+                            f"Can not find a class with name '{f_type}' in DatabaseTables, DatabaseFieldTypes or "
+                            f"the custom serializer."
+                        )
+                    f_type = tmp
                 fields[f_name] = f_type, f_default
             self._field_types[cls] = fields
 
@@ -362,11 +373,19 @@ class JsonDatabase:
         self._tables[type(obj)].add_object(obj, user)
         self.update(user)
 
-    def get_objects(self, tbl: Type[GET_TYPE]) -> immutabledict[int | str, GET_TYPE]:
+    def get_objects(self, tbl: Type[GET_TYPE] | str) -> immutabledict[int | str, GET_TYPE]:
+        if type(tbl) is str:
+            tbl = self.__get_cls_from_cls_name(tbl, set(self._tables.keys()))
+        if tbl is None or tbl not in self._tables.keys():
+            raise DatabaseKeyError(f"{tbl} is not part of the Database.")
         return self._tables[tbl].get_objects()
 
-    def get_object(self, tbl: Type[GET_TYPE], id: str | int) -> GET_TYPE:
-        return self._tables[tbl].get_object(id)
+    def get_object(self, tbl: Type[GET_TYPE] | str, o_id: str | int) -> GET_TYPE:
+        if type(tbl) is str:
+            tbl = self.__get_cls_from_cls_name(tbl, set(self._tables.keys()))
+        if tbl is None or tbl not in self._tables.keys():
+            raise DatabaseKeyError(f"{tbl} is not part of the Database.")
+        return self._tables[tbl].get_object(o_id)
 
     def update(self, user: str = None) -> None:
         if user is None:
@@ -496,14 +515,12 @@ class JsonDatabase:
             raise DatabaseInitialisationError("JsonDatabase write_data_trace is called before init_tables is called")
         self.__data_tracing_logger.info(f"{user};{table_name};{obj_id};{json.dumps(old_data)}")
 
-    def __get_cls_from_cls_name(self, cls_name: str, classes: set) -> type:
+    @staticmethod
+    def __get_cls_from_cls_name(cls_name: str, classes: set) -> type | None:
         for cls in classes:
             if cls_name == cls.__name__:
                 return cls
-        raise DatabaseInitialisationError(
-            f"Can not find a class with name '{cls_name}' in DatabaseTables, DatabaseFieldTypes or the custom "
-            f"serializer."
-        )
+        return None
 
     def __setup_data_tracing_logger(self) -> Logger | None:
         if self.__test_mode:
@@ -696,7 +713,9 @@ class JsonDatabaseTable:
                         self.__create_and_insert_object(obj_id, obj_data)
         elif self.table_type == TableType.Folder:
             table_folder = path.join(self.__db.data_folder, self.cls.__name__)
-            for file_name in get_filenames_from_dir(table_folder):
+            for file_name in [
+                path.join(table_folder, f) for f in listdir(table_folder) if path.isfile(path.join(table_folder, f))
+            ]:
                 with open(file_name, "r") as json_file:
                     obj_data = json.load(json_file)
                     obj_id = path.splitext(path.basename(file_name))[0]

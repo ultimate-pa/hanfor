@@ -29,7 +29,6 @@ import boogie_parsing
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
 from dataclasses import dataclass
 from uuid import UUID
-from tags.tags import Tag
 
 # Here is the first time we use config. Check existence and raise a meaningful exception if not found.
 try:
@@ -41,11 +40,10 @@ except ModuleNotFoundError:
 
 from reqtransformer import VariableCollection, Requirement, RequirementCollection
 from static_utils import (
-    pickle_dump_obj_to_file,
     pickle_load_from_dump,
     replace_prefix,
-    get_filenames_from_dir,
     hash_file_sha1,
+    SessionValue,
 )
 from typing import Union, Set, List
 from terminaltables import DoubleTable
@@ -62,15 +60,6 @@ default_scope_options = """
 
 
 @DatabaseTable(TableType.File)
-@DatabaseID("name", str)
-@DatabaseField("value", dict)
-@dataclass()
-class SessionValue:
-    name: str
-    value: any
-
-
-@DatabaseTable(TableType.File)
 @DatabaseID("id", use_uuid=True)
 @DatabaseField("timestamp", datetime.datetime)
 @DatabaseField("message", str)
@@ -80,7 +69,7 @@ class RequirementEditHistory:
     timestamp: datetime.datetime
     message: str
     requirements: list[Requirement]
-    id: UUID = None
+    id: str = None
 
 
 def config_check(app_config):
@@ -550,7 +539,7 @@ def generate_csv_file_content(app, filter_list=None, invert_filter=False):
     # Update csv row of requirements to use their latest formalization and tags.
     for requirement in requirements:
         requirement.csv_row[session_values["csv_formal_header"].value] = requirement.get_formalizations_json()
-        requirement.csv_row[tag_col_name] = ", ".join(requirement.tags)
+        requirement.csv_row[tag_col_name] = ", ".join(requirement.get_tag_name_comment_dict().keys())
         requirement.csv_row[status_col_name] = requirement.status
 
     # Write data to file.
@@ -567,6 +556,8 @@ def generate_csv_file_content(app, filter_list=None, invert_filter=False):
 
 def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter: bool = False) -> io.BytesIO:
     """Generates the xlsx file content for a session."""
+    from tags.tags import Tag
+
     requirements = get_requirements(app, filter_list=filter_list, invert_filter=invert_filter)
     var_collection = VariableCollection(app)
     tags = {tag.name: tag.internal for tag in app.db.get_objects(Tag).values()}
@@ -627,7 +618,11 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
             HEADER_OFFSET + i,
             5,
             "".join(
-                [f"{t}: {c} \n" if c else f"{t}\n" for t, c in requirement.tags.items() if t in tags and not tags[t]]
+                [
+                    f"{t}: {c} \n" if c else f"{t}\n"
+                    for t, c in requirement.get_tag_name_comment_dict().items()
+                    if t in tags and not tags[t]
+                ]
             ),
         )
         work_sheet.cell(HEADER_OFFSET + i, 6, requirement.status)
@@ -664,7 +659,7 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
 
     issue_tags_reqs = []
     for req in requirements:
-        for tag in req.tags:
+        for tag in req.get_tag_name_comment_dict():
             if tag in tags and tags[tag]:
                 continue
             issue_tags_reqs.append((req, tag))
@@ -677,7 +672,9 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
         tag_sheet.cell(HEADER_OFFSET + i, 2, req.rid)
         tag_sheet.cell(HEADER_OFFSET + i, 3, req.description)
         tag_sheet.cell(HEADER_OFFSET + i, 4, tag)
-        tag_sheet.cell(HEADER_OFFSET + i, 5, req.tags[tag])  # Tags do currently not have comments
+        tag_sheet.cell(
+            HEADER_OFFSET + i, 5, req.get_tag_name_comment_dict()[tag]
+        )  # Tags do currently not have comments
         tag_sheet.cell(HEADER_OFFSET + i, 6, "TODO")
         tag_sheet.cell(HEADER_OFFSET + i, 7, "TODO")
 
@@ -1019,14 +1016,14 @@ def get_datatable_additional_cols(app):
     return {"col_defs": result}
 
 
-def add_msg_to_flask_session_log(app: Flask, message: str, rid_list: list[Requirement] = None) -> None:
+def add_msg_to_flask_session_log(app: Flask, message: str, req_list: list[Requirement] = None) -> None:
     """Add a log message for the frontend_logs.
 
-    :param rid_list: A list of affected requirement IDs
+    :param req_list: A list of affected requirements
     :param app: The flask app
     :param message: Log message string
     """
-    app.db.add_object(RequirementEditHistory(datetime.datetime.now(), message, rid_list))
+    app.db.add_object(RequirementEditHistory(datetime.datetime.now(), message, req_list))
 
 
 def get_flask_session_log(app: Flask, html_format: bool = False) -> Union[list, str]:
@@ -1334,7 +1331,7 @@ class Revision:
     def _store_requirements(self):
         for index, req in enumerate(self.requirement_collection.requirements):  # type: Requirement
             filename = os.path.join(self.app.config["REVISION_FOLDER"], "{}.pickle".format(req.rid))
-            req.store(filename)
+            # req.store(filename)
 
     def _generate_session_dict(self):
         # Generate the session dict: Store some meta information.

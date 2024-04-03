@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
 from immutabledict import immutabledict
 from uuid import uuid4
+from flask import current_app
+from static_utils import SessionValue
 
 
 class SearchNode:
@@ -261,7 +263,7 @@ class QueryAPI(Ressource):
     @staticmethod
     def req_dict_to_search_dict(req_dict):
         if len(req_dict["formal"]) > 0:
-            req_dict["tags"].append("has_formalization")
+            req_dict["tags"].append(current_app.db.get_object(SessionValue, "TAG_has_formalization").value)
 
         result = {
             "Id": req_dict["id"],

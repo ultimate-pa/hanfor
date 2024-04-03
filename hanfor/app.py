@@ -21,14 +21,20 @@ from typing import Callable
 from json_db_connector.json_db import JsonDatabase
 
 import reqtransformer
-from utils import SessionValue
 import utils
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from reqtransformer import Requirement, VariableCollection, Variable, Scope
 from ressources import Reports, QueryAPI
 from ressources.simulator_ressource import SimulatorRessource
-from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, hash_file_sha1
+from static_utils import (
+    get_filenames_from_dir,
+    pickle_dump_obj_to_file,
+    choice,
+    pickle_load_from_dump,
+    hash_file_sha1,
+    SessionValue,
+)
 from patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
 from tags.tags import TagsApi
 
@@ -212,18 +218,24 @@ def api(resource, command):
                     logging.debug(f"Requirement status set to {requirement.status}")
 
                 new_tag_set = json.loads(request.form.get("tags", ""))
-                if requirement.tags != new_tag_set:
-                    added_tags = new_tag_set.keys() - requirement.tags.keys()
-                    tags = TagsApi()
-                    for tag in added_tags:
-                        tags.add_if_new(tag)
-                    removed_tags = requirement.tags.keys() - new_tag_set.keys()
-                    requirement.tags = new_tag_set
+                req_tags = requirement.get_tag_name_comment_dict()
+                if req_tags != new_tag_set:
+                    added_tags = new_tag_set.keys() - req_tags.keys()
+                    tag_api = TagsApi()
+                    removed_tags = req_tags.keys() - new_tag_set.keys()
+                    for tag in removed_tags:
+                        if not tag_api.tag_exists(tag):
+                            continue
+                        requirement.tags.pop(tag_api.get_tag(tag))
+                    for tag, comment in new_tag_set.items():
+                        if not tag_api.tag_exists(tag):
+                            tag_api.add(tag)
+                        requirement.tags[tag_api.get_tag(tag)] = comment
                     # do logging
                     utils.add_msg_to_flask_session_log(
                         app, f"Tags: + {added_tags} and - {removed_tags} to requirement", [requirement]
                     )
-                    logging.debug(f"Tags: + {added_tags} and - {removed_tags} to requirement {requirement.tags}")
+                    logging.debug(f"Tags: + {added_tags} and - {removed_tags} to requirement {requirement.rid}")
 
                 # Update formalization.
                 if request.form.get("update_formalization") == "true":
@@ -275,16 +287,28 @@ def api(resource, command):
 
             # Update all requirements given by the rid_list
             if result["success"]:
+                tag_api = TagsApi()
                 requirements = [app.db.get_object(Requirement, rid) for rid in rid_list]
                 log_msg = f"Update {len(rid_list)} requirements."
                 if len(add_tag) > 0:
                     log_msg += f"Adding tag `{add_tag}`"
                     utils.add_msg_to_flask_session_log(app, f"Adding tag `{add_tag}` to requirements.", requirements)
+                    if not tag_api.tag_exists(add_tag):
+                        tag_api.add(add_tag)
+                    add_tag = tag_api.get_tag(add_tag)
+                else:
+                    add_tag = None
                 if len(remove_tag) > 0:
                     log_msg += f", removing Tag `{remove_tag}` (is present)"
                     utils.add_msg_to_flask_session_log(
                         app, f"Removing tag `{remove_tag}` from requirements.", requirements
                     )
+                    if not tag_api.tag_exists(remove_tag):
+                        remove_tag = None
+                    else:
+                        remove_tag = tag_api.get_tag(remove_tag)
+                else:
+                    remove_tag = None
                 if len(set_status) > 0:
                     log_msg += ", set Status=`{}`.".format(set_status)
                     utils.add_msg_to_flask_session_log(
@@ -294,7 +318,7 @@ def api(resource, command):
 
                 for requirement in requirements:
                     logging.info(f"Updating requirement `{requirement.rid}`")
-                    if remove_tag in requirement.tags:
+                    if remove_tag and remove_tag in requirement.tags:
                         requirement.tags.pop(remove_tag)
                     if add_tag and add_tag not in requirement.tags:
                         requirement.tags[add_tag] = ""

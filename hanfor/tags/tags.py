@@ -7,10 +7,10 @@ from pydantic import BaseModel
 
 from configuration.tags import STANDARD_TAGS
 from defaults import Color
-from reqtransformer import Requirement
 
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField, DatabaseNonSavedField
 from uuid import UUID
+from static_utils import SessionValue
 
 BUNDLE_JS = "dist/tags-bundle.js"
 blueprint = Blueprint("tags", __name__, template_folder="templates", url_prefix="/tags")
@@ -36,7 +36,10 @@ class Tag:
     internal: bool
     description: str
     used_by: list = field(default_factory=list)
-    uuid: UUID = None
+    uuid: str = None
+
+    def __hash__(self):
+        return hash(self.uuid)
 
 
 def register_api(bp: Blueprint, method_view: Type[MethodView]) -> None:
@@ -52,6 +55,7 @@ class TagsApi(MethodView):
         "incomplete_formalization": {"color": Color.BS_WARNING.value, "internal": True, "description": ""},
         "has_formalization": {"color": Color.BS_SUCCESS.value, "internal": True, "description": ""},
         "unknown_type": {"color": Color.BS_DANGER.value, "internal": True, "description": ""},
+        "Ultimate_raw_data": {"color": Color.BS_GRAY.value, "internal": False, "description": ""},
     }
 
     def __init__(self):
@@ -71,17 +75,16 @@ class TagsApi(MethodView):
                 tag = Tag(name, **values)
                 self.app.db.add_object(tag)
                 self.__available_tags[tag.name] = tag
+                # add initial tag to SessionValues
+                self.app.db.add_object(SessionValue(f"TAG_{name}", tag))
 
         # create used by relation
-        for req in self.app.db.get_objects(Requirement).values():
-            for tag_name in req.tags:
+        for req in self.app.db.get_objects("Requirement").values():
+            for tag_name in req.get_tag_name_comment_dict():
                 self.__available_tags[tag_name].used_by.append(req.rid)
 
         for tag in self.__available_tags.values():
             tag.used_by.sort()
-
-    def __store(self):
-        self.app.db.update()
 
     def add_if_new(self, tag_name: str) -> None:
         if tag_name not in self.__available_tags:
@@ -90,7 +93,15 @@ class TagsApi(MethodView):
     def add(
         self, tag_name: str, tag_color: str = Color.BS_INFO.value, tag_internal: bool = False, tag_description: str = ""
     ) -> None:
-        self.app.db.add_object(Tag(tag_name, tag_color, tag_internal, tag_description))
+        t = Tag(tag_name, tag_color, tag_internal, tag_description)
+        self.app.db.add_object(t)
+        self.__available_tags[tag_name] = t
+
+    def tag_exists(self, name: str) -> bool:
+        return name in self.__available_tags
+
+    def get_tag(self, name: str) -> Tag:
+        return self.__available_tags[name]
 
     def get(self, name: str | None) -> str | dict | tuple | Response:
         if name is None:
@@ -130,17 +141,11 @@ class TagsApi(MethodView):
         request_data = RequestData.model_validate(request.json)
         response_data = {}
 
-        for rid in request_data.occurrences:
-            if rid == "":  # TODO frontend should not send an empty string
-                continue
-            requirement = self.app.db.get_object(Requirement, rid)
-            comment = requirement.tags.pop(name)
-            requirement.tags[request_data.name_new] = comment
-
-        self.__available_tags[name].name = request_data.name_new
-        self.__available_tags[name].color = request_data.color
-        self.__available_tags[name].description = request_data.description
-        self.__available_tags[name].internal = request_data.internal
+        tag = self.__available_tags[name]
+        tag.name = request_data.name_new
+        tag.color = request_data.color
+        tag.description = request_data.description
+        tag.internal = request_data.internal
         self.app.db.update()
 
         if name != request_data.name_new:
@@ -159,13 +164,14 @@ class TagsApi(MethodView):
         request_data = RequestData.model_validate(request.json)
         response_data = {}
 
+        tag = self.__available_tags[name]
         for rid in request_data.occurrences:
-            requirement = self.app.db.get_object(Requirement, rid)
-            requirement.tags.pop(name)
+            requirement = self.app.db.get_object("Requirement", rid)
+            requirement.tags.pop(tag)
         self.app.db.update()
 
+        current_app.db.remove_object(tag)
         self.__available_tags.pop(name)
-        self.__store()
 
         return response_data
 
