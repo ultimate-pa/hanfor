@@ -27,8 +27,8 @@ from patterns import PATTERNS
 import boogie_parsing
 
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
-from dataclasses import dataclass
-from uuid import UUID
+from dataclasses import dataclass, field
+from uuid import uuid4
 
 # Here is the first time we use config. Check existence and raise a meaningful exception if not found.
 try:
@@ -69,7 +69,7 @@ class RequirementEditHistory:
     timestamp: datetime.datetime
     message: str
     requirements: list[Requirement]
-    id: str = None
+    id: str = field(default_factory=lambda: str(uuid4()))
 
 
 def config_check(app_config):

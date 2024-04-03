@@ -117,14 +117,14 @@ class DatabaseField:
             return
         if inspect.isclass(field):
             raise DatabaseDefinitionError(
-                f"DatabaseField must be set to the name and type of an field of the class: " f"{field}"
+                f"DatabaseField must be set to the name and type of an field of the class: {field}"
             )
 
     def __call__(self, cls):
         if self._field is None:
             # empty brackets
             raise DatabaseDefinitionError(
-                f"DatabaseField must be set to the name and type of an field of the class: " f"{cls}"
+                f"DatabaseField must be set to the name and type of an field of the class: {cls}"
             )
         if not type(self._field) is str:
             # first argument is not a string
@@ -584,8 +584,12 @@ class JsonDatabaseTable:
             # object already in database -> update db
             return
         if self.id_type is UUID:
-            obj_id = str(uuid4())
-            setattr(obj, self.id_field, obj_id)
+            tmp_id = getattr(obj, self.id_field, None)
+            if tmp_id is None or tmp_id == "":
+                obj_id = str(uuid4())
+                setattr(obj, self.id_field, obj_id)
+            else:
+                obj_id = tmp_id
         else:
             # check if id is already in db
             obj_id = getattr(obj, self.id_field, None)

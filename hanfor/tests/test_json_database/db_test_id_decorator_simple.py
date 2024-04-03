@@ -1,5 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from json_db_connector.json_db import DatabaseID
+from uuid import uuid4
 
 
 @DatabaseID("job_id", str)
@@ -35,3 +36,4 @@ class TestClassFolder:
 @dataclass()
 class TestClassUuid:
     job_id: str
+    uuid: str = field(default_factory=lambda: str(uuid4()))

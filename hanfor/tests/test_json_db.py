@@ -20,7 +20,7 @@ from immutabledict import immutabledict
 from typing import Callable
 
 
-def clear_Registries() -> None:
+def clear_registries() -> None:
     DatabaseTable.registry.clear()
     DatabaseID.registry.clear()
     DatabaseField.registry.clear()
@@ -36,12 +36,12 @@ class TestJsonDatabase(TestCase):
 
     def setUp(self) -> None:
         self.maxDiff = None
-        clear_Registries()
+        clear_registries()
         self._db = JsonDatabase(test_mode=True)
         self._data_path = path.join(path.dirname(path.realpath(__file__)), "test_json_database", "test_data")
 
     def tearDown(self):
-        clear_Registries()
+        clear_registries()
         if path.isdir(path.join(self._data_path, "init_tables_ok", "TestClassFolder")):
             rmdir(path.join(self._data_path, "init_tables_ok", "TestClassFolder"))
         if path.isfile(path.join(self._data_path, "init_tables_ok", "TestClassFile.json")):
@@ -70,6 +70,8 @@ class TestJsonDatabase(TestCase):
             remove(path.join(self._data_path, "add_object", "TestClass3.json"))
         if path.isfile(path.join(self._data_path, "add_object", "TestClass4.json")):
             remove(path.join(self._data_path, "add_object", "TestClass4.json"))
+        if path.isfile(path.join(self._data_path, "add_object", "TestClass5.json")):
+            remove(path.join(self._data_path, "add_object", "TestClass5.json"))
         if path.isfile(path.join(self._data_path, "add_object", ".DataTracing", "log.csv")):
             remove(path.join(self._data_path, "add_object", ".DataTracing", "log.csv"))
             rmdir(path.join(self._data_path, "add_object", ".DataTracing"))
@@ -313,8 +315,6 @@ class TestJsonDatabase(TestCase):
             TestClassUuid,
         )
 
-        _ = TestClassFolder
-        _ = TestClassUuid
         id_dict: dict[type, (str, type)] = {
             TestClassFile: ("job_id", str),
             TestClassFolder: ("job_id", int),
@@ -410,7 +410,7 @@ class TestJsonDatabase(TestCase):
             _ = TestClass
         self.assertEqual(
             "DatabaseDefinitionError: Type of DatabaseField must be of type type or str: <class "
-            "'test_json_database.db_test_field_decorator_with_2_incorrect_arguments.TestClass'>",
+            "'test_json_database.db_test_field_decorator_with_2_incorrect_arguments.TestClass'> field: job_id",
             str(em.exception),
         )
 
@@ -680,12 +680,7 @@ class TestJsonDatabase(TestCase):
         )
 
     def test_json_db_add_object(self):
-        from test_json_database.db_test_add_object import (
-            TestClass1,
-            TestClass2,
-            TestClass3,
-            TestClass4,
-        )
+        from test_json_database.db_test_add_object import TestClass1, TestClass2, TestClass3, TestClass4, TestClass5
 
         @dataclass()
         class TestClass:
@@ -715,7 +710,10 @@ class TestJsonDatabase(TestCase):
         tc2_3 = TestClass2(job_id=3, att_int=30, att_ref=tc1_3)
         tc2_4 = TestClass2(job_id=None, att_int=40, att_ref=None)
         tc3_1 = TestClass3(att_str="uuid")
+        tc3_2 = TestClass3(att_str="uuid2")
         tc4_1 = TestClass4(job_id=100, att_ref=tc3_1)
+        tc5_1 = TestClass5()
+        tc5_2 = TestClass5()
 
         # add normal object
         self._db.add_object(tc1_1, "test")
@@ -724,39 +722,57 @@ class TestJsonDatabase(TestCase):
             TestClass2: {},
             TestClass3: {},
             TestClass4: {},
+            TestClass5: {},
         }
-        for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
+        for t in [TestClass1, TestClass2, TestClass3, TestClass4, TestClass5]:
             self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with empty reference field
         self._db.add_object(tc1_2, "test")
         self._db.add_object(tc2_1, "test")
         data_id[TestClass1]["two"] = tc1_2
         data_id[TestClass2][1] = tc2_1
-        for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
+        for t in [TestClass1, TestClass2, TestClass3, TestClass4, TestClass5]:
             self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with filled reference field
         self._db.add_object(tc2_2, "test")
         data_id[TestClass2][2] = tc2_2
-        for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
+        for t in [TestClass1, TestClass2, TestClass3, TestClass4, TestClass5]:
             self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with filled reference field but with an unknown object -> test call add @ _data_to_json
         self._db.add_object(tc2_3, "test")
         data_id[TestClass1]["three"] = tc1_3
         data_id[TestClass2][3] = tc2_3
-        for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
+        for t in [TestClass1, TestClass2, TestClass3, TestClass4, TestClass5]:
             self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with uuid as id
         self._db.add_object(tc3_1, "test")
         uid = self._db._tables[TestClass3].get_key_of_object(tc3_1)
         data_id[TestClass3][uid] = tc3_1
-        for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
+        for t in [TestClass1, TestClass2, TestClass3, TestClass4, TestClass5]:
+            self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
+        self._db.add_object(tc3_2, "test")
+        uid2 = self._db._tables[TestClass3].get_key_of_object(tc3_2)
+        data_id[TestClass3][uid2] = tc3_2
+        self.assertNotEqual(uid, uid2)
+        for t in [TestClass1, TestClass2, TestClass3, TestClass4, TestClass5]:
+            self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
+        self._db.add_object(tc5_1, "test")
+        uid = self._db._tables[TestClass5].get_key_of_object(tc5_1)
+        data_id[TestClass5][uid] = tc5_1
+        for t in [TestClass1, TestClass2, TestClass3, TestClass4, TestClass5]:
+            self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
+        self._db.add_object(tc5_2, "test")
+        uid2 = self._db._tables[TestClass5].get_key_of_object(tc5_2)
+        self.assertNotEqual(uid, uid2)
+        data_id[TestClass5][uid2] = tc5_2
+        for t in [TestClass1, TestClass2, TestClass3, TestClass4, TestClass5]:
             self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with reference to an object with an uuid as id
         self._db.add_object(tc4_1, "test")
         data_id[TestClass4][100] = tc4_1
-        for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
+        for t in [TestClass1, TestClass2, TestClass3, TestClass4, TestClass5]:
             self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
-        for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
+        for t in [TestClass1, TestClass2, TestClass3, TestClass4, TestClass5]:
             self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with None as id
         with self.assertRaises(Exception) as em:
@@ -765,7 +781,7 @@ class TestJsonDatabase(TestCase):
             f"DatabaseInsertionError: The id field 'job_id' of object {tc2_4} is empty.",
             str(em.exception),
         )
-        for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
+        for t in [TestClass1, TestClass2, TestClass3, TestClass4, TestClass5]:
             self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with already existing id
         with self.assertRaises(Exception) as em:
@@ -774,7 +790,7 @@ class TestJsonDatabase(TestCase):
             f"DatabaseInsertionError: The id 'one' already exists in table {type(tc1_4)}.",
             str(em.exception),
         )
-        for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
+        for t in [TestClass1, TestClass2, TestClass3, TestClass4, TestClass5]:
             self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
         # add object with false type of id
         with self.assertRaises(Exception) as em:
@@ -783,7 +799,7 @@ class TestJsonDatabase(TestCase):
             f"DatabaseInsertionError: The id field 'job_id' of object {tc1_6} is not of type '{str}'.",
             str(em.exception),
         )
-        for t in [TestClass1, TestClass2, TestClass3, TestClass4]:
+        for t in [TestClass1, TestClass2, TestClass3, TestClass4, TestClass5]:
             self.assertEqual(self._db._tables[t].get_objects(), immutabledict(data_id[t]))
 
     def test_json_db_save_and_update(self):
@@ -1018,20 +1034,12 @@ class TestJsonDatabase(TestCase):
         self.assertTrue(self._db._tables[TestUUID].key_in_table("cad3bea2-36d0-4119-ba42-fa7fc1192582"))
         self.assertTrue(self._db._tables[TestUUID].key_in_table("55f0895b-8861-4af6-b20a-415f58a7839c"))
         self.assertEqual(
-            TestUUID("one"),
+            TestUUID("one", "cad3bea2-36d0-4119-ba42-fa7fc1192582"),
             self._db._tables[TestUUID].get_object("cad3bea2-36d0-4119-ba42-fa7fc1192582"),
         )
         self.assertEqual(
-            self._db._tables[TestUUID].get_object("cad3bea2-36d0-4119-ba42-fa7fc1192582").uuid,
-            "cad3bea2-36d0-4119-ba42-fa7fc1192582",
-        )
-        self.assertEqual(
-            TestUUID("two"),
+            TestUUID("two", "55f0895b-8861-4af6-b20a-415f58a7839c"),
             self._db._tables[TestUUID].get_object("55f0895b-8861-4af6-b20a-415f58a7839c"),
-        )
-        self.assertEqual(
-            self._db._tables[TestUUID].get_object("55f0895b-8861-4af6-b20a-415f58a7839c").uuid,
-            "55f0895b-8861-4af6-b20a-415f58a7839c",
         )
 
     def test_json_db_load_with_defaults(self):

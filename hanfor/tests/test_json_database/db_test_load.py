@@ -6,6 +6,7 @@ from json_db_connector.json_db import (
     DatabaseFieldType,
     TableType,
 )
+from uuid import uuid4
 
 
 @DatabaseFieldType()
@@ -49,3 +50,4 @@ class TestClassFolder:
 @dataclass()
 class TestUUID:
     att_str: str
+    uuid: str = str(uuid4())

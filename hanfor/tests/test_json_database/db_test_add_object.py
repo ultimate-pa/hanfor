@@ -1,10 +1,11 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from json_db_connector.json_db import (
     DatabaseTable,
     DatabaseID,
     DatabaseField,
     TableType,
 )
+from uuid import uuid4
 
 
 @DatabaseTable(TableType.File)
@@ -33,6 +34,7 @@ class TestClass2:
 @dataclass()
 class TestClass3:
     att_str: str
+    uuid: str = field(default_factory=lambda: str(uuid4()))
 
 
 @DatabaseTable(TableType.File)
@@ -42,3 +44,10 @@ class TestClass3:
 class TestClass4:
     job_id: int
     att_ref: TestClass3 | None
+
+
+@DatabaseTable(TableType.File)
+@DatabaseID("uuid", use_uuid=True)
+@dataclass()
+class TestClass5:
+    uuid: str = None
