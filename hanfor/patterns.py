@@ -625,4 +625,20 @@ PATTERNS = {
         'group': 'Legacy',
         'pattern_order': 1
     },
+    ################################################################################
+    #                         Patterns Under Test                                  #
+    ################################################################################
+    'StateMachineTimeless': {
+        'pattern': 'it is always the case that if {R} holds then {S} toggles {T}',
+        'countertraces': {
+            'GLOBALLY': ['true;⌈(R && !S)⌉;⌈(S && !T)⌉;true'],
+        },
+        'env': {
+            'R': ['bool'],
+            'S': ['bool'],
+            'T': ['bool'],
+        },
+        'group': 'Order',
+        'pattern_order': 7
+    },
 }
