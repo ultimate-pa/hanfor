@@ -14,8 +14,15 @@ from req_simulator.simulator import Simulator
 from reqtransformer import Requirement, Formalization
 from tests.test_req_simulator import test_counter_trace
 
-logger = logging.getLogger()
-logger.level = logging.INFO
+'''Warning: these test cases don't actually test accuracy of detected constraints in typical scenarios in the simulator!
+
+For the test cases, (currently) a user input value must be given for each tested time point, so these end up being the 
+constraints.
+
+Also, it is (currently) not possible to test requirements which comprise multiple countertraces.
+
+For cases testing functionality of constraint propagation, etc. see project report.
+'''
 
 testcases = [
     ([
@@ -66,9 +73,9 @@ testcases = [
 
     ([
         ['edge_response_bound_u1_globally',
-         {'R': Equals(Symbol('var2', REAL), Real(2.0)),
-          'T': Real(5.0),
-          'S': Equals(Symbol('var4', REAL), Real(4.0))}],
+         {'R': Equals(Symbol('var5', REAL), Real(2.0)),
+          'T': Real(1.0),
+          'S': Equals(Symbol('var6', REAL), Real(4.0))}],
      ],
      """{
         "head": {
@@ -76,20 +83,20 @@ testcases = [
             "times": [0.0, 1.0, 2.0]
         },
         "data": {
-            "var2": {
+            "var5": {
                 "type": "Real",
-                "values": [0.0, 0.0, 0.0]
+                "values": [2.0, 0.0, 0.0]
             },
-            "var4": {
+            "var6": {
                 "type": "Real",
-                "values": [0.0, 0.0, 0.0]
+                "values": [0.0, 4.0, 4.0]
             }
         }
      }"""),
 
     ([
         ['duration_bound_u_globally',
-         {'R': GT(Symbol('var1', INT), Int(1)),
+         {'R': GT(Symbol('var7', INT), Int(1)),
           'T': Real(2.0)}],
      ],
      """{
@@ -98,7 +105,7 @@ testcases = [
             "times": [0.0, 1.0]
         },
         "data": {
-            "var1": {
+            "var7": {
                 "type": "Int",
                 "values": [0, 0]
             }
@@ -107,7 +114,7 @@ testcases = [
 
     ([
         ['initialization_globally',
-         {'R': And(Equals(Symbol('var2', REAL), Real(2.0)), Equals(Symbol('var2', REAL), Real(3.0)))}],
+         {'R': And(Equals(Symbol('var8', REAL), Real(2.0)), Equals(Symbol('var8', REAL), Real(3.0)))}],
      ],
      """{
         "head": {
@@ -115,7 +122,7 @@ testcases = [
             "times": [0.0]
         },
         "data": {
-            "var2": {
+            "var8": {
                 "type": "Real",
                 "values": [2.0]
             }
@@ -124,20 +131,20 @@ testcases = [
 
     ([
          ['initialization_globally',
-          {'R': Equals(Symbol('var2', REAL), Real(2.0))}],
+          {'R': Equals(Symbol('var9', REAL), Real(2.0))}],
 
          ['initialization_globally',
-          {'R': Equals(Symbol('var2', REAL), Real(3.0))}],
+          {'R': Equals(Symbol('var9', REAL), Real(3.0))}],
      ],
      """{
         "head": {
-            "duration": 2,
-            "times": [0.0, 1.0]
+            "duration": 0,
+            "times": [0.0]
         },
         "data": {
-            "var2": {
+            "var9": {
                 "type": "Real",
-                "values": [2.0, 2.0]
+                "values": [2.0]
             }
         }
      }"""),
@@ -165,15 +172,9 @@ class TestVariableConstraints(TestCase):
         scenario = Scenario.from_json_string(yaml_str)
         simulator = Simulator(peas, scenario, test=True)
 
-        log_stream = StringIO()
-        logging.basicConfig(stream=log_stream, level=logging.INFO)
 
         for i in range(len(scenario.times) - 1):
-            simulator.variable_constraints()
-
-            # get last logging message and store in actual
-            print(log_stream.getvalue())
-            actual = log_stream.getvalue()
+            actual = simulator.variable_constraints()
 
             simulator.check_sat()
 
@@ -217,31 +218,51 @@ class TestVariableConstraints(TestCase):
                               msg="Constraints weren't detected as expected for var3")
 
             elif 'edge_response_bound_u1_globally' in formalizations[-1] and float(i) == 0.0:
-                print("tested case 2")
-                self.assertIn("No restrictions on var2 at time 3.0", actual,
-                              msg="Constraints weren't detected as expected for var2")
-                self.assertIn("No restrictions on var4 at time 3.0", actual,
-                              msg="Constraints weren't detected as expected for var4")
+                print("tested case 2_0")
+                self.assertIn("var5 must be (var5 = 2.0) at time 0.0", actual,
+                              msg="Constraints weren't detected as expected for var5")
+                self.assertIn("var6 must be (var6 = 0.0) at time 0.0", actual,
+                              msg="Constraints weren't detected as expected for var6")
+
+            elif 'edge_response_bound_u1_globally' in formalizations[-1] and float(i) == 1.0:
+                print("tested case 2_1")
+                self.assertIn("var5 must be (var5 = 0.0) at time 1.0", actual,
+                              msg="Constraints weren't detected as expected for var5")
+                self.assertIn("var6 must be (var6 = 4.0) at time 1.0", actual,
+                              msg="Constraints weren't detected as expected for var6")
+
+            elif 'edge_response_bound_u1_globally' in formalizations[-1] and float(i) == 2.0:
+                print("tested case 2_2")
+                self.assertIn("var5 must be (var5 = 0.0) at time 2.0", actual,
+                              msg="Constraints weren't detected as expected for var5")
+                self.assertIn("var6 must be (var6 = 4.0) at time 2.0", actual,
+                              msg="Constraints weren't detected as expected for var6")
 
             elif 'duration_bound_u_globally' in formalizations[-1] and float(i) == 0.0:
                 print("tested case 3")
                 # TODO: here, actual is empty. Why?
-                self.assertIn("No restrictions on var1 at time 1.0", actual,
-                              msg="Constraints weren't detected as expected for var1")
+                self.assertIn("var7 must be (var7 = 0) at time 0.0", actual,
+                              msg="Constraints weren't detected as expected for var7")
+
+            elif 'duration_bound_u_globally' in formalizations[-1] and float(i) == 1.0:
+                print("tested case 3")
+                # TODO: here, actual is empty. Why?
+                self.assertIn("var7 must be (var7 = 0) at time 1.0", actual,
+                              msg="Constraints weren't detected as expected for var7")
 
             elif len(formalizations) == 2 and float(i) == 0.0:
                 print("tested case 5")
-                print(log_stream.getvalue())
-                self.assertIn("var2 has contradicting constraints", actual,
-                              msg="Constraints weren't detected as expected for var2")
+                self.assertIn("var9 has contradicting constraints", actual,
+                              msg="Constraints weren't detected as expected for var9")
+                return None
 
             elif not simulator.check_sat():
                 print("tested case 4")
                 self.assertIn("There is inconsistency in a requirement", actual,
                               msg="The inconsistent requirement wasn't detected.")
+                return None
 
             if float(i) == len(scenario.times) - 1:
                 break
 
             simulator.step_next(0)
-

@@ -656,7 +656,9 @@ class Simulator:
             - Constraints for each variable based on both the simulator history and user input
             - For each variable, from which requirements its constraints result from
         """
+        result = ""
         logging.log(logging.INFO, "Called function variable constraints ...")
+        result += "Called function variable constraints ... \n"
         current_phases = self.current_phases[-1]
 
         constraint_origins = dict()
@@ -694,11 +696,15 @@ class Simulator:
 
                     edges_to_check = dict()  # where enabled transitions are collected to check
                     if current_phases[current_pea] is None:
+                        if not pea.transitions or (None in pea.transitions and not pea.transitions[None]):
+                            logging.log(logging.INFO, "There is inconsistency in a requirement.")
+                            result = "There is inconsistency in a requirement.\n"
+                            return result
                         for location in pea.transitions:
                             if not pea.transitions[location]:  # no transition was built due to inconsistency in req
                                 logging.log(logging.INFO, "There is inconsistency in a requirement.")
-                                print("There is inconsistency in a requirement.")
-                                return False
+                                result = "There is inconsistency in a requirement.\n"
+                                return result
                             for enabled in pea.transitions[location]:
                                 if enabled.src is None:
                                     edges_to_check[enabled] = self.convert_formula_to_nnf(
@@ -755,15 +761,18 @@ class Simulator:
                     vars_with_constraints.add(var)
                     variable_info[var][x] = f'{var} must be {self.filter_output_for_var(output_to_filter, var)} at time {self.times[-1]}'
                     logging.log(logging.INFO, f'{var} must be {self.filter_output_for_var(output_to_filter, var)} at time {self.times[-1]}')
+                    result += f'{var} must be {self.filter_output_for_var(output_to_filter, var)} at time {self.times[-1]}\n'
                 else:
                     vars_with_constraints.add(var)
                     variable_info[var][x] = f'{var} has contradicting constraints'
                     logging.log(logging.INFO, f'{var} has contradicting constraints')
-                    print(f'{var} has contradicting constraints')
+                    result += f'{var} has contradicting constraints\n'
             else:
                 variable_info[var][x] = f'No restrictions on {var} at time {self.times[-1]}'
                 logging.log(logging.INFO, f'No restrictions on {var} at time {self.times[-1]}')
+                result += f'No restrictions on {var} at time {self.times[-1]}\n'
 
         logging.log(logging.INFO, f' The following variable have constraints: {vars_with_constraints}')
-        #print(constraint_origins)
-        print("this was done")
+        result += f' The following variable have constraints: {vars_with_constraints}\n'
+        # print(constraint_origins)
+        return result
