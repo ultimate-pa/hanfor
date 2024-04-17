@@ -32,17 +32,30 @@ with open('stateMachine_LightSwitch.json', 'r') as stateMachine:
 
 # import ...
 # import hanfor.hanfor.app as app
+
 import reqtransformer as reqtrans
+
+from typing import Dict, Tuple
 
 # variable
 states = []
 actions = []
+val_collection = None
 
-def from_state_machine_to_requirement(sm):
+class VariableCollection(reqtrans.VariableCollection):
+    def __init__(self):
+        self.collection: Dict[str, reqtrans.Variable] = dict()
+        self.req_var_mapping = dict()
+        self.var_req_mapping = dict()
+
+    def __contains__(self, item):
+        return item in self.collection.keys()
+
+def from_state_machine_to_requirement(sm: list):
     """
     The function creates the requirements from the statemachine.
 
-    :param sm: given state machine.
+    :param sm: given state machine in list form.
     :return: one list of requirements for each transition in state machine.
     """
     counter = 1
@@ -84,7 +97,7 @@ def from_state_machine_to_requirement(sm):
 
     return reqs
 
-def adding_implicit_transitions(sm, counter):
+def adding_implicit_transitions(sm: list, counter: int):
     """
     Computing the implicit transitions as requirements.
 
@@ -124,7 +137,7 @@ def adding_implicit_transitions(sm, counter):
 
     return list_imp_trans
 
-def do_formalizations(reqs, vars):
+def do_formalizations(reqs: list, vars: list):
     """
     Creating formalization for all requirements.
 
@@ -133,25 +146,32 @@ def do_formalizations(reqs, vars):
     """
     forms = []
     variables = vars
+    # variable_collection = variable_collection
+    # mapping = form.
     for element in reqs:
         rid = element.rid
 
         form = reqtrans.Formalization(
             id=rid
         )
-        form.scoped_pattern = "BoundedResponse"
+        # form.set_expressions_mapping()
+        # form.scoped_pattern = "BoundedResponse" #in first version pattern
+        form.scoped_pattern = "StateMachineTimeless"
         print(form.id, form.scoped_pattern, form.belongs_to_requirement)
+        # form.set_expressions_mapping(mapping=mapping, variable_collection=variable_collection, rid=rid)
 
         # ToDo: for implicit transitions another scope pattern name 'Invariance'
         #       implemented in pattern.py as 'Invariant'
         # ToDo: get the formalization complete
+
+        # ToDo: implement mapping and variable collection
 
         forms.append(form)
 
 
     return forms
 
-def create_variables(sm):
+def create_variables(sm: list):
     """
 
     :param sm:
@@ -159,6 +179,7 @@ def create_variables(sm):
     """
     global states
     global actions
+
     list_variables = []
     counter = 0
 
@@ -173,6 +194,7 @@ def create_variables(sm):
                 type="ENUM_INT",  # enumerator_int
                 value=list_val
             )
+            var_collection.collection[var.name] = var
             for state in states:
                 sta = reqtrans.Variable(
                     name= state,
@@ -182,6 +204,7 @@ def create_variables(sm):
                 sta.belongs_to_enum = basic
                 print(sta.name, sta.type, sta.value, sta.belongs_to_enum)
                 list_val.append(sta)
+                var_collection.collection[sta.name] = sta
                 counter += 1
 
             list_variables.append(var)
@@ -193,6 +216,7 @@ def create_variables(sm):
                 type="ENUM_INT",
                 value=list_val
             )
+            var_collection.collection[var.name] = var
 
             # creat the no_op action
             counter = 0
@@ -203,6 +227,7 @@ def create_variables(sm):
             )
             act.belongs_to_enum = basic
             list_val.append(act)
+            var_collection.collection[act.name] = act
 
             # create the rest actions
             counter += 1
@@ -215,6 +240,7 @@ def create_variables(sm):
                 act.belongs_to_enum = basic
                 print(act.name, act.type, act.value, act.belongs_to_enum)
                 list_val.append(act)
+                var_collection.collection[act.name] = act
                 counter += 1
 
             list_variables.append(var)
@@ -283,6 +309,10 @@ if __name__ == "__main__":
 
     # Create variables
     print("Creating the variables ... ")
+
+    global var_collection
+    var_collection = VariableCollection()
+
 
     list_var = create_variables(state_machine)
 
