@@ -619,11 +619,6 @@ class Unpickler:
                 return OldVariable
             else:
                 raise Exception(f"unknown old class {name}")
-        if module == "boogie_parsing":
-            if name == "BoogieType":
-                return OldBoogieType
-            else:
-                raise Exception(f"unknown old class {name}")
         if module == "ressources.queryapi":
             if name == "Query":
                 return OldQuery
@@ -1036,9 +1031,6 @@ class OldVariable(HanforVersioned):
         self.description: str = ""
 
 
-# old Requirements class
-
-
 class OldExpression(HanforVersioned):
     """Representing an OldExpression in a ScopedPattern.
     For example: Let
@@ -1184,6 +1176,15 @@ class OldUltimateJob:
         return job
 
 
+class OldQuery(dict):
+    def __init__(self, name, query="", result=None):
+        super().__init__()
+        self.name = name
+        self.query = query
+        if result is None:
+            self.result = list()
+
+
 def calculate_req_id_occurrence(requirement_file: str, selected_requirements: list[str]) -> list[tuple[str, int]]:
     req: dict[str, tuple[str, int]] = {}
     for req_id in selected_requirements:
@@ -1200,12 +1201,3 @@ def calculate_req_id_occurrence(requirement_file: str, selected_requirements: li
     for req_id_formatted in req:
         requirements.append(req[req_id_formatted])
     return requirements
-
-
-class OldQuery(dict):
-    def __init__(self, name, query="", result=None):
-        super().__init__()
-        self.name = name
-        self.query = query
-        if result is None:
-            self.result = list()

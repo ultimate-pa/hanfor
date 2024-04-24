@@ -1,12 +1,140 @@
-# import new classes: SessionValues, Tags, Variables, Requirements, Queries, Reports, RequirementEditHistory
+import re
+from json_db_connector.json_db import JsonDatabase
+from static_utils import SessionValue
+from utils import RequirementEditHistory
+from reqtransformer import Formalization, Requirement, ScopedPattern, Scope, Pattern, Variable, Expression
+from tags.tags import Tag
+from ressources.queryapi import Query
+from ressources.reports import Report
+from ultimate.ultimate_job import UltimateJob
+from app import add_custom_serializer_to_database
+from defaults import Color
 
-# from reqtransformer import Formalization, Requirement
 import argparse
 from os import path, sep, mkdir, listdir
 from shutil import move
+from datetime import datetime
 
 from static_utils import get_filenames_from_dir
-from my_unpickler import pickle_load_from_dump, OldRequirement, OldVariableCollection, OldUltimateJob
+from my_unpickler import (
+    pickle_load_from_dump,
+    OldRequirement,
+    OldVariableCollection,
+    OldUltimateJob,
+    OldFormalization,
+    OldScopedPattern,
+    OldScope,
+    OldPattern,
+    OldExpression,
+)
+
+
+def get_tag_by_name(jdb: JsonDatabase, name: str) -> Tag | None:
+    for t in jdb.get_objects(Tag).values():
+        if t.name == name:
+            return t
+    return None
+
+
+def convert_pattern(old: OldPattern) -> Pattern:
+    return Pattern(old.name)
+
+
+def convert_scope(old: OldScope) -> Scope:
+    match old:
+        case OldScope.GLOBALLY:
+            return Scope.GLOBALLY
+        case OldScope.BEFORE:
+            return Scope.BEFORE
+        case OldScope.AFTER:
+            return Scope.AFTER
+        case OldScope.BETWEEN:
+            return Scope.BETWEEN
+        case OldScope.AFTER_UNTIL:
+            return Scope.AFTER_UNTIL
+        case _:
+            return Scope.NONE
+
+
+def convert_scoped_pattern(old: OldScopedPattern) -> ScopedPattern:
+    scope = convert_scope(old.scope)
+    pattern = convert_pattern(old.pattern)
+    scoped_pattern: ScopedPattern = ScopedPattern(scope, pattern)
+    scoped_pattern.regex_pattern = old.regex_pattern
+    return scoped_pattern
+
+
+def convert_expression(old: OldExpression) -> Expression:
+    expr: Expression = Expression()
+    expr.used_variables = old.used_variables
+    expr.raw_expression = old.raw_expression
+    expr.parent_rid = old.parent_rid
+    return expr
+
+
+def convert_formalization(old: OldFormalization) -> Formalization:
+    if hasattr(old, "id"):
+        f: Formalization = Formalization(old.id)
+    else:
+        f: Formalization = Formalization(0)
+    f.scoped_pattern = convert_scoped_pattern(old.scoped_pattern)
+    f.expressions_mapping = {
+        e_name: convert_expression(expression) for e_name, expression in old.expressions_mapping.items()
+    }
+    f.type_inference_errors = old.type_inference_errors
+    return f
+
+
+def convert_requirement(old: OldRequirement, jdb: JsonDatabase) -> Requirement:
+    n_req: Requirement = Requirement(old.rid, old.description, old.type_in_csv, old.csv_row, old.pos_in_csv)
+    n_req.formalizations = {f_id: convert_formalization(f_value) for f_id, f_value in old.formalizations.items()}
+    # todo remove before commit
+    n_req.tags = {}
+    if type(old.tags) is set:
+        for t_name in old.tags:
+            tmp_tag = get_tag_by_name(jdb, t_name)
+            if tmp_tag is None:
+                tmp_tag = Tag(t_name, Color.BS_INFO.value, False, "")
+            n_req.tags[tmp_tag]: ""
+    else:
+        for t_name, t_value in old.tags.items():
+            tmp_tag = get_tag_by_name(jdb, t_name)
+            if tmp_tag is None:
+                tmp_tag = Tag(t_name, Color.BS_INFO.value, False, "")
+            n_req.tags[tmp_tag]: t_value
+    n_req.status = old.status
+    if hasattr(old, "_revision_diff"):
+        setattr(n_req, "_revision_diff", getattr(old, "_revision_diff"))
+    return n_req
+
+
+def convert_query(old: dict) -> Query:
+    qry: Query = Query(old["name"], old["query"], old["result"])
+    return qry
+
+
+def convert_report(old: dict) -> Report:
+    report = Report(old["name"], old["queries"], old["results"])
+    return report
+
+
+def convert_ultimate_job(old: OldUltimateJob) -> UltimateJob:
+    ultimate_job: UltimateJob = UltimateJob(
+        job_id=old.job_id,
+        requirement_file=old.requirement_file,
+        toolchain_id=old.toolchain_id,
+        toolchain_xml=old.toolchain_xml,
+        usersettings_name=old.usersettings_name,
+        usersettings_json=old.usersettings_json,
+        selected_requirements=old.selected_requirements,
+        results=old.results,
+        result_requirements=old.result_requirements,
+        api_url=old.api_url,
+        job_status=old.job_status,
+        request_time=datetime.strptime(old.request_time, "%Y.%m.%d, %H:%M:%S.%f"),
+        last_update=datetime.strptime(old.last_update, "%Y.%m.%d, %H:%M:%S.%f"),
+    )
+    return ultimate_job
 
 
 if __name__ == "__main__":
@@ -26,10 +154,9 @@ if __name__ == "__main__":
         base_folder: str = path.join(HERE, args.base_folder)
     parts = base_folder.split(sep)
     parts[-1] = ".old_" + parts[-1]
-    # pickle_folder: str = sep.join(parts)
-    # move(base_folder, pickle_folder)
-    # mkdir(base_folder)
-    pickle_folder = base_folder
+    pickle_folder: str = sep.join(parts)
+    move(base_folder, pickle_folder)
+    mkdir(base_folder)
 
     names = listdir(pickle_folder)
     revisions = [name for name in names if path.isdir(path.join(pickle_folder, name)) and name.startswith("revision")]
@@ -41,17 +168,16 @@ if __name__ == "__main__":
         # -> Tags + colors
         # -> Queries
         # -> Reports
-        old_meta_settings = pickle_load_from_dump(path.join(pickle_folder, "meta_settings.pickle"))
+        old_meta_settings: dict = pickle_load_from_dump(path.join(pickle_folder, "meta_settings.pickle"))  # noqa
 
         # Ignore script_eval_results.pickle due to the deletion of the script eval functions.
 
         # load frontend_logs.pickle
         # -> RequirementEditHistory
-        old_frontend_logs = pickle_load_from_dump(path.join(pickle_folder, "frontend_logs.pickle"))
+        old_frontend_logs: dict = pickle_load_from_dump(path.join(pickle_folder, "frontend_logs.pickle"))  # noqa
 
         # load revisionXY/Requirements
         # -> Requirements
-        # -> Tags ?
         old_requirements: set[OldRequirement] = set()
         for filename in get_filenames_from_dir(revision_folder):  # type: str
             if filename.endswith("session_status.pickle") or filename.endswith("session_variable_collection.pickle"):
@@ -66,7 +192,7 @@ if __name__ == "__main__":
 
         # load revisionXY/session_status.pickle
         # -> SessionValues
-        session_dict = pickle_load_from_dump(path.join(revision_folder, "session_status.pickle"))
+        session_dict: dict = pickle_load_from_dump(path.join(revision_folder, "session_status.pickle"))  # noqa
 
         # load revisionXY/session_variable_collection.pickle
         # -> Variables
@@ -75,7 +201,7 @@ if __name__ == "__main__":
                 path.join(revision_folder, "session_variable_collection.pickle")
             )
         else:
-            old_var_collection = OldVariableCollection()
+            old_var_collection = OldVariableCollection(path.join(revision_folder, "session_variable_collection.pickle"))
 
         # load revisionXY/ultimate_jobs
         ultimate_jobs: list[OldUltimateJob] = []
@@ -85,19 +211,88 @@ if __name__ == "__main__":
 
         # --- NEW ---
         # create new Database
+        db = JsonDatabase()
+        add_custom_serializer_to_database(db)
+        db.init_tables(path.join(base_folder, f"{rev}"))
 
         # insert SessionValues
+        for k, v in session_dict.items():
+            db.add_object(SessionValue(k, v))
 
         # insert Tags
+        # tag_descriptions, tag_colors, tag_internal
+        all_tags = set()
+        if "tag_descriptions" in old_meta_settings:
+            descriptions = old_meta_settings["tag_descriptions"]
+            all_tags = all_tags.union(set(descriptions.keys()))
+        else:
+            descriptions = {}
+        if "tag_colors" in old_meta_settings:
+            colors = old_meta_settings["tag_colors"]
+            all_tags = all_tags.union(set(colors.keys()))
+        else:
+            colors = {}
+        if "tag_internal" in old_meta_settings:
+            internal = old_meta_settings["tag_internal"]
+            all_tags = all_tags.union(set(internal.keys()))
+        else:
+            internal = {}
+
+        for tag_name in all_tags:
+            color = colors.get(tag_name, Color.BS_INFO.value)
+            inter = internal.get(tag_name, False)
+            description = descriptions.get(tag_name, "")
+            db.add_object(Tag(tag_name, color, inter, description))
 
         # insert Variables
+        for name, var in old_var_collection.collection.items():
+            v: Variable = Variable(var.name, var.type, var.value)
+            if hasattr(var, "script_results"):
+                v.script_results = var.script_results
+            if hasattr(var, "belongs_to_enum"):
+                v.belongs_to_enum = var.belongs_to_enum
+            if hasattr(var, "description"):
+                v.description = var.description
+            for tag in var.tags:
+                if not db.key_in_table(Tag, tag):
+                    db.add_object(Tag(tag, Color.BS_INFO.value, False, ""))
+                v.tags.add(get_tag_by_name(db, tag))
+            if hasattr(var, "constraints"):
+                for c_name, constraint in var.constraints.items():
+                    v.constraints[c_name] = convert_formalization(constraint)
+            db.add_object(v)
 
         # insert Requirements
-
-        # insert Queries
-
-        # insert Reports
+        for old_req in old_requirements:
+            req = convert_requirement(old_req, db)
+            db.add_object(req)
 
         # insert RequirementEditHistory
+        log_regex = re.compile(
+            r"\[(?P<timestamp>.*?)] (?P<message>.*?) "
+            r'(?P<references><a class="req_direct_link" href="#" data-rid=".*">.*</a>)+'
+        )
+        req_regex = re.compile(r'<a class="req_direct_link" href="#" data-rid="(?P<rid>.*?)">(?P=rid)</a>')
+        if "hanfor_log" in old_frontend_logs:
+            for log in old_frontend_logs["hanfor_log"]:
+                for match in log_regex.finditer(log):
+                    timestamp = datetime.strptime(match.group("timestamp"), "%Y-%m-%d %H:%M:%S.%f")
+                    message = match.group("message")
+                    rids = [rid.group("rid") for rid in req_regex.finditer(match.group("references"))]
+                    db.add_object(
+                        RequirementEditHistory(timestamp, message, [db.get_object(Requirement, rid) for rid in rids])
+                    )
+
+        # insert Queries
+        if "queries" in old_meta_settings:
+            for _, q_value in old_meta_settings["queries"].items():
+                db.add_object(convert_query(q_value))
+
+        # insert Reports
+        if "reports" in old_meta_settings:
+            for r_value in old_meta_settings["reports"]:
+                db.add_object(convert_report(r_value))
 
         # insert UltimateJob
+        for uj in ultimate_jobs:
+            db.add_object(convert_ultimate_job(uj))

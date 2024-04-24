@@ -1,7 +1,5 @@
 from dataclasses import dataclass, field, asdict
-import json
 from datetime import datetime
-from os import path
 from flask import current_app
 from utils import get_requirements
 from static_utils import SessionValue
@@ -41,44 +39,8 @@ class UltimateJob:
     result_requirements: list[tuple[str, int]] = field(default_factory=list)  # (requirement_id, # of formalisations)
     api_url: str = ""
     job_status: str = "scheduled"
-    request_time: str = datetime.now()
-    last_update: str = datetime.now()
-
-    @classmethod
-    def make(
-        cls,
-        job_id: str,
-        requirement_file: str,
-        toolchain_id: str,
-        toolchain_xml: str,
-        usersettings_name: str,
-        usersettings_json: str,
-        api_url: str,
-        selected_requirements: list[str],
-    ):
-        if selected_requirements == "all":
-            selected_requirements = get_all_requirement_ids()
-        requirements = calculate_req_id_occurrence(requirement_file, selected_requirements)
-        return cls(
-            job_id=job_id,
-            requirement_file=requirement_file,
-            toolchain_id=toolchain_id,
-            toolchain_xml=toolchain_xml,
-            usersettings_name=usersettings_name,
-            usersettings_json=usersettings_json,
-            api_url=api_url,
-            selected_requirements=requirements,
-        )
-
-    def save_to_file(self, *, save_dir: str = None, file_name: str = None) -> None:
-        if save_dir is not None:
-            with open(path.join(save_dir, f"{self.job_id}.json"), "w") as save_file:
-                save_file.write(json.dumps(asdict(self), indent=4))
-        elif file_name is not None:
-            with open(file_name, "w") as save_file:
-                save_file.write(json.dumps(asdict(self), indent=4))
-        else:
-            raise Exception("Job can not be saved without a file_name or the save_dir")
+    request_time: datetime = datetime.now()
+    last_update: datetime = datetime.now()
 
     def update(self, data: dict) -> None:
         if not data["requestId"] == self.job_id:

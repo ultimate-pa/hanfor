@@ -20,7 +20,7 @@ ID_TYPE = TypeVar("ID_TYPE")
 GET_TYPE = TypeVar("GET_TYPE")
 SERIALIZER_TYPE = TypeVar("SERIALIZER_TYPE")
 
-KEY_REGEX = re.compile(r"^[a-zA-Z0-9_\-.]+$")
+KEY_REGEX = re.compile(r"^[a-zA-Z0-9_\-. ]+$")
 
 
 class TableType(Enum):

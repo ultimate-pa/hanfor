@@ -226,7 +226,7 @@ class Query:
         return len(self.results)
 
     def get_dict(self) -> dict[str, str]:
-        return {"name": self.name, "query": self.query, "results": self.results, "hits": self.hits}
+        return {"name": self.name, "query": self.query, "result": self.results, "hits": self.hits}
 
 
 class QueryAPI(Ressource):
@@ -263,7 +263,7 @@ class QueryAPI(Ressource):
     @staticmethod
     def req_dict_to_search_dict(req_dict):
         if len(req_dict["formal"]) > 0:
-            req_dict["tags"].append(current_app.db.get_object(SessionValue, "TAG_has_formalization").value)
+            req_dict["tags"].append(current_app.db.get_object(SessionValue, "TAG_has_formalization").value.name)
 
         result = {
             "Id": req_dict["id"],

@@ -21,6 +21,7 @@ from typing import Callable
 from json_db_connector.json_db import JsonDatabase
 
 import reqtransformer
+from boogie_parsing import BoogieType
 import utils
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
@@ -195,8 +196,8 @@ def api(resource, command):
             filenames = get_filenames_from_dir(app.config["REVISION_FOLDER"])
             result = dict()
             result["data"] = list()
-            for req in app.db.get_objects(Requirement).values():
-                result["data"].append(req.to_dict())
+            reqs = app.db.get_objects(Requirement)
+            result["data"] = [reqs[k].to_dict() for k in sorted(reqs.keys())]
             return jsonify(result)
 
         # Update a requirement
@@ -940,6 +941,14 @@ def add_custom_serializer_to_database(database: JsonDatabase) -> None:
         return datetime.datetime.fromisoformat(db_deserializer(data))
 
     database.add_custom_serializer(datetime.datetime, datetime_serialize, datetime_deserialize)
+
+    def boogie_type_serialize(obj: BoogieType, db_serializer: Callable[[any, str], any], user: str) -> dict:
+        return db_serializer(obj.value, user)
+
+    def boogie_type_deserialize(data: dict, db_deserializer: Callable[[any], any]) -> BoogieType:
+        return BoogieType(db_deserializer(data))
+
+    database.add_custom_serializer(BoogieType, boogie_type_serialize, boogie_type_deserialize)
 
 
 def startup_hanfor(args, HERE, *, db_test_mode: bool = False) -> bool:

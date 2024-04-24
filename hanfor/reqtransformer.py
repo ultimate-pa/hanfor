@@ -405,8 +405,6 @@ class Requirement:
         self.formalizations[formalization_id].scoped_pattern = ScopedPattern(
             Scope[scope_name], Pattern(name=pattern_name)
         )
-        # set parent
-        self.formalizations[formalization_id].belongs_to_requirement = self.rid
         # Parse and set the expressions.
         self.formalizations[formalization_id].set_expressions_mapping(
             mapping=mapping, variable_collection=variable_collection, rid=self.rid
@@ -446,7 +444,7 @@ class Requirement:
         if not formalisation.type_inference_errors:
             return result
         for key, value in formalisation.type_inference_errors.items():
-            result += f"{str(formalisation.belongs_to_requirement)}_{str(formalisation.id)} ({key}): \n- "
+            result += f"{self.rid}_{str(formalisation.id)} ({key}): \n- "
             result += "\n- ".join(value) + "\n"
         return result
 
@@ -553,14 +551,12 @@ class Requirement:
 @DatabaseField("id", int)
 @DatabaseField("scoped_pattern", "ScopedPattern")
 @DatabaseField("expressions_mapping", dict)
-@DatabaseField("belongs_to_requirement", str)
 @DatabaseField("type_inference_errors", dict)
 class Formalization:
     def __init__(self, id: int):
         self.id: int = id
         self.scoped_pattern = ScopedPattern()
         self.expressions_mapping: dict[str, Expression] = dict()
-        self.belongs_to_requirement = None
         self.type_inference_errors = dict()
 
     @property
@@ -685,7 +681,7 @@ class Expression:
     """
 
     def __init__(self):
-        self.used_variables: list[str] = list()
+        self.used_variables: list[str] = list()  # TODO use Variable objects instead of str
         self.raw_expression = None
         self.parent_rid = None
 
@@ -1143,8 +1139,9 @@ class VariableCollection:
                 deletable = True
 
         if deletable:
-            self.collection.pop(var_name, None)
+            deleted_var = self.collection.pop(var_name, None)
             self.var_req_mapping.pop(var_name, None)
+            self.app.db.remove_object(deleted_var)
             return True
         return False
 

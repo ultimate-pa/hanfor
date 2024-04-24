@@ -1,19 +1,20 @@
 from ressources.ressource import Ressource
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
+from uuid import uuid4
 
 
 @DatabaseTable(TableType.Folder)
-@DatabaseID("id", int)
+@DatabaseID("id", use_uuid=True)
 @DatabaseField("name", str)
 @DatabaseField("queries", str)
 @DatabaseField("results", str)
 @dataclass()
 class Report:
-    id: int
     name: str
     queries: str
     results: str
+    id: str = field(default_factory=lambda: str(uuid4()))
 
     def get_dict(self) -> dict[str, str]:
         return {"name": self.name, "queries": self.queries, "results": self.results}

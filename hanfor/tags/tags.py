@@ -76,7 +76,8 @@ class TagsApi(MethodView):
                 self.app.db.add_object(tag)
                 self.__available_tags[tag.name] = tag
                 # add initial tag to SessionValues
-                self.app.db.add_object(SessionValue(f"TAG_{name}", tag))
+            if not self.app.db.key_in_table(SessionValue, f"TAG_{name}"):
+                self.app.db.add_object(SessionValue(f"TAG_{name}", self.__available_tags[name]))
 
         # create used by relation
         for req in self.app.db.get_objects("Requirement").values():
