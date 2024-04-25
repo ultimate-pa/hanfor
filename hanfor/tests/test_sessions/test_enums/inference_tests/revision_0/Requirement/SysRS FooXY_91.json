@@ -1,0 +1,128 @@
+{
+    "_revision_diff": {
+        "type": "dict",
+        "data": []
+    },
+    "status": "Todo",
+    "tags": {
+        "type": "dict",
+        "data": []
+    },
+    "pos_in_csv": 0,
+    "csv_row": {
+        "type": "dict",
+        "data": [
+            {
+                "key": "desc_header",
+                "value": "always look on the bright side of life"
+            },
+            {
+                "key": "formal_header",
+                "value": "Globally, it is always the case that POINT_OF_VIEW==BRIGHT_SIDE_OF_LIVE"
+            },
+            {
+                "key": "id_header",
+                "value": "SysRS FooXY_91"
+            },
+            {
+                "key": "type_header",
+                "value": "req"
+            }
+        ]
+    },
+    "type_in_csv": "req",
+    "description": "always look on the bright side of life",
+    "formalizations": {
+        "type": "dict",
+        "data": [
+            {
+                "key": 0,
+                "value": {
+                    "type": "Formalization",
+                    "data": {
+                        "type_inference_errors": {
+                            "type": "dict",
+                            "data": []
+                        },
+                        "expressions_mapping": {
+                            "type": "dict",
+                            "data": [
+                                {
+                                    "key": "S",
+                                    "value": {
+                                        "type": "Expression",
+                                        "data": {
+                                            "parent_rid": "SysRS FooXY_91",
+                                            "raw_expression": "new_var_3",
+                                            "used_variables": {
+                                                "type": "set",
+                                                "data": [
+                                                    "new_var_3"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "key": "P",
+                                    "value": {
+                                        "type": "Expression",
+                                        "data": {
+                                            "parent_rid": "SysRS FooXY_91",
+                                            "raw_expression": "new_var_1",
+                                            "used_variables": {
+                                                "type": "set",
+                                                "data": [
+                                                    "new_var_1"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "key": "R",
+                                    "value": {
+                                        "type": "Expression",
+                                        "data": {
+                                            "parent_rid": "SysRS FooXY_91",
+                                            "raw_expression": "new_var_2",
+                                            "used_variables": {
+                                                "type": "set",
+                                                "data": [
+                                                    "new_var_2"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "scoped_pattern": {
+                            "type": "ScopedPattern",
+                            "data": {
+                                "pattern": {
+                                    "type": "Pattern",
+                                    "data": {
+                                        "pattern": "it is always the case that if {R} holds, then {S} holds as well",
+                                        "name": "Invariant"
+                                    }
+                                },
+                                "scope": {
+                                    "type": "Scope",
+                                    "data": "Before \"{P}\""
+                                }
+                            }
+                        },
+                        "id": 0
+                    }
+                }
+            }
+        ]
+    },
+    "$meta": {
+        "type": "JsonDatabaseMetaData",
+        "data": {
+            "is_deleted": false
+        }
+    }
+}

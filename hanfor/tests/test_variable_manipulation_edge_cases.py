@@ -56,7 +56,8 @@ class TestHanforVersionMigrations(TestCase):
         count = -1
         mock_results = user_mock_answers
 
-        startup_hanfor(args, HERE)
+        with app.app_context():
+            startup_hanfor(args, HERE, db_test_mode=True)
         app.config["TEMPLATES_FOLDER"] = os.path.join(HERE, "..", "..", "templates")
 
     def test_variable_add_constraint_and_change_type_at_the_same_time(self):
@@ -113,7 +114,22 @@ class TestHanforVersionMigrations(TestCase):
         self.assertEqual(True, change_type.json["success"])
         self.assertEqual(200, add_constraint.status_code)
         var_gets = self.app.get("api/var/gets")
-        print(var_gets.json["data"])
+        for t in var_gets.json["data"]:
+            if t["name"] == "egg":
+                self.assertEqual(
+                    {
+                        "name": "egg",
+                        "constraints": ['Globally, it is always the case that "egg > 10" holds'],
+                        "used_by": ["Constraint_egg_0", "SysRS FooXY_91"],
+                        "tags": [],
+                        "type_inference_errors": {},
+                        "const_val": None,
+                        "type": "ENUM_INT",
+                        "script_results": "",
+                        "belongs_to_enum": "",
+                    },
+                    t,
+                )
         self.assertIn(
             {
                 "name": "egg",

@@ -64,7 +64,8 @@ class MockHanfor:
         args = utils.HanforArgumentParser(app).parse_args([session_tag, "-c", csv_file])
         mock_results = user_mock_answers
 
-        success = startup_hanfor(args, self.here, db_test_mode=True)
+        with app.app_context():
+            success = startup_hanfor(args, self.here, db_test_mode=True)
         app.config["TEMPLATES_FOLDER"] = os.path.join(self.here, "..", "templates")
         return success
 

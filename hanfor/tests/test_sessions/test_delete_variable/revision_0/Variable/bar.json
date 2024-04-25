@@ -1,0 +1,21 @@
+{
+    "description": "",
+    "constraints": {
+        "type": "dict",
+        "data": []
+    },
+    "belongs_to_enum": "",
+    "script_results": "",
+    "tags": {
+        "type": "set",
+        "data": []
+    },
+    "value": null,
+    "type": "bool",
+    "$meta": {
+        "type": "JsonDatabaseMetaData",
+        "data": {
+            "is_deleted": false
+        }
+    }
+}

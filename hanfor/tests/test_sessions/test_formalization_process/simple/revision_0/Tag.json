@@ -1,0 +1,14 @@
+{
+    "3e8e4a2a-d153-447d-a756-ab66adaf4fa1": {
+        "description": "",
+        "internal": false,
+        "color": "#0dcaf0",
+        "name": "unseen",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    }
+}

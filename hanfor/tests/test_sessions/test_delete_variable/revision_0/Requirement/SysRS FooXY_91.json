@@ -1,0 +1,136 @@
+{
+    "_revision_diff": {
+        "type": "dict",
+        "data": []
+    },
+    "status": "Todo",
+    "tags": {
+        "type": "dict",
+        "data": []
+    },
+    "pos_in_csv": 0,
+    "csv_row": {
+        "type": "dict",
+        "data": [
+            {
+                "key": "type_header",
+                "value": "req"
+            },
+            {
+                "key": "formal_header",
+                "value": "Globally, it is always the case that POINT_OF_VIEW==BRIGHT_SIDE_OF_LIVE"
+            },
+            {
+                "key": "desc_header",
+                "value": "always look on the bright side of life"
+            },
+            {
+                "key": "id_header",
+                "value": "SysRS FooXY_91"
+            }
+        ]
+    },
+    "type_in_csv": "req",
+    "description": "always look on the bright side of life",
+    "formalizations": {
+        "type": "dict",
+        "data": [
+            {
+                "key": 0,
+                "value": {
+                    "type": "Formalization",
+                    "data": {
+                        "type_inference_errors": {
+                            "type": "dict",
+                            "data": [
+                                {
+                                    "key": "R",
+                                    "value": {
+                                        "type": "dict",
+                                        "data": [
+                                            {
+                                                "key": "bar",
+                                                "value": {
+                                                    "type": "BoogieType",
+                                                    "data": 1
+                                                }
+                                            },
+                                            {
+                                                "key": "egg",
+                                                "value": {
+                                                    "type": "BoogieType",
+                                                    "data": 1
+                                                }
+                                            },
+                                            {
+                                                "key": "foo",
+                                                "value": {
+                                                    "type": "BoogieType",
+                                                    "data": 1
+                                                }
+                                            },
+                                            {
+                                                "key": "spam",
+                                                "value": {
+                                                    "type": "BoogieType",
+                                                    "data": 2
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        "expressions_mapping": {
+                            "type": "dict",
+                            "data": [
+                                {
+                                    "key": "R",
+                                    "value": {
+                                        "type": "Expression",
+                                        "data": {
+                                            "parent_rid": "SysRS FooXY_91",
+                                            "raw_expression": "foo && bar && spam && egg",
+                                            "used_variables": {
+                                                "type": "set",
+                                                "data": [
+                                                    "bar",
+                                                    "spam",
+                                                    "foo",
+                                                    "egg"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "scoped_pattern": {
+                            "type": "ScopedPattern",
+                            "data": {
+                                "pattern": {
+                                    "type": "Pattern",
+                                    "data": {
+                                        "pattern": "it is never the case that {R} holds",
+                                        "name": "Absence"
+                                    }
+                                },
+                                "scope": {
+                                    "type": "Scope",
+                                    "data": "Globally"
+                                }
+                            }
+                        },
+                        "id": 0
+                    }
+                }
+            }
+        ]
+    },
+    "$meta": {
+        "type": "JsonDatabaseMetaData",
+        "data": {
+            "is_deleted": false
+        }
+    }
+}

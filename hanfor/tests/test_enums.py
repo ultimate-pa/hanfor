@@ -152,7 +152,7 @@ class TestEnums(TestCase):
         self.assertIn("CONST my_first_enum_bar IS 11", req_file_content)
         self.assertIn("CONST my_first_enum_foo IS 12", req_file_content)
 
-    def test_int_enumerator_renaming(self):
+    def test_int_enumerator_renaming(self):  # TODO: renaming of variables is not supported anymore
         """Test renaming an enumeration while more than one enum exit."""
         self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
 

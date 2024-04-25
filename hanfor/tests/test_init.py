@@ -49,7 +49,8 @@ class TestInit(TestCase):
         global mock_results
         mock_results = user_inputs
 
-        startup_hanfor(args, HERE)
+        with app.app_context():
+            startup_hanfor(args, HERE, db_test_mode=True)
 
     def test_1_init_from_csv(self):
         args = utils.HanforArgumentParser(app).parse_args([TEST_TAG, "-c", TEST_CSV])
@@ -60,7 +61,12 @@ class TestInit(TestCase):
         )
 
         # Check contents.
-        for file in ["SysRS FooXY_42.pickle", "SysRS FooXY_91.pickle", "session_status.pickle"]:
+        for file in [
+            os.path.join("Requirement", "SysRS FooXY_42.json"),
+            os.path.join("Requirement", "SysRS FooXY_91.json"),
+            "SessionValue.json",
+            "Tag.json",
+        ]:
             self.assertTrue(
                 os.path.exists(os.path.join(TESTS_BASE_FOLDER, TEST_TAG, "revision_0", file)),
                 msg="Missing file: {}".format(file),

@@ -111,7 +111,7 @@ class TestFormalizationProcess(TestCase):
         # Check current available variables.
         self.assertCountEqual(result.json["available_vars"], ["spam_ham", "bar", "foo", "spam_egg", "spam", "bas"])
 
-    def test_changing_var_name(self):
+    def test_changing_var_name(self):  # TODO update names of variables is not allowed anymore
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
 
         # Check current formalization for `SysRS FooXY_42`
@@ -224,12 +224,12 @@ class TestFormalizationProcess(TestCase):
         result = self.mock_hanfor.app.get("api/req/get?id=SysRS FooXY_42")
         self.assertEqual(result.status, "200 OK")
         self.assertNotIn("some-mass-added-tag", result.json["tags"])
-        self.assertEquals("Todo", result.json["status"])
+        self.assertEqual("Todo", result.json["status"])
 
         result = self.mock_hanfor.app.get("api/req/get?id=SysRS FooXY_91")
         self.assertEqual(result.status, "200 OK")
         self.assertEqual(["unseen"], result.json["tags"])
-        self.assertEquals("Todo", result.json["status"])
+        self.assertEqual("Todo", result.json["status"])
 
         # test multi updating with no content selected
         result = self.mock_hanfor.app.post(
@@ -250,12 +250,12 @@ class TestFormalizationProcess(TestCase):
         result = self.mock_hanfor.app.get("api/req/get?id=SysRS FooXY_42")
         self.assertEqual(result.status, "200 OK")
         self.assertNotIn("some-mass-added-tag", result.json["tags"])
-        self.assertEquals("Todo", result.json["status"])
+        self.assertEqual("Todo", result.json["status"])
 
         result = self.mock_hanfor.app.get("api/req/get?id=SysRS FooXY_91")
         self.assertEqual(["unseen"], result.json["tags"])
         self.assertEqual(result.status, "200 OK")
-        self.assertEquals("Todo", result.json["status"])
+        self.assertEqual("Todo", result.json["status"])
 
     def test_get_available_guesses(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
