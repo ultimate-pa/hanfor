@@ -784,7 +784,7 @@ class DataTracingFileHandler(RotatingFileHandler):
 
 
 # When adding new fields to the JsonDatabaseMetaData class you have to insert them to:
-# - the setUp function in tests/test_json_db.py
+# - the setUp function in tests/test_z_json_db.py
 # - SZENE0_JSON, SZENE1_JSON, RECTANGLES_JSON, UUID1_JSON, UUID2_JSON in tests/test_json_database/db_test_save.py
 @dataclass()
 @DatabaseFieldType()

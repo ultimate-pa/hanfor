@@ -323,6 +323,7 @@ def update_variable_in_collection(app, request):
                     constraints, app, var_collection
                 )
                 result["rebuild_table"] = True
+                app.db.update()
             except KeyError as e:
                 result["success"] = False
                 result["error_msg"] = "Could not set constraint: Missing expression/variable for {}".format(e)
@@ -402,8 +403,8 @@ def update_variable_in_collection(app, request):
         logging.info("Update derived types by parsing affected formalizations.")
         if reload_type_inference and var_name in var_collection.var_req_mapping:
             for rid in var_collection.var_req_mapping[var_name]:
-                requirement = app.db.get_object(Requirement, rid)
-                if requirement:
+                if app.db.key_in_table(Requirement, rid):
+                    requirement = app.db.get_object(Requirement, rid)
                     requirement.run_type_checks(var_collection)
             app.db.update()
 

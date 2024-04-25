@@ -1016,6 +1016,9 @@ def startup_hanfor(args, HERE, *, db_test_mode: bool = False) -> bool:
 
     # Run consistency checks.
     varcollection_consistency_check(app, args)
+
+    # instantiate TagsApi for generating init_tags
+    TagsApi()
     return True
 
 

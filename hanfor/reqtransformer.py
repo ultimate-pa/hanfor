@@ -855,13 +855,8 @@ class VariableCollection:
     def __init__(self, app):
         self.app = app
         self.collection: Dict[str, Variable] = dict(app.db.get_objects(Variable))
-        self.req_var_mapping = defaultdict(set)
-        for req_id, req in app.db.get_objects(Requirement).items():  # type: Requirement
-            for formalization in req.formalizations.values():
-                for expression in formalization.expressions_mapping.values():
-                    for var in expression.used_variables:
-                        self.req_var_mapping[req_id].add(var)
-        self.var_req_mapping = self.invert_mapping(self.req_var_mapping)
+        self.refresh_var_usage(app)
+        self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
 
     def __contains__(self, item):
         return item in self.collection.keys()

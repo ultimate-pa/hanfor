@@ -92,16 +92,20 @@ def convert_requirement(old: OldRequirement, jdb: JsonDatabase) -> Requirement:
     n_req.tags = {}
     if type(old.tags) is set:
         for t_name in old.tags:
+            if t_name == "":
+                continue
             tmp_tag = get_tag_by_name(jdb, t_name)
             if tmp_tag is None:
                 tmp_tag = Tag(t_name, Color.BS_INFO.value, False, "")
-            n_req.tags[tmp_tag]: ""
+            n_req.tags[tmp_tag] = ""
     else:
         for t_name, t_value in old.tags.items():
+            if t_name == "":
+                continue
             tmp_tag = get_tag_by_name(jdb, t_name)
             if tmp_tag is None:
                 tmp_tag = Tag(t_name, Color.BS_INFO.value, False, "")
-            n_req.tags[tmp_tag]: t_value
+            n_req.tags[tmp_tag] = t_value
     n_req.status = old.status
     if hasattr(old, "_revision_diff"):
         setattr(n_req, "_revision_diff", getattr(old, "_revision_diff"))
@@ -239,6 +243,8 @@ if __name__ == "__main__":
             internal = {}
 
         for tag_name in all_tags:
+            if tag_name == "":
+                continue
             color = colors.get(tag_name, Color.BS_INFO.value)
             inter = internal.get(tag_name, False)
             description = descriptions.get(tag_name, "")
