@@ -94,7 +94,7 @@ desired_reqs = [
 ]
 
 
-class TestMigrations(TestCase):
+class TestRevisionMigration(TestCase):
     def setUp(self):
         # Clean test folder.
         app.config["SESSION_BASE_FOLDER"] = TESTS_BASE_FOLDER
