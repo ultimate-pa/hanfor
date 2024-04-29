@@ -68,8 +68,7 @@ class TestVariableImport(TestCase):
         count = -1
         mock_results = user_mock_answers
 
-        with app.app_context():
-            startup_hanfor(args, HERE, db_test_mode=True)
+        startup_hanfor(args, HERE, db_test_mode=True)
         app.config["TEMPLATES_FOLDER"] = os.path.join(HERE, "..", "..", "templates")
 
     def test_import_from_csv(self):

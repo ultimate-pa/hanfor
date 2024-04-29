@@ -6,7 +6,22 @@
     "status": "Todo",
     "tags": {
         "type": "dict",
-        "data": []
+        "data": [
+            {
+                "key": {
+                    "type": "Tag",
+                    "data": "84002d3a-767d-4d53-a78d-7436b1f6076e"
+                },
+                "value": ""
+            },
+            {
+                "key": {
+                    "type": "Tag",
+                    "data": "d058192d-eb86-4d69-97c1-7b8ae346987d"
+                },
+                "value": ""
+            }
+        ]
     },
     "pos_in_csv": 0,
     "csv_row": {
@@ -96,8 +111,8 @@
                                                 "data": [
                                                     "bar",
                                                     "spam",
-                                                    "foo",
-                                                    "egg"
+                                                    "egg",
+                                                    "foo"
                                                 ]
                                             }
                                         }

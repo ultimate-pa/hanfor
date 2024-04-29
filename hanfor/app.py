@@ -9,7 +9,6 @@ import logging
 import os
 import re
 import subprocess
-import sys
 from functools import wraps, update_wrapper
 
 import flask
@@ -20,7 +19,6 @@ from werkzeug.exceptions import HTTPException
 from typing import Callable
 from json_db_connector.json_db import JsonDatabase
 
-import reqtransformer
 from boogie_parsing import BoogieType
 import utils
 from guesser.Guess import Guess
@@ -30,9 +28,7 @@ from ressources import Reports, QueryAPI
 from ressources.simulator_ressource import SimulatorRessource
 from static_utils import (
     get_filenames_from_dir,
-    pickle_dump_obj_to_file,
     choice,
-    pickle_load_from_dump,
     hash_file_sha1,
     SessionValue,
 )
@@ -783,29 +779,6 @@ def update_var_usage(var_collection):
     var_collection.store()
 
 
-def varcollection_version_migrations(app, args):
-    """migrate old collection format"""
-    try:
-        VariableCollection(app)
-    except ImportError:
-        # The "old" var_collection before the refactoring.
-        sys.modules["reqtransformer.reqtransformer"] = reqtransformer
-        sys.modules["reqtransformer.patterns"] = reqtransformer
-
-        var_collection = utils.pickle_load_from_dump(app.config["SESSION_VARIABLE_COLLECTION"])
-        vars_to_collection = list()
-        for name, var in var_collection.items():
-            vars_to_collection.append({"name": name, "type": var.type, "value": var.value})
-        del sys.modules["reqtransformer.reqtransformer"]
-        del sys.modules["reqtransformer.patterns"]
-
-        new_var_collection = VariableCollection(app)
-        for var in vars_to_collection:
-            new_var_collection.collection[var["name"]] = Variable(var["name"], var["type"], var["value"])
-        new_var_collection.store()
-        logging.info("Migrated old collection.")
-
-
 def varcollection_consistency_check(app, args=None):
     logging.info("Check Variables for consistency.")
     # Update usages and constraint type check.
@@ -1010,15 +983,12 @@ def startup_hanfor(args, HERE, *, db_test_mode: bool = False) -> bool:
     # Initialize variables collection, import session
     utils.config_check(app.config)
 
-    # Run version migrations
-    varcollection_version_migrations(app, args)
-    # requirements_version_migrations(app, args)
-
     # Run consistency checks.
     varcollection_consistency_check(app, args)
 
     # instantiate TagsApi for generating init_tags
-    TagsApi()
+    with app.app_context():
+        TagsApi()
     return True
 
 

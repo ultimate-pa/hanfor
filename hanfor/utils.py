@@ -261,6 +261,9 @@ def update_variable_in_collection(app, request):
     occurrences = request.form.get("occurrences", "").strip().split(",")
     enumerators = json.loads(request.form.get("enumerators", ""))
 
+    while "" in occurrences:
+        occurrences.remove("")
+
     var_collection = VariableCollection(app)
     result = {
         "success": True,

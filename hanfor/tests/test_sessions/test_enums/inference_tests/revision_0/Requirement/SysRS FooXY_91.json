@@ -6,7 +6,15 @@
     "status": "Todo",
     "tags": {
         "type": "dict",
-        "data": []
+        "data": [
+            {
+                "key": {
+                    "type": "Tag",
+                    "data": "eba07c6c-56be-499c-b5e6-96b895852cae"
+                },
+                "value": ""
+            }
+        ]
     },
     "pos_in_csv": 0,
     "csv_row": {

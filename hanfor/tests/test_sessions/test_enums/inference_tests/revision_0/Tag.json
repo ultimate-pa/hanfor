@@ -1,1 +1,14 @@
-{}
+{
+    "eba07c6c-56be-499c-b5e6-96b895852cae": {
+        "description": "",
+        "internal": false,
+        "color": "#0dcaf0",
+        "name": "unseen",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    }
+}

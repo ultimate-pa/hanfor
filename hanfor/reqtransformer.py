@@ -854,7 +854,7 @@ class ScopedPattern:
 class VariableCollection:
     def __init__(self, app):
         self.app = app
-        self.collection: Dict[str, Variable] = dict(app.db.get_objects(Variable))
+        self.collection: Dict[str, Variable] = {v.name: v for v in app.db.get_objects(Variable).values()}
         self.refresh_var_usage(app)
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
 
@@ -1087,7 +1087,6 @@ class VariableCollection:
         for name, var in self.collection.items():
             if len(var.get_constraints()) > 0:
                 var.reload_constraints_type_inference_errors(self)
-                self.collection[name] = var
 
     def refresh_var_usage(self, app):
         mapping = dict()
@@ -1136,7 +1135,8 @@ class VariableCollection:
         if deletable:
             deleted_var = self.collection.pop(var_name, None)
             self.var_req_mapping.pop(var_name, None)
-            self.app.db.remove_object(deleted_var)
+            if deleted_var:
+                self.app.db.remove_object(deleted_var)
             return True
         return False
 
@@ -1198,7 +1198,8 @@ class VariableCollection:
 
 
 @DatabaseTable(TableType.Folder)
-@DatabaseID("name", str)
+@DatabaseID("uuid", use_uuid=True)
+@DatabaseField("name", str)
 @DatabaseField("type", str)
 @DatabaseField("value", str)
 @DatabaseField("tags", set[Tag])

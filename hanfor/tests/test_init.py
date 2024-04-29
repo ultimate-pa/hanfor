@@ -49,8 +49,7 @@ class TestInit(TestCase):
         global mock_results
         mock_results = user_inputs
 
-        with app.app_context():
-            startup_hanfor(args, HERE, db_test_mode=True)
+        startup_hanfor(args, HERE, db_test_mode=True)
 
     def test_1_init_from_csv(self):
         args = utils.HanforArgumentParser(app).parse_args([TEST_TAG, "-c", TEST_CSV])
