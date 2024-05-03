@@ -80,9 +80,9 @@ class TagsApi(MethodView):
                 self.app.db.add_object(SessionValue(f"TAG_{name}", self.__available_tags[name]))
 
         # create used by relation
-        for req in self.app.db.get_objects("Requirement").values():
-            for tag_name in req.get_tag_name_comment_dict():
-                self.__available_tags[tag_name].used_by.append(req.rid)
+        for req in self.app.db.get_objects("Requirement").values():  # type: "Requirement"
+            for tag in req.tags:
+                self.__available_tags[tag.name].used_by.append(req.rid)
 
         for tag in self.__available_tags.values():
             tag.used_by.sort()

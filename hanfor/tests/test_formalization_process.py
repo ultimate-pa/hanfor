@@ -65,9 +65,9 @@ class TestFormalizationProcess(TestCase):
         )
         self.assertListEqual(result.json["vars"], ["bar", "foo", "ham", "spam", "the_world_sinks"])
         self.assertListEqual(result.json["tags"], ["tag1", "tag2", "unknown_type", "has_formalization"])
-        self.assertDictContainsSubset(
-            {"tag1": "comment 1 with some character", "tag2": "äüö%&/+= coment330+-# chars"},
-            result.json["tags_comments"],
+        self.assertLessEqual(
+            {"tag1": "comment 1 with some character", "tag2": "äüö%&/+= coment330+-# chars"}.items(),
+            result.json["tags_comments"].items(),
         )
 
     def test_changing_var_in_formalization(self):

@@ -215,7 +215,7 @@ def api(resource, command):
                     logging.debug(f"Requirement status set to {requirement.status}")
 
                 new_tag_set = json.loads(request.form.get("tags", ""))
-                req_tags = requirement.get_tag_name_comment_dict()
+                req_tags = {t.name: c for t, c in requirement.tags.items()}
                 if req_tags != new_tag_set:
                     added_tags = new_tag_set.keys() - req_tags.keys()
                     tag_api = TagsApi()
