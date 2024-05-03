@@ -32,15 +32,15 @@ CSV_FILES = {
 TEST_TAGS = {"simple": "simple", "real": "real"}
 
 
-def mock_user_input(*args, **kwargs) -> str:
+def mock_user_input() -> str:
     """Mocks user input. Returns the mock_results entry at position given by the number of calls.
     :return: mock_results[#of call starting with 0]
     """
-    global mock_results
-    global count
+    global mock_results  # noqa
+    global count  # noqa
     try:
         count += 1
-    except:
+    except:  # noqa
         count = 0
 
     if count == len(mock_results):
@@ -63,7 +63,8 @@ desired_reqs = [
         "tags": [],
         "desc": "Dont worry, be happy",
         "csv_data": {
-            "formal_header": "Globally, it is never the case, that WORRY holds; Globally, it is always the case, that HAPPY holds.",
+            "formal_header": "Globally, it is never the case, that WORRY holds; "
+            "Globally, it is always the case, that HAPPY holds.",
             "id_header": "SysRS FooXY_42",
             "type_header": "req",
             "desc_header": "Dont worry, be happy",
@@ -94,18 +95,34 @@ desired_reqs = [
 ]
 
 
+def clean_folders():
+    print("Clean test env.")
+    try:
+        path = os.path.join(TESTS_BASE_FOLDER, "variable_import_sessions.pickle")
+        os.remove(path)
+    except FileNotFoundError:
+        pass
+    for tag in TEST_TAGS.values():
+        path = os.path.join(TESTS_BASE_FOLDER, tag)
+        try:
+            shutil.rmtree(path)
+            print("Cleaned {}".format(path))
+        except FileNotFoundError:
+            print("{} already clean".format(path))
+
+
 class TestRevisionMigration(TestCase):
     def setUp(self):
         # Clean test folder.
         app.config["SESSION_BASE_FOLDER"] = TESTS_BASE_FOLDER
         utils.register_assets(app)
-        self.clean_folders()
+        clean_folders()
         self.app = app.test_client()
 
     @patch("builtins.input", mock_user_input)
     def startup_hanfor(self, args, user_mock_answers):
-        global mock_results
-        global count
+        global mock_results  # noqa
+        global count  # noqa
         count = -1
         mock_results = user_mock_answers
 
@@ -195,19 +212,4 @@ class TestRevisionMigration(TestCase):
 
     def tearDown(self):
         # Clean test dir.
-        self.clean_folders()
-
-    def clean_folders(self):
-        print("Clean test env.")
-        try:
-            path = os.path.join(TESTS_BASE_FOLDER, "variable_import_sessions.pickle")
-            os.remove(path)
-        except FileNotFoundError:
-            pass
-        for tag in TEST_TAGS.values():
-            path = os.path.join(TESTS_BASE_FOLDER, tag)
-            try:
-                shutil.rmtree(path)
-                print("Cleaned {}".format(path))
-            except FileNotFoundError:
-                print("{} already clean".format(path))
+        clean_folders()

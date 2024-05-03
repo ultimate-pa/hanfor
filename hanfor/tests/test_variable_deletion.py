@@ -17,15 +17,15 @@ MOCK_DATA_FOLDER = os.path.join(HERE, "test_delete_variable")
 SESSION_BASE_FOLDER = os.path.join(HERE, "tmp")
 
 
-def mock_user_input(*args, **kwargs) -> str:
+def mock_user_input() -> str:
     """Mocks user input. Returns the mock_results entry at position given by the number of calls.
     :return: mock_results[#of call starting with 0]
     """
-    global mock_results
-    global count
+    global mock_results  # noqa
+    global count  # noqa
     try:
         count += 1
-    except:
+    except:  # noqa
         count = 0
 
     if count == len(mock_results):
@@ -51,8 +51,8 @@ class TestHanforVersionMigrations(TestCase):
 
     @patch("builtins.input", mock_user_input)
     def startup_hanfor(self, args, user_mock_answers):
-        global mock_results
-        global count
+        global mock_results  # noqa
+        global count  # noqa
         count = -1
         mock_results = user_mock_answers
 

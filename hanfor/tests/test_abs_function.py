@@ -31,9 +31,9 @@ class TestAbsFunction(TestCase):
         for expression, should_be_parseable in expressions:
             is_parseable = True
             try:
-                tree = parser.parse(expression)
+                _ = parser.parse(expression)
                 # pydot__tree_to_png(tree, "parse_tree.png")
-            except Exception:
+            except Exception:  # noqa
                 is_parseable = False
             self.assertEqual(is_parseable, should_be_parseable, msg=f"Error parsing {expression}")
 
@@ -48,7 +48,8 @@ class TestAbsFunction(TestCase):
             self.assertEqual(
                 expected_env[var],
                 derived_type,
-                msg=f"Error deriving `{expected_env[var]}` type for variable `{var}`. Derived `{derived_type}` instead.",
+                msg=f"Error deriving `{expected_env[var]}` type for variable `{var}`. "
+                f"Derived `{derived_type}` instead.",
             )
         self.assertEqual(
             expected_expression_type,

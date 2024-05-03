@@ -14,7 +14,6 @@ As long as this test fails https://github.com/ultimate-pa/hanfor/issues/24 will 
 from lark import Lark
 from lark.lexer import Token
 
-import boogie_parsing
 from unittest import TestCase
 
 

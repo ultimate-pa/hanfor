@@ -18,15 +18,15 @@ TEST_CSV = os.path.join(HERE, "test_sessions/test_init/simple.csv")
 TEST_TAG = "simple"
 
 
-def mock_user_input(*args, **kwargs) -> str:
+def mock_user_input() -> str:
     """Mocks user input. Returns the mock_results entry at position given by the number of calls.
     :return: mock_results[#of call starting with 0]
     """
-    global mock_results
-    global count
+    global mock_results  # noqa
+    global count  # noqa
     try:
         count += 1
-    except Exception:
+    except Exception:  # noqa
         count = 0
 
     if count == len(mock_results):
@@ -46,7 +46,7 @@ class TestInit(TestCase):
 
     @patch("builtins.input", mock_user_input)
     def startup_hanfor(self, args, user_inputs):
-        global mock_results
+        global mock_results  # noqa
         mock_results = user_inputs
 
         startup_hanfor(args, HERE, db_test_mode=True)
@@ -89,7 +89,8 @@ class TestInit(TestCase):
                 "tags_comments": {},
                 "desc": "Dont worry, be happy",
                 "csv_data": {
-                    "formal_header": "Globally, it is never the case, that WORRY holds; Globally, it is always the case, that HAPPY holds.",
+                    "formal_header": "Globally, it is never the case, that WORRY holds; "
+                    "Globally, it is always the case, that HAPPY holds.",
                     "id_header": "SysRS FooXY_42",
                     "type_header": "req",
                     "desc_header": "Dont worry, be happy",
@@ -130,7 +131,8 @@ class TestInit(TestCase):
                 "type_header": "req",
                 "id_header": "SysRS FooXY_42",
                 "desc_header": "Dont worry, be happy",
-                "formal_header": "Globally, it is never the case, that WORRY holds; Globally, it is always the case, that HAPPY holds.",
+                "formal_header": "Globally, it is never the case, that WORRY holds; "
+                "Globally, it is always the case, that HAPPY holds.",
             },
             "status": "Todo",
             "available_vars": [],

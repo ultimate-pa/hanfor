@@ -5,10 +5,10 @@ from unittest import TestCase
 class TestQueryAPI(TestCase):
     def setUp(self) -> None:
         self.mock_hanfor = MockHanfor(session_tags=["simple"], test_session_source="test_query_api")
-        self.mock_hanfor.setUp()
+        self.mock_hanfor.set_up()
 
     def tearDown(self) -> None:
-        self.mock_hanfor.tearDown()
+        self.mock_hanfor.tear_down()
 
     def test_new_query(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
