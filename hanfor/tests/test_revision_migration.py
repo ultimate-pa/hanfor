@@ -136,7 +136,7 @@ class TestRevisionMigration(TestCase):
 
         # Create the first initial revision.
         args = utils.HanforArgumentParser(app).parse_args([TEST_TAGS["simple"], "-c", CSV_FILES["simple"]])
-        self.startup_hanfor(args, user_mock_answers=[2, 0, 1, 3])
+        self.startup_hanfor(args, user_mock_answers=[2, 0, 1, 3, 0])
         # Get the available requirements.
         initial_req_gets = self.app.get("api/req/gets")
         self.assertEqual(initial_req_gets.json["data"][1]["desc"], "always look on the bright side of life")
@@ -154,7 +154,7 @@ class TestRevisionMigration(TestCase):
         # Get available requirements from new revision.
         new_revision_req_gets = self.app.get("api/req/gets")
         self.assertEqual(new_revision_req_gets.json["data"][1]["desc"], "Mostly look on the bright side of life")
-        self.assertListEqual(
+        self.assertCountEqual(
             new_revision_req_gets.json["data"][1]["tags"],
             ["revision_0_to_revision_1_data_changed", "revision_0_to_revision_1_description_changed"],
         )

@@ -178,10 +178,10 @@ class RequirementCollection(HanforVersioned, Pickleable):
             self.csv_meta.formal_header = user_provided_headers["csv_formal_header"]
             self.csv_meta.type_header = user_provided_headers["csv_type_header"]
         elif base_revision_headers and use_old_headers == "yes":
-            self.csv_meta.id_header = base_revision_headers["csv_id_header"]
-            self.csv_meta.desc_header = base_revision_headers["csv_desc_header"]
-            self.csv_meta.formal_header = base_revision_headers["csv_formal_header"]
-            self.csv_meta.type_header = base_revision_headers["csv_type_header"]
+            self.csv_meta.id_header = base_revision_headers["csv_id_header"].value
+            self.csv_meta.desc_header = base_revision_headers["csv_desc_header"].value
+            self.csv_meta.formal_header = base_revision_headers["csv_formal_header"].value
+            self.csv_meta.type_header = base_revision_headers["csv_type_header"].value
         else:
             available_headers = set(self.csv_meta.headers)
             available_headers.discard("Hanfor_Tags")
@@ -349,7 +349,7 @@ class Requirement:
         return self._revision_diff
 
     @revision_diff.setter
-    def revision_diff(self, other):
+    def revision_diff(self, other: "Requirement"):
         """Compute and set diffs based on `other` Requirement
 
         :param other: Requirement the diff should be based on.
@@ -361,11 +361,15 @@ class Requirement:
             if self.csv_row[csv_key] is None:
                 # This can happen if we revision with an CSV that is missing the csv_key now.
                 self.csv_row[csv_key] = ""
-            diff = difflib.ndiff(other.csv_row[csv_key].splitlines(), self.csv_row[csv_key].splitlines())
+            diff = difflib.ndiff(self.csv_row[csv_key].splitlines(), other.csv_row[csv_key].splitlines())
             diff = [s for s in diff if not s.startswith("  ")]
             diff = "\n".join(diff)
             if len(diff) > 0:
                 self._revision_diff[csv_key] = diff
+        self.description = other.description
+        self.type_in_csv = other.type_in_csv
+        self.csv_row = other.csv_row
+        self.pos_in_csv = other.pos_in_csv
 
     def _next_free_formalization_id(self):
         i = 0
