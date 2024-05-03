@@ -82,8 +82,10 @@ class TestParseExpressions(TestCase):
             tree = self.parse("-y")
             ti = run_typecheck_fixpoint(tree, {"y": boogie_type}, expected_types=[boogie_type])
             t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
-            self.assertEqual(boogie_type, t, msg="Error deriving bool from TRUE")
-            self.assertEqual(boogie_type, type_env["y"], msg="Error deriving bool from TRUE")
+            self.assertEqual(boogie_type, t, msg="Error deriving expression type of unary minus and number")
+            self.assertEqual(
+                boogie_type, type_env["y"], msg="Error deriving variable as number type in unary minus experssion"
+            )
             self.assertFalse(errors)
 
     def test_unknown_expr(self):

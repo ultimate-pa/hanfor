@@ -12,7 +12,6 @@ import os
 import pickle
 import re
 import string
-from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
 from lark import LarkError
@@ -781,8 +780,8 @@ class Pattern:
     def is_instantiatable(self):
         return self.name != "NotFormalizable"
 
-    def instantiate(self, scope, *args):
-        return scope + ", " + self.pattern.format(*args)
+    def instantiate(self, scope: Scope, *args):
+        return str(scope) + ", " + self.pattern.format(*args)
 
     def __str__(self):
         return self.pattern
@@ -1151,44 +1150,6 @@ class VariableCollection:
                 enumerators.append(other_var)
         return enumerators
 
-    def run_version_migrations(self):
-        logging.info(
-            f"Migrating `{self.__class__.__name__}`:`{self.my_path}`, from {self.hanfor_version} -> {__version__}"
-        )
-        for name, variable in self.collection.items():  # type: (str, Variable)
-            variable.run_version_migrations()
-        if version.parse(self.hanfor_version) < version.parse("1.0.3"):
-            # Migrate for introduction of ENUM_INT and ENUM_REAL.
-            for name, variable in self.collection.items():  # type: (str, Variable)
-                if variable.type == "ENUM":
-                    logging.info(f"Migrate old ENUM `{variable.name}` to new ENUM_INT, ENUM_REAL")
-                    enumerators = []
-                    for other_var_name, other_var in self.collection.items():  # type: str, Variable
-                        if (
-                            len(other_var_name) > len(variable.name)
-                            and other_var_name.startswith(variable.name)
-                            and other_var.type == "ENUMERATOR"
-                        ):
-                            enumerators.append(other_var_name)
-                            # Set newly introduced belongs_to_enum.
-                            other_var.belongs_to_enum = variable.name
-                    # Determine the new type from the ENUMERATOR values.
-                    new_type = "INT"
-                    for enumerator_name in enumerators:
-                        try:
-                            int(self.collection[enumerator_name].value)
-                        except Exception:
-                            new_type = "REAL"
-                    # Set new types.
-                    variable.type = "ENUM_{}".format(new_type)
-                    logging.info("Set type of `{}` to `{}`".format(variable.name, variable.type))
-                    for enumerator_name in enumerators:
-                        self.collection[enumerator_name].type = "ENUMERATOR_{}".format(new_type)
-                        logging.info(
-                            "Set type of `{}` to `{}`".format(enumerator_name, self.collection[enumerator_name].type)
-                        )
-        super().run_version_migrations()
-
     def import_session(self, import_collection):
         """Import another VariableCollection into this.
 
@@ -1214,9 +1175,9 @@ class VariableCollection:
 class Variable:
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
 
-    def __init__(self, name: str, type: str, value: str):
+    def __init__(self, name: str, var_type: str | None, value: str | None):
         self.name: str = name
-        self.type: str = type
+        self.type: str = var_type
         self.value: str = value
         # TODO: Show variables (e.g. typing errors) or remove tags from variables; show them or remove them
         self.tags: set[Tag] = set()
@@ -1426,24 +1387,3 @@ class Variable:
                     result.append(other_var_name)
                     break
         return result
-
-    def run_version_migrations(self):
-        if version.parse(self.hanfor_version) <= version.parse("0.0.0"):
-            logging.info(f"Migrating `{self.__class__.__name__}`:`{self.name}`, from 0.0.0 -> 1.0.0")
-            if hasattr(self, "constraints"):
-                self.constraints = dict(enumerate(self.constraints))
-            else:
-                self.constraints = dict()
-        if version.parse(self.hanfor_version) <= version.parse("1.0.0"):
-            logging.info(f"Migrating `{self.__class__.__name__}`:`{self.name}`, from 1.0.0 -> 1.0.1")
-            self.script_results = ""
-        if version.parse(self.hanfor_version) <= version.parse("1.0.2"):
-            logging.info(f"Migrating `{self.__class__.__name__}`:`{ self.name}`, from {self.hanfor_version} -> 1.0.3")
-            self.belongs_to_enum = ""
-            if self.type == "ENUM":
-                logging.info(f"Migrate old ENUM `{self.name}` to new ENUM_INT, ENUM_REAL")
-        if not hasattr(self, "constraints") or not isinstance(self.constraints, dict):
-            setattr(self, "constraints", dict())
-        if not hasattr(self, "description") or not isinstance(self.constraints, str):
-            setattr(self, "description", str())
-        super().run_version_migrations()

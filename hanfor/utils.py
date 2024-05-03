@@ -44,7 +44,6 @@ except ModuleNotFoundError:
 
 from reqtransformer import VariableCollection, Requirement, RequirementCollection
 from static_utils import (
-    pickle_load_from_dump,
     replace_prefix,
     hash_file_sha1,
     SessionValue,
@@ -187,18 +186,19 @@ def formalizations_to_html(app, formalizations):
     return result
 
 
-def get_available_vars(app, full=True, fetch_evals=False):
+def get_available_vars(app, full=True):
     var_collection = VariableCollection(app)
     result = var_collection.get_available_vars_list(used_only=not full)
     return result
 
 
-def varcollection_diff_info(app, request):
+def varcollection_diff_info(app, request):  # TODO ask vincent
     """Collect diff info of current and requested var collection.
         * Number of var in the requested var collection
         * Number of new vars in the requested var collection.
 
 
+    :param app:
     :param request: API request
     :return: {'tot_vars': int, 'new_vars': int}
     :rtype: dict
@@ -210,7 +210,6 @@ def varcollection_diff_info(app, request):
         request.form.get("sess_revision").strip(),
         "session_variable_collection.pickle",
     )
-    # TODO fix revision migration
     # requested_var_collection = VariableCollection.load(req_path)
 
     # numb_new_vars = len(
@@ -342,7 +341,6 @@ def update_variable_in_collection(app, request):
 
         # update name.
         if var_name_old != var_name:
-            affected_enumerators = []
             logging.debug("Change name of var `{}` to `{}`".format(var_name_old, var_name))
             #  Case: New name which does not exist -> remove the old var and replace in reqs occurring.
             if var_name not in var_collection:
@@ -486,18 +484,17 @@ def get_requirements(app, filter_list=None, invert_filter=False):
     """Load all requirements from session folder and return in a list.
     Orders the requirements based on their position in the CSV used to create the session (pos_in_csv).
 
-    :param input_dir:
-    :type input_dir:
+    :param app: current app
     :param filter_list: A list of requirement IDs to be included in the result. All if not set.
     :type filter_list: list (of strings)
     :param invert_filter: Exclude filter
     :type invert_filter: bool
     """
 
-    def should_be_in_result(req) -> bool:
+    def should_be_in_result(requirement) -> bool:
         if filter_list is None:
             return True
-        return (req.rid in filter_list) != invert_filter
+        return (requirement.rid in filter_list) != invert_filter
 
     requirements = list()
     for req in app.db.get_objects(Requirement).values():
@@ -571,59 +568,59 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
     tags = {tag.name: tag.internal for tag in app.db.get_objects(Tag).values()}
 
     # create  styles
-    MULTILINE = Alignment(vertical="top", wrap_text=True)
-    BOLD = Font(bold=True)
-    WHITE = Font(color="FFFFFF", bold=True)
-    FILLED = PatternFill(fill_type="solid", start_color="2a6ebb", end_color="2a6ebb")
-    META = PatternFill(fill_type="solid", start_color="004a99", end_color="004a99")
+    style_multiline = Alignment(vertical="top", wrap_text=True)
+    style_bold = Font(bold=True)
+    style_white = Font(color="FFFFFF", bold=True)
+    style_filled = PatternFill(fill_type="solid", start_color="2a6ebb", end_color="2a6ebb")
+    style_meta = PatternFill(fill_type="solid", start_color="004a99", end_color="004a99")
     # create excel template
     work_book = Workbook()
     work_sheet = work_book.active
     work_sheet.title = "Requirements"
 
-    HEADER_OFFSET = 4
+    header_offset = 4
 
-    def make_header(work_sheet):
-        work_sheet.freeze_panes = "A4"
-        for c in range(1, 10):
+    def make_header(ws):
+        ws.freeze_panes = "A4"
+        for col in range(1, 10):
             for r in range(1, 3):
-                work_sheet.cell(r, c).fill = META
-        work_sheet.cell(1, 2, value="HANFOR Report")
-        work_sheet.cell(1, 2).font = WHITE
-        work_sheet.cell(1, 3, value=app.db.get_object(SessionValue, "csv_input_file").value)
-        work_sheet.cell(1, 3).font = Font(color="FFFFFF")
-        for c in range(1, 10):
-            work_sheet.cell(HEADER_OFFSET - 1, c).fill = FILLED
-            work_sheet.cell(HEADER_OFFSET - 1, c).font = WHITE
+                ws.cell(r, col).fill = style_meta
+        ws.cell(1, 2, value="HANFOR Report")
+        ws.cell(1, 2).font = style_white
+        ws.cell(1, 3, value=app.db.get_object(SessionValue, "csv_input_file").value)
+        ws.cell(1, 3).font = Font(color="FFFFFF")
+        for col in range(1, 10):
+            ws.cell(header_offset - 1, col).fill = style_filled
+            ws.cell(header_offset - 1, col).font = style_white
 
     make_header(work_sheet)
 
     # Set column widths and headings
     work_sheet.column_dimensions["A"].width = 5
-    work_sheet.cell(HEADER_OFFSET - 1, 1, value="Index")
+    work_sheet.cell(header_offset - 1, 1, value="Index")
     work_sheet.column_dimensions["B"].width = 20
-    work_sheet.cell(HEADER_OFFSET - 1, 2, value="ID")
+    work_sheet.cell(header_offset - 1, 2, value="ID")
     work_sheet.column_dimensions["C"].width = 80
-    work_sheet.cell(HEADER_OFFSET - 1, 3, value="Description")
-    work_sheet.cell(HEADER_OFFSET - 1, 4, value="Type")
+    work_sheet.cell(header_offset - 1, 3, value="Description")
+    work_sheet.cell(header_offset - 1, 4, value="Type")
     work_sheet.column_dimensions["E"].width = 40
-    work_sheet.cell(HEADER_OFFSET - 1, 5, value="Tags")
-    work_sheet.cell(HEADER_OFFSET - 1, 6, value="Status")
+    work_sheet.cell(header_offset - 1, 5, value="Tags")
+    work_sheet.cell(header_offset - 1, 6, value="Status")
     work_sheet.column_dimensions["G"].width = 160
-    work_sheet.cell(HEADER_OFFSET - 1, 7, value="Formalisation")
+    work_sheet.cell(header_offset - 1, 7, value="Formalisation")
 
     for i, requirement in enumerate(requirements):
         for c in range(1, 8):
             # Note: setting styles is ordering-sensitive so set styles FIRST
-            work_sheet.cell(HEADER_OFFSET + i, c).alignment = MULTILINE
-        work_sheet.cell(HEADER_OFFSET + i, 1, requirement.pos_in_csv)
-        work_sheet.cell(HEADER_OFFSET + i, 2).font = BOLD
-        work_sheet.cell(HEADER_OFFSET + i, 2, requirement.rid)
-        work_sheet.cell(HEADER_OFFSET + i, 3, requirement.description)
-        work_sheet.cell(HEADER_OFFSET + i, 4, requirement.type_in_csv)
+            work_sheet.cell(header_offset + i, c).alignment = style_multiline
+        work_sheet.cell(header_offset + i, 1, requirement.pos_in_csv)
+        work_sheet.cell(header_offset + i, 2).font = style_bold
+        work_sheet.cell(header_offset + i, 2, requirement.rid)
+        work_sheet.cell(header_offset + i, 3, requirement.description)
+        work_sheet.cell(header_offset + i, 4, requirement.type_in_csv)
 
         work_sheet.cell(
-            HEADER_OFFSET + i,
+            header_offset + i,
             5,
             "".join(
                 [
@@ -633,28 +630,28 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
                 ]
             ),
         )
-        work_sheet.cell(HEADER_OFFSET + i, 6, requirement.status)
-        work_sheet.cell(HEADER_OFFSET + i, 7, "\n".join([f.get_string() for f in requirement.formalizations.values()]))
+        work_sheet.cell(header_offset + i, 6, requirement.status)
+        work_sheet.cell(header_offset + i, 7, "\n".join([f.get_string() for f in requirement.formalizations.values()]))
 
     # make severity sheet
     tag_sheet = work_book.create_sheet("Findings")
     make_header(tag_sheet)
     tag_sheet.column_dimensions["A"].width = 5
-    tag_sheet.cell(HEADER_OFFSET - 1, 1, value="Index")
+    tag_sheet.cell(header_offset - 1, 1, value="Index")
     tag_sheet.column_dimensions["B"].width = 20
-    tag_sheet.cell(HEADER_OFFSET - 1, 2, value="ID")
-    tag_sheet.cell(HEADER_OFFSET - 1, 3, value="Description")
+    tag_sheet.cell(header_offset - 1, 2, value="ID")
+    tag_sheet.cell(header_offset - 1, 3, value="Description")
     tag_sheet.column_dimensions["C"].width = 80
     tag_sheet.column_dimensions["D"].width = 20
-    tag_sheet.cell(HEADER_OFFSET - 1, 4, value="Tag")
+    tag_sheet.cell(header_offset - 1, 4, value="Tag")
     tag_sheet.column_dimensions["E"].width = 60
-    tag_sheet.cell(HEADER_OFFSET - 1, 5, value="Comment (Analysis)")
+    tag_sheet.cell(header_offset - 1, 5, value="Comment (Analysis)")
     tag_sheet.column_dimensions["F"].width = 10
-    tag_sheet.cell(HEADER_OFFSET - 1, 6, value="Accept")
+    tag_sheet.cell(header_offset - 1, 6, value="Accept")
     tag_sheet.column_dimensions["G"].width = 15
-    tag_sheet.cell(HEADER_OFFSET - 1, 7, value="Value")
+    tag_sheet.cell(header_offset - 1, 7, value="Value")
     tag_sheet.column_dimensions["H"].width = 80
-    tag_sheet.cell(HEADER_OFFSET - 1, 8, value="Comment (Review)")
+    tag_sheet.cell(header_offset - 1, 8, value="Comment (Review)")
 
     accept_state_validator = DataValidation(type="list", formula1='"TODO ,Accept,Decline,Inquery"', allow_blank=False)
     tag_sheet.add_data_validation(accept_state_validator)
@@ -674,37 +671,37 @@ def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter:
 
     for i, (req, tag) in enumerate(issue_tags_reqs):
         for c in range(1, 8):
-            tag_sheet.cell(HEADER_OFFSET + i, c).alignment = MULTILINE
-        tag_sheet.cell(HEADER_OFFSET + i, 1, req.pos_in_csv)
-        tag_sheet.cell(HEADER_OFFSET + i, 2).font = BOLD
-        tag_sheet.cell(HEADER_OFFSET + i, 2, req.rid)
-        tag_sheet.cell(HEADER_OFFSET + i, 3, req.description)
-        tag_sheet.cell(HEADER_OFFSET + i, 4, tag)
+            tag_sheet.cell(header_offset + i, c).alignment = style_multiline
+        tag_sheet.cell(header_offset + i, 1, req.pos_in_csv)
+        tag_sheet.cell(header_offset + i, 2).font = style_bold
+        tag_sheet.cell(header_offset + i, 2, req.rid)
+        tag_sheet.cell(header_offset + i, 3, req.description)
+        tag_sheet.cell(header_offset + i, 4, tag)
         tag_sheet.cell(
-            HEADER_OFFSET + i, 5, req.get_tag_name_comment_dict()[tag]
+            header_offset + i, 5, req.get_tag_name_comment_dict()[tag]
         )  # Tags do currently not have comments
-        tag_sheet.cell(HEADER_OFFSET + i, 6, "TODO")
-        tag_sheet.cell(HEADER_OFFSET + i, 7, "TODO")
+        tag_sheet.cell(header_offset + i, 6, "TODO")
+        tag_sheet.cell(header_offset + i, 7, "TODO")
 
     # make sheet with variables
     var_sheet = work_book.create_sheet("Variables")
     make_header(var_sheet)
     var_sheet.column_dimensions["A"].width = 40
-    var_sheet.cell(HEADER_OFFSET - 1, 1, value="Name")
+    var_sheet.cell(header_offset - 1, 1, value="Name")
     var_sheet.column_dimensions["B"].width = 80
     var_sheet.column_dimensions["C"].width = 5
-    var_sheet.cell(HEADER_OFFSET - 1, 2, value="Type")
+    var_sheet.cell(header_offset - 1, 2, value="Type")
     var_sheet.column_dimensions["D"].width = 180
-    var_sheet.cell(HEADER_OFFSET - 1, 4, value="Invarianten")
+    var_sheet.cell(header_offset - 1, 4, value="Invarianten")
 
     for i, var in enumerate(var_collection.collection.values()):
         for c in range(1, 8):
-            var_sheet.cell(HEADER_OFFSET + i, c).alignment = MULTILINE
-        var_sheet.cell(HEADER_OFFSET + i, 1, var.name)
-        var_sheet.cell(HEADER_OFFSET + i, 1).font = BOLD
-        var_sheet.cell(HEADER_OFFSET + i, 2, var.type)
-        var_sheet.cell(HEADER_OFFSET + i, 3, "E" if var.belongs_to_enum else "")
-        var_sheet.cell(HEADER_OFFSET + i, 4, "\n".join([c.get_string() for c in var.get_constraints().values()]))
+            var_sheet.cell(header_offset + i, c).alignment = style_multiline
+        var_sheet.cell(header_offset + i, 1, var.name)
+        var_sheet.cell(header_offset + i, 1).font = style_bold
+        var_sheet.cell(header_offset + i, 2, var.type)
+        var_sheet.cell(header_offset + i, 3, "E" if var.belongs_to_enum else "")
+        var_sheet.cell(header_offset + i, 4, "\n".join([c.get_string() for c in var.get_constraints().values()]))
 
     work_book.active = tag_sheet
     buffer = io.BytesIO()
@@ -729,7 +726,10 @@ def clean_identifier_for_ultimate_parser(slug: str, used_slugs: Set[str]) -> (st
     # search for the first free suffix.
     if slug in used_slugs:
         suffix = 1
-        pad = lambda s: "{}_{}".format(slug, s)
+
+        def pad(s: int) -> str:
+            return "{}_{}".format(slug, s)
+
         while pad(suffix) in used_slugs:
             suffix += 1
         slug = pad(suffix)
@@ -768,7 +768,7 @@ def generate_req_file_content(app, filter_list=None, invert_filter=False, variab
                 used_in = var_collection.var_req_mapping[var["name"]]
                 if used_in & target_set:
                     available_vars.append(var)
-            except Exception:
+            except Exception:  # noqa
                 logging.debug("Ignoring variable `{}`".format(var))
     else:
         available_vars = var_collection.get_available_vars_list(sort_by="name")
@@ -904,7 +904,7 @@ def get_stored_session_names(session_folder, only_names=False, with_revisions=Fa
     return result
 
 
-def get_revisions_with_stats(session_path):
+def get_revisions_with_stats(session_path):  # TODO ask vincent
     """Get meta information about available revisions for a given session path.
 
     Returns a dict with revision name as key for each revision.
@@ -1141,7 +1141,7 @@ class GenerateScopedPatternTrainingData(argparse.Action):
             current_session_folder = os.path.join(self.app.config["SESSION_BASE_FOLDER"], entry[1])
             revisions = get_available_revisions(self.app.config, folder=current_session_folder)
             for revision in revisions:
-                current_revision_folder = os.path.join(current_session_folder, revision)
+                current_revision_folder = os.path.join(str(current_session_folder), revision)
                 logging.debug("Processing `{}`".format(current_revision_folder))
                 requirements = get_requirements(self.app)
                 logging.debug("Found {} requirements .. fetching the formalized ones.".format(len(requirements)))
@@ -1210,7 +1210,8 @@ class HanforArgumentParser(argparse.ArgumentParser):
             "-hd",
             "--headers",
             type=str,
-            help='Header Definition of the form --header=\'{ "csv_id_header": "ID", "csv_desc_header": "Description", "csv_formal_header": "Hanfor_Formalization", "csv_type_header" : "Type"}\', must be valid json.',
+            help='Header Definition of the form --header=\'{ "csv_id_header": "ID", "csv_desc_header": "Description", '
+            '"csv_formal_header": "Hanfor_Formalization", "csv_type_header" : "Type"}\', must be valid json.',
             default=None,
         )
 

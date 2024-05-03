@@ -473,7 +473,7 @@ def api(resource, command):
         # Get available variables
         result = {"success": False, "errormsg": "sorry, request not supported."}
         if command == "gets":
-            result = {"data": utils.get_available_vars(app, full=True, fetch_evals=True)}
+            result = {"data": utils.get_available_vars(app, full=True)}
         elif command == "update":
             result = utils.update_variable_in_collection(app, request)
         elif command == "var_import_info":
