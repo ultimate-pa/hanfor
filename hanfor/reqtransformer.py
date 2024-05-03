@@ -8,14 +8,11 @@ import csv
 import difflib
 import json
 import logging
-import os
-import pickle
 import re
 import string
 from dataclasses import dataclass, field
 from enum import Enum
 from lark import LarkError
-from packaging import version
 
 import boogie_parsing
 from boogie_parsing import run_typecheck_fixpoint, BoogieType
@@ -24,68 +21,12 @@ from static_utils import choice, replace_prefix, try_cast_string, SessionValue
 from tags.tags import TagsApi, Tag
 
 from typing import Dict, Tuple
-from flask import current_app
+from hanfor_falsk import current_app
 
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField, DatabaseFieldType
 from deprecated import deprecated
 
 __version__ = "1.0.4"
-
-
-class HanforVersioned:
-    def __init__(self):
-        self._hanfor_version = __version__
-
-    @property
-    def hanfor_version(self) -> str:
-        if not hasattr(self, "_hanfor_version"):
-            self._hanfor_version = "0.0.0"
-        return self._hanfor_version
-
-    @hanfor_version.setter
-    def hanfor_version(self, val):
-        self._hanfor_version = val
-
-    @property
-    def outdated(self) -> bool:
-        return version.parse(self.hanfor_version) < version.parse(__version__)
-
-    def run_version_migrations(self):
-        if self.outdated:
-            logging.debug(f"Migration (noop) {self}: from {self.hanfor_version} -> {__version__}")
-            self._hanfor_version = __version__
-            # this is a shortcut to skip explicit update code for all things that did not change in a version.
-            # TODO: non the less this should be solved differently
-            if isinstance(self, Pickleable):
-                self.store()
-
-
-class Pickleable:
-    def __init__(self, path):
-        self.my_path = path
-
-    @classmethod
-    def load(cls, path):
-        path_size = os.path.getsize(path)
-
-        if not path_size > 0:
-            raise AssertionError("Could not load object from `{}`. (path size is {})".format(path, path_size))
-
-        with open(path, mode="rb") as f:
-            me = pickle.load(f)
-            if not isinstance(me, cls):
-                raise TypeError
-
-        me.my_path = path
-
-        return me
-
-    def store(self, path=None):
-        if path is not None:
-            self.my_path = path
-
-        with open(self.my_path, mode="wb") as out_file:
-            pickle.dump(self, out_file)
 
 
 @dataclass
@@ -104,11 +45,9 @@ class CsvConfig:
     import_formalizations: bool = False
 
 
-class RequirementCollection(HanforVersioned, Pickleable):
+class RequirementCollection:
 
     def __init__(self):
-        HanforVersioned.__init__(self)
-        Pickleable.__init__(self, None)
         self.csv_meta = CsvConfig()
         self.csv_all_rows = None
         self.requirements = list()

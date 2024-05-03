@@ -12,7 +12,8 @@ import subprocess
 from functools import wraps, update_wrapper
 
 import flask
-from flask import Flask, render_template, request, jsonify, make_response, json
+from flask import render_template, request, jsonify, make_response, json
+from hanfor_falsk import HanforFlask
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import HTTPException
 
@@ -42,7 +43,8 @@ mimetypes.add_type("text/javascript", ".js")
 
 
 # Create the app
-app = Flask(__name__)
+app = HanforFlask(__name__)
+# app = Flask(__name__)
 app.config.from_object("config")
 app.db = None
 
@@ -84,7 +86,7 @@ def nocache(view):
     @wraps(view)
     def no_cache(*args, **kwargs):
         response = make_response(view(*args, **kwargs))
-        response.headers["Last-Modified"] = datetime.datetime.now()
+        response.headers["Last-Modified"] = str(datetime.datetime.now())
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "-1"

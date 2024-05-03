@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Type
 
-from flask import Blueprint, Response, current_app, jsonify, render_template, request
+from hanfor_falsk import current_app
+from flask import Blueprint, Response, jsonify, render_template, request
 from flask.views import MethodView
 from pydantic import BaseModel
 

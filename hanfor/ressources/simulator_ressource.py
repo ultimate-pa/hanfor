@@ -3,13 +3,13 @@ from __future__ import annotations
 import fnmatch
 import json
 import logging
-import multiprocessing
 import os
 import time
 import uuid
 from distutils.util import strtobool
 
-from flask import Flask, render_template
+from hanfor_falsk import HanforFlask
+from flask import render_template
 from pysmt.shortcuts import Bool, Int, Real
 from pysmt.typing import BOOL, INT, REAL
 
@@ -295,7 +295,7 @@ class SimulatorRessource(Ressource):
         self.get_simulators()
 
     @staticmethod
-    def load_phase_event_automata(requirement_id: str, app: Flask):
+    def load_phase_event_automata(requirement_id: str, app: HanforFlask):
         result = []
 
         dir = app.config["REVISION_FOLDER"]
@@ -305,13 +305,13 @@ class SimulatorRessource(Ressource):
         return result
 
     @staticmethod
-    def store_phase_event_automata(peas: list[PhaseSetsPea], app: Flask) -> None:
+    def store_phase_event_automata(peas: list[PhaseSetsPea], app: HanforFlask) -> None:
         for pea in peas:
             file = f"{pea.requirement.rid}_{pea.formalization.id}_{pea.countertrace_id}_PEA.pickle"
             pea.store(os.path.join(app.config["REVISION_FOLDER"], file))
 
     @staticmethod
-    def delete_phase_event_automata(requirement_id: str, app: Flask):
+    def delete_phase_event_automata(requirement_id: str, app: HanforFlask):
         dir = app.config["REVISION_FOLDER"]
         for file in fnmatch.filter(os.listdir(dir), f"{requirement_id}_*_PEA.pickle"):
             os.remove(os.path.join(dir, file))
@@ -325,7 +325,7 @@ class SimulatorRessource(Ressource):
         return False
 
     @staticmethod
-    def create_phase_event_automata(requirement_id: str, var_collection, app: Flask) -> list[PhaseSetsPea] | None:
+    def create_phase_event_automata(requirement_id: str, var_collection, app: HanforFlask) -> list[PhaseSetsPea] | None:
         result = []
 
         requirement = app.db.get_object(Requirement, requirement_id)

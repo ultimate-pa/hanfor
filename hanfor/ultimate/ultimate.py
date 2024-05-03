@@ -1,12 +1,11 @@
-from os import path, mkdir
 from typing import Type
 
-from flask import Blueprint, render_template, request, current_app
+from hanfor_falsk import current_app
+from flask import Blueprint, render_template, request
 from flask.views import MethodView
 
 import json
 
-from static_utils import get_filenames_from_dir
 
 from ultimate.ultimate_connector import UltimateConnector
 from ultimate.ultimate_job import UltimateJob

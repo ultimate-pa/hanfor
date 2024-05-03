@@ -1,8 +1,9 @@
 from flask import jsonify
+from hanfor_falsk import HanforFlask
 
 
 class Ressource:
-    def __init__(self, app, request):
+    def __init__(self, app: HanforFlask, request):
         self.app = app
         self.request = request
         self.response = Response()

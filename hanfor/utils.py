@@ -21,7 +21,8 @@ from openpyxl import Workbook
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.styles import PatternFill, Alignment, Font
 
-from flask import json, Response, Flask
+from hanfor_falsk import HanforFlask
+from flask import json, Response
 from flask_assets import Environment
 from patterns import PATTERNS
 
@@ -177,7 +178,7 @@ def formalization_html(templates_folder, formalization_id, scope_options, patter
     return html_template
 
 
-def formalizations_to_html(app, formalizations):
+def formalizations_to_html(app: HanforFlask, formalizations):
     result = ""
     for index, formalization in formalizations.items():
         result += formalization_html(
@@ -186,13 +187,13 @@ def formalizations_to_html(app, formalizations):
     return result
 
 
-def get_available_vars(app, full=True):
+def get_available_vars(app: HanforFlask, full=True):
     var_collection = VariableCollection(app)
     result = var_collection.get_available_vars_list(used_only=not full)
     return result
 
 
-def varcollection_diff_info(app, request):  # TODO ask vincent
+def varcollection_diff_info(app: HanforFlask, request):  # TODO ask vincent
     """Collect diff info of current and requested var collection.
         * Number of var in the requested var collection
         * Number of new vars in the requested var collection.
@@ -236,7 +237,7 @@ def get_requirements_using_var(requirements: list, var_name: str):
     return result_rids
 
 
-def update_variable_in_collection(app, request):
+def update_variable_in_collection(app: HanforFlask, request):
     """Update a single variable. The request should contain a form:
         name -> the new name of the var.
         name_old -> the name of the var before.
@@ -246,7 +247,7 @@ def update_variable_in_collection(app, request):
         enumerators -> The dict of enumerators
 
     :param app: the running flask app
-    :type app: Flask
+    :type app: HanforFlask
     :param request: A form request
     :type request: flask.Request
     :return: Dictionary containing changed data and request status information.
@@ -450,11 +451,11 @@ def update_variable_in_collection(app, request):
     return result
 
 
-def rename_variable_in_expressions(app, occurrences, var_name_old, var_name):
+def rename_variable_in_expressions(app: HanforFlask, occurrences, var_name_old, var_name):
     """Updates (replace) the variables in the requirement expressions.
 
     :param app: Flask app (used for session).
-    :type app: Flask
+    :type app: HanforFlask
     :param occurrences: Requirement ids to be taken into account.
     :type occurrences: list (of str)
     :param var_name_old: The current name in the expressions.
@@ -480,7 +481,7 @@ def rename_variable_in_expressions(app, occurrences, var_name_old, var_name):
     app.db.update()
 
 
-def get_requirements(app, filter_list=None, invert_filter=False):
+def get_requirements(app: HanforFlask, filter_list=None, invert_filter=False):
     """Load all requirements from session folder and return in a list.
     Orders the requirements based on their position in the CSV used to create the session (pos_in_csv).
 
@@ -508,7 +509,7 @@ def get_requirements(app, filter_list=None, invert_filter=False):
     return requirements
 
 
-def generate_csv_file_content(app, filter_list=None, invert_filter=False):
+def generate_csv_file_content(app: HanforFlask, filter_list=None, invert_filter=False):
     """Generates the csv file content for a session.
 
     :param app: Current hanfor app for context.
@@ -559,7 +560,9 @@ def generate_csv_file_content(app, filter_list=None, invert_filter=False):
     return result
 
 
-def generate_xls_file_content(app, filter_list: List[str] = None, invert_filter: bool = False) -> io.BytesIO:
+def generate_xls_file_content(
+    app: HanforFlask, filter_list: List[str] = None, invert_filter: bool = False
+) -> io.BytesIO:
     """Generates the xlsx file content for a session."""
     from tags.tags import Tag
 
@@ -739,7 +742,7 @@ def clean_identifier_for_ultimate_parser(slug: str, used_slugs: Set[str]) -> (st
     return slug, used_slugs
 
 
-def generate_req_file_content(app, filter_list=None, invert_filter=False, variables_only=False):
+def generate_req_file_content(app: HanforFlask, filter_list=None, invert_filter=False, variables_only=False):
     """Generate the content (string) for the ultimate requirements file.
     :param app: Current app.
     :type app: FlaskApp
@@ -986,7 +989,7 @@ def enable_logging(log_level=logging.ERROR, to_file=False, filename="reqtransfor
     logging.debug("Enabled logging.")
 
 
-def setup_logging(app):
+def setup_logging(app: HanforFlask):
     """Initializes logging with settings from the config."""
     if app.config["LOG_LEVEL"] == "DEBUG":
         log_level = logging.DEBUG
@@ -1000,7 +1003,7 @@ def setup_logging(app):
     enable_logging(log_level=log_level, to_file=app.config["LOG_TO_FILE"], filename=app.config["LOG_FILE"])
 
 
-def register_assets(app):
+def register_assets(app: HanforFlask):
     # TODO: Unused functionality.
     bundles = {}
 
@@ -1008,7 +1011,7 @@ def register_assets(app):
     assets.register(bundles)
 
 
-def get_datatable_additional_cols(app):
+def get_datatable_additional_cols(app: HanforFlask):
     offset = 8  # we have 8 fixed cols.
     result = list()
 
@@ -1024,7 +1027,7 @@ def get_datatable_additional_cols(app):
     return {"col_defs": result}
 
 
-def add_msg_to_flask_session_log(app: Flask, message: str, req_list: list[Requirement] = None) -> None:
+def add_msg_to_flask_session_log(app: HanforFlask, message: str, req_list: list[Requirement] = None) -> None:
     """Add a log message for the frontend_logs.
 
     :param req_list: A list of affected requirements
@@ -1034,7 +1037,7 @@ def add_msg_to_flask_session_log(app: Flask, message: str, req_list: list[Requir
     app.db.add_object(RequirementEditHistory(datetime.datetime.now(), message, req_list))
 
 
-def get_flask_session_log(app: Flask, html_format: bool = False) -> Union[list, str]:
+def get_flask_session_log(app: HanforFlask, html_format: bool = False) -> Union[list, str]:
     """Get the frontend log messages from frontend_logs.
 
     :param app: The flask app
@@ -1217,7 +1220,7 @@ class HanforArgumentParser(argparse.ArgumentParser):
 
 
 class Revision:
-    def __init__(self, app, args, base_revision_name):
+    def __init__(self, app: HanforFlask, args, base_revision_name):
         self.app = app
         self.args = args
         self.base_revision_name = base_revision_name

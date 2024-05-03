@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
-from flask import current_app
+from hanfor_falsk import current_app
 from utils import get_requirements
 from static_utils import SessionValue
 
@@ -110,7 +110,7 @@ def add_ultimate_result_to_requirement(
     else:
         requirement.tags[ultimate_raw_data_tag] = f"{tmp}"
 
-    requirement.store()
+    current_app.db.update()
 
 
 def process_result(ultimate_job: UltimateJob) -> None:

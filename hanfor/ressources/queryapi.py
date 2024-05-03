@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
 from immutabledict import immutabledict
 from uuid import uuid4
-from flask import current_app
+from hanfor_falsk import current_app, HanforFlask
 from static_utils import SessionValue
 
 
@@ -278,7 +278,7 @@ class QueryAPI(Ressource):
         return result
 
     @staticmethod
-    def get_target_names(app):
+    def get_target_names(app: HanforFlask):
         result = list()
         for req in app.db.get_objects(Requirement).values():
             result = [key for key in QueryAPI.req_dict_to_search_dict(req.to_dict()).keys()]
