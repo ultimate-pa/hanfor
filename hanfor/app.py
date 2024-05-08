@@ -792,16 +792,16 @@ def varcollection_consistency_check(app, args=None):
     var_collection.store()
 
 
-def create_revision(args, base_revision_name, *, db_test_mode: bool = False):
+def create_revision(args, base_revision_name, *, no_data_tracing: bool = False):
     """Create new revision.
 
     :param args: Parser arguments
     :param base_revision_name: Name of revision the created will be based on. Creates initial revision_0 if none given.
-    :param db_test_mode: db testmode
+    :param no_data_tracing: db testmode
     :return: None
     """
     revision = utils.Revision(app, args, base_revision_name)
-    revision.create_revision(add_custom_serializer_to_database, db_test_mode=db_test_mode)
+    revision.create_revision(add_custom_serializer_to_database, no_data_tracing=no_data_tracing)
 
 
 def load_revision(revision_id):
@@ -822,11 +822,11 @@ def load_revision(revision_id):
     app.db.init_tables(app.config["REVISION_FOLDER"])
 
 
-def user_request_new_revision(args, *, db_test_mode: bool = False):
+def user_request_new_revision(args, *, no_data_tracing: bool = False):
     """Asks the user about the base revision and triggers create_revision with the user choice.
 
     :param args:
-    :param db_test_mode:
+    :param no_data_tracing:
     """
     logging.info("Generating a new revision.")
     available_sessions = utils.get_stored_session_names(app.config["SESSION_BASE_FOLDER"], only_names=True)
@@ -844,7 +844,7 @@ def user_request_new_revision(args, *, db_test_mode: bool = False):
         raise FileNotFoundError
     print("Which revision should I use as a base?")
     base_revision_choice = choice(available_revisions, "revision_0")
-    create_revision(args, base_revision_choice, db_test_mode=db_test_mode)
+    create_revision(args, base_revision_choice, no_data_tracing=no_data_tracing)
 
 
 def set_session_config_vars(args, HERE):
@@ -928,7 +928,7 @@ def add_custom_serializer_to_database(database: JsonDatabase) -> None:
     database.add_custom_serializer(BoogieType, boogie_type_serialize, boogie_type_deserialize)
 
 
-def startup_hanfor(args, HERE, *, db_test_mode: bool = False) -> bool:
+def startup_hanfor(args, HERE, *, no_data_tracing: bool = False) -> bool:  # TODO no_data_tracing
     """Setup session config Variables.
      Trigger:
      Revision creation/loading.
@@ -937,9 +937,11 @@ def startup_hanfor(args, HERE, *, db_test_mode: bool = False) -> bool:
      Consistency checks.
 
     :param args:
+    :param HERE:
+    :param no_data_tracing:
     :returns: True if startup should continue
     """
-    app.db = JsonDatabase(test_mode=db_test_mode)
+    app.db = JsonDatabase(no_data_tracing=no_data_tracing)
     add_custom_serializer_to_database(app.db)
 
     set_session_config_vars(args, HERE)
@@ -949,11 +951,11 @@ def startup_hanfor(args, HERE, *, db_test_mode: bool = False) -> bool:
     if args.revision:
         if args.input_csv is None:
             utils.HanforArgumentParser(app).error("--revision requires a Input CSV -c INPUT_CSV.")
-        user_request_new_revision(args, db_test_mode=db_test_mode)
+        user_request_new_revision(args, no_data_tracing=no_data_tracing)
     else:
         # If there is no session with given tag: Create a new (initial) revision.
         if not os.path.exists(app.config["SESSION_FOLDER"]):
-            create_revision(args, None, db_test_mode=db_test_mode)
+            create_revision(args, None, no_data_tracing=no_data_tracing)
         # If this is an already existing session, ask the user which revision to start.
         else:
             revision_choice = user_choose_start_revision()

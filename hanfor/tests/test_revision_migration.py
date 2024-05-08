@@ -126,7 +126,7 @@ class TestRevisionMigration(TestCase):
         count = -1
         mock_results = user_mock_answers
 
-        startup_hanfor(args, HERE, db_test_mode=True)
+        startup_hanfor(args, HERE, no_data_tracing=True)
 
     """
     Test Cases:

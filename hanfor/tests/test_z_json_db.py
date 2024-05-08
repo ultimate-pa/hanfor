@@ -39,7 +39,7 @@ class TestJsonDatabase(TestCase):
     def setUp(self) -> None:
         self.maxDiff = None
         clear_registries()
-        self._db = JsonDatabase(test_mode=True)
+        self._db = JsonDatabase(no_data_tracing=True)
         self._data_path = path.join(path.dirname(path.realpath(__file__)), "test_json_database", "test_data")
 
     def tearDown(self):
@@ -892,7 +892,7 @@ class TestJsonDatabase(TestCase):
         self._db.add_object(t2, "test")
 
         # reset db to load saved objects
-        self._db = JsonDatabase(test_mode=True)
+        self._db = JsonDatabase(no_data_tracing=True)
         self._db.init_tables(path.join(self._data_path, "normal_class"))
         self.assertEqual(
             self._db._tables[TestClassFile].get_object("job0").get_values(),
@@ -947,7 +947,7 @@ class TestJsonDatabase(TestCase):
             self._db.add_object(o, "test")
 
         # reset db to load saved objects
-        self._db = JsonDatabase(test_mode=True)
+        self._db = JsonDatabase(no_data_tracing=True)
         self._db.init_tables(path.join(self._data_path, "funky_values"))
 
         objects = self._db.get_objects(TestClassFile)
@@ -967,7 +967,7 @@ class TestJsonDatabase(TestCase):
         self._db.add_object(nodes[0], "test")
 
         # reset db to load saved objects
-        self._db = JsonDatabase(test_mode=True)
+        self._db = JsonDatabase(no_data_tracing=True)
         self._db.init_tables(path.join(self._data_path, "graph_test"))
 
         nodes = list(self._db.get_objects(Node).values())

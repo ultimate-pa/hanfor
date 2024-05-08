@@ -62,7 +62,7 @@ class TestHanforApiSkeleton(TestCase):
         count = -1
         mock_results = user_mock_answers
 
-        startup_hanfor(args, HERE, db_test_mode=True)
+        startup_hanfor(args, HERE, no_data_tracing=True)
 
     def test_new_session_from_csv(self):
         """

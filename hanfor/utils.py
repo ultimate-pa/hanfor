@@ -1234,7 +1234,9 @@ class Revision:
         self._set_revision_name()
         self._set_base_revision_folder()
 
-    def create_revision(self, add_serializer_function: Callable[[JsonDatabase], None], *, db_test_mode: bool = False):
+    def create_revision(
+        self, add_serializer_function: Callable[[JsonDatabase], None], *, no_data_tracing: bool = False
+    ):
         self._check_base_revision_available()
         self._set_config_vars()
         self._set_available_sessions()
@@ -1243,7 +1245,7 @@ class Revision:
         else:
             self._copy_base_revision()
 
-        self._set_base_revision_db(add_serializer_function, db_test_mode=db_test_mode)
+        self._set_base_revision_db(add_serializer_function, no_data_tracing=no_data_tracing)
         self.app.db.init_tables(self.app.config["REVISION_FOLDER"])
         self._try_save(self._load_from_csv, "Could not read CSV")
         if self.is_initial_revision:
@@ -1278,10 +1280,10 @@ class Revision:
             self.revision_name = "revision_{}".format(new_revision_count)
 
     def _set_base_revision_db(
-        self, add_serializer_function: Callable[[JsonDatabase], None], *, db_test_mode: bool = False
+        self, add_serializer_function: Callable[[JsonDatabase], None], *, no_data_tracing: bool = False
     ):
         if not self.is_initial_revision:
-            self.base_revision_db = JsonDatabase(test_mode=db_test_mode)
+            self.base_revision_db = JsonDatabase(no_data_tracing=no_data_tracing)
             add_serializer_function(self.base_revision_db)
             self.base_revision_db.init_tables(self.base_revision_folder)
 

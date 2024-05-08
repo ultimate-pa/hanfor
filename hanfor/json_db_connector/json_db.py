@@ -201,7 +201,7 @@ class DatabaseFieldType:
 
 class JsonDatabase:
 
-    def __init__(self, *, test_mode: bool = False) -> None:
+    def __init__(self, *, no_data_tracing: bool = False) -> None:
         self.__data_folder: str = ""
         self._tables: dict[type, JsonDatabaseTable] = {}
         # class: (dict of fields(field_name, (type, default)))
@@ -210,9 +210,9 @@ class JsonDatabase:
             SERIALIZER_TYPE, Callable[[SERIALIZER_TYPE, Callable[[any, str], any], str], dict]
         ] = {}
         self.__custom_deserializer: dict[SERIALIZER_TYPE, Callable[[dict, Callable[[any], any]], SERIALIZER_TYPE]] = {}
-        self.__test_mode = test_mode  # testmode disables data tracing and update files at load of database
-        if test_mode:
-            logging.warning("JsonDatabase is running in test mode")
+        self.__test_mode = no_data_tracing  # testmode disables data tracing and update files at load of database
+        if no_data_tracing:
+            logging.warning("JsonDatabase is running without data tracing")
         self.__data_tracing_logger: Logger | None = None
 
     @property
