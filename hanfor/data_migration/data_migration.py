@@ -85,10 +85,9 @@ def convert_formalization(old: OldFormalization) -> Formalization:
     return f
 
 
-def convert_requirement(old: OldRequirement, jdb: JsonDatabase) -> Requirement:
+def convert_requirement(old: OldRequirement, jdb: JsonDatabase, has_formalisation_tag: Tag) -> Requirement:
     n_req: Requirement = Requirement(old.rid, old.description, old.type_in_csv, old.csv_row, old.pos_in_csv)
     n_req.formalizations = {f_id: convert_formalization(f_value) for f_id, f_value in old.formalizations.items()}
-    # todo remove before commit
     n_req.tags = {}
     if type(old.tags) is set:
         for t_name in old.tags:
@@ -106,6 +105,9 @@ def convert_requirement(old: OldRequirement, jdb: JsonDatabase) -> Requirement:
             if tmp_tag is None:
                 tmp_tag = Tag(t_name, Color.BS_INFO.value, False, "")
             n_req.tags[tmp_tag] = t_value
+    if len(n_req.formalizations) > 0 and has_formalisation_tag not in n_req.tags:
+        n_req.tags[has_formalisation_tag] = ""
+
     n_req.status = old.status
     if hasattr(old, "_revision_diff"):
         setattr(n_req, "_revision_diff", getattr(old, "_revision_diff"))
@@ -269,8 +271,12 @@ if __name__ == "__main__":
             db.add_object(v)
 
         # insert Requirements
+        tag_has_formalisation = get_tag_by_name(db, "has_formalization")
+        if tag_has_formalisation in None:
+            tag_has_formalisation = Tag("has_formalization", Color.BS_INFO.value, True, "")
+            db.add_object(tag_has_formalisation)
         for old_req in old_requirements:
-            req = convert_requirement(old_req, db)
+            req = convert_requirement(old_req, db, tag_has_formalisation)
             db.add_object(req)
 
         # insert RequirementEditHistory
