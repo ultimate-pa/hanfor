@@ -193,35 +193,6 @@ def get_available_vars(app: HanforFlask, full=True):
     return result
 
 
-def varcollection_diff_info(app: HanforFlask, request):  # TODO ask vincent
-    """Collect diff info of current and requested var collection.
-        * Number of var in the requested var collection
-        * Number of new vars in the requested var collection.
-
-
-    :param app:
-    :param request: API request
-    :return: {'tot_vars': int, 'new_vars': int}
-    :rtype: dict
-    """
-    current_var_collection = VariableCollection(app)
-    req_path = os.path.join(
-        app.config["SESSION_BASE_FOLDER"],
-        request.form.get("sess_name").strip(),
-        request.form.get("sess_revision").strip(),
-        "session_variable_collection.pickle",
-    )
-    # requested_var_collection = VariableCollection.load(req_path)
-
-    # numb_new_vars = len(
-    #     set(requested_var_collection.collection.keys()).difference(current_var_collection.collection.keys())
-    # )
-    #
-    # result = {"tot_vars": len(requested_var_collection.collection), "new_vars": numb_new_vars}
-    result = {"tot_vars": 0, "new_vars": 0}
-    return result
-
-
 def get_requirements_using_var(requirements: list, var_name: str):
     """Return a list of requirement ids where var_name is used in at least one formalization.
 
