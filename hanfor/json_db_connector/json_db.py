@@ -201,7 +201,7 @@ class DatabaseFieldType:
 
 class JsonDatabase:
 
-    def __init__(self, *, no_data_tracing: bool = False) -> None:
+    def __init__(self, *, no_data_tracing: bool = False, read_only: bool = False) -> None:
         self.__data_folder: str = ""
         self._tables: dict[type, JsonDatabaseTable] = {}
         # class: (dict of fields(field_name, (type, default)))
@@ -210,9 +210,12 @@ class JsonDatabase:
             SERIALIZER_TYPE, Callable[[SERIALIZER_TYPE, Callable[[any, str], any], str], dict]
         ] = {}
         self.__custom_deserializer: dict[SERIALIZER_TYPE, Callable[[dict, Callable[[any], any]], SERIALIZER_TYPE]] = {}
-        self.__test_mode = no_data_tracing  # testmode disables data tracing and update files at load of database
-        if no_data_tracing:
+        if read_only:
+            logging.warning("JsonDatabase is running in readonly mode")
+        self.__read_only = read_only
+        if no_data_tracing or read_only:
             logging.warning("JsonDatabase is running without data tracing")
+        self.__no_data_tracing = no_data_tracing or read_only
         self.__data_tracing_logger: Logger | None = None
 
     @property
@@ -301,7 +304,7 @@ class JsonDatabase:
                     )
 
         # create database folder if not exist
-        if not path.isdir(self.__data_folder):
+        if not self.__read_only and not path.isdir(self.__data_folder):
             mkdir(self.__data_folder)
 
         self.__data_tracing_logger = self.__setup_data_tracing_logger()
@@ -328,7 +331,9 @@ class JsonDatabase:
             if cls in DatabaseNonSavedField.registry:
                 for f_name, f_default in DatabaseNonSavedField.registry[cls].items():
                     non_saved_fields[f_name] = f_default
-            self._tables[cls] = JsonDatabaseTable(self, cls, table_type, id_field, id_type, fields, non_saved_fields)
+            self._tables[cls] = JsonDatabaseTable(
+                self, cls, table_type, id_field, id_type, fields, non_saved_fields, self.__read_only
+            )
 
         # create field types
         for cls in DatabaseFieldType.registry:
@@ -355,8 +360,7 @@ class JsonDatabase:
         for f in fill_functions:
             f()
         # Save DB to save all new inserted default values
-        if not self.__test_mode:
-            self.update("system")
+        self.update("system")
         logging.info("Database fully loaded.")
 
     def change_data_folder_and_save(self, new_data_folder: str) -> None:
@@ -388,6 +392,8 @@ class JsonDatabase:
         return self._tables[tbl].get_object(o_id)
 
     def update(self, user: str = None) -> None:
+        if self.__read_only:
+            return
         if user is None:
             # logging.warning(f"JsonDatabase.update should be called with the user parameter.")
             pass
@@ -509,7 +515,7 @@ class JsonDatabase:
         raise DatabaseLoadError(f"The following data is not well formed:\n{data}.")
 
     def write_data_trace(self, user: str, table_name: str, obj_id: int | str, old_data: dict) -> None:
-        if self.__test_mode:
+        if self.__no_data_tracing:
             return
         if self.__data_tracing_logger is None:
             raise DatabaseInitialisationError("JsonDatabase write_data_trace is called before init_tables is called")
@@ -523,7 +529,7 @@ class JsonDatabase:
         return None
 
     def __setup_data_tracing_logger(self) -> Logger | None:
-        if self.__test_mode:
+        if self.__no_data_tracing:
             return
         if not path.isdir(path.join(self.__data_folder, ".DataTracing")):
             mkdir(path.join(self.__data_folder, ".DataTracing"))
@@ -553,6 +559,7 @@ class JsonDatabaseTable:
         id_type: type,
         fields: dict[str, tuple[any, any]],
         non_saved_fields: dict[str, any],
+        read_only: bool,
     ) -> None:
         self.__db: JsonDatabase = db
         self.cls: CLS_TYPE = cls
@@ -565,8 +572,11 @@ class JsonDatabaseTable:
         self.__meta_data: dict[ID_TYPE, JsonDatabaseMetaData] = {}
         self.__json_data: dict[str | int, any] = {}
         self.__max_serialize_depth: int = 0
+        self.__read_only = read_only
 
         # create folders and files is not exist
+        if read_only:
+            return
         if self.table_type == TableType.File:
             table_file = path.join(self.__db.data_folder, f"{cls.__name__}.json")
             if not path.isfile(table_file):
@@ -709,6 +719,8 @@ class JsonDatabaseTable:
     def load(self) -> Callable[[], None]:
         if self.table_type == TableType.File:
             table_file = path.join(self.__db.data_folder, f"{self.cls.__name__}.json")
+            if self.__read_only and not path.isfile(table_file):
+                return self.__fill_objects
             with open(table_file, "r") as json_file:
                 for obj_id, obj_data in json.load(json_file).items():
                     if self.id_type is int:
@@ -717,6 +729,8 @@ class JsonDatabaseTable:
                         self.__create_and_insert_object(obj_id, obj_data)
         elif self.table_type == TableType.Folder:
             table_folder = path.join(self.__db.data_folder, self.cls.__name__)
+            if self.__read_only and not path.isdir(table_folder):
+                return self.__fill_objects
             for file_name in [
                 path.join(table_folder, f) for f in listdir(table_folder) if path.isfile(path.join(table_folder, f))
             ]:
