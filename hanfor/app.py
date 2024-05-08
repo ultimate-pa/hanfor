@@ -928,7 +928,7 @@ def add_custom_serializer_to_database(database: JsonDatabase) -> None:
     database.add_custom_serializer(BoogieType, boogie_type_serialize, boogie_type_deserialize)
 
 
-def startup_hanfor(args, HERE, *, no_data_tracing: bool = False) -> bool:  # TODO no_data_tracing
+def startup_hanfor(args, HERE, *, no_data_tracing: bool = False) -> bool:
     """Setup session config Variables.
      Trigger:
      Revision creation/loading.
