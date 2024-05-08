@@ -14,7 +14,7 @@ from json_db_connector.json_db import (
     DatabaseNonSavedField,
 )
 from uuid import UUID
-from os import path, rmdir, remove, mkdir
+from os import path, mkdir
 from dataclasses import dataclass
 import json
 from immutabledict import immutabledict

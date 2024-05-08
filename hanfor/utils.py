@@ -43,7 +43,7 @@ except ModuleNotFoundError:
     logging.error(msg)
     raise FileNotFoundError(msg)
 
-from reqtransformer import VariableCollection, Requirement, RequirementCollection
+from reqtransformer import VariableCollection, Requirement, RequirementCollection, Variable, Scope
 from static_utils import (
     replace_prefix,
     hash_file_sha1,
@@ -878,7 +878,7 @@ def get_stored_session_names(session_folder, only_names=False, with_revisions=Fa
     return result
 
 
-def get_revisions_with_stats(session_path):  # TODO ask vincent
+def get_revisions_with_stats(session_path):
     """Get meta information about available revisions for a given session path.
 
     Returns a dict with revision name as key for each revision.
@@ -896,18 +896,14 @@ def get_revisions_with_stats(session_path):  # TODO ask vincent
     revisions_stats = dict()
     for revision in revisions:
         revision_path = os.path.join(session_path, revision)
-        revision_var_collection_path = os.path.join(revision_path, "session_variable_collection.pickle")
-        num_vars = -1
-        # TODO fix revision migration
-        # try:
-        #     num_vars = len(VariableCollection.load(revision_var_collection_path).collection)
-        # except Exception:
-        #     num_vars = -1
+        tmp_db = JsonDatabase(read_only=True)
+        add_custom_serializer_to_database(tmp_db)
+        tmp_db.init_tables(revision_path)
 
         revisions_stats[revision] = {
             "name": revision,
             "last_mod": get_last_edit_from_path(revision_path),
-            "num_vars": num_vars,
+            "num_vars": len(tmp_db.get_objects(Variable)),
         }
     return revisions_stats
 
@@ -1205,9 +1201,7 @@ class Revision:
         self._set_revision_name()
         self._set_base_revision_folder()
 
-    def create_revision(
-        self, add_serializer_function: Callable[[JsonDatabase], None], *, no_data_tracing: bool = False
-    ):
+    def create_revision(self):
         self._check_base_revision_available()
         self._set_config_vars()
         self._set_available_sessions()
@@ -1216,7 +1210,7 @@ class Revision:
         else:
             self._copy_base_revision()
 
-        self._set_base_revision_db(add_serializer_function, no_data_tracing=no_data_tracing)
+        self._set_base_revision_db()
         self.app.db.init_tables(self.app.config["REVISION_FOLDER"])
         self._try_save(self._load_from_csv, "Could not read CSV")
         if self.is_initial_revision:
@@ -1250,12 +1244,10 @@ class Revision:
             new_revision_count = max([int(name.split("_")[1]) for name in get_available_revisions(self.app.config)]) + 1
             self.revision_name = "revision_{}".format(new_revision_count)
 
-    def _set_base_revision_db(
-        self, add_serializer_function: Callable[[JsonDatabase], None], *, no_data_tracing: bool = False
-    ):
+    def _set_base_revision_db(self):
         if not self.is_initial_revision:
-            self.base_revision_db = JsonDatabase(no_data_tracing=no_data_tracing)
-            add_serializer_function(self.base_revision_db)
+            self.base_revision_db = JsonDatabase(read_only=True)
+            add_custom_serializer_to_database(self.base_revision_db)
             self.base_revision_db.init_tables(self.base_revision_folder)
 
     def _set_base_revision_folder(self):
@@ -1421,3 +1413,32 @@ class Revision:
         # Store the updated requirements for the new revision.
         logging.info("Store merge changes to revision `{}`".format(self.revision_name))
         self.app.db.update()
+
+
+def add_custom_serializer_to_database(database: JsonDatabase) -> None:
+
+    def scope_serialize(obj: Scope, db_serializer: Callable[[any, str], any], user: str) -> dict:
+        return db_serializer(obj.value, user)
+
+    def scope_deserialize(data: dict, db_deserializer: Callable[[any], any]) -> Scope:
+        return Scope(db_deserializer(data))
+
+    database.add_custom_serializer(Scope, scope_serialize, scope_deserialize)
+
+    def datetime_serialize(obj: datetime.datetime, db_serializer: Callable[[any, str], any], user: str) -> dict:
+        return db_serializer(obj.isoformat(), user)
+
+    def datetime_deserialize(data: dict, db_deserializer: Callable[[any], any]) -> datetime.datetime:
+        return datetime.datetime.fromisoformat(db_deserializer(data))
+
+    database.add_custom_serializer(datetime.datetime, datetime_serialize, datetime_deserialize)
+
+    def boogie_type_serialize(
+        obj: boogie_parsing.BoogieType, db_serializer: Callable[[any, str], any], user: str
+    ) -> dict:
+        return db_serializer(obj.value, user)
+
+    def boogie_type_deserialize(data: dict, db_deserializer: Callable[[any], any]) -> boogie_parsing.BoogieType:
+        return boogie_parsing.BoogieType(db_deserializer(data))
+
+    database.add_custom_serializer(boogie_parsing.BoogieType, boogie_type_serialize, boogie_type_deserialize)

@@ -22,6 +22,7 @@ from json_db_connector.json_db import JsonDatabase
 
 from boogie_parsing import BoogieType
 import utils
+from utils import add_custom_serializer_to_database
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from reqtransformer import Requirement, VariableCollection, Variable, Scope
@@ -797,7 +798,7 @@ def create_revision(args, base_revision_name, *, no_data_tracing: bool = False):
     :return: None
     """
     revision = utils.Revision(app, args, base_revision_name)
-    revision.create_revision(add_custom_serializer_to_database, no_data_tracing=no_data_tracing)
+    revision.create_revision()
 
 
 def load_revision(revision_id):
@@ -895,33 +896,6 @@ def user_choose_start_revision():
 def set_app_config_paths(args, HERE):
     app.config["SCRIPT_UTILS_PATH"] = os.path.join(HERE, "script_utils")
     app.config["TEMPLATES_FOLDER"] = os.path.join(HERE, "templates")
-
-
-def add_custom_serializer_to_database(database: JsonDatabase) -> None:
-
-    def scope_serialize(obj: Scope, db_serializer: Callable[[any, str], any], user: str) -> dict:
-        return db_serializer(obj.value, user)
-
-    def scope_deserialize(data: dict, db_deserializer: Callable[[any], any]) -> Scope:
-        return Scope(db_deserializer(data))
-
-    database.add_custom_serializer(Scope, scope_serialize, scope_deserialize)
-
-    def datetime_serialize(obj: datetime.datetime, db_serializer: Callable[[any, str], any], user: str) -> dict:
-        return db_serializer(obj.isoformat(), user)
-
-    def datetime_deserialize(data: dict, db_deserializer: Callable[[any], any]) -> datetime.datetime:
-        return datetime.datetime.fromisoformat(db_deserializer(data))
-
-    database.add_custom_serializer(datetime.datetime, datetime_serialize, datetime_deserialize)
-
-    def boogie_type_serialize(obj: BoogieType, db_serializer: Callable[[any, str], any], user: str) -> dict:
-        return db_serializer(obj.value, user)
-
-    def boogie_type_deserialize(data: dict, db_deserializer: Callable[[any], any]) -> BoogieType:
-        return BoogieType(db_deserializer(data))
-
-    database.add_custom_serializer(BoogieType, boogie_type_serialize, boogie_type_deserialize)
 
 
 def startup_hanfor(args, HERE, *, no_data_tracing: bool = False) -> bool:
