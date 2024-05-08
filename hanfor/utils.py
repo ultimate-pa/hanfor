@@ -517,7 +517,8 @@ def rename_variable_in_expressions(app, occurrences, var_name_old, var_name):
             # replace in every formalization
             for index, formalization in requirement.formalizations.items():
                 for key, expression in formalization.expressions_mapping.items():
-                    if var_name_old not in expression.raw_expression:
+                    # TODO: Operator in is not safe. Example: var1 is a substring of var10.
+                    if expression.raw_expression is None or var_name_old not in expression.raw_expression:
                         continue
                     new_expression = boogie_parsing.replace_var_in_expression(
                         expression=expression.raw_expression,
