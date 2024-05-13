@@ -1,13 +1,12 @@
 import re
 from json_db_connector.json_db import JsonDatabase
 from static_utils import SessionValue
-from utils import RequirementEditHistory
+from utils import RequirementEditHistory, add_custom_serializer_to_database
 from reqtransformer import Formalization, Requirement, ScopedPattern, Scope, Pattern, Variable, Expression
 from tags.tags import Tag
 from ressources.queryapi import Query
 from ressources.reports import Report
 from ultimate.ultimate_job import UltimateJob
-from app import add_custom_serializer_to_database
 from defaults import Color
 
 import argparse
@@ -16,7 +15,7 @@ from shutil import move
 from datetime import datetime
 
 from static_utils import get_filenames_from_dir
-from my_unpickler import (
+from data_migration.my_unpickler import (
     pickle_load_from_dump,
     OldRequirement,
     OldVariableCollection,

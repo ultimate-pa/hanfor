@@ -8,7 +8,7 @@ import _compat_pickle
 from typing import Dict
 from packaging import version
 from collections import OrderedDict
-from patterns_old import PATTERNS
+from data_migration.patterns_old import PATTERNS
 from os import path
 from enum import Enum
 from dataclasses import dataclass, field
