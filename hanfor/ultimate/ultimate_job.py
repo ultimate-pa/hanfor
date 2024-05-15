@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
-from hanfor_falsk import current_app
+from hanfor_flask import current_app
 from utils import get_requirements
 from static_utils import SessionValue
 

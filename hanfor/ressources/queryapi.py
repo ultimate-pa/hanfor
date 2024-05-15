@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
 from immutabledict import immutabledict
 from uuid import uuid4
-from hanfor_falsk import current_app, HanforFlask
+from hanfor_flask import current_app, HanforFlask
 from static_utils import SessionValue
 
 

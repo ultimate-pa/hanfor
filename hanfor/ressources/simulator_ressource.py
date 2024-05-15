@@ -8,7 +8,7 @@ import time
 import uuid
 from distutils.util import strtobool
 
-from hanfor_falsk import HanforFlask
+from hanfor_flask import HanforFlask
 from flask import render_template
 from pysmt.shortcuts import Bool, Int, Real
 from pysmt.typing import BOOL, INT, REAL

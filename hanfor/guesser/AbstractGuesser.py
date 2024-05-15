@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from reqtransformer import Requirement
-from hanfor_falsk import HanforFlask
+from hanfor_flask import HanforFlask
 
 
 class AbstractGuesser(ABC):

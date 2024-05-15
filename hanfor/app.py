@@ -13,7 +13,7 @@ from functools import wraps, update_wrapper
 
 import flask
 from flask import render_template, request, jsonify, make_response, json
-from hanfor_falsk import HanforFlask
+from hanfor_flask import HanforFlask
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import HTTPException
 

@@ -21,7 +21,7 @@ from static_utils import choice, replace_prefix, try_cast_string, SessionValue
 from tags.tags import TagsApi, Tag
 
 from typing import Dict, Tuple
-from hanfor_falsk import current_app
+from hanfor_flask import current_app
 
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField, DatabaseFieldType
 from deprecated import deprecated

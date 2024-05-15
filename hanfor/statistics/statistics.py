@@ -3,7 +3,7 @@ import random
 from collections import defaultdict
 from typing import Type
 
-from hanfor_falsk import current_app
+from hanfor_flask import current_app
 from flask import Blueprint, render_template, Response
 from flask.views import MethodView
 
