@@ -67,6 +67,12 @@ class TestJsonDatabase(TestCase):
         if path.isdir(path.join(self._data_path, "graph_test")):
             rmtree(path.join(self._data_path, "graph_test"))
 
+        if path.isdir(path.join(self._data_path, "add_object")):
+            rmtree(path.join(self._data_path, "add_object"))
+
+        if path.isdir(path.join(self._data_path, "get_objects")):
+            rmtree(path.join(self._data_path, "get_objects"))
+
     def test_json_int_float(self):
         tmp = {"int": 0, "float": 1.2, "bool": True}
         self.assertEqual(json.dumps(tmp), '{"int": 0, "float": 1.2, "bool": true}')
@@ -611,7 +617,7 @@ class TestJsonDatabase(TestCase):
         class TestClass:
             f1: str
 
-        db = JsonDatabase(no_data_tracing=True, read_only=True)
+        db = JsonDatabase(no_data_tracing=True)
         db.init_tables(path.join(self._data_path, "add_object"))
 
         # test class of object is not in database
@@ -1092,7 +1098,7 @@ class TestJsonDatabase(TestCase):
     def test_json_db_get_objects_and_remove(self):
         from test_json_database.db_test_get_objects import TestClassFile
 
-        db = JsonDatabase(no_data_tracing=True, read_only=True)
+        db = JsonDatabase(no_data_tracing=True)
         db.init_tables(path.join(self._data_path, "get_objects"))
         obj0 = TestClassFile("obj0", "zero", 0)
         obj1 = TestClassFile("obj1", "one", 1)

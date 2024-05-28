@@ -13,6 +13,7 @@ import logging
 from logging import Logger
 from logging.handlers import RotatingFileHandler
 import re
+from threading import Lock
 
 
 CLS_TYPE = TypeVar("CLS_TYPE")
@@ -217,6 +218,8 @@ class JsonDatabase:
             logging.warning("JsonDatabase is running without data tracing")
         self.__no_data_tracing = no_data_tracing or read_only
         self.__data_tracing_logger: Logger | None = None
+        self.__update_mutex: Lock = Lock()
+        self.__update_again: bool = False
 
     @property
     def data_folder(self):
@@ -368,6 +371,12 @@ class JsonDatabase:
         self.update("system")
 
     def add_object(self, obj: object, user: str = None) -> None:
+        if self.__read_only:
+            raise DatabaseInsertionError("Database is in read only mode, adding objects is forbidden.")
+        self.__add_object_without_update(obj, user)
+        self.update(user)
+
+    def __add_object_without_update(self, obj: object, user: str = None):
         if user is None:
             # logging.warning(f"JsonDatabase.add_object should be called with the user parameter.")
             pass
@@ -375,7 +384,6 @@ class JsonDatabase:
         if type(obj) not in self._tables.keys():
             raise DatabaseInsertionError(f"{type(obj)} is not part of the Database.")
         self._tables[type(obj)].add_object(obj, user)
-        self.update(user)
 
     def get_objects(self, tbl: Type[GET_TYPE] | str) -> immutabledict[int | str, GET_TYPE]:
         if type(tbl) is str:
@@ -394,11 +402,15 @@ class JsonDatabase:
     def update(self, user: str = None) -> None:
         if self.__read_only:
             return
-        if user is None:
-            # logging.warning(f"JsonDatabase.update should be called with the user parameter.")
-            pass
-        for _, table in self._tables.items():
-            table.save(user)
+        with self.__update_mutex:
+            self.__update_again = True
+            while self.__update_again:
+                self.__update_again = False
+                if user is None:
+                    # logging.warning(f"JsonDatabase.update should be called with the user parameter.")
+                    pass
+                for _, table in self._tables.items():
+                    table.save(user)
 
     def remove_object(self, obj: object, user: str = None) -> None:
         if user is None:
@@ -434,7 +446,8 @@ class JsonDatabase:
             return {"type": "dict", "data": res}
         if f_type in self._tables.keys():
             if not self._tables[f_type].object_in_table(data):
-                self.add_object(data, user)
+                self.__add_object_without_update(data, user)
+                self.__update_again = True
             return {
                 "type": f_type.__name__,
                 "data": self._tables[f_type].get_key_of_object(data),
