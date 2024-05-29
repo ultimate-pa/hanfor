@@ -115,6 +115,7 @@ celerybeat-schedule
 # npm local
 node_modules/
 package-lock.json
+package.json
 
 # Pycharm
 .idea/

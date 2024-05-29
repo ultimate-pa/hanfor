@@ -735,10 +735,9 @@ function get_rowidx_by_reqid(rid) {
     let requirement_table = $('#requirements_table').DataTable();
     let result = -1;
     requirement_table
-        .column(2)
         .data()
         .filter(function (value, index) {
-            if (String(value) === String(rid)) {
+            if (String(value.id) === String(rid)) {
                 result = index;
                 return true;
             }
