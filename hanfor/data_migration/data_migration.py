@@ -271,7 +271,7 @@ if __name__ == "__main__":
 
         # insert Requirements
         tag_has_formalisation = get_tag_by_name(db, "has_formalization")
-        if tag_has_formalisation in None:
+        if not tag_has_formalisation:
             tag_has_formalisation = Tag("has_formalization", Color.BS_INFO.value, True, "")
             db.add_object(tag_has_formalisation)
         for old_req in old_requirements:
