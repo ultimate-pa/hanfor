@@ -67,8 +67,9 @@ class TestFormalizationProcess(TestCase):
         )
         self.assertListEqual(result.json['vars'], ['bar', 'foo', 'ham', 'spam', 'the_world_sinks'])
         self.assertListEqual(result.json['tags'], ["tag1", "tag2", 'unknown_type', 'has_formalization'])
-        self.assertDictContainsSubset({"tag1": "comment 1 with some character",
-                                       "tag2": "äüö%&/+= coment330+-# chars"}, result.json['tags_comments'])
+        self.assertEqual(result.json['tags_comments'],
+                         result.json['tags_comments'] | {"tag1": "comment 1 with some character",
+                                                         "tag2": "äüö%&/+= coment330+-# chars"})
 
     def test_changing_var_in_formalization(self):
         self.mock_hanfor.startup_hanfor('simple.csv', 'simple', [])
@@ -233,12 +234,12 @@ class TestFormalizationProcess(TestCase):
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
         self.assertEqual(result.status, "200 OK")
         self.assertNotIn("some-mass-added-tag", result.json['tags'])
-        self.assertEquals("Todo", result.json['status'])
+        self.assertEqual("Todo", result.json['status'])
 
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_91')
         self.assertEqual(result.status, "200 OK")
         self.assertEqual(["unseen"], result.json['tags'])
-        self.assertEquals("Todo", result.json['status'])
+        self.assertEqual("Todo", result.json['status'])
 
         # test multi updating with no content selected
         result = self.mock_hanfor.app.post(
@@ -259,12 +260,12 @@ class TestFormalizationProcess(TestCase):
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
         self.assertEqual(result.status, "200 OK")
         self.assertNotIn("some-mass-added-tag", result.json['tags'])
-        self.assertEquals("Todo", result.json['status'])
+        self.assertEqual("Todo", result.json['status'])
 
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_91')
         self.assertEqual(["unseen"], result.json['tags'])
         self.assertEqual(result.status, "200 OK")
-        self.assertEquals("Todo", result.json['status'])
+        self.assertEqual("Todo", result.json['status'])
 
     def test_get_available_guesses(self):
         self.mock_hanfor.startup_hanfor('simple.csv', 'simple', [])
@@ -294,17 +295,7 @@ class TestFormalizationProcess(TestCase):
         result = self.mock_hanfor.app.get('api/req/get?id=SysRS FooXY_42')
         self.assertEqual(result.status, "200 OK")
 
-
     def test_update_csv_hashcollision(self):
         self.mock_hanfor.startup_hanfor('simple.csv', 'simple', [])
         success = self.mock_hanfor.startup_hanfor('simple_hashcollision.csv', 'simple', [1])
         self.assertTrue(success, "Startup procedure was not successful")
-
-
-
-
-
-
-
-
-
