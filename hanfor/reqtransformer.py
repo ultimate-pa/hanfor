@@ -143,11 +143,13 @@ class RequirementCollection(HanforVersioned, Pickleable):
         with open(csv_file, 'r', encoding=input_encoding) as csvfile:
             try:
                 dialect = csv.Sniffer().sniff(csvfile.read(2048), delimiters="\t,;")
+                dialect.escapechar = '\\'
             except csv.Error:
                 logging.info("Could not guess .csv dialect, assuming defaults")
                 csv.register_dialect('ultimate', delimiter=',')
                 dialect = 'ultimate'
             csvfile.seek(0)
+
             reader = csv.DictReader(csvfile, dialect=dialect)
             self.csv_all_rows = list(reader)
             self.csv_meta.fieldnames = reader.fieldnames

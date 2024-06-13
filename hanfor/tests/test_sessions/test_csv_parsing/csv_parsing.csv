@@ -8,4 +8,4 @@ The control lever attached to the steering column is called pitman arm and allow
 By pushing away from the driver 4 (backward): Permanent activation of the adaptive high beam (with pitman arm engaged).
 By pulling towards the driver 1 (forward): Temporary activation of the high beam (without engaging, so-called flasher).
 By moving up or down 2 / 3 : Temporary or permanent activation of the direction indicator to the left or right. The temporary activation (so called tip-blinking) happens by a deflection of about 5 (Downward5, Upward5), the permanent activation (engage) by about 7 deflection (Downward7, Upward7). The engagement is released either manually or automatically by a mechanical reset mechanism if the steering wheel has been turned more than 10.",Other
-"ELS-1","a ""quoted variable"", with some text afterwards.",ELS
+"ELS-1","a \"quoted variable\", with some text afterwards.",ELS
