@@ -974,7 +974,7 @@ function update_fuse() {
         distance: 100,
         maxPatternLength: 12,
         minMatchCharLength: 1,
-        keys: undefined
+        keys: []
     };
 
     fuse = new Fuse(available_vars, options);
@@ -1009,7 +1009,7 @@ function add_var_autocomplete(dom_obj) {
             let include_elems = fuzzy_search(term);
             let result = [];
             for (let i = 0; i < Math.min(10, include_elems.length); i++) {
-                result.push(available_vars[include_elems[i]]);
+                result.push(available_vars[include_elems[i].refIndex]);
             }
             callback(result);
         }, replace: function (result) {

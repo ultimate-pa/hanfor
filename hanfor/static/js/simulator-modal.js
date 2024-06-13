@@ -1,7 +1,7 @@
 require('../css/simulator-modal.css')
 const {Modal} = require('bootstrap')
 const {Chart, registerables} = require('chart.js')
-const annotationPlugin = require('chartjs-plugin-annotation/dist/chartjs-plugin-annotation')
+const annotationPlugin = require('chartjs-plugin-annotation')
 
 Chart.register(...registerables, annotationPlugin)
 
