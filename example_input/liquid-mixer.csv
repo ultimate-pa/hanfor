@@ -1,0 +1,15 @@
+"ID", "Text", Type
+"Info-001", "Liquid Mixer", Heading
+"Info-002", "Description: This mixer is supposed to mix two liquids that are passed in through individual valves. The mixed liquid can be disposed by an additional valve.", Meta
+"LM-001", "While not liquid level 1 is reached, when start button is pressed the liquid mixer controller shall open valve 0.", requirement
+"LM-002", "When liquid level 1 is reached occurs, the liquid mixer controller shall close valve 0", requirement
+"LM-003", "While not liquid level 2 is reached, when liquid level 1 is reached the liquid mixer controller shall open valve 1 until emergency button is pressed.", requirement
+"LM-004", "When liquid level 2 is reached occurs, the liquid mixer controller shall close valve 1.", requirement
+"LM-005", "When liquid level 2 is reached occurs, the 60 sec timer shall start.", requirement
+"LM-006", "When liquid level 2 is reached happens, liquid mixer controller shall start stirring motor until 60 second timer expires or emergency button is pressed.", requirement
+"LM-007", "When 60 second timer expires occurs, the 120 sec timer shall start.", requirement
+"LM-008", "When 60 second timer expires happens, the liquid mixer controller shall open valve 2 until 120 sec timer expires or emergency button is pressed.", requirement
+"LM-009", "When emergency button is pressed occurs, the liquid mixer controller shall close valve 0.", requirement
+"LM-010", "When emergency button is pressed occurs, the liquid mixer controller shall close valve 1", requirement
+"LM-011", "When emergency button is pressed occurs, the liquid mixer controller shall close valve 2.", requirement
+"LM-012", "When emergency button is pressed occurs, the liquid mixer controller shall stop stirring motor.", requirement
