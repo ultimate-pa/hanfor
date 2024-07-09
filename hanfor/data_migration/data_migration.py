@@ -260,6 +260,9 @@ if __name__ == "__main__":
                 v.belongs_to_enum = var.belongs_to_enum
             if hasattr(var, "description"):
                 v.description = var.description
+            if not hasattr(var, "tags"):
+                # fix for old hanfor databases
+                var.tags = set()
             for tag in var.tags:
                 if not db.key_in_table(Tag, tag):
                     db.add_object(Tag(tag, Color.BS_INFO.value, False, ""))

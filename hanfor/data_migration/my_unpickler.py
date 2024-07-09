@@ -624,6 +624,9 @@ class Unpickler:
                 return OldQuery
             else:
                 raise Exception(f"unknown old class {name}")
+        if module == "collections":
+            if name == "OrderedDict":
+                return dict
         else:
             # Subclasses may override this.
             sys.audit("pickle.find_class", module, name)
