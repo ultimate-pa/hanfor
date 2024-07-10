@@ -12,7 +12,7 @@ import re
 import string
 from dataclasses import dataclass, field
 from enum import Enum
-from lark import LarkError
+from lark import LarkError, Lark
 
 import boogie_parsing
 from boogie_parsing import run_typecheck_fixpoint, BoogieType
@@ -508,29 +508,23 @@ class Formalization:
             result += exp.used_variables
         return list(set(result))
 
-    def set_expressions_mapping(self, mapping, variable_collection, rid):
+    def set_expressions_mapping(
+        self, mapping: dict[str, str], variable_collection: "VariableCollection", rid: str
+    ) -> dict[str, str]:
         """Parse expression mapping.
             + Extract variables. Replace by their ID. Create new Variables if they do not exist.
             + For used variables and update the "used_by_requirements" set.
 
-        :type mapping: dict
         :param mapping: {'P': 'foo > 0', 'Q': 'expression for Q', ...}
-        :type variable_collection: VariableCollection
         :param variable_collection: Currently used VariableCollection.
-        :type rid: str
         :param rid: associated requirement id
 
         :return: type_inference_errors dict {key: type_env, ...}
-        :rtype: dict
         """
         for key, expression_string in mapping.items():
-            # if len(expression_string) == 0:
-            #    continue
-            expression = Expression()
-            expression.set_expression(expression_string, variable_collection, rid)
-            if self.expressions_mapping is None:
-                self.expressions_mapping = dict()
-            self.expressions_mapping[key] = expression
+            if key not in self.expressions_mapping:
+                self.expressions_mapping[key] = Expression()
+            self.expressions_mapping[key].set_expression(expression_string, variable_collection, rid)
         self.get_string()
         self.type_inference_check(variable_collection)
 
@@ -624,7 +618,7 @@ class Expression:
 
     def __init__(self):
         self.used_variables: list[str] = list()  # TODO use Variable objects instead of str
-        self.raw_expression = None
+        self.raw_expression = ""
         self.parent_rid = None
 
     def set_expression(self, expression: str, variable_collection: "VariableCollection", parent_rid):
@@ -634,12 +628,13 @@ class Expression:
             + Replace Variables by their identifier.
         * Store set of used variables to `self.used_variables`
         """
+        if expression == self.raw_expression:
+            return
         self.raw_expression = expression
         self.parent_rid = parent_rid
         logging.debug(f"Setting expression: `{expression}`")
         # Get the vars occurring in the expression.
-        parser = boogie_parsing.get_parser_instance()
-        tree = parser.parse(expression)
+        tree = boogie_parsing.get_parser_instance().parse(expression)
 
         self.used_variables = set(boogie_parsing.get_variables_list(tree))
 
