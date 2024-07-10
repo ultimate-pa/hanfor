@@ -835,7 +835,7 @@ class VariableCollection:
 
     def store(self):
         self.var_req_mapping = self.invert_mapping(self.req_var_mapping)
-        self.app.db.update()
+        # self.app.db.update()
 
     def invert_mapping(self, mapping):
         newdict = {}
