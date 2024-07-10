@@ -370,11 +370,12 @@ class JsonDatabase:
         self.__data_folder = new_data_folder
         self.update("system")
 
-    def add_object(self, obj: object, user: str = None) -> None:
+    def add_object(self, obj: object, user: str = None, delay_update: bool = False) -> None:
         if self.__read_only:
             raise DatabaseInsertionError("Database is in read only mode, adding objects is forbidden.")
         self.__add_object_without_update(obj, user)
-        self.update(user)
+        if delay_update:
+            self.update(user)
 
     def __add_object_without_update(self, obj: object, user: str = None):
         if user is None:
