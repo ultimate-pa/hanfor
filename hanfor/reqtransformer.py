@@ -343,10 +343,13 @@ class Requirement:
         if variable_collection is None:
             variable_collection = VariableCollection(app)
 
+        # TODO: simplify
         # set scoped pattern
-        self.formalizations[formalization_id].scoped_pattern = ScopedPattern(
-            Scope[scope_name], Pattern(name=pattern_name)
-        )
+        sp: ScopedPattern = self.formalizations[formalization_id].scoped_pattern
+        if not sp.scope.name == scope_name or not sp.pattern.name == pattern_name:
+            self.formalizations[formalization_id].scoped_pattern = ScopedPattern(
+                Scope[scope_name], Pattern(name=pattern_name)
+            )
         # Parse and set the expressions.
         self.formalizations[formalization_id].set_expressions_mapping(
             mapping=mapping, variable_collection=variable_collection, rid=self.rid
@@ -510,7 +513,7 @@ class Formalization:
 
     def set_expressions_mapping(
         self, mapping: dict[str, str], variable_collection: "VariableCollection", rid: str
-    ) -> dict[str, str]:
+    ) -> None:
         """Parse expression mapping.
             + Extract variables. Replace by their ID. Create new Variables if they do not exist.
             + For used variables and update the "used_by_requirements" set.
@@ -521,12 +524,14 @@ class Formalization:
 
         :return: type_inference_errors dict {key: type_env, ...}
         """
+        changes = False
         for key, expression_string in mapping.items():
             if key not in self.expressions_mapping:
-                self.expressions_mapping[key] = Expression()
-            self.expressions_mapping[key].set_expression(expression_string, variable_collection, rid)
-        self.get_string()
-        self.type_inference_check(variable_collection)
+                self.expressions_mapping[key] = Expression(rid)
+            if self.expressions_mapping[key].set_expression(expression_string, variable_collection):
+                changes = True
+        if changes:
+            self.type_inference_check(variable_collection)
 
     def type_inference_check(self, variable_collection):
         """Apply type inference check for the expressions in this formalization.
@@ -552,7 +557,7 @@ class Formalization:
                     f"Lark could not parse expression `{expression.raw_expression}`: \n {e}. Skipping type inference"
                 )
                 continue
-            expression.set_expression(expression.raw_expression, variable_collection, expression.parent_rid)
+            expression.set_expression(expression.raw_expression, variable_collection)
 
             # Derive type for variables in expression and update missing or changed types.
             ti = run_typecheck_fixpoint(tree, var_env, expected_types=allowed_types[key])
@@ -616,12 +621,12 @@ class Expression:
     Then `NO_PAIN => NO_GAIN` is the Expression.
     """
 
-    def __init__(self):
+    def __init__(self, parent_rid: str):
         self.used_variables: list[str] = list()  # TODO use Variable objects instead of str
         self.raw_expression = ""
-        self.parent_rid = None
+        self.parent_rid = parent_rid
 
-    def set_expression(self, expression: str, variable_collection: "VariableCollection", parent_rid):
+    def set_expression(self, expression: str, variable_collection: "VariableCollection") -> bool:
         """Parses the Expression using the boogie grammar.
         * Extract variables.
             + Create new ones if not in Variable collection.
@@ -629,31 +634,19 @@ class Expression:
         * Store set of used variables to `self.used_variables`
         """
         if expression == self.raw_expression:
-            return
-        self.raw_expression = expression
-        self.parent_rid = parent_rid
+            return False
         logging.debug(f"Setting expression: `{expression}`")
+        self.raw_expression = expression
         # Get the vars occurring in the expression.
         tree = boogie_parsing.get_parser_instance().parse(expression)
 
         self.used_variables = set(boogie_parsing.get_variables_list(tree))
-
-        new_vars = []
         for var_name in self.used_variables:
             if var_name not in variable_collection:
                 variable_collection.add_var(var_name)
-                new_vars.append(var_name)
 
-        # TODO: restore if needed, not clear what this does
-        # further app was not always available here, thus this has to be refactored
-        # if len(new_vars) > 0:
-        #    variable_collection.reload_script_results(app, new_vars)
-
-        variable_collection.map_req_to_vars(parent_rid, self.used_variables)
-        # try:
-        #    variable_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
-        # except:
-        #    pass
+        variable_collection.map_req_to_vars(self.parent_rid, self.used_variables)
+        return True
 
     def __str__(self):
         return f'"{self.raw_expression}"'
@@ -1219,10 +1212,8 @@ class Variable:
         for key, expression_string in mapping.items():
             if len(expression_string) == 0:
                 continue
-            expression = Expression()
-            expression.set_expression(
-                expression_string, variable_collection, "Constraint_{}_{}".format(self.name, constraint_id)
-            )
+            expression = Expression("Constraint_{}_{}".format(self.name, constraint_id))
+            expression.set_expression(expression_string, variable_collection)
             if self.constraints[constraint_id].expressions_mapping is None:
                 self.constraints[constraint_id].expressions_mapping = dict()
             self.constraints[constraint_id].expressions_mapping[key] = expression
