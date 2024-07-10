@@ -84,7 +84,10 @@ def convert_formalization(old: OldFormalization) -> Formalization:
     return f
 
 
-def convert_requirement(old: OldRequirement, jdb: JsonDatabase, has_formalisation_tag: Tag) -> Requirement:
+def convert_requirement(no: int, old: OldRequirement, jdb: JsonDatabase, has_formalisation_tag: Tag) -> Requirement:
+    # sanitize requirements name
+    if not old.rid:
+        old.rid = f"xreq_{no}"
     n_req: Requirement = Requirement(old.rid, old.description, old.type_in_csv, old.csv_row, old.pos_in_csv)
     n_req.formalizations = {f_id: convert_formalization(f_value) for f_id, f_value in old.formalizations.items()}
     n_req.tags = {}
@@ -277,9 +280,10 @@ if __name__ == "__main__":
         if not tag_has_formalisation:
             tag_has_formalisation = Tag("has_formalization", Color.BS_INFO.value, True, "")
             db.add_object(tag_has_formalisation)
-        for old_req in old_requirements:
-            req = convert_requirement(old_req, db, tag_has_formalisation)
-            db.add_object(req)
+        for i, old_req in enumerate(old_requirements):
+            req = convert_requirement(i, old_req, db, tag_has_formalisation)
+            db.add_object(req, delay_update=True)
+        db.update()
 
         # insert RequirementEditHistory
         log_regex = re.compile(
