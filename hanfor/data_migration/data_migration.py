@@ -64,10 +64,9 @@ def convert_scoped_pattern(old: OldScopedPattern) -> ScopedPattern:
 
 
 def convert_expression(old: OldExpression) -> Expression:
-    expr: Expression = Expression()
+    expr: Expression = Expression(old.parent_rid)
     expr.used_variables = old.used_variables
     expr.raw_expression = old.raw_expression
-    expr.parent_rid = old.parent_rid
     return expr
 
 
