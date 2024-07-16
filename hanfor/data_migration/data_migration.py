@@ -1,5 +1,6 @@
+import logging
 import re
-from json_db_connector.json_db import JsonDatabase
+from json_db_connector.json_db import JsonDatabase, DatabaseKeyError
 from static_utils import SessionValue
 from utils import RequirementEditHistory, add_custom_serializer_to_database
 from reqtransformer import Formalization, Requirement, ScopedPattern, Scope, Pattern, Variable, Expression
@@ -56,16 +57,18 @@ def convert_scope(old: OldScope) -> Scope:
 
 
 def convert_scoped_pattern(old: OldScopedPattern) -> ScopedPattern:
+    if not old:
+        return ScopedPattern(Scope.NONE, "NotFormalizable")
     scope = convert_scope(old.scope)
     pattern = convert_pattern(old.pattern)
-    scoped_pattern: ScopedPattern = ScopedPattern(scope, pattern)
+    scoped_pattern = ScopedPattern(scope, pattern)
     scoped_pattern.regex_pattern = old.regex_pattern
     return scoped_pattern
 
 
 def convert_expression(old: OldExpression) -> Expression:
     expr: Expression = Expression(old.parent_rid)
-    expr.used_variables = old.used_variables
+    expr.used_variables = old.used_variables if old.used_variables else []
     expr.raw_expression = old.raw_expression
     return expr
 
@@ -88,7 +91,12 @@ def convert_requirement(no: int, old: OldRequirement, jdb: JsonDatabase, has_for
     if not old.rid:
         old.rid = f"xreq_{no}"
     n_req: Requirement = Requirement(old.rid, old.description, old.type_in_csv, old.csv_row, old.pos_in_csv)
-    n_req.formalizations = {f_id: convert_formalization(f_value) for f_id, f_value in old.formalizations.items()}
+    n_req.formalizations = (
+        {f_id: convert_formalization(f_value) for f_id, f_value in old.formalizations.items()}
+        if isinstance(old.formalizations, dict)
+        # catch if data is so old, that formalisations are stored in a list
+        else {f_id: convert_formalization(f_value) for (f_id, f_value) in enumerate(old.formalizations)}
+    )
     n_req.tags = {}
     if type(old.tags) is set:
         for t_name in old.tags:
@@ -120,8 +128,8 @@ def convert_query(old: dict) -> Query:
     return qry
 
 
-def convert_report(old: dict) -> Report:
-    report = Report(old["name"], old["queries"], old["results"])
+def convert_report(i: int, old: dict) -> Report:
+    report = Report(old["name"] if "name" in old else f"report_{i}", old["queries"], old["results"])
     return report
 
 
@@ -292,13 +300,18 @@ if __name__ == "__main__":
         req_regex = re.compile(r'<a class="req_direct_link" href="#" data-rid="(?P<rid>.*?)">(?P=rid)</a>')
         if "hanfor_log" in old_frontend_logs:
             for log in old_frontend_logs["hanfor_log"]:
-                for match in log_regex.finditer(log):
-                    timestamp = datetime.strptime(match.group("timestamp"), "%Y-%m-%d %H:%M:%S.%f")
-                    message = match.group("message")
-                    rids = [rid.group("rid") for rid in req_regex.finditer(match.group("references"))]
-                    db.add_object(
-                        RequirementEditHistory(timestamp, message, [db.get_object(Requirement, rid) for rid in rids])
-                    )
+                try:
+                    for match in log_regex.finditer(log):
+                        timestamp = datetime.strptime(match.group("timestamp"), "%Y-%m-%d %H:%M:%S.%f")
+                        message = match.group("message")
+                        rids = [rid.group("rid") for rid in req_regex.finditer(match.group("references"))]
+                        db.add_object(
+                            RequirementEditHistory(
+                                timestamp, message, [db.get_object(Requirement, rid) for rid in rids]
+                            )
+                        )
+                except DatabaseKeyError as e:
+                    logging.warning(f"Unknown object in frontent log... skipping. ({e})")
 
         # insert Queries
         if "queries" in old_meta_settings:
@@ -307,8 +320,8 @@ if __name__ == "__main__":
 
         # insert Reports
         if "reports" in old_meta_settings:
-            for r_value in old_meta_settings["reports"]:
-                db.add_object(convert_report(r_value))
+            for i, r_value in enumerate(old_meta_settings["reports"]):
+                db.add_object(convert_report(i, r_value))
 
         # insert UltimateJob
         for uj in ultimate_jobs:

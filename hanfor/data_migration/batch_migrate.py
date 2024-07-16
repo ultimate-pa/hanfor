@@ -34,6 +34,7 @@ def get_projects(path: str) -> list[Project]:
     projects = []
     tags = [join(path, d) for d in listdir(path) if isdir(join(path, d))]
     for tag in tags:
+        # TODO: only add if this is an onld thing, try figuring this out from file structure
         rev = [r for r in listdir(tag) if isdir(join(tag, r)) and r.startswith("revision_")]
         if not rev:
             logger.warning(f"No revisions were found for project {tag}")
@@ -84,7 +85,6 @@ def upgrade_picle_revision(project: Project, rev: int) -> bool:
 
 
 def upgrade_to_json(project: Project) -> bool:
-    logging.info("##############################################")
     logger.info(f"upgrading to json: '{project.tag}' ...")
     proc = subprocess.Popen(
         ["python", "-m", "hanfor.data_migration.data_migration", project.tag],
@@ -104,21 +104,71 @@ def upgrade_to_json(project: Project) -> bool:
         if error:
             logger.error(f"TRANSLATOR::: {line.decode()[0:-2]}")
         else:
-            logger.info(f"TRANSLATOR::: {line.decode()}")
+            logger.info(f"TRANSLATOR::: {line.decode()[0:-2]}")
     return error
+
+
+def verify_upgrade(project: Project, rev: int) -> bool:
+    """Run old hanfor instance once to update project.
+    Note: for simplicity, we just spin up the old hanfor version in a development server as its own proces"""
+    logger.info(f"verifying that json update is loadable: '{project.tag}' at revision '{rev}' ...")
+    proc = subprocess.Popen(
+        ["python", join(NEW_HANFOR_PATH, "app.py"), project.tag],
+        cwd=NEW_HANFOR_PATH,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        shell=False,
+    )
+    error = False
+    while True:
+        line = proc.stdout.readline()
+        if not line:
+            break
+        if line.startswith(b"Traceback"):
+            error = True
+        if line.startswith(b" * Running on"):
+            logger.info(f"Hanfor started for '{project.tag}' at '{rev}'! Everythin seems to be fine   \o/")
+            proc.kill()
+            return error
+        if line.startswith(b"Which revision should I start."):
+            logger.info(f"Selecting revision: {rev}")
+            # detects if the revision choice is offered
+            while True:
+                line = proc.stdout.readline()
+                # detects _the end of the revision choice_ box, and
+                # does the correct choice immediately (before process locks)
+                if line.startswith(b"\xe2\x95\x9a\xe2"):
+                    proc.stdin.write(f"{rev}\n".encode())
+                    proc.stdin.flush()
+                    break
+        if error:
+            logger.error(
+                f"HANFOR::: {line.decode()[0:-2]}",
+            )
+    return error
+
+
+def upgrade_project(project: Project):
+    # update old pickle revisions
+    logging.info("##############################################")
+    logging.info(f"### {project.tag}")
+    logging.info("##############################################")
+    for i, rev in enumerate(project.revisions):
+        if upgrade_picle_revision(project, i):
+            return
+    if upgrade_to_json(project):
+        return
+    for i, rev in enumerate(project.revisions):
+        if verify_upgrade(project, i):
+            return
 
 
 def main():
     logger.info(f"Analysing {BATCH_PATH}")
     projects = get_projects(BATCH_PATH)
     for project in projects:
-        # update old pickle revisions
-        for i, rev in enumerate(project.revisions):
-            logging.info("##############################################")
-            logging.info(f"################ {project}, {rev}")
-            logging.info("##############################################")
-            upgrade_picle_revision(project, i)
-        upgrade_to_json(project)
+        upgrade_project(project)
 
 
 if __name__ == "__main__":
