@@ -1148,6 +1148,8 @@ class VariableCollection(HanforVersioned, Pickleable):
         for var in self.collection.values():
             for constraint in var.get_constraints().values():
                 for constraint_id, expression in enumerate(constraint.expressions_mapping.values()):
+                    if not expression.used_variables:
+                        continue
                     for var_name in expression.used_variables:
                         if var_name not in mapping.keys():
                             mapping[var_name] = set()
