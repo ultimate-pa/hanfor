@@ -82,6 +82,8 @@ def convert_formalization(old: OldFormalization) -> Formalization:
     f.expressions_mapping = {
         e_name: convert_expression(expression) for e_name, expression in old.expressions_mapping.items()
     }
+    if not hasattr(old, "type_inference_errors"):
+        old.type_inference_errors = dict()
     f.type_inference_errors = old.type_inference_errors
     return f
 
