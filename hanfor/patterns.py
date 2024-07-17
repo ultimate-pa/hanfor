@@ -31,7 +31,7 @@ PATTERNS = {
             "BEFORE": ["⌈!P⌉;⌈(!P && (R && !S))⌉;⌈(!P && !S)⌉;⌈P⌉;true"],
             "AFTER": [],
             "BETWEEN": ["true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉;⌈Q⌉;true"],
-            "AFTER_UNTIL": ["true;⌈P⌉;⌈!Q⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉;⌈Q⌉;true"],
+            "AFTER_UNTIL": [],
         },
         "env": {
             "R": ["bool"],
@@ -53,10 +53,7 @@ PATTERNS = {
                 "true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !S)⌉;⌈Q⌉;true",
                 "true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(!Q && S)⌉;⌈(!Q && !T)⌉;⌈Q⌉;true",
             ],
-            "AFTER_UNTIL": [
-                "true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !S)⌉;⌈Q⌉;true",
-                "true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(!Q && S)⌉;⌈(!Q && !T)⌉;⌈Q⌉;true",
-            ],
+            "AFTER_UNTIL": [],
         },
         "env": {
             "R": ["bool"],
@@ -81,15 +78,10 @@ PATTERNS = {
                 "true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(!Q && S)⌉;⌈(!Q && !T)⌉;⌈Q⌉;true",
                 "true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(!Q && S)⌉;⌈(!Q && !T)⌉;⌈(!Q && (!T && U))⌉;⌈!Q⌉;⌈(!Q && T)⌉;⌈!Q⌉;⌈Q⌉;true",
             ],
-            "AFTER_UNTIL": [
-                "true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !S)⌉;⌈Q⌉;true",
-                "true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(!Q && S)⌉;⌈(!Q && !T)⌉;⌈Q⌉;true",
-                "true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈!Q⌉;⌈(!Q && S)⌉;⌈(!Q && !T)⌉;⌈(!Q && (!T && U))⌉;⌈!Q⌉;⌈(!Q && T)⌉;⌈!Q⌉;⌈Q⌉;true",
-            ],
+            "AFTER_UNTIL": [],
         },
-        "env": {"R": ["bool"], "S": ["bool"], "T": ["bool"]},
-        "group": "Order",
-        "pattern_order": 3,
+        'group': 'Order',
+        'pattern_order': 4
     },
     "Precedence": {
         "pattern": "it is always the case that if {R} holds then {S} previously held",

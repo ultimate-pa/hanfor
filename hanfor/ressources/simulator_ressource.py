@@ -6,7 +6,6 @@ import logging
 import os
 import time
 import uuid
-from distutils.util import strtobool
 
 from hanfor_flask import HanforFlask
 from flask import render_template
@@ -18,16 +17,20 @@ from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
 from lib_pea.countertrace import CountertraceTransformer
 from lib_pea.countertrace_to_pea import build_automaton
 from lib_pea.pea import PhaseSetsPea
+from lib_pea.utils import get_countertrace_parser, strtobool
+from patterns import PATTERNS
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
-from lib_pea.utils import get_countertrace_parser
 from reqtransformer import Requirement, Formalization, VariableCollection
 from ressources import Ressource
 
-from patterns import PATTERNS
-
 validation_patterns = {BOOL: "^0|false|False|1|true|True$", INT: "^[+-]?\d+$", REAL: "^[+-]?\d*[.]?\d+$"}
 
+validation_patterns = {
+    BOOL: '^0|false|False|1|true|True$',
+    INT: '^[+-]?\d+$',
+    REAL: '^[+-]?\d*[.]?\d+$'
+}
 
 class SimulatorRessource(Ressource):
     simulator_cache: dict[str, Simulator] = {}
@@ -52,6 +55,12 @@ class SimulatorRessource(Ressource):
 
         if command == "get_ct":
             self.get_ct()
+
+        if command == "variable_constraints":
+            self.variable_constraints()
+
+        if command == "inconsistency_pre_check":
+            self.inconsistency_pre_check()
 
     def POST(self):
         command = self.request.form.get("command")
@@ -117,7 +126,10 @@ class SimulatorRessource(Ressource):
 
         simulator = self.simulator_cache[self.response.data["simulator_id"]]
         self.response.data["html"] = render_template(
-            "simulator-modal/modal.html", simulator=simulator, valid_patterns=validation_patterns
+            "simulator-modal/modal.html",
+            simulator=simulator,
+            valid_patterns=validation_patterns,
+            feature_flags=self.app.config["FEATURE_FLAGS"],
         )
 
     def scenario_save(self) -> None:
@@ -201,6 +213,18 @@ class SimulatorRessource(Ressource):
             result["requirements"][requirement_id] = formalizations
 
         self.response.data = result
+
+    def variable_constraints(self) -> None:
+        simulator_id = self.request.args.get("simulator_id")
+
+        simulator = self.simulator_cache[simulator_id]
+        simulator.variable_constraints()
+
+    def inconsistency_pre_check(self) -> None:
+        simulator_id = self.request.args.get("simulator_id")
+
+        simulator = self.simulator_cache[simulator_id]
+        simulator.inconsistency_pre_check()
 
     def scenario_load(self) -> None:
         simulator_id = self.request.form.get("simulator_id")

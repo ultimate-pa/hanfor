@@ -113,6 +113,8 @@ class UltimateConnector:
         if r.status_code != 200:
             return {"status": "error", "requestId": job_id, "result": "request was not successful"}
         content = json.loads(r.text)
+        if content["status"] == "ERROR":
+            return {"status": content["status"], "requestId": "", "result": content}
         message = ""
         if "results" in content.keys():
             message = content["results"]

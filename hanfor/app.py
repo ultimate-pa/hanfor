@@ -17,10 +17,8 @@ from hanfor_flask import HanforFlask
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import HTTPException
 
-from typing import Callable
 from json_db_connector.json_db import JsonDatabase
 
-from boogie_parsing import BoogieType
 import utils
 from utils import add_custom_serializer_to_database
 from guesser.Guess import Guess
@@ -191,7 +189,6 @@ def api(resource, command):
 
         # Get all requirements
         if command == "gets":
-            filenames = get_filenames_from_dir(app.config["REVISION_FOLDER"])
             result = dict()
             result["data"] = list()
             reqs = app.db.get_objects(Requirement)
@@ -939,7 +936,6 @@ def startup_hanfor(args, HERE, *, no_data_tracing: bool = False) -> bool:
             logging.info("Loading session `{}` at `{}`".format(app.config["SESSION_TAG"], revision_choice))
             load_revision(revision_choice)
 
-    # Check CSV file change.
     if args.input_csv:
         logging.info("Check CSV integrity.")
         csv_hash = hash_file_sha1(args.input_csv)

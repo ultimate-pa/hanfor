@@ -10,11 +10,11 @@ from pysmt.rewritings import conjunctive_partition
 from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, get_model, is_sat, FALSE, get_unsat_core
 from pysmt.typing import REAL
 
+from lib_pea.config import SOLVER_NAME, LOGIC
 from lib_pea.countertrace_to_pea import complete
+from lib_pea.location import PhaseSetsLocation
 from lib_pea.pea import PhaseSetsPea
 from lib_pea.transition import PhaseSetsTransition
-from lib_pea.location import PhaseSetsLocation
-from lib_pea.config import SOLVER_NAME, LOGIC
 from req_simulator.scenario import Scenario
 from req_simulator.utils import num_zeros
 from reqtransformer import Requirement, Formalization
@@ -544,3 +544,11 @@ class Simulator:
             v.pop()
 
         return True
+
+    def variable_constraints(self):
+        # TODO: Do not modify existing member variables ;-)
+        print("Called function variable constraints ...")
+
+    def inconsistency_pre_check(self):
+        # TODO: Do not modify existing member variables ;-)
+        print("Called function inconsistency pre check ...")

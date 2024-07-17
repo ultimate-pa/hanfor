@@ -87,9 +87,10 @@ class RequirementCollection:
         with open(csv_file, "r", encoding=input_encoding) as csvfile:
             try:
                 dialect = csv.Sniffer().sniff(csvfile.read(2048), delimiters="\t,;")
+                dialect.escapechar = "\\"
             except csv.Error:
                 logging.info("Could not guess .csv dialect, assuming defaults")
-                csv.register_dialect("ultimate", delimiter=",")
+                csv.register_dialect("ultimate", delimiter=",", escapechar="\\")
                 dialect = "ultimate"
             csvfile.seek(0)
             reader = csv.DictReader(csvfile, dialect=dialect)
@@ -169,6 +170,7 @@ class RequirementCollection:
                     r for r in available_sessions[available_sessions_names.index(chosen_session)]["revisions"]
                 ]
                 revision_choice = choice(available_revisions, available_revisions[0])
+                # TODO: here there is funky stuff with revicion choice
                 # imported_var_collection = VariableCollection.load(
                 #     os.path.join(
                 #         app.config["SESSION_BASE_FOLDER"],
@@ -704,6 +706,7 @@ class Pattern:
     def __init__(self, name: str = "NotFormalizable"):
         self.name = name
         self.pattern = PATTERNS[name]["pattern"]
+        self.environment = PATTERNS[name]["env"]
 
     def is_instantiatable(self):
         return self.name != "NotFormalizable"
@@ -729,6 +732,7 @@ class ScopedPattern:
             pattern = Pattern()
         self.pattern = pattern
         self.regex_pattern = None
+        self.environment = pattern.environment | scope.get_allowed_types()
 
     def get_string(self, expression_mapping: dict):
         # TODO: avoid having this problem in the first place

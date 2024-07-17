@@ -236,6 +236,7 @@ def update_variable_in_collection(app: HanforFlask, request):
     occurrences = request.form.get("occurrences", "").strip().split(",")
     enumerators = json.loads(request.form.get("enumerators", ""))
 
+    # TODO: remove
     while "" in occurrences:
         occurrences.remove("")
 

@@ -38,7 +38,7 @@ function init_ultimate_requirements_table_connection(requirements_table) {
 function check_ultimate_version() {
     $.ajax({
         type: 'GET',
-        url: '../api/ultimate/version'
+        url: 'api/ultimate/version'
     }).done(function (data) {
         if (data['version'] !== '') {
             let img = $('#ultimate-tab-ultimate-status-img')
@@ -59,7 +59,7 @@ function check_ultimate_version() {
 function update_configurations() {
     $.ajax({
         type: 'GET',
-        url: '../api/ultimate/configurations'
+        url: 'api/ultimate/configurations'
     }).done(function (data) {
         let select = $('#ultimate-tab-configuration-select');
         select.empty();
@@ -78,16 +78,20 @@ function update_configurations() {
 function create_ultimate_analysis(btn, req_ids) {
     let old_text = btn.text()
     btn.text("Processing Request")
+    let request_data = {'selected_requirement_ids': JSON.stringify(req_ids)}
+    if (req_ids === "all") {
+        request_data = {}
+    }
     $.ajax({
         type: 'POST',
-        url: '../api/tools/req_file',
-        data: {'selected_requirement_ids': JSON.stringify(req_ids)}
+        url: 'api/tools/req_file',
+        data: request_data
     }).done(function (data) {
         let select = $('#ultimate-tab-configuration-select');
         let configuration = select.val();
         $.ajax({
             type: 'POST',
-            url: '../api/ultimate/job',
+            url: 'api/ultimate/job',
             data: JSON.stringify({"configuration": configuration,
                    "req_file": data,
                    "req_ids": req_ids})

@@ -73,3 +73,9 @@ HOST = os.environ.get("HANFOR_HOST", default="127.0.0.1")
 # Define the ordering for pattern grouping in the pattern selection of hanfors frontent.
 # All groups used in PATTERNS must be covered.
 PATTERNS_GROUP_ORDER = ["Occurence", "Order", "Real-time", "not_formalizable"]
+
+# Set feature flags to enable/disable features
+FEATURE_FLAGS = {
+    "variable_constraints": False,
+    "inconsistency_pre_check": False,
+}

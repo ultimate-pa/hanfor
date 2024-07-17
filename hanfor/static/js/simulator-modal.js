@@ -1,7 +1,7 @@
 require('../css/simulator-modal.css')
 const {Modal} = require('bootstrap')
 const {Chart, registerables} = require('chart.js')
-const annotationPlugin = require('chartjs-plugin-annotation/dist/chartjs-plugin-annotation')
+const annotationPlugin = require('chartjs-plugin-annotation')
 
 Chart.register(...registerables, annotationPlugin)
 
@@ -20,6 +20,8 @@ function init_simulator_modal(data) {
     const step_check_btn = simulator_modal.find('#simulator-step-check-btn')
     const step_next_btn = simulator_modal.find('#simulator-step-next-btn')
     const step_back_btn = simulator_modal.find('#simulator-step-back-btn')
+    const variable_constraints_btn = simulator_modal.find('#simulator-variable-constraints-btn')
+    const inconsistency_pre_check_btn = simulator_modal.find('#simulator-inconsistency-pre-check-btn')
 
     const variable_colors = generate_random_colors(data.variables)
     const variable_inputs = find_variable_inputs(simulator_modal, data.variables)
@@ -185,6 +187,34 @@ function init_simulator_modal(data) {
                     time_step_input, variable_inputs, dc_phase_codes, response.data)
 
                 remove_chart_data(chart, response.data)
+            }
+        })
+    })
+
+    variable_constraints_btn.click(function () {
+        $.ajax({
+            type: 'GET', url: 'simulator', async: false, data: { // TODO: Allow async.
+                command: 'variable_constraints',
+                simulator_id: data.simulator_id
+            }, success: function (response) {
+                if (response['success'] === false) {
+                    alert(response['errormsg'])
+                    return
+                }
+            }
+        })
+    })
+
+    inconsistency_pre_check_btn.click(function () {
+        $.ajax({
+            type: 'GET', url: 'simulator', async: false, data: { // TODO: Allow async.
+                command: 'inconsistency_pre_check',
+                simulator_id: data.simulator_id
+            }, success: function (response) {
+                if (response['success'] === false) {
+                    alert(response['errormsg'])
+                    return
+                }
             }
         })
     })
