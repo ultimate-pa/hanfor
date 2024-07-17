@@ -1,6 +1,7 @@
 """
 Test type inferences using boogie_parsing.
 """
+
 from unittest import TestCase
 
 from lark import Tree
@@ -32,7 +33,7 @@ class TestParseExpressions(TestCase):
         t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
         self.assertEqual(BoogieType.real, type_env["b"], msg="Error deriving real type")
         self.assertEqual(BoogieType.unknown, t, msg="Error propagating the error type")
-        self.assertEqual(errors, ['Types inconsistent: 23 had Type BoogieType.int inferred as BoogieType.real'])
+        self.assertEqual(errors, ["Types inconsistent: 23 had Type BoogieType.int inferred as BoogieType.real"])
         self.assertTrue(errors)
 
     def test_type_nested_inf(self):
@@ -166,7 +167,7 @@ class TestParseExpressions(TestCase):
 
     def test_type_tree_gen2(self):
         tree = self.parse("(23.1 + 47.2 + x) < 44 && (b && a)")
-        ti = run_typecheck_fixpoint(tree,  {"a": BoogieType.bool, "x": BoogieType.real})
+        ti = run_typecheck_fixpoint(tree, {"a": BoogieType.bool, "x": BoogieType.real})
         t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
         self.assertEqual(BoogieType.bool, type_env["b"], msg="Inferring bool from mixed expression failed.")
         self.assertEqual(BoogieType.real, type_env["x"], msg="Detecting variable in real/int mixed expression failed.")
@@ -174,24 +175,18 @@ class TestParseExpressions(TestCase):
         self.assertTrue(errors)
 
     def test_illegal_compare(self):
-        expr = 'MAX > 2.2'
+        expr = "MAX > 2.2"
         initial_type_env = {"MAX": BoogieType.bool}
 
         tree = self.parse(expr)
-        ti = run_typecheck_fixpoint(tree,  initial_type_env)
+        ti = run_typecheck_fixpoint(tree, initial_type_env)
         t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
 
         self.assertEqual(t, BoogieType.bool, f"Failed to keep `{t}` for `{expr}` with type_env: `{initial_type_env}`")
         self.assertTrue(errors)
 
     def test_numbers(self):
-        expressions = [
-            'MAX_TIME',
-            'MAX_TIME + OFFSET',
-            'MAX_TIME - OFFSET',
-            'MAX_TIME * OFFSET',
-            'MAX_TIME / OFFSET'
-        ]
+        expressions = ["MAX_TIME", "MAX_TIME + OFFSET", "MAX_TIME - OFFSET", "MAX_TIME * OFFSET", "MAX_TIME / OFFSET"]
         initial_type_env = {"MAX_TIME": BoogieType.real}
 
         for expr in expressions:
@@ -201,33 +196,22 @@ class TestParseExpressions(TestCase):
             self.assertEqual(
                 t,
                 BoogieType.real,
-                f"Failed deriving `{t}` for `{expr}` with: `{initial_type_env}`. Expected `{BoogieType.real}`."
+                f"Failed deriving `{t}` for `{expr}` with: `{initial_type_env}`. Expected `{BoogieType.real}`.",
             )
             self.assertFalse(errors)
 
     def test_inference_chain(self):
         expressions = [
-            'a < b && b < c && c < d && d < e && e < f && f == 0.2',
-            'a < b && b < c && c < d && d < e && e < f && f == 23'
+            "a < b && b < c && c < d && d < e && e < f && f == 0.2",
+            "a < b && b < c && c < d && d < e && e < f && f == 23",
         ]
-        expected = [
-            BoogieType.real,
-            BoogieType.int
-        ]
+        expected = [BoogieType.real, BoogieType.int]
 
         for expr, exp_t in zip(expressions, expected):
             tree = self.parse(expr)
             ti = run_typecheck_fixpoint(tree, {})
             t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
-            self.assertEqual(
-                t,
-                BoogieType.bool,
-                f"Failed deriving `{BoogieType.bool}` for `{expr}`."
-            )
+            self.assertEqual(t, BoogieType.bool, f"Failed deriving `{BoogieType.bool}` for `{expr}`.")
             for v, vt in type_env.items():
-                self.assertEqual(
-                    vt,
-                    exp_t,
-                    f"Failed deriving `{exp_t}` for `{v}`."
-                )
+                self.assertEqual(vt, exp_t, f"Failed deriving `{exp_t}` for `{v}`.")
             self.assertFalse(errors)

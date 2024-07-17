@@ -1194,7 +1194,9 @@ def startup_hanfor(args, HERE) -> bool:
             session_dict["csv_hash"] = csv_hash
         session_dict["csv_input_file"] = args.input_csv
 
-    app.config["CSV_INPUT_FILE"] = os.path.basename(session_dict["csv_input_file"] if "csv_input_file" in session_dict else "filename-lost.csv")
+    app.config["CSV_INPUT_FILE"] = os.path.basename(
+        session_dict["csv_input_file"] if "csv_input_file" in session_dict else "filename-lost.csv"
+    )
     app.config["CSV_INPUT_FILE_PATH"] = session_dict["csv_input_file"]
 
     pickle_dump_obj_to_file(session_dict, app.config["SESSION_STATUS_PATH"])

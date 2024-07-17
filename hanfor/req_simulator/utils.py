@@ -20,9 +20,7 @@ def parse_json_or_yaml_string(str: str) -> Any:
 def dump_json_string(data: Any, sort_keys: bool = False) -> str:
     opts = jsbeautifier.default_options()
     opts.indent_size = 2
-    return jsbeautifier.beautify(
-        json.dumps(data, indent=None, sort_keys=sort_keys), opts
-    )
+    return jsbeautifier.beautify(json.dumps(data, indent=None, sort_keys=sort_keys), opts)
 
 
 def load_json_or_yaml_file(path: str) -> Any:

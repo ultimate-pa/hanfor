@@ -2,10 +2,11 @@ from reqtransformer import ScopedPattern
 
 
 class Guess(tuple):
-    """ A guess should be used by an AbstractGuesser implementation. """
+    """A guess should be used by an AbstractGuesser implementation."""
+
     def __init__(cls, score, scoped_pattern, mapping):
         # This is just a dummy __init__ to make documentation work
-        """ A single `guess` is represented by tuple:
+        """A single `guess` is represented by tuple:
 
             (score, scoped_pattern, mapping)
 
@@ -32,7 +33,7 @@ class Guess(tuple):
         super().__init__()
 
     def __new__(cls, score, scoped_pattern, mapping):
-        """ A single `guess` is represented by tuple:
+        """A single `guess` is represented by tuple:
 
             (score, scoped_pattern, mapping)
 
@@ -57,18 +58,18 @@ class Guess(tuple):
         :type mapping: dict
         """
         if not 0.0 <= score <= 1.0:
-            raise ValueError('The Score `{}` should be between 0 and 1'.format(score))
+            raise ValueError("The Score `{}` should be between 0 and 1".format(score))
 
         if not isinstance(scoped_pattern, ScopedPattern):
-            raise ValueError('scoped_pattern should be an instance of ScopedPattern')
+            raise ValueError("scoped_pattern should be an instance of ScopedPattern")
 
         if not isinstance(mapping, dict):
-            raise ValueError('scoped_pattern should be an instance of ScopedPattern')
+            raise ValueError("scoped_pattern should be an instance of ScopedPattern")
 
         try:
             scoped_pattern.get_string(mapping)
         except:
-            raise ValueError('Mapping is missing some variables.')
+            raise ValueError("Mapping is missing some variables.")
 
         return super(Guess, cls).__new__(cls, tuple((score, scoped_pattern, mapping)))
 
