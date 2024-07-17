@@ -519,7 +519,7 @@ def api(resource, command):
                         except KeyError:
                             logging.debug("Variable `{}` not found".format(var_list))
                     var_collection.store()
-
+            app.db.update()
             return jsonify(result)
         elif command == "new_constraint":
             result = {"success": True, "errormsg": ""}
@@ -528,6 +528,7 @@ def api(resource, command):
             var_collection = VariableCollection(app)
             cid = var_collection.add_new_constraint(var_name=var_name)
             var_collection.store()
+            app.db.update()
             result["html"] = utils.formalizations_to_html(
                 app, {cid: var_collection.collection[var_name].constraints[cid]}
             )
@@ -560,6 +561,7 @@ def api(resource, command):
             var_collection.del_constraint(var_name=var_name, constraint_id=constraint_id)
             var_collection.collection[var_name].reload_constraints_type_inference_errors(var_collection)
             var_collection.store()
+            app.db.update()
             result["html"] = utils.formalizations_to_html(app, var_collection.collection[var_name].get_constraints())
             return jsonify(result)
 
@@ -574,6 +576,7 @@ def api(resource, command):
                 if not success:
                     result = {"success": False, "errormsg": "Variable is used and thus cannot be deleted."}
                 var_collection.store()
+                app.db.update()
             except KeyError:
                 logging.debug("Variable `{}` not found".format(var_name))
                 result = {"success": False, "errormsg": "Variable not found."}
@@ -608,6 +611,7 @@ def api(resource, command):
                 if variable_type == "CONST":
                     var_collection.collection[variable_name].value = variable_value
                 var_collection.store()
+                app.db.update()
                 return jsonify(result)
         elif command == "get_enumerators":
             result = {"success": True, "errormsg": ""}
@@ -665,6 +669,7 @@ def api(resource, command):
                     )
 
             var_collection.store()
+            app.db.update()
 
         return jsonify(result)
 
@@ -776,6 +781,7 @@ def update_var_usage(var_collection):
     var_collection.req_var_mapping = var_collection.invert_mapping(var_collection.var_req_mapping)
     var_collection.refresh_var_constraint_mapping()
     var_collection.store()
+    app.db.update()
 
 
 def varcollection_consistency_check(app, args=None):
@@ -787,6 +793,7 @@ def varcollection_consistency_check(app, args=None):
 
     update_var_usage(var_collection)
     var_collection.store()
+    app.db.update()
 
 
 def create_revision(args, base_revision_name, *, no_data_tracing: bool = False):

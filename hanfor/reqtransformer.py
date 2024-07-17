@@ -338,6 +338,7 @@ class Requirement:
         variable_collection.req_var_mapping[self.rid] = remaining_vars
         variable_collection.var_req_mapping = variable_collection.invert_mapping(variable_collection.req_var_mapping)
         variable_collection.store()
+        app.db.update()
 
     def update_formalization(self, formalization_id, scope_name, pattern_name, mapping, app, variable_collection=None):
         if variable_collection is None:

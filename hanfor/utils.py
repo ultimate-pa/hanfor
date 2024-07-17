@@ -377,6 +377,7 @@ def update_variable_in_collection(app: HanforFlask, request):
         logging.info("Store updated variables.")
         var_collection.refresh_var_constraint_mapping()
         var_collection.store()
+        app.db.update()
         logging.info("Update derived types by parsing affected formalizations.")
         if reload_type_inference and var_name in var_collection.var_req_mapping:
             for rid in var_collection.var_req_mapping[var_name]:
@@ -418,6 +419,7 @@ def update_variable_in_collection(app: HanforFlask, request):
             var_collection.collection[enumerator_name].belongs_to_enum = var_name
 
         var_collection.store()
+        app.db.update()
 
     return result
 
