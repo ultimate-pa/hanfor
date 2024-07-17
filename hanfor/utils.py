@@ -1215,7 +1215,8 @@ class Revision:
         self._try_save(self._load_from_csv, "Could not read CSV")
         if self.is_initial_revision:
             for req in self.requirement_collection.requirements:
-                self.app.db.add_object(req)
+                self.app.db.add_object(req, delay_update=True)
+            self.app.db.update()
             self._generate_session_values()
         else:
             self._update_session_values()
