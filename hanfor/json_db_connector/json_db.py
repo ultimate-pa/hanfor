@@ -374,7 +374,7 @@ class JsonDatabase:
         if self.__read_only:
             raise DatabaseInsertionError("Database is in read only mode, adding objects is forbidden.")
         self.__add_object_without_update(obj, user)
-        if delay_update:
+        if not delay_update:
             self.update(user)
 
     def __add_object_without_update(self, obj: object, user: str = None):
