@@ -4,12 +4,15 @@ import os
 import pickle
 import re
 import shlex
+from dataclasses import dataclass
 from typing import Any
 
 import colorama
 
 from colorama import Style, Fore
 from terminaltables import DoubleTable
+
+from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
 
 
 def pickle_dump_obj_to_file(obj, filename):
@@ -147,7 +150,7 @@ def get_valid_filename(ugly_string, collision_candidates=()):
     Return the given string converted to a string that can be used for a clean
     filename. Remove leading and trailing spaces; convert other spaces to
     underscores; and remove anything that is not an alphanumeric, dash,
-    underscore, or dot. Match against collision_candidates to return an unique string.
+    underscore, or dot. Match against collision_candidates to return a unique string.
     >>> get_valid_filename("john's portrait in 2004.jpg")
     'johns_portrait_in_2004.jpg'
     """
@@ -167,3 +170,12 @@ def try_cast_string(data: Any) -> str:
     except TypeError as e:
         logging.warning(f"Failed string cast:\n {e}")
     return "CSV-None"
+
+
+@DatabaseTable(TableType.File)
+@DatabaseID("name", str)
+@DatabaseField("value", dict)
+@dataclass()
+class SessionValue:
+    name: str
+    value: any

@@ -55,7 +55,6 @@ def migrate_formalization(id: int, formalization: Formalization) -> Formalizatio
     result._hanfor_version = formalization._hanfor_version
     result.id = id
     result.expressions_mapping = formalization.expressions_mapping
-    result.belongs_to_requirement = formalization.belongs_to_requirement
     result.type_inference_errors = formalization.type_inference_errors
 
     if hasattr(formalization, "scoped_pattern"):

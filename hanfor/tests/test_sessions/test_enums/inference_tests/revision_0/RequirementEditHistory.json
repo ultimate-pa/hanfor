@@ -1,0 +1,838 @@
+{
+    "df2bac47-6ec2-4256-a376-b86a63a2bf91": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Added new Formalization to requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-26T16:26:00.190456"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "8c471e34-b437-4761-a320-ab4cb6812e3f": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Updated requirement formalization",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-26T16:26:02.445985"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "834ee85b-b72a-4bf1-b0df-0f16fc36c1c5": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Updated requirement formalization",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-26T16:26:15.963109"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "3d573422-34ca-4431-9c79-6c6b234b37ac": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Added new Formalization to requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-28T11:12:41.164276"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "2228d749-78b7-4a0d-bfd8-88f54ce55aa5": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Updated requirement formalization",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-28T11:13:18.486911"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "73ddc0ac-c65a-4b00-8924-d8187a7d9035": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Updated requirement formalization",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-28T11:13:31.200276"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "04505b79-1b99-4e62-b3ac-fddefbdd7f15": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Deleted formalization from requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-28T11:13:50.744020"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "5ada56bc-2044-4e3d-9f1f-784776ecc61f": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Removed tags `` from requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-28T11:14:10.531586"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "ea42b528-589e-41a3-a593-fce4f3e2f16c": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Updated requirement formalization",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-28T11:14:18.051191"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "5da69701-dc3d-4232-b4f4-799d8e0aae49": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Added new Formalization to requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-28T11:48:26.090371"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "762b2e59-dc40-4045-9cc6-5c28d44985c2": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Added new Formalization to requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-28T11:52:24.555143"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "b658acb8-c74e-43bb-b97b-05843b99e176": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Added new Formalization to requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-28T11:53:33.270313"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "08d2ec16-ad7a-48a9-9628-6ba327c7fd31": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Added new Formalization to requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-28T11:55:47.419807"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "665beedc-5dc5-404f-b1c2-ac1c78656515": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Added new Formalization to requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-28T12:00:34.906627"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "504a4d53-6868-4bb3-a670-b5576a46bae2": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Added new Formalization to requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-28T12:01:41.698474"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "29239cfc-c8e8-4e54-b7b1-f1a7b48c1c6c": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Added new Formalization to requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-28T12:04:33.134485"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "02193046-9082-407c-91a3-740e0f71d9a7": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Added new Formalization to requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-28T12:06:53.924351"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "70391df1-aa57-4af5-9eda-aefec7caf5fc": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Deleted formalization from requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-28T12:09:28.291573"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "5938f0f7-2264-4045-beb5-4dcb1926b1bc": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Deleted formalization from requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-03-28T12:10:54.409328"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "f1066310-1650-400a-bf41-976f71a616ef": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_91"
+                }
+            ]
+        },
+        "message": "Updated requirement formalization",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-04-01T13:54:31.972402"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "1cb594cb-8db1-4e66-948b-226940cf6e3f": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_91"
+                }
+            ]
+        },
+        "message": "Added new Formalization to requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-04-15T13:23:15.840269"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "f7d41b9d-5880-4f17-adea-155824a850a2": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_91"
+                }
+            ]
+        },
+        "message": "Updated requirement formalization",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-04-15T13:23:41.525544"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "f18cc98a-2b3a-4711-b934-19fbcca58e0d": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_91"
+                }
+            ]
+        },
+        "message": "Updated requirement formalization",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-04-15T13:25:12.774413"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "f6c81be2-0bff-4e2b-a477-d2b07bc2ea61": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_91"
+                }
+            ]
+        },
+        "message": "Updated requirement formalization",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-04-15T13:25:36.202480"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "58fb10bf-d727-4706-9ffe-3c8e61267785": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_91"
+                }
+            ]
+        },
+        "message": "Updated requirement formalization",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-04-15T13:27:08.558340"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "30c4ec57-5e3c-41bc-876b-aae9fa59b8f0": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_91"
+                }
+            ]
+        },
+        "message": "Updated requirement formalization",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-04-15T13:27:23.366234"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "426b1146-8807-47be-9e8c-31f755554927": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_91"
+                }
+            ]
+        },
+        "message": "Updated requirement formalization",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-04-15T13:27:34.313922"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "37799686-82e2-4b3f-a0b2-682f6d1ac2e9": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_91"
+                }
+            ]
+        },
+        "message": "Added new Formalization to requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-04-15T14:57:41.741118"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "2849d911-d5fa-4159-a6dd-7d1048a5cf58": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_91"
+                }
+            ]
+        },
+        "message": "Updated requirement formalization",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-04-15T14:59:40.995924"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "a6e9944a-f83b-44a2-bf7b-d94051fb69a1": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Deleted formalization from requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-05-24T14:47:25.710462"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "39c20e78-8792-4596-9bf3-83e7b2d3ce69": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Updated requirement formalization",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-05-24T14:47:29.616496"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "ecd63076-8881-44e9-8b09-de54e00348f7": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Added new Formalization to requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-05-24T14:54:06.388797"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "6b5e6435-f89f-4835-875c-38f7b8ca250c": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Updated requirement formalization",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-05-24T14:54:30.106377"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "35528a1e-64f2-4ae6-bc95-a8c59be11be4": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Updated requirement formalization",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-05-24T14:55:39.886685"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "e798cf14-76a8-4582-82a2-f26ab0d883e0": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Deleted formalization from requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-05-24T14:55:54.964133"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "a8328c38-0e24-40a9-bb9b-896453b4b8d0": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Added new Formalization to requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-05-24T14:56:17.757712"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "90617a48-dc89-40bc-8ec5-cd8d137e1e2e": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Updated requirement formalization",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-05-24T14:56:24.129470"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "017340a5-f6e2-4337-8cfb-480bc33fc5bb": {
+        "requirements": {
+            "type": "list",
+            "data": [
+                {
+                    "type": "Requirement",
+                    "data": "SysRS FooXY_42"
+                }
+            ]
+        },
+        "message": "Deleted formalization from requirement",
+        "timestamp": {
+            "type": "datetime",
+            "data": "2019-05-24T14:56:35.644590"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    }
+}

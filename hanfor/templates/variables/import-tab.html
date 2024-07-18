@@ -44,23 +44,6 @@
                     Running Import Sessions
                 </button>
             </h2>
-            <div id="collapseAvImportSessions" class="accordion-collapse collapse">
-                <div class="accordion-body">
-                    {% for sess_id, ses in running_import_sessions.items() %}
-                        {% if config.SESSION_TAG == ses.target[2] %}
-                            <h6>
-                                <a href="{{ url_for('site', site='variable_import/' + ses.id|string) }}" target="_blank">
-                                    <code>Session{{ ses.id }}</code>
-                                </a>
-                            </h6>
-                            <ul>
-                                <li>Source: <code>{{ ses.source[2] }} - {{ ses.source[1] }}</code></li>
-                                <li>Target: <code>{{ ses.target[2] }} - {{ ses.target[1] }}</code></li>
-                            </ul>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-            </div>
         </div>
     </div>
 </div>

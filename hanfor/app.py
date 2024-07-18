@@ -9,22 +9,29 @@ import logging
 import os
 import re
 import subprocess
-import sys
 from functools import wraps, update_wrapper
 
 import flask
-from flask import Flask, render_template, request, jsonify, make_response, json
+from flask import render_template, request, jsonify, make_response, json
+from hanfor_flask import HanforFlask
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import HTTPException
 
-import reqtransformer
+from json_db_connector.json_db import JsonDatabase
+
 import utils
+from utils import add_custom_serializer_to_database
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
-from reqtransformer import Requirement, VariableCollection, Variable, VarImportSessions, Formalization, Scope
-from ressources import Report, QueryAPI
+from reqtransformer import Requirement, VariableCollection, Variable, Scope
+from ressources import Reports, QueryAPI
 from ressources.simulator_ressource import SimulatorRessource
-from static_utils import get_filenames_from_dir, pickle_dump_obj_to_file, choice, pickle_load_from_dump, hash_file_sha1
+from static_utils import (
+    get_filenames_from_dir,
+    choice,
+    hash_file_sha1,
+    SessionValue,
+)
 from patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
 from tags.tags import TagsApi
 
@@ -35,8 +42,10 @@ mimetypes.add_type("text/javascript", ".js")
 
 
 # Create the app
-app = Flask(__name__)
+app = HanforFlask(__name__)
+# app = Flask(__name__)
 app.config.from_object("config")
+app.db = None
 
 from example_blueprint import example_blueprint
 from tags import tags
@@ -76,7 +85,7 @@ def nocache(view):
     @wraps(view)
     def no_cache(*args, **kwargs):
         response = make_response(view(*args, **kwargs))
-        response.headers["Last-Modified"] = datetime.datetime.now()
+        response.headers["Last-Modified"] = str(datetime.datetime.now())
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "-1"
@@ -146,7 +155,6 @@ def api(resource, command):
         "del_tag",
         "del_var",
         "multi_update",
-        "var_import_info",
         "get_available_guesses",
         "add_formalization_from_guess",
         "multi_add_top_guess",
@@ -154,7 +162,6 @@ def api(resource, command):
         "del_constraint",
         "add_new_variable",
         "get_enumerators",
-        "start_import_session",
         "gen_req",
         "add_standard",
         "import_csv",
@@ -166,8 +173,8 @@ def api(resource, command):
         # Get a single requirement.
         if command == "get" and request.method == "GET":
             id = request.args.get("id", "")
-            requirement = Requirement.load_requirement_by_id(id, app)
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            requirement = app.db.get_object(Requirement, id)
+            var_collection = VariableCollection(app)
 
             result = requirement.to_dict(include_used_vars=True)
             result["formalizations_html"] = utils.formalizations_to_html(app, requirement.formalizations)
@@ -182,21 +189,16 @@ def api(resource, command):
 
         # Get all requirements
         if command == "gets":
-            filenames = get_filenames_from_dir(app.config["REVISION_FOLDER"])
             result = dict()
             result["data"] = list()
-            for filename in filenames:
-                try:
-                    req = Requirement.load(filename)
-                    result["data"].append(req.to_dict())
-                except Exception as e:
-                    logging.debug(e)
+            reqs = app.db.get_objects(Requirement)
+            result["data"] = [reqs[k].to_dict() for k in sorted(reqs.keys())]
             return jsonify(result)
 
         # Update a requirement
         if command == "update" and request.method == "POST":
             id = request.form.get("id", "")
-            requirement = Requirement.load_requirement_by_id(id, app)
+            requirement = app.db.get_object(Requirement, id)
             error = False
             error_msg = ""
 
@@ -206,22 +208,30 @@ def api(resource, command):
                 new_status = request.form.get("status", "")
                 if requirement.status != new_status:
                     requirement.status = new_status
-                    utils.add_msg_to_flask_session_log(app, f"Set status to {new_status} for requirement", id)
+                    utils.add_msg_to_flask_session_log(
+                        app, f"Set status to {new_status} for requirement", [requirement]
+                    )
                     logging.debug(f"Requirement status set to {requirement.status}")
 
                 new_tag_set = json.loads(request.form.get("tags", ""))
-                if requirement.tags != new_tag_set:
-                    added_tags = new_tag_set.keys() - requirement.tags.keys()
-                    tags = TagsApi()
-                    for tag in added_tags:
-                        tags.add_if_new(tag)
-                    removed_tags = requirement.tags.keys() - new_tag_set.keys()
-                    requirement.tags = new_tag_set
+                req_tags = {t.name: c for t, c in requirement.tags.items()}
+                if req_tags != new_tag_set:
+                    added_tags = new_tag_set.keys() - req_tags.keys()
+                    tag_api = TagsApi()
+                    removed_tags = req_tags.keys() - new_tag_set.keys()
+                    for tag in removed_tags:
+                        if not tag_api.tag_exists(tag):
+                            continue
+                        requirement.tags.pop(tag_api.get_tag(tag))
+                    for tag, comment in new_tag_set.items():
+                        if not tag_api.tag_exists(tag):
+                            tag_api.add(tag)
+                        requirement.tags[tag_api.get_tag(tag)] = comment
                     # do logging
                     utils.add_msg_to_flask_session_log(
-                        app, f"Tags: + {added_tags} and - {removed_tags} to requirement", id
+                        app, f"Tags: + {added_tags} and - {removed_tags} to requirement", [requirement]
                     )
-                    logging.debug(f"Tags: + {added_tags} and - {removed_tags} to requirement {requirement.tags}")
+                    logging.debug(f"Tags: + {added_tags} and - {removed_tags} to requirement {requirement.rid}")
 
                 # Update formalization.
                 if request.form.get("update_formalization") == "true":
@@ -229,7 +239,7 @@ def api(resource, command):
                     logging.debug("Updated Formalizations: {}".format(formalizations))
                     try:
                         requirement.update_formalizations(formalizations, app)
-                        utils.add_msg_to_flask_session_log(app, "Updated requirement formalization", id)
+                        utils.add_msg_to_flask_session_log(app, "Updated requirement formalization", [requirement])
                     except KeyError as e:
                         error = True
                         error_msg = f"Could not set formalization: Missing expression/variable for {e}"
@@ -243,7 +253,7 @@ def api(resource, command):
                     logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
                     return jsonify({"success": False, "errormsg": error_msg})
                 else:
-                    requirement.store()
+                    app.db.update()
                     return jsonify(requirement.to_dict()), 200
 
         # Multi Update Tags or Status.
@@ -273,46 +283,54 @@ def api(resource, command):
 
             # Update all requirements given by the rid_list
             if result["success"]:
+                tag_api = TagsApi()
+                requirements = [app.db.get_object(Requirement, rid) for rid in rid_list]
                 log_msg = f"Update {len(rid_list)} requirements."
                 if len(add_tag) > 0:
                     log_msg += f"Adding tag `{add_tag}`"
-                    utils.add_msg_to_flask_session_log(
-                        app, f"Adding tag `{add_tag}` to requirements.", rid_list=rid_list
-                    )
+                    utils.add_msg_to_flask_session_log(app, f"Adding tag `{add_tag}` to requirements.", requirements)
+                    if not tag_api.tag_exists(add_tag):
+                        tag_api.add(add_tag)
+                    add_tag = tag_api.get_tag(add_tag)
+                else:
+                    add_tag = None
                 if len(remove_tag) > 0:
                     log_msg += f", removing Tag `{remove_tag}` (is present)"
                     utils.add_msg_to_flask_session_log(
-                        app, f"Removing tag `{remove_tag}` from requirements.", rid_list=rid_list
+                        app, f"Removing tag `{remove_tag}` from requirements.", requirements
                     )
+                    if not tag_api.tag_exists(remove_tag):
+                        remove_tag = None
+                    else:
+                        remove_tag = tag_api.get_tag(remove_tag)
+                else:
+                    remove_tag = None
                 if len(set_status) > 0:
                     log_msg += ", set Status=`{}`.".format(set_status)
                     utils.add_msg_to_flask_session_log(
-                        app, f"Set status to `{set_status}` for requirements. ", rid_list=rid_list
+                        app, f"Set status to `{set_status}` for requirements. ", requirements
                     )
                 logging.info(log_msg)
 
-                for rid in rid_list:
-                    requirement = Requirement.load_requirement_by_id(rid, app)
-                    if requirement is None:
-                        continue
-                    logging.info(f"Updating requirement `{rid}`")
-                    if remove_tag in requirement.tags:
+                for requirement in requirements:
+                    logging.info(f"Updating requirement `{requirement.rid}`")
+                    if remove_tag and remove_tag in requirement.tags:
                         requirement.tags.pop(remove_tag)
                     if add_tag and add_tag not in requirement.tags:
                         requirement.tags[add_tag] = ""
                     if set_status:
                         requirement.status = set_status
-                    requirement.store()
+                app.db.update()
 
             return jsonify(result)
 
         # Add a new empty formalization
         if command == "new_formalization" and request.method == "POST":
             id = request.form.get("id", "")
-            requirement = Requirement.load_requirement_by_id(id, app)  # type: Requirement
+            requirement = app.db.get_object(Requirement, id)  # type: Requirement
             formalization_id, formalization = requirement.add_empty_formalization()
-            requirement.store()
-            utils.add_msg_to_flask_session_log(app, "Added new Formalization to requirement", id)
+            app.db.update()
+            utils.add_msg_to_flask_session_log(app, "Added new Formalization to requirement", [requirement])
             result = utils.get_formalization_template(app.config["TEMPLATES_FOLDER"], formalization_id, formalization)
             return jsonify(result)
 
@@ -321,11 +339,11 @@ def api(resource, command):
             result = dict()
             formalization_id = request.form.get("formalization_id", "")
             requirement_id = request.form.get("requirement_id", "")
-            requirement = Requirement.load_requirement_by_id(requirement_id, app)
+            requirement = app.db.get_object(Requirement, requirement_id)
             requirement.delete_formalization(formalization_id, app)
-            requirement.store()
+            app.db.update()
 
-            utils.add_msg_to_flask_session_log(app, "Deleted formalization from requirement", requirement_id)
+            utils.add_msg_to_flask_session_log(app, "Deleted formalization from requirement", [requirement])
             result["html"] = utils.formalizations_to_html(app, requirement.formalizations)
             return jsonify(result)
 
@@ -333,14 +351,14 @@ def api(resource, command):
         if command == "get_available_guesses" and request.method == "POST":
             result = {"success": True}
             requirement_id = request.form.get("requirement_id", "")
-            requirement = Requirement.load_requirement_by_id(requirement_id, app)
+            requirement = app.db.get_object(Requirement, requirement_id)
             if requirement is None:
                 result["success"] = False
                 result["errormsg"] = "Requirement `{}` not found".format(requirement_id)
             else:
                 result["available_guesses"] = list()
                 tmp_guesses = list()
-                var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+                var_collection = VariableCollection(app)
 
                 for guesser in REGISTERED_GUESSERS:
                     try:
@@ -380,14 +398,14 @@ def api(resource, command):
             mapping = json.loads(mapping)
 
             # Add an empty Formalization.
-            requirement = Requirement.load_requirement_by_id(requirement_id, app)
+            requirement = app.db.get_object(Requirement, requirement_id)
             formalization_id, formalization = requirement.add_empty_formalization()
             # Add content to the formalization.
             requirement.update_formalization(
                 formalization_id=formalization_id, scope_name=scope, pattern_name=pattern, mapping=mapping, app=app
             )
-            requirement.store()
-            utils.add_msg_to_flask_session_log(app, "Added formalization guess to requirement", requirement_id)
+            app.db.update()
+            utils.add_msg_to_flask_session_log(app, "Added formalization guess to requirement", [requirement])
 
             result = utils.get_formalization_template(
                 app.config["TEMPLATES_FOLDER"], formalization_id, requirement.formalizations[formalization_id]
@@ -405,11 +423,14 @@ def api(resource, command):
                 result["success"] = False
                 result["errormsg"] = "No requirements selected."
 
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
-            for req_id in requirement_ids:
-                requirement = Requirement.load_requirement_by_id(req_id, app)
+            if not result["success"]:
+                return jsonify(result)
+
+            var_collection = VariableCollection(app)
+            requirements = [app.db.get_object(Requirement, rid) for rid in requirement_ids]
+            for requirement in requirements:
                 if requirement is not None:
-                    logging.info("Add top guess to requirement `{}`".format(req_id))
+                    logging.info("Add top guess to requirement `{}`".format(requirement.rid))
                     tmp_guesses = list()
                     for guesser in REGISTERED_GUESSERS:
                         try:
@@ -437,13 +458,13 @@ def api(resource, command):
                                         mapping=mapping,
                                         app=app,
                                     )
-                                    requirement.store()
+                                    app.db.update()
 
                         except ValueError as e:
                             result["success"] = False
                             result["errormsg"] = "Could not determine a guess: "
                             result["errormsg"] += e.__str__()
-            utils.add_msg_to_flask_session_log(app, "Added top guess to requirements", rid_list=requirement_ids)
+            utils.add_msg_to_flask_session_log(app, "Added top guess to requirements", requirements)
 
             return jsonify(result)
 
@@ -451,12 +472,9 @@ def api(resource, command):
         # Get available variables
         result = {"success": False, "errormsg": "sorry, request not supported."}
         if command == "gets":
-            result = {"data": utils.get_available_vars(app, full=True, fetch_evals=True)}
+            result = {"data": utils.get_available_vars(app, full=True)}
         elif command == "update":
             result = utils.update_variable_in_collection(app, request)
-        elif command == "var_import_info":
-            result = utils.varcollection_diff_info(app, request)
-            varcollection_consistency_check(app)
         elif command == "multi_update":
             logging.info("Multi edit Variables.")
             result = {"success": True, "errormsg": ""}
@@ -475,7 +493,7 @@ def api(resource, command):
             if result["success"]:
                 if len(change_type) > 0:  # Change the var type.
                     logging.debug("Change type to `{}`.\nAffected Vars:\n{}".format(change_type, "\n".join(var_list)))
-                    var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+                    var_collection = VariableCollection(app)
                     for var_name in var_list:
                         try:
                             logging.debug(
@@ -490,7 +508,7 @@ def api(resource, command):
 
                 if delete == "true":
                     logging.info("Deleting variables.\nAffected Vars:\n{}".format("\n".join(var_list)))
-                    var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+                    var_collection = VariableCollection(app)
                     for var_name in var_list:
                         try:
                             logging.debug("Deleting `{}`".format(var_name))
@@ -498,15 +516,16 @@ def api(resource, command):
                         except KeyError:
                             logging.debug("Variable `{}` not found".format(var_list))
                     var_collection.store()
-
+            app.db.update()
             return jsonify(result)
         elif command == "new_constraint":
             result = {"success": True, "errormsg": ""}
             var_name = request.form.get("name", "").strip()
 
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            var_collection = VariableCollection(app)
             cid = var_collection.add_new_constraint(var_name=var_name)
             var_collection.store()
+            app.db.update()
             result["html"] = utils.formalizations_to_html(
                 app, {cid: var_collection.collection[var_name].constraints[cid]}
             )
@@ -519,7 +538,7 @@ def api(resource, command):
                 "type_inference_errors": dict(),
             }
             var_name = request.form.get("name", "").strip()
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            var_collection = VariableCollection(app)
             try:
                 var = var_collection.collection[var_name]
                 var_dict = var.to_dict(var_collection.var_req_mapping)
@@ -535,10 +554,11 @@ def api(resource, command):
             var_name = request.form.get("name", "").strip()
             constraint_id = int(request.form.get("constraint_id", "").strip())
 
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            var_collection = VariableCollection(app)
             var_collection.del_constraint(var_name=var_name, constraint_id=constraint_id)
             var_collection.collection[var_name].reload_constraints_type_inference_errors(var_collection)
             var_collection.store()
+            app.db.update()
             result["html"] = utils.formalizations_to_html(app, var_collection.collection[var_name].get_constraints())
             return jsonify(result)
 
@@ -546,13 +566,14 @@ def api(resource, command):
             result = {"success": True, "errormsg": ""}
             var_name = request.form.get("name", "").strip()
 
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            var_collection = VariableCollection(app)
             try:
                 logging.debug("Deleting `{}`".format(var_name))
                 success = var_collection.del_var(var_name)
                 if not success:
                     result = {"success": False, "errormsg": "Variable is used and thus cannot be deleted."}
                 var_collection.store()
+                app.db.update()
             except KeyError:
                 logging.debug("Variable `{}` not found".format(var_name))
                 result = {"success": False, "errormsg": "Variable not found."}
@@ -562,13 +583,13 @@ def api(resource, command):
             variable_name = request.form.get("name", "").strip()
             variable_type = request.form.get("type", "").strip()
             variable_value = request.form.get("value", "").strip()
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            var_collection = VariableCollection(app)
 
             # Apply some tests if the new Variable is legal.
-            if len(variable_name) == 0 or not re.match("^[a-zA-Z][a-zA-Z0-9_]+$", variable_name):
+            if len(variable_name) == 0 or not re.match("^[a-zA-Z0-9_]+$", variable_name):
                 result = {
                     "success": False,
-                    "errormsg": "Illegal Variable name. Start with a char followed by alphanumeric + {_}.",
+                    "errormsg": "Illegal Variable name. Must Be at least 1 Char and only alphanum + {_}",
                 }
             elif var_collection.var_name_exists(variable_name):
                 result = {"success": False, "errormsg": "`{}` is already existing.".format(variable_name)}
@@ -587,12 +608,12 @@ def api(resource, command):
                 if variable_type == "CONST":
                     var_collection.collection[variable_name].value = variable_value
                 var_collection.store()
-                var_collection.reload_script_results(app, [variable_name])
+                app.db.update()
                 return jsonify(result)
         elif command == "get_enumerators":
             result = {"success": True, "errormsg": ""}
             enum_name = request.form.get("name", "").strip()
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            var_collection = VariableCollection(app)
             enumerators = var_collection.get_enumerators(enum_name)
             enum_results = [(enumerator.name, enumerator.value) for enumerator in enumerators]
             try:
@@ -600,21 +621,6 @@ def api(resource, command):
             except Exception as e:
                 logging.info(f"Cloud not sort ENUMERATORS: {e}")
             result["enumerators"] = enum_results
-
-            return jsonify(result)
-        elif command == "start_import_session":
-            result = {"success": True, "errormsg": ""}
-            # create a new import session.
-            source_session_name = request.form.get("sess_name", "").strip()
-            source_revision_name = request.form.get("sess_revision", "").strip()
-
-            result["session_id"] = utils.varcollection_create_new_import_session(
-                app=app, source_session_name=source_session_name, source_revision_name=source_revision_name
-            )
-
-            if result["session_id"] < 0:
-                result["success"] = False
-                result["errormsg"] = "Could not create the import session."
 
             return jsonify(result)
         elif command == "gen_req":
@@ -626,7 +632,7 @@ def api(resource, command):
             result = {"success": True, "errormsg": ""}
 
             variables_csv_str = request.form.get("variables_csv_str", "")
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            var_collection = VariableCollection(app)
 
             dict_reader = csv.DictReader(variables_csv_str.splitlines())
             variables = list(dict_reader)
@@ -660,19 +666,20 @@ def api(resource, command):
                     )
 
             var_collection.store()
+            app.db.update()
 
         return jsonify(result)
 
     if resource == "meta":
         if command == "get":
-            return jsonify(utils.MetaSettings(app.config["META_SETTINGS_PATH"]).__dict__)
+            raise DeprecationWarning
 
     if resource == "logs":
         if command == "get":
-            return utils.get_flask_session_log(app, html=True)
+            return utils.get_flask_session_log(app, html_format=True)
 
     if resource == "report":
-        return Report(app, request).apply_request()
+        return Reports(app, request).apply_request()
 
     return jsonify({"success": False, "errormsg": "This is not an api-enpoint."}), 404
 
@@ -681,100 +688,6 @@ def api(resource, command):
 @nocache
 def variable_import(id):
     return render_template("variables/variable-import-session.html", id=id, query=request.args, patterns=PATTERNS)
-
-
-@app.route("/variable_import/api/<session_id>/<command>", methods=["GET", "POST"])
-@nocache
-def var_import_session(session_id, command):
-    result = {
-        "success": False,
-    }
-    var_import_sessions = VarImportSessions.load_for_app(app.config["SESSION_BASE_FOLDER"])
-
-    if command == "get_var":
-        result = dict()
-        name = request.form.get("name", "")
-        which_collection = request.form.get("which_collection", "")
-
-        try:
-            var_collection = var_import_sessions.import_sessions[int(session_id)]
-            if which_collection == "source_link":
-                var_collection = var_collection.source_var_collection
-            if which_collection == "target_link":
-                var_collection = var_collection.target_var_collection
-            if which_collection == "result_link":
-                var_collection = var_collection.result_var_collection
-            result = var_collection.collection[name].to_dict(var_collection.var_req_mapping)
-            return jsonify(result), 200
-        except Exception:
-            logging.info("Could not load var: {} from import session: {}".format(name, session_id))
-
-    if command == "get_table_data":
-        result = dict()
-        try:
-            result = {"data": var_import_sessions.import_sessions[int(session_id)].to_datatables_data()}
-            return jsonify(result), 200
-        except Exception as e:
-            logging.info("Could not load session with id: {} ({})".format(session_id, e))
-            raise e
-
-    if command == "store_table":
-        rows = json.loads(request.form.get("rows", ""))
-        try:
-            logging.info("Store changes for variable import session: {}".format(session_id))
-            var_import_sessions.import_sessions[int(session_id)].store_changes(rows)
-            var_import_sessions.store()
-            result["success"] = True
-            return jsonify(result), 200
-        except Exception as e:
-            logging.info("Could not store table: {}".format(e))
-            result["success"] = False
-            result["errormsg"] = "Could not store: {}".format(e)
-
-    if command == "store_variable":
-        row = json.loads(request.form.get("row", ""))
-        try:
-            logging.info('Store changes for variable "{}" of import session: {}'.format(row["name"], session_id))
-            var_import_sessions.import_sessions[int(session_id)].store_variable(row)
-            var_import_sessions.store()
-            result["success"] = True
-            return jsonify(result), 200
-        except Exception as e:
-            logging.info("Could not store table: {}".format(e))
-            result["success"] = False
-            result["errormsg"] = "Could not store: {}".format(e)
-
-    if command == "apply_import":
-        try:
-            logging.info("Apply import for variable import session: {}".format(session_id))
-            var_import_sessions.import_sessions[int(session_id)].apply_constraint_selection()
-            var_import_sessions.store()
-            var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
-            import_collection = var_import_sessions.import_sessions[int(session_id)].result_var_collection
-            var_collection.import_session(import_collection)
-            var_collection.store()
-            varcollection_consistency_check(app)
-            result["success"] = True
-            return jsonify(result), 200
-        except Exception as e:
-            logging.info("Could not apply import: {}".format(e))
-            result["success"] = False
-            result["errormsg"] = "Could not apply import: {}".format(e)
-
-    if command == "delete_me":
-        try:
-            logging.info(f"Deleting variable import session id: {session_id}")
-            var_import_sessions.import_sessions.pop(int(session_id))
-            var_import_sessions.store()
-            result["success"] = True
-            return jsonify(result), 200
-        except Exception as e:
-            error_msg = f"Could not delete session with id {session_id} due to: {e}"
-            logging.info(error_msg)
-            result["success"] = False
-            result["errormsg"] = error_msg
-
-    return jsonify(result), 400
 
 
 @app.route("/<site>")
@@ -787,14 +700,9 @@ def site(site):
     ]
     if site in available_sites:
         if site == "variables":
-            available_sessions = utils.get_stored_session_names(
-                app.config["SESSION_BASE_FOLDER"], only_names=True, with_revisions=True
-            )
-            running_import_sessions = VarImportSessions.load_for_app(app.config["SESSION_BASE_FOLDER"]).info()
             return render_template(
                 "{}.html".format(site + "/" + site),
-                available_sessions=available_sessions,
-                running_import_sessions=running_import_sessions,
+                available_sessions=[],
                 query=request.args,
                 patterns=PATTERNS,
             )
@@ -870,149 +778,27 @@ def update_var_usage(var_collection):
     var_collection.req_var_mapping = var_collection.invert_mapping(var_collection.var_req_mapping)
     var_collection.refresh_var_constraint_mapping()
     var_collection.store()
-
-
-def varcollection_version_migrations(app, args):
-    """migrate old collection format"""
-    try:
-        VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
-    except ImportError:
-        # The "old" var_collection before the refactoring.
-        sys.modules["reqtransformer.reqtransformer"] = reqtransformer
-        sys.modules["reqtransformer.patterns"] = reqtransformer
-
-        var_collection = utils.pickle_load_from_dump(app.config["SESSION_VARIABLE_COLLECTION"])
-        vars_to_collection = list()
-        for name, var in var_collection.items():
-            vars_to_collection.append({"name": name, "type": var.type, "value": var.value})
-        del sys.modules["reqtransformer.reqtransformer"]
-        del sys.modules["reqtransformer.patterns"]
-
-        new_var_collection = VariableCollection(path=app.config["SESSION_VARIABLE_COLLECTION"])
-        for var in vars_to_collection:
-            new_var_collection.collection[var["name"]] = Variable(var["name"], var["type"], var["value"])
-        new_var_collection.store()
-        logging.info("Migrated old collection.")
+    app.db.update()
 
 
 def varcollection_consistency_check(app, args=None):
     logging.info("Check Variables for consistency.")
     # Update usages and constraint type check.
-    var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+    var_collection = VariableCollection(app)
     if args is not None and args.reload_type_inference:
         var_collection.reload_type_inference_errors_in_constraints()
 
     update_var_usage(var_collection)
-    var_collection.reload_script_results(app)
     var_collection.store()
+    app.db.update()
 
 
-def metasettings_version_migration(app, args):
-    logging.info("Running metaconfig version migration...")
-    meta_settings = utils.MetaSettings(app.config["META_SETTINGS_PATH"])
-
-    meta_settings_keys = ["tag_colors", "tag_descriptions", "tag_internal"]
-    for key in meta_settings_keys:
-        if key not in meta_settings:
-            logging.info(f"Upgrading metaconfig with empty `{key}` store.")
-            meta_settings[key] = dict()
-    for filename in get_filenames_from_dir(app.config["REVISION_FOLDER"]):
-        try:
-            req = Requirement.load(filename)
-        except TypeError:
-            continue
-        for tag in req.tags:
-            if tag not in meta_settings["tag_colors"]:
-                meta_settings["tag_colors"][tag] = "#5bc0de"
-            if tag not in meta_settings["tag_descriptions"]:
-                meta_settings["tag_descriptions"][tag] = ""
-            if tag not in meta_settings["tag_internal"]:
-                meta_settings["tag_internal"][tag] = False
-
-    # TODO: Hacky. @Vincent pls fix
-    for tag in meta_settings["tag_colors"].keys():
-        if tag not in meta_settings["tag_internal"]:
-            meta_settings["tag_internal"][tag] = False
-
-    meta_settings.update_storage()
-
-
-def requirements_version_migrations(app, args):
-    logging.info("Running requirements version migration...")
-    filenames = get_filenames_from_dir(app.config["REVISION_FOLDER"])
-    var_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
-
-    for filename in filenames:
-        try:
-            req = Requirement.load(filename)
-        except TypeError:
-            continue
-        changes = False
-        if req.formalizations is None:
-            req.formalizations = dict()
-            changes = True
-        if isinstance(req.tags, set):
-            sanitize = lambda t: t.replace("<", "leq").replace(">", "geq")
-            req.tags = {sanitize(tag): "" for tag in req.tags}
-            changes = True
-        if isinstance(req.tags, dict):
-            # clean up old data sets  with empty tags that mess up exporting (if necessary)
-            new_tags = {tag: comment for tag, comment in req.tags.items() if tag != ""}
-            if new_tags != req.tags:
-                req.tags = new_tags
-                changes = True
-        if type(req.type_in_csv) is tuple:
-            changes = True
-            req.type_in_csv = req.type_in_csv[0]
-        if type(req.csv_row) is tuple:
-            changes = True
-            req.csv_row = req.csv_row[0]
-        if type(req.description) is tuple:
-            changes = True
-            req.description = req.description[0]
-        # Derive type inference errors if not set.
-        try:
-            for i, f in req.formalizations.items():
-                if not hasattr(f, "id") or not f.id:
-                    changes = True
-                    setattr(f, "id", i)
-        except Exception as e:
-            logging.info(f"Something when updating formalisations went terribly wrong `{req.rid}:\n {e}`")
-        # ensure some well-formedness of requirements objects
-        for k, f in req.formalizations.items():
-            if not isinstance(f, Formalization):
-                del req.formalizations[k]
-                changes = True
-            else:
-                if not f.scoped_pattern:
-                    f.scoped_pattern = reqtransformer.ScopedPattern()
-                    changes = True
-                if not f.scoped_pattern.scope or not f.scoped_pattern.pattern:
-                    f.scoped_pattern = reqtransformer.ScopedPattern()
-                    changes = True
-            # Add tags for requirements with (incomplete) formalizations.
-            if (
-                f.scoped_pattern.scope != reqtransformer.Scope.NONE
-                and f.scoped_pattern.pattern.name != "NotFormalizable"
-            ):
-                req.tags["has_formalization"] = ""
-                changes = True
-            else:
-                req.tags["incomplete_formalization"] = req.format_incomplete_formalization_tag(f.id)
-                changes = True
-        if args.reload_type_inference:
-            req.reload_type_inference(var_collection, app)
-        if changes:
-            req.store()
-
-    update_var_usage(var_collection)
-
-
-def create_revision(args, base_revision_name):
+def create_revision(args, base_revision_name, *, no_data_tracing: bool = False):
     """Create new revision.
 
     :param args: Parser arguments
     :param base_revision_name: Name of revision the created will be based on. Creates initial revision_0 if none given.
+    :param no_data_tracing: db testmode
     :return: None
     """
     revision = utils.Revision(app, args, base_revision_name)
@@ -1034,13 +820,14 @@ def load_revision(revision_id):
     app.config["SESSION_VARIABLE_COLLECTION"] = os.path.join(
         app.config["REVISION_FOLDER"], "session_variable_collection.pickle"
     )
-    app.config["SESSION_STATUS_PATH"] = os.path.join(app.config["REVISION_FOLDER"], "session_status.pickle")
+    app.db.init_tables(app.config["REVISION_FOLDER"])
 
 
-def user_request_new_revision(args):
+def user_request_new_revision(args, *, no_data_tracing: bool = False):
     """Asks the user about the base revision and triggers create_revision with the user choice.
 
     :param args:
+    :param no_data_tracing:
     """
     logging.info("Generating a new revision.")
     available_sessions = utils.get_stored_session_names(app.config["SESSION_BASE_FOLDER"], only_names=True)
@@ -1058,7 +845,7 @@ def user_request_new_revision(args):
         raise FileNotFoundError
     print("Which revision should I use as a base?")
     base_revision_choice = choice(available_revisions, "revision_0")
-    create_revision(args, base_revision_choice)
+    create_revision(args, base_revision_choice, no_data_tracing=no_data_tracing)
 
 
 def set_session_config_vars(args, HERE):
@@ -1073,41 +860,6 @@ def set_session_config_vars(args, HERE):
     if app.config["SESSION_BASE_FOLDER"] is None:
         app.config["SESSION_BASE_FOLDER"] = os.path.join(HERE, "data")
     app.config["SESSION_FOLDER"] = os.path.join(app.config["SESSION_BASE_FOLDER"], app.config["SESSION_TAG"])
-
-
-def init_import_sessions():
-    """Create import session file"""
-    var_import_sessions_path = os.path.join(app.config["SESSION_BASE_FOLDER"], "variable_import_sessions.pickle")
-    try:
-        VarImportSessions.load(var_import_sessions_path)
-    except FileNotFoundError:
-        var_import_sessions = VarImportSessions(path=var_import_sessions_path)
-        var_import_sessions.store()
-
-
-def init_meta_settings():
-    """Create meta setting file"""
-    app.config["META_SETTINGS_PATH"] = os.path.join(app.config["SESSION_FOLDER"], "meta_settings.pickle")
-    if not os.path.exists(app.config["META_SETTINGS_PATH"]):
-        meta_settings = dict()
-        meta_settings["tag_colors"] = dict()
-        pickle_dump_obj_to_file(meta_settings, app.config["META_SETTINGS_PATH"])
-
-
-def init_frontend_logs():
-    """Initializes FRONTEND_LOGS_PATH and creates a new frontend_logs dict, if none is existent."""
-    app.config["FRONTEND_LOGS_PATH"] = os.path.join(app.config["SESSION_FOLDER"], "frontend_logs.pickle")
-    if not os.path.exists(app.config["FRONTEND_LOGS_PATH"]):
-        frontend_logs = dict()
-        frontend_logs["hanfor_log"] = list()
-        pickle_dump_obj_to_file(frontend_logs, app.config["FRONTEND_LOGS_PATH"])
-
-
-def init_script_eval_results():
-    app.config["SCRIPT_EVAL_RESULTS_PATH"] = os.path.join(app.config["SESSION_FOLDER"], "script_eval_results.pickle")
-    if not os.path.exists(app.config["SCRIPT_EVAL_RESULTS_PATH"]):
-        script_eval_results = reqtransformer.ScriptEvals(path=app.config["SCRIPT_EVAL_RESULTS_PATH"])
-        script_eval_results.store()
 
 
 def user_choose_start_revision():
@@ -1150,7 +902,7 @@ def set_app_config_paths(args, HERE):
     app.config["TEMPLATES_FOLDER"] = os.path.join(HERE, "templates")
 
 
-def startup_hanfor(args, HERE) -> bool:
+def startup_hanfor(args, HERE, *, no_data_tracing: bool = False) -> bool:
     """Setup session config Variables.
      Trigger:
      Revision creation/loading.
@@ -1159,8 +911,13 @@ def startup_hanfor(args, HERE) -> bool:
      Consistency checks.
 
     :param args:
+    :param HERE:
+    :param no_data_tracing:
     :returns: True if startup should continue
     """
+    app.db = JsonDatabase(no_data_tracing=no_data_tracing)
+    add_custom_serializer_to_database(app.db)
+
     set_session_config_vars(args, HERE)
     set_app_config_paths(args, HERE)
 
@@ -1168,54 +925,49 @@ def startup_hanfor(args, HERE) -> bool:
     if args.revision:
         if args.input_csv is None:
             utils.HanforArgumentParser(app).error("--revision requires a Input CSV -c INPUT_CSV.")
-        user_request_new_revision(args)
+        user_request_new_revision(args, no_data_tracing=no_data_tracing)
     else:
         # If there is no session with given tag: Create a new (initial) revision.
         if not os.path.exists(app.config["SESSION_FOLDER"]):
-            create_revision(args, None)
+            create_revision(args, None, no_data_tracing=no_data_tracing)
         # If this is an already existing session, ask the user which revision to start.
         else:
             revision_choice = user_choose_start_revision()
             logging.info("Loading session `{}` at `{}`".format(app.config["SESSION_TAG"], revision_choice))
             load_revision(revision_choice)
 
-    # Check CSV file change.
-    session_dict = pickle_load_from_dump(app.config["SESSION_STATUS_PATH"])  # type: dict
     if args.input_csv:
         logging.info("Check CSV integrity.")
         csv_hash = hash_file_sha1(args.input_csv)
-        if "csv_hash" not in session_dict:
-            session_dict["csv_hash"] = csv_hash
-        if csv_hash != session_dict["csv_hash"]:
-            print(f"Sha-1 hash mismatch between: \n`{session_dict['csv_input_file']}`\nand\n`{args.input_csv}`.")
+        if not app.db.key_in_table(SessionValue, "csv_hash"):
+            app.db.add_object(SessionValue("csv_hash", csv_hash))
+        if csv_hash != app.db.get_object(SessionValue, "csv_hash").value:
+            print(
+                f"Sha-1 hash mismatch between: \n`{app.db.get_object(SessionValue, 'csv_input_file').value}`\nand\n`{args.input_csv}`."
+            )
             print("Consider starting a new revision.\nShould I stop loading?")
             if choice(["Yes", "No"], default="Yes") == "Yes":
                 return False
-            session_dict["csv_hash"] = csv_hash
-        session_dict["csv_input_file"] = args.input_csv
+            app.db.get_object(SessionValue, "csv_hash").value = csv_hash
+            app.db.update()
+        if not app.db.key_in_table(SessionValue, "csv_input_file"):
+            app.db.add_object(SessionValue("csv_input_file", args.input_csv))
+        else:
+            app.db.get_object(SessionValue, "csv_input_file").value = args.input_csv
+        app.db.update()
 
-    app.config["CSV_INPUT_FILE"] = os.path.basename(
-        session_dict["csv_input_file"] if "csv_input_file" in session_dict else "filename-lost.csv"
-    )
-    app.config["CSV_INPUT_FILE_PATH"] = session_dict["csv_input_file"]
+    app.config["CSV_INPUT_FILE"] = os.path.basename(app.db.get_object(SessionValue, "csv_input_file").value)
+    app.config["CSV_INPUT_FILE_PATH"] = app.db.get_object(SessionValue, "csv_input_file").value
 
-    pickle_dump_obj_to_file(session_dict, app.config["SESSION_STATUS_PATH"])
-
-    # Initialize variables collection, import session, meta settings.
-    init_script_eval_results()
-    utils.init_var_collection(app)
-    init_import_sessions()
-    init_meta_settings()
-    init_frontend_logs()
+    # Initialize variables collection, import session
     utils.config_check(app.config)
-
-    # Run version migrations
-    varcollection_version_migrations(app, args)
-    requirements_version_migrations(app, args)
-    metasettings_version_migration(app, args)
 
     # Run consistency checks.
     varcollection_consistency_check(app, args)
+
+    # instantiate TagsApi for generating init_tags
+    with app.app_context():
+        TagsApi()
     return True
 
 

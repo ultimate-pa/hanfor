@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from reqtransformer import Requirement, ScopedPattern, Scope, Pattern
+from reqtransformer import Requirement
+from hanfor_flask import HanforFlask
 
 
 class AbstractGuesser(ABC):
@@ -12,7 +13,7 @@ class AbstractGuesser(ABC):
                  Lists of guesses will be sorted by their average score.
     """
 
-    def __init__(self, requirement, variable_collection, app):
+    def __init__(self, requirement, variable_collection, app: HanforFlask):
         """
 
         :param requirement: Requirement the guess should be based on.

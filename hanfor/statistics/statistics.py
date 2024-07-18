@@ -3,11 +3,11 @@ import random
 from collections import defaultdict
 from typing import Type
 
-from flask import Blueprint, render_template, Response, current_app
+from hanfor_flask import current_app
+from flask import Blueprint, render_template, Response
 from flask.views import MethodView
 
 from reqtransformer import Requirement, VariableCollection
-from static_utils import get_filenames_from_dir
 
 BUNDLE_JS = "dist/statistics-bundle.js"
 blueprint = Blueprint("statistics", __name__, template_folder="templates", url_prefix="/statistics")
@@ -27,7 +27,6 @@ def register_api(bp: Blueprint, method_view: Type[MethodView]) -> None:
 class StatisticsApi(MethodView):
     def __init__(self):
         self.app = current_app
-        self.filenames = get_filenames_from_dir(self.app.config["REVISION_FOLDER"])
 
     def get(self) -> str | dict | tuple | Response:
         return self.fetch_statistics()
@@ -49,11 +48,7 @@ class StatisticsApi(MethodView):
             "tags_per_type": dict(),
             "status_per_type": dict(),
         }
-        for requirement_filename in self.filenames:
-            try:
-                requirement = Requirement.load(requirement_filename)
-            except TypeError:
-                continue
+        for requirement in self.app.db.get_objects(Requirement).values():
             if hasattr(requirement, "type_in_csv"):
                 data["total"] += 1
                 if requirement.status == "Todo":
@@ -68,7 +63,7 @@ class StatisticsApi(MethodView):
                     data["types"][requirement.type_in_csv] = 1
                     data["tags_per_type"][requirement.type_in_csv] = dict()
                     data["status_per_type"][requirement.type_in_csv] = {"Todo": 0, "Review": 0, "Done": 0}
-                for tag in requirement.tags:
+                for tag in requirement.get_tag_name_comment_dict():
                     if len(tag) > 0:
                         if tag not in data["tags_per_type"][requirement.type_in_csv]:
                             data["tags_per_type"][requirement.type_in_csv][tag] = 0
@@ -81,7 +76,7 @@ class StatisticsApi(MethodView):
             data["type_colors"].append("#%06x" % random.randint(0, 0xFFFFFF))
 
         # Gather most used variables.
-        var_collection = VariableCollection.load(self.app.config["SESSION_VARIABLE_COLLECTION"])
+        var_collection = VariableCollection(self.app)
         var_usage = []
 
         var_nodes = dict()

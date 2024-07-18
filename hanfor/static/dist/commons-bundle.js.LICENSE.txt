@@ -5,16 +5,16 @@
   */
 
 /*!
- * @kurkle/color v0.3.2
+ * @kurkle/color v0.2.1
  * https://github.com/kurkle/color#readme
- * (c) 2023 Jukka Kurkela
+ * (c) 2022 Jukka Kurkela
  * Released under the MIT License
  */
 
 /*!
- * Chart.js v4.4.3
+ * Chart.js v3.9.1
  * https://www.chartjs.org
- * (c) 2024 Chart.js Contributors
+ * (c) 2022 Chart.js Contributors
  * Released under the MIT License
  */
 
@@ -121,24 +121,24 @@
  */
 
 /*!
-* chartjs-plugin-annotation v3.0.1
+* chartjs-plugin-annotation v1.4.0
 * https://www.chartjs.org/chartjs-plugin-annotation/index
- * (c) 2023 chartjs-plugin-annotation Contributors
+ * (c) 2022 chartjs-plugin-annotation Contributors
  * Released under the MIT License
  */
 
-/*! ColReorder 2.0.3
+/*! ColReorder 1.7.0
  * © SpryMedia Ltd - datatables.net/license
  */
 
-/*! DataTables 2.0.8
- * © SpryMedia Ltd - datatables.net/license
+/*! DataTables 1.13.11
+ * ©2008-2024 SpryMedia Ltd - datatables.net/license
  */
 
 /*! DataTables Bootstrap 5 integration
- * © SpryMedia Ltd - datatables.net/license
+ * 2020 SpryMedia Ltd - datatables.net/license
  */
 
-/*! Select for DataTables 2.0.3
+/*! Select for DataTables 1.7.0-dev
  * © SpryMedia Ltd - datatables.net/license/mit
  */

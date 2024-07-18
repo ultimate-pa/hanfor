@@ -10,6 +10,8 @@ hanfor/configuration/ultimate_config.py
 **/static/gen/vendor.js
 **/static/main/
 
+# old testcases
+.old_*/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -113,6 +115,7 @@ celerybeat-schedule
 # npm local
 node_modules/
 package-lock.json
+package.json
 
 # Pycharm
 .idea/

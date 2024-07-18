@@ -1,5 +1,5 @@
 from typing import Type
-from flask import Blueprint, render_template, request, jsonify, Response
+from flask import Blueprint, render_template, request, Response
 from flask.views import MethodView
 from pydantic import BaseModel
 

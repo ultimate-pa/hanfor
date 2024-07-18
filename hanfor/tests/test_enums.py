@@ -8,10 +8,10 @@ from unittest import TestCase
 class TestEnums(TestCase):
     def setUp(self) -> None:
         self.mock_hanfor = MockHanfor(session_tags=["simple_enum"], test_session_source="test_enums")
-        self.mock_hanfor.setUp()
+        self.mock_hanfor.set_up()
 
     def tearDown(self) -> None:
-        self.mock_hanfor.tearDown()
+        self.mock_hanfor.tear_down()
 
     def test_new_int_enum_generation(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
@@ -157,7 +157,7 @@ class TestEnums(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
 
         # Fetch the initial vars.
-        initial_vars = self.mock_hanfor.app.get("api/var/gets").json["data"]  # type: list
+        _ = self.mock_hanfor.app.get("api/var/gets").json["data"]  # type: list
 
         # We create a new ENUM "my_first_enum"
         response = self.mock_hanfor.app.post(
@@ -165,7 +165,7 @@ class TestEnums(TestCase):
         )
         self.assertEqual(response.json["success"], True)
         # We add 2 enumerators for "my_first_enum".
-        response = self.mock_hanfor.app.post(
+        self.mock_hanfor.app.post(
             "api/var/update",
             data={
                 "name": "my_first_enum",
@@ -312,7 +312,7 @@ class TestEnums(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
 
         # Fetch the initial vars.
-        initial_vars = self.mock_hanfor.app.get("api/var/gets").json["data"]  # type: list
+        _ = self.mock_hanfor.app.get("api/var/gets").json["data"]  # type: list
 
         # We create a new ENUM "my_third_enum"
         response = self.mock_hanfor.app.post(
@@ -658,7 +658,7 @@ class TestEnums(TestCase):
         }
 
         # We expect there is an unknown "ham_unknown"
-        vars = self.mock_hanfor.app.get("api/var/gets").json["data"]
+        variables = self.mock_hanfor.app.get("api/var/gets").json["data"]
         unknown = {
             "name": "ham_unknown",
             "tags": [],
@@ -670,7 +670,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "belongs_to_enum": "",
         }
-        self.assertIn(unknown, vars)
+        self.assertIn(unknown, variables)
 
         # Add the expression "foo == new_int" which should introduce the new variable new_int of type int.
         expression = "foo == ham_unknown"
@@ -679,7 +679,7 @@ class TestEnums(TestCase):
         self.assertEqual({}, update_result.json["type_inference_errors"], expression)
 
         # We expect "ham_unknown" is now int
-        vars = self.mock_hanfor.app.get("api/var/gets").json["data"]
+        variables = self.mock_hanfor.app.get("api/var/gets").json["data"]
         unknown = {
             "name": "ham_unknown",
             "tags": [],
@@ -691,7 +691,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "belongs_to_enum": "",
         }
-        self.assertIn(unknown, vars)
+        self.assertIn(unknown, variables)
 
     def test_type_inferences_with_enums_existing_var_update_int_enumerator(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "inference_tests", [])
@@ -717,7 +717,7 @@ class TestEnums(TestCase):
         }
 
         # We expect there is an unknown "ham_unknown"
-        vars = self.mock_hanfor.app.get("api/var/gets").json["data"]
+        variables = self.mock_hanfor.app.get("api/var/gets").json["data"]
         unknown = {
             "name": "ham_unknown",
             "tags": [],
@@ -729,7 +729,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "belongs_to_enum": "",
         }
-        self.assertIn(unknown, vars)
+        self.assertIn(unknown, variables)
 
         # Add the expression "foo == new_int" which should introduce the new variable new_int of type int.
         expression = "foo_one == ham_unknown"
@@ -738,7 +738,7 @@ class TestEnums(TestCase):
         self.assertEqual({}, update_result.json["type_inference_errors"], expression)
 
         # We expect "ham_unknown" is now int
-        vars = self.mock_hanfor.app.get("api/var/gets").json["data"]
+        variables = self.mock_hanfor.app.get("api/var/gets").json["data"]
         unknown = {
             "name": "ham_unknown",
             "tags": [],
@@ -750,7 +750,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "belongs_to_enum": "",
         }
-        self.assertIn(unknown, vars)
+        self.assertIn(unknown, variables)
 
     def test_type_inferences_with_enums_existing_var_update_real_enum(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "inference_tests", [])
@@ -776,7 +776,7 @@ class TestEnums(TestCase):
         }
 
         # We expect there is an unknown "ham_unknown"
-        vars = self.mock_hanfor.app.get("api/var/gets").json["data"]
+        variables = self.mock_hanfor.app.get("api/var/gets").json["data"]
         unknown = {
             "name": "ham_unknown",
             "tags": [],
@@ -788,7 +788,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "belongs_to_enum": "",
         }
-        self.assertIn(unknown, vars)
+        self.assertIn(unknown, variables)
 
         # Add the expression "foo == new_int" which should introduce the new variable new_int of type int.
         expression = "bar == ham_unknown"
@@ -797,7 +797,7 @@ class TestEnums(TestCase):
         self.assertEqual({}, update_result.json["type_inference_errors"], expression)
 
         # We expect "ham_unknown" is now int
-        vars = self.mock_hanfor.app.get("api/var/gets").json["data"]
+        variables = self.mock_hanfor.app.get("api/var/gets").json["data"]
         unknown = {
             "name": "ham_unknown",
             "tags": [],
@@ -809,7 +809,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "belongs_to_enum": "",
         }
-        self.assertIn(unknown, vars)
+        self.assertIn(unknown, variables)
 
     def test_type_inferences_with_enums_existing_var_update_real_enumerator(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "inference_tests", [])
@@ -835,7 +835,7 @@ class TestEnums(TestCase):
         }
 
         # We expect there is an unknown "ham_unknown"
-        vars = self.mock_hanfor.app.get("api/var/gets").json["data"]
+        variables = self.mock_hanfor.app.get("api/var/gets").json["data"]
         unknown = {
             "name": "ham_unknown",
             "tags": [],
@@ -847,7 +847,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "belongs_to_enum": "",
         }
-        self.assertIn(unknown, vars)
+        self.assertIn(unknown, variables)
 
         # Add the expression "foo == new_int" which should introduce the new variable new_int of type int.
         expression = "bar_one == ham_unknown"
@@ -856,7 +856,7 @@ class TestEnums(TestCase):
         self.assertEqual({}, update_result.json["type_inference_errors"], expression)
 
         # We expect "ham_unknown" is now int
-        vars = self.mock_hanfor.app.get("api/var/gets").json["data"]
+        variables = self.mock_hanfor.app.get("api/var/gets").json["data"]
         unknown = {
             "name": "ham_unknown",
             "tags": [],
@@ -868,4 +868,4 @@ class TestEnums(TestCase):
             "const_val": None,
             "belongs_to_enum": "",
         }
-        self.assertIn(unknown, vars)
+        self.assertIn(unknown, variables)

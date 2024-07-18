@@ -14,8 +14,8 @@ class TestParseExpressions(TestCase):
         expression = "1.1 < 0.0"
         parseable = True
         try:
-            tree = parser.parse(expression)
-        except:
+            _ = parser.parse(expression)
+        except:  # noqa
             parseable = False
         self.assertEqual(parseable, True)
         # pydot__tree_to_png(tree, "parse_tree.png")

@@ -17,15 +17,15 @@ MOCK_DATA_FOLDER = os.path.join(HERE, "test_variable_manipulation_edge_cases")
 SESSION_BASE_FOLDER = os.path.join(HERE, "tmp")
 
 
-def mock_user_input(*args, **kwargs) -> str:
+def mock_user_input() -> str:
     """Mocks user input. Returns the mock_results entry at position given by the number of calls.
     :return: mock_results[#of call starting with 0]
     """
-    global mock_results
-    global count
+    global mock_results  # noqa
+    global count  # noqa
     try:
         count += 1
-    except:
+    except:  # noqa
         count = 0
 
     if count == len(mock_results):
@@ -51,12 +51,12 @@ class TestHanforVersionMigrations(TestCase):
 
     @patch("builtins.input", mock_user_input)
     def startup_hanfor(self, args, user_mock_answers):
-        global mock_results
-        global count
+        global mock_results  # noqa
+        global count  # noqa
         count = -1
         mock_results = user_mock_answers
 
-        startup_hanfor(args, HERE)
+        startup_hanfor(args, HERE, no_data_tracing=True)
         app.config["TEMPLATES_FOLDER"] = os.path.join(HERE, "..", "..", "templates")
 
     def test_variable_add_constraint_and_change_type_at_the_same_time(self):
@@ -113,7 +113,22 @@ class TestHanforVersionMigrations(TestCase):
         self.assertEqual(True, change_type.json["success"])
         self.assertEqual(200, add_constraint.status_code)
         var_gets = self.app.get("api/var/gets")
-        print(var_gets.json["data"])
+        for t in var_gets.json["data"]:
+            if t["name"] == "egg":
+                self.assertEqual(
+                    {
+                        "name": "egg",
+                        "constraints": ['Globally, it is always the case that "egg > 10" holds'],
+                        "used_by": ["Constraint_egg_0", "SysRS FooXY_91"],
+                        "tags": [],
+                        "type_inference_errors": {},
+                        "const_val": None,
+                        "type": "ENUM_INT",
+                        "script_results": "",
+                        "belongs_to_enum": "",
+                    },
+                    t,
+                )
         self.assertIn(
             {
                 "name": "egg",

@@ -1,0 +1,73 @@
+{
+    "csv_fieldnames": {
+        "value": {
+            "type": "list",
+            "data": [
+                "id_header",
+                "desc_header",
+                "formal_header",
+                "type_header"
+            ]
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "csv_id_header": {
+        "value": "id_header",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "csv_type_header": {
+        "value": "type_header",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "csv_input_file": {
+        "value": "./tests/test_sessions/test_init/simple.csv",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "csv_desc_header": {
+        "value": "desc_header",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "csv_dialect": {
+        "value": "ultimate",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "csv_formal_header": {
+        "value": "formal_header",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    }
+}

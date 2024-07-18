@@ -1,0 +1,16 @@
+{
+    "att_list": {
+        "type": "list",
+        "data": [
+            {
+                "type": "TestClassFile",
+                "data": "job0"
+            }
+        ]
+    },
+    "$meta": {
+        "type": "JsonDatabaseMetaData",
+        "data": {
+        }
+    }
+}

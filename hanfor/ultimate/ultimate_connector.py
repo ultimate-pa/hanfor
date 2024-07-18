@@ -9,7 +9,7 @@ from configuration.ultimate_config import (
     ULTIMATE_TOOLCHAIN_FOLDER,
     ULTIMATE_CONFIGURATIONS,
 )
-from ultimate.ultimate_job import UltimateJob
+from ultimate.ultimate_job import UltimateJob, get_all_requirement_ids, calculate_req_id_occurrence
 
 
 def get_user_settings(settings_name: str = "default") -> str:
@@ -91,7 +91,10 @@ class UltimateConnector:
         if r.status_code != 200:
             raise Exception("request was not successful")
         content = json.loads(r.text)
-        uj = UltimateJob.make(
+        if selected_requirement_ids == "all":
+            selected_requirement_ids = get_all_requirement_ids()
+        selected_requirement = calculate_req_id_occurrence(requirements, selected_requirement_ids)
+        uj = UltimateJob(
             job_id=content["requestId"],
             requirement_file=requirements,
             toolchain_id=toolchain_id,
@@ -99,7 +102,7 @@ class UltimateConnector:
             usersettings_name=user_settings_name,
             usersettings_json=user_settings,
             api_url=url,
-            selected_requirements=selected_requirement_ids,
+            selected_requirements=selected_requirement,
         )
         return uj
 

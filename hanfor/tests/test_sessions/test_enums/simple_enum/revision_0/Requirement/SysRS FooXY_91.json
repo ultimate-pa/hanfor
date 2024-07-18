@@ -1,0 +1,53 @@
+{
+    "_revision_diff": {
+        "type": "dict",
+        "data": []
+    },
+    "status": "Todo",
+    "tags": {
+        "type": "dict",
+        "data": [
+            {
+                "key": {
+                    "type": "Tag",
+                    "data": "b44bc95e-66ce-4704-8e11-0fccea0b20cd"
+                },
+                "value": ""
+            }
+        ]
+    },
+    "pos_in_csv": 0,
+    "csv_row": {
+        "type": "dict",
+        "data": [
+            {
+                "key": "desc_header",
+                "value": "always look on the bright side of life"
+            },
+            {
+                "key": "type_header",
+                "value": "req"
+            },
+            {
+                "key": "id_header",
+                "value": "SysRS FooXY_91"
+            },
+            {
+                "key": "formal_header",
+                "value": "Globally, it is always the case that POINT_OF_VIEW==BRIGHT_SIDE_OF_LIVE"
+            }
+        ]
+    },
+    "type_in_csv": "req",
+    "description": "always look on the bright side of life",
+    "formalizations": {
+        "type": "dict",
+        "data": []
+    },
+    "$meta": {
+        "type": "JsonDatabaseMetaData",
+        "data": {
+            "is_deleted": false
+        }
+    }
+}

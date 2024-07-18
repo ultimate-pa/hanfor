@@ -1,0 +1,104 @@
+{
+    "job0": {
+        "att_set": {
+            "type": "set",
+            "data": [
+                0,
+                1
+            ]
+        },
+        "att_dict": {
+            "type": "dict",
+            "data": [
+                {
+                    "key": 0,
+                    "value":
+                        {
+                            "type": "TestClassFieldType",
+                            "data": {
+                                "att_float": 1.0,
+                                "att_int": 1,
+                                "att_str": "true",
+                                "att_bool": true
+                            }
+                        }
+                },
+                {
+                    "key": 1,
+                    "value": {
+                        "type": "TestClassFieldType",
+                        "data": {
+                            "att_float": 0.0,
+                            "att_int": 0,
+                            "att_str": "false",
+                            "att_bool": false
+                        }
+                    }
+                }
+            ]
+        },
+        "att_tuple": {
+            "type": "tuple",
+            "data": [
+                0,
+                1
+            ]
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": true
+            }
+        }
+    },
+    "job1": {
+        "att_set": {
+            "type": "set",
+            "data": [
+                1,
+                2
+            ]
+        },
+        "att_dict": {
+            "type": "dict",
+            "data": [
+                {
+                  "key": 1,
+                    "value": {
+                        "type": "TestClassFieldType",
+                        "data": {
+                            "att_float": 1.0,
+                            "att_int": 1,
+                            "att_str": "true",
+                            "att_bool": true
+                        }
+                    }
+                },
+                {
+                    "key": 0,
+                    "value": {
+                        "type": "TestClassFieldType",
+                        "data": {
+                            "att_float": 0.0,
+                            "att_int": 0,
+                            "att_str": "false",
+                            "att_bool": false
+                        }
+                    }
+                }
+            ]
+        },
+        "att_tuple": {
+            "type": "tuple",
+            "data": [
+                1,
+                2
+            ]
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+            }
+        }
+    }
+}

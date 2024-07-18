@@ -80,9 +80,8 @@ PATTERNS = {
             ],
             "AFTER_UNTIL": [],
         },
-        "env": {"R": ["bool"], "S": ["bool"], "T": ["bool"], "U": ["bool"]},
-        "group": "Order",
-        "pattern_order": 3,
+        'group': 'Order',
+        'pattern_order': 4
     },
     "Precedence": {
         "pattern": "it is always the case that if {R} holds then {S} previously held",

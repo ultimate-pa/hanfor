@@ -7,10 +7,10 @@ from unittest import TestCase
 class TestFormalizationProcess(TestCase):
     def setUp(self) -> None:
         self.mock_hanfor = MockHanfor(session_tags=["simple"], test_session_source="test_formalization_process")
-        self.mock_hanfor.setUp()
+        self.mock_hanfor.set_up()
 
     def tearDown(self) -> None:
-        self.mock_hanfor.tearDown()
+        self.mock_hanfor.tear_down()
 
     def test_adding_new_formalization(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
@@ -65,10 +65,9 @@ class TestFormalizationProcess(TestCase):
         )
         self.assertListEqual(result.json["vars"], ["bar", "foo", "ham", "spam", "the_world_sinks"])
         self.assertListEqual(result.json["tags"], ["tag1", "tag2", "unknown_type", "has_formalization"])
-        self.assertEqual(
-            result.json["tags_comments"],
-            result.json["tags_comments"]
-            | {"tag1": "comment 1 with some character", "tag2": "äüö%&/+= coment330+-# chars"},
+        self.assertLessEqual(
+            {"tag1": "comment 1 with some character", "tag2": "äüö%&/+= coment330+-# chars"}.items(),
+            result.json["tags_comments"].items(),
         )
 
     def test_changing_var_in_formalization(self):
@@ -112,7 +111,7 @@ class TestFormalizationProcess(TestCase):
         # Check current available variables.
         self.assertCountEqual(result.json["available_vars"], ["spam_ham", "bar", "foo", "spam_egg", "spam", "bas"])
 
-    def test_changing_var_name(self):
+    def test_changing_var_name(self):  # TODO update names of variables is not allowed anymore
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
 
         # Check current formalization for `SysRS FooXY_42`

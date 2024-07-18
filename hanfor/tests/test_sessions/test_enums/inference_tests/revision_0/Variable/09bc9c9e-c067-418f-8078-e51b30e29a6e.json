@@ -1,0 +1,22 @@
+{
+    "description": "",
+    "constraints": {
+        "type": "dict",
+        "data": []
+    },
+    "belongs_to_enum": "",
+    "script_results": "",
+    "tags": {
+        "type": "set",
+        "data": []
+    },
+    "value": null,
+    "type": "ENUM_INT",
+    "name": "spam",
+    "$meta": {
+        "type": "JsonDatabaseMetaData",
+        "data": {
+            "is_deleted": false
+        }
+    }
+}

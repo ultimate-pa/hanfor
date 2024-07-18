@@ -7,7 +7,8 @@ import os
 import time
 import uuid
 
-from flask import Flask, render_template
+from hanfor_flask import HanforFlask
+from flask import render_template
 from pysmt.shortcuts import Bool, Int, Real
 from pysmt.typing import BOOL, INT, REAL
 
@@ -25,6 +26,11 @@ from ressources import Ressource
 
 validation_patterns = {BOOL: "^0|false|False|1|true|True$", INT: "^[+-]?\d+$", REAL: "^[+-]?\d*[.]?\d+$"}
 
+validation_patterns = {
+    BOOL: '^0|false|False|1|true|True$',
+    INT: '^[+-]?\d+$',
+    REAL: '^[+-]?\d*[.]?\d+$'
+}
 
 class SimulatorRessource(Ressource):
     simulator_cache: dict[str, Simulator] = {}
@@ -144,7 +150,7 @@ class SimulatorRessource(Ressource):
             return
 
         peas = []
-        var_collection = VariableCollection.load(self.app.config["SESSION_VARIABLE_COLLECTION"])
+        var_collection = VariableCollection(self.app)
 
         for requirement_id in requirement_ids:
             peas_tmp = SimulatorRessource.create_phase_event_automata(requirement_id, var_collection, self.app)
@@ -171,14 +177,14 @@ class SimulatorRessource(Ressource):
 
         result = {"requirements": {}, "variables": []}
 
-        var_collection = VariableCollection.load(self.app.config["SESSION_VARIABLE_COLLECTION"])
+        var_collection = VariableCollection(self.app)
         variables = {k: v.type for k, v in var_collection.collection.items()}
         result["variables"] = [
             {"name": k, "type": v.type, "value": v.value} for k, v in var_collection.collection.items()
         ]
 
         for requirement_id in requirement_ids:
-            requirement = Requirement.load_requirement_by_id(requirement_id, self.app)
+            requirement = self.app.db.get_object(Requirement, requirement_id)
             formalizations = {}
             for formalization in requirement.formalizations.values():
                 counter_traces = []
@@ -313,7 +319,7 @@ class SimulatorRessource(Ressource):
         self.get_simulators()
 
     @staticmethod
-    def load_phase_event_automata(requirement_id: str, app: Flask):
+    def load_phase_event_automata(requirement_id: str, app: HanforFlask):
         result = []
 
         dir = app.config["REVISION_FOLDER"]
@@ -323,13 +329,13 @@ class SimulatorRessource(Ressource):
         return result
 
     @staticmethod
-    def store_phase_event_automata(peas: list[PhaseSetsPea], app: Flask) -> None:
+    def store_phase_event_automata(peas: list[PhaseSetsPea], app: HanforFlask) -> None:
         for pea in peas:
             file = f"{pea.requirement.rid}_{pea.formalization.id}_{pea.countertrace_id}_PEA.pickle"
             pea.store(os.path.join(app.config["REVISION_FOLDER"], file))
 
     @staticmethod
-    def delete_phase_event_automata(requirement_id: str, app: Flask):
+    def delete_phase_event_automata(requirement_id: str, app: HanforFlask):
         dir = app.config["REVISION_FOLDER"]
         for file in fnmatch.filter(os.listdir(dir), f"{requirement_id}_*_PEA.pickle"):
             os.remove(os.path.join(dir, file))
@@ -343,10 +349,10 @@ class SimulatorRessource(Ressource):
         return False
 
     @staticmethod
-    def create_phase_event_automata(requirement_id: str, var_collection, app: Flask) -> list[PhaseSetsPea] | None:
+    def create_phase_event_automata(requirement_id: str, var_collection, app: HanforFlask) -> list[PhaseSetsPea] | None:
         result = []
 
-        requirement = Requirement.load_requirement_by_id(requirement_id, app)
+        requirement = app.db.get_object(Requirement, requirement_id)
 
         variables = {k: v.type for k, v in var_collection.collection.items()}
         boogie_parser = boogie_parsing.get_parser_instance()

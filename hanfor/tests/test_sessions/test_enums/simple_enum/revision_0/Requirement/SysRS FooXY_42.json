@@ -1,0 +1,97 @@
+{
+    "_revision_diff": {
+        "type": "dict",
+        "data": []
+    },
+    "status": "Todo",
+    "tags": {
+        "type": "dict",
+        "data": []
+    },
+    "pos_in_csv": 1,
+    "csv_row": {
+        "type": "dict",
+        "data": [
+            {
+                "key": "desc_header",
+                "value": "Dont worry, be happy"
+            },
+            {
+                "key": "type_header",
+                "value": "req"
+            },
+            {
+                "key": "id_header",
+                "value": "SysRS FooXY_42"
+            },
+            {
+                "key": "formal_header",
+                "value": "Globally, it is never the case, that WORRY holds; Globally, it is always the case, that HAPPY holds."
+            }
+        ]
+    },
+    "type_in_csv": "req",
+    "description": "Dont worry, be happy",
+    "formalizations": {
+        "type": "dict",
+        "data": [
+            {
+                "key": 0,
+                "value": {
+                    "type": "Formalization",
+                    "data": {
+                        "type_inference_errors": {
+                            "type": "dict",
+                            "data": []
+                        },
+                        "expressions_mapping": {
+                            "type": "dict",
+                            "data": [
+                                {
+                                    "key": "R",
+                                    "value": {
+                                        "type": "Expression",
+                                        "data": {
+                                            "parent_rid": "SysRS FooXY_42",
+                                            "raw_expression": "foo != bar",
+                                            "used_variables": {
+                                                "type": "set",
+                                                "data": [
+                                                    "bar",
+                                                    "foo"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "scoped_pattern": {
+                            "type": "ScopedPattern",
+                            "data": {
+                                "pattern": {
+                                    "type": "Pattern",
+                                    "data": {
+                                        "pattern": "it is never the case that {R} holds",
+                                        "name": "Absence"
+                                    }
+                                },
+                                "scope": {
+                                    "type": "Scope",
+                                    "data": "Globally"
+                                }
+                            }
+                        },
+                        "id": 0
+                    }
+                }
+            }
+        ]
+    },
+    "$meta": {
+        "type": "JsonDatabaseMetaData",
+        "data": {
+            "is_deleted": false
+        }
+    }
+}

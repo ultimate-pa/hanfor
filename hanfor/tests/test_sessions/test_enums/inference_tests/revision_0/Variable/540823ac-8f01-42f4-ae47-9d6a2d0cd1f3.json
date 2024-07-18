@@ -1,0 +1,22 @@
+{
+    "description": "",
+    "constraints": {
+        "type": "dict",
+        "data": []
+    },
+    "belongs_to_enum": "bar",
+    "script_results": "",
+    "tags": {
+        "type": "set",
+        "data": []
+    },
+    "value": "1.1",
+    "type": "ENUMERATOR_REAL",
+    "name": "bar_one",
+    "$meta": {
+        "type": "JsonDatabaseMetaData",
+        "data": {
+            "is_deleted": false
+        }
+    }
+}

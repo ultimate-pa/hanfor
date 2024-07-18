@@ -24,15 +24,15 @@ TEST_TAGS = {
 }
 
 
-def mock_user_input(*args, **kwargs) -> str:
+def mock_user_input() -> str:
     """Mocks user input. Returns the mock_results entry at position given by the number of calls.
     :return: mock_results[#of call starting with 0]
     """
-    global mock_results
-    global count
+    global mock_results  # noqa
+    global count  # noqa
     try:
         count += 1
-    except:
+    except:  # noqa
         count = 0
 
     if count == len(mock_results):
@@ -57,12 +57,12 @@ class TestHanforApiSkeleton(TestCase):
 
     @patch("builtins.input", mock_user_input)
     def startup_hanfor(self, args, user_mock_answers):
-        global mock_results
-        global count
+        global mock_results  # noqa
+        global count  # noqa
         count = -1
         mock_results = user_mock_answers
 
-        startup_hanfor(args, HERE)
+        startup_hanfor(args, HERE, no_data_tracing=True)
 
     def test_new_session_from_csv(self):
         """

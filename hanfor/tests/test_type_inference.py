@@ -11,7 +11,8 @@ import boogie_parsing
 
 
 class TestParseExpressions(TestCase):
-    def parse(self, code: str) -> Tree:
+    @staticmethod
+    def parse(code: str) -> Tree:
         parser = boogie_parsing.get_parser_instance()
         return parser.parse(code)
 
@@ -76,13 +77,15 @@ class TestParseExpressions(TestCase):
         self.assertEqual(BoogieType.bool, type_env["y"], msg="Error deriving bool from TRUE")
         self.assertFalse(errors)
 
-    def test_not_expr(self):
-        for type in [BoogieType.real, BoogieType.int]:
+    def test_negation_expr(self):
+        for boogie_type in [BoogieType.real, BoogieType.int]:
             tree = self.parse("-y")
-            ti = run_typecheck_fixpoint(tree, {"y": type}, expected_types=[type])
+            ti = run_typecheck_fixpoint(tree, {"y": boogie_type}, expected_types=[boogie_type])
             t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
-            self.assertEqual(type, t, msg="Error deriving bool from TRUE")
-            self.assertEqual(type, type_env["y"], msg="Error deriving bool from TRUE")
+            self.assertEqual(boogie_type, t, msg="Error deriving expression type of unary minus and number")
+            self.assertEqual(
+                boogie_type, type_env["y"], msg="Error deriving variable as number type in unary minus experssion"
+            )
             self.assertFalse(errors)
 
     def test_unknown_expr(self):
@@ -95,74 +98,74 @@ class TestParseExpressions(TestCase):
         self.assertFalse(errors)
 
     def test_eq_expr(self):
-        for type in [BoogieType.bool, BoogieType.real, BoogieType.int]:
+        for boogie_type in [BoogieType.bool, BoogieType.real, BoogieType.int]:
             tree = self.parse("x == y")
-            ti = run_typecheck_fixpoint(tree, {"x": type, "y": type}, expected_types=[BoogieType.bool])
+            ti = run_typecheck_fixpoint(tree, {"x": boogie_type, "y": boogie_type}, expected_types=[BoogieType.bool])
             t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
             self.assertEqual(BoogieType.bool, t, msg="Error deriving bool from x == y")
-            self.assertEqual(type, type_env["x"], msg=f"Error keeping x: {type} from x == y")
-            self.assertEqual(type, type_env["y"], msg=f"Error keeping y: {type} from x == y")
+            self.assertEqual(boogie_type, type_env["x"], msg=f"Error keeping x: {boogie_type} from x == y")
+            self.assertEqual(boogie_type, type_env["y"], msg=f"Error keeping y: {boogie_type} from x == y")
             self.assertFalse(errors)
 
     def test_neq_expr(self):
-        for type in [BoogieType.bool, BoogieType.real, BoogieType.int]:
+        for boogie_type in [BoogieType.bool, BoogieType.real, BoogieType.int]:
             tree = self.parse("x != y")
-            ti = run_typecheck_fixpoint(tree, {"x": type, "y": type}, expected_types=[BoogieType.bool])
+            ti = run_typecheck_fixpoint(tree, {"x": boogie_type, "y": boogie_type}, expected_types=[BoogieType.bool])
             t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
             self.assertEqual(BoogieType.bool, t, msg="Error deriving bool from TRUE")
-            self.assertEqual(type, type_env["x"], msg="Error deriving bool from TRUE")
-            self.assertEqual(type, type_env["y"], msg="Error deriving bool from TRUE")
+            self.assertEqual(boogie_type, type_env["x"], msg="Error deriving bool from TRUE")
+            self.assertEqual(boogie_type, type_env["y"], msg="Error deriving bool from TRUE")
             self.assertFalse(errors)
 
     def test_eq_expr_lunknown(self):
-        for type in [BoogieType.bool, BoogieType.real, BoogieType.int]:
+        for boogie_type in [BoogieType.bool, BoogieType.real, BoogieType.int]:
             tree = self.parse("x == y")
-            ti = run_typecheck_fixpoint(tree, {"y": type})
+            ti = run_typecheck_fixpoint(tree, {"y": boogie_type})
             t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
             self.assertEqual(BoogieType.bool, t, msg="Error deriving bool from x == y")
-            self.assertEqual(type, type_env["x"], msg=f"Error deriving x: {type} from x == y")
-            self.assertEqual(type, type_env["y"], msg=f"Error keeping y: {type} from x == y")
+            self.assertEqual(boogie_type, type_env["x"], msg=f"Error deriving x: {boogie_type} from x == y")
+            self.assertEqual(boogie_type, type_env["y"], msg=f"Error keeping y: {boogie_type} from x == y")
             self.assertFalse(errors)
 
     def test_eq_expr_runknown(self):
-        for type in [BoogieType.bool, BoogieType.real, BoogieType.int]:
+        for boogie_type in [BoogieType.bool, BoogieType.real, BoogieType.int]:
             tree = self.parse("x == y")
-            ti = run_typecheck_fixpoint(tree, {"x": type})
+            ti = run_typecheck_fixpoint(tree, {"x": boogie_type})
             t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
             self.assertEqual(BoogieType.bool, t, msg="Error deriving bool from x == y")
-            self.assertEqual(type, type_env["x"], msg=f"Error keeping x: {type} from x == y")
-            self.assertEqual(type, type_env["y"], msg=f"Error deriving y: {type} from x == y")
+            self.assertEqual(boogie_type, type_env["x"], msg=f"Error keeping x: {boogie_type} from x == y")
+            self.assertEqual(boogie_type, type_env["y"], msg=f"Error deriving y: {boogie_type} from x == y")
             self.assertFalse(errors)
 
     def test_unknown_type(self):
-        type = "bllluarg"
+        boogie_type = "bllluarg"
         tree = self.parse("x == y")
-        ti = run_typecheck_fixpoint(tree, {"x": type})
+        ti = run_typecheck_fixpoint(tree, {"x": boogie_type})  # noqa
         t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
         self.assertEqual(BoogieType.bool, t, msg="Error deriving expression type error from unknown type")
-        self.assertEqual(type, type_env["x"], msg="Error deriving bool from TRUE")
+        self.assertEqual(boogie_type, type_env["x"], msg="Error deriving bool from TRUE")
         self.assertEqual(BoogieType.unknown, type_env["y"], msg="Error deriving bool from TRUE")
         self.assertTrue(errors)
 
     def test_unary_minus_inference(self):
-        for type in [BoogieType.real, BoogieType.int]:
+        for boogie_type in [BoogieType.real, BoogieType.int]:
             tree = self.parse("(x + a) + (-y - z)")
-            ti = run_typecheck_fixpoint(tree, {"x": type})
+            ti = run_typecheck_fixpoint(tree, {"x": boogie_type})
             t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
-            self.assertEqual(type, t, msg="Error deriving bool from x == y")
-            self.assertEqual(type, type_env["x"], msg=f"Error deriving x: {type}")
-            self.assertEqual(type, type_env["y"], msg=f"Error keeping y: {type}")
-            self.assertEqual(type, type_env["z"], msg=f"Error keeping z: {type}")
-            self.assertEqual(type, type_env["a"], msg=f"Error keeping a: {type}")
+            self.assertEqual(boogie_type, t, msg="Error deriving bool from x == y")
+            self.assertEqual(boogie_type, type_env["x"], msg=f"Error deriving x: {boogie_type}")
+            self.assertEqual(boogie_type, type_env["y"], msg=f"Error keeping y: {boogie_type}")
+            self.assertEqual(boogie_type, type_env["z"], msg=f"Error keeping z: {boogie_type}")
+            self.assertEqual(boogie_type, type_env["a"], msg=f"Error keeping a: {boogie_type}")
             self.assertFalse(errors)
 
     def test_singleton(self):
-        for type in [BoogieType.bool, BoogieType.int, BoogieType.real]:
+        for boogie_type in [BoogieType.bool, BoogieType.int, BoogieType.real]:
             tree = self.parse("x")
-            ti = run_typecheck_fixpoint(tree, {"x": type})
+            ti = run_typecheck_fixpoint(tree, {"x": boogie_type})
             t, type_env, errors = ti.type_root.t, ti.type_env, ti.type_errors
-            self.assertEqual(type, t, msg=f"Error deriving {type} from single variable")
-            self.assertEqual(type, type_env["x"], msg=f"Error deriving {type} from single variable")
+            self.assertEqual(boogie_type, t, msg=f"Error deriving {boogie_type} from single variable")
+            self.assertEqual(boogie_type, type_env["x"], msg=f"Error deriving {boogie_type} from single variable")
             self.assertFalse(errors)
 
     def test_type_tree_gen2(self):

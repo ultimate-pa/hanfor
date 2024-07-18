@@ -50,7 +50,7 @@ class TestCSVParsing(TestCase):
         global mock_results
         mock_results = user_inputs
 
-        startup_hanfor(args, HERE)
+        startup_hanfor(args, HERE, no_data_tracing=True)
 
     def test_1_quotation_marks(self):
         args = utils.HanforArgumentParser(app).parse_args([TEST_TAG, "-c", TEST_CSV])

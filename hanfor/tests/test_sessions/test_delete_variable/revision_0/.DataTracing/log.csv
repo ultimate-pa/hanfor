@@ -1,0 +1,18 @@
+2024-04-29 13:55:26,406;None;SessionValue;csv_fieldnames;{}
+2024-04-29 13:55:26,407;None;SessionValue;csv_id_header;{}
+2024-04-29 13:55:26,407;None;SessionValue;csv_type_header;{}
+2024-04-29 13:55:26,408;None;SessionValue;csv_input_file;{}
+2024-04-29 13:55:26,410;None;SessionValue;csv_desc_header;{}
+2024-04-29 13:55:26,410;None;SessionValue;csv_dialect;{}
+2024-04-29 13:55:26,410;None;SessionValue;csv_formal_header;{}
+2024-04-29 13:55:26,412;None;Variable;f37940f2-d516-4222-accc-6ee8014b5884;{}
+2024-04-29 13:55:26,412;None;Variable;b1cb9617-103e-4fd0-9bf6-ae88c1dc7b4d;{}
+2024-04-29 13:55:26,413;None;Variable;c89d662e-8e07-44fd-8ef4-a2809400202a;{}
+2024-04-29 13:55:26,414;None;Variable;d8c442df-8e35-4ef0-8a91-11d7320b8ad7;{}
+2024-04-29 13:55:26,416;None;Variable;ab42e775-a085-4a44-b65e-79c30ddcbd5f;{}
+2024-04-29 13:55:26,417;None;Variable;6e22d741-7bb0-48e5-b361-53b1bf006229;{}
+2024-04-29 13:55:26,418;None;Variable;adb2373e-f78b-4ff7-a3cf-9fb86acf955c;{}
+2024-04-29 13:55:26,418;None;Tag;84002d3a-767d-4d53-a78d-7436b1f6076e;{}
+2024-04-29 13:55:26,418;None;Tag;d058192d-eb86-4d69-97c1-7b8ae346987d;{}
+2024-04-29 13:55:26,420;None;Requirement;SysRS FooXY_91;{}
+2024-04-29 13:55:26,422;None;Requirement;SysRS FooXY_42;{}

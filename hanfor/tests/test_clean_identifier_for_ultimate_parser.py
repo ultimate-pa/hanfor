@@ -14,7 +14,7 @@ from unittest import TestCase
 from utils import clean_identifier_for_ultimate_parser
 
 
-class TestClean_identifier_for_ultimate_parser(TestCase):
+class TestCleanIdentifierForUltimateParser(TestCase):
     def test_clean_identifier_for_ultimate_parser_whitespace(self):
         slug = "This is  a  Test\n"
         used_slugs = {"foo"}

@@ -1,0 +1,26 @@
+{
+    "6f02b571-4530-489d-a1df-a8f62b509fe4": {
+        "description": "",
+        "internal": false,
+        "color": "#0dcaf0",
+        "name": "Type_inference_error",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "bc91bd61-8e2a-443f-93ef-53d15631260b": {
+        "description": "",
+        "internal": false,
+        "color": "#0dcaf0",
+        "name": "unseen",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    }
+}

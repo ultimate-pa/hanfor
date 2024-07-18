@@ -8,83 +8,25 @@ import csv
 import difflib
 import json
 import logging
-import os
-import pickle
 import re
 import string
-import subprocess
-from collections import defaultdict, OrderedDict
-from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
-from flask import current_app
-from lark import LarkError
-from packaging import version
+from lark import LarkError, Lark
 
 import boogie_parsing
 from boogie_parsing import run_typecheck_fixpoint, BoogieType
 from patterns import PATTERNS
-from static_utils import choice, get_filenames_from_dir, replace_prefix, try_cast_string
-from threading import Thread
+from static_utils import choice, replace_prefix, try_cast_string, SessionValue
+from tags.tags import TagsApi, Tag
+
 from typing import Dict, Tuple
+from hanfor_flask import current_app
+
+from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField, DatabaseFieldType
+from deprecated import deprecated
 
 __version__ = "1.0.4"
-
-
-class HanforVersioned:
-    def __init__(self):
-        self._hanfor_version = __version__
-
-    @property
-    def hanfor_version(self) -> str:
-        if not hasattr(self, "_hanfor_version"):
-            self._hanfor_version = "0.0.0"
-        return self._hanfor_version
-
-    @hanfor_version.setter
-    def hanfor_version(self, val):
-        self._hanfor_version = val
-
-    @property
-    def outdated(self) -> bool:
-        return version.parse(self.hanfor_version) < version.parse(__version__)
-
-    def run_version_migrations(self):
-        if self.outdated:
-            logging.debug(f"Migration (noop) {self}: from {self.hanfor_version} -> {__version__}")
-            self._hanfor_version = __version__
-            # this is a shortcut to skip explicit update code for all things that did not change in a version.
-            # TODO: non the less this should be solved differently
-            if isinstance(self, Pickleable):
-                self.store()
-
-
-class Pickleable:
-    def __init__(self, path):
-        self.my_path = path
-
-    @classmethod
-    def load(cls, path):
-        path_size = os.path.getsize(path)
-
-        if not path_size > 0:
-            raise AssertionError("Could not load object from `{}`. (path size is {})".format(path, path_size))
-
-        with open(path, mode="rb") as f:
-            me = pickle.load(f)
-            if not isinstance(me, cls):
-                raise TypeError
-
-        me.my_path = path
-
-        return me
-
-    def store(self, path=None):
-        if path is not None:
-            self.my_path = path
-
-        with open(self.my_path, mode="wb") as out_file:
-            pickle.dump(self, out_file)
 
 
 @dataclass
@@ -103,11 +45,9 @@ class CsvConfig:
     import_formalizations: bool = False
 
 
-class RequirementCollection(HanforVersioned, Pickleable):
+class RequirementCollection:
 
     def __init__(self):
-        HanforVersioned.__init__(self)
-        Pickleable.__init__(self, None)
         self.csv_meta = CsvConfig()
         self.csv_all_rows = None
         self.requirements = list()
@@ -150,10 +90,9 @@ class RequirementCollection(HanforVersioned, Pickleable):
                 dialect.escapechar = "\\"
             except csv.Error:
                 logging.info("Could not guess .csv dialect, assuming defaults")
-                csv.register_dialect("ultimate", delimiter=",")
+                csv.register_dialect("ultimate", delimiter=",", escapechar="\\")
                 dialect = "ultimate"
             csvfile.seek(0)
-
             reader = csv.DictReader(csvfile, dialect=dialect)
             self.csv_all_rows = list(reader)
             self.csv_meta.fieldnames = reader.fieldnames
@@ -178,10 +117,10 @@ class RequirementCollection(HanforVersioned, Pickleable):
             self.csv_meta.formal_header = user_provided_headers["csv_formal_header"]
             self.csv_meta.type_header = user_provided_headers["csv_type_header"]
         elif base_revision_headers and use_old_headers == "yes":
-            self.csv_meta.id_header = base_revision_headers["csv_id_header"]
-            self.csv_meta.desc_header = base_revision_headers["csv_desc_header"]
-            self.csv_meta.formal_header = base_revision_headers["csv_formal_header"]
-            self.csv_meta.type_header = base_revision_headers["csv_type_header"]
+            self.csv_meta.id_header = base_revision_headers["csv_id_header"].value
+            self.csv_meta.desc_header = base_revision_headers["csv_desc_header"].value
+            self.csv_meta.formal_header = base_revision_headers["csv_formal_header"].value
+            self.csv_meta.type_header = base_revision_headers["csv_type_header"].value
         else:
             available_headers = set(self.csv_meta.headers)
             available_headers.discard("Hanfor_Tags")
@@ -231,15 +170,16 @@ class RequirementCollection(HanforVersioned, Pickleable):
                     r for r in available_sessions[available_sessions_names.index(chosen_session)]["revisions"]
                 ]
                 revision_choice = choice(available_revisions, available_revisions[0])
-                imported_var_collection = VariableCollection.load(
-                    os.path.join(
-                        app.config["SESSION_BASE_FOLDER"],
-                        chosen_session,
-                        revision_choice,
-                        "session_variable_collection.pickle",
-                    )
-                )
-                imported_var_collection.store(app.config["SESSION_VARIABLE_COLLECTION"])
+                # TODO: here there is funky stuff with revicion choice
+                # imported_var_collection = VariableCollection.load(
+                #     os.path.join(
+                #         app.config["SESSION_BASE_FOLDER"],
+                #         chosen_session,
+                #         revision_choice,
+                #         "session_variable_collection.pickle",
+                #     )
+                # )
+                # imported_var_collection.store(app.config["SESSION_VARIABLE_COLLECTION"])
             else:
                 print("No sessions available. Skipping")
 
@@ -262,8 +202,12 @@ class RequirementCollection(HanforVersioned, Pickleable):
             if self.csv_meta.import_formalizations:
                 # Set the tags
                 if self.csv_meta.tags_header is not None:
-                    tags = {t.strip(): "" for t in row[self.csv_meta.tags_header].split(",")}
-                    requirement.tags.update(tags)
+                    tag_api = TagsApi()
+                    for t in row[self.csv_meta.tags_header].split(","):
+                        if not tag_api.tag_exists(t):
+                            tag_api.add(t)
+                        tag = tag_api.get_tag(t)
+                        requirement.tags[tag] = ""
                 # Set the status
                 if self.csv_meta.status_header is not None:
                     status = row[self.csv_meta.status_header].strip()
@@ -287,17 +231,25 @@ class RequirementCollection(HanforVersioned, Pickleable):
             self.requirements.append(requirement)
 
 
-class Requirement(HanforVersioned, Pickleable):
+@DatabaseTable(TableType.Folder)
+@DatabaseID("rid", str)
+@DatabaseField("formalizations", dict)
+@DatabaseField("description", str)
+@DatabaseField("type_in_csv", str)
+@DatabaseField("csv_row", dict)
+@DatabaseField("pos_in_csv", int)
+@DatabaseField("tags", dict)
+@DatabaseField("status", str, default="Todo")
+@DatabaseField("_revision_diff", dict)
+class Requirement:
     def __init__(self, id: str, description: str, type_in_csv: str, csv_row: dict[str, str], pos_in_csv: int):
-        HanforVersioned.__init__(self)
-        Pickleable.__init__(self, None)
         self.rid: str = id
         self.formalizations: Dict[int, Formalization] = dict()
         self.description = description
         self.type_in_csv = type_in_csv
         self.csv_row = csv_row
         self.pos_in_csv = pos_in_csv
-        self.tags: OrderedDict[str, str] = OrderedDict()
+        self.tags: dict[Tag, str] = dict()
         self.status = "Todo"
         self._revision_diff = dict()
 
@@ -316,8 +268,8 @@ class Requirement(HanforVersioned, Pickleable):
             "desc": self.description,
             # Typecheck is for downwards compatibility (please do not remove)
             "type": self.type_in_csv if isinstance(self.type_in_csv, str) else "None",
-            "tags": list(self.tags.keys()),
-            "tags_comments": self.tags,
+            "tags": [tag.name for tag in self.tags.keys()],
+            "tags_comments": {tag.name: comment for tag, comment in self.tags.items()},
             "formal": [f.get_string() for f in self.formalizations.values()],
             "scope": "None",  # TODO: remove: This is obsolete since a requirement can hold multiple Formalizations.
             "pattern": "None",  # TODO: remove: This is obsolete since a requirement can hold multiple Formalizations.
@@ -330,45 +282,6 @@ class Requirement(HanforVersioned, Pickleable):
         }
         return d
 
-    @classmethod
-    def load_requirement_by_id(cls, id: str, app) -> "Requirement":
-        """Loads requirement from session folder if it exists.
-
-        :param id: requirement_id
-        :type id: str
-        :param app: The flask app.
-        :rtype: Requirement
-        """
-        path = os.path.join(app.config["REVISION_FOLDER"], f"{id}.pickle")
-        if os.path.exists(path) and os.path.isfile(path):
-            return Requirement.load(path)
-
-    @classmethod
-    def load(cls, path):
-        me = Pickleable.load(path)
-        if not isinstance(me, cls):
-            raise TypeError
-
-        if me.outdated:
-            logging.info(f"`{me}` needs upgrade `{me.hanfor_version}` -> `{__version__}`")
-            me.run_version_migrations()
-            me.store()
-
-        return me
-
-    @classmethod
-    def requirements(cls):
-        """Iterator for all requirements."""
-        filenames = get_filenames_from_dir(current_app.config["REVISION_FOLDER"])
-        for filename in filenames:
-            try:
-                yield cls.load(filename)
-            except Exception:
-                logging.error(f"Loading {filename} failed spectacularly!")
-
-    def store(self, path=None):
-        super().store(path)
-
     @property
     def revision_diff(self) -> Dict[str, str]:
         if not hasattr(self, "_revision_diff"):
@@ -376,7 +289,7 @@ class Requirement(HanforVersioned, Pickleable):
         return self._revision_diff
 
     @revision_diff.setter
-    def revision_diff(self, other):
+    def revision_diff(self, other: "Requirement"):
         """Compute and set diffs based on `other` Requirement
 
         :param other: Requirement the diff should be based on.
@@ -388,11 +301,15 @@ class Requirement(HanforVersioned, Pickleable):
             if self.csv_row[csv_key] is None:
                 # This can happen if we revision with an CSV that is missing the csv_key now.
                 self.csv_row[csv_key] = ""
-            diff = difflib.ndiff(other.csv_row[csv_key].splitlines(), self.csv_row[csv_key].splitlines())
+            diff = difflib.ndiff(self.csv_row[csv_key].splitlines(), other.csv_row[csv_key].splitlines())
             diff = [s for s in diff if not s.startswith("  ")]
             diff = "\n".join(diff)
             if len(diff) > 0:
                 self._revision_diff[csv_key] = diff
+        self.description = other.description
+        self.type_in_csv = other.type_in_csv
+        self.csv_row = other.csv_row
+        self.pos_in_csv = other.pos_in_csv
 
     def _next_free_formalization_id(self):
         i = 0
@@ -408,7 +325,7 @@ class Requirement(HanforVersioned, Pickleable):
 
     def delete_formalization(self, formalization_id, app):
         formalization_id = int(formalization_id)
-        variable_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+        variable_collection = VariableCollection(app)
 
         # Remove formalization
         del self.formalizations[formalization_id]
@@ -422,27 +339,29 @@ class Requirement(HanforVersioned, Pickleable):
         # Update the mappings.
         variable_collection.req_var_mapping[self.rid] = remaining_vars
         variable_collection.var_req_mapping = variable_collection.invert_mapping(variable_collection.req_var_mapping)
-        variable_collection.store(app.config["SESSION_VARIABLE_COLLECTION"])
+        variable_collection.store()
+        app.db.update()
 
     def update_formalization(self, formalization_id, scope_name, pattern_name, mapping, app, variable_collection=None):
         if variable_collection is None:
-            variable_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            variable_collection = VariableCollection(app)
 
+        # TODO: simplify
         # set scoped pattern
-        self.formalizations[formalization_id].scoped_pattern = ScopedPattern(
-            Scope[scope_name], Pattern(name=pattern_name)
-        )
-        # set parent
-        self.formalizations[formalization_id].belongs_to_requirement = self.rid
+        sp: ScopedPattern = self.formalizations[formalization_id].scoped_pattern
+        if not sp.scope.name == scope_name or not sp.pattern.name == pattern_name:
+            self.formalizations[formalization_id].scoped_pattern = ScopedPattern(
+                Scope[scope_name], Pattern(name=pattern_name)
+            )
         # Parse and set the expressions.
         self.formalizations[formalization_id].set_expressions_mapping(
             mapping=mapping, variable_collection=variable_collection, rid=self.rid
         )
-        # Run type inference check
+
         # Add 'Type_inference_error' tag
         if len(self.formalizations[formalization_id].type_inference_errors) > 0:
             formatted_errors = self.format_error_tag(self.formalizations[formalization_id])
-            self.tags["Type_inference_error"] = formatted_errors
+            self.tags[current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value] = formatted_errors
 
         # Add 'unknown_type' tag
         vars_with_unknown_type = []
@@ -450,26 +369,30 @@ class Requirement(HanforVersioned, Pickleable):
             variable_collection, vars_with_unknown_type
         )
         if vars_with_unknown_type:
-            self.tags["unknown_type"] = self.format_unknown_type_tag(vars_with_unknown_type)
+            self.tags[current_app.db.get_object(SessionValue, "TAG_unknown_type").value] = self.format_unknown_type_tag(
+                vars_with_unknown_type
+            )
 
         if (
             self.formalizations[formalization_id].scoped_pattern.scope != Scope.NONE
             and self.formalizations[formalization_id].scoped_pattern.pattern.name != "NotFormalizable"
         ):
-            self.tags["has_formalization"] = ""
+            self.tags[current_app.db.get_object(SessionValue, "TAG_has_formalization").value] = ""
         else:
-            self.tags["incomplete_formalization"] = self.format_incomplete_formalization_tag(formalization_id)
+            self.tags[current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value] = (
+                self.format_incomplete_formalization_tag(formalization_id)
+            )
 
     def format_error_tag(self, formalisation: "Formalization") -> str:
-        if not self.tags.get("Type_inference_error"):
+        if current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value not in self.tags:
             result = ""
         else:
-            result = self.tags.get("Type_inference_error")
+            result = self.tags[current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value]
 
         if not formalisation.type_inference_errors:
             return result
         for key, value in formalisation.type_inference_errors.items():
-            result += f"{str(formalisation.belongs_to_requirement)}_{str(formalisation.id)} ({key}): \n- "
+            result += f"{self.rid}_{str(formalisation.id)} ({key}): \n- "
             result += "\n- ".join(value) + "\n"
         return result
 
@@ -478,22 +401,26 @@ class Requirement(HanforVersioned, Pickleable):
 
     def format_incomplete_formalization_tag(self, fid: int) -> str:
         rid_fid = self.rid + "_" + fid.__str__()
-        if not self.tags.get("incomplete_formalization"):
+        if current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value not in self.tags:
             return "- " + rid_fid
         else:
-            return self.tags.get("incomplete_formalization") + "\n- " + rid_fid
+            return (
+                self.tags[current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value]
+                + "\n- "
+                + rid_fid
+            )
 
     def update_formalizations(self, formalizations: dict, app):
-        if "Type_inference_error" in self.tags:
-            self.tags.pop("Type_inference_error")
-        if "unknown_type" in self.tags:
-            self.tags.pop("unknown_type")
-        if "incomplete_formalization" in self.tags:
-            self.tags.pop("incomplete_formalization")
-        if "has_formalization" in self.tags:
-            self.tags.pop("has_formalization")
+        if current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value in self.tags:
+            self.tags.pop(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
+        if current_app.db.get_object(SessionValue, "TAG_unknown_type").value in self.tags:
+            self.tags.pop(current_app.db.get_object(SessionValue, "TAG_unknown_type").value)
+        if current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value in self.tags:
+            self.tags.pop(current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value)
+        if current_app.db.get_object(SessionValue, "TAG_has_formalization").value in self.tags:
+            self.tags.pop(current_app.db.get_object(SessionValue, "TAG_has_formalization").value)
         logging.debug(f"Updating formalisations of requirement {self.rid}.")
-        variable_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+        variable_collection = VariableCollection(app)
         # Reset the var mapping.
         variable_collection.req_var_mapping[self.rid] = set()
 
@@ -515,22 +442,25 @@ class Requirement(HanforVersioned, Pickleable):
 
     def run_type_checks(self, var_collection):
         logging.info(f"Run type inference and unknown check for `{self.rid}`")
-        if "Type_inference_error" in self.tags:
-            self.tags.pop("Type_inference_error")
-        if "unknown_type" in self.tags:
-            self.tags.pop("unknown_type")
+        if current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value in self.tags:
+            self.tags.pop(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
+        if current_app.db.get_object(SessionValue, "TAG_unknown_type").value in self.tags:
+            self.tags.pop(current_app.db.get_object(SessionValue, "TAG_unknown_type").value)
         vars_with_unknown_type = []
         for id in self.formalizations.keys():
             # Run type inference check
             self.formalizations[id].type_inference_check(var_collection)
             if len(self.formalizations[id].type_inference_errors) > 0:
-                self.tags["Type_inference_error"] = self.format_error_tag(self.formalizations[id])
+                self.tags[current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value] = (
+                    self.format_error_tag(self.formalizations[id])
+                )
 
             # Check for variables of type 'unknown' in formalization
             vars_with_unknown_type = self.formalizations[id].unknown_types_check(var_collection, vars_with_unknown_type)
             if vars_with_unknown_type:
-                self.tags["unknown_type"] = self.format_unknown_type_tag(vars_with_unknown_type)
-        self.store()
+                self.tags[current_app.db.get_object(SessionValue, "TAG_unknown_type").value] = (
+                    self.format_unknown_type_tag(vars_with_unknown_type)
+                )
 
     def get_formalizations_json(self) -> str:
         """Fetch all formalizations in json format. Used to reload formalizations.
@@ -547,16 +477,6 @@ class Requirement(HanforVersioned, Pickleable):
 
         return json.dumps(result, sort_keys=True)
 
-    def run_version_migrations(self):
-        if self.hanfor_version == "0.0.0":
-            logging.info(f"Migrating `{self.__class__.__name__}`:`{self.rid}`, from 0.0.0 -> 1.0.0")
-            # Migrate list formalizations to use dict
-            self.hanfor_version = "1.0.0"
-            if type(self.formalizations) is list:
-                self.formalizations = dict(enumerate(self.formalizations))
-            self.store()
-        super().run_version_migrations()
-
     def uses_var(self, var_name):
         """Test is var_name is used in one of the requirements formalizations.
 
@@ -570,14 +490,21 @@ class Requirement(HanforVersioned, Pickleable):
                 break
         return result
 
+    @deprecated(reason="Use req.tags with Tag objects as key instead.")
+    def get_tag_name_comment_dict(self) -> dict[str, str]:
+        return {tag.name: comment for tag, comment in self.tags.items()}
 
-class Formalization(HanforVersioned):
+
+@DatabaseFieldType()
+@DatabaseField("id", int)
+@DatabaseField("scoped_pattern", "ScopedPattern")
+@DatabaseField("expressions_mapping", dict)
+@DatabaseField("type_inference_errors", dict)
+class Formalization:
     def __init__(self, id: int):
-        super().__init__()
         self.id: int = id
         self.scoped_pattern = ScopedPattern()
         self.expressions_mapping: dict[str, Expression] = dict()
-        self.belongs_to_requirement = None
         self.type_inference_errors = dict()
 
     @property
@@ -587,30 +514,27 @@ class Formalization(HanforVersioned):
             result += exp.used_variables
         return list(set(result))
 
-    def set_expressions_mapping(self, mapping, variable_collection, rid):
+    def set_expressions_mapping(
+        self, mapping: dict[str, str], variable_collection: "VariableCollection", rid: str
+    ) -> None:
         """Parse expression mapping.
             + Extract variables. Replace by their ID. Create new Variables if they do not exist.
             + For used variables and update the "used_by_requirements" set.
 
-        :type mapping: dict
         :param mapping: {'P': 'foo > 0', 'Q': 'expression for Q', ...}
-        :type variable_collection: VariableCollection
         :param variable_collection: Currently used VariableCollection.
-        :type rid: str
         :param rid: associated requirement id
 
         :return: type_inference_errors dict {key: type_env, ...}
-        :rtype: dict
         """
-        if self.expressions_mapping is None:
-            self.expressions_mapping = dict()
+        changes = False
         for key, expression_string in mapping.items():
-            expression = Expression()
-            if key in self.scoped_pattern.environment:
-                expression.set_expression(expression_string, variable_collection, rid)
-            self.expressions_mapping[key] = expression
-        self.get_string()
-        self.type_inference_check(variable_collection)
+            if key not in self.expressions_mapping:
+                self.expressions_mapping[key] = Expression(rid)
+            if self.expressions_mapping[key].set_expression(expression_string, variable_collection):
+                changes = True
+        if changes:
+            self.type_inference_check(variable_collection)
 
     def type_inference_check(self, variable_collection):
         """Apply type inference check for the expressions in this formalization.
@@ -636,7 +560,7 @@ class Formalization(HanforVersioned):
                     f"Lark could not parse expression `{expression.raw_expression}`: \n {e}. Skipping type inference"
                 )
                 continue
-            expression.set_expression(expression.raw_expression, variable_collection, expression.parent_rid)
+            expression.set_expression(expression.raw_expression, variable_collection)
 
             # Derive type for variables in expression and update missing or changed types.
             ti = run_typecheck_fixpoint(tree, var_env, expected_types=allowed_types[key])
@@ -687,7 +611,11 @@ class Formalization(HanforVersioned):
         return self.scoped_pattern.get_string(self.expressions_mapping)
 
 
-class Expression(HanforVersioned):
+@DatabaseFieldType()
+@DatabaseField("used_variables", list[str])
+@DatabaseField("raw_expression", str)
+@DatabaseField("parent_rid", str)
+class Expression:
     """Representing an Expression in a ScopedPattern.
     For example: Let
        `Globally, {P} is always true.`
@@ -696,44 +624,32 @@ class Expression(HanforVersioned):
     Then `NO_PAIN => NO_GAIN` is the Expression.
     """
 
-    def __init__(self):
-        super().__init__()
-        self.used_variables: list[str] = list()
-        self.raw_expression = None
-        self.parent_rid = None
+    def __init__(self, parent_rid: str):
+        self.used_variables: list[str] = list()  # TODO use Variable objects instead of str
+        self.raw_expression = ""
+        self.parent_rid = parent_rid
 
-    def set_expression(self, expression: str, variable_collection: "VariableCollection", parent_rid):
+    def set_expression(self, expression: str, variable_collection: "VariableCollection") -> bool:
         """Parses the Expression using the boogie grammar.
         * Extract variables.
             + Create new ones if not in Variable collection.
             + Replace Variables by their identifier.
         * Store set of used variables to `self.used_variables`
         """
-        self.raw_expression = expression
-        self.parent_rid = parent_rid
+        if expression == self.raw_expression:
+            return False
         logging.debug(f"Setting expression: `{expression}`")
+        self.raw_expression = expression
         # Get the vars occurring in the expression.
-        parser = boogie_parsing.get_parser_instance()
-        tree = parser.parse(expression)
+        tree = boogie_parsing.get_parser_instance().parse(expression)
 
         self.used_variables = set(boogie_parsing.get_variables_list(tree))
-
-        new_vars = []
         for var_name in self.used_variables:
             if var_name not in variable_collection:
                 variable_collection.add_var(var_name)
-                new_vars.append(var_name)
 
-        # TODO: restore if needed, not clear what this does
-        # further app was not always available here, thus this has to be refactored
-        # if len(new_vars) > 0:
-        #    variable_collection.reload_script_results(app, new_vars)
-
-        variable_collection.map_req_to_vars(parent_rid, self.used_variables)
-        # try:
-        #    variable_collection.store(app.config['SESSION_VARIABLE_COLLECTION'])
-        # except:
-        #    pass
+        variable_collection.map_req_to_vars(self.parent_rid, self.used_variables)
+        return True
 
     def __str__(self):
         return f'"{self.raw_expression}"'
@@ -783,17 +699,20 @@ class Scope(Enum):
         return scope_env[self.name]
 
 
+@DatabaseFieldType()
+@DatabaseField("name", str)
+@DatabaseField("pattern", str)
 class Pattern:
     def __init__(self, name: str = "NotFormalizable"):
         self.name = name
-        self.environment = PATTERNS[name]["env"]
         self.pattern = PATTERNS[name]["pattern"]
+        self.environment = PATTERNS[name]["env"]
 
     def is_instantiatable(self):
         return self.name != "NotFormalizable"
 
-    def instantiate(self, scope, *args):
-        return scope + ", " + self.pattern.format(*args)
+    def instantiate(self, scope: Scope, *args):
+        return str(scope) + ", " + self.pattern.format(*args)
 
     def __str__(self):
         return self.pattern
@@ -802,6 +721,10 @@ class Pattern:
         return BoogieType.alias_env_to_instantiated_env(PATTERNS[self.name]["env"])
 
 
+@DatabaseFieldType()
+@DatabaseField("scope", Scope)
+@DatabaseField("pattern", Pattern)
+@DatabaseField("regex_pattern", str)
 class ScopedPattern:
     def __init__(self, scope: Scope = Scope.NONE, pattern: Pattern = None):
         self.scope = scope
@@ -863,29 +786,15 @@ class ScopedPattern:
         return result
 
 
-class VariableCollection(HanforVersioned, Pickleable):
-    def __init__(self, path):
-        HanforVersioned.__init__(self)
-        Pickleable.__init__(self, path)
-        self.collection: Dict[str, Variable] = dict()
-        self.req_var_mapping = dict()
-        self.var_req_mapping = dict()
+class VariableCollection:
+    def __init__(self, app):
+        self.app = app
+        self.collection: Dict[str, Variable] = {v.name: v for v in app.db.get_objects(Variable).values()}
+        self.refresh_var_usage(app)
+        self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
 
     def __contains__(self, item):
         return item in self.collection.keys()
-
-    @classmethod
-    def load(cls, path) -> "VariableCollection":
-        me = Pickleable.load(path)
-        if not isinstance(me, cls):
-            raise TypeError
-
-        if me.outdated:
-            logging.info(f"`{me}` needs upgrade `{me.hanfor_version}` -> `{__version__}`")
-            me.run_version_migrations()
-            me.store()
-
-        return me
 
     def get_available_vars_list(self, sort_by=None, used_only=False, exclude_types=frozenset()):
         """Returns a list of all available var names."""
@@ -920,10 +829,11 @@ class VariableCollection(HanforVersioned, Pickleable):
                 variable = Variable(var_name, None, None)
             logging.debug(f"Adding variable `{var_name}` to collection.")
             self.collection[variable.name] = variable
+            self.app.db.add_object(variable)
 
-    def store(self, path=None):
+    def store(self):
         self.var_req_mapping = self.invert_mapping(self.req_var_mapping)
-        super().store(path)
+        # self.app.db.update()
 
     def invert_mapping(self, mapping):
         newdict = {}
@@ -993,9 +903,6 @@ class VariableCollection(HanforVersioned, Pickleable):
 
         # Update the req -> var mapping.
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
-
-        # Update the variable script results.
-        self.reload_script_results(app, [new_name])
 
         # Rename the enumerators in case this renaming affects an enum.
         affected_enumerators = []
@@ -1115,18 +1022,12 @@ class VariableCollection(HanforVersioned, Pickleable):
         for name, var in self.collection.items():
             if len(var.get_constraints()) > 0:
                 var.reload_constraints_type_inference_errors(self)
-                self.collection[name] = var
 
     def refresh_var_usage(self, app):
-        filenames = get_filenames_from_dir(app.config["REVISION_FOLDER"])
         mapping = dict()
 
         # Add the requirements using this variable.
-        for filename in filenames:
-            try:
-                req = Requirement.load(filename)
-            except TypeError:
-                continue
+        for req in app.db.get_objects(Requirement).values():
             for formalization in req.formalizations.values():
                 try:
                     for var_name in formalization.used_variables:
@@ -1143,8 +1044,6 @@ class VariableCollection(HanforVersioned, Pickleable):
         for var in self.collection.values():
             for constraint in var.get_constraints().values():
                 for constraint_id, expression in enumerate(constraint.expressions_mapping.values()):
-                    if not expression.used_variables:
-                        continue
                     for var_name in expression.used_variables:
                         if var_name not in mapping.keys():
                             mapping[var_name] = set()
@@ -1169,8 +1068,10 @@ class VariableCollection(HanforVersioned, Pickleable):
                 deletable = True
 
         if deletable:
-            self.collection.pop(var_name, None)
+            deleted_var = self.collection.pop(var_name, None)
             self.var_req_mapping.pop(var_name, None)
+            if deleted_var:
+                self.app.db.remove_object(deleted_var)
             return True
         return False
 
@@ -1180,104 +1081,6 @@ class VariableCollection(HanforVersioned, Pickleable):
             if other_var.belongs_to_enum == enum_name:
                 enumerators.append(other_var)
         return enumerators
-
-    def run_version_migrations(self):
-        logging.info(
-            f"Migrating `{self.__class__.__name__}`:`{self.my_path}`, from {self.hanfor_version} -> {__version__}"
-        )
-        for name, variable in self.collection.items():  # type: (str, Variable)
-            variable.run_version_migrations()
-        if version.parse(self.hanfor_version) < version.parse("1.0.3"):
-            # Migrate for introduction of ENUM_INT and ENUM_REAL.
-            for name, variable in self.collection.items():  # type: (str, Variable)
-                if variable.type == "ENUM":
-                    logging.info(f"Migrate old ENUM `{variable.name}` to new ENUM_INT, ENUM_REAL")
-                    enumerators = []
-                    for other_var_name, other_var in self.collection.items():  # type: str, Variable
-                        if (
-                            len(other_var_name) > len(variable.name)
-                            and other_var_name.startswith(variable.name)
-                            and other_var.type == "ENUMERATOR"
-                        ):
-                            enumerators.append(other_var_name)
-                            # Set newly introduced belongs_to_enum.
-                            other_var.belongs_to_enum = variable.name
-                    # Determine the new type from the ENUMERATOR values.
-                    new_type = "INT"
-                    for enumerator_name in enumerators:
-                        try:
-                            int(self.collection[enumerator_name].value)
-                        except Exception:
-                            new_type = "REAL"
-                    # Set new types.
-                    variable.type = "ENUM_{}".format(new_type)
-                    logging.info("Set type of `{}` to `{}`".format(variable.name, variable.type))
-                    for enumerator_name in enumerators:
-                        self.collection[enumerator_name].type = "ENUMERATOR_{}".format(new_type)
-                        logging.info(
-                            "Set type of `{}` to `{}`".format(enumerator_name, self.collection[enumerator_name].type)
-                        )
-        super().run_version_migrations()
-
-    def script_eval(self, env, script_filename, script, params_config, var_names, app):
-        with app.app_context():
-            results = dict()
-            for name in var_names:
-                params = [param.replace("$VAR_NAME", name) for param in params_config]
-                logging.debug("Eval script: `{}` using params `{}` for var `{}`".format(script_filename, params, name))
-                try:
-                    result = subprocess.check_output(
-                        [script] + params, shell=True, env=env, stderr=subprocess.DEVNULL
-                    ).decode()
-                except subprocess.CalledProcessError as e:
-                    result = "Output: {}".format(e.output.decode())
-                results[name] = "Results for `{}` <br> {} <br>".format(script_filename, result)
-            logging.info("Store script eval for script: {}".format(script_filename))
-
-            # Update script_results.
-            script_results = ScriptEvals.load(path=app.config["SCRIPT_EVAL_RESULTS_PATH"])
-            script_results.update_evals(results, script_filename)
-            script_results.store()
-
-    def start_script_eval_thread(self, env, script_filename, script, params_config, var_names, app):
-        Thread(target=self.script_eval, args=(env, script_filename, script, params_config, var_names, app)).start()
-
-    def reload_script_results(self, app, var_names=None):
-        """Run the script evaluations for the variables in this collection as set in the config.py
-
-        :param var_names: Iterable object of variable names the script should be reevaluated. Uses all if None
-        :param app: Hanfor flask app for context.
-        """
-        logging.info("Start variable script evaluations.")
-        if var_names is None:
-            var_names = self.collection.keys()
-
-        if "SCRIPT_EVALUATIONS" not in app.config:
-            logging.info("No SCRIPT_EVALUATIONS settings found in config.py. Skipping variable script evaluations.")
-            return
-
-        # Prepare the subprocess to use our environment.
-        env = os.environ.copy()
-        env["PATH"] = "/usr/sbin:/sbin:" + env["PATH"]
-
-        # Eval each script given by the config
-        for script_filename, params_config in app.config["SCRIPT_EVALUATIONS"].items():
-            # First load the script to prevent permission issues.
-            try:
-                script_path = os.path.join(app.config["SCRIPT_UTILS_PATH"], script_filename)
-                with open(script_path, "rb") as f:
-                    script = f.read()
-            except Exception as e:
-                logging.error("Could not load `{}` to eval variable scrypt results: `{}`".format(script_filename, e))
-                continue
-            self.start_script_eval_thread(
-                env=env,
-                script_filename=script_filename,
-                script=script,
-                params_config=params_config,
-                var_names=var_names,
-                app=app,
-            )
 
     def import_session(self, import_collection):
         """Import another VariableCollection into this.
@@ -1291,16 +1094,25 @@ class VariableCollection(HanforVersioned, Pickleable):
                 self.collection[var_name] = variable
 
 
-class Variable(HanforVersioned):
+@DatabaseTable(TableType.Folder)
+@DatabaseID("uuid", use_uuid=True)
+@DatabaseField("name", str)
+@DatabaseField("type", str)
+@DatabaseField("value", str)
+@DatabaseField("tags", set[Tag])
+@DatabaseField("script_results", str)
+@DatabaseField("belongs_to_enum", str)
+@DatabaseField("constraints", dict)
+@DatabaseField("description", str)
+class Variable:
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
 
-    def __init__(self, name: str, type: str, value: str):
-        super().__init__()
+    def __init__(self, name: str, var_type: str | None, value: str | None):
         self.name: str = name
-        self.type: str = type
+        self.type: str = var_type
         self.value: str = value
         # TODO: Show variables (e.g. typing errors) or remove tags from variables; show them or remove them
-        self.tags: set[str] = set()
+        self.tags: set[Tag] = set()
         self.script_results: str = ""
         self.belongs_to_enum: str = ""
         self.constraints = dict()
@@ -1322,7 +1134,7 @@ class Variable(HanforVersioned):
             "type": self.type,
             "const_val": self.value,
             "used_by": used_by,
-            "tags": list(self.get_tags()),
+            "tags": [tag.name for tag in self.get_tags()],
             "type_inference_errors": type_inference_errors,
             "constraints": [constraint.get_string() for constraint in self.get_constraints().values()],
             "script_results": self.script_results,
@@ -1331,11 +1143,11 @@ class Variable(HanforVersioned):
 
         return d
 
-    def add_tag(self, tag_name):
-        self.tags.add(tag_name)
+    def add_tag(self, tag: Tag):
+        self.tags.add(tag)
 
-    def remove_tag(self, tag_name):
-        self.tags.discard(tag_name)
+    def remove_tag(self, tag: Tag):
+        self.tags.discard(tag)
 
     def get_tags(self):
         return self.tags
@@ -1379,12 +1191,12 @@ class Variable(HanforVersioned):
 
     def reload_constraints_type_inference_errors(self, var_collection):
         logging.info(f"Reload type inference for variable `{self.name}` constraints")
-        self.remove_tag("Type_inference_error")
+        self.remove_tag(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
         for id in self.constraints:
             try:
                 self.constraints[id].type_inference_check(var_collection)
                 if len(self.constraints[id].type_inference_errors) > 0:
-                    self.tags.add("Type_inference_error")
+                    self.tags.add(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
             except AttributeError as e:
                 # Probably No pattern set.
                 logging.info(f"Could not derive type inference for variable `{self.name}` constraint No. {id}. { e}")
@@ -1405,10 +1217,8 @@ class Variable(HanforVersioned):
         for key, expression_string in mapping.items():
             if len(expression_string) == 0:
                 continue
-            expression = Expression()
-            expression.set_expression(
-                expression_string, variable_collection, "Constraint_{}_{}".format(self.name, constraint_id)
-            )
+            expression = Expression("Constraint_{}_{}".format(self.name, constraint_id))
+            expression.set_expression(expression_string, variable_collection)
             if self.constraints[constraint_id].expressions_mapping is None:
                 self.constraints[constraint_id].expressions_mapping = dict()
             self.constraints[constraint_id].expressions_mapping[key] = expression
@@ -1421,7 +1231,7 @@ class Variable(HanforVersioned):
                     self.name, constraint_id, [n for n in self.constraints[constraint_id].type_inference_errors.keys()]
                 )
             )
-            self.add_tag("Type_inference_error")
+            self.add_tag(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
 
         variable_collection.collection[self.name] = self
 
@@ -1433,9 +1243,9 @@ class Variable(HanforVersioned):
         :return: updated VariableCollection
         """
         logging.debug(f"Updating constraints for variable `{self.name}`.")
-        self.remove_tag("Type_inference_error")
+        self.remove_tag(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
         if variable_collection is None:
-            variable_collection = VariableCollection.load(app.config["SESSION_VARIABLE_COLLECTION"])
+            variable_collection = VariableCollection(app)
 
         for constraint in constraints.values():
             logging.debug(f"Updating formalization No. {constraint['id']}.")
@@ -1506,259 +1316,4 @@ class Variable(HanforVersioned):
                 ):
                     result.append(other_var_name)
                     break
-        return result
-
-    def run_version_migrations(self):
-        if version.parse(self.hanfor_version) <= version.parse("0.0.0"):
-            logging.info(f"Migrating `{self.__class__.__name__}`:`{self.name}`, from 0.0.0 -> 1.0.0")
-            if hasattr(self, "constraints"):
-                self.constraints = dict(enumerate(self.constraints))
-            else:
-                self.constraints = dict()
-        if version.parse(self.hanfor_version) <= version.parse("1.0.0"):
-            logging.info(f"Migrating `{self.__class__.__name__}`:`{self.name}`, from 1.0.0 -> 1.0.1")
-            self.script_results = ""
-        if version.parse(self.hanfor_version) <= version.parse("1.0.2"):
-            logging.info(f"Migrating `{self.__class__.__name__}`:`{ self.name}`, from {self.hanfor_version} -> 1.0.3")
-            self.belongs_to_enum = ""
-            if self.type == "ENUM":
-                logging.info(f"Migrate old ENUM `{self.name}` to new ENUM_INT, ENUM_REAL")
-        if not hasattr(self, "constraints") or not isinstance(self.constraints, dict):
-            setattr(self, "constraints", dict())
-        if not hasattr(self, "description") or not isinstance(self.constraints, str):
-            setattr(self, "description", str())
-        super().run_version_migrations()
-
-
-class VarImportSession(HanforVersioned):
-    def __init__(self, source_var_collection, target_var_collection):
-        """
-
-        :type source_var_collection: VariableCollection
-        :type target_var_collection: VariableCollection
-        """
-        HanforVersioned.__init__(self)
-        self.source_var_collection = source_var_collection
-        self.target_var_collection = target_var_collection
-        self.result_var_collection = deepcopy(target_var_collection)
-
-        self.actions = dict()
-        self.init_actions()
-
-        self.available_constraints = dict()
-        for name, vars in self.to_dict().items():
-            av_dict = dict()
-            i = 0
-            if "source" in vars:
-                for j, c in self.source_var_collection.collection[name].get_constraints().items():
-                    i += 1
-                    av_dict[i] = {
-                        "id": i,
-                        "origin_id": j,
-                        "constraint": c.get_string(),
-                        "origin": "source",
-                        "to_result": False,
-                    }
-            if "target" in vars:
-                for j, c in self.target_var_collection.collection[name].get_constraints().items():
-                    i += 1
-                    av_dict[i] = {
-                        "id": i,
-                        "origin_id": j,
-                        "constraint": c.get_string(),
-                        "origin": "target",
-                        "to_result": True,
-                    }
-            self.available_constraints[name] = av_dict
-
-    def init_actions(self):
-        dict_data = self.to_dict()
-        for name, data in dict_data.items():
-            self.actions[name] = "target" if "target" in data else "skipped"
-
-    def to_dict(self):
-        result = defaultdict(defaultdict)
-        for name, variable in self.source_var_collection.collection.items():
-            result[name]["source"] = variable.to_dict(self.source_var_collection.var_req_mapping)
-        for name, variable in self.target_var_collection.collection.items():
-            result[name]["target"] = variable.to_dict(self.target_var_collection.var_req_mapping)
-        for name, variable in self.result_var_collection.collection.items():
-            result[name]["result"] = variable.to_dict(self.result_var_collection.var_req_mapping)
-        return result
-
-    def to_datatables_data(self):
-        dict_data = self.to_dict()
-        result = list()
-        for name, data in dict_data.items():
-            result.append(
-                {
-                    "name": name,
-                    "available_constraints": self.available_constraints[name],
-                    "action": self.actions[name],
-                    "source": data["source"] if "source" in data else {},
-                    "target": data["target"] if "target" in data else {},
-                    "result": data["result"] if "result" in data else {},
-                }
-            )
-        return result
-
-    def store_changes(self, rows):
-        for name, data in rows.items():
-            self.actions[name] = data["action"]
-            if data["action"] == "source":
-                self.result_var_collection.collection[name] = deepcopy(self.source_var_collection.collection[name])
-            if data["action"] == "target":
-                self.result_var_collection.collection[name] = deepcopy(self.target_var_collection.collection[name])
-            for key in self.available_constraints[name].keys():
-                self.available_constraints[name][key]["to_result"] = (
-                    self.available_constraints[name][key]["origin"] == data["action"]
-                )
-
-    def store_variable(self, row):
-        self.actions[row["name"]] = row["action"]
-        self.result_var_collection.collection[row["name"]].set_type(row["result"]["type"])
-        self.available_constraints[row["name"]] = row["available_constraints"]
-        try:
-            const_val = int(row["result"]["const_val"])
-            self.result_var_collection.collection[row["name"]].value = const_val
-        except Exception:
-            pass
-
-    def apply_constraint_selection(self):
-        used_variables = set()
-        for var_name, available_constraints in self.available_constraints.items():
-            if len(available_constraints) > 0 and var_name in self.result_var_collection.collection.keys():
-                constraints = []
-                for id, constraint in available_constraints.items():
-                    if constraint["to_result"]:
-                        if constraint["origin"] == "source":
-                            constraints.append(
-                                deepcopy(
-                                    self.source_var_collection.collection[var_name].constraints[constraint["origin_id"]]
-                                )
-                            )
-                        else:
-                            constraints.append(
-                                deepcopy(
-                                    self.target_var_collection.collection[var_name].constraints[constraint["origin_id"]]
-                                )
-                            )
-                self.result_var_collection.collection[var_name].constraints = dict(enumerate(constraints))
-                # Collect used variables to auto include missing ones into the target.
-                vars_in_constraint = set()
-                for constraint in self.result_var_collection.collection[var_name].constraints.values():
-                    for var in constraint.used_variables:
-                        vars_in_constraint.add(var)
-                used_variables |= vars_in_constraint
-
-        # Include missing vars used by constraints.
-        for var_name in used_variables:
-            if var_name not in self.result_var_collection.collection:
-                logging.debug(
-                    "Var: `{}` not marked to be in result but used in a constraint -> auto include.".format(var_name)
-                )
-                if var_name in self.source_var_collection:
-                    self.actions[var_name] = "source"
-                    self.result_var_collection.collection[var_name] = deepcopy(
-                        self.source_var_collection.collection[var_name]
-                    )
-                if var_name in self.target_var_collection:
-                    self.actions[var_name] = "target"
-                    self.result_var_collection.collection[var_name] = deepcopy(
-                        self.target_var_collection.collection[var_name]
-                    )
-
-    def info(self):
-        def get_path_info(path):
-            path, file = os.path.split(path)
-            path, revision = os.path.split(path)
-            path, session = os.path.split(path)
-
-            return file, revision, session
-
-        info = dict()
-
-        info["source"] = get_path_info(self.source_var_collection.my_path)
-        info["target"] = get_path_info(self.target_var_collection.my_path)
-
-        return info
-
-    def run_version_migrations(self):
-        logging.info(
-            "Migrating `{}`:`{}` -> `{}`, from {} -> {}".format(
-                self.__class__.__name__,
-                self.source_var_collection.my_path,
-                self.target_var_collection.my_path,
-                self.hanfor_version,
-                __version__,
-            )
-        )
-        self.source_var_collection.run_version_migrations()
-        self.target_var_collection.run_version_migrations()
-        self.result_var_collection.run_version_migrations()
-        super().run_version_migrations()
-
-
-class VarImportSessions(HanforVersioned, Pickleable):
-    def __init__(self, path=None):
-        HanforVersioned.__init__(self)
-        Pickleable.__init__(self, path)
-        self.import_sessions: list[VarImportSession] = list()
-
-    @classmethod
-    def load(cls, path) -> "VarImportSessions":
-        me = Pickleable.load(path)
-        if not isinstance(me, cls):
-            raise TypeError
-
-        if me.outdated:
-            logging.info(f"`{me}` needs upgrade `{me.hanfor_version}` -> `{__version__}`")
-            me.run_version_migrations()
-            me.store()
-
-        return me
-
-    @classmethod
-    def load_for_app(cls, session_base_path: str):
-        var_import_sessions_path = os.path.join(session_base_path, "variable_import_sessions.pickle")
-        return VarImportSessions.load(var_import_sessions_path)
-
-    def create_new_session(self, source_collection, target_collection):
-        new_session = VarImportSession(source_var_collection=source_collection, target_var_collection=target_collection)
-        self.import_sessions.append(new_session)
-        self.store()
-        return len(self.import_sessions) - 1
-
-    def info(self):
-        info = dict()
-
-        for i, import_session in enumerate(self.import_sessions):
-            session_info = import_session.info()
-            info[i] = {"id": i, "source": session_info["source"], "target": session_info["target"]}
-
-        return info
-
-    def run_version_migrations(self):
-        logging.info(
-            f"Migrating `{self.__class__.__name__}`:`{self.my_path}`, from {self.hanfor_version} -> {__version__}"
-        )
-        for import_session in self.import_sessions:
-            import_session.run_version_migrations()
-        super().run_version_migrations()
-
-
-class ScriptEvals(Pickleable):
-    def __init__(self, path=None):
-        self.evals = defaultdict(defaultdict)
-        Pickleable.__init__(self, path)
-
-    def update_evals(self, results: dict, script_name):
-        for name, eval in results.items():
-            self.evals[name].update({script_name: eval})
-
-    def get_concatenated_evals(self):
-        result = dict()
-        for name, evals in self.evals.items():
-            result[name] = " ".join(sorted(evals.values()))
-
         return result
