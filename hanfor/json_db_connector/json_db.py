@@ -765,7 +765,7 @@ class JsonDatabaseTable:
                 setattr(obj, field, deepcopy(default_value))
 
     def __create_and_insert_object(self, obj_id: ID_TYPE, obj_data: dict) -> None:
-        obj = CLS_TYPE.__new__(self.cls)
+        obj = self.cls.__new__(self.cls)
         setattr(obj, self.id_field, obj_id)
         self.__data[obj_id] = obj
         self.__json_data[obj_id] = obj_data
