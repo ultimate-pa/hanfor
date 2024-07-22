@@ -511,11 +511,374 @@ class Simulator:
 
         return True
 
-    # variable constraint check-----------------------------------------------------------------------------------------
+    def variable_constraints(self):
+        """ Determines variable constraints in the next time step.
+
+        The following relevant information is collected:
+            - Constraints for each variable based only on simulator history
+            - Constraints for each variable based on both the simulator history and user input
+            - For each variable, from which requirements its constraints result from """
+
+        # todo list:
+
+        # TODO (maybe?): check boolean variables in the same way as nonboolean variables
+
+        # TODO: BUG: contradictory constraints in the following not found:
+        #            Globally, it is always the case that "var1 > 2 && var1 < 2" holds after at most "1.0" time units
+
+        # TODO: simplify/restructure output to be more readable. For example, as a constraint on x1, output x1 = x2 + x3
+        #       rather than x2 = x1 - x3
+
+        result = ""  # what is returned when clicking on the "variable constraints" button in the simulator
+        logging.log(logging.INFO, "Called function variable constraints ...")
+        result += "Called function variable constraints ... \n"
+
+        current_phases = self.current_phases[-1]  # current active locations of the PEAs
+
+        constraint_origins = dict()  # stores in which requirement each constraint can be found in
+        user_input_formulas = set()  # stores constraints resulting from user input in the simulator
+        constraints = set()  # set of all constraints found so far
+        constraint_implications = set()  # set of constraints found in current iteration
+        initial_constraints = dict()  # constraints found in the first iteration. These are used to begin propagation.
+        all_constraints = dict()  # where all initial constraints and constraints found through propagation are stored
+        all_constraints_with_user_input = dict()  # In this set, user input is also added as variable constraints.
+        boolean_satisfiability_flags = dict()  # flags used to detect constraints on boolean variables
+
+        # Create dictionary entries with variables as keys. Constraint information will be added to their values.
+        for var in self.models:
+            initial_constraints[var] = set()
+            all_constraints[var] = set()
+            all_constraints_with_user_input[var] = set()
+            boolean_satisfiability_flags[var] = [None, None]
+            constraint_origins[var] = set()
+
+        # Create constraint formulas for user input and add to user input and output dictionaries.
+        all_constraints_with_user_input = self.add_user_input_to_constraints(all_constraints_with_user_input)
+        user_input_formulas = self.collect_user_input_constraint_formulas(user_input_formulas)
+
+        for check_type in range(0, 3):  # 0 = find initial constraints, 1 = propagate constraints, 2 = w/ user input
+            propagation_done = 0
+
+            if check_type == 1:
+                all_constraints = self.update_constraint_dict(initial_constraints, all_constraints)
+                all_constraints_with_user_input = self.update_constraint_dict(initial_constraints,
+                                                                              all_constraints_with_user_input)
+                constraints = self.update_constraint_set(initial_constraints, constraints)
+
+            if check_type == 2:
+                constraints.update(user_input_formulas)
+
+            while not propagation_done:
+                # Assume propagation is finished.
+                # If new constraints are found in the current iteration, propagation_done is changed to 0.
+                propagation_done = 1
+
+                # Add constraints found in the last iteration to the set of all constraints.
+                constraints.update(constraint_implications)
+
+                # Reset set of constraints found through propagation for the current iteration.
+                constraint_implications.clear()
+
+                current_pea = 0
+
+                # If the current location is empty, there is inconsistency in the requirements.
+                # In this case, detection of variable constraints ends and an error message is returned.
+                error = self.check_if_current_phase_empty(current_phases, current_pea)
+                if error != 0:
+                    return error
+
+                for pea in self.peas:
+                    edges_to_check = dict()  # Reset dictionary of collected edges and their formulas for each PEA.
+
+                    # Reset boolean variable info for next PEA check.
+                    boolean_satisfiability_flags = (
+                        self.initialize_boolean_satisfiability_flags(boolean_satisfiability_flags))
+
+                    edges_to_check = self.add_edge_formulas_to_dict(pea, current_phases, current_pea, edges_to_check)
+
+                    # Based on the type of check being done, check for variable constraints and add them to the relevant
+                    # dictionary.
+                    temp_constraint_results = [None, None, None, None]
+                    if check_type == 0:  # If the initial constraint are being detected.
+                        temp_constraint_results = self.check_variables_for_constraints(pea, edges_to_check, check_type,
+                                                                                  initial_constraints,
+                                                                                  boolean_satisfiability_flags,
+                                                                                  user_input_formulas, constraints,
+                                                                                  constraint_origins,
+                                                                                  constraint_implications)
+                        initial_constraints = temp_constraint_results[0]
+
+                    elif check_type == 1:  # If constraints are being detected through propagation
+                        temp_constraint_results = self.check_variables_for_constraints(pea, edges_to_check, check_type,
+                                                                              all_constraints,
+                                                                              boolean_satisfiability_flags,
+                                                                              user_input_formulas, constraints,
+                                                                              constraint_origins,
+                                                                              constraint_implications)
+                        all_constraints = temp_constraint_results[0]
+                    elif check_type == 2:  # If constraints incl. those resulting from user input are being propagated
+                        temp_constraint_results = self.check_variables_for_constraints(pea, edges_to_check,
+                                                                                              check_type,
+                                                                                              all_constraints_with_user_input,
+                                                                                              boolean_satisfiability_flags,
+                                                                                              user_input_formulas,
+                                                                                              constraints,
+                                                                                              constraint_origins,
+                                                                                              constraint_implications)
+                        all_constraints_with_user_input = temp_constraint_results[0]
+                    boolean_satisfiability_flags = temp_constraint_results[1]
+                    constraint_origins = temp_constraint_results[2]
+                    constraint_implications = temp_constraint_results[3]
+
+                    current_pea += 1
+
+                    # Check what each boolean variable is restricted to if it cannot be either 0 or 1.
+                    # TODO: return readable reals (unsure if still relevant. I recall seeing reals like 12341../31513..)
+                    if check_type == 0:
+                        initial_constraints = self.evaluate_boolean_constraints(pea, boolean_satisfiability_flags,
+                                                                                initial_constraints)
+                    elif check_type == 1:
+                        all_constraints = self.evaluate_boolean_constraints(pea, boolean_satisfiability_flags,
+                                                                            all_constraints)
+                    elif check_type == 2:
+                        all_constraints_with_user_input = self.evaluate_boolean_constraints(pea,
+                                                                                            boolean_satisfiability_flags,
+                                                                                            all_constraints_with_user_input)
+
+                    constraint_origins = self.get_boolean_constraint_origins(pea, boolean_satisfiability_flags,
+                                                                             constraint_origins)
+
+                    constraint_implications = self.get_boolean_constraint_implications(pea,
+                                                                                       boolean_satisfiability_flags,
+                                                                                       constraints,
+                                                                                       constraint_implications)
+
+                # Propagation is considered finished when no new constraint were found in the current iteration.
+                # This is the case when constraint_implications is empty.
+                if not check_type == 0 and not constraint_implications == set():
+                    propagation_done = 0
+
+        # Output the detected variable constraints.
+        # Currently, only the set of all constraints, including those resulting from user input, are output.
+        # This can be changed by either switching to or adding the other dictionaries of results collected.
+        vars_with_constraints = set()
+
+        for var in all_constraints_with_user_input:
+            if len(all_constraints_with_user_input[var]) > 0:
+                output_to_filter = simplify_with_z3(And(And(*all_constraints_with_user_input[var]),
+                                                            And(i for i in user_input_formulas), And(*constraints)))
+                if not output_to_filter == FALSE():
+                    vars_with_constraints.add(var)
+                    all_constraints_with_user_input[var] = (f'{var} must be '
+                                                            f'{self.filter_output_for_var(output_to_filter, var)} '
+                                                            f'at time {self.times[-1]}')
+                    logging.log(logging.INFO, f'{var} must be {self.filter_output_for_var(output_to_filter, var)} '
+                                              f'at time {self.times[-1]}')
+                    result += (f'{var} must be {self.filter_output_for_var(output_to_filter, var)} at time '
+                               f'{self.times[-1]}\n')
+                else:
+                    vars_with_constraints.add(var)
+                    all_constraints_with_user_input[var] = f'{var} has contradicting constraints'
+                    logging.log(logging.INFO, f'{var} has contradicting constraints')
+                    result += f'{var} has contradicting constraints\n'
+            else:
+                all_constraints_with_user_input[var] = f'No restrictions on {var} at time {self.times[-1]}'
+                logging.log(logging.INFO, f'No restrictions on {var} at time {self.times[-1]}')
+                result += f'No restrictions on {var} at time {self.times[-1]}\n'
+
+        logging.log(logging.INFO, f' The following variable have constraints: {vars_with_constraints}')
+        result += f' The following variable have constraints: {vars_with_constraints}\n'
+        # print(constraint_origins)
+        return result
+
+    def add_user_input_to_constraints(self, constraint_set):
+        """ A formula is generated for every variable value input by the user in the simulator and added to the set of
+        variable constraints. """
+        for var in self.models:
+            if self.variables[var][-1] is not None:
+                constraint_set[var].add(EqualsOrIff(var, self.variables[var][-1]))
+
+        return constraint_set
+
+    def collect_user_input_constraint_formulas(self, user_input_formulas):
+        """ A formula is generated for every variable value input by the user in the simulator and added to the set of
+        user input formulas. """
+        for var in self.models:
+            if self.variables[var][-1] is not None:
+                user_input_formulas.add(EqualsOrIff(var, self.variables[var][-1]))
+
+        return user_input_formulas
+
+    def update_constraint_dict(self, update_with, constraint_dict):
+        """ The given constraint dictionary is updated with the constraints in the other given dictionary. """
+        for var in update_with:
+            constraint_dict[var].update(update_with[var])
+
+        return constraint_dict
+
+    def update_constraint_set(self, update_with, constraint_set):
+        """ The given constraint set is updated with the constraints in the given dictionary. """
+        for var in update_with:
+            constraint_set.update(update_with[var])
+
+        return constraint_set
+
+    def initialize_boolean_satisfiability_flags(self, flag_dict):
+        """ Resets the flags for every boolean variable in the given dictionary to None. """
+        for var in self.models:
+            flag_dict[var][0] = None if var.get_type() is BOOL else False
+            flag_dict[var][1] = None if var.get_type() is BOOL else False
+
+        return flag_dict
+
+    def check_if_current_phase_empty(self, current_phases, current_pea):
+        """ It is checked if the current location is empty due to some inconsistency in the requirements. If this is
+        the case, an error message is returned. Otherwise, 0 is returned. """
+        error = 0
+
+        for pea in self.peas:
+            if current_phases[current_pea] is None and error == 0:
+                error = self.check_empty_phases_for_errors(pea, error)
+
+        return error
+
+    def check_empty_phases_for_errors(self, pea, error):
+        """ For an empty location, the error message is generated and returned. """
+        if not pea.transitions or (None in pea.transitions and not pea.transitions[None]):
+            logging.log(logging.INFO, "There is inconsistency in a requirement.")
+            error = "There is inconsistency in a requirement.\n"
+
+        for location in pea.transitions:
+            if not pea.transitions[location]:  # no transition was built due to inconsistency in req
+                logging.log(logging.INFO, "There is inconsistency in a requirement.")
+                error = "There is inconsistency in a requirement.\n"
+
+        return error
+
+    def add_initial_edge_formulas_to_dict(self, pea, edges_to_check):
+        """ For the given PEA, the formulas describing the initial transitions (guard + state invariant) are added to
+        the given dictionary. """
+        for location in pea.transitions:
+            for enabled in pea.transitions[location]:
+                if enabled.src is None:
+                    edges_to_check[enabled] = self.convert_formula_to_nnf(
+                        And(enabled.guard, enabled.dst.state_invariant))
+
+        return edges_to_check
+
+    def find_current_phase(self, pea, current_phases, pea_index):
+        """ Using the given list of current active phases, the current PEA and current PEA index, the current phase
+        of the given PEA is found. """
+        current_location = None
+
+        for location in pea.transitions:
+            if location is not None and location.label == current_phases[pea_index].label:
+                current_location = location
+                break
+
+        return current_location
+
+    def add_enabled_edge_formulas_to_dict(self, pea, current_phase, edges_to_check):
+        """ For the given PEA, the formulas describing the non-initial, enables transitions (guard + state invariant)
+        are added to the given dictionary. """
+        for enabled in pea.transitions[current_phase]:
+            edges_to_check[enabled] = self.convert_formula_to_nnf(
+                And(enabled.guard, enabled.dst.state_invariant))
+
+        return edges_to_check
+
+    def add_edge_formulas_to_dict(self, pea, current_phases, pea_index, edges_to_check):
+        """ For each enabled edge (which is a key in the given dictionary), the conjunction of its guard and its source
+         state invariant is added as the key in the dictionary. """
+        if current_phases[pea_index] is None:
+            edges_to_check = self.add_initial_edge_formulas_to_dict(pea, edges_to_check)
+        else:
+            current_location = self.find_current_phase(pea, current_phases, pea_index)
+            edges_to_check = self.add_enabled_edge_formulas_to_dict(pea, current_location, edges_to_check)
+
+        return edges_to_check
+
+    def check_variables_for_constraints(self, pea, edges_to_check, check_type, constraint_dict,
+                                       boolean_satisfiability_flags, user_input_formulas, constraints,
+                                       constraint_origins, constraint_implications):
+        """ All variables in the current PEA are checked for constraint. Returned are the four dictionaries/sets
+         containing information about these constraints. """
+        for var in pea.countertrace.extract_variables():
+            for enabled in edges_to_check:
+                temp_constraint_results = self.check_variable_on_transition(enabled, var, constraint_dict,
+                                                                        boolean_satisfiability_flags, pea,
+                                                                        check_type, user_input_formulas,
+                                                                        constraints,
+                                                                        edges_to_check, constraint_origins,
+                                                                        constraint_implications)
+
+                constraint_dict = temp_constraint_results[0]
+                boolean_satisfiability_flags = temp_constraint_results[1]
+                constraint_origins = temp_constraint_results[2]
+                constraint_implications = temp_constraint_results[3]
+
+        return [constraint_dict, boolean_satisfiability_flags, constraint_origins, constraint_implications]
+
+    def check_boolean_var_satisfiability_on_trans(self, var, transition, check_type, var_input, constraints,
+                                                  temp_clocks, bool_flags):
+        """ For the given boolean variable and transition, it is checked if either valuation satsifies the transtion.
+         Using this information, the respective flags in the given dictionary are updated (for key var, index 1 of the
+         list that is its key is changed to True if the var can be False, and index 2 analogously. This dictionary is
+         returned. """
+        if self.check_sat_on_trans(EqualsOrIff(var, TRUE()), transition, check_type, var_input, constraints,
+                                   temp_clocks):
+            bool_flags[var][0] = True
+
+        if self.check_sat_on_trans(EqualsOrIff(var, FALSE()), transition, check_type, var_input, constraints,
+                                   temp_clocks):
+            bool_flags[var][1] = True
+
+        return bool_flags
+
+    def evaluate_boolean_constraints(self, pea, boolean_satisfiability_flags, constraint_dict):
+        """ Using the boolean flag dictionary, constraint formulas are determined for each boolean variable. """
+        for var in pea.countertrace.extract_variables():
+            if var.get_type() is BOOL:
+                constraint_dict = self.save_boolean_constraint_info(var, boolean_satisfiability_flags, constraint_dict,
+                                                                    EqualsOrIff(var, FALSE()), EqualsOrIff(var, TRUE()))
+
+        return constraint_dict
+
+    def save_boolean_constraint_info(self, var, boolean_satisfiability_flags, constraint_dict, to_save_if_false, to_save_if_true):
+        """ Constraints on boolean variables are saved in the given dictionary.  """
+        if boolean_satisfiability_flags[var][0] != boolean_satisfiability_flags[var][1]:
+            if not boolean_satisfiability_flags[var][0]:
+                constraint_dict[var].add(to_save_if_false)
+            if not boolean_satisfiability_flags[var][1]:
+                constraint_dict[var].add(to_save_if_true)
+
+        return constraint_dict
+
+    def get_boolean_constraint_origins(self, pea, boolean_satisfiability_flags, constraint_origins):
+        """ For each constraint on boolean variables, it is saved from which requirement the constraint originates
+          from. """
+        for var in pea.countertrace.extract_variables():
+            constraint_origins = self.save_boolean_constraint_info(var, boolean_satisfiability_flags,
+                                                                   constraint_origins, pea.requirement.rid,
+                                                                   pea.requirement.rid)
+        return constraint_origins
+
+    def get_boolean_constraint_implications(self, pea, boolean_satisfiability_flags, constraints,
+                                            constraint_implications):
+        """ For each constraint on boolean variables, the constraint is added to the set of those which result from
+         propagation. """
+        for var in pea.countertrace.extract_variables():
+            if (var.get_type() is BOOL and
+                    (boolean_satisfiability_flags[var][0] != boolean_satisfiability_flags[var][1])):
+                if not boolean_satisfiability_flags[var][0] and not EqualsOrIff(var, FALSE()) in constraints:
+                    constraint_implications.add(EqualsOrIff(var, FALSE()))
+                if not boolean_satisfiability_flags[var][1] and not EqualsOrIff(var, TRUE()) in constraints:
+                    constraint_implications.add(EqualsOrIff(var, TRUE()))
+
+        return constraint_implications
 
     def check_sat_on_trans(self, formula, transition, check_type, var_input, constraints, temp_clocks):
-        """ Checks if the given transition can be taken when the given formula holds.
-        """
+        """ Checks if the given transition can be taken when the given formula holds. """
         if is_sat(And(formula, transition.guard, transition.dst.state_invariant,
                       transition.dst.clock_invariant, self.build_clocks_assertion(temp_clocks),
                       And(i for i in constraints if not (check_type == 2 and i in var_input))),
@@ -528,251 +891,138 @@ class Simulator:
             return False
 
     def check_sat_on_step(self, formula, transitions, temp_clocks, constraints):
-        """ Checks if at least one of the transitions in the given set can be taken when the given formula holds.
-        """
+        """ Checks if at least one of the transitions in the given set can be taken when the given formula holds. """
+        result = False
         transition_info = []
+
         for edge in transitions:
             # doesn't check against transitions into "<"-clock states
             if not (edge.dst.clock_invariant.is_lt() and not self.lt_check(temp_clocks, edge)):
                 temp_clocks_copy = deepcopy(temp_clocks)
                 for to_reset in edge.resets:
                     temp_clocks_copy[to_reset] = 0.0
+
                 transition_info.append(And(edge.guard, edge.dst.state_invariant, edge.dst.clock_invariant,
                                            self.build_clocks_assertion(temp_clocks_copy)))
+
         transition_or = Or(t for t in transition_info)
+
         if is_sat(transition_or, solver_name=SOLVER_NAME, logic=LOGIC) \
                 and is_unsat(And(formula, And(i for i in constraints), transition_or),
                              # And(i for i in constraints)
                              solver_name=SOLVER_NAME, logic=LOGIC):
-            return True
-        else:
-            return False
+            result = True
+
+        return result
 
     def lt_check(self, temp_clocks, transition):
-        """ Updates clocks by a full time step and checks if they satisfy the current state's invariant.
-        """
+        """ Updates clocks by a full time step and checks if they satisfy the current state's invariant. """
         # build clock statuses for next full time step
         next_step_clocks = deepcopy(temp_clocks)
+
         for next_clock in next_step_clocks:
             next_step_clocks[next_clock] += (self.time_steps[-1])
+
         # check if new clock values satisfy a complete time step
         next_clock_check = TRUE() if is_sat(And(transition.src.clock_invariant if transition.src is not None else
                                                 TRUE(), self.build_clocks_assertion(next_step_clocks)),
                                             solver_name=SOLVER_NAME, logic=LOGIC) else FALSE()
+
         return next_clock_check == TRUE()
 
     def convert_formula_to_nnf(self, formula):
-        """ Convert a given formula to one in negation normal form using Z3.
-        """
+        """ Convert a given formula to one in negation normal form using Z3. """
         solver = Solver(name="z3")
         tactic = Tactic("nnf")
         z3_f = solver.converter.convert(formula)
         z3_f = tactic(z3_f).as_expr()
         return solver.converter.back(z3_f)
 
-    def collect_sub_formulae(self, formula, sub_formulae):
-        """ Collects every sub-formula of the formula collected from the transition guard and invariant
-        """
+    def collect_sub_formulas(self, formula, sub_formulas):
+        """ Collects every sub-formula of the formula collected from the transition guard and invariant. """
         # if formula.get_type() is BOOL and not is_valid(formula, solver_name=SOLVER_NAME, logic=LOGIC):
         if formula.get_type() is BOOL:
-            sub_formulae.add(formula)
+            sub_formulas.add(formula)
+
         for sub_formula in (formula.args()):
             if sub_formula.get_type() is BOOL:
-                self.collect_sub_formulae(sub_formula, sub_formulae)
+                sub_formulas = self.collect_sub_formulas(sub_formula, sub_formulas)
 
-    def filter_sub_formulae_for_var(self, formula, var, relevant_sub_formulae):
-        """ Choose only relevant sub-formula for the given variable to check as potential constraints
-        """
+        return sub_formulas
+
+    def filter_sub_formulas_for_var(self, formula, var, relevant_sub_formulas):
+        """ Choose only relevant sub-formula for the given variable to check as potential constraints. """
         if var in formula.get_free_variables():
             for sub_formula in formula.args():
                 if sub_formula.get_type() is BOOL:
-                    if var in sub_formula.get_free_variables():
-                        if self.filter_sub_formulae_for_var(sub_formula, var, relevant_sub_formulae) is False:
-                            return False
-                    else:
-                        return False
-            relevant_sub_formulae.add(formula)
+                    return relevant_sub_formulas
+            relevant_sub_formulas.add(formula)
+        return relevant_sub_formulas
 
     def filter_output_for_var(self, formula, var):
         """ Remove sub-formulae of the given formula that don't contain var.
-            Only a quick fix for output and assumes the simplified output formula is conjunctive.
-        """
+            Only a quick fix for output and assumes the simplified output formula is conjunctive. """
         if formula.is_and():
             for sub_formula in formula.args():
                 if var not in sub_formula.get_free_variables():
                     formula = formula.substitute({sub_formula: TRUE()})
         return simplify_with_z3(formula)
 
-    def check_variable_on_transition(self, transition, var, variable_info, pea, check_type, var_input,
+    def check_variable_on_transition(self, transition, var, constraint_dict, bool_flags, pea, check_type, var_input,
                                      constraints, edges_to_check, constraint_origins, constraint_implications):
-        """Checks for the current variable if it is restricted based on the current transition.
+        """ Checks for the current variable if it is restricted based on the current transition.
         For boolean variables: checks if the current transition can be taken when var is true or false.
         For non-boolean vars: collects potential constraint information from the transition and checks if the var
-            is restricted to it
-        """
+            is restricted to it. """
 
-        # update clocks that are reset on given transition
+        # Update clocks that are reset on given transition.
         temp_clocks = deepcopy(self.clocks[-1])
         for clock in transition.resets:
             temp_clocks[clock] = 0.0
 
         if var.get_type() is BOOL:
-            if self.check_sat_on_trans(EqualsOrIff(var, TRUE()), transition, check_type, var_input, constraints,
-                                       temp_clocks):
-                variable_info[var][0] = True
-            if self.check_sat_on_trans(EqualsOrIff(var, FALSE()), transition, check_type, var_input, constraints,
-                                       temp_clocks):
-                variable_info[var][1] = True
+            bool_flags = self.check_boolean_var_satisfiability_on_trans(var, transition, check_type, var_input,
+                                                                        constraints, temp_clocks, bool_flags)
 
         # check for ints/reals/enums
         else:
-            sub_formulae = set()
+            sub_formulas = set()
             f_nnf = edges_to_check[transition]
-            self.collect_sub_formulae(f_nnf, sub_formulae)
+            sub_formulas = self.collect_sub_formulas(f_nnf, sub_formulas)
 
             if var in f_nnf.get_free_variables() and self.check_sat_on_trans(f_nnf, transition, check_type, var_input,
                                                                              constraints, temp_clocks):
                 parts_of_f_to_check = set()
-                for formula in sub_formulae:
-                    self.filter_sub_formulae_for_var(formula, var, parts_of_f_to_check)
 
-                # check based on definition of restricted
-                if not parts_of_f_to_check == set():
-                    for p in parts_of_f_to_check:
-                        if self.check_sat_on_step(Not(p), edges_to_check, temp_clocks, constraints):
-                            variable_info[var][2 if check_type == 0 else check_type + 2].add(p)
-                            if p not in var_input:
-                                constraint_origins[var].add(pea.requirement.rid)
-                            if p not in constraints:
-                                constraint_implications.add(p)
+                for formula in sub_formulas:
+                    parts_of_f_to_check = self.filter_sub_formulas_for_var(formula, var, parts_of_f_to_check)
 
-        return variable_info
+                temp_constraint_results = self.update_constraints_for_non_boolean_var(parts_of_f_to_check,
+                                                                                      edges_to_check, temp_clocks,
+                                                                                      constraints, constraint_dict, var,
+                                                                                      constraint_origins, pea,
+                                                                                      var_input,
+                                                                                      constraint_implications)
+                constraint_set = temp_constraint_results[0]
+                constraint_origins = temp_constraint_results[1]
+                constraint_implications = temp_constraint_results[2]
 
-    def variable_constraints(self):
-        """Determines variable constraints in the next time step.
+        return [constraint_dict, bool_flags, constraint_origins, constraint_implications]
 
-        The following relevant information is collected:
-            - Constraints for each variable based only on simulator history
-            - Constraints for each variable based on both the simulator history and user input
-            - For each variable, from which requirements its constraints result from
-        """
-        result = ""
-        logging.log(logging.INFO, "Called function variable constraints ...")
-        result += "Called function variable constraints ... \n"
-        current_phases = self.current_phases[-1]
+    def update_constraints_for_non_boolean_var(self, parts_of_f_to_check, edges_to_check,temp_clocks,
+                                               constraints, constraint_dict, var, constraint_origins, pea,
+                                               var_input, constraint_implications):
+        """ For non-boolean variables, the given constraint dictionary, the dictionary of constraint origins, and the
+        set of constraints resulting from propagation are updated and returned. """
+        if not parts_of_f_to_check == set():
+            for p in parts_of_f_to_check:
+                if self.check_sat_on_step(Not(p), edges_to_check, temp_clocks, constraints):
+                    constraint_dict[var].add(p)
+                    if p not in var_input:
+                        constraint_origins[var].add(pea.requirement.rid)
 
-        constraint_origins = dict()
-        user_input = set()
+                    if p not in constraints:
+                        constraint_implications.add(p)
 
-        variable_info = dict()  # saves constraint information for each variable
-        for var in self.models:
-            variable_info[var] = [None, None, set(), set(), set()]
-            constraint_origins[var] = set()
-            if self.variables[var][-1] is not None:
-                variable_info[var][4].add(EqualsOrIff(var, self.variables[var][-1]))
-                user_input.add(EqualsOrIff(var, self.variables[var][-1]))  # represent user input as formulae
-        constraints = set()  # set of all constraints found so far
-        constraint_implications = set()  # set of constraints found in current iteration
+        return [constraint_dict, constraint_origins, constraint_implications]
 
-        for check_type in range(0, 3):  # 0 = find initial constraints, 1 = propagate constraints, 2 = w/ user input
-            propagation_done = 0
-            if check_type == 1:
-                for var in variable_info:
-                    variable_info[var][3].update(variable_info[var][2])
-                    variable_info[var][4].update(variable_info[var][2])
-                    constraints.update(variable_info[var][2])
-            if check_type == 2:
-                constraints.update(user_input)
-            while not propagation_done:
-                propagation_done = 1
-                constraints.update(constraint_implications)
-                constraint_implications = set()
-                current_pea = 0
-                for pea in self.peas:
-                    # reset variable info for next pea check
-                    for var in self.models:
-                        variable_info[var][0] = None if var.get_type() is BOOL else False
-                        variable_info[var][1] = None if var.get_type() is BOOL else False
-
-                    edges_to_check = dict()  # where enabled transitions are collected to check
-                    if current_phases[current_pea] is None:
-                        if not pea.transitions or (None in pea.transitions and not pea.transitions[None]):
-                            logging.log(logging.INFO, "There is inconsistency in a requirement.")
-                            result = "There is inconsistency in a requirement.\n"
-                            return result
-                        for location in pea.transitions:
-                            if not pea.transitions[location]:  # no transition was built due to inconsistency in req
-                                logging.log(logging.INFO, "There is inconsistency in a requirement.")
-                                result = "There is inconsistency in a requirement.\n"
-                                return result
-                            for enabled in pea.transitions[location]:
-                                if enabled.src is None:
-                                    edges_to_check[enabled] = self.convert_formula_to_nnf(
-                                        And(enabled.guard, enabled.dst.state_invariant))
-                    else:
-                        current_location = None
-                        for location in pea.transitions:
-                            if location is not None and location.label == current_phases[current_pea].label:
-                                current_location = location
-                                break
-                        for enabled in pea.transitions[current_location]:
-                            edges_to_check[enabled] = self.convert_formula_to_nnf(
-                                And(enabled.guard, enabled.dst.state_invariant))
-                    for var in pea.countertrace.extract_variables():
-                        for enabled in edges_to_check:
-                            variable_info = self.check_variable_on_transition(enabled, var, variable_info, pea,
-                                                                              check_type, user_input, constraints,
-                                                                              edges_to_check, constraint_origins,
-                                                                              constraint_implications)
-
-                    current_pea += 1
-
-                    # check for each pea what each variable must be if there are restrictions
-                    # TODO: return readable reals
-                    for var in pea.countertrace.extract_variables():
-                        if var.get_type() is BOOL and (variable_info[var][0] != variable_info[var][1]):
-                            if not variable_info[var][0]:
-                                variable_info[var][2 if check_type == 0
-                                                   else check_type + 2].add(EqualsOrIff(var, FALSE()))
-                                constraint_origins[var].add(pea.requirement.rid)
-                                if not EqualsOrIff(var, FALSE()) in constraints:
-                                    constraint_implications.add(EqualsOrIff(var, FALSE()))
-                            if not variable_info[var][1]:
-                                variable_info[var][2 if check_type == 0
-                                                   else check_type + 2].add(EqualsOrIff(var, TRUE()))
-                                constraint_origins[var].add(pea.requirement.rid)
-                                if not EqualsOrIff(var, TRUE()) in constraints:
-                                    constraint_implications.add(EqualsOrIff(var, TRUE()))
-
-                if not check_type == 0 and not constraint_implications == set():
-                    propagation_done = 0
-
-    # results-----------------------------------------------------------------------------------------------------------
-
-        # TODO: transform constraint formulae output to be more readable
-            # for example: transform constraint for var1 "var3 < var1 + 1" to "var1 > var3 - 1"
-        vars_with_constraints = set()
-        x = 4
-        for var in variable_info:
-            if len(variable_info[var][x]) > 0:
-                output_to_filter = simplify_with_z3(And(And(*variable_info[var][x]),
-                                                            And(i for i in user_input), And(*constraints)))
-                if not output_to_filter == FALSE():
-                    vars_with_constraints.add(var)
-                    variable_info[var][x] = f'{var} must be {self.filter_output_for_var(output_to_filter, var)} at time {self.times[-1]}'
-                    logging.log(logging.INFO, f'{var} must be {self.filter_output_for_var(output_to_filter, var)} at time {self.times[-1]}')
-                    result += f'{var} must be {self.filter_output_for_var(output_to_filter, var)} at time {self.times[-1]}\n'
-                else:
-                    vars_with_constraints.add(var)
-                    variable_info[var][x] = f'{var} has contradicting constraints'
-                    logging.log(logging.INFO, f'{var} has contradicting constraints')
-                    result += f'{var} has contradicting constraints\n'
-            else:
-                variable_info[var][x] = f'No restrictions on {var} at time {self.times[-1]}'
-                logging.log(logging.INFO, f'No restrictions on {var} at time {self.times[-1]}')
-                result += f'No restrictions on {var} at time {self.times[-1]}\n'
-
-        logging.log(logging.INFO, f' The following variable have constraints: {vars_with_constraints}')
-        result += f' The following variable have constraints: {vars_with_constraints}\n'
-        # print(constraint_origins)
-        return result
