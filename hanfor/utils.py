@@ -564,7 +564,7 @@ def generate_xls_file_content(
                 ws.cell(r, col).fill = style_meta
         ws.cell(1, 2, value="HANFOR Report")
         ws.cell(1, 2).font = style_white
-        ws.cell(1, 3, value=app.db.get_object(SessionValue, "csv_input_file").value)
+        ws.cell(1, 3, value=os.path.basename(app.db.get_object(SessionValue, "csv_input_file").value))
         ws.cell(1, 3).font = Font(color="FFFFFF")
         for col in range(1, 10):
             ws.cell(header_offset - 1, col).fill = style_filled
