@@ -13,30 +13,18 @@ from ultimate.ultimate_job import UltimateJob, get_all_requirement_ids, calculat
 
 
 def get_user_settings(settings_name: str = "default") -> str:
-    if ULTIMATE_USER_SETTINGS_FOLDER == "":
-        path = "configuration/ultimate/user_settings/"
-    else:
-        path = ULTIMATE_USER_SETTINGS_FOLDER
-        if not path.endswith("/"):
-            path += "/"
-    path += settings_name + ".json"
+    path = os.path.join(ULTIMATE_USER_SETTINGS_FOLDER, f"{settings_name}.json")
     if not os.path.isfile(path):
-        return ""  # File does not exist
+        raise Exception(f"usersettings {settings_name} not found")
     with open(path, "r") as settings_file:
         tmp_json = json.loads(settings_file.read())
         return json.dumps(tmp_json)
 
 
 def get_toolchain(toolchain_name: str) -> str:
-    if ULTIMATE_TOOLCHAIN_FOLDER == "":
-        path = "configuration/ultimate/toolchains/"
-    else:
-        path = ULTIMATE_TOOLCHAIN_FOLDER
-        if not path.endswith("/"):
-            path += "/"
-    path += toolchain_name + ".xml"
+    path = os.path.join(ULTIMATE_TOOLCHAIN_FOLDER, f"{toolchain_name}.xml")
     if not os.path.isfile(path):
-        return ""  # File does not exist
+        raise Exception(f"toolchain {toolchain_name} not found")
     with open(path, "r") as toolchain_file:
         return toolchain_file.read()
 
@@ -70,11 +58,7 @@ class UltimateConnector:
         user_settings_name = configuration["user_settings"]
         toolchain_id = configuration["toolchain"]
         user_settings = get_user_settings(user_settings_name)
-        if user_settings == "":
-            raise Exception(f"usersettings {user_settings_name} not found")
         toolchain = get_toolchain(toolchain_id)
-        if toolchain == "":
-            raise Exception(f"toolchain {toolchain_id} not found")
 
         # prepare and send request to Ultimate API
         payload = {

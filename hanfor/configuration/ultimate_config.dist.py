@@ -3,11 +3,11 @@
 ULTIMATE_API_URL = "https://ultimate.sopranium.de/api/"
 
 """
-Folder of user_settings and toolchains,
-leave empty for default (configuration/ultimate/[user_settings, toolchains])
+Folder of user_settings and toolchains.
+default: (configuration/ultimate/[user_settings, toolchains])
 """
-ULTIMATE_USER_SETTINGS_FOLDER = ""
-ULTIMATE_TOOLCHAIN_FOLDER = ""
+ULTIMATE_USER_SETTINGS_FOLDER = "configuration/ultimate/user_settings"
+ULTIMATE_TOOLCHAIN_FOLDER = "configuration/ultimate/toolchains"
 
 """
 Ultimate configurations
