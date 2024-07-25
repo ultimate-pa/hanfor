@@ -523,9 +523,6 @@ class Simulator:
 
         # TODO (maybe?): check boolean variables in the same way as nonboolean variables
 
-        # TODO: BUG: contradictory constraints in the following not found:
-        #            Globally, it is always the case that "var1 > 2 && var1 < 2" holds after at most "1.0" time units
-
         # TODO: simplify/restructure output to be more readable. For example, as a constraint on x1, output x1 = x2 + x3
         #       rather than x2 = x1 - x3
 
@@ -664,9 +661,9 @@ class Simulator:
         vars_with_constraints = set()
 
         for var in all_constraints_with_user_input:
-            if len(all_constraints_with_user_input[var]) > 0:
-                output_to_filter = simplify_with_z3(And(And(*all_constraints_with_user_input[var]),
-                                                            And(i for i in user_input_formulas), And(*constraints)))
+            output_to_filter = simplify_with_z3(And(And(*all_constraints_with_user_input[var]),
+                                                And(i for i in user_input_formulas), And(*constraints)))
+            if len(all_constraints_with_user_input[var]) > 0 and self.filter_output_for_var(output_to_filter, var) != TRUE():
                 if not output_to_filter == FALSE():
                     vars_with_constraints.add(var)
                     all_constraints_with_user_input[var] = (f'{var} must be '
@@ -686,8 +683,8 @@ class Simulator:
                 logging.log(logging.INFO, f'No restrictions on {var} at time {self.times[-1]}')
                 result += f'No restrictions on {var} at time {self.times[-1]}\n'
 
-        logging.log(logging.INFO, f' The following variable have constraints: {vars_with_constraints}')
-        result += f' The following variable have constraints: {vars_with_constraints}\n'
+        logging.log(logging.INFO, f'The following variables have constraints: {vars_with_constraints}')
+        result += f'The following variables have constraints: {vars_with_constraints}\n'
         # print(constraint_origins)
         return result
 
@@ -737,19 +734,26 @@ class Simulator:
         error = 0
 
         for pea in self.peas:
-            if current_phases[current_pea] is None and error == 0:
-                error = self.check_empty_phases_for_errors(pea, error)
+            if error == 0:
+                error = self.check_empty_phases_for_errors(pea, current_pea, current_phases, error)
 
         return error
 
-    def check_empty_phases_for_errors(self, pea, error):
-        """ For an empty location, the error message is generated and returned. """
+    def check_empty_phases_for_errors(self, pea, pea_index, current_phases, error):
+        """ For an empty location, or a location in which no transition will ever be satsisfied due to inconsistency in
+          a requirement, an error message is generated and returned. """
         if not pea.transitions or (None in pea.transitions and not pea.transitions[None]):
             logging.log(logging.INFO, "There is inconsistency in a requirement.")
             error = "There is inconsistency in a requirement.\n"
 
         for location in pea.transitions:
             if not pea.transitions[location]:  # no transition was built due to inconsistency in req
+                logging.log(logging.INFO, "There is inconsistency in a requirement.")
+                error = "There is inconsistency in a requirement.\n"
+            elif (current_phases[pea_index] is not None and
+                  not self.check_sat_on_step(FALSE(),
+                                             pea.transitions[self.find_current_phase(pea, current_phases, pea_index)],
+                                             set())):
                 logging.log(logging.INFO, "There is inconsistency in a requirement.")
                 error = "There is inconsistency in a requirement.\n"
 
@@ -890,20 +894,17 @@ class Simulator:
         else:
             return False
 
-    def check_sat_on_step(self, formula, transitions, temp_clocks, constraints):
+    def check_sat_on_step(self, formula, transitions, constraints):
         """ Checks if at least one of the transitions in the given set can be taken when the given formula holds. """
         result = False
         transition_info = []
 
         for edge in transitions:
+            temp_clocks = self.get_reset_clocks(edge)
             # doesn't check against transitions into "<"-clock states
             if not (edge.dst.clock_invariant.is_lt() and not self.lt_check(temp_clocks, edge)):
-                temp_clocks_copy = deepcopy(temp_clocks)
-                for to_reset in edge.resets:
-                    temp_clocks_copy[to_reset] = 0.0
-
                 transition_info.append(And(edge.guard, edge.dst.state_invariant, edge.dst.clock_invariant,
-                                           self.build_clocks_assertion(temp_clocks_copy)))
+                                           self.build_clocks_assertion(temp_clocks)))
 
         transition_or = Or(t for t in transition_info)
 
@@ -942,6 +943,7 @@ class Simulator:
         """ Collects every sub-formula of the formula collected from the transition guard and invariant. """
         # if formula.get_type() is BOOL and not is_valid(formula, solver_name=SOLVER_NAME, logic=LOGIC):
         if formula.get_type() is BOOL:
+            logging.log(logging.INFO, f'{formula} collected.')
             sub_formulas.add(formula)
 
         for sub_formula in (formula.args()):
@@ -955,8 +957,11 @@ class Simulator:
         if var in formula.get_free_variables():
             for sub_formula in formula.args():
                 if sub_formula.get_type() is BOOL:
-                    return relevant_sub_formulas
+                    #return relevant_sub_formulas
+                    relevant_sub_formulas = self.filter_sub_formulas_for_var(sub_formula, var, relevant_sub_formulas)
+
             relevant_sub_formulas.add(formula)
+            logging.log(logging.INFO, f'{formula} is relevant.')
         return relevant_sub_formulas
 
     def filter_output_for_var(self, formula, var):
@@ -968,6 +973,12 @@ class Simulator:
                     formula = formula.substitute({sub_formula: TRUE()})
         return simplify_with_z3(formula)
 
+    def get_reset_clocks(self, transition):
+        temp_clocks = deepcopy(self.clocks[-1])
+        for clock in transition.resets:
+            temp_clocks[clock] = 0.0
+        return temp_clocks
+
     def check_variable_on_transition(self, transition, var, constraint_dict, bool_flags, pea, check_type, var_input,
                                      constraints, edges_to_check, constraint_origins, constraint_implications):
         """ Checks for the current variable if it is restricted based on the current transition.
@@ -976,9 +987,7 @@ class Simulator:
             is restricted to it. """
 
         # Update clocks that are reset on given transition.
-        temp_clocks = deepcopy(self.clocks[-1])
-        for clock in transition.resets:
-            temp_clocks[clock] = 0.0
+        temp_clocks = self.get_reset_clocks(transition)
 
         if var.get_type() is BOOL:
             bool_flags = self.check_boolean_var_satisfiability_on_trans(var, transition, check_type, var_input,
@@ -1003,7 +1012,7 @@ class Simulator:
                                                                                       constraint_origins, pea,
                                                                                       var_input,
                                                                                       constraint_implications)
-                constraint_set = temp_constraint_results[0]
+                constraint_dict = temp_constraint_results[0]
                 constraint_origins = temp_constraint_results[1]
                 constraint_implications = temp_constraint_results[2]
 
@@ -1016,7 +1025,7 @@ class Simulator:
         set of constraints resulting from propagation are updated and returned. """
         if not parts_of_f_to_check == set():
             for p in parts_of_f_to_check:
-                if self.check_sat_on_step(Not(p), edges_to_check, temp_clocks, constraints):
+                if self.check_sat_on_step(Not(p), edges_to_check, constraints):
                     constraint_dict[var].add(p)
                     if p not in var_input:
                         constraint_origins[var].add(pea.requirement.rid)
