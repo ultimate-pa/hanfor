@@ -24,13 +24,8 @@ from req_simulator.simulator import Simulator
 from reqtransformer import Requirement, Formalization, VariableCollection
 from ressources import Ressource
 
-validation_patterns = {BOOL: "^0|false|False|1|true|True$", INT: "^[+-]?\d+$", REAL: "^[+-]?\d*[.]?\d+$"}
+validation_patterns = {BOOL: r"^0|false|False|1|true|True$", INT: r"^[+-]?\d+$", REAL: r"^[+-]?\d*[.]?\d+$"}
 
-validation_patterns = {
-    BOOL: '^0|false|False|1|true|True$',
-    INT: '^[+-]?\d+$',
-    REAL: '^[+-]?\d*[.]?\d+$'
-}
 
 class SimulatorRessource(Ressource):
     simulator_cache: dict[str, Simulator] = {}
@@ -332,6 +327,7 @@ class SimulatorRessource(Ressource):
     def store_phase_event_automata(peas: list[PhaseSetsPea], app: HanforFlask) -> None:
         for pea in peas:
             file = f"{pea.requirement.rid}_{pea.formalization.id}_{pea.countertrace_id}_PEA.pickle"
+            # TODO: what is the idea here, pea.store is not defined
             pea.store(os.path.join(app.config["REVISION_FOLDER"], file))
 
     @staticmethod
