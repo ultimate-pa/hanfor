@@ -581,6 +581,7 @@ class Simulator:
                 error = self.check_if_current_phase_empty(current_phases, current_pea)
                 if error != 0:
                     return error
+                # TODO: error should only be returned once
 
                 for pea in self.peas:
                     edges_to_check = dict()  # Reset dictionary of collected edges and their formulas for each PEA.
@@ -707,19 +708,20 @@ class Simulator:
         """ For an empty location, or a location in which no transition will ever be satsisfied due to inconsistency in
           a requirement, an error message is generated and returned. """
         if not pea.transitions or (None in pea.transitions and not pea.transitions[None]):
-            logging.log(logging.INFO, "There is inconsistency in a requirement.")
-            error = "There is inconsistency in a requirement.\n"
+            logging.log(logging.INFO, "There is inconsistency in some requirement(s).")
+            error = "There is inconsistency in some requirement(s).\n"
+            return error
 
         for location in pea.transitions:
             if not pea.transitions[location]:  # no transition was built due to inconsistency in req
-                logging.log(logging.INFO, "There is inconsistency in a requirement.")
-                error = "There is inconsistency in a requirement.\n"
+                logging.log(logging.INFO, "There is inconsistency in some requirement(s).")
+                error = "There is inconsistency in some requirement(s).\n"
             elif (current_phases[pea_index] is not None and
                   not self.check_sat_on_step(FALSE(),
                                              pea.transitions[self.find_current_phase(pea, current_phases, pea_index)],
                                              set())):
-                logging.log(logging.INFO, "There is inconsistency in a requirement.")
-                error = "There is inconsistency in a requirement.\n"
+                logging.log(logging.INFO, "There is inconsistency in some requirement(s).")
+                error = "There is inconsistency in some requirement(s).\n"
 
         return error
 
@@ -860,8 +862,8 @@ class Simulator:
         if var in formula.get_free_variables():
             for sub_formula in formula.args():
                 if sub_formula.get_type() is BOOL:
-                    #return relevant_sub_formulas
-                    relevant_sub_formulas = self.filter_sub_formulas_for_var(sub_formula, var, relevant_sub_formulas)
+                    return relevant_sub_formulas
+                    #relevant_sub_formulas = self.filter_sub_formulas_for_var(sub_formula, var, relevant_sub_formulas)
 
             relevant_sub_formulas.add(formula)
         return relevant_sub_formulas

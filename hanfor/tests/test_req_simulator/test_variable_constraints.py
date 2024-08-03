@@ -258,7 +258,7 @@ class TestVariableConstraints(TestCase):
 
             elif not simulator.check_sat():
                 print("tested case 4")
-                self.assertIn("There is inconsistency in a requirement", actual,
+                self.assertIn("There is inconsistency in some requirement(s).", actual,
                               msg="The inconsistent requirement wasn't detected.")
                 return None
 
