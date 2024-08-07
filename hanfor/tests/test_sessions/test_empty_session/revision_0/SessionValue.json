@@ -1,0 +1,73 @@
+{
+    "csv_input_file": {
+        "value": "../example_input/empty.csv",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "csv_fieldnames": {
+        "value": {
+            "type": "list",
+            "data": [
+                "id_header",
+                "desc_header",
+                "formal_header",
+                "type_header"
+            ]
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "csv_id_header": {
+        "value": "id_header",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "csv_formal_header": {
+        "value": "formal_header",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "csv_type_header": {
+        "value": "type_header",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "csv_desc_header": {
+        "value": "desc_header",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "csv_hash": {
+        "value": "50b7ced5a27e2bd713243c88f406618acaad6f20",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    }
+}

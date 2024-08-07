@@ -3,27 +3,29 @@ import re
 from enum import IntEnum
 from collections import namedtuple
 
+
 class Operator(IntEnum):
-    MULTIPLY = 9,
-    DIVIDE = 9,
-    ADD = 8,
-    SUBTRACT = 8,
-    LTEQ = 7,
-    GTEQ = 7,
-    LT = 7,
-    GT = 7,
-    EQ = 7,
-    DOUBLEEQ = 7,
-    NOTEQ = 7,
-    ASSIGN = 7,
-    CHANGES = 7,
-    NOTCHANGES = 7,
-    AND = 6,
-    DOUBLEAND = 6,
-    ANDTEXT = 6,
-    OR = 5,
-    DOUBLEOR = 5,
+    MULTIPLY = (9,)
+    DIVIDE = (9,)
+    ADD = (8,)
+    SUBTRACT = (8,)
+    LTEQ = (7,)
+    GTEQ = (7,)
+    LT = (7,)
+    GT = (7,)
+    EQ = (7,)
+    DOUBLEEQ = (7,)
+    NOTEQ = (7,)
+    ASSIGN = (7,)
+    CHANGES = (7,)
+    NOTCHANGES = (7,)
+    AND = (6,)
+    DOUBLEAND = (6,)
+    ANDTEXT = (6,)
+    OR = (5,)
+    DOUBLEOR = (5,)
     ORTEXT = 5
+
 
 class Stack:
     def __init__(self):
@@ -44,19 +46,22 @@ class Stack:
     def size(self):
         return len(self.items)
 
+
 class TermBuildingCase(IntEnum):
-    EQUALS = 1,
-    NOT_EQUALS = 2,
-    EQUALS_VALUE = 3,
-    NOT_EQUALS_VALUE = 4,
-    GT_LT = 5,
-    AVAILABLE = 6,
-    NOT_AVAILABLE = 7,
-    RECEIVED = 8,
-    NOT_RECEIVED = 9,
+    EQUALS = (1,)
+    NOT_EQUALS = (2,)
+    EQUALS_VALUE = (3,)
+    NOT_EQUALS_VALUE = (4,)
+    GT_LT = (5,)
+    AVAILABLE = (6,)
+    NOT_AVAILABLE = (7,)
+    RECEIVED = (8,)
+    NOT_RECEIVED = (9,)
     TIMER = 10
 
+
 TermBuildingTuple = namedtuple("TermBuildingTuple", ["match", "separator", "term_building_case"])
+
 
 class FormulaProcessor(object):
 
@@ -87,30 +92,17 @@ class FormulaProcessor(object):
         }
 
         self.umlaut_replacements = {
-            'Ä': 'AE',
-            'Ö': 'OE',
-            'Ü': 'UE',
-            'ä': 'ae',
-            'ö': 'oe',
-            'ü': 'ue',
+            "Ä": "AE",
+            "Ö": "OE",
+            "Ü": "UE",
+            "ä": "ae",
+            "ö": "oe",
+            "ü": "ue",
         }
 
-        self.term_replacements = {
-            ' := ': ' == ',
-            '== ->': '==->',
-            '==->': '==->',
-            '!= ->': '!=',
-            '!=->': '!='
-        }
+        self.term_replacements = {" := ": " == ", "== ->": "==->", "==->": "==->", "!= ->": "!=", "!=->": "!="}
 
-        self.term_righthand_side_replacements = {
-            '"': '',
-            ' ': '_',
-            '-': '',
-            '(': '',
-            ')': '',
-            '&': 'AND'
-        }
+        self.term_righthand_side_replacements = {'"': "", " ": "_", "-": "", "(": "", ")": "", "&": "AND"}
 
     def infix_to_postfix(self, infix_array):
         """
@@ -183,7 +175,6 @@ class FormulaProcessor(object):
                 stack.push(element)
         return stack.pop()
 
-
     def expression_to_array(self, expression, term_wise=False):
         """
         >>> f = FormulaProcessor()
@@ -233,12 +224,12 @@ class FormulaProcessor(object):
             pattern = re.compile("([&]{1,2}| OR | AND |[|]{1,2}|\\(|\\))")
         else:
             pattern = re.compile(
-                "([&]{1,2}|[|]{1,2}|>=?|<=?|==->?|== ->?|!=->?|!= ->?|<(?!=)|>(?!=)|==(?!->)|!=(?!->)|:=| OR | AND |\\+|(?<!=|&)-|/|\\*|\\||\\(|\\))")
+                "([&]{1,2}|[|]{1,2}|>=?|<=?|==->?|== ->?|!=->?|!= ->?|<(?!=)|>(?!=)|==(?!->)|!=(?!->)|:=| OR | AND |\\+|(?<!=|&)-|/|\\*|\\||\\(|\\))"
+            )
 
         splitted = re.split(pattern=pattern, string=expression)
         splitted = list(filter(bool, [x.strip() for x in splitted]))
         return splitted
-
 
     def is_operator(self, expr):
         """
@@ -276,7 +267,9 @@ class FormulaProcessor(object):
         if matcher:
             if not separator and separator is not None:
                 separator = matcher.group(separator_match_group)
-            pair = TermBuildingTuple(match=re.search(regex, term, re.DOTALL), separator=separator, term_building_case=term_building_case)
+            pair = TermBuildingTuple(
+                match=re.search(regex, term, re.DOTALL), separator=separator, term_building_case=term_building_case
+            )
         return pair
 
     def process_term(self, term):
@@ -284,35 +277,71 @@ class FormulaProcessor(object):
             term = term.replace(key, val)
 
         matchers = list()
-        matchers.append(self.create_term_building_tuple(regex=r'(.*)\s*(==)\s*([^\"\s]+).*', term=term,
-                                                        term_building_case=TermBuildingCase.EQUALS,
-                                                        separator="=="))
-        matchers.append(self.create_term_building_tuple(regex=r'(.*)\s*(==)\s*\"(.+)\".*', term=term,
-                                                        term_building_case=TermBuildingCase.EQUALS_VALUE,
-                                                        separator="=="))
-        matchers.append(self.create_term_building_tuple(regex=r'(.*)\s*(!=)\s*([^\"\s]+).*', term=term,
-                                                        term_building_case=TermBuildingCase.NOT_EQUALS,
-                                                        separator="!="))
-        matchers.append(self.create_term_building_tuple(regex=r'(.*)\s*(!=)\s*\"(.+)\".*', term=term,
-                                                        term_building_case=TermBuildingCase.NOT_EQUALS_VALUE,
-                                                        separator="!="))
-        matchers.append(self.create_term_building_tuple(regex=r'(.*)\s(<|>=|>|<=)\s(.*)', term=term,
-                                                        term_building_case=TermBuildingCase.GT_LT,
-                                                        separator_match_group=2))
-        matchers.append(self.create_term_building_tuple(regex=r'(.*) not available', term=term,
-                                                        term_building_case=TermBuildingCase.NOT_AVAILABLE))
-        matchers.append(self.create_term_building_tuple(regex=r'(.*)(is)* available', term=term,
-                                                        term_building_case=TermBuildingCase.AVAILABLE,
-                                                        separator=None))
-        matchers.append(self.create_term_building_tuple(regex=r'(.*)(is)* received', term=term,
-                                                        term_building_case=TermBuildingCase.RECEIVED,
-                                                        separator=None))
-        matchers.append(self.create_term_building_tuple(regex=r'(.*) not received', term=term,
-                                                        term_building_case=TermBuildingCase.NOT_RECEIVED,
-                                                        separator=None))
-        matchers.append(self.create_term_building_tuple(regex=r'(start|stop) timer (.*)', term=term,
-                                                        term_building_case=TermBuildingCase.TIMER,
-                                                        separator="=="))
+        matchers.append(
+            self.create_term_building_tuple(
+                regex=r"(.*)\s*(==)\s*([^\"\s]+).*",
+                term=term,
+                term_building_case=TermBuildingCase.EQUALS,
+                separator="==",
+            )
+        )
+        matchers.append(
+            self.create_term_building_tuple(
+                regex=r"(.*)\s*(==)\s*\"(.+)\".*",
+                term=term,
+                term_building_case=TermBuildingCase.EQUALS_VALUE,
+                separator="==",
+            )
+        )
+        matchers.append(
+            self.create_term_building_tuple(
+                regex=r"(.*)\s*(!=)\s*([^\"\s]+).*",
+                term=term,
+                term_building_case=TermBuildingCase.NOT_EQUALS,
+                separator="!=",
+            )
+        )
+        matchers.append(
+            self.create_term_building_tuple(
+                regex=r"(.*)\s*(!=)\s*\"(.+)\".*",
+                term=term,
+                term_building_case=TermBuildingCase.NOT_EQUALS_VALUE,
+                separator="!=",
+            )
+        )
+        matchers.append(
+            self.create_term_building_tuple(
+                regex=r"(.*)\s(<|>=|>|<=)\s(.*)",
+                term=term,
+                term_building_case=TermBuildingCase.GT_LT,
+                separator_match_group=2,
+            )
+        )
+        matchers.append(
+            self.create_term_building_tuple(
+                regex=r"(.*) not available", term=term, term_building_case=TermBuildingCase.NOT_AVAILABLE
+            )
+        )
+        matchers.append(
+            self.create_term_building_tuple(
+                regex=r"(.*)(is)* available", term=term, term_building_case=TermBuildingCase.AVAILABLE, separator=None
+            )
+        )
+        matchers.append(
+            self.create_term_building_tuple(
+                regex=r"(.*)(is)* received", term=term, term_building_case=TermBuildingCase.RECEIVED, separator=None
+            )
+        )
+        matchers.append(
+            self.create_term_building_tuple(
+                regex=r"(.*) not received", term=term, term_building_case=TermBuildingCase.NOT_RECEIVED, separator=None
+            )
+        )
+        matchers.append(
+            self.create_term_building_tuple(
+                regex=r"(start|stop) timer (.*)", term=term, term_building_case=TermBuildingCase.TIMER, separator="=="
+            )
+        )
 
         # make pycharm happy and avoid "might be referenced before assigned"-notifications.
         match = None
@@ -337,7 +366,10 @@ class FormulaProcessor(object):
                 rhs = rhs.replace(key, val)
             new_term = "%s %s %s" % (lhs, separator, rhs)
         # x == "y",  x != "y"
-        elif term_building_case is TermBuildingCase.EQUALS_VALUE or term_building_case is TermBuildingCase.NOT_EQUALS_VALUE:
+        elif (
+            term_building_case is TermBuildingCase.EQUALS_VALUE
+            or term_building_case is TermBuildingCase.NOT_EQUALS_VALUE
+        ):
             lhs = match.group(1).strip()
             rhs = match.group(3).strip().lower()
             for key, val in self.term_righthand_side_replacements.items():
@@ -350,7 +382,9 @@ class FormulaProcessor(object):
             elif rhs == "false":
                 new_term = "!%s" % lhs
         # x (is) not available/received
-        elif term_building_case is TermBuildingCase.NOT_AVAILABLE or term_building_case is TermBuildingCase.NOT_RECEIVED:
+        elif (
+            term_building_case is TermBuildingCase.NOT_AVAILABLE or term_building_case is TermBuildingCase.NOT_RECEIVED
+        ):
             new_term = "!%s" % match.group(1).strip().replace(" is", "")
         # x (is) available/received
         elif term_building_case is TermBuildingCase.RECEIVED or term_building_case is TermBuildingCase.AVAILABLE:
@@ -384,10 +418,10 @@ class FormulaProcessor(object):
             processed_terms = []
             # Each term is processed
             for term in terms_array:
-                if term == 'OR':
-                    processed_terms.append(' || ')
-                elif term == 'AND':
-                    processed_terms.append(' && ')
+                if term == "OR":
+                    processed_terms.append(" || ")
+                elif term == "AND":
+                    processed_terms.append(" && ")
                 else:
                     processed_term = self.process_term(term)
                     if processed_term is not None:

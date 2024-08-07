@@ -2,8 +2,30 @@ from dataclasses import dataclass
 
 from lark import Transformer, Token
 from pysmt.fnode import FNode
-from pysmt.shortcuts import And, Or, Div, FALSE, TRUE, GT, GE, Symbol, Implies, LT, LE, Minus, Not, NotEquals, Int, \
-    Plus, Real, Times, EqualsOrIff, Max, Min, Ite
+from pysmt.shortcuts import (
+    And,
+    Or,
+    Div,
+    FALSE,
+    TRUE,
+    GT,
+    GE,
+    Symbol,
+    Implies,
+    LT,
+    LE,
+    Minus,
+    Not,
+    NotEquals,
+    Int,
+    Plus,
+    Real,
+    Times,
+    EqualsOrIff,
+    Max,
+    Min,
+    Ite,
+)
 from pysmt.typing import INT, BOOL, REAL
 
 
@@ -16,15 +38,15 @@ class Variable:
 
 class BoogiePysmtTransformer(Transformer):
     hanfor_to_pysmt_mapping = {
-        'bool': lambda name, value: Symbol(name, BOOL),
-        'int': lambda name, value: Symbol(name, INT),
-        'real': lambda name, value: Symbol(name, REAL),
-        'ENUM_INT': lambda name, value: Symbol(name, INT),
-        'ENUM_REAL': lambda name, value: Symbol(name, REAL),
-        'ENUMERATOR_INT': lambda name, value: Int(int(value)),
-        'ENUMERATOR_REAL': lambda name, value: Real(float(value)),
+        "bool": lambda name, value: Symbol(name, BOOL),
+        "int": lambda name, value: Symbol(name, INT),
+        "real": lambda name, value: Symbol(name, REAL),
+        "ENUM_INT": lambda name, value: Symbol(name, INT),
+        "ENUM_REAL": lambda name, value: Symbol(name, REAL),
+        "ENUMERATOR_INT": lambda name, value: Int(int(value)),
+        "ENUMERATOR_REAL": lambda name, value: Real(float(value)),
         # TODO: Make this better, please.
-        'CONST': lambda name, value: Real(float(value)) if '.' in value else Int(int(value))
+        "CONST": lambda name, value: Real(float(value)) if "." in value else Int(int(value)),
     }
 
     def __init__(self, variables: dict[str, Variable]) -> None:

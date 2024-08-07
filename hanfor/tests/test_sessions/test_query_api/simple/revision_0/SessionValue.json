@@ -1,0 +1,133 @@
+{
+    "csv_fieldnames": {
+        "value": {
+            "type": "list",
+            "data": [
+                "id_header",
+                "desc_header",
+                "formal_header",
+                "type_header"
+            ]
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "csv_id_header": {
+        "value": "id_header",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "csv_type_header": {
+        "value": "type_header",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "csv_input_file": {
+        "value": "./tests/test_sessions/test_init/simple.csv",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "csv_desc_header": {
+        "value": "desc_header",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "csv_dialect": {
+        "value": "ultimate",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "csv_formal_header": {
+        "value": "formal_header",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "TAG_Type_inference_error": {
+        "value": {
+            "type": "Tag",
+            "data": "18daf198-a21a-417b-b88a-42c4ae6476ed"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "TAG_incomplete_formalization": {
+        "value": {
+            "type": "Tag",
+            "data": "ebb64b44-f641-45e6-a296-46b19434659a"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "TAG_has_formalization": {
+        "value": {
+            "type": "Tag",
+            "data": "b8322e3a-6d4a-41d1-9afe-6d31123b65a3"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "TAG_unknown_type": {
+        "value": {
+            "type": "Tag",
+            "data": "1116c214-f486-4533-b630-32a300615a87"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "TAG_Ultimate_raw_data": {
+        "value": {
+            "type": "Tag",
+            "data": "e13e9019-d4ad-4d7b-a9f9-6f587b2fd5d9"
+        },
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    }
+}

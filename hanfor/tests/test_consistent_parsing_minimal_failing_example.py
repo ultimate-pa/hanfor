@@ -35,17 +35,14 @@ TRUE.1: "true"
 
 class TestParseExpressions(TestCase):
     def test_used_variables(self):
-        parsers = [
-            Lark(grammar, start='expr', parser='lalr') for _ in range(100)
-        ]
+        parsers = [Lark(grammar, start="expr", parser="lalr") for _ in range(100)]
 
         for parser in parsers:
-            tree = parser.parse('true')
+            tree = parser.parse("true")
             for node in tree.iter_subtrees():
                 for child in node.children:
                     # Variables are called ID in the grammar.
                     if isinstance(child, Token):
                         self.assertTrue(
-                            child.type == 'TRUE',
-                            'Token `{}` has false type `{}`'.format(child.value, child.type)
+                            child.type == "TRUE", "Token `{}` has false type `{}`".format(child.value, child.type)
                         )

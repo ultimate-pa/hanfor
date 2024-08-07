@@ -12,7 +12,7 @@ from lark.visitors import v_args
 
 
 def get_variables_list(tree):
-    """ Returns a list of variables in an expression.
+    """Returns a list of variables in an expression.
 
     :param tree: An lark parsed tree.
     :type tree: Tree
@@ -21,7 +21,7 @@ def get_variables_list(tree):
     for node in tree.iter_subtrees():
         for child in node.children:
             # Variables are called ID in the grammar.
-            if isinstance(child, Token) and child.type == 'ID':
+            if isinstance(child, Token) and child.type == "ID":
                 result.append(child.value)
 
     return result
@@ -33,13 +33,14 @@ lark = None
 def get_parser_instance():
     global lark
     if lark is None:
-        lark = Lark.open("hanfor_boogie_grammar.lark", rel_to=__file__, start='expr', parser='lalr',
-                         propagate_positions=True)
+        lark = Lark.open(
+            "hanfor_boogie_grammar.lark", rel_to=__file__, start="expr", parser="lalr", propagate_positions=True
+        )
     return lark
 
 
-def replace_var_in_expression(expression, old_var, new_var, parser=None, matching_terminal_names='ID'):
-    """ Replaces all occurrences of old_var in expression with new_var.
+def replace_var_in_expression(expression, old_var, new_var, parser=None, matching_terminal_names="ID"):
+    """Replaces all occurrences of old_var in expression with new_var.
 
     :param matching_terminal_names: Token names according to the grammar taken into account for replacement.
     :type matching_terminal_names: tuple (of strings)
@@ -94,10 +95,10 @@ class BoogieType(Enum):
         for t in BoogieType.get_valid_types():
             mapping[t.name] = t
 
-        mapping['ENUMERATOR_INT'] = BoogieType.int
-        mapping['ENUMERATOR_REAL'] = BoogieType.real
-        mapping['ENUM_INT'] = BoogieType.int
-        mapping['ENUM_REAL'] = BoogieType.real
+        mapping["ENUMERATOR_INT"] = BoogieType.int
+        mapping["ENUMERATOR_REAL"] = BoogieType.real
+        mapping["ENUM_INT"] = BoogieType.int
+        mapping["ENUM_REAL"] = BoogieType.real
 
         return mapping
 
@@ -107,7 +108,7 @@ class BoogieType(Enum):
 
     @staticmethod
     def alias_env_to_instantiated_env(alias_env):
-        """ Return a copy of a Boogie type alias environment to an instantiated one
+        """Return a copy of a Boogie type alias environment to an instantiated one
 
         Args:
             alias_env (dict): {'R': ['bool']}
@@ -124,7 +125,7 @@ class BoogieType(Enum):
 
     @staticmethod
     def aliases(type):
-        """ Get allowed name aliases for type
+        """Get allowed name aliases for type
 
         :param type: BoogieType
         :return: set containing the allowed alias names in hanfor.
@@ -146,15 +147,16 @@ class BoogieType(Enum):
 class TypeNode:
     expr: str
     t: BoogieType
-    type_leaf: list['TypeNode'] = field(default_factory=list)
-    children: list['TypeNode'] = field(default_factory=list)
+    type_leaf: list["TypeNode"] = field(default_factory=list)
+    children: list["TypeNode"] = field(default_factory=list)
 
     def __str__(self):
         return self.expr
 
 
-def run_typecheck_fixpoint(tree: Tree, type_env: dict[str, BoogieType],
-                           expected_types: List[BoogieType] = None) -> 'TypeInference':
+def run_typecheck_fixpoint(
+    tree: Tree, type_env: dict[str, BoogieType], expected_types: List[BoogieType] = None
+) -> "TypeInference":
     tn = TypeInference(tree, type_env, expected_types)
     while True:
         stn = TypeInference(tree, {k: v for k, v in tn.type_env.items()}, expected_types)
@@ -181,7 +183,7 @@ class TypeInference(Transformer):
                     break
             self.type_errors += errors
 
-    def __typecheck_args(self, expr: str,  arg_type: TypeNode, expected_arg_types: set[BoogieType]) -> list[str]:
+    def __typecheck_args(self, expr: str, arg_type: TypeNode, expected_arg_types: set[BoogieType]) -> list[str]:
         # ignore errors as there is already an error reported and the subsequent errors are noise
         if arg_type.t == BoogieType.unknown or arg_type.t == BoogieType.error:
             return []
@@ -210,7 +212,7 @@ class TypeInference(Transformer):
             if child.t != t and not child.t == BoogieType.unknown:
                 # Do not store an additional error text for syntax errors (with BoogieType.errror)
                 # but only for real type inference errors.
-                if (child.t != BoogieType.error):
+                if child.t != BoogieType.error:
                     type_errors.append(f"Types inconsistent: {child} had Type {tn.t} inferred as {t}")
                 return type_errors
             child.t = t
@@ -220,8 +222,9 @@ class TypeInference(Transformer):
         return type_errors
 
     # Infer binary operations
-    def __check_binaryop(self, c1: TypeNode, op: Token, c2: TypeNode, arg_type: set[BoogieType],
-                         return_type: BoogieType = None) -> TypeNode:
+    def __check_binaryop(
+        self, c1: TypeNode, op: Token, c2: TypeNode, arg_type: set[BoogieType], return_type: BoogieType = None
+    ) -> TypeNode:
         expr = f"{c1.expr} {op} {c2.expr}"
         arg_errors = self.__typecheck_args(expr, c1, arg_type) + self.__typecheck_args(expr, c2, arg_type)
         self.type_errors += arg_errors
@@ -229,7 +232,7 @@ class TypeInference(Transformer):
         type_leaf = [c1, c2] + c1.type_leaf + c2.type_leaf if not return_type else []
         if arg_errors:
             return TypeNode(expr, BoogieType.unknown if not return_type else return_type, type_leaf, [c1, c2])
-        #if c1.t == BoogieType.error or c2.t == BoogieType.error:
+        # if c1.t == BoogieType.error or c2.t == BoogieType.error:
         #   return TypeNode(expr, BoogieType.error if not return_type else return_type, type_leaf, [c1, c2])
         if c1.t == BoogieType.unknown and c2.t == BoogieType.unknown:
             return TypeNode(expr, BoogieType.unknown if not return_type else return_type, type_leaf, [c1, c2])
@@ -279,12 +282,14 @@ class TypeInference(Transformer):
         return self.__check_unaryop(o, c, {BoogieType.bool}, return_type=BoogieType.bool)
 
     def neq(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
-        return self.__check_binaryop(c1, op, c2, arg_type={BoogieType.bool, BoogieType.int, BoogieType.real},
-                                     return_type=BoogieType.bool)
+        return self.__check_binaryop(
+            c1, op, c2, arg_type={BoogieType.bool, BoogieType.int, BoogieType.real}, return_type=BoogieType.bool
+        )
 
     def eq(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
-        return self.__check_binaryop(c1, op, c2, arg_type={BoogieType.bool, BoogieType.int, BoogieType.real},
-                                     return_type=BoogieType.bool)
+        return self.__check_binaryop(
+            c1, op, c2, arg_type={BoogieType.bool, BoogieType.int, BoogieType.real}, return_type=BoogieType.bool
+        )
 
     def conjunction(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
         return self.__check_binaryop(c1, op, c2, arg_type={BoogieType.bool}, return_type=BoogieType.bool)

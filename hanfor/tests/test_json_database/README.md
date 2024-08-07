@@ -1,0 +1,1 @@
+This folder contains test classes and data for testing the json db module.

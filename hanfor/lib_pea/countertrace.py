@@ -11,16 +11,16 @@ from pysmt.shortcuts import TRUE, Not, And, Or, get_free_variables, get_env
 class Countertrace:
     def __init__(self, *dc_phases: DCPhase, path: str = None) -> None:
         self.dc_phases: list[Countertrace.DCPhase] = [dc_phase for dc_phase in dc_phases]
-        #super().__init__(path)
+        # super().__init__(path)
 
     def __str__(self) -> str:
-        return ';'.join([str(dc_phase) for dc_phase in self.dc_phases])
+        return ";".join([str(dc_phase) for dc_phase in self.dc_phases])
 
     @classmethod
     def load(cls, path: str) -> Countertrace:
-        #ct = super().load(path)
-        #ct.normalize(get_env().formula_manager)
-        #return ct
+        # ct = super().load(path)
+        # ct.normalize(get_env().formula_manager)
+        # return ct
         raise NotImplementedError
 
     def normalize(self, formula_manager: FormulaManager) -> None:
@@ -43,8 +43,15 @@ class Countertrace:
         GREATEREQUAL = 4
 
     class DCPhase:
-        def __init__(self, entry_events: FNode, invariant: FNode, bound_type: Countertrace.BoundTypes, bound: int,
-                     forbid: set[str], allow_empty: bool) -> None:
+        def __init__(
+            self,
+            entry_events: FNode,
+            invariant: FNode,
+            bound_type: Countertrace.BoundTypes,
+            bound: int,
+            forbid: set[str],
+            allow_empty: bool,
+        ) -> None:
             self.entry_events: FNode = entry_events
             self.invariant: FNode = invariant
             self.bound_type: Countertrace.BoundTypes = bound_type
@@ -53,36 +60,38 @@ class Countertrace:
             self.allow_empty: bool = allow_empty
 
         def __str__(self, unicode: bool = True) -> str:
-            result = ''
+            result = ""
 
-            _AND = '\u2227' if unicode else '/\\'
-            _NO_EVENT = '\u229F' if unicode else '[-]'
-            _EMPTY = '\u2080' if unicode else '0'
-            _GEQ = '\u2265' if unicode else '>='
-            _LEQ = '\u2264' if unicode else '<='
-            _LCEIL = '\u2308' if unicode else '['
-            _RCEIL = '\u2309' if unicode else ']'
-            _ELL = '\u2113' if unicode else 'L'
+            _AND = "\u2227" if unicode else "/\\"
+            _NO_EVENT = "\u229F" if unicode else "[-]"
+            _EMPTY = "\u2080" if unicode else "0"
+            _GEQ = "\u2265" if unicode else ">="
+            _LEQ = "\u2264" if unicode else "<="
+            _LCEIL = "\u2308" if unicode else "["
+            _RCEIL = "\u2309" if unicode else "]"
+            _ELL = "\u2113" if unicode else "L"
 
-            result += self.entry_events.serialize() + ';' if self.entry_events != TRUE() else ''
-            result += self.invariant.serialize() if self.invariant == TRUE() else _LCEIL + self.invariant.serialize() + _RCEIL
+            result += self.entry_events.serialize() + ";" if self.entry_events != TRUE() else ""
+            result += (
+                self.invariant.serialize() if self.invariant == TRUE() else _LCEIL + self.invariant.serialize() + _RCEIL
+            )
 
             for forbid in self.forbid:
-                result += ' ' + _AND + ' ' + _NO_EVENT + ' ' + forbid
+                result += " " + _AND + " " + _NO_EVENT + " " + forbid
 
             if self.bound_type == Countertrace.BoundTypes.NONE:
                 return result
 
-            result += ' ' + _AND + ' ' + _ELL
+            result += " " + _AND + " " + _ELL
 
             if self.bound_type == Countertrace.BoundTypes.LESS:
-                result += ' <' + _EMPTY + ' ' if self.allow_empty else ' < '
+                result += " <" + _EMPTY + " " if self.allow_empty else " < "
             elif self.bound_type == Countertrace.BoundTypes.LESSEQUAL:
-                result += ' ' + _LEQ + _EMPTY + ' ' if self.allow_empty else ' ' + _LEQ + ' '
+                result += " " + _LEQ + _EMPTY + " " if self.allow_empty else " " + _LEQ + " "
             elif self.bound_type == Countertrace.BoundTypes.GREATER:
-                result += ' >' + _EMPTY + ' ' if self.allow_empty else ' > '
+                result += " >" + _EMPTY + " " if self.allow_empty else " > "
             elif self.bound_type == Countertrace.BoundTypes.GREATEREQUAL:
-                result += ' ' + _GEQ + _EMPTY + ' ' if self.allow_empty else ' ' + _GEQ + ' '
+                result += " " + _GEQ + _EMPTY + " " if self.allow_empty else " " + _GEQ + " "
             else:
                 raise ValueError("Unexpected value of `bound_type`: %s" % self.bound_type)
 
@@ -98,12 +107,15 @@ class Countertrace:
                 formula_manager.normalize(self.invariant)
 
         def is_upper_bound(self) -> bool:
-            return self.bound_type == Countertrace.BoundTypes.LESS or \
-                self.bound_type == Countertrace.BoundTypes.LESSEQUAL
+            return (
+                self.bound_type == Countertrace.BoundTypes.LESS or self.bound_type == Countertrace.BoundTypes.LESSEQUAL
+            )
 
         def is_lower_bound(self) -> bool:
-            return self.bound_type == Countertrace.BoundTypes.GREATER or \
-                self.bound_type == Countertrace.BoundTypes.GREATEREQUAL
+            return (
+                self.bound_type == Countertrace.BoundTypes.GREATER
+                or self.bound_type == Countertrace.BoundTypes.GREATEREQUAL
+            )
 
         def extract_variables(self) -> set[FNode]:
             return set(get_free_variables(self.invariant))
@@ -117,8 +129,9 @@ def phaseE(invariant: FNode, bound_type: Countertrace.BoundTypes, bound: int) ->
     return Countertrace.DCPhase(TRUE(), invariant, bound_type, bound, set(), True)
 
 
-def phase(invariant: FNode, bound_type: Countertrace.BoundTypes = Countertrace.BoundTypes.NONE,
-          bound: int = 0) -> Countertrace.DCPhase:
+def phase(
+    invariant: FNode, bound_type: Countertrace.BoundTypes = Countertrace.BoundTypes.NONE, bound: int = 0
+) -> Countertrace.DCPhase:
     return Countertrace.DCPhase(TRUE(), invariant, bound_type, bound, set(), False)
 
 

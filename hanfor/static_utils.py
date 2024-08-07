@@ -4,6 +4,7 @@ import os
 import pickle
 import re
 import shlex
+from dataclasses import dataclass
 from typing import Any
 
 import colorama
@@ -11,21 +12,23 @@ import colorama
 from colorama import Style, Fore
 from terminaltables import DoubleTable
 
+from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
+
 
 def pickle_dump_obj_to_file(obj, filename):
-    """ Pickle-dumps given object to file.
+    """Pickle-dumps given object to file.
 
     :param obj: Python object
     :type obj: object
     :param filename: Path to output file
     :type filename: str
     """
-    with open(filename, mode='wb') as out_file:
+    with open(filename, mode="wb") as out_file:
         pickle.dump(obj, out_file)
 
 
 def pickle_load_from_dump(filename):
-    """ Loads python object from pickle dump file.
+    """Loads python object from pickle dump file.
 
     :param filename: Path to the pickle dump
     :type filename: str
@@ -36,13 +39,14 @@ def pickle_load_from_dump(filename):
         return dict()
 
     try:
-        with open(filename, mode='rb') as f:
+        with open(filename, mode="rb") as f:
             return pickle.load(f)
     except EOFError:
         return dict()
 
+
 def get_filenames_from_dir(input_dir):
-    """ Returns the list of filepaths for all files in input_dir.
+    """Returns the list of filepaths for all files in input_dir.
 
     :param input_dir: Location of the input directory
     :type input_dir: str
@@ -53,7 +57,7 @@ def get_filenames_from_dir(input_dir):
 
 
 def choice(choices: list[str], default: str) -> str:
-    """ Asks the user which string he wants from a list of strings.
+    """Asks the user which string he wants from a list of strings.
     Returns the selected string.
 
     :param choices: List of choices (one choice is a string)
@@ -66,28 +70,26 @@ def choice(choices: list[str], default: str) -> str:
     default_idx = 0
     for choice in choices:
         if choice == default:
-            data.append([
-                '{}-> {}{}'.format(Fore.GREEN, idx, Style.RESET_ALL),
-                '{}{}{}'.format(Fore.GREEN, choice, Style.RESET_ALL)
-            ])
+            data.append(
+                [
+                    "{}-> {}{}".format(Fore.GREEN, idx, Style.RESET_ALL),
+                    "{}{}{}".format(Fore.GREEN, choice, Style.RESET_ALL),
+                ]
+            )
             default_idx = idx
         else:
             data.append([idx, choice])
         idx = idx + 1
 
-    table = DoubleTable(data, title='Choices')
+    table = DoubleTable(data, title="Choices")
     table.inner_heading_row_border = False
     print(table.table)
 
     while True:
-        input_msg = '{}[Choice or Enter for {} -> default ({}){}]> {}'.format(
-            Fore.LIGHTBLUE_EX,
-            Fore.GREEN,
-            default_idx,
-            Fore.LIGHTBLUE_EX,
-            Style.RESET_ALL
+        input_msg = "{}[Choice or Enter for {} -> default ({}){}]> {}".format(
+            Fore.LIGHTBLUE_EX, Fore.GREEN, default_idx, Fore.LIGHTBLUE_EX, Style.RESET_ALL
         )
-        print(input_msg, end='')
+        print(input_msg, end="")
         last_in = input()
 
         if len(last_in) == 0:
@@ -95,7 +97,7 @@ def choice(choices: list[str], default: str) -> str:
 
         choice, *args = shlex.split(last_in)
         if len(args) > 0:
-            print('What did you mean?')
+            print("What did you mean?")
             continue
 
         try:
@@ -110,8 +112,8 @@ def choice(choices: list[str], default: str) -> str:
         print('Illegal choice "' + str(choice) + '", choose again')
 
 
-def hash_file_sha1(path, encoding='utf-8'):
-    """ Returns md5 hash for a csv (text etc.) file.
+def hash_file_sha1(path, encoding="utf-8"):
+    """Returns md5 hash for a csv (text etc.) file.
 
     :param path: Path to file to hash.
     :param encoding: Defaults to utf-8
@@ -119,7 +121,7 @@ def hash_file_sha1(path, encoding='utf-8'):
     """
     sha1sum = hashlib.sha1()
 
-    with open(path, 'r', encoding=encoding) as f:
+    with open(path, "r", encoding=encoding) as f:
         while True:
             data = f.readline().encode(encoding=encoding)
             if not data:
@@ -130,7 +132,7 @@ def hash_file_sha1(path, encoding='utf-8'):
 
 
 def replace_prefix(string: str, prefix_old: str, prefix_new: str):
-    """ Replace the prefix (prefix_old) of a string with (prefix_new).
+    """Replace the prefix (prefix_old) of a string with (prefix_new).
     String remains unchanged if prefix_old is not matched.
 
     :param string: To be changed.
@@ -139,7 +141,7 @@ def replace_prefix(string: str, prefix_old: str, prefix_new: str):
     :return: String with prefix_old replaced by prefix_new.
     """
     if string.startswith(prefix_old):
-        string = ''.join((prefix_new, string[len(prefix_old):]))
+        string = "".join((prefix_new, string[len(prefix_old) :]))
     return string
 
 
@@ -148,16 +150,16 @@ def get_valid_filename(ugly_string, collision_candidates=()):
     Return the given string converted to a string that can be used for a clean
     filename. Remove leading and trailing spaces; convert other spaces to
     underscores; and remove anything that is not an alphanumeric, dash,
-    underscore, or dot. Match against collision_candidates to return an unique string.
+    underscore, or dot. Match against collision_candidates to return a unique string.
     >>> get_valid_filename("john's portrait in 2004.jpg")
     'johns_portrait_in_2004.jpg'
     """
-    result = str(ugly_string).strip().replace(' ', '_')
-    result = re.sub(r'(?u)[^-\w.]', '', result)
-    prefix = ''
+    result = str(ugly_string).strip().replace(" ", "_")
+    result = re.sub(r"(?u)[^-\w.]", "", result)
+    prefix = ""
     counter = 0
     while result + prefix in collision_candidates:
-        prefix = '_' + str(counter)
+        prefix = "_" + str(counter)
         counter += 1
     return result + prefix
 
@@ -168,3 +170,12 @@ def try_cast_string(data: Any) -> str:
     except TypeError as e:
         logging.warning(f"Failed string cast:\n {e}")
     return "CSV-None"
+
+
+@DatabaseTable(TableType.File)
+@DatabaseID("name", str)
+@DatabaseField("value", dict)
+@dataclass()
+class SessionValue:
+    name: str
+    value: any
