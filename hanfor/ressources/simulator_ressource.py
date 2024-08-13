@@ -315,35 +315,6 @@ class SimulatorRessource(Ressource):
         self.get_simulators()
 
     @staticmethod
-    def load_phase_event_automata(requirement_id: str, app: HanforFlask):
-        # TODO: this method is never called
-        # TODO: use JsonDB instead of pickles
-        result = []
-
-        dir = app.config["REVISION_FOLDER"]
-        for file in fnmatch.filter(os.listdir(dir), f"{requirement_id}_*_PEA.pickle"):
-            result.append(PhaseSetsPea.load(os.path.join(dir, file)))
-
-        return result
-
-    @staticmethod
-    def store_phase_event_automata(peas: list[PhaseSetsPea], app: HanforFlask) -> None:
-        # TODO: this method is never called
-        # TODO: use JsonDB instead of pickles
-        for pea in peas:
-            file = f"{pea.requirement.rid}_{pea.formalization.id}_{pea.countertrace_id}_PEA.pickle"
-            # TODO: what is the idea here, pea.store is not defined
-            pea.store(os.path.join(app.config["REVISION_FOLDER"], file))
-
-    @staticmethod
-    def delete_phase_event_automata(requirement_id: str, app: HanforFlask):
-        # TODO: this method is never called
-        # TODO: use JsonDB instead of pickles
-        dir = app.config["REVISION_FOLDER"]
-        for file in fnmatch.filter(os.listdir(dir), f"{requirement_id}_*_PEA.pickle"):
-            os.remove(os.path.join(dir, file))
-
-    @staticmethod
     def has_variable_with_unknown_type(formalization: Formalization, variables: dict[str, str]) -> bool:
         for used_variable in formalization.used_variables:
             if variables[used_variable] == "unknown" or variables[used_variable] == "error":
