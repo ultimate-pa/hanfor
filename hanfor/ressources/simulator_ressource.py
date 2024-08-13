@@ -124,8 +124,6 @@ class SimulatorRessource(Ressource):
             "simulator-modal/modal.html",
             simulator=simulator,
             valid_patterns=validation_patterns,
-            enable_variable_constraints=self.app.config["FEATURE_SIMULATOR_VARIABLE_CONSTRAINTS"],
-            enable_inconsistency_pre_check=self.app.config["FEATURE_SIMULATOR_INCONSISTENCY_PRE_CHECK"],
         )
 
     def scenario_save(self) -> None:
