@@ -17,8 +17,8 @@ const autosize = require('autosize/dist/autosize');
 // Globals
 const {SearchNode} = require('./datatables-advanced-search.js');
 const {init_simulator_tab} = require('./simulator-tab.js');
-const {init_ultimate_tab} = require('../../ultimate/static/ultimate-tab.js');
-const {init_ultimate_requirements_table_connection} = require('../../ultimate/static/ultimate-tab.js');
+let init_table_connection_functions= []
+exports.init_table_connection_functions = init_table_connection_functions
 
 const {Textcomplete} = require('@textcomplete/core')
 const {TextareaEditor} = require('@textcomplete/textarea')
@@ -59,7 +59,6 @@ $(document).ready(function () {
     update_logs();
     init_report_generation();
     init_simulator_tab();
-    init_ultimate_tab();
 
     let body = $('body');
     // Bind formalization deletion.
@@ -183,7 +182,9 @@ function init_datatable(columnDefs) {
             let requirements_table = this.api();
             bind_requirement_id_to_modals(requirements_table);
             init_datatable_manipulators(requirements_table);
-            init_ultimate_requirements_table_connection(requirements_table);
+            for (const f of init_table_connection_functions) {
+                f(requirements_table)
+            }
 
             utils.process_url_query(get_query);
             update_search();

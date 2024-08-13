@@ -1,5 +1,12 @@
 
+let init_table_connection_functions = require('/js/requirements.js')['init_table_connection_functions']
+
+$(document).ready(function () {
+    init_ultimate_tab()
+});
+
 function init_ultimate_tab() {
+    init_table_connection_functions.push(init_ultimate_requirements_table_connection)
     check_ultimate_version();
     update_configurations();
 
@@ -7,11 +14,9 @@ function init_ultimate_tab() {
         let btn = $('#ultimate-tab-create-unfiltered-btn')
         create_ultimate_analysis(btn, "all");
     });
-
-
 }
 
-function init_ultimate_requirements_table_connection(requirements_table) {
+function init_ultimate_requirements_table_connection (requirements_table) {
     $('#ultimate-tab-create-filtered-btn').click(function () {
         let req_ids = [];
         requirements_table.rows({search: 'applied'}).every(function () {
@@ -106,6 +111,3 @@ function create_ultimate_analysis(btn, req_ids) {
         alert(errorThrown + '\n\n' + jqXHR['responseText']);
     });
 }
-
-module.exports.init_ultimate_tab = init_ultimate_tab
-module.exports.init_ultimate_requirements_table_connection = init_ultimate_requirements_table_connection

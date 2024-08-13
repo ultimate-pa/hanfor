@@ -71,8 +71,12 @@ HOST = os.environ.get("HANFOR_HOST", default="127.0.0.1")
 #                               Feature Flags                                  #
 ################################################################################
 
+# Simulator
 FEATURE_SIMULATOR_VARIABLE_CONSTRAINTS = False
 FEATURE_SIMULATOR_INCONSISTENCY_PRE_CHECK = False
+
+# Ultimate
+FEATURE_ULTIMATE = False
 
 ################################################################################
 #                               Miscellaneous                                  #

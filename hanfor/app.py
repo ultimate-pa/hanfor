@@ -50,7 +50,12 @@ app.db = None
 from example_blueprint import example_blueprint
 from tags import tags
 from statistics import statistics
-from ultimate import ultimate
+
+if app.config["FEATURE_ULTIMATE"]:
+    from ultimate import ultimate
+
+    app.register_blueprint(ultimate.blueprint)
+    app.register_blueprint(ultimate.api_blueprint)
 
 # Example Blueprint
 app.register_blueprint(example_blueprint.blueprint)
@@ -61,9 +66,6 @@ app.register_blueprint(tags.api_blueprint)
 # Statistics
 app.register_blueprint(statistics.blueprint)
 app.register_blueprint(statistics.api_blueprint)
-# ultimate
-app.register_blueprint(ultimate.blueprint)
-app.register_blueprint(ultimate.api_blueprint)
 
 
 if "USE_SENTRY" in app.config and app.config["USE_SENTRY"]:
