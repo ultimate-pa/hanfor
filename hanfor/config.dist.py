@@ -68,14 +68,15 @@ PORT = os.environ.get("HANFOR_PORT", default=5000)
 HOST = os.environ.get("HANFOR_HOST", default="127.0.0.1")
 
 ################################################################################
+#                               Feature Flags                                  #
+################################################################################
+
+FEATURE_SIMULATOR_VARIABLE_CONSTRAINTS = False
+FEATURE_SIMULATOR_INCONSISTENCY_PRE_CHECK = False
+
+################################################################################
 #                               Miscellaneous                                  #
 ################################################################################
 # Define the ordering for pattern grouping in the pattern selection of hanfors frontent.
 # All groups used in PATTERNS must be covered.
 PATTERNS_GROUP_ORDER = ["Occurence", "Order", "Real-time", "not_formalizable"]
-
-# Set feature flags to enable/disable features
-FEATURE_FLAGS = {
-    "variable_constraints": False,
-    "inconsistency_pre_check": False,
-}

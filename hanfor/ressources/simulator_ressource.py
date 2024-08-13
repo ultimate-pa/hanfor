@@ -124,7 +124,8 @@ class SimulatorRessource(Ressource):
             "simulator-modal/modal.html",
             simulator=simulator,
             valid_patterns=validation_patterns,
-            feature_flags=self.app.config["FEATURE_FLAGS"],
+            enable_variable_constraints=self.app.config["FEATURE_SIMULATOR_VARIABLE_CONSTRAINTS"],
+            enable_inconsistency_pre_check=self.app.config["FEATURE_SIMULATOR_INCONSISTENCY_PRE_CHECK"],
         )
 
     def scenario_save(self) -> None:
@@ -315,6 +316,8 @@ class SimulatorRessource(Ressource):
 
     @staticmethod
     def load_phase_event_automata(requirement_id: str, app: HanforFlask):
+        # TODO: this method is never called
+        # TODO: use JsonDB instead of pickles
         result = []
 
         dir = app.config["REVISION_FOLDER"]
@@ -325,6 +328,8 @@ class SimulatorRessource(Ressource):
 
     @staticmethod
     def store_phase_event_automata(peas: list[PhaseSetsPea], app: HanforFlask) -> None:
+        # TODO: this method is never called
+        # TODO: use JsonDB instead of pickles
         for pea in peas:
             file = f"{pea.requirement.rid}_{pea.formalization.id}_{pea.countertrace_id}_PEA.pickle"
             # TODO: what is the idea here, pea.store is not defined
@@ -332,6 +337,8 @@ class SimulatorRessource(Ressource):
 
     @staticmethod
     def delete_phase_event_automata(requirement_id: str, app: HanforFlask):
+        # TODO: this method is never called
+        # TODO: use JsonDB instead of pickles
         dir = app.config["REVISION_FOLDER"]
         for file in fnmatch.filter(os.listdir(dir), f"{requirement_id}_*_PEA.pickle"):
             os.remove(os.path.join(dir, file))

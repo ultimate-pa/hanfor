@@ -39,13 +39,13 @@
     <button id="simulator-step-back-btn" class="btn btn-secondary" type="button">Back</button>
 </div>
 
-{% if feature_flags['variable_constraints'] %}
+{% if enable_variable_constraints %}
 <div class="col-auto">
     <button id="simulator-variable-constraints-btn" class="btn btn-secondary" type="button">Variable Constraints</button>
 </div>
 {% endif %}
 
-{% if feature_flags['inconsistency_pre_check'] %}
+{% if enable_inconsistency_pre_check %}
 <div class="col-auto">
     <button id="simulator-inconsistency-pre-check-btn" class="btn btn-secondary" type="button">Inconsistency Pre-Check</button>
 </div>
