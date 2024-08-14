@@ -7,7 +7,7 @@ Samuel Becker, Daniel Dietsch, Nico Hauff, Elisabeth Henkel, Vincent Langenfeld,
 *Hanfor: Semantic Requirements Review at Scale.*
 In *REFSQ Workshops 2021*.
 
-[:misc-doi: DOI](http://ceur-ws.org/Vol-2857/pt3.pdf){ target=_blank .md-button }
+[:academicons-doi: DOI](http://ceur-ws.org/Vol-2857/pt3.pdf){ target=_blank .md-button }
 [:fontawesome-regular-file-pdf: PDF](publications/hanfor-semantic-requirements-review-at-scale.pdf){ target=_blank .md-button }
 
 ??? cite
@@ -34,7 +34,7 @@ Daniel Dietsch, Vincent Langenfeld, Bernd Westphal.
 *Formal Requirements in an Informal World.*
 In *IEEE Workshop on Formal Requirements (FORMREQ) 2020*.
 
-[:misc-doi: DOI](https://doi.org/10.1109/FORMREQ51202.2020.00010){ target=_blank .md-button }
+[:academicons-doi: DOI](https://doi.org/10.1109/FORMREQ51202.2020.00010){ target=_blank .md-button }
 [:fontawesome-regular-file-pdf: PDF](publications/formal-requirements-in-an-informal-world.pdf){ target=_blank .md-button }
 
 ??? cite
@@ -56,7 +56,7 @@ In *IEEE Workshop on Formal Requirements (FORMREQ) 2020*.
 Vincent Langenfeld, Daniel Dietsch, Bernd Westphal, Jochen Hoenicke, and Amalinda Post.
 *Scalable Analysis of Real-Time Requirements.*
 
-[:misc-doi: DOI](http://dx.doi.org/10.1109/RE.2019.00033){ target=_blank .md-button }
+[:academicons-doi: DOI](http://dx.doi.org/10.1109/RE.2019.00033){ target=_blank .md-button }
 [:fontawesome-regular-file-pdf: PDF](publications/scalable-analysis.pdf){ target=_blank .md-button }
 
 ??? cite
@@ -80,7 +80,7 @@ Amalinda Post and Jochen Hoenicke.
 *Formalization and Analysis of Real-Time Requirements: a Feasibility Study at BOSCH.*
 In *VSTTE 12*, pp. 225&ndash;240. Springer, 2012.
 
-[:misc-doi: DOI](http://dx.doi.org/10.1007/978-3-642-27705-4_18){ target=_blank .md-button }
+[:academicons-doi: DOI](http://dx.doi.org/10.1007/978-3-642-27705-4_18){ target=_blank .md-button }
 [:fontawesome-regular-file-pdf: PDF](publications/formalization-analysis-rtrequirements.pdf){ target=_blank .md-button }
 
 ??? cite
@@ -104,7 +104,7 @@ Amalinda Post, Jochen Hoenicke, and Andreas Podelski.
 *Vacuous real-time requirements.*
 In *RE 11*, pp. 153&ndash;162. IEEE, 2011.
 
-[:misc-doi: DOI](http://dx.doi.org/10.1109/RE.2011.6051657){ target=_blank .md-button }
+[:academicons-doi: DOI](http://dx.doi.org/10.1109/RE.2011.6051657){ target=_blank .md-button }
 [:fontawesome-regular-file-pdf: PDF](publications/vacuous-consistency.pdf){ target=_blank .md-button }
 
 ??? cite
@@ -126,7 +126,7 @@ Amalinda Post, Jochen Hoenicke, and Andreas Podelski.
 *rt-Inconsistency: A New Property for Real-Time Requirements.*
 In *FASE 2011*, volume 6603 in LNCS, pp. 34&ndash;49. Springer, 2011.
 
-[:misc-doi: DOI](http://dx.doi.org/10.1007/978-3-642-19811-3_4){ target=_blank .md-button }
+[:academicons-doi: DOI](http://dx.doi.org/10.1007/978-3-642-19811-3_4){ target=_blank .md-button }
 [:fontawesome-regular-file-pdf: PDF](publications/rt-inconsistency.pdf){ target=_blank .md-button }
 
 ??? cite
@@ -150,7 +150,7 @@ Amalinda Post, Igor Menzel, and Andreas Podelski.
 *Applying Restricted English Grammar on Automotive Requirements—Does it Work? A Case Study.*
 In *REFSQ 2011*, volume 6606 in LNCS, pp. 166&ndash;180. Springer, 2011.
 
-[:misc-doi: DOI](http://dx.doi.org/10.1007/978-3-642-19858-8_17){ target=_blank .md-button }
+[:academicons-doi: DOI](http://dx.doi.org/10.1007/978-3-642-19858-8_17){ target=_blank .md-button }
 [:fontawesome-regular-file-pdf: PDF](publications/applying-restricted-grammar.pdf){ target=_blank .md-button }
 
 ??? cite
