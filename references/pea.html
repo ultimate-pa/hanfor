@@ -864,10 +864,10 @@
 <p>Figure 1 shows a phase event automaton representing the following requirement:</p>
 <div class="highlight"><pre><span></span><code>req1: Globally, it is always the case that if &quot;R&quot; holds for at least &quot;5&quot; time units, then &quot;Q&quot; holds afterwards.
 </code></pre></div>
-<p>
-<figure><img src="../img/example_pea.svg" title="Figure 1" /><figcaption>Figure 1: Phase event automaton modeling requirement <em>req1</em>.</figcaption>
+<figure>
+  <img alt="" loading="lazy" src="../img/example_pea.svg" />
+  <figcaption>Figure 1: Phase event automaton modeling requirement *req1*.</figcaption>
 </figure>
-</p>
 <p>First we will have a look at the different components that are used to depict a PEA. </p>
 <p><strong>Variables:</strong><br>
 The variables and time constants that occur in the PEA are directly coming from the corresponding requirement. <em>req1</em> contains two boolean variables, namely "R" and "Q", and the timing constant "5". Each timing constant is related to a unique clock variable. The timing constant and its corresponding clock variable can be found in the PEA as a boolean time constraint, e.g. "c0&lt;5".
@@ -875,10 +875,10 @@ The boolean variables can occur as unprimed variables (e.g. Q) and primed variab
 <p><strong>Phases:</strong><br>
 The PEA consists of locations or phases, and edges representing transistions between the phases.
 Each phase of the PEA consists of a unique name, a phase invariant and a clock invariant. E.g. consider the PEA phase given in Figure 2. The name is "st01W", the phase invariant is given by the expression "R" and the clock invariant by the time constraint "c0&lt;=5". If a phase has an incoming edge that has no source, we call it "initial".</p>
-<p>
-<figure><img src="../img/pea_location.png" title="Figure 2" /><figcaption>Figure 2: Exemplary phase of a PEA defined by its name, phase invariant, and clock invariant.</figcaption>
+<figure>
+  <img alt="" loading="lazy" src="../img/pea_location.png" />
+  <figcaption>Figure 2: Exemplary phase of a PEA defined by its name, phase invariant, and clock invariant.</figcaption>
 </figure>
-</p>
 <p><strong>Transitions:</strong><br>
 Each transition between phases is labeled with a boolean expression called "guard" and may additionally carry a clock reset statement. The guard may contain primed and unprimed variables as well as timing constraints. A transition from one phase to another can only be taken if the guarding expression is satisfied: This means that the guarding expression must evaluate to <em>true</em> under the current valuation (for unprimed variables and the clock constraint) together with the subsequent valuation (for the primed variables). If there is no constraint the guard is trivially satisfied and hence set to <em>true</em>.</p>
 <h2 id="run-of-a-pea">Run of a PEA<a class="headerlink" href="#run-of-a-pea" title="Permanent link"> #</a></h2>
@@ -953,10 +953,10 @@ Each transition between phases is labeled with a boolean expression called "guar
 </div>
 <h2 id="timing-diagram">Timing Diagram<a class="headerlink" href="#timing-diagram" title="Permanent link"> #</a></h2>
 <p>As the tupel representation of a run is not necessarily intuitive, we often depict a run in form of a timing diagram. Below you find the timing diagram representation of the run described in Example 1. </p>
-<p>
-<figure><img src="../img/example_pea_run.png" title="Figure 3" /><figcaption>Figure 3: Timing diagram representation of a run included in the PEA of <em>req1</em>.</figcaption>
+<figure>
+  <img alt="" loading="lazy" src="../img/example_pea_run.png" />
+  <figcaption>Figure 3: Timing diagram representation of a run included in the PEA of *req1*.</figcaption>
 </figure>
-</p>
 
 
 
