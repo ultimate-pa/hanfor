@@ -3,7 +3,7 @@ toc_depth: 2
 # Installation
 
 ## Prerequisites
-* [Python](https://www.python.org/) (**Note**: Hanfor is only tested with Python 3.10.x)
+* [Python 3.12](https://www.python.org/)
 * [pip](https://pypi.org/project/pip/)
 
 
