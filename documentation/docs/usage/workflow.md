@@ -83,7 +83,10 @@ python3 app.py -c example_input/example_input.csv --header='{"csv_id_header": "I
 
 you can now reach Hanfor by visiting [http://127.0.0.1:5000](http://127.0.0.1:5000)
 
-![Hanfor requirement overview](../img/hanfor01.png "This is how Hanfor looks like after you started it")
+<figure markdown="span">
+  ![](../img/hanfor01.png){ loading=lazy }
+  <figcaption>Figure 1: Hanfor requirement overview.</figcaption>
+</figure>
 
 ## Preprocessing
 By default, all rows now have the status **Todo**. 
@@ -104,7 +107,11 @@ Order your requirement overview by **Pos**, by clicking on the table column.
 ### REQ1
 To formalize this requirement, we click on the ID **REQ1** to open then formalization-modal:
 
-![Formalization modal](../img/hanfor02.png "This is how a formalization modal looks like")
+<figure markdown="span">
+  ![](../img/hanfor02.png){ loading=lazy }
+  <figcaption>Figure 2: Formalization modal.</figcaption>
+</figure>
+
 
 1. Click on **+** to add a new formalization and then on **..(click to open)**
 2. We now have to select a *Scope* and a *Pattern*.
@@ -115,7 +122,10 @@ To formalize this requirement, we click on the ID **REQ1** to open then formaliz
 If you save a requirement, Hanfor will automatically create the used variables and derive their type.
 You can examine and even alter them in the section **Variables**, for the case that Hanfor did not derive a variable-type correctly.
 
-![Definition of Scope and Pattern](../img/hanfor_req1_formalization.png "This is how we formalize REQ1")
+<figure markdown="span">
+  ![](../img/hanfor_req1_formalization.png){ loading=lazy }
+  <figcaption>Figure 3: Definition of Scope and Pattern.</figcaption>
+</figure>
 
 The same procedure can be applied to REQ2 - REQ6
 
@@ -141,8 +151,10 @@ formalized requirement. To fix that, to go the **Variables** section and open th
 You see that Hanfor derived the type `bool`, but we actually want it to be of type `CONST` as the variable represents time units. Change the type and
 also assign a value, for example `50`.
 
-![Example for the `MAX_TIME` variable](../img/hanfor_var_maxtime.png "This is how you should edit the MAX_TIME variable")
-
+<figure markdown="span">
+  ![](../img/hanfor_var_maxtime.png){ loading=lazy }
+  <figcaption>Figure 4: Example for the `MAX_TIME` variable.</figcaption>
+</figure>
 
 For REQ8 you should have: 
 ``` 

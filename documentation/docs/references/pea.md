@@ -16,7 +16,10 @@ Figure 1 shows a phase event automaton representing the following requirement:
 req1: Globally, it is always the case that if "R" holds for at least "5" time units, then "Q" holds afterwards.
 ```
 
-![Figure 1: Phase event automaton modeling requirement *req1*.](../img/example_pea.svg "Figure 1")
+<figure markdown="span">
+  ![](../img/example_pea.svg){ loading=lazy }
+  <figcaption>Figure 1: Phase event automaton modeling requirement *req1*.</figcaption>
+</figure>
 
 First we will have a look at the different components that are used to depict a PEA. 
 
@@ -28,7 +31,10 @@ The boolean variables can occur as unprimed variables (e.g. Q) and primed variab
 The PEA consists of locations or phases, and edges representing transistions between the phases.
 Each phase of the PEA consists of a unique name, a phase invariant and a clock invariant. E.g. consider the PEA phase given in Figure 2. The name is "st01W", the phase invariant is given by the expression "R" and the clock invariant by the time constraint "c0<=5". If a phase has an incoming edge that has no source, we call it "initial".
 
-![Figure 2: Exemplary phase of a PEA defined by its name, phase invariant, and clock invariant.](../img/pea_location.png "Figure 2")
+<figure markdown="span">
+  ![](../img/pea_location.png){ loading=lazy }
+  <figcaption>Figure 2: Exemplary phase of a PEA defined by its name, phase invariant, and clock invariant.</figcaption>
+</figure>
 
 **Transitions:**<br>
 Each transition between phases is labeled with a boolean expression called "guard" and may additionally carry a clock reset statement. The guard may contain primed and unprimed variables as well as timing constraints. A transition from one phase to another can only be taken if the guarding expression is satisfied: This means that the guarding expression must evaluate to *true* under the current valuation (for unprimed variables and the clock constraint) together with the subsequent valuation (for the primed variables). If there is no constraint the guard is trivially satisfied and hence set to *true*.
@@ -114,4 +120,7 @@ A **run** of a PEA is a sequence of configurations such that the following condi
 ## Timing Diagram
 As the tupel representation of a run is not necessarily intuitive, we often depict a run in form of a timing diagram. Below you find the timing diagram representation of the run described in Example 1. 
 
-![Figure 3: Timing diagram representation of a run included in the PEA of *req1*.](../img/example_pea_run.png "Figure 3")
+<figure markdown="span">
+  ![](../img/example_pea_run.png){ loading=lazy }
+  <figcaption>Figure 3: Timing diagram representation of a run included in the PEA of *req1*.</figcaption>
+</figure>

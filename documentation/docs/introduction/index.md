@@ -15,8 +15,10 @@ Hanfor is developed to ease the process of requirement analysis. Its method cons
 2. Requirement Check
 3. Test Generation
 
-![Figure 1: The Hanfor tool discovers requirement defects and derives test specifications from a given set of informal requirements.](../img/hanfor_method.svg "Figure 1")
-
+<figure markdown="span">
+  ![](../img/hanfor_method.svg){ loading=lazy }
+  <figcaption>Figure 1: The Hanfor tool discovers requirement defects and derives test specifications from a given set of informal requirements.</figcaption>
+</figure>
 
 ## Requirement Formalization
 To make it possible for a computer to check a set of requirements for a given criteria, it has to "understand" the semantics of the requirements. This could be achieved by using formal languages, which usually share the fact that they are rarely understandable for humans.
@@ -98,8 +100,10 @@ The grammar of the specification language is given below. A requirement is defin
 
 Figure 2 shows the toolchain for the translation of an informal requirement into a formalized version. In the first step, the informal requirement, given in natural language, is translated into the specification language. This process is done manually. The requirement expressed in the specification language is then automatically translated into a formula in realtime logic (the Duration Calculus).
 
-![Figure 2: A specification language for real-time requirements is used as an intermediate step in the translation from informal to formalized requirements.](../img/toolchain_language.svg "Figure 2")
-
+<figure markdown="span">
+  ![](../img/toolchain_language.svg){ loading=lazy }
+  <figcaption>Figure 2: A specification language for real-time requirements is used as an intermediate step in the translation from informal to formalized requirements.</figcaption>
+</figure>
 
 ## Requirement Check
 The **Hanfor** tool chain checks requirements for the following three correctness properties: 
@@ -129,12 +133,17 @@ A set of requirements is rt-inconsistent, if there are conflicts between require
 
 Consider the two real-time requirements given above. The set of the two requirements is consistent. Figure 3 gives an example of an interpretation of 'A', 'B', and 'C' (in form of a timing diagram) that satisfies both requirments.
 
-![Figure 3: Consistency of the set of requirements {Req3, Req4}. 'A' and 'B' occur at the same point in time for one time unit, then '!C' for two time units satisfies Req4, and 'C' occurring at time 5 satisfies Req3.](../img/example_consistency.svg "Figure 3")
+<figure markdown="span">
+  ![](../img/example_consistency.svg){ loading=lazy }
+  <figcaption>Figure 3: Consistency of the set of requirements {Req3, Req4}. 'A' and 'B' occur at the same point in time for one time unit, then '!C' for two time units satisfies Req4, and 'C' occurring at time 5 satisfies Req3.</figcaption>
+</figure>
 
 However, there are assignments for which the requirements are in conflict, as depicted in the example trace (Figure 4). If 'A' and 'B'change values as shown in the figure, than at time 5, Req4 would only be satisfied if 'C' remained *false* while Req3 would only be satisfied if 'C' changed to *true*.
 
-![Figure 4: Witness for the rt-inconsistency of the set of requirements {Req3, Req4}. From time 4 on, the system steers toward inevitable rt-inconsistency.](../img/example_rtinconsistency.svg "Figure 4")
-
+<figure markdown="span">
+  ![](../img/example_rtinconsistency.svg){ loading=lazy }
+  <figcaption>Figure 4: Witness for the rt-inconsistency of the set of requirements {Req3, Req4}. From time 4 on, the system steers toward inevitable rt-inconsistency.</figcaption>
+</figure>
 
 There are several possibilities to resolve the rt-inconsistency in a set of requirements, e.g. by erasing, changing or adding requirements.
 
@@ -180,7 +189,10 @@ Formalized requirements can be used to automatically generate test specification
 ### Algorithm
 Testing requires information about observability. The system variables are therefore categorized into input, output, and hidden (i.e. internal) variables. A sequence of inputs deterministically causes the valuation of the output variable. Figure 5 shows an abstract view of a two-input system with the variables *A*, *B* and *C*. 
 
-![Figure 5: System *S* with input variables *A*, *B*, and output variable *C*.](../img/hanfor_testing_system.svg "Figure 5")
+<figure markdown="span">
+  ![](../img/hanfor_testing_system.svg){ loading=lazy }
+  <figcaption>Figure 5: System *S* with input variables *A*, *B*, and output variable *C*.</figcaption>
+</figure>
 
 The test generation algorithm automatically generates system tests that are based only on the formalized requirements (i.e. do not depend on an additional system model). It generates at least one test case per output variable, but as most as many test cases such that every requirement is tested. Each generated test indicates the requirements that it is based on.
 
@@ -225,10 +237,16 @@ The given test case tests the output variable *C* based on the third requirement
 Hanfor takes as input an exported .csv file from Doors and stores the requirements. Figure 7 shows a screenshot of requirements imported into a Hanfor session.
 There are two IDs, the Hanfor ID and the Doors ID, so that the two databases can be synchronized. The informal requirements are listed in the column 'Description'. Once a requirement is formalized in the specification language, it is listed in the column 'Formalization'. 
 
-![Figure 6: Requirements exported into a Hanfor session.](../img/screenshot_hanfor_session.png "Figure 6")
+<figure markdown="span">
+  ![](../img/screenshot_hanfor_session.png){ loading=lazy }
+  <figcaption>Figure 6: Requirements exported into a Hanfor session.</figcaption>
+</figure>
 
 Clicking on a requirement opens the modification page of the requirement (Figure 8). The requirement can be formalized in the specification language by using the drop-down lists for both scopes and patterns. The variables can be specified manually by using the autocomplete function of the signal database.
 
-![Figure 7: Modification window of a single requirement.](../img/screenshot_hanfor_req.png "Figure 7")
+<figure markdown="span">
+  ![](../img/screenshot_hanfor_req.png){ loading=lazy }
+  <figcaption>Figure 7: Modification window of a single requirement.</figcaption>
+</figure>
 
 For more information about the usage of Hanfor, please have a look at the usage section.

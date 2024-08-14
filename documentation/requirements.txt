@@ -2,4 +2,3 @@
 -e git+https://github.com/aleksan4eg/markdown-lightbox@7dbf517cbb208179046237eb157e84e8826fda67#egg=markdown_lightbox
 mkdocs-material~=9.5.31
 mkdocs-awesome-pages-plugin~=2.9.3
-markdown-captions~=2.1.2
