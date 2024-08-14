@@ -962,10 +962,10 @@ Select<span class="w"> </span><span class="nb">type</span><span class="w"> </spa
 <div class="highlight"><pre><span></span><code>python3<span class="w"> </span>app.py<span class="w"> </span>-c<span class="w"> </span>example_input/example_input.csv<span class="w"> </span>--header<span class="o">=</span><span class="s1">&#39;{&quot;csv_id_header&quot;: &quot;ID&quot;, &quot;csv_desc_header&quot;: &quot;Description&quot;, &quot;csv_formal_header&quot;: &quot;Hanfor_Formalization&quot;, &quot;csv_type_header&quot; : &quot;Type&quot;}&#39;</span><span class="w"> </span>awesome_tag
 </code></pre></div></p>
 <p>you can now reach Hanfor by visiting <a href="http://127.0.0.1:5000">http://127.0.0.1:5000</a></p>
-<p>
-<figure><img src="../img/hanfor01.png" title="This is how Hanfor looks like after you started it" /><figcaption>Hanfor requirement overview</figcaption>
+<figure>
+  <img alt="" loading="lazy" src="../img/hanfor01.png" />
+  <figcaption>Figure 1: Hanfor requirement overview.</figcaption>
 </figure>
-</p>
 <h2 id="preprocessing">Preprocessing<a class="headerlink" href="#preprocessing" title="Permanent link"> #</a></h2>
 <p>By default, all rows now have the status <strong>Todo</strong>. 
 It might be the case that you want to change this for a certain set of rows to another status.</p>
@@ -982,10 +982,10 @@ You should now only see the rows of type <code>meta</code>.</li>
 <p>Order your requirement overview by <strong>Pos</strong>, by clicking on the table column.</p>
 <h3 id="req1">REQ1<a class="headerlink" href="#req1" title="Permanent link"> #</a></h3>
 <p>To formalize this requirement, we click on the ID <strong>REQ1</strong> to open then formalization-modal:</p>
-<p>
-<figure><img src="../img/hanfor02.png" title="This is how a formalization modal looks like" /><figcaption>Formalization modal</figcaption>
+<figure>
+  <img alt="" loading="lazy" src="../img/hanfor02.png" />
+  <figcaption>Figure 2: Formalization modal.</figcaption>
 </figure>
-</p>
 <ol>
 <li>Click on <strong>+</strong> to add a new formalization and then on <strong>..(click to open)</strong></li>
 <li>We now have to select a <em>Scope</em> and a <em>Pattern</em>.</li>
@@ -996,10 +996,10 @@ You should now only see the rows of type <code>meta</code>.</li>
 If you save a requirement, Hanfor will automatically create the used variables and derive their type.
 You can examine and even alter them in the section <strong>Variables</strong>, for the case that Hanfor did not derive a variable-type correctly.</li>
 </ol>
-<p>
-<figure><img src="../img/hanfor_req1_formalization.png" title="This is how we formalize REQ1" /><figcaption>Definition of Scope and Pattern</figcaption>
+<figure>
+  <img alt="" loading="lazy" src="../img/hanfor_req1_formalization.png" />
+  <figcaption>Figure 3: Definition of Scope and Pattern.</figcaption>
 </figure>
-</p>
 <p>The same procedure can be applied to REQ2 - REQ6</p>
 <h3 id="req7-and-req8">REQ7 and REQ8<a class="headerlink" href="#req7-and-req8" title="Permanent link"> #</a></h3>
 <p>REQ7 and REQ8 are different.
@@ -1020,10 +1020,10 @@ Save the formalization. </p>
 formalized requirement. To fix that, to go the <strong>Variables</strong> section and open the <code>MAX_TIME</code> variable.
 You see that Hanfor derived the type <code>bool</code>, but we actually want it to be of type <code>CONST</code> as the variable represents time units. Change the type and
 also assign a value, for example <code>50</code>.</p>
-<p>
-<figure><img src="../img/hanfor_var_maxtime.png" title="This is how you should edit the MAX_TIME variable" /><figcaption>Example for the <code>MAX_TIME</code> variable</figcaption>
+<figure>
+  <img alt="" loading="lazy" src="../img/hanfor_var_maxtime.png" />
+  <figcaption>Figure 4: Example for the `MAX_TIME` variable.</figcaption>
 </figure>
-</p>
 <p>For REQ8 you should have: 
 <div class="highlight"><pre><span></span><code>Globally, it is always the case that if &quot;var3&quot; holds, then &quot;var4 == 1&quot; holds after at most &quot;MAX_TIME&quot; time units.
 </code></pre></div></p>
