@@ -12,6 +12,8 @@ import re
 import string
 from dataclasses import dataclass, field
 from enum import Enum
+from warnings import deprecated
+
 from lark import LarkError, Lark
 
 import boogie_parsing
@@ -24,7 +26,6 @@ from typing import Dict, Tuple
 from hanfor_flask import current_app
 
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField, DatabaseFieldType
-from deprecated import deprecated
 
 __version__ = "1.0.4"
 
@@ -490,7 +491,7 @@ class Requirement:
                 break
         return result
 
-    @deprecated(reason="Use req.tags with Tag objects as key instead.")
+    @deprecated("Use req.tags with Tag objects as key instead.")
     def get_tag_name_comment_dict(self) -> dict[str, str]:
         return {tag.name: comment for tag, comment in self.tags.items()}
 
