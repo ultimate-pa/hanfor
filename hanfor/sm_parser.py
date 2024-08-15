@@ -1,36 +1,10 @@
 """
-Mirko Werling, University of Freiburg, Department of Computer Science
+2024 Mirko Werling, University of Freiburg, Department of Computer Science <mirko_werling@gmx.de>
+
+---- reused/copied some classes from reqtransformer.py ----
 """
 
-"""
-# for loading a json file with the the data of the state machine
-import json
-
-# Open the JSON file for reading
-with open('stateMachine_LightSwitch.json', 'r') as stateMachine:
-    # Load the JSON data
-    data = json.load(stateMachine)
-
-    # Process each JSON object
-    print(f"# transitions: {len(data)}")
-    for item in data:
-        # print(item)
-        # print(item.keys())
-        if "Init" in item.keys():
-            # print("Inside Init")
-            init = item["Init"]
-            print(f"Init: {init}")
-        elif "Transition" in item.keys():
-            # print("Inside Transition")
-            transition = item["Transition"]
-            print(f"Transition: {transition}")
-            current_state = transition[0]
-            action = transition[1]
-            next_state = transition[2]
-            print(f"current state: {current_state}, action: {action}, next state: {next_state}")
-"""
-
-import reqtransformer as reqtrans
+# import reqtransformer as reqtrans
 import app as app
 import logging
 
@@ -43,6 +17,15 @@ from typing import Dict, Tuple
 var_collection = None
 
 class StateMachine:
+    """
+    Creating the state machine.
+    State machine need to be in transition and list form.
+
+    s_machine = [[s_1, a_1, s_2],
+                 [s_2, a_2, s_3],
+                 ...
+                ]
+    """
     def __init__(self, s_machine: list):
         self.transitions = s_machine
         self.states: list = []
@@ -54,6 +37,10 @@ class StateMachine:
         self.transitions = sm_list
 
     def setting(self):
+        """
+        Setting the states and actions, that are needed within the state machine.
+        Write into global variables self.states and self.actions.
+        """
         for transition in self.transitions:
             c_state = transition[0]
             if c_state not in self.states:
@@ -65,9 +52,11 @@ class StateMachine:
 
     def create_variables(self):
         """
+        Creating the variables for the Variable Collection class.
+        Cause the variable names are based on the state and action names.
 
-        :param sm:
-        :return:
+        :return: var_collection
+        :rtype: VariableCollection
         """
         states = self.states
         actions = self.actions
@@ -80,11 +69,7 @@ class StateMachine:
         # list_variables = []
         counter = 0
         for basic in basics:
-            # print("Inside basic loop " + basic)
-            # list_val = []
-
             if basic == "State":
-                # print("HIER STATE")
                 var_collection.add_var(var_name=basic, variable=None)
 
                 # var = Variable(
@@ -95,32 +80,13 @@ class StateMachine:
                 # )
                 var_collection.collection[basic].set_type("ENUM_INT")
                 for state in states:
-                    # print("LOOP", state, states)
-                    # sta = Variable(
-                    #     name=state,
-                    #     type="ENUMERATOR",  # ENUMERATOR_INT in the hanfor web interface
-                    #     value=str(counter),
-                    # )
                     var_collection.add_var(var_name=state, variable=None)
                     var_collection.collection[state].set_type("ENUMERATOR_INT")
                     var_collection.collection[state].set_belongs_to_enum(basic)
                     var_collection.collection[state].set_value(str(counter))
-                    # sta.belongs_to_enum = basic
-                    # print(sta.name, sta.type, sta.value, sta.belongs_to_enum)
-                    # list_val.append(sta)
-                    # var_collection.collection[sta.name] = sta
                     counter += 1
 
-                # list_variables.append(var)
-
             elif basic == "Action":
-                # print("HIER ACTION")
-                # create action enum
-                # var = Variable(
-                #     name=basic,
-                #     type="ENUM_INT",
-                #     value=list_val
-                # )
                 var_collection.add_var(var_name=basic, variable=None)
                 var_collection.collection[basic].set_type("ENUM_INT")
                 # var_collection.collection[var.name] = var
@@ -128,18 +94,10 @@ class StateMachine:
 
                 # creat the no_op action
                 counter = 0
-                # act = Variable(
-                #     name="no_op",
-                #     type="ENUMERATOR",
-                #     value=str(counter),
-                # )
                 var_collection.add_var(var_name=action, variable=None)
                 var_collection.collection[action].set_type("ENUMERATOR_INT")
                 var_collection.collection[action].set_belongs_to_enum(basic)
                 var_collection.collection[action].set_value(str(counter))
-                # act.belongs_to_enum = basic
-                # list_val.append(act)
-                # var_collection.collection[act.name] = act
 
                 # create the rest actions
                 counter += 1
@@ -148,15 +106,6 @@ class StateMachine:
                     var_collection.collection[action].set_type("ENUMERATOR_INT")
                     var_collection.collection[action].set_belongs_to_enum(basic)
                     var_collection.collection[action].set_value(str(counter))
-                    # act = Variable(
-                    #     name=action,
-                    #     type="ENUMERATOR",
-                    #     value=str(counter)
-                    # )
-                    # act.belongs_to_enum = basic
-                    # print(act.name, act.type, act.value, act.belongs_to_enum)
-                    # list_val.append(act)
-                    # var_collection.collection[act.name] = act
                     counter += 1
 
                 # list_variables.append(var)
@@ -165,16 +114,15 @@ class StateMachine:
 
     def from_state_machine_to_requirement(self):
         """
-        The function creates the requirements from the statemachine.
+        The function creates the requirements from the state machine.
 
-        :param sm: given state machine in list form.
-        :return: object of Requirement Collection.
+        :return: reqs_collection : collection of all created requirements.
+        :rtype: RequirementCollection.
         """
         reqs_collection = RequirementCollection()
         states = self.states
         actions = self.actions
-        # counter = 1
-        # reqs = []
+
         for transition in self.transitions:
             # print(self.transitions)
             current_state = transition[0]
@@ -208,66 +156,14 @@ class StateMachine:
                                                     pos_in_csv=imp_index)
             reqs_collection.add_attributes_from_sm_to_req(imp_id, current_state, action, current_state)
             # ToDo: Check if requirement exists before adding
-            # req = Requirement(
-            #     id=rid,
-            #     description=description,
-            #     type_in_csv=type_in_csv,
-            #     csv_row=csv_row,
-            #     pos_in_csv=counter
-            # )
-            # reqs.append(req)
-
-            # ex_mapping = do_mapping(ex_r=current_state, ex_s=action, ex_t=successor_state)
-            # do_formalization(requirement=req, rid=counter, expression_mapping=ex_mapping)
-
-            # counter += 1
-
-        # adding also the implicit transitions
-        # for element in self.adding_implicit_transitions(counter):
-        #     reqs.append(element)
 
         return reqs_collection
 
-    # def adding_implicit_transitions(self, counter: int):
-    #     """
-    #     Computing the implicit transitions as requirements.
-    #
-    #     :param counter: counts the implicit transitions, start from last normal requirement
-    #     :return: list of implicit transitions
-    #     """
-    #     list_imp_trans = []
-    #     counter_trans = counter
-    #
-    #     states = self.states
-    #     # check states
-    #     # print(states)
-    #
-    #     for state in states:
-    #         # configure basics of state machine
-    #         current_state = state
-    #         successor_state = current_state
-    #         # action = transition[1]
-    #
-    #         # preparing the requirement attributes
-    #         id = "0" + str(counter_trans)
-    #         description = "From " + str(current_state) + " to " + str(successor_state) + "."
-    #         type_in_csv = "requirement"
-    #         csv_row = {str(counter_trans): str(counter_trans)}
-    #         # pos_in_csv = counter
-    #
-    #         req = Requirement(
-    #             id=id,
-    #             description=description,
-    #             type_in_csv=type_in_csv,
-    #             csv_row=csv_row,
-    #             pos_in_csv=counter_trans
-    #         )
-    #         list_imp_trans.append(req)
-    #         counter_trans += 1
-    #
-    #     return list_imp_trans
-
 class Requirement:
+    """
+    The class of one Requirement. Very much reused from the reqtransformer.py.
+    But without the base classes (HanforVersioned and Pickleable).
+    """
     def __init__(self, id: str, description: str, type_in_csv: str, csv_row: dict[str, str], pos_in_csv: int):
         self.rid: str = id
         self.formalizations: Dict[int, Formalization] = dict()
@@ -305,7 +201,16 @@ class Requirement:
         return id, self.formalizations[id]
 
     def do_formalization_based_on_sm(self, var_collection):
+        """
+        Setting the formalization in the requirement.
+        Based on sm means, that scope_name and pattern_name are specific for the background of state machine,
+        therefore it is hard coded here.
+
+        :param var_collection: Collection of the variables.
+        :type var_collection: VariableCollection
+        """
         id, formalization = self.add_empty_formalization()
+        # ToDo: Don't hard code the state machine specific arguments, instead make it as variable.
         scope_name = "GLOBALLY"
         pattern_name = "StateMachineTimeless"
         formalization_id = id
@@ -320,12 +225,20 @@ class Requirement:
         self.formalizations[formalization_id].set_expressions_mapping(mapping=mapping,
                                                                       variable_collection=var_collection,
                                                                       rid=self.rid)
+
+        # ToDo: for implicit transitions another scope pattern name 'Invariance'
+        #       implemented in pattern.py as 'Invariant'
+        # ToDo: implement mapping and variable collection
+
+
     def do_mapping(self, var_collection):
         """
+        Mapping the expressions to the variables, to combine the formalizations.
+        Here hardcoded, because allways he same pattern.
 
-        :return:
+        :return: mapping - e.g. {'R': 'State == State_Off', 'S': 'Action == Action_turn_on', 'T': 'State == State_On'}
+        :rtype: dict
         """
-
         mapping: Dict[str, str] = {}
         ex_r = "State" + " == " + "State_" + self.current_state
         ex_s = "Action" + " == " + "Action_" + self.action
@@ -343,8 +256,14 @@ class Requirement:
 
 
 class RequirementCollection:
+    """
+    The class of all requirements.
+    However, without base classes (HanforVersioned and Pickleable), which makes it easier.
+    Combining the key features for pattern to the state machines.
+    """
     def __init__(self):
         # self.requirements = list()
+        # collection contains all the requirements
         self.collection: Dict[str, Requirement] = dict()
 
     def __str__(self):
@@ -362,6 +281,16 @@ class RequirementCollection:
 
 
     def add_requirement_from_sm(self, req_id: str, req_description: str, type_in_csv: str, pos_in_csv: int):
+        """
+        Function that adds a requirement to the collection. collection (dict)
+
+        :param: req_id (str) : requirement id
+        :param: req_description (str) : requirement description
+        :param: type_in_csv (str) : type in csv #this is needed cause of the reused requirement class
+        # ToDo: Could load the state machine from csv file
+        :param: pos_in_csv (int) : position in csv
+
+        """
         if req_id not in self.collection:
             requirement = Requirement(id=req_id, description=req_description, type_in_csv=type_in_csv,
                                       csv_row=None, pos_in_csv=pos_in_csv)
@@ -372,6 +301,12 @@ class RequirementCollection:
         return len(self.collection) + 1
 
     def do_formalization_for_all_reqs(self, var_collection):
+        """
+        Function doing the formalization for all requirements in the collection of the requirement collection.
+
+        :param: var_collection (VariableCollection) : variable collection
+        :return: counter (int) : counts the formalizations
+        """
         counter = 0
         for req in self.collection.values():
             req.do_formalization_based_on_sm(var_collection=var_collection)
@@ -383,12 +318,26 @@ class RequirementCollection:
                         counter += 1
         return counter
     def add_attributes_from_sm_to_req(self, req_id, current_state, action, successor_state):
+        """
+        Adding the attributes from state machine to requirement. Attributes are current_state, action
+        and successor_state.
+
+        :param: req_id : requirement id
+        :param: current_state : is the (current) state of the transition
+        :param: action : action leading to next state
+        :param: successor_state : successor state after taking action
+
+        """
         requirement = self.collection[req_id]
         requirement.current_state = current_state
         requirement.action = action
         requirement.successor_state = successor_state
 
 class Formalization:
+    """
+    The Formalization according to a specific requirement. Very much reused from the reqtransformer.py.
+    But without the base class (HanforVersioned).
+    """
     def __init__(self, id: int):
         self.id: int = id
         self.scoped_pattern = ScopedPattern()
@@ -484,6 +433,17 @@ class Formalization:
 
 
 class Expression:
+    """
+    The Expression for the formalization procedure. Very much copied from the reqtransformer.py.
+    But without the base class (HanforVersioned).
+
+    Representing an Expression in a ScopedPattern.
+    For example: Let
+       `Globally, {P} is always true.`
+    be a Scoped pattern. One might replace {P} by
+        `NO_PAIN => NO_GAIN`
+    Then `NO_PAIN => NO_GAIN` is the Expression.
+     """
     def __init__(self):
         self.used_variables: list[str] = list()
         self.raw_expression = None
@@ -577,6 +537,9 @@ class Expression:
 
 # unsicher ob notwendig !!!
 class Scope(Enum):
+    """
+    The Scope of a formalization. Copied from the reqtransformer.py.
+    """
     GLOBALLY = 'Globally'
     BEFORE = 'Before "{P}"'
     AFTER = 'After "{P}"'
@@ -632,6 +595,9 @@ class Scope(Enum):
         return scope_env[self.name]
 
 class Pattern:
+    """
+    The Pattern of a formalization. Copied from the reqtransformer.py.
+    """
     def __init__(self, name: str = "NotFormalizable"):
         self.name = name
         self.pattern = PATTERNS[name]['pattern']
@@ -650,7 +616,11 @@ class Pattern:
             PATTERNS[self.name]['env']
         )
 
+#
 class ScopedPattern:
+    """
+    The Scoped Pattern of a formalization. Copied from the reqtransformer.py.
+    """
     def __init__(self, scope: Scope = Scope.NONE, pattern: Pattern = None):
         self.scope = scope
         if not pattern:
@@ -710,6 +680,11 @@ class ScopedPattern:
         return result
 
 class Variable:
+    """
+    The variables class that are used to create the formalizations based on the state names and action names.
+    Very much reused from the reqtransformer.py.
+    But without the base class (HanforVersioned).
+    """
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
 
     def __init__(self, name: str, type: str, value: str):
@@ -748,6 +723,10 @@ class Variable:
         self.value = value
 
 class VariableCollection:
+    """
+    The collection of all variables. Very much reused from the reqtransformer.py.
+    But without the base classes (HanforVersioned, Pickleable).
+    """
     def __init__(self):
         self.collection: Dict[str, Variable] = dict()
         self.req_var_mapping = dict()
@@ -757,6 +736,9 @@ class VariableCollection:
         return item in self.collection.keys()
 
     def __str__(self):
+        """
+        Seeing which variables the Variable Collection contains.
+        """
         returnval = "The Variable Collection contains the following variables:\n"
         for var_name, variable in self.collection.items():
             returnval += "    " + variable.name + " " + str(variable.type + " ") + str(
@@ -764,9 +746,13 @@ class VariableCollection:
         return returnval
 
     def __repr__(self):
+        """
+        Representation of the Variable Collection.
+        """
         returnval = "VariableCollection( \n"
         for var_name, variable in self.collection.items():
-            returnval += "    (" + var_name + ": Variable(" + variable.name + " " + str(variable.type + " ") + str(variable.value) + ")\n"
+            returnval += ("    (" + var_name + ": Variable(" + variable.name + " " + str(variable.type + " ")
+                          + str(variable.value) + ")\n")
         return returnval
 
     def get_var_names(self):
@@ -793,6 +779,8 @@ class VariableCollection:
             self.req_var_mapping[rid] = set()
         for var in used_variables:
             self.req_var_mapping[rid].add(var)
+
+    # ToDo: function rename is missing, cause to many calls of functions that lead to errors.
 
     def get_boogie_type_env(self):
         mapping = {
@@ -848,57 +836,6 @@ class VariableCollection:
                 newdict.setdefault(v, set()).add(k)
         return newdict
 
-# class FormalizationCollection(reqtrans.Forma
-
-
-def do_formalization(requirement, rid, expression_mapping):
-    """
-    Creating formalization for all requirements.
-
-    :param reqs: list of all requirements.
-    :return: list of formalization
-    """
-    form = Formalization(
-        id=rid
-    )
-
-    form.set_expressions_mapping(mapping=expression_mapping, variable_collection=var_collection, rid=rid)
-    print(form.belongs_to_requirement, form.expressions_mapping)
-    print(form.__repr__())
-
-    forms = []
-    variables = vars
-    # variable_collection = variable_collection
-    # mapping = form.
-    for element in reqs:
-        rid = element.rid
-
-        form = Formalization(
-            id=rid
-        )
-        var_collection.refresh_var_usage(app=app)
-        print(var_collection.var_req_mapping)
-
-
-        # form.scoped_pattern = "BoundedResponse" #in first version pattern
-        form.scoped_pattern = "StateMachineTimeless"
-        print(form.id, form.scoped_pattern, form.belongs_to_requirement)
-        # form.set_expressions_mapping(mapping=mapping, variable_collection=variable_collection, rid=rid)
-
-        # ToDo: for implicit transitions another scope pattern name 'Invariance'
-        #       implemented in pattern.py as 'Invariant'
-        # ToDo: get the formalization complete
-
-        # ToDo: implement mapping and variable collection
-
-        forms.append(form)
-
-
-    return forms
-
-
-
-
 
 if __name__ == "__main__":
     print("Starting loading state machine in Hanfor.")
@@ -909,6 +846,7 @@ if __name__ == "__main__":
     example_choice = input()
     # print(example_choice, type(example_choice))
     sm = []
+    # ToDo: Could make here state machine in csv file format.
     if example_choice == "0":
         sm = [
             ["Off", "turn_on", "On"],
@@ -955,48 +893,25 @@ if __name__ == "__main__":
 
     var_collection = state_machine.create_variables()
 
-    # check the write variables are existing.
-    # print("...\n " + str(list_var))
     count = 0
-    # print(var_collection.collection)
-    # for element in var_collection.collection.items():
-    #     print("TEST" + str(var_collection.collection), var_collection.collection.items())
-    #     print(element)
-    #     out = str()
-    #     count += 1
-    #     for val in element.values():
-    #         out = out + str([val.name, val.type, val.value]) + ", "
-    #         count += 1
-    #     print(element.name, element.type + " [" + out[:-2] + "]")
+
     print(var_collection)
     list_variables = var_collection.get_var_names()
-    # print(list_variables)
 
     print("Done. " + str(len(list_variables)) + " variables are created successfully.\n")
-
 
     # Create Requirements out of the state machine
     print("Creating the requirements ... \n ")
     req_collection = state_machine.from_state_machine_to_requirement()
 
-    # check the write requirements are existing.
-    # print("...\n " + str(list_req))
-    # for element in list_req:
-    #    print(element.description)
     print(req_collection)
 
-
     print("Done. " + str(len(req_collection.collection)) + " requirements are created successfully.\n")
-
 
     # Create Formalizations
     print("Starting the formalization ... \n ")
 
     counter_forms = req_collection.do_formalization_for_all_reqs(var_collection)
-
-    # check formalizations
-    # print(str(list_form) + "\n")
-
 
     print("Done. " + str(counter_forms) + " formalizations are created successfully.\n")
 
@@ -1005,4 +920,3 @@ if __name__ == "__main__":
           "Created:\n" +
               "    " + str(len(req_collection.collection)) + " requirements\n"
               "    " + str(counter_forms) + " formalizations")
-
