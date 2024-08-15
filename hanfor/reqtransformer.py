@@ -12,9 +12,9 @@ import re
 import string
 from dataclasses import dataclass, field
 from enum import Enum
-from warnings import deprecated
 
 from lark import LarkError, Lark
+from typing_extensions import deprecated
 
 import boogie_parsing
 from boogie_parsing import run_typecheck_fixpoint, BoogieType
