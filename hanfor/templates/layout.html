@@ -91,6 +91,13 @@
 {% block scripts %}
     <script type="text/javascript" src="{{ url_for('static', filename='dist/commons-bundle.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='dist/layout_globals-bundle.js') }}"></script>
+    {% if not config.FEATURE_TELEMETRY %}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
+    {% endif %}
+    {% if config.FEATURE_TELEMETRY %}
+        <script type="text/javascript" src="{{ url_for('static', filename='dist/telemetry-bundle.js') }}"></script>
+    {% endif %}
+
 {% endblock %}
 </body>
 </html>

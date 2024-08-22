@@ -15,7 +15,8 @@ const config = {
         tags: __dirname + '/../tags/static/tags.js',
         statistics: __dirname + '/../statistics/static/statistics.js',
         ultimate: __dirname + '/../ultimate/static/ultimate.js',
-        ultimate_tab: __dirname + '/../ultimate/static/ultimate-tab.js'
+        ultimate_tab: __dirname + '/../ultimate/static/ultimate-tab.js',
+        telemetry: __dirname + '/../telemetry/static/telemetry.js'
     },
     output: {
         filename: '[name]-bundle.js',

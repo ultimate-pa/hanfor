@@ -47,6 +47,11 @@ app = HanforFlask(__name__)
 app.config.from_object("config")
 app.db = None
 
+if app.config["FEATURE_TELEMETRY"]:
+    from flask_socketio import SocketIO
+
+    socketio = SocketIO(app)
+
 from example_blueprint import example_blueprint
 from tags import tags
 from statistics import statistics
@@ -56,6 +61,13 @@ if app.config["FEATURE_ULTIMATE"]:
 
     app.register_blueprint(ultimate.blueprint)
     app.register_blueprint(ultimate.api_blueprint)
+
+if app.config["FEATURE_TELEMETRY"]:
+    from telemetry.telemetry import TelemetryWs, TelemetryWs2
+
+    socketio.on_namespace(TelemetryWs("/telemetry"))  # noqa, if the FEATURE_TELEMETRY is True then socketio exists
+    socketio.on_namespace(TelemetryWs2("/telemetry2"))
+
 
 # Example Blueprint
 app.register_blueprint(example_blueprint.blueprint)
@@ -1016,4 +1028,9 @@ if __name__ == "__main__":
     # Parse python args and startup hanfor session.
     args = utils.HanforArgumentParser(app).parse_args()
     if startup_hanfor(args, HERE):
-        app.run(**get_app_options())
+        if app.config["FEATURE_TELEMETRY"]:
+            socketio.run(
+                app, **get_app_options(), allow_unsafe_werkzeug=True
+            )  # noqa, if the FEATURE_TELEMETRY is True then socketio exists
+        else:
+            app.run(**get_app_options())

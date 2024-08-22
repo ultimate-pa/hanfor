@@ -2,6 +2,7 @@ Flask~=3.0.3
 Flask-DebugToolbar~=0.15.1
 Flask-Assets~=2.1.0 # TODO: Unused functionality. Check if it can be removed.
 Flask-Pydantic~=0.12.0
+Flask-SocketIO~=5.3.6
 
 colorama~=0.4.6
 inquirerpy~=0.3.4
