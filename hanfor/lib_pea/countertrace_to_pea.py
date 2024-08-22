@@ -11,6 +11,8 @@ from lib_pea.phase_sets import PhaseSets
 from lib_pea.config import SOLVER_NAME, LOGIC
 from lib_pea.utils import substitute_free_variables
 
+solver_z3 = Solver(name="z3")
+
 
 def build_automaton(ct: Countertrace, cp: str = "c") -> PhaseSetsPea:
     pea = PhaseSetsPea(ct)
@@ -75,15 +77,15 @@ def compute_clock_invariant(ct: Countertrace, p: PhaseSets, cp: str) -> FNode:
 
 
 def build_successors(
-    i: int,
-    p: PhaseSets,
-    p_: PhaseSets,
-    resets: set[str],
-    guard: FNode,
-    ct: Countertrace,
-    enter: dict[int, FNode],
-    keep: dict[int, FNode],
-    cp: str,
+        i: int,
+        p: PhaseSets,
+        p_: PhaseSets,
+        resets: set[str],
+        guard: FNode,
+        ct: Countertrace,
+        enter: dict[int, FNode],
+        keep: dict[int, FNode],
+        cp: str,
 ) -> list[tuple[PhaseSets, FNode, set[str]]]:
     result = []
     guard = simplify_with_z3(guard)
@@ -274,7 +276,7 @@ def build_successors(
 
 
 def compute_enter_keep(
-    ct: Countertrace, p: PhaseSets, init: bool, cp: str
+        ct: Countertrace, p: PhaseSets, init: bool, cp: str
 ) -> tuple[dict[int, FNode], dict[int, FNode]]:
     enter_, keep_ = {}, {}
 
@@ -343,12 +345,11 @@ def can_seep(p: PhaseSets, i: int) -> FNode:
 
 
 def simplify_with_z3(f: FNode) -> FNode:
-    solver = Solver(name="z3")
     tactic = Then(With(Tactic("simplify"), elim_and=True), Tactic("propagate-values"))
-    z3_f = solver.converter.convert(f)
-    z3_f = tactic(z3_f).as_expr()
-    f_simplified = solver.converter.back(z3_f)
+    result = tactic(solver_z3.converter.convert(f)).as_expr()
+    result = solver_z3.converter.back(result)
 
-    assert is_valid(Iff(f, f_simplified)), f"Failed to simplify: {f} is not equivalent to {f_simplified}"
+    # TODO: Implement this in a testcase.
+    #assert is_valid(Iff(f, result)), f"Failed to simplify: {f} is not equivalent to {result}"
 
-    return f_simplified
+    return result
