@@ -186,8 +186,8 @@ def api(resource, command):
     if resource == "req":
         # Get a single requirement.
         if command == "get" and request.method == "GET":
-            id = request.args.get("id", "")
-            requirement = app.db.get_object(Requirement, id)
+            rid = request.args.get("id", "")
+            requirement = app.db.get_object(Requirement, rid)
             var_collection = VariableCollection(app)
 
             result = requirement.to_dict(include_used_vars=True)
@@ -211,8 +211,8 @@ def api(resource, command):
 
         # Update a requirement
         if command == "update" and request.method == "POST":
-            id = request.form.get("id", "")
-            requirement = app.db.get_object(Requirement, id)
+            rid = request.form.get("id", "")
+            requirement = app.db.get_object(Requirement, rid)
             error = False
             error_msg = ""
 
@@ -340,8 +340,8 @@ def api(resource, command):
 
         # Add a new empty formalization
         if command == "new_formalization" and request.method == "POST":
-            id = request.form.get("id", "")
-            requirement = app.db.get_object(Requirement, id)  # type: Requirement
+            rid = request.form.get("id", "")
+            requirement = app.db.get_object(Requirement, rid)  # type: Requirement
             formalization_id, formalization = requirement.add_empty_formalization()
             app.db.update()
             utils.add_msg_to_flask_session_log(app, "Added new Formalization to requirement", [requirement])
@@ -698,10 +698,12 @@ def api(resource, command):
     return jsonify({"success": False, "errormsg": "This is not an api-enpoint."}), 404
 
 
-@app.route("/variable_import/<id>", methods=["GET"])
+@app.route("/variable_import/<session_id>", methods=["GET"])
 @nocache
-def variable_import(id):
-    return render_template("variables/variable-import-session.html", id=id, query=request.args, patterns=PATTERNS)
+def variable_import(session_id):
+    return render_template(
+        "variables/variable-import-session.html", id=session_id, query=request.args, patterns=PATTERNS
+    )
 
 
 @app.route("/<site>")
@@ -795,10 +797,10 @@ def update_var_usage(var_collection):
     app.db.update()
 
 
-def varcollection_consistency_check(app, args=None):
+def varcollection_consistency_check(flask_app, args=None):
     logging.info("Check Variables for consistency.")
     # Update usages and constraint type check.
-    var_collection = VariableCollection(app)
+    var_collection = VariableCollection(flask_app)
     if args is not None and args.reload_type_inference:
         var_collection.reload_type_inference_errors_in_constraints()
 
@@ -807,12 +809,11 @@ def varcollection_consistency_check(app, args=None):
     app.db.update()
 
 
-def create_revision(args, base_revision_name, *, no_data_tracing: bool = False):
+def create_revision(args, base_revision_name):
     """Create new revision.
 
     :param args: Parser arguments
     :param base_revision_name: Name of revision the created will be based on. Creates initial revision_0 if none given.
-    :param no_data_tracing: db testmode
     :return: None
     """
     revision = utils.Revision(app, args, base_revision_name)
@@ -837,11 +838,10 @@ def load_revision(revision_id):
     app.db.init_tables(app.config["REVISION_FOLDER"])
 
 
-def user_request_new_revision(args, *, no_data_tracing: bool = False):
+def user_request_new_revision(args):
     """Asks the user about the base revision and triggers create_revision with the user choice.
 
     :param args:
-    :param no_data_tracing:
     """
     logging.info("Generating a new revision.")
     available_sessions = utils.get_stored_session_names(app.config["SESSION_BASE_FOLDER"], only_names=True)
@@ -859,20 +859,21 @@ def user_request_new_revision(args, *, no_data_tracing: bool = False):
         raise FileNotFoundError
     print("Which revision should I use as a base?")
     base_revision_choice = choice(available_revisions, "revision_0")
-    create_revision(args, base_revision_choice, no_data_tracing=no_data_tracing)
+    create_revision(args, base_revision_choice)
 
 
-def set_session_config_vars(args, HERE):
+def set_session_config_vars(args, here):
     """Initialize config vars:
     SESSION_TAG,
     SESSION_FOLDER
     for current session.
 
     :param args: Parsed arguments.
+    :param here: path to folder of this file
     """
     app.config["SESSION_TAG"] = args.tag
     if app.config["SESSION_BASE_FOLDER"] is None:
-        app.config["SESSION_BASE_FOLDER"] = os.path.join(HERE, "data")
+        app.config["SESSION_BASE_FOLDER"] = os.path.join(here, "data")
     app.config["SESSION_FOLDER"] = os.path.join(app.config["SESSION_BASE_FOLDER"], app.config["SESSION_TAG"])
 
 
@@ -911,12 +912,12 @@ def user_choose_start_revision():
     return revision_choice
 
 
-def set_app_config_paths(args, HERE):
-    app.config["SCRIPT_UTILS_PATH"] = os.path.join(HERE, "script_utils")
-    app.config["TEMPLATES_FOLDER"] = os.path.join(HERE, "templates")
+def set_app_config_paths(here):
+    app.config["SCRIPT_UTILS_PATH"] = os.path.join(here, "script_utils")
+    app.config["TEMPLATES_FOLDER"] = os.path.join(here, "templates")
 
 
-def startup_hanfor(args, HERE, *, no_data_tracing: bool = False) -> bool:
+def startup_hanfor(args, here, *, no_data_tracing: bool = False) -> bool:
     """Setup session config Variables.
      Trigger:
      Revision creation/loading.
@@ -925,25 +926,25 @@ def startup_hanfor(args, HERE, *, no_data_tracing: bool = False) -> bool:
      Consistency checks.
 
     :param args:
-    :param HERE:
+    :param here:
     :param no_data_tracing:
     :returns: True if startup should continue
     """
     app.db = JsonDatabase(no_data_tracing=no_data_tracing)
     add_custom_serializer_to_database(app.db)
 
-    set_session_config_vars(args, HERE)
-    set_app_config_paths(args, HERE)
+    set_session_config_vars(args, here)
+    set_app_config_paths(here)
 
     # Create a new revision if requested.
     if args.revision:
         if args.input_csv is None:
             utils.HanforArgumentParser(app).error("--revision requires a Input CSV -c INPUT_CSV.")
-        user_request_new_revision(args, no_data_tracing=no_data_tracing)
+        user_request_new_revision(args)
     else:
         # If there is no session with given tag: Create a new (initial) revision.
         if not os.path.exists(app.config["SESSION_FOLDER"]):
-            create_revision(args, None, no_data_tracing=no_data_tracing)
+            create_revision(args, None)
         # If this is an already existing session, ask the user which revision to start.
         else:
             revision_choice = user_choose_start_revision()
@@ -957,7 +958,8 @@ def startup_hanfor(args, HERE, *, no_data_tracing: bool = False) -> bool:
             app.db.add_object(SessionValue("csv_hash", csv_hash))
         if csv_hash != app.db.get_object(SessionValue, "csv_hash").value:
             print(
-                f"Sha-1 hash mismatch between: \n`{app.db.get_object(SessionValue, 'csv_input_file').value}`\nand\n`{args.input_csv}`."
+                f"Sha-1 hash mismatch between: \n`{app.db.get_object(SessionValue, 'csv_input_file').value}`"
+                f"\nand\n`{args.input_csv}`."
             )
             print("Consider starting a new revision.\nShould I stop loading?")
             if choice(["Yes", "No"], default="Yes") == "Yes":
