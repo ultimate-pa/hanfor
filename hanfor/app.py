@@ -12,6 +12,7 @@ import subprocess
 from functools import wraps, update_wrapper
 
 import flask
+from flask_socketio import SocketIO
 from flask import render_template, request, jsonify, make_response, json
 from hanfor_flask import HanforFlask
 from flask_debugtoolbar import DebugToolbarExtension
@@ -37,6 +38,14 @@ from tags.tags import TagsApi
 
 import mimetypes
 
+# import blueprints
+from example_blueprint import example_blueprint
+from tags import tags
+from statistics import statistics
+
+# import Socket IO modules
+from telemetry.telemetry import TelemetryWs
+
 mimetypes.add_type("text/css", ".css")
 mimetypes.add_type("text/javascript", ".js")
 
@@ -46,15 +55,7 @@ app = HanforFlask(__name__)
 # app = Flask(__name__)
 app.config.from_object("config")
 app.db = None
-
-if app.config["FEATURE_TELEMETRY"]:
-    from flask_socketio import SocketIO
-
-    socketio = SocketIO(app)
-
-from example_blueprint import example_blueprint
-from tags import tags
-from statistics import statistics
+socketio = SocketIO(app)
 
 if app.config["FEATURE_ULTIMATE"]:
     from ultimate import ultimate
@@ -62,13 +63,7 @@ if app.config["FEATURE_ULTIMATE"]:
     app.register_blueprint(ultimate.blueprint)
     app.register_blueprint(ultimate.api_blueprint)
 
-if app.config["FEATURE_TELEMETRY"]:
-    from telemetry.telemetry import TelemetryWs, TelemetryWs2
-
-    socketio.on_namespace(TelemetryWs("/telemetry"))  # noqa, if the FEATURE_TELEMETRY is True then socketio exists
-    socketio.on_namespace(TelemetryWs2("/telemetry2"))
-
-
+# register Blueprints
 # Example Blueprint
 app.register_blueprint(example_blueprint.blueprint)
 app.register_blueprint(example_blueprint.api_blueprint)
@@ -78,6 +73,9 @@ app.register_blueprint(tags.api_blueprint)
 # Statistics
 app.register_blueprint(statistics.blueprint)
 app.register_blueprint(statistics.api_blueprint)
+
+# register socket IO namespaces
+socketio.on_namespace(TelemetryWs("/telemetry"))
 
 
 if "USE_SENTRY" in app.config and app.config["USE_SENTRY"]:
@@ -1028,11 +1026,6 @@ if __name__ == "__main__":
     utils.register_assets(app)
 
     # Parse python args and startup hanfor session.
-    args = utils.HanforArgumentParser(app).parse_args()
-    if startup_hanfor(args, HERE):
-        if app.config["FEATURE_TELEMETRY"]:
-            socketio.run(
-                app, **get_app_options(), allow_unsafe_werkzeug=True
-            )  # noqa, if the FEATURE_TELEMETRY is True then socketio exists
-        else:
-            app.run(**get_app_options())
+    parsed_args = utils.HanforArgumentParser(app).parse_args()
+    if startup_hanfor(parsed_args, HERE):
+        socketio.run(app, **get_app_options(), allow_unsafe_werkzeug=True)

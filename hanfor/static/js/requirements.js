@@ -19,6 +19,7 @@ const {SearchNode} = require('./datatables-advanced-search.js');
 const {init_simulator_tab} = require('./simulator-tab.js');
 let init_table_connection_functions= []
 exports.init_table_connection_functions = init_table_connection_functions
+const {sendTelemetry} = require('../../telemetry/static/telemetry')
 
 const {Textcomplete} = require('@textcomplete/core')
 const {TextareaEditor} = require('@textcomplete/textarea')
@@ -412,6 +413,7 @@ function store_requirement(requirements_table) {
         tag_comments.set(tag, comment);
     })
 
+    sendTelemetry("requirements", req_id, "save")
     // Store the requirement.
     $.post("api/req/update", {
             id: req_id,
@@ -517,6 +519,8 @@ function load_datatable() {
 function bind_requirement_id_to_modals(requirements_table) {
     // Add listener for clicks on the Rows.
     $('#requirements_table').find('tbody').on('click', 'a', function (event) {
+        // TODO I don't know if this is the right way of fetching the req id
+        sendTelemetry("requirements", this.text, "open")
         // prevent body to be scrolled to the top.
         event.preventDefault();
         let row_idx = requirements_table.row($(this).closest('tr')).index();
