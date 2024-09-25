@@ -7,8 +7,9 @@ from typing import Tuple
 
 from pysmt.fnode import FNode
 from pysmt.rewritings import conjunctive_partition
-from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, get_model, is_sat, FALSE, get_unsat_core
+from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, get_model, is_sat, FALSE, get_unsat_core, Not, Solver, Or, is_valid, Implies, TRUE
 from pysmt.typing import REAL
+import itertools
 
 from lib_pea.config import SOLVER_NAME, LOGIC
 from lib_pea.countertrace_to_pea import complete
@@ -18,6 +19,9 @@ from lib_pea.transition import PhaseSetsTransition
 from req_simulator.scenario import Scenario
 from req_simulator.utils import num_zeros
 from reqtransformer import Requirement, Formalization
+
+
+
 
 
 class Simulator:
@@ -549,6 +553,291 @@ class Simulator:
         # TODO: Do not modify existing member variables ;-)
         print("Called function variable constraints ...")
 
+    def recursive_varibales(self, formula, list):
+        if formula.is_constant() or formula.is_symbol() or formula.is_not and len(formula.args()) == 1:
+            list.append(formula)
+        else:
+            for var in formula.args():
+                self.recursive_varibales(var, list)
+        return list
+
+
+    def recursive_simplify(self, fnode):
+        # Base case: if it's a constant or symbol, return as is
+        if fnode.is_constant() or fnode.is_symbol():
+            return fnode
+
+        # Double negation: Not(Not(X)) -> X
+        if fnode.is_not() and fnode.arg(0).is_not():
+            return self.recursive_simplify(fnode.arg(0).arg(0))
+
+        # De Morgan's law: Not(And(A, B)) -> Or(Not(A), Not(B))
+        if fnode.is_not() and fnode.arg(0).is_and():
+            return Or([self.recursive_simplify(Not(arg)) for arg in fnode.arg(0).args()])
+
+        # De Morgan's law: Not(Or(A, B)) -> And(Not(A), Not(B))
+        if fnode.is_not() and fnode.arg(0).is_or():
+            return And([self.recursive_simplify(Not(arg)) for arg in fnode.arg(0).args()])
+
+        # Apply simplification recursively to And nodes
+        if fnode.is_and():
+            simplified_args = [self.recursive_simplify(arg) for arg in fnode.args()]
+            return And(simplified_args)
+
+        # Apply simplification recursively to Or nodes
+        if fnode.is_or():
+            simplified_args = [self.recursive_simplify(arg) for arg in fnode.args()]
+            return Or(simplified_args)
+
+        # If it's a negation of something else, simplify the subformula
+        if fnode.is_not():
+            return Not(self.recursive_simplify(fnode.arg(0)))
+
+        # If nothing to simplify, return the node as-is
+        return fnode
+
+    def divide_formula(self, formula):
+        if formula.is_or():
+            # Recursively divide each operand
+            return [operand for arg in formula.args() for operand in self.divide_formula(arg)]
+        else:
+            # Base case: return the formula itself
+            return [formula]
+
+    def exit_condition(self, requirement):
+        return self.recursive_simplify(Not(requirement.countertrace.dc_phases[-2].invariant))
+
+    import copy
+
+    def ref_check(self, list_requirements,  rtis):
+        uzuz = list_requirements[0].countertrace
+        huh = len(list_requirements)
+        print("Elemens in Lis")
+        for lin in list_requirements:
+            print(lin.countertrace)
+
+        for other_req in self.peas:
+            uzuz2 = other_req.countertrace
+            # Only process requirements that come after the last one in the CSV and aren't already in the list
+
+            if other_req not in list_requirements:
+                list_requirements.append(other_req)
+
+                print(f"Comparing with: {other_req.countertrace}")
+
+                # Check if the new formula is satisfiable
+                formula = self.rebuild_formula(list_requirements)
+
+
+                if not is_sat(formula):
+                    print("RTI found, formula unsatisfiable with new requirement.")
+                    rtis.append(list_requirements.copy())
+
+                    # Backtrack: remove the last added requirement and rebuild the formula
+
+
+                    # Rebuild the formula from the remaining requirements
+
+
+
+                else:
+                    contra = False
+                    huhuhuhu = self.exit_condition(other_req)
+                    if self.exit_condition(other_req).is_and():
+                        help = self.exit_condition(other_req).get_free_variables()
+
+                        help_formula = self.rebuild_formula(list_requirements[:-1])
+                        help2 = help_formula.get_free_variables()
+
+                        # if set(help).intersection(set(help2)):
+                        #     if not is_valid(Implies(self.exit_condition(other_req), help_formula)):
+                        #         contra = True
+                        #         self.ref_check(list_requirements.copy(), rtis)
+                    else:
+                        help_formula = self.rebuild_formula(list_requirements[:-1])
+
+                        variables_with_value = self.recursive_varibales(self.exit_condition(other_req), [])
+                        variables_with_value_formula = self.recursive_varibales(help_formula, [])
+                        for i in variables_with_value:
+                            if Not(i) in variables_with_value_formula:
+                                if not is_valid(Implies(self.exit_condition(other_req), help_formula)):
+                                    contra = True
+                                    self.ref_check(list_requirements.copy(), rtis)
+                list_requirements.pop()
+
+
+
+
+
+        return rtis
+
+
+
+
+    def ref_check_2(self, list_requirements, formula, rtis):
+        print([req.countertrace for req in list_requirements])
+
+        for other_req in self.peas:
+            # Only process requirements that aren't already in the list
+            if other_req not in list_requirements:
+                print(f"Comparing with: {other_req.countertrace}")
+
+                # Append the new requirement
+                list_requirements.append(other_req)
+
+                # Combine the current formula with the new requirement
+                combined_formula = And(formula, self.exit_condition(other_req))
+                combined_formula = self.recursive_simplify(combined_formula)
+
+                # If the combined formula is unsatisfiable, we found an RTI
+                if not is_sat(combined_formula):
+                    print("RTI found, formula unsatisfiable with new requirement.")
+
+                    # Avoid duplicates (optional: check using sets if necessary)
+                    rtis.append(list_requirements.copy())
+
+                    # Backtrack: Remove the last added requirement
+                    list_requirements.pop()
+
+                    # Rebuild the formula from the remaining requirements
+                    formula = self.rebuild_formula(list_requirements)
+
+                else:
+                    contra = False
+                    # Check if the new requirement contradicts the existing formula
+                    if self.exit_condition(other_req).is_and():
+                        help = self.exit_condition(other_req).get_free_variables()
+                        help2 = formula.get_free_variables()
+                        if set(help).intersection(set(help2)):
+                            if not is_valid(Implies(self.exit_condition(other_req), formula)):
+                                contra = True
+                                # Recursion to check further with this contradiction
+                                self.ref_check(list_requirements, combined_formula, rtis)
+                    else:
+                        variables_with_value = self.recursive_varibales(self.exit_condition(other_req), [])
+                        variables_with_value_formula = self.recursive_varibales(formula, [])
+                        for i in variables_with_value:
+                            if Not(i) in variables_with_value_formula:
+                                contra = True
+                                # Recursion to check further with this contradiction
+                                self.ref_check(list_requirements, combined_formula, rtis)
+
+                    if not contra:
+                        # Backtrack: remove the last added requirement and reset formula
+                        list_requirements.pop()
+                        formula = self.rebuild_formula(list_requirements)
+
+        return rtis
+    def red_chck_non_recursive(self):
+        rtis = []
+        real_rtis = []
+        #get list with all possible combinations of requirements
+        for i in range(1, len(self.peas) + 1):
+            for subset in itertools.combinations(self.peas, i):
+                rtis.append(list(subset))
+        rtis.sort(key=len)
+        #search for real rtis
+        while len(rtis) > 0:
+            if(len(rtis[0])<5 and len(rtis[0])>1):
+                formula = self.exit_condition(rtis[0][0])
+                old_formula = formula
+                # we say: its true
+                rti_possible = True
+
+                for req in rtis[0][1:]:
+                    formula = And(formula, self.exit_condition(req))
+                    if is_sat(formula):
+                        #if the formula is satisfiable it is not possible that they will be an rti
+
+                        help2 = old_formula.get_free_variables()
+                        help3 = self.exit_condition(req).get_free_variables()
+                        found_match = False
+                        for i in help3:
+                            if i in help2:
+                                if not is_valid(Implies(self.exit_condition(req), old_formula)):
+                                    found_match = True
+                        if not found_match:
+                            rti_possible = False
+                            break
+
+
+                if rti_possible:
+                    if not is_sat(formula):
+                        print("Rti found")
+                        real_rtis.append(rtis[0])
+            rtis.pop(0)
+
+        return real_rtis
+
+
+
+
+
+
+    def rebuild_formula(self, list_requirements):
+        """Rebuild the formula dynamically from the remaining requirements"""
+        if not list_requirements:
+            return TRUE  # or an appropriate base formula
+        formula = self.exit_condition(list_requirements[0])
+        for k in range(1, len(list_requirements)):
+            formula = And(self.exit_condition(list_requirements[k]), formula)
+            formula = self.recursive_simplify(formula)
+        return formula
+
+    def get_minimal_sets(self, rtis):
+        rti1 = len(rtis) - 1
+        while rti1 >= 0:
+            rti2 = len(rtis) - 1
+            while rti2 > rti1:
+                csvCheck = True
+                for k in range(len(rtis[rti1])):
+                    variabel_check = False
+                    for l in range(len(rtis[rti2])):
+                        if rtis[rti1][k].requirement.pos_in_csv == rtis[rti2][l].requirement.pos_in_csv:
+                            variabel_check = True
+                    if not variabel_check:
+                        csvCheck = False
+                if csvCheck:
+                    rtis.remove(rtis[rti2])
+                rti2 -= 1
+            rti1 -= 1
+        return rtis
+
+
+
+
     def inconsistency_pre_check(self):
         # TODO: Do not modify existing member variables ;-)
         print("Called function inconsistency pre check ...")
+        rtis = []
+        # Do check for every req in Set
+        #for requirement in self.peas:
+            #print("new Base Req: ", requirement.countertrace)
+            #requirements = [requirement]
+            #formula = self.exit_condition(requirement)
+            #check if req has time dependencies
+            #if len(requirement.clocks) > 0:
+                #rtis = self.ref_check(requirements.copy(),  rtis)
+
+
+        # Ergebnis-Liste für minimale Mengen
+        rtis = self.red_chck_non_recursive()
+        rtis = self.get_minimal_sets(rtis)
+
+
+
+
+        for i in rtis:
+            print("POSSIBLE RTIS:")
+            for k in i:
+                print(k.countertrace , " - ExitCondition: ", self.exit_condition(k))
+            print("------------------------------------")
+
+        #ji = self.red_chck_non_recursive()
+
+
+
+
+
+
+
