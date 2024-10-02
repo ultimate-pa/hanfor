@@ -806,3 +806,4 @@ class Simulator:
                 print(k.countertrace , " - ExitCondition: ", self.exit_condition(k))
             print("------------------------------------")
 
+
