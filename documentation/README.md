@@ -12,7 +12,7 @@ These are the source files for the [Hanfor Documentation](https://ultimate-pa.gi
     $ source venv/bin/activate
     ```
 === ":fontawesome-brands-windows: Windows"
-    ```bash
+    ```ps
     $ cd hanfor\documentation
     $ python3 -m venv venv
     $ venv\Scripts\activate.bat
@@ -20,22 +20,22 @@ These are the source files for the [Hanfor Documentation](https://ultimate-pa.gi
 
 #### 1. Install [MkDocs](https://www.mkdocs.org/) and all dependencies.
 
-```bash
-$ pip3 install -r requirements.txt
-```
-
-#### 2. Serve this Documentation locally to track your changes.
-
 === ":material-linux: Linux"
     ```bash
     $ cd hanfor/documentation
-    $ mkdocs serve
+    $ pip3 install -r requirements.txt
     ```
 === ":fontawesome-brands-windows: Windows"
-    ```bash
+    ```ps
     $ cd hanfor\documentation
-    $ mkdocs serve
+    $ pip3 install -r requirements.txt
     ```
+
+#### 2. Serve this Documentation locally to track your changes.
+
+```bash
+$ mkdocs serve
+```
 
 Open your Browser at [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
 

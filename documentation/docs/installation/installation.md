@@ -19,7 +19,7 @@ Rename the root folder `hanfor-master` to `hanfor`.
     mv hanfor-master hanfor
     ```
 === ":fontawesome-brands-windows: Windows"
-    ``` bash
+    ``` ps
     move hanfor-master hanfor
     ```
 
@@ -38,7 +38,7 @@ We recommend using a [virtual environment](https://docs.python.org/3/tutorial/ve
     source hanfor_venv/bin/activate
     ```
 === ":fontawesome-brands-windows: Windows"
-    ``` bash
+    ``` ps
     cd hanfor\hanfor
     python -m venv hanfor_venv
     hanfor_venv\Scripts\activate.bat
@@ -62,7 +62,7 @@ Copy the default config file `config.dist.py` to `config.py`.
     cp config.dist.py config.py
     ```
 === ":fontawesome-brands-windows: Windows"
-    ``` bash
+    ``` ps
     copy config.dist.py config.py
     ```
 
@@ -75,7 +75,7 @@ Copy the default ultimate config file `configuration/ultimate_config.dist.py` to
     cp configuration/ultimate_config.dist.py configuration/ultimate_config.py
     ```
 === ":fontawesome-brands-windows: Windows"
-    ``` bash
+    ``` ps
     copy configuration\ultimate_config.dist.py configuration\ultimate_config.py
     ```
 
