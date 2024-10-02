@@ -1,0 +1,37 @@
+ID,Description,Type
+REQ1, Everyone has to make a break at least every 150min,requirement
+REQ2, A break has to be between 5-25min,requirement
+REQ3, Lilly Refill drinks at least every 34min,requirement
+REQ4, Lilly Refill drinks: 7min,requirement
+REQ5, Paul puts glass away after Lilly finished after at most 40min,requirement
+REQ6, Putting glass away takes Paul 15min,requirement
+REQ7, Lilly refill toilet paper every 120min ,requirement
+REQ8, Lilly has to refill toilet paper at least every 200min,requirement
+REQ9, Refill toilet paper takes 7min,requirement
+REQ10, Refill toilet paper at most every 150min tehy do not need so much, requirement
+REQ11, Paul wash glasses at least every 140min,requirement
+REQ12, wash glasses needs 15min,requirement
+REQ13, after glasses get washed is needs 17min fo them to dry,requirement
+REQ14, After glasses dried Paul has to take them in the next 12min, requirement
+REQ15, Paul and Lilly dont like each other they can not make a break together,requirement
+REQ16, Paul loves Juli they always to a break together,requirement
+REQ17, Juli checks the balconys at elast every 180min,requirement
+REQ18, checking the balcony needs 20min,requirement
+REQ19, Juli gets new change money every 140min it needs 15min,requirement
+REQ20, it has to be enough change money for 100min,requirement
+REQ21, Jakob is ill today he can needs at least 20min break,requirement
+REQ22, Jakob is the bar chef he talks with the security at least every 25min,requirement
+REQ23, Talking to security needs exactly 5min,requirement
+REQ24, Jakob wants to not make mor brake then necessery even dough he is ill,requirement
+REQ25, Yannik can refill drinks too,requirement
+REQ26, Yannik is faster than Lilly he needs only 5min,requirement
+REQ27, Oh it was too fast he needs a 5min break after,requirement
+REQ28, Between the glasses get washed and dried Paul is not allowed to make breaks,requirement
+REQ29, After Juli and Paul are making a break together for longer than 15min Lilly goes to the chef and complains,requirement
+REQ30, Going to the chef takes Lilly 3min,requirement
+Req31, after the start of the evening the first 25min are no breaks allowed,requirement
+REQ32, It's not allowed that everyone makes a break at the same time,requirement
+REQ33, You cant bring bottles away and take them at the same time, requirement
+REQ34, If Lilly puts empty bottles awaay Yannik cant, requirement
+REQ35, 
+
