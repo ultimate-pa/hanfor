@@ -21,6 +21,8 @@ Additionally install the development requirements
 pip install -r requirements-dev.txt
 ```
 
+We use [python black](https://black.readthedocs.io/en/stable/) with the settings defined in `hanfor/pyproject.toml`.
+
 ### Frontend
 
 To prepare the client side JavaScript code development (and also some static assets),
