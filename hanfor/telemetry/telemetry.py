@@ -20,26 +20,35 @@ class TelemetryWs(Namespace):
         super().__init__(namespace)
 
     def on_connect(self):
+        sid = request.sid  # noqa sid exists for request
         if current_app.config["FEATURE_TELEMETRY"]:
             emit("command", "send_user_id")
-            self.connections[request.sid] = TelemetryConnection(request.sid)  # noqa sid exists for request
+            self.connections[sid] = TelemetryConnection(sid)
         else:
             emit("command", "no_telemetry")
             disconnect()
 
     def on_disconnect(self):
         # end last event if needed
-        if self.connections[request.sid].last_message["event"] == "open":  # noqa sid exists for request
+        sid = request.sid  # noqa sid exists for request
+        if (
+            sid in self.connections
+            and self.connections[sid].last_message
+            and self.connections[sid].last_message["event"] == "open"
+        ):
             # TODO add auto_close event
             print(f"auto_close")
-        del self.connections[request.sid]  # noqa sid exists for request
+        del self.connections[sid]
 
     def on_user_id(self, data):
-        self.connections[request.sid].user_id = data  # noqa sid exists for request
+        sid = request.sid  # noqa sid exists for request
+        if sid in self.connections:
+            self.connections[sid].user_id = data
 
     def on_event(self, data):
+        sid = request.sid  # noqa sid exists for request
         tmp = json.loads(data)
         print(f"new event: {data}")
         # TODO add event
-        self.connections[request.sid].last_message = tmp  # noqa sid exists for request
-        pass
+        if sid in self.connections:
+            self.connections[sid].last_message = tmp

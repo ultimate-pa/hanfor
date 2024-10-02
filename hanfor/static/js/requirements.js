@@ -519,8 +519,6 @@ function load_datatable() {
 function bind_requirement_id_to_modals(requirements_table) {
     // Add listener for clicks on the Rows.
     $('#requirements_table').find('tbody').on('click', 'a', function (event) {
-        // TODO I don't know if this is the right way of fetching the req id
-        sendTelemetry("requirements", this.text, "open")
         // prevent body to be scrolled to the top.
         event.preventDefault();
         let row_idx = requirements_table.row($(this).closest('tr')).index();
@@ -853,7 +851,11 @@ function modal_closing_routine(event) {
         const force_close = confirm("You have unsaved changes, do you really want to close?");
         if (force_close !== true) {
             event.preventDefault();
+        } else {
+            sendTelemetry("requirements", $('#requirement_id').val(), "close_without_save")
         }
+    } else {
+        sendTelemetry("requirements", $('#requirement_id').val(), "close")
     }
 }
 
@@ -963,6 +965,7 @@ function load_requirement(row_idx) {
             'unsaved_changes': false, 'updated_formalization': false
         });
         requirement_modal_content.LoadingOverlay('hide', true);
+        sendTelemetry("requirements", data.id, "open")
     });
 }
 

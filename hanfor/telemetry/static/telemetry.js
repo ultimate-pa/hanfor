@@ -32,7 +32,7 @@ function sendTelemetry(scope, id, event) {
         "id": id,
         "event": event
     }
-    socket.emit("event", JSON.stringify(msg))
+   socket.emit("event", JSON.stringify(msg))
 }
 
 function setCookie(c_name, c_value, ex_days) {
