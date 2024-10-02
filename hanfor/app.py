@@ -46,6 +46,7 @@ from statistics import statistics
 # import Socket IO modules
 from telemetry.telemetry import TelemetryWs
 
+
 mimetypes.add_type("text/css", ".css")
 mimetypes.add_type("text/javascript", ".js")
 
@@ -75,7 +76,8 @@ app.register_blueprint(statistics.blueprint)
 app.register_blueprint(statistics.api_blueprint)
 
 # register socket IO namespaces
-socketio.on_namespace(TelemetryWs("/telemetry"))
+telemetry_namespace = TelemetryWs("/telemetry")
+socketio.on_namespace(telemetry_namespace)
 
 
 if "USE_SENTRY" in app.config and app.config["USE_SENTRY"]:
@@ -834,6 +836,8 @@ def load_revision(revision_id):
         app.config["REVISION_FOLDER"], "session_variable_collection.pickle"
     )
     app.db.init_tables(app.config["REVISION_FOLDER"])
+    if app.config["FEATURE_TELEMETRY"]:
+        telemetry_namespace.set_data_folder(app.config["REVISION_FOLDER"])
 
 
 def user_request_new_revision(args):

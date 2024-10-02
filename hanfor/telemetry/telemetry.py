@@ -3,7 +3,10 @@ from flask import request
 from flask_socketio import emit, disconnect
 from flask_socketio.namespace import Namespace
 from dataclasses import dataclass
+from os import path
 import json
+from tinyflux import TinyFlux, Point
+from datetime import datetime
 
 
 @dataclass
@@ -12,12 +15,29 @@ class TelemetryConnection:
     user_id: str = ""
     last_message: dict = None
 
+    def get_db_entry(self, auto_close: bool = False) -> tuple[str, str, str, str]:
+        if self.last_message:
+            if auto_close:
+                return self.last_message["scope"], self.last_message["id"], self.user_id, "auto_close"
+            else:
+                return self.last_message["scope"], self.last_message["id"], self.user_id, self.last_message["event"]
+        return "", "", "", ""
+
 
 class TelemetryWs(Namespace):
 
     def __init__(self, namespace=None):
         self.connections: dict[str, TelemetryConnection] = {}
+        self.db: TinyFlux | None = None
         super().__init__(namespace)
+
+    def set_data_folder(self, data_folder: str):
+        self.db = TinyFlux(path.join(data_folder, "telemetry_data.csv"))
+
+    def __add_datapoint(self, scope: str, data_id: str, user_id: str, event: str):
+        if self.db:
+            p = Point(time=datetime.now(), measurement=scope, tags={"id": data_id, "uid": user_id, "event": event})
+            self.db.insert(p, compact_key_prefixes=True)
 
     def on_connect(self):
         sid = request.sid  # noqa sid exists for request
@@ -36,8 +56,7 @@ class TelemetryWs(Namespace):
             and self.connections[sid].last_message
             and self.connections[sid].last_message["event"] == "open"
         ):
-            # TODO add auto_close event
-            print(f"auto_close")
+            self.__add_datapoint(*self.connections[sid].get_db_entry(auto_close=True))
         del self.connections[sid]
 
     def on_user_id(self, data):
@@ -48,7 +67,6 @@ class TelemetryWs(Namespace):
     def on_event(self, data):
         sid = request.sid  # noqa sid exists for request
         tmp = json.loads(data)
-        print(f"new event: {data}")
-        # TODO add event
         if sid in self.connections:
             self.connections[sid].last_message = tmp
+            self.__add_datapoint(*self.connections[sid].get_db_entry())
