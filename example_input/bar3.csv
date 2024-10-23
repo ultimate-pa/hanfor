@@ -1,0 +1,23 @@
+ID,Description,Type
+REQ1,Everyone has to make a break at least every 150min,requirement
+REQ2,A break has to be between 5-25min,requirement
+ReQ3,Somebody alsways has to work,requirement
+REQ_RefillDrinks_1,Refill Drinks at least every 120min,requirement
+REQ_RefillDrinks_2,If storedDrinks under 300 refill Drinks in the next 5min,requirement
+REQ_RefillDrinks_3,RefillDrinks needs 10min,requirement
+REQ_RefillDrinks_4,Lilly can refill drinks,requirement
+REQ_RefillDrinks_5,If Lilly wants to make a break there have to be more than 400 drinks,requirement
+REQ_RefillDrinks_6,Paul gives 200 free drinks away every 3 hours,requirement
+REQ_EmptyBottles_1,EmptyBottles have to be put away at least every 50min,requirement
+REQ_EmptyBottles_2,EmptyBottles needs 20min,requirement
+REQ_EmptyBottles_3,Paul can empty bottles,requirement
+REQ_WashGlasses_1,Wash Glasses at least every 140min,requirement
+REQ_WashGlasses_2,WashGlasses needs 10min,requirement
+REQ_WashGlasses_3,After washing Glasses they need 20min to dry,requirement
+REQ_WashGlasses_4,You have 15min to pick up cleaned and dry glasses,requirement
+REQ_WashGlasses_5,Paul can wash glasses,requirement
+REQ_ToiletPaper_1,Refill ToiletPaper every 120min,requirement
+REQ_ToiletPaper_2,ToiletPaper needs 10min,requirement
+REQ_ToiletPaper_3,Juli can refill ToiletPaper,requirement
+REQ_Relationship_1,Paul and Lilly dont like each other so no break together,requirement
+REQ_Relationship_2,Paul loves Juli so when she does a break he does one two,requirement

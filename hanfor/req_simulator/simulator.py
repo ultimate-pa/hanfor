@@ -22,7 +22,6 @@ from req_simulator.scenario import Scenario
 from req_simulator.utils import num_zeros
 from reqtransformer import Requirement, Formalization
 
-from hanfor.hanfor.lib_pea.countertrace import Countertrace
 
 
 class Simulator:
@@ -554,6 +553,110 @@ class Simulator:
         # TODO: Do not modify existing member variables ;-)
         print("Called function variable constraints ...")
 
+    class RtiPea:
+        def __init__(self, pea: PhaseSetsPea, exit_condition: FNode, chain_req: bool, start_req: bool,
+                     exit_variables: list):
+            self.pea = pea #the fiven pea from the req
+            self.exit_condition = exit_condition #the exit condition (NOt(phase n-1))
+            self.chain_req = chain_req # Bool
+            self.start_req = start_req # Bool, if req has time bounds
+            self.exit_variables = exit_variables #variables from thr exit_condition
+
+
+    def inconsistency_pre_check(self):
+        # TODO: Do not modify existing member variables ;-)
+        print("Called function inconsistency pre check ...")
+        # get all Peas with required: exit condition
+        peas_exit_conditinon = []  # list with all peas with attributes needed for pre-check
+        peas_dict = {}
+        rtis = []  # list with all possible rtis
+        # first get all attributes from peas like countertrace, chain reqs etc
+        peas_exit_conditinon = self.get_pea_attribute(peas_exit_conditinon)
+        # sort the peas into a dict based on their attributes to have a faster access later
+        peas_dict = self.sort_peas(peas_exit_conditinon, peas_dict)
+        chain_reqs = []
+        # get all chain reqs in an extra list
+        chain_reqs = self.get_chain_req_list(chain_reqs, peas_dict, peas_exit_conditinon)
+
+        rtis = self.get_pair_rtis(peas_dict, rtis)
+        help = peas_dict
+        # go through all chain reqs, start with smallest depth
+        for depth in range(1, 3):
+            copy_chain_reqs = chain_reqs.copy()
+            while len(copy_chain_reqs) > 0:
+                self.chain_check(copy_chain_reqs[0], copy_chain_reqs, depth, peas_dict, [copy_chain_reqs[0]], rtis)
+                copy_chain_reqs.pop(0)
+        help = rtis
+        rtis = self.get_minimal_sets(rtis)
+        for rti in rtis:
+            print("----------")
+            for req in rti:
+                print(req.pea.countertrace)
+
+    def get_chain_req_list(self, chain_reqs, peas_dict, peas_exit_conditinon):
+        chain_reqs = [pea for pea in peas_exit_conditinon if pea.chain_req]
+
+        chain_reqs.sort(key=lambda x: len(x.exit_variables), reverse=True)
+        return chain_reqs
+
+    def chain_check(self, chain_req, other_chain_reqs, depth, peas_dict, possible_rti, rtis):
+        #if the number of chainreqs == depth of check -> check if they are a rti by themself
+        if len(possible_rti) == depth:
+            if self.rti_check(possible_rti):
+                rtis.append(possible_rti)
+            else:
+                #try to fill with singles
+                self.fill_chain_with_singles(chain_req, other_chain_reqs, depth, peas_dict, possible_rti, rtis)
+        elif len(possible_rti) < depth:
+            #add another matching chainreq to check
+            for other_req in other_chain_reqs:
+                if other_req not in possible_rti:
+                    formula_already = self.rebuild_formula(possible_rti)
+                    formula_check_new_req = Implies(self.simplify(formula_already), self.exit_condition(other_req.pea))
+                    variables_old = formula_already.get_free_variables()
+                    variables_new_req = other_req.exit_condition.get_free_variables()
+                    if len(set(variables_old).intersection(set(variables_new_req))) > 0:
+                        if not is_valid(formula_check_new_req):
+                            new_list = possible_rti + [other_req]
+                            # Recursive call to check further requirements
+                            logging.debug("Adding worked" + str(formula_check_new_req))
+                            self.chain_check(chain_req, other_chain_reqs, depth, peas_dict, new_list.copy(), rtis)
+
+    def fill_chain_with_singles(self, chain_req, other_chain_reqs, depth, peas_dict, possible_rti, rtis):
+        # list with chain reqs, fill with singles(no chain reqs) for rti
+        formula = self.rebuild_formula(possible_rti)
+        variables = self.recursive_varibales(formula, [])
+        variables = list(set(variables))
+        for var in variables:
+            if Not(var) in variables:
+                variables.remove(var)
+                variables.remove(Not(var))
+        list_with_singles = possible_rti.copy()
+        selected_lists = []
+        for var in variables:
+            varhelp = var
+            if "!" in str(var):
+                varhelp = var._content.args[0]
+            if varhelp in peas_dict:
+                if peas_dict[varhelp]["type_variable"] == "Bool":
+
+                    if "!" in str(var):
+                        selected_lists.append((peas_dict[varhelp]["peas_positive"]))
+                    else:
+                        selected_lists.append(((peas_dict[var]["peas_negative"])))
+                else:
+                    selected_lists.append(peas_dict[var]["peas"])
+            else:
+                return
+
+        combinations = list(itertools.product(*selected_lists))
+        for combo in combinations:
+            list_from_combo = possible_rti + list(combo)
+            rtis.append(list_from_combo)
+        #     list_from_combo = possible_rti + list(combo)
+        #     if(self.rti_check(list_from_combo)):
+        #         rtis.append(list_from_combo)
+
     def recursive_varibales(self, formula, list):
         if formula.is_constant() or formula.is_symbol() or formula.is_not and len(formula.args()) == 1:
             list.append(formula)
@@ -562,59 +665,104 @@ class Simulator:
                 self.recursive_varibales(var, list)
         return list
 
+    def rti_check(self, requirements):
+        # check if set of reqs can cause an rti
+        starter_in_set = False
+        # one of the reqs has to be starter req (time bound)
+        for req in requirements:
+            if req.start_req:
+                starter_in_set = True
+                break
+        if not starter_in_set:
+            return False
+        # formmula has to be not sat
+        if is_sat(self.rebuild_formula(requirements)):
+            return False
 
-    def exit_condition(self, requirement):
-        # Generate and return the DNF of the exit condition
-        return self.simplify(Not(requirement.countertrace.dc_phases[-2].invariant))
+        return True
 
+    def get_pair_rtis(self, peas_dict: dict, rtis: list):
+        # first serach for rtis with 2 reqs without chain reqs
+        for variable in peas_dict:
+            if peas_dict[variable]["type_variable"] is "Bool":
+                for positive in peas_dict[variable]["peas_positive"]:
+                    for negative in peas_dict[variable]["peas_negative"]:
+                        if self.rti_check([positive, negative]):
+                            rtis.append([positive, negative])
+            else:
+                for pea1 in peas_dict[variable]["peas"]:
+                    for pea2 in peas_dict[variable]["peas"]:
+                        if self.rti_check([pea1, pea2]):
+                            rtis.append([pea1, pea2])
 
-
-    def divide_formula(self, formula):
-        if formula.is_or():
-            # Recursively divide each operand
-            return [operand for arg in formula.args() for operand in self.divide_formula(arg)]
-        else:
-            # Base case: return the formula itself
-            return [formula]
-
-
-    import copy
-
+        return rtis
 
     def rebuild_formula(self, list_requirements):
         """Rebuild the formula dynamically from the remaining requirements"""
         if not list_requirements:
             return TRUE  # or an appropriate base formula
-        formula = self.exit_condition(list_requirements[0])
+        formula = self.exit_condition(list_requirements[0].pea)
         for k in range(1, len(list_requirements)):
-            formula = And(self.exit_condition(list_requirements[k]), formula)
-        return formula
+            formula = And(self.exit_condition(list_requirements[k].pea), formula)
+        return self.simplify(formula)
 
-    def get_minimal_sets(self, rtis):
-        # Iterate through rtis list from the last to the first
-        rti1 = len(rtis) - 1
-        while rti1 >= 0:
-            rti2 = len(rtis) - 1
-            while rti2 > rti1:
-                csvCheck = True
-                # Check if all elements of rtis[rti1] are present in rtis[rti2]
-                for k in range(len(rtis[rti1])):
-                    variabel_check = False
-                    for l in range(len(rtis[rti2])):
-                        #if rtis[rti1][k].requirement.pos_in_csv == rtis[rti2][l].requirement.pos_in_csv:
-                        if rtis[rti1][k].countertrace== rtis[rti2][l].countertrace:
-                            variabel_check = True
-                            break  # If found, no need to continue inner loop
-                    if not variabel_check:
-                        csvCheck = False
-                        break  # If one element is missing, break early
-                # If csvCheck is true, remove the larger set (rti2)
-                if csvCheck:
-                    rtis.pop(rti2)
-                rti2 -= 1
-            rti1 -= 1
-        return rtis
+    def exit_condition(self, requirement):
+        # Generate and return the DNF of the exit condition
+        return self.simplify(Not(requirement.countertrace.dc_phases[-2].invariant))
 
+    def get_pea_attribute(self, peas_exit_condition):
+        # get all attributes needed for pre_check
+        for pea in self.peas:
+            exit_condition = self.exit_condition(pea)
+            is_start_req = False
+            if len(pea.clocks) > 0:
+                is_start_req = True  # start req -> is timed, one of them is needed for an rti
+            is_chain_req = False
+            if exit_condition.is_or():
+                is_chain_req = True  # chain req if exit-Condition has a or (||) in it
+            variables = self.recursive_varibales(exit_condition, [])
+            i = 0
+            while i < len(variables):
+                try:
+                    test = float(str(variables[i]).replace("(", "").replace(")", ""))
+                    variables.pop(i)
+                except ValueError:
+                    i += 1
+
+            peas_exit_condition.append(
+                self.RtiPea(pea, exit_condition, is_chain_req, is_start_req, variables))
+        return peas_exit_condition
+
+    def sort_peas(self, peas_exit_condition: list[RtiPea], peas_dict) -> dict:
+        # Sort the peas based on their exit conditions and the variables in tehre and the type of it
+        for pea in peas_exit_condition:
+            if not pea.chain_req:
+                for variable in pea.exit_condition.get_free_variables():
+                    if variable._content.payload[1].name is "Bool":
+                        if ("! " + str(variable)) in str(pea.exit_condition):
+                            if not variable in peas_dict.keys():
+                                peas_dict[variable] = {"variable": variable, "type_variable": "Bool", "peas_positive": [],
+                                                       "peas_negative": [pea]}
+
+                            else:
+                                peas_dict[variable]["peas_negative"].append(pea)
+                        else:
+                            if not variable in peas_dict.keys():
+                                peas_dict[variable] = {"variable": variable, "type_variable": "Bool",
+                                                       "peas_positive": [pea], "peas_negative": []}
+
+                            else:
+                                peas_dict[variable]["peas_positive"].append(pea)
+
+
+                    else:
+                        if not variable in peas_dict.keys():
+                            peas_dict[variable] = {"variable": variable, "type_variable": "Int", "peas": [pea]}
+
+                        else:
+                            peas_dict[variable]["peas"].append(pea)
+
+        return peas_dict
     def simplify (self, f: FNode) -> FNode:
         solver_z3 = Solver(name="z3")
         #tactic = Then(Tactic('simplify'),Tactic('ctx-solver-simplify'))
@@ -634,175 +782,30 @@ class Simulator:
         result = t2(solver_z3.converter.convert(result)).as_expr()
         result = solver_z3.converter.back(result)
         return result
-
-    def get_Value_list(self, listSTingle, sortedList):
-        for req in listSTingle:
-            variables_new_req_val = self.recursive_varibales(self.exit_condition(req), [])
-            for var in variables_new_req_val:
-                found = False
-                for listItem in sortedList:
-                    if listItem[0] == var:
-                        listItem[1].append(req)
-                        found = True
-                        continue
-                if not found:
-                    sortedList.append([var,[req]])
-        return sortedList
-
-
-    def getLists(self, listSingle, soretdList):
-        for req in listSingle:
-            variables_new_req_val = self.recursive_varibales(self.exit_condition(req), [])
-            for var in variables_new_req_val:
-                variables_new_req = var.get_free_variables()
-                found = False
-                for list_variable in soretdList:
-                    if variables_new_req == list_variable[0]:
-                        found = True
-                        if '!' in str(var):
-                            list_variable[2].append(req)
-                        else:
-                            list_variable[1].append(req)
-
-                if not found:
-                    if '!' in str(var):
-                        soretdList.append([variables_new_req, [],[req]])
-                    else:
-                        soretdList.append([variables_new_req, [req],[]])
-
-        return soretdList
-
-    def single_rtis(self, sorted_list, rtis):
-        for list in sorted_list:
-            if len(sorted_list[1]) != 0 and len(sorted_list[2]) != 0:
-                for positive in list[1]:
-                    for negative in list[2]:
-                        rtis.append([positive, negative])
+    def get_minimal_sets(self, rtis):
+        # Iterate through rtis list from the last to the first
+        rti1 = len(rtis) - 1
+        while rti1 >= 0:
+            rti2 = len(rtis) - 1
+            while rti2 > rti1:
+                csvCheck = True
+                # Check if all elements of rtis[rti1] are present in rtis[rti2]
+                for k in range(len(rtis[rti1])):
+                    variabel_check = False
+                    for l in range(len(rtis[rti2])):
+                        # if rtis[rti1][k].requirement.pos_in_csv == rtis[rti2][l].requirement.pos_in_csv:
+                        if rtis[rti1][k].pea.countertrace == rtis[rti2][l].pea.countertrace:
+                            variabel_check = True
+                            break  # If found, no need to continue inner loop
+                    if not variabel_check:
+                        csvCheck = False
+                        break  # If one element is missing, break early
+                # If csvCheck is true, remove the larger set (rti2)
+                if csvCheck:
+                    rtis.pop(rti2)
+                rti2 -= 1
+            rti1 -= 1
         return rtis
 
 
-
-    def chain_rtis(self, chain_reqs_2, sortedLists_singles, list_reqs, possible_rtis, chain_rtis, depth):
-
-        exit_condition = self.simplify(self.rebuild_formula(list_reqs))
-
-        if len(list_reqs) == depth:
-            variables = self.recursive_varibales(exit_condition, [])
-            for var in variables:
-                if Not(var) in variables:
-                    variables.remove(var)
-                    variables.remove(Not(var))
-            variables = list(set(variables))
-            selected_lists = [listi for listi in sortedLists_singles if Not(listi[0]) in variables]
-            reqs = [listi[1] for listi in selected_lists]
-            combinations = list(itertools.product(*reqs))
-            logging.debug("try to fill with singles")
-            #list_reqs have to have length depth to check for singles to fill
-            rti_with_those_chains = False
-            if rti_with_those_chains == False:
-
-
-                for combo in combinations:
-                    rti = list_reqs.copy()
-                    if len(combo) == len(variables):
-
-                        for c in combo:
-                            rti.append(c)
-                        possible_rtis.append(rti)
-        if len(list_reqs)< depth:
-            for chain in chain_reqs_2:
-                logging.debug("try to add new chain req")
-                if chain not in list_reqs:
-                    for i in list_reqs:
-                        logging.debug(str(i.countertrace))
-                    logging.debug("NEW: "+ str(chain.countertrace))
-
-                    if not is_sat(And(exit_condition, self.exit_condition(chain))) and len(list_reqs) == depth:
-                        rti = list_reqs.copy()
-                        possible_rtis.append(rti)
-                        logging.debug("rti found")
-                        print("rti found")
-
-                    else:
-                        new_rti = True
-
-                        if new_rti:
-                            variables_new_req = self.exit_condition(chain).get_free_variables()
-                            variables_list = exit_condition.get_free_variables()
-                            # If there are common variables and the formula is not valid
-                            if len(set(variables_list).intersection(set(variables_new_req))) > 0:
-                                formula_check_new_req = Implies(self.simplify(exit_condition),self.exit_condition(chain))
-                                if not is_valid(formula_check_new_req):
-                                    new_list = list_reqs.copy()
-                                    new_list.append(chain)
-                                    # Recursive call to check further requirements
-                                    logging.debug("Adding worked" + str( formula_check_new_req))
-
-                                    self.chain_rtis(chain_reqs_2, sortedLists_singles, new_list, possible_rtis, chain_rtis, depth)
-
-        return possible_rtis
-
-
-
-
-
-    def inconsistency_pre_check(self):
-        # TODO: Do not modify existing member variables ;-)
-        print("Called function inconsistency pre check ...")
-        counter = 0
-        possible_rtis = []
-
-        chain_reqs = []
-        simple_reqs = []
-        sortedLists_singles = []
-
-        #devide rtis in two groups
-        for pea in self.peas:
-            if self.exit_condition(pea).is_or():
-                chain_reqs.append(pea) #exit condition has a or --> it is a chain req
-            else:
-                simple_reqs.append(pea) #exit-condition has no or --> it's a single
-        #get Lists per variable
-        sortedLists_singles = self.getLists(simple_reqs, sortedLists_singles)
-        #find rtis with set size 2
-        possible_rtis = self.single_rtis(sortedLists_singles, possible_rtis)
-        chain_reqs.sort(key=lambda x: len(x.formalization.used_variables), reverse=True)
-        sortedLists_singles_value = self.get_Value_list(simple_reqs, [])
-        logging.debug("CHAIN REQS")
-        chain_rtis = []
-        logging.debug(f"chain_reqs before depth loop: {chain_reqs}")
-        #look recursively but with incrysing depth to find "easy rtis" first
-        for depth in range(1, 3):
-            print("---------------------------------")
-            print(depth)
-            logging.debug(f"Depth {depth}: chain_reqs: {chain_reqs}")
-            new_chain_reqs = chain_reqs.copy()
-            logging.debug(f"New chain_reqs after copy: {new_chain_reqs}")
-            # reset new_chain_reqs for each depth
-            while len(new_chain_reqs) > 0:
-                #start search with chain req
-                chain = new_chain_reqs[0]
-                logging.debug("NEW CHAIN REQ START --------------------")
-                print("NEW CHAIN REQ --------------------")
-                print(str(chain.countertrace))
-                logging.debug(str(chain.countertrace))
-                possible_rtis = self.chain_rtis(new_chain_reqs, sortedLists_singles_value, [chain], possible_rtis,
-                                                chain_rtis, depth)
-                new_chain_reqs.remove(chain) # if a chain found all rtis delete it for this depth
-
-
-
-
-        possible_rtis.sort(key=len)
-        #delete not minimal sets
-        possible_rtis = self.get_minimal_sets(possible_rtis)
-
-
-
-
-        for i in possible_rtis:
-            print("POSSIBLE RTIS:")
-            for k in i:
-                print(k.countertrace , " - ExitCondition: ", self.exit_condition(k))
-            print("------------------------------------")
 
