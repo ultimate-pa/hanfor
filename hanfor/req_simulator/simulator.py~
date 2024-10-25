@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import itertools
 import math
 from collections import defaultdict
@@ -591,54 +592,14 @@ class Simulator:
         for rti in rtis:
             print("----------")
             for req in rti:
+                print(req.pea.requirement.rid)
                 print(req.pea.countertrace)
+        self.print_chain_reqs(chain_reqs, rtis)
+        self.print_exit_conditions(peas_exit_conditinon)
 
     def get_chain_req_list(self, chain_reqs, peas_dict, peas_exit_conditinon):
         chain_reqs = [pea for pea in peas_exit_conditinon if pea.chain_req]
-        index = 0
-        # sort all chain_reqs out which do  not have a other req with mathcing variables that could cause rti
-        while index < len(chain_reqs):
-            all_vars_given_elsewhere = True
-            for var in chain_reqs[index].exit_variables:
-                if "!" in str(var):
-                    if not var._content.args[0] in peas_dict.keys():
-                        var_in_chain = False
-                        for other_chain_reqs in chain_reqs:
-                            if other_chain_reqs != chain_reqs[index]:
-                                if var._content.args[0] in other_chain_reqs.exit_variables:
-                                    var_in_chain = True
-                                continue
-                        if not var_in_chain:
-                            chain_reqs.pop(index)
-                            continue
 
-                    elif len(peas_dict[var._content.args[0]]["peas_negative"]) == 0:
-                        var_in_chain = False
-
-                        chain_reqs.pop(index)
-                        continue
-                elif not var in peas_dict.keys():
-                    var_in_chain = False
-                    for other_chain_reqs in chain_reqs:
-                        if other_chain_reqs != chain_reqs[index]:
-                            if Not(var) in other_chain_reqs.exit_variables:
-                                var_in_chain = True
-                                continue
-                    if not var_in_chain:
-                        chain_reqs.pop(index)
-                        continue
-                # elif len(peas_dict[var]["peas_positive"]):
-                #     var_in_chain = False
-                #     for other_chain_reqs in chain_reqs:
-                #         if other_chain_reqs != chain_reqs[index]:
-                #             if var in other_chain_reqs.exit_variables:
-                #                 var_in_chain = True
-                #                 continue
-                #     if not var_in_chain:
-                #         chain_reqs.pop(index)
-                #         continue
-
-            index += 1
         chain_reqs.sort(key=lambda x: len(x.exit_variables), reverse=True)
         return chain_reqs
 
@@ -670,10 +631,7 @@ class Simulator:
         formula = self.rebuild_formula(possible_rti)
         variables = self.recursive_varibales(formula, [])
         variables = list(set(variables))
-        for var in variables:
-            if Not(var) in variables:
-                variables.remove(var)
-                variables.remove(Not(var))
+
         list_with_singles = possible_rti.copy()
         selected_lists = []
         for var in variables:
@@ -682,8 +640,11 @@ class Simulator:
                 varhelp = var._content.args[0]
             if varhelp in peas_dict:
                 if peas_dict[varhelp]["type_variable"] == "Bool":
+                    if Not(var) in variables:
+                        variables.remove(var)
+                        variables.remove(Not(var))
 
-                    if "!" in str(var):
+                    elif "!" in str(var):
                         selected_lists.append((peas_dict[varhelp]["peas_positive"]))
                     else:
                         selected_lists.append(((peas_dict[var]["peas_negative"])))
@@ -849,6 +810,24 @@ class Simulator:
                 rti2 -= 1
             rti1 -= 1
         return rtis
+
+    def print_chain_reqs(self, chain_reqs, rtis):
+        print("Chain requirements:")
+        print("Count: %d" % len(chain_reqs))
+        for chain in chain_reqs:
+            print(chain.pea.requirement.rid)
+            print(chain.pea.countertrace)
+        for rti in rtis:
+            if len(rti) > 2:
+                print(chain.pea.requirement.rid)
+                print(chain.pea.countertrace)
+
+    def print_exit_conditions(self, peas_exit_conditinon):
+        with open('exit_conditions.csv', 'w', encoding= 'utf-8', newline='') as csvfile:
+            spamwriter = csv.writer(csvfile)
+            spamwriter.writerow(["RID", "Exit-Condition"])
+            for req in peas_exit_conditinon:
+                spamwriter.writerow([req.pea.clocks,  req.exit_condition])
 
 
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import itertools
 import math
 from collections import defaultdict
@@ -591,7 +592,10 @@ class Simulator:
         for rti in rtis:
             print("----------")
             for req in rti:
+                print(req.pea.requirement.rid)
                 print(req.pea.countertrace)
+        self.print_chain_reqs(chain_reqs, rtis)
+        self.print_exit_conditions(peas_exit_conditinon)
 
     def get_chain_req_list(self, chain_reqs, peas_dict, peas_exit_conditinon):
         chain_reqs = [pea for pea in peas_exit_conditinon if pea.chain_req]
@@ -627,10 +631,7 @@ class Simulator:
         formula = self.rebuild_formula(possible_rti)
         variables = self.recursive_varibales(formula, [])
         variables = list(set(variables))
-        for var in variables:
-            if Not(var) in variables:
-                variables.remove(var)
-                variables.remove(Not(var))
+
         list_with_singles = possible_rti.copy()
         selected_lists = []
         for var in variables:
@@ -639,8 +640,11 @@ class Simulator:
                 varhelp = var._content.args[0]
             if varhelp in peas_dict:
                 if peas_dict[varhelp]["type_variable"] == "Bool":
+                    if Not(var) in variables:
+                        variables.remove(var)
+                        variables.remove(Not(var))
 
-                    if "!" in str(var):
+                    elif "!" in str(var):
                         selected_lists.append((peas_dict[varhelp]["peas_positive"]))
                     else:
                         selected_lists.append(((peas_dict[var]["peas_negative"])))
@@ -806,6 +810,24 @@ class Simulator:
                 rti2 -= 1
             rti1 -= 1
         return rtis
+
+    def print_chain_reqs(self, chain_reqs, rtis):
+        print("Chain requirements:")
+        print("Count: %d" % len(chain_reqs))
+        for chain in chain_reqs:
+            print(chain.pea.requirement.rid)
+            print(chain.pea.countertrace)
+        for rti in rtis:
+            if len(rti) > 2:
+                print(chain.pea.req.pea.clocks)
+                print(chain.pea.countertrace)
+
+    def print_exit_conditions(self, peas_exit_conditinon):
+        with open('exit_conditions.csv', 'w', encoding= 'utf-8', newline='') as csvfile:
+            spamwriter = csv.writer(csvfile)
+            spamwriter.writerow(["RID", "Exit-Condition"])
+            for req in peas_exit_conditinon:
+                spamwriter.writerow([req.pea.clocks,  req.exit_condition])
 
 
 
