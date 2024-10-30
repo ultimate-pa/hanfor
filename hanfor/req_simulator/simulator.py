@@ -555,13 +555,19 @@ class Simulator:
         print("Called function variable constraints ...")
 
     class RtiPea:
-        def __init__(self, pea: PhaseSetsPea, exit_condition: FNode, chain_req: bool, start_req: bool,
-                     exit_variables: list):
+        def __init__(self, pea: PhaseSetsPea, exit_conditions: list[FNode], chain_req: bool, start_req: bool
+                     ):
             self.pea = pea #the fiven pea from the req
-            self.exit_condition = exit_condition #the exit condition (NOt(phase n-1))
             self.chain_req = chain_req # Bool
             self.start_req = start_req # Bool, if req has time bounds
-            self.exit_variables = exit_variables #variables from thr exit_condition
+            self.list_exit_conditions = exit_conditions
+
+    class ExitCondition:
+        def __init__(self,  exit_condition: FNode,
+                     exit_variables: list):
+            self.exit_condition = exit_condition
+            self.exit_variables = exit_variables
+
 
 
     def inconsistency_pre_check(self):
@@ -582,12 +588,13 @@ class Simulator:
         rtis = self.get_pair_rtis(peas_dict, rtis)
         help = peas_dict
         # go through all chain reqs, start with smallest depth
-        for depth in range(1, 3):
+        for depth in range(1, 2):
             copy_chain_reqs = chain_reqs.copy()
             while len(copy_chain_reqs) > 0:
                 self.chain_check(copy_chain_reqs[0], copy_chain_reqs, depth, peas_dict, [copy_chain_reqs[0]], rtis)
                 copy_chain_reqs.pop(0)
         help = rtis
+        rtis = self.last_red_phase(rtis)
         rtis = self.get_minimal_sets(rtis)
         for rti in rtis:
             print("----------")
@@ -600,7 +607,7 @@ class Simulator:
     def get_chain_req_list(self, chain_reqs, peas_dict, peas_exit_conditinon):
         chain_reqs = [pea for pea in peas_exit_conditinon if pea.chain_req]
 
-        chain_reqs.sort(key=lambda x: len(x.exit_variables), reverse=True)
+        chain_reqs.sort(key=lambda x: len(x.list_exit_conditions), reverse=True)
         return chain_reqs
 
     def chain_check(self, chain_req, other_chain_reqs, depth, peas_dict, possible_rti, rtis):
@@ -628,30 +635,29 @@ class Simulator:
 
     def fill_chain_with_singles(self, chain_req, other_chain_reqs, depth, peas_dict, possible_rti, rtis):
         # list with chain reqs, fill with singles(no chain reqs) for rti
-        formula = self.rebuild_formula(possible_rti)
-        variables = self.recursive_varibales(formula, [])
-        variables = list(set(variables))
-
-        list_with_singles = possible_rti.copy()
         selected_lists = []
-        for var in variables:
-            varhelp = var
-            if "!" in str(var):
-                varhelp = var._content.args[0]
-            if varhelp in peas_dict:
-                if peas_dict[varhelp]["type_variable"] == "Bool":
-                    if Not(var) in variables:
-                        variables.remove(var)
-                        variables.remove(Not(var))
 
-                    elif "!" in str(var):
-                        selected_lists.append((peas_dict[varhelp]["peas_positive"]))
+        for sub_form in chain_req.list_exit_conditions:
+            helper = []
+            for var_list in sub_form.exit_variables:
+                for variable in var_list:
+                    variableList = []
+                    if not variable in peas_dict:
+                        return
+                    if peas_dict[variable]["type_variable"] == "Bool":
+                        if "! " + str(variable) not in str(sub_form.exit_condition):
+                            variableList.append(peas_dict[variable]["peas_negative"])
+                        else:
+                            variableList.append(peas_dict[variable]["peas_positive"])
                     else:
-                        selected_lists.append(((peas_dict[var]["peas_negative"])))
-                else:
-                    selected_lists.append(peas_dict[var]["peas"])
-            else:
-                return
+                        variableList.append(peas_dict[variable]["peas"])
+                    if len(variableList) > 1:
+                        print("todo")
+                    else:
+                        for pea in variableList[0]:
+                            if not is_sat(And(sub_form.exit_condition, pea.list_exit_conditions[0].exit_condition)):
+                                helper.append(pea)
+            selected_lists.append(helper)
 
         combinations = list(itertools.product(*selected_lists))
         for combo in combinations:
@@ -661,13 +667,37 @@ class Simulator:
         #     if(self.rti_check(list_from_combo)):
         #         rtis.append(list_from_combo)
 
-    def recursive_varibales(self, formula, list):
+    def variables_or(self, formula, list_devided_by_or):
+        # if formula.is_constant() or formula.is_symbol() or formula.is_not and len(formula.args()) == 1:
+        #     list.append(formula)
+        # else:
+        #     for var in formula.args():
+        #         self.recursive_varibales(var, list)
+        if formula.is_or():
+            for var in formula.args():
+                self.variables_or(var, list_devided_by_or)
+        else:
+            list_devided_by_or.append(formula)
+
+
+        return list_devided_by_or
+    def get_or_list(self, formula, helplist):
+        for var in formula.args():
+            helplist.append(var)
+
+        return helplist
+
+
+
+    def get_full_varables(self, formula, listi):
         if formula.is_constant() or formula.is_symbol() or formula.is_not and len(formula.args()) == 1:
-            list.append(formula)
+            if type(formula._content.payload) is tuple:
+                listi.append(formula)
         else:
             for var in formula.args():
-                self.recursive_varibales(var, list)
-        return list
+                self.get_full_varables(var, listi)
+        listi = list(set(listi))
+        return listi
 
     def rti_check(self, requirements):
         # check if set of reqs can cause an rti
@@ -717,33 +747,45 @@ class Simulator:
     def get_pea_attribute(self, peas_exit_condition):
         # get all attributes needed for pre_check
         for pea in self.peas:
+            is_chain_req = False
+            exit_objects = []
             exit_condition = self.exit_condition(pea)
+
+            if exit_condition.is_or():
+                is_chain_req = True  # chain req if exit-Condition has a or (||) in it
+                exit_conditions_chain = self.get_or_list(exit_condition, [])
+                for formulas in exit_conditions_chain:
+                    exit_objects.append(self.ExitCondition(formulas, self.get_variables_from_exit_condtions(formulas, [])))
+            else:
+                exit_objects.append(self.ExitCondition(exit_condition,self.get_variables_from_exit_condtions(exit_condition, [])))
+
             is_start_req = False
             if len(pea.clocks) > 0:
                 is_start_req = True  # start req -> is timed, one of them is needed for an rti
-            is_chain_req = False
-            if exit_condition.is_or():
-                is_chain_req = True  # chain req if exit-Condition has a or (||) in it
-            variables = self.recursive_varibales(exit_condition, [])
-            i = 0
-            while i < len(variables):
-                try:
-                    test = float(str(variables[i]).replace("(", "").replace(")", ""))
-                    variables.pop(i)
-                except ValueError:
-                    i += 1
+
+
+
 
             peas_exit_condition.append(
-                self.RtiPea(pea, exit_condition, is_chain_req, is_start_req, variables))
+            self.RtiPea(pea, exit_objects, is_chain_req, is_start_req))
+
+            for pea in peas_exit_condition:
+                for exit in  pea.list_exit_conditions:
+                    if len(exit.exit_variables) == 0:
+                        pea.list_exit_conditions.remove(exit)
+                if len(pea.list_exit_conditions) == 0:
+                    peas_exit_condition.remove(pea)
         return peas_exit_condition
 
     def sort_peas(self, peas_exit_condition: list[RtiPea], peas_dict) -> dict:
         # Sort the peas based on their exit conditions and the variables in tehre and the type of it
         for pea in peas_exit_condition:
             if not pea.chain_req:
-                for variable in pea.exit_condition.get_free_variables():
+                for variable1 in pea.list_exit_conditions[0].exit_variables:
+                    variable = variable1[0]
+                    print(pea.list_exit_conditions[0].exit_variables[0])
                     if variable._content.payload[1].name is "Bool":
-                        if ("! " + str(variable)) in str(pea.exit_condition):
+                        if ("! " + str(variable)) in str(pea.list_exit_conditions[0].exit_condition):
                             if not variable in peas_dict.keys():
                                 peas_dict[variable] = {"variable": variable, "type_variable": "Bool", "peas_positive": [],
                                                        "peas_negative": [pea]}
@@ -779,13 +821,16 @@ class Simulator:
         #juhu = solver_z3.converter.convert(f)
         #opop = tactic1(juhu)
         #result = tactic1(solver_z3.converter.convert(f)).as_expr()
+        tactic2 = Then(Tactic('nnf'), Tactic('simplify'))
         ruru = tactic3(solver_z3.converter.convert(f)).as_expr()
         t2 =  Tactic("propagate-values")
         result = solver_z3.converter.back(ruru)
+        result2 = tactic2(solver_z3.converter.convert(result)).as_expr()
+        res = solver_z3.converter.back(result2)
 
         result = t2(solver_z3.converter.convert(result)).as_expr()
         result = solver_z3.converter.back(result)
-        return result
+        return res
     def get_minimal_sets(self, rtis):
         # Iterate through rtis list from the last to the first
         rti1 = len(rtis) - 1
@@ -827,7 +872,56 @@ class Simulator:
             spamwriter = csv.writer(csvfile)
             spamwriter.writerow(["RID", "Exit-Condition"])
             for req in peas_exit_conditinon:
-                spamwriter.writerow([req.pea.clocks,  req.exit_condition])
+                spamwriter.writerow([req.pea.clocks,  self.exit_condition(req.pea)])
+
+    def get_variables_list(self, var, peas_dict):
+        if "!" in str(var):
+            varhelp = var._content.args[0]
+            return (peas_dict[varhelp]["peas_negative"])
+        elif peas_dict[var]["type_variable"] == "Bool":
+            return peas_dict[var]["peas"]
+        else:
+            return (peas_dict[var]["peas_negative"])
+
+    def get_variables_from_exit_condtions(self, formula, listi):
+        if formula.is_and():
+            for arg in formula.args():
+                self.get_variables_from_exit_condtions(arg, listi)
+        else:
+            variables = formula.get_free_variables()
+            helplist = []
+            for var in variables:
+                if ("!" + str(var)) in variables and var._content.payload[1].name is "Bool":
+                    helplist.append(Not(var))
+                else:
+                    helplist.append(var)
+                listi.append(helplist)
+
+        return listi
+
+    def last_red_phase(self, rtis):
+        i = 0
+        while i < len(rtis):
+            test = []
+            for pea in rtis[i]:
+                if type(pea.pea.countertrace.dc_phases[-2].bound) is not int:
+                    test.append(pea.pea.countertrace.dc_phases[-2].invariant)
+                else:
+                    test.append(pea.pea.countertrace.dc_phases[-3].invariant)
+            formula = test[0]
+            for p in range(1, len(test)):
+                formula = And(formula, test[p])
+            if not is_sat(formula):
+                rtis.pop(i)
+            else:
+                i +=1
+        return rtis
+
+
+
+
+
+
 
 
 
