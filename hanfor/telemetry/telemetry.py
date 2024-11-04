@@ -35,7 +35,7 @@ class TelemetryWs(Namespace):
         self.db = TinyFlux(path.join(data_folder, "telemetry_data.csv"))
 
     def __add_datapoint(self, scope: str, data_id: str, user_id: str, event: str):
-        if self.db:
+        if self.db is not None:
             p = Point(time=datetime.now(), measurement=scope, tags={"id": data_id, "uid": user_id, "event": event})
             self.db.insert(p, compact_key_prefixes=True)
 
