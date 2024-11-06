@@ -12,7 +12,7 @@
  */
 
 /*!
- * Chart.js v4.4.3
+ * Chart.js v4.4.6
  * https://www.chartjs.org
  * (c) 2024 Chart.js Contributors
  * Released under the MIT License
@@ -47,7 +47,7 @@
  */
 
 /*!
- * jQuery UI Autocomplete 1.14.0
+ * jQuery UI Autocomplete 1.14.1
  * https://jqueryui.com
  *
  * Copyright OpenJS Foundation and other contributors
@@ -56,7 +56,7 @@
  */
 
 /*!
- * jQuery UI Effects 1.14.0
+ * jQuery UI Effects 1.14.1
  * https://jqueryui.com
  *
  * Copyright OpenJS Foundation and other contributors
@@ -65,7 +65,7 @@
  */
 
 /*!
- * jQuery UI Effects Highlight 1.14.0
+ * jQuery UI Effects Highlight 1.14.1
  * https://jqueryui.com
  *
  * Copyright OpenJS Foundation and other contributors
@@ -74,7 +74,7 @@
  */
 
 /*!
- * jQuery UI Keycode 1.14.0
+ * jQuery UI Keycode 1.14.1
  * https://jqueryui.com
  *
  * Copyright OpenJS Foundation and other contributors
@@ -83,7 +83,7 @@
  */
 
 /*!
- * jQuery UI Menu 1.14.0
+ * jQuery UI Menu 1.14.1
  * https://jqueryui.com
  *
  * Copyright OpenJS Foundation and other contributors
@@ -92,7 +92,7 @@
  */
 
 /*!
- * jQuery UI Position 1.14.0
+ * jQuery UI Position 1.14.1
  * https://jqueryui.com
  *
  * Copyright OpenJS Foundation and other contributors
@@ -103,7 +103,7 @@
  */
 
 /*!
- * jQuery UI Unique ID 1.14.0
+ * jQuery UI Unique ID 1.14.1
  * https://jqueryui.com
  *
  * Copyright OpenJS Foundation and other contributors
@@ -112,7 +112,7 @@
  */
 
 /*!
- * jQuery UI Widget 1.14.0
+ * jQuery UI Widget 1.14.1
  * https://jqueryui.com
  *
  * Copyright OpenJS Foundation and other contributors
@@ -121,9 +121,9 @@
  */
 
 /*!
-* chartjs-plugin-annotation v3.0.1
+* chartjs-plugin-annotation v3.1.0
 * https://www.chartjs.org/chartjs-plugin-annotation/index
- * (c) 2023 chartjs-plugin-annotation Contributors
+ * (c) 2024 chartjs-plugin-annotation Contributors
  * Released under the MIT License
  */
 
@@ -131,7 +131,7 @@
  * © SpryMedia Ltd - datatables.net/license
  */
 
-/*! DataTables 2.1.3
+/*! DataTables 2.1.8
  * © SpryMedia Ltd - datatables.net/license
  */
 
@@ -139,6 +139,6 @@
  * © SpryMedia Ltd - datatables.net/license
  */
 
-/*! Select for DataTables 2.0.5
+/*! Select for DataTables 2.1.0
  * © SpryMedia Ltd - datatables.net/license/mit
  */

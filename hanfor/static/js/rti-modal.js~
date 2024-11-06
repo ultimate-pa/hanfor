@@ -1,0 +1,48 @@
+require('../css/simulator-modal.css')
+const {Modal} = require('bootstrap')
+const {Chart, registerables} = require('chart.js')
+const annotationPlugin = require('chartjs-plugin-annotation')
+
+Chart.register(...registerables, annotationPlugin)
+
+function init_rti_modal(data) {
+    const rti_modal = $(data['html'])
+    console.log('wholoolasdasdo');
+    console.log(data)
+
+    Modal.getOrCreateInstance(rti_modal[0]).show();
+
+    rti_modal[0].addEventListener('hidden.bs.modal', function () {
+        $('#rti_modal').remove();
+    });
+
+
+    let scenario_load_input = rti_modal.find('#scenario-load-input');
+    scenario_load_input.change(function () {
+        const file_reader = new FileReader()
+        file_reader.onload = function () {
+            $.ajax({
+                type: 'POST', url: 'simulator', async: false, data: { // TODO: Allow async.
+                    command: 'scenario_load',
+                    simulator_id: data.simulator_id,
+                    scenario_str: file_reader.result
+                }, success: function (response) {
+                    if (response['success'] === false) {
+                        alert(response['errormsg'])
+                        return
+
+                    }
+                    console.log('wholoolo');
+
+
+
+                }
+            })
+        }
+
+    })
+}
+
+
+
+module.exports.init_rti_modal = init_rti_modal

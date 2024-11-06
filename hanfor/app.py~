@@ -20,6 +20,7 @@ from werkzeug.exceptions import HTTPException
 from json_db_connector.json_db import JsonDatabase
 
 import utils
+from ressources.rti_ressource import RtiRessource
 from utils import add_custom_serializer_to_database
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS

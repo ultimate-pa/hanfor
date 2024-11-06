@@ -1,0 +1,10 @@
+class RTIcheck:
+
+    def __init__(self
+    ) -> None:
+        self.name: str = 'test'
+
+
+    def rt_inconsistency_pre_check(self, ids):
+        pass
+

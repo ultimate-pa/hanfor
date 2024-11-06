@@ -23,21 +23,20 @@ from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
 from reqtransformer import Requirement, Formalization, VariableCollection
 from ressources import Ressource
-from ressources.rti_check import RTIcheck
 
 validation_patterns = {BOOL: r"^0|false|False|1|true|True$", INT: r"^[+-]?\d+$", REAL: r"^[+-]?\d*[.]?\d+$"}
 
 
 class SimulatorRessource(Ressource):
     simulator_cache: dict[str, Simulator] = {}
-    rti_check: RTIcheck =  RTIcheck([],[],None)
 
     def __init__(self, app, request):
         super().__init__(app, request)
 
     def GET(self):
         command = self.request.args.get("command")
-
+        if command == "do_rti_check":
+            self.do_rti_check()
         if command == "get_simulators":
             self.get_simulators()
 
@@ -58,8 +57,6 @@ class SimulatorRessource(Ressource):
 
         if command == "inconsistency_pre_check":
             self.inconsistency_pre_check()
-        if command == "load_rti_check":
-            self.load_rti_check()
 
 
     def POST(self):
@@ -67,8 +64,6 @@ class SimulatorRessource(Ressource):
 
         if command == "create_simulator":
             self.create_simulator()
-        if command == "do_rti_check":
-            self.do_rti_check()
 
         if command == "scenario_load":
             self.scenario_load()
@@ -122,21 +117,6 @@ class SimulatorRessource(Ressource):
 
         return True
 
-    def get_rti(self) -> bool:
-        request = self.request.args if len(self.request.args) > 0 else self.request.form
-        rti_check  = self.rti_check
-
-        self.response.data = {
-            "check_id":0,
-            "requirements": rti_check.requirements,
-            "rtis" : rti_check.rtis
-
-            # "rti_data": rti_data,  # Add fetched data here
-        }
-
-        return True
-
-
     def start_simulator(self) -> None:
         if not self.get_simulator():
             return
@@ -148,13 +128,10 @@ class SimulatorRessource(Ressource):
             valid_patterns=validation_patterns,
         )
 
-    def load_rti_check(self) -> None:
-        if not self.get_rti():
-            return
-        logging.debug(f"Loading RTI Check: {self.rti_check}")
+    def start_rti_check(self) -> None:
         self.response.data["html"] = render_template(
-            "rti-modal.html"
-
+            "rti-modal.html",
+            valid_patterns=validation_patterns,
         )
 
 
@@ -168,31 +145,16 @@ class SimulatorRessource(Ressource):
 
     def do_rti_check(self) -> None:
         requirement_ids = json.loads(self.request.form.get("requirement_ids"))
-
         if len(requirement_ids) <= 0:
             self.response.success = False
             self.response.errormsg = "No requirement ids given."
             return
-        countertraces = []
-        var_collection = VariableCollection(self.app)
 
-        for requirement_id in requirement_ids:
-            peas_tmp = SimulatorRessource.create_countertrace_for_rti(requirement_id, var_collection, self.app)
-
-            if peas_tmp is None:
-                self.response.success = False
-                self.response.errormsg = f"Unable to constuct phase event automaton for {requirement_id}."
-                return
-
-            countertraces.extend(peas_tmp)
-
-        self.rti_check = RTIcheck(requirement_ids, countertraces, self.app)
-
-
+        reqs = []
         self.response.data = {
-            "check_id": 0
+            "check_id": 0,
         }
-        i = 1
+        self.start_rti_check()
 
     def create_simulator(self) -> None:
         requirement_ids = json.loads(self.request.form.get("requirement_ids"))
@@ -224,53 +186,6 @@ class SimulatorRessource(Ressource):
     def get_ct(self):
         request = self.request.args if len(self.request.args) > 0 else self.request.form
         requirement_ids = json.loads(request.get("req"))
-        if len(requirement_ids) <= 0:
-            self.response.success = False
-            self.response.errormsg = "No requirement ids given."
-            return
-
-        result = {"requirements": {}, "variables": []}
-
-        var_collection = VariableCollection(self.app)
-        variables = {k: v.type for k, v in var_collection.collection.items()}
-        result["variables"] = [
-            {"name": k, "type": v.type, "value": v.value} for k, v in var_collection.collection.items()
-        ]
-
-        for requirement_id in requirement_ids:
-            requirement = self.app.db.get_object(Requirement, requirement_id)
-            formalizations = {}
-            for formalization in requirement.formalizations.values():
-                counter_traces = []
-                if not formalization.scoped_pattern.is_instantiatable():
-                    return None
-                if (
-                    SimulatorRessource.has_variable_with_unknown_type(formalization, variables)
-                    or formalization.type_inference_errors
-                ):
-                    return None
-
-                scope = formalization.scoped_pattern.scope.name
-                pattern = formalization.scoped_pattern.pattern.name
-
-                if len(PATTERNS[pattern]["countertraces"][scope]) <= 0:
-                    raise ValueError(f"No countertrace given: {scope}, {pattern}")
-
-                expressions = {}
-                for k, v in formalization.expressions_mapping.items():
-                    expressions[k] = v.raw_expression
-
-                for i, ct_str in enumerate(PATTERNS[pattern]["countertraces"][scope]):
-                    counter_traces.append(ct_str)
-                formalizations[formalization.id] = {"counter_traces": counter_traces, "expressions": expressions}
-
-            result["requirements"][requirement_id] = formalizations
-
-        self.response.data = result
-
-    def get_ct_rti(self):
-        request = self.request.args if len(self.request.args) > 0 else self.request.form
-        requirement_ids = json.loads(request.get("requirement_ids"))
         if len(requirement_ids) <= 0:
             self.response.success = False
             self.response.errormsg = "No requirement ids given."
@@ -467,49 +382,6 @@ class SimulatorRessource(Ressource):
                 pea.formalization = formalization
                 pea.countertrace_id = i
                 result.append(pea)
-
-        return result
-
-    @staticmethod
-    def create_countertrace_for_rti(requirement_id: str, var_collection, app: HanforFlask) -> list[
-                                                                                                  PhaseSetsPea] | None:
-        result = []
-
-        requirement = app.db.get_object(Requirement, requirement_id)
-
-        variables = {k: v.type for k, v in var_collection.collection.items()}
-        boogie_parser = boogie_parsing.get_parser_instance()
-
-        for formalization in requirement.formalizations.values():
-            if not formalization.scoped_pattern.is_instantiatable():
-                return None
-            if (
-                    SimulatorRessource.has_variable_with_unknown_type(formalization, variables)
-                    or formalization.type_inference_errors
-            ):
-                return None
-
-            scope = formalization.scoped_pattern.scope.name
-            pattern = formalization.scoped_pattern.pattern.name
-
-            if len(PATTERNS[pattern]["countertraces"][scope]) <= 0:
-                raise ValueError(f"No countertrace given: {scope}, {pattern}")
-
-            expressions = {}
-            for k, v in formalization.expressions_mapping.items():
-                # Todo: hack to detect empty expressions (why is this necessary now)?
-                if not v.raw_expression:
-                    continue
-                tree = boogie_parser.parse(v.raw_expression)
-                expressions[k] = BoogiePysmtTransformer(var_collection.collection).transform(tree)
-
-            for i, ct_str in enumerate(PATTERNS[pattern]["countertraces"][scope]):
-                ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
-                rti = RTIcheck.RtiSet(ct)
-                rti.requirement = requirement
-                rti.formalization = formalization
-                rti.countertrace_id = i
-                result.append(rti)
 
         return result
 

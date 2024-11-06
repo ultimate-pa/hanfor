@@ -2,10 +2,12 @@ const {init_simulator_modal} = require('./simulator-modal.js')
 
 function init_simulator_tab() {
     const name_input = $('#simulator-tab-name-input')
+    const rti_check_input = $('#simulator-tab-rti-check-input')
     const simulator_select = $('#simulator-tab-select')
     const create_btn = $('#simulator-tab-create-btn')
     const delete_btn = $('#simulator-tab-delete-btn')
     const start_btn = $('#simulator-tab-start-btn')
+    const rti_check_btn = $('#simulator-tab-rti-check-btn')
     const requirements_table = $('#requirements_table')
 
     $.ajax({
@@ -37,6 +39,7 @@ function init_simulator_tab() {
             }
         })
     })
+
 
     delete_btn.click(function () {
         $.ajax({

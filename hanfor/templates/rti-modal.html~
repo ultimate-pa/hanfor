@@ -1,0 +1,9 @@
+<div id="rti-modal" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="btn btn-primary" type="button">Hello World</button>
+            </div>
+        </div>
+    </div>
+</div>

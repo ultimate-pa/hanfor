@@ -151,7 +151,6 @@ class SimulatorRessource(Ressource):
     def load_rti_check(self) -> None:
         if not self.get_rti():
             return
-        logging.debug(f"Loading RTI Check: {self.rti_check}")
         self.response.data["html"] = render_template(
             "rti-modal.html"
 

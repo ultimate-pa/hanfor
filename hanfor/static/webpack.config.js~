@@ -17,7 +17,7 @@ const config = {
         ultimate: __dirname + '/../ultimate/static/ultimate.js',
         ultimate_tab: __dirname + '/../ultimate/static/ultimate-tab.js',
         rti_tab: __dirname + '/js/rti-tab.js',
-        rti_modal: __dirname + '/js/rti-modal.js'
+        rti_modal = __dirname + '/js/rti-modal.js'
     },
     output: {
         filename: '[name]-bundle.js',

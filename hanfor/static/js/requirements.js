@@ -14,9 +14,10 @@ require('./bootstrap-confirm-button');
 let utils = require('./hanfor-utils');
 const autosize = require('autosize/dist/autosize');
 
-// Globals
+// Globals^^
 const {SearchNode} = require('./datatables-advanced-search.js');
 const {init_simulator_tab} = require('./simulator-tab.js');
+const {init_rti_tab} = require('./rti-tab.js');
 let init_table_connection_functions= []
 exports.init_table_connection_functions = init_table_connection_functions
 
@@ -59,6 +60,7 @@ $(document).ready(function () {
     update_logs();
     init_report_generation();
     init_simulator_tab();
+    init_rti_tab();
 
     let body = $('body');
     // Bind formalization deletion.
