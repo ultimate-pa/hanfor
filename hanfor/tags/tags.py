@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Type
 
 from hanfor_flask import current_app
-from flask import Blueprint, Response, jsonify, render_template, request
+from flask import Blueprint, Response, jsonify, render_template, request, abort
 from flask.views import MethodView
 from pydantic import BaseModel
 
@@ -166,8 +166,12 @@ class TagsApi(MethodView):
         request_data = RequestData.model_validate(request.json)
         response_data = {}
 
+        if name not in self.__available_tags:
+            abort(404, f'No Tag with name: "{name}"')
         tag = self.__available_tags[name]
         for rid in request_data.occurrences:
+            if rid == "":
+                continue
             requirement = self.app.db.get_object("Requirement", rid)
             requirement.tags.pop(tag)
         self.app.db.update()
