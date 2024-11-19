@@ -138,7 +138,7 @@ class TagsApi(MethodView):
             internal: bool = False
 
             class Config:
-                anystr_strip_whitespace = True
+                str_strip_whitespace = True
 
         request_data = RequestData.model_validate(request.json)
         response_data = {}
@@ -161,7 +161,7 @@ class TagsApi(MethodView):
             occurrences: list[str]
 
             class Config:
-                anystr_strip_whitespace = True
+                str_strip_whitespace = True
 
         request_data = RequestData.model_validate(request.json)
         response_data = {}
