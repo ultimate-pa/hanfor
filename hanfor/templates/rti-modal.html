@@ -1,3 +1,17 @@
-<body>
-    <h1>Hello, World!</h1>
-</body>
+<div id="rti_modal" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+
+                <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-body">
+                <div class="container-fluid">
+
+                    <div class="row g-2 row-spacing">
+                        {% include "rti-countertraces.html" %}
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

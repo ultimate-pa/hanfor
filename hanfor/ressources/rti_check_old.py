@@ -38,7 +38,7 @@ class RTIcheck:
         self.variables_dict = None
         self.chain_reqs_list = []
         self.rtis = []
-        self.depth = 2
+        self.depth = 3
 
         self.get_variables_dict()
         self.get_chain_req_list()
@@ -186,6 +186,15 @@ class RTIcheck:
                         if self.rti_check([pea1, pea2]):
                             self.rtis.append([pea1, pea2])
 
+    def rti_check_exit_options(self, exit_conditions):
+        # check if set of reqs can cause an rti
+        starter_in_set = False
+        # formmula has to be not sat
+        if is_sat(self.rebuild_formula_exit_conditions(exit_conditions)):
+            return False
+
+        return True
+
     def rti_check(self, requirements):
         # check if set of reqs can cause an rti
         starter_in_set = False
@@ -199,50 +208,114 @@ class RTIcheck:
         # formmula has to be not sat
         if is_sat(self.rebuild_formula(requirements)):
             return False
+        if not self.rti_check_time_bound(requirements):
+            return False
+
+
 
         return True
+
+    def rti_check_time_bound(self, requirements):
+        help = []
+        for req in requirements:
+            if type(req.countertrace.dc_phases[-2].bound) is not int:
+                help.append(req.countertrace.dc_phases[-2].invariant)
+            else:
+                help.append(req.countertrace.dc_phases[-3].invariant)
+        formula = help[0]
+        for p in range(1, len(help)):
+            formula = And(formula, help[p])
+        if not is_sat(formula):
+            return False
+        if len(requirements) == 2:
+            req1 = self.requirements[0]
+            req2 = self.requirements[1]
+            huh = And(req1.countertrace.dc_phases[-3].invariant, req2.countertrace.dc_phases[-3].invariant)
+            print(huh)
+            help = self.simplify(And(req1.countertrace.dc_phases[-3].invariant, req2.countertrace.dc_phases[-3].invariant))
+            print(help)
+            if type(req1.countertrace.dc_phases[-2].bound) is not int and type(
+                    req2.countertrace.dc_phases[-2].bound) is not int:
+                if req1.countertrace.dc_phases[-2].bound == req2.countertrace.dc_phases[-2].bound:
+                    if req1.countertrace.dc_phases[-2].bound_type == req2.countertrace.dc_phases[-2].bound_type:
+                        if not is_sat(self.simplify(And(req1.countertrace.dc_phases[-3].invariant,
+                                                        req2.countertrace.dc_phases[-3].invariant))):
+                            problem = True
+                            return False
+        return True
+
+    def rebuild_formula_exit_conditions(self, list_ec):
+        """Rebuild the formula dynamically from the remaining requirements"""
+        if not list_ec:
+            return TRUE  # or an appropriate base formula
+        formula = list_ec[0]
+        for k in range(1, len(list_ec)):
+            formula = And(list_ec[k], formula)
+        return self.simplify(formula)
+
 
     def rebuild_formula(self, list_requirements):
         """Rebuild the formula dynamically from the remaining requirements"""
         if not list_requirements:
             return TRUE  # or an appropriate base formula
-        formula = self.exit_condition(list_requirements[0])
+        formula = list_requirements[0].exit_condition
         for k in range(1, len(list_requirements)):
-            formula = And(self.exit_condition(list_requirements[k]), formula)
+            formula = And(list_requirements[k].exit_condition, formula)
         return self.simplify(formula)
 
-    def chain_check(self, chain_req, other_chain_reqs, depth, possible_rti):
-        #if the number of chainreqs == depth of check -> check if they are a rti by themself
+    def chain_check(self, chain_req, other_chain_reqs, depth, possible_rti, exit_options):
+        # if the number of chainreqs == depth of check -> check if they are a rti by themself
+        print("chain check")
+        print(chain_req.countertrace)
+
+        for option in exit_options:
+            print("old" + str(option.exit_condition))
         if len(possible_rti) == depth:
             if self.rti_check(possible_rti):
-                self.rtis.append(possible_rti)
+                if self.rti_check_time_bound(possible_rti):
+                    self.rtis.append(possible_rti)
             else:
-                #try to fill with singles
-                self.fill_chain_with_singles(chain_req, other_chain_reqs, depth, possible_rti)
-        elif len(possible_rti) < depth:
-            #add another matching chainreq to check
+                # try to fill with singles
+                self.fill_chain_with_singles(chain_req, other_chain_reqs, depth, possible_rti, exit_options)
+        if len(possible_rti) < depth:
+            rti_is_possible = False
+            # add another matching chainreq to check
+            new_exit_options = exit_options.copy()
             for other_req in other_chain_reqs:
+                print(other_req.countertrace)
+                exit_options_new_req = other_req.exit_options.copy()
+                for option in other_req.exit_options:
+                    print("new_req" + str(option.exit_condition))
                 if other_req not in possible_rti:
-                    formula_already = self.rebuild_formula(possible_rti)
-                    formula_check_new_req = Implies(self.simplify(formula_already), self.exit_condition(other_req.pea))
-                    variables_old = formula_already.get_free_variables()
-                    variables_new_req = other_req.exit_condition.get_free_variables()
-                    if len(set(variables_old).intersection(set(variables_new_req))) > 0:
-                        if not is_valid(formula_check_new_req):
-                            new_list = possible_rti + [other_req]
-                            # Recursive call to check further requirements
-                            logging.debug("Adding worked" + str(formula_check_new_req))
-                            self.chain_check(chain_req, other_chain_reqs, depth, new_list.copy())
-
-    def fill_chain_with_singles(self, chain_req, other_chain_reqs, depth, possible_rti):
+                    for option in exit_options:
+                        print("wxit option: " + str(option.exit_condition))
+                        for newOption in other_req.exit_options:
+                            print(And(option.exit_condition, newOption.exit_condition))
+                            if not is_sat(And(option.exit_condition, newOption.exit_condition)) and self.rti_check_time_bound():
+                                rti_is_possible = True
+                                if option in new_exit_options:
+                                    new_exit_options.remove(option)
+                                if newOption in exit_options_new_req:
+                                    exit_options_new_req.remove(newOption)
+                if rti_is_possible:
+                    new_list = possible_rti.copy() + [other_req]
+                    new_exit_options_copy = new_exit_options.copy() + exit_options_new_req.copy()
+                    logging.debug("Adding worked" + str(other_req.countertrace))
+                    for option in new_exit_options_copy:
+                        print("new:" + str(option.exit_condition))
+                    self.chain_check(chain_req, other_chain_reqs, depth, new_list.copy(),
+                                     new_exit_options_copy.copy())
+    def fill_chain_with_singles(self, chain_req, other_chain_reqs, depth, possible_rti, exit_conditions):
         # list with chain reqs, fill with singles(no chain reqs) for rti
         selected_lists = []
 
-        for sub_form in chain_req.exit_options:
+        for sub_form in exit_conditions:
             helper = []
             for var_list in sub_form.exit_variables:
+                variableList = []
+
                 for variable in var_list:
-                    variableList = []
+
                     if not variable in self.variables_dict:
                         return
                     if self.variables_dict[variable]["type_variable"] == "Bool":
@@ -253,14 +326,18 @@ class RTIcheck:
                     else:
                         variableList.append(self.variables_dict[variable]["peas"])
                     if len(variableList) > 1:
-                        print("todo")
+                        for var in variableList:
+                            for pea in var:
+                                helper.append(pea)
                     else:
                         for pea in variableList[0]:
-                            if not is_sat(And(sub_form.exit_condition, pea.exit_options[0].exit_condition)):
-                                helper.append(pea)
+                            #if not is_sat(And(sub_form.exit_condition, pea.exit_options[0].exit_condition)):
+                            helper.append(pea)
             selected_lists.append(helper)
 
         combinations = list(itertools.product(*selected_lists))
+        if len(combinations) == 0:
+            return
         for combo in combinations:
             list_from_combo = possible_rti + list(combo)
             self.rtis.append(list_from_combo)
@@ -302,8 +379,9 @@ class RTIcheck:
                             if not is_sat(self.simplify(And(req1.countertrace.dc_phases[-3].invariant, req2.countertrace.dc_phases[-3].invariant))):
                                 self.rtis.pop(i)
                                 problem = True
-            if not problem:
-                i += 1
+
+
+
 
 
 
@@ -338,9 +416,9 @@ class RTIcheck:
         for depth in range(1, self.depth):
             copy_chain_reqs = self.chain_reqs_list.copy()
             while len(copy_chain_reqs) > 0:
-                self.chain_check(copy_chain_reqs[0], copy_chain_reqs, depth, [copy_chain_reqs[0]])
+                self.chain_check(copy_chain_reqs[0], copy_chain_reqs, depth, [copy_chain_reqs[0]], copy_chain_reqs[0].exit_options)
                 copy_chain_reqs.pop(0)
-        print("huhuhuhu")
+        print("done")
         self.last_red_phase()
         self.get_minimal_sets()
         self.rti_csv_output()
@@ -349,11 +427,13 @@ class RTIcheck:
     def rti_csv_output(self):
         with open('rtis.csv', 'w', encoding= 'utf-8', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(["Depth", "IDs", "Countertraces"])
+            writer.writerow(["#Requirements", "depth" "IDs", "Countertraces"])
             for rti in self.rtis:
-                depth = len(rti)
-                ids = [req.requirement.rid + "\n" for req in rti]
-                countertraces = [str(req.countertrace) + "\n" for req in rti]
-                writer.writerow([len(rti), ids, countertraces])
+
+                count = len(rti)
+                depth =  sum(1 for req in rti if req.chain_req)
+                ids = [req.requirement.rid for req in rti]
+                countertraces = [str(req.countertrace) for req in rti]
+                writer.writerow([count, depth, "\n".join(ids), "\n".join(countertraces)])
 
 

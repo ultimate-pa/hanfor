@@ -1,95 +1,128 @@
-Depth,IDs,Countertraces
-2,"ELS-2
-ELS-4","True;⌈(((pitmanArmUpDown = 1) & (! hazardWarningSwitchOn)) & (! (blinkingMode = 3)))⌉;⌈(! (blinkingMode = 3))⌉ ∧ ℓ > 1.0;True
-True;⌈(pitmanArmUpDown = 1)⌉ ∧ ℓ ≥ 1/2;⌈(! (blinkingMode = 1))⌉;True"
-2,"ELS-3
-ELS-4","True;⌈(hazardWarningSwitchOn & (! ((blinkingMode = 5) & tipBlinkingCycleStop)))⌉;⌈(! ((blinkingMode = 5) & tipBlinkingCycleStop))⌉ ∧ ℓ > 1.0;True
-True;⌈(pitmanArmUpDown = 1)⌉ ∧ ℓ ≥ 1/2;⌈(! (blinkingMode = 1))⌉;True"
-2,"ELS-4
-ELS-8","True;⌈(pitmanArmUpDown = 1)⌉ ∧ ℓ ≥ 1/2;⌈(! (blinkingMode = 1))⌉;True
-True;⌈(hazardWarningSwitchOn & (! (blinkingMode = 5)))⌉;⌈(! (blinkingMode = 5))⌉ ∧ ℓ > 1.0;True"
-2,"ELS-14
-ELS-28","True;⌈(((keyState = 2) & ((lightRotarySwitch = 2) & (! overvoltage))) & (! ((lowBeamLeft = 100) & (lowBeamRight = 100))))⌉;⌈(! ((lowBeamLeft = 100) & (lowBeamRight = 100)))⌉ ∧ ℓ > 1.0;True
-True;⌈((parkingLight & (pitmanArmUpDown = 2)) & (! ((lowBeamLeft = 10) & (tailLampLeft = 10))))⌉;⌈(! ((lowBeamLeft = 10) & (tailLampLeft = 10)))⌉ ∧ ℓ > 1.0;True"
-2,"ELS-15
-ELS-18","True;⌈(((keyState = 1) & ((lightRotarySwitch = 2) & ((! ambientLightSwitchOn) & SomeRandomVariable))) & (! ((lowBeamLeft = 50) & (lowBeamRight = 50))))⌉;⌈(! ((lowBeamLeft = 50) & (lowBeamRight = 50)))⌉ ∧ ℓ > 1.0;True
-True;⌈(! ((lightRotarySwitch = 1) & ((keyState = 2) & ((0 < lowBeamLeft) & (0 < lowBeamRight)))))⌉;⌈((lightRotarySwitch = 1) & ((keyState = 2) & ((0 < lowBeamLeft) & (0 < lowBeamRight))))⌉;⌈((100 <= lowBeamLeft) & (100 <= lowBeamRight))⌉ ∧ ℓ < 3.0;⌈(! ((100 <= lowBeamLeft) & (100 <= lowBeamRight)))⌉;True"
-2,"ELS-15
-ELS-28","True;⌈(((keyState = 1) & ((lightRotarySwitch = 2) & ((! ambientLightSwitchOn) & SomeRandomVariable))) & (! ((lowBeamLeft = 50) & (lowBeamRight = 50))))⌉;⌈(! ((lowBeamLeft = 50) & (lowBeamRight = 50)))⌉ ∧ ℓ > 1.0;True
-True;⌈((parkingLight & (pitmanArmUpDown = 2)) & (! ((lowBeamLeft = 10) & (tailLampLeft = 10))))⌉;⌈(! ((lowBeamLeft = 10) & (tailLampLeft = 10)))⌉ ∧ ℓ > 1.0;True"
-2,"ELS-16
-ELS-18","True;⌈(((! (keyState = 2)) & ((lightRotarySwitch = 1) & ((! ambientLightSwitchOn) & (! overvoltage)))) & (! ((lowBeamLeft = 0) & (lowBeamRight = 0))))⌉;⌈(! ((lowBeamLeft = 0) & (lowBeamRight = 0)))⌉ ∧ ℓ > 1.0;True
-True;⌈(! ((lightRotarySwitch = 1) & ((keyState = 2) & ((0 < lowBeamLeft) & (0 < lowBeamRight)))))⌉;⌈((lightRotarySwitch = 1) & ((keyState = 2) & ((0 < lowBeamLeft) & (0 < lowBeamRight))))⌉;⌈((100 <= lowBeamLeft) & (100 <= lowBeamRight))⌉ ∧ ℓ < 3.0;⌈(! ((100 <= lowBeamLeft) & (100 <= lowBeamRight)))⌉;True"
-2,"ELS-16
-ELS-28","True;⌈(((! (keyState = 2)) & ((lightRotarySwitch = 1) & ((! ambientLightSwitchOn) & (! overvoltage)))) & (! ((lowBeamLeft = 0) & (lowBeamRight = 0))))⌉;⌈(! ((lowBeamLeft = 0) & (lowBeamRight = 0)))⌉ ∧ ℓ > 1.0;True
-True;⌈((parkingLight & (pitmanArmUpDown = 2)) & (! ((lowBeamLeft = 10) & (tailLampLeft = 10))))⌉;⌈(! ((lowBeamLeft = 10) & (tailLampLeft = 10)))⌉ ∧ ℓ > 1.0;True"
-2,"ELS-18
-ELS-28","True;⌈(! ((lightRotarySwitch = 1) & ((keyState = 2) & ((0 < lowBeamLeft) & (0 < lowBeamRight)))))⌉;⌈((lightRotarySwitch = 1) & ((keyState = 2) & ((0 < lowBeamLeft) & (0 < lowBeamRight))))⌉;⌈((100 <= lowBeamLeft) & (100 <= lowBeamRight))⌉ ∧ ℓ < 3.0;⌈(! ((100 <= lowBeamLeft) & (100 <= lowBeamRight)))⌉;True
-True;⌈((parkingLight & (pitmanArmUpDown = 2)) & (! ((lowBeamLeft = 10) & (tailLampLeft = 10))))⌉;⌈(! ((lowBeamLeft = 10) & (tailLampLeft = 10)))⌉ ∧ ℓ > 1.0;True"
-2,"ELS-14
-ELS-28","True;⌈(((keyState = 2) & ((lightRotarySwitch = 2) & (! overvoltage))) & (! ((lowBeamLeft = 100) & (lowBeamRight = 100))))⌉;⌈(! ((lowBeamLeft = 100) & (lowBeamRight = 100)))⌉ ∧ ℓ > 1.0;True
-True;⌈((parkingLight & (pitmanArmUpDown = 4)) & (! ((lowBeamRight = 10) & (tailLampRight = 10))))⌉;⌈(! ((lowBeamRight = 10) & (tailLampRight = 10)))⌉ ∧ ℓ > 1.0;True"
-2,"ELS-15
-ELS-28","True;⌈(((keyState = 1) & ((lightRotarySwitch = 2) & ((! ambientLightSwitchOn) & SomeRandomVariable))) & (! ((lowBeamLeft = 50) & (lowBeamRight = 50))))⌉;⌈(! ((lowBeamLeft = 50) & (lowBeamRight = 50)))⌉ ∧ ℓ > 1.0;True
-True;⌈((parkingLight & (pitmanArmUpDown = 4)) & (! ((lowBeamRight = 10) & (tailLampRight = 10))))⌉;⌈(! ((lowBeamRight = 10) & (tailLampRight = 10)))⌉ ∧ ℓ > 1.0;True"
-2,"ELS-16
-ELS-28","True;⌈(((! (keyState = 2)) & ((lightRotarySwitch = 1) & ((! ambientLightSwitchOn) & (! overvoltage)))) & (! ((lowBeamLeft = 0) & (lowBeamRight = 0))))⌉;⌈(! ((lowBeamLeft = 0) & (lowBeamRight = 0)))⌉ ∧ ℓ > 1.0;True
-True;⌈((parkingLight & (pitmanArmUpDown = 4)) & (! ((lowBeamRight = 10) & (tailLampRight = 10))))⌉;⌈(! ((lowBeamRight = 10) & (tailLampRight = 10)))⌉ ∧ ℓ > 1.0;True"
-2,"ELS-18
-ELS-28","True;⌈(! ((lightRotarySwitch = 1) & ((keyState = 2) & ((0 < lowBeamLeft) & (0 < lowBeamRight)))))⌉;⌈((lightRotarySwitch = 1) & ((keyState = 2) & ((0 < lowBeamLeft) & (0 < lowBeamRight))))⌉;⌈((100 <= lowBeamLeft) & (100 <= lowBeamRight))⌉ ∧ ℓ < 3.0;⌈(! ((100 <= lowBeamLeft) & (100 <= lowBeamRight)))⌉;True
-True;⌈((parkingLight & (pitmanArmUpDown = 4)) & (! ((lowBeamRight = 10) & (tailLampRight = 10))))⌉;⌈(! ((lowBeamRight = 10) & (tailLampRight = 10)))⌉ ∧ ℓ > 1.0;True"
-2,"ELS-31
-ELS-34","True;⌈(((lightRotarySwitch = 2) & (pitmanArmForthBack = 1)) & (! ((highBeamHeadlight = 2) & ((highBeamMotor = 7) & (highBeamRange = 100)))))⌉;⌈(! ((highBeamHeadlight = 2) & ((highBeamMotor = 7) & (highBeamRange = 100))))⌉ ∧ ℓ > 1.0;True
-True;⌈((oncomingTraffic & (0 < highBeamHeadlight)) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉ ∧ ℓ > 1/2;True"
-2,"ELS-31
-ELS-38","True;⌈(((lightRotarySwitch = 2) & (pitmanArmForthBack = 1)) & (! ((highBeamHeadlight = 2) & ((highBeamMotor = 7) & (highBeamRange = 100)))))⌉;⌈(! ((highBeamHeadlight = 2) & ((highBeamMotor = 7) & (highBeamRange = 100))))⌉ ∧ ℓ > 1.0;True
-True;⌈(! (highBeamHeadlight = 0))⌉;⌈(highBeamHeadlight = 0)⌉;⌈((highBeamMotor = 0) & (highBeamRange = 30))⌉ ∧ ℓ < 1.0;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉;True"
-2,"ELS-33
-ELS-34","True;⌈(((! overvoltage) & ((300 < currentSpeed) & ((! oncomingTraffic) & (highBeamHeadlight = 3)))) & (! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100))))))⌉;⌈(! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100)))))⌉ ∧ ℓ > 2.0;True
-True;⌈((oncomingTraffic & (0 < highBeamHeadlight)) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉ ∧ ℓ > 1/2;True"
-2,"ELS-33
-ELS-38","True;⌈(((! overvoltage) & ((300 < currentSpeed) & ((! oncomingTraffic) & (highBeamHeadlight = 3)))) & (! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100))))))⌉;⌈(! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100)))))⌉ ∧ ℓ > 2.0;True
-True;⌈(! (highBeamHeadlight = 0))⌉;⌈(highBeamHeadlight = 0)⌉;⌈((highBeamMotor = 0) & (highBeamRange = 30))⌉ ∧ ℓ < 1.0;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉;True"
-2,"ELS-34
-ELS-35","True;⌈((oncomingTraffic & (0 < highBeamHeadlight)) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉ ∧ ℓ > 1/2;True
-True;⌈(((! oncomingTraffic) & (highBeamHeadlight = 3)) & (! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100))))))⌉;⌈(! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100)))))⌉ ∧ ℓ > 2.0;True"
-2,"ELS-34
-ELS-36","True;⌈((oncomingTraffic & (0 < highBeamHeadlight)) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉ ∧ ℓ > 1/2;True
-True;⌈(((! overvoltage) & ((300 <= currentSpeed) & (highBeamHeadlight = 3))) & (! ((1 <= highBeamMotor) & (highBeamMotor <= 11))))⌉;⌈(! ((1 <= highBeamMotor) & (highBeamMotor <= 11)))⌉ ∧ ℓ > 1.0;True"
-2,"ELS-34
-ELS-37","True;⌈((oncomingTraffic & (0 < highBeamHeadlight)) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉ ∧ ℓ > 1/2;True
-True;⌈(((cruiseControlMode = 2) & ((300 <= setVehicleSpeed) & (highBeamHeadlight = 3))) & (! ((1 <= highBeamMotor) & (highBeamMotor <= 11))))⌉;⌈(! ((1 <= highBeamMotor) & (highBeamMotor <= 11)))⌉ ∧ ℓ > 1.0;True"
-2,"ELS-35
-ELS-38","True;⌈(((! oncomingTraffic) & (highBeamHeadlight = 3)) & (! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100))))))⌉;⌈(! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100)))))⌉ ∧ ℓ > 2.0;True
-True;⌈(! (highBeamHeadlight = 0))⌉;⌈(highBeamHeadlight = 0)⌉;⌈((highBeamMotor = 0) & (highBeamRange = 30))⌉ ∧ ℓ < 1.0;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉;True"
-2,"ELS-36
-ELS-38","True;⌈(((! overvoltage) & ((300 <= currentSpeed) & (highBeamHeadlight = 3))) & (! ((1 <= highBeamMotor) & (highBeamMotor <= 11))))⌉;⌈(! ((1 <= highBeamMotor) & (highBeamMotor <= 11)))⌉ ∧ ℓ > 1.0;True
-True;⌈(! (highBeamHeadlight = 0))⌉;⌈(highBeamHeadlight = 0)⌉;⌈((highBeamMotor = 0) & (highBeamRange = 30))⌉ ∧ ℓ < 1.0;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉;True"
-2,"ELS-37
-ELS-38","True;⌈(((cruiseControlMode = 2) & ((300 <= setVehicleSpeed) & (highBeamHeadlight = 3))) & (! ((1 <= highBeamMotor) & (highBeamMotor <= 11))))⌉;⌈(! ((1 <= highBeamMotor) & (highBeamMotor <= 11)))⌉ ∧ ℓ > 1.0;True
-True;⌈(! (highBeamHeadlight = 0))⌉;⌈(highBeamHeadlight = 0)⌉;⌈((highBeamMotor = 0) & (highBeamRange = 30))⌉ ∧ ℓ < 1.0;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉;True"
-3,"ELS-38
-ELS-38
-ELS-31","True;⌈(! (highBeamHeadlight = 0))⌉;⌈((highBeamHeadlight = 0) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;True
-True;⌈((pitmanArmForthBack = 0) & (! (highBeamHeadlight = 0)))⌉;⌈(! (highBeamHeadlight = 0))⌉ ∧ ℓ > 1.0;True
-True;⌈(((lightRotarySwitch = 2) & (pitmanArmForthBack = 1)) & (! ((highBeamHeadlight = 2) & ((highBeamMotor = 7) & (highBeamRange = 100)))))⌉;⌈(! ((highBeamHeadlight = 2) & ((highBeamMotor = 7) & (highBeamRange = 100))))⌉ ∧ ℓ > 1.0;True"
-3,"ELS-38
-ELS-38
-ELS-33","True;⌈(! (highBeamHeadlight = 0))⌉;⌈((highBeamHeadlight = 0) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;True
-True;⌈((pitmanArmForthBack = 0) & (! (highBeamHeadlight = 0)))⌉;⌈(! (highBeamHeadlight = 0))⌉ ∧ ℓ > 1.0;True
-True;⌈(((! overvoltage) & ((300 < currentSpeed) & ((! oncomingTraffic) & (highBeamHeadlight = 3)))) & (! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100))))))⌉;⌈(! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100)))))⌉ ∧ ℓ > 2.0;True"
-3,"ELS-38
-ELS-38
-ELS-35","True;⌈(! (highBeamHeadlight = 0))⌉;⌈((highBeamHeadlight = 0) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;True
-True;⌈((pitmanArmForthBack = 0) & (! (highBeamHeadlight = 0)))⌉;⌈(! (highBeamHeadlight = 0))⌉ ∧ ℓ > 1.0;True
-True;⌈(((! oncomingTraffic) & (highBeamHeadlight = 3)) & (! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100))))))⌉;⌈(! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100)))))⌉ ∧ ℓ > 2.0;True"
-3,"ELS-38
-ELS-38
-ELS-36","True;⌈(! (highBeamHeadlight = 0))⌉;⌈((highBeamHeadlight = 0) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;True
-True;⌈((pitmanArmForthBack = 0) & (! (highBeamHeadlight = 0)))⌉;⌈(! (highBeamHeadlight = 0))⌉ ∧ ℓ > 1.0;True
-True;⌈(((! overvoltage) & ((300 <= currentSpeed) & (highBeamHeadlight = 3))) & (! ((1 <= highBeamMotor) & (highBeamMotor <= 11))))⌉;⌈(! ((1 <= highBeamMotor) & (highBeamMotor <= 11)))⌉ ∧ ℓ > 1.0;True"
-3,"ELS-38
-ELS-38
-ELS-37","True;⌈(! (highBeamHeadlight = 0))⌉;⌈((highBeamHeadlight = 0) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;True
-True;⌈((pitmanArmForthBack = 0) & (! (highBeamHeadlight = 0)))⌉;⌈(! (highBeamHeadlight = 0))⌉ ∧ ℓ > 1.0;True
-True;⌈(((cruiseControlMode = 2) & ((300 <= setVehicleSpeed) & (highBeamHeadlight = 3))) & (! ((1 <= highBeamMotor) & (highBeamMotor <= 11))))⌉;⌈(! ((1 <= highBeamMotor) & (highBeamMotor <= 11)))⌉ ∧ ℓ > 1.0;True"
+#Requirements,depth,IDs,Countertraces,Exit Conditions
+2,0,"ELS-2_2_0
+ELS-4_0_0","True;⌈(((pitmanArmUpDown = 1) & (! hazardWarningSwitchOn)) & (! (blinkingMode = 3)))⌉;⌈(! (blinkingMode = 3))⌉ ∧ ℓ > 1.0;True
+True;⌈(pitmanArmUpDown = 1)⌉ ∧ ℓ ≥ 1/2;⌈(! (blinkingMode = 1))⌉;True","(blinkingMode = 3)
+(blinkingMode = 1)"
+2,0,"ELS-3_0_0
+ELS-4_0_0","True;⌈(hazardWarningSwitchOn & (! ((blinkingMode = 5) & tipBlinkingCycleStop)))⌉;⌈(! ((blinkingMode = 5) & tipBlinkingCycleStop))⌉ ∧ ℓ > 1.0;True
+True;⌈(pitmanArmUpDown = 1)⌉ ∧ ℓ ≥ 1/2;⌈(! (blinkingMode = 1))⌉;True","((blinkingMode = 5) & tipBlinkingCycleStop)
+(blinkingMode = 1)"
+2,0,"ELS-4_0_0
+ELS-8_0_0","True;⌈(pitmanArmUpDown = 1)⌉ ∧ ℓ ≥ 1/2;⌈(! (blinkingMode = 1))⌉;True
+True;⌈(hazardWarningSwitchOn & (! (blinkingMode = 5)))⌉;⌈(! (blinkingMode = 5))⌉ ∧ ℓ > 1.0;True","(blinkingMode = 1)
+(blinkingMode = 5)"
+2,0,"ELS-14_0_0
+ELS-28_2_0","True;⌈(((keyState = 2) & ((lightRotarySwitch = 2) & (! overvoltage))) & (! ((lowBeamLeft = 100) & (lowBeamRight = 100))))⌉;⌈(! ((lowBeamLeft = 100) & (lowBeamRight = 100)))⌉ ∧ ℓ > 1.0;True
+True;⌈((parkingLight & (pitmanArmUpDown = 4)) & (! ((lowBeamRight = 10) & (tailLampRight = 10))))⌉;⌈(! ((lowBeamRight = 10) & (tailLampRight = 10)))⌉ ∧ ℓ > 1.0;True","((lowBeamLeft = 100) & (lowBeamRight = 100))
+((lowBeamRight = 10) & (tailLampRight = 10))"
+2,0,"ELS-15_0_0
+ELS-28_2_0","True;⌈(((keyState = 1) & ((lightRotarySwitch = 2) & ((! ambientLightSwitchOn) & SomeRandomVariable))) & (! ((lowBeamLeft = 50) & (lowBeamRight = 50))))⌉;⌈(! ((lowBeamLeft = 50) & (lowBeamRight = 50)))⌉ ∧ ℓ > 1.0;True
+True;⌈((parkingLight & (pitmanArmUpDown = 4)) & (! ((lowBeamRight = 10) & (tailLampRight = 10))))⌉;⌈(! ((lowBeamRight = 10) & (tailLampRight = 10)))⌉ ∧ ℓ > 1.0;True","((lowBeamLeft = 50) & (lowBeamRight = 50))
+((lowBeamRight = 10) & (tailLampRight = 10))"
+2,0,"ELS-16_0_0
+ELS-28_2_0","True;⌈(((! (keyState = 2)) & ((lightRotarySwitch = 1) & ((! ambientLightSwitchOn) & (! overvoltage)))) & (! ((lowBeamLeft = 0) & (lowBeamRight = 0))))⌉;⌈(! ((lowBeamLeft = 0) & (lowBeamRight = 0)))⌉ ∧ ℓ > 1.0;True
+True;⌈((parkingLight & (pitmanArmUpDown = 4)) & (! ((lowBeamRight = 10) & (tailLampRight = 10))))⌉;⌈(! ((lowBeamRight = 10) & (tailLampRight = 10)))⌉ ∧ ℓ > 1.0;True","((lowBeamLeft = 0) & (lowBeamRight = 0))
+((lowBeamRight = 10) & (tailLampRight = 10))"
+2,0,"ELS-18_0_0
+ELS-28_2_0","True;⌈(! ((lightRotarySwitch = 1) & ((keyState = 2) & ((0 < lowBeamLeft) & (0 < lowBeamRight)))))⌉;⌈((lightRotarySwitch = 1) & ((keyState = 2) & ((0 < lowBeamLeft) & (0 < lowBeamRight))))⌉;⌈((100 <= lowBeamLeft) & (100 <= lowBeamRight))⌉ ∧ ℓ < 3.0;⌈(! ((100 <= lowBeamLeft) & (100 <= lowBeamRight)))⌉;True
+True;⌈((parkingLight & (pitmanArmUpDown = 4)) & (! ((lowBeamRight = 10) & (tailLampRight = 10))))⌉;⌈(! ((lowBeamRight = 10) & (tailLampRight = 10)))⌉ ∧ ℓ > 1.0;True","((100 <= lowBeamLeft) & (100 <= lowBeamRight))
+((lowBeamRight = 10) & (tailLampRight = 10))"
+2,0,"ELS-14_0_0
+ELS-28_1_0","True;⌈(((keyState = 2) & ((lightRotarySwitch = 2) & (! overvoltage))) & (! ((lowBeamLeft = 100) & (lowBeamRight = 100))))⌉;⌈(! ((lowBeamLeft = 100) & (lowBeamRight = 100)))⌉ ∧ ℓ > 1.0;True
+True;⌈((parkingLight & (pitmanArmUpDown = 2)) & (! ((lowBeamLeft = 10) & (tailLampLeft = 10))))⌉;⌈(! ((lowBeamLeft = 10) & (tailLampLeft = 10)))⌉ ∧ ℓ > 1.0;True","((lowBeamLeft = 100) & (lowBeamRight = 100))
+((lowBeamLeft = 10) & (tailLampLeft = 10))"
+2,0,"ELS-15_0_0
+ELS-18_0_0","True;⌈(((keyState = 1) & ((lightRotarySwitch = 2) & ((! ambientLightSwitchOn) & SomeRandomVariable))) & (! ((lowBeamLeft = 50) & (lowBeamRight = 50))))⌉;⌈(! ((lowBeamLeft = 50) & (lowBeamRight = 50)))⌉ ∧ ℓ > 1.0;True
+True;⌈(! ((lightRotarySwitch = 1) & ((keyState = 2) & ((0 < lowBeamLeft) & (0 < lowBeamRight)))))⌉;⌈((lightRotarySwitch = 1) & ((keyState = 2) & ((0 < lowBeamLeft) & (0 < lowBeamRight))))⌉;⌈((100 <= lowBeamLeft) & (100 <= lowBeamRight))⌉ ∧ ℓ < 3.0;⌈(! ((100 <= lowBeamLeft) & (100 <= lowBeamRight)))⌉;True","((lowBeamLeft = 50) & (lowBeamRight = 50))
+((100 <= lowBeamLeft) & (100 <= lowBeamRight))"
+2,0,"ELS-15_0_0
+ELS-28_1_0","True;⌈(((keyState = 1) & ((lightRotarySwitch = 2) & ((! ambientLightSwitchOn) & SomeRandomVariable))) & (! ((lowBeamLeft = 50) & (lowBeamRight = 50))))⌉;⌈(! ((lowBeamLeft = 50) & (lowBeamRight = 50)))⌉ ∧ ℓ > 1.0;True
+True;⌈((parkingLight & (pitmanArmUpDown = 2)) & (! ((lowBeamLeft = 10) & (tailLampLeft = 10))))⌉;⌈(! ((lowBeamLeft = 10) & (tailLampLeft = 10)))⌉ ∧ ℓ > 1.0;True","((lowBeamLeft = 50) & (lowBeamRight = 50))
+((lowBeamLeft = 10) & (tailLampLeft = 10))"
+2,0,"ELS-16_0_0
+ELS-18_0_0","True;⌈(((! (keyState = 2)) & ((lightRotarySwitch = 1) & ((! ambientLightSwitchOn) & (! overvoltage)))) & (! ((lowBeamLeft = 0) & (lowBeamRight = 0))))⌉;⌈(! ((lowBeamLeft = 0) & (lowBeamRight = 0)))⌉ ∧ ℓ > 1.0;True
+True;⌈(! ((lightRotarySwitch = 1) & ((keyState = 2) & ((0 < lowBeamLeft) & (0 < lowBeamRight)))))⌉;⌈((lightRotarySwitch = 1) & ((keyState = 2) & ((0 < lowBeamLeft) & (0 < lowBeamRight))))⌉;⌈((100 <= lowBeamLeft) & (100 <= lowBeamRight))⌉ ∧ ℓ < 3.0;⌈(! ((100 <= lowBeamLeft) & (100 <= lowBeamRight)))⌉;True","((lowBeamLeft = 0) & (lowBeamRight = 0))
+((100 <= lowBeamLeft) & (100 <= lowBeamRight))"
+2,0,"ELS-16_0_0
+ELS-28_1_0","True;⌈(((! (keyState = 2)) & ((lightRotarySwitch = 1) & ((! ambientLightSwitchOn) & (! overvoltage)))) & (! ((lowBeamLeft = 0) & (lowBeamRight = 0))))⌉;⌈(! ((lowBeamLeft = 0) & (lowBeamRight = 0)))⌉ ∧ ℓ > 1.0;True
+True;⌈((parkingLight & (pitmanArmUpDown = 2)) & (! ((lowBeamLeft = 10) & (tailLampLeft = 10))))⌉;⌈(! ((lowBeamLeft = 10) & (tailLampLeft = 10)))⌉ ∧ ℓ > 1.0;True","((lowBeamLeft = 0) & (lowBeamRight = 0))
+((lowBeamLeft = 10) & (tailLampLeft = 10))"
+2,0,"ELS-18_0_0
+ELS-28_1_0","True;⌈(! ((lightRotarySwitch = 1) & ((keyState = 2) & ((0 < lowBeamLeft) & (0 < lowBeamRight)))))⌉;⌈((lightRotarySwitch = 1) & ((keyState = 2) & ((0 < lowBeamLeft) & (0 < lowBeamRight))))⌉;⌈((100 <= lowBeamLeft) & (100 <= lowBeamRight))⌉ ∧ ℓ < 3.0;⌈(! ((100 <= lowBeamLeft) & (100 <= lowBeamRight)))⌉;True
+True;⌈((parkingLight & (pitmanArmUpDown = 2)) & (! ((lowBeamLeft = 10) & (tailLampLeft = 10))))⌉;⌈(! ((lowBeamLeft = 10) & (tailLampLeft = 10)))⌉ ∧ ℓ > 1.0;True","((100 <= lowBeamLeft) & (100 <= lowBeamRight))
+((lowBeamLeft = 10) & (tailLampLeft = 10))"
+2,0,"ELS-34_0_0
+ELS-36_0_0","True;⌈((oncomingTraffic & (0 < highBeamHeadlight)) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉ ∧ ℓ > 1/2;True
+True;⌈(((! overvoltage) & ((300 <= currentSpeed) & (highBeamHeadlight = 3))) & (! ((1 <= highBeamMotor) & (highBeamMotor <= 11))))⌉;⌈(! ((1 <= highBeamMotor) & (highBeamMotor <= 11)))⌉ ∧ ℓ > 1.0;True","((highBeamMotor = 0) & (highBeamRange = 30))
+((1 <= highBeamMotor) & (highBeamMotor <= 11))"
+2,0,"ELS-34_0_0
+ELS-37_0_0","True;⌈((oncomingTraffic & (0 < highBeamHeadlight)) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉ ∧ ℓ > 1/2;True
+True;⌈(((cruiseControlMode = 2) & ((300 <= setVehicleSpeed) & (highBeamHeadlight = 3))) & (! ((1 <= highBeamMotor) & (highBeamMotor <= 11))))⌉;⌈(! ((1 <= highBeamMotor) & (highBeamMotor <= 11)))⌉ ∧ ℓ > 1.0;True","((highBeamMotor = 0) & (highBeamRange = 30))
+((1 <= highBeamMotor) & (highBeamMotor <= 11))"
+2,0,"ELS-36_0_0
+ELS-38_1_0","True;⌈(((! overvoltage) & ((300 <= currentSpeed) & (highBeamHeadlight = 3))) & (! ((1 <= highBeamMotor) & (highBeamMotor <= 11))))⌉;⌈(! ((1 <= highBeamMotor) & (highBeamMotor <= 11)))⌉ ∧ ℓ > 1.0;True
+True;⌈(! (highBeamHeadlight = 0))⌉;⌈(highBeamHeadlight = 0)⌉;⌈((highBeamMotor = 0) & (highBeamRange = 30))⌉ ∧ ℓ < 1.0;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉;True","((1 <= highBeamMotor) & (highBeamMotor <= 11))
+((highBeamMotor = 0) & (highBeamRange = 30))"
+2,0,"ELS-37_0_0
+ELS-38_1_0","True;⌈(((cruiseControlMode = 2) & ((300 <= setVehicleSpeed) & (highBeamHeadlight = 3))) & (! ((1 <= highBeamMotor) & (highBeamMotor <= 11))))⌉;⌈(! ((1 <= highBeamMotor) & (highBeamMotor <= 11)))⌉ ∧ ℓ > 1.0;True
+True;⌈(! (highBeamHeadlight = 0))⌉;⌈(highBeamHeadlight = 0)⌉;⌈((highBeamMotor = 0) & (highBeamRange = 30))⌉ ∧ ℓ < 1.0;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉;True","((1 <= highBeamMotor) & (highBeamMotor <= 11))
+((highBeamMotor = 0) & (highBeamRange = 30))"
+2,0,"ELS-31_0_0
+ELS-34_0_0","True;⌈(((lightRotarySwitch = 2) & (pitmanArmForthBack = 1)) & (! ((highBeamHeadlight = 2) & ((highBeamMotor = 7) & (highBeamRange = 100)))))⌉;⌈(! ((highBeamHeadlight = 2) & ((highBeamMotor = 7) & (highBeamRange = 100))))⌉ ∧ ℓ > 1.0;True
+True;⌈((oncomingTraffic & (0 < highBeamHeadlight)) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉ ∧ ℓ > 1/2;True","((highBeamHeadlight = 2) & (highBeamMotor = 7) & (highBeamRange = 100))
+((highBeamMotor = 0) & (highBeamRange = 30))"
+2,0,"ELS-31_0_0
+ELS-38_1_0","True;⌈(((lightRotarySwitch = 2) & (pitmanArmForthBack = 1)) & (! ((highBeamHeadlight = 2) & ((highBeamMotor = 7) & (highBeamRange = 100)))))⌉;⌈(! ((highBeamHeadlight = 2) & ((highBeamMotor = 7) & (highBeamRange = 100))))⌉ ∧ ℓ > 1.0;True
+True;⌈(! (highBeamHeadlight = 0))⌉;⌈(highBeamHeadlight = 0)⌉;⌈((highBeamMotor = 0) & (highBeamRange = 30))⌉ ∧ ℓ < 1.0;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉;True","((highBeamHeadlight = 2) & (highBeamMotor = 7) & (highBeamRange = 100))
+((highBeamMotor = 0) & (highBeamRange = 30))"
+2,0,"ELS-33_1_0
+ELS-34_0_0","True;⌈(((! overvoltage) & ((300 < currentSpeed) & ((! oncomingTraffic) & (highBeamHeadlight = 3)))) & (! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100))))))⌉;⌈(! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100)))))⌉ ∧ ℓ > 2.0;True
+True;⌈((oncomingTraffic & (0 < highBeamHeadlight)) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉ ∧ ℓ > 1/2;True","((! (highBeamMotor <= 1)) & (highBeamMotor <= 11) & (! (highBeamRange <= 30)) & (highBeamRange <= 100))
+((highBeamMotor = 0) & (highBeamRange = 30))"
+2,0,"ELS-33_1_0
+ELS-38_1_0","True;⌈(((! overvoltage) & ((300 < currentSpeed) & ((! oncomingTraffic) & (highBeamHeadlight = 3)))) & (! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100))))))⌉;⌈(! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100)))))⌉ ∧ ℓ > 2.0;True
+True;⌈(! (highBeamHeadlight = 0))⌉;⌈(highBeamHeadlight = 0)⌉;⌈((highBeamMotor = 0) & (highBeamRange = 30))⌉ ∧ ℓ < 1.0;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉;True","((! (highBeamMotor <= 1)) & (highBeamMotor <= 11) & (! (highBeamRange <= 30)) & (highBeamRange <= 100))
+((highBeamMotor = 0) & (highBeamRange = 30))"
+2,0,"ELS-34_0_0
+ELS-35_0_0","True;⌈((oncomingTraffic & (0 < highBeamHeadlight)) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉ ∧ ℓ > 1/2;True
+True;⌈(((! oncomingTraffic) & (highBeamHeadlight = 3)) & (! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100))))))⌉;⌈(! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100)))))⌉ ∧ ℓ > 2.0;True","((highBeamMotor = 0) & (highBeamRange = 30))
+((! (highBeamMotor <= 1)) & (highBeamMotor <= 11) & (! (highBeamRange <= 30)) & (highBeamRange <= 100))"
+2,0,"ELS-35_0_0
+ELS-38_1_0","True;⌈(((! oncomingTraffic) & (highBeamHeadlight = 3)) & (! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100))))))⌉;⌈(! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100)))))⌉ ∧ ℓ > 2.0;True
+True;⌈(! (highBeamHeadlight = 0))⌉;⌈(highBeamHeadlight = 0)⌉;⌈((highBeamMotor = 0) & (highBeamRange = 30))⌉ ∧ ℓ < 1.0;⌈(! ((highBeamMotor = 0) & (highBeamRange = 30)))⌉;True","((! (highBeamMotor <= 1)) & (highBeamMotor <= 11) & (! (highBeamRange <= 30)) & (highBeamRange <= 100))
+((highBeamMotor = 0) & (highBeamRange = 30))"
+3,1,"ELS-38_0_0
+ELS-36_0_0
+ELS-38_1_1","True;⌈((pitmanArmForthBack = 0) & (! (highBeamHeadlight = 0)))⌉;⌈(! (highBeamHeadlight = 0))⌉ ∧ ℓ > 1.0;True
+True;⌈(((! overvoltage) & ((300 <= currentSpeed) & (highBeamHeadlight = 3))) & (! ((1 <= highBeamMotor) & (highBeamMotor <= 11))))⌉;⌈(! ((1 <= highBeamMotor) & (highBeamMotor <= 11)))⌉ ∧ ℓ > 1.0;True
+True;⌈(! (highBeamHeadlight = 0))⌉;⌈((highBeamHeadlight = 0) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;True","(highBeamHeadlight = 0)
+((1 <= highBeamMotor) & (highBeamMotor <= 11))
+((! (highBeamHeadlight = 0)) | ((highBeamMotor = 0) & (highBeamRange = 30)))"
+3,1,"ELS-38_0_0
+ELS-37_0_0
+ELS-38_1_1","True;⌈((pitmanArmForthBack = 0) & (! (highBeamHeadlight = 0)))⌉;⌈(! (highBeamHeadlight = 0))⌉ ∧ ℓ > 1.0;True
+True;⌈(((cruiseControlMode = 2) & ((300 <= setVehicleSpeed) & (highBeamHeadlight = 3))) & (! ((1 <= highBeamMotor) & (highBeamMotor <= 11))))⌉;⌈(! ((1 <= highBeamMotor) & (highBeamMotor <= 11)))⌉ ∧ ℓ > 1.0;True
+True;⌈(! (highBeamHeadlight = 0))⌉;⌈((highBeamHeadlight = 0) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;True","(highBeamHeadlight = 0)
+((1 <= highBeamMotor) & (highBeamMotor <= 11))
+((! (highBeamHeadlight = 0)) | ((highBeamMotor = 0) & (highBeamRange = 30)))"
+3,1,"ELS-38_0_0
+ELS-31_0_0
+ELS-38_1_1","True;⌈((pitmanArmForthBack = 0) & (! (highBeamHeadlight = 0)))⌉;⌈(! (highBeamHeadlight = 0))⌉ ∧ ℓ > 1.0;True
+True;⌈(((lightRotarySwitch = 2) & (pitmanArmForthBack = 1)) & (! ((highBeamHeadlight = 2) & ((highBeamMotor = 7) & (highBeamRange = 100)))))⌉;⌈(! ((highBeamHeadlight = 2) & ((highBeamMotor = 7) & (highBeamRange = 100))))⌉ ∧ ℓ > 1.0;True
+True;⌈(! (highBeamHeadlight = 0))⌉;⌈((highBeamHeadlight = 0) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;True","(highBeamHeadlight = 0)
+((highBeamHeadlight = 2) & (highBeamMotor = 7) & (highBeamRange = 100))
+((! (highBeamHeadlight = 0)) | ((highBeamMotor = 0) & (highBeamRange = 30)))"
+3,1,"ELS-38_0_0
+ELS-33_1_0
+ELS-38_1_1","True;⌈((pitmanArmForthBack = 0) & (! (highBeamHeadlight = 0)))⌉;⌈(! (highBeamHeadlight = 0))⌉ ∧ ℓ > 1.0;True
+True;⌈(((! overvoltage) & ((300 < currentSpeed) & ((! oncomingTraffic) & (highBeamHeadlight = 3)))) & (! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100))))))⌉;⌈(! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100)))))⌉ ∧ ℓ > 2.0;True
+True;⌈(! (highBeamHeadlight = 0))⌉;⌈((highBeamHeadlight = 0) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;True","(highBeamHeadlight = 0)
+((! (highBeamMotor <= 1)) & (highBeamMotor <= 11) & (! (highBeamRange <= 30)) & (highBeamRange <= 100))
+((! (highBeamHeadlight = 0)) | ((highBeamMotor = 0) & (highBeamRange = 30)))"
+3,1,"ELS-38_0_0
+ELS-35_0_0
+ELS-38_1_1","True;⌈((pitmanArmForthBack = 0) & (! (highBeamHeadlight = 0)))⌉;⌈(! (highBeamHeadlight = 0))⌉ ∧ ℓ > 1.0;True
+True;⌈(((! oncomingTraffic) & (highBeamHeadlight = 3)) & (! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100))))))⌉;⌈(! ((1 < highBeamMotor) & ((highBeamMotor <= 11) & ((30 < highBeamRange) & (highBeamRange <= 100)))))⌉ ∧ ℓ > 2.0;True
+True;⌈(! (highBeamHeadlight = 0))⌉;⌈((highBeamHeadlight = 0) & (! ((highBeamMotor = 0) & (highBeamRange = 30))))⌉;True","(highBeamHeadlight = 0)
+((! (highBeamMotor <= 1)) & (highBeamMotor <= 11) & (! (highBeamRange <= 30)) & (highBeamRange <= 100))
+((! (highBeamHeadlight = 0)) | ((highBeamMotor = 0) & (highBeamRange = 30)))"

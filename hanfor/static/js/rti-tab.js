@@ -1,7 +1,7 @@
 const {init_rti_modal} = require('./rti-modal.js')
 
 function init_rti_tab() {
-    const name_input = $('#simulator-tab-name-input')
+    const depth_input = $('#rti-tab-rti-check-input')
     const rti_check_btn = $('#rti-tab-rti-check-btn')
     const requirements_table = $('#requirements_table')
     const rti_start_btn = $('#rti-tab-start-btn')
@@ -9,16 +9,18 @@ function init_rti_tab() {
 
 
         rti_check_btn.click(function () {
-        console.log('RTI check button clicked');
+        console.log('RTI check button clicked...');
         $.ajax({
             // TODO: Allow async.
             type: 'POST', url: 'simulator', async: false, data: {
                 command: 'do_rti_check',
+                rti_depth: depth_input.val() || '2',
+
                 requirement_ids: JSON.stringify(get_selected_requirement_ids(requirements_table))
             }, success: function (response) {
+
                 if (response['success'] === false) {
                     alert(response['errormsg'])
-                    return
                 }
 
             }
@@ -60,6 +62,8 @@ function init_rti_tab() {
     return result
 
     }
+
+
 exports.init_rti_tab = init_rti_tab
 
 

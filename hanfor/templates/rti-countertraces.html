@@ -1,0 +1,48 @@
+<div class="col">
+    <div class="accordion">
+
+        {% for rti in rtis.get_req_mapping().items()%}
+            <div class="accordion-item">
+                <h2 id="heading-{{ rti[0]}}" class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapse-{{  rti[0] }}" aria-expanded="true"
+                            aria-controls="collapse-{{ rti[0] }}">
+                            {{ rti[0] }} :
+                        {% for req in rti[1].items() %}
+                            {{ req[1].requirement.rid}}
+                        {% endfor %}
+                    </button>
+                </h2>
+
+                <div id="collapse-{{  rti[0] }}" class="accordion-collapse collapse show"
+                     aria-labelledby="heading-{{  rti[0] }}">
+                    <div class="accordion-body">
+                        <h6>Number of requirements: {{ rti[1] | length }}</h6>
+
+                        <h6>Requirements</h6>
+                        <div class="d-grid gap-2">
+                            {% for req in rti[1].items() %}
+                                <div class="px-3 py-2 rounded bg-light border font-monospace">
+                                    {{ req[0]}}
+                                    {% if req[1].chain_req %}
+    <!-- Your code here -->         (Chain Requirement)
+                                    {% endif %}
+                                </div>
+
+                                <ul class="list-group">
+                                        <li class="list-group-item">
+                                            {% for dc_phase in req[1].countertrace.dc_phases %}
+                                                {{ ";" if loop.index > 1 }}
+                                                <code
+                                                      class="text-dark bg-opacity-25">{{ dc_phase }}</code>
+                                            {% endfor %}
+                                        </li>
+                                </ul>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>

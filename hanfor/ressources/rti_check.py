@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from itertools import combinations
+
 from lib_pea.countertrace import Countertrace
 
 import csv
@@ -25,335 +27,421 @@ from req_simulator.scenario import Scenario
 from req_simulator.utils import num_zeros
 from reqtransformer import Requirement, Formalization
 
-
-
-
 class RTIcheck:
+    """
+    A class to perform RTI (Requirement Traceability Information) checks.
 
-    def __init__(self, ids, requirements, app) -> None:
+    Attributes:
+        name (str): The name of the RTI check instance.
+        req_ids (list): List of requirement IDs.
+        requirements (list): List of requirements.
+        variables_dict (dict): Dictionary of variables.
+        chain_reqs_list (list): List of chain requirements.
+        rtis (list): List of RTIs.
+        depth (int): Depth of the RTI check.
+    """
+
+    def __init__(self, ids, requirements, app, depth1) -> None:
+        """
+        Initializes the RTIcheck instance.
+
+        Args:
+            ids (list): List of requirement IDs.
+            requirements (list): List of requirements.
+            app: Application instance.
+            depth1 (int): Depth of the RTI check.
+        """
         self.name: str = 'test'
         self.req_ids = ids
         self.requirements = requirements
-        self.get_attributes(self.requirements)
-        self.variables_dict = None
+        self.variables_dict = {}
         self.chain_reqs_list = []
         self.rtis = []
-        self.depth = 2
+        self.depth = int(depth1)
 
+        self.get_attributes()
         self.get_variables_dict()
-        self.get_chain_req_list()
         self.get_rtis()
 
+    class RtiSet:
+        """
+        A class to represent a set of RTIs.
 
-    def exit_condition(self, requirement):
-        # Generate and return the DNF of the exit condition
-        return self.simplify(Not(requirement.countertrace.dc_phases[-2].invariant))
-    def simplify (self, f: FNode) -> FNode:
+        Attributes:
+            countertrace (Countertrace): The countertrace associated with the RTI set.
+            requirement: The requirement associated with the RTI set.
+            formalization: The formalization associated with the RTI set.
+            countertrace_id (int): The ID of the countertrace.
+            exit_conditions (list): List of exit conditions.
+            exit_options (list): List of exit options.
+            chain_req (bool): Indicates if it is a chain requirement.
+            start_req (bool): Indicates if it is a start requirement.
+            id: The ID of the RTI set.
+        """
+        def __init__(self, countertrace: Countertrace):
+            super().__init__()
+
+            self.countertrace = countertrace
+            self.requirement = None
+            self.formalization = None
+            self.countertrace_id: int = None
+            self.exit_conditions = []
+            self.exit_options = []
+            self.chain_req = False
+            self.start_req = True
+            self.id = None
+
+    class ExitOptions:
+        """
+        A class to represent exit options.
+
+        Attributes:
+            exit_condition (FNode): The exit condition.
+            exit_variables (list): List of exit variables.
+            last_red_phase: The penultimate phase.
+            exit_phase: The exit phase.
+        """
+        def __init__(self, exit_condition: FNode, exit_variables: list, penultimate, exit_phase):
+            self.exit_condition = exit_condition
+            self.exit_variables = exit_variables
+            self.last_red_phase = penultimate
+            self.exit_phase = exit_phase
+
+    def get_attributes(self):
+        """
+        Retrieves and sets the attributes for each requirement.
+        """
+        for req in self.requirements:
+            req.exit_conditions = self.exit_condition(req)
+            req.exit_conditions = self.simplify(req.exit_conditions)
+            exit_conditions_chain = self.get_or_list(req.exit_conditions, [])
+            penultimate = req.countertrace.dc_phases[-2]
+            req.id = req.id + "_" + str(req.countertrace_id)
+            if req.countertrace.dc_phases[-2].bound is not None:
+                penultimate = req.countertrace.dc_phases[-3]
+            for exit_condition in exit_conditions_chain:
+                req.exit_options.append(self.ExitOptions(exit_condition, self.get_variables(exit_condition), penultimate, req.countertrace.dc_phases[-2]))
+            if len(exit_conditions_chain) > 1:
+                req.chain_req = True
+                self.chain_reqs_list.append(req)
+
+    def simplify(self, f: FNode) -> FNode:
+        """
+        Simplifies a given formula.
+
+        Args:
+            f (FNode): The formula to simplify.
+
+        Returns:
+            FNode: The simplified formula.
+        """
         solver_z3 = Solver(name="z3")
         tactic3 = Then(With(Tactic("simplify"), elim_and=True), Tactic("propagate-values"))
         tactic2 = Then(Tactic('nnf'), Tactic('simplify'))
         ruru = tactic3(solver_z3.converter.convert(f)).as_expr()
-        t2 =  Tactic("propagate-values")
         result = solver_z3.converter.back(ruru)
         result2 = tactic2(solver_z3.converter.convert(result)).as_expr()
         res = solver_z3.converter.back(result2)
 
-        result = t2(solver_z3.converter.convert(result)).as_expr()
-        result = solver_z3.converter.back(result)
         return res
-    def get_attributes(self, requirements):
-        requirements_rti = []
 
-        for req in self.requirements:
-            req.exit_options = []
-            is_chain_req = False
-            exit_objects = []
-            exit_condition = self.exit_condition(req)
-            req.exit_condition = exit_condition
+    def get_or_list(self, formula, helplist) -> list:
+        """
+        Retrieves a list of OR conditions from a formula.
 
-            if exit_condition.is_or():
-                req.chain_req = True  # chain req if exit-Condition has a or (||) in it
-                exit_conditions_chain = self.get_or_list(exit_condition, [])
-                for formulas in exit_conditions_chain:
-                    req.exit_options.append(
-                        self.ExitOptions(formulas, self.get_variables_from_exit_condtions(formulas, [])))
-            else:
-                req.exit_options = [self.ExitOptions(exit_condition, self.get_variables_from_exit_condtions(exit_condition, []))]
+        Args:
+            formula: The formula to process.
+            helplist (list): The list to store OR conditions.
 
-            is_start_req = False
-            #if len(pea.clocks) > 0:
-            #    is_start_req = True  # start req -> is timed, one of them is needed for an rti
-
-
-        for req in self.requirements:
-            for exit in req.exit_options:
-                if len(exit.exit_variables) == 0:
-                    req.exit_options.remove(exit)
-            if len(req.exit_options) == 0:
-                self.requirements.remove(req)
-
-    def get_variables_dict(self):
-        self.variables_dict = {}
-        for req in self.requirements:
-            if not req.chain_req:
-                for variable1 in req.exit_options[0].exit_variables:
-                    variable = variable1[0]
-                    print(req.exit_options[0].exit_variables[0])
-                    if variable._content.payload[1].name is "Bool":
-                        if ("! " + str(variable)) in str(req.exit_options[0].exit_condition):
-                            if not variable in self.variables_dict.keys():
-                                self.variables_dict[variable] = {"variable": variable, "type_variable": "Bool",
-                                                       "peas_positive": [],
-                                                       "peas_negative": [req]}
-
-                            else:
-                                self.variables_dict[variable]["peas_negative"].append(req)
-                        else:
-                            if not variable in  self.variables_dict.keys():
-                                self.variables_dict[variable] = {"variable": variable, "type_variable": "Bool",
-                                                       "peas_positive": [req], "peas_negative": []}
-
-                            else:
-                                self.variables_dict[variable]["peas_positive"].append(req)
-
-
-                    else:
-                        if not variable in  self.variables_dict.keys():
-                            self.variables_dict[variable] = {"variable": variable, "type_variable": "Int", "peas": [req]}
-
-                        else:
-                            self.variables_dict[variable]["peas"].append(req)
-
-
-    def get_or_list(self, formula, helplist):
-        for var in formula.args():
-            helplist.append(var)
+        Returns:
+            list: The list of OR conditions.
+        """
+        if formula.is_or():
+            for var in formula.args():
+                helplist.append(var)
+        else:
+            helplist.append(formula)
 
         return helplist
-    def get_variables_from_exit_condtions(self, formula, listi):
-        if formula.is_and():
-            for arg in formula.args():
-                self.get_variables_from_exit_condtions(arg, listi)
-        else:
-            variables = formula.get_free_variables()
-            helplist = []
+
+    @staticmethod
+    def get_variables(exit_condition)-> list:
+        """
+        Retrieves the variables from an exit condition.
+
+        Args:
+            exit_condition: The exit condition to process.
+
+        Returns:
+            list: The list of variables.
+        """
+        vars = exit_condition.get_free_variables()
+        varibales = []
+        for var in vars:
+            if ("! " + str(var)) in str(exit_condition):
+                varibales.append(Not(var))
+            else:
+                varibales.append(var)
+        return varibales
+
+    def exit_condition(self, requirement)-> FNode:
+        """
+        Generates and returns the DNF of the exit condition for a requirement.
+
+        Args:
+            requirement: The requirement to process.
+
+        Returns:
+            FNode: The DNF of the exit condition.
+        """
+        return self.simplify(Not(requirement.countertrace.dc_phases[-2].invariant))
+
+    def get_variables_dict(self):
+        """
+        Retrieves and sets the variables dictionary for each requirement.
+        """
+        for req in self.requirements:
+            if req.chain_req:
+                continue
+            variables = self.get_variables(req.exit_conditions)
             for var in variables:
-                if ("!" + str(var)) in variables and var._content.payload[1].name is "Bool":
-                    helplist.append(Not(var))
-                else:
-                    helplist.append(var)
-                listi.append(helplist)
-
-        return listi
-
-    def get_chain_req_list(self):
-        self.chain_reqs_list = [req for req in self.requirements if req.chain_req]
-
-        self.chain_reqs_list.sort(key=lambda x: len(x.exit_options), reverse=True)
-
-
-
-    class RtiSet:
-        def __init__(self, countertrace: Countertrace = None):
-            super().__init__()
-
-            self.countertrace: Countertrace = countertrace
-            self.requirement = None
-            self.formalization = None
-            self.countertrace_id: int = None
-            self.exit_conditions = None
-            self.exit_options = None
-            self.chain_req = False
-            self.start_req = True
-
-    class ExitOptions:
-        def __init__(self, exit_condition: FNode,
-                     exit_variables: list):
-            self.exit_condition = exit_condition
-            self.exit_variables = exit_variables
-
-    def get_pair_rtis(self):
-        # first serach for rtis with 2 reqs without chain reqs
-        for variable in self.variables_dict:
-            if self.variables_dict[variable]["type_variable"] is "Bool":
-                for positive in self.variables_dict[variable]["peas_positive"]:
-                    for negative in self.variables_dict[variable]["peas_negative"]:
-                        if self.rti_check([positive, negative]):
-                            self.rtis.append([positive, negative])
-            else:
-                for pea1 in self.variables_dict[variable]["peas"]:
-                    for pea2 in self.variables_dict[variable]["peas"]:
-                        if self.rti_check([pea1, pea2]):
-                            self.rtis.append([pea1, pea2])
-
-    def rti_check(self, requirements):
-        # check if set of reqs can cause an rti
-        starter_in_set = False
-        # one of the reqs has to be starter req (time bound)
-        for req in requirements:
-            if req.start_req:
-                starter_in_set = True
-                break
-        if not starter_in_set:
-            return False
-        # formmula has to be not sat
-        if is_sat(self.rebuild_formula(requirements)):
-            return False
-
-        return True
-
-    def rebuild_formula(self, list_requirements):
-        """Rebuild the formula dynamically from the remaining requirements"""
-        if not list_requirements:
-            return TRUE  # or an appropriate base formula
-        formula = self.exit_condition(list_requirements[0])
-        for k in range(1, len(list_requirements)):
-            formula = And(self.exit_condition(list_requirements[k]), formula)
-        return self.simplify(formula)
-
-    def chain_check(self, chain_req, other_chain_reqs, depth, possible_rti):
-        #if the number of chainreqs == depth of check -> check if they are a rti by themself
-        if len(possible_rti) == depth:
-            if self.rti_check(possible_rti):
-                self.rtis.append(possible_rti)
-            else:
-                #try to fill with singles
-                self.fill_chain_with_singles(chain_req, other_chain_reqs, depth, possible_rti)
-        elif len(possible_rti) < depth:
-            #add another matching chainreq to check
-            for other_req in other_chain_reqs:
-                if other_req not in possible_rti:
-                    formula_already = self.rebuild_formula(possible_rti)
-                    formula_check_new_req = Implies(self.simplify(formula_already), self.exit_condition(other_req.pea))
-                    variables_old = formula_already.get_free_variables()
-                    variables_new_req = other_req.exit_condition.get_free_variables()
-                    if len(set(variables_old).intersection(set(variables_new_req))) > 0:
-                        if not is_valid(formula_check_new_req):
-                            new_list = possible_rti + [other_req]
-                            # Recursive call to check further requirements
-                            logging.debug("Adding worked" + str(formula_check_new_req))
-                            self.chain_check(chain_req, other_chain_reqs, depth, new_list.copy())
-
-    def fill_chain_with_singles(self, chain_req, other_chain_reqs, depth, possible_rti):
-        # list with chain reqs, fill with singles(no chain reqs) for rti
-        selected_lists = []
-
-        for sub_form in chain_req.exit_options:
-            helper = []
-            for var_list in sub_form.exit_variables:
-                for variable in var_list:
-                    variableList = []
-                    if not variable in self.variables_dict:
-                        return
-                    if self.variables_dict[variable]["type_variable"] == "Bool":
-                        if "! " + str(variable) not in str(sub_form.exit_condition):
-                            variableList.append(self.variables_dict[variable]["peas_negative"])
-                        else:
-                            variableList.append(self.variables_dict[variable]["peas_positive"])
+                if not var in self.variables_dict.keys():
+                    if var.is_not() or var._content.payload[1].basename is "Bool":
+                        self.variables_dict[var] = {"variable": var, "type_variable": "Bool", "reqs": [req]}
                     else:
-                        variableList.append(self.variables_dict[variable]["peas"])
-                    if len(variableList) > 1:
-                        print("todo")
-                    else:
-                        for pea in variableList[0]:
-                            if not is_sat(And(sub_form.exit_condition, pea.exit_options[0].exit_condition)):
-                                helper.append(pea)
-            selected_lists.append(helper)
-
-        combinations = list(itertools.product(*selected_lists))
-        for combo in combinations:
-            list_from_combo = possible_rti + list(combo)
-            self.rtis.append(list_from_combo)
-        #     list_from_combo = possible_rti + list(combo)
-        #     if(self.rti_check(list_from_combo)):
-        #         rtis.append(list_from_combo)
-
-
-    def last_red_phase(self):
-        i = 0
-        while i < len(self.rtis):
-            test = []
-            for req in self.rtis[i]:
-                if type(req.countertrace.dc_phases[-2].bound) is not int:
-                    test.append(req.countertrace.dc_phases[-2].invariant)
+                        self.variables_dict[var] = {"variable": var, "type_variable": "Int", "reqs": [req]}
                 else:
-                    test.append(req.countertrace.dc_phases[-3].invariant)
-            formula = test[0]
-            for p in range(1, len(test)):
-                formula = And(formula, test[p])
-            if not is_sat(formula):
-                self.rtis.pop(i)
-            else:
-                i +=1
-        i = 0
-        while i < len(self.rtis):
-            problem = False
-
-            if len(self.rtis[i]) == 2:
-                req1 = self.rtis[i][0]
-                req2 = self.rtis[i][1]
-                huh = And(req1.countertrace.dc_phases[-3].invariant, req2.countertrace.dc_phases[-3].invariant)
-                print(huh)
-                help = self.simplify(And(req1.countertrace.dc_phases[-3].invariant, req2.countertrace.dc_phases[-3].invariant))
-                print(help)
-                if type(req1.countertrace.dc_phases[-2].bound) is not int and type(req2.countertrace.dc_phases[-2].bound) is not int:
-                    if req1.countertrace.dc_phases[-2].bound == req2.countertrace.dc_phases[-2].bound:
-                        if req1.countertrace.dc_phases[-2].bound_type == req2.countertrace.dc_phases[-2].bound_type:
-                            if not is_sat(self.simplify(And(req1.countertrace.dc_phases[-3].invariant, req2.countertrace.dc_phases[-3].invariant))):
-                                self.rtis.pop(i)
-                                problem = True
-            if not problem:
-                i += 1
-
-
-
-    def get_minimal_sets(self):
-        # Iterate through rtis list from the last to the first
-        rti1 = len(self.rtis) - 1
-        while rti1 >= 0:
-            rti2 = len(self.rtis) - 1
-            while rti2 > rti1:
-                csvCheck = True
-                # Check if all elements of rtis[rti1] are present in rtis[rti2]
-                for k in range(len(self.rtis[rti1])):
-                    variabel_check = False
-                    for l in range(len(self.rtis[rti2])):
-                        # if rtis[rti1][k].requirement.pos_in_csv == rtis[rti2][l].requirement.pos_in_csv:
-                        if self.rtis[rti1][k].countertrace == self.rtis[rti2][l].countertrace:
-                            variabel_check = True
-                            break  # If found, no need to continue inner loop
-                    if not variabel_check:
-                        csvCheck = False
-                        break  # If one element is missing, break early
-                # If csvCheck is true, remove the larger set (rti2)
-                if csvCheck:
-                    self.rtis.pop(rti2)
-                rti2 -= 1
-            rti1 -= 1
+                    self.variables_dict[var]["reqs"].append(req)
 
     def get_rtis(self):
-        self.get_pair_rtis()
-        print("huhu")
+        """
+        Retrieves and sets the RTIs.
+        """
+        self.get_rtis_without_chain_reqs()
 
         for depth in range(1, self.depth):
-            copy_chain_reqs = self.chain_reqs_list.copy()
-            while len(copy_chain_reqs) > 0:
-                self.chain_check(copy_chain_reqs[0], copy_chain_reqs, depth, [copy_chain_reqs[0]])
-                copy_chain_reqs.pop(0)
-        print("huhuhuhu")
-        self.last_red_phase()
-        self.get_minimal_sets()
-        self.rti_csv_output()
+            chain_reqs_copy = self.chain_reqs_list.copy()
+            for chain_req in self.chain_reqs_list:
+                self.chain_check(chain_req, depth, chain_reqs_copy, [chain_req], chain_req.exit_options.copy())
+                chain_reqs_copy.remove(chain_req)
 
+        self.get_minimum_sets()
+        self.rti_csv_output()
+        self.exit_conditions()
+
+    def get_rtis_without_chain_reqs(self):
+        """
+        Retrieves and sets the RTIs without chain requirements.
+        """
+        for variable in self.variables_dict:
+            if self.variables_dict[variable]["type_variable"] == "Bool":
+                if Not(variable) in self.variables_dict.keys():
+                    positives = self.variables_dict[variable]["reqs"]
+                    negatives = self.variables_dict[Not(variable)]["reqs"]
+                    combinations = list(itertools.product(positives, negatives))
+                    for combo in combinations:
+                        if self.rti_check_exit_conditions([combo[0].exit_conditions, combo[1].exit_conditions]):
+                            if self.rti_bounds([combo[0].exit_options[0], combo[1].exit_options[0]]):
+                                self.rtis.append([combo[0], combo[1]])
+            else:
+                combinations = list(itertools.combinations(self.variables_dict[variable]["reqs"], 2))
+                for combo in combinations:
+                    if self.rti_check_exit_conditions([combo[0].exit_conditions, combo[1].exit_conditions]):
+                        if self.rti_bounds([combo[0].exit_options[0], combo[1].exit_options[0]]):
+                            self.rtis.append([combo[0], combo[1]])
+
+    def rti_check_exit_conditions(self, ecs)-> bool:
+        """
+        Checks if the exit conditions are satisfiable.
+
+        Args:
+            ecs (list): List of exit conditions.
+
+        Returns:
+            bool: True if the exit conditions are not satisfiable, False otherwise.
+        """
+        formula = And(ecs[0], ecs[1])
+        formula = self.simplify(formula)
+        if not is_sat(formula):
+            return True
+        return False
+
+    def rti_check_two_old(self, reqs)-> bool:
+        """
+        Checks if two requirements are valid RTIs.
+
+        Args:
+            reqs (list): List of requirements.
+
+        Returns:
+            bool: True if the requirements are valid RTIs, False otherwise.
+        """
+        if not (reqs[0].start_req or reqs[1].start_req):
+            return False
+        help = []
+        if type(reqs[0].countertrace.dc_phases[-2].bound) is not int and type(reqs[1].countertrace.dc_phases[-2].bound) is not int:
+            help.append(reqs[0].countertrace.dc_phases[-2].invariant)
+            help.append(reqs[1].countertrace.dc_phases[-2].invariant)
+            if reqs[0].countertrace.dc_phases[-2].bound == reqs[1].countertrace.dc_phases[-2].bound:
+                if not is_sat(And(help[0], help[1])):
+                    return True
+                return False
+        return True
 
     def rti_csv_output(self):
-        with open('rtis.csv', 'w', encoding= 'utf-8', newline='') as csvfile:
+        """
+        Outputs the RTIs to a CSV file.
+        """
+        with open('rtis.csv', 'w', encoding='utf-8', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(["Depth", "IDs", "Countertraces"])
+            writer.writerow(["#Requirements", "depth", "IDs", "Countertraces", "Exit Conditions"])
             for rti in self.rtis:
-                depth = len(rti)
-                ids = [req.requirement.rid for req in rti]
+                count = len(rti)
+                depth = sum(1 for req in rti if req.chain_req)
+                ids = [req.id for req in rti]
                 countertraces = [str(req.countertrace) for req in rti]
-                writer.writerow([depth, "\n".join(ids), "\n".join(countertraces)])
+                ecit_conditions = [str(req.exit_conditions) for req in rti]
+                writer.writerow([count, depth, "\n".join(ids), "\n".join(countertraces), "\n".join(ecit_conditions)])
 
+    def exit_conditions(self):
+        """
+        Outputs the exit conditions to a CSV file.
+        """
+        with open('ecs.csv', 'w', encoding='utf-8', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["chain-req", "countertrace", "IDs", "Exit Conditions"])
+            for req in self.requirements:
+                writer.writerow([str(req.chain_req), str(req.countertrace).replace(';', ':'), req.requirement.rid, req.exit_conditions])
 
+    def chain_check(self, chain_req, depth, chain_reqs, reqs_in_check, exit_conditions):
+        """
+        Checks the chain requirements.
+
+        Args:
+            chain_req: The chain requirement to check.
+            depth (int): The depth of the check.
+            chain_reqs (list): List of chain requirements.
+            reqs_in_check (list): List of requirements in check.
+            exit_conditions (list): List of exit conditions.
+        """
+        if len(reqs_in_check) == depth:
+            self.fill_with_singles(chain_req, depth, chain_reqs, reqs_in_check, exit_conditions)
+        else:
+            for new_chain_req in chain_reqs:
+                new_ec = exit_conditions.copy()
+                possible_rti = False
+                if new_chain_req not in reqs_in_check:
+                    for ec in new_chain_req.exit_options:
+                        new_ec_ = False
+                        for old_exit_condition in exit_conditions:
+                            if self.rti_check_exit_conditions([ec.exit_condition, old_exit_condition.exit_condition]):
+                                if self.rti_bounds([ec, old_exit_condition]):
+                                    possible_rti = True
+                                    if old_exit_condition in new_ec:
+                                        new_ec.remove(old_exit_condition)
+                                    new_ec_ = True
+                        if not new_ec_:
+                            new_ec.append(ec)
+                    if possible_rti:
+                        new_list = reqs_in_check.copy() + [new_chain_req]
+                        if len(new_ec) == 0:
+                            self.rtis.append(new_list)
+                        else:
+                            self.chain_check(chain_req, depth, chain_reqs, new_list.copy(), new_ec.copy())
+
+    def fill_with_singles(self, chain_req, depth, chain_reqs, reqs_in_check, exit_conditions):
+        """
+        Fills the RTIs with single requirements.
+
+        Args:
+            chain_req: The chain requirement to check.
+            depth (int): The depth of the check.
+            chain_reqs (list): List of chain requirements.
+            reqs_in_check (list): List of requirements in check.
+            exit_conditions (list): List of exit conditions.
+        """
+        singles_list = []
+        for ec in exit_conditions:
+            help = []
+            for var in ec.exit_variables:
+                if var.is_not() or var._content.payload[1].basename is "Bool":
+                    if Not(var) in self.variables_dict.keys():
+                        for req in self.variables_dict[Not(var)]["reqs"]:
+                            if self.rti_check_exit_conditions([ec.exit_condition, req.exit_conditions]):
+                                if self.rti_bounds([req.exit_options[0], ec]):
+                                    help.append(req)
+                else:
+                    if var in self.variables_dict.keys():
+                        for req in self.variables_dict[var]["reqs"]:
+                            if self.rti_check_exit_conditions([ec.exit_condition, req.exit_conditions]):
+                                if self.rti_bounds([req.exit_options[0], ec]):
+                                    help.append(req)
+            if len(help) > 0:
+                singles_list.append(help)
+            else:
+                return
+        combinations = list(itertools.product(*singles_list))
+        for combo in combinations:
+            helpi = []
+            for i in combo:
+                helpi.append(i)
+            self.rtis.append(helpi + reqs_in_check)
+
+    def rti_bounds(self, exit_options)-> bool:
+        """
+        Checks the bounds of the exit options.
+
+        Args:
+            exit_options (list): List of exit options.
+
+        Returns:
+            bool: True if the bounds are valid, False otherwise.
+        """
+        help = []
+        if type(exit_options[0].exit_phase.bound) is not int and type(exit_options[1].exit_phase.bound) is not int:
+            if exit_options[0].exit_phase.bound == exit_options[1].exit_phase.bound:
+                if not is_sat(And(exit_options[0].last_red_phase.invariant, exit_options[1].last_red_phase.invariant)):
+                    return False
+            elif exit_options[0].exit_phase.bound > exit_options[1].exit_phase.bound:
+                if not is_sat(And(exit_options[0].exit_phase.invariant, exit_options[1].last_red_phase.invariant)):
+                    return False
+            elif exit_options[0].exit_phase.bound < exit_options[1].exit_phase.bound:
+                if not is_sat(And(exit_options[0].last_red_phase.invariant, exit_options[1].exit_phase.invariant)):
+                    return False
+        return True
+
+    def get_minimum_sets(self):
+        """
+        Retrieves and sets the minimum sets of requirements that are RTIs.
+        """
+        minimum_sets = []
+        self.rtis.sort(key=lambda x: len(x))
+        copy = self.rtis.copy()
+        self.rtis = []
+        i = 0
+        while i < len(copy):
+            j = i + 1
+            while j < len(copy):
+                if all(x in copy[i] for x in copy[j]):
+                    copy.remove(copy[j])
+                else:
+                    j += 1
+            i += 1
+        self.rtis = copy
+
+    def get_req_mapping(self) -> dict[str, dict[str, RtiSet]]:
+        """
+        Retrieves the mapping of requirements.
+
+        Returns:
+            dict: The mapping of requirements.
+        """
+        result = defaultdict(lambda: defaultdict(dict))
+
+        id = 0
+        for rti in self.rtis:
+            for req in rti:
+                result[id][req.requirement.rid + "_" + str(req.formalization.id) + "_" + str(req.countertrace_id)] = req
+            id += 1
+
+        return result

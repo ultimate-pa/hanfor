@@ -23,6 +23,7 @@ from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
 from reqtransformer import Requirement, Formalization, VariableCollection
 from ressources import Ressource
+from ressources import Ressource
 from ressources.rti_check import RTIcheck
 
 validation_patterns = {BOOL: r"^0|false|False|1|true|True$", INT: r"^[+-]?\d+$", REAL: r"^[+-]?\d*[.]?\d+$"}
@@ -30,7 +31,7 @@ validation_patterns = {BOOL: r"^0|false|False|1|true|True$", INT: r"^[+-]?\d+$",
 
 class SimulatorRessource(Ressource):
     simulator_cache: dict[str, Simulator] = {}
-    rti_check: RTIcheck =  RTIcheck([],[],None)
+    rti_cache = []
 
     def __init__(self, app, request):
         super().__init__(app, request)
@@ -124,12 +125,10 @@ class SimulatorRessource(Ressource):
 
     def get_rti(self) -> bool:
         request = self.request.args if len(self.request.args) > 0 else self.request.form
-        rti_check  = self.rti_check
-
+        #self.response.data = {"simulators": {k: v.name for k, v in self.rti_cache.items()}}
+        rti_cache  = self.rti_cache[-1]
         self.response.data = {
             "check_id":0,
-            "requirements": rti_check.requirements,
-            "rtis" : rti_check.rtis
 
             # "rti_data": rti_data,  # Add fetched data here
         }
@@ -149,13 +148,17 @@ class SimulatorRessource(Ressource):
         )
 
     def load_rti_check(self) -> None:
-        if not self.get_rti():
-            return
-        logging.debug(f"Loading RTI Check: {self.rti_check}")
-        self.response.data["html"] = render_template(
-            "rti-modal.html"
-
-        )
+        try:
+            if not self.get_rti():
+                return
+            logging.debug(f"Loading RTI Check: {self.rti_cache}")
+            rtis = self.rti_cache[-1]
+            self.response.data["html"] = render_template("rti-modal.html",
+            rtis=rtis)
+        except Exception as e:
+            logging.error(f"Error loading RTI Check: {e}")
+            self.response.success = False
+            self.response.errormsg = str(e)
 
 
     def scenario_save(self) -> None:
@@ -168,6 +171,7 @@ class SimulatorRessource(Ressource):
 
     def do_rti_check(self) -> None:
         requirement_ids = json.loads(self.request.form.get("requirement_ids"))
+        depth = self.request.form.get("rti_depth")
 
         if len(requirement_ids) <= 0:
             self.response.success = False
@@ -186,7 +190,7 @@ class SimulatorRessource(Ressource):
 
             countertraces.extend(peas_tmp)
 
-        self.rti_check = RTIcheck(requirement_ids, countertraces, self.app)
+        self.rti_cache.append(RTIcheck(requirement_ids, countertraces, self.app, depth))
 
 
         self.response.data = {
@@ -509,6 +513,7 @@ class SimulatorRessource(Ressource):
                 rti.requirement = requirement
                 rti.formalization = formalization
                 rti.countertrace_id = i
+                rti.id = requirement.rid + "_" +  str(formalization.id )
                 result.append(rti)
 
         return result
