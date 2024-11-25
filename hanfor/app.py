@@ -13,6 +13,8 @@ from functools import wraps, update_wrapper
 
 import flask
 from flask import render_template, request, jsonify, make_response, json
+
+from ai_driver import ai_driver
 from hanfor_flask import HanforFlask
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import HTTPException
@@ -250,6 +252,8 @@ def api(resource, command):
                         error_msg = f"Could not parse formalization: `{e}`"
                 else:
                     logging.debug("Skipping formalization update.")
+
+                ai_driver.update(requirement.rid)
 
                 if error:
                     logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
@@ -966,6 +970,8 @@ def startup_hanfor(args, HERE, *, no_data_tracing: bool = False) -> bool:
 
     # Run consistency checks.
     varcollection_consistency_check(app, args)
+
+    ai_driver.initialize(app.db)
 
     # instantiate TagsApi for generating init_tags
     with app.app_context():
