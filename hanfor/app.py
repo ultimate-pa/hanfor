@@ -41,6 +41,7 @@ mimetypes.add_type("text/javascript", ".js")
 
 # Create the app
 app = HanforFlask(__name__)
+# app = Flask(__name__)
 app.config.from_object("config")
 app.db = None
 socketio = SocketIO(app)
@@ -83,6 +84,13 @@ if app.config["FEATURE_TELEMETRY"]:
     from telemetry import telemetry_frontend
 
     app.register_blueprint(telemetry_frontend.blueprint)
+
+if app.config["FEATURE_QUICK_CHECKS"]:
+    from quickchecks import quickchecks
+
+    # quickchecks
+    app.register_blueprint(quickchecks.blueprint)
+    app.register_blueprint(quickchecks.api_blueprint)
 
 # register Blueprints
 # Example Blueprint

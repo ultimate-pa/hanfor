@@ -4,6 +4,7 @@ import json
 import logging
 import time
 import uuid
+from typing import List
 
 from hanfor_flask import HanforFlask
 from flask import render_template
@@ -15,11 +16,12 @@ from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
 from lib_pea.countertrace import CountertraceTransformer
 from lib_pea.countertrace_to_pea import build_automaton
 from lib_pea.pea import PhaseSetsPea
+from lib_pea.req_to_pea import get_pea_from_formalisation, has_variable_with_unknown_type
 from lib_pea.utils import get_countertrace_parser, strtobool
 from configuration.patterns import PATTERNS
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
-from lib_core.data import Requirement, Formalization, VariableCollection
+from lib_core.data import Requirement, Formalization, VariableCollection, Variable
 from ressources import Ressource
 
 validation_patterns = {BOOL: r"^0|false|False|1|true|True$", INT: r"^[+-]?\d+$", REAL: r"^[+-]?\d*[.]?\d+$"}
@@ -182,10 +184,7 @@ class SimulatorRessource(Ressource):
                 counter_traces = []
                 if not formalization.scoped_pattern.is_instantiatable():
                     return None
-                if (
-                    SimulatorRessource.has_variable_with_unknown_type(formalization, variables)
-                    or formalization.type_inference_errors
-                ):
+                if has_variable_with_unknown_type(formalization, variables) or formalization.type_inference_errors:
                     return None
 
                 scope = formalization.scoped_pattern.scope.name
@@ -311,52 +310,18 @@ class SimulatorRessource(Ressource):
         self.get_simulators()
 
     @staticmethod
-    def has_variable_with_unknown_type(formalization: Formalization, variables: dict[str, str]) -> bool:
-        for used_variable in formalization.used_variables:
-            if variables[used_variable] == "unknown" or variables[used_variable] == "error":
-                return True
-
-        return False
-
-    @staticmethod
-    def create_phase_event_automata(requirement_id: str, var_collection, app: HanforFlask) -> list[PhaseSetsPea] | None:
+    def create_phase_event_automata(
+        requirement_id: str, var_collection: VariableCollection, app: HanforFlask
+    ) -> List[PhaseSetsPea]:
         result = []
 
         requirement = app.db.get_object(Requirement, requirement_id)
 
-        variables = {k: v.type for k, v in var_collection.collection.items()}
-        boogie_parser = boogie_parsing.get_parser_instance()
-
         for formalization in requirement.formalizations.values():
-            if not formalization.scoped_pattern.is_instantiatable():
-                return None
-            if (
-                SimulatorRessource.has_variable_with_unknown_type(formalization, variables)
-                or formalization.type_inference_errors
-            ):
-                return None
-
-            scope = formalization.scoped_pattern.scope.name
-            pattern = formalization.scoped_pattern.pattern.name
-
-            if len(PATTERNS[pattern]["countertraces"][scope]) <= 0:
-                raise ValueError(f"No countertrace given: {scope}, {pattern}")
-
-            expressions = {}
-            for k, v in formalization.expressions_mapping.items():
-                # Todo: hack to detect empty expressions (why is this necessary now)?
-                if not v.raw_expression:
-                    continue
-                tree = boogie_parser.parse(v.raw_expression)
-                expressions[k] = BoogiePysmtTransformer(var_collection.collection).transform(tree)
-
-            for i, ct_str in enumerate(PATTERNS[pattern]["countertraces"][scope]):
-                ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
-                pea = build_automaton(ct, f"c_{requirement.rid}_{formalization.id}_{i}_")
-
+            peas = get_pea_from_formalisation(requirement.rid, formalization, var_collection)
+            for i, pea in enumerate(peas):
                 pea.requirement = requirement
                 pea.formalization = formalization
                 pea.countertrace_id = i
-                result.append(pea)
-
+            result.extend(peas)
         return result
