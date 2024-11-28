@@ -53,6 +53,13 @@ class BoogiePysmtTransformer(Transformer):
         super().__init__()
         self.variables = variables
         self.additional_assertions = []
+        self.smt_symbols = dict()
+        self.smt_vars = dict()
+        for k, v in variables.items():
+            sym = self.hanfor_to_pysmt_mapping[v.type](v.name, v.value)
+            self.smt_symbols[v.name] = sym
+            if sym.is_symbol():
+                self.smt_vars[v.name] = self.hanfor_to_pysmt_mapping[v.type](v.name, v.value)
 
     def expr(self, children) -> FNode:
         return And(children[0], *self.additional_assertions)
@@ -87,10 +94,7 @@ class BoogiePysmtTransformer(Transformer):
 
     def id(self, children) -> FNode:
         name = children[0].value
-        type = self.variables[name].type
-        value = self.variables[name].value
-
-        return self.hanfor_to_pysmt_mapping[type](name, value)
+        return self.smt_symbols[name]
 
     @staticmethod
     def implies(children) -> FNode:
