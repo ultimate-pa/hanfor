@@ -587,6 +587,7 @@ class JsonDatabaseTable:
         self.__json_data: dict[str | int, any] = {}
         self.__max_serialize_depth: int = 0
         self.__read_only = read_only
+        self.__lock = Lock()
 
         # create folders and files is not exist
         if read_only:
@@ -762,7 +763,10 @@ class JsonDatabaseTable:
             self.__fill_object_from_dict(self.__data[obj_id], data)
         for obj in self.__data.values():
             for field, default_value in self.__non_saved_fields.items():
-                setattr(obj, field, deepcopy(default_value))
+                if type(default_value) is type(self.__lock):
+                    setattr(obj, field, Lock())
+                else:
+                    setattr(obj, field, deepcopy(default_value))
 
     def __create_and_insert_object(self, obj_id: ID_TYPE, obj_data: dict) -> None:
         obj = self.cls.__new__(self.cls)
