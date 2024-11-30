@@ -73,6 +73,9 @@ class TestJsonDatabase(TestCase):
         if path.isdir(path.join(self._data_path, "get_objects")):
             rmtree(path.join(self._data_path, "get_objects"))
 
+        if path.isdir(path.join(self._data_path, "non_saved_fields")):
+            rmtree(path.join(self._data_path, "non_saved_fields"))
+
     def test_json_int_float(self):
         tmp = {"int": 0, "float": 1.2, "bool": True}
         self.assertEqual(json.dumps(tmp), '{"int": 0, "float": 1.2, "bool": true}')
@@ -1094,6 +1097,37 @@ class TestJsonDatabase(TestCase):
             db._tables[TestClassFile].get_object("job2").att_ft,
             db._tables[TestClassFile].get_object("job3").att_ft,
         )
+
+    def test_non_saved_field(self):
+        from test_json_database.db_test_non_saved_fields import TestClassFile, JSON_DATA
+
+        db = JsonDatabase(no_data_tracing=True)
+        db.init_tables(path.join(self._data_path, "non_saved_fields"))
+        db.add_object(TestClassFile("test0", "value 0", 0))
+        db.add_object(TestClassFile("test1", "value 1", 1))
+        with open(path.join(self._data_path, "non_saved_fields", "TestClassFile.json")) as tmp:
+            json_data = tmp.read()
+        self.assertEqual(JSON_DATA, json_data)
+        # Clear database
+        db = JsonDatabase(no_data_tracing=True)
+        db.init_tables(path.join(self._data_path, "non_saved_fields"))
+        o0: TestClassFile = db.get_object(TestClassFile, "test0")
+        o1: TestClassFile = db.get_object(TestClassFile, "test1")
+        # Check if objects are loaded with default values
+        self.assertEqual(o0.get_values(), ("test0", "Hello World", 42))
+        self.assertEqual(o1.get_values(), ("test1", "Hello World", 42))
+        # Check if locks are properly loaded
+        self.assertFalse(o0.att_lock.locked())
+        self.assertFalse(o1.att_lock.locked())
+        o0.att_lock.acquire()
+        self.assertTrue(o0.att_lock.locked())
+        self.assertFalse(o1.att_lock.locked())
+        o1.att_lock.acquire()
+        self.assertTrue(o0.att_lock.locked())
+        self.assertTrue(o1.att_lock.locked())
+        o0.att_lock.release()
+        self.assertFalse(o0.att_lock.locked())
+        self.assertTrue(o1.att_lock.locked())
 
     def test_json_db_get_objects_and_remove(self):
         from test_json_database.db_test_get_objects import TestClassFile

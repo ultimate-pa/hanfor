@@ -686,34 +686,39 @@ def generate_xls_file_content(
     return buffer
 
 
-def clean_identifier_for_ultimate_parser(slug: str, used_slugs: Set[str]) -> (str, Set[str]):
+def clean_identifier_for_ultimate_parser(req_id: str, formalisation_id: int, used_identifiers: Set[str]) -> str:
     """Clean slug to be sound for ultimate parser.
 
-    :param slug: The slug to be cleaned.
-    :param used_slugs: Set of already used slugs.
-    :return: (save_slug, used_slugs) save_slug a save to use form of slug. save_slug added to used_slugs.
+    :param req_id: The requirement id to be cleaned.
+    :param formalisation_id: The formalisation id to be cleaned.
+    :param used_identifiers: Set of already used identifiers.
+    :return: (identifier, used_slugs) save_slug a save to use form of slug. save_slug added to used_slugs.
     """
     # Replace any occurrence of [whitespace, `.`, `-`] with `_`
-    slug = re.sub(r"[\s+.-]+", "_", slug.strip())
+    base_identifier = re.sub(r"[\s+.-]+", "_", req_id.strip())
 
     # Resolve illegal start by prepending the slug with ID_ in case it does not start with a letter.
-    slug = re.sub(r"^([^a-zA-Z])", r"ID_\1", slug)
+    base_identifier = re.sub(r"^([^a-zA-Z])", r"ID_\1", base_identifier)
+
+    def create_identifier(base: str, extension: int, base_suffix: int = -1):
+        if base_suffix == -1:
+            return "{}_{}".format(base, extension)
+        return "{}_{}_{}".format(base, base_suffix, extension)
+
+    identifier = create_identifier(base_identifier, formalisation_id)
 
     # Resolve duplicates
     # search for the first free suffix.
-    if slug in used_slugs:
+    if identifier in used_identifiers:
         suffix = 1
 
-        def pad(s: int) -> str:
-            return "{}_{}".format(slug, s)
-
-        while pad(suffix) in used_slugs:
+        while create_identifier(base_identifier, formalisation_id, suffix) in used_identifiers:
             suffix += 1
-        slug = pad(suffix)
+        identifier = create_identifier(base_identifier, formalisation_id, suffix)
 
-    used_slugs.add(slug)
+    used_identifiers.add(identifier)
 
-    return slug, used_slugs
+    return identifier
 
 
 def generate_req_file_content(app: HanforFlask, filter_list=None, invert_filter=False, variables_only=False):
@@ -797,11 +802,11 @@ def generate_req_file_content(app: HanforFlask, filter_list=None, invert_filter=
 
     # parse requirement formalizations.
     if not variables_only:
-        used_slugs = set()
+        used_identifiers = set()
         for requirement in requirements:  # type: Requirement
             try:
                 for index, formalization in requirement.formalizations.items():
-                    slug, used_slugs = clean_identifier_for_ultimate_parser(requirement.rid, used_slugs)
+                    identifier = clean_identifier_for_ultimate_parser(requirement.rid, index, used_identifiers)
                     if formalization.scoped_pattern is None:
                         continue
                     if formalization.scoped_pattern.get_scope_slug().lower() == "none":
@@ -811,7 +816,7 @@ def generate_req_file_content(app: HanforFlask, filter_list=None, invert_filter=
                     if len(formalization.get_string()) == 0:
                         # Formalization string is empty if expressions are missing or none set. Ignore in output
                         continue
-                    content += "{}_{}: {}\n".format(slug, index, formalization.get_string())
+                    content += "{}: {}\n".format(identifier, formalization.get_string())
             except AttributeError:
                 continue
     content += "\n"

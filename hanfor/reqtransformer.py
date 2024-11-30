@@ -25,7 +25,15 @@ from tags.tags import TagsApi, Tag
 from typing import Dict, Tuple
 from hanfor_flask import current_app
 
-from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField, DatabaseFieldType
+from json_db_connector.json_db import (
+    DatabaseTable,
+    TableType,
+    DatabaseID,
+    DatabaseField,
+    DatabaseFieldType,
+    DatabaseNonSavedField,
+)
+from threading import Lock
 
 __version__ = "1.0.4"
 
@@ -242,6 +250,8 @@ class RequirementCollection:
 @DatabaseField("tags", dict)
 @DatabaseField("status", str, default="Todo")
 @DatabaseField("_revision_diff", dict)
+@DatabaseField("_next_formalization_index", int, default=-1)
+@DatabaseNonSavedField("_formalization_index_mutex", Lock())
 class Requirement:
     def __init__(self, id: str, description: str, type_in_csv: str, csv_row: dict[str, str], pos_in_csv: int):
         self.rid: str = id
@@ -253,6 +263,8 @@ class Requirement:
         self.tags: dict[Tag, str] = dict()
         self.status = "Todo"
         self._revision_diff = dict()
+        self._next_formalization_index: int = -1
+        self._formalization_index_mutex: Lock = Lock()
 
     def to_dict(self, include_used_vars=False):
         type_inference_errors = dict()
@@ -312,11 +324,16 @@ class Requirement:
         self.csv_row = other.csv_row
         self.pos_in_csv = other.pos_in_csv
 
-    def _next_free_formalization_id(self):
-        i = 0
-        while i in self.formalizations.keys():
-            i += 1
-        return i
+    def _next_free_formalization_id(self) -> int:
+        with self._formalization_index_mutex:
+            if self._next_formalization_index == -1:
+                if len(self.formalizations) == 0:
+                    self._next_formalization_index = 0
+                else:
+                    self._next_formalization_index = max(self.formalizations.keys()) + 1
+            i = self._next_formalization_index
+            self._next_formalization_index += 1
+            return i
 
     def add_empty_formalization(self) -> Tuple[int, "Formalization"]:
         """Add an empty formalization to the formalizations list."""
