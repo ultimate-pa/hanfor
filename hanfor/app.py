@@ -14,7 +14,6 @@ from functools import wraps, update_wrapper
 import flask
 from flask import render_template, request, jsonify, make_response, json
 
-from ai_driver import ai_driver
 from hanfor_flask import HanforFlask
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import HTTPException
@@ -52,6 +51,8 @@ app.db = None
 from example_blueprint import example_blueprint
 from tags import tags
 from statistics import statistics
+from ai_display import ai_display
+from ai_display.logic import ai_driver
 
 if app.config["FEATURE_ULTIMATE"]:
     from ultimate import ultimate
@@ -68,7 +69,9 @@ app.register_blueprint(tags.api_blueprint)
 # Statistics
 app.register_blueprint(statistics.blueprint)
 app.register_blueprint(statistics.api_blueprint)
-
+# Ai
+app.register_blueprint(ai_display.blueprint)
+app.register_blueprint(ai_display.api_blueprint)
 
 if "USE_SENTRY" in app.config and app.config["USE_SENTRY"]:
     import sentry_sdk
@@ -252,14 +255,12 @@ def api(resource, command):
                         error_msg = f"Could not parse formalization: `{e}`"
                 else:
                     logging.debug("Skipping formalization update.")
-
-                ai_driver.update(requirement.rid)
-
                 if error:
                     logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
                     return jsonify({"success": False, "errormsg": error_msg})
                 else:
                     app.db.update()
+                    ai_display.update(requirement.rid)
                     return jsonify(requirement.to_dict()), 200
 
         # Multi Update Tags or Status.
@@ -970,8 +971,6 @@ def startup_hanfor(args, HERE, *, no_data_tracing: bool = False) -> bool:
 
     # Run consistency checks.
     varcollection_consistency_check(app, args)
-
-    ai_driver.initialize(app.db)
 
     # instantiate TagsApi for generating init_tags
     with app.app_context():

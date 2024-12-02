@@ -1,0 +1,101 @@
+ID,Description,Type
+REQ001,var1 is always greater than 5,requirement
+REQ002,var2 is always smaller than 10,requirement
+REQ003,constraint1 always holds,requirement
+REQ004,constraint2 never holds,requirement
+REQ005,value of var3 should be positive,requirement
+REQ006,constraint1 and constraint2 never hold at the same time,requirement
+REQ007,if var3 is True then var4 is 0,requirement
+REQ008,if var3 is True then var4 is 1,requirement
+REQ009,var5 must be divisible by 2,requirement
+REQ010,var6 should be a non-negative integer,requirement
+REQ011,var7 should not be equal to 0,requirement
+REQ012,var8 must be less than 100,requirement
+REQ013,if var9 is True var10 should be greater than var11,requirement
+REQ014,if var12 > 0 then var13 should be non-negative,requirement
+REQ015,if var5 is less than 0 var6 should be positive,requirement
+REQ016,if var7 is True var8 should be False,requirement
+REQ017,if var14 > 5 var15 must be at least 10,requirement
+REQ018,var16 should be a string containing only alphabets,requirement
+REQ019,var17 should be between 10 and 20,requirement
+REQ020,var18 must be even,requirement
+REQ021,var19 cannot be null,requirement
+REQ022,if var20 is not set use default value 5,requirement
+REQ023,var21 must be a float,requirement
+REQ024,check if var22 is positive or zero,requirement
+REQ025,var23 must not be equal to var24,requirement
+REQ026,if var25 < var26 then var27 should be True,requirement
+REQ027,var28 should be a valid email address,requirement
+REQ028,var29 must be a unique identifier,requirement
+REQ029,if var30 is greater than 50 var31 must be False,requirement
+REQ030,if var32 equals "yes" then var33 should be greater than 100,requirement
+REQ031,var34 must be an integer divisible by 3,requirement
+REQ032,var35 should be formatted as YYYY-MM-DD,requirement
+REQ033,if var36 is empty show error message,requirement
+REQ034,var37 must be a valid URL,requirement
+REQ035,var38 should be a positive odd number,requirement
+REQ036,if var39 > 10 var40 must be set to "active",requirement
+REQ037,var41 must be an array with length > 0,requirement
+REQ038,if var42 < var43 then var44 should be set to True,requirement
+REQ039,var45 should be a valid phone number,requirement
+REQ040,var46 must be less than or equal to var47,requirement
+REQ041,var48 should not be empty,requirement
+REQ042,if var49 contains "error" trigger alert,requirement
+REQ043,var50 must be greater than 10 and less than 100,requirement
+REQ044,var51 must be an alphanumeric string,requirement
+REQ045,if var52 is False var53 should be set to 0,requirement
+REQ046,var54 must be in the range 1 to 100,requirement
+REQ047,if var55 is True var56 should be updated,requirement
+REQ048,var57 should be a non-empty list,requirement
+REQ049,if var58 is True var59 must be "active",requirement
+REQ050,var60 must be divisible by 5,requirement
+REQ051,var61 should not exceed var62,requirement
+REQ052,var63 must be set to "pending" if var64 is False,requirement
+REQ053,var65 must be a valid IP address,requirement
+REQ054,if var66 < var67 then var68 should be "approved",requirement
+REQ055,var69 should have a minimum length of 5 characters,requirement
+REQ056,var70 must not be an empty string,requirement
+REQ057,var71 should be greater than or equal to var72,requirement
+REQ058,var73 must be a valid hexadecimal value,requirement
+REQ059,if var74 is less than 0 var75 must be "error",requirement
+REQ060,var76 should be a positive integer,requirement
+REQ061,var77 must be within the range 0 to 255,requirement
+REQ062,if var78 equals "yes" var79 should be set to True,requirement
+REQ063,var80 should be a valid JSON object,requirement
+REQ064,var81 must be divisible by 10,requirement
+REQ065,var82 should contain no special characters,requirement
+REQ066,if var83 > 0 then var84 must be "active",requirement
+REQ067,var85 should be checked for null value,requirement
+REQ068,if var86 is negative var87 should be adjusted to zero,requirement
+REQ069,var88 must be greater than or equal to 100,requirement
+REQ070,var89 should be a string with at least 3 characters,requirement
+REQ071,var90 must be a valid date format,requirement
+REQ072,if var91 is greater than 50 var92 should be False,requirement
+REQ073,var93 must be unique across all records,requirement
+REQ074,var94 should be in a list of predefined values,requirement
+REQ075,var95 should be greater than var96,requirement
+REQ076,var97 must be a string that is not empty,requirement
+REQ077,if var98 is True var99 should be set to "inactive",requirement
+REQ078,var100 should not exceed 100 characters,requirement
+REQ079,if var101 is negative var102 should be set to "undefined",requirement
+REQ080,var103 must contain only numbers,requirement
+REQ081,if var104 is present var105 should be equal to var106,requirement
+REQ082,var107 must be a boolean value,requirement
+REQ083,if var108 is True var109 should be set to "true",requirement
+REQ084,var110 should be greater than or equal to var111,requirement
+REQ085,var112 should be a prime number,requirement
+REQ086,if var113 is "error" then show notification,requirement
+REQ087,var114 should be in the format HH:MM:SS,requirement
+REQ088,if var115 > var116 then var117 should be updated,requirement
+REQ089,var118 must be a valid currency code,requirement
+REQ090,if var119 is empty var120 should be set to "default",requirement
+REQ091,var121 must have a length of 10 characters,requirement
+REQ092,if var122 > var123 then var124 should be False,requirement
+REQ093,var125 should be unique in the database,requirement
+REQ094,var126 must be a valid zip code,requirement
+REQ095,if var127 < 100 var128 must be "low",requirement
+REQ096,var129 must not exceed 100 characters in length,requirement
+REQ097,var130 should be checked for data type,requirement
+REQ098,if var131 is False var132 should be "disabled",requirement
+REQ099,var133 must be a floating-point number,requirement
+REQ100,if var134 is "yes" var135 should be set to "enabled",requirement
