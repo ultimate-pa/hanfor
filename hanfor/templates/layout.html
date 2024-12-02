@@ -33,6 +33,9 @@
                     <li class="nav-item{% if request.path == '/tags' %} active{% endif %}">
                         <a class="nav-link" href="{{ url_for('site', site='tags') }}">Tags</a>
                     </li>
+                    <li class="nav-item{% if request.path == '/ai_display' %} active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('site', site='ai_display') }}">AI</a>
+                    </li>
                     <li class="nav-item{% if request.path == '/statistics' %} active{% endif %}">
                         <a class="nav-link" href="{{ url_for('site', site='statistics') }}">Statistics</a>
                     </li>

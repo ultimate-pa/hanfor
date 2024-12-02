@@ -15,7 +15,6 @@ import flask
 from flask_socketio import SocketIO
 from flask import render_template, request, jsonify, make_response, json
 
-from ai_driver import ai_driver
 from hanfor_flask import HanforFlask
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import HTTPException
@@ -60,6 +59,9 @@ app.config.from_object("config")
 app.db = None
 socketio = SocketIO(app)
 
+from ai_display import ai_display
+from ai_display.logic import ai_driver
+
 if app.config["FEATURE_ULTIMATE"]:
     from ultimate import ultimate
 
@@ -81,6 +83,9 @@ app.register_blueprint(tags.api_blueprint)
 # Statistics
 app.register_blueprint(statistics.blueprint)
 app.register_blueprint(statistics.api_blueprint)
+# Ai
+app.register_blueprint(ai_display.blueprint)
+app.register_blueprint(ai_display.api_blueprint)
 
 # register socket IO namespaces
 telemetry_namespace = TelemetryWs("/telemetry")
@@ -269,14 +274,12 @@ def api(resource, command):
                         error_msg = f"Could not parse formalization: `{e}`"
                 else:
                     logging.debug("Skipping formalization update.")
-
-                ai_driver.update(requirement.rid)
-
                 if error:
                     logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
                     return jsonify({"success": False, "errormsg": error_msg})
                 else:
                     app.db.update()
+                    ai_display.update(requirement.rid)
                     return jsonify(requirement.to_dict()), 200
 
         # Multi Update Tags or Status.
@@ -818,11 +821,12 @@ def varcollection_consistency_check(flask_app, args=None):
     app.db.update()
 
 
-def create_revision(args, base_revision_name):
+def create_revision(args, base_revision_name, *, no_data_tracing: bool = False):
     """Create new revision.
 
     :param args: Parser arguments
     :param base_revision_name: Name of revision the created will be based on. Creates initial revision_0 if none given.
+    :param no_data_tracing: db testmode
     :return: None
     """
     revision = utils.Revision(app, args, base_revision_name)
@@ -849,10 +853,11 @@ def load_revision(revision_id):
         telemetry_namespace.set_data_folder(app.config["REVISION_FOLDER"])
 
 
-def user_request_new_revision(args):
+def user_request_new_revision(args, *, no_data_tracing: bool = False):
     """Asks the user about the base revision and triggers create_revision with the user choice.
 
     :param args:
+    :param no_data_tracing:
     """
     logging.info("Generating a new revision.")
     available_sessions = utils.get_stored_session_names(app.config["SESSION_BASE_FOLDER"], only_names=True)
@@ -870,7 +875,7 @@ def user_request_new_revision(args):
         raise FileNotFoundError
     print("Which revision should I use as a base?")
     base_revision_choice = choice(available_revisions, "revision_0")
-    create_revision(args, base_revision_choice)
+    create_revision(args, base_revision_choice, no_data_tracing=no_data_tracing)
 
 
 def set_session_config_vars(args, here):
@@ -951,11 +956,11 @@ def startup_hanfor(args, here, *, no_data_tracing: bool = False) -> bool:
     if args.revision:
         if args.input_csv is None:
             utils.HanforArgumentParser(app).error("--revision requires a Input CSV -c INPUT_CSV.")
-        user_request_new_revision(args)
+        user_request_new_revision(args, no_data_tracing=no_data_tracing)
     else:
         # If there is no session with given tag: Create a new (initial) revision.
         if not os.path.exists(app.config["SESSION_FOLDER"]):
-            create_revision(args, None)
+            create_revision(args, None, no_data_tracing=no_data_tracing)
         # If this is an already existing session, ask the user which revision to start.
         else:
             revision_choice = user_choose_start_revision()
@@ -991,8 +996,6 @@ def startup_hanfor(args, here, *, no_data_tracing: bool = False) -> bool:
 
     # Run consistency checks.
     varcollection_consistency_check(app, args)
-
-    ai_driver.initialize(app.db)
 
     # instantiate TagsApi for generating init_tags
     with app.app_context():
