@@ -1,5 +1,5 @@
 
-let init_table_connection_functions = require('/js/requirements.js')['init_table_connection_functions']
+// let init_table_connection_functions = require('/js/requirements.js')['init_table_connection_functions']
 
 $(document).ready(function () {
     init_ultimate_tab()

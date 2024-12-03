@@ -125,10 +125,12 @@
     <script type="text/javascript">
         let search_query = '{{ query|tojson }}';
         let _PATTERNS = JSON.parse('{{ patterns|tojson }}');
+        let init_table_connection_functions = []
     </script>
 
-    <script type="text/javascript" src="{{ url_for('static', filename='dist/requirements-bundle.js') }}"></script>
     {% if config.FEATURE_ULTIMATE %}
         <script type="text/javascript" src="{{ url_for('static', filename='dist/ultimate_tab-bundle.js') }}"></script>
     {% endif %}
+    <script type="text/javascript" src="{{ url_for('static', filename='dist/requirements-bundle.js') }}"></script>
+
 {% endblock %}
