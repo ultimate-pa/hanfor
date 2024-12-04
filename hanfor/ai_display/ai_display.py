@@ -42,9 +42,9 @@ class AiApi(MethodView):
 
     def get(self, id: int) -> Union[str, dict, tuple, Response]:
         """Handle GET requests to fetch clustering progress or cluster data."""
-        query_type = request.args.get("type", "progress")
+        query_type = request.args.get("type", "progress_clustering")
 
-        if query_type == "progress":
+        if query_type == "progress_clustering":
             # Return the current progress state of the clustering process
             progress_state = ai_driver.get_progress_state_clustering()
             return jsonify(progress_state), 200
@@ -59,8 +59,10 @@ class AiApi(MethodView):
                             "ids": list(cluster),
                         }
                     )
-
             return jsonify({"clusters": cluster_list}), 200
+        elif query_type == "progress_ai":
+            ai_progress_state = ai_driver.get_progress_state_ai_formalization()
+            return jsonify(ai_progress_state), 200
         else:
             return jsonify({"error": "Invalid 'type' parameter"}), 400
 

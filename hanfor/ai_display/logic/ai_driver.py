@@ -78,8 +78,43 @@ class ClusteringProgressManager:
             return None
 
 
-# Singleton instance for managing clustering progress
+class FormalizationManager:
+    """
+    Managing AIFormalization objects and retrieving status and results.
+    """
+
+    def __init__(self):
+        # Liste zur Speicherung aller Formalisierungsobjekte
+        self.formalization_objects = []
+
+    def cleanup_old_formalizations(self):
+        """
+        Removes formalization objects with certain status values that are older than 10 seconds.
+        """
+        current_time = time.time()
+        self.formalization_objects = [
+            item for item in self.formalization_objects if item.time is None or (current_time - item.time < 10)
+        ]
+
+    def add_formalization_object(self, formalization_object):
+        self.formalization_objects.append(formalization_object)
+
+    def get_all_info(self):
+        return [
+            {
+                "id": obj.req_ai.to_dict().get("id"),
+                "status": obj.status,
+                "prompt": obj.prompt,
+                "ai_response": obj.ai_response,
+                "formalized_output": obj.formalized_output,
+                "time": obj.time,
+            }
+            for obj in self.formalization_objects
+        ]
+
+
 clustering_progress_manager = ClusteringProgressManager()
+formalization_manager = FormalizationManager()
 
 
 def start_clustering() -> None:
@@ -185,6 +220,12 @@ def check_template_for_ai_formalization(rid: str) -> bool:
     return "has_formalization" in req["tags"]
 
 
+def get_progress_state_ai_formalization():
+    logging.info(formalization_manager.get_all_info())
+    formalization_manager.cleanup_old_formalizations()
+    return formalization_manager.get_all_info()
+
+
 def update(rid: str) -> None:
     """
     Update a requirement's cluster and manage AI formalization pipeline.
@@ -198,7 +239,8 @@ def update(rid: str) -> None:
         logging.debug(f"Clusters found: {repr(clusters)}")
 
     if not check_template_for_ai_formalization(rid):
-        logging.debug("Not suitable for AI formalization")
+        if debug_enabled:
+            logging.debug("Not suitable for AI formalization")
         return
 
     # Queue to manage requirements to be formalized
@@ -253,53 +295,68 @@ def update(rid: str) -> None:
 
         event.set()  # Signal that the queue loading is done
 
-    def process_queue() -> None:
+    def process_queue_element(formalize_object: ai_interface.AIFormalization):
         """
-        Process requirements from the queue using AI formalization.
+        Process a single AIFormalization object from the queue.
         """
-        while not req_queue.empty():
-            if abort_event.is_set():  # Check if abort event is set
-                logging.info("Aborting process queue.")
-                break  # Stop processing if the abort event is set
+        try:
+            # Starte den Formalisierungsprozess
+            formalize_object.run_process()
 
-            requirement = req_queue.get()
-            logging.debug("Processing: " + requirement.to_dict()["id"])
-            try:
-                ai_formalization_result = ai_interface.generate_formalization(
-                    requirement,
-                    rid,
-                )
-                formalization_integration(ai_formalization_result, requirement)
-            except Exception as e:
-                logging.error(f"Error during AI formalization: {e}")
-            finally:
-                req_queue.task_done()
+            # Überprüfe den Status nach der Bearbeitung
+            if formalize_object.status.startswith("error"):
+                logging.error(f"Error in processing: {formalize_object.status}")
+            else:
+                logging.info("Successfully processed requirement.")
+
+                # Integriere die formalisierte Ausgabe
+                formalization_integration(formalize_object.formalized_output, formalize_object.req_ai)
+        except Exception as e:
+            logging.error(f"Error during AI formalization: {e}")
+        finally:
+            # Markiere die Anforderung in der Queue als abgeschlossen
+            req_queue.task_done()
 
     # Start the loading thread
     loading_thread = threading.Thread(target=load_requirements_to_queue, args=(current_app.db,), daemon=True)
     loading_thread.start()
 
-    def monitor_and_start_processing():
+    def monitor_and_start_processing(manager):
         """
         Monitor when the loading thread finishes, then start processing.
+        :param manager: FormalizationManager zum Verwalten der Formalisierungsobjekte.
         """
         loading_thread.join()  # Wait for the loading thread to finish
         if not abort_event.is_set():  # Start processing only if not aborted (no cluster lock)
             logging.info("Starting to process the queue.")
-            event.wait()  # Wait for the event to be set before starting processing
-            processing_thread = threading.Thread(target=process_queue, daemon=True)
-            processing_thread.start()
-            processing_thread.join()  # Wait for the processing thread to finish
-            for cl in clusters:
-                if rid in cl:
-                    locked_cluster.remove(cl)
-                    logging.info(f"Finished processing cluster {cl}")
+            threads = []  # List to keep track of threads
+
+            while not req_queue.empty():
+                if abort_event.is_set():  # Stop processing if the abort event is set
+                    logging.info("Processing aborted due to cluster lock.")
+                    break
+                # Create a new thread for each requirement
+                requirement = req_queue.get()
+                formalize_object = ai_interface.AIFormalization(requirement, None)
+                manager.add_formalization_object(formalize_object)  # Hinzufügen zum Manager
+                if debug_enabled:
+                    logging.debug("Processing: " + requirement.to_dict()["id"])
+                processing_thread = threading.Thread(
+                    target=process_queue_element, args=(formalize_object,), daemon=True
+                )
+                processing_thread.start()
+                threads.append(processing_thread)  # Track the thread
+
+            # Wait for all threads to finish
+            for thread in threads:
+                thread.join()
+
             logging.info("Finished processing the queue.")
         else:
             logging.info("Processing aborted due to cluster lock.")
 
     # Start monitoring and processing
-    threading.Thread(target=monitor_and_start_processing, daemon=True).start()
+    threading.Thread(target=monitor_and_start_processing, args=(formalization_manager,), daemon=True).start()
 
     if debug_enabled:
         logging.debug("Update process started.")
