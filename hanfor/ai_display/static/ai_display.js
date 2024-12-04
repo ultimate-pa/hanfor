@@ -15,7 +15,7 @@ $(document).ready(function () {
 
     // Function to check the progress of the clustering process
     function checkProgress() {
-        $.get('/api/ai_display?type=progress').done(function (progress) {
+        $.get('/api/ai_display?type=progress_clustering').done(function (progress) {
             // Update the progress bar with current status
             updateProgressBar(progress.processed, progress.total);
 
@@ -39,7 +39,6 @@ $(document).ready(function () {
             } else if (["clustering", "pending", "extracting"].includes(progress.status)) {
                 resetClusteringStatus();
                 CLUSTERING_BUTTON.prop('disabled', true); // Disable the button during processing
-                setTimeout(checkProgress, 50); // Check progress again after a short delay
             }
         }).fail(function (jqXHR, textStatus, errorThrown) {
             console.error('Error fetching progress:', textStatus, errorThrown);
@@ -136,7 +135,42 @@ $(document).ready(function () {
         });
     }
 
-    // Initial load of table data and progress check
+function fetchAndDisplayProgress() {
+    $.get('/api/ai_display?type=progress_ai').done(function (data) {
+        const tableBody = $('#ai-progress-table tbody');
+        tableBody.empty(); // Leere die Tabelle vor dem Hinzufügen neuer Daten
+
+        data.forEach(item => {
+            // Sicherheitsüberprüfung für jede Spalte und Fallback-Logik
+            const id = item.id || 'N/A';
+            const promptDesc = item.prompt ? item.prompt: 'N/A';
+            const status = item.status || 'N/A';
+            const aiResponse = item.ai_response ? JSON.stringify(item.ai_response, null, 2) : 'N/A'; // Formatiertes JSON
+
+            // Berechnung des Countdowns für die Löschung, auf die nächste Sekunde gerundet
+            const currentTime = Math.floor(Date.now() / 1000); // Aktuelle Zeit in Sekunden
+            const deletionCountdown = item.time ? Math.max(0, Math.ceil(9 - (currentTime - item.time))) : 'N/A';
+
+            // Erstellen der Tabellenzeile mit einer zusätzlichen Spalte für den Countdown
+            const row = `
+                <tr>
+                    <td>${id}</td>
+                    <td>${promptDesc}</td>
+                    <td>${status}</td>
+                    <td>${aiResponse}</td>
+                    <td>${deletionCountdown !== 'N/A' ? `${deletionCountdown} sec` : deletionCountdown}</td>
+                </tr>
+            `;
+            tableBody.append(row);
+        });
+    }).fail(function (jqXHR, textStatus, errorThrown) {
+        console.error('Fehler beim Abrufen der AI-Fortschrittsdaten:', textStatus, errorThrown);
+    });
+}
+
+
+
     loadTableData();
-    checkProgress();
+    setInterval(checkProgress, 100);
+    setInterval(fetchAndDisplayProgress, 100);
 });
