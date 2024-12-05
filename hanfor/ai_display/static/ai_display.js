@@ -38,7 +38,6 @@ $(document).ready(function () {
                 }
             } else if (["clustering", "pending", "extracting"].includes(progress.status)) {
                 resetClusteringStatus();
-                CLUSTERING_BUTTON.prop('disabled', true); // Disable the button during processing
             }
         }).fail(function (jqXHR, textStatus, errorThrown) {
             console.error('Error fetching progress:', textStatus, errorThrown);
@@ -60,7 +59,6 @@ $(document).ready(function () {
         }).done(function (response) {
             resetClusteringStatus();
             console.log('Clustering started:', response);
-            CLUSTERING_BUTTON.prop('disabled', true); // Disable the button after starting clustering
             checkProgress(); // Start checking the progress
         }).fail(function (jqXHR, textStatus, errorThrown) {
             console.error('Error:', textStatus, errorThrown);

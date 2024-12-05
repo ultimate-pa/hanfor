@@ -52,7 +52,6 @@ from example_blueprint import example_blueprint
 from tags import tags
 from statistics import statistics
 from ai_display import ai_display
-from ai_display.logic import ai_driver
 
 if app.config["FEATURE_ULTIMATE"]:
     from ultimate import ultimate
