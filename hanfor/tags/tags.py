@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Type
 
-from hanfor_flask import current_app
+import hanfor_flask
 from flask import Blueprint, Response, jsonify, render_template, request, abort
 from flask.views import MethodView
 from pydantic import BaseModel
@@ -60,7 +60,7 @@ class TagsApi(MethodView):
     }
 
     def __init__(self):
-        self.app = current_app
+        self.app = hanfor_flask.current_app
         self.__available_tags: dict[str, Tag] = {}
         self.__load()
 
@@ -176,7 +176,7 @@ class TagsApi(MethodView):
             requirement.tags.pop(tag)
         self.app.db.update()
 
-        current_app.db.remove_object(tag)
+        hanfor_flask.current_app.db.remove_object(tag)
         self.__available_tags.pop(name)
 
         return response_data
