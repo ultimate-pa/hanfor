@@ -1,7 +1,9 @@
+import logging
 from typing import Type, Union
 from flask import Blueprint, render_template, request, Response, jsonify
 from flask.views import MethodView
 from hanfor.ai_display.logic import ai_driver
+from flask import current_app
 
 # JavaScript bundle for the frontend
 BUNDLE_JS = "dist/ai_display-bundle.js"
@@ -34,8 +36,7 @@ class AiApi(MethodView):
         data = request.get_json()
 
         if data.get("action") == "start_clustering":
-            # Start the clustering process in a background thread
-            ai_driver.start_clustering()
+            current_app.ai.start_clustering()
             return jsonify({"message": "Clustering started", "total": 10}), 200
 
         return jsonify({"error": "Invalid action"}), 400
@@ -45,11 +46,14 @@ class AiApi(MethodView):
         query_type = request.args.get("type", "progress_clustering")
 
         if query_type == "progress_clustering":
+
             # Return the current progress state of the clustering process
-            progress_state = ai_driver.get_progress_state_clustering()
+
+            progress_state = current_app.ai.get_info()
             return jsonify(progress_state), 200
         elif query_type == "clusters":
-            clusters = ai_driver.get_clusters()
+            clusters = current_app.ai.get_clusters()
+            logging.debug(f"clusters: {clusters}")
             cluster_list = []
             if clusters is not None:
                 for idx, cluster in enumerate(clusters):

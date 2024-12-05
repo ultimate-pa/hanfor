@@ -5,47 +5,9 @@ import time
 debug_enabled = False
 
 
-class ClusteringProgress:
-    def __init__(self, total):
-        self.processed = 0
-        self.total = total
-        self.status = "pending"
+def cluster_requirements_by_description(requirements, progress_tracker):
+    threshold = 0.5
 
-    def start(self):
-        self.status = "clustering"
-
-    def update_progress(self):
-        if self.status == "clustering":
-            self.processed += 1
-            if self.processed >= self.total:
-                self.status = "completed"
-
-    def get_progress_state(self):
-        return {
-            "processed": self.processed,
-            "total": self.total,
-            "status": self.status,
-        }
-
-
-def levenshtein_distance(str1, str2):
-    len_str1, len_str2 = len(str1), len(str2)
-    dp = [[0] * (len_str2 + 1) for _ in range(len_str1 + 1)]
-
-    for i in range(len_str1 + 1):
-        dp[i][0] = i
-    for j in range(len_str2 + 1):
-        dp[0][j] = j
-
-    for i in range(1, len_str1 + 1):
-        for j in range(1, len_str2 + 1):
-            cost = 0 if str1[i - 1] == str2[j - 1] else 1
-            dp[i][j] = min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost)
-
-    return dp[len_str1][len_str2]
-
-
-def cluster_requirements_by_description(requirements, progress_tracker, threshold=0.5):
     clusters = []
     seen = set()
 
@@ -80,3 +42,43 @@ def cluster_requirements_by_description(requirements, progress_tracker, threshol
             logging.debug("cluster: " + req1["id"])
 
     return set(frozenset(cluster) for cluster in clusters)
+
+
+def levenshtein_distance(str1, str2):
+    len_str1, len_str2 = len(str1), len(str2)
+    dp = [[0] * (len_str2 + 1) for _ in range(len_str1 + 1)]
+
+    for i in range(len_str1 + 1):
+        dp[i][0] = i
+    for j in range(len_str2 + 1):
+        dp[0][j] = j
+
+    for i in range(1, len_str1 + 1):
+        for j in range(1, len_str2 + 1):
+            cost = 0 if str1[i - 1] == str2[j - 1] else 1
+            dp[i][j] = min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost)
+
+    return dp[len_str1][len_str2]
+
+
+class ClusteringProgress:
+    def __init__(self, total):
+        self.processed = 0
+        self.total = total
+        self.status = "pending"
+
+    def start(self):
+        self.status = "clustering"
+
+    def update_progress(self):
+        if self.status == "clustering":
+            self.processed += 1
+            if self.processed >= self.total:
+                self.status = "completed"
+
+    def get_progress_state(self):
+        return {
+            "processed": self.processed,
+            "total": self.total,
+            "status": self.status,
+        }

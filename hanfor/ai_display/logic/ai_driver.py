@@ -118,6 +118,7 @@ formalization_manager = FormalizationManager()
 
 
 def start_clustering() -> None:
+    return
     clustering_progress_manager.progress_bar = {"status": "pending", "processed": 0, "total": 0}
     clustering_progress_manager.progress = None
 
