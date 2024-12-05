@@ -23,7 +23,7 @@ from static_utils import choice, replace_prefix, try_cast_string, SessionValue
 from tags.tags import TagsApi, Tag
 
 from typing import Dict, Tuple
-from hanfor_flask import current_app
+import hanfor_flask
 
 from json_db_connector.json_db import (
     DatabaseTable,
@@ -374,7 +374,9 @@ class Requirement:
         # Add 'Type_inference_error' tag
         if len(self.formalizations[formalization_id].type_inference_errors) > 0:
             formatted_errors = self.format_error_tag(self.formalizations[formalization_id])
-            self.tags[current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value] = formatted_errors
+            self.tags[hanfor_flask.current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value] = (
+                formatted_errors
+            )
 
         # Add 'unknown_type' tag
         vars_with_unknown_type = []
@@ -382,25 +384,25 @@ class Requirement:
             variable_collection, vars_with_unknown_type
         )
         if vars_with_unknown_type:
-            self.tags[current_app.db.get_object(SessionValue, "TAG_unknown_type").value] = self.format_unknown_type_tag(
-                vars_with_unknown_type
+            self.tags[hanfor_flask.current_app.db.get_object(SessionValue, "TAG_unknown_type").value] = (
+                self.format_unknown_type_tag(vars_with_unknown_type)
             )
 
         if (
             self.formalizations[formalization_id].scoped_pattern.scope != Scope.NONE
             and self.formalizations[formalization_id].scoped_pattern.pattern.name != "NotFormalizable"
         ):
-            self.tags[current_app.db.get_object(SessionValue, "TAG_has_formalization").value] = ""
+            self.tags[hanfor_flask.current_app.db.get_object(SessionValue, "TAG_has_formalization").value] = ""
         else:
-            self.tags[current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value] = (
+            self.tags[hanfor_flask.current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value] = (
                 self.format_incomplete_formalization_tag(formalization_id)
             )
 
     def format_error_tag(self, formalisation: "Formalization") -> str:
-        if current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value not in self.tags:
+        if hanfor_flask.current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value not in self.tags:
             result = ""
         else:
-            result = self.tags[current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value]
+            result = self.tags[hanfor_flask.current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value]
 
         if not formalisation.type_inference_errors:
             return result
@@ -414,24 +416,24 @@ class Requirement:
 
     def format_incomplete_formalization_tag(self, fid: int) -> str:
         rid_fid = self.rid + "_" + fid.__str__()
-        if current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value not in self.tags:
+        if hanfor_flask.current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value not in self.tags:
             return "- " + rid_fid
         else:
             return (
-                self.tags[current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value]
+                self.tags[hanfor_flask.current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value]
                 + "\n- "
                 + rid_fid
             )
 
     def update_formalizations(self, formalizations: dict, app):
-        if current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value in self.tags:
-            self.tags.pop(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
-        if current_app.db.get_object(SessionValue, "TAG_unknown_type").value in self.tags:
-            self.tags.pop(current_app.db.get_object(SessionValue, "TAG_unknown_type").value)
-        if current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value in self.tags:
-            self.tags.pop(current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value)
-        if current_app.db.get_object(SessionValue, "TAG_has_formalization").value in self.tags:
-            self.tags.pop(current_app.db.get_object(SessionValue, "TAG_has_formalization").value)
+        if hanfor_flask.current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value in self.tags:
+            self.tags.pop(hanfor_flask.current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
+        if hanfor_flask.current_app.db.get_object(SessionValue, "TAG_unknown_type").value in self.tags:
+            self.tags.pop(hanfor_flask.current_app.db.get_object(SessionValue, "TAG_unknown_type").value)
+        if hanfor_flask.current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value in self.tags:
+            self.tags.pop(hanfor_flask.current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value)
+        if hanfor_flask.current_app.db.get_object(SessionValue, "TAG_has_formalization").value in self.tags:
+            self.tags.pop(hanfor_flask.current_app.db.get_object(SessionValue, "TAG_has_formalization").value)
         logging.debug(f"Updating formalisations of requirement {self.rid}.")
         variable_collection = VariableCollection(app)
         # Reset the var mapping.
@@ -455,23 +457,23 @@ class Requirement:
 
     def run_type_checks(self, var_collection):
         logging.info(f"Run type inference and unknown check for `{self.rid}`")
-        if current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value in self.tags:
-            self.tags.pop(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
-        if current_app.db.get_object(SessionValue, "TAG_unknown_type").value in self.tags:
-            self.tags.pop(current_app.db.get_object(SessionValue, "TAG_unknown_type").value)
+        if hanfor_flask.current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value in self.tags:
+            self.tags.pop(hanfor_flask.current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
+        if hanfor_flask.current_app.db.get_object(SessionValue, "TAG_unknown_type").value in self.tags:
+            self.tags.pop(hanfor_flask.current_app.db.get_object(SessionValue, "TAG_unknown_type").value)
         vars_with_unknown_type = []
         for id in self.formalizations.keys():
             # Run type inference check
             self.formalizations[id].type_inference_check(var_collection)
             if len(self.formalizations[id].type_inference_errors) > 0:
-                self.tags[current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value] = (
+                self.tags[hanfor_flask.current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value] = (
                     self.format_error_tag(self.formalizations[id])
                 )
 
             # Check for variables of type 'unknown' in formalization
             vars_with_unknown_type = self.formalizations[id].unknown_types_check(var_collection, vars_with_unknown_type)
             if vars_with_unknown_type:
-                self.tags[current_app.db.get_object(SessionValue, "TAG_unknown_type").value] = (
+                self.tags[hanfor_flask.current_app.db.get_object(SessionValue, "TAG_unknown_type").value] = (
                     self.format_unknown_type_tag(vars_with_unknown_type)
                 )
 
@@ -1204,12 +1206,14 @@ class Variable:
 
     def reload_constraints_type_inference_errors(self, var_collection):
         logging.info(f"Reload type inference for variable `{self.name}` constraints")
-        self.remove_tag(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
+        self.remove_tag(hanfor_flask.current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
         for id in self.constraints:
             try:
                 self.constraints[id].type_inference_check(var_collection)
                 if len(self.constraints[id].type_inference_errors) > 0:
-                    self.tags.add(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
+                    self.tags.add(
+                        hanfor_flask.current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value
+                    )
             except AttributeError as e:
                 # Probably No pattern set.
                 logging.info(f"Could not derive type inference for variable `{self.name}` constraint No. {id}. { e}")
@@ -1244,7 +1248,7 @@ class Variable:
                     self.name, constraint_id, [n for n in self.constraints[constraint_id].type_inference_errors.keys()]
                 )
             )
-            self.add_tag(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
+            self.add_tag(hanfor_flask.current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
 
         variable_collection.collection[self.name] = self
 
@@ -1256,7 +1260,7 @@ class Variable:
         :return: updated VariableCollection
         """
         logging.debug(f"Updating constraints for variable `{self.name}`.")
-        self.remove_tag(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
+        self.remove_tag(hanfor_flask.current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
         if variable_collection is None:
             variable_collection = VariableCollection(app)
 

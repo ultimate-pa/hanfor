@@ -2,6 +2,8 @@ import threading
 from hanfor.ai import Progress
 from typing import Optional
 from hanfor.ai.interfaces.similarity_interface import ClusteringProgress
+import reqtransformer
+import hanfor_flask
 
 
 class AiCore:
@@ -25,15 +27,12 @@ class AiCore:
         self.progress_status[Progress.CLUSTER][Progress.STATUS] = Progress.NOT_STARTED
 
     def start_clustering(self) -> None:
-        from flask import current_app
-        from reqtransformer import Requirement
-
         # If currently clustering, terminate the Thread
         if self.clustering_progress_thread and self.clustering_progress_thread.is_alive():
             self.terminate_cluster_thread()
 
         self.progress_status[Progress.CLUSTER][Progress.STATUS] = Progress.PENDING
-        requirements = current_app.db.get_objects(Requirement)
+        requirements = hanfor_flask.current_app.db.get_objects(reqtransformer.Requirement)
         self.progress_status[Progress.CLUSTER][Progress.TOTAL] = len(requirements)
 
         clustering_progress = ClusteringProgress(requirements, self.progress_status[Progress.CLUSTER])
