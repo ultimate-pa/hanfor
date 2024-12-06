@@ -49,13 +49,13 @@ class BoogiePysmtTransformer(Transformer):
         "CONST": lambda name, value: Real(float(value)) if "." in value else Int(int(value)),
     }
 
-    def __init__(self, variables: dict[str, Variable]) -> None:
+    def __init__(self, variables: set[Variable]) -> None:
         super().__init__()
         self.variables = variables
         self.additional_assertions = []
         self.smt_symbols = dict()
         self.smt_vars = dict()
-        for k, v in variables.items():
+        for v in variables:
             sym = self.hanfor_to_pysmt_mapping[v.type](v.name, v.value)
             self.smt_symbols[v.name] = sym
             if sym.is_symbol():

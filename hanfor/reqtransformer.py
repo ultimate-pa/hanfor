@@ -642,6 +642,7 @@ class Expression:
         logging.debug(f"Setting expression: `{expression}`")
         self.raw_expression = expression
         # Get the vars occurring in the expression.
+        # TODO: should we cache the parsed expression for access for e.g. in the quickchecks?
         tree = boogie_parsing.get_parser_instance().parse(expression)
 
         self.used_variables = set(boogie_parsing.get_variables_list(tree))

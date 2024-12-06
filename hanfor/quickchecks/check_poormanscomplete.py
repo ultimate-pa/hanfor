@@ -1,42 +1,91 @@
+import functools
 import logging
+from dataclasses import dataclass
+from enum import Enum
 
 from pysmt.fnode import FNode
-from pysmt.rewritings import CNFizer
-from pysmt.shortcuts import FALSE, Or, Not, Exists, Solver, TRUE, get_free_variables, And, Bool
+from pysmt.shortcuts import FALSE, Or, Not, Solver, TRUE, get_free_variables, And, Bool, simplify
 from pysmt.walkers import IdentityDagWalker
 
 import boogie_parsing
-from reqtransformer import Requirement, Variable
+from reqtransformer import Requirement, Variable, Scope
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
 
 SOLVER_NAME = "z3"
 LOGIC = "UFLIRA"
 
 
+class CompletenessCheckOutcome(Enum):
+    INCOMPLETE = "INCOMPLETE"
+    ENV_VIOLATED = "ENV_VIOLATED"
+    OK = "OK"
+
+
+@dataclass
+class CompletenessCheckResult:
+    var: Variable
+    outcome: CompletenessCheckOutcome
+    message: str
+
+    def __str__(self):
+        return f"{self.outcome}: in var '{self.var.name}': {self.message}"
+
+
 class PoorMansComplete:
 
-    def __call__(self, reqs: list[Requirement], vars: list[Variable]):
-        logging.info("Starting PoorMansComplete Analysis for requirements set.")
-        result = ""
-        smt_transformer = BoogiePysmtTransformer({v.name: v for v in vars})
-        for _, target_var in smt_transformer.smt_vars.items():
+    def run(self, reqs: list[Requirement], variables: set[Variable]) -> list[CompletenessCheckResult]:
+        logging.info("Starting PoorMansComplete Analysis for requirements set...")
+        results = []
+        smt_transformer = BoogiePysmtTransformer(variables)
+        smt_to_vars = {
+            smt_transformer.smt_vars[hanfor_var.name]: hanfor_var
+            for hanfor_var in variables
+            if hanfor_var.name in smt_transformer.smt_vars
+        }
+        env_assumptions = self.extract_environment_assumption(variables, smt_transformer)
+        for target_var, hanfor_var in smt_to_vars.items():
             term = self.extract_reqs_term(smt_transformer, reqs, target_var)
             term = FalseTermAbsorber().walk(term)
-            result += self.check_complete_var(term, target_var)
-        return result
+            results.append(self.check_env_violated(term, target_var, env_assumptions, hanfor_var))
+            results.append(self.check_complete_var(term, target_var, env_assumptions, hanfor_var))
+        logging.info("... finished PoorMansComplete.")
+        return results
 
-    def check_complete_var(self, term: FNode, target_var: FNode):
+    def check_env_violated(
+        self, term: FNode, target_var: FNode, env_assumption: FNode, hanfor_var: Variable
+    ) -> CompletenessCheckResult:
         result = ""
         with Solver(name=SOLVER_NAME, logic=LOGIC) as solver:
-            q_form = Not(term)
+            if target_var in get_free_variables(env_assumption):
+                a_form = And(term, Not(env_assumption))
+                outside_environment = solver.is_sat(a_form)
+                if outside_environment:
+                    return CompletenessCheckResult(
+                        hanfor_var,
+                        CompletenessCheckOutcome.ENV_VIOLATED,
+                        f"{target_var.symbol_name()}': value {solver.get_value(target_var)} is outside of Environment.\n"
+                        f"Term is: {term}\n"
+                        f"Environment is: {env_assumption}\n",
+                    )
+        return CompletenessCheckResult(hanfor_var, CompletenessCheckOutcome.OK, "")
+
+    def check_complete_var(
+        self, term: FNode, target_var: FNode, env_assumption: FNode, hanfor_var: Variable
+    ) -> CompletenessCheckResult:
+        result = ""
+        with Solver(name=SOLVER_NAME, logic=LOGIC) as solver:
+            q_form = And(Not(term), env_assumption)
             is_incomplete = solver.is_sat(q_form)
             if is_incomplete:
-                logging.info(
-                    f"INCOMPLETE '{target_var.symbol_name()}', Value    {solver.get_value(target_var)}  is uncovered.\n"
-                    f"{term}"
+                return CompletenessCheckResult(
+                    hanfor_var,
+                    CompletenessCheckOutcome.INCOMPLETE,
+                    f"{target_var.symbol_name()}': value {solver.get_value(target_var)}  is uncovered.\n"
+                    f"Term is: {term}\n"
+                    f"Environment is: {env_assumption}\n",
                 )
         # return f"{target_var} is complete: {not is_incomplete}"
-        return result
+        return CompletenessCheckResult(hanfor_var, CompletenessCheckOutcome.OK, "")
 
     def extract_reqs_term(
         self,
@@ -58,24 +107,60 @@ class PoorMansComplete:
         for _, formalisation in req.formalizations.items():
             expression_types = formalisation.scoped_pattern.get_allowed_types()
             for ident, expression in formalisation.expressions_mapping.items():
-                if not expression.raw_expression:
+                if not expression:
                     # filter out empty expressions
                     continue
                 if ident in expression_types and boogie_parsing.BoogieType.real in expression_types[ident]:
                     # filter out all expressions that are non-boolean (currently only clock constraints)
                     continue
                 try:
+                    # TODO move parsing and  subsequent caching into the expressions
                     ast = parser.parse(expression.raw_expression)
+                    smt_expr = smt_transformer.transform(ast)
                 except Exception as e:
                     logging.error(
                         f"Parsing error in requirement: {req.rid} expression {expression.raw_expression}.\n {e}"
                     )
-                smt_expr = smt_transformer.transform(ast)
+                    continue
                 if target_var not in get_free_variables(smt_expr):
                     continue
                 term = Or(term, smt_expr)
         term = ProjectionWalker(target_var).walk(term)
         return term
+
+    def extract_environment_assumption(self, variables: set[Variable], smt_transformer: BoogiePysmtTransformer):
+        term = TRUE()
+        parser = boogie_parsing.get_parser_instance()
+        for var in variables:
+            for k, f in var.constraints.items():
+                expression_types = f.scoped_pattern.get_allowed_types()
+                for ident, expression in f.expressions_mapping.items():
+                    if not expression.raw_expression:
+                        # filter out empty expressions
+                        continue
+                    if ident in expression_types and boogie_parsing.BoogieType.real in expression_types[ident]:
+                        # filter out all expressions that are non-boolean (currently only clock constraints)
+                        continue
+                    try:
+                        ast = parser.parse(expression.raw_expression)
+                        smt_expr = smt_transformer.transform(ast)
+                    except Exception as e:
+                        logging.error(
+                            f"Parsing error in constraint: {var.name} expression {expression.raw_expression}.\n {e}"
+                        )
+                        continue
+                    # TODO puh, unsure on how to handle non invariant pattern at this point
+                    if f.scoped_pattern.scope != Scope.GLOBALLY:
+                        logging.warning(
+                            f"Variable {var.name} constraint {k} is not an Absence or Universality pattern... skipping."
+                        )
+                        continue
+                    match f.scoped_pattern.pattern.name:
+                        case "Universality":
+                            term = And(term, smt_expr)
+                        case "Absence":
+                            term = And(term, Not(smt_expr))
+        return simplify(term)
 
 
 class ProjectionWalker(IdentityDagWalker):

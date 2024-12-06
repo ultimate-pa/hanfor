@@ -1,10 +1,11 @@
+import logging
 from typing import Type
 from flask import Blueprint, render_template, request, Response
 from flask.views import MethodView
 from pydantic import BaseModel
 from hanfor_flask import current_app
 from reqtransformer import Requirement, Variable
-from quickchecks.check_poormanscomplete import PoorMansComplete
+from quickchecks.check_poormanscomplete import PoorMansComplete, CompletenessCheckResult, CompletenessCheckOutcome
 
 # Flask: Modular Applications with Blueprints. https://flask.palletsprojects.com/en/2.2.x/blueprints/
 # Flask: Method Dispatching and APIs. https://flask.palletsprojects.com/en/2.2.x/views/#method-dispatching-and-apis
@@ -37,11 +38,17 @@ class QuickChecksApi(MethodView):
             id: int
             data: str
 
-        # request_data = RequestData.parse_obj(request.json)
-        reqs = list(current_app.db.get_objects(Requirement).values())
-        vars = list(current_app.db.get_objects(Variable).values())
-        result = PoorMansComplete()(reqs, vars)
+        self.run_checks()
         return "OI"
+
+    def run_checks(self):
+        reqs = list(current_app.db.get_objects(Requirement).values())
+        vars = set(current_app.db.get_objects(Variable).values())
+        results = PoorMansComplete().run(reqs, vars)
+        for result in results:
+            if result.outcome == CompletenessCheckOutcome.OK:
+                continue
+            logging.info(result)
 
     def get(self, id: int) -> str | dict | tuple | Response:
         return "OK"
