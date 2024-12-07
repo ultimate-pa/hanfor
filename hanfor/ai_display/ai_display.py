@@ -2,7 +2,6 @@ import logging
 from typing import Type, Union
 from flask import Blueprint, render_template, request, Response, jsonify
 from flask.views import MethodView
-from hanfor.ai_display.logic import ai_driver
 from flask import current_app
 
 # JavaScript bundle for the frontend
@@ -37,6 +36,7 @@ class AiApi(MethodView):
 
         if data.get("action") == "start_clustering":
             current_app.ai.start_clustering()
+            current_app.ai.terminate_ai_formalization_threads()
             return jsonify({"message": "Clustering started", "total": 10}), 200
 
         return jsonify({"error": "Invalid action"}), 400
@@ -65,7 +65,7 @@ class AiApi(MethodView):
                     )
             return jsonify({"clusters": cluster_list}), 200
         elif query_type == "progress_ai":
-            ai_progress_state = ai_driver.get_progress_state_ai_formalization()
+            ai_progress_state = current_app.ai.get_ai_formalization_progress()
             return jsonify(ai_progress_state), 200
         else:
             return jsonify({"error": "Invalid 'type' parameter"}), 400
@@ -85,8 +85,3 @@ class AiApi(MethodView):
 
 # Register the API routes with the api_blueprint
 register_api(api_blueprint, AiApi)
-
-
-def update(rid: int) -> None:
-    """Trigger the update process for a specific requirement ID."""
-    ai_driver.update(rid)
