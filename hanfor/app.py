@@ -278,7 +278,7 @@ def api(resource, command):
                     return jsonify({"success": False, "errormsg": error_msg})
                 else:
                     app.db.update()
-                    ai_display.update(requirement.rid)
+                    app.ai.updated_requirement(requirement.rid)
                     return jsonify(requirement.to_dict()), 200
 
         # Multi Update Tags or Status.

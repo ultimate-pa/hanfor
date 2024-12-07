@@ -1,10 +1,7 @@
 import logging
+import threading
 import time
 import random
-from reqtransformer import Requirement
-
-# URL of the service endpoint
-SERVICE_URL = "http://127.0.0.1:5000/api/req/"
 
 # Dictionary for predefined formalization templates
 FORMALIZATION_TEMPLATES = {
@@ -41,39 +38,20 @@ FORMALIZATION_TEMPLATES = {
 }
 
 
-# AI-based formalization function
-def generate_formalization(req_ai: Requirement, req_formal: Requirement) -> dict:
-    # Simulate processing time
-    t = random.randint(5, 15)
-    time.sleep(t)
-    logging.info(f"Time: {t}s")
-    req_id = req_ai.to_dict(include_used_vars=True)["id"]
-
-    # Check if the requirement ID exists in the predefined templates
-    if req_id in FORMALIZATION_TEMPLATES:
-        return FORMALIZATION_TEMPLATES[req_id]
-    else:
-        logging.warning(f"Requirement ID {req_id} not found in predefined templates.")
-        return {
-            "scope": "GLOBALLY",
-            "pattern": "Universality",
-            "expression_mapping": {"P": "", "Q": "", "R": "True", "S": "", "T": "", "U": "", "V": ""},
-        }
-
-
 class AIFormalization:
     """
     A class to handle the AI-based formalization process with clear statuses.
     """
 
-    def __init__(self, req_ai, req_formal):
+    def __init__(self, req_ai, req_formal, stop_event_ai):
         self.req_ai = req_ai
         self.req_formal = req_formal
         self.prompt = None
         self.ai_response = None
         self.formalized_output = None
         self.status = "initialized"
-        self.time = None
+        self.del_time = None
+        self.stop_event = stop_event_ai
 
     def create_prompt(self):
         """
@@ -81,9 +59,14 @@ class AIFormalization:
         """
         try:
             self.status = "generating_prompt"
-            # Simulate processing time
             t = random.randint(2, 5)
-            time.sleep(t)
+            for _ in range(t):
+                if self.stop_event.is_set():
+                    self.status = "terminated"
+                    self.del_time = time.time()
+                    logging.info("Prompt creation terminated.")
+                    return
+                time.sleep(1)
             self.prompt = f"Please formalize the following requirement: {self.req_ai.to_dict()}"
             self.status = "prompt_created"
             logging.info("Prompt created successfully.")
@@ -97,9 +80,14 @@ class AIFormalization:
         """
         try:
             self.status = "waiting_ai_response"
-            # Simulate processing time
             t = random.randint(5, 10)
-            time.sleep(t)
+            for _ in range(t):
+                if self.stop_event.is_set():
+                    self.status = "terminated"
+                    self.del_time = time.time()
+                    logging.info("AI query terminated.")
+                    return
+                time.sleep(1)
             self.ai_response = {
                 "formalized_pattern": "Universality",
                 "scope": "GLOBALLY",
@@ -117,12 +105,16 @@ class AIFormalization:
         """
         try:
             self.status = "parsing_ai_response"
-            # Simulate processing time
             t = random.randint(2, 5)
-            time.sleep(t)
+            for _ in range(t):
+                if self.stop_event.is_set():
+                    self.status = "terminated"
+                    self.del_time = time.time()
+                    logging.info("Parsing AI response terminated.")
+                    return
+                time.sleep(1)
             if not self.ai_response:
                 raise ValueError("AI response is empty.")
-
             self.formalized_output = {
                 "scope": self.ai_response.get("scope", "GLOBALLY"),
                 "pattern": self.ai_response.get("formalized_pattern", "Universality"),
@@ -139,8 +131,14 @@ class AIFormalization:
         Check predefined templates and finalize the formalized output.
         """
         try:
-            req_id = self.req_ai.to_dict(include_used_vars=True).get("id")
+            self.status = "finalizing_output"
+            if self.stop_event.is_set():
+                self.status = "terminated"
+                self.del_time = time.time()
+                logging.info("Finalizing output terminated.")
+                return
 
+            req_id = self.req_ai.to_dict(include_used_vars=True).get("id")
             if req_id in FORMALIZATION_TEMPLATES:
                 self.formalized_output = FORMALIZATION_TEMPLATES[req_id]
                 self.status = "finalized_from_template"
@@ -154,22 +152,22 @@ class AIFormalization:
 
     def run_process(self):
         """
-        Run the entire process step by step.
+        Run the entire process step by step with stop event handling.
         """
         self.create_prompt()
-        if self.status.startswith("error"):
-            self.time = time.time()
+        if self.status == "terminated" or self.status.startswith("error"):
+            self.del_time = time.time()
             return
 
         self.query_ai()
-        if self.status.startswith("error"):
-            self.time = time.time()
+        if self.status == "terminated" or self.status.startswith("error"):
+            self.del_time = time.time()
             return
 
         self.parse_ai_response()
-        if self.status.startswith("error"):
-            self.time = time.time()
+        if self.status == "terminated" or self.status.startswith("error"):
+            self.del_time = time.time()
             return
 
         self.finalize_output()
-        self.time = time.time()
+        self.del_time = time.time()
