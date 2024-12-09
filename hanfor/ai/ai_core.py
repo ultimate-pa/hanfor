@@ -30,24 +30,42 @@ class AiCore:
         self.clustering_progress = None
         self._locked_cluster = []
 
+    def _update_progress(self, progress_outer: Progress, progress_inner: Optional[Progress], update):
+        if progress_inner:
+            self.progress_status[progress_outer][progress_inner] = update
+        else:
+            self.progress_status[progress_outer] = update
+
     def terminate_cluster_thread(self):
-        self.stop_event_cluster.set()
-        self.clustering_progress_thread.join()
-        self.clustering_progress = None
-        self.stop_event_cluster.clear()
-        self.progress_status[Progress.CLUSTER][Progress.PROCESSED] = 0
-        self.progress_status[Progress.CLUSTER][Progress.STATUS] = Progress.NOT_STARTED
+        if self.clustering_progress_thread and self.clustering_progress_thread.is_alive():
+            self.stop_event_cluster.set()
+            self.clustering_progress_thread.join()
+            self.clustering_progress = None
+            self.stop_event_cluster.clear()
+            self._update_progress(Progress.CLUSTER, Progress.PROCESSED, 0)
+            self._update_progress(Progress.CLUSTER, Progress.STATUS, Progress.NOT_STARTED)
 
     def start_clustering(self) -> None:
         # If currently clustering, terminate the Thread
         if self.clustering_progress_thread and self.clustering_progress_thread.is_alive():
             self.terminate_cluster_thread()
 
-        self.progress_status[Progress.CLUSTER][Progress.STATUS] = Progress.PENDING
-        requirements = hanfor_flask.current_app.db.get_objects(reqtransformer.Requirement)
-        self.progress_status[Progress.CLUSTER][Progress.TOTAL] = len(requirements)
+        self._update_progress(
+            Progress.CLUSTER,
+            None,
+            {
+                Progress.STATUS: Progress.PENDING,
+                Progress.PROCESSED: 0,
+                Progress.TOTAL: 0,
+            },
+        )
 
-        self.clustering_progress = ClusteringProgress(requirements, self.progress_status[Progress.CLUSTER])
+        requirements = hanfor_flask.current_app.db.get_objects(reqtransformer.Requirement)
+        self._update_progress(Progress.CLUSTER, Progress.TOTAL, len(requirements))
+
+        self.clustering_progress = ClusteringProgress(
+            requirements, self.progress_status[Progress.CLUSTER], self._update_progress
+        )
 
         def clustering_thread(clustering_progress_class: ClusteringProgress, stop_event_cluster: Event) -> None:
             self.clusters = clustering_progress_class.start(stop_event_cluster)
@@ -58,9 +76,10 @@ class AiCore:
         self.clustering_progress_thread.start()
 
     def terminate_ai_formalization_threads(self) -> None:
-        self.stop_event_ai.set()
-        self.clustering_progress_thread.join()
-        self.stop_event_ai.clear()
+        if self.ai_formalization_thread and self.ai_formalization_thread.is_alive():
+            self.stop_event_ai.set()
+            self.ai_formalization_thread.join()
+            self.stop_event_ai.clear()
 
     def updated_requirement(self, rid_u: str) -> None:
         if not self.clusters or not self._check_template_for_ai_formalization(rid_u):

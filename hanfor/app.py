@@ -15,6 +15,7 @@ import flask
 from flask_socketio import SocketIO
 from flask import render_template, request, jsonify, make_response, json
 
+from hanfor.ai.ai_api import ai_api
 from hanfor_flask import HanforFlask
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import HTTPException
@@ -59,8 +60,6 @@ app.config.from_object("config")
 app.db = None
 socketio = SocketIO(app)
 
-from ai_display import ai_display
-
 if app.config["FEATURE_ULTIMATE"]:
     from ultimate import ultimate
 
@@ -83,8 +82,8 @@ app.register_blueprint(tags.api_blueprint)
 app.register_blueprint(statistics.blueprint)
 app.register_blueprint(statistics.api_blueprint)
 # Ai
-app.register_blueprint(ai_display.blueprint)
-app.register_blueprint(ai_display.api_blueprint)
+app.register_blueprint(ai_api.blueprint)
+app.register_blueprint(ai_api.api_blueprint)
 
 # register socket IO namespaces
 telemetry_namespace = TelemetryWs("/telemetry")
