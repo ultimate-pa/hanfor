@@ -1,6 +1,7 @@
 import logging
 import time
 from asyncio import Event
+
 from hanfor.ai import Progress
 from hanfor.ai.strategies import similarity_methods
 
@@ -10,31 +11,32 @@ debug_enabled = False
 
 
 class ClusteringProgress:
-    def __init__(self, requirements: dict, progress_status: dict):
+    def __init__(self, requirements: dict, progress_status: dict, progress_update):
         self.progress_status = progress_status
+        self.progress_update = progress_update
         self.requirements = requirements
 
     def start(self, stop_event_cluster: Event) -> set:
-        return self._cluster_requirements_by_description(self.requirements, self.progress_status, stop_event_cluster)
+        return self._cluster_requirements_by_description(self.requirements, stop_event_cluster)
 
     def _update_progress(self):
+
         if self.progress_status[Progress.STATUS] == Progress.CLUSTERING:
-            self.progress_status[Progress.PROCESSED] += 1
+            self.progress_update(Progress.CLUSTER, Progress.PROCESSED, (self.progress_status[Progress.PROCESSED] + 1))
             if self.progress_status[Progress.PROCESSED] >= self.progress_status[Progress.TOTAL]:
-                self.progress_status[Progress.STATUS] = Progress.COMPLETED
+                self.progress_update(Progress.CLUSTER, Progress.STATUS, Progress.COMPLETED)
 
     def _cluster_requirements_by_description(
         self,
         requirements: dict,
-        progress_status: dict,
         stop_event_cluster: Event,
         similarity_methode=similarity_methods.levenshtein_distance,
     ) -> set:
         threshold = 0.5
         clusters = []
         seen = set()
-
-        progress_status[Progress.STATUS] = Progress.CLUSTERING
+        logging.debug(self.progress_status)
+        self.progress_update(Progress.CLUSTER, Progress.STATUS, Progress.CLUSTERING)
 
         for req_id_outer, requirement1 in requirements.items():
             req1 = requirement1.to_dict()

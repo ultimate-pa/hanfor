@@ -12,7 +12,7 @@ const config = {
         simulator_tab: __dirname + '/js/simulator-tab.js',
         simulator_modal: __dirname + '/js/simulator-modal.js',
         example_blueprint: __dirname + '/../example_blueprint/static/example_blueprint.js',
-        ai_display: __dirname + '/../ai_display/static/ai_display.js',
+        ai: __dirname + '/../ai/ai_api/static/ai.js',
         tags: __dirname + '/../tags/static/tags.js',
         statistics: __dirname + '/../statistics/static/statistics.js',
         ultimate: __dirname + '/../ultimate/static/ultimate.js',

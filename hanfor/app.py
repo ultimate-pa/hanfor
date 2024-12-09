@@ -14,6 +14,7 @@ from functools import wraps, update_wrapper
 import flask
 from flask import render_template, request, jsonify, make_response, json
 
+from hanfor.ai.ai_api import ai_api
 from hanfor_flask import HanforFlask
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import HTTPException
@@ -51,7 +52,6 @@ app.db = None
 from example_blueprint import example_blueprint
 from tags import tags
 from statistics import statistics
-from ai_display import ai_display
 
 if app.config["FEATURE_ULTIMATE"]:
     from ultimate import ultimate
@@ -69,8 +69,8 @@ app.register_blueprint(tags.api_blueprint)
 app.register_blueprint(statistics.blueprint)
 app.register_blueprint(statistics.api_blueprint)
 # Ai
-app.register_blueprint(ai_display.blueprint)
-app.register_blueprint(ai_display.api_blueprint)
+app.register_blueprint(ai_api.blueprint)
+app.register_blueprint(ai_api.api_blueprint)
 
 if "USE_SENTRY" in app.config and app.config["USE_SENTRY"]:
     import sentry_sdk
