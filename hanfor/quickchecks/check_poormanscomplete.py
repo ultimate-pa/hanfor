@@ -54,7 +54,6 @@ class PoorMansComplete:
     def check_env_violated(
         self, term: FNode, target_var: FNode, env_assumption: FNode, hanfor_var: Variable
     ) -> CompletenessCheckResult:
-        result = ""
         with Solver(name=SOLVER_NAME, logic=LOGIC) as solver:
             if target_var in get_free_variables(env_assumption):
                 a_form = And(term, Not(env_assumption))
@@ -72,7 +71,6 @@ class PoorMansComplete:
     def check_complete_var(
         self, term: FNode, target_var: FNode, env_assumption: FNode, hanfor_var: Variable
     ) -> CompletenessCheckResult:
-        result = ""
         with Solver(name=SOLVER_NAME, logic=LOGIC) as solver:
             q_form = And(Not(term), env_assumption)
             is_incomplete = solver.is_sat(q_form)
@@ -80,7 +78,7 @@ class PoorMansComplete:
                 return CompletenessCheckResult(
                     hanfor_var,
                     CompletenessCheckOutcome.INCOMPLETE,
-                    f"{target_var.symbol_name()}': value {solver.get_value(target_var)}  is uncovered.\n"
+                    f"{target_var.symbol_name()}: value {solver.get_value(target_var)}  is uncovered.\n"
                     f"Term is: {term}\n"
                     f"Environment is: {env_assumption}\n",
                 )
@@ -107,7 +105,7 @@ class PoorMansComplete:
         for _, formalisation in req.formalizations.items():
             expression_types = formalisation.scoped_pattern.get_allowed_types()
             for ident, expression in formalisation.expressions_mapping.items():
-                if not expression:
+                if not expression or not expression.raw_expression:
                     # filter out empty expressions
                     continue
                 if ident in expression_types and boogie_parsing.BoogieType.real in expression_types[ident]:
@@ -119,7 +117,7 @@ class PoorMansComplete:
                     smt_expr = smt_transformer.transform(ast)
                 except Exception as e:
                     logging.error(
-                        f"Parsing error in requirement: {req.rid} expression {expression.raw_expression}.\n {e}"
+                        f"Parsing error in requirement: {req.rid} expression `{expression.raw_expression}`.\n {e}"
                     )
                     continue
                 if target_var not in get_free_variables(smt_expr):
@@ -135,7 +133,7 @@ class PoorMansComplete:
             for k, f in var.constraints.items():
                 expression_types = f.scoped_pattern.get_allowed_types()
                 for ident, expression in f.expressions_mapping.items():
-                    if not expression.raw_expression:
+                    if not expression or not expression.raw_expression:
                         # filter out empty expressions
                         continue
                     if ident in expression_types and boogie_parsing.BoogieType.real in expression_types[ident]:

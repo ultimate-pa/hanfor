@@ -14,7 +14,7 @@ from quickchecks.check_poormanscomplete import PoorMansComplete, CompletenessChe
 
 BUNDLE_JS = "dist/quickchecks-bundle.js"
 blueprint = Blueprint("quickchecks", __name__, template_folder="templates", url_prefix="/quickchecks")
-api_blueprint = Blueprint("quickchecks_api", __name__, url_prefix="/api/quickchecks")
+api_blueprint = Blueprint("quickchecks_api_completeness", __name__, url_prefix="/api/quickchecks/completeness")
 
 
 @blueprint.route("/", methods=["GET"])
@@ -24,24 +24,17 @@ def index():
 
 def register_api(bp: Blueprint, method_view: Type[MethodView]) -> None:
     view = method_view.as_view("quickchecks_api")
-    bp.add_url_rule("/", defaults={"id": None}, view_func=view, methods=["GET"])
     bp.add_url_rule("/", defaults={}, view_func=view, methods=["POST"])
     # bp.add_url_rule("/<int:id>", view_func=view, methods=["GET", "PUT", "PATCH", "DELETE"])
 
 
-class QuickChecksApi(MethodView):
+class CompletenessCheckApi(MethodView):
 
-    # The HTTP POST method sends data to the server. The type of the body of the request is indicated by the
-    # Content-Type header.
     def post(self) -> str | dict | tuple | Response:
-        class RequestData(BaseModel):
-            id: int
-            data: str
+        results = self.run_checks()
+        return {"data": [[r.var.name, r.outcome.value, r.message] for r in results]}
 
-        self.run_checks()
-        return "OI"
-
-    def run_checks(self):
+    def run_checks(self) -> list[CompletenessCheckResult]:
         reqs = list(current_app.db.get_objects(Requirement).values())
         vars = set(current_app.db.get_objects(Variable).values())
         results = PoorMansComplete().run(reqs, vars)
@@ -49,9 +42,7 @@ class QuickChecksApi(MethodView):
             if result.outcome == CompletenessCheckOutcome.OK:
                 continue
             logging.info(result)
-
-    def get(self, id: int) -> str | dict | tuple | Response:
-        return "OK"
+        return results
 
 
-register_api(api_blueprint, QuickChecksApi)
+register_api(api_blueprint, CompletenessCheckApi)

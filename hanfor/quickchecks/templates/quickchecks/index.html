@@ -11,8 +11,26 @@
         <button id="awesome-message-button" class="btn btn-primary" type="button">Get awesome message</button>
     </div>
 
-{% endblock %}
 
+
+<table id="completeness-table" class="table table-hover table-bordered w-100">
+        <thead>
+            <tr>
+                <th class='w-auto' data-column-index='0'>var</th>
+                <th class='w-auto' data-column-index='1'>type</th>
+                <th class='w-auto' data-column-index='2'>description</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <th>var</th>
+                <th>type</th>
+                <th>description</th>
+            </tr>
+        </tfoot>
+        <tbody></tbody>
+    </table>
+{% endblock %}
 {% block scripts %}
     {{ super() }}
     <script type="text/javascript" src="{{ url_for('static', filename=BUNDLE_JS) }}"></script>
