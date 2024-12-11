@@ -42,10 +42,12 @@
                        aria-controls="log" aria-selected="false">Analysis</a>
                 </li>
                 {% endif %}
+                {% if config.FEATURE_SIMULATOR_INCONSISTENCY_PRE_CHECK %}
                 <li class="nav-item" role="presentation">
                     <a class="nav-link" id="rti-tab" data-bs-toggle="tab" href="#rti-pane" role="tab"
-                       aria-controls="log" aria-selected="false">rti</a>
+                       aria-controls="log" aria-selected="false">rt-inconsistency pre-check</a>
                 </li>
+                {% endif %}
 
             </ul>
         </div>

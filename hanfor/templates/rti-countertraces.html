@@ -1,5 +1,7 @@
 <div class="col">
+    <h5> {{ rtis.get_req_mapping().items() | length }} rt-inconsistencies found </h5>
     <div class="accordion">
+
 
         {% for rti in rtis.get_req_mapping().items()%}
             <div class="accordion-item">
@@ -14,7 +16,7 @@
                     </button>
                 </h2>
 
-                <div id="collapse-{{  rti[0] }}" class="accordion-collapse collapse show"
+                <div id="collapse-{{  rti[0] }}" class="accordion-collapse collapse"
                      aria-labelledby="heading-{{  rti[0] }}">
                     <div class="accordion-body">
                         <h6>Number of requirements: {{ rti[1] | length }}</h6>

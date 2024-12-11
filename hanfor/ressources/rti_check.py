@@ -11,7 +11,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Tuple
 import logging
-
+from fractions import Fraction
 from pysmt.fnode import FNode
 from pysmt.rewritings import conjunctive_partition
 from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, get_model, is_sat, FALSE, get_unsat_core, Not, Solver, Or, is_valid, Implies, TRUE
@@ -57,8 +57,8 @@ class RTIcheck:
         self.variables_dict = {}
         self.chain_reqs_list = []
         self.rtis = []
-        self.depth = int(depth1)
 
+        self.get_depth_from_input(depth1)
         self.get_attributes()
         self.get_variables_dict()
         self.get_rtis()
@@ -111,19 +111,28 @@ class RTIcheck:
         """
         Retrieves and sets the attributes for each requirement.
         """
+        for i in range(len(self.requirements)-1):
+            if len(self.requirements[i].countertrace.dc_phases) < 3:
+                self.requirements.remove(self.requirements[i])
+                i = i-1
         for req in self.requirements:
             req.exit_conditions = self.exit_condition(req)
             req.exit_conditions = self.simplify(req.exit_conditions)
             exit_conditions_chain = self.get_or_list(req.exit_conditions, [])
             penultimate = req.countertrace.dc_phases[-2]
             req.id = req.id + "_" + str(req.countertrace_id)
-            if req.countertrace.dc_phases[-2].bound is not None:
+            if req.countertrace.dc_phases[-2].bound is not None and len(req.countertrace.dc_phases) > 2:
                 penultimate = req.countertrace.dc_phases[-3]
             for exit_condition in exit_conditions_chain:
                 req.exit_options.append(self.ExitOptions(exit_condition, self.get_variables(exit_condition), penultimate, req.countertrace.dc_phases[-2]))
             if len(exit_conditions_chain) > 1:
                 req.chain_req = True
                 self.chain_reqs_list.append(req)
+
+
+
+
+
 
     def simplify(self, f: FNode) -> FNode:
         """
@@ -218,8 +227,10 @@ class RTIcheck:
         Retrieves and sets the RTIs.
         """
         self.get_rtis_without_chain_reqs()
+        if self.depth > len(self.chain_reqs_list):
+            self.depth = len(self.chain_reqs_list)
 
-        for depth in range(1, self.depth):
+        for depth in range(1, int(self.depth) +1):
             chain_reqs_copy = self.chain_reqs_list.copy()
             for chain_req in self.chain_reqs_list:
                 self.chain_check(chain_req, depth, chain_reqs_copy, [chain_req], chain_req.exit_options.copy())
@@ -402,10 +413,10 @@ class RTIcheck:
             if exit_options[0].exit_phase.bound == exit_options[1].exit_phase.bound:
                 if not is_sat(And(exit_options[0].last_red_phase.invariant, exit_options[1].last_red_phase.invariant)):
                     return False
-            elif exit_options[0].exit_phase.bound > exit_options[1].exit_phase.bound:
+            elif exit_options[0].exit_phase.bound._content.payload > exit_options[1].exit_phase.bound._content.payload:
                 if not is_sat(And(exit_options[0].exit_phase.invariant, exit_options[1].last_red_phase.invariant)):
                     return False
-            elif exit_options[0].exit_phase.bound < exit_options[1].exit_phase.bound:
+            elif exit_options[0].exit_phase.bound._content.payload < exit_options[1].exit_phase.bound._content.payload:
                 if not is_sat(And(exit_options[0].last_red_phase.invariant, exit_options[1].exit_phase.invariant)):
                     return False
         return True
@@ -445,3 +456,12 @@ class RTIcheck:
             id += 1
 
         return result
+
+    def get_depth_from_input(self, depth1):
+        try:
+            int(depth1)
+            self.depth = int(depth1)
+            return True
+        except ValueError:
+            self.depth = 1
+            return False

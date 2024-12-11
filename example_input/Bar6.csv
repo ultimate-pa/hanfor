@@ -1,0 +1,22 @@
+REQ,Description,Type
+Lilly,Can Refill Drinks,variable
+Paul,Can Refill Drinks,variable
+Jakob,,variable
+Juli,,variable
+Yannik,,variable
+Working,"The jobs are Bar, RefillDrinks, WashGlasses, BringEmptyBottlesAway",variable
+Working_1,Do a break at least every 150min,Requirement
+Working_2,A break is between 5 and 15min,Requirement
+Working_3,At least one person has to work at the bar,Requirement
+Guests_1,There is space for up to 1200 people,Requirement
+Guests_2,At the start there are 0 guest inside,Requirement
+Drinks_1,"Drinking Rate per Minute is Guest*0,05",Requirement
+Drinks_2,Refill Drinks at least every 200min,Requirement
+Drinks_3,If DrinkingRate is higher than 50 RefillDrinks at least every 100min,Requirement
+Drinks_4,There is sspace for up tp 2000drinks,Requirement
+Drinks_5,After RefillDrinks there are 2000 drinks inside,Requirement
+Drinks_6,Lilly and Paul can Refill Drinks,Requirement
+Drinks_7,"Refill Drinks takes 2000-StoredDrinks *0,02",Requirement
+Drinks_8,"Paul is faster, he takes only 2000-StoredDrinks*0,17",Requirement
+Drinks_9,"That was exhausting, Paul needs to take a break after Refilling drinks",Requirement
+Drinks_10,"Refill Drinks takes 2000-StoredDrinks *0,02",Requirement
