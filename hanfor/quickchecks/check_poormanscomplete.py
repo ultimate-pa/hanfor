@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from pysmt.fnode import FNode
-from pysmt.shortcuts import FALSE, Or, Not, Solver, TRUE, get_free_variables, And, Bool, simplify
+from pysmt.shortcuts import FALSE, Or, Not, Solver, TRUE, get_free_variables, And, Bool, simplify, Exists
 from pysmt.walkers import IdentityDagWalker
 
 import boogie_parsing
@@ -54,15 +54,20 @@ class PoorMansComplete:
     def check_env_violated(
         self, term: FNode, target_var: FNode, env_assumption: FNode, hanfor_var: Variable
     ) -> CompletenessCheckResult:
+        if target_var not in get_free_variables(env_assumption):
+            return CompletenessCheckResult(
+                hanfor_var, CompletenessCheckOutcome.OK, f"'{target_var.symbol_name()}' has no env assumptions."
+            )
         with Solver(name=SOLVER_NAME, logic=LOGIC) as solver:
             if target_var in get_free_variables(env_assumption):
                 a_form = And(term, Not(env_assumption))
-                outside_environment = solver.is_sat(a_form)
+                free = [v for v in get_free_variables(a_form) if v != target_var]
+                outside_environment = solver.is_sat(Exists(free, a_form))
                 if outside_environment:
                     return CompletenessCheckResult(
                         hanfor_var,
                         CompletenessCheckOutcome.ENV_VIOLATED,
-                        f"{target_var.symbol_name()}': value {solver.get_value(target_var)} is outside of Environment.\n"
+                        f"'{target_var.symbol_name()}': value {solver.get_value(target_var)} is outside of Environment.\n"
                         f"Term is: {term}\n"
                         f"Environment is: {env_assumption}\n",
                     )
@@ -71,9 +76,14 @@ class PoorMansComplete:
     def check_complete_var(
         self, term: FNode, target_var: FNode, env_assumption: FNode, hanfor_var: Variable
     ) -> CompletenessCheckResult:
+        if target_var not in get_free_variables(term):
+            return CompletenessCheckResult(
+                hanfor_var, CompletenessCheckOutcome.OK, f"'{target_var.symbol_name()}' is unused."
+            )
         with Solver(name=SOLVER_NAME, logic=LOGIC) as solver:
             q_form = And(Not(term), env_assumption)
-            is_incomplete = solver.is_sat(q_form)
+            free = [v for v in get_free_variables(q_form) if v != target_var]
+            is_incomplete = solver.is_sat(Exists(free, q_form))
             if is_incomplete:
                 return CompletenessCheckResult(
                     hanfor_var,
