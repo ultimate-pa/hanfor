@@ -35,6 +35,7 @@ class TelemetryWs(Namespace):
         self.db = TinyFlux(path.join(data_folder, "telemetry_data.csv"))
 
     def __add_datapoint(self, scope: str, data_id: str, user_id: str, event: str):
+        print(f"add data: {scope}, {data_id}, {user_id}, {event}")
         if self.db is not None:
             p = Point(time=datetime.now(), measurement=scope, tags={"id": data_id, "uid": user_id, "event": event})
             self.db.insert(p, compact_key_prefixes=True)
@@ -57,12 +58,14 @@ class TelemetryWs(Namespace):
             and self.connections[sid].last_message["event"] == "open"
         ):
             self.__add_datapoint(*self.connections[sid].get_db_entry(auto_close=True))
+        self.__add_datapoint("system", sid, self.connections[sid].user_id, "window_closed")
         del self.connections[sid]
 
     def on_user_id(self, data):
         sid = request.sid  # noqa sid exists for request
         if sid in self.connections:
             self.connections[sid].user_id = data
+            self.__add_datapoint("system", sid, self.connections[sid].user_id, "window_opened")
 
     def on_event(self, data):
         sid = request.sid  # noqa sid exists for request
