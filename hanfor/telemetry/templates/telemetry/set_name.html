@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block title %}Telemetry Set Name{% endblock %}
+{% block content %}
+    <div class="container mt-5">
+    <h1 class="mb-4">Update Name</h1>
+    <form id="nameForm">
+      <div class="mb-3">
+        <label for="currentName" class="form-label">Current Name:</label>
+        <p id="currentName" class="form-control-plaintext"></p>
+      </div>
+      <div class="mb-3">
+        <label for="newName" class="form-label">New Name:</label>
+        <input type="text" id="newName" class="form-control" placeholder="Enter new name">
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    <div id="result" class="mt-4"></div>
+  </div>
+
+
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+
+    <script type="text/javascript">
+        let base_url = '{{ url_for('site', site='/') }}';
+        let static_url = '{{ url_for('static', filename='') }}'
+    </script>
+    <script type="text/javascript" src="{{ url_for('static', filename=BUNDLE_JS) }}"></script>
+{% endblock %}
