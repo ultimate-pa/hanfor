@@ -82,9 +82,11 @@ class AiCore:
             self.stop_event_ai.clear()
 
     def updated_requirement(self, rid_u: str) -> None:
+
         if not self.clusters or not self._check_template_for_ai_formalization(rid_u):
             logging.debug("No Formalization")
             return
+
         req_queue = self._load_requirements_to_queue(rid_u)
         self.ai_formalization_thread = Thread(
             target=self._mother_thread_of_ai_formalization,
@@ -126,7 +128,7 @@ class AiCore:
         self.formalization_objects = [
             f_obj
             for f_obj in self.formalization_objects
-            if f_obj.del_time is None or (current_time - f_obj.del_time < 10)
+            if f_obj.del_time is None or (current_time - f_obj.del_time < 1000)
         ]
 
     def _mother_thread_of_ai_formalization(
@@ -208,6 +210,7 @@ class AiCore:
 
     def _process_queue_element(self, formalize_object: AIFormalization) -> None:
         formalize_object.run_process()
-        if self.stop_event_ai.is_set():
+        if self.stop_event_ai.is_set() or formalize_object.status.startswith("terminated"):
+            logging.warning(formalize_object.status)
             return
         self._formalization_integration(formalize_object.formalized_output, formalize_object.req_ai)
