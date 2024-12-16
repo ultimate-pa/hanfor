@@ -25,7 +25,7 @@ socket.on('command', function (msg) {
     }
 });
 
-function sendTelemetry(scope, id, event) {
+export function sendTelemetry(scope, id, event) {
     let msg = {
         "scope": scope,
         "id": id,
