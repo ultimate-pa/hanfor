@@ -1,7 +1,6 @@
 const {io} = require("socket.io-client")
 const {v4: uuidv4} = require("uuid")
-
-exports.sendTelemetry = sendTelemetry
+import {getCookie, setCookie} from "./cookie_control"
 
 let socket = io("/telemetry");
 
@@ -33,27 +32,4 @@ function sendTelemetry(scope, id, event) {
         "event": event
     }
    socket.emit("event", JSON.stringify(msg))
-}
-
-function setCookie(c_name, c_value, ex_days) {
-    const d = new Date();
-    d.setTime(d.getTime() + (ex_days * 24 * 60 * 60 * 1000));
-    let expires = "expires=" + d.toUTCString();
-    document.cookie = c_name + "=" + c_value + ";" + expires + ";path=/";
-}
-
-function getCookie(cname) {
-    let name = cname + "=";
-    let decodedCookie = decodeURIComponent(document.cookie);
-    let ca = decodedCookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) === ' ') {
-            c = c.substring(1);
-        }
-        if (c.indexOf(name) === 0) {
-            return c.substring(name.length, c.length);
-        }
-    }
-    return "";
 }
