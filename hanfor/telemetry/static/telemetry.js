@@ -13,13 +13,13 @@ socket.on('disconnect', function () {
 
 socket.on('command', function (msg) {
     console.log("command: " + msg);
-    if (msg === "send_user_id") {
+    if (msg === "send_user_info") {
         let userid = getCookie("userid")
         if (userid === "") {
             userid = uuidv4()
             setCookie("userid", userid, 365)
         }
-        socket.emit("user_id", userid)
+        socket.emit("user_info", {"user_id": userid, "path": window.location.pathname})
     } else if (msg === "no_telemetry") {
         console.log("Telemetry disabled")
     }

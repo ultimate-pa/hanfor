@@ -43,7 +43,7 @@ class TelemetryWs(Namespace):
     def on_connect(self):
         sid = request.sid  # noqa sid exists for request
         if current_app.config["FEATURE_TELEMETRY"]:
-            emit("command", "send_user_id")
+            emit("command", "send_user_info")
             self.connections[sid] = TelemetryConnection(sid)
         else:
             emit("command", "no_telemetry")
@@ -61,11 +61,11 @@ class TelemetryWs(Namespace):
         self.__add_datapoint("system", sid, self.connections[sid].user_id, "window_closed")
         del self.connections[sid]
 
-    def on_user_id(self, data):
+    def on_user_info(self, data):
         sid = request.sid  # noqa sid exists for request
         if sid in self.connections:
-            self.connections[sid].user_id = data
-            self.__add_datapoint("system", sid, self.connections[sid].user_id, "window_opened")
+            self.connections[sid].user_id = data["user_id"]
+            self.__add_datapoint("system", sid, self.connections[sid].user_id, f"{data['path']}_window_opened")
 
     def on_event(self, data):
         sid = request.sid  # noqa sid exists for request

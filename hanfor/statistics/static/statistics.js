@@ -1,4 +1,5 @@
 require('bootstrap')
+require('../../telemetry/static/telemetry')
 const cytoscape = require('cytoscape')
 const fcose = require('cytoscape-fcose')
 const download = require('downloadjs')
