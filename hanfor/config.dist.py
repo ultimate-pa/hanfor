@@ -79,7 +79,7 @@ FEATURE_SIMULATOR_INCONSISTENCY_PRE_CHECK = False
 FEATURE_ULTIMATE = False
 
 # Telemetry
-FEATURE_TELEMETRY = False
+FEATURE_TELEMETRY = True
 
 ################################################################################
 #                               Miscellaneous                                  #
