@@ -3,7 +3,7 @@ from __future__ import annotations
 from itertools import combinations
 
 from lib_pea.countertrace import Countertrace
-
+import time
 import csv
 import itertools
 import math
@@ -57,6 +57,7 @@ class RTIcheck:
         self.variables_dict = {}
         self.chain_reqs_list = []
         self.rtis = []
+        self.duration = 0
 
         self.get_depth_from_input(depth1)
         self.get_attributes()
@@ -226,6 +227,7 @@ class RTIcheck:
         """
         Retrieves and sets the RTIs.
         """
+        start_time = time.time()
         self.get_rtis_without_chain_reqs()
         if self.depth > len(self.chain_reqs_list):
             self.depth = len(self.chain_reqs_list)
@@ -239,6 +241,7 @@ class RTIcheck:
         self.get_minimum_sets()
         self.rti_csv_output()
         self.exit_conditions()
+        self.duration = time.time() - start_time
 
     def get_rtis_without_chain_reqs(self):
         """
@@ -456,6 +459,15 @@ class RTIcheck:
             id += 1
 
         return result
+    def get_time(self):
+        """
+        Retrieves the duration of the RTI check.
+
+        Returns:
+            float: The duration of the RTI check.
+        """
+        time = self.duration / 60
+        return round(time, 2)
 
     def get_depth_from_input(self, depth1):
         try:
