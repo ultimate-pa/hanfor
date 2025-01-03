@@ -49,7 +49,7 @@ class TelemetryWs(Namespace):
             emit("command", "no_telemetry")
             disconnect()
 
-    def on_disconnect(self):
+    def on_disconnect(self, _reason):
         # end last event if needed
         sid = request.sid  # noqa sid exists for request
         if (
