@@ -5,69 +5,207 @@
 {% endblock %}
 
 {% block content %}
-    <h1>Live Updates</h1>
-    <div id="updates"></div>
-    <div class="container mt-4">
-        <h4>Clustering Progress</h4>
-        <div class="mt-3">
-            <button id="terminate-ai-button" class="btn btn-danger">Terminate AI</button>
-            <button id="terminate-clustering-button" class="btn btn-warning">Terminate Clustering</button>
-            <button id="get-cluster-button" class="btn btn-info">Get Cluster Data</button>
-            <button id="get-ai-progress-button" class="btn btn-primary">Get AI Progress</button>
-            <button id="get-cluster-progress-button" class="btn btn-success">Get Cluster Progress</button>
-            <button id="start-clustering" class="btn btn-success">Start Clustering</button>
-        </div>
-        <div class="mt-4" id="output">
-            <h5>Output</h5>
-            <pre id="output-content" style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto;">Click a button to see results here...</pre>
+<div class="card">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" id="overview-tab" data-bs-toggle="tab" href="#overview-content" role="tab"
+                   aria-controls="overview-content" aria-selected="true">Overview</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="simularity-tab" data-bs-toggle="tab" href="#simularity-content" role="tab"
+                   aria-controls="simularity-content" aria-selected="false">Simularity Interface</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="ai-interface-tab" data-bs-toggle="tab" href="#ai-interface-content" role="tab"
+                   aria-controls="ai-interface-content" aria-selected="false">AI Interface</a>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content">
+            <!-- Overview Content -->
+            <div class="tab-pane fade show active" id="overview-content" role="tabpanel" aria-labelledby="overview-tab">
+                <h4>System Controls</h4>
+                <div class="d-flex flex-column align-items-start mb-4">
+                    <div class="form-check form-switch me-3">
+                        <label class="form-check-label" for="toggle-system-switch">Toggle System</label>
+                        <input class="form-check-input" type="checkbox" id="toggle-system-switch" >
+                    </div>
+                    <div class="form-check form-switch me-3">
+                        <label class="form-check-label" for="toggle-ai-switch">Toggle AI</label>
+                        <input class="form-check-input" type="checkbox" id="toggle-ai-switch" >
+                    </div>
+                    <button id="terminate-all-button" class="btn btn-danger mt-3">Terminate All Processes</button>
+                </div>
+
+                <h4>Process Information</h4>
+                <div class="mb-4">
+                    <div class="mb-3">
+                        <h5>Cluster Process</h5>
+                        <p>Status: <span id="cluster-status">XXX</span></p>
+                        <p>Clusters available: <span id="cluster-availability">XXX</span></p>
+                    </div>
+                    <div>
+                        <h5>AI Processes</h5>
+                        <p>Running processes: <span id="ai-running-count">X</span></p>
+                        <p>Processes in queue: <span id="ai-queue-count">X</span></p>
+                    </div>
+                </div>
+
+                <h4>Cluster Data</h4>
+                <table id="cluster-table" class="display">
+                    <thead>
+                        <tr>
+                            <th>Cluster Name</th>
+                            <th>IDs</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Die Daten werden hier eingefügt -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Similarity Interface Content -->
+            <div class="tab-pane fade" id="simularity-content" role="tabpanel" aria-labelledby="simularity-tab">
+                <h4>Similarity Interface</h4>
+                <div class="mt-3">
+                    <button id="terminate-clustering-button" class="btn btn-danger">Terminate Clustering</button>
+                    <button id="start-clustering" class="btn btn-outline-secondary">Start Clustering</button>
+                    <button id="get-matrix-button" class="btn btn-outline-secondary">Get Similarity Matrix</button>
+                </div>
+
+                <!-- Clustering Process Selection -->
+                <div class="mt-3">
+                    <label for="clustering-process-select">Choose Clustering Process:</label>
+                    <select id="clustering-process-select" class="form-select">
+                    </select>
+                </div>
+
+                <!-- Bar for Clustering -->
+                <div id="progress-container" class="mt-3">
+                    <h5 id="progress-status">Status: not started</h5>
+                    <div class="progress">
+                        <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+
+                <!-- Similarity Matrix Section -->
+                <div class="mt-4">
+                    <h4>Similarity Matrix</h4>
+                    <div style="max-height: 500px; overflow: auto;">
+                        <table id="similarity-matrix" class="table table-striped table-bordered">
+                            <thead></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <style>
+                    #similarity-matrix {
+                        font-size: 10px;
+                        border-collapse: collapse;
+                    }
+                    #similarity-matrix th,
+                    #similarity-matrix td {
+                        position: relative;
+                    }
+
+                    #similarity-matrix thead th {
+                        position: sticky;
+                        top: 0;
+                        background: #f8f9fa;
+                        z-index: 2;
+                    }
+
+                    #similarity-matrix tbody th {
+                        position: sticky;
+                        left: 0;
+                        background: #f8f9fa;
+                        z-index: 1;
+                    }
+                </style>
+            </div>
+
+            <!-- AI Interface Content -->
+            <div class="tab-pane fade" id="ai-interface-content" role="tabpanel" aria-labelledby="ai-interface-tab">
+                <h4>AI Interface</h4>
+                <div class="mt-3">
+                    <button id="terminate-ai-button" class="btn btn-danger">Terminate AI</button>
+                </div>
+
+                <!-- AI, Parsing, Prompt-Generation Auswahl -->
+                <div class="mt-3">
+                    <div class="mb-3">
+                        <label for="ai-selection" class="form-label">Select AI Model</label>
+                        <select id="ai-selection" class="form-select">
+                            <option value="ai-model-1">AI Model 1</option>
+                            <option value="ai-model-2">AI Model 2</option>
+                            <option value="ai-model-3">AI Model 3</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="parsing-selection" class="form-label">Select Parsing Method</label>
+                        <select id="parsing-selection" class="form-select">
+                            <option value="parsing-method-1">Parsing Method 1</option>
+                            <option value="parsing-method-2">Parsing Method 2</option>
+                            <option value="parsing-method-3">Parsing Method 3</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="prompt-gen-selection" class="form-label">Select Prompt Generation</label>
+                        <select id="prompt-gen-selection" class="form-select">
+                            <option value="prompt-gen-1">Prompt Generation 1</option>
+                            <option value="prompt-gen-2">Prompt Generation 2</option>
+                            <option value="prompt-gen-3">Prompt Generation 3</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Benutzerdefinierten Prompt eingeben und Antwort anzeigen -->
+                <div class="mt-4">
+                    <h4>Your Custom Prompt</h4>
+                    <div class="mb-3">
+                        <label for="user-prompt" class="form-label">Enter your prompt:</label>
+                        <textarea id="user-prompt" class="form-control" rows="4"></textarea>
+                    </div>
+
+                    <button id="submit-prompt-button" class="btn btn-primary">Submit Prompt</button>
+
+                    <!-- Antwort der AI -->
+                    <div class="mt-4" id="ai-response-container">
+                        <h5>AI Response</h5>
+                        <pre id="ai-response" style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto;">Your AI response will appear here...</pre>
+                    </div>
+                </div>
+
+                <h4>AI Formalization Progress</h4>
+                <table id="ai-progress-table" class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>id</th>
+                            <th>promptDesc</th>
+                            <th>status</th>
+                            <th>aiResponse</th>
+                            <th>deletionCountdown</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be dynamically added via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-
-    <div id="progress-container" class="mt-3">
-        <h5 id="progress-status">Status: not started</h5>
-        <div class="progress">
-            <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-        </div>
-    </div>
-
-
-    <!-- AI Progress Section -->
-    <h4>AI Formalization Progress</h4>
-    <table id="ai-progress-table" class="table table-striped table-bordered">
-        <thead>
-            <tr>
-                <th>id</th>
-                <th>promptDesc</th>
-                <th>status</th>
-                <th>aiResponse</th>
-                <th>deletionCountdown</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Data will be dynamically added via JavaScript -->
-        </tbody>
-    </table>
-
-
-    <h4>Cluster Data</h4>
-        <table id="cluster-table" class="table table-striped table-bordered">
-            <thead>
-                <tr>
-                    <th>Cluster</th>
-                    <th>IDs</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Dynamic data will be inserted here -->
-            </tbody>
-        </table>
+</div>
 {% endblock %}
-
 
 {% block scripts %}
     {{ super() }}
     <script type="text/javascript">
-        // Set the base URL for JavaScript functionality
         var base_url = '{{ url_for("site", site="/") }}';
     </script>
     <script type="text/javascript" src="{{ url_for("static", filename=BUNDLE_JS) }}"></script>

@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Progress(Enum):
+class AiDataEnum(Enum):
     STATUS = "status"
     PROCESSED = "processed"
     TOTAL = "total"
@@ -12,3 +12,7 @@ class Progress(Enum):
     COMPLETED = "completed"
     CLUSTER = "cluster"
     AI = "ai"
+    RUNNING = "running"
+    QUEUED = "queued"
+    SYSTEM = "system"
+    FLAGS = "flags"

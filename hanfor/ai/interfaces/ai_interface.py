@@ -3,6 +3,42 @@ import requests
 import logging
 from hanfor.ai.strategies import ai_formalization_methods
 
+pattern = [
+    "Response",
+    "ResponseChain1-2",
+    "ConstrainedChain",
+    "Precedence",
+    "PrecedenceChain2-1",
+    "PrecedenceChain1-2",
+    "Universality",
+    "UniversalityDelay",
+    "BoundedExistence",
+    "Invariant",
+    "Absence",
+    "BoundedResponse",
+    "BoundedRecurrence",
+    "MaxDuration",
+    "TimeConstrainedMinDuration",
+    "BoundedInvariance",
+    "TimeConstrainedInvariant",
+    "MinDuration",
+    "ConstrainedTimedExistence",
+    "BndTriggeredEntryConditionPattern",
+    "BndTriggeredEntryConditionPatternDelayed",
+    "EdgeResponsePatternDelayed",
+    "BndEdgeResponsePattern",
+    "BndEdgeResponsePatternDelayed",
+    "BndEdgeResponsePatternTU",
+    "Initialization",
+    "Persistence",
+    "Toggle1",
+    "Toggle2",
+    "BndEntryConditionPattern",
+    "ResponseChain2-1",
+    "Existence",
+]
+scope = ["GLOBALLY", "BEFORE", "AFTER", "BETWEEN", "AFTER_UNTIL"]
+
 
 class AIFormalization:
     def __init__(self, req_ai, req_formal, stop_event_ai):
@@ -28,6 +64,17 @@ class AIFormalization:
             return
         self.status = "ai_response_received"
 
+    def test_formalization_complete(self) -> bool:
+        if (
+            self.formalized_output["scope"] in scope
+            and self.formalized_output["pattern"] in pattern
+            and self.formalized_output["expression_mapping"].keys() == {"P", "Q", "R", "S", "T", "U", "V"}
+        ):
+            logging.debug("true" + str(self.req_ai.to_dict()))
+            return True
+        logging.debug("false" + str(self.req_ai.to_dict()))
+        return False
+
     def run_process(self):
         self.status = "generating_prompt"
         (self.status, self.prompt) = ai_formalization_methods.create_prompt(self.req_formal, self.req_ai)
@@ -52,5 +99,9 @@ class AIFormalization:
             return
 
         logging.info(self.formalized_output)
+        if self.test_formalization_complete():
+            self.status = "complete"
+        else:
+            self.status = "error"
 
         self.del_time = time.time()
