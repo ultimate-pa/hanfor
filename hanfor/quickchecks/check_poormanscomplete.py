@@ -18,6 +18,7 @@ LOGIC = "UFLIRA"
 class CompletenessCheckOutcome(Enum):
     INCOMPLETE = "INCOMPLETE"
     ENV_VIOLATED = "ENV_VIOLATED"
+    ENV_INCOMPLETE_UNCONSTRAINT = "ENV_INCOMPLETE_UNCONSTRAINT"
     OK = "OK"
 
 
@@ -76,10 +77,6 @@ class PoorMansComplete:
     def check_complete_var(
         self, term: FNode, target_var: FNode, env_assumption: FNode, hanfor_var: Variable
     ) -> CompletenessCheckResult:
-        if target_var not in get_free_variables(term):
-            return CompletenessCheckResult(
-                hanfor_var, CompletenessCheckOutcome.OK, f"'{target_var.symbol_name()}' is unused."
-            )
         with Solver(name=SOLVER_NAME, logic=LOGIC) as solver:
             q_form = And(Not(term), env_assumption)
             free = [v for v in get_free_variables(q_form) if v != target_var]
@@ -87,7 +84,11 @@ class PoorMansComplete:
             if is_incomplete:
                 return CompletenessCheckResult(
                     hanfor_var,
-                    CompletenessCheckOutcome.INCOMPLETE,
+                    (
+                        CompletenessCheckOutcome.ENV_VIOLATED
+                        if target_var in get_free_variables(env_assumption)
+                        else CompletenessCheckOutcome.ENV_INCOMPLETE_UNCONSTRAINT
+                    ),
                     f"{target_var.symbol_name()}: value {solver.get_value(target_var)}  is uncovered.\n"
                     f"Term is: {term}\n"
                     f"Environment is: {env_assumption}\n",
