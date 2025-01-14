@@ -36,6 +36,103 @@ BndEntryConditionPattern: it is always the case that after [R] holds for at leas
 ResponseChain2-1: it is always the case that if [R] holds and is succeeded by [S], then [T] eventually holds after [S]
 Existence: [R] eventually holds
 
+Grammar:
+expr: expr1ni? -> expr
+
+?exprcommastar: _exprcommaplus?
+
+_exprcommaplus: expr1ni
+    | _exprcommaplus _COMMA expr1ni
+
+expr1ni: expr2ni IMPLIES exprimpliesni -> implies
+    | expr2ni
+
+exprimpliesni: expr2ni IMPLIES exprimpliesni -> implies
+    | expr2ni
+
+expr2ni: expr3ni AND exprandni -> conjunction
+    | expr3ni OR exprorni -> disjunction
+    | expr3ni
+
+exprandni: expr3ni AND exprandni -> conjunction
+    | expr3ni
+
+exprorni: expr3ni OR exprorni -> disjunction
+    | expr3ni
+
+expr3ni: expr5ni LT expr5ni -> lt
+    | expr5ni GT expr5ni -> gt
+    | expr5ni LTEQ expr5ni -> lteq
+    | expr5ni GTEQ expr5ni -> gteq
+    | expr5ni EQ expr5ni -> eq
+    | expr5ni NEQ expr5ni -> neq
+    | expr5ni
+
+expr5ni: expr5ni PLUS expr6ni -> plus
+    | expr5ni MINUS expr6ni -> minus
+    | expr6ni
+
+expr6ni: expr6ni TIMES expr7ni -> times
+    | expr6ni DIVIDE expr7ni -> divide
+    | expr6ni MOD expr7ni -> mod
+    | expr7ni
+
+expr7ni: NOT expr7ni -> negation
+    | MINUS expr7ni -> minus_unary
+    | expr9ni
+
+expr9ni: REALNUMBER -> realnumber
+    | NUMBER -> number
+    | ID -> id
+    | TRUE -> true
+    | FALSE -> false
+    | _LPAR expr1ni _RPAR
+    | function
+
+function: ABS _LPAR _exprcommaplus _RPAR -> abs
+    | MIN _LPAR _exprcommaplus _RPAR -> min
+    | MAX _LPAR _exprcommaplus _RPAR -> max
+    | OLD _LPAR _exprcommaplus _RPAR -> old
+
+// Terminals
+_LPAR: "("
+_RPAR: ")"
+_COMMA: ","
+
+TRUE.1: "true"
+FALSE.1: "false"
+
+LT: "<"
+GT: ">"
+LTEQ: "<="
+GTEQ: ">="
+NEQ: "!="
+EQ: "=="
+
+PLUS: "+"
+MINUS: "-"
+TIMES: "*"
+DIVIDE: "/"
+MOD: "%"
+
+NOT: "!"
+AND: "&&"
+OR: "||"
+IMPLIES: "==>"
+
+ID: /[A-Za-z'~#$^_.?\\][0-9A-Za-z'~#$^_.?\\]*/
+NUMBER: "0" | /[1-9][0-9]*/
+REALNUMBER: NUMBER "." /[0-9]+/
+
+ABS: "abs"
+MAX: "max"
+MIN: "min"
+OLD.1: "old"
+
+// Misc
+%import common.WS
+%ignore WS
+
 Write only the following as an answer and replace only the TODOs. Do not add anything else. Use only the given patterns, if it is not possible to use them just write Terminate:
 Output Human readable: TODO
 Output for the server: {'scope': TODO, 'pattern': TODO, 'expression_mapping': {'P': TODO, 'Q': TODO, 'R': TODO, 'S': TODO, 'T': TODO, 'U': TODO, 'V': TODO}}

@@ -75,6 +75,10 @@ $(document).ready(function (){
         $('#progress-bar').attr('aria-valuenow', processed);
         $('#progress-bar').text(`${processed}/${total}`);
 
+        if (data.ai_status.response !== null) {
+            $('#ai-response').text(data.ai_status.response);
+        }
+
         // Updating the cluster table
         populateTable(data.clusters)
         fetchAndDisplayProgress(data.ai_formalization)
@@ -154,6 +158,28 @@ $(document).ready(function (){
             contentType: 'application/json'
         })
     });
+
+    $('#submit-prompt-button').click(function () {
+        var userPrompt = $('#user-prompt').val();
+
+        if (!userPrompt) {
+            alert('Please enter a prompt!');
+            return;
+        }
+        $.ajax({
+            type: 'POST',
+            url: '/api/ai/ai/query',
+            contentType: 'application/json',
+            data: JSON.stringify({ query: userPrompt }),
+            success: function(response) {
+                $('#ai-response').text('Processing your query...');
+            },
+            error: function(xhr, status, error) {
+                $('#ai-response').text('Error: ' + xhr.responseJSON.error);
+            }
+        });
+    });
+
 
     // Visualization of the similarity matrix
     $('#get-matrix-button').click(function () {
@@ -310,9 +336,9 @@ $(document).ready(function (){
             const promptDesc = item.prompt ? item.prompt : 'N/A';
             const status = item.status || 'N/A';
             const aiResponse = item.ai_response ? JSON.stringify(item.ai_response, null, 2) : 'N/A'; // Pretty formatted JSON
-
+            const try_count = item.try_count || 'X';
             // Calculate the countdown for deletion, rounded to the next second
-            const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
+            const currentTime = Math.floor(Date.now() / 10); // Current time in seconds
             const deletionCountdown = item.time ? Math.max(0, Math.ceil(9 - (currentTime - item.time))) : 'N/A';
 
             // Create the table row with an additional column for the countdown
@@ -322,6 +348,7 @@ $(document).ready(function (){
                     <td>${promptDesc}</td>
                     <td>${status}</td>
                     <td>${aiResponse}</td>
+                    <td>${try_count}</td>td>
                     <td id="countdown-${id}">${deletionCountdown !== 'N/A' ? `${deletionCountdown} sec` : deletionCountdown}</td>
                 </tr>
             `;
@@ -339,6 +366,6 @@ $(document).ready(function (){
             order: [[0, 'asc']],  // Optionally sort by ID (or another column) by default
         });
     }
-
+    get_update()
     setInterval(get_update, 1000);
 });

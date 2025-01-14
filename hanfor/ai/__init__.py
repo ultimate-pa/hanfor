@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class AiDataEnum(Enum):
+    RESPONSE = "response"
     STATUS = "status"
     PROCESSED = "processed"
     TOTAL = "total"

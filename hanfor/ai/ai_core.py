@@ -3,6 +3,7 @@ from queue import Queue
 from threading import Thread, Event
 from typing import Optional, List, Any
 from hanfor.ai import AiDataEnum
+from hanfor.ai.interfaces import ai_interface
 from hanfor.ai.interfaces.similarity_interface import ClusteringProgress
 from hanfor.ai.interfaces.ai_interface import AIFormalization
 from hanfor.ai.strategies import similarity_methods
@@ -24,7 +25,7 @@ class AiCore:
             AiDataEnum.PROCESSED: 0,
             AiDataEnum.TOTAL: 0,
         },
-        AiDataEnum.AI: {AiDataEnum.RUNNING: 0, AiDataEnum.QUEUED: 0},
+        AiDataEnum.AI: {AiDataEnum.RUNNING: 0, AiDataEnum.QUEUED: 0, AiDataEnum.RESPONSE: ""},
     }
 
     clustering_progress_thread: Optional[Thread] = None
@@ -129,6 +130,14 @@ class AiCore:
     def set_flag_ai(self, flag_ai: bool) -> None:
         self.__update_progress(AiDataEnum.FLAGS, AiDataEnum.AI, flag_ai)
 
+    def query_ai(self, query) -> None:
+        def background_query(query):
+            response, _ = ai_interface.query_ai(query)
+            self.__update_progress(AiDataEnum.AI, AiDataEnum.RESPONSE, response)
+
+        thread = Thread(target=background_query, args=(query,), daemon=True)
+        thread.start()
+
     def __get_info_sim_methods(self) -> List:
         sim_methods = similarity_methods.sim_methods
         methods_info = []
@@ -151,6 +160,7 @@ class AiCore:
         return {
             "running": self.ai_system_data[AiDataEnum.AI][AiDataEnum.RUNNING],
             "queued": self.ai_system_data[AiDataEnum.AI][AiDataEnum.QUEUED],
+            "response": self.ai_system_data[AiDataEnum.AI][AiDataEnum.RESPONSE],
         }
 
     def __update_progress(self, progress_outer: AiDataEnum, progress_inner: Optional[AiDataEnum], update):
@@ -180,6 +190,7 @@ class AiCore:
                 "prompt": f_obj.prompt,
                 "ai_response": f_obj.ai_response,
                 "formalized_output": f_obj.formalized_output,
+                "try_count": f_obj.try_count,
                 "time": f_obj.del_time,
             }
             for f_obj in self.formalization_objects

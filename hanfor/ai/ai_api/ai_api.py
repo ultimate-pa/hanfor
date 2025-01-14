@@ -96,6 +96,16 @@ class GetMatrix(MethodView):
         return jsonify(current_app.ai.get_matrix())
 
 
+class QueryAi(MethodView):
+    def post(self):
+        data = request.get_json()
+        query = data.get("query")
+        if not query:
+            return jsonify({"error": "No query provided"}), 400
+        current_app.ai.query_ai(query)
+        return jsonify({"status": "processing"}), 202
+
+
 # Register routes with their specific view classes
 api_blueprint.add_url_rule("/get/current_data", view_func=GetCurrentData.as_view("get/current_data"), methods=["GET"])
 api_blueprint.add_url_rule("/terminate/all", view_func=TerminateAll.as_view("terminate/all"), methods=["POST"])
@@ -106,3 +116,4 @@ api_blueprint.add_url_rule("/set/sim/start", view_func=StartClustering.as_view("
 api_blueprint.add_url_rule("/terminate/sim", view_func=TerminateSim.as_view("terminate/sim"), methods=["POST"])
 api_blueprint.add_url_rule("/get/sim/matrix", view_func=GetMatrix.as_view("sim/matrix"), methods=["GET"])
 api_blueprint.add_url_rule("/terminate/ai", view_func=TerminateAi.as_view("terminate/ai"), methods=["POST"])
+api_blueprint.add_url_rule("/ai/query", view_func=QueryAi.as_view("ai/query"), methods=["POST"])
