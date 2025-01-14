@@ -1,4 +1,3 @@
-import functools
 import logging
 from dataclasses import dataclass
 from enum import Enum
@@ -33,6 +32,13 @@ class CompletenessCheckResult:
 
 
 class PoorMansComplete:
+    """
+    Performs some quick and dirty checks on the requirements: For any variable v in the requirements
+    1. is any value of (that is allowed by the constraints of v) mentioned in some observable?
+    2. is any value of v mentioned in an observable also allowed by the constraints?
+    Note: the check uses all observables mentioned in requirements as they are (except for the universality not pattern)
+    thus, there may be no negative formulations in patterns, or this will get unsound.
+    """
 
     def run(self, reqs: list[Requirement], variables: set[Variable]) -> list[CompletenessCheckResult]:
         logging.info("Starting PoorMansComplete Analysis for requirements set...")
