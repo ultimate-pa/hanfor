@@ -44,7 +44,7 @@ class TestPoorMansComplete(TestCase):
             TestPoorMansComplete.__instantiate_bound_response("req2", "!a && b < 5", "c > 7", "5.0"),
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
-        b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE}
+        b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.ENV_INCOMPLETE_UNCONSTRAINT}
         self.assertIn(vars["b"], b_result)
         self.assertIn(vars["c"], b_result)
         self.assertNotIn(vars["a"], b_result)
@@ -61,10 +61,49 @@ class TestPoorMansComplete(TestCase):
             TestPoorMansComplete.__instantiate_bound_response("req2", "!a && d", "c > 7", "5.0"),
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
-        b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE}
+        b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.ENV_INCOMPLETE_UNCONSTRAINT}
         self.assertIn(vars["d"], b_result)
         self.assertNotIn(vars["c"], b_result)
         self.assertNotIn(vars["a"], b_result)
+
+    def test_incomplete_with_env(self):
+        vars = {
+            "a": Variable("a", "bool", None),
+            "d": Variable("d", "bool", None),
+            "c": Variable("c", "int", None),
+        }
+        vars["c"].constraints[0] = TestPoorMansComplete.__formalisation_universality("c > 7")
+        reqs = [
+            TestPoorMansComplete.__instantiate_bound_response("req1", "a && d", "c >= 22", "5.0"),
+            TestPoorMansComplete.__instantiate_bound_response("req2", "!a && d", "c > 10", "5.0"),
+        ]
+        results = PoorMansComplete().run(reqs, set(vars.values()))
+        b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE}
+        self.assertNotIn(vars["d"], b_result)
+        self.assertIn(vars["c"], b_result)
+        self.assertNotIn(vars["a"], b_result)
+
+    def test_incomplete_with_env_cmplx(self):
+        vars = {
+            "a": Variable("a", "bool", None),
+            "d": Variable("d", "bool", None),
+            "c": Variable("c", "int", None),
+            "x": Variable("x", "int", None),
+        }
+        vars["c"].constraints[0] = TestPoorMansComplete.__formalisation_universality("c > 7")
+        vars["c"].constraints[1] = TestPoorMansComplete.__formalisation_universality("c > 9")
+        vars["c"].constraints[2] = TestPoorMansComplete.__formalisation_universality("x < 42")
+        vars["c"].constraints[3] = TestPoorMansComplete.__formalisation_universality("x < 5 && d && c > 10")
+        reqs = [
+            TestPoorMansComplete.__instantiate_bound_response("req1", "a && d", "c >= 22 && x == 0 ", "5.0"),
+            TestPoorMansComplete.__instantiate_bound_response("req2", "!a && d", "c > 11", "5.0"),
+        ]
+        results = PoorMansComplete().run(reqs, set(vars.values()))
+        b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE}
+        self.assertNotIn(vars["d"], b_result)
+        self.assertIn(vars["c"], b_result)
+        self.assertNotIn(vars["a"], b_result)
+        self.assertIn(vars["x"], b_result)
 
     def test_incomplete_with_env_int(self):
         vars = {
@@ -78,12 +117,12 @@ class TestPoorMansComplete(TestCase):
             TestPoorMansComplete.__instantiate_bound_response("req2", "!a && d", "c > 7", "5.0"),
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
-        b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE}
+        b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.ENV_INCOMPLETE_UNCONSTRAINT}
         self.assertNotIn(vars["d"], b_result)
         self.assertIn(vars["c"], b_result)
         self.assertNotIn(vars["a"], b_result)
 
-    def test_allok_with_env(self):
+    def test_incomplete_with_env_ok(self):
         vars = {
             "a": Variable("a", "bool", None),
             "d": Variable("d", "bool", None),

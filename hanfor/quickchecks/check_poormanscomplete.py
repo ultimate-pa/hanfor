@@ -55,6 +55,7 @@ class PoorMansComplete:
     def check_env_violated(
         self, term: FNode, target_var: FNode, env_assumption: FNode, hanfor_var: Variable
     ) -> CompletenessCheckResult:
+        """Check if all values a variable can tanke are inside the environment (if applicable)"""
         if target_var not in get_free_variables(env_assumption):
             return CompletenessCheckResult(
                 hanfor_var, CompletenessCheckOutcome.OK, f"'{target_var.symbol_name()}' has no env assumptions."
@@ -77,6 +78,7 @@ class PoorMansComplete:
     def check_complete_var(
         self, term: FNode, target_var: FNode, env_assumption: FNode, hanfor_var: Variable
     ) -> CompletenessCheckResult:
+        """Check if all values (under an environment) of a variable are possible in term"""
         with Solver(name=SOLVER_NAME, logic=LOGIC) as solver:
             q_form = And(Not(term), env_assumption)
             free = [v for v in get_free_variables(q_form) if v != target_var]
@@ -85,7 +87,7 @@ class PoorMansComplete:
                 return CompletenessCheckResult(
                     hanfor_var,
                     (
-                        CompletenessCheckOutcome.ENV_VIOLATED
+                        CompletenessCheckOutcome.INCOMPLETE
                         if target_var in get_free_variables(env_assumption)
                         else CompletenessCheckOutcome.ENV_INCOMPLETE_UNCONSTRAINT
                     ),
