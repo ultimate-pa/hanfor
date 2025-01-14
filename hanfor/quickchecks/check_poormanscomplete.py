@@ -124,8 +124,8 @@ class PoorMansComplete:
         for _, formalisation in req.formalizations.items():
             expression_types = formalisation.scoped_pattern.get_allowed_types()
             for ident, expression in formalisation.expressions_mapping.items():
-                if not expression or not expression.raw_expression:
-                    # filter out empty expressions
+                if not expression or not expression.raw_expression or ident not in expression_types:
+                    # filter out empty expressions and filter out expression not part of this pattern
                     continue
                 if ident in expression_types and boogie_parsing.BoogieType.real in expression_types[ident]:
                     # filter out all expressions that are non-boolean (currently only clock constraints)
