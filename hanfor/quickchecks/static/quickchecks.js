@@ -4,8 +4,8 @@ require('datatables.net-bs5')
 require('bootstrap')
 const bootstrap = require('bootstrap')
 
-const AWESOME_MESSAGE_BUTTON = $('#awesome-message-button')
-const bsButton = bootstrap.Button.getOrCreateInstance('#awesome-message-button')
+const CHECK_COMPLETENESS_BUTTON = $('#check-completeness-button')
+const bsButton = bootstrap.Button.getOrCreateInstance('#check-completeness-button')
 
 $(document).ready(function () {
     const completenessTable = $('#completeness-table')
@@ -22,7 +22,7 @@ $(document).ready(function () {
         }
        });
 
-    AWESOME_MESSAGE_BUTTON.click(function () {
+    CHECK_COMPLETENESS_BUTTON.click(function () {
         /**
          * Performs an asynchronous HTTP request: https://api.jquery.com/jquery.ajax
          * HTTP response status codes: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
