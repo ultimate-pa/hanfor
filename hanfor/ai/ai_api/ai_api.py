@@ -106,6 +106,12 @@ class QueryAi(MethodView):
         return jsonify({"status": "processing"}), 202
 
 
+class ProcessAllReqAi(MethodView):
+    def post(self):
+        current_app.ai.check_for_process()
+        return jsonify({"message": "Checking for Process."})
+
+
 # Register routes with their specific view classes
 api_blueprint.add_url_rule("/get/current_data", view_func=GetCurrentData.as_view("get/current_data"), methods=["GET"])
 api_blueprint.add_url_rule("/terminate/all", view_func=TerminateAll.as_view("terminate/all"), methods=["POST"])
@@ -117,3 +123,4 @@ api_blueprint.add_url_rule("/terminate/sim", view_func=TerminateSim.as_view("ter
 api_blueprint.add_url_rule("/get/sim/matrix", view_func=GetMatrix.as_view("sim/matrix"), methods=["GET"])
 api_blueprint.add_url_rule("/terminate/ai", view_func=TerminateAi.as_view("terminate/ai"), methods=["POST"])
 api_blueprint.add_url_rule("/ai/query", view_func=QueryAi.as_view("ai/query"), methods=["POST"])
+api_blueprint.add_url_rule("/ai/process", view_func=ProcessAllReqAi.as_view("ai/process"), methods=["POST"])

@@ -133,6 +133,7 @@
                 <h4>AI Interface</h4>
                 <div class="mt-3">
                     <button id="terminate-ai-button" class="btn btn-danger">Terminate AI</button>
+                    <button id="process-ai" class="btn btn-outline-secondary">Process possible Req with AI</button>
                 </div>
 
                 <!-- AI, Parsing, Prompt-Generation Auswahl -->
@@ -166,21 +167,106 @@
                 </div>
 
                 <!-- Benutzerdefinierten Prompt eingeben und Antwort anzeigen -->
-                <div class="mt-4">
+               <div class="mt-4">
                     <h4>Your Custom Prompt</h4>
+                   <!-- Collapsible Explanation and Legend -->
+                    <div class="mt-4">
+                        <button class="btn btn-secondary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#explanation-legend" aria-expanded="false" aria-controls="explanation-legend">
+                            Show/Hide Explanation and Legend
+                        </button>
+
+                        <div class="collapse" id="explanation-legend">
+                            <!-- Explanation -->
+                            <div class="alert alert-info" role="alert">
+                                <strong>Hint:</strong> You can use placeholders in the format <code>[id.action]</code>.
+                                <ul>
+                                    <li><code>id</code>: The ID of the requirement (e.g., <code>R001</code>).</li>
+                                    <li><code>action</code>: One of the available actions to retrieve specific attributes of the requirement.</li>
+                                </ul>
+                                <p>Example: <code>[R001.formal]</code> retrieves the formalizations of the requirement with ID <code>R001</code>.</p>
+                            </div>
+
+                            <!-- Legend -->
+                            <h5>Legend of Actions</h5>
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Action</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>id</code></td>
+                                        <td>The unique ID of the requirement.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>desc</code></td>
+                                        <td>The description of the requirement.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>type</code></td>
+                                        <td>The type of the requirement. If not provided as a string, <code>None</code> will be used.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>tags</code></td>
+                                        <td>A list of all tags associated with this requirement.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>tags_comments</code></td>
+                                        <td>A dictionary associating each tag with its comment.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>formal</code></td>
+                                        <td>A list of formalizations represented as strings.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>vars</code></td>
+                                        <td>An alphabetically sorted list of all variables used in the formalizations.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>pos</code></td>
+                                        <td>The position of the requirement in the CSV file.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>status</code></td>
+                                        <td>The current status of the requirement (e.g., <code>active</code>, <code>deprecated</code>).</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>csv_data</code></td>
+                                        <td>The full CSV row describing the requirement.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>type_inference_errors</code></td>
+                                        <td>A list of errors encountered during type inference.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>revision_diff</code></td>
+                                        <td>Differences between the revisions of the requirement.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                     <div class="mb-3">
                         <label for="user-prompt" class="form-label">Enter your prompt:</label>
-                        <textarea id="user-prompt" class="form-control" rows="4"></textarea>
+                        <textarea id="user-prompt" class="form-control" rows="4" placeholder="Example: Please analyze [R001.formal] and explain [R002.desc]."></textarea>
                     </div>
 
                     <button id="submit-prompt-button" class="btn btn-primary">Submit Prompt</button>
 
-                    <!-- Antwort der AI -->
+                    <!-- AI Query / Response -->
+                   <div class="mt-4" id="ai-query-container">
+                        <h5>AI Query</h5>
+                        <pre id="ai-query" style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto;">Your AI query will appear here...</pre>
+                    </div>
                     <div class="mt-4" id="ai-response-container">
                         <h5>AI Response</h5>
                         <pre id="ai-response" style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto;">Your AI response will appear here...</pre>
                     </div>
                 </div>
+
+
 
                 <h4>AI Formalization Progress</h4>
                 <table id="ai-progress-table" class="table table-striped table-bordered">

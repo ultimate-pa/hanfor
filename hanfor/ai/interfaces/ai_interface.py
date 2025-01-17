@@ -1,7 +1,6 @@
 import time
 import requests
 import logging
-
 from hanfor import boogie_parsing
 from hanfor.ai.strategies import ai_formalization_methods
 
@@ -95,7 +94,7 @@ class AIFormalization:
         logging.debug("false" + str(self.req_ai.to_dict()))
         return False
 
-    def run_process(self):
+    def run_process(self, ai_processing_queue):
         while self.try_count < 5:
             self.status = "generating_prompt"
             self.status, self.prompt = ai_formalization_methods.create_prompt(self.req_formal, self.req_ai)
@@ -105,8 +104,14 @@ class AIFormalization:
                 self.del_time = time.time()
                 return
 
+            # Checking if the AI can process a Prompt
+            self.status = "waiting_in_ai_queue"
+            req_id = self.req_ai.to_dict()["id"]
+            while not ai_processing_queue.add_request(req_id):
+                time.sleep(1)
             self.status = "waiting_ai_response"
             self.ai_response, self.status = query_ai(self.prompt)
+            ai_processing_queue.complete_request(req_id)
 
             if self.stop_event.is_set():
                 self.status = "terminated_" + self.status

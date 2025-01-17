@@ -78,6 +78,9 @@ $(document).ready(function (){
         if (data.ai_status.response !== null) {
             $('#ai-response').text(data.ai_status.response);
         }
+        if (data.ai_status.query !== null) {
+            $('#ai-query').text(data.ai_status.query);
+        }
 
         // Updating the cluster table
         populateTable(data.clusters)
@@ -155,6 +158,14 @@ $(document).ready(function (){
         $.ajax({
             type: 'POST',
             url: '/api/ai/terminate/ai',
+            contentType: 'application/json'
+        })
+    });
+
+    $('#process-ai').click(function () {
+        $.ajax({
+            type: 'POST',
+            url: '/api/ai/ai/process',
             contentType: 'application/json'
         })
     });
@@ -338,7 +349,7 @@ $(document).ready(function (){
             const aiResponse = item.ai_response ? JSON.stringify(item.ai_response, null, 2) : 'N/A'; // Pretty formatted JSON
             const try_count = item.try_count || 'X';
             // Calculate the countdown for deletion, rounded to the next second
-            const currentTime = Math.floor(Date.now() / 10); // Current time in seconds
+            const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
             const deletionCountdown = item.time ? Math.max(0, Math.ceil(9 - (currentTime - item.time))) : 'N/A';
 
             // Create the table row with an additional column for the countdown

@@ -1,6 +1,6 @@
 import logging
 from queue import Queue
-from threading import Thread, Event
+from threading import Thread, Event, Lock
 from typing import Optional, List, Any
 from hanfor.ai import AiDataEnum
 from hanfor.ai.interfaces import ai_interface
@@ -10,6 +10,38 @@ from hanfor.ai.strategies import similarity_methods
 from time import time
 import reqtransformer
 import hanfor_flask
+import re
+
+
+class AiProcessingQueue:
+    max_ai_requests: int = 5
+
+    def __init__(self, update_progress_function):
+        self.current_ai_request = []
+        self.current_waiting = []
+        self.lock = Lock()
+        self.__update_progress = update_progress_function
+
+    def add_request(self, req_id: str) -> bool:
+        with self.lock:
+            if len(self.current_ai_request) < self.max_ai_requests:
+                if req_id in self.current_waiting:
+                    self.current_waiting.remove(req_id)
+                self.current_ai_request.append(req_id)
+                self.__up_prog()
+                return True
+            else:
+                if req_id not in self.current_waiting:
+                    self.current_waiting.append(req_id)
+                return False
+
+    def __up_prog(self):
+        self.__update_progress(AiDataEnum.AI, AiDataEnum.QUEUED, len(self.current_waiting))
+        self.__update_progress(AiDataEnum.AI, AiDataEnum.RUNNING, len(self.current_ai_request))
+
+    def complete_request(self, req_id):
+        self.current_ai_request.remove(req_id)
+        self.__up_prog()
 
 
 class AiCore:
@@ -18,6 +50,7 @@ class AiCore:
     cluster_matrix: Optional[tuple[list[list[float]], dict]] = None
     formalization_objects: List[AIFormalization] = []
     sim_function_index = 0
+
     ai_system_data = {
         AiDataEnum.FLAGS: {AiDataEnum.SYSTEM: True, AiDataEnum.AI: False},
         AiDataEnum.CLUSTER: {
@@ -25,7 +58,7 @@ class AiCore:
             AiDataEnum.PROCESSED: 0,
             AiDataEnum.TOTAL: 0,
         },
-        AiDataEnum.AI: {AiDataEnum.RUNNING: 0, AiDataEnum.QUEUED: 0, AiDataEnum.RESPONSE: ""},
+        AiDataEnum.AI: {AiDataEnum.RUNNING: 0, AiDataEnum.QUEUED: 0, AiDataEnum.RESPONSE: "", AiDataEnum.QUERY: ""},
     }
 
     clustering_progress_thread: Optional[Thread] = None
@@ -35,6 +68,7 @@ class AiCore:
     stop_event_ai = Event()
 
     def __init__(self):
+        self.ai_processing_queue = AiProcessingQueue(self.__update_progress)
         self.clustering_progress = None
         self.__locked_cluster = []
 
@@ -91,13 +125,14 @@ class AiCore:
             logging.debug("No Formalization")
             return
 
-        req_queue = self.__load_requirements_to_queue(rid_u)
+        req_queue, l_cluster = self.__load_requirements_to_queue(rid_u)
         self.ai_formalization_thread = Thread(
             target=self.__mother_thread_of_ai_formalization,
             args=(
                 req_queue,
                 hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, rid_u),
                 self.stop_event_ai,
+                l_cluster,
             ),
             daemon=True,
         )
@@ -114,7 +149,7 @@ class AiCore:
         }
         return ret
 
-    def get_matrix(self) -> dict:
+    def get_matrix(self) -> tuple[list[list[float]], dict] | None:
         logging.debug(self.cluster_matrix)
         return self.cluster_matrix
 
@@ -130,13 +165,49 @@ class AiCore:
     def set_flag_ai(self, flag_ai: bool) -> None:
         self.__update_progress(AiDataEnum.FLAGS, AiDataEnum.AI, flag_ai)
 
-    def query_ai(self, query) -> None:
-        def background_query(query):
-            response, _ = ai_interface.query_ai(query)
+    def query_ai(self, query):
+        def background_query(processed_query):
+            response, _ = ai_interface.query_ai(processed_query)
             self.__update_progress(AiDataEnum.AI, AiDataEnum.RESPONSE, response)
 
-        thread = Thread(target=background_query, args=(query,), daemon=True)
+        processed_query = self.__process_query(query)
+        self.__update_progress(AiDataEnum.AI, AiDataEnum.QUERY, processed_query)
+        self.__update_progress(AiDataEnum.AI, AiDataEnum.RESPONSE, None)
+
+        thread = Thread(target=background_query, args=(processed_query,), daemon=True)
         thread.start()
+
+    def check_for_process(self):
+        if self.clusters:
+            for cl in self.clusters:
+                for req_id in cl:
+                    if self.__check_template_for_ai_formalization(req_id):
+                        self.updated_requirement(req_id)
+
+    def __process_query(self, query):
+        def replace_placeholder(match):
+            placeholder = match.group(1)
+            try:
+                req_id_action = placeholder.split(".")
+                if len(req_id_action) != 2:
+                    return f"[Error: Invalid format for {placeholder}]"
+
+                req_id, action = req_id_action
+                req = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, req_id)
+
+                if req:
+                    req_dict = req.to_dict(include_used_vars=True)
+                    if action in req_dict:
+                        return str(req_dict[action])
+                    else:
+                        return f"[Error: Action {action} not found for req_id {req_id}]"
+                else:
+                    return f"[Error: req_id {req_id} not found]"
+            except Exception as e:
+                return f"[Error processing {placeholder}: {e}]"
+
+        pattern = r"\[([^\[\]]+?)\]"
+        return re.sub(pattern, replace_placeholder, query)
 
     def __get_info_sim_methods(self) -> List:
         sim_methods = similarity_methods.sim_methods
@@ -161,6 +232,7 @@ class AiCore:
             "running": self.ai_system_data[AiDataEnum.AI][AiDataEnum.RUNNING],
             "queued": self.ai_system_data[AiDataEnum.AI][AiDataEnum.QUEUED],
             "response": self.ai_system_data[AiDataEnum.AI][AiDataEnum.RESPONSE],
+            "query": self.ai_system_data[AiDataEnum.AI][AiDataEnum.QUERY],
         }
 
     def __update_progress(self, progress_outer: AiDataEnum, progress_inner: Optional[AiDataEnum], update):
@@ -201,11 +273,11 @@ class AiCore:
         self.formalization_objects = [
             f_obj
             for f_obj in self.formalization_objects
-            if f_obj.del_time is None or (current_time - f_obj.del_time < 1000)
+            if f_obj.del_time is None or (current_time - f_obj.del_time < 10)
         ]
 
     def __mother_thread_of_ai_formalization(
-        self, req_queue: Queue, req_u: reqtransformer.Requirement, stop_event_ai: Event
+        self, req_queue: Queue, req_u: reqtransformer.Requirement, stop_event_ai: Event, l_cluster: frozenset
     ) -> None:
         threads = []
         logging.debug("mother_thread")
@@ -221,6 +293,8 @@ class AiCore:
             threads.append(processing_thread)
         for thread in threads:
             thread.join()
+        if l_cluster:
+            self.__locked_cluster.remove(l_cluster)
         if stop_event_ai.is_set():
             logging.info("Terminated ai formalization")
         else:
@@ -231,19 +305,22 @@ class AiCore:
         req = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, rid).to_dict(include_used_vars=True)
         return "has_formalization" in req["tags"]
 
-    def __load_requirements_to_queue(self, rid: str) -> Queue:
+    def __load_requirements_to_queue(self, rid: str) -> (Queue, frozenset):
         req_queue = Queue()
+        l_cluster = None
         for cl in self.clusters:
             if rid in cl:
                 if cl in self.__locked_cluster:
                     logging.info(f"Cluster {cl} is already locked, stopping the process.")
-                    return req_queue
+                    return req_queue, l_cluster
                 self.__locked_cluster.append(cl)
+                l_cluster = cl
                 for req_id in cl:
                     requirement = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, req_id)
                     if self.__check_ai_should_formalized(requirement):
                         req_queue.put(requirement)
-        return req_queue
+                break
+        return req_queue, l_cluster
 
     @staticmethod
     def __check_ai_should_formalized(requirement: reqtransformer.Requirement) -> bool:
@@ -282,7 +359,7 @@ class AiCore:
         )
 
     def __process_queue_element(self, formalize_object: AIFormalization) -> None:
-        formalize_object.run_process()
+        formalize_object.run_process(self.ai_processing_queue)
         if self.stop_event_ai.is_set() or formalize_object.status.startswith("terminated"):
             logging.warning(formalize_object.status)
             return
