@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from typing import Any
+
 from json_db_connector.json_db import DatabaseField
 
 
@@ -10,6 +12,7 @@ from json_db_connector.json_db import DatabaseField
 @DatabaseField("att_list", list[str])
 @DatabaseField("att_dict", dict)
 @DatabaseField("att_set", set[int])
+@DatabaseField("att_list_any", list[Any])
 @dataclass()
 class TestClassFile:
     job_id: str
@@ -21,6 +24,7 @@ class TestClassFile:
     att_list: list[str]
     att_dict: dict[int, str]
     att_set: set[int]
+    att_list_any: list[Any]
 
 
 @DatabaseField("att_bool", bool, True)

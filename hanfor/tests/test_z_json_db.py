@@ -18,7 +18,7 @@ from os import path, mkdir
 from dataclasses import dataclass
 import json
 from immutabledict import immutabledict
-from typing import Callable
+from typing import Callable, Any
 from shutil import rmtree
 
 
@@ -352,6 +352,20 @@ class TestJsonDatabase(TestCase):
             str(em.exception),
         )
 
+        # test Any as a field type
+        with self.assertRaises(Exception) as em:
+            from test_json_database.db_test_field_decorator_Any import (
+                TestClass,
+            )
+
+            _ = TestClass
+        self.assertEqual(
+            "DatabaseDefinitionError: Type of DatabaseField must be of type type or str: "
+            "<class 'test_json_database.db_test_field_decorator_Any.TestClass'> field: "
+            "any_field",
+            str(em.exception),
+        )
+
         DatabaseField.registry.clear()
 
         # test well-formed definition for id
@@ -372,6 +386,7 @@ class TestJsonDatabase(TestCase):
                 "att_list": (list[str], None),
                 "att_dict": (dict, None),
                 "att_set": (set[int], None),
+                "att_list_any": (list[Any], None),
             },
             TestClassFolder: {
                 "att_bool": (bool, True),

@@ -3,7 +3,7 @@ import json
 import inspect
 from enum import Enum, EnumMeta
 from types import GenericAlias, UnionType, NoneType
-from typing import get_origin, get_args, TypeVar, Callable, Type
+from typing import get_origin, get_args, TypeVar, Callable, Type, Any
 from uuid import UUID, uuid4
 from os import path, mkdir, listdir
 from copy import deepcopy
@@ -833,7 +833,7 @@ def is_serializable(f_type: any, additional_types: list[type] = None) -> tuple[b
     if type(f_type) is GenericAlias:
         if get_origin(f_type) in [tuple, list, set]:
             for arg in get_args(f_type):
-                res = is_serializable(arg, additional_types)
+                res = is_serializable(arg, additional_types + [Any])
                 if not res[0]:
                     return False, res[1]
             return True, ""
