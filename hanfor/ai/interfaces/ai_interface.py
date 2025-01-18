@@ -109,6 +109,11 @@ class AIFormalization:
             req_id = self.req_ai.to_dict()["id"]
             while not ai_processing_queue.add_request(req_id):
                 time.sleep(1)
+                if self.stop_event.is_set():
+                    self.status = "terminated_" + self.status
+                    self.del_time = time.time()
+                    ai_processing_queue.terminated(req_id)
+                    return
             self.status = "waiting_ai_response"
             self.ai_response, self.status = query_ai(self.prompt)
             ai_processing_queue.complete_request(req_id)

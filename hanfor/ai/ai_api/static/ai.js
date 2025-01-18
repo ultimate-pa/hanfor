@@ -11,19 +11,20 @@ require('datatables.net-colreorder-bs5')
 
 $(document).ready(function (){
     // TODO with socket
+    let data;
     function get_update(){
         $.ajax({
             type: 'GET',
             url: '/api/ai/get/current_data',
             contentType: 'application/json'
-        }).done(function (data) {
-            update(data)
+        }).done(function (response) {
+            data = response
+            update()
         });
     }
 
-
     // Main update function for all changing data
-    function update(data) {
+    function update() {
         // Update Cluster Status
         if (data.cluster_status) {
             $('#cluster-status').text(data.cluster_status.status || 'N/A');
@@ -44,27 +45,6 @@ $(document).ready(function (){
             $('#ai-queue-count').text(0);
         }
 
-        // Update Flags (switches)
-        if (data.flags) {
-            $('#toggle-system-switch').prop('checked', data.flags.system).trigger('change');
-            $('#toggle-ai-switch').prop('checked', data.flags.ai).trigger('change');
-        }
-
-        // Update Clustering Process Selection with Sim Methods
-        if (data.sim_methods) {
-            const selectElement = $('#clustering-process-select');
-            selectElement.empty(); // Clear existing options
-
-            // Loop through each similarity method and add it to the dropdown
-            data.sim_methods.forEach(function (method) {
-                const option = $('<option></option>')
-                    .attr('value', method.name)
-                    .text(`${method.name}: ${method.description}`)
-                    .prop('selected', method.selected); // Mark the selected method
-                selectElement.append(option); // Add the option to the dropdown
-            });
-        }
-
         // Update the Progressbar on Similarity Interface
         const processed = data.cluster_status.processed;
         const total = data.cluster_status.total;
@@ -82,174 +62,49 @@ $(document).ready(function (){
             $('#ai-query').text(data.ai_status.query);
         }
 
-        // Updating the cluster table
+        // Updating the cluster and ai table (SOCKET)
         populateTable(data.clusters)
         fetchAndDisplayProgress(data.ai_formalization)
     }
 
-    $('#terminate-all-button').click(function () {
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/terminate/all',
-            contentType: 'application/json'
-        }).done(function (data) {
-            alert(data.message);  // Show a popup alert with the response message
-        }).fail(function (jqXHR) {
-            alert(`Error: ${jqXHR.responseText}`);  // Show error alert
-        });
-    });
-
-    $('#toggle-system-switch').on('change', function () {
-        const isChecked = $(this).is(':checked');
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/set/flag/system',
-            contentType: 'application/json',
-            data: JSON.stringify({ system_enabled: isChecked })
-        });
-    });
-
-    $('#toggle-ai-switch').on('change', function () {
-        const isChecked = $(this).is(':checked');
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/set/flag/ai',
-            contentType: 'application/json',
-            data: JSON.stringify({ ai_enabled: isChecked })
-        });
-    });
-
-
-    // EVENT Dropdown for choosing clustering methode
-    $('#clustering-process-select').on('change', function() {
-        const selectedMethod = $(this).val();
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/set/method/sim',
-            contentType: 'application/json',
-            data: JSON.stringify({ name: selectedMethod }),
-            success: function(response) {
-                console.log(response.message);
-                get_update();
-            },
-            error: function(error) {
-                console.error("Error setting method:", error);
-            }
-        });
-    });
-
-    $('#start-clustering').click(function () {
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/set/sim/start',
-            contentType: 'application/json'
-        })
-    });
-
-    $('#terminate-clustering-button').click(function () {
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/terminate/sim',
-            contentType: 'application/json'
-        })
-    });
-
-    $('#terminate-ai-button').click(function () {
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/terminate/ai',
-            contentType: 'application/json'
-        })
-    });
-
-    $('#process-ai').click(function () {
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/ai/process',
-            contentType: 'application/json'
-        })
-    });
-
-    $('#submit-prompt-button').click(function () {
-        var userPrompt = $('#user-prompt').val();
-
-        if (!userPrompt) {
-            alert('Please enter a prompt!');
-            return;
+    function updateFlags(){
+        // Update Flags (switches)
+        if (data.flags) {
+            $('#toggle-system-switch').prop('checked', data.flags.system).trigger('change');
+            $('#toggle-ai-switch').prop('checked', data.flags.ai).trigger('change');
         }
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/ai/query',
-            contentType: 'application/json',
-            data: JSON.stringify({ query: userPrompt }),
-            success: function(response) {
-                $('#ai-response').text('Processing your query...');
-            },
-            error: function(xhr, status, error) {
-                $('#ai-response').text('Error: ' + xhr.responseJSON.error);
-            }
-        });
-    });
+    }
 
+    // Funktion zum Aktualisieren des Clustering-Prozesses
+    function updateClusteringProcessSelection(selectedMethodName) {
+        // Update Clustering Process Selection with Sim Methods
+        if (data.sim_methods && Array.isArray(data.sim_methods[1])) {
+            const selectElement = $('#clustering-process-select');
+            selectElement.empty(); // Clear existing options
 
-    // Visualization of the similarity matrix
-    $('#get-matrix-button').click(function () {
-        $.ajax({
-            type: 'GET',
-            url: '/api/ai/get/sim/matrix',
-            contentType: 'application/json'
-        }).done(function (data) {
-            const table = document.getElementById("similarity-matrix");
-            const thead = table.querySelector("thead");
-            const tbody = table.querySelector("tbody");
-
-            thead.innerHTML = '';
-            tbody.innerHTML = '';
-
-            const matrix = data.matrix;
-            const indexing = data.indexing;
-
-            function calculateHeatmapColor(value) {
-                const intensity = Math.round(value * 255);
-                return `rgb(${255 - intensity}, ${255 - intensity}, 255)`;
-            }
-
-            const headerRow = document.createElement("tr");
-            headerRow.appendChild(document.createElement("th")); // Leeres Eckfeld
-            Object.keys(indexing).forEach(key => {
-                const th = document.createElement("th");
-                th.textContent = key;
-                headerRow.appendChild(th);
+            // Loop through each similarity method and add it to the dropdown
+            data.sim_methods[1].forEach(function (method) {
+                const option = $('<option></option>')
+                    .attr('value', method.name)
+                    .text(`${method.name}: ${method.description}`);
+                // Mark the method as selected if it matches the passed name
+                if (method.name === selectedMethodName) {
+                    option.prop('selected', true); // Mark the selected method
+                    updateSliderRange(method.interval[0],method.interval[1], method.default)
+                } else {
+                    option.prop('selected', false); // Unselect other methods
+                }
+                selectElement.append(option); // Add the option to the dropdown
             });
-            thead.appendChild(headerRow);
+        }
+    }
 
-            Object.keys(indexing).forEach((rowKey, rowIndex) => {
-                const row = document.createElement("tr");
-
-                // Zeilenbeschriftung
-                const th = document.createElement("th");
-                th.textContent = rowKey;
-                row.appendChild(th);
-
-                // Zellen erstellen
-                matrix[rowIndex].forEach(value => {
-                    const td = document.createElement("td");
-                    td.textContent = value.toFixed(2);
-                    td.style.backgroundColor = calculateHeatmapColor(value);
-                    row.appendChild(td);
-                });
-
-                tbody.appendChild(row);
-            });
-        }).fail(function () {
-            const table = document.getElementById("similarity-matrix");
-            const thead = table.querySelector("thead");
-            const tbody = table.querySelector("tbody");
-            thead.innerHTML = '';
-            tbody.innerHTML = '';
+    function selectedSimMethod() {
+        const selectedMethod = data.sim_methods[1].find(function(method) {
+            return method.selected;
         });
-    });
-
+        return selectedMethod ? selectedMethod.name : null;
+        }
 
     function populateTable(data) {
         const TABLE_BODY = $('#cluster-table tbody');
@@ -331,7 +186,6 @@ $(document).ready(function (){
                 </span>`;
     }
 
-
     function fetchAndDisplayProgress(data) {
         // Destroy any existing DataTable before initializing a new one
         if ($.fn.dataTable.isDataTable('#ai-progress-table')) {
@@ -377,6 +231,230 @@ $(document).ready(function (){
             order: [[0, 'asc']],  // Optionally sort by ID (or another column) by default
         });
     }
-    get_update()
+
+    function waitForDataForInitalLoad() {
+        const checkInterval = setInterval(function() {
+            if (data) {
+                clearInterval(checkInterval);
+                updateClusteringProcessSelection(selectedSimMethod());
+                updateFlags();
+            }
+        }, 30);
+    }
+
+    $(document).ready(function() {
+        get_update()
+        waitForDataForInitalLoad();
+    });
     setInterval(get_update, 1000);
+
+    $('#terminate-all-button').click(function () {
+        $.ajax({
+            type: 'POST',
+            url: '/api/ai/terminate/all',
+            contentType: 'application/json'
+        }).done(function (data) {
+            alert(data.message);  // Show a popup alert with the response message
+        }).fail(function (jqXHR) {
+            alert(`Error: ${jqXHR.responseText}`);  // Show error alert
+        });
+    });
+
+    $('#toggle-system-switch').on('change', function () {
+        const isChecked = $(this).is(':checked');
+        $.ajax({
+            type: 'POST',
+            url: '/api/ai/set/flag/system',
+            contentType: 'application/json',
+            data: JSON.stringify({ system_enabled: isChecked })
+        });
+    });
+
+    $('#toggle-ai-switch').on('change', function () {
+        const isChecked = $(this).is(':checked');
+        $.ajax({
+            type: 'POST',
+            url: '/api/ai/set/flag/ai',
+            contentType: 'application/json',
+            data: JSON.stringify({ ai_enabled: isChecked })
+        });
+    });
+
+    // EVENT Dropdown for choosing clustering methode
+    $('#clustering-process-select').on('change', function() {
+        const selectedMethod = $(this).val();
+        $.ajax({
+            type: 'POST',
+            url: '/api/ai/set/sim/method',
+            contentType: 'application/json',
+            data: JSON.stringify({ name: selectedMethod }),
+            success: function(response) {
+                console.log(response.message);
+                get_update();
+                updateClusteringProcessSelection(selectedMethod)
+            },
+            error: function(error) {
+                console.error("Error setting method:", error);
+            }
+        });
+    });
+
+    $('#start-clustering').click(function () {
+        $.ajax({
+            type: 'POST',
+            url: '/api/ai/set/sim/start',
+            contentType: 'application/json'
+        })
+    });
+
+    $('#terminate-clustering-button').click(function () {
+        $.ajax({
+            type: 'POST',
+            url: '/api/ai/terminate/sim',
+            contentType: 'application/json'
+        })
+    });
+
+    $('#terminate-ai-button').click(function () {
+        $.ajax({
+            type: 'POST',
+            url: '/api/ai/terminate/ai',
+            contentType: 'application/json'
+        })
+    });
+
+    $('#process-ai').click(function () {
+        $.ajax({
+            type: 'POST',
+            url: '/api/ai/ai/process',
+            contentType: 'application/json'
+        })
+    });
+
+    $('#submit-prompt-button').click(function () {
+        var userPrompt = $('#user-prompt').val();
+
+        if (!userPrompt) {
+            alert('Please enter a prompt!');
+            return;
+        }
+        $.ajax({
+            type: 'POST',
+            url: '/api/ai/ai/query',
+            contentType: 'application/json',
+            data: JSON.stringify({ query: userPrompt }),
+            success: function(response) {
+                $('#ai-response').text('Processing your query...');
+            },
+            error: function(xhr, status, error) {
+                $('#ai-response').text('Error: ' + xhr.responseJSON.error);
+            }
+        });
+    });
+
+    // Visualization of the similarity matrix
+    $('#get-matrix-button').click(function () {
+        $.ajax({
+            type: 'GET',
+            url: '/api/ai/get/sim/matrix',
+            contentType: 'application/json'
+        }).done(function (matrix_data) {
+            const table = document.getElementById("similarity-matrix");
+            const thead = table.querySelector("thead");
+            const tbody = table.querySelector("tbody");
+
+            thead.innerHTML = '';
+            tbody.innerHTML = '';
+
+            const matrix = matrix_data.matrix;
+            const indexing = matrix_data.indexing;
+
+
+            function calculateHeatmapColor(value) {
+                const baseValue = data.sim_methods[0];
+                const distance = Math.abs(value - baseValue);
+                const alpha = 0.3 + (distance * 0.4); // Skaliere den Abstand auf einen Alpha-Wert zwischen 0.3 und 0.7
+                if (value >= baseValue) {
+                    // Blau für Werte größer als der Basiswert
+                    return `rgba(0, 0, 180, ${Math.min(alpha, 0.7)})`;
+                } else {
+                    // Grün für Werte kleiner als der Basiswert
+                    return `rgba(0, 180, 0, ${Math.min(alpha, 0.7)})`;
+                }
+            }
+
+
+            const headerRow = document.createElement("tr");
+            headerRow.appendChild(document.createElement("th")); // Leeres Eckfeld
+            Object.keys(indexing).forEach(key => {
+                const th = document.createElement("th");
+                th.textContent = key;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+
+            Object.keys(indexing).forEach((rowKey, rowIndex) => {
+                const row = document.createElement("tr");
+
+                // Zeilenbeschriftung
+                const th = document.createElement("th");
+                th.textContent = rowKey;
+                row.appendChild(th);
+
+                // Zellen erstellen
+                matrix[rowIndex].forEach(value => {
+                    const td = document.createElement("td");
+                    td.textContent = value.toFixed(2);
+                    td.style.backgroundColor = calculateHeatmapColor(value);
+                    row.appendChild(td);
+                });
+
+                tbody.appendChild(row);
+            });
+        }).fail(function () {
+            const table = document.getElementById("similarity-matrix");
+            const thead = table.querySelector("thead");
+            const tbody = table.querySelector("tbody");
+            thead.innerHTML = '';
+            tbody.innerHTML = '';
+        });
+    });
+
+    $('#similarity-slider').on('change', function (){
+        $('#slider-value').text($(this).val());
+        $.ajax({
+            type: 'POST',
+            url: '/api/ai/set/sim/threshold',
+            contentType: 'application/json',
+            data: JSON.stringify({ threshold: $(this).val() }),
+            success: function(response) {
+                console.log(response.message);
+            },
+            error: function(error) {
+                console.error("Error setting threshold:", error);
+            }
+        });
+    })
+
+    function updateSliderRange(minVal, maxVal, default_threshold) {
+        const slider = $('#similarity-slider');
+
+        // Überprüfe, ob das Intervall invertiert ist (d.h., min > max)
+        const normalizedMin = Math.min(minVal, maxVal);
+        const normalizedMax = Math.max(minVal, maxVal);
+
+        const numSteps = 200;
+        const stepValue = (maxVal - minVal) / numSteps;
+        slider.attr('step', stepValue);
+
+        // Setze die minimalen und maximalen Werte des Sliders
+        slider.attr('min', normalizedMin);
+        slider.attr('max', normalizedMax);
+
+        // Hol den aktuellen Wert des Sliders und stelle sicher, dass er im Intervall liegt
+        currentVal = Math.max(normalizedMin, Math.min(default_threshold, normalizedMax));
+        slider.val(currentVal);
+        $('#slider-value').text(currentVal);
+    }
+
 });

@@ -4,9 +4,9 @@ from threading import Thread, Event, Lock
 from typing import Optional, List, Any
 from hanfor.ai import AiDataEnum
 from hanfor.ai.interfaces import ai_interface
-from hanfor.ai.interfaces.similarity_interface import ClusteringProgress
+from hanfor.ai.interfaces.similarity_interface import ClusteringProgress, load_similarity_methods
 from hanfor.ai.interfaces.ai_interface import AIFormalization
-from hanfor.ai.strategies import similarity_methods
+from hanfor.ai.strategies.similarity_abstract_class import SimilarityAlgorithm
 from time import time
 import reqtransformer
 import hanfor_flask
@@ -43,13 +43,18 @@ class AiProcessingQueue:
         self.current_ai_request.remove(req_id)
         self.__up_prog()
 
+    def terminated(self, id: str):
+        if id in self.current_waiting:
+            self.current_waiting.remove(id)
+        if id in self.current_ai_request:
+            self.current_ai_request.remove(id)
+
 
 class AiCore:
 
     clusters: Optional[set[frozenset[str]]] = None
     cluster_matrix: Optional[tuple[list[list[float]], dict]] = None
     formalization_objects: List[AIFormalization] = []
-    sim_function_index = 0
 
     ai_system_data = {
         AiDataEnum.FLAGS: {AiDataEnum.SYSTEM: True, AiDataEnum.AI: False},
@@ -61,6 +66,8 @@ class AiCore:
         AiDataEnum.AI: {AiDataEnum.RUNNING: 0, AiDataEnum.QUEUED: 0, AiDataEnum.RESPONSE: "", AiDataEnum.QUERY: ""},
     }
 
+    similarity_methods: Optional[dict[str, SimilarityAlgorithm]] = None
+    activ_similarity_method: str = None
     clustering_progress_thread: Optional[Thread] = None
     stop_event_cluster = Event()
 
@@ -68,6 +75,9 @@ class AiCore:
     stop_event_ai = Event()
 
     def __init__(self):
+        self.similarity_methods = load_similarity_methods()
+        self.activ_similarity_method = "Levenshtein"
+        self.sim_threshold = self.similarity_methods["Levenshtein"].standard_threshold
         self.ai_processing_queue = AiProcessingQueue(self.__update_progress)
         self.clustering_progress = None
         self.__locked_cluster = []
@@ -102,11 +112,11 @@ class AiCore:
             requirements,
             self.ai_system_data[AiDataEnum.CLUSTER],
             self.__update_progress,
-            similarity_methods.sim_methods[self.sim_function_index]["function"],
+            self.similarity_methods[self.activ_similarity_method].compare,
         )
 
         def clustering_thread(clustering_progress_class: ClusteringProgress, stop_event_cluster: Event) -> None:
-            self.clusters, self.cluster_matrix = clustering_progress_class.start(stop_event_cluster)
+            self.clusters, self.cluster_matrix = clustering_progress_class.start(stop_event_cluster, self.sim_threshold)
 
         self.clustering_progress_thread = Thread(
             target=clustering_thread, args=(self.clustering_progress, self.stop_event_cluster), daemon=True
@@ -154,10 +164,14 @@ class AiCore:
         return self.cluster_matrix
 
     def set_sim_methode(self, name: str) -> None:
-        for index, method in enumerate(similarity_methods.sim_methods):
-            if method["name"] == name:
-                self.sim_function_index = index
-                break
+        if name in self.similarity_methods.keys():
+            logging.debug(name)
+            self.activ_similarity_method = name
+            self.sim_threshold = self.similarity_methods[name].standard_threshold
+
+    def set_sim_threshold(self, threshold: float) -> None:
+        self.sim_threshold = threshold
+        logging.debug(self.sim_threshold)
 
     def set_flag_system(self, flag_system: bool) -> None:
         self.__update_progress(AiDataEnum.FLAGS, AiDataEnum.SYSTEM, flag_system)
@@ -209,18 +223,6 @@ class AiCore:
         pattern = r"\[([^\[\]]+?)\]"
         return re.sub(pattern, replace_placeholder, query)
 
-    def __get_info_sim_methods(self) -> List:
-        sim_methods = similarity_methods.sim_methods
-        methods_info = []
-        for index, method in enumerate(sim_methods):
-            method_info = {
-                "name": method["name"],
-                "description": method["description"],
-                "selected": index == self.sim_function_index,
-            }
-            methods_info.append(method_info)
-        return methods_info
-
     def __get_info_flags(self) -> dict:
         return {
             "system": self.ai_system_data[AiDataEnum.FLAGS][AiDataEnum.SYSTEM],
@@ -252,6 +254,20 @@ class AiCore:
         if self.clusters:
             return [list(cluster) for cluster in self.clusters]
         return []
+
+    def __get_info_sim_methods(self) -> (float, list):
+        methods_info = []
+        if self.similarity_methods:
+            for name, method in self.similarity_methods.items():
+                method_info = {
+                    "name": name,
+                    "description": method.description,
+                    "interval": method.threshold_interval,
+                    "default": method.standard_threshold,
+                    "selected": name == self.activ_similarity_method,
+                }
+                methods_info.append(method_info)
+        return self.sim_threshold, methods_info
 
     def __get_ai_formalization_progress(self) -> list[dict[str, Any]]:
         self.__cleanup_old_formalizations()
@@ -352,7 +368,7 @@ class AiCore:
                 "id": requirement.to_dict(include_used_vars=True)["id"],
                 "row_idx": "2",
                 "update_formalization": "true",
-                "tags": "{}",
+                "tags": dumps({"ai_formalization": "AI-generated formalization based on human-created formalization"}),
                 "status": "Todo",
                 "formalizations": formatted_output_json,
             },
