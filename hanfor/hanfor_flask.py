@@ -5,7 +5,7 @@ import hanfor.ai.ai_core
 
 class HanforFlask(Flask):
     db: JsonDatabase
-    ai = hanfor.ai.ai_core.AiCore()  # TODO the instantiation of the AiCore should be in the app.py
+    ai: hanfor.ai.ai_core.AiCore
 
 
 current_app: HanforFlask = fl_current_app  # noqa

@@ -15,7 +15,6 @@ import flask
 from flask_socketio import SocketIO
 from flask import render_template, request, jsonify, make_response, json
 
-from hanfor.ai.ai_api import ai_api
 from hanfor_flask import HanforFlask
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import HTTPException
@@ -66,6 +65,15 @@ if app.config["FEATURE_ULTIMATE"]:
     app.register_blueprint(ultimate.blueprint)
     app.register_blueprint(ultimate.api_blueprint)
 
+# Ai
+if app.config["FEATURE_AI"]:
+    from hanfor.ai.ai_api import ai_api
+    from hanfor.ai.ai_core import AiCore
+
+    app.ai = AiCore()
+    app.register_blueprint(ai_api.blueprint)
+    app.register_blueprint(ai_api.api_blueprint)
+
 if app.config["FEATURE_TELEMETRY"]:
     from telemetry import telemetry_frontend
 
@@ -81,9 +89,7 @@ app.register_blueprint(tags.api_blueprint)
 # Statistics
 app.register_blueprint(statistics.blueprint)
 app.register_blueprint(statistics.api_blueprint)
-# Ai
-app.register_blueprint(ai_api.blueprint)
-app.register_blueprint(ai_api.api_blueprint)
+
 
 # register socket IO namespaces
 telemetry_namespace = TelemetryWs("/telemetry")
@@ -277,7 +283,8 @@ def api(resource, command):
                     return jsonify({"success": False, "errormsg": error_msg})
                 else:
                     app.db.update()
-                    app.ai.updated_requirement(requirement.rid)
+                    if app.config["FEATURE_AI"]:
+                        app.ai.updated_requirement(requirement.rid)
                     return jsonify(requirement.to_dict()), 200
 
         # Multi Update Tags or Status.
