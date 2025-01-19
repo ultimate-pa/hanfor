@@ -99,8 +99,36 @@ $(document).ready(function (){
         }
     }
 
+    function updateAiMethodSelection(selectedMethodName){
+        if (data.ai_methods){
+            const selectElement = $('#prompt-parsing-selection');
+            selectElement.empty(); // Clear existing options
+
+            data.ai_methods.forEach(function (method) {
+                const option = $('<option></option>')
+                    .attr('value', method.name)
+                    .text(`${method.name}: ${method.description}`);
+                // Mark the method as selected if it matches the passed name
+                if (method.name === selectedMethodName) {
+                    option.prop('selected', true); // Mark the selected method
+                } else {
+                    option.prop('selected', false); // Unselect other methods
+                }
+                selectElement.append(option); // Add the option to the dropdown
+            });
+        }
+
+    }
+
     function selectedSimMethod() {
         const selectedMethod = data.sim_methods[1].find(function(method) {
+            return method.selected;
+        });
+        return selectedMethod ? selectedMethod.name : null;
+        }
+
+    function selectedAiMethod() {
+        const selectedMethod = data.ai_methods.find(function(method) {
             return method.selected;
         });
         return selectedMethod ? selectedMethod.name : null;
@@ -237,6 +265,7 @@ $(document).ready(function (){
             if (data) {
                 clearInterval(checkInterval);
                 updateClusteringProcessSelection(selectedSimMethod());
+                updateAiMethodSelection(selectedAiMethod());
                 updateFlags();
             }
         }, 30);
@@ -286,6 +315,25 @@ $(document).ready(function (){
         $.ajax({
             type: 'POST',
             url: '/api/ai/set/sim/method',
+            contentType: 'application/json',
+            data: JSON.stringify({ name: selectedMethod }),
+            success: function(response) {
+                console.log(response.message);
+                get_update();
+                updateClusteringProcessSelection(selectedMethod)
+            },
+            error: function(error) {
+                console.error("Error setting method:", error);
+            }
+        });
+    });
+
+
+    $('#prompt-parsing-selection').on('change', function() {
+        const selectedMethod = $(this).val();
+        $.ajax({
+            type: 'POST',
+            url: '/api/ai/set/ai/method',
             contentType: 'application/json',
             data: JSON.stringify({ name: selectedMethod }),
             success: function(response) {

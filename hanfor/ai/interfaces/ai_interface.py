@@ -1,8 +1,10 @@
+import os
+import importlib
 import time
 import requests
 import logging
 from hanfor import boogie_parsing
-from hanfor.ai.strategies import ai_formalization_methods
+from hanfor.ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse
 
 pattern = [
     "Response",
@@ -39,6 +41,34 @@ pattern = [
     "Existence",
 ]
 scope = ["GLOBALLY", "BEFORE", "AFTER", "BETWEEN", "AFTER_UNTIL"]
+
+
+def load_ai_prompt_parse_methods() -> dict[str, AiPromptParse]:
+    """Dynamically loads all AI algorithms from the specified directory."""
+
+    directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../strategies/ai_prompt_parse_methods/")
+    methods = {}
+    base_package = "hanfor.ai.strategies.ai_prompt_parse_methods"
+
+    for filename in os.listdir(directory):
+        if filename.endswith(".py") and filename != "__init__.py":
+            # Import Modul
+            module_name = filename[:-3]
+            module_path = f"{base_package}.{module_name}"
+
+            try:
+                module = importlib.import_module(module_path)
+                for attr_name in dir(module):
+                    attr = getattr(module, attr_name)
+                    if isinstance(attr, type) and issubclass(attr, AiPromptParse) and attr is not AiPromptParse:
+                        try:
+                            instance = attr()
+                            methods[instance.name] = instance
+                        except TypeError as e:
+                            logging.warning(f"Class {attr_name} in module {module_path} could not be instantiated: {e}")
+            except ModuleNotFoundError as e:
+                logging.error(f"Error loading module {module_path}: {e}")
+    return methods
 
 
 def query_ai(query: str) -> (str, str):
@@ -94,10 +124,19 @@ class AIFormalization:
         logging.debug("false" + str(self.req_ai.to_dict()))
         return False
 
-    def run_process(self, ai_processing_queue):
+    def run_process(
+        self, ai_processing_queue, prompt_generator: callable, response_parser: callable, used_variables: list[dict]
+    ):
         while self.try_count < 5:
             self.status = "generating_prompt"
-            self.status, self.prompt = ai_formalization_methods.create_prompt(self.req_formal, self.req_ai)
+            self.prompt = prompt_generator(self.req_formal, self.req_ai, used_variables)
+
+            if self.prompt is None:
+                self.status = "error_generating_prompt"
+                self.try_count += 1
+                continue
+            else:
+                self.status = "prompt_created"
 
             if self.stop_event.is_set():
                 self.status = "terminated_" + self.status
@@ -128,7 +167,14 @@ class AIFormalization:
                 continue
 
             self.status = "parsing_ai_response"
-            self.status, self.formalized_output = ai_formalization_methods.parse_ai_response(self.ai_response)
+            self.formalized_output = response_parser(self.ai_response, used_variables)
+
+            if self.formalized_output is None:
+                self.status = "error_parsing"
+                self.try_count += 1
+                continue
+            else:
+                self.status = "response_parsed"
 
             if self.stop_event.is_set():
                 self.status = "terminated_" + self.status

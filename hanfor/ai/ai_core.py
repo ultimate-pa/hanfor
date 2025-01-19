@@ -5,8 +5,7 @@ from typing import Optional, List, Any
 from hanfor.ai import AiDataEnum
 from hanfor.ai.interfaces import ai_interface
 from hanfor.ai.interfaces.similarity_interface import ClusteringProgress, load_similarity_methods
-from hanfor.ai.interfaces.ai_interface import AIFormalization
-from hanfor.ai.strategies.similarity_abstract_class import SimilarityAlgorithm
+from hanfor.ai.interfaces.ai_interface import AIFormalization, load_ai_prompt_parse_methods
 from time import time
 import reqtransformer
 import hanfor_flask
@@ -65,19 +64,20 @@ class AiCore:
         },
         AiDataEnum.AI: {AiDataEnum.RUNNING: 0, AiDataEnum.QUEUED: 0, AiDataEnum.RESPONSE: "", AiDataEnum.QUERY: ""},
     }
-
-    similarity_methods: Optional[dict[str, SimilarityAlgorithm]] = None
-    activ_similarity_method: str = None
     clustering_progress_thread: Optional[Thread] = None
     stop_event_cluster = Event()
-
-    ai_formalization_thread: Optional[Thread] = None
+    ai_formalization_thread: Optional[list[Thread]] = []
     stop_event_ai = Event()
 
     def __init__(self):
         self.similarity_methods = load_similarity_methods()
         self.activ_similarity_method = "Levenshtein"
         self.sim_threshold = self.similarity_methods["Levenshtein"].standard_threshold
+
+        self.ai_prompt_parse_methods = load_ai_prompt_parse_methods()
+        self.activ_ai_prompt_parse_methods = "Prompt Dump"
+        self.used_variables: list[dict] = [{}]
+
         self.ai_processing_queue = AiProcessingQueue(self.__update_progress)
         self.clustering_progress = None
         self.__locked_cluster = []
@@ -124,10 +124,11 @@ class AiCore:
         self.clustering_progress_thread.start()
 
     def terminate_ai_formalization_threads(self) -> None:
-        if self.ai_formalization_thread and self.ai_formalization_thread.is_alive():
-            self.stop_event_ai.set()
-            self.ai_formalization_thread.join()
-            self.stop_event_ai.clear()
+        self.stop_event_ai.set()
+        for thread in self.ai_formalization_thread:
+            if thread and thread.is_alive():
+                thread.join()
+        self.stop_event_ai.clear()
 
     def updated_requirement(self, rid_u: str) -> None:
 
@@ -136,7 +137,8 @@ class AiCore:
             return
 
         req_queue, l_cluster = self.__load_requirements_to_queue(rid_u)
-        self.ai_formalization_thread = Thread(
+        self.__get_used_variables()
+        mother_tread = Thread(
             target=self.__mother_thread_of_ai_formalization,
             args=(
                 req_queue,
@@ -146,7 +148,8 @@ class AiCore:
             ),
             daemon=True,
         )
-        self.ai_formalization_thread.start()
+        self.ai_formalization_thread.append(mother_tread)
+        mother_tread.start()
 
     def get_full_info(self) -> dict:
         ret = {
@@ -156,6 +159,7 @@ class AiCore:
             "ai_formalization": self.__get_ai_formalization_progress(),
             "flags": self.__get_info_flags(),
             "sim_methods": self.__get_info_sim_methods(),
+            "ai_methods": self.__get_info_ai_methods(),
         }
         return ret
 
@@ -197,6 +201,11 @@ class AiCore:
                 for req_id in cl:
                     if self.__check_template_for_ai_formalization(req_id):
                         self.updated_requirement(req_id)
+
+    def set_ai_methode(self, name: str) -> None:
+        if name in self.ai_prompt_parse_methods.keys():
+            logging.debug(name)
+            self.activ_ai_prompt_parse_methods = name
 
     def __process_query(self, query):
         def replace_placeholder(match):
@@ -268,6 +277,18 @@ class AiCore:
                 }
                 methods_info.append(method_info)
         return self.sim_threshold, methods_info
+
+    def __get_info_ai_methods(self) -> list:
+        methods_info = []
+        if self.ai_prompt_parse_methods:
+            for name, method in self.ai_prompt_parse_methods.items():
+                method_info = {
+                    "name": name,
+                    "description": method.description,
+                    "selected": name == self.activ_ai_prompt_parse_methods,
+                }
+                methods_info.append(method_info)
+        return methods_info
 
     def __get_ai_formalization_progress(self) -> list[dict[str, Any]]:
         self.__cleanup_old_formalizations()
@@ -374,8 +395,19 @@ class AiCore:
             },
         )
 
+    def __get_used_variables(self):
+        """Return list of used variables from the database with Typ, etc"""
+        self.used_variables = [
+            x.to_dict({}) for x in hanfor_flask.current_app.db.get_objects(reqtransformer.Variable).values()
+        ]
+
     def __process_queue_element(self, formalize_object: AIFormalization) -> None:
-        formalize_object.run_process(self.ai_processing_queue)
+        formalize_object.run_process(
+            self.ai_processing_queue,
+            self.ai_prompt_parse_methods[self.activ_ai_prompt_parse_methods].create_prompt,
+            self.ai_prompt_parse_methods[self.activ_ai_prompt_parse_methods].parse_ai_response,
+            self.used_variables,
+        )
         if self.stop_event_ai.is_set() or formalize_object.status.startswith("terminated"):
             logging.warning(formalize_object.status)
             return
