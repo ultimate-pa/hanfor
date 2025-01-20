@@ -13,9 +13,11 @@ $(document).ready(function () {
         paging: true,
         stateSave: true,
         pageLength: 50,
-        deferRender: false,
+        responsive: true,
         lengthMenu: [[10, 50, 100, 500, -1], [10, 50, 100, 500, 'All']],
         dom: 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
+        ajax: {url: '../api/quickchecks', dataSrc: ''},
+        deferRender: true,
         columns: completenessDataTableColumns,
         initComplete: function () {
             this.api().draw();
@@ -28,14 +30,7 @@ $(document).ready(function () {
          * HTTP response status codes: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
          */
         $.ajax({
-            type: 'POST', url: '/api/quickchecks/completeness', contentType: 'application/json',
-        }).done(function (data, textStatus, jqXHR) {
-            completenessDataTable.clear();
-            data["data"].forEach(d => {
-                completenessDataTable.row.add(d);
-            });
-            //completenessDataTable.rows.add(data)
-            completenessDataTable.draw();
+            type: 'POST', url: '/api/quickchecks', contentType: 'application/json',
         }).fail(function (jqXHR, textStatus, errorThrown) {
             console.log('jqXHR:', jqXHR, 'textStatus:', textStatus, 'errorThrown:', errorThrown)
             alert(errorThrown + '\n\n' + jqXHR['responseText'])

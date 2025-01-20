@@ -1,9 +1,13 @@
 import logging
-from typing import Type
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Type, Any
 from flask import Blueprint, render_template, request, Response
 from flask.views import MethodView
 from pydantic import BaseModel
 from hanfor_flask import current_app
+from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField, DatabaseKeyError
 from reqtransformer import Requirement, Variable
 from quickchecks.check_poormanscomplete import PoorMansComplete, CompletenessCheckResult, CompletenessCheckOutcome
 
@@ -14,7 +18,22 @@ from quickchecks.check_poormanscomplete import PoorMansComplete, CompletenessChe
 
 BUNDLE_JS = "dist/quickchecks-bundle.js"
 blueprint = Blueprint("quickchecks", __name__, template_folder="templates", url_prefix="/quickchecks")
-api_blueprint = Blueprint("quickchecks_api_completeness", __name__, url_prefix="/api/quickchecks/completeness")
+api_blueprint = Blueprint("quickchecks_api", __name__, url_prefix="/api/quickchecks")
+
+
+@DatabaseTable(TableType.Folder)
+@DatabaseID("check_id", str)
+@DatabaseField("check_name", str)
+@DatabaseField("results", list[dict])
+@DatabaseField("start_time", datetime)
+@DatabaseField("last_update", datetime)
+@dataclass(kw_only=True)
+class QuickcheckTask:
+    check_id: str
+    check_name: str
+    results: list = field(default_factory=list)
+    start_time: datetime
+    last_update: datetime
 
 
 @blueprint.route("/", methods=["GET"])
@@ -24,15 +43,33 @@ def index():
 
 def register_api(bp: Blueprint, method_view: Type[MethodView]) -> None:
     view = method_view.as_view("quickchecks_api")
-    bp.add_url_rule("/", defaults={}, view_func=view, methods=["POST"])
-    # bp.add_url_rule("/<int:id>", view_func=view, methods=["GET", "PUT", "PATCH", "DELETE"])
+    bp.add_url_rule("/", defaults={}, view_func=view, methods=["GET", "POST"])
 
 
-class CompletenessCheckApi(MethodView):
+class QuickcheckApi(MethodView):
+
+    def get(self) -> list:
+        data = []
+        for key, check in current_app.db.get_objects(QuickcheckTask).items():
+            for r in check.results:
+                data.append([r.var, r.outcome, r.message])
+        return data
 
     def post(self) -> str | dict | tuple | Response:
-        results = self.run_checks()
-        return {"data": [[r.var.name, r.outcome.value, r.message] for r in results]}
+        if current_app.db.key_in_table(QuickcheckTask, PoorMansComplete.CHECK_ID):
+            r = current_app.db.get_object(QuickcheckTask, PoorMansComplete.CHECK_ID)
+        else:
+            r = QuickcheckTask(
+                check_id=PoorMansComplete.CHECK_ID,
+                check_name=PoorMansComplete.CHECK_ID,
+                start_time=datetime.now(),
+                last_update=datetime.now(),
+            )
+        current_app.db.add_object(r)
+        r.results = self.run_checks()
+        r.last_updated = datetime.now()
+        current_app.db.update()
+        return "ok"
 
     def run_checks(self) -> list[CompletenessCheckResult]:
         reqs = list(current_app.db.get_objects(Requirement).values())
@@ -45,4 +82,4 @@ class CompletenessCheckApi(MethodView):
         return results
 
 
-register_api(api_blueprint, CompletenessCheckApi)
+register_api(api_blueprint, QuickcheckApi)

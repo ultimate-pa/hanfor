@@ -44,7 +44,7 @@ class TestPoorMansComplete(TestCase):
             TestPoorMansComplete.__instantiate_bound_response("req2", "!a && b < 5", "c > 7", "5.0"),
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
-        b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.ENV_INCOMPLETE_UNCONSTRAINT}
+        b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE_UNCONSTRAINT}
         self.assertIn(vars["b"], b_result)
         self.assertIn(vars["c"], b_result)
         self.assertNotIn(vars["a"], b_result)
@@ -61,7 +61,7 @@ class TestPoorMansComplete(TestCase):
             TestPoorMansComplete.__instantiate_bound_response("req2", "!a && d", "c > 7", "5.0"),
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
-        b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.ENV_INCOMPLETE_UNCONSTRAINT}
+        b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE_UNCONSTRAINT}
         self.assertIn(vars["d"], b_result)
         self.assertNotIn(vars["c"], b_result)
         self.assertNotIn(vars["a"], b_result)
@@ -117,7 +117,7 @@ class TestPoorMansComplete(TestCase):
             TestPoorMansComplete.__instantiate_bound_response("req2", "!a && d", "c > 7", "5.0"),
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
-        b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.ENV_INCOMPLETE_UNCONSTRAINT}
+        b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE_UNCONSTRAINT}
         self.assertNotIn(vars["d"], b_result)
         self.assertIn(vars["c"], b_result)
         self.assertNotIn(vars["a"], b_result)

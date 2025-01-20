@@ -7,6 +7,7 @@ from pysmt.shortcuts import FALSE, Or, Not, Solver, TRUE, get_free_variables, An
 from pysmt.walkers import IdentityDagWalker
 
 import boogie_parsing
+from json_db_connector.json_db import DatabaseField, DatabaseFieldType
 from reqtransformer import Requirement, Variable, Scope
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
 
@@ -14,21 +15,28 @@ SOLVER_NAME = "z3"
 LOGIC = "UFLIRA"
 
 
-class CompletenessCheckOutcome(Enum):
+class CompletenessCheckOutcome:
     INCOMPLETE = "INCOMPLETE"
     ENV_VIOLATED = "ENV_VIOLATED"
-    ENV_INCOMPLETE_UNCONSTRAINT = "ENV_INCOMPLETE_UNCONSTRAINT"
+    INCOMPLETE_UNCONSTRAINT = "INCOMPLETE_UNCONSTRAINT"
     OK = "OK"
+
+    def is_negative_result(self, value: "CompletenessCheckOutcome") -> bool:
+        return value in {CompletenessCheckOutcome.INCOMPLETE, CompletenessCheckOutcome.ENV_VIOLATED}
 
 
 @dataclass
+@DatabaseFieldType()
+@DatabaseField("var", str)
+@DatabaseField("outcome", str)
+@DatabaseField("message", str)
 class CompletenessCheckResult:
-    var: Variable
-    outcome: CompletenessCheckOutcome
+    var: str
+    outcome: str
     message: str
 
     def __str__(self):
-        return f"{self.outcome}: in var '{self.var.name}': {self.message}"
+        return f"{self.outcome}: in var '{self.var}': {self.message}"
 
 
 class PoorMansComplete:
@@ -39,6 +47,8 @@ class PoorMansComplete:
     Note: the check uses all observables mentioned in requirements as they are (except for the universality not pattern)
     thus, there may be no negative formulations in patterns, or this will get unsound.
     """
+
+    CHECK_ID = "poormans_complete"
 
     def run(self, reqs: list[Requirement], variables: set[Variable]) -> list[CompletenessCheckResult]:
         logging.info("Starting PoorMansComplete Analysis for requirements set...")
@@ -64,7 +74,7 @@ class PoorMansComplete:
         """Check if all values a variable can tanke are inside the environment (if applicable)"""
         if target_var not in get_free_variables(env_assumption):
             return CompletenessCheckResult(
-                hanfor_var, CompletenessCheckOutcome.OK, f"'{target_var.symbol_name()}' has no env assumptions."
+                hanfor_var.name, CompletenessCheckOutcome.OK, f"'{target_var.symbol_name()}' has no env assumptions."
             )
         with Solver(name=SOLVER_NAME, logic=LOGIC) as solver:
             if target_var in get_free_variables(env_assumption):
@@ -73,13 +83,13 @@ class PoorMansComplete:
                 outside_environment = solver.is_sat(Exists(free, a_form))
                 if outside_environment:
                     return CompletenessCheckResult(
-                        hanfor_var,
+                        hanfor_var.name,
                         CompletenessCheckOutcome.ENV_VIOLATED,
                         f"'{target_var.symbol_name()}': value {solver.get_value(target_var)} is outside of Environment.\n"
                         f"Term is: {term}\n"
                         f"Environment is: {env_assumption}\n",
                     )
-        return CompletenessCheckResult(hanfor_var, CompletenessCheckOutcome.OK, "")
+        return CompletenessCheckResult(hanfor_var.name, CompletenessCheckOutcome.OK, "")
 
     def check_complete_var(
         self, term: FNode, target_var: FNode, env_assumption: FNode, hanfor_var: Variable
@@ -91,18 +101,18 @@ class PoorMansComplete:
             is_incomplete = solver.is_sat(Exists(free, q_form))
             if is_incomplete:
                 return CompletenessCheckResult(
-                    hanfor_var,
+                    hanfor_var.name,
                     (
                         CompletenessCheckOutcome.INCOMPLETE
                         if target_var in get_free_variables(env_assumption)
-                        else CompletenessCheckOutcome.ENV_INCOMPLETE_UNCONSTRAINT
+                        else CompletenessCheckOutcome.INCOMPLETE_UNCONSTRAINT
                     ),
                     f"{target_var.symbol_name()}: value {solver.get_value(target_var)}  is uncovered.\n"
                     f"Term is: {term}\n"
                     f"Environment is: {env_assumption}\n",
                 )
         # return f"{target_var} is complete: {not is_incomplete}"
-        return CompletenessCheckResult(hanfor_var, CompletenessCheckOutcome.OK, "")
+        return CompletenessCheckResult(hanfor_var.name, CompletenessCheckOutcome.OK, "")
 
     def extract_reqs_term(
         self,
