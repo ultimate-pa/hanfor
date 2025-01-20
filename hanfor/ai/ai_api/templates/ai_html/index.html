@@ -29,11 +29,11 @@
                 <h4>System Controls</h4>
                 <div class="d-flex flex-column align-items-start mb-4">
                     <div class="form-check form-switch me-3">
-                        <label class="form-check-label" for="toggle-system-switch">Toggle System</label>
+                        <label class="form-check-label" for="toggle-system-switch">Auto Update on Change</label>
                         <input class="form-check-input" type="checkbox" id="toggle-system-switch" >
                     </div>
                     <div class="form-check form-switch me-3">
-                        <label class="form-check-label" for="toggle-ai-switch">Toggle AI</label>
+                        <label class="form-check-label" for="toggle-ai-switch">Enable API AI Requests</label>
                         <input class="form-check-input" type="checkbox" id="toggle-ai-switch" >
                     </div>
                     <button id="terminate-all-button" class="btn btn-danger mt-3">Terminate All Processes</button>
@@ -44,13 +44,21 @@
                     <div class="mb-3">
                         <h5>Cluster Process</h5>
                         <p>Status: <span id="cluster-status">XXX</span></p>
-                        <p>Clusters available: <span id="cluster-availability">XXX</span></p>
+                        <p>Cluster Progress: <span id="cluster-availability">XXX</span></p>
                     </div>
                     <div>
+                    <!-- AI Processes Section -->
+                    <div class="ai-processes-section">
                         <h5>AI Processes</h5>
                         <p>Running processes: <span id="ai-running-count">X</span></p>
                         <p>Processes in queue: <span id="ai-queue-count">X</span></p>
                     </div>
+
+                    <!-- AI Statistics Section -->
+                    <div id="ai-statistics-container">
+                        <!-- Sections will be dynamically inserted here -->
+                    </div>
+                </div>
                 </div>
 
                 <h4>Cluster Data</h4>
@@ -146,11 +154,8 @@
                 <!-- AI, Parsing, Prompt-Generation Auswahl -->
                 <div class="mt-3">
                     <div class="mb-3">
-                        <label for="ai-selection" class="form-label">Select AI Model</label>
-                        <select id="ai-selection" class="form-select">
-                            <option value="ai-model-1">AI Model 1</option>
-                            <option value="ai-model-2">AI Model 2</option>
-                            <option value="ai-model-3">AI Model 3</option>
+                        <label for="ai-model-selection" class="form-label">Select AI Model</label>
+                        <select id="ai-model-selection" class="form-select">
                         </select>
                     </div>
 

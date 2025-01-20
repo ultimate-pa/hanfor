@@ -4,43 +4,11 @@ import time
 import requests
 import logging
 from hanfor import boogie_parsing
-from hanfor.ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse
+from hanfor.ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse, get_scope, get_pattern
+import hanfor.ai.ai_config as ai_config
 
-pattern = [
-    "Response",
-    "ResponseChain1-2",
-    "ConstrainedChain",
-    "Precedence",
-    "PrecedenceChain2-1",
-    "PrecedenceChain1-2",
-    "Universality",
-    "UniversalityDelay",
-    "BoundedExistence",
-    "Invariant",
-    "Absence",
-    "BoundedResponse",
-    "BoundedRecurrence",
-    "MaxDuration",
-    "TimeConstrainedMinDuration",
-    "BoundedInvariance",
-    "TimeConstrainedInvariant",
-    "MinDuration",
-    "ConstrainedTimedExistence",
-    "BndTriggeredEntryConditionPattern",
-    "BndTriggeredEntryConditionPatternDelayed",
-    "EdgeResponsePatternDelayed",
-    "BndEdgeResponsePattern",
-    "BndEdgeResponsePatternDelayed",
-    "BndEdgeResponsePatternTU",
-    "Initialization",
-    "Persistence",
-    "Toggle1",
-    "Toggle2",
-    "BndEntryConditionPattern",
-    "ResponseChain2-1",
-    "Existence",
-]
-scope = ["GLOBALLY", "BEFORE", "AFTER", "BETWEEN", "AFTER_UNTIL"]
+pattern = get_pattern().keys()
+scope = get_scope().keys()
 
 
 def load_ai_prompt_parse_methods() -> dict[str, AiPromptParse]:
@@ -71,24 +39,28 @@ def load_ai_prompt_parse_methods() -> dict[str, AiPromptParse]:
     return methods
 
 
-def query_ai(query: str) -> (str, str):
+def query_ai(query: str, model: str, enable_api_ai_request: bool) -> (str, str):
+
+    if not enable_api_ai_request:
+        return None, "error_AI_API_requests_off"
+
     try:
         response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={"model": "llama3.1:8b", "prompt": query, "stream": False},
+            ai_config.AI_API_URL,
+            json={"model": model, "prompt": query, "stream": False},
         )
         response_json = response.json()
         if "response" in response_json:
             return response_json["response"], "ai_response_received"
         else:
             logging.error(f"Key 'response' not found in AI response: {response_json}")
-            return None, "error_ai_response_format"
+            return None, f"error_ai_response_format_{response_json}"
     except requests.exceptions.RequestException as e:
         logging.error(f"Request failed: {e}")
-        return None, "error_ai_connection"
+        return None, f"error_ai_connection_{e}"
     except ValueError as e:
         logging.error(f"Invalid JSON in response: {e}")
-        return None, "error_ai_response_format"
+        return None, f"error_ai_response_format_{e}"
 
 
 class AIFormalization:
@@ -104,36 +76,47 @@ class AIFormalization:
         self.stop_event = stop_event_ai
 
     def test_formalization_complete(self) -> bool:
-        if (
-            self.formalized_output["scope"] in scope
-            and self.formalized_output["pattern"] in pattern
-            and self.formalized_output["expression_mapping"].keys() == {"P", "Q", "R", "S", "T", "U", "V"}
-        ):
-            parser = boogie_parsing.get_parser_instance()
-            # Test all non-empty strings in "expression_mapping" values
-            for key, value in self.formalized_output["expression_mapping"].items():
-                if value.strip():
-                    try:
-                        parser.parse(value)
-                    except Exception as e:
-                        logging.error(f"Error while parsing expression_mapping[{key}]: {e}")
-                        return False
+        if self.formalized_output["scope"] not in scope:
+            logging.error(f"Scope {self.formalized_output["scope"]} not found in {scope}, skipping")
+            return False
+        if self.formalized_output["pattern"] not in pattern:
+            logging.error(f"Pattern {self.formalized_output["pattern"]} not found in {pattern}, skipping")
+            return False
+        if self.formalized_output["expression_mapping"].keys() != {"P", "Q", "R", "S", "T", "U", "V"}:
+            logging.error(f"expression_mapping {self.formalized_output["expression_mapping"]} not okay, skipping")
+            return False
 
-            logging.debug("true" + str(self.req_ai.to_dict()))
-            return True
-        logging.debug("false" + str(self.req_ai.to_dict()))
-        return False
+        parser = boogie_parsing.get_parser_instance()
+        # Test all non-empty strings in "expression_mapping" values
+        for key, value in self.formalized_output["expression_mapping"].items():
+            if value.strip():
+                try:
+                    parser.parse(value)
+                except Exception as e:
+                    logging.error(f"Error while parsing expression_mapping[{key}]: {e}")
+                    return False
+        logging.debug("true" + str(self.req_ai.to_dict()))
+        return True
 
     def run_process(
-        self, ai_processing_queue, prompt_generator: callable, response_parser: callable, used_variables: list[dict]
+        self,
+        ai_processing_queue,
+        prompt_generator: callable,
+        response_parser: callable,
+        used_variables: list[dict],
+        ai_model: str,
+        enable_api_ai_request: bool,
+        ai_statistic,
+        prompt_generator_name: str,
     ):
-        while self.try_count < 5:
+        while self.try_count < ai_config.MAX_AI_FORMALIZATION_TRYS:
             self.status = "generating_prompt"
             self.prompt = prompt_generator(self.req_formal, self.req_ai, used_variables)
 
             if self.prompt is None:
                 self.status = "error_generating_prompt"
                 self.try_count += 1
+                ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
                 continue
             else:
                 self.status = "prompt_created"
@@ -141,6 +124,7 @@ class AIFormalization:
             if self.stop_event.is_set():
                 self.status = "terminated_" + self.status
                 self.del_time = time.time()
+                ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
                 return
 
             # Checking if the AI can process a Prompt
@@ -152,18 +136,21 @@ class AIFormalization:
                     self.status = "terminated_" + self.status
                     self.del_time = time.time()
                     ai_processing_queue.terminated(req_id)
+                    ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
                     return
             self.status = "waiting_ai_response"
-            self.ai_response, self.status = query_ai(self.prompt)
+            self.ai_response, self.status = query_ai(self.prompt, ai_model, enable_api_ai_request)
             ai_processing_queue.complete_request(req_id)
 
             if self.stop_event.is_set():
                 self.status = "terminated_" + self.status
                 self.del_time = time.time()
+                ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
                 return
 
             if self.status.startswith("error"):
                 self.try_count += 1
+                ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
                 continue
 
             self.status = "parsing_ai_response"
@@ -172,6 +159,7 @@ class AIFormalization:
             if self.formalized_output is None:
                 self.status = "error_parsing"
                 self.try_count += 1
+                ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
                 continue
             else:
                 self.status = "response_parsed"
@@ -179,19 +167,24 @@ class AIFormalization:
             if self.stop_event.is_set():
                 self.status = "terminated_" + self.status
                 self.del_time = time.time()
+                ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
                 return
 
             if self.status.startswith("error"):
                 self.try_count += 1
+                ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
                 continue
 
             logging.info(self.formalized_output)
 
             if self.test_formalization_complete():
                 self.status = "complete"
+                ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
                 break
+            else:
+                self.status = "error_failed_test_formalization_complete"
+                self.try_count += 1
+                ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
 
-            self.status = "error"
-            self.try_count += 1
-
+        ai_statistic.add_try_count(ai_model, prompt_generator_name, self.try_count)
         self.del_time = time.time()

@@ -1,3 +1,5 @@
+import time
+
 from hanfor.ai.strategies.similarity_abstract_class import SimilarityAlgorithm
 
 
@@ -19,6 +21,7 @@ class LevenshteinSimilarity(SimilarityAlgorithm):
         return 0.0, 1.0
 
     def compare(self, str1: str, str2: str, threshold: float) -> (bool, float):
+        time.sleep(0.01)
         words1 = set(str1.split())
         words2 = set(str2.split())
 

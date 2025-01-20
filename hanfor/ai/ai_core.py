@@ -2,7 +2,7 @@ import logging
 from queue import Queue
 from threading import Thread, Event, Lock
 from typing import Optional, List, Any
-from hanfor.ai import AiDataEnum
+from hanfor.ai import AiDataEnum, ai_config
 from hanfor.ai.interfaces import ai_interface
 from hanfor.ai.interfaces.similarity_interface import ClusteringProgress, load_similarity_methods
 from hanfor.ai.interfaces.ai_interface import AIFormalization, load_ai_prompt_parse_methods
@@ -13,7 +13,7 @@ import re
 
 
 class AiProcessingQueue:
-    max_ai_requests: int = 5
+    max_ai_requests: int = ai_config.MAX_CONCURRENT_AI_REQUESTS
 
     def __init__(self, update_progress_function):
         self.current_ai_request = []
@@ -32,6 +32,7 @@ class AiProcessingQueue:
             else:
                 if req_id not in self.current_waiting:
                     self.current_waiting.append(req_id)
+                    self.__up_prog()
                 return False
 
     def __up_prog(self):
@@ -47,6 +48,58 @@ class AiProcessingQueue:
             self.current_waiting.remove(id)
         if id in self.current_ai_request:
             self.current_ai_request.remove(id)
+        self.__up_prog()
+
+
+class AiStatistic:
+    def __init__(self):
+        self.lock = Lock()
+        self.model_method_status_count = {}
+
+    def update_status(self, model: str, methode: str, status: str):
+        with self.lock:
+            if model not in self.model_method_status_count:
+                self.model_method_status_count[model] = {}
+
+            if methode not in self.model_method_status_count[model]:
+                self.model_method_status_count[model][methode] = {}
+
+            if status not in self.model_method_status_count[model][methode]:
+                self.model_method_status_count[model][methode][status] = 0
+
+            self.model_method_status_count[model][methode][status] += 1
+
+    def add_try_count(self, model: str, methode: str, count: int):
+        with self.lock:
+            if "try_count" not in self.model_method_status_count[model][methode]:
+                self.model_method_status_count[model][methode]["try_count"] = []
+            self.model_method_status_count[model][methode]["try_count"].append(count)
+
+    def get_status_report(self):
+        report = []
+        for model, methods in self.model_method_status_count.items():
+            for method, status_data in methods.items():
+                try_count = status_data.get("try_count", [])
+                total_tries = sum(try_count) if try_count else 0
+                avg_try_count = total_tries / len(try_count) if try_count else 0
+
+                status_table = []
+                total_statuses = sum(count for key, count in status_data.items() if key != "try_count")
+                for status, count in status_data.items():
+                    if status != "try_count":
+                        percentage = (count / total_statuses) * 100
+
+                        status_table.append({"Status": status, "Total": count, "Percentage": round(percentage, 2)})
+                report.append(
+                    {
+                        "Model": model,
+                        "Prompt_gen": method,
+                        "Avg_try_count": round(avg_try_count, 2),
+                        "Status_table": status_table,
+                    }
+                )
+
+        return report
 
 
 class AiCore:
@@ -55,8 +108,11 @@ class AiCore:
     cluster_matrix: Optional[tuple[list[list[float]], dict]] = None
     formalization_objects: List[AIFormalization] = []
 
-    ai_system_data = {
-        AiDataEnum.FLAGS: {AiDataEnum.SYSTEM: True, AiDataEnum.AI: False},
+    ai_system_data: dict[AiDataEnum, dict[AiDataEnum, bool | int | str]] = {
+        AiDataEnum.FLAGS: {
+            AiDataEnum.SYSTEM: ai_config.AUTO_UPDATE_ON_REQUIREMENT_CHANGE,
+            AiDataEnum.AI: ai_config.ENABLE_API_AI_REQUESTS,
+        },
         AiDataEnum.CLUSTER: {
             AiDataEnum.STATUS: AiDataEnum.NOT_STARTED,
             AiDataEnum.PROCESSED: 0,
@@ -71,18 +127,25 @@ class AiCore:
 
     def __init__(self):
         self.similarity_methods = load_similarity_methods()
-        self.activ_similarity_method = "Levenshtein"
-        self.sim_threshold = self.similarity_methods["Levenshtein"].standard_threshold
+        self.activ_similarity_method = ai_config.STANDARD_SIMILARITY_METHOD
+        self.sim_threshold = self.similarity_methods[self.activ_similarity_method].standard_threshold
 
         self.ai_prompt_parse_methods = load_ai_prompt_parse_methods()
-        self.activ_ai_prompt_parse_methods = "Prompt Dump"
+        self.activ_ai_prompt_parse_methods = ai_config.STANDARD_AI_PROMPT_PARSE_METHOD
         self.used_variables: list[dict] = [{}]
+        self.activ_ai_model: str = ai_config.STANDARD_AI_MODEL
+        self.ai_models: dict[str, str] = ai_config.AI_MODEL_NAMES
 
         self.ai_processing_queue = AiProcessingQueue(self.__update_progress)
+        self.ai_statistic = AiStatistic()
         self.clustering_progress = None
         self.__locked_cluster = []
 
-    def terminate_cluster_thread(self):
+    def startup(self):
+        if ai_config.ENABLE_SIMILARITY_ON_STARTUP:
+            self.start_clustering()
+
+    def terminate_cluster_thread(self) -> None:
         if self.clustering_progress_thread and self.clustering_progress_thread.is_alive():
             self.stop_event_cluster.set()
             self.clustering_progress_thread.join()
@@ -130,7 +193,13 @@ class AiCore:
                 thread.join()
         self.stop_event_ai.clear()
 
-    def updated_requirement(self, rid_u: str) -> None:
+    def auto_update_requirement(self, rid_u: str) -> None:
+        if not self.ai_system_data[AiDataEnum.FLAGS][AiDataEnum.SYSTEM]:
+            logging.debug("Auto update off")
+            return
+        self.__update_requirement(rid_u)
+
+    def __update_requirement(self, rid_u: str) -> None:
 
         if not self.clusters or not self.__check_template_for_ai_formalization(rid_u):
             logging.debug("No Formalization")
@@ -160,6 +229,8 @@ class AiCore:
             "flags": self.__get_info_flags(),
             "sim_methods": self.__get_info_sim_methods(),
             "ai_methods": self.__get_info_ai_methods(),
+            "ai_models": self.__get_info_ai_models(),
+            "ai_statistic": self.ai_statistic.get_status_report(),
         }
         return ret
 
@@ -185,8 +256,13 @@ class AiCore:
 
     def query_ai(self, query):
         def background_query(processed_query):
-            response, _ = ai_interface.query_ai(processed_query)
-            self.__update_progress(AiDataEnum.AI, AiDataEnum.RESPONSE, response)
+            response, status = ai_interface.query_ai(
+                processed_query, self.activ_ai_model, self.ai_system_data[AiDataEnum.FLAGS][AiDataEnum.AI]
+            )
+            if not response:
+                self.__update_progress(AiDataEnum.AI, AiDataEnum.RESPONSE, status)
+            else:
+                self.__update_progress(AiDataEnum.AI, AiDataEnum.RESPONSE, response)
 
         processed_query = self.__process_query(query)
         self.__update_progress(AiDataEnum.AI, AiDataEnum.QUERY, processed_query)
@@ -200,12 +276,17 @@ class AiCore:
             for cl in self.clusters:
                 for req_id in cl:
                     if self.__check_template_for_ai_formalization(req_id):
-                        self.updated_requirement(req_id)
+                        self.__update_requirement(req_id)
 
     def set_ai_methode(self, name: str) -> None:
         if name in self.ai_prompt_parse_methods.keys():
             logging.debug(name)
             self.activ_ai_prompt_parse_methods = name
+
+    def set_ai_model(self, name: str) -> None:
+        if name in self.ai_models:
+            logging.debug(name)
+            self.activ_ai_model = name
 
     def __process_query(self, query):
         def replace_placeholder(match):
@@ -286,6 +367,18 @@ class AiCore:
                     "name": name,
                     "description": method.description,
                     "selected": name == self.activ_ai_prompt_parse_methods,
+                }
+                methods_info.append(method_info)
+        return methods_info
+
+    def __get_info_ai_models(self) -> list:
+        methods_info = []
+        if self.ai_prompt_parse_methods:
+            for name, desc in self.ai_models.items():
+                method_info = {
+                    "name": name,
+                    "description": desc,
+                    "selected": name == self.activ_ai_model,
                 }
                 methods_info.append(method_info)
         return methods_info
@@ -407,6 +500,10 @@ class AiCore:
             self.ai_prompt_parse_methods[self.activ_ai_prompt_parse_methods].create_prompt,
             self.ai_prompt_parse_methods[self.activ_ai_prompt_parse_methods].parse_ai_response,
             self.used_variables,
+            self.activ_ai_model,
+            self.ai_system_data[AiDataEnum.FLAGS][AiDataEnum.AI],
+            self.ai_statistic,
+            self.activ_ai_prompt_parse_methods,
         )
         if self.stop_event_ai.is_set() or formalize_object.status.startswith("terminated"):
             logging.warning(formalize_object.status)

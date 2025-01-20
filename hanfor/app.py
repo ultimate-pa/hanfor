@@ -284,7 +284,7 @@ def api(resource, command):
                 else:
                     app.db.update()
                     if app.config["FEATURE_AI"]:
-                        app.ai.updated_requirement(requirement.rid)
+                        app.ai.auto_update_requirement(requirement.rid)
                     return jsonify(requirement.to_dict()), 200
 
         # Multi Update Tags or Status.
@@ -1005,6 +1005,11 @@ def startup_hanfor(args, here, *, no_data_tracing: bool = False) -> bool:
     # instantiate TagsApi for generating init_tags
     with app.app_context():
         TagsApi()
+
+    # Startup AI (start clustering if Flagged)
+    if app.config["FEATURE_AI"]:
+        with app.app_context():
+            app.ai.startup()
     return True
 
 

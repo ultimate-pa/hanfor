@@ -46,7 +46,7 @@ def get_scope() -> dict[str, str]:
 
 def get_pattern() -> dict[str, dict[str, str | dict[str, str]]]:
     """
-    returns a dictionary Keys = scope with two values:
+    returns a dictionary Keys = pattern name with two values:
     [pattern]["env"] (The allowed types for the variables/expressions if available)
     [pattern]["pattern"] (the pattern as string)
     """

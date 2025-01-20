@@ -23,8 +23,8 @@ class GetCurrentData(MethodView):
 
 class TerminateAll(MethodView):
     def post(self):
-        current_app.ai.terminate_ai_formalization_threads()
         current_app.ai.terminate_cluster_thread()
+        current_app.ai.terminate_ai_formalization_threads()
         return jsonify({"message": "all processes terminated."})
 
 
@@ -109,6 +109,16 @@ class SetAiMethod(MethodView):
         return jsonify({"error": "Method name is required."}), 400
 
 
+class SetAiModel(MethodView):
+    def post(self):
+        data = request.get_json()
+        name = data.get("name")
+        if name:
+            current_app.ai.set_ai_model(name)
+            return jsonify({"message": f"Similarity method set to {name}."}), 200
+        return jsonify({"error": "Method name is required."}), 400
+
+
 # Register routes with their specific view classes
 api_blueprint.add_url_rule("/get/current_data", view_func=GetCurrentData.as_view("get/current_data"), methods=["GET"])
 api_blueprint.add_url_rule("/get/sim/matrix", view_func=GetMatrix.as_view("sim/matrix"), methods=["GET"])
@@ -123,3 +133,4 @@ api_blueprint.add_url_rule("/set/sim/threshold", view_func=SetSimThreshold.as_vi
 api_blueprint.add_url_rule("/ai/query", view_func=QueryAi.as_view("ai/query"), methods=["POST"])
 api_blueprint.add_url_rule("/ai/process", view_func=ProcessAllReqAi.as_view("ai/process"), methods=["POST"])
 api_blueprint.add_url_rule("/set/ai/method", view_func=SetAiMethod.as_view("set/ai/method"), methods=["POST"])
+api_blueprint.add_url_rule("/set/ai/model", view_func=SetAiModel.as_view("set/ai/model"), methods=["POST"])

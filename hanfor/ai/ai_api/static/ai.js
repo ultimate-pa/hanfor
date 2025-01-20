@@ -65,6 +65,7 @@ $(document).ready(function (){
         // Updating the cluster and ai table (SOCKET)
         populateTable(data.clusters)
         fetchAndDisplayProgress(data.ai_formalization)
+        renderAiStatistics()
     }
 
     function updateFlags(){
@@ -117,7 +118,26 @@ $(document).ready(function (){
                 selectElement.append(option); // Add the option to the dropdown
             });
         }
+    }
 
+    function updateAiModelSelection(selectedModelName){
+        if (data.ai_models){
+            const selectElement = $('#ai-model-selection');
+            selectElement.empty(); // Clear existing options
+
+            data.ai_models.forEach(function (method) {
+                const option = $('<option></option>')
+                    .attr('value', method.name)
+                    .text(`${method.name}: ${method.description}`);
+                // Mark the method as selected if it matches the passed name
+                if (method.name === selectedModelName) {
+                    option.prop('selected', true); // Mark the selected method
+                } else {
+                    option.prop('selected', false); // Unselect other methods
+                }
+                selectElement.append(option); // Add the option to the dropdown
+            });
+        }
     }
 
     function selectedSimMethod() {
@@ -129,6 +149,13 @@ $(document).ready(function (){
 
     function selectedAiMethod() {
         const selectedMethod = data.ai_methods.find(function(method) {
+            return method.selected;
+        });
+        return selectedMethod ? selectedMethod.name : null;
+        }
+
+    function selectedAiModel() {
+        const selectedMethod = data.ai_models.find(function(method) {
             return method.selected;
         });
         return selectedMethod ? selectedMethod.name : null;
@@ -260,12 +287,113 @@ $(document).ready(function (){
         });
     }
 
+    function renderAiStatistics() {
+        const container = $('#ai-statistics-container');
+        container.empty(); // Clear the container before adding new tables
+
+        data.ai_statistic.forEach(stat => {
+            const model = stat.Model || 'N/A';
+            const promptGen = stat.Prompt_gen || 'N/A';
+            const avgTryCount = stat.Avg_try_count || 0;
+
+            // Create a unique ID for each table
+            const tableId = `ai-statistics-table-${model.replace(/\W/g, '-')}-${promptGen.replace(/\W/g, '-')}`;
+            const sectionId = `section-${tableId}`;
+
+            // Add a section for each Model/Prompt_gen with a heading and average try count
+            const section = `
+                <div class="ai-statistics-section" style="margin-bottom: 15px;">
+                    <h6 
+                        id="toggle-${tableId}" 
+                        style="cursor: pointer; padding: 10px; background-color: #f1f1f1; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 5px; font-weight: bold;">
+                        ${model} - ${promptGen}
+                        <span id="${tableId}-icon" style="float: right; color: #007bff;">[+]</span>
+                    </h6>
+                    <div id="${tableId}-content" style="display: none; padding: 10px; border: 1px solid #ccc; border-top: none; border-radius: 0 0 5px 5px;">
+                        <p>Average Try Count: ${avgTryCount}</p>
+                        <table class="display ai-statistics-table">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Total</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${stat.Status_table.map(status => `
+                                    <tr>
+                                        <td>${status.Status}</td>
+                                        <td>${status.Total}</td>
+                                        <td>${status.Percentage}%</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            container.append(section);
+
+            // Check if the section should be expanded or collapsed
+            const isOpen = localStorage.getItem(sectionId) === 'open'; // Retrieve state from localStorage
+            const content = document.getElementById(`${tableId}-content`);
+            const icon = document.getElementById(`${tableId}-icon`);
+
+            if (isOpen) {
+                content.style.display = 'block';
+                icon.textContent = '[-]';
+            } else {
+                content.style.display = 'none';
+                icon.textContent = '[+]';
+            }
+
+            // Add the event listener to toggle the section
+            const toggleButton = document.getElementById(`toggle-${tableId}`);
+            toggleButton.addEventListener('click', () => toggleSection(sectionId, tableId));
+
+            // Initialize DataTable for each table (apply only to <table> tags)
+            $(`#${tableId}-content .ai-statistics-table`).DataTable({
+                paging: false,
+                searching: false,
+                info: false,
+                responsive: true,
+                order: [[1, 'desc']], // Sort by Total descending
+            });
+        });
+    }
+
+    // Function to toggle the section visibility and save the state
+    function toggleSection(sectionId, tableId) {
+        const content = document.getElementById(`${tableId}-content`);
+        const icon = document.getElementById(`${tableId}-icon`);
+
+        // Check the current display state and toggle accordingly
+        if (content.style.display === 'none') {
+            // Open the section
+            content.style.display = 'block';
+            icon.textContent = '[-]';
+            localStorage.setItem(sectionId, 'open'); // Save state as open
+        } else {
+            // Close the section
+            content.style.display = 'none';
+            icon.textContent = '[+]';
+            localStorage.setItem(sectionId, 'closed'); // Save state as closed
+        }
+    }
+
+
+
+
+
+
+
     function waitForDataForInitalLoad() {
         const checkInterval = setInterval(function() {
             if (data) {
                 clearInterval(checkInterval);
                 updateClusteringProcessSelection(selectedSimMethod());
                 updateAiMethodSelection(selectedAiMethod());
+                updateAiModelSelection(selectedAiModel());
                 updateFlags();
             }
         }, 30);
@@ -347,6 +475,24 @@ $(document).ready(function (){
         });
     });
 
+    $('#ai-model-selection').on('change', function() {
+        const selectedMethod = $(this).val();
+        $.ajax({
+            type: 'POST',
+            url: '/api/ai/set/ai/model',
+            contentType: 'application/json',
+            data: JSON.stringify({ name: selectedMethod }),
+            success: function(response) {
+                console.log(response.message);
+                get_update();
+                updateAiModelSelection(selectedMethod)
+            },
+            error: function(error) {
+                console.error("Error setting method:", error);
+            }
+        });
+    });
+
     $('#start-clustering').click(function () {
         $.ajax({
             type: 'POST',
@@ -360,7 +506,11 @@ $(document).ready(function (){
             type: 'POST',
             url: '/api/ai/terminate/sim',
             contentType: 'application/json'
-        })
+        }).done(function (data) {
+            alert(data.message);  // Show a popup alert with the response message
+        }).fail(function (jqXHR) {
+            alert(`Error: ${jqXHR.responseText}`);  // Show error alert
+        });
     });
 
     $('#terminate-ai-button').click(function () {
@@ -368,7 +518,11 @@ $(document).ready(function (){
             type: 'POST',
             url: '/api/ai/terminate/ai',
             contentType: 'application/json'
-        })
+        }).done(function (data) {
+            alert(data.message);  // Show a popup alert with the response message
+        }).fail(function (jqXHR) {
+            alert(`Error: ${jqXHR.responseText}`);  // Show error alert
+        });
     });
 
     $('#process-ai').click(function () {
