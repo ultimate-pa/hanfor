@@ -89,7 +89,9 @@ class PoorMansComplete:
                         f"Term is: {term}\n"
                         f"Environment is: {env_assumption}\n",
                     )
-        return CompletenessCheckResult(hanfor_var.name, CompletenessCheckOutcome.OK, "")
+        return CompletenessCheckResult(
+            hanfor_var.name, CompletenessCheckOutcome.OK, "Expected values of the variable is inside the environment"
+        )
 
     def check_complete_var(
         self, term: FNode, target_var: FNode, env_assumption: FNode, hanfor_var: Variable
@@ -112,7 +114,9 @@ class PoorMansComplete:
                     f"Environment is: {env_assumption}\n",
                 )
         # return f"{target_var} is complete: {not is_incomplete}"
-        return CompletenessCheckResult(hanfor_var.name, CompletenessCheckOutcome.OK, "")
+        return CompletenessCheckResult(
+            hanfor_var.name, CompletenessCheckOutcome.OK, "Any value of the variable is covered by a req"
+        )
 
     def extract_reqs_term(
         self,

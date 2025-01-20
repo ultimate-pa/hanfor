@@ -1,11 +1,9 @@
 import logging
-import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Type, Any
-from flask import Blueprint, render_template, request, Response
+from flask import Blueprint, render_template, Response
 from flask.views import MethodView
-from pydantic import BaseModel
 from hanfor_flask import current_app
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField, DatabaseKeyError
 from reqtransformer import Requirement, Variable
@@ -48,13 +46,6 @@ def register_api(bp: Blueprint, method_view: Type[MethodView]) -> None:
 
 class QuickcheckApi(MethodView):
 
-    def get(self) -> list:
-        data = []
-        for key, check in current_app.db.get_objects(QuickcheckTask).items():
-            for r in check.results:
-                data.append([r.var, r.outcome, r.message])
-        return data
-
     def post(self) -> str | dict | tuple | Response:
         if current_app.db.key_in_table(QuickcheckTask, PoorMansComplete.CHECK_ID):
             r = current_app.db.get_object(QuickcheckTask, PoorMansComplete.CHECK_ID)
@@ -82,4 +73,20 @@ class QuickcheckApi(MethodView):
         return results
 
 
+def register_api_results(bp: Blueprint, method_view: Type[MethodView]) -> None:
+    view = method_view.as_view("quickchecks_api_results")
+    bp.add_url_rule("/results", defaults={}, view_func=view, methods=["GET"])
+
+
+class QuickCheksResultApi(MethodView):
+
+    def get(self) -> list:
+        data = []
+        for key, check in current_app.db.get_objects(QuickcheckTask).items():
+            for r in check.results:
+                data.append([r.var, r.outcome, r.message])
+        return data
+
+
 register_api(api_blueprint, QuickcheckApi)
+register_api_results(api_blueprint, QuickCheksResultApi)
