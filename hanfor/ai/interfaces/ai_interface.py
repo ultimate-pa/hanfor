@@ -116,7 +116,7 @@ class AIFormalization:
             if self.prompt is None:
                 self.status = "error_generating_prompt"
                 self.try_count += 1
-                ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
+                ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
                 continue
             else:
                 self.status = "prompt_created"
@@ -124,7 +124,7 @@ class AIFormalization:
             if self.stop_event.is_set():
                 self.status = "terminated_" + self.status
                 self.del_time = time.time()
-                ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
+                ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
                 return
 
             # Checking if the AI can process a Prompt
@@ -136,7 +136,7 @@ class AIFormalization:
                     self.status = "terminated_" + self.status
                     self.del_time = time.time()
                     ai_processing_queue.terminated(req_id)
-                    ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
+                    ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
                     return
             self.status = "waiting_ai_response"
             self.ai_response, self.status = query_ai(self.prompt, ai_model, enable_api_ai_request)
@@ -145,12 +145,12 @@ class AIFormalization:
             if self.stop_event.is_set():
                 self.status = "terminated_" + self.status
                 self.del_time = time.time()
-                ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
+                ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
                 return
 
             if self.status.startswith("error"):
                 self.try_count += 1
-                ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
+                ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
                 continue
 
             self.status = "parsing_ai_response"
@@ -159,7 +159,7 @@ class AIFormalization:
             if self.formalized_output is None:
                 self.status = "error_parsing"
                 self.try_count += 1
-                ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
+                ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
                 continue
             else:
                 self.status = "response_parsed"
@@ -167,24 +167,24 @@ class AIFormalization:
             if self.stop_event.is_set():
                 self.status = "terminated_" + self.status
                 self.del_time = time.time()
-                ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
+                ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
                 return
 
             if self.status.startswith("error"):
                 self.try_count += 1
-                ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
+                ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
                 continue
 
             logging.info(self.formalized_output)
 
             if self.test_formalization_complete():
                 self.status = "complete"
-                ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
+                ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
                 break
             else:
                 self.status = "error_failed_test_formalization_complete"
                 self.try_count += 1
-                ai_statistic.update_status(ai_model, prompt_generator_name, self.status)
+                ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
 
         ai_statistic.add_try_count(ai_model, prompt_generator_name, self.try_count)
         self.del_time = time.time()

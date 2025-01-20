@@ -1,6 +1,6 @@
 import logging
 from asyncio import Event
-from hanfor.ai import AiDataEnum
+from hanfor.ai.ai_enum import AiDataEnum
 from hanfor.ai.strategies.similarity_abstract_class import SimilarityAlgorithm
 import os
 import importlib
@@ -42,9 +42,8 @@ def load_similarity_methods() -> dict[str, SimilarityAlgorithm]:
 
 
 class ClusteringProgress:
-    def __init__(self, requirements: dict, progress_status: dict, progress_update, sim_function):
-        self.progress_status = progress_status
-        self.progress_update = progress_update
+    def __init__(self, requirements: dict, progress_update_function, sim_function):
+        self.progress_update_function = progress_update_function
         self.requirements = requirements
         self.function = sim_function
 
@@ -52,21 +51,14 @@ class ClusteringProgress:
         return self.__cluster_requirements_by_description(self.requirements, stop_event_cluster, threshold)
 
     def __update_progress(self):
-
-        if self.progress_status[AiDataEnum.STATUS] == AiDataEnum.CLUSTERING:
-            self.progress_update(
-                AiDataEnum.CLUSTER, AiDataEnum.PROCESSED, (self.progress_status[AiDataEnum.PROCESSED] + 1)
-            )
-            if self.progress_status[AiDataEnum.PROCESSED] >= self.progress_status[AiDataEnum.TOTAL]:
-                self.progress_update(AiDataEnum.CLUSTER, AiDataEnum.STATUS, AiDataEnum.COMPLETED)
+        self.progress_update_function(AiDataEnum.CLUSTER, AiDataEnum.PROCESSED, 1, True)
 
     def __cluster_requirements_by_description(
         self, requirements: dict, stop_event_cluster: Event, threshold: float
     ) -> (set, dict[list[list[float]], dict]):
         clusters = []
         seen = set()
-        logging.debug(self.progress_status)
-        self.progress_update(AiDataEnum.CLUSTER, AiDataEnum.STATUS, AiDataEnum.CLUSTERING)
+        self.progress_update_function(AiDataEnum.CLUSTER, AiDataEnum.STATUS, AiDataEnum.CLUSTERING)
 
         req_ids = list(requirements.keys())
         req_id_to_index = {req_id: idx for idx, req_id in enumerate(req_ids)}
@@ -108,4 +100,6 @@ class ClusteringProgress:
         if stop_event_cluster.is_set():
             logging.warning("CLUSTERING TERMINATED")
             return set(), None
+        logging.debug("CLUSTERING FINISHED")
+        self.progress_update_function(AiDataEnum.CLUSTER, AiDataEnum.STATUS, AiDataEnum.COMPLETED)
         return set(frozenset(cluster) for cluster in clusters), {"matrix": cluster_matrix, "indexing": req_id_to_index}
