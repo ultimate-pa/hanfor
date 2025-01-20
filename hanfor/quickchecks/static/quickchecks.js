@@ -42,11 +42,13 @@ $(document).ready(function () {
 
 const completenessDataTableColumns = [
     {
-        title: 'var'
+        title: 'ID'
     }, {
-        title: 'type'
+        title: 'Check'
     }, {
-        title: 'description',
+        title: 'Result'
+    }, {
+        title: 'Description',
         render: function (data) {
             return `${data.replaceAll("\n", "<br/>")}`
         }

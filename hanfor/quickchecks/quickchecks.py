@@ -84,7 +84,7 @@ class QuickCheksResultApi(MethodView):
         data = []
         for key, check in current_app.db.get_objects(QuickcheckTask).items():
             for r in check.results:
-                data.append([r.var, r.outcome, r.message])
+                data.append([r.var, check.check_name, r.outcome, r.message])
         return data
 
 
