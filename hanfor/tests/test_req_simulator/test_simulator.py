@@ -10,7 +10,7 @@ from lib_pea.countertrace_to_pea import build_automaton
 from lib_pea.utils import get_countertrace_parser
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
-from reqtransformer import Requirement, Formalization
+from lib_core.data import Requirement, Formalization
 from tests.test_req_simulator import test_counter_trace
 
 testcases = [

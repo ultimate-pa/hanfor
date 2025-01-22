@@ -21,7 +21,7 @@ from lib_pea.utils import get_countertrace_parser, strtobool
 from patterns import PATTERNS
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
-from reqtransformer import Requirement, Formalization, VariableCollection
+from lib_core.data import Requirement, Formalization, VariableCollection
 from ressources import Ressource
 
 validation_patterns = {BOOL: r"^0|false|False|1|true|True$", INT: r"^[+-]?\d+$", REAL: r"^[+-]?\d*[.]?\d+$"}

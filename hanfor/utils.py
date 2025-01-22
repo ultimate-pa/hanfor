@@ -43,7 +43,8 @@ except ModuleNotFoundError:
     logging.error(msg)
     raise FileNotFoundError(msg)
 
-from reqtransformer import VariableCollection, Requirement, RequirementCollection, Variable, Scope
+from reqtransformer import RequirementCollection
+from lib_core.data import Requirement, Scope, VariableCollection, Variable
 from static_utils import (
     replace_prefix,
     hash_file_sha1,

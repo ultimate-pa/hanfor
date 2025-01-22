@@ -4,7 +4,7 @@ import pickle
 import shutil
 from copy import deepcopy
 
-from reqtransformer import VariableCollection, Formalization, Requirement, Pattern
+from lib_core.data import Requirement, Formalization, VariableCollection, Pattern
 
 CONFIG_CHANGES = {
     "ResponseChain2-1": {"name": "ResponseChain21"},

@@ -24,7 +24,7 @@ import utils
 from utils import add_custom_serializer_to_database
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
-from reqtransformer import Requirement, VariableCollection, Variable, Scope
+from lib_core.data import Requirement, Scope, VariableCollection, Variable
 from ressources import Reports, QueryAPI
 from ressources.simulator_ressource import SimulatorRessource
 from static_utils import (

@@ -4,7 +4,7 @@ from parameterized import parameterized
 
 import boogie_parsing
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
-from reqtransformer import Variable
+from lib_core.data import Variable
 
 parser = boogie_parsing.get_parser_instance()
 

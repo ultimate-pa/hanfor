@@ -5,7 +5,7 @@ from utils import get_requirements
 from static_utils import SessionValue
 
 from configuration.ultimate_config import AUTOMATED_TAGS
-from reqtransformer import Requirement
+from lib_core.data import Requirement
 
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
 

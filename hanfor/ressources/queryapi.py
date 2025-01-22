@@ -1,5 +1,5 @@
 import re
-from reqtransformer import Requirement
+from lib_core.data import Requirement
 from ressources import Ressource
 from dataclasses import dataclass, field
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
