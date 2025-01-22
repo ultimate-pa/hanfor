@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from reqtransformer import Requirement
+from lib_core.data import Requirement
 from hanfor_flask import HanforFlask
 
 

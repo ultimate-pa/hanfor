@@ -3,7 +3,7 @@ import re
 from json_db_connector.json_db import JsonDatabase, DatabaseKeyError
 from static_utils import SessionValue
 from utils import RequirementEditHistory, add_custom_serializer_to_database
-from reqtransformer import Formalization, Requirement, ScopedPattern, Scope, Pattern, Variable, Expression
+from lib_core.data import Requirement, Formalization, Expression, Scope, ScopedPattern,Pattern, Variable
 from tags.tags import Tag
 from ressources.queryapi import Query
 from ressources.reports import Report

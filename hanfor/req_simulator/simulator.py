@@ -17,7 +17,7 @@ from lib_pea.pea import PhaseSetsPea
 from lib_pea.transition import PhaseSetsTransition
 from req_simulator.scenario import Scenario
 from req_simulator.utils import num_zeros
-from reqtransformer import Requirement, Formalization
+from lib_core.data import Requirement, Formalization
 
 
 class Simulator:
