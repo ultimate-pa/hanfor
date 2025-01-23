@@ -40,7 +40,7 @@ class AiPromptParse(ABC):
 
 
 def get_scope() -> dict[str, str]:
-    scope_dict = {scope.name: scope.value for scope in reqtransformer.Scope}
+    scope_dict = {scope.name: scope.value for scope in reqtransformer.Scope if scope.name != "NONE"}
     return scope_dict
 
 

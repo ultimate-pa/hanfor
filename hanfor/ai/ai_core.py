@@ -1,7 +1,10 @@
 import logging
+from doctest import debug
 from queue import Queue
 from threading import Thread, Event
 from typing import Optional
+
+from ai.strategies import ai_prompt_parse_abstract_class
 from hanfor.ai import ai_config
 from hanfor.ai.ai_enum import AiDataEnum
 from hanfor.ai.ai_utils import AiStatistic, AiProcessingQueue, AiData
@@ -138,7 +141,7 @@ class AiCore:
             else:
                 self.__ai_data.update_progress(AiDataEnum.AI, AiDataEnum.RESPONSE, response)
 
-        processed_query = process_query(query)
+        processed_query = self.process_query(query)
         self.__ai_data.update_progress(AiDataEnum.AI, AiDataEnum.QUERY, processed_query)
         self.__ai_data.update_progress(AiDataEnum.AI, AiDataEnum.RESPONSE, None)
 
@@ -222,31 +225,52 @@ class AiCore:
         if formalize_object.status == "complete":
             formalization_integration(formalize_object.formalized_output, formalize_object.req_ai)
 
+    def process_query(self, query):
+        def replace_placeholder(match):
+            placeholder = match.group(1)
+            try:
+                if placeholder == "variables":
+                    self.__update_used_variables()
+                    var_str = ""
+                    for var in self.__ai_data.get_used_variables():
+                        var_str += f"{var["name"]}: {var["type"]}, "
+                    return var_str[:-2]
+                if placeholder == "patterns":
+                    patterns_str = ""
+                    for key, value in ai_prompt_parse_abstract_class.get_pattern().items():
+                        patterns_str += (
+                            key
+                            + ": "
+                            + str(value["pattern"])
+                            + (f" (usable typs: {value["env"]})" if "env" in value else "")
+                            + "\n"
+                        )
+                    return patterns_str
+                if placeholder == "scopes":
+                    scopes_str = ""
+                    for key, value in ai_prompt_parse_abstract_class.get_scope().items():
+                        scopes_str += key + ": " + value + "\n"
+                    return scopes_str
+                req_id_action = placeholder.split(".")
+                if len(req_id_action) != 2:
+                    return f"[Error: Invalid format for {placeholder}]"
 
-def process_query(query):
-    def replace_placeholder(match):
-        placeholder = match.group(1)
-        try:
-            req_id_action = placeholder.split(".")
-            if len(req_id_action) != 2:
-                return f"[Error: Invalid format for {placeholder}]"
+                req_id, action = req_id_action
+                req = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, req_id)
 
-            req_id, action = req_id_action
-            req = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, req_id)
-
-            if req:
-                req_dict = req.to_dict(include_used_vars=True)
-                if action in req_dict:
-                    return str(req_dict[action])
+                if req:
+                    req_dict = req.to_dict(include_used_vars=True)
+                    if action in req_dict:
+                        return str(req_dict[action])
+                    else:
+                        return f"[Error: Action {action} not found for req_id {req_id}]"
                 else:
-                    return f"[Error: Action {action} not found for req_id {req_id}]"
-            else:
-                return f"[Error: req_id {req_id} not found]"
-        except Exception as e:
-            return f"[Error processing {placeholder}: {e}]"
+                    return f"[Error: req_id {req_id} not found]"
+            except Exception as e:
+                return f"[Error processing {placeholder}: {e}]"
 
-    pattern = r"\[([^\[\]]+?)\]"
-    return re.sub(pattern, replace_placeholder, query)
+        pattern = r"\[([^\[\]]+?)\]"
+        return re.sub(pattern, replace_placeholder, query)
 
 
 def check_template_for_ai_formalization(rid: str) -> bool:

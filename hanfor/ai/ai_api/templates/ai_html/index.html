@@ -178,10 +178,13 @@
                         <div class="collapse" id="explanation-legend">
                             <!-- Explanation -->
                             <div class="alert alert-info" role="alert">
-                                <strong>Hint:</strong> You can use placeholders in the format <code>[id.action]</code>.
+                                <strong>Hint:</strong> You can use placeholders in the format <code>[id.action] or [values/patterns/scopes]</code>.
                                 <ul>
                                     <li><code>id</code>: The ID of the requirement (e.g., <code>R001</code>).</li>
                                     <li><code>action</code>: One of the available actions to retrieve specific attributes of the requirement.</li>
+                                    <li><code>values</code>: Get all used Values as list with their types</li>
+                                    <li><code>patterns</code>: Get all patterns with their respective names and the types to be used</li>
+                                    <li><code>scopes</code>: Get all Scopes</li>
                                 </ul>
                                 <p>Example: <code>[R001.formal]</code> retrieves the formalizations of the requirement with ID <code>R001</code>.</p>
                             </div>
