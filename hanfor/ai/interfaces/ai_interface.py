@@ -3,9 +3,9 @@ import importlib
 import time
 import requests
 import logging
-from hanfor import boogie_parsing
-from hanfor.ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse, get_scope, get_pattern
-import hanfor.ai.ai_config as ai_config
+import boogie_parsing
+from ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse, get_scope, get_pattern
+import ai.ai_config as ai_config
 
 pattern = get_pattern().keys()
 scope = get_scope().keys()

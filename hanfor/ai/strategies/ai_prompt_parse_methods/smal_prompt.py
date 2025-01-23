@@ -1,5 +1,5 @@
 from typing import Optional
-from hanfor.ai.strategies import ai_prompt_parse_abstract_class
+from ai.strategies import ai_prompt_parse_abstract_class
 import re, json
 import logging
 

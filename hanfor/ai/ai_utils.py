@@ -9,7 +9,7 @@ from ai import ai_config
 from ai.interfaces.ai_interface import load_ai_prompt_parse_methods, AIFormalization
 from ai.ai_enum import AiDataEnum
 from ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse
-from hanfor.ai.strategies.similarity_abstract_class import SimilarityAlgorithm
+from ai.strategies.similarity_abstract_class import SimilarityAlgorithm
 
 
 class AiProcessingQueue:

@@ -1,7 +1,7 @@
 import os
 from abc import ABC, abstractmethod
 from typing_extensions import Optional
-from hanfor.patterns import PATTERNS
+from patterns import PATTERNS
 import reqtransformer
 
 

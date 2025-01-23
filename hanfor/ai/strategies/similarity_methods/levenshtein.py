@@ -1,6 +1,6 @@
 from threading import Event
 
-from hanfor.ai.strategies.similarity_abstract_class import SimilarityAlgorithm
+from ai.strategies.similarity_abstract_class import SimilarityAlgorithm
 
 
 def compare(str1: str, str2: str) -> (bool, float):

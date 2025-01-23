@@ -2,14 +2,13 @@ import logging
 from queue import Queue
 from threading import Thread, Event
 from typing import Optional
-
 from ai.strategies import ai_prompt_parse_abstract_class
 from ai.strategies.similarity_abstract_class import SimilarityAlgorithm
-from hanfor.ai import ai_config
+from ai import ai_config
 from ai.ai_enum import AiDataEnum
-from hanfor.ai.ai_utils import AiStatistic, AiProcessingQueue, AiData
-from hanfor.ai.interfaces import ai_interface
-from hanfor.ai.interfaces.ai_interface import AIFormalization
+from ai.ai_utils import AiStatistic, AiProcessingQueue, AiData
+from ai.interfaces import ai_interface
+from ai.interfaces.ai_interface import AIFormalization
 import reqtransformer
 import hanfor_flask
 import re
