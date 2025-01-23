@@ -1,12 +1,14 @@
+import importlib
+import os
 from threading import Lock
 from time import time
 from typing import Optional
 import logging
-from hanfor.ai import ai_config
-from hanfor.ai.interfaces.ai_interface import load_ai_prompt_parse_methods, AIFormalization
-from hanfor.ai.interfaces.similarity_interface import load_similarity_methods
-from hanfor.ai.ai_enum import AiDataEnum
-from hanfor.ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse
+
+from ai import ai_config
+from ai.interfaces.ai_interface import load_ai_prompt_parse_methods, AIFormalization
+from ai.ai_enum import AiDataEnum
+from ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse
 from hanfor.ai.strategies.similarity_abstract_class import SimilarityAlgorithm
 
 
@@ -149,18 +151,14 @@ class AiData:
         }
         return ret
 
-    def update_progress(
-        self, progress_outer: AiDataEnum, progress_inner: Optional[AiDataEnum], update: any, increment: bool = False
-    ):
-        if increment and type(update) is int:
-            update = self.__ai_system_data[progress_outer][progress_inner] + update
+    def update_progress(self, progress_outer: AiDataEnum, progress_inner: Optional[AiDataEnum], update: any):
         if progress_inner:
             self.__ai_system_data[progress_outer][progress_inner] = update
         else:
             self.__ai_system_data[progress_outer] = update
 
-    def get_sim_function(self) -> callable:
-        return self.__similarity_methods[self.__activ_similarity_method].compare
+    def get_sim_class(self) -> SimilarityAlgorithm:
+        return self.__similarity_methods[self.__activ_similarity_method]
 
     def get_sim_threshold(self) -> float:
         return self.__sim_threshold
@@ -301,3 +299,35 @@ class AiData:
             for f_obj in self.__formalization_objects
             if f_obj.del_time is None or (current_time - f_obj.del_time < 10)
         ]
+
+
+def load_similarity_methods() -> dict[str, SimilarityAlgorithm]:
+    """Dynamically loads all similarity algorithms from the specified directory."""
+
+    directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "strategies/similarity_methods/")
+    methods = {}
+    base_package = "ai.strategies.similarity_methods"
+
+    for filename in os.listdir(directory):
+        if filename.endswith(".py") and filename != "__init__.py":
+            # Import Modul
+            module_name = filename[:-3]
+            module_path = f"{base_package}.{module_name}"
+
+            try:
+                module = importlib.import_module(module_path)
+                for attr_name in dir(module):
+                    attr = getattr(module, attr_name)
+                    if (
+                        isinstance(attr, type)
+                        and issubclass(attr, SimilarityAlgorithm)
+                        and attr is not SimilarityAlgorithm
+                    ):
+                        try:
+                            instance = attr()
+                            methods[instance.name] = instance
+                        except TypeError as e:
+                            logging.warning(f"Class {attr_name} in module {module_path} could not be instantiated: {e}")
+            except ModuleNotFoundError as e:
+                logging.error(f"Error loading module {module_path}: {e}")
+    return methods

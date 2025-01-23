@@ -1,15 +1,14 @@
 import logging
-from doctest import debug
 from queue import Queue
 from threading import Thread, Event
 from typing import Optional
 
 from ai.strategies import ai_prompt_parse_abstract_class
+from ai.strategies.similarity_abstract_class import SimilarityAlgorithm
 from hanfor.ai import ai_config
-from hanfor.ai.ai_enum import AiDataEnum
+from ai.ai_enum import AiDataEnum
 from hanfor.ai.ai_utils import AiStatistic, AiProcessingQueue, AiData
 from hanfor.ai.interfaces import ai_interface
-from hanfor.ai.interfaces.similarity_interface import ClusteringProgress
 from hanfor.ai.interfaces.ai_interface import AIFormalization
 import reqtransformer
 import hanfor_flask
@@ -21,7 +20,7 @@ class AiCore:
     def __init__(self):
         self.clustering_progress_thread: Optional[Thread] = None
         self.stop_event_cluster = Event()
-        self.clustering_progress = None
+        self.sim_class = None
         self.__locked_cluster = []
 
         self.ai_formalization_thread: Optional[list[Thread]] = []
@@ -39,7 +38,7 @@ class AiCore:
         if self.clustering_progress_thread and self.clustering_progress_thread.is_alive():
             self.stop_event_cluster.set()
             self.clustering_progress_thread.join()
-            self.clustering_progress = None
+            self.sim_class = None
             self.stop_event_cluster.clear()
             self.__ai_data.update_progress(AiDataEnum.CLUSTER, AiDataEnum.PROCESSED, 0)
             self.__ai_data.update_progress(AiDataEnum.CLUSTER, AiDataEnum.STATUS, AiDataEnum.NOT_STARTED)
@@ -65,22 +64,18 @@ class AiCore:
                 AiDataEnum.TOTAL: 0,
             },
         )
-
         requirements = hanfor_flask.current_app.db.get_objects(reqtransformer.Requirement)
-        self.__ai_data.update_progress(AiDataEnum.CLUSTER, AiDataEnum.TOTAL, len(requirements))
-        self.clustering_progress = ClusteringProgress(
-            requirements,
-            self.__ai_data.update_progress,
-            self.__ai_data.get_sim_function(),
-        )
+        self.sim_class = self.__ai_data.get_sim_class()
 
-        def clustering_thread(clustering_progress_class: ClusteringProgress, stop_event_cluster: Event) -> None:
-            clusters, matrix = clustering_progress_class.start(stop_event_cluster, self.__ai_data.get_sim_threshold())
+        def clustering_thread(sim_class: SimilarityAlgorithm, stop_event_cluster: Event) -> None:
+            clusters, matrix = sim_class.get_clusters_and_similarity_matrix(
+                requirements, self.__ai_data.get_sim_threshold(), stop_event_cluster, self.__ai_data.update_progress
+            )
             self.__ai_data.set_clusters(clusters)
             self.__ai_data.set_cluster_matrix(matrix)
 
         self.clustering_progress_thread = Thread(
-            target=clustering_thread, args=(self.clustering_progress, self.stop_event_cluster), daemon=True
+            target=clustering_thread, args=(self.sim_class, self.stop_event_cluster), daemon=True
         )
         self.clustering_progress_thread.start()
 
