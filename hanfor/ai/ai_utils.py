@@ -237,7 +237,7 @@ class AiData:
         self.__cleanup_old_formalizations()
         return [
             {
-                "id": f_obj.req_ai.to_dict().get("id"),
+                "id": f_obj.requirement_to_formalize.to_dict().get("id"),
                 "status": f_obj.status,
                 "prompt": f_obj.prompt,
                 "ai_response": f_obj.ai_response,

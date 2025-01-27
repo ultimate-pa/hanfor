@@ -1,3 +1,5 @@
+import logging
+
 from flask import Blueprint, render_template, Response, jsonify, current_app, request
 from flask.views import MethodView
 
@@ -119,6 +121,18 @@ class SetAiModel(MethodView):
         return jsonify({"error": "Method name is required."}), 400
 
 
+class SetIds(MethodView):
+    def post(self):
+        data = request.get_json()
+        ids = data.get("ids")
+        if ids:
+            e = current_app.ai.update_ids(ids)
+            logging.debug(e)
+            if not e:
+                return jsonify({"message": f"set ids: {ids}."}), 200
+            return jsonify({"error": str(e)}), 400
+
+
 # Register routes with their specific view classes
 api_blueprint.add_url_rule("/get/current_data", view_func=GetCurrentData.as_view("get/current_data"), methods=["GET"])
 api_blueprint.add_url_rule("/get/sim/matrix", view_func=GetMatrix.as_view("sim/matrix"), methods=["GET"])
@@ -134,3 +148,4 @@ api_blueprint.add_url_rule("/ai/query", view_func=QueryAi.as_view("ai/query"), m
 api_blueprint.add_url_rule("/ai/process", view_func=ProcessAllReqAi.as_view("ai/process"), methods=["POST"])
 api_blueprint.add_url_rule("/set/ai/method", view_func=SetAiMethod.as_view("set/ai/method"), methods=["POST"])
 api_blueprint.add_url_rule("/set/ai/model", view_func=SetAiModel.as_view("set/ai/model"), methods=["POST"])
+api_blueprint.add_url_rule("/set/ids", view_func=SetIds.as_view("set/ids"), methods=["POST"])

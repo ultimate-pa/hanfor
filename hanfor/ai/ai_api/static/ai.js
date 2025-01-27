@@ -554,6 +554,30 @@ $(document).ready(function (){
         });
     });
 
+    $('#submit-ids-button').click(function () {
+        var idsInput = $('#id-input').val().trim();
+
+        if (!idsInput) {
+            alert('Please enter at least one ID!');
+            return;
+        }
+        $.ajax({
+            type: 'POST',
+            url: '/api/ai/set/ids',
+            contentType: 'application/json',
+            data: JSON.stringify({ ids: idsInput }),
+            error: function(jqXHR) {
+                var errorMessage = "An unknown error occurred.";
+                if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
+                    errorMessage = jqXHR.responseJSON.error;
+                } else if (jqXHR.responseText) {
+                    errorMessage = jqXHR.responseText;
+                }
+                alert(errorMessage);
+            }
+        });
+    });
+
     // Visualization of the similarity matrix
     $('#get-matrix-button').click(function () {
         $.ajax({

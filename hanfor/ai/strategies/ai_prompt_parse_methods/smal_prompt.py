@@ -3,6 +3,8 @@ from ai.strategies import ai_prompt_parse_abstract_class
 import re, json
 import logging
 
+from reqtransformer import Requirement
+
 
 class PromptDump(ai_prompt_parse_abstract_class.AiPromptParse):
     @property
@@ -13,11 +15,17 @@ class PromptDump(ai_prompt_parse_abstract_class.AiPromptParse):
     def description(self) -> str:
         return "Only Input with small instruction"
 
-    def create_prompt(self, req_formal, req_ai, used_variables: list[dict]) -> Optional[str]:
-        input_ai_formalization = req_ai.to_dict()["desc"]
-        input_human_formalization = req_formal.to_dict()["desc"]
-        human_readable_human_formalization = req_formal.to_dict()["formal"]
-        db_human_formalization = req_formal.get_formalizations_json()
+    def create_prompt(
+        self,
+        requirement_to_formalize: Requirement,
+        requirement_with_formalization: list[Requirement],
+        used_variables: list[dict],
+    ) -> Optional[str]:
+        input_ai_formalization = requirement_to_formalize.to_dict()["desc"]
+        if len(requirement_with_formalization) > 0:
+            input_human_formalization = requirement_with_formalization[0].to_dict()["desc"]
+            human_readable_human_formalization = requirement_with_formalization[0].to_dict()["formal"]
+            db_human_formalization = requirement_with_formalization[0].get_formalizations_json()
 
         prompt_instructions = """
         Write only the following as an answer and replace only the TODOs. Do not add anything else. Use only the given patterns, if it is not possible to use them just write Terminate:
@@ -25,10 +33,13 @@ class PromptDump(ai_prompt_parse_abstract_class.AiPromptParse):
         Output for the server: {'scope': TODO, 'pattern': TODO, 'expression_mapping': {'P': TODO, 'Q': TODO, 'R': TODO, 'S': TODO, 'T': TODO, 'U': TODO, 'V': TODO}}
         """
 
-        prompt_input = f""" input: {input_human_formalization}
-                Output Human readable: {human_readable_human_formalization}
-                Output for the server: {db_human_formalization}
-                Formalize this input: {input_ai_formalization}"""
+        prompt_input = ""
+        if len(requirement_with_formalization) > 0:
+            prompt_input = f""" input: {input_human_formalization}
+                        Output Human readable: {human_readable_human_formalization}
+                        Output for the server: {db_human_formalization}"""
+        prompt_input += f"Formalize this input: {input_ai_formalization}"
+
         prompt = prompt_instructions + prompt_input
 
         return prompt

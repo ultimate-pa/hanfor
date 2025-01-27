@@ -19,7 +19,12 @@ class AiPromptParse(ABC):
         pass
 
     @abstractmethod
-    def create_prompt(self, req_formal, req_ai, used_variables: list[dict]) -> Optional[str]:
+    def create_prompt(
+        self,
+        requirement_to_formalize: reqtransformer.Requirement,
+        requirement_with_formalization: list[reqtransformer.Requirement],
+        used_variables: list[dict],
+    ) -> Optional[str]:
         """Generating Prompt for AI (if error return None)"""
         pass
 

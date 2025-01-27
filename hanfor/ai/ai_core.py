@@ -2,6 +2,9 @@ import logging
 from queue import Queue
 from threading import Thread, Event
 from typing import Optional
+
+from pkg_resources import Requirement
+
 from ai.strategies import ai_prompt_parse_abstract_class
 from ai.strategies.similarity_abstract_class import SimilarityAlgorithm
 from ai import ai_config
@@ -13,6 +16,8 @@ import reqtransformer
 import hanfor_flask
 import re
 
+from json_db_connector.json_db import DatabaseKeyError
+
 
 class AiCore:
 
@@ -21,6 +26,7 @@ class AiCore:
         self.stop_event_cluster = Event()
         self.sim_class = None
         self.__locked_cluster = []
+        self.__locked_ids = []
 
         self.ai_formalization_thread: Optional[list[Thread]] = []
         self.stop_event_ai = Event()
@@ -84,19 +90,62 @@ class AiCore:
             return
         self.__update_requirement(rid_u)
 
-    def __update_requirement(self, rid_u: str) -> None:
+    def update_ids(self, req_list: str) -> Optional[DatabaseKeyError]:
+        req_queue = Queue()
+        requirement_with_formalization = []
+        l_cluster = set()
 
-        if not self.__ai_data.get_clusters() or not check_template_for_ai_formalization(rid_u):
-            logging.debug("No Formalization")
-            return
+        for req in map(str.strip, req_list.split(",")):
+            if req:
+                l_cluster.add(req)
 
-        req_queue, l_cluster = self.__load_requirements_to_queue(rid_u)
+        for req_id in l_cluster:
+            try:
+                requirement = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, req_id)
+            except DatabaseKeyError as e:
+                return e
+            if check_template_for_ai_formalization(requirement):
+                requirement_with_formalization.append(requirement)
+                continue
+
+            if check_ai_should_formalized(requirement):
+                if req_id in self.__locked_ids:
+                    continue
+                self.__locked_ids.append(req_id)
+                req_queue.put(requirement)
+
+        logging.debug(f"{l_cluster} locked")
+        logging.debug(f"Queue content: {[item for item in list(req_queue.queue)]} req_queue")
+        logging.debug(f"{requirement_with_formalization} requirement_with_formalization")
+
         self.__update_used_variables()
         mother_tread = Thread(
             target=self.__mother_thread_of_ai_formalization,
             args=(
                 req_queue,
-                hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, rid_u),
+                requirement_with_formalization,
+                self.stop_event_ai,
+                l_cluster,
+            ),
+            daemon=True,
+        )
+        self.ai_formalization_thread.append(mother_tread)
+        mother_tread.start()
+
+    def __update_requirement(self, rid_u: str) -> None:
+
+        req_u = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, rid_u)
+        if not self.__ai_data.get_clusters() or not check_template_for_ai_formalization(req_u):
+            logging.debug("No Formalization")
+            return
+
+        req_queue, l_cluster, requirement_with_formalization = self.__load_requirements_to_queue(rid_u)
+        self.__update_used_variables()
+        mother_tread = Thread(
+            target=self.__mother_thread_of_ai_formalization,
+            args=(
+                req_queue,
+                requirement_with_formalization,
                 self.stop_event_ai,
                 l_cluster,
             ),
@@ -146,7 +195,8 @@ class AiCore:
         for cl in self.__ai_data.get_clusters():
             for req_id in cl:
                 logging.debug(f"Checking {req_id}")
-                if check_template_for_ai_formalization(req_id):
+                req = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, req_id)
+                if check_template_for_ai_formalization(req):
                     self.__update_requirement(req_id)
 
     def set_ai_methode(self, name: str) -> None:
@@ -155,46 +205,63 @@ class AiCore:
     def set_ai_model(self, name: str) -> None:
         self.__ai_data.set_ai_model(name)
 
-    def __load_requirements_to_queue(self, rid: str) -> (Queue, frozenset):
+    def __load_requirements_to_queue(self, rid: str) -> (Queue, frozenset, list[Requirement]):
         req_queue = Queue()
         l_cluster = None
+        requirement_with_formalization = []
         for cl in self.__ai_data.get_clusters():
             if rid in cl:
                 if cl in self.__locked_cluster:
                     logging.info(f"Cluster {cl} is already locked, stopping the process.")
-                    return req_queue, l_cluster
+                    return req_queue, l_cluster, requirement_with_formalization
                 self.__locked_cluster.append(cl)
                 l_cluster = cl
                 for req_id in cl:
+                    if req_id in self.__locked_ids:
+                        continue
                     requirement = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, req_id)
                     if check_ai_should_formalized(requirement):
+                        self.__locked_ids.append(req_id)
                         req_queue.put(requirement)
+                        continue
+                    if check_template_for_ai_formalization(requirement):
+                        requirement_with_formalization.append(requirement)
+                        continue
                 break
-        return req_queue, l_cluster
+        return req_queue, l_cluster, requirement_with_formalization
 
     def __mother_thread_of_ai_formalization(
-        self, req_queue: Queue, req_u: reqtransformer.Requirement, stop_event_ai: Event, l_cluster: frozenset
+        self,
+        req_queue: Queue,
+        requirement_with_formalization: list[reqtransformer.Requirement],
+        stop_event_ai: Event,
+        l_cluster: frozenset,
     ) -> None:
         threads = []
         logging.debug("mother_thread")
         while not req_queue.empty():
             if stop_event_ai.is_set():
                 break
-            requirement = req_queue.get()
-            formalize_object = AIFormalization(requirement, req_u, stop_event_ai)
+            requirement_to_formalize = req_queue.get()
+            formalize_object = AIFormalization(requirement_to_formalize, requirement_with_formalization, stop_event_ai)
             self.__ai_data.add_formalization_object(formalize_object)
-            logging.debug(requirement.to_dict())
+            logging.debug(requirement_to_formalize.to_dict())
             processing_thread = Thread(target=self.__process_queue_element, args=(formalize_object,), daemon=True)
             processing_thread.start()
             threads.append(processing_thread)
         for thread in threads:
             thread.join()
         if l_cluster:
-            self.__locked_cluster.remove(l_cluster)
+            for x in l_cluster:
+                if x in self.__locked_ids:
+                    self.__locked_ids.remove(x)
+            if l_cluster in self.__locked_cluster:
+                self.__locked_cluster.remove(l_cluster)
         if stop_event_ai.is_set():
             logging.info("Terminated ai formalization")
         else:
             logging.info("Finished processing the queue.")
+        logging.debug(self.__locked_ids)
 
     def __update_used_variables(self):
         """Return list of used variables from the database with Typ, etc"""
@@ -217,7 +284,7 @@ class AiCore:
             logging.warning(formalize_object.status)
             return
         if formalize_object.status == "complete":
-            formalization_integration(formalize_object.formalized_output, formalize_object.req_ai)
+            formalization_integration(formalize_object.formalized_output, formalize_object.requirement_to_formalize)
 
     def process_query(self, query):
         def replace_placeholder(match):
@@ -267,8 +334,8 @@ class AiCore:
         return re.sub(pattern, replace_placeholder, query)
 
 
-def check_template_for_ai_formalization(rid: str) -> bool:
-    req = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, rid).to_dict(include_used_vars=True)
+def check_template_for_ai_formalization(req: Requirement) -> bool:
+    req = req.to_dict(include_used_vars=True)
     return "has_formalization" in req["tags"]
 
 

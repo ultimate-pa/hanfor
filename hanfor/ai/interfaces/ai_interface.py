@@ -4,6 +4,7 @@ import time
 import requests
 import logging
 import boogie_parsing
+import reqtransformer
 from ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse, get_scope, get_pattern
 import ai.ai_config as ai_config
 
@@ -64,10 +65,15 @@ def query_ai(query: str, model: str, enable_api_ai_request: bool) -> (str, str):
 
 
 class AIFormalization:
-    def __init__(self, req_ai, req_formal, stop_event_ai):
+    def __init__(
+        self,
+        requirement_to_formalize: reqtransformer.Requirement,
+        requirement_with_formalization: list[reqtransformer.Requirement],
+        stop_event_ai,
+    ):
         self.try_count = 1
-        self.req_ai = req_ai
-        self.req_formal = req_formal
+        self.requirement_to_formalize = requirement_to_formalize
+        self.requirement_with_formalization = requirement_with_formalization
         self.prompt = None
         self.ai_response = None
         self.formalized_output = None
@@ -95,7 +101,7 @@ class AIFormalization:
                 except Exception as e:
                     logging.error(f"Error while parsing expression_mapping[{key}]: {e}")
                     return False
-        logging.debug("true" + str(self.req_ai.to_dict()))
+        logging.debug("true" + str(self.requirement_to_formalize.to_dict()))
         return True
 
     def run_process(
@@ -111,7 +117,9 @@ class AIFormalization:
     ):
         while self.try_count < ai_config.MAX_AI_FORMALIZATION_TRYS:
             self.status = "generating_prompt"
-            self.prompt = prompt_generator(self.req_formal, self.req_ai, used_variables)
+            self.prompt = prompt_generator(
+                self.requirement_to_formalize, self.requirement_with_formalization, used_variables
+            )
 
             if self.prompt is None:
                 self.status = "error_generating_prompt"
@@ -129,7 +137,7 @@ class AIFormalization:
 
             # Checking if the AI can process a Prompt
             self.status = "waiting_in_ai_queue"
-            req_id = self.req_ai.to_dict()["id"]
+            req_id = self.requirement_to_formalize.to_dict()["id"]
             while not ai_processing_queue.add_request(req_id):
                 time.sleep(1)
                 if self.stop_event.is_set():
