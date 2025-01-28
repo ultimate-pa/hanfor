@@ -104,6 +104,18 @@ class AIFormalization:
         logging.debug("true" + str(self.requirement_to_formalize.to_dict()))
         return True
 
+    def req_logger_ai_process(self, req_logger: callable, req_id: str):
+        requirement_with_formalization = [x.to_dict()["id"] for x in self.requirement_with_formalization]
+        data_str = (
+            f"try_count: {self.try_count}, \n"
+            f"requirement_to_formalize: {req_id}, \n"
+            f"requirement_with_formalization: {requirement_with_formalization}, \n"
+            f"ai_response: {self.ai_response}, \n"
+            f"formalized_output: {self.formalized_output}, \n"
+            f"status: {self.status}, \n"
+        )
+        req_logger(req_id, data_str)
+
     def run_process(
         self,
         ai_processing_queue,
@@ -114,30 +126,40 @@ class AIFormalization:
         enable_api_ai_request: bool,
         ai_statistic,
         prompt_generator_name: str,
+        req_logger: callable,
     ):
+        req_id = self.requirement_to_formalize.to_dict()["id"]
+        req_logger(
+            req_id,
+            f"Starting AI formalization for requirement {req_id} with description {self.requirement_to_formalize.to_dict()['desc']}, ai_model: {ai_model}, prompt / parser name: {prompt_generator_name}",
+        )
         while self.try_count < ai_config.MAX_AI_FORMALIZATION_TRYS:
             self.status = "generating_prompt"
             self.prompt = prompt_generator(
                 self.requirement_to_formalize, self.requirement_with_formalization, used_variables
             )
+            req_logger(req_id, f"created prompt for {req_id}: {self.prompt}")
 
             if self.prompt is None:
                 self.status = "error_generating_prompt"
                 self.try_count += 1
                 ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
+                self.req_logger_ai_process(req_logger, req_id)
                 continue
             else:
                 self.status = "prompt_created"
+                self.req_logger_ai_process(req_logger, req_id)
 
             if self.stop_event.is_set():
                 self.status = "terminated_" + self.status
                 self.del_time = time.time()
                 ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
+                self.req_logger_ai_process(req_logger, req_id)
                 return
 
             # Checking if the AI can process a Prompt
             self.status = "waiting_in_ai_queue"
-            req_id = self.requirement_to_formalize.to_dict()["id"]
+            self.req_logger_ai_process(req_logger, req_id)
             while not ai_processing_queue.add_request(req_id):
                 time.sleep(1)
                 if self.stop_event.is_set():
@@ -145,8 +167,10 @@ class AIFormalization:
                     self.del_time = time.time()
                     ai_processing_queue.terminated(req_id)
                     ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
+                    self.req_logger_ai_process(req_logger, req_id)
                     return
             self.status = "waiting_ai_response"
+            self.req_logger_ai_process(req_logger, req_id)
             self.ai_response, self.status = query_ai(self.prompt, ai_model, enable_api_ai_request)
             ai_processing_queue.complete_request(req_id)
 
@@ -154,11 +178,13 @@ class AIFormalization:
                 self.status = "terminated_" + self.status
                 self.del_time = time.time()
                 ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
+                self.req_logger_ai_process(req_logger, req_id)
                 return
 
             if self.status.startswith("error"):
                 self.try_count += 1
                 ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
+                self.req_logger_ai_process(req_logger, req_id)
                 continue
 
             self.status = "parsing_ai_response"
@@ -168,19 +194,23 @@ class AIFormalization:
                 self.status = "error_parsing"
                 self.try_count += 1
                 ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
+                self.req_logger_ai_process(req_logger, req_id)
                 continue
             else:
                 self.status = "response_parsed"
+                self.req_logger_ai_process(req_logger, req_id)
 
             if self.stop_event.is_set():
                 self.status = "terminated_" + self.status
                 self.del_time = time.time()
                 ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
+                self.req_logger_ai_process(req_logger, req_id)
                 return
 
             if self.status.startswith("error"):
                 self.try_count += 1
                 ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
+                self.req_logger_ai_process(req_logger, req_id)
                 continue
 
             logging.info(self.formalized_output)
@@ -188,11 +218,13 @@ class AIFormalization:
             if self.test_formalization_complete():
                 self.status = "complete"
                 ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
+                self.req_logger_ai_process(req_logger, req_id)
                 break
             else:
                 self.status = "error_failed_test_formalization_complete"
                 self.try_count += 1
                 ai_statistic.add_status(ai_model, prompt_generator_name, self.status)
+                self.req_logger_ai_process(req_logger, req_id)
 
         ai_statistic.add_try_count(ai_model, prompt_generator_name, self.try_count)
         self.del_time = time.time()

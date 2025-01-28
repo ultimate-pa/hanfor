@@ -133,6 +133,18 @@ class SetIds(MethodView):
             return jsonify({"error": str(e)}), 400
 
 
+class GetLogFromId(MethodView):
+    def get(self):
+        id = request.args.get("id")
+        if id:
+            log_data = current_app.ai.get_log_from_id(id)
+            if log_data:
+                return jsonify({"message": f"ID found: {id}", "data": log_data}), 200
+            else:
+                return jsonify({"error": f"No data for ID {id} found"}), 404
+        return jsonify({"error": "No ID"}), 400
+
+
 # Register routes with their specific view classes
 api_blueprint.add_url_rule("/get/current_data", view_func=GetCurrentData.as_view("get/current_data"), methods=["GET"])
 api_blueprint.add_url_rule("/get/sim/matrix", view_func=GetMatrix.as_view("sim/matrix"), methods=["GET"])
@@ -149,3 +161,4 @@ api_blueprint.add_url_rule("/ai/process", view_func=ProcessAllReqAi.as_view("ai/
 api_blueprint.add_url_rule("/set/ai/method", view_func=SetAiMethod.as_view("set/ai/method"), methods=["POST"])
 api_blueprint.add_url_rule("/set/ai/model", view_func=SetAiModel.as_view("set/ai/model"), methods=["POST"])
 api_blueprint.add_url_rule("/set/ids", view_func=SetIds.as_view("set/ids"), methods=["POST"])
+api_blueprint.add_url_rule("/set/log/id", view_func=GetLogFromId.as_view("set/log/id"), methods=["GET"])

@@ -38,6 +38,10 @@ class AiCore:
     def startup(self):
         if ai_config.ENABLE_SIMILARITY_ON_STARTUP:
             self.start_clustering()
+        id_list = []
+        for requirement in hanfor_flask.current_app.db.get_objects(reqtransformer.Requirement).values():
+            id_list.append(requirement.to_dict()["id"])
+        self.__ai_data.requirement_log.set_ids(id_list)
 
     def terminate_cluster_thread(self) -> None:
         if self.clustering_progress_thread and self.clustering_progress_thread.is_alive():
@@ -74,7 +78,11 @@ class AiCore:
 
         def clustering_thread(sim_class: SimilarityAlgorithm, stop_event_cluster: Event) -> None:
             clusters, matrix = sim_class.get_clusters_and_similarity_matrix(
-                requirements, self.__ai_data.get_sim_threshold(), stop_event_cluster, self.__ai_data.update_progress
+                requirements,
+                self.__ai_data.get_sim_threshold(),
+                stop_event_cluster,
+                self.__ai_data.update_progress,
+                self.__ai_data.requirement_log.add_data,
             )
             self.__ai_data.set_clusters(clusters)
             self.__ai_data.set_cluster_matrix(matrix)
@@ -205,6 +213,10 @@ class AiCore:
     def set_ai_model(self, name: str) -> None:
         self.__ai_data.set_ai_model(name)
 
+    def get_log_from_id(self, req_id: str) -> dict:
+        logging.debug(f"Getting {req_id}: {self.__ai_data.requirement_log.get_data(req_id)}")
+        return self.__ai_data.requirement_log.get_data(req_id)
+
     def __load_requirements_to_queue(self, rid: str) -> (Queue, frozenset, list[Requirement]):
         req_queue = Queue()
         l_cluster = None
@@ -279,6 +291,7 @@ class AiCore:
             self.__ai_data.get_flags()[AiDataEnum.AI],
             self.ai_statistic,
             self.__ai_data.get_activ_ai_method_object().name,
+            self.__ai_data.requirement_log.add_data,
         )
         if self.stop_event_ai.is_set() or formalize_object.status.startswith("terminated"):
             logging.warning(formalize_object.status)

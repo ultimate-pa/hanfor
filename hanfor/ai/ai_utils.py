@@ -10,6 +10,30 @@ from ai.interfaces.ai_interface import load_ai_prompt_parse_methods, AIFormaliza
 from ai.ai_enum import AiDataEnum
 from ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse
 from ai.strategies.similarity_abstract_class import SimilarityAlgorithm
+from datetime import datetime
+
+
+class RequirementLog:
+    def __init__(self):
+        self.logger_data: dict[str, dict] = {}
+
+    def set_ids(self, id_list: list[str]) -> None:
+        for req_id in id_list:
+            self.logger_data[req_id] = {}
+        self.logger_data = self.logger_data
+
+    def add_data(self, req_id: str, data: dict) -> None:
+        current_time = datetime.now().strftime("%d/%b/%Y %H:%M:%S") + f".{datetime.now().microsecond:06d}"
+        count = len(self.logger_data[req_id])
+        timestamp = f"{current_time}_{count+1}"
+        self.logger_data[req_id][timestamp] = data
+        logging.debug(f"Data added for {req_id} at {timestamp}")
+
+    def get_data(self, req_id: str) -> dict:
+        return self.logger_data.get(req_id, {})
+
+    def get_ids(self) -> list:
+        return list(self.logger_data.keys())
 
 
 class AiProcessingQueue:
@@ -136,6 +160,7 @@ class AiData:
         self.__ai_models: dict[str, str] = ai_config.AI_MODEL_NAMES
 
         self.__ai_statistic = ai_statistic
+        self.requirement_log = RequirementLog()
 
     def get_full_info(self) -> dict:
         ret = {
@@ -148,6 +173,7 @@ class AiData:
             "ai_methods": self.__get_info_ai_methods(),
             "ai_models": self.__get_info_ai_models(),
             "ai_statistic": self.__ai_statistic.get_status_report(),
+            "req_ids": self.requirement_log.get_ids(),
         }
         return ret
 

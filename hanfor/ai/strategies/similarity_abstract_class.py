@@ -50,7 +50,7 @@ class SimilarityAlgorithm(ABC):
     ):
         pass
 
-    def __create_clusters(self, set_threshold):
+    def __create_clusters(self, set_threshold, req_logger: callable):
         visited = set()
         clusters = set()
         index_to_req_id = {v: k for k, v in self.req_id_to_index.items()}
@@ -70,6 +70,8 @@ class SimilarityAlgorithm(ABC):
                     f_set.add(req2)
                     visited.add(req2)
 
+            for r in f_set:
+                req_logger(r, f"added {r} into cluster: {f_set}")
             clusters.add(frozenset(f_set))
 
         return clusters
@@ -83,7 +85,7 @@ class SimilarityAlgorithm(ABC):
         self.__update_progress_function(AiDataEnum.CLUSTER, AiDataEnum.TOTAL, total)
 
     def get_clusters_and_similarity_matrix(
-        self, requirements, threshold: float, stop_event: Event, update_progress: callable
+        self, requirements, threshold: float, stop_event: Event, update_progress: callable, req_logger: callable
     ):
         req_ids = list(requirements.keys())
         self.req_id_to_index = {req_id: idx for idx, req_id in enumerate(req_ids)}
@@ -94,5 +96,5 @@ class SimilarityAlgorithm(ABC):
         self.generate_matrix(requirements, self.update_progress, self.set_value_matrix, stop_event)
         self.__update_progress_function(AiDataEnum.CLUSTER, AiDataEnum.STATUS, AiDataEnum.COMPLETED)
 
-        clusters = self.__create_clusters(threshold)
+        clusters = self.__create_clusters(threshold, req_logger)
         return clusters, {"matrix": self.cluster_matrix, "indexing": self.req_id_to_index}

@@ -395,6 +395,7 @@ $(document).ready(function (){
                 updateAiMethodSelection(selectedAiMethod());
                 updateAiModelSelection(selectedAiModel());
                 updateFlags();
+                updateDropdown();
             }
         }, 30);
     }
@@ -682,5 +683,61 @@ $(document).ready(function (){
         slider.val(currentVal);
         $('#slider-value').text(currentVal);
     }
+
+    // Funktion: Dropdown dynamisch aktualisieren
+    function updateDropdown(filter = '') {
+        const dropdown = document.getElementById('idDropdown');
+        dropdown.innerHTML = ''; // Clear existing options
+
+        // Filter IDs und erstelle Optionen
+        const filteredIDs = data.req_ids.filter(id => id.toLowerCase().includes(filter.toLowerCase()));
+        filteredIDs.forEach(id => {
+            const option = document.createElement('option');
+            option.value = id;
+            option.textContent = id;
+            dropdown.appendChild(option);
+        });
+
+        if (filteredIDs.length === 0) {
+            const noResult = document.createElement('option');
+            noResult.textContent = 'No matching IDs';
+            noResult.disabled = true;
+            dropdown.appendChild(noResult);
+        }
+    }
+
+    $('#idSearch').on('input', function () {
+        updateDropdown($(this).val());
+    });
+
+    $('#idDropdown').on('change', function () {
+    const selectedID = $(this).val();
+    $.ajax({
+        type: 'GET',
+        url: '/api/ai/set/log/id?id=' + selectedID,
+        contentType: 'application/json',
+        success: function (response) {
+            const logData = response.data;
+
+            let logHtml = "<h3>Log for ID: " + selectedID + "</h3>";
+
+            for (const [time, message] of Object.entries(logData)) {
+                logHtml += `
+                    <div class="log-entry">
+                        <p><strong>Time:</strong> ${time}</p>
+                        <p><strong>Message:</strong> ${message}</p>
+                    </div>
+                    <hr>
+                `;
+            }
+
+            // Füge das erstellte HTML in den log-container ein
+            $('#log-container').html(logHtml);
+        },
+        error: function (error) {
+            console.error('ERROR:', error);
+        }
+    });
+});
 
 });

@@ -20,6 +20,10 @@
                 <a class="nav-link" id="ai-interface-tab" data-bs-toggle="tab" href="#ai-interface-content" role="tab"
                    aria-controls="ai-interface-content" aria-selected="false">AI Interface</a>
             </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="logging-tab" data-bs-toggle="tab" href="#logging-content" role="tab"
+                   aria-controls="logging-content" aria-selected="false">Logging</a>
+            </li>
         </ul>
     </div>
     <div class="card-body">
@@ -293,6 +297,22 @@
                         <!-- Data will be dynamically added via JavaScript -->
                     </tbody>
                 </table>
+            </div>
+
+            <div class="tab-pane fade" id="logging-content" role="tabpanel" aria-labelledby="logging-content">
+                <label for="idSearch">choose ID:</label>
+                <input type="text" id="idSearch" placeholder="search ID ...">
+                <select id="idDropdown" size="10"></select>
+                <style>
+                    #idDropdown {
+                        width: 100%;
+                        max-height: 150px;
+                        overflow-y: auto;
+                    }
+                </style>
+                <div id="log-container">
+                    <!-- Hier wird das Log angezeigt -->
+                </div>
             </div>
         </div>
     </div>
