@@ -197,26 +197,48 @@ class PoorMansComplete:
 class ProjectionWalker(IdentityDagWalker):
     def __init__(self, variable):
         super().__init__()
+        self.parents = {}
         self.variable = variable
+
+    def walk(self, formula, **kwargs):
+        for arg in formula.args():
+            self.parents[arg] = formula
+            self.walk(arg, **kwargs)
+        return super().walk(formula, **kwargs)
 
     def walk_and(self, formula, args, **kwargs):
         relevant_args = [f for f in args if self.variable in get_free_variables(f)]
-        return And(relevant_args) if relevant_args else Bool(True)
+        if relevant_args:
+            return And(relevant_args)
+        return self.__get_neutral_parent(formula)
 
     def walk_or(self, formula, args, **kwargs):
         relevant_args = [f for f in args if self.variable in get_free_variables(f)]
-        return Or(relevant_args) if relevant_args else Bool(True)
+        if relevant_args:
+            return Or(relevant_args)
+        return self.__get_neutral_parent(formula)
+
+    def __get_neutral_parent(self, formula):
+        # if this leaf is empty, return the neutral element of the parent operator
+        if formula not in self.parents:
+            return Bool(True)
+        par = self.parents[formula]
+        if par.is_and():
+            return Bool(True)
+        elif par.is_not():
+            return self.__get_neutral_parent(par)
+        raise Exception("unforseen operator in parent")
 
     def walk_not(self, formula, args, **kwargs):
         arg = args[0]
         if self.variable in get_free_variables(arg):
             return Not(arg)
-        return Bool(True)
+        return self.__get_neutral_parent(formula)
 
     def walk_atom(self, formula, **kwargs):
         if self.variable in get_free_variables(formula):
             return formula
-        return Bool(True)
+        return self.__get_neutral_parent(formula)
 
 
 class FalseTermAbsorber(IdentityDagWalker):
