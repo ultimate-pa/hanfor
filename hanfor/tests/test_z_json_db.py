@@ -12,6 +12,7 @@ from json_db_connector.json_db import (
     DataTracingFileHandler,
     KEY_REGEX,
     DatabaseNonSavedField,
+remove_json_database_data_tracing_logger
 )
 from uuid import UUID
 from os import path, mkdir
@@ -48,10 +49,7 @@ class TestJsonDatabase(TestCase):
         if path.isdir(path.join(self._data_path, "init_tables_ok")):
             rmtree(path.join(self._data_path, "init_tables_ok"))
 
-        logger = logging.getLogger("JsonDbDataTracing")
-        for handler in logger.handlers:
-            handler.close()
-            logger.removeHandler(handler)
+        remove_json_database_data_tracing_logger(True)
         if path.isdir(path.join(self._data_path, "DataTracing")):
             rmtree(path.join(self._data_path, "DataTracing"))
 

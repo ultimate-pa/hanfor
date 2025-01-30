@@ -28,7 +28,7 @@ from patterns import PATTERNS
 
 import boogie_parsing
 
-from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField, JsonDatabase
+from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField, JsonDatabase, remove_json_database_data_tracing_logger
 from dataclasses import dataclass, field
 from uuid import uuid4
 from typing import Callable
@@ -1310,11 +1310,13 @@ class Revision:
         logging.info("Reverting revision creation.")
         if self.is_initial_revision:
             logging.debug("Revert initialized session folder. Deleting: `{}`".format(self.app.config["SESSION_FOLDER"]))
+            remove_json_database_data_tracing_logger(True)
             shutil.rmtree(self.app.config["SESSION_FOLDER"])
         else:
             logging.debug(
                 "Revert initialized revision folder. Deleting: `{}`".format(self.app.config["REVISION_FOLDER"])
             )
+            remove_json_database_data_tracing_logger(True)
             shutil.rmtree(self.app.config["REVISION_FOLDER"])
 
     def _generate_session_values(self):

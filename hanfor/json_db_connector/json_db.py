@@ -900,6 +900,16 @@ def list_changed(old: list, new: list) -> bool:
     return False
 
 
+def remove_json_database_data_tracing_logger(do_it: bool = False) -> None:
+    if not do_it:
+        return
+    logging.warning("JsonDatabase data tracing is now disabled")
+    logger = logging.getLogger("JsonDbDataTracing")
+    for handler in logger.handlers:
+        handler.close()
+        logger.removeHandler(handler)
+
+
 class DatabaseDefinitionError(Exception):
     def __init__(self, message):
         super().__init__(f"DatabaseDefinitionError: {message}")
