@@ -59,8 +59,9 @@ class PoorMansComplete:
             for hanfor_var in variables
             if hanfor_var.name in smt_transformer.smt_vars
         }
-        env_assumptions = self.extract_environment_assumption(variables, smt_transformer)
+        env_full = self.extract_environment_assumption(variables, smt_transformer)
         for target_var, hanfor_var in smt_to_vars.items():
+            env_assumptions = ProjectionWalker(target_var).walk(env_full)
             term = self.extract_reqs_term(smt_transformer, reqs, target_var)
             term = FalseTermAbsorber().walk(term)
             results.append(self.check_env_violated(term, target_var, env_assumptions, hanfor_var))
@@ -79,8 +80,7 @@ class PoorMansComplete:
         with Solver(name=SOLVER_NAME, logic=LOGIC) as solver:
             if target_var in get_free_variables(env_assumption):
                 a_form = And(term, Not(env_assumption))
-                free = [v for v in get_free_variables(a_form) if v != target_var]
-                outside_environment = solver.is_sat(Exists(free, a_form))
+                outside_environment = solver.is_sat(a_form)
                 if outside_environment:
                     return CompletenessCheckResult(
                         hanfor_var.name,
@@ -99,8 +99,7 @@ class PoorMansComplete:
         """Check if all values (under an environment) of a variable are possible in term"""
         with Solver(name=SOLVER_NAME, logic=LOGIC) as solver:
             q_form = And(Not(term), env_assumption)
-            free = [v for v in get_free_variables(q_form) if v != target_var]
-            is_incomplete = solver.is_sat(Exists(free, q_form))
+            is_incomplete = solver.is_sat(q_form)
             if is_incomplete:
                 return CompletenessCheckResult(
                     hanfor_var.name,
@@ -201,6 +200,7 @@ class ProjectionWalker(IdentityDagWalker):
         self.variable = variable
 
     def walk(self, formula, **kwargs):
+        logging.debug(f"WALKING: {formula}")
         for arg in formula.args():
             self.parents[arg] = formula
             self.walk(arg, **kwargs)
@@ -220,6 +220,7 @@ class ProjectionWalker(IdentityDagWalker):
 
     def __get_neutral_parent(self, formula):
         # if this leaf is empty, return the neutral element of the parent operator
+        logging.debug(f"PARENTING: {formula}")
         if formula not in self.parents:
             return Bool(True)
         par = self.parents[formula]
@@ -227,7 +228,9 @@ class ProjectionWalker(IdentityDagWalker):
             return Bool(True)
         elif par.is_not():
             return self.__get_neutral_parent(par)
-        raise Exception("unforseen operator in parent")
+        else:
+            # TODO: figure out which nodes are there additionally (e.g. implication, just braces)
+            return Bool(True)
 
     def walk_not(self, formula, args, **kwargs):
         arg = args[0]
