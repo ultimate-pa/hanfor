@@ -86,8 +86,8 @@ class PoorMansComplete:
                         hanfor_var.name,
                         CompletenessCheckOutcome.ENV_VIOLATED,
                         f"'{target_var.symbol_name()}': value {solver.get_value(target_var)} is outside of Environment.\n"
-                        f"Term is: {term}\n"
-                        f"Environment is: {env_assumption}\n",
+                        f"Term is: {term.serialize()}\n"
+                        f"Environment is: {env_assumption.serialize()}\n",
                     )
         return CompletenessCheckResult(
             hanfor_var.name, CompletenessCheckOutcome.OK, "Expected values of the variable is inside the environment"
@@ -109,8 +109,8 @@ class PoorMansComplete:
                         else CompletenessCheckOutcome.INCOMPLETE_UNCONSTRAINT
                     ),
                     f"{target_var.symbol_name()}: value {solver.get_value(target_var)}  is uncovered.\n"
-                    f"Term is: {term}\n"
-                    f"Environment is: {env_assumption}\n",
+                    f"Term is: {term.serialize()}\n"
+                    f"Environment is: {env_assumption.serialize()}\n",
                 )
         # return f"{target_var} is complete: {not is_incomplete}"
         return CompletenessCheckResult(
