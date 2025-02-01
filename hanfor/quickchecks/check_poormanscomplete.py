@@ -64,7 +64,7 @@ class PoorMansComplete:
         for target_var, hanfor_var in smt_to_vars.items():
             env_assumptions = ProjectionWalker(target_var).walk(env_full)
             term = self.extract_reqs_term(smt_transformer, reqs, target_var)
-            #results.append(self.check_env_violated(term, target_var, env_assumptions, hanfor_var))
+            results.append(self.check_env_violated(term, target_var, env_assumptions, hanfor_var))
             results.append(self.check_complete_var(term, target_var, env_assumptions, hanfor_var))
         logging.info("... finished PoorMansComplete.")
         return results
@@ -98,7 +98,6 @@ class PoorMansComplete:
         smt_transformer: BoogiePysmtTransformer,
         reqs: list[Requirement],
         target_var: FNode,
-        negate_terms: bool = False
     ) -> FNode:
         terms = []
         for req in reqs:
@@ -241,15 +240,3 @@ class ProjectionWalker(IdentityDagWalker):
         if self.variable in get_free_variables(formula):
             return formula
         return self.__get_neutral_parent(formula)
-
-
-class FalseTermAbsorber(IdentityDagWalker):
-
-    def walk_or(self, formula, args, **kwargs):
-        # Simplify `false | x` to `x` and eliminate `false`
-        non_false_args = [arg for arg in args if not arg.is_false()]
-        if not non_false_args:
-            return FALSE()
-        elif len(non_false_args) == 1:
-            return non_false_args[0]
-        return Or(non_false_args)
