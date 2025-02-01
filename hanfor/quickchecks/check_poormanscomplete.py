@@ -198,7 +198,6 @@ class ProjectionWalker(IdentityDagWalker):
         self.variable = variable
 
     def walk(self, formula, **kwargs):
-        logging.debug(f"WALKING: {formula}")
         for arg in formula.args():
             self.parents[arg] = formula
             self.walk(arg, **kwargs)
@@ -218,7 +217,6 @@ class ProjectionWalker(IdentityDagWalker):
 
     def __get_neutral_parent(self, formula):
         # if this leaf is empty, return the neutral element of the parent operator
-        logging.debug(f"PARENTING: {formula}")
         if formula not in self.parents:
             return Bool(True)
         par = self.parents[formula]

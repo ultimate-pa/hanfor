@@ -69,7 +69,6 @@ class QuickcheckApi(MethodView):
         for result in results:
             if result.outcome == CompletenessCheckOutcome.OK:
                 continue
-            logging.info(result)
         return results
 
 
