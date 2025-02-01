@@ -148,7 +148,7 @@ class TestPoorMansComplete(TestCase):
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE}
-        self.asserttIn("c", b_result)
+        self.assertNotIn("c", b_result)
 
     def test_incomplete_with_env_ok(self):
         vars = {
