@@ -27,7 +27,6 @@ class RequirementLog:
         count = len(self.logger_data[req_id])
         timestamp = f"{current_time}_{count+1}"
         self.logger_data[req_id][timestamp] = data
-        logging.debug(f"Data added for {req_id} at {timestamp}")
 
     def get_data(self, req_id: str) -> dict:
         return self.logger_data.get(req_id, {})

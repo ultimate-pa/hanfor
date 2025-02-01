@@ -131,9 +131,14 @@ class AIFormalization:
         req_id = self.requirement_to_formalize.to_dict()["id"]
         req_logger(
             req_id,
-            f"Starting AI formalization for requirement {req_id} with description {self.requirement_to_formalize.to_dict()['desc']}, ai_model: {ai_model}, prompt / parser name: {prompt_generator_name}",
+            f"""Initiating AI formalization for requirement | {req_id} |. Description: | {self.requirement_to_formalize.to_dict()['desc']} |.  
+                Formalized requirements: | {self.requirement_with_formalization} |.  
+                AI Model: | {ai_model} |, Prompt/Parser: | {prompt_generator_name} |.""",
         )
         while self.try_count < ai_config.MAX_AI_FORMALIZATION_TRYS:
+            self.prompt = None
+            self.ai_response = None
+            self.formalized_output = None
             self.status = "generating_prompt"
             self.prompt = prompt_generator(
                 self.requirement_to_formalize, self.requirement_with_formalization, used_variables
@@ -172,7 +177,9 @@ class AIFormalization:
             self.status = "waiting_ai_response"
             self.req_logger_ai_process(req_logger, req_id)
             self.ai_response, self.status = query_ai(self.prompt, ai_model, enable_api_ai_request)
+            self.status = "ai_response_received"
             ai_processing_queue.complete_request(req_id)
+            self.req_logger_ai_process(req_logger, req_id)
 
             if self.stop_event.is_set():
                 self.status = "terminated_" + self.status

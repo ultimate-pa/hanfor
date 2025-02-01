@@ -309,6 +309,11 @@ class AiCore:
                     for var in self.__ai_data.get_used_variables():
                         var_str += f"{var["name"]}: {var["type"]}, "
                     return var_str[:-2]
+                if placeholder == "scopes":
+                    scopes_str = ""
+                    for key, value in ai_prompt_parse_abstract_class.get_scope().items():
+                        scopes_str += key + ": " + value + "\n"
+                    return scopes_str
                 if placeholder == "patterns":
                     patterns_str = ""
                     for key, value in ai_prompt_parse_abstract_class.get_pattern().items():
@@ -320,14 +325,27 @@ class AiCore:
                             + "\n"
                         )
                     return patterns_str
-                if placeholder == "scopes":
-                    scopes_str = ""
-                    for key, value in ai_prompt_parse_abstract_class.get_scope().items():
-                        scopes_str += key + ": " + value + "\n"
-                    return scopes_str
+
                 req_id_action = placeholder.split(".")
                 if len(req_id_action) != 2:
                     return f"[Error: Invalid format for {placeholder}]"
+
+                if req_id_action[0] == "pattern":
+                    patterns = ai_prompt_parse_abstract_class.get_pattern()
+                    if req_id_action[1] in patterns.keys():
+                        return (
+                            req_id_action[1]
+                            + ": "
+                            + str(patterns[req_id_action[1]]["pattern"])
+                            + (
+                                f" (usable typs: {patterns[req_id_action[1]]["env"]})"
+                                if "env" in patterns[req_id_action[1]]
+                                else ""
+                            )
+                            + "\n"
+                        )
+                    else:
+                        return f"[Error: {req_id_action[1]} not found in {patterns.keys()}]"
 
                 req_id, action = req_id_action
                 req = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, req_id)
