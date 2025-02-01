@@ -45,9 +45,9 @@ class TestPoorMansComplete(TestCase):
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE_UNCONSTRAINT}
-        self.assertIn(vars["b"], b_result)
-        self.assertIn(vars["c"], b_result)
-        self.assertNotIn(vars["a"], b_result)
+        self.assertIn("b", b_result)
+        self.assertIn("c", b_result)
+        self.assertNotIn("a", b_result)
 
     def test_incomplete_with_env_bool(self):
         vars = {
@@ -62,9 +62,9 @@ class TestPoorMansComplete(TestCase):
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE_UNCONSTRAINT}
-        self.assertIn(vars["d"], b_result)
-        self.assertNotIn(vars["c"], b_result)
-        self.assertNotIn(vars["a"], b_result)
+        self.assertIn("d", b_result)
+        self.assertNotIn("c", b_result)
+        self.assertNotIn("a", b_result)
 
     def test_incomplete_with_env(self):
         vars = {
@@ -79,9 +79,9 @@ class TestPoorMansComplete(TestCase):
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE}
-        self.assertNotIn(vars["d"], b_result)
-        self.assertIn(vars["c"], b_result)
-        self.assertNotIn(vars["a"], b_result)
+        self.assertNotIn("d", b_result)
+        self.assertIn("c", b_result)
+        self.assertNotIn("a", b_result)
 
     def test_incomplete_with_env_cmplx(self):
         vars = {
@@ -100,10 +100,10 @@ class TestPoorMansComplete(TestCase):
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE}
-        self.assertNotIn(vars["d"], b_result)
-        self.assertIn(vars["c"], b_result)
-        self.assertNotIn(vars["a"], b_result)
-        self.assertIn(vars["x"], b_result)
+        self.assertNotIn("d", b_result)
+        self.assertIn("c", b_result)
+        self.assertNotIn("a", b_result)
+        self.assertIn("x", b_result)
 
     def test_incomplete_with_env_int(self):
         vars = {
@@ -118,9 +118,9 @@ class TestPoorMansComplete(TestCase):
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE_UNCONSTRAINT}
-        self.assertNotIn(vars["d"], b_result)
-        self.assertIn(vars["c"], b_result)
-        self.assertNotIn(vars["a"], b_result)
+        self.assertNotIn("d", b_result)
+        self.assertIn("c", b_result)
+        self.assertNotIn("a", b_result)
 
     def test_incomplete_with_env_ok(self):
         vars = {
@@ -136,9 +136,9 @@ class TestPoorMansComplete(TestCase):
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE}
-        self.assertNotIn(vars["d"], b_result)
-        self.assertNotIn(vars["c"], b_result)
-        self.assertNotIn(vars["a"], b_result)
+        self.assertNotIn("d", b_result)
+        self.assertNotIn("c", b_result)
+        self.assertNotIn("a", b_result)
 
     def test_env_violation_int(self):
         vars = {
@@ -153,9 +153,9 @@ class TestPoorMansComplete(TestCase):
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.ENV_VIOLATED}
-        self.assertNotIn(vars["d"], b_result)
-        self.assertIn(vars["c"], b_result)
-        self.assertNotIn(vars["a"], b_result)
+        self.assertNotIn("d", b_result)
+        self.assertIn("c", b_result)
+        self.assertNotIn("a", b_result)
 
     def test_env_violation_bool(self):
         vars = {
@@ -170,9 +170,9 @@ class TestPoorMansComplete(TestCase):
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.ENV_VIOLATED}
-        self.assertIn(vars["d"], b_result)
-        self.assertNotIn(vars["c"], b_result)
-        self.assertNotIn(vars["a"], b_result)
+        self.assertIn("d", b_result)
+        self.assertNotIn("c", b_result)
+        self.assertNotIn("a", b_result)
 
     def test_env_violation_all(self):
         vars = {
@@ -188,9 +188,9 @@ class TestPoorMansComplete(TestCase):
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.ENV_VIOLATED}
-        self.assertIn(vars["d"], b_result)
-        self.assertIn(vars["c"], b_result)
-        self.assertNotIn(vars["a"], b_result)
+        self.assertIn("d", b_result)
+        self.assertIn("c", b_result)
+        self.assertNotIn("a", b_result)
 
     def test_env_violation_none(self):
         vars = {
@@ -206,6 +206,6 @@ class TestPoorMansComplete(TestCase):
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.ENV_VIOLATED}
-        self.assertIn(vars["d"], b_result)
-        self.assertIn(vars["c"], b_result)
-        self.assertNotIn(vars["a"], b_result)
+        self.assertIn("d", b_result)
+        self.assertIn("c", b_result)
+        self.assertNotIn("a", b_result)
