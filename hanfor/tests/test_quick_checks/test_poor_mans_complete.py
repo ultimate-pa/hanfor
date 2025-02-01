@@ -234,6 +234,6 @@ class TestPoorMansComplete(TestCase):
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.ENV_VIOLATED}
-        self.assertIn("d", b_result)
-        self.assertIn("c", b_result)
+        self.assertNotIn("d", b_result)
+        self.assertNotIn("c", b_result)
         self.assertNotIn("a", b_result)

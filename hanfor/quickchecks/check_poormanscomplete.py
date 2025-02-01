@@ -63,9 +63,9 @@ class PoorMansComplete:
         env_full = self.extract_environment_assumption(variables, smt_transformer)
         for target_var, hanfor_var in smt_to_vars.items():
             env_assumptions = ProjectionWalker(target_var).walk(env_full)
-            term = self.extract_reqs_term(smt_transformer, reqs, target_var)
-            results.append(self.check_env_violated(term, target_var, env_assumptions, hanfor_var))
-            results.append(self.check_complete_var(term, target_var, env_assumptions, hanfor_var))
+            terms = self.extract_reqs_term(smt_transformer, reqs, target_var)
+            results.append(self.check_env_violated(terms, target_var, env_assumptions, hanfor_var))
+            results.append(self.check_complete_var(Or(terms), target_var, env_assumptions, hanfor_var))
         logging.info("... finished PoorMansComplete.")
         return results
 
@@ -98,13 +98,13 @@ class PoorMansComplete:
         smt_transformer: BoogiePysmtTransformer,
         reqs: list[Requirement],
         target_var: FNode,
-    ) -> FNode:
+    ) -> List[FNode]:
         terms = []
         for req in reqs:
             terms.extend(self.extract_req_terms(smt_transformer, req, target_var))
         project_terms = [ProjectionWalker(target_var).walk(term) for term in terms]
         non_trivial_terms = [t for t in project_terms if t is not FALSE() and t is not TRUE()]
-        return Or(non_trivial_terms)
+        return non_trivial_terms
 
     def extract_req_terms(self, smt_transformer: BoogiePysmtTransformer, req: Requirement, target_var: FNode) -> List[FNode]:
         parser = boogie_parsing.get_parser_instance()
@@ -167,7 +167,7 @@ class PoorMansComplete:
         return simplify(term)
 
     def check_env_violated(
-        self, term: FNode, target_var: FNode, env_assumption: FNode, hanfor_var: Variable
+        self, terms: List[FNode], target_var: FNode, env_assumption: FNode, hanfor_var: Variable
     ) -> CompletenessCheckResult:
         """Check if all values a variable can tanke are inside the environment (if applicable)"""
         if target_var not in get_free_variables(env_assumption):
@@ -175,17 +175,17 @@ class PoorMansComplete:
                 hanfor_var.name, CompletenessCheckOutcome.OK, f"'{target_var.symbol_name()}' has no env assumptions."
             )
         with Solver(name=SOLVER_NAME, logic=LOGIC) as solver:
-            if target_var in get_free_variables(env_assumption):
-                a_form = And(term, Not(env_assumption))
-                outside_environment = solver.is_sat(a_form)
-                if outside_environment:
-                    return CompletenessCheckResult(
-                        hanfor_var.name,
-                        CompletenessCheckOutcome.ENV_VIOLATED,
-                        f"'{target_var.symbol_name()}': value {solver.get_value(target_var)} is outside of Environment.\n"
-                        f"Term is: {term.serialize()}\n"
-                        f"Environment is: {env_assumption.serialize()}\n",
-                    )
+            for term in terms:
+                if target_var in get_free_variables(env_assumption):
+                    a_form = And(term, env_assumption)
+                    intersects_environment = solver.is_sat(a_form)
+                    if not intersects_environment:
+                        return CompletenessCheckResult(
+                            hanfor_var.name,
+                            CompletenessCheckOutcome.ENV_VIOLATED,
+                            f"'{target_var.symbol_name()}': term {term.serialize()} is completely outside of Environment.\n"
+                            f"Environment is: {env_assumption.serialize()}\n",
+                        )
         return CompletenessCheckResult(
             hanfor_var.name, CompletenessCheckOutcome.OK, "Expected values of the variable is inside the environment"
         )
