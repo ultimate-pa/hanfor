@@ -4,35 +4,61 @@ from threading import Lock
 from time import time
 from typing import Optional
 import logging
-
 from ai import ai_config
 from ai.interfaces.ai_interface import load_ai_prompt_parse_methods, AIFormalization
 from ai.ai_enum import AiDataEnum
 from ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse
 from ai.strategies.similarity_abstract_class import SimilarityAlgorithm
+from tinyflux import TinyFlux, Point, TagQuery
 from datetime import datetime
 
 
 class RequirementLog:
-    def __init__(self):
-        self.logger_data: dict[str, dict] = {}
+    def __init__(self, data_folder: str):
+        self.db = TinyFlux(os.path.join(data_folder, "ai_requirement_log.csv"))
+        self.entry_counters: dict[str, int] = {}
+        self.req_ids: list[str] = []
+        self.lock = Lock()
 
     def set_ids(self, id_list: list[str]) -> None:
-        for req_id in id_list:
-            self.logger_data[req_id] = {}
-        self.logger_data = self.logger_data
+        with self.lock:
+            self.req_ids = id_list
+            if self.db is None:
+                raise ValueError("TinyFlux database is not initialized.")
+            tags = TagQuery()
+            for req_id in id_list:
+                self.entry_counters[req_id] = len(self.db.search(tags.req_id == req_id))
+            logging.info(f"loaded ai_requirement_log.csv")
 
-    def add_data(self, req_id: str, data: dict) -> None:
-        current_time = datetime.now().strftime("%d/%b/%Y %H:%M:%S") + f".{datetime.now().microsecond:06d}"
-        count = len(self.logger_data[req_id])
-        timestamp = f"{current_time}_{count+1}"
-        self.logger_data[req_id][timestamp] = data
+    def add_data(self, req_id: str, data: dict[str, any]) -> None:
+        with self.lock:
+            if self.db is None:
+                raise ValueError("TinyFlux database is not initialized.")
 
-    def get_data(self, req_id: str) -> dict:
-        return self.logger_data.get(req_id, {})
+            timestamp = datetime.now()
+            formatted_time = timestamp.strftime("%Y-%m-%d/%H:%M:%S.%f")
+            self.entry_counters[req_id] += 1
+            unique_timestamp = f"{formatted_time}_{self.entry_counters[req_id]}"
+            data["unique_timestamp"] = unique_timestamp
+            data["req_id"] = req_id
+
+            point = Point(time=timestamp, tags=data)
+            self.db.insert(point)
+
+    def get_data_by_req_id(self, req_id: str) -> dict:
+        tags = TagQuery()
+        points = self.db.search(tags.req_id == req_id)
+
+        result = {}
+        for point in points:
+            unique_timestamp = point.tags.get("unique_timestamp")
+            filtered_tags = {k: v for k, v in point.tags.items() if k not in ["unique_timestamp", "req_id"]}
+            result[unique_timestamp] = filtered_tags
+
+        return result
 
     def get_ids(self) -> list:
-        return list(self.logger_data.keys())
+        return self.req_ids
 
 
 class AiProcessingQueue:
@@ -159,7 +185,10 @@ class AiData:
         self.__ai_models: dict[str, str] = ai_config.AI_MODEL_NAMES
 
         self.__ai_statistic = ai_statistic
-        self.requirement_log = RequirementLog()
+        self.requirement_log: RequirementLog = None
+
+    def set_data_folder(self, data_folder: str) -> None:
+        self.requirement_log = RequirementLog(data_folder)
 
     def get_full_info(self) -> dict:
         ret = {

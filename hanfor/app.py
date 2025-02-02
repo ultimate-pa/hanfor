@@ -1009,7 +1009,7 @@ def startup_hanfor(args, here, *, no_data_tracing: bool = False) -> bool:
     # Startup AI (start clustering if Flagged)
     if app.config["FEATURE_AI"]:
         with app.app_context():
-            app.ai.startup()
+            app.ai.startup(app.config["REVISION_FOLDER"])
     return True
 
 

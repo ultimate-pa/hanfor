@@ -71,7 +71,7 @@ class SimilarityAlgorithm(ABC):
                     visited.add(req2)
 
             for r in f_set:
-                req_logger(r, f"added {r} into cluster: {f_set}")
+                req_logger(r, {"message": f"added {r} into cluster: {f_set}"})
             clusters.add(frozenset(f_set))
 
         return clusters

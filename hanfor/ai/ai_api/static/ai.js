@@ -721,19 +721,28 @@ $(document).ready(function (){
 
             let logHtml = "<h3>Log for ID: " + selectedID + "</h3>";
 
-            for (const [time, message] of Object.entries(logData)) {
+            const sortedEntries = Object.entries(logData).sort((a, b) => {
+                const numA = parseInt(a[0].split('_').pop());
+                const numB = parseInt(b[0].split('_').pop());
+                return numA - numB;
+            });
+            for (const [time, data] of sortedEntries) {
                 logHtml += `
                     <div class="log-entry">
                         <p><strong>Time:</strong> ${time}</p>
-                        <p><strong>Message:</strong> ${message}</p>
+                `;
+                for (const [key, value] of Object.entries(data)) {
+                    logHtml += `<p><strong>${key}:</strong> ${value}</p>`;
+                }
+
+                logHtml += `
                     </div>
                     <hr>
                 `;
             }
-
-            // Füge das erstellte HTML in den log-container ein
             $('#log-container').html(logHtml);
         },
+
         error: function (error) {
             console.error('ERROR:', error);
         }

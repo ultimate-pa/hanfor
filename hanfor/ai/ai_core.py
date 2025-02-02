@@ -35,7 +35,8 @@ class AiCore:
         self.__ai_data: AiData = AiData(self.ai_statistic)
         self.ai_processing_queue = AiProcessingQueue(self.__ai_data.update_progress)
 
-    def startup(self):
+    def startup(self, data_folder: str) -> None:
+        self.__ai_data.set_data_folder(data_folder)
         if ai_config.ENABLE_SIMILARITY_ON_STARTUP:
             self.start_clustering()
         id_list = []
@@ -214,8 +215,9 @@ class AiCore:
         self.__ai_data.set_ai_model(name)
 
     def get_log_from_id(self, req_id: str) -> dict:
-        logging.debug(f"Getting {req_id}: {self.__ai_data.requirement_log.get_data(req_id)}")
-        return self.__ai_data.requirement_log.get_data(req_id)
+        data = self.__ai_data.requirement_log.get_data_by_req_id(req_id)
+        logging.debug(f"Getting log from {req_id}: {data}")
+        return data
 
     def __load_requirements_to_queue(self, rid: str) -> (Queue, frozenset, list[Requirement]):
         req_queue = Queue()

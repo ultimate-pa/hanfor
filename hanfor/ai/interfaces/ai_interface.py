@@ -106,15 +106,15 @@ class AIFormalization:
 
     def req_logger_ai_process(self, req_logger: callable, req_id: str):
         requirement_with_formalization = [x.to_dict()["id"] for x in self.requirement_with_formalization]
-        data_str = (
-            f"try_count: {self.try_count}, \n"
-            f"requirement_to_formalize: {req_id}, \n"
-            f"requirement_with_formalization: {requirement_with_formalization}, \n"
-            f"ai_response: {self.ai_response}, \n"
-            f"formalized_output: {self.formalized_output}, \n"
-            f"status: {self.status}, \n"
-        )
-        req_logger(req_id, data_str)
+        data_dict = {
+            "try_count": f"{self.try_count}",
+            "requirement_with_formalization": f"{requirement_with_formalization}",
+            "ai_response": f"{self.ai_response}",
+            "formalized_output": f"{self.formalized_output}",
+            "status": f"{self.status}",
+        }
+
+        req_logger(req_id, data_dict)
 
     def run_process(
         self,
@@ -129,12 +129,16 @@ class AIFormalization:
         req_logger: callable,
     ):
         req_id = self.requirement_to_formalize.to_dict()["id"]
-        req_logger(
-            req_id,
-            f"""Initiating AI formalization for requirement | {req_id} |. Description: | {self.requirement_to_formalize.to_dict()['desc']} |.  
-                Formalized requirements: | {self.requirement_with_formalization} |.  
-                AI Model: | {ai_model} |, Prompt/Parser: | {prompt_generator_name} |.""",
-        )
+        requirement_with_formalization = [x.to_dict()["id"] for x in self.requirement_with_formalization]
+        data_dict = {
+            "message": "Initiating AI formalization",
+            "description": f"{self.requirement_to_formalize.to_dict().get("desc", "")}",
+            "formalized_requirements": f"{requirement_with_formalization}",
+            "ai_model": f"{ai_model}",
+            "prompt_or_parser": f"{prompt_generator_name}",
+        }
+        req_logger(req_id, data_dict)
+
         while self.try_count < ai_config.MAX_AI_FORMALIZATION_TRYS:
             self.prompt = None
             self.ai_response = None
@@ -143,7 +147,8 @@ class AIFormalization:
             self.prompt = prompt_generator(
                 self.requirement_to_formalize, self.requirement_with_formalization, used_variables
             )
-            req_logger(req_id, f"created prompt for {req_id}: {self.prompt}")
+
+            req_logger(req_id, {"message": "created prompt", "prompt": self.prompt})
 
             if self.prompt is None:
                 self.status = "error_generating_prompt"
