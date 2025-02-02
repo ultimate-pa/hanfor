@@ -163,8 +163,8 @@ class AiCore:
         self.ai_formalization_thread.append(mother_tread)
         mother_tread.start()
 
-    def get_full_info(self) -> dict:
-        return self.__ai_data.get_full_info()
+    def get_full_info_init_site(self) -> dict:
+        return self.__ai_data.get_full_info_init_site()
 
     def get_matrix(self) -> tuple[list[list[float]], dict] | None:
         return self.__ai_data.get_cluster_matrix()

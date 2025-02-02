@@ -18,11 +18,7 @@ def index():
     return render_template("ai_html/index.html", BUNDLE_JS=BUNDLE_JS)
 
 
-class GetCurrentData(MethodView):
-    def get(self) -> Response:
-        return jsonify(current_app.ai.get_full_info())
-
-
+# region Terminate
 class TerminateAll(MethodView):
     def post(self):
         current_app.ai.terminate_cluster_thread()
@@ -30,6 +26,27 @@ class TerminateAll(MethodView):
         return jsonify({"message": "all processes terminated."})
 
 
+class TerminateSim(MethodView):
+    def post(self):
+        current_app.ai.terminate_cluster_thread()
+        return jsonify({"message": "Clustering process terminated."})
+
+
+class TerminateAi(MethodView):
+    def post(self):
+        current_app.ai.terminate_ai_formalization_threads()
+        return jsonify({"message": "AI process terminated."})
+
+
+# endregion
+
+
+class GetFullInitialData(MethodView):
+    def get(self) -> Response:
+        return jsonify(current_app.ai.get_full_info_init_site())
+
+
+# region Flags
 class SetSystemFlag(MethodView):
     def post(self):
         system_enabled = request.get_json().get("system_enabled", False)
@@ -44,6 +61,10 @@ class SetAiFlag(MethodView):
         return jsonify({"message": f"System status set to {'enabled' if ai_enabled else 'disabled'}."})
 
 
+# endregion
+
+
+# region Clustering
 class SetSimMethod(MethodView):
     def post(self):
         data = request.get_json()
@@ -68,23 +89,15 @@ class StartClustering(MethodView):
         return jsonify({"message": "Clustering process started."})
 
 
-class TerminateSim(MethodView):
-    def post(self):
-        current_app.ai.terminate_cluster_thread()
-        return jsonify({"message": "Clustering process terminated."})
-
-
-class TerminateAi(MethodView):
-    def post(self):
-        current_app.ai.terminate_ai_formalization_threads()
-        return jsonify({"message": "AI process terminated."})
-
-
 class GetMatrix(MethodView):
     def get(self):
         return jsonify(current_app.ai.get_matrix())
 
 
+# endregion
+
+
+# region Ai
 class QueryAi(MethodView):
     def post(self):
         data = request.get_json()
@@ -121,6 +134,10 @@ class SetAiModel(MethodView):
         return jsonify({"error": "Method name is required."}), 400
 
 
+# endregion
+
+
+# region Log from Requirements
 class SetIds(MethodView):
     def post(self):
         data = request.get_json()
@@ -145,8 +162,12 @@ class GetLogFromId(MethodView):
         return jsonify({"error": "No ID"}), 400
 
 
-# Register routes with their specific view classes
-api_blueprint.add_url_rule("/get/current_data", view_func=GetCurrentData.as_view("get/current_data"), methods=["GET"])
+# endregion
+
+# region Register routes
+api_blueprint.add_url_rule(
+    "/get/data/initial", view_func=GetFullInitialData.as_view("get/data/initial"), methods=["GET"]
+)
 api_blueprint.add_url_rule("/get/sim/matrix", view_func=GetMatrix.as_view("sim/matrix"), methods=["GET"])
 api_blueprint.add_url_rule("/terminate/all", view_func=TerminateAll.as_view("terminate/all"), methods=["POST"])
 api_blueprint.add_url_rule("/terminate/sim", view_func=TerminateSim.as_view("terminate/sim"), methods=["POST"])
@@ -162,3 +183,4 @@ api_blueprint.add_url_rule("/set/ai/method", view_func=SetAiMethod.as_view("set/
 api_blueprint.add_url_rule("/set/ai/model", view_func=SetAiModel.as_view("set/ai/model"), methods=["POST"])
 api_blueprint.add_url_rule("/set/ids", view_func=SetIds.as_view("set/ids"), methods=["POST"])
 api_blueprint.add_url_rule("/set/log/id", view_func=GetLogFromId.as_view("set/log/id"), methods=["GET"])
+# endregion

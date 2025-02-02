@@ -20,3 +20,6 @@ class AiDataEnum(Enum):
     QUEUED = "queued"
     SYSTEM = "system"
     FLAGS = "flags"
+    MODEL = "model"
+    METHOD = "method"
+    STATISTICS = "statistics"

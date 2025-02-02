@@ -15,7 +15,7 @@ $(document).ready(function (){
     function get_update(){
         $.ajax({
             type: 'GET',
-            url: '/api/ai/get/current_data',
+            url: '/api/ai/get/data/initial',
             contentType: 'application/json'
         }).done(function (response) {
             data = response

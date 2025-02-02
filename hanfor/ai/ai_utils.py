@@ -4,6 +4,8 @@ from threading import Lock
 from time import time
 from typing import Optional
 import logging
+from unittest import case
+
 from ai import ai_config
 from ai.interfaces.ai_interface import load_ai_prompt_parse_methods, AIFormalization
 from ai.ai_enum import AiDataEnum
@@ -106,6 +108,7 @@ class AiStatistic:
     """Handles statistics related to AI processes, tracking tries and status messages for all model and method combos"""
 
     def __init__(self):
+        self.__send_updated_data = None
         self.lock = Lock()
         self.model_method_status_count = {}
 
@@ -121,6 +124,7 @@ class AiStatistic:
                 self.model_method_status_count[model][methode][status] = 0
 
             self.model_method_status_count[model][methode][status] += 1
+        self.__send_updated_data(AiDataEnum.AI, AiDataEnum.STATISTICS)
 
     def add_try_count(self, model: str, methode: str, count: int) -> None:
         with self.lock:
@@ -152,6 +156,9 @@ class AiStatistic:
                     }
                 )
         return report
+
+    def set_send_update_method(self, send_updated_data: callable):
+        self.__send_updated_data = send_updated_data
 
 
 class AiData:
@@ -185,12 +192,13 @@ class AiData:
         self.__ai_models: dict[str, str] = ai_config.AI_MODEL_NAMES
 
         self.__ai_statistic = ai_statistic
+        self.__ai_statistic.set_send_update_method(self.__send_updated_data)
         self.requirement_log: RequirementLog = None
 
     def set_data_folder(self, data_folder: str) -> None:
         self.requirement_log = RequirementLog(data_folder)
 
-    def get_full_info(self) -> dict:
+    def get_full_info_init_site(self) -> dict:
         ret = {
             "cluster_status": self.__get_info_cluster_status(),
             "clusters": self.__get_clusters(),
@@ -205,11 +213,40 @@ class AiData:
         }
         return ret
 
+    def __send_updated_data(self, updated_data: AiDataEnum, specified_data: Optional[AiDataEnum]) -> None:
+        send_dict = {}
+        match updated_data:
+            case AiDataEnum.FLAGS:
+                send_dict = {"flags": self.__get_info_flags()}
+            case AiDataEnum.CLUSTER:
+                match specified_data:
+                    case AiDataEnum.STATUS:
+                        send_dict = {"cluster_status": self.__get_info_cluster_status()}
+                    case AiDataEnum.METHOD:
+                        send_dict = {"activ_similarity_method": self.__activ_similarity_method}
+                    case AiDataEnum.CLUSTER:
+                        send_dict = {"clusters": self.__get_clusters()}
+            case AiDataEnum.AI:
+                match specified_data:
+                    case AiDataEnum.MODEL:
+                        send_dict = {"activ_ai_model": self.__activ_ai_model}
+                    case AiDataEnum.METHOD:
+                        send_dict = {"activ_ai_method": self.__activ_ai_prompt_parse_method}
+                    case AiDataEnum.STATISTICS:
+                        send_dict = {"ai_statistic": self.__ai_statistic.get_status_report()}
+                    case AiDataEnum.STATUS:
+                        send_dict = {"ai_status": self.__get_info_ai_status()}
+        logging.debug(f"Sending: {send_dict}")
+        # TODO with socket
+
     def update_progress(self, progress_outer: AiDataEnum, progress_inner: Optional[AiDataEnum], update: any):
         if progress_inner:
             self.__ai_system_data[progress_outer][progress_inner] = update
         else:
             self.__ai_system_data[progress_outer] = update
+
+        specified_data = AiDataEnum.STATUS if progress_outer in {AiDataEnum.AI, AiDataEnum.CLUSTER} else None
+        self.__send_updated_data(progress_outer, specified_data)
 
     def get_sim_class(self) -> SimilarityAlgorithm:
         return self.__similarity_methods[self.__activ_similarity_method]
@@ -243,6 +280,7 @@ class AiData:
             logging.debug(f"Setting similarity method: {name}")
             self.__activ_similarity_method = name
             self.__sim_threshold = self.__similarity_methods[name].standard_threshold
+            self.__send_updated_data(AiDataEnum.CLUSTER, AiDataEnum.METHOD)
 
     def set_sim_threshold(self, threshold: float) -> None:
         logging.debug(f"Setting similarity threshold: {threshold}")
@@ -252,14 +290,17 @@ class AiData:
         if name in self.__ai_prompt_parse_methods.keys():
             logging.debug(f"Setting ai method: {name}")
             self.__activ_ai_prompt_parse_method = name
+            self.__send_updated_data(AiDataEnum.AI, AiDataEnum.METHOD)
 
     def set_ai_model(self, name: str) -> None:
         if name in self.__ai_models.keys():
             logging.debug(f"Setting ai model: {name}")
             self.__activ_ai_model = name
+            self.__send_updated_data(AiDataEnum.AI, AiDataEnum.MODEL)
 
     def set_clusters(self, clusters: set[frozenset[str]]) -> None:
         self.__clusters = clusters
+        self.__send_updated_data(AiDataEnum.CLUSTER, AiDataEnum.CLUSTER)
 
     def set_cluster_matrix(self, cluster_matrix: tuple[list[list[float]], dict]) -> None:
         self.__cluster_matrix = cluster_matrix

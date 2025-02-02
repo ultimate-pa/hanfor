@@ -38,18 +38,16 @@ class LevenshteinSimilarity(SimilarityAlgorithm):
         for req_id_outer, requirement1 in requirements.items():
             req1 = requirement1.to_dict()
             if req1["id"] in seen:
-                self.update_progress(len(requirements.keys()), len(seen))
                 continue
             seen.add(req1["id"])
-            self.update_progress(len(requirements.keys()), len(seen))
             for req_id_inner, requirement2 in requirements.items():
                 req2 = requirement2.to_dict()
                 if req_id_outer != req_id_inner and req2["id"] not in seen:
                     similarity_float = compare(req1["desc"], req2["desc"])
-                    self.update_progress(len(requirements.keys()), len(seen))
                     set_value_matrix(req1["id"], req2["id"], similarity_float)
                 if stop_event.is_set():
                     return
+            self.update_progress(len(requirements.keys()), len(seen))
 
     @property
     def standard_threshold(self) -> float:
