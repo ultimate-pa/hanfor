@@ -257,7 +257,18 @@ class AiCore:
             if stop_event_ai.is_set():
                 break
             requirement_to_formalize = req_queue.get()
-            formalize_object = AIFormalization(requirement_to_formalize, requirement_with_formalization, stop_event_ai)
+            formalize_object = AIFormalization(
+                requirement_to_formalize,
+                requirement_with_formalization,
+                stop_event_ai,
+                self.ai_processing_queue,
+                self.__ai_data.get_activ_ai_method_object().create_prompt,
+                self.__ai_data.get_activ_ai_method_object().parse_ai_response,
+                self.__ai_data.get_used_variables(),
+                self.__ai_data.get_activ_ai_model(),
+                self.__ai_data.get_flags()[AiDataEnum.AI],
+                self.__ai_data.requirement_log.add_data,
+            )
             self.__ai_data.add_formalization_object(formalize_object)
             logging.debug(requirement_to_formalize.to_dict())
             processing_thread = Thread(target=self.__process_queue_element, args=(formalize_object,), daemon=True)
@@ -284,17 +295,7 @@ class AiCore:
         )
 
     def __process_queue_element(self, formalize_object: AIFormalization) -> None:
-        formalize_object.run_process(
-            self.ai_processing_queue,
-            self.__ai_data.get_activ_ai_method_object().create_prompt,
-            self.__ai_data.get_activ_ai_method_object().parse_ai_response,
-            self.__ai_data.get_used_variables(),
-            self.__ai_data.get_activ_ai_model(),
-            self.__ai_data.get_flags()[AiDataEnum.AI],
-            self.ai_statistic,
-            self.__ai_data.get_activ_ai_method_object().name,
-            self.__ai_data.requirement_log.add_data,
-        )
+        formalize_object.run_formalization_process(self.ai_statistic, self.__ai_data.get_activ_ai_method_object().name)
         if self.stop_event_ai.is_set() or formalize_object.status.startswith("terminated"):
             logging.warning(formalize_object.status)
             return

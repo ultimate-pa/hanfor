@@ -1,5 +1,3 @@
-import logging
-
 from flask import Blueprint, render_template, Response, jsonify, current_app, request
 from flask.views import MethodView
 
@@ -16,6 +14,11 @@ api_blueprint = Blueprint("api_ai", __name__, url_prefix="/api/ai")
 def index():
     """Render the main page of the AI display."""
     return render_template("ai_html/index.html", BUNDLE_JS=BUNDLE_JS)
+
+
+class GetFullInitialData(MethodView):
+    def get(self) -> Response:
+        return jsonify(current_app.ai.get_full_info_init_site())
 
 
 # region Terminate
@@ -39,11 +42,6 @@ class TerminateAi(MethodView):
 
 
 # endregion
-
-
-class GetFullInitialData(MethodView):
-    def get(self) -> Response:
-        return jsonify(current_app.ai.get_full_info_init_site())
 
 
 # region Flags
@@ -137,17 +135,21 @@ class SetAiModel(MethodView):
 # endregion
 
 
-# region Log from Requirements
+# region chosen Requirement Ai formalization
 class SetIds(MethodView):
     def post(self):
         data = request.get_json()
         ids = data.get("ids")
         if ids:
             e = current_app.ai.update_ids(ids)
-            logging.debug(e)
             if not e:
                 return jsonify({"message": f"set ids: {ids}."}), 200
             return jsonify({"error": str(e)}), 400
+
+
+# endregion
+
+# region Log from Requirements
 
 
 class GetLogFromId(MethodView):
@@ -169,18 +171,25 @@ api_blueprint.add_url_rule(
     "/get/data/initial", view_func=GetFullInitialData.as_view("get/data/initial"), methods=["GET"]
 )
 api_blueprint.add_url_rule("/get/sim/matrix", view_func=GetMatrix.as_view("sim/matrix"), methods=["GET"])
+
+api_blueprint.add_url_rule("/set/log/id", view_func=GetLogFromId.as_view("set/log/id"), methods=["GET"])
+
 api_blueprint.add_url_rule("/terminate/all", view_func=TerminateAll.as_view("terminate/all"), methods=["POST"])
 api_blueprint.add_url_rule("/terminate/sim", view_func=TerminateSim.as_view("terminate/sim"), methods=["POST"])
 api_blueprint.add_url_rule("/terminate/ai", view_func=TerminateAi.as_view("terminate/ai"), methods=["POST"])
+
 api_blueprint.add_url_rule("/set/flag/system", view_func=SetSystemFlag.as_view("set/flag/system"), methods=["POST"])
 api_blueprint.add_url_rule("/set/flag/ai", view_func=SetAiFlag.as_view("set/flag/ai"), methods=["POST"])
+
 api_blueprint.add_url_rule("/set/sim/method", view_func=SetSimMethod.as_view("set/sim/method"), methods=["POST"])
 api_blueprint.add_url_rule("/set/sim/start", view_func=StartClustering.as_view("sim/start"), methods=["POST"])
 api_blueprint.add_url_rule("/set/sim/threshold", view_func=SetSimThreshold.as_view("sim/threshold"), methods=["POST"])
+
 api_blueprint.add_url_rule("/ai/query", view_func=QueryAi.as_view("ai/query"), methods=["POST"])
 api_blueprint.add_url_rule("/ai/process", view_func=ProcessAllReqAi.as_view("ai/process"), methods=["POST"])
+
 api_blueprint.add_url_rule("/set/ai/method", view_func=SetAiMethod.as_view("set/ai/method"), methods=["POST"])
 api_blueprint.add_url_rule("/set/ai/model", view_func=SetAiModel.as_view("set/ai/model"), methods=["POST"])
 api_blueprint.add_url_rule("/set/ids", view_func=SetIds.as_view("set/ids"), methods=["POST"])
-api_blueprint.add_url_rule("/set/log/id", view_func=GetLogFromId.as_view("set/log/id"), methods=["GET"])
+
 # endregion
