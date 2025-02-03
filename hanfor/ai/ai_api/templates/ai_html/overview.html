@@ -1,0 +1,46 @@
+<div class="tab-pane fade show active" id="overview-content" role="tabpanel" aria-labelledby="overview-tab">
+    <h4>System Controls</h4>
+    <div class="d-flex flex-column align-items-start mb-4">
+        <div class="form-check form-switch me-3">
+            <label class="form-check-label" for="toggle-system-switch">Auto Update on Change</label>
+            <input class="form-check-input" type="checkbox" id="toggle-system-switch">
+        </div>
+        <div class="form-check form-switch me-3">
+            <label class="form-check-label" for="toggle-ai-switch">Enable API AI Requests</label>
+            <input class="form-check-input" type="checkbox" id="toggle-ai-switch">
+        </div>
+        <button id="terminate-all-button" class="btn btn-danger mt-3">Terminate All Processes</button>
+    </div>
+
+    <h4>Process Information</h4>
+    <div class="mb-4">
+        <div class="mb-3">
+            <h5>Cluster Process</h5>
+            <p>Status: <span id="cluster-status">XXX</span></p>
+            <p>Cluster Progress: <span id="cluster-availability">XXX</span></p>
+        </div>
+
+        <div class="ai-processes-section">
+            <h5>AI Processes</h5>
+            <p>Running processes: <span id="ai-running-count">X</span></p>
+            <p>Processes in queue: <span id="ai-queue-count">X</span></p>
+        </div>
+
+        <div id="ai-statistics-container">
+            <!-- Sections will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <h4>Cluster Data</h4>
+    <table id="cluster-table" class="display">
+        <thead>
+            <tr>
+                <th>Cluster Name</th>
+                <th>IDs</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be dynamically inserted here -->
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,36 @@
+<div class="tab-pane fade" id="similarity-content" role="tabpanel" aria-labelledby="similarity-tab">
+    <h4>Similarity Interface</h4>
+    <div class="mt-3">
+        <button id="terminate-clustering-button" class="btn btn-danger">Terminate Clustering</button>
+        <button id="start-clustering" class="btn btn-outline-secondary">Start Clustering</button>
+        <button id="get-matrix-button" class="btn btn-outline-secondary">Get Similarity Matrix</button>
+    </div>
+
+    <div class="mt-3">
+        <label for="clustering-process-select">Choose Clustering Process:</label>
+        <select id="clustering-process-select" class="form-select"></select>
+    </div>
+
+    <div class="mt-3">
+        <label for="similarity-slider">Set Similarity Threshold:</label>
+        <input type="range" id="similarity-slider" class="form-range" min="0" max="100" step="1" value="50">
+        <div id="slider-value" class="text-center">--</div>
+    </div>
+
+    <div id="progress-container" class="mt-3">
+        <h5 id="progress-status">Status: not started</h5>
+        <div class="progress">
+            <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <h4>Similarity Matrix</h4>
+        <div style="max-height: 500px; overflow: auto;">
+            <table id="similarity-matrix" class="table table-striped table-bordered">
+                <thead></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>

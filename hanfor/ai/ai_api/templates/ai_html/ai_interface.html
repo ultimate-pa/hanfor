@@ -1,0 +1,63 @@
+<div class="tab-pane fade" id="ai-interface-content" role="tabpanel" aria-labelledby="ai-interface-tab">
+    <h4>AI Interface</h4>
+    <div class="mt-3">
+        <button id="terminate-ai-button" class="btn btn-danger">Terminate AI</button>
+        <button id="process-ai" class="btn btn-outline-secondary">Process possible Req with AI</button>
+    </div>
+
+    <div class="mt-3">
+        <div class="mb-3">
+            <label for="ai-model-selection" class="form-label">Select AI Model</label>
+            <select id="ai-model-selection" class="form-select"></select>
+        </div>
+
+        <div class="mb-3">
+            <label for="prompt-parsing-selection" class="form-label">Select Prompt and Parsing Method</label>
+            <select id="prompt-parsing-selection" class="form-select"></select>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="id-input" class="form-label">Enter the IDs for manual process:</label>
+        <textarea id="id-input" class="form-control" rows="4" placeholder="Example: REQ001,REQ002"></textarea>
+    </div>
+
+    <button id="submit-ids-button" class="btn btn-primary">Submit Ids</button>
+
+    <div class="mt-4">
+        <h4>Your Custom Prompt</h4>
+        <div class="mt-4">
+            <button class="btn btn-secondary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#explanation-legend" aria-expanded="false" aria-controls="explanation-legend">
+                Show/Hide Explanation and Legend
+            </button>
+
+            <div class="collapse" id="explanation-legend">
+                <div class="alert alert-info" role="alert">
+                    <strong>Hint:</strong> You can use placeholders in the format <code>[id.action]</code>.
+                    <ul>
+                        <li><code>id</code>: The ID of the requirement (e.g., <code>R001</code>).</li>
+                        <li><code>action</code>: Retrieve specific attributes of the requirement.</li>
+                    </ul>
+                    <p>Example: <code>[R001.formal]</code> retrieves the formalizations of the requirement with ID <code>R001</code>.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="user-prompt" class="form-label">Enter your prompt:</label>
+            <textarea id="user-prompt" class="form-control" rows="4" placeholder="Example: Please analyze [R001.formal] and explain [R002.desc]."></textarea>
+        </div>
+
+        <button id="submit-prompt-button" class="btn btn-primary">Submit Prompt</button>
+
+        <div class="mt-4" id="ai-query-container">
+            <h5>AI Query</h5>
+            <pre id="ai-query" style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto;">Your AI query will appear here...</pre>
+        </div>
+
+        <div class="mt-4" id="ai-response-container">
+            <h5>AI Response</h5>
+            <pre id="ai-response" style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto;">Your AI response will appear here...</pre>
+        </div>
+    </div>
+</div>
