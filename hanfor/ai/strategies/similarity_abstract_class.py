@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from threading import Event
 from typing import Tuple
-
 from ai.ai_enum import AiDataEnum
 
 
@@ -38,6 +37,7 @@ class SimilarityAlgorithm(ABC):
 
     @abstractmethod
     def is_within_threshold(self, set_threshold, calculated_threshold) -> bool:
+        """Checks whether the calculated threshold value is within the acceptable range of the set threshold value. (for the conversion from matrix to cluster)"""
         pass
 
     @abstractmethod
@@ -47,10 +47,19 @@ class SimilarityAlgorithm(ABC):
         update_progress: callable,
         set_value_matrix: callable,
         stop_event: Event,
-    ):
+    ) -> None:
+        """
+        Creates a similarity matrix based on the specified requirements
+
+        - Must use `set_value_matrix` to populate the matrix
+        - Must update the progress in real time using `update_progress`
+        - Must be able to stop the process immediately using `stop_event
+        """
         pass
 
     def __create_clusters(self, set_threshold, req_logger: callable):
+        """Creates a cluster set from the matrix and logs it for each requirement (uses is_within_threshold)"""
+
         visited = set()
         clusters = set()
         index_to_req_id = {v: k for k, v in self.req_id_to_index.items()}
@@ -77,16 +86,22 @@ class SimilarityAlgorithm(ABC):
         return clusters
 
     def set_value_matrix(self, req1: str, req2: str, similarity_float: float):
+        """Sets the similarity value between two requirements in the similarity matrix"""
+
         self.cluster_matrix[self.req_id_to_index[req1]][self.req_id_to_index[req2]] = similarity_float
         self.cluster_matrix[self.req_id_to_index[req2]][self.req_id_to_index[req1]] = similarity_float
 
     def update_progress(self, total: int, current: int) -> None:
+        """Updates the progress for the webinterface"""
+
         self.__update_progress_function(AiDataEnum.CLUSTER, AiDataEnum.PROCESSED, current)
         self.__update_progress_function(AiDataEnum.CLUSTER, AiDataEnum.TOTAL, total)
 
     def get_clusters_and_similarity_matrix(
         self, requirements, threshold: float, stop_event: Event, update_progress: callable, req_logger: callable
     ):
+        """Main method to generate clusters and the similarity matrix from requirements."""
+
         req_ids = list(requirements.keys())
         self.req_id_to_index = {req_id: idx for idx, req_id in enumerate(req_ids)}
         self.cluster_matrix = [[0.0 for _ in range(len(req_ids))] for _ in range(len(req_ids))]

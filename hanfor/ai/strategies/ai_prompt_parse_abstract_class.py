@@ -1,4 +1,4 @@
-import os
+from os import path
 from abc import ABC, abstractmethod
 from typing_extensions import Optional
 from patterns import PATTERNS
@@ -45,15 +45,18 @@ class AiPromptParse(ABC):
 
 
 def get_scope() -> dict[str, str]:
+    """returns like: {AFTER: After '{P}'}"""
     scope_dict = {scope.name: scope.value for scope in reqtransformer.Scope if scope.name != "NONE"}
     return scope_dict
 
 
 def get_pattern() -> dict[str, dict[str, str | dict[str, str]]]:
     """
-    returns a dictionary Keys = pattern name with two values:
+    Keys = pattern name with two values:
     [pattern]["env"] (The allowed types for the variables/expressions if available)
     [pattern]["pattern"] (the pattern as string)
+
+    like: 'Universality': {'env': {'R': ['bool']}, 'pattern': 'it is always the case that {R} holds'}
     """
     pattern = {}
     for key, val in PATTERNS.items():
@@ -68,7 +71,7 @@ def get_pattern() -> dict[str, dict[str, str | dict[str, str]]]:
 
 def get_grammar() -> str:
     """returns the grammar from lark file as string"""
-    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../hanfor_boogie_grammar.lark")
-    with open(path, "r") as f:
+    grammar_path = path.join(path.dirname(path.abspath(__file__)), "../../hanfor_boogie_grammar.lark")
+    with open(grammar_path, "r") as f:
         grammar = f.read()
     return grammar
