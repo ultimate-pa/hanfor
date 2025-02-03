@@ -108,7 +108,7 @@ class QueryAi(MethodView):
 
 class ProcessAllReqAi(MethodView):
     def post(self):
-        current_app.ai.check_for_process()
+        current_app.ai.check_all_clusters_for_need_of_ai_formalisation()
         return jsonify({"message": "Checking for Process."})
 
 
