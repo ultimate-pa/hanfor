@@ -227,6 +227,7 @@ class AIFormalization:
         while not self.ai_processing_queue.add_request(self.req_id):
             time.sleep(1)
             if self.stop_event.is_set():
+                self.ai_processing_queue.terminated(self.req_id)
                 return True
 
         self.status = "acquired_slot_in_ai"

@@ -4,8 +4,6 @@ from threading import Lock
 from time import time
 from typing import Optional
 import logging
-from unittest import case
-
 from ai import ai_config
 from ai.interfaces.ai_interface import load_ai_prompt_parse_methods, AIFormalization
 from ai.ai_enum import AiDataEnum
@@ -16,6 +14,8 @@ from datetime import datetime
 
 
 class RequirementLog:
+    """Handles logging and retrieval of AI requirement data using TinyFlux"""
+
     def __init__(self, data_folder: str):
         self.db = TinyFlux(os.path.join(data_folder, "ai_requirement_log.csv"))
         self.entry_counters: dict[str, int] = {}
@@ -23,6 +23,8 @@ class RequirementLog:
         self.lock = Lock()
 
     def set_ids(self, id_list: list[str]) -> None:
+        """Sets requirement IDs and loads corresponding log data from the database"""
+
         with self.lock:
             self.req_ids = id_list
             if self.db is None:
@@ -33,6 +35,8 @@ class RequirementLog:
             logging.info(f"loaded ai_requirement_log.csv")
 
     def add_data(self, req_id: str, data: dict[str, any]) -> None:
+        """Adds a new data entry for a given requirement ID"""
+
         with self.lock:
             if self.db is None:
                 raise ValueError("TinyFlux database is not initialized.")
@@ -48,6 +52,8 @@ class RequirementLog:
             self.db.insert(point)
 
     def get_data_by_req_id(self, req_id: str) -> dict:
+        """Retrieves all data entries for a specific requirement ID"""
+
         tags = TagQuery()
         points = self.db.search(tags.req_id == req_id)
 
@@ -60,6 +66,8 @@ class RequirementLog:
         return result
 
     def get_ids(self) -> list:
+        """Returns the list of all requirement IDs"""
+
         return self.req_ids
 
 
@@ -68,40 +76,48 @@ class AiProcessingQueue:
 
     max_ai_requests: int = ai_config.MAX_CONCURRENT_AI_REQUESTS
 
-    def __init__(self, update_progress_function):
+    def __init__(self, update_progress_function) -> None:
         self.current_ai_request = []
         self.current_waiting = []
         self.lock = Lock()
-        self.__update_progress = update_progress_function
+        self.__update_progress_extern_function = update_progress_function
 
     def add_request(self, req_id: str) -> bool:
+        """Adds a new request to the queue. Returns True if the requester can run, False if put in queued."""
+
         with self.lock:
             if len(self.current_ai_request) < self.max_ai_requests:
                 if req_id in self.current_waiting:
                     self.current_waiting.remove(req_id)
                 self.current_ai_request.append(req_id)
-                self.__up_prog()
+                self.__update_progress_intern()
                 return True
             else:
                 if req_id not in self.current_waiting:
                     self.current_waiting.append(req_id)
-                    self.__up_prog()
+                    self.__update_progress_intern()
                 return False
 
-    def __up_prog(self):
-        self.__update_progress(AiDataEnum.AI, AiDataEnum.QUEUED, len(self.current_waiting))
-        self.__update_progress(AiDataEnum.AI, AiDataEnum.RUNNING, len(self.current_ai_request))
+    def __update_progress_intern(self) -> None:
+        """Updates the progress of running and queued AI requests"""
 
-    def complete_request(self, req_id):
+        self.__update_progress_extern_function(AiDataEnum.AI, AiDataEnum.QUEUED, len(self.current_waiting))
+        self.__update_progress_extern_function(AiDataEnum.AI, AiDataEnum.RUNNING, len(self.current_ai_request))
+
+    def complete_request(self, req_id: str) -> None:
+        """Marks a request as completed and updates the progress"""
+
         self.current_ai_request.remove(req_id)
-        self.__up_prog()
+        self.__update_progress_intern()
 
-    def terminated(self, req_id: str):
+    def terminated(self, req_id: str) -> None:
+        """Removes a request from both running and waiting queues when terminated"""
+
         if req_id in self.current_waiting:
             self.current_waiting.remove(req_id)
         if req_id in self.current_ai_request:
             self.current_ai_request.remove(req_id)
-        self.__up_prog()
+        self.__update_progress_intern()
 
 
 class AiStatistic:
@@ -113,6 +129,8 @@ class AiStatistic:
         self.model_method_status_count = {}
 
     def add_status(self, model: str, methode: str, status: str) -> None:
+        """Adds a status entry for a given model and method."""
+
         with self.lock:
             if model not in self.model_method_status_count:
                 self.model_method_status_count[model] = {}
@@ -127,12 +145,16 @@ class AiStatistic:
         self.__send_updated_data(AiDataEnum.AI, AiDataEnum.STATISTICS)
 
     def add_try_count(self, model: str, methode: str, count: int) -> None:
+        """Adds the number of tries for a given model and method."""
+
         with self.lock:
             if "try_count" not in self.model_method_status_count[model][methode]:
                 self.model_method_status_count[model][methode]["try_count"] = []
             self.model_method_status_count[model][methode]["try_count"].append(count)
 
     def get_status_report(self) -> list[dict[str, str | int | list[dict[str, str | int]]]]:
+        """Generates a report summarizing status counts and average tries for each model-method"""
+
         report = []
         for model, methods in self.model_method_status_count.items():
             for method, status_data in methods.items():
@@ -157,15 +179,17 @@ class AiStatistic:
                 )
         return report
 
-    def set_send_update_method(self, send_updated_data: callable):
+    def set_send_update_method(self, send_updated_data: callable) -> None:
+        """Sets the method for sending updates (via socket)"""
+
         self.__send_updated_data = send_updated_data
 
 
 class AiData:
     """Object containing all data and methods to process those for the AI feature"""
 
-    def __init__(self, ai_statistic: AiStatistic):
-        self.__ai_system_data: dict[AiDataEnum, dict[AiDataEnum, bool | int | str]] = {
+    def __init__(self, ai_statistic: AiStatistic) -> None:
+        self.__ai_system_data: dict[AiDataEnum, dict[AiDataEnum, bool | int | str | AiDataEnum]] = {
             AiDataEnum.FLAGS: {
                 AiDataEnum.SYSTEM: ai_config.AUTO_UPDATE_ON_REQUIREMENT_CHANGE,
                 AiDataEnum.AI: ai_config.ENABLE_API_AI_REQUESTS,
@@ -193,12 +217,16 @@ class AiData:
 
         self.__ai_statistic = ai_statistic
         self.__ai_statistic.set_send_update_method(self.__send_updated_data)
-        self.requirement_log: RequirementLog = None
+        self.requirement_log: Optional[RequirementLog] = None
 
     def set_data_folder(self, data_folder: str) -> None:
+        """Setting the data folder for the location of the log file."""
+
         self.requirement_log = RequirementLog(data_folder)
 
     def get_full_info_init_site(self) -> dict:
+        """Returns all data needed by the API to load the site"""
+
         ret = {
             "cluster_status": self.__get_info_cluster_status(),
             "clusters": self.__get_clusters(),
@@ -214,6 +242,9 @@ class AiData:
         return ret
 
     def __send_updated_data(self, updated_data: AiDataEnum, specified_data: Optional[AiDataEnum]) -> None:
+        """Prepares and sends updated data based on the provided enums with socket"""
+        # TODO socket implementation
+
         send_dict = {}
         match updated_data:
             case AiDataEnum.FLAGS:
@@ -237,9 +268,10 @@ class AiData:
                     case AiDataEnum.STATUS:
                         send_dict = {"ai_status": self.__get_info_ai_status()}
         logging.debug(f"Sending: {send_dict}")
-        # TODO with socket
 
     def update_progress(self, progress_outer: AiDataEnum, progress_inner: Optional[AiDataEnum], update: any):
+        """Centralized method to update progress data (flags, Ai and cluster progress info)"""
+
         if progress_inner:
             self.__ai_system_data[progress_outer][progress_inner] = update
         else:
@@ -247,6 +279,8 @@ class AiData:
 
         specified_data = AiDataEnum.STATUS if progress_outer in {AiDataEnum.AI, AiDataEnum.CLUSTER} else None
         self.__send_updated_data(progress_outer, specified_data)
+
+    # region Data retrieval methods (primarily internal use)
 
     def get_sim_class(self) -> SimilarityAlgorithm:
         return self.__similarity_methods[self.__activ_similarity_method]
@@ -272,8 +306,9 @@ class AiData:
     def get_used_variables(self) -> list[dict]:
         return self.__used_variables
 
-    def set_used_variables(self, used_variables: list[dict]):
-        self.__used_variables = used_variables
+    # endregion
+
+    # region API-triggered data updates (external input)
 
     def set_sim_methode(self, name: str) -> None:
         if name in self.__similarity_methods.keys():
@@ -298,6 +333,13 @@ class AiData:
             self.__activ_ai_model = name
             self.__send_updated_data(AiDataEnum.AI, AiDataEnum.MODEL)
 
+    # endregion
+
+    # region Server-side data updates (internal use only)
+
+    def set_used_variables(self, used_variables: list[dict]) -> None:
+        self.__used_variables = used_variables
+
     def set_clusters(self, clusters: set[frozenset[str]]) -> None:
         self.__clusters = clusters
         self.__send_updated_data(AiDataEnum.CLUSTER, AiDataEnum.CLUSTER)
@@ -308,28 +350,41 @@ class AiData:
     def add_formalization_object(self, formalization_object: AIFormalization) -> None:
         self.__formalization_objects.append(formalization_object)
 
+    # endregion
+
+    # region Helper methods for processing information for the API
+
     def __get_info_cluster_status(self) -> dict:
+        """Returns the current status of the clustering process, including status, processed count, and total items"""
+
+        cluster_data = self.__ai_system_data[AiDataEnum.CLUSTER]
         return {
-            "status": self.__ai_system_data[AiDataEnum.CLUSTER][AiDataEnum.STATUS].value,
-            "processed": self.__ai_system_data[AiDataEnum.CLUSTER][AiDataEnum.PROCESSED],
-            "total": self.__ai_system_data[AiDataEnum.CLUSTER][AiDataEnum.TOTAL],
+            "status": cluster_data[AiDataEnum.STATUS].value,
+            "processed": cluster_data[AiDataEnum.PROCESSED],
+            "total": cluster_data[AiDataEnum.TOTAL],
         }
 
-    def __get_clusters(self):
-        if self.__clusters:
-            return [list(cluster) for cluster in self.__clusters]
-        return []
+    def __get_clusters(self) -> list:
+        """Returns the current clusters as a list of lists. If no clusters exist, returns an empty list"""
+
+        return [list(cluster) for cluster in self.__clusters] if self.__clusters else []
 
     def __get_info_ai_status(self) -> dict:
+        """Returns the current AI system status, including running state, queue, response, and query"""
+
+        ai_status = self.__ai_system_data[AiDataEnum.AI]
         return {
-            "running": self.__ai_system_data[AiDataEnum.AI][AiDataEnum.RUNNING],
-            "queued": self.__ai_system_data[AiDataEnum.AI][AiDataEnum.QUEUED],
-            "response": self.__ai_system_data[AiDataEnum.AI][AiDataEnum.RESPONSE],
-            "query": self.__ai_system_data[AiDataEnum.AI][AiDataEnum.QUERY],
+            "running": ai_status[AiDataEnum.RUNNING],
+            "queued": ai_status[AiDataEnum.QUEUED],
+            "response": ai_status[AiDataEnum.RESPONSE],
+            "query": ai_status[AiDataEnum.QUERY],
         }
 
     def __get_ai_formalization_progress(self) -> list[dict[str, any]]:
+        """Returns the progress of AI formalizations with relevant details for each requirement"""
+
         self.__cleanup_old_formalizations()
+
         return [
             {
                 "id": f_obj.requirement_to_formalize.to_dict().get("id"),
@@ -344,12 +399,17 @@ class AiData:
         ]
 
     def __get_info_flags(self) -> dict:
+        """Returns the current system and AI flag"""
+
+        flags = self.__ai_system_data[AiDataEnum.FLAGS]
         return {
-            "system": self.__ai_system_data[AiDataEnum.FLAGS][AiDataEnum.SYSTEM],
-            "ai": self.__ai_system_data[AiDataEnum.FLAGS][AiDataEnum.AI],
+            "system": flags[AiDataEnum.SYSTEM],
+            "ai": flags[AiDataEnum.AI],
         }
 
     def __get_info_sim_methods(self) -> (float, list):
+        """Returns the current similarity threshold and a list of available similarity methods"""
+
         methods_info = []
         if self.__similarity_methods:
             for name, method in self.__similarity_methods.items():
@@ -364,36 +424,44 @@ class AiData:
         return self.__sim_threshold, methods_info
 
     def __get_info_ai_methods(self) -> list:
-        methods_info = []
-        if self.__ai_prompt_parse_methods:
-            for name, method in self.__ai_prompt_parse_methods.items():
-                method_info = {
+        """Returns a list of available AI methods with their name, description, and selection status."""
+
+        return (
+            [
+                {
                     "name": name,
                     "description": method.description,
                     "selected": name == self.__activ_ai_prompt_parse_method,
                 }
-                methods_info.append(method_info)
-        return methods_info
+                for name, method in self.__ai_prompt_parse_methods.items()
+            ]
+            if self.__ai_prompt_parse_methods
+            else []
+        )
 
     def __get_info_ai_models(self) -> list:
-        methods_info = []
-        if self.__ai_prompt_parse_methods:
-            for name, desc in self.__ai_models.items():
-                method_info = {
-                    "name": name,
-                    "description": desc,
-                    "selected": name == self.__activ_ai_model,
-                }
-                methods_info.append(method_info)
-        return methods_info
+        """Returns a list of AI models with their name, description, and selection status."""
 
-    def __cleanup_old_formalizations(self):
+        return (
+            [
+                {"name": name, "description": desc, "selected": name == self.__activ_ai_model}
+                for name, desc in self.__ai_models.items()
+            ]
+            if self.__ai_prompt_parse_methods
+            else []
+        )
+
+    def __cleanup_old_formalizations(self) -> None:
+        """Deletes all formalization objects that have existed longer than a certain time after completion."""
         current_time = time()
         self.__formalization_objects = [
             f_obj
             for f_obj in self.__formalization_objects
-            if f_obj.del_time is None or (current_time - f_obj.del_time < 10)
+            if f_obj.del_time is None
+            or (current_time - f_obj.del_time < ai_config.DELETION_TIME_AFTER_COMPLETION_FORMALIZATION)
         ]
+
+    # endregion
 
 
 def load_similarity_methods() -> dict[str, SimilarityAlgorithm]:
