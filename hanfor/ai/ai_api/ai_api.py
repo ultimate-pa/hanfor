@@ -17,43 +17,52 @@ def index():
 
 
 class GetFullInitialData(MethodView):
-    def get(self) -> Response:
+    @staticmethod
+    def get() -> Response:
         return jsonify(current_app.ai.get_full_info_init_site())
 
 
 # region Terminate
+
+
 class TerminateAll(MethodView):
-    def post(self):
+    @staticmethod
+    def post():
         current_app.ai.terminate_cluster_thread()
         current_app.ai.terminate_ai_formalization_threads()
         return jsonify({"message": "all processes terminated."})
 
 
 class TerminateSim(MethodView):
-    def post(self):
+    @staticmethod
+    def post():
         current_app.ai.terminate_cluster_thread()
         return jsonify({"message": "Clustering process terminated."})
 
 
 class TerminateAi(MethodView):
-    def post(self):
+    @staticmethod
+    def post():
         current_app.ai.terminate_ai_formalization_threads()
         return jsonify({"message": "AI process terminated."})
 
 
 # endregion
 
-
 # region Flags
+
+
 class SetSystemFlag(MethodView):
-    def post(self):
+    @staticmethod
+    def post():
         system_enabled = request.get_json().get("system_enabled", False)
         current_app.ai.set_flag_system(system_enabled)
         return jsonify({"message": f"System status set to {'enabled' if system_enabled else 'disabled'}."})
 
 
 class SetAiFlag(MethodView):
-    def post(self):
+    @staticmethod
+    def post():
         ai_enabled = request.get_json().get("ai_enabled", False)
         current_app.ai.set_flag_ai(ai_enabled)
         return jsonify({"message": f"System status set to {'enabled' if ai_enabled else 'disabled'}."})
@@ -61,10 +70,12 @@ class SetAiFlag(MethodView):
 
 # endregion
 
-
 # region Clustering
+
+
 class SetSimMethod(MethodView):
-    def post(self):
+    @staticmethod
+    def post():
         data = request.get_json()
         name = data.get("name")
         if name:
@@ -74,7 +85,8 @@ class SetSimMethod(MethodView):
 
 
 class SetSimThreshold(MethodView):
-    def post(self):
+    @staticmethod
+    def post():
         data = request.get_json()
         threshold = float(data.get("threshold"))
         current_app.ai.set_sim_threshold(threshold)
@@ -82,22 +94,26 @@ class SetSimThreshold(MethodView):
 
 
 class StartClustering(MethodView):
-    def post(self):
+    @staticmethod
+    def post():
         current_app.ai.start_clustering()
         return jsonify({"message": "Clustering process started."})
 
 
 class GetMatrix(MethodView):
-    def get(self):
+    @staticmethod
+    def get():
         return jsonify(current_app.ai.get_matrix())
 
 
 # endregion
 
-
 # region Ai
+
+
 class QueryAi(MethodView):
-    def post(self):
+    @staticmethod
+    def post():
         data = request.get_json()
         query = data.get("query")
         if not query:
@@ -107,13 +123,15 @@ class QueryAi(MethodView):
 
 
 class ProcessAllReqAi(MethodView):
-    def post(self):
+    @staticmethod
+    def post():
         current_app.ai.check_all_clusters_for_need_of_ai_formalisation()
         return jsonify({"message": "Checking for Process."})
 
 
 class SetAiMethod(MethodView):
-    def post(self):
+    @staticmethod
+    def post():
         data = request.get_json()
         name = data.get("name")
         if name:
@@ -123,7 +141,8 @@ class SetAiMethod(MethodView):
 
 
 class SetAiModel(MethodView):
-    def post(self):
+    @staticmethod
+    def post():
         data = request.get_json()
         name = data.get("name")
         if name:
@@ -134,14 +153,16 @@ class SetAiModel(MethodView):
 
 # endregion
 
-
 # region chosen Requirement Ai formalization
+
+
 class SetIds(MethodView):
-    def post(self):
+    @staticmethod
+    def post():
         data = request.get_json()
         ids = data.get("ids")
         if ids:
-            e = current_app.ai.update_ids(ids)
+            e = current_app.ai.update_and_process_sertan_requirements(ids)
             if not e:
                 return jsonify({"message": f"set ids: {ids}."}), 200
             return jsonify({"error": str(e)}), 400
@@ -153,14 +174,15 @@ class SetIds(MethodView):
 
 
 class GetLogFromId(MethodView):
-    def get(self):
-        id = request.args.get("id")
-        if id:
-            log_data = current_app.ai.get_log_from_id(id)
+    @staticmethod
+    def get():
+        req_id = request.args.get("id")
+        if req_id:
+            log_data = current_app.ai.get_log_from_id(req_id)
             if log_data:
-                return jsonify({"message": f"ID found: {id}", "data": log_data}), 200
+                return jsonify({"message": f"ID found: {req_id}", "data": log_data}), 200
             else:
-                return jsonify({"error": f"No data for ID {id} found"}), 404
+                return jsonify({"error": f"No data for ID {req_id} found"}), 404
         return jsonify({"error": "No ID"}), 400
 
 
