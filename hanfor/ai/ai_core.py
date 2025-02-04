@@ -130,6 +130,8 @@ class AiCore:
             self.stop_event_cluster.clear()
             self.__ai_data.update_progress(AiDataEnum.CLUSTER, AiDataEnum.PROCESSED, 0)
             self.__ai_data.update_progress(AiDataEnum.CLUSTER, AiDataEnum.STATUS, AiDataEnum.NOT_STARTED)
+            self.__ai_data.set_clusters(None)
+            self.__ai_data.set_cluster_matrix(None)
 
     def terminate_ai_formalization_threads(self) -> None:
         """Terminates all active Ai formalization threads"""

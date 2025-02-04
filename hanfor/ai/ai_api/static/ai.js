@@ -8,240 +8,108 @@ require('awesomplete/awesomplete.css')
 require('datatables.net-colreorder-bs5')
 
 
+$(document).ready(function () {
 
-$(document).ready(function (){
-    // TODO with socket
-    let data;
-    function get_update(){
+    // region Data handling from API
+
+    let ai_data;
+
+    const updateFunctions = {
+        ai_formalization: updateAIFormalization,
+        ai_methods: updateAIMethods,
+        ai_models: updateAIModels,
+        ai_statistic: updateAIStatistic,
+        ai_status: updateAIStatus,
+        cluster_status: updateClusterStatus,
+        clusters: updateClusters,
+        flags: updateFlags,
+        req_ids: updateRequestIDs,
+        sim_methods: updateSimilarityMethods
+    };
+
+    // Helper function for the socket connection
+    function updateAIData(newData) {
+        for (const key in newData) {
+            if (newData.hasOwnProperty(key)) {
+                ai_data[key] = newData[key];
+
+                // updating the corresponding section on the Web
+                if (updateFunctions[key]) {
+                    updateFunctions[key](newData[key]);
+                }
+            }
+        }
+    }
+
+    // region Initial side load
+
+    initial_side_data()
+    waitForDataForInitialSideLoad()
+
+    function initial_side_data(){
         $.ajax({
-            type: 'GET',
+            type: 'Get',
             url: '/api/ai/get/data/initial',
             contentType: 'application/json'
-        }).done(function (response) {
-            data = response
-            update()
-        });
+        }).done(function (response){
+            ai_data = response;
+            console.debug(ai_data);
+        })
     }
 
-    // Main update function for all changing data
-    function update() {
-        // Update Cluster Status
-        if (data.cluster_status) {
-            $('#cluster-status').text(data.cluster_status.status || 'N/A');
-            const processed = data.cluster_status.processed || 0;
-            const total = data.cluster_status.total || 0;
-            $('#cluster-availability').text(`${processed} / ${total}`);
-        } else {
-            $('#cluster-status').text('N/A');
-            $('#cluster-availability').text(0);
-        }
-
-        // Update AI Status
-        if (data.ai_status) {
-            $('#ai-running-count').text(data.ai_status.running || 0);
-            $('#ai-queue-count').text(data.ai_status.queued || 0);
-        } else {
-            $('#ai-running-count').text(0);
-            $('#ai-queue-count').text(0);
-        }
-
-        // Update the Progressbar on Similarity Interface
-        const processed = data.cluster_status.processed;
-        const total = data.cluster_status.total;
-        const status = data.cluster_status.status;
-        // Update the progress bar and status text
-        $('#progress-status').text(`Status: ${status}`);
-        $('#progress-bar').css('width', `${(processed / total) * 100}%`);
-        $('#progress-bar').attr('aria-valuenow', processed);
-        $('#progress-bar').text(`${processed}/${total}`);
-
-        if (data.ai_status.response !== null) {
-            $('#ai-response').text(data.ai_status.response);
-        }
-        if (data.ai_status.query !== null) {
-            $('#ai-query').text(data.ai_status.query);
-        }
-
-        // Updating the cluster and ai table (SOCKET)
-        populateTable(data.clusters)
-        fetchAndDisplayProgress(data.ai_formalization)
-        renderAiStatistics()
-    }
-
-    function updateFlags(){
-        // Update Flags (switches)
-        if (data.flags) {
-            $('#toggle-system-switch').prop('checked', data.flags.system).trigger('change');
-            $('#toggle-ai-switch').prop('checked', data.flags.ai).trigger('change');
-        }
-    }
-
-    // Funktion zum Aktualisieren des Clustering-Prozesses
-    function updateClusteringProcessSelection(selectedMethodName) {
-        // Update Clustering Process Selection with Sim Methods
-        if (data.sim_methods && Array.isArray(data.sim_methods[1])) {
-            const selectElement = $('#clustering-process-select');
-            selectElement.empty(); // Clear existing options
-
-            // Loop through each similarity method and add it to the dropdown
-            data.sim_methods[1].forEach(function (method) {
-                const option = $('<option></option>')
-                    .attr('value', method.name)
-                    .text(`${method.name}: ${method.description}`);
-                // Mark the method as selected if it matches the passed name
-                if (method.name === selectedMethodName) {
-                    option.prop('selected', true); // Mark the selected method
-                    updateSliderRange(method.interval[0],method.interval[1], method.default)
-                } else {
-                    option.prop('selected', false); // Unselect other methods
-                }
-                selectElement.append(option); // Add the option to the dropdown
-            });
-        }
-    }
-
-    function updateAiMethodSelection(selectedMethodName){
-        if (data.ai_methods){
-            const selectElement = $('#prompt-parsing-selection');
-            selectElement.empty(); // Clear existing options
-
-            data.ai_methods.forEach(function (method) {
-                const option = $('<option></option>')
-                    .attr('value', method.name)
-                    .text(`${method.name}: ${method.description}`);
-                // Mark the method as selected if it matches the passed name
-                if (method.name === selectedMethodName) {
-                    option.prop('selected', true); // Mark the selected method
-                } else {
-                    option.prop('selected', false); // Unselect other methods
-                }
-                selectElement.append(option); // Add the option to the dropdown
-            });
-        }
-    }
-
-    function updateAiModelSelection(selectedModelName){
-        if (data.ai_models){
-            const selectElement = $('#ai-model-selection');
-            selectElement.empty(); // Clear existing options
-
-            data.ai_models.forEach(function (method) {
-                const option = $('<option></option>')
-                    .attr('value', method.name)
-                    .text(`${method.name}: ${method.description}`);
-                // Mark the method as selected if it matches the passed name
-                if (method.name === selectedModelName) {
-                    option.prop('selected', true); // Mark the selected method
-                } else {
-                    option.prop('selected', false); // Unselect other methods
-                }
-                selectElement.append(option); // Add the option to the dropdown
-            });
-        }
-    }
-
-    function selectedSimMethod() {
-        const selectedMethod = data.sim_methods[1].find(function(method) {
-            return method.selected;
-        });
-        return selectedMethod ? selectedMethod.name : null;
-        }
-
-    function selectedAiMethod() {
-        const selectedMethod = data.ai_methods.find(function(method) {
-            return method.selected;
-        });
-        return selectedMethod ? selectedMethod.name : null;
-        }
-
-    function selectedAiModel() {
-        const selectedMethod = data.ai_models.find(function(method) {
-            return method.selected;
-        });
-        return selectedMethod ? selectedMethod.name : null;
-        }
-
-    function populateTable(data) {
-        const TABLE_BODY = $('#cluster-table tbody');
-        const TABLE = $('#cluster-table');
-
-        // Destroy existing DataTable if it's initialized
-        if ($.fn.dataTable.isDataTable(TABLE)) {
-            TABLE.DataTable().clear().destroy();
-        }
-
-        // Clear the table body
-        TABLE_BODY.empty();
-
-        // Ensure data is in correct format (array of arrays)
-        if (!Array.isArray(data) || data.length === 0) {
-            console.error('Invalid or empty data.');
-            return;
-        }
-
-        // Sort clusters by the smallest ID in each cluster
-        data.sort((a, b) => getSmallestId(a).localeCompare(getSmallestId(b)));
-
-        // Iterate over each cluster and populate the table
-        data.forEach(ids => {
-            if (!Array.isArray(ids)) {
-                console.error('Invalid cluster structure:', ids);
-                return;
+    function waitForDataForInitialSideLoad() {
+        const checkInterval = setInterval(function() {
+            if (ai_data) {
+                clearInterval(checkInterval);
+                updateAllUI();
             }
-
-            // Sort IDs lexicographically within each cluster
-            ids.sort((a, b) => a.localeCompare(b));
-
-            const clusterName = `Cluster ${ids[0]}`;
-            const idsHtml = generateIdsHtml(ids);
-            const searchQuery = ids.map(id => `%5C%22${id}%5C%22`).join('%3AOR%3A');
-            const showAllLink = ids.length > 1 ? generateShowAllLink(searchQuery) : '';
-            const idCountCell = `<td>${ids.length}</td>`;
-
-            const row = `<tr>
-                            <td>${clusterName}</td>
-                            <td>${idsHtml} ${showAllLink}</td>
-                            ${idCountCell}
-                        </tr>`;
-            TABLE_BODY.append(row);
-        });
-
-        // Initialize DataTable after populating the table
-        TABLE.DataTable({
-            paging: true,
-            stateSave: true,
-            pageLength: 10,
-            responsive: true,
-            lengthMenu: [[10, 50, 100, 500, -1], [10, 50, 100, 500, 'All']],
-            dom: 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
-            columnDefs: [{
-                targets: 2,
-                orderDataType: 'dom-text',
-            }],
-            order: [[2, 'desc']],
-        });
+        }, 30);
     }
 
-    function getSmallestId(cluster) {
-        if (!Array.isArray(cluster) || cluster.length === 0) return '';
-        return cluster.map(id => id.toString()).sort()[0];
+    function updateAllUI() {
+        for (const key in updateFunctions) {
+            if (updateFunctions.hasOwnProperty(key)) {
+                updateFunctions[key]();
+            }
+        }
     }
 
-    function generateIdsHtml(ids) {
-        return ids.map(id =>
-            `<span class="badge bg-info">
-                <a href="${base_url}?command=search&col=2&q=%5C%22${id}%5C%22" target="_blank" class="link-light">${id}</a>
-            </span>`
-        ).join(' ');
+    // endregion
+
+    // endregion
+
+    // region TEMP UNTIL SOCKET
+
+    function temp_function_until_socket(){
+        ai_data = null
+        initial_side_data()
+        temp_waitForDataForInitialSideLoad()
     }
 
-    function generateShowAllLink(query) {
-        return `<span class="badge bg-info">
-                    <a href="${base_url}?command=search&col=2&q=${query}" target="_blank" class="link-light">Show all</a>
-                </span>`;
+    function temp_waitForDataForInitialSideLoad() {
+        const checkInterval = setInterval(function() {
+            if (ai_data) {
+                clearInterval(checkInterval);
+                temp_updateSome()
+            }
+        }, 30);
     }
 
-    function fetchAndDisplayProgress(data) {
+    function temp_updateSome() {
+        for (const key in updateFunctions) {
+            if (updateFunctions.hasOwnProperty(key)) {
+                updateFunctions[key]();
+            }
+        }
+    }
+
+    setInterval(temp_function_until_socket, 250);
+
+    // endregion
+
+    // region Updating Functions for the individual sections
+
+    function updateAIFormalization() {
         // Destroy any existing DataTable before initializing a new one
         if ($.fn.dataTable.isDataTable('#ai-progress-table')) {
             $('#ai-progress-table').DataTable().clear().destroy();
@@ -250,7 +118,7 @@ $(document).ready(function (){
         tableBody.empty(); // Clear the table before adding new data
 
         // Iterate through the data and build table rows
-        data.forEach(item => {
+        ai_data.ai_formalization.forEach(item => {
             // Safety check for each column and fallback logic
             const id = item.id || 'N/A';
             const promptDesc = item.prompt ? item.prompt : 'N/A';
@@ -287,20 +155,48 @@ $(document).ready(function (){
         });
     }
 
-    function renderAiStatistics() {
-        const container = $('#ai-statistics-container');
-        container.empty(); // Clear the container before adding new tables
+    function updateAIMethods() {
+        const selectElement = $('#prompt-parsing-selection');
+        selectElement.empty();
 
-        data.ai_statistic.forEach(stat => {
-            const model = stat.Model || 'N/A';
-            const promptGen = stat.Prompt_gen || 'N/A';
-            const avgTryCount = stat.Avg_try_count || 0;
+        ai_data.ai_methods.forEach(method => {
+            const option = $('<option></option>')
+                .attr('value', method.name)
+                .text(`${method.name}: ${method.description}`)
+                .prop('selected', method.selected);
+            selectElement.append(option);
+        });
+    }
+
+    function updateAIModels() {
+        const selectElement = $('#ai-model-selection');
+        selectElement.empty();
+
+        ai_data.ai_models.forEach(model => {
+            const option = $('<option></option>')
+                .attr('value', model.name)
+                .text(`${model.name}: ${model.description}`)
+                .prop('selected', model.selected);
+            selectElement.append(option);
+        });
+    }
+
+    function updateAIStatistic() {
+        let data = ai_data.ai_statistic
+        const statistics_container = $('#ai-statistics-container');
+
+        statistics_container.empty();
+
+        data.ai_statistic?.forEach(stat => {
+            const model = stat.model || 'N/A';
+            const promptGen = stat.prompt_gen || 'N/A';
+            const avgTryCount = stat.avg_try_count || 0;
 
             // Create a unique ID for each table
             const tableId = `ai-statistics-table-${model.replace(/\W/g, '-')}-${promptGen.replace(/\W/g, '-')}`;
             const sectionId = `section-${tableId}`;
 
-            // Add a section for each Model/Prompt_gen with a heading and average try count
+            // Add a section for each model/prompt_gen with a heading and average try count
             const section = `
                 <div class="ai-statistics-section" style="margin-bottom: 15px;">
                     <h6 
@@ -320,11 +216,11 @@ $(document).ready(function (){
                                 </tr>
                             </thead>
                             <tbody>
-                                ${stat.Status_table.map(status => `
+                                ${stat.status_table.map(status => `
                                     <tr>
-                                        <td>${status.Status}</td>
-                                        <td>${status.Total}</td>
-                                        <td>${status.Percentage}%</td>
+                                        <td>${status.status}</td>
+                                        <td>${status.total}</td>
+                                        <td>${status.percentage}%</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -332,7 +228,7 @@ $(document).ready(function (){
                     </div>
                 </div>
             `;
-            container.append(section);
+            statistics_container.append(section);
 
             // Check if the section should be expanded or collapsed
             const isOpen = localStorage.getItem(sectionId) === 'open'; // Retrieve state from localStorage
@@ -360,337 +256,433 @@ $(document).ready(function (){
                 order: [[1, 'desc']], // Sort by Total descending
             });
         });
+
+        // Function to toggle the section visibility and save the state
+        function toggleSection(sectionId, tableId) {
+            const content = document.getElementById(`${tableId}-content`);
+            const icon = document.getElementById(`${tableId}-icon`);
+
+            // Check the current display state and toggle accordingly
+            if (content.style.display === 'none') {
+                // Open the section
+                content.style.display = 'block';
+                icon.textContent = '[-]';
+                localStorage.setItem(sectionId, 'open'); // Save state as open
+            } else {
+                // Close the section
+                content.style.display = 'none';
+                icon.textContent = '[+]';
+                localStorage.setItem(sectionId, 'closed'); // Save state as closed
+            }
+        }
+
     }
 
-    // Function to toggle the section visibility and save the state
-    function toggleSection(sectionId, tableId) {
-        const content = document.getElementById(`${tableId}-content`);
-        const icon = document.getElementById(`${tableId}-icon`);
+    function updateAIStatus() {
+        $('#ai-query').text(ai_data.ai_status.query || 'No query');
+        $('#ai-queue-count').text(ai_data.ai_status.queued || 0);
+        $('#ai-response').text(ai_data.ai_status.response || 'No response');
+        $('#ai-running-count').text(ai_data.ai_status.running || 0);
+    }
 
-        // Check the current display state and toggle accordingly
-        if (content.style.display === 'none') {
-            // Open the section
-            content.style.display = 'block';
-            icon.textContent = '[-]';
-            localStorage.setItem(sectionId, 'open'); // Save state as open
-        } else {
-            // Close the section
-            content.style.display = 'none';
-            icon.textContent = '[+]';
-            localStorage.setItem(sectionId, 'closed'); // Save state as closed
+    function updateClusterStatus() {
+        const processed = ai_data.cluster_status.processed || 0;
+        const total = ai_data.cluster_status.total || 0;
+        const status = ai_data.cluster_status.status || 'N/A';
+        const percentage = (processed / (total|| 1)) * 100;
+        $('#cluster-status').text(status);
+        $('#cluster-availability').text(`${processed} / ${total || 0}`);
+        $('#progress-bar').css('width', `${percentage}%`).attr('aria-valuenow', processed).text(`${processed}/${total}`);
+    }
+
+    function updateClusters() {
+        const table_body = $('#cluster-table tbody');
+        const table = $('#cluster-table');
+        let data = ai_data.clusters
+
+        // Destroy existing DataTable if it's initialized
+        if ($.fn.dataTable.isDataTable(table)) {
+            table.DataTable().clear().destroy();
+        }
+
+        // Clear the table body
+        table_body.empty();
+
+        // Ensure data is in correct format (array of arrays)
+        if (!Array.isArray(data) || data.length === 0) {
+            console.error('Invalid or empty data.');
+            return;
+        }
+
+        // Sort clusters by the smallest ID in each cluster
+        data.sort((a, b) => getSmallestId(a).localeCompare(getSmallestId(b)));
+
+        // Iterate over each cluster and populate the table
+        data.forEach(ids => {
+            if (!Array.isArray(ids)) {
+                console.error('Invalid cluster structure:', ids);
+                return;
+            }
+
+            // Sort IDs lexicographically within each cluster
+            ids.sort((a, b) => a.localeCompare(b));
+
+            const clusterName = `Cluster ${ids[0]}`;
+            const idsHtml = generateIdsHtml(ids);
+            const searchQuery = ids.map(id => `%5C%22${id}%5C%22`).join('%3AOR%3A');
+            const showAllLink = ids.length > 1 ? generateShowAllLink(searchQuery) : '';
+            const idCountCell = `<td>${ids.length}</td>`;
+
+            const row = `<tr>
+                            <td>${clusterName}</td>
+                            <td>${idsHtml} ${showAllLink}</td>
+                            ${idCountCell}
+                        </tr>`;
+            table_body.append(row);
+        });
+
+        // Initialize DataTable after populating the table
+        table.DataTable({
+            paging: true,
+            stateSave: true,
+            pageLength: 10,
+            responsive: true,
+            lengthMenu: [[10, 50, 100, 500, -1], [10, 50, 100, 500, 'All']],
+            dom: 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
+            columnDefs: [{
+                targets: 2,
+                orderDataType: 'dom-text',
+            }],
+            order: [[2, 'desc']],
+        });
+
+        function getSmallestId(cluster) {
+            if (!Array.isArray(cluster) || cluster.length === 0) return '';
+            return cluster.map(id => id.toString()).sort()[0];
+        }
+
+        function generateIdsHtml(ids) {
+            return ids.map(id =>
+                `<span class="badge bg-info">
+                    <a href="${base_url}?command=search&col=2&q=%5C%22${id}%5C%22" target="_blank" class="link-light">${id}</a>
+                </span>`
+            ).join(' ');
+        }
+
+        function generateShowAllLink(query) {
+            return `<span class="badge bg-info">
+                        <a href="${base_url}?command=search&col=2&q=${query}" target="_blank" class="link-light">Show all</a>
+                    </span>`;
         }
     }
 
-
-
-
-
-
-
-    function waitForDataForInitalLoad() {
-        const checkInterval = setInterval(function() {
-            if (data) {
-                clearInterval(checkInterval);
-                updateClusteringProcessSelection(selectedSimMethod());
-                updateAiMethodSelection(selectedAiMethod());
-                updateAiModelSelection(selectedAiModel());
-                updateFlags();
-                updateDropdown();
-            }
-        }, 30);
+    function updateFlags() {
+        $('#toggle-system-switch').prop('checked', ai_data.flags.system).trigger('change');
+        $('#toggle-ai-switch').prop('checked', ai_data.flags.ai).trigger('change');
     }
 
-    $(document).ready(function() {
-        get_update()
-        waitForDataForInitalLoad();
-    });
-    setInterval(get_update, 1000);
+    function updateRequestIDs() {
+        const dropdown = $('#idDropdown');
+        dropdown.empty();
 
-    $('#terminate-all-button').click(function () {
+        ai_data.req_ids.forEach(id => {
+            const option = $('<option></option>').attr('value', id).text(id);
+            dropdown.append(option);
+        });
+    }
+
+    function updateSimilarityMethods() {
+        const selectElement = $('#clustering-process-select');
+        selectElement.empty();
+
+        const [threshold, methods] = ai_data.sim_methods;
+        methods.forEach(method => {
+            const option = $('<option></option>')
+                .attr('value', method.name)
+                .text(`${method.name}: ${method.description}`)
+                .prop('selected', method.selected);
+            selectElement.append(option);
+        });
+
+        // Slider-Update (Threshold anpassen)
+        const selectedMethod = methods.find(m => m.selected);
+        if (selectedMethod) {
+            updateSliderRange(selectedMethod.interval[0], selectedMethod.interval[1], selectedMethod.default);
+        }
+
+        function updateSliderRange(minVal, maxVal, defaultVal) {
+            const slider = $('#similarity-slider');
+            slider.attr({ min: minVal, max: maxVal, step: (maxVal - minVal) / 200 });
+            slider.val(defaultVal);
+            $('#slider-value').text(defaultVal);
+        }
+
+    }
+
+    // endregion
+
+    // region UI Interaction Handlers
+
+    // region Termination Handlers
+
+    function terminateProcess(endpoint, successMessage) {
         $.ajax({
             type: 'POST',
-            url: '/api/ai/terminate/all',
+            url: endpoint,
             contentType: 'application/json'
         }).done(function (data) {
-            alert(data.message);  // Show a popup alert with the response message
+            alert(successMessage || data.message);  // Show success message
         }).fail(function (jqXHR) {
-            alert(`Error: ${jqXHR.responseText}`);  // Show error alert
+            const errorMsg = jqXHR.responseText || 'An unknown error occurred.';
+            alert(`Error: ${errorMsg}`);  // Show error message
         });
-    });
+    }
 
-    $('#toggle-system-switch').on('change', function () {
-        const isChecked = $(this).is(':checked');
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/set/flag/system',
-            contentType: 'application/json',
-            data: JSON.stringify({ system_enabled: isChecked })
-        });
-    });
-
-    $('#toggle-ai-switch').on('change', function () {
-        const isChecked = $(this).is(':checked');
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/set/flag/ai',
-            contentType: 'application/json',
-            data: JSON.stringify({ ai_enabled: isChecked })
-        });
-    });
-
-    // EVENT Dropdown for choosing clustering methode
-    $('#clustering-process-select').on('change', function() {
-        const selectedMethod = $(this).val();
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/set/sim/method',
-            contentType: 'application/json',
-            data: JSON.stringify({ name: selectedMethod }),
-            success: function(response) {
-                console.log(response.message);
-                get_update();
-                updateClusteringProcessSelection(selectedMethod)
-            },
-            error: function(error) {
-                console.error("Error setting method:", error);
-            }
-        });
-    });
-
-
-    $('#prompt-parsing-selection').on('change', function() {
-        const selectedMethod = $(this).val();
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/set/ai/method',
-            contentType: 'application/json',
-            data: JSON.stringify({ name: selectedMethod }),
-            success: function(response) {
-                console.log(response.message);
-                get_update();
-                updateClusteringProcessSelection(selectedMethod)
-            },
-            error: function(error) {
-                console.error("Error setting method:", error);
-            }
-        });
-    });
-
-    $('#ai-model-selection').on('change', function() {
-        const selectedMethod = $(this).val();
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/set/ai/model',
-            contentType: 'application/json',
-            data: JSON.stringify({ name: selectedMethod }),
-            success: function(response) {
-                console.log(response.message);
-                get_update();
-                updateAiModelSelection(selectedMethod)
-            },
-            error: function(error) {
-                console.error("Error setting method:", error);
-            }
-        });
-    });
-
-    $('#start-clustering').click(function () {
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/set/sim/start',
-            contentType: 'application/json'
-        })
+    $('#terminate-all-button').click(function () {
+        terminateProcess('/api/ai/terminate/all', 'All processes have been successfully terminated.');
     });
 
     $('#terminate-clustering-button').click(function () {
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/terminate/sim',
-            contentType: 'application/json'
-        }).done(function (data) {
-            alert(data.message);  // Show a popup alert with the response message
-        }).fail(function (jqXHR) {
-            alert(`Error: ${jqXHR.responseText}`);  // Show error alert
-        });
+        terminateProcess('/api/ai/terminate/sim', 'Clustering process has been successfully terminated.');
     });
 
     $('#terminate-ai-button').click(function () {
+        terminateProcess('/api/ai/terminate/ai', 'AI process has been successfully terminated.');
+    });
+
+    // endregion
+
+    // region Toggle Switch Handlers
+
+    function handleToggleSwitch(endpoint, key, newValue) {
+        // Check if the new value is different from the current value in ai_data
+        if (ai_data.flags[key] !== newValue) {
+            $.ajax({
+                type: 'POST',
+                url: endpoint,
+                contentType: 'application/json',
+                data: JSON.stringify({ [`${key}_enabled`]: newValue })
+            }).done(function () {
+                // Update the ai_data to reflect the new state
+                ai_data.flags[key] = newValue;
+                console.log(`Successfully updated ${key} to ${newValue}`);
+            }).fail(function (jqXHR) {
+                const errorMsg = jqXHR.responseText || 'An error occurred while updating the setting.';
+                alert(`Error: ${errorMsg}`);
+            });
+        } else {
+            console.log(`No change detected for ${key}. No request sent.`);
+        }
+    }
+
+    // Event handler for the System toggle switch
+    $('#toggle-system-switch').on('change', function () {
+        const isChecked = $(this).is(':checked');  // Returns a boolean
+        handleToggleSwitch('/api/ai/set/flag/system', 'system', isChecked);
+    });
+
+    // Event handler for the AI toggle switch
+    $('#toggle-ai-switch').on('change', function () {
+        const isChecked = $(this).is(':checked');
+        handleToggleSwitch('/api/ai/set/flag/ai', 'ai', isChecked);
+    });
+
+    // endregion
+
+    // region Choosing Methods / Models
+
+    function handleDropdownChange(endpoint, selectedValue) {
         $.ajax({
             type: 'POST',
-            url: '/api/ai/terminate/ai',
-            contentType: 'application/json'
-        }).done(function (data) {
-            alert(data.message);  // Show a popup alert with the response message
-        }).fail(function (jqXHR) {
-            alert(`Error: ${jqXHR.responseText}`);  // Show error alert
+            url: endpoint,
+            contentType: 'application/json',
+            data: JSON.stringify({ name: selectedValue }),
+        }).done(function (response) {
+            console.log(response.message);
+        }).fail(function (error) {
+            console.error("Error setting method/model:", error);
+            alert('Failed to update selection. Please try again.');
+        })
+    }
+
+    // Mapping dropdown IDs to their respective API endpoints
+    const dropdownMappings = {
+        '#clustering-process-select': '/api/ai/set/sim/method',
+        '#prompt-parsing-selection': '/api/ai/set/ai/method',
+        '#ai-model-selection': '/api/ai/set/ai/model'
+    };
+
+    // Attach change event handlers dynamically based on the mappings
+    Object.keys(dropdownMappings).forEach(function (dropdownSelector) {
+        $(dropdownSelector).on('change', function () {
+            const selectedValue = $(this).val();
+            const endpoint = dropdownMappings[dropdownSelector];
+            handleDropdownChange(endpoint, selectedValue);
         });
     });
 
-    $('#process-ai').click(function () {
+    // endregion
+
+    // region Buttons (+ Slider) - POST Requests Only
+
+    function handlePostRequest(endpoint, data = null, successCallback = null, errorCallback = null) {
         $.ajax({
             type: 'POST',
-            url: '/api/ai/ai/process',
-            contentType: 'application/json'
+            url: endpoint,
+            contentType: 'application/json',
+            data: data ? JSON.stringify(data) : null
         })
+        .done(function (response) {
+            console.log(response.message);
+            if (typeof successCallback === 'function') {
+                successCallback(response);
+            }
+        })
+        .fail(function (jqXHR) {
+            const errorMessage = jqXHR.responseJSON?.error || jqXHR.responseText || 'An unknown error occurred.';
+            console.error("Error:", errorMessage);
+            if (typeof errorCallback === 'function') {
+                errorCallback(errorMessage);
+            }
+        });
+    }
+
+    // Start Clustering Button
+    $('#start-clustering').click(function () {
+        handlePostRequest('/api/ai/set/sim/start');
     });
 
-    $('#submit-prompt-button').click(function () {
-        var userPrompt = $('#user-prompt').val();
+    // Process AI Button
+    $('#process-ai').click(function () {
+        handlePostRequest('/api/ai/ai/process');
+    });
 
+    // Submit Prompt Button
+    $('#submit-prompt-button').click(function () {
+        const userPrompt = $('#user-prompt').val();
         if (!userPrompt) {
             alert('Please enter a prompt!');
             return;
         }
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/ai/query',
-            contentType: 'application/json',
-            data: JSON.stringify({ query: userPrompt }),
-            success: function(response) {
-                $('#ai-response').text('Processing your query...');
-            },
-            error: function(xhr, status, error) {
-                $('#ai-response').text('Error: ' + xhr.responseJSON.error);
-            }
-        });
+
+        handlePostRequest('/api/ai/ai/query', { query: userPrompt },
+            () => $('#ai-response').text('Processing your query...'),
+            (error) => $('#ai-response').text(`Error: ${error}`)
+        );
     });
 
+    // Submit IDs Button
     $('#submit-ids-button').click(function () {
-        var idsInput = $('#id-input').val().trim();
-
+        const idsInput = $('#id-input').val().trim();
         if (!idsInput) {
             alert('Please enter at least one ID!');
             return;
         }
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/set/ids',
-            contentType: 'application/json',
-            data: JSON.stringify({ ids: idsInput }),
-            error: function(jqXHR) {
-                var errorMessage = "An unknown error occurred.";
-                if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
-                    errorMessage = jqXHR.responseJSON.error;
-                } else if (jqXHR.responseText) {
-                    errorMessage = jqXHR.responseText;
-                }
-                alert(errorMessage);
-            }
-        });
+
+        handlePostRequest('/api/ai/set/ids', { ids: idsInput },
+            null,
+            (error) => alert(error)
+        );
     });
 
-    // Visualization of the similarity matrix
-    $('#get-matrix-button').click(function () {
+    // Similarity Slider Change
+    $('#similarity-slider').on('change', function () {
+        const thresholdValue = $(this).val();
+        $('#slider-value').text(thresholdValue);
+
+        handlePostRequest('/api/ai/set/sim/threshold', { threshold: thresholdValue },
+            (response) => console.log(response.message),
+            (error) => console.error("Error setting threshold:", error)
+        );
+    });
+
+    // endregion
+
+    // region Similarity Matrix and Log Dropdown IDs
+
+    function handleGetRequest(endpoint, successCallback, errorCallback) {
         $.ajax({
             type: 'GET',
-            url: '/api/ai/get/sim/matrix',
+            url: endpoint,
             contentType: 'application/json'
-        }).done(function (matrix_data) {
-            const table = document.getElementById("similarity-matrix");
-            const thead = table.querySelector("thead");
-            const tbody = table.querySelector("tbody");
-
-            thead.innerHTML = '';
-            tbody.innerHTML = '';
-
-            const matrix = matrix_data.matrix;
-            const indexing = matrix_data.indexing;
-
-
-            function calculateHeatmapColor(value) {
-                const baseValue = data.sim_methods[0];
-                const distance = Math.abs(value - baseValue);
-                const alpha = 0.3 + (distance * 0.4); // Skaliere den Abstand auf einen Alpha-Wert zwischen 0.3 und 0.7
-                if (value >= baseValue) {
-                    // Blau für Werte größer als der Basiswert
-                    return `rgba(0, 0, 180, ${Math.min(alpha, 0.7)})`;
-                } else {
-                    // Grün für Werte kleiner als der Basiswert
-                    return `rgba(0, 180, 0, ${Math.min(alpha, 0.7)})`;
-                }
-            }
-
-
-            const headerRow = document.createElement("tr");
-            headerRow.appendChild(document.createElement("th")); // Leeres Eckfeld
-            Object.keys(indexing).forEach(key => {
-                const th = document.createElement("th");
-                th.textContent = key;
-                headerRow.appendChild(th);
-            });
-            thead.appendChild(headerRow);
-
-            Object.keys(indexing).forEach((rowKey, rowIndex) => {
-                const row = document.createElement("tr");
-
-                // Zeilenbeschriftung
-                const th = document.createElement("th");
-                th.textContent = rowKey;
-                row.appendChild(th);
-
-                // Zellen erstellen
-                matrix[rowIndex].forEach(value => {
-                    const td = document.createElement("td");
-                    td.textContent = value.toFixed(2);
-                    td.style.backgroundColor = calculateHeatmapColor(value);
-                    row.appendChild(td);
-                });
-
-                tbody.appendChild(row);
-            });
-        }).fail(function () {
-            const table = document.getElementById("similarity-matrix");
-            const thead = table.querySelector("thead");
-            const tbody = table.querySelector("tbody");
-            thead.innerHTML = '';
-            tbody.innerHTML = '';
-        });
-    });
-
-    $('#similarity-slider').on('change', function (){
-        $('#slider-value').text($(this).val());
-        $.ajax({
-            type: 'POST',
-            url: '/api/ai/set/sim/threshold',
-            contentType: 'application/json',
-            data: JSON.stringify({ threshold: $(this).val() }),
-            success: function(response) {
-                console.log(response.message);
-            },
-            error: function(error) {
-                console.error("Error setting threshold:", error);
-            }
-        });
-    })
-
-    function updateSliderRange(minVal, maxVal, default_threshold) {
-        const slider = $('#similarity-slider');
-
-        // Überprüfe, ob das Intervall invertiert ist (d.h., min > max)
-        const normalizedMin = Math.min(minVal, maxVal);
-        const normalizedMax = Math.max(minVal, maxVal);
-
-        const numSteps = 200;
-        const stepValue = (maxVal - minVal) / numSteps;
-        slider.attr('step', stepValue);
-
-        // Setze die minimalen und maximalen Werte des Sliders
-        slider.attr('min', normalizedMin);
-        slider.attr('max', normalizedMax);
-
-        // Hol den aktuellen Wert des Sliders und stelle sicher, dass er im Intervall liegt
-        currentVal = Math.max(normalizedMin, Math.min(default_threshold, normalizedMax));
-        slider.val(currentVal);
-        $('#slider-value').text(currentVal);
+        }).done(successCallback)
+          .fail(errorCallback);
     }
 
-    // Funktion: Dropdown dynamisch aktualisieren
+    // region Similarity Matrix
+
+    // Fetch and Display Similarity Matrix
+    $('#get-matrix-button').click(function () {
+        handleGetRequest('/api/ai/get/sim/matrix', renderSimilarityMatrix, clearMatrixTable);
+    });
+
+    function renderSimilarityMatrix(matrixData) {
+        const table = document.getElementById("similarity-matrix");
+        const thead = table.querySelector("thead");
+        const tbody = table.querySelector("tbody");
+
+        thead.innerHTML = '';
+        tbody.innerHTML = '';
+
+        const { matrix, indexing } = matrixData;
+
+        // Create table header
+        const headerRow = document.createElement("tr");
+        headerRow.appendChild(document.createElement("th")); // Empty top-left cell
+        Object.keys(indexing).forEach(key => {
+            const th = document.createElement("th");
+            th.textContent = key;
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+
+        // Create table rows with data
+        Object.keys(indexing).forEach((rowKey, rowIndex) => {
+            const row = document.createElement("tr");
+            const th = document.createElement("th");
+            th.textContent = rowKey;
+            row.appendChild(th);
+
+            matrix[rowIndex].forEach(value => {
+                const td = document.createElement("td");
+                td.textContent = value.toFixed(2);
+                td.style.backgroundColor = calculateHeatmapColor(value);
+                row.appendChild(td);
+            });
+
+            tbody.appendChild(row);
+        });
+    }
+
+    // Clears the similarity matrix table in case of an error.
+    function clearMatrixTable() {
+        const table = document.getElementById("similarity-matrix");
+        table.querySelector("thead").innerHTML = '';
+        table.querySelector("tbody").innerHTML = '';
+        alert('Failed to load similarity matrix.');
+    }
+
+    function calculateHeatmapColor(value) {
+        const baseValue = ai_data.sim_methods[0];
+        const distance = Math.abs(value - baseValue);
+        const alpha = 0.3 + (distance * 0.4); // Scale to an alpha value between 0.3 and 0.7
+
+        return value >= baseValue
+            ? `rgba(0, 0, 180, ${Math.min(alpha, 0.7)})`  // Blue for higher values
+            : `rgba(0, 180, 0, ${Math.min(alpha, 0.7)})`; // Green for lower values
+    }
+
+    // endregion
+
+    // region Log Dropdown IDs
+
+    // Dynamic Dropdown Update Based on Search
     function updateDropdown(filter = '') {
         const dropdown = document.getElementById('idDropdown');
-        dropdown.innerHTML = ''; // Clear existing options
+        dropdown.innerHTML = '';
 
-        // Filter IDs und erstelle Optionen
-        const filteredIDs = data.req_ids.filter(id => id.toLowerCase().includes(filter.toLowerCase()));
+        const filteredIDs = ai_data.req_ids.filter(id => id.toLowerCase().includes(filter.toLowerCase()));
+
         filteredIDs.forEach(id => {
             const option = document.createElement('option');
             option.value = id;
@@ -706,47 +698,47 @@ $(document).ready(function (){
         }
     }
 
+    // Search Input Event for Filtering IDs
     $('#idSearch').on('input', function () {
         updateDropdown($(this).val());
     });
 
+    // Fetch and Display Log Data for Selected ID
     $('#idDropdown').on('change', function () {
-    const selectedID = $(this).val();
-    $.ajax({
-        type: 'GET',
-        url: '/api/ai/set/log/id?id=' + selectedID,
-        contentType: 'application/json',
-        success: function (response) {
-            const logData = response.data;
-
-            let logHtml = "<h3>Log for ID: " + selectedID + "</h3>";
-
-            const sortedEntries = Object.entries(logData).sort((a, b) => {
-                const numA = parseInt(a[0].split('_').pop());
-                const numB = parseInt(b[0].split('_').pop());
-                return numA - numB;
-            });
-            for (const [time, data] of sortedEntries) {
-                logHtml += `
-                    <div class="log-entry">
-                        <p><strong>Time:</strong> ${time}</p>
-                `;
-                for (const [key, value] of Object.entries(data)) {
-                    logHtml += `<p><strong>${key}:</strong> ${value}</p>`;
-                }
-
-                logHtml += `
-                    </div>
-                    <hr>
-                `;
-            }
-            $('#log-container').html(logHtml);
-        },
-
-        error: function (error) {
-            console.error('ERROR:', error);
-        }
+        const selectedID = $(this).val();
+        handleGetRequest(`/api/ai/set/log/id?id=${selectedID}`,
+            (response) => renderLogData(selectedID, response.data),
+            () => alert('Failed to fetch log data for the selected ID.')
+        );
     });
-});
+
+    function renderLogData(selectedID, logData) {
+        let logHtml = `<h3>Log for ID: ${selectedID}</h3>`;
+
+        const sortedEntries = Object.entries(logData).sort((a, b) => {
+            const numA = parseInt(a[0].split('_').pop());
+            const numB = parseInt(b[0].split('_').pop());
+            return numA - numB;
+        });
+
+        sortedEntries.forEach(([time, data]) => {
+            logHtml += `
+                <div class="log-entry">
+                    <p><strong>Time:</strong> ${time}</p>
+            `;
+            Object.entries(data).forEach(([key, value]) => {
+                logHtml += `<p><strong>${key}:</strong> ${value}</p>`;
+            });
+            logHtml += `</div><hr>`;
+        });
+
+        $('#log-container').html(logHtml);
+    }
+
+    // endregion
+
+    // endregion
+
+    // endregion
 
 });

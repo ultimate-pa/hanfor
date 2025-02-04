@@ -168,13 +168,13 @@ class AiStatistic:
                     if status != "try_count":
                         percentage = (count / total_statuses) * 100
 
-                        status_table.append({"Status": status, "Total": count, "Percentage": round(percentage, 2)})
+                        status_table.append({"status": status, "total": count, "percentage": round(percentage, 2)})
                 report.append(
                     {
-                        "Model": model,
-                        "Prompt_gen": method,
-                        "Avg_try_count": round(avg_try_count, 2),
-                        "Status_table": status_table,
+                        "model": model,
+                        "prompt_gen": method,
+                        "avg_try_count": round(avg_try_count, 2),
+                        "status_table": status_table,
                     }
                 )
         return report
@@ -340,11 +340,11 @@ class AiData:
     def set_used_variables(self, used_variables: list[dict]) -> None:
         self.__used_variables = used_variables
 
-    def set_clusters(self, clusters: set[frozenset[str]]) -> None:
+    def set_clusters(self, clusters: Optional[set[frozenset[str]]]) -> None:
         self.__clusters = clusters
         self.__send_updated_data(AiDataEnum.CLUSTER, AiDataEnum.CLUSTER)
 
-    def set_cluster_matrix(self, cluster_matrix: tuple[list[list[float]], dict]) -> None:
+    def set_cluster_matrix(self, cluster_matrix: Optional[tuple[list[list[float]], dict]]) -> None:
         self.__cluster_matrix = cluster_matrix
 
     def add_formalization_object(self, formalization_object: AIFormalization) -> None:
