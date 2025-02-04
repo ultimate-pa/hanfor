@@ -238,6 +238,7 @@ class AiData:
             "ai_models": self.__get_info_ai_models(),
             "ai_statistic": self.__ai_statistic.get_status_report(),
             "req_ids": self.requirement_log.get_ids(),
+            "ai_formalization_deletion_time": ai_config.DELETION_TIME_AFTER_COMPLETION_FORMALIZATION,
         }
         return ret
 

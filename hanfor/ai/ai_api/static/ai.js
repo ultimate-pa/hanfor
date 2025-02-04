@@ -127,7 +127,7 @@ $(document).ready(function () {
             const try_count = item.try_count || 'X';
             // Calculate the countdown for deletion, rounded to the next second
             const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
-            const deletionCountdown = item.time ? Math.max(0, Math.ceil(9 - (currentTime - item.time))) : 'N/A';
+            const deletionCountdown = item.time ? Math.max(0, Math.ceil(ai_data.ai_formalization_deletion_time - (currentTime - item.time))) : 'N/A';
 
             // Create the table row with an additional column for the countdown
             const row = `
