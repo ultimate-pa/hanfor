@@ -2,7 +2,9 @@ const {io} = require("socket.io-client")
 const {v4: uuidv4} = require("uuid")
 import {getCookie, setCookie} from "./cookie_control"
 
-let socket = io("/telemetry");
+let socket = io("/telemetry",{
+  path: url_prefix + "/socket.io/"
+});
 
 socket.on('connect', function () {
     console.log('connect');
