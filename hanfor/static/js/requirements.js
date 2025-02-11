@@ -17,8 +17,9 @@ const autosize = require('autosize/dist/autosize');
 // Globals
 const {SearchNode} = require('./datatables-advanced-search.js');
 const {init_simulator_tab} = require('./simulator-tab.js');
-// let init_table_connection_functions= []
-// exports.init_table_connection_functions = init_table_connection_functions
+let init_table_connection_functions= []
+exports.init_table_connection_functions = init_table_connection_functions
+const {sendTelemetry} = require('../../telemetry/static/telemetry')
 
 const {Textcomplete} = require('@textcomplete/core')
 const {TextareaEditor} = require('@textcomplete/textarea')
@@ -412,6 +413,7 @@ function store_requirement(requirements_table) {
         tag_comments.set(tag, comment);
     })
 
+    sendTelemetry("requirements", req_id, "save")
     // Store the requirement.
     $.post("api/req/update", {
             id: req_id,
@@ -849,7 +851,11 @@ function modal_closing_routine(event) {
         const force_close = confirm("You have unsaved changes, do you really want to close?");
         if (force_close !== true) {
             event.preventDefault();
+        } else {
+            sendTelemetry("requirements", $('#requirement_id').val(), "close_without_save")
         }
+    } else {
+        sendTelemetry("requirements", $('#requirement_id').val(), "close")
     }
 }
 
@@ -959,6 +965,7 @@ function load_requirement(row_idx) {
             'unsaved_changes': false, 'updated_formalization': false
         });
         requirement_modal_content.LoadingOverlay('hide', true);
+        sendTelemetry("requirements", data.id, "open")
     });
 }
 

@@ -30,6 +30,7 @@ const {SearchNode} = require('./datatables-advanced-search.js');
 let search_tree = undefined;
 let visible_columns = [true, true, true, true, true];
 let get_query = JSON.parse(search_query); // search_query is set in layout.html
+const {sendTelemetry} = require('../../telemetry/static/telemetry')
 
 /**
  * Apply search tree on datatables data.
@@ -110,6 +111,9 @@ function store_variable(variables_table) {
             enumerators.push([enum_name, enum_value]);
         });
     }
+
+    // TODO use variable UUID
+    sendTelemetry("variables", var_name_old, "save")
 
     // Store the variable.
     $.post("api/var/update",
@@ -588,6 +592,8 @@ function load_variable(row_idx) {
 
     // Load constraints
     get_variable_constraints_html(data.name);
+    // TODO send variable UUID
+    sendTelemetry("variables", data.name, "open")
 
     var_modal_content.LoadingOverlay('hide');
 }
@@ -998,6 +1004,11 @@ $(document).ready(function () {
         }
     })
 
+    let variable_modal = $('#variable_modal');
+    variable_modal[0].addEventListener('hide.bs.modal', function (event) {
+        modal_closing_routine(event);
+    });
+
     // Add new Constraint
     $('#add_constraint').click(function () {
         add_constraint();
@@ -1078,3 +1089,8 @@ $(document).ready(function () {
         file_reader.readAsText($('#import-variables-from-csv-input').prop('files')[0]);
     })
 });
+
+function modal_closing_routine(event) {
+    // TODO add close waring if unsaved changes
+    sendTelemetry("variables", $('#variable_name_old').val(), "close")
+}

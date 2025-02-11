@@ -13,6 +13,8 @@ const autosize = require('autosize/dist/autosize')
 const {SearchNode} = require('../../static/js/datatables-advanced-search.js')
 const {Modal} = require('bootstrap')
 
+require('../../telemetry/static/telemetry')
+
 const searchAutocomplete = [':AND:', ':OR:', ':NOT:', ':COL_INDEX_00:', ':COL_INDEX_01:', ':COL_INDEX_02:']
 const tagsSearchString = sessionStorage.getItem('tagsSearchString')
 

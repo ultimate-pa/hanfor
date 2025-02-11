@@ -2,6 +2,7 @@ Flask~=3.0.3
 Flask-DebugToolbar~=0.15.1
 Flask-Assets~=2.1.0 # TODO: Unused functionality. Check if it can be removed.
 Flask-Pydantic~=0.12.0
+Flask-SocketIO~=5.5.0
 
 colorama~=0.4.6
 inquirerpy~=0.3.4
@@ -15,6 +16,7 @@ PySMT~=0.9.6
 PyYAML~=6.0.1
 requests~=2.32.3
 terminaltables~=3.1.10
+tinyflux~=1.0.0
 setuptools~=70.0.0 # TODO: Remove if PySMT version is > 0.9.5
 uuid~=1.30
 werkzeug~=3.0.3
