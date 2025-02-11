@@ -65,7 +65,6 @@ if app.config["FEATURE_ULTIMATE"]:
     app.register_blueprint(ultimate.api_blueprint)
 
 if app.config["FEATURE_TELEMETRY"]:
-    pass
     from telemetry import telemetry_frontend
 
     app.register_blueprint(telemetry_frontend.blueprint)

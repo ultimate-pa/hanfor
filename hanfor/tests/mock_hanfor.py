@@ -53,6 +53,7 @@ class MockHanfor:
         app.config["SESSION_BASE_FOLDER"] = self.test_session_base_folder
         app.config["LOG_TO_FILE"] = False
         app.config["LOG_LEVEL"] = "DEBUG"
+        app.config["FEATURE_TELEMETRY"] = False
 
     @patch("builtins.input", mock_user_input)
     def startup_hanfor(self, csv_file, session_tag, user_mock_answers) -> bool:
