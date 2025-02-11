@@ -495,7 +495,7 @@ function load_datatable() {
         }
     }];
     // Load generic colums.
-    $.get("api/table/colum_defs", '', function (data) {
+    $.get("api/req/colum_defs", '', function (data) {
         const dataLength = data['col_defs'].length;
         for (let i = 0; i < dataLength; i++) {
             columnDefs.push({
