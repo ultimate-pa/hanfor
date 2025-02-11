@@ -18,7 +18,7 @@ blueprint = Blueprint("tags", __name__, template_folder="templates", url_prefix=
 api_blueprint = Blueprint("api_tags", __name__, url_prefix="/api/tags")
 
 
-@blueprint.route("/", methods=["GET"])
+@blueprint.route("", methods=["GET"])
 def index():
     return render_template("tags/index.html", BUNDLE_JS=BUNDLE_JS)
 

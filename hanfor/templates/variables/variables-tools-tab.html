@@ -1,6 +1,6 @@
 <div class="row g-2">
     <div class="col-12">
-        <form id="generate_req_form" method="post" action="{{ url_for('api', resource='var', command='gen_req') }}"
+        <form id="generate_req_form" method="post" action="{{ url_for('api_variables.api_gen_req') }}"
               target="_blank"></form>
         <button id="generate_req" class="btn btn-secondary w-100" type="button">
             Generate .req file for variables.

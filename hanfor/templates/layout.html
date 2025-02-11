@@ -13,7 +13,7 @@
 {% block navbar %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('site', site='/') }}"
+            <a class="navbar-brand" href="{{ url_for('requirements.index') }}"
                title="Hanfor helps analyzing and formalizing requirements.">Hanfor</a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -25,20 +25,20 @@
             <div class="collapse navbar-collapse" id="navbar_main">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item{% if request.path == '/' %} active{% endif %}">
-                        <a class="nav-link" href="{{ url_for('site', site='/') }}">Start</a>
+                        <a class="nav-link" href="{{ url_for('requirements.index') }}">Start</a>
                     </li>
                     <li class="nav-item{% if request.path == '/variables' %} active{% endif %}">
-                        <a class="nav-link" href="{{ url_for('site', site='variables') }}">Variables</a>
+                        <a class="nav-link" href="{{ url_for('variables.index') }}">Variables</a>
                     </li>
                     <li class="nav-item{% if request.path == '/tags' %} active{% endif %}">
-                        <a class="nav-link" href="{{ url_for('site', site='tags') }}">Tags</a>
+                        <a class="nav-link" href="{{ url_for('tags.index') }}">Tags</a>
                     </li>
                     <li class="nav-item{% if request.path == '/statistics' %} active{% endif %}">
-                        <a class="nav-link" href="{{ url_for('site', site='statistics') }}">Statistics</a>
+                        <a class="nav-link" href="{{ url_for('statistics.index') }}">Statistics</a>
                     </li>
                     {% if config.FEATURE_ULTIMATE %}
                     <li id="ultimate-nav" class="nav-item{% if request.path == '/ultimate' %} active{% endif %}">
-                        <a class="nav-link" href="{{ url_for('site', site='ultimate') }}">Analysis</a>
+                        <a class="nav-link" href="{{ url_for('ultimate.index') }}">Analysis</a>
                     </li>
                     {% endif %}
                     <li class="nav-item">

@@ -48,7 +48,7 @@
     {{ super() }}
 
     <script type="text/javascript">
-        let base_url = '{{ url_for('site', site='/') }}';
+        let base_url = '{{ url_for('requirements.index') }}';
         let static_url = '{{ url_for('static', filename='') }}'
         let display_req_without_formalisation = '{{ DISPLAY_REQUIREMENTS_WITHOUT_FORMALISATION }}'
     </script>
