@@ -32,13 +32,13 @@ class AiCore:
         self.__ai_data: AiData = AiData(self.ai_statistic)
         self.ai_processing_queue = AiProcessingQueue(self.__ai_data.update_progress)
 
-    def startup(self, data_folder: str) -> None:
+    def startup(self, data_folder: str, socketio) -> None:
         """
         Optionally starts the clustering process and sets the data folder for logging.
         This method is executed at the end of `startup_hanfor`.
         """
 
-        self.__ai_data.set_data_folder(data_folder)
+        self.__ai_data.set_data_folder(data_folder, socketio)
         if ai_config.ENABLE_SIMILARITY_ON_STARTUP:
             self.start_clustering()
         id_list = []
@@ -382,6 +382,7 @@ class AiCore:
                 self.__ai_data.get_activ_ai_model(),
                 self.__ai_data.get_flags()[AiDataEnum.AI],
                 self.__ai_data.requirement_log.add_data,
+                self.__ai_data.update_progress,
             )
             self.__ai_data.add_formalization_object(formalize_object)
             logging.debug(requirement_to_formalize.to_dict())

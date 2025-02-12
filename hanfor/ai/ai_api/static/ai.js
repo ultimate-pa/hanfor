@@ -6,13 +6,24 @@ require('jquery-ui/ui/effects/effect-highlight')
 require('awesomplete')
 require('awesomplete/awesomplete.css')
 require('datatables.net-colreorder-bs5')
-
+const {io} = require("socket.io-client")
 
 $(document).ready(function () {
 
     // region Data handling from API
 
     let ai_data;
+    let socket = io("/ai_data", {
+      path: url_prefix + "/socket.io/"
+    });
+
+    socket.on('connect', () => console.log("Connected to AI Data WebSocket"));
+    socket.on('disconnect', () => console.log("Disconnected from AI Data WebSocket"));
+
+    socket.on('ai_update', (newData) => {
+        console.log("AI Update received:", newData);
+        updateAIData(newData);
+    });
 
     const updateFunctions = {
         ai_formalization: updateAIFormalization,
@@ -78,35 +89,6 @@ $(document).ready(function () {
 
     // endregion
 
-    // region TEMP UNTIL SOCKET
-
-    function temp_function_until_socket(){
-        ai_data = null
-        initial_side_data()
-        temp_waitForDataForInitialSideLoad()
-    }
-
-    function temp_waitForDataForInitialSideLoad() {
-        const checkInterval = setInterval(function() {
-            if (ai_data) {
-                clearInterval(checkInterval);
-                temp_updateSome()
-            }
-        }, 30);
-    }
-
-    function temp_updateSome() {
-        for (const key in updateFunctions) {
-            if (updateFunctions.hasOwnProperty(key)) {
-                updateFunctions[key]();
-            }
-        }
-    }
-
-    setInterval(temp_function_until_socket, 250);
-
-    // endregion
-
     // region Updating Functions for the individual sections
 
     function updateAIFormalization() {
@@ -119,28 +101,35 @@ $(document).ready(function () {
 
         // Iterate through the data and build table rows
         ai_data.ai_formalization.forEach(item => {
-            // Safety check for each column and fallback logic
             const id = item.id || 'N/A';
             const promptDesc = item.prompt ? item.prompt : 'N/A';
             const status = item.status || 'N/A';
-            const aiResponse = item.ai_response ? JSON.stringify(item.ai_response, null, 2) : 'N/A'; // Pretty formatted JSON
+            const aiResponse = item.ai_response ? JSON.stringify(item.ai_response, null, 2) : 'N/A';
             const try_count = item.try_count || 'X';
-            // Calculate the countdown for deletion, rounded to the next second
-            const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
-            const deletionCountdown = item.time ? Math.max(0, Math.ceil(ai_data.ai_formalization_deletion_time - (currentTime - item.time))) : 'N/A';
 
-            // Create the table row with an additional column for the countdown
+            // Berechne die Zeit bis zur Löschung
+            const currentTime = Math.floor(Date.now() / 1000);
+            let deletionCountdown = item.time
+                ? Math.max(0, Math.ceil(ai_data.ai_formalization_deletion_time - (currentTime - item.time)))
+                : 'N/A';
+
+            // Erstelle die Tabellenzeile
             const row = `
                 <tr id="row-${id}">
                     <td>${id}</td>
                     <td>${promptDesc}</td>
                     <td>${status}</td>
                     <td>${aiResponse}</td>
-                    <td>${try_count}</td>td>
+                    <td>${try_count}</td>
                     <td id="countdown-${id}">${deletionCountdown !== 'N/A' ? `${deletionCountdown} sec` : deletionCountdown}</td>
                 </tr>
             `;
             tableBody.append(row);
+
+            // Start the Countdown-Timer
+            if (deletionCountdown !== 'N/A') {
+                startCountdown(id, deletionCountdown);
+            }
         });
 
         // Initialize the DataTable after populating the table
@@ -151,9 +140,32 @@ $(document).ready(function () {
             responsive: true,
             lengthMenu: [[10, 50, 100, 500, -1], [10, 50, 100, 500, 'All']],
             dom: 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
-            order: [[0, 'asc']],  // Optionally sort by ID (or another column) by default
+            order: [[0, 'asc']],  // Sortiert standardmäßig nach ID
         });
     }
+
+    // Helper function for updateAIFormalization
+    function startCountdown(id, initialCountdown) {
+        let timeLeft = initialCountdown;
+        const countdownElement = document.getElementById(`countdown-${id}`);
+
+        const interval = setInterval(() => {
+            if (!countdownElement) {
+                clearInterval(interval);
+                return;
+            }
+
+            if (timeLeft > 0) {
+                timeLeft--;
+                countdownElement.innerText = `${timeLeft} sec`;
+            } else {
+                clearInterval(interval);
+                countdownElement.innerText = "🗑 Deleted";
+                document.getElementById(`row-${id}`)?.remove();
+            }
+        }, 1000);
+    }
+
 
     function updateAIMethods() {
         const selectElement = $('#prompt-parsing-selection');
@@ -187,7 +199,7 @@ $(document).ready(function () {
 
         statistics_container.empty();
 
-        data.ai_statistic?.forEach(stat => {
+        data?.forEach(stat => {
             const model = stat.model || 'N/A';
             const promptGen = stat.prompt_gen || 'N/A';
             const avgTryCount = stat.avg_try_count || 0;

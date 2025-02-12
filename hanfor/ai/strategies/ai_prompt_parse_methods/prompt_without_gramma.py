@@ -31,7 +31,7 @@ class PromptDump(ai_prompt_parse_abstract_class.AiPromptParse):
         Write only the following as an answer and replace only the TODOs. Do not add anything else. Use only the given patterns, if it is not possible to use them just write Terminate:
         Output Human readable: TODO
         Output for the server: {'scope': TODO, 'pattern': TODO, 'expression_mapping': {'P': TODO, 'Q': TODO, 'R': TODO, 'S': TODO, 'T': TODO, 'U': TODO, 'V': TODO}}
-        IMPORTENT: you must write "expression_mapping" and you must use boolean expressions inside the expression_mapping, there is NO single equal sign
+        IMPORTENT: you must write "expression_mapping" and you must use boolean expressions inside the expression_mapping, there is NO single equal sign USE == for equality
         """
 
         prompt_var = "All currently available variables with their types\n"
@@ -67,7 +67,8 @@ class PromptDump(ai_prompt_parse_abstract_class.AiPromptParse):
                 server_output_str = server_output_str.replace("'", '"')
                 server_output_dict = json.loads(server_output_str)
                 parsed_ai_response = server_output_dict
-                logging.debug(f"Server output: {server_output_str}")
+                logging.debug(f"Server output str: {server_output_str}")
+                logging.debug(f"Server output dict: {server_output_dict}")
                 expression_mapping = parsed_ai_response.get("expression_mapping", {})
                 if expression_mapping == {}:
                     expression_mapping = parsed_ai_response.get("expressions", {})

@@ -6,6 +6,7 @@ import requests
 import logging
 import boogie_parsing
 import reqtransformer
+from ai.ai_enum import AiDataEnum
 from ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse, get_scope, get_pattern
 import ai.ai_config as ai_config
 
@@ -81,6 +82,7 @@ class AIFormalization:
         ai_model: str,
         enable_api_ai_request: bool,
         req_logger: callable,
+        update_status_function,
     ):
         self.requirement_to_formalize = requirement_to_formalize
         self.requirement_with_formalization = requirement_with_formalization
@@ -103,6 +105,11 @@ class AIFormalization:
         self.enable_api_ai_request = enable_api_ai_request
 
         self.req_logger = req_logger
+        self.update_status_function = update_status_function
+
+    def __update_status(self, status: str):
+        self.status = status
+        self.update_status_function(AiDataEnum.FORMALIZATION, None, None)
 
     def run_formalization_process(
         self,
@@ -135,7 +142,7 @@ class AIFormalization:
 
                 # Terminated Ai Threads
                 if self.stop_event.is_set():
-                    self.status = f"terminated_{self.status}"
+                    self.__update_status(f"terminated_{self.status}")
                     self.del_time = time.time()
                     self.__req_logger_ai_process()
                     ai_statistic.add_status(self.ai_model, prompt_generator_name, self.status)
@@ -145,7 +152,7 @@ class AIFormalization:
 
                 # Error occurs
                 if output is None:
-                    self.status = f"error_{self.status}"
+                    self.__update_status(f"error_{self.status}")
                     break
 
             # Logging Progress
@@ -156,14 +163,12 @@ class AIFormalization:
             if self.status == "complete":
                 break
             else:
-                self.prompt = None
-                self.ai_response = None
-                self.formalized_output = None
                 self.try_count += 1
 
         # Finish up
         self.del_time = time.time()
         ai_statistic.add_try_count(self.ai_model, prompt_generator_name, self.try_count)
+        self.__update_status(self.status)
 
     def __test_formalization_complete(self) -> bool:
         """
@@ -208,7 +213,7 @@ class AIFormalization:
         self.req_logger(self.req_id, data_dict)
 
     def __step_generate_prompt(self) -> Optional[str]:
-        self.status = "generating_prompt"
+        self.__update_status("generating_prompt")
         self.__req_logger_ai_process()
 
         self.prompt = self.prompt_generator(
@@ -217,11 +222,11 @@ class AIFormalization:
 
         self.req_logger(self.req_id, {"message": "created prompt", "prompt": self.prompt})
 
-        self.status = "prompt_generated"
+        self.__update_status("prompt_generated")
         return self.prompt
 
     def __step_ai_processing_queue(self) -> True:
-        self.status = "waiting_for_ai_slot"
+        self.__update_status("waiting_for_ai_slot")
         self.__req_logger_ai_process()
 
         while not self.ai_processing_queue.add_request(self.req_id):
@@ -230,28 +235,31 @@ class AIFormalization:
                 self.ai_processing_queue.terminated(self.req_id)
                 return True
 
-        self.status = "acquired_slot_in_ai"
+        self.__update_status("acquired_slot_in_ai")
         return True
 
     def __step_query_ai(self) -> Optional[str]:
-        self.status = "waiting_ai_response"
+        self.__update_status("waiting_ai_response")
         self.__req_logger_ai_process()
 
         self.ai_response, self.status = query_ai(self.prompt, self.ai_model, self.enable_api_ai_request)
-        self.status = "ai_response_received"
+        self.__update_status("ai_response_received")
 
         self.ai_processing_queue.complete_request(self.req_id)
         return self.ai_response
 
     def __step_response_parser(self) -> Optional[dict[str, str | dict[str, str]]]:
-        self.status = "parsing_ai_response"
+        self.__update_status("parsing_ai_response")
         self.__req_logger_ai_process()
 
         self.formalized_output = self.response_parser(self.ai_response, self.variables)
 
-        self.status = "ai_response_parsed"
+        self.__update_status("ai_response_parsed")
         return self.formalized_output
 
     def __step_test_formalization_complete(self) -> Optional[bool]:
-        self.status = "test_formalization_complete"
-        return self.__test_formalization_complete() or None
+        self.__update_status("test_formalization_complete")
+        if self.__test_formalization_complete():
+            self.__update_status("complete")
+            return True
+        return None

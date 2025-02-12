@@ -4,6 +4,7 @@ from enum import Enum
 class AiDataEnum(Enum):
     """Enum for the ai specific data"""
 
+    FORMALIZATION = "formalization"
     QUERY = "query"
     RESPONSE = "response"
     STATUS = "status"

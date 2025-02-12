@@ -11,6 +11,7 @@ from ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse
 from ai.strategies.similarity_abstract_class import SimilarityAlgorithm
 from tinyflux import TinyFlux, Point, TagQuery
 from datetime import datetime
+from ai.ai_socket import send_ai_update
 
 
 class RequirementLog:
@@ -189,6 +190,7 @@ class AiData:
     """Object containing all data and methods to process those for the AI feature"""
 
     def __init__(self, ai_statistic: AiStatistic) -> None:
+        self.socketio = None
         self.__ai_system_data: dict[AiDataEnum, dict[AiDataEnum, bool | int | str | AiDataEnum]] = {
             AiDataEnum.FLAGS: {
                 AiDataEnum.SYSTEM: ai_config.AUTO_UPDATE_ON_REQUIREMENT_CHANGE,
@@ -219,9 +221,9 @@ class AiData:
         self.__ai_statistic.set_send_update_method(self.__send_updated_data)
         self.requirement_log: Optional[RequirementLog] = None
 
-    def set_data_folder(self, data_folder: str) -> None:
+    def set_data_folder(self, data_folder: str, socketio) -> None:
         """Setting the data folder for the location of the log file."""
-
+        self.socketio = socketio
         self.requirement_log = RequirementLog(data_folder)
 
     def get_full_info_init_site(self) -> dict:
@@ -244,7 +246,6 @@ class AiData:
 
     def __send_updated_data(self, updated_data: AiDataEnum, specified_data: Optional[AiDataEnum]) -> None:
         """Prepares and sends updated data based on the provided enums with socket"""
-        # TODO socket implementation
 
         send_dict = {}
         match updated_data:
@@ -268,10 +269,18 @@ class AiData:
                         send_dict = {"ai_statistic": self.__ai_statistic.get_status_report()}
                     case AiDataEnum.STATUS:
                         send_dict = {"ai_status": self.__get_info_ai_status()}
-        logging.debug(f"Sending: {send_dict}")
+                    case AiDataEnum.FORMALIZATION:
+                        send_dict = {"ai_formalization": self.__get_ai_formalization_progress()}
+        if send_dict:
+            send_ai_update(send_dict, self.socketio)
 
     def update_progress(self, progress_outer: AiDataEnum, progress_inner: Optional[AiDataEnum], update: any):
         """Centralized method to update progress data (flags, Ai and cluster progress info)"""
+
+        match progress_outer:
+            case AiDataEnum.FORMALIZATION:
+                self.__send_updated_data(AiDataEnum.AI, AiDataEnum.FORMALIZATION)
+                return
 
         if progress_inner:
             self.__ai_system_data[progress_outer][progress_inner] = update

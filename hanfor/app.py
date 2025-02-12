@@ -46,6 +46,7 @@ from statistics import statistics
 
 # import Socket IO modules
 from telemetry.telemetry import TelemetryWs
+from ai.ai_socket import AiDataNamespace
 
 
 mimetypes.add_type("text/css", ".css")
@@ -93,7 +94,9 @@ app.register_blueprint(statistics.api_blueprint)
 
 # register socket IO namespaces
 telemetry_namespace = TelemetryWs("/telemetry")
+ai_data_namespace = AiDataNamespace("/ai_data")
 socketio.on_namespace(telemetry_namespace)
+socketio.on_namespace(ai_data_namespace)
 
 
 if "USE_SENTRY" in app.config and app.config["USE_SENTRY"]:
@@ -1009,7 +1012,7 @@ def startup_hanfor(args, here, *, no_data_tracing: bool = False) -> bool:
     # Startup AI (start clustering if Flagged)
     if app.config["FEATURE_AI"]:
         with app.app_context():
-            app.ai.startup(app.config["REVISION_FOLDER"])
+            app.ai.startup(app.config["REVISION_FOLDER"], socketio)
     return True
 
 
