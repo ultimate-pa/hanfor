@@ -56,7 +56,7 @@ class TestHanforVersionMigrations(TestCase):
         count = -1
         mock_results = user_mock_answers
 
-        startup_hanfor(args, HERE, no_data_tracing=True)
+        startup_hanfor(app, args, HERE, no_data_tracing=True)
         app.config["TEMPLATES_FOLDER"] = os.path.join(HERE, "..", "..", "templates")
 
     def test_variable_add_constraint_and_change_type_at_the_same_time(self):
