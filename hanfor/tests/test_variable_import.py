@@ -67,7 +67,7 @@ class TestVariableImport(TestCase):
         count = -1
         mock_results = user_mock_answers
 
-        startup_hanfor(args, HERE, no_data_tracing=True)
+        startup_hanfor(app, args, HERE, no_data_tracing=True)
         app.config["TEMPLATES_FOLDER"] = os.path.join(HERE, "..", "..", "templates")
 
     def test_import_from_csv(self):

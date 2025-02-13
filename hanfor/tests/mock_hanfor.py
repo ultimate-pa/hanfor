@@ -3,7 +3,8 @@ Tests for enum and enumerators.
 
 """
 
-from app import app, startup_hanfor
+from app import app
+from lib_core.startup import startup_hanfor
 import os
 import shutil
 import utils
@@ -65,7 +66,7 @@ class MockHanfor:
         args = utils.HanforArgumentParser(app).parse_args([session_tag, "-c", csv_file])
         mock_results = user_mock_answers
 
-        success = startup_hanfor(args, self.here, no_data_tracing=True)
+        success = startup_hanfor(app, args, self.here, no_data_tracing=True)
         app.config["TEMPLATES_FOLDER"] = os.path.join(self.here, "..", "templates")
         return success
 
