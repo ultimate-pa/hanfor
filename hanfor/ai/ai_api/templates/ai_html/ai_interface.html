@@ -32,14 +32,79 @@
             </button>
 
             <div class="collapse" id="explanation-legend">
+                <!-- Explanation -->
                 <div class="alert alert-info" role="alert">
-                    <strong>Hint:</strong> You can use placeholders in the format <code>[id.action]</code>.
+                    <strong>Hint:</strong> You can use placeholders in the format <code>[id.action] or [pattern.&lt;pattern name&gt;] or [variables/patterns/scopes]</code>.
                     <ul>
                         <li><code>id</code>: The ID of the requirement (e.g., <code>R001</code>).</li>
-                        <li><code>action</code>: Retrieve specific attributes of the requirement.</li>
+                        <li><code>action</code>: One of the available actions to retrieve specific attributes of the requirement.</li>
+                        <li><code>values</code>: Get all used Values as list with their types</li>
+                        <li><code>patterns</code>: Get all patterns with their respective names and the types to be used</li>
+                        <li><code>scopes</code>: Get all Scopes</li>
                     </ul>
                     <p>Example: <code>[R001.formal]</code> retrieves the formalizations of the requirement with ID <code>R001</code>.</p>
                 </div>
+
+                <!-- Legend -->
+                <h5>Legend of Actions</h5>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>id</code></td>
+                            <td>The unique ID of the requirement.</td>
+                        </tr>
+                        <tr>
+                            <td><code>desc</code></td>
+                            <td>The description of the requirement.</td>
+                        </tr>
+                        <tr>
+                            <td><code>type</code></td>
+                            <td>The type of the requirement. If not provided as a string, <code>None</code> will be used.</td>
+                        </tr>
+                        <tr>
+                            <td><code>tags</code></td>
+                            <td>A list of all tags associated with this requirement.</td>
+                        </tr>
+                        <tr>
+                            <td><code>tags_comments</code></td>
+                            <td>A dictionary associating each tag with its comment.</td>
+                        </tr>
+                        <tr>
+                            <td><code>formal</code></td>
+                            <td>A list of formalizations represented as strings.</td>
+                        </tr>
+                        <tr>
+                            <td><code>vars</code></td>
+                            <td>An alphabetically sorted list of all variables used in the formalizations.</td>
+                        </tr>
+                        <tr>
+                            <td><code>pos</code></td>
+                            <td>The position of the requirement in the CSV file.</td>
+                        </tr>
+                        <tr>
+                            <td><code>status</code></td>
+                            <td>The current status of the requirement (e.g., <code>active</code>, <code>deprecated</code>).</td>
+                        </tr>
+                        <tr>
+                            <td><code>csv_data</code></td>
+                            <td>The full CSV row describing the requirement.</td>
+                        </tr>
+                        <tr>
+                            <td><code>type_inference_errors</code></td>
+                            <td>A list of errors encountered during type inference.</td>
+                        </tr>
+                        <tr>
+                            <td><code>revision_diff</code></td>
+                            <td>Differences between the revisions of the requirement.</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 

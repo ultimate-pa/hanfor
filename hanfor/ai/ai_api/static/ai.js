@@ -302,7 +302,7 @@ $(document).ready(function () {
         const total = ai_data.cluster_status.total || 0;
         const status = ai_data.cluster_status.status || 'N/A';
         const percentage = (processed / (total|| 1)) * 100;
-        $('#cluster-status').text(status);
+        $('#cluster-status-overview, #cluster-status-interface').text(status);
         $('#cluster-availability').text(`${processed} / ${total || 0}`);
         $('#progress-bar').css('width', `${percentage}%`).attr('aria-valuenow', processed).text(`${processed}/${total}`);
     }
