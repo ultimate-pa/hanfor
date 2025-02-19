@@ -473,6 +473,23 @@ PATTERNS = {
         "group": "Order",
         "pattern_order": 7,
     },
+    # TODO: new pattern
+    "InvarianceDelay": {
+        "pattern": "it is always the case that if {R} holds, then {S} holds as well after at most {T} time units",
+        "countertraces": {
+            "GLOBALLY": [
+                "true;⌈R && S⌉;⌈R && !S⌉;true",
+                "true;⌈R && !S⌉;⌈!S⌉ ∧ ℓ > T;true"
+            ],
+            "BEFORE": [],
+            "AFTER": [],
+            "BETWEEN": [],
+            "AFTER_UNTIL": [],
+        },
+        "env": {"R": ["bool"], "S": ["bool"], "T": ["real", "int"]},
+        "group": "Real-time",
+        "pattern_order": 10,
+    },
     "NotFormalizable": {"pattern": "no pattern set", "env": {}, "group": "not_formalizable", "pattern_order": 0},
     ################################################################################
     #                         Legacy Patterns                                      #
