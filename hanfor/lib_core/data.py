@@ -25,7 +25,7 @@ from json_db_connector.json_db import (
     DatabaseNonSavedField,
     DatabaseFieldType,
 )
-from patterns import PATTERNS
+from configuration.patterns import PATTERNS
 
 
 @DatabaseTable(TableType.File)

@@ -16,7 +16,7 @@ from lib_pea.countertrace import CountertraceTransformer
 from lib_pea.countertrace_to_pea import build_automaton
 from lib_pea.pea import PhaseSetsPea
 from lib_pea.utils import get_countertrace_parser, strtobool
-from patterns import PATTERNS
+from configuration.patterns import PATTERNS
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
 from lib_core.data import Requirement, Formalization, VariableCollection

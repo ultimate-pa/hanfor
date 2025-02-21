@@ -13,7 +13,7 @@ from lib_core.utils import (
     generate_req_file_content,
 )
 from lib_core import boogie_parsing
-from patterns import PATTERNS
+from configuration.patterns import PATTERNS
 
 blueprint = Blueprint("variables", __name__, template_folder="templates", url_prefix="/variables")
 blueprint2 = Blueprint("variables_import", __name__, template_folder="templates", url_prefix="/variable_import")

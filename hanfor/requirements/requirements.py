@@ -15,7 +15,7 @@ from lib_core.utils import (
 from tags.tags import TagsApi
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
-from patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
+from configuration.patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
 
 
 blueprint = Blueprint("requirements", __name__, template_folder="templates", url_prefix="/")

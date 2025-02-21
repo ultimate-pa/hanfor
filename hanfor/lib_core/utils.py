@@ -13,7 +13,7 @@ from lib_core import boogie_parsing
 from config import PATTERNS_GROUP_ORDER  # TODO should this be in the config?
 from hanfor_flask import HanforFlask
 from lib_core.data import Requirement, VariableCollection
-from patterns import PATTERNS
+from configuration.patterns import PATTERNS
 
 
 default_scope_options = """
