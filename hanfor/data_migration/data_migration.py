@@ -18,7 +18,7 @@ from lib_core.startup import add_custom_serializer_to_database
 from ressources.queryapi import Query
 from ressources.reports import Report
 from ultimate.ultimate_job import UltimateJob
-from defaults import Color
+from configuration.defaults import Color
 
 import argparse
 from os import path, sep, mkdir, listdir

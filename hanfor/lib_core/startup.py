@@ -22,7 +22,7 @@ from lib_core.utils import (
 from lib_core.data import Tag, VariableCollection, Scope, SessionValue, Requirement, Variable
 from tags.tags import TagsApi
 from configuration.patterns import PATTERNS
-from defaults import Color
+from configuration.defaults import Color
 
 from reqtransformer import RequirementCollection
 

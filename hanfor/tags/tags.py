@@ -6,7 +6,7 @@ from flask.views import MethodView
 from pydantic import BaseModel
 
 from configuration.tags import STANDARD_TAGS
-from defaults import Color
+from configuration.defaults import Color
 
 from lib_core.data import SessionValue, Tag
 
