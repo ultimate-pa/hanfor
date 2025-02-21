@@ -8,10 +8,11 @@ import csv
 import json
 import logging
 from dataclasses import dataclass, field
+from typing import Any
 
 from lib_core.data import Requirement, Formalization
-from static_utils import choice, try_cast_string
-from tags.tags import TagsApi, Tag
+from lib_core.utils import choice
+from tags.tags import TagsApi
 
 
 __version__ = "1.0.4"
@@ -73,7 +74,7 @@ class RequirementCollection:
         """
         logging.info(f"Load Input : {csv_file}")
         with open(csv_file, "r", encoding=input_encoding) as csvfile:
-            csv.register_dialect("ultimate", delimiter=",", escapechar="\\", quoting=csv.QUOTE_ALL, quotechar="\"")
+            csv.register_dialect("ultimate", delimiter=",", escapechar="\\", quoting=csv.QUOTE_ALL, quotechar='"')
             dialect = "ultimate"
             csvfile.seek(0)
             reader = csv.DictReader(csvfile, dialect=dialect)
@@ -152,8 +153,8 @@ class RequirementCollection:
                 available_revisions = [
                     r for r in available_sessions[available_sessions_names.index(chosen_session)]["revisions"]
                 ]
-                revision_choice = choice(available_revisions, available_revisions[0])
-                # TODO: here there is funky stuff with revicion choice
+                # TODO: here there is funky stuff with revision choice
+                # revision_choice = choice(available_revisions, available_revisions[0])
                 # imported_var_collection = VariableCollection.load(
                 #     os.path.join(
                 #         app.config["SESSION_BASE_FOLDER"],
@@ -176,7 +177,7 @@ class RequirementCollection:
         for index, row in enumerate(self.csv_all_rows):
             # Todo: Use utils.slugify to make the rid save for a filename.
             requirement = Requirement(
-                id=row[self.csv_meta.id_header],
+                rid=row[self.csv_meta.id_header],
                 description=try_cast_string(row[self.csv_meta.desc_header]),
                 type_in_csv=try_cast_string(row[self.csv_meta.type_header]),
                 csv_row=row,
@@ -212,3 +213,11 @@ class RequirementCollection:
                     )
 
             self.requirements.append(requirement)
+
+
+def try_cast_string(data: Any) -> str:
+    try:
+        return str(data)
+    except TypeError as e:
+        logging.warning(f"Failed string cast:\n {e}")
+    return "CSV-None"

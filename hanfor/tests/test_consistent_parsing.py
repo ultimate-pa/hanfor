@@ -20,7 +20,7 @@ from unittest import TestCase
 class TestParseExpressions(TestCase):
     def test_used_variables(self):
         parsers = [
-            Lark.open("../hanfor_boogie_grammar.lark", rel_to=__file__, start="exprcommastar", parser="lalr")
+            Lark.open("../lib_core/hanfor_boogie_grammar.lark", rel_to=__file__, start="exprcommastar", parser="lalr")
             for _ in range(10)
         ]
         expressions = ["true", "false"]

@@ -1,10 +1,17 @@
 from flask import Blueprint, request, render_template
 import logging
 import json
+import datetime
 
-import utils
-from hanfor_flask import current_app, nocache
-from lib_core.data import Requirement, VariableCollection
+
+from hanfor_flask import current_app, nocache, HanforFlask
+from lib_core.data import Requirement, VariableCollection, SessionValue, RequirementEditHistory
+from lib_core.utils import (
+    get_default_pattern_options,
+    formalization_html,
+    formalizations_to_html,
+    default_scope_options,
+)
 from tags.tags import TagsApi
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
@@ -26,7 +33,7 @@ def index():
         {"name": "Status", "target": 6},
         {"name": "Formalization", "target": 7},
     ]
-    additional_cols = utils.get_datatable_additional_cols(current_app)["col_defs"]
+    additional_cols = get_datatable_additional_cols(current_app)["col_defs"]
     return render_template(
         "index.html", query=request.args, additional_cols=additional_cols, default_cols=default_cols, patterns=PATTERNS
     )
@@ -35,7 +42,7 @@ def index():
 @api_blueprint.route("/colum_defs", methods=["GET"])
 @nocache
 def table_api():
-    result = utils.get_datatable_additional_cols(current_app)
+    result = get_datatable_additional_cols(current_app)
     return result
 
 
@@ -47,10 +54,8 @@ def api_index():
     var_collection = VariableCollection(current_app)
 
     result = requirement.to_dict(include_used_vars=True)
-    result["formalizations_html"] = utils.formalizations_to_html(current_app, requirement.formalizations)
-    result["available_vars"] = var_collection.get_available_var_names_list(
-        used_only=False, exclude_types={"ENUM"}
-    )
+    result["formalizations_html"] = formalizations_to_html(current_app, requirement.formalizations)
+    result["available_vars"] = var_collection.get_available_var_names_list(used_only=False, exclude_types={"ENUM"})
 
     result["additional_static_available_vars"] = VARIABLE_AUTOCOMPLETE_EXTENSION
 
@@ -84,9 +89,7 @@ def api_update():
         new_status = request.form.get("status", "")
         if requirement.status != new_status:
             requirement.status = new_status
-            utils.add_msg_to_flask_session_log(
-                current_app, f"Set status to {new_status} for requirement", [requirement]
-            )
+            add_msg_to_flask_session_log(current_app, f"Set status to {new_status} for requirement", [requirement])
             logging.debug(f"Requirement status set to {requirement.status}")
 
         new_tag_set = json.loads(request.form.get("tags", ""))
@@ -104,7 +107,7 @@ def api_update():
                     tag_api.add(tag)
                 requirement.tags[tag_api.get_tag(tag)] = comment
             # do logging
-            utils.add_msg_to_flask_session_log(
+            add_msg_to_flask_session_log(
                 current_app, f"Tags: + {added_tags} and - {removed_tags} to requirement", [requirement]
             )
             logging.debug(f"Tags: + {added_tags} and - {removed_tags} to requirement {requirement.rid}")
@@ -115,7 +118,7 @@ def api_update():
             logging.debug("Updated Formalizations: {}".format(formalizations))
             try:
                 requirement.update_formalizations(formalizations, current_app)
-                utils.add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
+                add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
             except KeyError as e:
                 error = True
                 error_msg = f"Could not set formalization: Missing expression/variable for {e}"
@@ -167,7 +170,7 @@ def api_multi_update():
         log_msg = f"Update {len(rid_list)} requirements."
         if len(add_tag) > 0:
             log_msg += f"Adding tag `{add_tag}`"
-            utils.add_msg_to_flask_session_log(current_app, f"Adding tag `{add_tag}` to requirements.", requirements)
+            add_msg_to_flask_session_log(current_app, f"Adding tag `{add_tag}` to requirements.", requirements)
             if not tag_api.tag_exists(add_tag):
                 tag_api.add(add_tag)
             add_tag = tag_api.get_tag(add_tag)
@@ -175,9 +178,7 @@ def api_multi_update():
             add_tag = None
         if len(remove_tag) > 0:
             log_msg += f", removing Tag `{remove_tag}` (is present)"
-            utils.add_msg_to_flask_session_log(
-                current_app, f"Removing tag `{remove_tag}` from requirements.", requirements
-            )
+            add_msg_to_flask_session_log(current_app, f"Removing tag `{remove_tag}` from requirements.", requirements)
             if not tag_api.tag_exists(remove_tag):
                 remove_tag = None
             else:
@@ -186,9 +187,7 @@ def api_multi_update():
             remove_tag = None
         if len(set_status) > 0:
             log_msg += ", set Status=`{}`.".format(set_status)
-            utils.add_msg_to_flask_session_log(
-                current_app, f"Set status to `{set_status}` for requirements. ", requirements
-            )
+            add_msg_to_flask_session_log(current_app, f"Set status to `{set_status}` for requirements. ", requirements)
         logging.info(log_msg)
 
         for requirement in requirements:
@@ -212,8 +211,8 @@ def api_new_formalization():
     requirement = current_app.db.get_object(Requirement, rid)  # type: Requirement
     formalization_id, formalization = requirement.add_empty_formalization()
     current_app.db.update()
-    utils.add_msg_to_flask_session_log(current_app, "Added new Formalization to requirement", [requirement])
-    result = utils.get_formalization_template(current_app.config["TEMPLATES_FOLDER"], formalization_id, formalization)
+    add_msg_to_flask_session_log(current_app, "Added new Formalization to requirement", [requirement])
+    result = get_formalization_template(current_app.config["TEMPLATES_FOLDER"], formalization_id, formalization)
     return result
 
 
@@ -228,8 +227,8 @@ def api_del_formalization():
     requirement.delete_formalization(formalization_id, current_app)
     current_app.db.update()
 
-    utils.add_msg_to_flask_session_log(current_app, "Deleted formalization from requirement", [requirement])
-    result["html"] = utils.formalizations_to_html(current_app, requirement.formalizations)
+    add_msg_to_flask_session_log(current_app, "Deleted formalization from requirement", [requirement])
+    result["html"] = formalizations_to_html(current_app, requirement.formalizations)
     return result
 
 
@@ -296,9 +295,9 @@ def api_add_formalization_from_guess():
         formalization_id=formalization_id, scope_name=scope, pattern_name=pattern, mapping=mapping, app=current_app
     )
     current_app.db.update()
-    utils.add_msg_to_flask_session_log(current_app, "Added formalization guess to requirement", [requirement])
+    add_msg_to_flask_session_log(current_app, "Added formalization guess to requirement", [requirement])
 
-    result = utils.get_formalization_template(
+    result = get_formalization_template(
         current_app.config["TEMPLATES_FOLDER"], formalization_id, requirement.formalizations[formalization_id]
     )
 
@@ -358,6 +357,45 @@ def api_multi_add_top_guess():
                     result["success"] = False
                     result["errormsg"] = "Could not determine a guess: "
                     result["errormsg"] += e.__str__()
-    utils.add_msg_to_flask_session_log(current_app, "Added top guess to requirements", requirements)
+    add_msg_to_flask_session_log(current_app, "Added top guess to requirements", requirements)
 
     return result
+
+
+def get_formalization_template(templates_folder, formalization_id, formalization):  # TODO wohin damit, HTML generation
+    result = {
+        "success": True,
+        "html": formalization_html(
+            templates_folder, formalization_id, default_scope_options, get_default_pattern_options(), formalization
+        ),
+    }
+
+    return result
+
+
+def get_datatable_additional_cols(app: HanforFlask):  # TODO nach requirements
+    offset = 8  # we have 8 fixed cols.
+    result = list()
+
+    for idx, name in enumerate(app.db.get_object(SessionValue, "csv_fieldnames").value):
+        result.append(
+            {
+                "target": idx + offset,
+                "csv_name": "csv_data.{}".format(name),
+                "table_header_name": "csv: {}".format(name),
+            }
+        )
+
+    return {"col_defs": result}
+
+
+def add_msg_to_flask_session_log(
+    app: HanforFlask, message: str, req_list: list[Requirement] = None
+) -> None:  # TODO nach requirements
+    """Add a log message for the frontend_logs.
+
+    :param req_list: A list of affected requirements
+    :param app: The flask app
+    :param message: Log message string
+    """
+    app.db.add_object(RequirementEditHistory(datetime.datetime.now(), message, req_list))

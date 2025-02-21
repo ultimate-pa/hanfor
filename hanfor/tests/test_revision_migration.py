@@ -14,9 +14,9 @@ This test will
 from app import app, startup_hanfor
 import os
 import shutil
-import utils
 from unittest import TestCase
 from unittest.mock import patch
+from lib_core.startup import HanforArgumentParser
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 TESTS_BASE_FOLDER = os.path.join(HERE, "test_sessions")
@@ -115,7 +115,6 @@ class TestRevisionMigration(TestCase):
     def setUp(self):
         # Clean test folder.
         app.config["SESSION_BASE_FOLDER"] = TESTS_BASE_FOLDER
-        utils.register_assets(app)
         clean_folders()
         self.app = app.test_client()
 
@@ -152,7 +151,7 @@ class TestRevisionMigration(TestCase):
         """
 
         # Create the first initial revision.
-        args = utils.HanforArgumentParser(app).parse_args([TEST_TAGS["simple"], "-c", CSV_FILES["simple"]])
+        args = HanforArgumentParser(app).parse_args([TEST_TAGS["simple"], "-c", CSV_FILES["simple"]])
         self.startup_hanfor(args, user_mock_answers=[2, 0, 1, 3, 0])
         # Get the available requirements.
         initial_req_gets = self.app.get("api/req/gets")
@@ -160,13 +159,13 @@ class TestRevisionMigration(TestCase):
         self.assertListEqual(initial_req_gets.json["data"][1]["tags"], [])
 
         # Create the second revision.
-        args = utils.HanforArgumentParser(app).parse_args(
+        args = HanforArgumentParser(app).parse_args(
             [TEST_TAGS["simple"], "--revision", "-c", CSV_FILES["simple_changed_desc"]]
         )
         self.startup_hanfor(args, user_mock_answers=[0, 0])
 
         # Load the second revision.
-        args = utils.HanforArgumentParser(app).parse_args([TEST_TAGS["simple"], "-c", CSV_FILES["simple_changed_desc"]])
+        args = HanforArgumentParser(app).parse_args([TEST_TAGS["simple"], "-c", CSV_FILES["simple_changed_desc"]])
         self.startup_hanfor(args, user_mock_answers=[1])
         # Get available requirements from new revision.
         new_revision_req_gets = self.app.get("api/req/gets")
@@ -180,7 +179,7 @@ class TestRevisionMigration(TestCase):
     def test_created_diff(self):
         """ """
         # Create the first initial revision.
-        args = utils.HanforArgumentParser(app).parse_args([TEST_TAGS["real"], "-c", CSV_FILES["test_real_rev_0"]])
+        args = HanforArgumentParser(app).parse_args([TEST_TAGS["real"], "-c", CSV_FILES["test_real_rev_0"]])
         self.startup_hanfor(args, user_mock_answers=[1, 5, 27, 8, 0])
         # Get the available requirements.
         initial_req_gets = self.app.get("api/req/gets")
@@ -188,13 +187,13 @@ class TestRevisionMigration(TestCase):
         self.assertListEqual([], initial_req_gets.json["data"][0]["tags"])
 
         # Create the second revision.
-        args = utils.HanforArgumentParser(app).parse_args(
+        args = HanforArgumentParser(app).parse_args(
             [TEST_TAGS["real"], "--revision", "-c", CSV_FILES["test_real_rev_1"]]
         )
         self.startup_hanfor(args, user_mock_answers=[0, 0])
 
         # Load the second revision.
-        args = utils.HanforArgumentParser(app).parse_args([TEST_TAGS["real"], "-c", CSV_FILES["test_real_rev_1"]])
+        args = HanforArgumentParser(app).parse_args([TEST_TAGS["real"], "-c", CSV_FILES["test_real_rev_1"]])
         self.startup_hanfor(args, user_mock_answers=[1])
         # Get available requirements from new revision.
         new_revision_req_gets = self.app.get("api/req/gets")

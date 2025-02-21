@@ -4,10 +4,10 @@ Tests for enum and enumerators.
 """
 
 from app import app
-from lib_core.startup import startup_hanfor
+from lib_core.startup import startup_hanfor, HanforArgumentParser
+from lib_core.utils import setup_logging
 import os
 import shutil
-import utils
 from unittest.mock import patch
 
 
@@ -43,8 +43,7 @@ class MockHanfor:
         self.test_session_base_folder = os.path.join(self.here, "test_sessions", "tmp")
         self.session_tags = session_tags
         self.test_session_source = test_session_source
-        utils.register_assets(app)
-        utils.setup_logging(app)
+        setup_logging(app)
         self.clean_folders()
         self.create_temp_data()
         self.app = app.test_client()
@@ -63,7 +62,7 @@ class MockHanfor:
         count = -1
 
         csv_file = os.path.join(self.test_session_base_folder, session_tag, csv_file)
-        args = utils.HanforArgumentParser(app).parse_args([session_tag, "-c", csv_file])
+        args = HanforArgumentParser(app).parse_args([session_tag, "-c", csv_file])
         mock_results = user_mock_answers
 
         success = startup_hanfor(app, args, self.here, no_data_tracing=True)

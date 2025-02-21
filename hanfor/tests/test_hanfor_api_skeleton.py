@@ -6,9 +6,10 @@ Skeleton to test Hanfor API running the actual flask app.
 from app import app, startup_hanfor
 import os
 import shutil
-import utils
 from unittest import TestCase
 from unittest.mock import patch
+from lib_core.utils import setup_logging
+from lib_core.startup import HanforArgumentParser
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 TESTS_BASE_FOLDER = os.path.join(HERE, "test_sessions")
@@ -50,8 +51,7 @@ class TestHanforApiSkeleton(TestCase):
         app.config["SESSION_BASE_FOLDER"] = TESTS_BASE_FOLDER
         app.config["LOG_TO_FILE"] = False
         app.config["LOG_LEVEL"] = "DEBUG"
-        utils.register_assets(app)
-        utils.setup_logging(app)
+        setup_logging(app)
         self.clean_folders()
         self.app = app.test_client()
 
@@ -70,7 +70,7 @@ class TestHanforApiSkeleton(TestCase):
         """
 
         # Create the first initial revision.
-        args = utils.HanforArgumentParser(app).parse_args([TEST_TAGS["simple"], "-c", CSV_FILES["simple"]])
+        args = HanforArgumentParser(app).parse_args([TEST_TAGS["simple"], "-c", CSV_FILES["simple"]])
         self.startup_hanfor(args, user_mock_answers=[2, 0, 1, 3])
         # Get the available requirements.
         initial_req_gets = self.app.get("api/req/gets")

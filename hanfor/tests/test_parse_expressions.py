@@ -3,7 +3,7 @@ Test correct parsing of expressions using the boogie_parser w.r.t the grammar de
 Test reconstruction from parse trees to expression string.
 """
 
-import boogie_parsing
+from lib_core import boogie_parsing
 from unittest import TestCase
 from lark.exceptions import UnexpectedInput
 

@@ -6,11 +6,12 @@ Test the hanfor version migrations.
 import json
 
 from app import app, startup_hanfor
+from lib_core.utils import setup_logging
 import os
 import shutil
-import utils
 from unittest import TestCase
 from unittest.mock import patch
+from lib_core.startup import HanforArgumentParser
 
 HERE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_sessions")
 MOCK_DATA_FOLDER = os.path.join(HERE, "test_delete_variable")
@@ -43,8 +44,7 @@ class TestHanforVersionMigrations(TestCase):
         app.config["SESSION_BASE_FOLDER"] = SESSION_BASE_FOLDER
         app.config["LOG_TO_FILE"] = False
         app.config["LOG_LEVEL"] = "DEBUG"
-        utils.register_assets(app)
-        utils.setup_logging(app)
+        setup_logging(app)
         self.clean_folders()
         self.create_temp_data()
         self.app = app.test_client()
@@ -60,7 +60,7 @@ class TestHanforVersionMigrations(TestCase):
         app.config["TEMPLATES_FOLDER"] = os.path.join(HERE, "..", "..", "templates")
 
     def test_variable_with_constraint_deletion(self):
-        args = utils.HanforArgumentParser(app).parse_args(["test_delete_variable"])
+        args = HanforArgumentParser(app).parse_args(["test_delete_variable"])
         self.startup_hanfor(args, user_mock_answers=[])
         # Get the available requirements.
         var_gets = self.app.get("api/var/gets")
@@ -93,7 +93,7 @@ class TestHanforVersionMigrations(TestCase):
         )
 
     def test_deleting_simple_variable(self):
-        args = utils.HanforArgumentParser(app).parse_args(["test_delete_variable"])
+        args = HanforArgumentParser(app).parse_args(["test_delete_variable"])
         self.startup_hanfor(args, user_mock_answers=[])
         # Get the available requirements.
         var_gets = self.app.get("api/var/gets")
@@ -112,7 +112,7 @@ class TestHanforVersionMigrations(TestCase):
         )
 
     def test_no_affect_of_deleting_used_variable(self):
-        args = utils.HanforArgumentParser(app).parse_args(["test_delete_variable"])
+        args = HanforArgumentParser(app).parse_args(["test_delete_variable"])
         self.startup_hanfor(args, user_mock_answers=[])
         # Get the available requirements.
         var_gets = self.app.get("api/var/gets")

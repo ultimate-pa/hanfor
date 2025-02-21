@@ -13,9 +13,8 @@ from hanfor_flask import HanforFlask
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import HTTPException
 
-import utils
-
-from lib_core.startup import startup_hanfor
+from lib_core.startup import startup_hanfor, PrefixMiddleware, HanforArgumentParser
+from lib_core.utils import setup_logging
 
 from requirements import requirements
 from variables import variables
@@ -149,8 +148,8 @@ def get_app_options():
 
 
 if __name__ == "__main__":
-    utils.setup_logging(app)
-    app.wsgi_app = utils.PrefixMiddleware(app.wsgi_app, prefix=app.config["URL_PREFIX"])
+    setup_logging(app)
+    app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix=app.config["URL_PREFIX"])
     HERE = os.path.dirname(os.path.realpath(__file__))
 
     app.debug = app.config["DEBUG_MODE"]
@@ -158,10 +157,9 @@ if __name__ == "__main__":
         toolbar = DebugToolbarExtension(app)
 
     fetch_hanfor_version()
-    utils.register_assets(app)
 
     # Parse python args and startup hanfor session.
-    parsed_args = utils.HanforArgumentParser(app).parse_args()
+    parsed_args = HanforArgumentParser(app).parse_args()
     if startup_hanfor(app, parsed_args, HERE):
         if app.config["FEATURE_TELEMETRY"]:
             telemetry_namespace.set_data_folder(app.config["REVISION_FOLDER"])

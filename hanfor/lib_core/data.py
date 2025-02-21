@@ -1,24 +1,51 @@
+import datetime
 import difflib
 import json
 import logging
 import string
+from dataclasses import dataclass, field
 from enum import Enum
 from threading import Lock
 from typing import Dict, Tuple
 import re
+from uuid import uuid4
 
 from lark import LarkError
 from typing_extensions import deprecated
 
-import boogie_parsing
-from boogie_parsing import run_typecheck_fixpoint, BoogieType
+from lib_core import boogie_parsing
+from lib_core.boogie_parsing import run_typecheck_fixpoint, BoogieType
 
-from hanfor_flask import current_app
-from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField, DatabaseNonSavedField, \
-    DatabaseFieldType
-from static_utils import SessionValue, replace_prefix
-from tags.tags import Tag
+from hanfor_flask import current_app, HanforFlask
+from json_db_connector.json_db import (
+    DatabaseTable,
+    TableType,
+    DatabaseID,
+    DatabaseField,
+    DatabaseNonSavedField,
+    DatabaseFieldType,
+)
 from patterns import PATTERNS
+
+
+@DatabaseTable(TableType.File)
+@DatabaseID("uuid", use_uuid=True)
+@DatabaseField("name", str)
+@DatabaseField("color", str)
+@DatabaseField("internal", bool)
+@DatabaseField("description", str)
+@DatabaseNonSavedField("used_by", [])
+@dataclass
+class Tag:
+    name: str
+    color: str
+    internal: bool
+    description: str
+    used_by: list = field(default_factory=list)
+    uuid: str = field(default_factory=lambda: str(uuid4()))
+
+    def __hash__(self):
+        return hash(self.uuid)
 
 
 @DatabaseTable(TableType.Folder)
@@ -34,8 +61,8 @@ from patterns import PATTERNS
 @DatabaseField("_next_formalization_index", int, default=-1)
 @DatabaseNonSavedField("_formalization_index_mutex", Lock())
 class Requirement:
-    def __init__(self, id: str, description: str, type_in_csv: str, csv_row: dict[str, str], pos_in_csv: int):
-        self.rid: str = id
+    def __init__(self, rid: str, description: str, type_in_csv: str, csv_row: dict[str, str], pos_in_csv: int):
+        self.rid: str = rid
         self.formalizations: Dict[int, Formalization] = dict()
         self.description = description
         self.type_in_csv = type_in_csv
@@ -93,7 +120,7 @@ class Requirement:
             if csv_key not in other.csv_row.keys():
                 other.csv_row[csv_key] = ""
             if self.csv_row[csv_key] is None:
-                # This can happen if we revision with an CSV that is missing the csv_key now.
+                # This can happen if we create revision with an CSV that is missing the csv_key now.
                 self.csv_row[csv_key] = ""
             diff = difflib.ndiff(self.csv_row[csv_key].splitlines(), other.csv_row[csv_key].splitlines())
             diff = [s for s in diff if not s.startswith("  ")]
@@ -118,9 +145,9 @@ class Requirement:
 
     def add_empty_formalization(self) -> Tuple[int, "Formalization"]:
         """Add an empty formalization to the formalizations list."""
-        id = self._next_free_formalization_id()
-        self.formalizations[id] = Formalization(id)
-        return id, self.formalizations[id]
+        fid = self._next_free_formalization_id()
+        self.formalizations[fid] = Formalization(fid)
+        return fid, self.formalizations[fid]
 
     def delete_formalization(self, formalization_id, app):
         formalization_id = int(formalization_id)
@@ -195,8 +222,9 @@ class Requirement:
             result += "\n- ".join(value) + "\n"
         return result
 
-    def format_unknown_type_tag(self, vars) -> str:
-        return ", ".join(sorted(vars))
+    @staticmethod
+    def format_unknown_type_tag(variables: list[str]) -> str:
+        return ", ".join(sorted(variables))
 
     def format_incomplete_formalization_tag(self, fid: int) -> str:
         rid_fid = self.rid + "_" + fid.__str__()
@@ -246,16 +274,18 @@ class Requirement:
         if current_app.db.get_object(SessionValue, "TAG_unknown_type").value in self.tags:
             self.tags.pop(current_app.db.get_object(SessionValue, "TAG_unknown_type").value)
         vars_with_unknown_type = []
-        for id in self.formalizations.keys():
+        for fid in self.formalizations.keys():
             # Run type inference check
-            self.formalizations[id].type_inference_check(var_collection)
-            if len(self.formalizations[id].type_inference_errors) > 0:
+            self.formalizations[fid].type_inference_check(var_collection)
+            if len(self.formalizations[fid].type_inference_errors) > 0:
                 self.tags[current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value] = (
-                    self.format_error_tag(self.formalizations[id])
+                    self.format_error_tag(self.formalizations[fid])
                 )
 
             # Check for variables of type 'unknown' in formalization
-            vars_with_unknown_type = self.formalizations[id].unknown_types_check(var_collection, vars_with_unknown_type)
+            vars_with_unknown_type = self.formalizations[fid].unknown_types_check(
+                var_collection, vars_with_unknown_type
+            )
             if vars_with_unknown_type:
                 self.tags[current_app.db.get_object(SessionValue, "TAG_unknown_type").value] = (
                     self.format_unknown_type_tag(vars_with_unknown_type)
@@ -300,8 +330,8 @@ class Requirement:
 @DatabaseField("expressions_mapping", dict)
 @DatabaseField("type_inference_errors", dict)
 class Formalization:
-    def __init__(self, id: int):
-        self.id: int = id
+    def __init__(self, fid: int):
+        self.id: int = fid
         self.scoped_pattern = ScopedPattern()
         self.expressions_mapping: dict[str, Expression] = dict()
         self.type_inference_errors = dict()
@@ -424,7 +454,7 @@ class Expression:
     """
 
     def __init__(self, parent_rid: str):
-        self.used_variables: list[str] = list()  # TODO use Variable objects instead of str
+        self.used_variables: set[str] = set()  # TODO use Variable objects instead of str
         self.raw_expression = ""
         self.parent_rid = parent_rid
 
@@ -537,7 +567,7 @@ class ScopedPattern:
         # TODO: avoid having this problem in the first place
         try:
             return self.__str__().format(**expression_mapping).replace("\n", " ").replace("\r", " ")
-        except KeyError as e:
+        except KeyError:
             logging.error(
                 f"Pattern {self.pattern.name}: insufficient " f"keys in expression mapping {str(expression_mapping)}"
             )
@@ -584,6 +614,7 @@ class ScopedPattern:
         result.update(self.pattern.get_allowed_types())
         return result
 
+
 @DatabaseTable(TableType.Folder)
 @DatabaseID("uuid", use_uuid=True)
 @DatabaseField("name", str)
@@ -609,15 +640,11 @@ class Variable:
         self.description: str = ""
 
     def to_dict(self, var_req_mapping):
-        used_by = []
         type_inference_errors = dict()
         for index, f in self.get_constraints().items():
             if f.type_inference_errors:
                 type_inference_errors[index] = [key.lower() for key in f.type_inference_errors.keys()]
-        try:
-            used_by = sorted(list(var_req_mapping[self.name]))
-        except Exception:
-            pass
+        used_by = sorted(list(var_req_mapping[self.name])) if self.name in var_req_mapping else []
 
         d = {
             "name": self.name,
@@ -652,11 +679,8 @@ class Variable:
 
     def _next_free_constraint_id(self):
         i = 0
-        try:
-            while i in self.constraints.keys():
-                i += 1
-        except Exception:
-            pass
+        while i in self.constraints.keys():
+            i += 1
         return i
 
     def add_constraint(self):
@@ -664,17 +688,16 @@ class Variable:
 
         :return: (index: int, The constraint: Formalization)
         """
-        id = self._next_free_constraint_id()
-        self.constraints[id] = Formalization(id)
-        return id
+        fid = self._next_free_constraint_id()
+        self.constraints[fid] = Formalization(fid)
+        return fid
 
-    def del_constraint(self, id):
-        try:
-            del self.constraints[id]
+    def del_constraint(self, cid):
+        if cid in self.constraints:
+            del self.constraints[cid]
             return True
-        except Exception as e:
-            logging.debug(f"Constraint id `{id}` not found in var `{self.name}`")
-            return False
+        logging.debug(f"Constraint id `{cid}` not found in var `{self.name}`")
+        return False
 
     def get_constraints(self):
         return self.constraints
@@ -682,14 +705,14 @@ class Variable:
     def reload_constraints_type_inference_errors(self, var_collection):
         logging.info(f"Reload type inference for variable `{self.name}` constraints")
         self.remove_tag(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
-        for id in self.constraints:
+        for cid in self.constraints:
             try:
-                self.constraints[id].type_inference_check(var_collection)
-                if len(self.constraints[id].type_inference_errors) > 0:
+                self.constraints[cid].type_inference_check(var_collection)
+                if len(self.constraints[cid].type_inference_errors) > 0:
                     self.tags.add(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
             except AttributeError as e:
                 # Probably No pattern set.
-                logging.info(f"Could not derive type inference for variable `{self.name}` constraint No. {id}. { e}")
+                logging.info(f"Could not derive type inference for variable `{self.name}` constraint No. {cid}. {e}")
 
     def update_constraint(self, constraint_id, scope_name, pattern_name, mapping, variable_collection):
         """Update a single constraint
@@ -813,6 +836,7 @@ class VariableCollection:
     def __init__(self, app):
         self.app = app
         self.collection: Dict[str, Variable] = {v.name: v for v in app.db.get_objects(Variable).values()}
+        self.var_req_mapping = dict()
         self.refresh_var_usage(app)
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
 
@@ -858,12 +882,13 @@ class VariableCollection:
         self.var_req_mapping = self.invert_mapping(self.req_var_mapping)
         # self.app.db.update()
 
-    def invert_mapping(self, mapping):
-        newdict = {}
+    @staticmethod
+    def invert_mapping(mapping):
+        new_dict = {}
         for k in mapping:
             for v in mapping[k]:
-                newdict.setdefault(v, set()).add(k)
-        return newdict
+                new_dict.setdefault(v, set()).add(k)
+        return new_dict
 
     def map_req_to_vars(self, rid, used_variables):
         """Map a requirement by rid to used vars."""
@@ -873,11 +898,12 @@ class VariableCollection:
         for var in used_variables:
             self.req_var_mapping[rid].add(var)
 
-    def rename(self, old_name: str, new_name: str, app):
+    def rename(self, old_name: str, new_name: str, app: HanforFlask) -> list[tuple[str, str]]:
         """Rename a var in the collection. Merges the variables if new_name variable exists.
 
         :param old_name: The old var name.
         :param new_name: The new var name.
+        :param app: the app
         :returns affected_enumerators List [(old_enumerator_name, new_enumerator_name)] of potentially affected
         enumerators.
         """
@@ -894,7 +920,7 @@ class VariableCollection:
         self.collection[new_name] = self.collection.pop(old_name)
         # Update name to new name (rename also triggers to update constraint names.)
         self.collection[new_name].rename(new_name)
-        # Copy back back Constraints
+        # Copy back Constraints
         self.collection[new_name].constraints = tmp_constraints
 
         # Update the mappings.
@@ -912,10 +938,10 @@ class VariableCollection:
                 logging.debug(f"`{affected_var_name}` constraints not updatable: {e}")
 
         # Update the constraint names if any
-        def rename_constraint(name: str, old_name: str, new_name: str):
+        def rename_constraint(name: str, old_constraint_name: str, new_constraint_name: str):
             match = re.match(Variable.CONSTRAINT_REGEX, name)
-            if match is not None and match.group(2) == old_name:
-                return name.replace(old_name, new_name)
+            if match is not None and match.group(2) == old_constraint_name:
+                return name.replace(old_constraint_name, new_constraint_name)
             return name
 
         # Todo: this is even more inefficient :-(
@@ -962,7 +988,7 @@ class VariableCollection:
                 # Check for int, real or unknown based on value.
                 try:
                     float(var.value)
-                except Exception:
+                except ValueError:
                     type_env[name] = mapping["unknown"]
                     continue
 
@@ -977,18 +1003,18 @@ class VariableCollection:
         # Todo: Store this so we can reuse and update on collection change.
         return type_env
 
-    def enum_type_mismatch(self, enum, type):
+    def enum_type_mismatch(self, enum, new_type):
         enum_type = self.collection[enum].type
         accepted_type = replace_prefix(enum_type, "ENUM", "ENUMERATOR")
 
-        return not type == accepted_type
+        return not new_type == accepted_type
 
-    def set_type(self, name, type):
-        if type in ["ENUMERATOR_INT", "ENUMERATOR_REAL"]:
-            if self.enum_type_mismatch(self.collection[name].belongs_to_enum, type):
+    def set_type(self, name, new_type):
+        if new_type in ["ENUMERATOR_INT", "ENUMERATOR_REAL"]:
+            if self.enum_type_mismatch(self.collection[name].belongs_to_enum, new_type):
                 raise TypeError("ENUM type mismatch")
 
-        self.collection[name].set_type(type)
+        self.collection[name].set_type(new_type)
 
     def get_type(self, name):
         return self.collection[name].type
@@ -1017,20 +1043,16 @@ class VariableCollection:
                 constraint_variable_name = match.group(2)
                 if constraint_variable_name not in self.collection.keys():
                     # The referenced variable is no longer existing.
-                    try:
+                    if constraint_name in self.req_var_mapping and var_name in self.req_var_mapping[constraint_name]:
                         self.req_var_mapping[constraint_name].discard(var_name)
-                    except Exception:
-                        pass
                     return True
                 else:
                     # The variable exists. Now check if var_name occurs in one of its constraints.
                     for constraint in self.collection[constraint_variable_name].get_constraints().values():
                         if var_name in constraint.get_string():
                             return False
-                    try:
+                    if constraint_name in self.req_var_mapping and var_name in self.req_var_mapping[constraint_name]:
                         self.req_var_mapping[constraint_name].discard(var_name)
-                    except Exception:
-                        pass
                     return True
 
             return False
@@ -1115,3 +1137,39 @@ class VariableCollection:
                 pass
             else:
                 self.collection[var_name] = variable
+
+
+@DatabaseTable(TableType.File)
+@DatabaseID("id", use_uuid=True)
+@DatabaseField("timestamp", datetime.datetime)
+@DatabaseField("message", str)
+@DatabaseField("requirements", list[Requirement])
+@dataclass()
+class RequirementEditHistory:
+    timestamp: datetime.datetime
+    message: str
+    requirements: list[Requirement]
+    id: str = field(default_factory=lambda: str(uuid4()))
+
+
+@DatabaseTable(TableType.File)
+@DatabaseID("name", str)
+@DatabaseField("value", dict)
+@dataclass()
+class SessionValue:
+    name: str
+    value: any
+
+
+def replace_prefix(input_string: str, prefix_old: str, prefix_new: str):
+    """Replace the prefix (prefix_old) of a string with (prefix_new).
+    String remains unchanged if prefix_old is not matched.
+
+    :param input_string: To be changed.
+    :param prefix_old: Existing prefix of the string.
+    :param prefix_new: Replacement prefix.
+    :return: String with prefix_old replaced by prefix_new.
+    """
+    if input_string.startswith(prefix_old):
+        input_string = "".join((prefix_new, input_string[len(prefix_old) :]))
+    return input_string

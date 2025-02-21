@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import fnmatch
 import json
 import logging
-import os
 import time
 import uuid
 
@@ -12,7 +10,7 @@ from flask import render_template
 from pysmt.shortcuts import Bool, Int, Real
 from pysmt.typing import BOOL, INT, REAL
 
-import boogie_parsing
+from lib_core import boogie_parsing
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
 from lib_pea.countertrace import CountertraceTransformer
 from lib_pea.countertrace_to_pea import build_automaton

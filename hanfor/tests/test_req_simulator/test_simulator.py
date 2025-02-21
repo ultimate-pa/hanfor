@@ -100,8 +100,8 @@ class TestSimulator(TestCase):
         pea = build_automaton(ct)
 
         # TODO: Fix this hack.
-        pea.requirement = Requirement(id="0", description="", type_in_csv="", csv_row={}, pos_in_csv=0)
-        pea.formalization = Formalization(id=0)
+        pea.requirement = Requirement(rid="0", description="", type_in_csv="", csv_row={}, pos_in_csv=0)
+        pea.formalization = Formalization(fid=0)
         pea.countertrace_id = 0
 
         scenario = Scenario.from_json_string(yaml_str)

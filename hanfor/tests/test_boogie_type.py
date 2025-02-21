@@ -1,5 +1,5 @@
 from unittest import TestCase
-from boogie_parsing import BoogieType
+from lib_core.boogie_parsing import BoogieType
 
 
 class TestBoogieType(TestCase):

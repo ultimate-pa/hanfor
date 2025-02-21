@@ -6,8 +6,8 @@ from unittest import TestCase
 
 from lark import Tree
 
-from boogie_parsing import BoogieType, run_typecheck_fixpoint
-import boogie_parsing
+from lib_core.boogie_parsing import BoogieType, run_typecheck_fixpoint
+from lib_core import boogie_parsing
 
 
 class TestParseExpressions(TestCase):
