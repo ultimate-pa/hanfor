@@ -27,6 +27,17 @@ socket.on('command', function (msg) {
     }
 });
 
+socket.on('pause', function (msg) {
+    console.log("pause: " + msg);
+    if (msg === "begin") {
+         $("#pauseOverlay").addClass("show");
+        sendTelemetry("system", "", "pause_begin")
+    } else if (msg === "end") {
+        $("#pauseOverlay").removeClass("show");
+        sendTelemetry("system", "", "pause_end")
+    }
+});
+
 export function sendTelemetry(scope, id, event) {
     let msg = {
         "scope": scope,
@@ -35,3 +46,16 @@ export function sendTelemetry(scope, id, event) {
     }
    socket.emit("event", JSON.stringify(msg))
 }
+
+$("#pauseButton").click(function() {
+    socket.emit("pause", true)
+});
+
+$("#continueButton").click(function() {
+    socket.emit("pause", false)
+});
+
+
+$(document).ready(function () {
+    $("#pauseOverlay").addClass("fade_transition");
+})

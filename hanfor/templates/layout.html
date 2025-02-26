@@ -45,6 +45,19 @@
                         <a class="nav-link" href="https://ultimate-pa.github.io/hanfor/" target="_blank">Help</a>
                     </li>
                 </ul>
+                {% if config.FEATURE_TELEMETRY %}
+                    <button id="pauseButton" class="btn btn-secondary btn-sm me-2">
+                        <svg fill="none" xmlns="http://www.w3.org/2000/svg" style="height:2em;width:2em;" viewBox="0 0 24 24">
+                            <g id="Group" stroke="#eeeeee" stroke-width="1.5" transform="translate(4, 4)">
+                                <path d="M11,5 L1,5 C0.44771525,5 -0.0522847498,5.22385763 -0.414213562,5.58578644 C-0.776142375,5.94771525 -1,6.44771525 -1,7 L-1,11 C-1,12.6568542 -0.328427125,14.1568542 0.757359313,15.2426407 C1.84314575,16.3284271 3.34314575,17 5,17 L7,17 C8.65685425,17 10.1568542,16.3284271 11.2426407,15.2426407 C12.3284271,14.1568542 13,12.6568542 13,11 L13,7 C13,6.44771525 12.7761424,5.94771525 12.4142136,5.58578644 C12.0522847,5.22385763 11.5522847,5 11,5 Z"></path>
+                                <path d="M17,7 L13,7 L13,9 C13,9.55228475 13.2238576,10.0522847 13.5857864,10.4142136 C13.9477153,10.7761424 14.4477153,11 15,11 C15.5522847,11 16.0522847,10.7761424 16.4142136,10.4142136 C16.7761424,10.0522847 17,9.55228475 17,9 L17,7 Z" transform="translate(15, 9) rotate(-90) translate(-15, -9) "></path>
+                                <path d="M 2.0030878,2.2742306 C 2.9455355,0.07837425 1.0545378,0.4614417 1.9967274,-1.774235" id="path958" style="stroke-width:1.45153;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"></path>
+                                <path d="M 6.0031337,2.2742306 C 6.9455814,0.07837419 5.0545837,0.46144169 5.9967733,-1.774235" id="path958-0" style="stroke-width:1.45153;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"></path>
+                                <path d="M 10.003134,2.2742328 C 10.945582,0.07837645 9.0545839,0.4614439 9.996773,-1.7742328" id="path958-5" style="stroke-width:1.45153;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"></path>
+                            </g>
+                        </svg>
+                    </button>
+                {% endif %}
                 <span class="navbar-text" id="runtime-info">
                     Running <code>{{ config.SESSION_TAG }}</code> @ <code>{{ config.USING_REVISION }}</code>&nbsp;
                 </span>
@@ -88,6 +101,24 @@
         {% endblock %}
     </div>
 </main>
+
+<!-- Pause overlay -->
+<div id="pauseOverlay">
+    <div class="overlay-content">
+        <h1>Paused</h1>
+        <svg fill="none" xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="-2 0 24 24">
+            <g id="Group" stroke="#000000" stroke-width="1.5" transform="translate(4, 4)">
+                <path d="M11,5 L1,5 C0.44771525,5 -0.0522847498,5.22385763 -0.414213562,5.58578644 C-0.776142375,5.94771525 -1,6.44771525 -1,7 L-1,11 C-1,12.6568542 -0.328427125,14.1568542 0.757359313,15.2426407 C1.84314575,16.3284271 3.34314575,17 5,17 L7,17 C8.65685425,17 10.1568542,16.3284271 11.2426407,15.2426407 C12.3284271,14.1568542 13,12.6568542 13,11 L13,7 C13,6.44771525 12.7761424,5.94771525 12.4142136,5.58578644 C12.0522847,5.22385763 11.5522847,5 11,5 Z"></path>
+                <path d="M17,7 L13,7 L13,9 C13,9.55228475 13.2238576,10.0522847 13.5857864,10.4142136 C13.9477153,10.7761424 14.4477153,11 15,11 C15.5522847,11 16.0522847,10.7761424 16.4142136,10.4142136 C16.7761424,10.0522847 17,9.55228475 17,9 L17,7 Z" transform="translate(15, 9) rotate(-90) translate(-15, -9) "></path>
+                <path d="M 2.0030878,2.2742306 C 2.9455355,0.07837425 1.0545378,0.4614417 1.9967274,-1.774235" id="path958" style="stroke-width:1.45153;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"></path>
+                <path d="M 6.0031337,2.2742306 C 6.9455814,0.07837419 5.0545837,0.46144169 5.9967733,-1.774235" id="path958-0" style="stroke-width:1.45153;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"></path>
+                <path d="M 10.003134,2.2742328 C 10.945582,0.07837645 9.0545839,0.4614439 9.996773,-1.7742328" id="path958-5" style="stroke-width:1.45153;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"></path>
+            </g>
+        </svg>
+        <button id="continueButton" class="btn btn-success">Continue</button>
+    </div>
+</div>
+
 {% block scripts %}
     <script type="text/javascript">
         let url_prefix = '{{ config.URL_PREFIX }}'
