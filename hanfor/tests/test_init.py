@@ -8,9 +8,9 @@ Check if API api/req/gets returns correct requirements.
 from app import app, startup_hanfor
 import os
 import shutil
-import utils
 from unittest import TestCase
 from unittest.mock import patch
+from lib_core.startup import HanforArgumentParser
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 TESTS_BASE_FOLDER = os.path.join(HERE, "test_sessions")
@@ -41,7 +41,6 @@ def mock_user_input() -> str:
 class TestInit(TestCase):
     def setUp(self):
         app.config["SESSION_BASE_FOLDER"] = TESTS_BASE_FOLDER
-        utils.register_assets(app)
         self.app = app.test_client()
 
     @patch("builtins.input", mock_user_input)
@@ -49,10 +48,10 @@ class TestInit(TestCase):
         global mock_results  # noqa
         mock_results = user_inputs
 
-        startup_hanfor(args, HERE, no_data_tracing=True)
+        startup_hanfor(app, args, HERE, no_data_tracing=True)
 
     def test_1_init_from_csv(self):
-        args = utils.HanforArgumentParser(app).parse_args([TEST_TAG, "-c", TEST_CSV])
+        args = HanforArgumentParser(app).parse_args([TEST_TAG, "-c", TEST_CSV])
         self.startup_hanfor(args, [2, 0, 1, 3, 0])
         self.assertTrue(os.path.isdir(os.path.join(TESTS_BASE_FOLDER, TEST_TAG)), msg="No session folder created.")
         self.assertTrue(
@@ -72,7 +71,7 @@ class TestInit(TestCase):
             )
 
     def test_2_get_requirements(self):
-        args = utils.HanforArgumentParser(app).parse_args([TEST_TAG, "-c", TEST_CSV])
+        args = HanforArgumentParser(app).parse_args([TEST_TAG, "-c", TEST_CSV])
         self.startup_hanfor(args, [2, 0, 1, 3, 0])
         result = self.app.get("api/req/gets")
         self.maxDiff = None

@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import fnmatch
 import json
 import logging
-import os
 import time
 import uuid
 
@@ -12,16 +10,16 @@ from flask import render_template
 from pysmt.shortcuts import Bool, Int, Real
 from pysmt.typing import BOOL, INT, REAL
 
-import boogie_parsing
+from lib_core import boogie_parsing
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
 from lib_pea.countertrace import CountertraceTransformer
 from lib_pea.countertrace_to_pea import build_automaton
 from lib_pea.pea import PhaseSetsPea
 from lib_pea.utils import get_countertrace_parser, strtobool
-from patterns import PATTERNS
+from configuration.patterns import PATTERNS
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
-from reqtransformer import Requirement, Formalization, VariableCollection
+from lib_core.data import Requirement, Formalization, VariableCollection
 from ressources import Ressource
 
 validation_patterns = {BOOL: r"^0|false|False|1|true|True$", INT: r"^[+-]?\d+$", REAL: r"^[+-]?\d*[.]?\d+$"}

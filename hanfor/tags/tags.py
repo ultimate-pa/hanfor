@@ -1,4 +1,3 @@
-from dataclasses import dataclass, field
 from typing import Type
 
 from hanfor_flask import current_app
@@ -7,40 +6,18 @@ from flask.views import MethodView
 from pydantic import BaseModel
 
 from configuration.tags import STANDARD_TAGS
-from defaults import Color
+from configuration.defaults import Color
 
-from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField, DatabaseNonSavedField
-from uuid import uuid4
-from static_utils import SessionValue
+from lib_core.data import SessionValue, Tag
 
 BUNDLE_JS = "dist/tags-bundle.js"
 blueprint = Blueprint("tags", __name__, template_folder="templates", url_prefix="/tags")
 api_blueprint = Blueprint("api_tags", __name__, url_prefix="/api/tags")
 
 
-@blueprint.route("/", methods=["GET"])
+@blueprint.route("", methods=["GET"])
 def index():
     return render_template("tags/index.html", BUNDLE_JS=BUNDLE_JS)
-
-
-@DatabaseTable(TableType.File)
-@DatabaseID("uuid", use_uuid=True)
-@DatabaseField("name", str)
-@DatabaseField("color", str)
-@DatabaseField("internal", bool)
-@DatabaseField("description", str)
-@DatabaseNonSavedField("used_by", [])
-@dataclass
-class Tag:
-    name: str
-    color: str
-    internal: bool
-    description: str
-    used_by: list = field(default_factory=list)
-    uuid: str = field(default_factory=lambda: str(uuid4()))
-
-    def __hash__(self):
-        return hash(self.uuid)
 
 
 def register_api(bp: Blueprint, method_view: Type[MethodView]) -> None:

@@ -1,21 +1,30 @@
 import logging
 import re
 from json_db_connector.json_db import JsonDatabase, DatabaseKeyError
-from static_utils import SessionValue
-from utils import RequirementEditHistory, add_custom_serializer_to_database
-from reqtransformer import Formalization, Requirement, ScopedPattern, Scope, Pattern, Variable, Expression
-from tags.tags import Tag
+from lib_core.data import (
+    Requirement,
+    Formalization,
+    Expression,
+    Scope,
+    ScopedPattern,
+    Pattern,
+    Variable,
+    RequirementEditHistory,
+    SessionValue,
+    Tag,
+)
+from lib_core.utils import get_filenames_from_dir
+from lib_core.startup import add_custom_serializer_to_database
 from ressources.queryapi import Query
 from ressources.reports import Report
 from ultimate.ultimate_job import UltimateJob
-from defaults import Color
+from configuration.defaults import Color
 
 import argparse
 from os import path, sep, mkdir, listdir
 from shutil import move
 from datetime import datetime
 
-from static_utils import get_filenames_from_dir
 from data_migration.my_unpickler import (
     pickle_load_from_dump,
     OldRequirement,
@@ -58,7 +67,7 @@ def convert_scope(old: OldScope) -> Scope:
 
 def convert_scoped_pattern(old: OldScopedPattern) -> ScopedPattern:
     if not old:
-        return ScopedPattern(Scope.NONE, "NotFormalizable")
+        return ScopedPattern(Scope.NONE, Pattern("NotFormalizable"))
     scope = convert_scope(old.scope)
     pattern = convert_pattern(old.pattern)
     scoped_pattern = ScopedPattern(scope, pattern)
@@ -130,8 +139,8 @@ def convert_query(old: dict) -> Query:
     return qry
 
 
-def convert_report(i: int, old: dict) -> Report:
-    report = Report(old["name"] if "name" in old else f"report_{i}", old["queries"], old["results"])
+def convert_report(idx: int, old: dict) -> Report:
+    report = Report(old["name"] if "name" in old else f"report_{idx}", old["queries"], old["results"])
     return report
 
 
@@ -313,7 +322,7 @@ if __name__ == "__main__":
                             )
                         )
                 except DatabaseKeyError as e:
-                    logging.warning(f"Unknown object in frontent log... skipping. ({e})")
+                    logging.warning(f"Unknown object in frontend log... skipping. ({e})")
 
         # insert Queries
         if "queries" in old_meta_settings:

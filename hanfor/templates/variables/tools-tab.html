@@ -1,6 +1,6 @@
 <div class="row g-2">
     <div class="col-12">
-        <form id="generate_req_form" method="post" action="{{ url_for('tools_api', command='req_file') }}"
+        <form id="generate_req_form" method="post" action="{{ url_for('tools_api.tools_api', command='req_file') }}"
               target="_blank">
             <input type="hidden" id="selected_requirement_ids" name="selected_requirement_ids" hidden/>
         </form>
@@ -11,7 +11,7 @@
     </div>
 
     <div class="col-12">
-        <form id="generate_csv_form" method="post" action="{{ url_for('tools_api', command='csv_file') }}"
+        <form id="generate_csv_form" method="post" action="{{ url_for('tools_api.tools_api', command='csv_file') }}"
               target="_blank">
             <input type="hidden" id="selected_csv_requirement_ids" name="selected_requirement_ids" hidden/>
         </form>
@@ -22,7 +22,7 @@
     </div>
 
     <div class="col-12">
-        <form id="generate_xls_form" method="post" action="{{ url_for('tools_api', command='xls_file') }}"
+        <form id="generate_xls_form" method="post" action="{{ url_for('tools_api.tools_api', command='xls_file') }}"
               target="_blank">
             <input type="hidden" id="selected_xls_requirement_ids" name="selected_requirement_ids" hidden/>
         </form>

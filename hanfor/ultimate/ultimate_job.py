@@ -1,11 +1,10 @@
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from hanfor_flask import current_app
-from utils import get_requirements
-from static_utils import SessionValue
 
 from configuration.ultimate_config import AUTOMATED_TAGS
-from reqtransformer import Requirement
+from lib_core.data import Requirement, SessionValue
+from lib_core.utils import get_requirements
 
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
 

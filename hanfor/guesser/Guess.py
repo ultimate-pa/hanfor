@@ -1,4 +1,4 @@
-from reqtransformer import ScopedPattern
+from lib_core.data import ScopedPattern
 
 
 class Guess(tuple):

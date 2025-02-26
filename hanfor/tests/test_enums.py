@@ -339,7 +339,7 @@ class TestEnums(TestCase):
         )
         self.assertEqual(response.json["success"], True)
 
-        response = self.mock_hanfor.app.get("api/var/get_enumerators", data={"name": "my_third_enum"})
+        response = self.mock_hanfor.app.post("api/var/get_enumerators", data={"name": "my_third_enum"})
         self.assertEqual(response.json["enumerators"][0][0], "my_third_enum_bar")
         self.assertEqual(response.json["enumerators"][1][0], "my_third_enum_foo")
 

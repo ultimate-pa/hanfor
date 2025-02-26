@@ -10,7 +10,7 @@ from lib_pea.countertrace_to_pea import build_automaton
 from lib_pea.utils import get_countertrace_parser
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
-from reqtransformer import Requirement, Formalization
+from lib_core.data import Requirement, Formalization
 from tests.test_req_simulator import test_counter_trace
 
 testcases = [
@@ -100,8 +100,8 @@ class TestSimulator(TestCase):
         pea = build_automaton(ct)
 
         # TODO: Fix this hack.
-        pea.requirement = Requirement(id="0", description="", type_in_csv="", csv_row={}, pos_in_csv=0)
-        pea.formalization = Formalization(id=0)
+        pea.requirement = Requirement(rid="0", description="", type_in_csv="", csv_row={}, pos_in_csv=0)
+        pea.formalization = Formalization(fid=0)
         pea.countertrace_id = 0
 
         scenario = Scenario.from_json_string(yaml_str)

@@ -3,7 +3,7 @@ import re
 from guesser.AbstractGuesser import AbstractGuesser
 from guesser.Guess import Guess
 from guesser.guesser_registerer import register_guesser
-from reqtransformer import ScopedPattern, Scope, Pattern
+from lib_core.data import Scope, ScopedPattern, Pattern
 from guesser.FormulaProcessor import FormulaProcessor
 
 

@@ -14,7 +14,7 @@ class Report:
     name: str
     queries: str
     results: str
-    id: str = field(default_factory=lambda: str(uuid4()))
+    id: str = field(default_factory=lambda: str(uuid4()))  # TODO: id is set but never used
 
     def get_dict(self) -> dict[str, str]:
         return {"name": self.name, "queries": self.queries, "results": self.results}
@@ -38,7 +38,7 @@ class Reports(Ressource):
         if name == "":
             name = "No {}".format(next_id if report_id < 0 else report_id)
         if report_id < 0:  # new report.
-            self.app.db.add_object(Report(next_id, name, queries, results))
+            self.app.db.add_object(Report(name, queries, results))
         else:
             report = self.app.db.get_object(Report, report_id)
             report.name = name

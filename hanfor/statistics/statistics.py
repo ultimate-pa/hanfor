@@ -7,7 +7,7 @@ from hanfor_flask import current_app
 from flask import Blueprint, render_template, Response
 from flask.views import MethodView
 
-from reqtransformer import Requirement, VariableCollection
+from lib_core.data import Requirement, VariableCollection
 
 BUNDLE_JS = "dist/statistics-bundle.js"
 blueprint = Blueprint("statistics", __name__, template_folder="templates", url_prefix="/statistics")

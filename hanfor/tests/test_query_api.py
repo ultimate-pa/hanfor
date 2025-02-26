@@ -13,12 +13,12 @@ class TestQueryAPI(TestCase):
     def test_new_query(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
         # We expect there is no stored query.
-        initial_query = self.mock_hanfor.app.get("api/query").json["data"]
+        initial_query = self.mock_hanfor.app.get("api/query/").json["data"]
         self.assertEqual(initial_query, dict())
 
         # Create a query
         simple_query = self.mock_hanfor.app.post(
-            "/api/query", json={"name": "MyQuery", "query": ":DATA_TARGET:`Tags`has_formalization"}
+            "/api/query/", json={"name": "MyQuery", "query": ":DATA_TARGET:`Tags`has_formalization"}
         ).json["data"]
         self.assertDictEqual(
             simple_query,
@@ -31,6 +31,6 @@ class TestQueryAPI(TestCase):
         )
 
         # Create another query
-        simple_query = self.mock_hanfor.app.post("/api/query", json={"name": "MyQuery_no_2", "query": ""}).json["data"]
+        simple_query = self.mock_hanfor.app.post("/api/query/", json={"name": "MyQuery_no_2", "query": ""}).json["data"]
         self.assertListEqual(sorted(simple_query["result"]), sorted(["SysRS FooXY_42", "SysRS FooXY_91"]))
         print(simple_query)
