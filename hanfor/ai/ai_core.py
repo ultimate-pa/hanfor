@@ -98,7 +98,7 @@ class AiCore:
         """
 
         req_u = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, rid_u)
-        if not self.__ai_data.get_clusters() or not check_template_for_ai_formalization(req_u):
+        if not self.__ai_data.get_clusters() or not self.check_template_for_ai_formalization(req_u):
             logging.debug("No Formalization")
             return
 
@@ -161,11 +161,11 @@ class AiCore:
                 requirement = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, req_id)
             except DatabaseKeyError as e:
                 return e
-            if check_template_for_ai_formalization(requirement):
+            if self.check_template_for_ai_formalization(requirement):
                 requirement_with_formalization.append(requirement)
                 continue
 
-            if check_ai_should_formalized(requirement):
+            if self.check_ai_should_formalized(requirement):
                 if req_id in self.__locked_ids:
                     continue
                 self.__locked_ids.append(req_id)
@@ -196,7 +196,7 @@ class AiCore:
             for req_id in cl:
                 logging.debug(f"Checking {req_id}")
                 req = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, req_id)
-                if check_template_for_ai_formalization(req):
+                if self.check_template_for_ai_formalization(req):
                     self.__update_requirement(req_id)
 
     # endregion
@@ -347,11 +347,11 @@ class AiCore:
                     if req_id in self.__locked_ids:
                         continue
                     requirement = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, req_id)
-                    if check_ai_should_formalized(requirement):
+                    if self.check_ai_should_formalized(requirement):
                         self.__locked_ids.append(req_id)
                         req_queue.put(requirement)
                         continue
-                    if check_template_for_ai_formalization(requirement):
+                    if self.check_template_for_ai_formalization(requirement):
                         requirement_with_formalization.append(requirement)
                         continue
                 break
@@ -418,23 +418,16 @@ class AiCore:
         if formalize_object.status == "complete":
             formalization_integration(formalize_object.formalized_output, formalize_object.requirement_to_formalize)
 
+    def check_template_for_ai_formalization(self, req: reqtransformer.Requirement) -> bool:
+        return self.__ai_data.get_activ_ai_method_object().check_template_for_ai_formalization(req)
+
+    def check_ai_should_formalized(self, req: reqtransformer.Requirement) -> bool:
+        return self.__ai_data.get_activ_ai_method_object().check_ai_should_formalized(req)
+
     # endregion
 
 
 # region Helper functions for processing requirements
-
-
-def check_template_for_ai_formalization(req: reqtransformer.Requirement) -> bool:
-    """Method which checks if the Requirement can be used as example for Ai formalization."""
-
-    req = req.to_dict(include_used_vars=True)
-    return "has_formalization" in req["tags"]
-
-
-def check_ai_should_formalized(requirement: reqtransformer.Requirement) -> bool:
-    """Method which checks if the Requirement can be Ai formalized."""
-
-    return not requirement.to_dict(include_used_vars=True)["formal"]
 
 
 def formalization_integration(formalization: dict, requirement: reqtransformer.Requirement) -> None:

@@ -82,3 +82,9 @@ class PromptDump(ai_prompt_parse_abstract_class.AiPromptParse):
         except Exception as e:
             logging.warning(f"Could not parse AI-response: {e}")
         return None
+
+    @staticmethod
+    def check_ai_should_formalized(req) -> bool:
+        req = req.to_dict(include_used_vars=True)
+        logging.debug(f"req: {req["tags"]}")
+        return "Test" in req["tags"]

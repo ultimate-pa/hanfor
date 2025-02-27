@@ -43,6 +43,17 @@ class AiPromptParse(ABC):
         """
         pass
 
+    @staticmethod
+    def check_ai_should_formalized(req) -> bool:
+        """Method which checks if the Requirement can be Ai formalized."""
+        return not req.to_dict(include_used_vars=True)["formal"]
+
+    @staticmethod
+    def check_template_for_ai_formalization(req) -> bool:
+        """Method which checks if the Requirement can be used as example for Ai formalization."""
+        req = req.to_dict(include_used_vars=True)
+        return "has_formalization" in req["tags"]
+
 
 def get_scope() -> dict[str, str]:
     """returns like: {AFTER: After '{P}'}"""
