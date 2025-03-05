@@ -97,7 +97,8 @@ class TagsApi(MethodView):
         match command:
             case "add_standard":
                 for name, properties in STANDARD_TAGS.items():
-                    self.add(name, properties["color"], properties["internal"], properties["description"])
+                    if not self.tag_exists(name):
+                        self.add(name, properties["color"], properties["internal"], properties["description"])
             case _:
                 raise ValueError(f"Unknown command `{command}`.")
 
