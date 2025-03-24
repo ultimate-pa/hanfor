@@ -24,7 +24,7 @@ $(document).ready(function () {
         lengthMenu: [[10, 50, 100, 500, -1], [10, 50, 100, 500, 'All']],
         dom: 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
         ajax: {
-            url: '../api/ultimate/jobs'
+            url: '../api/v1/ultimate/jobs'
         },
         deferRender: true,
         columns: dataTableColumns,
@@ -127,9 +127,8 @@ const dataTableColumns = [
         data: 'selected_requirements',
         render: function (data) {
             let result = ''
-            for (let i = 0; i < data.length; i++) {
-                let name = data[i][0]
-                let count = data[i][1]
+            for (let name in data) {
+                let count = data[name]
                 if (display_req_without_formalisation !== "True" && count === 0) continue;
                 const searchQuery = `?command=search&col=2&q=%5C%22${name}%5C%22`
                 const color = count === 0 ? 'bg-light' : 'bg-info'
@@ -141,9 +140,8 @@ const dataTableColumns = [
         data: 'result_requirements',
         render: function (data) {
             let result = ''
-            for (let i = 0; i < data.length; i++) {
-                let name = data[i][0]
-                let count = data[i][1]
+            for (let name in data) {
+                let count = data[name]
                 const searchQuery = `?command=search&col=2&q=%5C%22${name}%5C%22`
                 const color = count === 0 ? 'bg-light' : 'bg-info'
                 result += `<span class="badge ${color}"><a href="${base_url}${searchQuery}" target="_blank" class="link-light text-muted">${name} (${count})</a></span> `
@@ -183,7 +181,7 @@ function evaluate_search(data) {
 function download_req(req_id) {
     $.ajax({
         type: 'GET',
-        url: '../api/ultimate/job/' + req_id + '?download=true',
+        url: '../api/v1/ultimate/jobs/' + req_id + '?download=true',
     }).done(function (data) {
         download(data['job_id'] + '.json', JSON.stringify(data, null, 4))
         updateTableData()
@@ -193,10 +191,10 @@ function download_req(req_id) {
 }
 
 function cancel_job(job_id) {
-    console.log("delete")
+    console.log("cancel")
     $.ajax({
-        type: 'DELETE',
-        url: '../api/ultimate/job/' + job_id,
+        type: 'POST',
+        url: '../api/v1/ultimate/jobs/' + job_id +'/abort',
     }).done(function (data) {
         updateTableData()
     }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -220,8 +218,8 @@ function download(filename, text) {
 function updateTableData() {
     stoppReloadTimer()
     $.ajax({
-        type: 'GET',
-        url: '../api/ultimate/update-all'
+        type: 'POST',
+        url: '../api/v1/ultimate/update-all'
     }).done(function (data) {
         if (data['status'] === 'done') {
             const ultimateJobsTable = $('#ultimate-jobs-tbl')

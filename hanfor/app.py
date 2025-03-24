@@ -12,9 +12,11 @@ from flask_socketio import SocketIO
 from hanfor_flask import HanforFlask
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import HTTPException
+from flask_restx import Api
 
 from lib_core.startup import startup_hanfor, PrefixMiddleware, HanforArgumentParser
 from lib_core.utils import setup_logging
+from lib_core.api_models import api_models
 
 from requirements import requirements
 from variables import variables
@@ -42,6 +44,9 @@ app = HanforFlask(__name__)
 app.config.from_object("config")
 app.db = None
 socketio = SocketIO(app)
+api = Api(app, version="1.0", title="Hanfor API", prefix="/api/v1", doc="/api/")
+# load all api models
+api.add_namespace(api_models)
 
 # Requirements
 app.register_blueprint(requirements.blueprint)
@@ -72,7 +77,7 @@ if app.config["FEATURE_ULTIMATE"]:
     from ultimate import ultimate
 
     app.register_blueprint(ultimate.blueprint)
-    app.register_blueprint(ultimate.api_blueprint)
+    api.add_namespace(ultimate.api)
 
 if app.config["FEATURE_TELEMETRY"]:
     from telemetry import telemetry_frontend
