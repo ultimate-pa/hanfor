@@ -17,8 +17,6 @@ const autosize = require('autosize/dist/autosize');
 // Globals
 const {SearchNode} = require('./datatables-advanced-search.js');
 const {init_simulator_tab} = require('./simulator-tab.js');
-let init_table_connection_functions= []
-exports.init_table_connection_functions = init_table_connection_functions
 const {sendTelemetry} = require('../../telemetry/static/telemetry')
 
 const {Textcomplete} = require('@textcomplete/core')
