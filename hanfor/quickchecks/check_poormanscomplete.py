@@ -1,10 +1,9 @@
 import logging
 from dataclasses import dataclass
-from enum import Enum
 from typing import List
 
 from pysmt.fnode import FNode
-from pysmt.shortcuts import FALSE, Or, Not, Solver, TRUE, get_free_variables, And, Bool, simplify, Exists
+from pysmt.shortcuts import FALSE, Or, Not, Solver, TRUE, get_free_variables, And, Bool, simplify
 from pysmt.walkers import IdentityDagWalker
 
 from lib_core import boogie_parsing
@@ -22,7 +21,8 @@ class CompletenessCheckOutcome:
     INCOMPLETE_UNCONSTRAINT = "INCOMPLETE_UNCONSTRAINT"
     OK = "OK"
 
-    def is_negative_result(self, value: "CompletenessCheckOutcome") -> bool:
+    @staticmethod
+    def is_negative_result(value: "CompletenessCheckOutcome") -> bool:
         return value in {CompletenessCheckOutcome.INCOMPLETE, CompletenessCheckOutcome.ENV_VIOLATED}
 
 
@@ -69,8 +69,9 @@ class PoorMansComplete:
         logging.info("... finished PoorMansComplete.")
         return results
 
+    @staticmethod
     def check_complete_var(
-        self, term: FNode, target_var: FNode, env_assumption: FNode, hanfor_var: Variable
+        term: FNode, target_var: FNode, env_assumption: FNode, hanfor_var: Variable
     ) -> CompletenessCheckResult:
         """Check if all values (under an environment) of a variable are possible in term"""
         with Solver(name=SOLVER_NAME, logic=LOGIC) as solver:
@@ -106,9 +107,8 @@ class PoorMansComplete:
         non_trivial_terms = [t for t in project_terms if t is not FALSE() and t is not TRUE()]
         return non_trivial_terms
 
-    def extract_req_terms(
-        self, smt_transformer: BoogiePysmtTransformer, req: Requirement, target_var: FNode
-    ) -> List[FNode]:
+    @staticmethod
+    def extract_req_terms(smt_transformer: BoogiePysmtTransformer, req: Requirement, target_var: FNode) -> List[FNode]:
         parser = boogie_parsing.get_parser_instance()
         terms = []
         for _, formalisation in req.formalizations.items():
@@ -134,7 +134,8 @@ class PoorMansComplete:
                 terms.append(smt_expr)
         return terms
 
-    def extract_environment_assumption(self, variables: set[Variable], smt_transformer: BoogiePysmtTransformer):
+    @staticmethod
+    def extract_environment_assumption(variables: set[Variable], smt_transformer: BoogiePysmtTransformer):
         term = TRUE()
         parser = boogie_parsing.get_parser_instance()
         for var in variables:
@@ -168,8 +169,9 @@ class PoorMansComplete:
                             term = And(term, Not(smt_expr))
         return simplify(term)
 
+    @staticmethod
     def check_env_violated(
-        self, terms: List[FNode], target_var: FNode, env_assumption: FNode, hanfor_var: Variable
+        terms: List[FNode], target_var: FNode, env_assumption: FNode, hanfor_var: Variable
     ) -> CompletenessCheckResult:
         """Check if all values a variable can tanke are inside the environment (if applicable)"""
         if target_var not in get_free_variables(env_assumption):
@@ -185,8 +187,8 @@ class PoorMansComplete:
                         return CompletenessCheckResult(
                             hanfor_var.name,
                             CompletenessCheckOutcome.ENV_VIOLATED,
-                            f"'{target_var.symbol_name()}': term {term.serialize()} is completely outside of Environment.\n"
-                            f"Environment is: {env_assumption.serialize()}\n",
+                            f"'{target_var.symbol_name()}': term {term.serialize()} is completely outside of "
+                            f"Environment.\nEnvironment is: {env_assumption.serialize()}\n",
                         )
         return CompletenessCheckResult(
             hanfor_var.name, CompletenessCheckOutcome.OK, "Expected values of the variable is inside the environment"

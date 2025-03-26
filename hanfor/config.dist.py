@@ -77,6 +77,8 @@ FEATURE_SIMULATOR_INCONSISTENCY_PRE_CHECK = False
 
 # Ultimate
 FEATURE_ULTIMATE = False
+
+# Quick checks
 FEATURE_QUICK_CHECKS = True
 
 # Telemetry
