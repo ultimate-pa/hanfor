@@ -8,6 +8,7 @@ from hanfor_flask import current_app
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField, DatabaseKeyError
 from reqtransformer import Requirement
 from quickchecks.check_poormanscomplete import PoorMansComplete, CompletenessCheckResult, CompletenessCheckOutcome
+from lib_core.data import Variable
 
 # Flask: Modular Applications with Blueprints. https://flask.palletsprojects.com/en/2.2.x/blueprints/
 # Flask: Method Dispatching and APIs. https://flask.palletsprojects.com/en/2.2.x/views/#method-dispatching-and-apis
