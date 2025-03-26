@@ -1,19 +1,13 @@
-import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Type, Any
+from typing import Type
 from flask import Blueprint, render_template, Response
 from flask.views import MethodView
 from hanfor_flask import current_app
-from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField, DatabaseKeyError
-from reqtransformer import Requirement
+from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
 from quickchecks.check_poormanscomplete import PoorMansComplete, CompletenessCheckResult, CompletenessCheckOutcome
-from lib_core.data import Variable
+from lib_core.data import Variable, Requirement
 
-# Flask: Modular Applications with Blueprints. https://flask.palletsprojects.com/en/2.2.x/blueprints/
-# Flask: Method Dispatching and APIs. https://flask.palletsprojects.com/en/2.2.x/views/#method-dispatching-and-apis
-# HTTP request methods. https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
-# Pydantic: Models. https://pydantic-docs.helpmanual.io/usage/models
 
 BUNDLE_JS = "dist/quickchecks-bundle.js"
 blueprint = Blueprint("quickchecks", __name__, template_folder="templates", url_prefix="/quickchecks")
@@ -63,10 +57,11 @@ class QuickcheckApi(MethodView):
         current_app.db.update()
         return "ok"
 
-    def run_checks(self) -> list[CompletenessCheckResult]:
+    @staticmethod
+    def run_checks() -> list[CompletenessCheckResult]:
         reqs = list(current_app.db.get_objects(Requirement).values())
-        vars = set(current_app.db.get_objects(Variable).values())
-        results = PoorMansComplete().run(reqs, vars)
+        variables = set(current_app.db.get_objects(Variable).values())
+        results = PoorMansComplete().run(reqs, variables)
         for result in results:
             if result.outcome == CompletenessCheckOutcome.OK:
                 continue
@@ -78,9 +73,10 @@ def register_api_results(bp: Blueprint, method_view: Type[MethodView]) -> None:
     bp.add_url_rule("/results", defaults={}, view_func=view, methods=["GET"])
 
 
-class QuickCheksResultApi(MethodView):
+class QuickChecksResultApi(MethodView):
 
-    def get(self) -> list:
+    @staticmethod
+    def get() -> list:
         data = []
         for key, check in current_app.db.get_objects(QuickcheckTask).items():
             for r in check.results:
@@ -89,4 +85,4 @@ class QuickCheksResultApi(MethodView):
 
 
 register_api(api_blueprint, QuickcheckApi)
-register_api_results(api_blueprint, QuickCheksResultApi)
+register_api_results(api_blueprint, QuickChecksResultApi)
