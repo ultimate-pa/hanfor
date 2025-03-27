@@ -25,7 +25,6 @@ from reports.reports import api_blueprint as reports_api
 from tools.tools import api_blueprint as tools_api
 from queries.queries import api_blueprint as queries_api
 from req_simulator import simulator_blueprint
-from example_blueprint import example_blueprint
 from tags import tags
 from statistics import statistics
 
@@ -43,11 +42,16 @@ mimetypes.add_type("text/javascript", ".js")
 app = HanforFlask(__name__)
 app.config.from_object("config")
 app.db = None
+
+# Initialize SocketIO
 socketio = SocketIO(app)
+
+# Initialize Api framework
 api = Api(app, version="1.0", title="Hanfor API", prefix="/api/v1", doc="/api/")
 # load all api models
 api.add_namespace(api_models)
 
+# Register core blueprints and apis
 # Requirements
 app.register_blueprint(requirements.blueprint)
 app.register_blueprint(requirements.api_blueprint)
@@ -72,6 +76,12 @@ app.register_blueprint(queries_api)
 # Simulator
 app.register_blueprint(simulator_blueprint.blueprint)
 
+# Register feature blueprints and apis
+if app.config["FEATURE_EXAMPLE_BLUEPRINT"]:
+    from example_blueprint import example_blueprint
+
+    app.register_blueprint(example_blueprint.blueprint)
+    api.add_namespace(example_blueprint.api)
 
 if app.config["FEATURE_ULTIMATE"]:
     from ultimate import ultimate
@@ -84,12 +94,7 @@ if app.config["FEATURE_TELEMETRY"]:
 
     app.register_blueprint(telemetry_frontend.blueprint)
 
-# register Blueprints
-# Example Blueprint
-app.register_blueprint(example_blueprint.blueprint)
-app.register_blueprint(example_blueprint.api_blueprint)
-
-# register socket IO namespaces
+# register SocketIO namespaces
 telemetry_namespace = TelemetryWs("/telemetry")
 socketio.on_namespace(telemetry_namespace)
 

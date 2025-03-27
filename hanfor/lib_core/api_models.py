@@ -3,7 +3,23 @@ from flask_restx.fields import Nested
 
 api_models = Namespace("API Models", description="API Models Namespace")
 
+# Example Blueprint Models
+# A model is only displayed in the swagger documentation if it is used by at least one registered api endpoint.
+# The values in parentheses of fields.String/Integer/Bool as default/example values
+ExampleBlueprintUser = api_models.model(
+    "Example User", {"name": fields.String("Erin"), "age": fields.Integer(31), "city": fields.String("Erfurt")}
+)
+# use fields.Wildcard to generate dictionaries with unknown keys, e.g., data is a dict containing user_id: user_data
+# use fields.Nested to use another model inside a model
+ExampleBlueprintUsers = api_models.model(
+    "Example User List", {"data": fields.Wildcard(fields.Nested(ExampleBlueprintUser))}
+)
+# To add an example to fields.List/Wildcard use the named parameter example
+ExampleBluprintNames = api_models.model(
+    "Example Names", {"names": fields.List(fields.String, example=["Alice", "Bob", "Clarice"])}
+)
 
+# Ultimate models
 UltimateVersionModel = api_models.model("Ultimate Version", {"version": fields.String})
 
 UltimateConfigurationModel = api_models.model(
