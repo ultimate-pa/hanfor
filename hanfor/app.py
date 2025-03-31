@@ -101,10 +101,6 @@ if app.config["FEATURE_QUICK_CHECKS"]:
     app.register_blueprint(quickchecks.blueprint)
     app.register_blueprint(quickchecks.api_blueprint)
 
-# register Blueprints
-# Example Blueprint
-app.register_blueprint(example_blueprint.blueprint)
-app.register_blueprint(example_blueprint.api_blueprint)
 
 # register SocketIO namespaces
 telemetry_namespace = TelemetryWs("/telemetry")
