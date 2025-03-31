@@ -1,3 +1,5 @@
+from os import path, listdir
+from collections import defaultdict
 import sys
 import json
 
@@ -8,11 +10,11 @@ def parse_line(line: str) -> None | dict:
         return None
 
     # split value from plugin_id and key
-    tmp = line.split("=")
-    val = tmp[1][:-1]
+    tmp = line.split("=", 1)
+    val = tmp[1][:-1].replace("\\", "")
     tmp = tmp[0].split("/")
     plugin = tmp[2]
-    name = tmp[3].replace("\\ ", "+")
+    name = tmp[3].replace("\\ ", " ")
 
     # generate plugin/key json object
     if val == "true" or val == "false":
@@ -39,30 +41,43 @@ def parse_line(line: str) -> None | dict:
     return result
 
 
-def convert_file(epf_file_name: str, json_file_name: str) -> None:
+def convert_file(epf_file_name: str, json_file_name: str, settings: dict[str, set[str]]) -> None:
     # read epf file and parse lines
     r_list = []
     with open(epf_file_name, "r") as epf:
-        for l in epf.readlines():
-            r = parse_line(l)
+        for line in epf.readlines():
+            r = parse_line(line)
             if r is not None:
                 r_list.append(r)
+                settings[r["plugin_id"]].add(r["name"])
 
     # generate json and write json file
     result = {"user_settings": r_list}
-    with open(json_file_name, "w") as json_file:
-        json_file.write(json.dumps(result, indent=4))
+    with open(json_file_name, "w") as json_write_file:
+        json_write_file.write(json.dumps(result, indent=4))
 
 
 if __name__ == "__main__":
+    """Convert all settings epf-files in the <epf-folder> to json-files for the Hanfor Ultimate feature"""
     # parse command line arguments
-    if len(sys.argv) < 2:
-        print("Usage: python3 %s <epf-file> [json-file]" % sys.argv[0])
+    if len(sys.argv) != 3:
+        print("Usage: python3 %s <epf-folder> <json-folder>" % sys.argv[0])
         sys.exit(1)
-    epf_file_name = sys.argv[1]
-    if len(sys.argv) > 2:
-        json_file_name = sys.argv[2]
-    else:
-        json_file_name = epf_file_name.removesuffix(".epf") + ".json"
+    epf_folder = sys.argv[1]
+    json_folder = sys.argv[2]
+    if not path.isdir(epf_folder):
+        print("epf-folder is not a folder")
+        sys.exit(2)
+    if not path.isdir(json_folder):
+        print("json-folder is not a folder")
+        sys.exit(3)
 
-    convert_file(epf_file_name, json_file_name)
+    used_settings: dict[str, set[str]] = defaultdict(set)
+    for epf_file in [f for f in listdir(epf_folder) if (path.isfile(path.join(epf_folder, f)) and f.endswith(".epf"))]:
+        json_file = epf_file.removesuffix(".epf") + ".json"
+        convert_file(path.join(epf_folder, epf_file), path.join(json_folder, json_file), used_settings)
+
+    # create json file with all used setting to add to the `settings_whitelist.json` of the ultimate backend
+    printable_settings_whitelist = {k: list(v) for k, v in used_settings.items()}
+    with open(path.join(json_folder, "_settings_whitelist.json"), "w") as json_file:
+        json_file.write(json.dumps(printable_settings_whitelist, indent=4))
