@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from quickchecks.check_poormanscomplete import PoorMansComplete, CompletenessCheckOutcome
-from reqtransformer import Variable, Requirement, ScopedPattern, Scope, Pattern, Formalization
+from lib_core.data import Variable, Requirement, ScopedPattern, Scope, Pattern, Formalization
 
 
 class Mock_Expression:
@@ -130,7 +130,7 @@ class TestPoorMansComplete(TestCase):
         reqs = [
             TestPoorMansComplete.__instantiate_bound_response("req1", "c == 3", "c > 22", "5.0"),
             TestPoorMansComplete.__instantiate_bound_response("req1", "c == 4", "c > 22", "5.0"),
-            #TestPoorMansComplete.__instantiate_bound_response("req2", "c < 1000", "c > -33", "5.0"),
+            # TestPoorMansComplete.__instantiate_bound_response("req2", "c < 1000", "c > -33", "5.0"),
         ]
         results = PoorMansComplete().run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE}

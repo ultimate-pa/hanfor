@@ -62,7 +62,8 @@ class PoorMansComplete:
         }
         env_full = self.extract_environment_assumption(variables, smt_transformer)
         for target_var, hanfor_var in smt_to_vars.items():
-            env_assumptions = ProjectionWalker(target_var).walk(env_full)
+            env_assumptions = simplify(And([t for t in env_full if target_var in get_free_variables(t)]))
+            # env_full  # ProjectionWalker(target_var).walk(env_full)
             terms = self.extract_reqs_term(smt_transformer, reqs, target_var)
             results.append(self.check_env_violated(terms, target_var, env_assumptions, hanfor_var))
             results.append(self.check_complete_var(Or(terms), target_var, env_assumptions, hanfor_var))
@@ -99,12 +100,14 @@ class PoorMansComplete:
         smt_transformer: BoogiePysmtTransformer,
         reqs: list[Requirement],
         target_var: FNode,
+        use_projection: bool = True,
     ) -> List[FNode]:
         terms = []
         for req in reqs:
             terms.extend(self.extract_req_terms(smt_transformer, req, target_var))
-        project_terms = [ProjectionWalker(target_var).walk(term) for term in terms]
-        non_trivial_terms = [t for t in project_terms if t is not FALSE() and t is not TRUE()]
+        if use_projection:
+            terms = [ProjectionWalker(target_var).walk(term) for term in terms]
+        non_trivial_terms = [t for t in terms if t is not FALSE() and t is not TRUE()]
         return non_trivial_terms
 
     @staticmethod
@@ -135,8 +138,10 @@ class PoorMansComplete:
         return terms
 
     @staticmethod
-    def extract_environment_assumption(variables: set[Variable], smt_transformer: BoogiePysmtTransformer):
-        term = TRUE()
+    def extract_environment_assumption(
+        variables: set[Variable], smt_transformer: BoogiePysmtTransformer
+    ) -> List[FNode]:
+        assumptions = []
         parser = boogie_parsing.get_parser_instance()
         for var in variables:
             for k, f in var.constraints.items():
@@ -164,10 +169,10 @@ class PoorMansComplete:
                         continue
                     match f.scoped_pattern.pattern.name:
                         case "Universality":
-                            term = And(term, smt_expr)
+                            assumptions.append(smt_expr)
                         case "Absence":
-                            term = And(term, Not(smt_expr))
-        return simplify(term)
+                            assumptions.append(Not(smt_expr))
+        return assumptions
 
     @staticmethod
     def check_env_violated(
