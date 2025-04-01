@@ -94,6 +94,14 @@ if app.config["FEATURE_TELEMETRY"]:
 
     app.register_blueprint(telemetry_frontend.blueprint)
 
+if app.config["FEATURE_QUICK_CHECKS"]:
+    from quickchecks import quickchecks
+
+    # quickchecks
+    app.register_blueprint(quickchecks.blueprint)
+    app.register_blueprint(quickchecks.api_blueprint)
+
+
 # register SocketIO namespaces
 telemetry_namespace = TelemetryWs("/telemetry")
 socketio.on_namespace(telemetry_namespace)

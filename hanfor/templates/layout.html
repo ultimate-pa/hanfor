@@ -46,6 +46,11 @@
                             <a class="nav-link" href="{{ url_for('example-blueprint.index') }}">Example-Blueprint</a>
                         </li>
                     {% endif %}
+                    {% if config.FEATURE_QUICK_CHECKS %}
+                    <li id="quickchecks-nav" class="nav-item{% if request.path == '/quickchecks' %} active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('quickchecks.index') }}">Quick Checks</a>
+                    </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a class="nav-link" href="https://ultimate-pa.github.io/hanfor/" target="_blank">Help</a>
                     </li>
