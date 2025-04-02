@@ -40,8 +40,12 @@ class UltimateJob:
     result_requirements: dict[str, int] = field(default_factory=dict)  # (requirement_id, # of formalisations)
     api_url: str = ""
     job_status: str = "scheduled"
-    request_time: datetime = datetime.now()
-    last_update: datetime = datetime.now()
+    request_time: datetime = None
+    last_update: datetime = None
+
+    def __post_init__(self):
+        self.request_time = datetime.now()
+        self.last_update = datetime.now()
 
     def update(self, data: dict) -> None:
         if not data["requestId"] == self.job_id:
