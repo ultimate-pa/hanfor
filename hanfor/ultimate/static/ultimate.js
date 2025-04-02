@@ -5,6 +5,7 @@ require('jquery-ui/ui/effects/effect-highlight')
 require('../../static/js/bootstrap-tokenfield.js')
 require('../../static/js/bootstrap-confirm-button')
 require('datatables.net-colreorder-bs5')
+require('../../telemetry/static/telemetry')
 
 const {SearchNode} = require("../../static/js/datatables-advanced-search");
 const ultimateSearchString = sessionStorage.getItem('ultimateSearchString')

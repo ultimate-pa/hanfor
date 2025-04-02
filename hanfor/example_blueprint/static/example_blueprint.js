@@ -1,6 +1,7 @@
 require('bootstrap')
 require('datatables.net-bs5')
 require('datatables.net-colreorder-bs5')
+require('../../telemetry/static/telemetry')  // To enable telemetry pause functions
 
 const {SearchNode} = require("../../static/js/datatables-advanced-search");
 

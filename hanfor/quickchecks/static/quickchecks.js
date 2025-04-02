@@ -2,6 +2,7 @@
 require('gasparesganga-jquery-loading-overlay')
 require('datatables.net-bs5')
 require('bootstrap')
+require('../../telemetry/static/telemetry')
 const bootstrap = require('bootstrap')
 
 const CHECK_COMPLETENESS_BUTTON = $('#check-completeness-button')
