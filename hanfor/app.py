@@ -40,6 +40,7 @@ mimetypes.add_type("text/javascript", ".js")
 
 # Create the app
 app = HanforFlask(__name__)
+app.config.from_pyfile("config.dist.py")
 app.config.from_object("config")
 app.db = None
 

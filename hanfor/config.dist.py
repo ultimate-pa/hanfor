@@ -82,10 +82,10 @@ FEATURE_SIMULATOR_INCONSISTENCY_PRE_CHECK = False
 FEATURE_ULTIMATE = False
 
 # Quick checks
-FEATURE_QUICK_CHECKS = True
+FEATURE_QUICK_CHECKS = False
 
 # Telemetry
-FEATURE_TELEMETRY = True
+FEATURE_TELEMETRY = False
 
 ################################################################################
 #                               Miscellaneous                                  #
