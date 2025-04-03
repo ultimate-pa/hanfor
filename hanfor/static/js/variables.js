@@ -140,10 +140,12 @@ function store_variable(variables_table) {
                 let modal = $('#variable_modal')
                 modal.data('unsaved_changes', false);
                 if (data.rebuild_table) {
-                    location.reload();
+                    //location.reload();
+                    Modal.getOrCreateInstance(modal).hide()
+                    $('#variables_table').DataTable().ajax.reload(null, false)
                 } else {
                     variables_table.row(associated_row_id).data(data.data).draw();
-                    modal.modal('hide');
+                    Modal.getOrCreateInstance(modal).hide()
                 }
             }
         });
@@ -619,6 +621,7 @@ function add_variable_via_modal() {
                 alert(data['errormsg']);
             } else {
                 location.reload();
+                $('#new_variable_name').val("")
             }
         });
 }
