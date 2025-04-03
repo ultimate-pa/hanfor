@@ -14,6 +14,7 @@ const {SearchNode} = require('../../static/js/datatables-advanced-search.js')
 const {Modal} = require('bootstrap')
 
 require('../../telemetry/static/telemetry')
+const {sendTelemetry} = require("../../telemetry/static/telemetry");
 
 const searchAutocomplete = [':AND:', ':OR:', ':NOT:', ':COL_INDEX_00:', ':COL_INDEX_01:', ':COL_INDEX_02:']
 const tagsSearchString = sessionStorage.getItem('tagsSearchString')
@@ -27,6 +28,8 @@ $(document).ajaxStop(function () {
 })
 
 $(document).ready(function () {
+    init_modal()
+
     const searchInput = $('#search_bar')
 
     const tagsTable = $('#tags-table')
@@ -149,10 +152,6 @@ $(document).ready(function () {
 
     autosize($('#tag-description'))
 
-    $('#tag-modal').on('shown.bs.modal', function (e) {
-        autosize.update($('#tag-description'))
-    })
-
     $('.clear-all-filters').click(function () {
         searchInput.val('').effect('highlight', {color: 'green'}, 500)
         update_search(searchInput.val().trim())
@@ -169,6 +168,47 @@ $(document).ready(function () {
         })
     })
 })
+
+function init_modal() {
+    let modal = $('#tag-modal')
+
+    modal.on('shown.bs.modal', function (e) {
+        autosize.update($('#tag-description'))
+    })
+
+    modal[0].addEventListener('hide.bs.modal', function (event) {
+        modal_closing_routine(event);
+    })
+
+    $('#tag-name').change(function () {
+        $('#tag-modal').data('unsaved_changes', true);
+    })
+
+    $('#tag-color').change(function () {
+        $('#tag-modal').data('unsaved_changes', true);
+    })
+
+    $('#tag-internal').change(function () {
+        $('#tag-modal').data('unsaved_changes', true);
+    })
+
+    $('#tag-description').change(function () {
+        $('#tag-modal').data('unsaved_changes', true);
+    })
+}
+
+function modal_closing_routine(event) {
+    const unsaved_changes = $('#tag-modal').data('unsaved_changes');
+    if (unsaved_changes === true) {
+        const force_close = confirm("You have unsaved changes, do you really want to close?");
+        if (force_close !== true) {
+            event.preventDefault();
+        } /* else {
+            sendTelemetry("requirements", $('#requirement_id').val(), "close_without_save")
+        }
+        */
+    }
+}
 
 /**
  * Update the search expression tree.
@@ -207,6 +247,7 @@ function store_tag(tagsDataTable) {
             internal: internal
         }),
     }).done(function (data) {
+        $('#tag-modal').data('unsaved_changes', false);
         location.reload()
     }).fail(function (jqXHR, textStatus, errorThrown) {
         alert(errorThrown + '\n\n' + jqXHR['responseText'])
@@ -223,6 +264,7 @@ function deleteTag() {
             occurrences: occurrences
         }),
     }).done(function (data) {
+        $('#tag-modal').data('unsaved_changes', false);
         location.reload()
     }).fail(function (jqXHR, textStatus, errorThrown) {
         alert(errorThrown + '\n\n' + jqXHR['responseText'])
