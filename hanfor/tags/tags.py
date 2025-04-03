@@ -24,7 +24,7 @@ def register_api(bp: Blueprint, method_view: Type[MethodView]) -> None:
     view = method_view.as_view("tags_api")
     bp.add_url_rule("/", defaults={"name": None}, view_func=view, methods=["GET"])
     bp.add_url_rule("/<string:command>", view_func=view, methods=["POST"])
-    bp.add_url_rule("/<string:name>", view_func=view, methods=["GET", "PUT", "PATCH", "DELETE"])
+    bp.add_url_rule("/<path:name>", view_func=view, methods=["GET", "PUT", "PATCH", "DELETE"])
 
 
 class TagsApi(MethodView):

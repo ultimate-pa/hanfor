@@ -92,7 +92,7 @@ $(document).ready(function () {
         event.preventDefault()
 
         // Get row data
-        let data = tagsDataTable.row($(event.target).parent()).data()
+        let data = tagsDataTable.row($(event.target).parent().parent()).data()
         let row_id = tagsDataTable.row($(event.target).parent()).index()
 
         Modal.getOrCreateInstance($('#tag-modal')).show()
@@ -275,7 +275,7 @@ const dataTableColumns = [
     {
         data: 'name',
         render: function (data, type, row, meta) {
-            return `<a class="modal-opener" href="#">${data}</a>`
+            return `<a class="modal-opener" href="#"><span class="badge" style="background-color: ${row.color}" >${data}</span></a>`
         }
     }, {
         data: 'description',
