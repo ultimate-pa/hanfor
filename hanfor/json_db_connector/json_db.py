@@ -860,8 +860,15 @@ def dict_changed(old: dict, new: dict) -> bool:
     if "type" in new_keys and old["type"] == "set":
         if new["type"] != "set":
             return True
-        if len(set(old["data"]).symmetric_difference(set(new["data"]))) != 0:
-            return True
+        try:
+            if len(set(old["data"]).symmetric_difference(set(new["data"]))) != 0:
+                return True
+        except TypeError:
+            # there are unhashable types in the data (e.g. dictionaries)
+            old_prime = {immutabledict(x) if type(x) is dict else x for x in old["data"]}
+            new_prime = {immutabledict(x) if type(x) is dict else x for x in new["data"]}
+            if len(old_prime.symmetric_difference(new_prime)) != 0:
+                return True
         return False
     for key in new_keys:
         if not isinstance(old[key], type(new[key])):
