@@ -189,7 +189,16 @@ def generate_xls_file_content(
     tag_sheet.column_dimensions["H"].width = 80
     tag_sheet.cell(header_offset - 1, 8, value="Comment (Review)")
 
-    accept_state_validator = DataValidation(type="list", formula1='"TODO ,Accept,Decline,Inquery"', allow_blank=False)
+    accept_state_validator = DataValidation(
+        type="list",
+        formula1='"TODO,'
+        "Accept,"
+        "Bycatch (wrong report; defective anyways),"
+        "Decline,"
+        "Inquery (report is unclear),"
+        'Undecided (investigation is needed)"',
+        allow_blank=False,
+    )
     tag_sheet.add_data_validation(accept_state_validator)
     accept_state_validator.add("F4:F1048576")
     issue_value_validator = DataValidation(
