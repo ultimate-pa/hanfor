@@ -1,7 +1,7 @@
 from typing import List
 
-import lib_core.boogie_parsing
 from lib_core import boogie_parsing
+from lib_core.data import Formalization, VariableCollection
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
 from lib_pea.countertrace import CountertraceTransformer
 from lib_pea.countertrace_to_pea import build_automaton
@@ -13,7 +13,7 @@ from configuration.patterns import PATTERNS
 # from reqtransformer import Formalization, VariableCollection
 
 
-def has_variable_with_unknown_type(formalization: "Formalization", variables: dict[str, str]) -> bool:
+def has_variable_with_unknown_type(formalization: Formalization, variables: dict[str, str]) -> bool:
     for used_variable in formalization.used_variables:
         if variables[used_variable] == "unknown" or variables[used_variable] == "error":
             return True
@@ -22,7 +22,7 @@ def has_variable_with_unknown_type(formalization: "Formalization", variables: di
 
 
 def get_pea_from_formalisation(
-    req_id: str, formalization: "Formalization", var_collection: "VariableCollection"
+    req_id: str, formalization: Formalization, var_collection: VariableCollection
 ) -> List[PhaseSetsPea]:
     if not formalization.scoped_pattern.is_instantiatable():
         return []
