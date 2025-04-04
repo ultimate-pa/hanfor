@@ -316,6 +316,9 @@ class TypeInference(Transformer):
     def implies(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
         return self.__check_binaryop(c1, op, c2, {BoogieType.bool}, return_type=BoogieType.bool)
 
+    def iff(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
+        return self.__check_binaryop(c1, op, c2, {BoogieType.bool}, return_type=BoogieType.bool)
+
     def lt(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
         return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real}, return_type=BoogieType.bool)
 

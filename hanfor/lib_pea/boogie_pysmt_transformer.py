@@ -25,6 +25,7 @@ from pysmt.shortcuts import (
     Max,
     Min,
     Ite,
+    Iff,
 )
 from pysmt.typing import INT, BOOL, REAL
 
@@ -99,6 +100,10 @@ class BoogiePysmtTransformer(Transformer):
     @staticmethod
     def implies(children) -> FNode:
         return Implies(children[0], children[2])
+
+    @staticmethod
+    def iff(children) -> FNode:
+        return Iff(children[0], children[2])
 
     @staticmethod
     def lt(children) -> FNode:
