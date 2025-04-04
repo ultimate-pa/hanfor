@@ -1,6 +1,7 @@
 from typing import List
 
 import lib_core.boogie_parsing
+from lib_core import boogie_parsing
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
 from lib_pea.countertrace import CountertraceTransformer
 from lib_pea.countertrace_to_pea import build_automaton
