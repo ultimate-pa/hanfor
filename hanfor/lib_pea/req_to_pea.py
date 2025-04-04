@@ -9,9 +9,6 @@ from lib_pea.pea import PhaseSetsPea
 from lib_pea.utils import get_countertrace_parser
 from configuration.patterns import PATTERNS
 
-# TODO: re-add after formalisation has been factored out of reqtransformer
-# from reqtransformer import Formalization, VariableCollection
-
 
 def has_variable_with_unknown_type(formalization: Formalization, variables: dict[str, str]) -> bool:
     for used_variable in formalization.used_variables:
@@ -43,7 +40,7 @@ def get_pea_from_formalisation(
         if not v.raw_expression:
             continue
         tree = boogie_parser.parse(v.raw_expression)
-        expressions[k] = BoogiePysmtTransformer(var_collection.collection.values()).transform(tree)
+        expressions[k] = BoogiePysmtTransformer(set(var_collection.collection.values())).transform(tree)
 
     peas = []
     for i, ct_str in enumerate(PATTERNS[pattern]["countertraces"][scope]):
