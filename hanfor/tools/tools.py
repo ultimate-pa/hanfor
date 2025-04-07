@@ -2,7 +2,6 @@ import json
 import csv
 import os
 import io
-import re
 from io import StringIO
 from openpyxl import Workbook
 from openpyxl.worksheet.datavalidation import DataValidation
@@ -252,38 +251,3 @@ def generate_xls_file_content(
     buffer = io.BytesIO()
     work_book.save(buffer)
     return buffer
-
-
-def clean_identifier_for_ultimate_parser(req_id: str, formalisation_id: int, used_identifiers: set[str]) -> str:
-    """Clean slug to be sound for ultimate parser.
-
-    :param req_id: The requirement id to be cleaned.
-    :param formalisation_id: The formalisation id to be cleaned.
-    :param used_identifiers: Set of already used identifiers.
-    :return: (identifier, used_slugs) save_slug a save to use form of slug. save_slug added to used_slugs.
-    """
-    # Replace any occurrence of [whitespace, `.`, `-`] with `_`
-    base_identifier = re.sub(r"[\s+.-]+", "_", req_id.strip())
-
-    # Resolve illegal start by prepending the slug with ID_ in case it does not start with a letter.
-    base_identifier = re.sub(r"^([^a-zA-Z])", r"ID_\1", base_identifier)
-
-    def create_identifier(base: str, extension: int, base_suffix: int = -1):
-        if base_suffix == -1:
-            return "{}_{}".format(base, extension)
-        return "{}_{}_{}".format(base, base_suffix, extension)
-
-    identifier = create_identifier(base_identifier, formalisation_id)
-
-    # Resolve duplicates
-    # search for the first free suffix.
-    if identifier in used_identifiers:
-        suffix = 1
-
-        while create_identifier(base_identifier, formalisation_id, suffix) in used_identifiers:
-            suffix += 1
-        identifier = create_identifier(base_identifier, formalisation_id, suffix)
-
-    used_identifiers.add(identifier)
-
-    return identifier
