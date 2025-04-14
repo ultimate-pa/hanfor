@@ -23,7 +23,7 @@ example_data = {
 
 
 # Define all frontend endpoints
-@blueprint.route("/", methods=["GET"])
+@blueprint.route("", methods=["GET"])
 def index():
     # To get the url for an endpoint at a html blueprint use `url_for('[blueprint_name].[function_name]')`,
     # e.g., `url_for('ultimate.index')`

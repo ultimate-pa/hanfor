@@ -25,7 +25,7 @@ $(document).ready(function () {
         lengthMenu: [[10, 50, 100, 500, -1], [10, 50, 100, 500, 'All']],
         dom: 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
         ajax: {
-            url: '../api/v1/ultimate/jobs'
+            url: 'api/v1/ultimate/jobs'
         },
         deferRender: true,
         columns: dataTableColumns,
@@ -182,7 +182,7 @@ function evaluate_search(data) {
 function download_req(req_id) {
     $.ajax({
         type: 'GET',
-        url: '../api/v1/ultimate/jobs/' + req_id + '?download=true',
+        url: 'api/v1/ultimate/jobs/' + req_id + '?download=true',
     }).done(function (data) {
         download(data['job_id'] + '.json', JSON.stringify(data, null, 4))
         updateTableData()
@@ -195,7 +195,7 @@ function cancel_job(job_id) {
     console.log("cancel")
     $.ajax({
         type: 'POST',
-        url: '../api/v1/ultimate/jobs/' + job_id +'/abort',
+        url: 'api/v1/ultimate/jobs/' + job_id +'/abort',
     }).done(function (data) {
         updateTableData()
     }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -220,7 +220,7 @@ function updateTableData() {
     stoppReloadTimer()
     $.ajax({
         type: 'POST',
-        url: '../api/v1/ultimate/update-all'
+        url: 'api/v1/ultimate/update-all'
     }).done(function (data) {
         if (data['status'] === 'done') {
             const ultimateJobsTable = $('#ultimate-jobs-tbl')

@@ -29,7 +29,7 @@ class QuickcheckTask:
     last_update: datetime
 
 
-@blueprint.route("/", methods=["GET"])
+@blueprint.route("", methods=["GET"])
 def index():
     return render_template("quickchecks/index.html", BUNDLE_JS=BUNDLE_JS)
 

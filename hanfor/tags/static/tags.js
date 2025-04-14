@@ -40,7 +40,7 @@ $(document).ready(function () {
         responsive: true,
         lengthMenu: [[10, 50, 100, 500, -1], [10, 50, 100, 500, 'All']],
         dom: 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
-        ajax: {url: '../api/tags/', dataSrc: ''},
+        ajax: {url: 'api/tags/', dataSrc: ''},
         deferRender: true,
         columns: dataTableColumns,
         initComplete: function () {
@@ -123,7 +123,7 @@ $(document).ready(function () {
 
         $.ajax({
             type: 'POST',
-            url: '../api/tags/update',
+            url: 'api/tags/update',
             data: {
                 name: data.name,
                 name_old: data.name,
@@ -160,7 +160,7 @@ $(document).ready(function () {
 
     $('#add-standard-tags').click(function () {
         $.ajax({
-            type: 'POST', url: '../api/tags/add_standard',
+            type: 'POST', url: 'api/tags/add_standard',
         }).done(function (data) {
             location.reload()
         }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -238,7 +238,7 @@ function store_tag(tagsDataTable) {
     let internal = $('#tag-internal').prop('checked')
 
     $.ajax({
-        type: 'PATCH', url: `../api/tags/${name}`, contentType: 'application/json',
+        type: 'PATCH', url: `api/tags/${name}`, contentType: 'application/json',
         data: JSON.stringify({
             name_new: nameNew,
             occurrences: occurrences,
@@ -259,7 +259,7 @@ function deleteTag() {
     const occurrences = $('#occurences').val().split(',')
 
     $.ajax({
-        type: 'DELETE', url: `../api/tags/${tagName}`, contentType: 'application/json',
+        type: 'DELETE', url: `api/tags/${tagName}`, contentType: 'application/json',
         data: JSON.stringify({
             occurrences: occurrences
         }),

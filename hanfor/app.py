@@ -48,7 +48,7 @@ app.db = None
 socketio = SocketIO(app)
 
 # Initialize Api framework
-api = Api(app, version="1.0", title="Hanfor API", prefix="/api/v1", doc="/api/")
+api = Api(app, version="1.0", title="Hanfor API", prefix="/api/v1", doc="/api")
 # load all api models
 api.add_namespace(api_models)
 

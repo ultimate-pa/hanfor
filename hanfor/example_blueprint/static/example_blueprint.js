@@ -44,7 +44,7 @@ $(document).ready(function () {
         lengthMenu: [[10, 50, 100, 500, -1], [10, 50, 100, 500, 'All']],
         dom: 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
         ajax: {
-            url: '../api/v1/example-blueprint/',
+            url: 'api/v1/example-blueprint/',
             dataSrc: function (json) {
                 // Convert dictionary to array
                 return Object.keys(json["data"]).map(id => ({
@@ -93,7 +93,7 @@ $(document).ready(function () {
         };
 
         $.ajax({
-            url: "../api/v1/example-blueprint/",
+            url: "api/v1/example-blueprint/",
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify(userData),
@@ -115,7 +115,7 @@ $(document).ready(function () {
         let userId = $("#userId").val().trim();
 
         $.ajax({
-            url: `../api/v1/example-blueprint/${userId}`, // Use the entered ID in the URL
+            url: `api/v1/example-blueprint/${userId}`, // Use the entered ID in the URL
             type: "DELETE",
             success: function (response) {
                 $("#deleteMessage").html('<div class="alert alert-success">User deleted successfully!</div>');

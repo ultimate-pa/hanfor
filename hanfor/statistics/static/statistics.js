@@ -29,7 +29,7 @@ $(document).ready(function () {
 
 
     $.ajax({
-        type: 'GET', url: '../api/statistics/', contentType: 'application/json'
+        type: 'GET', url: 'api/statistics/', contentType: 'application/json'
     }).done(function (data, textStatus, jqXHR) {
         // Processed requirements pie
         new Chart(

@@ -21,7 +21,7 @@ blueprint = Blueprint("ultimate", __name__, template_folder="templates", url_pre
 api = Namespace("Ultimate", "Ultimate api Description", path="/ultimate", ordered=True)
 
 
-@blueprint.route("/", methods=["GET"])
+@blueprint.route("", methods=["GET"])
 def index():
     return render_template(
         "ultimate/index.html",

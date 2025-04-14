@@ -17,7 +17,7 @@ $(document).ready(function () {
         responsive: true,
         lengthMenu: [[10, 50, 100, 500, -1], [10, 50, 100, 500, 'All']],
         dom: 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
-        ajax: {url: '../api/quickchecks/results', dataSrc: ''},
+        ajax: {url: 'api/quickchecks/results', dataSrc: ''},
         deferRender: true,
         columns: completenessDataTableColumns,
         initComplete: function () {
@@ -31,7 +31,7 @@ $(document).ready(function () {
          * HTTP response status codes: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
          */
         $.ajax({
-            type: 'POST', url: '/api/quickchecks', contentType: 'application/json',
+            type: 'POST', url: 'api/quickchecks', contentType: 'application/json',
         }).done(function (data, textStatus, jqXHR) {
             completenessDataTable.ajax.reload(null, false);
         }).fail(function (jqXHR, textStatus, errorThrown) {
