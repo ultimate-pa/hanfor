@@ -79,7 +79,7 @@ class ApiExampleBlueprintItem(Resource):
         """Get the number as string"""
         if example_id in example_data:
             return example_data[example_id]
-        return {}, 404
+        return None, 404
 
     @api.doc(
         params={

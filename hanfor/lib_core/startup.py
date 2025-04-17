@@ -20,9 +20,9 @@ from lib_core.utils import (
     choice,
 )
 from lib_core.data import Tag, VariableCollection, Scope, SessionValue, Requirement, Variable
-from tags.tags import TagsApi
 from configuration.patterns import PATTERNS
 from configuration.defaults import Color
+from configuration.tags import STANDARD_TAGS, FUNCTIONAL_TAGS
 
 from reqtransformer import RequirementCollection
 
@@ -171,11 +171,19 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
             HanforArgumentParser(flask_app).error("--revision requires a Input CSV -c INPUT_CSV.")
         user_request_new_revision(flask_app, args)
     else:
-        # If there is no session with given tag: Create a new (initial) revision.
         if not os.path.exists(flask_app.config["SESSION_FOLDER"]):
+            # If there is no session with given tag: Create a new (initial) revision.
             create_revision(flask_app, args, None)
-        # If this is an already existing session, ask the user which revision to start.
+            # insert functional and standard tags
+            for name, values in FUNCTIONAL_TAGS.items():
+                tag = Tag(name, **values)
+                flask_app.db.add_object(tag, delay_update=True)
+                flask_app.db.add_object(SessionValue(f"TAG_{name}", tag), delay_update=True)
+            for name, properties in STANDARD_TAGS.items():
+                flask_app.db.add_object(Tag(name, **properties), delay_update=True)
+            flask_app.db.update()
         else:
+            # If this is an already existing session, ask the user which revision to start.
             revision_choice = user_choose_start_revision(flask_app)
             logging.info("Loading session `{}` at `{}`".format(flask_app.config["SESSION_TAG"], revision_choice))
             load_revision(flask_app, revision_choice)
@@ -207,12 +215,25 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
     # Initialize variables collection, import session
     config_check(flask_app.config)
 
+    # check functional Tags
+    existing_tags: dict[str, Tag] = {t.name: t for t in flask_app.db.get_objects(Tag).values()}
+    for name, values in FUNCTIONAL_TAGS.items():
+        if name not in existing_tags:
+            tag = Tag(name, **values)
+            flask_app.db.add_object(tag)
+            if flask_app.db.key_in_table(SessionValue, f"TAG_{name}"):
+                s: SessionValue = flask_app.db.get_object(SessionValue, f"TAG_{name}")
+                s.value = tag
+                flask_app.db.update()
+            else:
+                flask_app.db.add_object(SessionValue(f"TAG_{name}", tag))
+        else:
+            tag = existing_tags[name]
+            if not flask_app.db.key_in_table(SessionValue, f"TAG_{name}"):
+                flask_app.db.add_object(SessionValue(f"TAG_{name}", tag))
+
     # Run consistency checks.
     varcollection_consistency_check(flask_app, args)
-
-    # instantiate TagsApi for generating init_tags
-    with flask_app.app_context():
-        TagsApi()
 
     return True
 

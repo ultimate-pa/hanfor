@@ -5,14 +5,14 @@ import datetime
 
 
 from hanfor_flask import current_app, nocache, HanforFlask
-from lib_core.data import Requirement, VariableCollection, SessionValue, RequirementEditHistory
+from lib_core.data import Requirement, VariableCollection, SessionValue, RequirementEditHistory, Tag
 from lib_core.utils import (
     get_default_pattern_options,
     formalization_html,
     formalizations_to_html,
     default_scope_options,
 )
-from tags.tags import TagsApi
+from configuration.defaults import Color
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from configuration.patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
@@ -96,16 +96,19 @@ def api_update():
         req_tags = {t.name: c for t, c in requirement.tags.items()}
         if req_tags != new_tag_set:
             added_tags = new_tag_set.keys() - req_tags.keys()
-            tag_api = TagsApi()
+            all_tags: dict[str, Tag] = {t.name: t for t in current_app.db.get_objects(Tag).values()}
             removed_tags = req_tags.keys() - new_tag_set.keys()
             for tag in removed_tags:
-                if not tag_api.tag_exists(tag):
+                if tag not in all_tags:
                     continue
-                requirement.tags.pop(tag_api.get_tag(tag))
+                requirement.tags.pop(all_tags[tag])
             for tag, comment in new_tag_set.items():
-                if not tag_api.tag_exists(tag):
-                    tag_api.add(tag)
-                requirement.tags[tag_api.get_tag(tag)] = comment
+                if tag not in all_tags:
+                    tag = Tag(tag, Color.BS_INFO.value, False, "")
+                    current_app.db.add_object(tag)
+                else:
+                    tag = all_tags[tag]
+                requirement.tags[tag] = comment
             # do logging
             add_msg_to_flask_session_log(
                 current_app, f"Tags: + {added_tags} and - {removed_tags} to requirement", [requirement]
@@ -165,24 +168,26 @@ def api_multi_update():
 
     # Update all requirements given by the rid_list
     if result["success"]:
-        tag_api = TagsApi()
+        all_tags: dict[str, Tag] = {t.name: t for t in current_app.db.get_objects(Tag).values()}
         requirements = [current_app.db.get_object(Requirement, rid) for rid in rid_list]
         log_msg = f"Update {len(rid_list)} requirements."
         if len(add_tag) > 0:
             log_msg += f"Adding tag `{add_tag}`"
             add_msg_to_flask_session_log(current_app, f"Adding tag `{add_tag}` to requirements.", requirements)
-            if not tag_api.tag_exists(add_tag):
-                tag_api.add(add_tag)
-            add_tag = tag_api.get_tag(add_tag)
+            if add_tag not in all_tags:
+                add_tag = Tag(add_tag, Color.BS_INFO.value, False, "")
+                current_app.db.add_object(add_tag)
+            else:
+                add_tag = all_tags[add_tag]
         else:
             add_tag = None
         if len(remove_tag) > 0:
             log_msg += f", removing Tag `{remove_tag}` (is present)"
             add_msg_to_flask_session_log(current_app, f"Removing tag `{remove_tag}` from requirements.", requirements)
-            if not tag_api.tag_exists(remove_tag):
+            if remove_tag not in all_tags:
                 remove_tag = None
             else:
-                remove_tag = tag_api.get_tag(remove_tag)
+                remove_tag = all_tags[remove_tag]
         else:
             remove_tag = None
         if len(set_status) > 0:

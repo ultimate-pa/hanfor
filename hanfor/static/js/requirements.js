@@ -1237,7 +1237,7 @@ function update_vars() {
 
 function load_tags() {
     $.ajax({
-        type: 'GET', url: 'api/tags/'
+        type: 'GET', url: 'api/v1/tags'
     }).done(function (data) {
         available_tags = []
         for (let tag of data) {

@@ -1,6 +1,19 @@
 from configuration.defaults import Color
 
-
+# All Tag in the set of FUNCTIONAL_TAGS are needed by basic functions from Hanfor, e.g., type checking.
+# Thus, they have to be present.
+FUNCTIONAL_TAGS = {
+    "Type_inference_error": {"color": Color.BS_DANGER.value, "internal": True, "description": "", "mutable": False},
+    "incomplete_formalization": {
+        "color": Color.BS_WARNING.value,
+        "internal": True,
+        "description": "",
+        "mutable": False,
+    },
+    "has_formalization": {"color": Color.BS_SUCCESS.value, "internal": True, "description": "", "mutable": False},
+    "unknown_type": {"color": Color.BS_DANGER.value, "internal": True, "description": "", "mutable": False},
+    "Ultimate_raw_data": {"color": Color.BS_GRAY.value, "internal": False, "description": "", "mutable": False},
+}
 
 # Standard Tags which are added when a new project is created. The standard Tags can also be added with the
 # 'add standard tags' button at the tags page.

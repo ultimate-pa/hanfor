@@ -10,9 +10,10 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-from lib_core.data import Requirement, Formalization
+from hanfor_flask import HanforFlask
+from configuration.defaults import Color
+from lib_core.data import Requirement, Formalization, Tag
 from lib_core.utils import choice
-from tags.tags import TagsApi
 
 
 __version__ = "1.0.4"
@@ -167,11 +168,11 @@ class RequirementCollection:
             else:
                 print("No sessions available. Skipping")
 
-    def parse_csv_rows_into_requirements(self, app):
+    def parse_csv_rows_into_requirements(self, app: HanforFlask):
         """Parse each row in csv_all_rows into one Requirement.
 
         Args:
-            app (Flask): Hanfor Flask app..
+            app (Flask): Hanfor Flask app.
 
         """
         for index, row in enumerate(self.csv_all_rows):
@@ -186,11 +187,13 @@ class RequirementCollection:
             if self.csv_meta.import_formalizations:
                 # Set the tags
                 if self.csv_meta.tags_header is not None:
-                    tag_api = TagsApi()
+                    all_tags: dict[str, Tag] = {t.name: t for t in app.db.get_objects(Tag).values()}
                     for t in row[self.csv_meta.tags_header].split(","):
-                        if not tag_api.tag_exists(t):
-                            tag_api.add(t)
-                        tag = tag_api.get_tag(t)
+                        if t not in all_tags:
+                            tag = Tag(t, Color.BS_INFO.value, False, "")
+                            app.db.add_object(tag)
+                        else:
+                            tag = all_tags[t]
                         requirement.tags[tag] = ""
                 # Set the status
                 if self.csv_meta.status_header is not None:

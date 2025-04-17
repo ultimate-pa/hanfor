@@ -64,7 +64,7 @@ app.register_blueprint(variables.api_blueprint)
 app.register_blueprint(logs_api)
 # Tags
 app.register_blueprint(tags.blueprint)
-app.register_blueprint(tags.api_blueprint)
+api.add_namespace(tags.api)
 # Statistics
 app.register_blueprint(statistics.blueprint)
 app.register_blueprint(statistics.api_blueprint)
