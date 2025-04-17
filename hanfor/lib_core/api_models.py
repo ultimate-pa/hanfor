@@ -19,6 +19,37 @@ ExampleBluprintNames = api_models.model(
     "Example Names", {"names": fields.List(fields.String, example=["Alice", "Bob", "Clarice"])}
 )
 
+# General
+
+ErrorMessageModel = api_models.model("Error Message", {"error": fields.String, "message": fields.String})
+
+# Tags models
+
+TagModel = api_models.model(
+    "Tag",
+    {
+        "name": fields.String("Type_inference_error"),
+        "color": fields.String("#dc3545"),
+        "internal": fields.Boolean,
+        "description": fields.String("The type of some variable can not be inferred"),
+        "used_by": fields.List(fields.String),
+        "mutable": fields.Boolean,
+        "uuid": fields.String("c43d9d83-6267-40f6-ae94-c046bfe04476"),
+    },
+)
+
+TagRequestModel = api_models.model(
+    "Tag Request",
+    {
+        "name": fields.String("Type_inference_error"),
+        "color": fields.String("#dc3545"),
+        "internal": fields.Boolean,
+        "description": fields.String("The type of some variable can not be inferred"),
+    },
+)
+
+TagListModel = fields.List(Nested(TagModel))
+
 # Ultimate models
 UltimateVersionModel = api_models.model("Ultimate Version", {"version": fields.String})
 
