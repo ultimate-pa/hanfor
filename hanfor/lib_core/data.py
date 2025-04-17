@@ -34,6 +34,7 @@ from configuration.patterns import PATTERNS
 @DatabaseField("color", str)
 @DatabaseField("internal", bool)
 @DatabaseField("description", str)
+@DatabaseField("mutable", bool, True)
 @DatabaseNonSavedField("used_by", [])
 @dataclass
 class Tag:
@@ -41,6 +42,7 @@ class Tag:
     color: str
     internal: bool
     description: str
+    mutable: bool = True  # if a Tag is not mutable then it can not be deleted and the name can not be changed
     used_by: list = field(default_factory=list)
     uuid: str = field(default_factory=lambda: str(uuid4()))
 
