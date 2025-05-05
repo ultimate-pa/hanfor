@@ -400,7 +400,7 @@ function find_variable_inputs(simulator_modal, variables) {
     const result = {}
 
     for (const k in variables) {
-        result[k] = simulator_modal.find('#' + k + '_variable_input')
+        result[k] = simulator_modal.find('#' + k.replaceAll(".", "\\.") + '_variable_input')
     }
 
     return result
