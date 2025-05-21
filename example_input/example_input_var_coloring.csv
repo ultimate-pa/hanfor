@@ -1,0 +1,6 @@
+ID,Description,Type
+REQ001,After the conveyor belt stops for 3 seconds the red and green lights blink alternately and a short beep is triggered,requirement
+REQ002,The moment the robotic gripper reaches its end position all indicators on the left and right should start flashing and a continuous tone is emitted,requirement
+REQ003,If the emergency button is pressed the system stops immediately and the siren starts after 2 seconds,requirement
+REQ004,Once the loading arm stays in place for more than 4 seconds the lights flash on the left and middle sides only and two acoustic signals are played,requirement
+REQ005,As soon as the manipulator stabilizes both the left and right lights activate and an alert tone is issued,requirement

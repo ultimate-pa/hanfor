@@ -2,6 +2,7 @@ from flask import Blueprint, request, render_template
 import logging
 import json
 import datetime
+import os
 
 
 from hanfor_flask import current_app, nocache, HanforFlask
@@ -58,6 +59,23 @@ def api_index():
     result["available_vars"] = var_collection.get_available_var_names_list(used_only=False, exclude_types={"ENUM"})
 
     result["additional_static_available_vars"] = VARIABLE_AUTOCOMPLETE_EXTENSION
+
+    # Variable highlighting Info
+    path = os.path.join(current_app.root_path, "variable_aliasing.json")
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        logging.error(e)
+        data = {}
+
+    # Build variable_mapping with only entries that contain the given rid
+    variable_mapping = {
+        var: {group: {rid: rids[rid]} for group, rids in groups.items() if rid in rids}
+        for var, groups in data.items()
+        if any(rid in rids for rids in groups.values())
+    }
+    result["variable_mapping"] = variable_mapping
 
     if requirement:
         return result
