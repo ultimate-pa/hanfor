@@ -22,6 +22,5 @@ setuptools~=70.0.0 # TODO: Remove if PySMT version is > 0.9.5
 uuid~=1.30
 werkzeug~=3.0.3
 immutabledict~=4.1.0
-sentry-sdk~=2.5.1
 
 -r lib_pea/requirements.txt

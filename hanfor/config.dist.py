@@ -18,10 +18,6 @@ SESSION_BASE_FOLDER = None
 #                                DEBUG and logging                             #
 ################################################################################
 
-# Sentry error tracking setup
-USE_SENTRY = False
-SENTRY_DSN = "<add_your_sentry_dsn>"
-
 # Set DEBUG_MODE to true if you want to run the flask app in debug mode.
 DEBUG_MODE = False
 
