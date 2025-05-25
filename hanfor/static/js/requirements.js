@@ -17,8 +17,6 @@ const autosize = require('autosize/dist/autosize');
 // Globals
 const {SearchNode} = require('./datatables-advanced-search.js');
 const {init_simulator_tab} = require('./simulator-tab.js');
-let init_table_connection_functions= []
-exports.init_table_connection_functions = init_table_connection_functions
 const {sendTelemetry} = require('../../telemetry/static/telemetry')
 
 const {Textcomplete} = require('@textcomplete/core')
@@ -495,7 +493,7 @@ function load_datatable() {
         }
     }];
     // Load generic colums.
-    $.get("api/table/colum_defs", '', function (data) {
+    $.get("api/req/colum_defs", '', function (data) {
         const dataLength = data['col_defs'].length;
         for (let i = 0; i < dataLength; i++) {
             columnDefs.push({
@@ -1239,7 +1237,7 @@ function update_vars() {
 
 function load_tags() {
     $.ajax({
-        type: 'GET', url: 'api/tags/'
+        type: 'GET', url: 'api/v1/tags'
     }).done(function (data) {
         available_tags = []
         for (let tag of data) {

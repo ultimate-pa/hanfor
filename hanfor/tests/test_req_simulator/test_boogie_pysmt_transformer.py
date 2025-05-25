@@ -2,15 +2,15 @@ from unittest import TestCase
 
 from parameterized import parameterized
 
-import boogie_parsing
+from lib_core import boogie_parsing
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
-from reqtransformer import Variable
+from lib_core.data import Variable
 
 parser = boogie_parsing.get_parser_instance()
 
 
 class TestBoogiePysmtTransformer(TestCase):
-    variables = {"a": Variable("a", "bool", ""), "x": Variable("x", "int", ""), "y": Variable("y", "real", "")}
+    variables = {Variable("a", "bool", ""), Variable("x", "int", ""), Variable("y", "real", "")}
 
     @parameterized.expand(
         [

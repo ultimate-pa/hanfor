@@ -7,14 +7,14 @@ from hanfor_flask import current_app
 from flask import Blueprint, render_template, Response
 from flask.views import MethodView
 
-from reqtransformer import Requirement, VariableCollection
+from lib_core.data import Requirement, VariableCollection
 
 BUNDLE_JS = "dist/statistics-bundle.js"
 blueprint = Blueprint("statistics", __name__, template_folder="templates", url_prefix="/statistics")
 api_blueprint = Blueprint("api_statistics", __name__, url_prefix="/api/statistics")
 
 
-@blueprint.route("/", methods=["GET"])
+@blueprint.route("", methods=["GET"])
 def index():
     return render_template("statistics/index.html", BUNDLE_JS=BUNDLE_JS)
 

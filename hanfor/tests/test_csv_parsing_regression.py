@@ -2,15 +2,12 @@
 TODO: Add description here
 """
 
-import json
-
 from app import app
 import os
-import utils
 import shutil
 from unittest import TestCase
 from unittest.mock import patch
-from tests.mock_hanfor import startup_hanfor
+from tests.mock_hanfor import startup_hanfor, HanforArgumentParser
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 TESTS_BASE_FOLDER = os.path.join(HERE, "test_sessions")
@@ -42,7 +39,6 @@ class TestCSVParsing(TestCase):
 
     def setUp(self):
         app.config["SESSION_BASE_FOLDER"] = TESTS_BASE_FOLDER
-        utils.register_assets(app)
         self.app = app.test_client()
 
     @patch("builtins.input", mock_user_input)
@@ -50,10 +46,10 @@ class TestCSVParsing(TestCase):
         global mock_results
         mock_results = user_inputs
 
-        startup_hanfor(args, HERE, no_data_tracing=True)
+        startup_hanfor(app, args, HERE, no_data_tracing=True)
 
     def test_1_quotation_marks(self):
-        args = utils.HanforArgumentParser(app).parse_args([TEST_TAG, "-c", TEST_CSV])
+        args = HanforArgumentParser(app).parse_args([TEST_TAG, "-c", TEST_CSV])
         self.startup_hanfor(args, [0, 1, 3, 2, 0])
         self.assertTrue(os.path.isdir(os.path.join(TESTS_BASE_FOLDER, TEST_TAG)), msg="No session folder created.")
         self.assertTrue(

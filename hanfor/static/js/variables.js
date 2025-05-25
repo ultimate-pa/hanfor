@@ -137,11 +137,15 @@ function store_variable(variables_table) {
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
+                let modal = $('#variable_modal')
+                modal.data('unsaved_changes', false);
                 if (data.rebuild_table) {
-                    location.reload();
+                    //location.reload();
+                    Modal.getOrCreateInstance(modal).hide()
+                    $('#variables_table').DataTable().ajax.reload(null, false)
                 } else {
                     variables_table.row(associated_row_id).data(data.data).draw();
-                    $('#variable_modal').modal('hide');
+                    Modal.getOrCreateInstance(modal).hide()
                 }
             }
         });
@@ -298,7 +302,7 @@ function update_displayed_constraint_inputs() {
 /**
  * Updates the formalization textarea based on the selected scope and expressions in P, Q, R, S, T, U, V.
  */
-function update_formalization() {
+function update_formalization(changes = true) {
     $('.formalization_card').each(function () {
         // Fetch attributes
         const formalization_id = $(this).attr('title');
@@ -357,6 +361,10 @@ function update_formalization() {
         }
     });
     $('#variable_constraint_updated').val('true');
+
+    if (changes) {
+        $('#variable_modal').data('unsaved_changes', true);
+    }
 }
 
 function delete_constraint(constraint_id) {
@@ -377,7 +385,7 @@ function delete_constraint(constraint_id) {
             }
         }).done(function () {
         update_displayed_constraint_inputs();
-        update_formalization();
+        update_formalization(false);
         bind_expression_buttons();
     });
 }
@@ -428,7 +436,7 @@ function add_constraint() {
             }
         }).done(function () {
         update_displayed_constraint_inputs();
-        update_formalization();
+        update_formalization(false);
         bind_expression_buttons();
     });
 }
@@ -447,7 +455,7 @@ function get_variable_constraints_html(var_name) {
             }
         }).done(function () {
         update_displayed_constraint_inputs();
-        update_formalization();
+        update_formalization(false);
         bind_expression_buttons();
     });
 }
@@ -527,7 +535,7 @@ function load_enumerators_to_modal(var_name) {
             }
         }).done(function () {
         update_displayed_constraint_inputs();
-        update_formalization();
+        update_formalization(false);
         bind_expression_buttons();
     });
 }
@@ -613,6 +621,7 @@ function add_variable_via_modal() {
                 alert(data['errormsg']);
             } else {
                 location.reload();
+                $('#new_variable_name').val("")
             }
         });
 }
@@ -701,6 +710,8 @@ function update_new_var_const_value_input() {
 }
 
 $(document).ready(function () {
+    init_modal()
+
     // Prepare and load the variables table.
     let variables_table = $('#variables_table').DataTable({
         "paging": true,
@@ -766,7 +777,7 @@ $(document).ready(function () {
                     $(data).each(function (id, name) {
                         if (name.length > 0) {
                             result += '<span class="badge bg-danger">' + name +
-                            '</span>';
+                                '</span>';
                         }
                     });
                     return result;
@@ -1004,10 +1015,6 @@ $(document).ready(function () {
         }
     })
 
-    let variable_modal = $('#variable_modal');
-    variable_modal[0].addEventListener('hide.bs.modal', function (event) {
-        modal_closing_routine(event);
-    });
 
     // Add new Constraint
     $('#add_constraint').click(function () {
@@ -1021,7 +1028,7 @@ $(document).ready(function () {
 
     // Add new enumerator from emum modal
     $('#add_enumerator').click(function () {
-        add_enumerator_template('');
+        add_enumerator_template('')
     });
 
     // Delete enumerator via the enum modal.
@@ -1090,7 +1097,40 @@ $(document).ready(function () {
     })
 });
 
+function init_modal() {
+    let modal = $('#variable_modal')
+
+    modal[0].addEventListener('hide.bs.modal', function (event) {
+        modal_closing_routine(event);
+    })
+
+    $('#variable_name').change(function () {
+        $('#variable_modal').data('unsaved_changes', true);
+    })
+
+    $('#variable_type').change(function () {
+        $('#variable_modal').data('unsaved_changes', true);
+    })
+
+    $('#variable_value').change(function () {
+        $('#variable_modal').data('unsaved_changes', true);
+    })
+
+    $('#belongs_to_enum').change(function () {
+        $('#variable_modal').data('unsaved_changes', true);
+    })
+}
+
 function modal_closing_routine(event) {
-    // TODO add close waring if unsaved changes
-    sendTelemetry("variables", $('#variable_name_old').val(), "close")
+    const unsaved_changes = $('#variable_modal').data('unsaved_changes');
+    if (unsaved_changes === true) {
+        const force_close = confirm("You have unsaved changes, do you really want to close?");
+        if (force_close !== true) {
+            event.preventDefault();
+        } else {
+            sendTelemetry("variables", $('#variable_name_old').val(), "close_without_save")
+        }
+    } else {
+        sendTelemetry("variables", $('#variable_name_old').val(), "close")
+    }
 }

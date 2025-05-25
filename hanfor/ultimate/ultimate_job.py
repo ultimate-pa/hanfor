@@ -1,15 +1,16 @@
+import json
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from hanfor_flask import current_app
-from utils import get_requirements
-from static_utils import SessionValue
 
 from configuration.ultimate_config import AUTOMATED_TAGS
-from reqtransformer import Requirement
+from lib_core.data import Requirement, SessionValue
+from lib_core.utils import get_requirements
 
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
 
 FILE_VERSION = 0
+DATETIME_STR_FORMAT = "%Y.%m.%d, %H:%M:%S.%f"
 
 
 @DatabaseTable(TableType.Folder)
@@ -19,9 +20,9 @@ FILE_VERSION = 0
 @DatabaseField("toolchain_xml", str)
 @DatabaseField("usersettings_name", str)
 @DatabaseField("usersettings_json", str)
-@DatabaseField("selected_requirements", list[tuple[str, int]], [])
+@DatabaseField("selected_requirements", dict, {})
 @DatabaseField("results", list[dict], [])
-@DatabaseField("result_requirements", list[tuple[str, int]], [])
+@DatabaseField("result_requirements", dict, {})
 @DatabaseField("api_url", str)
 @DatabaseField("job_status", str)
 @DatabaseField("request_time", datetime)
@@ -34,19 +35,23 @@ class UltimateJob:
     toolchain_xml: str
     usersettings_name: str
     usersettings_json: str
-    selected_requirements: list[tuple[str, int]] = field(default_factory=list)  # (requirement_id, # of formalisations)
+    selected_requirements: dict[str, int] = field(default_factory=dict)  # (requirement_id, # of formalisations)
     results: list[dict] = field(default_factory=list)
-    result_requirements: list[tuple[str, int]] = field(default_factory=list)  # (requirement_id, # of formalisations)
+    result_requirements: dict[str, int] = field(default_factory=dict)  # (requirement_id, # of formalisations)
     api_url: str = ""
     job_status: str = "scheduled"
-    request_time: datetime = datetime.now()
-    last_update: datetime = datetime.now()
+    request_time: datetime = None
+    last_update: datetime = None
+
+    def __post_init__(self):
+        self.request_time = datetime.now()
+        self.last_update = datetime.now()
 
     def update(self, data: dict) -> None:
         if not data["requestId"] == self.job_id:
             raise Exception("Missmatch of requestID")
         last_status = self.job_status
-        object.__setattr__(self, "last_update", datetime.now().strftime("%Y.%m.%d, %H:%M:%S.%f"))
+        object.__setattr__(self, "last_update", datetime.now())
         object.__setattr__(self, "job_status", data["status"])
         if not data["result"] == "":
             object.__setattr__(self, "results", data["result"])
@@ -58,17 +63,20 @@ class UltimateJob:
             "status": self.job_status,
             "requestId": self.job_id,
             "result": self.results,
-            "request_time": self.request_time,
-            "last_update": self.last_update,
+            "request_time": self.request_time.strftime(DATETIME_STR_FORMAT),
+            "last_update": self.last_update.strftime(DATETIME_STR_FORMAT),
             "selected_requirements": self.selected_requirements,
             "result_requirements": self.result_requirements,
         }
 
     def get_download(self) -> dict:
-        return asdict(self)
+        tmp = asdict(self)
+        tmp["request_time"] = self.request_time.strftime(DATETIME_STR_FORMAT)
+        tmp["last_update"] = self.last_update.strftime(DATETIME_STR_FORMAT)
+        return tmp
 
 
-def calculate_req_id_occurrence(requirement_file: str, selected_requirements: list[str]) -> list[tuple[str, int]]:
+def calculate_req_id_occurrence(requirement_file: str, selected_requirements: list[str]) -> dict[str, int]:
     req: dict[str, tuple[str, int]] = {}
     for req_id in selected_requirements:
         req[req_id.replace("-", "_") + "_"] = (req_id, 0)
@@ -80,9 +88,9 @@ def calculate_req_id_occurrence(requirement_file: str, selected_requirements: li
                 req[req_id_formatted] = (req[req_id_formatted][0], req[req_id_formatted][1] + 1)
                 continue
 
-    requirements: list[(str, int)] = []
+    requirements: dict[str, int] = {}
     for req_id_formatted in req:
-        requirements.append(req[req_id_formatted])
+        requirements[req[req_id_formatted][0]] = req[req_id_formatted][1]
     return requirements
 
 
@@ -100,7 +108,7 @@ def add_ultimate_result_to_requirement(
     requirement = current_app.db.get_object(Requirement, requirement_id)
     if not requirement:
         return
-    tmp = f"# {ultimate_job.job_id} ({ultimate_job.last_update})\n"
+    tmp = f"# {ultimate_job.job_id} ({ultimate_job.last_update.strftime(DATETIME_STR_FORMAT)})\n"
     for result in ultimate_results:
         result_text = result["longDesc"].replace("\n ", "\n\t")
         tmp += f"\n{result['type']}: {result_text}"
@@ -115,7 +123,7 @@ def add_ultimate_result_to_requirement(
 
 def process_result(ultimate_job: UltimateJob) -> None:
     requirements = []
-    for req, count in ultimate_job.selected_requirements:
+    for req, count in ultimate_job.selected_requirements.items():
         if count == 0:
             continue
         requirements.append((req, req.replace("-", "_") + "_"))
@@ -130,8 +138,7 @@ def process_result(ultimate_job: UltimateJob) -> None:
                 else:
                     tags[requirement[0]] = [result]
                     req_results[requirement[0]] = 1
-    req_results_list = [(req_id, val) for req_id, val in req_results.items()]
-    object.__setattr__(ultimate_job, "result_requirements", req_results_list)
+    object.__setattr__(ultimate_job, "result_requirements", req_results)
     if AUTOMATED_TAGS:
         for requirement, results in tags.items():
             add_ultimate_result_to_requirement(requirement, results, ultimate_job)

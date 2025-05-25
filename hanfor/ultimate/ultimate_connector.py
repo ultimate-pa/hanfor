@@ -105,7 +105,7 @@ class UltimateConnector:
         return {"status": content["status"], "requestId": content["requestId"], "result": message}
 
     @staticmethod
-    def delete_job(job_id: str) -> dict:
+    def abort_job(job_id: str) -> dict:
         url = ULTIMATE_API_URL + "job/delete/" + job_id
         r = requests.get(url, headers={"Cache-Control": "no-cache"})
         if r.status_code != 200:

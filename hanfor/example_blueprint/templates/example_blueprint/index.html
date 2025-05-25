@@ -4,14 +4,89 @@
     Example Blueprint
 {% endblock %}
 
-{% block body %}
-    <div class="container py-3">
-        <h3>Example Blueprint</h3>
-        <p>Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit...</p>
-        <button id="awesome-message-button" class="btn btn-primary" type="button">Get awesome message</button>
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link active" id="search-tab" data-bs-toggle="tab" href="#search-pane" role="tab"
+                       aria-controls="search" aria-selected="true">Search</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="add-tab" data-bs-toggle="tab" href="#add-pane" role="tab"
+                       aria-controls="add">Add</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="delete-tab" data-bs-toggle="tab" href="#delete-pane" role="tab"
+                       aria-controls="delete">Delete</a>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="search-pane" role="tabpanel" aria-labelledby="search-tab">
+                    {% include 'search-tab.html' %}
+                </div>
+                <div class="tab-pane fade show" id="add-pane" role="tabpanel" aria-labelledby="add-tab">
+                    <form id="userForm">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name:</label>
+                            <input type="text" id="name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="age" class="form-label">Age:</label>
+                            <input type="number" id="age" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="city" class="form-label">City:</label>
+                            <input type="text" id="city" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+                <div class="tab-pane fade show" id="delete-pane" role="tabpanel" aria-labelledby="delete-tab">
+                    <form id="deleteForm">
+                        <div class="mb-3">
+                            <label for="userId" class="form-label">User ID:</label>
+                            <input type="number" id="userId" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
     </div>
+
+    <table id="example-blueprint-tbl" class="table table-hover table-bordered w-100">
+        <thead>
+        <tr>
+            <th class='w-auto' data-column-index='0'>ID</th>
+            <th class='w-auto' data-column-index='1'>Name</th>
+            <th class='w-auto' data-column-index='2'>Age</th>
+            <th class='w-auto' data-column-index='3'>City</th>
+        </tr>
+        </thead>
+        <tfoot>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Age</th>
+            <th>City</th>
+        </tr>
+        </tfoot>
+        <tbody></tbody>
+    </table>
 {% endblock %}
 
 {% block scripts %}
+    {{ super() }} <!-- import all scripts from the layout.html -->
+
+    <!-- provide additional variables to all loaded js -->
+    <script type="text/javascript">
+        let base_url = '{{ url_for('requirements.index') }}';
+    </script>
+
+    <!-- import BUNDLE_JS -->
     <script type="text/javascript" src="{{ url_for('static', filename=BUNDLE_JS) }}"></script>
 {% endblock %}

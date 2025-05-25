@@ -3,7 +3,7 @@ Test correct parsing of expressions using the boogie_parser w.r.t the grammar de
 Test reconstruction from parse trees to expression string.
 """
 
-import boogie_parsing
+from lib_core import boogie_parsing
 from unittest import TestCase
 from lark.exceptions import UnexpectedInput
 
@@ -33,6 +33,7 @@ class TestParseExpressions(TestCase):
             "((-1.2341==-0.2340)==(BAR<-0.000023498))==>(-1234.1==FOO)",
             "((-1.2341<-0.2340)&&(BAR<-0.000023498))==>(-1234.1<FOO)",
             "((-1.2341<-0.2340)&&(BAR+-2.000023498))==>(-1234.1<FOO)",
+            "((-1.2341<-0.2340)&&(BAR+-2.000023498))<==>(-1234.1<FOO)",
         ]
         for index, expression in enumerate(expressions):
             try:

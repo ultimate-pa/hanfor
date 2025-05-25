@@ -1,6 +1,3 @@
-
-// let init_table_connection_functions = require('/js/requirements.js')['init_table_connection_functions']
-
 $(document).ready(function () {
     init_ultimate_tab()
 });
@@ -43,7 +40,7 @@ function init_ultimate_requirements_table_connection (requirements_table) {
 function check_ultimate_version() {
     $.ajax({
         type: 'GET',
-        url: 'api/ultimate/version'
+        url: 'api/v1/ultimate/version'
     }).done(function (data) {
         if (data['version'] !== '') {
             let img = $('#ultimate-tab-ultimate-status-img')
@@ -64,7 +61,7 @@ function check_ultimate_version() {
 function update_configurations() {
     $.ajax({
         type: 'GET',
-        url: 'api/ultimate/configurations'
+        url: 'api/v1/ultimate/configurations'
     }).done(function (data) {
         let select = $('#ultimate-tab-configuration-select');
         select.empty();
@@ -96,7 +93,7 @@ function create_ultimate_analysis(btn, req_ids) {
         let configuration = select.val();
         $.ajax({
             type: 'POST',
-            url: 'api/ultimate/job',
+            url: 'api/v1/ultimate/jobs',
             data: JSON.stringify({"configuration": configuration,
                    "req_file": data,
                    "req_ids": req_ids})

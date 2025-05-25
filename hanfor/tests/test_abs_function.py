@@ -2,8 +2,8 @@
 Test correct parsing and type derivation of the abs function.
 """
 
-import boogie_parsing
-from boogie_parsing import BoogieType, run_typecheck_fixpoint
+from lib_core import boogie_parsing
+from lib_core.boogie_parsing import BoogieType, run_typecheck_fixpoint
 from unittest import TestCase
 
 

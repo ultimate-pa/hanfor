@@ -12,7 +12,7 @@ requirement_id and formalisation_id:
 
 from unittest import TestCase
 
-from utils import clean_identifier_for_ultimate_parser
+from lib_core.utils import clean_identifier_for_ultimate_parser
 
 
 class TestCleanIdentifierForUltimateParser(TestCase):

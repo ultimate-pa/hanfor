@@ -7,6 +7,7 @@ from pysmt.shortcuts import TRUE, is_valid, Iff
 
 from lib_pea.phase_sets import PhaseSets
 from lib_pea.config import SOLVER_NAME, LOGIC
+import numexpr
 
 
 @dataclass
@@ -57,7 +58,7 @@ class PhaseSetsLocation(Location):
             assert atom.is_lt() or atom.is_le()
 
             clock = str(atom.args()[0])
-            bound = float(Fraction(str(atom.args()[1])))
+            bound = float(Fraction(numexpr.evaluate(str(atom.args()[1])).item()))
             is_lt_bound = atom.is_lt()
 
             # if result is None or (result[2] and bound < result[1]) or (not result[2] and bound <= result[1]):

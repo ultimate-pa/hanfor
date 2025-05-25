@@ -3,7 +3,7 @@ Test the replacement of variables in expressions when using boogie_parsing
 """
 
 from unittest import TestCase
-import boogie_parsing
+from lib_core import boogie_parsing
 
 
 class TestReplaceVarInExpression(TestCase):

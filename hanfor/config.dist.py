@@ -18,10 +18,6 @@ SESSION_BASE_FOLDER = None
 #                                DEBUG and logging                             #
 ################################################################################
 
-# Sentry error tracking setup
-USE_SENTRY = False
-SENTRY_DSN = "<add_your_sentry_dsn>"
-
 # Set DEBUG_MODE to true if you want to run the flask app in debug mode.
 DEBUG_MODE = False
 
@@ -71,6 +67,9 @@ HOST = os.environ.get("HANFOR_HOST", default="127.0.0.1")
 #                               Feature Flags                                  #
 ################################################################################
 
+# Example Blueprint
+FEATURE_EXAMPLE_BLUEPRINT = False
+
 # Simulator
 FEATURE_SIMULATOR_VARIABLE_CONSTRAINTS = False
 FEATURE_SIMULATOR_INCONSISTENCY_PRE_CHECK = False
@@ -78,8 +77,11 @@ FEATURE_SIMULATOR_INCONSISTENCY_PRE_CHECK = False
 # Ultimate
 FEATURE_ULTIMATE = False
 
+# Quick checks
+FEATURE_QUICK_CHECKS = False
+
 # Telemetry
-FEATURE_TELEMETRY = True
+FEATURE_TELEMETRY = False
 
 # Ai
 FEATURE_AI = False

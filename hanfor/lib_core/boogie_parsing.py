@@ -124,16 +124,18 @@ class BoogieType(Enum):
         return result
 
     @staticmethod
-    def aliases(type):
+    def aliases(boogie_type):
         """Get allowed name aliases for type
 
-        :param type: BoogieType
+        :param boogie_type: BoogieType
         :return: set containing the allowed alias names in hanfor.
         """
-        result = {type.name}
+        result = {boogie_type.name}
 
-        if type in BoogieType.get_alias_mapping().values():
-            result |= {alias for alias, alias_type in BoogieType.get_alias_mapping().items() if alias_type == type}
+        if boogie_type in BoogieType.get_alias_mapping().values():
+            result |= {
+                alias for alias, alias_type in BoogieType.get_alias_mapping().items() if alias_type == boogie_type
+            }
 
         return result
 
@@ -183,7 +185,8 @@ class TypeInference(Transformer):
                     break
             self.type_errors += errors
 
-    def __typecheck_args(self, expr: str, arg_type: TypeNode, expected_arg_types: set[BoogieType]) -> list[str]:
+    @staticmethod
+    def __typecheck_args(expr: str, arg_type: TypeNode, expected_arg_types: set[BoogieType]) -> list[str]:
         # ignore errors as there is already an error reported and the subsequent errors are noise
         if arg_type.t == BoogieType.unknown or arg_type.t == BoogieType.error:
             return []
@@ -255,16 +258,20 @@ class TypeInference(Transformer):
         return TypeNode(expr, BoogieType.unknown, type_leaf, [c1, c2])
 
     # Infer leafs (vars, consts)
-    def true(self, c: Token) -> TypeNode:
+    @staticmethod
+    def true(c: Token) -> TypeNode:
         return TypeNode(c.value, BoogieType.bool, [])
 
-    def false(self, c: Token) -> TypeNode:
+    @staticmethod
+    def false(c: Token) -> TypeNode:
         return TypeNode(c.value, BoogieType.bool, [])
 
-    def realnumber(self, c: Token) -> TypeNode:
+    @staticmethod
+    def realnumber(c: Token) -> TypeNode:
         return TypeNode(c.value, BoogieType.real, [])
 
-    def number(self, c: Token) -> TypeNode:
+    @staticmethod
+    def number(c: Token) -> TypeNode:
         return TypeNode(c.value, BoogieType.int, [])
 
     def id(self, c: Token) -> TypeNode:
@@ -272,8 +279,8 @@ class TypeInference(Transformer):
         if name not in self.type_env:
             self.type_env[name] = BoogieType.unknown
             return TypeNode(name, BoogieType.unknown, [])
-        type = self.type_env[name]
-        return TypeNode(name, type, [])
+        boogie_type = self.type_env[name]
+        return TypeNode(name, boogie_type, [])
 
     def minus_unary(self, o: Token, c: TypeNode) -> TypeNode:
         return self.__check_unaryop(o, c, {BoogieType.real, BoogieType.int})
@@ -309,6 +316,9 @@ class TypeInference(Transformer):
     def implies(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
         return self.__check_binaryop(c1, op, c2, {BoogieType.bool}, return_type=BoogieType.bool)
 
+    def iff(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
+        return self.__check_binaryop(c1, op, c2, {BoogieType.bool}, return_type=BoogieType.bool)
+
     def lt(self, c1: TypeNode, op: Token, c2: TypeNode) -> TypeNode:
         return self.__check_binaryop(c1, op, c2, {BoogieType.int, BoogieType.real}, return_type=BoogieType.bool)
 
@@ -341,7 +351,7 @@ class TypeInference(Transformer):
         raise NotImplementedError
 
     @v_args(meta=True)
-    def __default__(self, data, children, meta):
+    def __default__(self, data, children, _):
         if len(children) == 1:
             return children[0]
         self.type_errors += ["Syntax Error: input is not a valid expression."]

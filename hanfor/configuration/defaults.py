@@ -24,3 +24,11 @@ class Color(Enum):
     BS_DANGER = "#dc3545"
     BS_LIGHT = "#f8f9fa"
     BS_DARK = "#212529"
+
+    ORANGE = "#E69F00"
+    SKYBLUE = "#56B4E9"
+    TEAL = "#009E73"
+    YELLOW = "#F0E442"
+    BLUE = "#0072B2"
+    VERMILION = "#D55E00"
+    LILAC = "#CC79A7"
