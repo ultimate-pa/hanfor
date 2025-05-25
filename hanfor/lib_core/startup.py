@@ -234,7 +234,6 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
 
     # Run consistency checks.
     varcollection_consistency_check(flask_app, args)
-
     return True
 
 

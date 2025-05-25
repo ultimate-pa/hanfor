@@ -35,7 +35,7 @@
                     </li>
                     {% if config.FEATURE_AI %}
                     <li class="nav-item{% if request.path == '/ai_api' %} active{% endif %}">
-                        <a class="nav-link" href="{{ url_for('site', site='ai') }}">AI</a>
+                        <a class="nav-link" href="{{ url_for('ai.index') }}">AI</a>
                     </li>
                     {% endif %}
                     <li class="nav-item{% if request.path == '/statistics' %} active{% endif %}">

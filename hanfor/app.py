@@ -187,6 +187,12 @@ if __name__ == "__main__":
     # Parse python args and startup hanfor session.
     parsed_args = HanforArgumentParser(app).parse_args()
     if startup_hanfor(app, parsed_args, HERE):
+
+        # Startup AI (start clustering if Flagged)
+        if app.config["FEATURE_AI"]:
+            with app.app_context():
+                app.ai.startup(app.config["REVISION_FOLDER"], socketio)
+
         if app.config["FEATURE_TELEMETRY"]:
             telemetry_namespace.set_data_folder(app.config["REVISION_FOLDER"])
         socketio.run(app, **get_app_options(), allow_unsafe_werkzeug=True)

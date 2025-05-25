@@ -4,11 +4,11 @@ import time
 from typing import Optional
 import requests
 import logging
-import boogie_parsing
 import reqtransformer
 from ai.ai_enum import AiDataEnum
 from ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse, get_scope, get_pattern
 import ai.ai_config as ai_config
+from lib_core import boogie_parsing
 
 pattern = get_pattern().keys()
 scope = get_scope().keys()

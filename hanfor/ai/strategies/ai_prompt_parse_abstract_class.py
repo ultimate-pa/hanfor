@@ -1,8 +1,11 @@
 from os import path
 from abc import ABC, abstractmethod
+import re
+
 from typing_extensions import Optional
-from patterns import PATTERNS
 import reqtransformer
+from lib_core.data import Scope
+from lib_core.utils import get_default_pattern_options
 
 
 class AiPromptParse(ABC):
@@ -57,7 +60,7 @@ class AiPromptParse(ABC):
 
 def get_scope() -> dict[str, str]:
     """returns like: {AFTER: After '{P}'}"""
-    scope_dict = {scope.name: scope.value for scope in reqtransformer.Scope if scope.name != "NONE"}
+    scope_dict = {scope.name: scope.value for scope in Scope if scope.name != "NONE"}
     return scope_dict
 
 
@@ -69,15 +72,18 @@ def get_pattern() -> dict[str, dict[str, str | dict[str, str]]]:
 
     like: 'Universality': {'env': {'R': ['bool']}, 'pattern': 'it is always the case that {R} holds'}
     """
-    pattern = {}
-    for key, val in PATTERNS.items():
-        if val["group"] != "Legacy":
-            pattern[key] = {}
-            if "env" in val:
-                pattern[key]["env"] = val["env"]
-            if "pattern" in val:
-                pattern[key]["pattern"] = val["pattern"]
-    return pattern
+    # TODO primitive fix for new function
+    pattern_dict = {}
+    option_pattern = re.compile(r'<option value="([^"]+)">([^<]+)</option>')
+    for match in option_pattern.finditer(get_default_pattern_options()):
+        key = match.group(1)
+        text = match.group(2)
+
+        if key == "NotFormalizable":
+            continue
+        cleaned_text = re.sub(r'"\{([A-Z])\}"', r'{\1}', text)
+        pattern_dict[key] = {"pattern": cleaned_text}
+    return pattern_dict
 
 
 def get_grammar() -> str:
