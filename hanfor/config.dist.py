@@ -63,6 +63,9 @@ PORT = os.environ.get("HANFOR_PORT", default=5000)
 # Set the host
 HOST = os.environ.get("HANFOR_HOST", default="127.0.0.1")
 
+# Arguments to be passed directly to socket.io
+SOCKETIO_SETTINGS = {}
+
 ################################################################################
 #                               Feature Flags                                  #
 ################################################################################
