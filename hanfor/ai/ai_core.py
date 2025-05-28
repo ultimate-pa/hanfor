@@ -13,6 +13,7 @@ import reqtransformer
 import hanfor_flask
 import re
 from json_db_connector.json_db import DatabaseKeyError
+from lib_core.data import Variable
 
 
 class AiCore:
@@ -105,7 +106,7 @@ class AiCore:
         req_queue, l_cluster, requirement_with_formalization = self.__load_requirements_to_queue(rid_u)
         self.__update_used_variables()
         mother_tread = Thread(
-            target=self.__mother_thread_of_ai_formalization,
+            target=self.__generator_thread_of_ai_formalization,
             args=(
                 req_queue,
                 requirement_with_formalization,
@@ -177,7 +178,7 @@ class AiCore:
 
         self.__update_used_variables()
         mother_tread = Thread(
-            target=self.__mother_thread_of_ai_formalization,
+            target=self.__generator_thread_of_ai_formalization,
             args=(
                 req_queue,
                 requirement_with_formalization,
@@ -188,6 +189,7 @@ class AiCore:
         )
         self.ai_formalization_thread.append(mother_tread)
         mother_tread.start()
+        return None
 
     def check_all_clusters_for_need_of_ai_formalisation(self):
         """Checks all clustered requirements and updates those needing AI formalization"""
@@ -357,7 +359,7 @@ class AiCore:
                 break
         return req_queue, l_cluster, requirement_with_formalization
 
-    def __mother_thread_of_ai_formalization(
+    def __generator_thread_of_ai_formalization(
         self,
         req_queue: Queue,
         requirement_with_formalization: list[reqtransformer.Requirement],
@@ -406,7 +408,7 @@ class AiCore:
     def __update_used_variables(self) -> None:
         """Return list of used variables from the database with Typ, etc"""
         self.__ai_data.set_used_variables(
-            [x.to_dict({}) for x in hanfor_flask.current_app.db.get_objects(reqtransformer.Variable).values()]
+            [x.to_dict({}) for x in hanfor_flask.current_app.db.get_objects(Variable).values()]
         )
 
     def __process_queue_element(self, formalize_object: AIFormalization) -> None:

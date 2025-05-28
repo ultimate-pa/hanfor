@@ -166,6 +166,7 @@ class SetIds(MethodView):
             if not e:
                 return jsonify({"message": f"set ids: {ids}."}), 200
             return jsonify({"error": str(e)}), 400
+        return None
 
 
 # endregion
