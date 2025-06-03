@@ -488,6 +488,16 @@ PATTERNS = {
         "pattern_order": 10,
     },
     "NotFormalizable": {"pattern": "no pattern set", "env": {}, "group": "not_formalizable", "pattern_order": 0},
+
+
+    "ConditionalResponseBoundL1": {
+        "pattern": "it is always the case that if {R} holds succeeded by {S} for at least {T} time units, then {U} holds afterwards",
+        "countertraces": {"GLOBALLY": ["true;⌈R⌉;⌈S⌉ ∧ ℓ ≥ T;⌈!U⌉;true"],
+                          "BEFORE": [], "AFTER": [], "BETWEEN": [], "AFTER_UNTIL": []},
+        "env": {"R": ["bool"], "S": ["bool"], "T": ["real"], "U": ["bool"], },
+        "group": "Real-time",
+        "pattern_order": 30,
+    },
     ################################################################################
     #                         Legacy Patterns                                      #
     ################################################################################
