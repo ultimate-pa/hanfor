@@ -2,10 +2,10 @@ import os
 import importlib
 import time
 from typing import Optional
-import requests
 import logging
 import reqtransformer
 from ai.ai_enum import AiDataEnum
+from ai.strategies.ai_api_methods_abstract_class import AiApiMethod
 from ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse, get_scope, get_pattern
 import ai.ai_config as ai_config
 from lib_core import boogie_parsing
@@ -42,29 +42,39 @@ def load_ai_prompt_parse_methods() -> dict[str, AiPromptParse]:
     return methods
 
 
-def query_ai(query: str, model: str, enable_api_ai_request: bool) -> (str, str):
+def load_ai_api_methods() -> list[AiApiMethod]:
+    directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../strategies/ai_api_methods/")
+    methods = []
+    base_package = "ai.strategies.ai_api_methods"
+
+    for filename in os.listdir(directory):
+        if filename.endswith(".py") and filename != "__init__.py":
+            # Import Modul
+            module_name = filename[:-3]
+            module_path = f"{base_package}.{module_name}"
+
+            try:
+                module = importlib.import_module(module_path)
+                for attr_name in dir(module):
+                    attr = getattr(module, attr_name)
+                    if isinstance(attr, type) and issubclass(attr, AiApiMethod) and attr is not AiApiMethod:
+                        try:
+                            instance = attr()
+                            methods.append(instance)
+                        except TypeError as e:
+                            logging.warning(f"Class {attr_name} in module {module_path} could not be instantiated: {e}")
+            except ModuleNotFoundError as e:
+                logging.error(f"Error loading module {module_path}: {e}")
+    return methods
+
+
+def query_ai(query: str, model_info: dict, enable_api_ai_request: bool) -> (str, str):
     """Sends a query to the AI API. enable_api_ai_request should be the AI flag in AiData."""
 
     if not enable_api_ai_request:
         return None, "error_AI_API_requests_off"
 
-    try:
-        response = requests.post(
-            ai_config.AI_API_URL,
-            json={"model": model, "prompt": query, "stream": False},
-        )
-        response_json = response.json()
-        if "response" in response_json:
-            return response_json["response"], "ai_response_received"
-        else:
-            logging.error(f"Key 'response' not found in AI response: {response_json}")
-            return None, f"error_ai_response_format_{response_json}"
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Request failed: {e}")
-        return None, f"error_ai_connection_{e}"
-    except ValueError as e:
-        logging.error(f"Invalid JSON in response: {e}")
-        return None, f"error_ai_response_format_{e}"
+    return model_info[1]["api_method_object"].query_api(query, model_info[0])
 
 
 class AIFormalization:
@@ -79,7 +89,7 @@ class AIFormalization:
         prompt_generator: callable,
         response_parser: callable,
         used_variables: list[dict],
-        ai_model: str,
+        ai_model: tuple[str, dict],
         enable_api_ai_request: bool,
         req_logger: callable,
         update_status_function,
@@ -123,7 +133,7 @@ class AIFormalization:
             "message": "Initiating AI formalization",
             "description": f"{self.requirement_to_formalize.to_dict().get("desc", "")}",
             "formalized_requirements": f"{requirement_with_formalization}",
-            "ai_model": f"{self.ai_model}",
+            "ai_model": f"{self.ai_model[0]}",
             "prompt_or_parser": f"{prompt_generator_name}",
         }
         self.req_logger(self.req_id, data_dict)
@@ -145,7 +155,7 @@ class AIFormalization:
                     self.__update_status(f"terminated_{self.status}")
                     self.del_time = time.time()
                     self.__req_logger_ai_process()
-                    ai_statistic.add_status(self.ai_model, prompt_generator_name, self.status)
+                    ai_statistic.add_status(self.ai_model[0], prompt_generator_name, self.status)
                     return
 
                 output = step_function()
@@ -157,7 +167,7 @@ class AIFormalization:
 
             # Logging Progress
             self.__req_logger_ai_process()
-            ai_statistic.add_status(self.ai_model, prompt_generator_name, self.status)
+            ai_statistic.add_status(self.ai_model[0], prompt_generator_name, self.status)
 
             # Again or finished
             if self.status == "complete":
@@ -167,7 +177,7 @@ class AIFormalization:
 
         # Finish up
         self.del_time = time.time()
-        ai_statistic.add_try_count(self.ai_model, prompt_generator_name, self.try_count)
+        ai_statistic.add_try_count(self.ai_model[0], prompt_generator_name, self.try_count)
         self.__update_status(self.status)
 
     def __test_formalization_complete(self) -> bool:

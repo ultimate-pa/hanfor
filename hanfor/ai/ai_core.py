@@ -381,7 +381,7 @@ class AiCore:
                 self.__ai_data.get_activ_ai_method_object().create_prompt,
                 self.__ai_data.get_activ_ai_method_object().parse_ai_response,
                 self.__ai_data.get_used_variables(),
-                self.__ai_data.get_activ_ai_model(),
+                self.__ai_data.get_activ_ai_model_object(),
                 self.__ai_data.get_flags()[AiDataEnum.AI],
                 self.__ai_data.requirement_log.add_data,
                 self.__ai_data.update_progress,

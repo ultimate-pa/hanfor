@@ -4,8 +4,9 @@ from threading import Lock
 from time import time
 from typing import Optional
 import logging
+
 from ai import ai_config
-from ai.interfaces.ai_interface import load_ai_prompt_parse_methods, AIFormalization
+from ai.interfaces.ai_interface import load_ai_prompt_parse_methods, load_ai_api_methods, AIFormalization
 from ai.ai_enum import AiDataEnum
 from ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse
 from ai.strategies.similarity_abstract_class import SimilarityAlgorithm
@@ -214,8 +215,22 @@ class AiData:
         self.__ai_prompt_parse_methods: dict[str, AiPromptParse] = load_ai_prompt_parse_methods()
         self.__activ_ai_prompt_parse_method: str = ai_config.STANDARD_AI_PROMPT_PARSE_METHOD
         self.__used_variables: list[dict] = [{}]
-        self.__activ_ai_model: str = ai_config.STANDARD_AI_MODEL
-        self.__ai_models: dict[str, str] = ai_config.AI_MODEL_NAMES
+
+        ai_api_methods = load_ai_api_methods()
+        model_to_api_method = {
+            m: method for method in ai_api_methods for m in method.model_names_which_work_with_api_method
+        }
+        self.__ai_models = {
+            key: {
+                "description": value,
+                "selected": key == ai_config.STANDARD_AI_MODEL,
+                "api_method_object": model_to_api_method.get(key),
+            }
+            for key, value in ai_config.AI_MODEL_NAMES.items()
+        }
+        for name, value in self.__ai_models.items():
+            if not value["api_method_object"]:
+                logging.warning(f"AI model [{name}] has no API method! Please select one, or create a new one.")
 
         self.__ai_statistic = ai_statistic
         self.__ai_statistic.set_send_update_method(self.__send_updated_data)
@@ -262,7 +277,7 @@ class AiData:
             case AiDataEnum.AI:
                 match specified_data:
                     case AiDataEnum.MODEL:
-                        send_dict = {"activ_ai_model": self.__activ_ai_model}
+                        send_dict = {"activ_ai_model": self.get_activ_ai_model_object()[0]}
                     case AiDataEnum.METHOD:
                         send_dict = {"activ_ai_method": self.__activ_ai_prompt_parse_method}
                     case AiDataEnum.STATISTICS:
@@ -307,8 +322,11 @@ class AiData:
     def get_cluster_matrix(self) -> tuple[list[list[float]], dict]:
         return self.__cluster_matrix
 
-    def get_activ_ai_model(self) -> str:
-        return self.__activ_ai_model
+    def get_activ_ai_model_object(self) -> tuple[str, dict] | None:
+        for name, value in self.__ai_models.items():
+            if value["selected"]:
+                return name, value
+        return None
 
     def get_activ_ai_method_object(self) -> AiPromptParse:
         return self.__ai_prompt_parse_methods[self.__activ_ai_prompt_parse_method]
@@ -340,7 +358,10 @@ class AiData:
     def set_ai_model(self, name: str) -> None:
         if name in self.__ai_models.keys():
             logging.debug(f"Setting ai model: {name}")
-            self.__activ_ai_model = name
+            for old_model, value in self.__ai_models.items():
+                if value["selected"]:
+                    self.__ai_models[old_model]["selected"] = False
+            self.__ai_models[name]["selected"] = True
             self.__send_updated_data(AiDataEnum.AI, AiDataEnum.MODEL)
 
     # endregion
@@ -451,13 +472,12 @@ class AiData:
 
     def __get_info_ai_models(self) -> list:
         """Returns a list of AI models with their name, description, and selection status."""
-
         return (
             [
-                {"name": name, "description": desc, "selected": name == self.__activ_ai_model}
-                for name, desc in self.__ai_models.items()
+                {"name": name, "description": value["description"], "selected": value["selected"]}
+                for name, value in self.__ai_models.items()
             ]
-            if self.__ai_prompt_parse_methods
+            if self.__ai_models
             else []
         )
 
