@@ -46,7 +46,7 @@ app.config.from_object("config")
 app.db = None
 
 # Initialize SocketIO
-socketio = SocketIO(app)
+socketio = SocketIO(app, **app.config["SOCKETIO_SETTINGS"])
 
 # Initialize Api framework
 api = Api(app, version="1.0", title="Hanfor API", prefix="/api/v1", doc="/api")
