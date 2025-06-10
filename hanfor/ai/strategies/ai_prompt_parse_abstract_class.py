@@ -88,7 +88,7 @@ def get_pattern() -> dict[str, dict[str, str | dict[str, str]]]:
 
 def get_grammar() -> str:
     """returns the grammar from lark file as string"""
-    grammar_path = path.join(path.dirname(path.abspath(__file__)), "../../hanfor_boogie_grammar.lark")
+    grammar_path = path.join(path.dirname(path.abspath(__file__)), "../../lib_core/hanfor_boogie_grammar.lark")
     with open(grammar_path, "r") as f:
         grammar = f.read()
     return grammar
