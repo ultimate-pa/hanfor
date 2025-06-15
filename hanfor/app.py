@@ -45,7 +45,7 @@ app.config.from_object("config")
 app.db = None
 
 # Initialize SocketIO
-socketio = SocketIO(app)
+socketio = SocketIO(app, **app.config["SOCKETIO_SETTINGS"])
 
 # Initialize Api framework
 api = Api(app, version="1.0", title="Hanfor API", prefix="/api/v1", doc="/api")
@@ -107,12 +107,6 @@ if app.config["FEATURE_QUICK_CHECKS"]:
 telemetry_namespace = TelemetryWs("/telemetry")
 socketio.on_namespace(telemetry_namespace)
 
-
-if "USE_SENTRY" in app.config and app.config["USE_SENTRY"]:
-    import sentry_sdk
-    from sentry_sdk.integrations.flask import FlaskIntegration
-
-    sentry_sdk.init(dsn=app.config["SENTRY_DSN"], integrations=[FlaskIntegration()])
 
 logging.basicConfig(
     format="[%(asctime)s %(filename)s:%(lineno)d] %(levelname)s - %(message)s",
