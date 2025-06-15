@@ -1,6 +1,6 @@
 /*!
-  * Bootstrap v5.3.3 (https://getbootstrap.com/)
-  * Copyright 2011-2024 The Bootstrap Authors (https://github.com/twbs/bootstrap/graphs/contributors)
+  * Bootstrap v5.3.6 (https://getbootstrap.com/)
+  * Copyright 2011-2025 The Bootstrap Authors (https://github.com/twbs/bootstrap/graphs/contributors)
   * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
   */
 
@@ -12,9 +12,9 @@
  */
 
 /*!
- * Chart.js v4.4.6
+ * Chart.js v4.4.9
  * https://www.chartjs.org
- * (c) 2024 Chart.js Contributors
+ * (c) 2025 Chart.js Contributors
  * Released under the MIT License
  */
 
@@ -127,11 +127,11 @@
  * Released under the MIT License
  */
 
-/*! ColReorder 2.0.4
+/*! ColReorder 2.1.0
  * © SpryMedia Ltd - datatables.net/license
  */
 
-/*! DataTables 2.1.8
+/*! DataTables 2.3.1
  * © SpryMedia Ltd - datatables.net/license
  */
 

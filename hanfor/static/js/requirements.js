@@ -10,6 +10,8 @@ require('awesomplete/awesomplete.css');
 //require('datatables.net-bs5-colreorderwithresize-npm');
 require('datatables.net-colreorder-bs5');
 require('./bootstrap-confirm-button');
+import { marked } from 'marked';
+
 
 let utils = require('./hanfor-utils');
 const autosize = require('autosize/dist/autosize');
@@ -858,126 +860,6 @@ function modal_closing_routine(event) {
 }
 
 
-/**
- * Highlights variables and contexts in the text with colors.
- * Clicking a variable copies its name and triggers a highlight animation.
- */
-function highlightVariables(descText, variableMapping) {
-    // Predefined colors for variables and context backgrounds
-    const variableColors = ['#003366','#006400','#800000','#8B4513','#4B0082','#B22222','#2F4F4F','#000080','#556B2F','#8B008B'];
-    const contextBgColors = ['rgba(255,215,0,0.5)','rgba(30,144,255,0.5)','rgba(60,179,113,0.5)','rgba(255,69,0,0.5)','rgba(138,43,226,0.5)'];
-
-    // Flatten all REQ objects across the variable mapping
-    const reqObjects = Object.values(variableMapping).flatMap(g => Object.values(g).flatMap(r => Object.values(r)));
-
-    // Extract and sort context ranges with valid positions
-    let contextRanges = reqObjects.flatMap(r => r.context ?? [])
-        .filter(c => c.pos?.length === 2)
-        .map(c => ({start: c.pos[0], end: c.pos[1], text: c.text}))
-        .sort((a, b) => a.start - b.start);
-
-    // Merge overlapping or adjacent context ranges
-    const mergedContexts = contextRanges.reduce((acc, cur) => {
-        if (acc.length && cur.start <= acc[acc.length - 1].end) {
-            acc[acc.length - 1].end = Math.max(acc[acc.length - 1].end, cur.end);
-            if (!acc[acc.length - 1].text.includes(cur.text)) acc[acc.length - 1].text += ', ' + cur.text;
-        } else acc.push({ ...cur });
-        return acc;
-    }, []);
-
-    // Assign background colors to merged context blocks
-    const contextColorDict = Object.fromEntries(
-        mergedContexts.map((c, i) => [`${c.start}-${c.end}`, { bgColor: contextBgColors[i % contextBgColors.length] }])
-    );
-
-    // Map each variable to its color and its highlight positions
-    const variableColorDict = {};
-    Object.entries(variableMapping).forEach(([varName, groups], i) => {
-        const color = variableColors[i % variableColors.length];  // Reuse colors if variables exceed available colors
-        const positions = [];
-        Object.values(groups).forEach(reqs =>
-            Object.values(reqs).forEach(req =>
-                (req.colored ?? []).forEach(col => {
-                    if (col.pos?.length === 2) {
-                        let bgColor = null;
-                        if (req.context?.length) {
-                            const ctx = req.context[0];
-                            bgColor = contextColorDict[`${ctx.pos[0]}-${ctx.pos[1]}`]?.bgColor ?? null;
-                        }
-                        positions.push({ start: col.pos[0], end: col.pos[1], text: col.text, bgColor });
-                    }
-                })
-            )
-        );
-        variableColorDict[varName] = { color, positions };
-    });
-
-    // Flatten all variable positions with their assigned color and name
-    const variablePositions = Object.entries(variableColorDict).flatMap(([varName, { color, positions }]) =>
-        positions.map(p => ({ ...p, textColor: color, varName }))
-    );
-
-    // Format merged contexts for rendering
-    const contextPositions = mergedContexts.map(c => ({
-        start: c.start,
-        end: c.end,
-        text: descText.slice(c.start, c.end),
-        textColor: '#000',
-        bgColor: contextColorDict[`${c.start}-${c.end}`]?.bgColor ?? null,
-        varName: 'context'
-    }));
-
-    // Combine and sort all spans (variables + contexts) by start position
-    const allPositions = [...variablePositions, ...contextPositions].sort((a, b) => a.start - b.start);
-
-    // Inject CSS for highlight animation if not already added
-    if (!document.getElementById('highlight-style')) {
-        const style = document.createElement('style');
-        style.id = 'highlight-style';
-        style.textContent = `
-            .highlight-animate { animation: highlightFlash 1s ease; }
-            @keyframes highlightFlash {
-                0% { background-color: yellow; }
-                100% { background-color: transparent; }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
-    // Build the final HTML with highlighted spans
-    let html = '', currentIndex = 0;
-    allPositions.forEach(({ start, end, text, bgColor, textColor, varName }) => {
-        // Add plain text between highlighted spans
-        if (currentIndex < start) html += escapeHtml(descText.substring(currentIndex, start));
-        const clickHandler = varName !== 'context' ? `onclick="copyAndHighlight(this,'${varName}')" style="cursor:pointer;"` : '';
-        html += `<span title="${escapeHtml(varName)}" style="color:${textColor};${bgColor ? `background-color:${bgColor};` : ''} font-weight:bold;" ${clickHandler}>${escapeHtml(text)}</span>`;
-        currentIndex = end;
-    });
-    // Add remaining text after last highlight
-    if (currentIndex < descText.length) html += escapeHtml(descText.substring(currentIndex));
-
-    // Render result inside the target container
-    $('#description_textarea').html(html);
-
-    // Function to copy variable name and trigger animation
-    window.copyAndHighlight = (el, varName) => {
-        navigator.clipboard.writeText(varName).then(() => {
-            el.classList.add('highlight-animate');
-            setTimeout(() => el.classList.remove('highlight-animate'), 1000);
-        });
-    };
-
-    // Escape HTML to prevent injection
-    function escapeHtml(t) {
-        return t.replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-    }
-}
-
-
 function load_requirement(row_idx) {
     if (row_idx === -1) {
         alert("Requirement not found.");
@@ -1017,7 +899,27 @@ function load_requirement(row_idx) {
 
         // Visible information
         $('#requirement_modal_title').html(data.id + ': ' + data.type);
-        highlightVariables(data.desc, data.variable_mapping, data.id);
+
+        // Insert Markdown content
+        $('#description_textarea').html(marked.parse(data.desc));
+        $('#description_textarea').find('span[data-var-name]')
+          .css('cursor', 'pointer')
+          .off('click')
+          .on('click', function () {
+            const span = $(this);
+            const varName = span.attr('data-var-name');
+
+            navigator.clipboard.writeText(varName).then(() => {
+              const originalBg = span.css('background-color');
+              span.css('background-color', 'yellow');
+              setTimeout(() => {
+                span.css('background-color', originalBg);
+              }, 1000);
+            }).catch(err => {
+              console.error('Failed to copy to clipboard:', err);
+            });
+          });
+
         $('#add_guess_description').text(data.desc).change();
 
         // Parse the formalizations

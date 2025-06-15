@@ -60,23 +60,109 @@ def api_index():
 
     result["additional_static_available_vars"] = VARIABLE_AUTOCOMPLETE_EXTENSION
 
-    # Variable highlighting Info
+    # Load variable aliasing data
+    variable_mapping = {}
     path = os.path.join(current_app.root_path, "variable_aliasing.json")
     try:
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
+        # Filter variable mapping for current rid
+        variable_mapping = {
+            var: {group: {rid: rids[rid]} for group, rids in groups.items() if rid in rids}
+            for var, groups in data.items()
+            if any(rid in rids for rids in groups.values())
+        }
     except (FileNotFoundError, json.JSONDecodeError) as e:
-        logging.error(e)
-        data = {}
+        logging.error(f"Failed to load variable_aliasing.json: {e}")
 
-    # Build variable_mapping with only entries that contain the given rid
-    variable_mapping = {
-        var: {group: {rid: rids[rid]} for group, rids in groups.items() if rid in rids}
-        for var, groups in data.items()
-        if any(rid in rids for rids in groups.values())
-    }
-    result["variable_mapping"] = variable_mapping
+    def inject_md_highlights(desc_text, variable_mapping):
+        import html
 
+        variable_colors = [
+            "#003366",
+            "#006400",
+            "#800000",
+            "#8B4513",
+            "#4B0082",
+            "#B22222",
+            "#2F4F4F",
+            "#000080",
+            "#556B2F",
+            "#8B008B",
+        ]
+        context_bg_colors = [
+            "rgba(255,215,0,0.5)",
+            "rgba(30,144,255,0.5)",
+            "rgba(60,179,113,0.5)",
+            "rgba(255,69,0,0.5)",
+            "rgba(138,43,226,0.5)",
+        ]
+
+        highlights = []
+        context_ranges = set()
+
+        # Collect highlights
+        for i, (var_name, groups) in enumerate(variable_mapping.items()):
+            color = variable_colors[i % len(variable_colors)]
+            for reqs in groups.values():
+                for req in reqs.values():
+                    for col in req.get("colored", []):
+                        pos = col.get("pos")
+                        if pos and len(pos) == 2:
+                            highlights.append(
+                                {
+                                    "start": pos[0],
+                                    "end": pos[1],
+                                    "text": col["text"],
+                                    "var_name": var_name,
+                                    "text_color": color,
+                                    "bg_color": None,
+                                }
+                            )
+                    for ctx in req.get("context", []):
+                        pos = ctx.get("pos")
+                        if pos and len(pos) == 2:
+                            context_ranges.add((pos[0], pos[1], ctx["text"]))
+
+        # Add unique context highlights
+        for i, (start, end, text) in enumerate(sorted(context_ranges, key=lambda x: x[0])):
+            highlights.append(
+                {
+                    "start": start,
+                    "end": end,
+                    "text": text,
+                    "var_name": "context",
+                    "text_color": "#000",
+                    "bg_color": context_bg_colors[i % len(context_bg_colors)],
+                }
+            )
+
+        # Sort and build result
+        highlights.sort(key=lambda h: h["start"])
+        result_fragments = []
+        current = 0
+        for h in highlights:
+            if current < h["start"]:
+                result_fragments.append(html.escape(desc_text[current : h["start"]]))
+            span_text = html.escape(desc_text[h["start"] : h["end"]])
+            style = f"color:{h['text_color']}; font-weight:bold;"
+            if h["bg_color"]:
+                style += f" background-color:{h['bg_color']};"
+            cursor_style = "cursor:pointer;" if h["var_name"] != "context" else ""
+            attrs = [f'style="{style} {cursor_style}"', f'title="{html.escape(h["var_name"])}"']
+            if h["var_name"] != "context":
+                attrs.append(f'data-var-name="{html.escape(h["var_name"])}"')
+                attrs.append(f'onclick="copyAndHighlight(this, \'{html.escape(h["var_name"])}\')"')
+            span = f'<span {" ".join(attrs)}>{span_text}</span>'
+            result_fragments.append(span)
+            current = h["end"]
+
+        if current < len(desc_text):
+            result_fragments.append(html.escape(desc_text[current:]))
+
+        return "".join(result_fragments)
+
+    result["desc"] = inject_md_highlights(result["desc"], variable_mapping)
     if requirement:
         return result
     return {"success": False, "errormsg": "This is not an api-enpoint."}, 404
