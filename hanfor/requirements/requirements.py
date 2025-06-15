@@ -60,6 +60,29 @@ def api_index():
 
     result["additional_static_available_vars"] = VARIABLE_AUTOCOMPLETE_EXTENSION
 
+    result["desc"] = generate_variable_aliasing_desc_md_text(rid, result["desc"])
+    if requirement:
+        return result
+    return {"success": False, "errormsg": "This is not an api-enpoint."}, 404
+
+
+@api_blueprint.route("/get/desc", methods=["GET"])
+@nocache
+def get_requirement_desc_only():
+    rid = request.args.get("id", "")
+    requirement = current_app.db.get_object(Requirement, rid)
+    result = requirement.to_dict(include_used_vars=True)
+
+    if not requirement:
+        return {"success": False, "errormsg": "Requirement not found."}, 404
+
+    desc = generate_variable_aliasing_desc_md_text(rid, result["desc"])
+    return {"desc": desc}
+
+
+def generate_variable_aliasing_desc_md_text(rid: str, desc_text: str) -> str:
+    import html
+
     # Load variable aliasing data
     variable_mapping = {}
     path = os.path.join(current_app.root_path, "variable_aliasing.json")
@@ -75,97 +98,153 @@ def api_index():
     except (FileNotFoundError, json.JSONDecodeError) as e:
         logging.error(f"Failed to load variable_aliasing.json: {e}")
 
-    def inject_md_highlights(desc_text, variable_mapping):
-        import html
+    variable_colors = [
+        "#003366",
+        "#006400",
+        "#800000",
+        "#8B4513",
+        "#4B0082",
+        "#B22222",
+        "#2F4F4F",
+        "#000080",
+        "#556B2F",
+        "#8B008B",
+    ]
+    context_bg_colors = [
+        "rgba(255,215,0,0.5)",
+        "rgba(30,144,255,0.5)",
+        "rgba(60,179,113,0.5)",
+        "rgba(255,69,0,0.5)",
+        "rgba(138,43,226,0.5)",
+    ]
 
-        variable_colors = [
-            "#003366",
-            "#006400",
-            "#800000",
-            "#8B4513",
-            "#4B0082",
-            "#B22222",
-            "#2F4F4F",
-            "#000080",
-            "#556B2F",
-            "#8B008B",
-        ]
-        context_bg_colors = [
-            "rgba(255,215,0,0.5)",
-            "rgba(30,144,255,0.5)",
-            "rgba(60,179,113,0.5)",
-            "rgba(255,69,0,0.5)",
-            "rgba(138,43,226,0.5)",
-        ]
+    highlights = []
+    context_ranges = set()
 
-        highlights = []
-        context_ranges = set()
+    # Collect highlights
+    for i, (var_name, groups) in enumerate(variable_mapping.items()):
+        color = variable_colors[i % len(variable_colors)]
+        for reqs in groups.values():
+            for req in reqs.values():
+                for col in req.get("colored", []):
+                    pos = col.get("pos")
+                    if pos and len(pos) == 2:
+                        highlights.append(
+                            {
+                                "start": pos[0],
+                                "end": pos[1],
+                                "text": col["text"],
+                                "var_name": var_name,
+                                "text_color": color,
+                                "bg_color": None,
+                            }
+                        )
+                for ctx in req.get("context", []):
+                    pos = ctx.get("pos")
+                    if pos and len(pos) == 2:
+                        context_ranges.add((pos[0], pos[1], ctx["text"]))
 
-        # Collect highlights
-        for i, (var_name, groups) in enumerate(variable_mapping.items()):
-            color = variable_colors[i % len(variable_colors)]
-            for reqs in groups.values():
-                for req in reqs.values():
-                    for col in req.get("colored", []):
-                        pos = col.get("pos")
-                        if pos and len(pos) == 2:
-                            highlights.append(
-                                {
-                                    "start": pos[0],
-                                    "end": pos[1],
-                                    "text": col["text"],
-                                    "var_name": var_name,
-                                    "text_color": color,
-                                    "bg_color": None,
-                                }
-                            )
-                    for ctx in req.get("context", []):
-                        pos = ctx.get("pos")
-                        if pos and len(pos) == 2:
-                            context_ranges.add((pos[0], pos[1], ctx["text"]))
+    # Add unique context highlights
+    for i, (start, end, text) in enumerate(sorted(context_ranges, key=lambda x: x[0])):
+        highlights.append(
+            {
+                "start": start,
+                "end": end,
+                "text": text,
+                "var_name": "context",
+                "text_color": "#000",
+                "bg_color": context_bg_colors[i % len(context_bg_colors)],
+            }
+        )
 
-        # Add unique context highlights
-        for i, (start, end, text) in enumerate(sorted(context_ranges, key=lambda x: x[0])):
-            highlights.append(
-                {
-                    "start": start,
-                    "end": end,
-                    "text": text,
-                    "var_name": "context",
-                    "text_color": "#000",
-                    "bg_color": context_bg_colors[i % len(context_bg_colors)],
-                }
-            )
+    # Sort and build result
+    highlights.sort(key=lambda h: h["start"])
+    result_fragments = []
+    current = 0
+    for h in highlights:
+        if current < h["start"]:
+            result_fragments.append(html.escape(desc_text[current : h["start"]]))
+        span_text = html.escape(desc_text[h["start"] : h["end"]])
+        style = f"color:{h['text_color']}; font-weight:bold;"
+        if h["bg_color"]:
+            style += f" background-color:{h['bg_color']};"
+        cursor_style = "cursor:pointer;" if h["var_name"] != "context" else ""
+        attrs = [f'style="{style} {cursor_style}"', f'title="{html.escape(h["var_name"])}"']
+        if h["var_name"] != "context":
+            attrs.append(f'data-var-name="{html.escape(h["var_name"])}"')
+            attrs.append(f'onclick="copyAndHighlight(this, \'{html.escape(h["var_name"])}\')"')
+        span = f'<span {" ".join(attrs)}>{span_text}</span>'
+        result_fragments.append(span)
+        current = h["end"]
 
-        # Sort and build result
-        highlights.sort(key=lambda h: h["start"])
-        result_fragments = []
-        current = 0
-        for h in highlights:
-            if current < h["start"]:
-                result_fragments.append(html.escape(desc_text[current : h["start"]]))
-            span_text = html.escape(desc_text[h["start"] : h["end"]])
-            style = f"color:{h['text_color']}; font-weight:bold;"
-            if h["bg_color"]:
-                style += f" background-color:{h['bg_color']};"
-            cursor_style = "cursor:pointer;" if h["var_name"] != "context" else ""
-            attrs = [f'style="{style} {cursor_style}"', f'title="{html.escape(h["var_name"])}"']
-            if h["var_name"] != "context":
-                attrs.append(f'data-var-name="{html.escape(h["var_name"])}"')
-                attrs.append(f'onclick="copyAndHighlight(this, \'{html.escape(h["var_name"])}\')"')
-            span = f'<span {" ".join(attrs)}>{span_text}</span>'
-            result_fragments.append(span)
-            current = h["end"]
+    if current < len(desc_text):
+        result_fragments.append(html.escape(desc_text[current:]))
 
-        if current < len(desc_text):
-            result_fragments.append(html.escape(desc_text[current:]))
+    return "".join(result_fragments)
 
-        return "".join(result_fragments)
 
-    result["desc"] = inject_md_highlights(result["desc"], variable_mapping)
-    if requirement:
-        return result
-    return {"success": False, "errormsg": "This is not an api-enpoint."}, 404
+@api_blueprint.route("/variable_aliasing", methods=["POST"])
+@nocache
+def variable_aliasing():
+    data = request.form or request.get_json()
+
+    alias_type = data.get("type")
+    from_name = data.get("from")
+    to_name = data.get("to")
+    rid = data.get("rid")  # Optional: used for 'single' aliasing
+
+    if not alias_type or not from_name or not to_name:
+        return {"success": False, "message": "Missing required fields."}, 400
+
+    logging.info(f"Variable aliasing: {alias_type} '{from_name}' -> '{to_name}'")
+
+    path = os.path.join(current_app.root_path, "variable_aliasing.json")
+
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            alias_data = json.load(f)
+    except Exception as e:
+        return {"success": False, "message": f"Failed to load alias file: {e}"}, 500
+
+    if from_name not in alias_data:
+        return {"success": False, "message": f"Variable '{from_name}' not found."}, 404
+
+    if alias_type == "all":
+        alias_data[to_name] = alias_data.pop(from_name)
+
+    elif alias_type == "single":
+        inner = alias_data[from_name]
+        updated = False
+
+        for sentence in list(inner.keys()):
+            reqs = inner[sentence]
+            for req_id in list(reqs.keys()):
+                if rid and req_id != rid:
+                    continue
+
+                alias_data.setdefault(to_name, {}).setdefault(sentence, {})[req_id] = reqs[req_id]
+                del alias_data[from_name][sentence][req_id]
+                updated = True
+
+            if not alias_data[from_name][sentence]:
+                del alias_data[from_name][sentence]
+
+        if not alias_data[from_name]:
+            del alias_data[from_name]
+
+        if not updated:
+            return {"success": False, "message": "No matching requirement ID found."}, 404
+
+    else:
+        return {"success": False, "message": f"Invalid alias type '{alias_type}'."}, 400
+
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(alias_data, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        return {"success": False, "message": f"Failed to save changes: {e}"}, 500
+
+    return {"success": True, "message": f"{alias_type.capitalize()} variable updated."}
 
 
 @api_blueprint.route("/gets", methods=["GET"])

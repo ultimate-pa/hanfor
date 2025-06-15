@@ -13,7 +13,26 @@
                 <h5>Description</h5>
                 <div class="row-spacing">
                     <div class="form-control" id="description_textarea" style="min-height: 100px; white-space: pre-wrap;" title="Description"></div>
+                </div>
 
+                <div id="editVarPopup" style="
+                  display:none;
+                  position: fixed;
+                  background:#fff;
+                  border:1px solid #ccc;
+                  padding:8px;
+                  box-shadow:0 2px 8px rgba(0,0,0,0.2);
+                  z-index:1050;
+                  transform: translateX(-50%);
+                ">
+                    <label>Edit variable:<br>
+                    <input type="text" id="editVarInput" />
+                  </label>
+                  <div style="margin-top:10px; display:flex; gap:8px; justify-content:flex-end;">
+                    <button id="cancelVarBtn" class="btn btn-secondary btn-sm">Cancel</button>
+                    <button id="saveSelectedBtn" class="btn btn-primary btn-sm">Save Selected</button>
+                    <button id="saveAllBtn" class="btn btn-primary btn-sm">Save All</button>
+                  </div>
                 </div>
 
                 <h5>
