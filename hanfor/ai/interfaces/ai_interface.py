@@ -68,7 +68,7 @@ def load_ai_api_methods() -> list[AiApiMethod]:
     return methods
 
 
-def query_ai(query: str, model_info: dict, enable_api_ai_request: bool) -> (str, str):
+def query_ai(query: str, model_info: tuple[str, dict], enable_api_ai_request: bool) -> (str, str):
     """Sends a query to the AI API. enable_api_ai_request should be the AI flag in AiData."""
 
     if not enable_api_ai_request:

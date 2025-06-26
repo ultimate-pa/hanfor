@@ -16,8 +16,8 @@ AI_MODEL_NAMES = {
 ################################################################################
 
 
-STANDARD_SIMILARITY_METHOD = "Levenshtein"
-STANDARD_AI_PROMPT_PARSE_METHOD = "Prompt without grammar"
+STANDARD_SIMILARITY_METHOD = "Cosine Similarity"
+STANDARD_AI_PROMPT_PARSE_METHOD = "Small Prompt"
 STANDARD_AI_MODEL = "gemma3:12b"
 
 
@@ -25,7 +25,7 @@ STANDARD_AI_MODEL = "gemma3:12b"
 #                           AI Configuration Settings                          #
 ################################################################################
 
-
+MAX_THREADS = 10
 MAX_CONCURRENT_AI_REQUESTS = 2
 MAX_AI_FORMALIZATION_TRYS = 5
 DELETION_TIME_AFTER_COMPLETION_FORMALIZATION = 20  # Seconds

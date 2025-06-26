@@ -1,6 +1,6 @@
 import logging
 from queue import Queue
-from threading import Thread, Event
+from threading import Event
 from typing import Optional
 from ai.strategies import ai_prompt_parse_abstract_class
 from ai.strategies.similarity_abstract_class import SimilarityAlgorithm
@@ -14,24 +14,26 @@ import hanfor_flask
 import re
 from json_db_connector.json_db import DatabaseKeyError
 from lib_core.data import Variable
+from ai.ai_thread_manager import AiThreadManager, TaskResult
 
 
 class AiCore:
     """Main class for handling all Ai related tasks"""
 
     def __init__(self):
-        self.clustering_progress_thread: Optional[Thread] = None
+        self.clustering_progress_thread: Optional[TaskResult] = None
         self.stop_event_cluster = Event()
         self.sim_class = None
         self.__locked_cluster = []
         self.__locked_ids = []
 
-        self.ai_formalization_thread: Optional[list[Thread]] = []
+        self.ai_formalization_thread: Optional[list[TaskResult]] = []
         self.stop_event_ai = Event()
 
         self.ai_statistic = AiStatistic()
         self.__ai_data: AiData = AiData(self.ai_statistic)
         self.ai_processing_queue = AiProcessingQueue(self.__ai_data.update_progress)
+        self.__ai_thread_manager = AiThreadManager(ai_config.MAX_THREADS)
 
     def startup(self, data_folder: str, socketio) -> None:
         """
@@ -51,7 +53,7 @@ class AiCore:
         """Initiates the clustering process thread for requirements using the defined similarity algorithm"""
 
         # If currently clustering, terminate the Thread
-        if self.clustering_progress_thread and self.clustering_progress_thread.is_alive():
+        if self.clustering_progress_thread and not self.clustering_progress_thread.done():
             self.terminate_cluster_thread()
 
         self.__ai_data.update_progress(
@@ -77,10 +79,9 @@ class AiCore:
             self.__ai_data.set_clusters(clusters)
             self.__ai_data.set_cluster_matrix(matrix)
 
-        self.clustering_progress_thread = Thread(
-            target=clustering_thread, args=(self.sim_class, self.stop_event_cluster), daemon=True
+        self.clustering_progress_thread = self.__ai_thread_manager.submit(
+            clustering_thread, (self.sim_class, self.stop_event_cluster), 2
         )
-        self.clustering_progress_thread.start()
 
     # region Automatic AI-Based Requirement Processing
 
@@ -105,18 +106,18 @@ class AiCore:
 
         req_queue, l_cluster, requirement_with_formalization = self.__load_requirements_to_queue(rid_u)
         self.__update_used_variables()
-        mother_tread = Thread(
-            target=self.__generator_thread_of_ai_formalization,
-            args=(
+
+        generator_thread = self.__ai_thread_manager.submit(
+            self.__generator_thread_of_ai_formalization,
+            (
                 req_queue,
                 requirement_with_formalization,
                 self.stop_event_ai,
                 l_cluster,
             ),
-            daemon=True,
+            3,
         )
-        self.ai_formalization_thread.append(mother_tread)
-        mother_tread.start()
+        self.ai_formalization_thread.append(generator_thread)
 
     # endregion
 
@@ -124,9 +125,9 @@ class AiCore:
 
     def terminate_cluster_thread(self) -> None:
         """Terminates the clustering thread if it is running and resets related states"""
-        if self.clustering_progress_thread and self.clustering_progress_thread.is_alive():
+        if self.clustering_progress_thread and not self.clustering_progress_thread.done():
             self.stop_event_cluster.set()
-            self.clustering_progress_thread.join()
+            self.clustering_progress_thread.result()
             self.sim_class = None
             self.stop_event_cluster.clear()
             self.__ai_data.update_progress(AiDataEnum.CLUSTER, AiDataEnum.PROCESSED, 0)
@@ -138,8 +139,8 @@ class AiCore:
         """Terminates all active Ai formalization threads"""
         self.stop_event_ai.set()
         for thread in self.ai_formalization_thread:
-            if thread and thread.is_alive():
-                thread.join()
+            if thread and thread.done():
+                thread.result()
         self.stop_event_ai.clear()
 
     # endregion
@@ -177,18 +178,17 @@ class AiCore:
         logging.debug(f"{requirement_with_formalization} requirement_with_formalization")
 
         self.__update_used_variables()
-        mother_tread = Thread(
-            target=self.__generator_thread_of_ai_formalization,
-            args=(
+        generator_thread = self.__ai_thread_manager.submit(
+            self.__generator_thread_of_ai_formalization,
+            (
                 req_queue,
                 requirement_with_formalization,
                 self.stop_event_ai,
                 l_cluster,
             ),
-            daemon=True,
+            3,
         )
-        self.ai_formalization_thread.append(mother_tread)
-        mother_tread.start()
+        self.ai_formalization_thread.append(generator_thread)
         return None
 
     def check_all_clusters_for_need_of_ai_formalisation(self):
@@ -211,7 +211,7 @@ class AiCore:
         def ai_query_thread(query):
             response, status = ai_interface.query_ai(
                 query,
-                self.__ai_data.get_activ_ai_model(),
+                self.__ai_data.get_activ_ai_model_object(),
                 self.__ai_data.get_flags()[AiDataEnum.AI],
             )
             if not response:
@@ -223,8 +223,7 @@ class AiCore:
         self.__ai_data.update_progress(AiDataEnum.AI, AiDataEnum.QUERY, processed_query)
         self.__ai_data.update_progress(AiDataEnum.AI, AiDataEnum.RESPONSE, None)
 
-        thread = Thread(target=ai_query_thread, args=(processed_query,), daemon=True)
-        thread.start()
+        self.__ai_thread_manager.submit(ai_query_thread, (processed_query,), 1)
 
     def __process_query(self, query: str) -> str:
         """Processes a query string by replacing placeholders with corresponding values"""
@@ -388,11 +387,13 @@ class AiCore:
             )
             self.__ai_data.add_formalization_object(formalize_object)
             logging.debug(requirement_to_formalize.to_dict())
-            processing_thread = Thread(target=self.__process_queue_element, args=(formalize_object,), daemon=True)
-            processing_thread.start()
+            processing_thread = self.__ai_thread_manager.submit(self.__process_queue_element, (formalize_object,), 2)
             threads.append(processing_thread)
+
         for thread in threads:
-            thread.join()
+            if not thread.done():
+                thread.result()
+
         if l_cluster:
             for x in l_cluster:
                 if x in self.__locked_ids:
