@@ -215,6 +215,15 @@ def api_new_formalization():
     rid = request.form.get("id", "")
     requirement = current_app.db.get_object(Requirement, rid)  # type: Requirement
     formalization_id, formalization = requirement.add_empty_formalization()
+    formalization_data = json.loads(request.form.get("formalization", ""))
+    if len(formalization_data) != 0:
+        requirement.update_formalization(
+            formalization_id,
+            scope_name=formalization_data["scope"],
+            pattern_name=formalization_data["pattern"],
+            mapping=formalization_data["expression_mapping"],
+            app=current_app,
+        )
     current_app.db.update()
     add_msg_to_flask_session_log(current_app, "Added new Formalization to requirement", [requirement])
     result = get_formalization_template(current_app.config["TEMPLATES_FOLDER"], formalization_id, formalization)
