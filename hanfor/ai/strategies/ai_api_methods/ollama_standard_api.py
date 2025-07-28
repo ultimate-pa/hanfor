@@ -28,4 +28,4 @@ class OllamaStandard(ai_api_methods_abstract_class.AiApiMethod):
 
     @property
     def model_names_which_work_with_api_method(self) -> list[str]:
-        return ["gemma3:12b"]
+        return ["llama3.1:70b"]
