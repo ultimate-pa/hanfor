@@ -2,12 +2,10 @@
 #                                 AI API config                                #
 ################################################################################
 
-
-AI_API_URL = "http://192.168.178.87:11434/api/generate"
+# Url, for example Ollama as in  http://some.ollama.org/api/generate
+AI_API_URL = "API_URL"
 AI_MODEL_NAMES = {
-    "gemma3:12b": "An efficient 8B-parameter model for advanced text understanding and generation.",
-    "llama3.1:13b": "NON-EXISTENT",
-    "llama3.1:34b": "NON-EXISTENT",
+    "llama3.1:70b": "Existent",
 }
 
 
@@ -18,7 +16,7 @@ AI_MODEL_NAMES = {
 
 STANDARD_SIMILARITY_METHOD = "Cosine Similarity"
 STANDARD_AI_PROMPT_PARSE_METHOD = "Small Prompt"
-STANDARD_AI_MODEL = "gemma3:12b"
+STANDARD_AI_MODEL = "llama3.1:70b"
 
 
 ################################################################################
