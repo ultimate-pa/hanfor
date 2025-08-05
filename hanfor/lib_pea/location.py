@@ -10,7 +10,7 @@ from lib_pea.config import SOLVER_NAME, LOGIC
 import numexpr
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class Location:
     state_invariant: FNode = TRUE()
     clock_invariant: FNode = TRUE()

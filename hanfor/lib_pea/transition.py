@@ -9,7 +9,7 @@ from lib_pea.location import PhaseSetsLocation, Location
 from lib_pea.config import SOLVER_NAME, LOGIC
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class Transition:
     src: Union[None, Location] = None
     dst: Location = None
