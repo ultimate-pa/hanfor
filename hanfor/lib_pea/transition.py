@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Union
 
 from pysmt.fnode import FNode
 from pysmt.formula import FormulaManager
@@ -10,7 +11,7 @@ from lib_pea.config import SOLVER_NAME, LOGIC
 
 @dataclass
 class Transition:
-    src: Location = None
+    src: Union[None, Location] = None
     dst: Location = None
     guard: FNode = TRUE()
     resets: frozenset[str] = frozenset()
