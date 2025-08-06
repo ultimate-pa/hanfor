@@ -2,23 +2,18 @@ from collections import defaultdict
 from typing import Union
 
 from pysmt.fnode import FNode
-from pysmt.formula import FormulaManager
-from pysmt.shortcuts import FALSE, TRUE, And, Symbol, Solver, simplify
-from pysmt.solvers.z3 import Z3Solver
+from pysmt.shortcuts import FALSE, And, Symbol, simplify
 from pysmt.walkers import IdentityDagWalker
 
 from lib_pea.location import Location
 from lib_pea.transition import Transition
-
-SOLVER_NAME = "z3"
-LOGIC = "UFLIRA"
 
 
 class PeaOperationsMixin:
 
     OP_TOKEN = 1
 
-    def intersect(self: Union["Pea", "PeaOperationsMixin"], other: "Pea", simplify: bool = True) -> "Pea":
+    def intersect(self: Union["Pea", "PeaOperationsMixin"], other: "Pea", simplify: bool = False) -> "Pea":
         """Naiive implementation of PEA intersection for building small examples"""
         from lib_pea.pea import Pea
 
@@ -57,9 +52,9 @@ class PeaOperationsMixin:
                     clock_invariant=PeaOperationsMixin.__conjunct_builder(
                         sl.clock_invariant, ol.clock_invariant, self_clocks, other_clocks
                     ),
-                    label=f"{sl.label}+{ol.label}",  # TODO this is not distributive... worgs
+                    label=f"{sl.label}+{ol.label}",
                 )
-                if not simplify or ul.state_invariant is FALSE() or ul.clock_invariant is FALSE():
+                if simplify and (ul.state_invariant is FALSE() or ul.clock_invariant is FALSE()):
                     continue
                 result[(sl, ol)] = ul
         return result
@@ -83,12 +78,14 @@ class PeaOperationsMixin:
                         guard=PeaOperationsMixin.__conjunct_builder(st.guard, ot.guard, self_clocks, other_clocks),
                         resets=frozenset({self_clocks[c] for c in st.resets} | {other_clocks[c] for c in ot.resets}),
                     )
-                    if not simplify or ut.guard is FALSE():
+                    if simplify and ut.guard is FALSE():
                         continue
                     result[union_loc].add(ut)
         # Build initial trainsitions
         for si in self_transitions[None]:
             for oi in self_transitions[None]:
+                if (si.dst, oi.dst) not in locations:
+                    continue
                 ut = Transition(
                     src=None,
                     dst=locations[(si.dst, oi.dst)],

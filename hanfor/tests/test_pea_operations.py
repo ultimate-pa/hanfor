@@ -9,11 +9,11 @@ from tests.test_req_simulator.test_counter_trace import testcases
 class TestPhaseAutomatonOperations(TestCase):
 
     def test_1_1(self):
-        expressions, ct_str, _ = testcases["false"]
+        expressions, ct_str, _ = testcases["absence_after_until"]
         ct1 = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
         a1 = build_automaton(ct1)
 
-        expressions, ct_str, _ = testcases["false"]
+        expressions, ct_str, _ = testcases["absence_after_until"]  # testcases["duration_bound_l_between"]
         ct2 = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
         a2 = build_automaton(ct2)
 
