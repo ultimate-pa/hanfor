@@ -16,6 +16,9 @@ class Transition:
     guard: FNode = TRUE()
     resets: frozenset[str] = frozenset()
 
+    def __str__(self):
+        return f"{self.src.label if self.src else "init":>15} --- {str(self.guard):<30} ({str(self.resets):>5}) ---> {self.dst.label:<15}"
+
 
 @dataclass
 class PhaseSetsTransition(Transition):

@@ -16,6 +16,9 @@ class Location:
     clock_invariant: FNode = TRUE()
     label: str = None
 
+    def __str__(self):
+        return f"{self.label:<10}: {str(self.state_invariant):<40}, {str(self.clock_invariant):<20}"
+
 
 @dataclass
 class PhaseSetsLocation(Location):

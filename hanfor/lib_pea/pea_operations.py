@@ -13,7 +13,7 @@ class PeaOperationsMixin:
 
     OP_TOKEN = 1
 
-    def intersect(self: Union["Pea", "PeaOperationsMixin"], other: "Pea", simplify: bool = False) -> "Pea":
+    def intersect(self: Union["Pea", "PeaOperationsMixin"], other: "Pea") -> "Pea":
         """Naiive implementation of PEA intersection for building small examples"""
         from lib_pea.pea import Pea
 
@@ -22,11 +22,9 @@ class PeaOperationsMixin:
         self_clocks = {c: f"{c}.{PeaOperationsMixin.OP_TOKEN-1}" for c in self.clocks}
         other_clocks = {c: f"{c}.{PeaOperationsMixin.OP_TOKEN}" for c in other.clocks}
         result = Pea()
-        locations = PeaOperationsMixin.__union_locations(
-            self.locations(), other.locations(), self_clocks, other_clocks, simplify
-        )
+        locations = PeaOperationsMixin.__union_locations(self.locations(), other.locations(), self_clocks, other_clocks)
         result.transitions = PeaOperationsMixin.__union_transitions(
-            self.transitions, other.transitions, locations, self_clocks, other_clocks, simplify
+            self.transitions, other.transitions, locations, self_clocks, other_clocks
         )
         result.clocks = set(self_clocks.values()) | set(other_clocks.values())
         # TODO: Minimize away all false edges and locations
@@ -38,7 +36,6 @@ class PeaOperationsMixin:
         other_locs: set[Location],
         self_clocks: dict[str, str],
         other_clocks: dict[str, str],
-        simplify: bool,
     ) -> dict[(Location, Location), Location]:
         result = dict()
         for sl in self_locs:
@@ -54,7 +51,7 @@ class PeaOperationsMixin:
                     ),
                     label=f"{sl.label}+{ol.label}",
                 )
-                if simplify and (ul.state_invariant is FALSE() or ul.clock_invariant is FALSE()):
+                if ul.state_invariant is FALSE() or ul.clock_invariant is FALSE():
                     continue
                 result[(sl, ol)] = ul
         return result
@@ -66,19 +63,20 @@ class PeaOperationsMixin:
         locations: dict[(Location, Location), Location],
         self_clocks: dict[str, str],
         other_clocks: dict[str, str],
-        simplify: bool,
     ) -> defaultdict[Location, set[Transition]]:
         result = defaultdict(set)
         for (self_loc, other_loc), union_loc in locations.items():
             for st in self_transitions[self_loc]:
                 for ot in other_transitions[other_loc]:
+                    if (st.dst, ot.dst) not in locations:
+                        continue
                     ut = Transition(
                         src=union_loc,
                         dst=locations[(st.dst, ot.dst)],
                         guard=PeaOperationsMixin.__conjunct_builder(st.guard, ot.guard, self_clocks, other_clocks),
                         resets=frozenset({self_clocks[c] for c in st.resets} | {other_clocks[c] for c in ot.resets}),
                     )
-                    if simplify and ut.guard is FALSE():
+                    if ut.guard is FALSE():
                         continue
                     result[union_loc].add(ut)
         # Build initial trainsitions
@@ -92,7 +90,7 @@ class PeaOperationsMixin:
                     guard=PeaOperationsMixin.__conjunct_builder(si.guard, oi.guard, self_clocks, other_clocks),
                     resets=frozenset(),
                 )
-                if not simplify or ut.guard is FALSE():
+                if ut.guard is FALSE():
                     continue
                 result[None].add(ut)
         return result

@@ -16,6 +16,14 @@ class Pea(PeaOperationsMixin):
     def locations(self) -> set[Location]:
         return set(self.transitions.keys())
 
+    def __str__(self):
+        return (
+            "\nPEA:\n"
+            + "\n".join([str(l) for l in self.locations()])
+            + "\n"
+            + "\n".join([str(t) for ts in self.transitions.values() for t in ts])
+        )
+
 
 class PhaseSetsPea(Pea):
     def __init__(self, countertrace: Countertrace = None):
