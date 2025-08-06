@@ -2,11 +2,14 @@ from collections import defaultdict
 from typing import Union
 
 from pysmt.fnode import FNode
-from pysmt.shortcuts import FALSE, And, Symbol, simplify
+from pysmt.shortcuts import FALSE, And, Symbol, Solver, simplify
 from pysmt.walkers import IdentityDagWalker
 
 from lib_pea.location import Location
 from lib_pea.transition import Transition
+
+SOLVER_NAME = "z3"
+LOGIC = "UFLIRA"
 
 
 class PeaOperationsMixin:
@@ -103,6 +106,9 @@ class PeaOperationsMixin:
         self_junct = Renamer(self_clocks).walk(self_junct)
         other_junct = Renamer(other_clocks).walk(other_junct)
         g = And(self_junct, other_junct)
+        with Solver(name=SOLVER_NAME, logic=LOGIC) as solver:
+            if solver.is_unsat(g):
+                return FALSE()
         g = simplify(g)
         return g
 
