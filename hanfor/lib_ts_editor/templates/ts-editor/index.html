@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block title %}TS Editor{% endblock %}
+{% block content %}
+
+  <h1>TS Editor</h1>
+  {% include 'ts-editor/ts_editor.html' %}
+
+{% endblock %}
+{% block scripts %}
+  {{ super() }}
+
+  <script type="text/javascript">
+    //let base_url = '{{ url_for('requirements.index') }}';
+    //let static_url = '{{ url_for('static', filename='') }}'
+  </script>
+
+  <script type="text/javascript" src="{{ url_for('static', filename=BUNDLE_JS) }}"></script>
+{% endblock %}

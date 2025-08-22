@@ -76,6 +76,11 @@ app.register_blueprint(tools_api)
 app.register_blueprint(queries_api)
 # Simulator
 app.register_blueprint(simulator_blueprint.blueprint)
+# TS Editor
+from lib_ts_editor import ts_editor
+
+app.register_blueprint(ts_editor.blueprint)
+api.add_namespace(ts_editor.api)
 
 # Register feature blueprints and apis
 if app.config["FEATURE_EXAMPLE_BLUEPRINT"]:
