@@ -1,0 +1,33 @@
+name: Run tests
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install dependencies
+        run: pip install -r ./hanfor/requirements-dev.txt -r ./hanfor/requirements.txt
+      - name: Install pytest
+        run: pip install pytest pytest-cov coverage
+      - name: Set up configuration
+        run: cp ./hanfor/config.dist.py ./hanfor/config.py
+      - name: Install Z3
+        run: pysmt-install --z3 --confirm-agreement
+      - name: Run tests with coverage (direct)
+        run: coverage run -m pytest -s
+        working-directory: ${{ github.workspace }}/hanfor
+        continue-on-error: true
+      - name: Coverage
+        run: coverage report -m
+        working-directory: ${{ github.workspace }}/hanfor
