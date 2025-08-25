@@ -187,27 +187,12 @@ function update() {
 
   transitionMergedGroup
     .select("text")
-    .attr("x", (d) => (calculateEdgeEndpoints(d).x1 + calculateEdgeEndpoints(d).x2) / 2) // mittig auf x
-    .attr("y", (d) => (calculateEdgeEndpoints(d).y1 + calculateEdgeEndpoints(d).y2) / 2) // mittig auf y
+    .attr("x", (d) => (calculateEdgeEndpoints(d).x1 + calculateEdgeEndpoints(d).x2) / 2)
+    .attr("y", (d) => (calculateEdgeEndpoints(d).y1 + calculateEdgeEndpoints(d).y2) / 2)
     .attr("dy", -5)
     .text((d) => d.label)
 
   transitionGroup.exit().remove()
-
-  g.selectAll(".initial-arrow").remove() // erst alte entfernen
-
-  g.selectAll(".initial-arrow")
-    .data(nodes.filter((d) => d.initial)) // nur die initialen Knoten
-    .enter()
-    .append("line")
-    .attr("class", "initial-arrow")
-    .attr("x1", (d) => d.x)
-    .attr("y1", (d) => d.y - d.r - 49)
-    .attr("x2", (d) => d.x)
-    .attr("y2", (d) => d.y - d.r - 9)
-    .attr("stroke", "#999")
-    .attr("stroke-width", 2)
-    .attr("marker-end", "url(#arrow)")
 
   const nodeGroup = g.selectAll(".node").data(nodes, (d) => d.id)
 
@@ -219,20 +204,9 @@ function update() {
   enterGroup.append("text").attr("dy", "0.35em").attr("text-anchor", "middle")
 
   enterGroup
-    .filter((d) => d.initial)
     .append("line")
-    .attr("x1", (d) => 0)
     .attr("y1", (d) => d.r + 49)
-    .attr("x2", (d) => 0)
     .attr("y2", (d) => d.r + 9)
-    .attr("stroke", "#999")
-    .attr("stroke-width", 2)
-    .attr("marker-end", "url(#arrow)")
-
-  enterGroup
-    .filter((d) => !d.initial)
-    .select("line")
-    .remove()
 
   enterGroup.on("contextmenu", (event, d) => {
     event.preventDefault()
@@ -244,6 +218,7 @@ function update() {
     // Position & Anzeigen
     const menu = d3.select("#context-menu-nodes")
     menu.style("left", `${event.pageX}px`).style("top", `${event.pageY}px`).style("display", "block")
+    d3.select("#mark-initial").text(d.initial ? "Mark as non initial" : "Mark as initial")
   })
 
   enterGroup.on("dblclick", (event, d) => {
@@ -290,6 +265,12 @@ function update() {
     .classed("selected-end", (d) => selectedEnd !== null && d.id === selectedEnd.id)
     .select("text")
     .text((d) => d.label)
+
+  mergedGroup
+    .select("line")
+    .classed("initial", (d) => d.initial)
+    .attr("y1", (d) => -(d.r + 49))
+    .attr("y2", (d) => -(d.r + 9))
 
   // EXIT
   nodeGroup.exit().remove()
