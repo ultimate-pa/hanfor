@@ -28,6 +28,3 @@ jobs:
         run: coverage run -m pytest -s
         working-directory: ${{ github.workspace }}/hanfor
         continue-on-error: true
-      - name: Coverage
-        run: coverage report -m
-        working-directory: ${{ github.workspace }}/hanfor
