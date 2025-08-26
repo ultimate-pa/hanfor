@@ -23,6 +23,13 @@
     marker-end: url(#arrow);
 }
 
+.transition path {
+    stroke: #999;
+    stroke-width: 2;
+    marker-end: url(#arrow);
+    fill: none;
+}
+
 .node .initial {
     display: block;
 }

@@ -6,9 +6,32 @@ const d3 = require("d3")
 
 const svg = d3.select("#graphArea")
 
-const nodes = []
-const transitions = []
-let nodeId = 0
+const nodes = [
+  {
+    id: 0,
+    label: "Node 0",
+    x: 100,
+    y: 100,
+    r: 30,
+    initial: false,
+  },
+  {
+    id: 1,
+    label: "Node 1",
+    x: 300,
+    y: 100,
+    r: 30,
+    initial: false,
+  },
+]
+const transitions = [
+  {
+    source: 0,
+    target: 1,
+    label: "true",
+  },
+]
+let nodeId = 2
 let contextNode = null
 let contextNodeElement = null
 let selectedStart = null
@@ -168,28 +191,104 @@ function calculateEdgeEndpoints(edge) {
   }
 }
 
+const tmp = 1 / Math.sqrt(2)
+
+function curvedPathQ(d) {
+  let target = getNodeById(d.target)
+  let source = getNodeById(d.source)
+  const sx = source.x
+  const sy = source.y
+  const tx = target.x
+  const ty = target.y
+
+  // Richtung Vektor
+  const dx = tx - sx
+  const dy = ty - sy
+
+  // Länge
+  const len = Math.sqrt(dx * dx + dy * dy)
+
+  let sox = tmp * ((dx + dy) / len) * (source.r + 1)
+  let soy = tmp * ((dx - dy) / len) * (source.r + 1)
+
+  let tox = tmp * ((dx - dy) / len) * (target.r + 6)
+  let toy = tmp * ((-dx - dy) / len) * (target.r + 6)
+
+  // Mittelpunkt
+  const mx = (sx + sox + tx - tox) / 2
+  const my = (sy - soy + ty + toy) / 2
+
+  // Normierter Vektor orthogonal zur Verbindung
+  const perpX = -dy / len
+  const perpY = dx / len
+
+  // Offset für die Krümmung (z. B. 40px)
+  const curveOffset = -40
+
+  // Kontrollpunkt = Mitte + Offset
+  const cx = mx + perpX * curveOffset
+  const cy = my + perpY * curveOffset
+
+  return `M${sx + sox},${sy - soy} Q${cx},${cy} ${tx - tox},${ty + toy}`
+}
+
+function calculateTransitionLabel(d) {
+  let target = getNodeById(d.target)
+  let source = getNodeById(d.source)
+  const sx = source.x
+  const sy = source.y
+  const tx = target.x
+  const ty = target.y
+
+  // Richtung Vektor
+  const dx = tx - sx
+  const dy = ty - sy
+
+  // Länge
+  const len = Math.sqrt(dx * dx + dy * dy)
+
+  let sox = tmp * ((dx + dy) / len) * (source.r + 1)
+  let soy = tmp * ((dx - dy) / len) * (source.r + 1)
+
+  let tox = tmp * ((dx - dy) / len) * (target.r + 6)
+  let toy = tmp * ((-dx - dy) / len) * (target.r + 6)
+
+  // Mittelpunkt
+  const mx = (sx + sox + tx - tox) / 2
+  const my = (sy - soy + ty + toy) / 2
+
+  // Normierter Vektor orthogonal zur Verbindung
+  const perpX = -dy / len
+  const perpY = dx / len
+
+  // Offset für die Krümmung (z. B. 40px)
+  const curveOffset = -30
+
+  // Kontrollpunkt = Mitte + Offset
+  const cx = mx + perpX * curveOffset
+  const cy = my + perpY * curveOffset
+
+  return { x: cx, y: cy }
+}
+
 function update() {
   const transitionGroup = g.selectAll(".transition").data(transitions, (d) => `${d.source}-${d.target}`)
 
   const transitionEnterGroup = transitionGroup.enter().append("g").attr("class", "transition")
 
-  transitionEnterGroup.append("line").attr("stroke", "#999").attr("stroke-width", 2).attr("marker-end", "url(#arrow)")
+  //transitionEnterGroup.append("line").attr("stroke", "#999").attr("stroke-width", 2).attr("marker-end", "url(#arrow)")
+  transitionEnterGroup.append("path")
 
-  transitionEnterGroup.append("text").attr("text-anchor", "middle")
+  transitionEnterGroup.append("text").attr("text-anchor", "middle") // TODO make this direction dependent
 
   const transitionMergedGroup = transitionEnterGroup.merge(transitionGroup)
-  transitionMergedGroup
-    .select("line")
-    .attr("x1", (d) => calculateEdgeEndpoints(d).x1)
-    .attr("y1", (d) => calculateEdgeEndpoints(d).y1)
-    .attr("x2", (d) => calculateEdgeEndpoints(d).x2)
-    .attr("y2", (d) => calculateEdgeEndpoints(d).y2)
+  transitionMergedGroup.select("path").attr("d", (d) => curvedPathQ(d))
 
   transitionMergedGroup
     .select("text")
-    .attr("x", (d) => (calculateEdgeEndpoints(d).x1 + calculateEdgeEndpoints(d).x2) / 2)
-    .attr("y", (d) => (calculateEdgeEndpoints(d).y1 + calculateEdgeEndpoints(d).y2) / 2)
-    .attr("dy", -5)
+    .attr("x", (d) => calculateTransitionLabel(d).x)
+    .attr("y", (d) => calculateTransitionLabel(d).y)
+    //.attr("dy", -5)
     .text((d) => d.label)
 
   transitionGroup.exit().remove()
@@ -296,3 +395,5 @@ function addNode(posX, posY) {
   nodeId++
   update()
 }
+
+update()
