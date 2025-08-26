@@ -19,12 +19,18 @@ jobs:
       - name: Install dependencies
         run: pip install -r ./hanfor/requirements-dev.txt -r ./hanfor/requirements.txt
       - name: Install pytest
-        run: pip install pytest pytest-cov coverage
+        run: pip install pytest pytest-cov coverage pytest-md pytest-emoji
       - name: Set up configuration
         run: cp ./hanfor/config.dist.py ./hanfor/config.py
       - name: Install Z3
         run: pysmt-install --z3 --confirm-agreement
-      - name: Run tests with coverage (direct)
-        run: coverage run -m pytest -s
-        working-directory: ${{ github.workspace }}/hanfor
-        continue-on-error: true
+      - name: Run pytest
+        uses: pavelzw/pytest-action@v2
+        with:
+          verbose: true
+          emoji: true
+          job-summary: true
+          custom-pytest: 'cd hanfor && python3 -m pytest'
+          custom-arguments: '-q'
+          click-to-expand: true
+          report-title: 'Test Report'
