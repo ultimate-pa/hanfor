@@ -1,0 +1,36 @@
+name: Run Bilds of the static web content
+# This is just experimental at the moment
+on:
+  push:
+    #TODO run on a release branch in the future (when everything works)
+    branches: [release,wip/vl/buildjob]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up environment (if needed)
+        # e.g. actions/setup-node@v4, Java, Python, etc.
+        # Use this if webbuild requires certain runtime dependencies
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies (if applicable)
+        run: npm install --save-dev webpack webpack-cli
+
+
+      - name: Build web page scripts and content
+        run: |
+            cd ${{ github.workspace }}/hanfor/static
+            npm install
+            npm run build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Hanfor-${{ github.ref_name }}.zip
+          path: ${{ github.workspace }}
+          if-no-files-found: error
