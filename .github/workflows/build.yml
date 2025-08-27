@@ -25,13 +25,13 @@ jobs:
 
       - name: Build web page scripts and content
         run: |
-            echo "SAFE_NAME=$(echo '${{ github.ref_name }}' | sed 's#[^a-zA-Z0-9._-]#-#g')" >> $BRANCH_NAME
+            echo "SAFE_NAME=$(echo '${{ github.ref_name }}' | sed 's#[^a-zA-Z0-9._-]#-#g')" >> $GITHUB_ENV
             cd ${{ github.workspace }}/hanfor/static
             npm install
             npm run build
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Hanfor-${{ env.BRANCH_NAME }}.zip
+          name: Hanfor-${{ env.SAFE_NAME }}.zip
           path: ${{ github.workspace }}
           if-no-files-found: error
