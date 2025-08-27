@@ -3,7 +3,7 @@ name: Run Bilds of the static web content
 on:
   push:
     #TODO run on a release branch in the future (when everything works)
-    branches: [release,wip/vl/buildjob]
+    branches: [release,wip/vl/test_buildjob]
 
 jobs:
   build:
