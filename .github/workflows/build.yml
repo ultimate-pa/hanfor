@@ -25,7 +25,7 @@ jobs:
 
       - name: Build web page scripts and content
         run: |
-            echo "SAFE_NAME=$(echo '${{ github.ref_name }}' | sed 's#[^a-zA-Z0-9._-]#-#g')" >> $GITHUB_ENV
+            echo "SAFE_NAME=$(echo '${{ github.ref_name }}' | sed 's#[^a-zA-Z0-9._-]#-#g')" >> $BRANCH_NAME
             cd ${{ github.workspace }}/hanfor/static
             npm install
             npm run build
