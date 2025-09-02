@@ -279,7 +279,10 @@ function update() {
   //transitionEnterGroup.append("line").attr("stroke", "#999").attr("stroke-width", 2).attr("marker-end", "url(#arrow)")
   transitionEnterGroup.append("path")
 
-  transitionEnterGroup.append("text").attr("text-anchor", "middle") // TODO make this direction dependent
+  transitionEnterGroup
+    .append("text")
+    .attr("text-anchor", "middle") // TODO make this direction dependent
+    .attr("dominant-baseline", "auto") // TODO make this direction dependent auto/hanging
 
   const transitionMergedGroup = transitionEnterGroup.merge(transitionGroup)
   transitionMergedGroup.select("path").attr("d", (d) => curvedPathQ(d))
@@ -378,6 +381,17 @@ function update() {
 d3.select("#addNodeBtn").on("click", () => {
   addNode(100, 100)
 })
+d3.select("#parseBtn").on("click", () => {
+  $.ajax({
+    type: "POST",
+    url: "api/v1/ts-editor/parse",
+    contentType: "application/json",
+    data: JSON.stringify({ transitions: transitions, nodes2: nodes }),
+  }).done(function (data) {
+    console.log(data)
+  })
+})
+
 d3.select("#printBtn").on("click", () => {
   console.log(nodes)
   console.log(transitions)
