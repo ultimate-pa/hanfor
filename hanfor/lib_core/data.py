@@ -1201,3 +1201,73 @@ def replace_prefix(input_string: str, prefix_old: str, prefix_new: str):
     if input_string.startswith(prefix_old):
         input_string = "".join((prefix_new, input_string[len(prefix_old) :]))
     return input_string
+
+
+# Transition Systems
+@DatabaseFieldType()
+@DatabaseField("id", int)
+@DatabaseField("label", str)
+@DatabaseField("r", int)
+@DatabaseField("x", int)
+@DatabaseField("y", int)
+@dataclass
+class TransitionSystemNode:
+    id: int = -1
+    label: str = ""
+    r: int = 0
+    x: int = 0
+    y: int = 0
+
+    def parse_from_dict(self, d: dict[str, int | str]) -> bool:
+        if "id" not in d or "label" not in d or "r" not in d or "x" not in d or "y" not in d:
+            logging.error("TransitionSystemNode can not be parsed")
+            return False
+        self.id = d["id"]
+        self.label = d["label"]
+        self.r = d["r"]
+        self.x = d["x"]
+        self.y = d["y"]
+        return True
+
+
+@DatabaseFieldType()
+@DatabaseField("source", int)
+@DatabaseField("target", int)
+@DatabaseField("label", str)
+@dataclass
+class TransitionSystemTransition:
+    source: int = -1
+    target: int = -1
+    label: str = ""
+
+    def parse_from_dict(self, d: dict[str, int | str]) -> bool:
+        if "source" not in d or "target" not in d or "label" not in d:
+            logging.error("TransitionSystemTransition can not be parsed")
+            return False
+        self.source = d["source"]
+        self.target = d["target"]
+        self.label = d["label"]
+        return True
+
+
+@DatabaseFieldType()
+@DatabaseField("nodes", list[TransitionSystemNode])
+@DatabaseField("transitions", list[TransitionSystemTransition])
+@dataclass
+class TransitionSystem:
+    nodes: list[TransitionSystemNode] = field(default_factory=list)
+    transitions: list[TransitionSystemTransition] = field(default_factory=list)
+
+    def parse_from_dict(self, d: dict) -> bool:
+        if "nodes" not in d or "transitions" not in d:
+            logging.error("TransitionSystem can not be parsed")
+            return False
+        for n in d["nodes"]:
+            node = TransitionSystemNode()
+            if node.parse_from_dict(n):
+                self.nodes.append(node)
+        for t in d["transitions"]:
+            transition = TransitionSystemTransition()
+            if transition.parse_from_dict(t):
+                self.transitions.append(transition)
+        return True

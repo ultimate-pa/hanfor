@@ -99,3 +99,21 @@ UltimateJobRequestModel = api_models.model(
         "req_ids": fields.List(fields.String),
     },
 )
+
+# Transition System
+TransitionSystemNodeModel = api_models.model(
+    "Transition System Node",
+    {"id": fields.Integer, "label": fields.String, "r": fields.Integer, "x": fields.Integer, "y": fields.Integer},
+)
+
+TransitionSystemTransitionModel = api_models.model(
+    "Transition System Transition", {"source": fields.Integer, "target": fields.Integer, "label": fields.String}
+)
+
+TransitionSystemModel = api_models.model(
+    "Transition System",
+    {
+        "nodes": fields.List(Nested(TransitionSystemNodeModel)),
+        "transitions": fields.List(Nested(TransitionSystemTransitionModel)),
+    },
+)
