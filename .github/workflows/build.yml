@@ -38,3 +38,26 @@ jobs:
             !${{ github.workspace }}/node_modules
             !${{ github.workspace }}/documentation
           if-no-files-found: error
+
+      - name: Get version
+        #if: github.ref == 'refs/heads/release'
+        id: version-step
+        uses: michmich112/extract-version@main
+        with:
+          version-file: ${{ github.workspace }}/hanfor/pyproject.toml
+          schema: major.minor.build
+      - name: Pack Artefact
+        #if: github.ref == 'refs/heads/release'
+        run: |
+          sudo apt install 7zip
+          7z a hanfor-${{ steps.version-step.outputs.version }}.7z ${{ github.workspace }}/hanfor
+      - uses: ncipollo/release-action@v1
+        #if: github.ref == 'refs/heads/release'
+        with:
+          name: "hanfor-${{ steps.version-step.outputs.version }}"
+          artifacts: hanfor-${{ steps.version-step.outputs.version }}.7z
+          body: "This is the latest working build of Hanfor (main), so: _use with caution_."
+          tag: "v${{ steps.version-step.outputs.version }}"
+          prerelease: true
+          allowUpdates: true
+          draft: true # has to be included to prevent a tag from being set/emails to be sent
