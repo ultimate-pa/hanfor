@@ -8,17 +8,12 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
-
       - name: Set up environment (if needed)
-        # e.g. actions/setup-node@v4, Java, Python, etc.
-        # Use this if webbuild requires certain runtime dependencies
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-
       - name: Install dependencies (if applicable)
         run: npm install --save-dev webpack webpack-cli
-
 
       - name: Build web page scripts and content
         run: |
@@ -27,6 +22,7 @@ jobs:
             npm install
             npm run build
 
+      # store built hanfor in the job's artifact page
       - uses: actions/upload-artifact@v4
         with:
           name: Hanfor-${{ env.SAFE_NAME }}.zip
@@ -58,4 +54,4 @@ jobs:
           tag: "v${{ steps.version-step.outputs.version }}"
           prerelease: true
           allowUpdates: true
-          draft: true # has to be included to prevent a tag from being set/emails to be sent
+          draft: true
