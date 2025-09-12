@@ -8,7 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: ["3.12"]
+        # still test for 3.11 as this is debian 12 standard
+        python: ["3.12","3.11"]
 
     steps:
       - uses: actions/checkout@v4
