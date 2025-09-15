@@ -1,0 +1,57 @@
+name: Run Bilds of the static web content
+# This is just experimental at the moment
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Set up environment (if needed)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install dependencies (if applicable)
+        run: npm install --save-dev webpack webpack-cli
+
+      - name: Build web page scripts and content
+        run: |
+            echo "SAFE_NAME=$(echo '${{ github.ref_name }}' | sed 's#[^a-zA-Z0-9._-]#-#g')" >> $GITHUB_ENV
+            cd ${{ github.workspace }}/hanfor/static
+            npm install
+            npm run build
+
+      # store built hanfor in the job's artifact page
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Hanfor-${{ env.SAFE_NAME }}.zip
+          path: |
+            ${{ github.workspace }}
+            !${{ github.workspace }}/node_modules
+            !${{ github.workspace }}/documentation
+          if-no-files-found: error
+
+      # build a release draft for the current hanfor version (remember to add notes and press publish)
+      - name: Get version
+        if: github.ref == 'refs/heads/release'
+        id: version-step
+        uses: michmich112/extract-version@main
+        with:
+          version-file: ${{ github.workspace }}/hanfor/pyproject.toml
+          schema: major.minor.build
+      - name: Pack Artefact
+        if: github.ref == 'refs/heads/release'
+        run: |
+          sudo apt install 7zip
+          7z a hanfor-${{ steps.version-step.outputs.version }}.7z ${{ github.workspace }}/hanfor
+      - uses: ncipollo/release-action@v1
+        if: github.ref == 'refs/heads/release'
+        with:
+          name: "hanfor-${{ steps.version-step.outputs.version }}"
+          artifacts: hanfor-${{ steps.version-step.outputs.version }}.7z
+          body: "This is a stable release of the latest features:"
+          tag: "v${{ steps.version-step.outputs.version }}"
+          prerelease: true
+          allowUpdates: true
+          draft: true
