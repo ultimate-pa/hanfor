@@ -91,4 +91,4 @@ FEATURE_TELEMETRY = False
 ################################################################################
 # Define the ordering for pattern grouping in the pattern selection of hanfors frontent.
 # All groups used in PATTERNS must be covered.
-PATTERNS_GROUP_ORDER = ["Occurence", "Order", "Real-time", "not_formalizable"]
+PATTERNS_GROUP_ORDER = ["Occurence", "Order", "Real-time",    'Automaton', "not_formalizable"]

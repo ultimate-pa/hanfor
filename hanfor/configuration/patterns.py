@@ -488,15 +488,52 @@ PATTERNS = {
         "pattern_order": 10,
     },
     "NotFormalizable": {"pattern": "no pattern set", "env": {}, "group": "not_formalizable", "pattern_order": 0},
-
-
     "ConditionalResponseBoundL1": {
         "pattern": "it is always the case that if {R} holds succeeded by {S} for at least {T} time units, then {U} holds afterwards",
-        "countertraces": {"GLOBALLY": ["true;⌈R⌉;⌈S⌉ ∧ ℓ ≥ T;⌈!U⌉;true"],
-                          "BEFORE": [], "AFTER": [], "BETWEEN": [], "AFTER_UNTIL": []},
-        "env": {"R": ["bool"], "S": ["bool"], "T": ["real"], "U": ["bool"], },
+        "countertraces": {
+            "GLOBALLY": ["true;⌈R⌉;⌈S⌉ ∧ ℓ ≥ T;⌈!U⌉;true"],
+            "BEFORE": [],
+            "AFTER": [],
+            "BETWEEN": [],
+            "AFTER_UNTIL": [],
+        },
+        "env": {
+            "R": ["bool"],
+            "S": ["bool"],
+            "T": ["real"],
+            "U": ["bool"],
+        },
         "group": "Real-time",
         "pattern_order": 30,
+    },
+    ################################################################################
+    #                         Requirement Automaton Patterns                       #
+    ################################################################################
+    "Transition": {
+        "pattern": "if in location {R} then transition to {S}",
+        "countertraces": {"GLOBALLY": ["true;⌈R⌉;⌈!(R && S)⌉;true"]},
+        "env": {"R": ["bool"], "S": ["bool"]},
+        "group": "Automaton",
+        "pattern_order": 0,
+    },
+    "TransitionGET": {
+        "pattern": "if in location {R} then transition to {S} if guard {U} holds and event {V} and after at most {T} time units",
+        # TODO: this formula is nonsense, we need to transform the pattern
+        # to accomodate the formula in the sense of the paper.
+        # 1) for the simulator
+        # 2) in Ultimate
+        # For the typecheck, this is asonishingly ok (but we miss the enumeration for states,
+        # which is ... bad i think?
+        "countertraces": {"GLOBALLY": ["true;⌈R⌉;⌈!(R && S)⌉;true"]},
+        "env": {
+            "R": ["bool"],
+            "S": ["bool"],
+            "T": ["real"],
+            "U": ["bool"],
+            "V": ["bool"],
+        },
+        "group": "Automaton",
+        "pattern_order": 0,
     },
     ################################################################################
     #                         Legacy Patterns                                      #
