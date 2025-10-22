@@ -2,6 +2,7 @@
 #                               Miscellaneous                                  #
 ################################################################################
 # Additional static terms to be included into the autocomplete field.
+
 VARIABLE_AUTOCOMPLETE_EXTENSION = ["abs()"]
 
 ################################################################################
@@ -509,32 +510,14 @@ PATTERNS = {
     ################################################################################
     #                         Requirement Automaton Patterns                       #
     ################################################################################
-    "Transition": {
-        "pattern": "if in location {R} then transition to {S}",
-        "countertraces": {"GLOBALLY": ["true;⌈R⌉;⌈!(R && S)⌉;true"]},
-        "env": {"R": ["bool"], "S": ["bool"]},
+    "InitialLoc ": {
+        "pattern": "location {R} is an initial location",
+        "countertraces": {"GLOBALLY": []},
+        "env": {"R": ["bool"]},
         "group": "Automaton",
-        "pattern_order": 0,
+        "pattern_order": -1,
     },
-    "TransitionGET": {
-        "pattern": "if in location {R} then transition to {S} if guard {U} holds and event {V} and after at most {T} time units",
-        # TODO: this formula is nonsense, we need to transform the pattern
-        # to accomodate the formula in the sense of the paper.
-        # 1) for the simulator
-        # 2) in Ultimate
-        # For the typecheck, this is asonishingly ok (but we miss the enumeration for states,
-        # which is ... bad i think?
-        "countertraces": {"GLOBALLY": ["true;⌈R⌉;⌈!(R && S)⌉;true"]},
-        "env": {
-            "R": ["bool"],
-            "S": ["bool"],
-            "T": ["real"],
-            "U": ["bool"],
-            "V": ["bool"],
-        },
-        "group": "Automaton",
-        "pattern_order": 0,
-    },
+    ####### Transisitions are generated below
     ################################################################################
     #                         Legacy Patterns                                      #
     ################################################################################
@@ -579,3 +562,57 @@ PATTERNS = {
         "pattern_order": 1,
     },
 }
+
+
+
+def enumerate_transition_patterns(order: int, time: str = "then", event: bool = False , guard: bool = False):
+    env = {"R": ["bool"], "S": ["bool"]}
+    suffix = ""
+    match time:
+        case "then": pass
+        case "least":
+            time = "for at least {T}"
+            env["T"] = "real"
+            suffix += "L"
+        case "most":
+            time = "for at most {T}"
+            env["T"] = "real"
+            suffix += "U"
+        case _: raise Exception("Invalid name for automata pattern 'then' part")
+    if guard:
+        partikel = "and" if event else "if"
+        gt = partikel + " guard {V} holds"
+        suffix += "G"
+        env["V"] = "bool"
+    else:
+        gt = ""
+    if event:
+        ct = f"if event {{U}} fires {gt}"
+        env["U"] = "bool"
+        suffix += "E"
+    else:
+        ct = f"is enabled {gt}"
+
+    p_text = f"if in location {{R}} {time} transition to {{S}} {ct}."
+
+    return {"Transition" + suffix: {
+        "pattern": p_text,
+        "countertraces": {"GLOBALLY": []},
+        "env": env,
+        "group": "Automaton",
+        "pattern_order": order,
+    }}
+
+PATTERNS.update(enumerate_transition_patterns(0))
+PATTERNS.update(enumerate_transition_patterns(1, guard=True))
+PATTERNS.update(enumerate_transition_patterns(2, time="least", guard=True))
+PATTERNS.update(enumerate_transition_patterns(3, time="most", guard=True))
+PATTERNS.update(enumerate_transition_patterns(4, time="least"))
+PATTERNS.update(enumerate_transition_patterns(5, time="most"))
+
+PATTERNS.update(enumerate_transition_patterns(6, event=True))
+PATTERNS.update(enumerate_transition_patterns(7, event=True, guard=True))
+PATTERNS.update(enumerate_transition_patterns(8, event=True,time="least", guard=True))
+PATTERNS.update(enumerate_transition_patterns(9, event=True,time="most", guard=True))
+PATTERNS.update(enumerate_transition_patterns(10, event=True,time="least"))
+PATTERNS.update(enumerate_transition_patterns(11, event=True,time="most"))
