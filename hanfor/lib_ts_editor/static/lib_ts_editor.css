@@ -6,12 +6,14 @@
 }
 
 .node circle {
-    fill: #3498db;
+    fill: white;
+    stroke: black;
     cursor: move;
+    stroke-width: 2px;
 }
 
 .node text {
-    fill: white;
+    fill: black;
     font-size: 14px;
     pointer-events: none;
 }
@@ -63,10 +65,10 @@
 
 .selected-start circle {
     stroke: green;
-    stroke-width: 3px;
+    stroke-width: 4px;
 }
 
 .selected-end circle {
     stroke: red;
-    stroke-width: 3px;
+    stroke-width: 4px;
 }
