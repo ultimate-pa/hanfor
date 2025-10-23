@@ -9,9 +9,9 @@ const svg = d3.select("#graphArea")
 const nodes = [
   {
     id: 0,
-    label: "Node 0",
-    invariant: "true",
-    clock_invariant: "true",
+    label: "Init",
+    invariant: "v<50",
+    clock_invariant: "",
     x: 100,
     y: 100,
     r: 40,
@@ -19,10 +19,20 @@ const nodes = [
   },
   {
     id: 1,
-    label: "Node 1",
-    invariant: "true",
-    clock_invariant: "true",
+    label: "Running",
+    invariant: "n>=120",
+    clock_invariant: "<k",
     x: 300,
+    y: 100,
+    r: 40,
+    initial: false,
+  },
+  {
+    id: 2,
+    label: "Error",
+    invariant: "",
+    clock_invariant: "",
+    x: 600,
     y: 100,
     r: 40,
     initial: false,
@@ -32,9 +42,34 @@ const transitions = [
   {
     source: 0,
     target: 1,
-    event: "true",
-    guard: "true",
-    clock_guard: "true",
+    event: "",
+    guard: "n>=120",
+    clock_guard: ">=20.0",
+    bend: -40,
+  },
+  {
+    source: 1,
+    target: 0,
+    event: "reset",
+    guard: "n<=130",
+    clock_guard: "",
+    bend: -40,
+  },
+  {
+    source: 1,
+    target: 2,
+    event: "ebrake",
+    guard: "",
+    clock_guard: "<5",
+    bend: -40,
+  },
+  {
+    source: 1,
+    target: 2,
+    event: "",
+    guard: "n\<120",
+    clock_guard: "",
+    bend: 40,
   },
 ]
 let nodeId = 2
@@ -123,6 +158,7 @@ function addTransition() {
       event: "true",
       guard: "true",
       clock_guard: "true",
+      bend: -40,
     })
 
     selectedStart = null
@@ -216,11 +252,21 @@ function curvedPathQ(d) {
   // Länge
   const len = Math.sqrt(dx * dx + dy * dy)
 
-  let sox = tmp * ((dx + dy) / len) * (source.r + 1)
-  let soy = tmp * ((dx - dy) / len) * (source.r + 1)
+  let sox, soy, tox, toy
 
-  let tox = tmp * ((dx - dy) / len) * (target.r + 6)
-  let toy = tmp * ((-dx - dy) / len) * (target.r + 6)
+  if (d.bend < 0) {
+    sox = tmp * ((dx + dy) / len) * (source.r + 1)
+    soy = tmp * ((dx - dy) / len) * (source.r + 1)
+
+    tox = tmp * ((dx - dy) / len) * (target.r + 6)
+    toy = tmp * ((-dx - dy) / len) * (target.r + 6)
+  } else {
+    sox = tmp * ((dx - dy) / len) * (source.r + 1)
+    soy = tmp * ((-dx - dy) / len) * (source.r + 1)
+
+    tox = tmp * ((dx + dy) / len) * (target.r + 6)
+    toy = tmp * ((dx - dy) / len) * (target.r + 6)
+  }
 
   // Mittelpunkt
   const mx = (sx + sox + tx - tox) / 2
@@ -231,7 +277,7 @@ function curvedPathQ(d) {
   const perpY = dx / len
 
   // Offset für die Krümmung (z. B. 40px)
-  const curveOffset = -40
+  const curveOffset = d.bend
 
   // Kontrollpunkt = Mitte + Offset
   const cx = mx + perpX * curveOffset
@@ -255,11 +301,20 @@ function calculateTransitionLabel(d) {
   // Länge
   const len = Math.sqrt(dx * dx + dy * dy)
 
-  let sox = tmp * ((dx + dy) / len) * (source.r + 1)
-  let soy = tmp * ((dx - dy) / len) * (source.r + 1)
+  let sox, soy, tox, toy
+  if (d.bend < 0) {
+    sox = tmp * ((dx + dy) / len) * (source.r + 1)
+    soy = tmp * ((dx - dy) / len) * (source.r + 1)
 
-  let tox = tmp * ((dx - dy) / len) * (target.r + 6)
-  let toy = tmp * ((-dx - dy) / len) * (target.r + 6)
+    tox = tmp * ((dx - dy) / len) * (target.r + 6)
+    toy = tmp * ((-dx - dy) / len) * (target.r + 6)
+  } else {
+    sox = tmp * ((dx - dy) / len) * (source.r + 1)
+    soy = tmp * ((-dx - dy) / len) * (source.r + 1)
+
+    tox = tmp * ((dx + dy) / len) * (target.r + 6)
+    toy = tmp * ((dx - dy) / len) * (target.r + 6)
+  }
 
   // Mittelpunkt
   const mx = (sx + sox + tx - tox) / 2
@@ -270,7 +325,7 @@ function calculateTransitionLabel(d) {
   const perpY = dx / len
 
   // Offset für die Krümmung (z. B. 40px)
-  const curveOffset = -30
+  const curveOffset = d.bend
 
   // Kontrollpunkt = Mitte + Offset
   const cx = mx + perpX * curveOffset
@@ -300,7 +355,7 @@ function updateGraph() {
     .attr("x", (d) => calculateTransitionLabel(d).x)
     .attr("y", (d) => calculateTransitionLabel(d).y)
     //.attr("dy", -5)
-    .text((d) => `${d.event} && ${d.guard} && ${d.clock_guard} `)
+    .text((d) => `${d.event} , ${d.guard} , ${d.clock_guard} `)
 
   transitionGroup.exit().remove()
 
