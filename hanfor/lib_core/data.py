@@ -1207,6 +1207,8 @@ def replace_prefix(input_string: str, prefix_old: str, prefix_new: str):
 @DatabaseFieldType()
 @DatabaseField("id", int)
 @DatabaseField("label", str)
+@DatabaseField("invariant", str)
+@DatabaseField("clock_invariant", str)
 @DatabaseField("r", int)
 @DatabaseField("x", int)
 @DatabaseField("y", int)
@@ -1214,16 +1216,28 @@ def replace_prefix(input_string: str, prefix_old: str, prefix_new: str):
 class TransitionSystemNode:
     id: int = -1
     label: str = ""
+    invariant: str = ""
+    clock_invariant: str = ""
     r: int = 0
     x: int = 0
     y: int = 0
 
     def parse_from_dict(self, d: dict[str, int | str]) -> bool:
-        if "id" not in d or "label" not in d or "r" not in d or "x" not in d or "y" not in d:
+        if (
+            "id" not in d
+            or "label" not in d
+            or "invariant" not in d
+            or "clock_invariant" not in d
+            or "r" not in d
+            or "x" not in d
+            or "y" not in d
+        ):
             logging.error("TransitionSystemNode can not be parsed")
             return False
         self.id = d["id"]
         self.label = d["label"]
+        self.invariant = d["invariant"]
+        self.clock_invariant = d["clock_invariant"]
         self.r = d["r"]
         self.x = d["x"]
         self.y = d["y"]
@@ -1233,20 +1247,26 @@ class TransitionSystemNode:
 @DatabaseFieldType()
 @DatabaseField("source", int)
 @DatabaseField("target", int)
-@DatabaseField("label", str)
+@DatabaseField("event", str)
+@DatabaseField("guard", str)
+@DatabaseField("clock_guard", str)
 @dataclass
 class TransitionSystemTransition:
     source: int = -1
     target: int = -1
-    label: str = ""
+    event: str = ""
+    guard: str = ""
+    clock_guard: str = ""
 
     def parse_from_dict(self, d: dict[str, int | str]) -> bool:
-        if "source" not in d or "target" not in d or "label" not in d:
+        if "source" not in d or "target" not in d or "event" not in d or "guard" not in d or "clock_guard" not in d:
             logging.error("TransitionSystemTransition can not be parsed")
             return False
         self.source = d["source"]
         self.target = d["target"]
-        self.label = d["label"]
+        self.event = d["event"]
+        self.guard = d["guard"]
+        self.clock_guard = d["clock_guard"]
         return True
 
 
