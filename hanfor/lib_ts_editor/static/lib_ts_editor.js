@@ -10,17 +10,21 @@ const nodes = [
   {
     id: 0,
     label: "Node 0",
+    invariant: "true",
+    clock_invariant: "true",
     x: 100,
     y: 100,
-    r: 30,
-    initial: false,
+    r: 40,
+    initial: true,
   },
   {
     id: 1,
     label: "Node 1",
+    invariant: "true",
+    clock_invariant: "true",
     x: 300,
     y: 100,
-    r: 30,
+    r: 40,
     initial: false,
   },
 ]
@@ -28,7 +32,9 @@ const transitions = [
   {
     source: 0,
     target: 1,
-    label: "true",
+    event: "true",
+    guard: "true",
+    clock_guard: "true",
   },
 ]
 let nodeId = 2
@@ -114,7 +120,9 @@ function addTransition() {
     transitions.push({
       source: selectedStart.id,
       target: selectedEnd.id,
-      label: "true",
+      event: "true",
+      guard: "true",
+      clock_guard: "true",
     })
 
     selectedStart = null
@@ -271,7 +279,7 @@ function calculateTransitionLabel(d) {
   return { x: cx, y: cy }
 }
 
-function update() {
+function updateGraph() {
   const transitionGroup = g.selectAll(".transition").data(transitions, (d) => `${d.source}-${d.target}`)
 
   const transitionEnterGroup = transitionGroup.enter().append("g").attr("class", "transition")
@@ -292,7 +300,7 @@ function update() {
     .attr("x", (d) => calculateTransitionLabel(d).x)
     .attr("y", (d) => calculateTransitionLabel(d).y)
     //.attr("dy", -5)
-    .text((d) => d.label)
+    .text((d) => `${d.event} && ${d.guard} && ${d.clock_guard} `)
 
   transitionGroup.exit().remove()
 
@@ -365,8 +373,21 @@ function update() {
     .attr("transform", (d) => `translate(${d.x},${d.y})`)
     .classed("selected-start", (d) => selectedStart !== null && d.id === selectedStart.id)
     .classed("selected-end", (d) => selectedEnd !== null && d.id === selectedEnd.id)
+
+  const tspans = mergedGroup
     .select("text")
-    .text((d) => d.label)
+    .selectAll("tspan")
+    .data((d) => [d.label, d.invariant, d.clock_invariant])
+
+  tspans.exit().remove()
+
+  tspans
+    .enter()
+    .append("tspan")
+    .merge(tspans)
+    .attr("x", 0)
+    .attr("dy", (d, i) => (i === 0 ? "-.8em" : "1.2em"))
+    .text((d) => d || "")
 
   mergedGroup
     .select("line")
@@ -386,7 +407,7 @@ d3.select("#parseBtn").on("click", () => {
     type: "POST",
     url: "api/v1/ts-editor/parse",
     contentType: "application/json",
-    data: JSON.stringify({ transitions: transitions, nodes2: nodes }),
+    data: JSON.stringify({ transitions: transitions, nodes: nodes }),
   }).done(function (data) {
     console.log(data)
   })
@@ -401,13 +422,135 @@ function addNode(posX, posY) {
   nodes.push({
     id: nodeId,
     label: "Node " + nodeId,
+    invariant: "true",
+    clock_invariant: "true",
     x: posX,
     y: posY,
-    r: 30,
+    r: 40,
     initial: false,
   })
   nodeId++
   update()
+}
+
+function updateNodeTable() {
+  const tbody = d3.select("#node-table tbody")
+  const rows = tbody.selectAll("tr").data(nodes, (d) => d.id)
+
+  const enterRows = rows.enter().append("tr")
+
+  enterRows.append("td").text((d) => d.id)
+  enterRows
+    .append("td")
+    .append("input")
+    .attr("class", "form-control form-control-sm")
+    .attr("value", (d) => d.label)
+    .on("input", (event, d) => {
+      d.label = event.target.value
+      updateGraph()
+    })
+
+  enterRows
+    .append("td")
+    .append("input")
+    .attr("class", "form-control form-control-sm")
+    .attr("value", (d) => d.invariant)
+    .on("input", (event, d) => {
+      d.invariant = event.target.value
+      updateGraph()
+    })
+
+  enterRows
+    .append("td")
+    .append("input")
+    .attr("class", "form-control form-control-sm")
+    .attr("value", (d) => d.clock_invariant)
+    .on("input", (event, d) => {
+      d.clock_invariant = event.target.value
+      updateGraph()
+    })
+
+  enterRows
+    .append("td")
+    .append("input")
+    .attr("type", "checkbox")
+    .property("checked", (d) => d.initial)
+    .on("input", (event, d) => {
+      d.initial = event.target.checked
+      updateGraph()
+    })
+
+  /*
+  enterRows
+    .append("td")
+    .append("input")
+    .attr("type", "number")
+    .attr("class", "form-control form-control-sm")
+    .attr("value", (d) => d.x)
+    .on("input", (event, d) => {
+      d.x = +event.target.value
+      updateGraph()
+    })
+
+  enterRows
+    .append("td")
+    .append("input")
+    .attr("type", "number")
+    .attr("class", "form-control form-control-sm")
+    .attr("value", (d) => d.y)
+    .on("input", (event, d) => {
+      d.y = +event.target.value
+      updateGraph()
+    })*/
+
+  rows.exit().remove()
+}
+
+function updateEdgeTable() {
+  const tbody = d3.select("#edge-table tbody")
+  const rows = tbody.selectAll("tr").data(transitions)
+
+  const enterRows = rows.enter().append("tr")
+
+  enterRows.append("td").text((d) => d.source)
+  enterRows.append("td").text((d) => d.target)
+  enterRows
+    .append("td")
+    .append("input")
+    .attr("class", "form-control form-control-sm")
+    .attr("value", (d) => d.event)
+    .on("input", (event, d) => {
+      d.event = event.target.value
+      updateGraph()
+    })
+
+  enterRows
+    .append("td")
+    .append("input")
+    .attr("class", "form-control form-control-sm")
+    .attr("value", (d) => d.guard)
+    .on("input", (event, d) => {
+      d.guard = event.target.value
+      updateGraph()
+    })
+
+  enterRows
+    .append("td")
+    .append("input")
+    .attr("class", "form-control form-control-sm")
+    .attr("value", (d) => d.clock_guard)
+    .on("input", (event, d) => {
+      d.clock_guard = event.target.value
+      updateGraph()
+    })
+
+  rows.exit().remove()
+}
+
+function update() {
+  updateGraph()
+  updateNodeTable()
+  updateEdgeTable()
 }
 
 update()

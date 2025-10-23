@@ -1,31 +1,70 @@
-<div class="container">
-  <button id="addNodeBtn" class="btn btn-primary mb-3">Knoten hinzufügen</button>
-  <button id="printBtn" class="btn btn-primary mb-3">Print</button>
-  <button id="parseBtn" class="btn btn-primary mb-3">Try Parse</button>
-  <svg id="graphArea" class="ts-editor">
-    <defs>
-      <marker id="arrow" viewBox="0 -5 10 10" refX="5" refY="0" markerWidth="5" markerHeight="5" orient="auto">
-        <path d="M0,-5L10,0L0,5" fill="#999"></path>
-      </marker>
-    </defs>
-  </svg>
-  <div id="context-menu-nodes" class="context-menu">
-    <div id="edit-node-label">Edit node label</div>
-    <hr/>
-    <div id="select-transition-source">Set as source</div>
-    <div id="select-transition-target">Set as target</div>
-    <div id="cancel-transition">Reset source/target</div>
-    <hr/>
-    <div id="mark-initial">Mark as initial</div>
-    <div id="remove-node">Remove node</div>
+<div class="container-fluid mt-3">
+  <div class="row">
+    <div>
+      <button id="addNodeBtn" class="btn btn-primary mb-3">Knoten hinzufügen</button>
+      <button id="printBtn" class="btn btn-primary mb-3">Print</button>
+      <button id="parseBtn" class="btn btn-primary mb-3">Try Parse</button>
+    </div>
+
+    <svg id="graphArea" class="ts-editor">
+      <defs>
+        <marker id="arrow" viewBox="0 -5 10 10" refX="5" refY="0" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,-5L10,0L0,5" fill="#999"></path>
+        </marker>
+      </defs>
+    </svg>
+    <!-- Textbearbeitung -->
+    <div class="">
+      <h5>Knoten</h5>
+      <table class="table table-sm table-striped" id="node-table">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Label</th>
+          <th>Invariant</th>
+          <th>Clock Invariant</th>
+          <th>Initial</th>
+          <th>X</th>
+          <th>Y</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <h5>Kanten</h5>
+      <table class="table table-sm table-striped" id="edge-table">
+        <thead>
+        <tr>
+          <th>Source</th>
+          <th>Target</th>
+          <th>Event</th>
+          <th>Gurad</th>
+          <th>Time Guard</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
-  <div id="context-menu-edge" class="context-menu">
-    <div id="edit-edge-label">Edit edge label</div>
-    <div id="remove-edge">Remove edge</div>
-  </div>
-  <div id="context-menu-svg" class="context-menu">
-    <div id="add-node">Add node</div>
-    <div id="cancel-transition-selection">Reset source/target</div>
-    <div id="reset-zoom">Reset zoom</div>
-  </div>
+</div>
+
+
+<div id="context-menu-nodes" class="context-menu">
+  <div id="edit-node-label">Edit node label</div>
+  <hr />
+  <div id="select-transition-source">Set as source</div>
+  <div id="select-transition-target">Set as target</div>
+  <div id="cancel-transition">Reset source/target</div>
+  <hr />
+  <div id="mark-initial">Mark as initial</div>
+  <div id="remove-node">Remove node</div>
+</div>
+<div id="context-menu-edge" class="context-menu">
+  <div id="edit-edge-label">Edit edge label</div>
+  <div id="remove-edge">Remove edge</div>
+</div>
+<div id="context-menu-svg" class="context-menu">
+  <div id="add-node">Add node</div>
+  <div id="cancel-transition-selection">Reset source/target</div>
+  <div id="reset-zoom">Reset zoom</div>
 </div>
