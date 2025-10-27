@@ -1043,8 +1043,118 @@ function load_requirement(row_idx) {
 
     // Visible information
     $("#requirement_modal_title").html(data.id + ": " + data.type)
-    $("#description_textarea").text(data.desc).change()
-    $("#add_guess_description").text(data.desc).change()
+    // Insert Markdown content
+    $('#description_textarea').html(data.desc);
+        initVariableSpanEvents();
+
+        function fetchUpdatedDescription() {
+            $.get(`/api/req/get/desc?id=${data.id}`)
+                .done((response) => {
+                    // Update only the desc property of the existing data object
+                    data.desc = response.desc;
+
+                    // Update only the desc in the DOM
+                    $('#description_textarea').html(data.desc);
+
+                    // Rebind events to new content
+                    initVariableSpanEvents();
+                })
+                .fail(() => {
+                    alert('Failed to load updated description.');
+                });
+        }
+
+
+        function initVariableSpanEvents() {
+            // Handle left-click and right-click events on variable spans
+            $('#description_textarea').find('span[data-var-name]').each(function () {
+                const span = $(this);
+                span.css('cursor', 'pointer');
+
+                // Left click: copy variable name to clipboard
+                span.off('click').on('click', () => {
+                    const varName = span.attr('data-var-name');
+                    navigator.clipboard.writeText(varName).then(() => {
+                        const originalBg = span.css('background-color');
+                        span.css('background-color', 'yellow');
+                        setTimeout(() => {
+                            span.css('background-color', originalBg);
+                        }, 1000);
+                    });
+                });
+
+                // On right-click: open popup
+                span.off('contextmenu').on('contextmenu', (event) => {
+                    event.preventDefault();
+
+                    const originalVarName = span.attr('data-var-name');
+                    $('#editVarPopup').css({
+                        display: 'block',
+                        top: event.clientY + 'px',
+                        left: event.clientX + 'px'
+                    });
+
+                    $('#editVarInput').val(originalVarName).focus();
+
+                    $('#cancelVarBtn').off('click').on('click', () => {
+                        $('#editVarPopup').hide();
+                    });
+
+                    $('#saveSelectedBtn').off('click').on('click', () => {
+                        const newVarName = $('#editVarInput').val().trim();
+                        if (!newVarName || newVarName === originalVarName) {
+                            $('#editVarPopup').hide();
+                            return;
+                        }
+
+                        $.post('/api/req/variable_aliasing', {
+                            type: 'single',
+                            from: originalVarName,
+                            to: newVarName,
+                            rid: data.id
+                        }).done(() => {
+                            $('#editVarPopup').hide();
+                            fetchUpdatedDescription();
+                        }).fail(() => {
+                            alert('Failed to update variable.');
+                        });
+                    });
+
+                    $('#saveAllBtn').off('click').on('click', () => {
+                        const newVarName = $('#editVarInput').val().trim();
+                        if (!newVarName || newVarName === originalVarName) {
+                            $('#editVarPopup').hide();
+                            return;
+                        }
+
+                        $.post('/api/req/variable_aliasing', {
+                            type: 'all',
+                            from: originalVarName,
+                            to: newVarName,
+                            rid: data.id
+                        }).done(() => {
+                            $('#editVarPopup').hide();
+                            fetchUpdatedDescription();
+                        }).fail(() => {
+                            alert('Failed to update all matching variables.');
+                        });
+                    });
+                });
+            });
+        }
+
+        // Close popup when clicking outside
+        $(document).on('mousedown', function (event) {
+            const $popup = $('#editVarPopup');
+            if (
+                $popup.is(':visible') &&
+                !$(event.target).closest('#editVarPopup, span[data-var-name]').length
+            ) {
+                $popup.hide();
+            }
+        });
+
+        $('#add_guess_description').text(data.desc).change();
 
     // Parse the formalizations
     $("#formalization_accordion").html(data.formalizations_html)
