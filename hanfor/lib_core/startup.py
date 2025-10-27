@@ -7,6 +7,7 @@ import hashlib
 from typing import Callable
 from terminaltables import DoubleTable
 import shutil
+import re
 
 from hanfor_flask import HanforFlask
 from json_db_connector.json_db import JsonDatabase, remove_json_database_data_tracing_logger
@@ -737,7 +738,9 @@ def get_available_revisions(config, folder=None):
 
     try:
         names = os.listdir(folder)
-        result = [name for name in names if os.path.isdir(os.path.join(folder, name))]
+        result = [
+            name for name in names if os.path.isdir(os.path.join(folder, name)) and re.match(r"revision_[0-9]+", name)
+        ]
     except Exception as e:
         logging.error("Could not fetch stored revisions: {}".format(e))
 

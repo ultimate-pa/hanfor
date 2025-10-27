@@ -79,3 +79,13 @@
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
     width: 300px;
 }
+
+@keyframes pulse-success {
+  0% { transform: scale(1);}
+  50% { transform: scale(1.05);}
+  100% { transform: scale(1);}
+}
+
+.btn-success.animate-success {
+  animation: pulse-success 0.6s ease;
+}

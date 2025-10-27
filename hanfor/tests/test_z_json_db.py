@@ -12,7 +12,7 @@ from json_db_connector.json_db import (
     DataTracingFileHandler,
     KEY_REGEX,
     DatabaseNonSavedField,
-remove_json_database_data_tracing_logger
+    remove_json_database_data_tracing_logger,
 )
 from uuid import UUID
 from os import path, mkdir
@@ -925,8 +925,8 @@ class TestJsonDatabase(TestCase):
         nodes = list(db.get_objects(Node).values())
         for i, n in enumerate(nodes):
             self.assertTrue(
-                n.successors[0].n == (i + 1) % 10 and n.predecessors[0].n == (i - 1) % 10,
-                f"Node {i} did not have correct neighbours: index is {i}, neighbours are"
+                n.successors[0].n == (n.n + 1) % 10 and n.predecessors[0].n == (n.n - 1) % 10,
+                f"Node {n.n} did not have correct neighbours: index is {i}, neighbours are"
                 f"{n.successors[0].n} and {n.predecessors[0].n}",
             )
 

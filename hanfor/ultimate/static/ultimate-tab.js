@@ -42,7 +42,7 @@ function check_ultimate_version() {
         type: 'GET',
         url: 'api/v1/ultimate/version'
     }).done(function (data) {
-        if (data['version'] !== '') {
+        if (data['version'] !== '' &&  data['version'] !== 'ERROR') {
             let img = $('#ultimate-tab-ultimate-status-img')
             let img_src = img.attr("src");
             img.attr("src", img_src.replace('/disconnected.svg', '/connected.svg'));

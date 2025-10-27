@@ -16,9 +16,6 @@ from lib_core.data import Requirement, Formalization, Tag
 from lib_core.utils import choice
 
 
-__version__ = "1.0.4"
-
-
 @dataclass
 class CsvConfig:
     """Representation of structure of csv being imported"""
