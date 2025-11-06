@@ -65,7 +65,7 @@ def api_index():
 
     print(result["available_vars"])
     print(result["desc"])
-    result["desc"] = desc_var_highlighter_html(result["desc"], result["available_vars"])
+    result["desc_highlighted"] = desc_var_highlighter_html(result["desc"], result["available_vars"])
 
     result["additional_static_available_vars"] = VARIABLE_AUTOCOMPLETE_EXTENSION
     if requirement:
