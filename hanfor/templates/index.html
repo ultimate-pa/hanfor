@@ -121,8 +121,7 @@
 {% endblock %}
 {% block scripts %}
     {{ super() }}
-
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
     <script type="text/javascript">
         let search_query = '{{ query|tojson }}';
         let _PATTERNS = JSON.parse('{{ patterns|tojson }}');
