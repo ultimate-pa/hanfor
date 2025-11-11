@@ -21,7 +21,7 @@ from lib_pea.utils import get_countertrace_parser, strtobool
 from configuration.patterns import PATTERNS
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
-from lib_core.data import Requirement, Formalization, VariableCollection, Variable
+from lib_core.data import Requirement, Formalization, VariableCollection, Variable, ScopedPattern, Scope
 from ressources import Ressource
 
 validation_patterns = {BOOL: r"^0|false|False|1|true|True$", INT: r"^[+-]?\d+$", REAL: r"^[+-]?\d*[.]?\d+$"}
@@ -318,6 +318,8 @@ class SimulatorRessource(Ressource):
         requirement = app.db.get_object(Requirement, requirement_id)
 
         for formalization in requirement.formalizations.values():
+            if not formalization.scoped_pattern.is_instantiatable():
+                continue
             peas = get_pea_from_formalisation(requirement.rid, formalization, var_collection)
             for i, pea in enumerate(peas):
                 pea.requirement = requirement

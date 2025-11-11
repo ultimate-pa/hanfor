@@ -27,12 +27,12 @@ def get_pea_from_formalisation(
     if has_variable_with_unknown_type(formalization, variables) or formalization.type_inference_errors:
         return []
 
+
+    # TODO this whole thing shouls maybe run via the scopes and patterns and not locally here
+    #   is some part of "is instanciable"
     boogie_parser = boogie_parsing.get_parser_instance()
     scope = formalization.scoped_pattern.scope.name
     pattern = formalization.scoped_pattern.pattern.name
-
-    if len(PATTERNS[pattern]["countertraces"][scope]) <= 0:
-        raise ValueError(f"No countertrace given: {scope}, {pattern}")
 
     expressions = {}
     for k, v in formalization.expressions_mapping.items():

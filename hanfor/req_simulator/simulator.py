@@ -90,7 +90,7 @@ class Simulator:
     def get_active_dc_phases(self) -> dict[str, list[str]]:
         result = {"complete": [], "waiting": [], "exceeded": []}
 
-        if self.current_phases[-1][0] is None:
+        if not self.current_phases[-1] or not self.current_phases[-1][0]:
             return result
 
         clock_assertions = self.build_clocks_assertion(self.clocks[-1])
