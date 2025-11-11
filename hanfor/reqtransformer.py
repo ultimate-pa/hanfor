@@ -75,7 +75,7 @@ class RequirementCollection:
             csv.register_dialect("ultimate", delimiter=",", escapechar="\\", quoting=csv.QUOTE_ALL, quotechar='"')
             dialect = "ultimate"
             csvfile.seek(0)
-            reader = csv.DictReader(csvfile, dialect=dialect)
+            reader = csv.DictReader(csvfile, dialect=dialect, restkey="CSV-None")
             self.csv_all_rows = list(reader)
             self.csv_meta.fieldnames = reader.fieldnames
             self.csv_meta.headers = sorted(list(reader.fieldnames))
