@@ -7,7 +7,7 @@ toc_depth: 2
 * [pip](https://pypi.org/project/pip/)
 
 
-## Install Hanfor
+## Download Hanfor
 
 Download the [release](https://github.com/ultimate-pa/hanfor/releases) release of Hanfor
 and unzip the contents at the intended location.
@@ -69,7 +69,7 @@ Copy the default ultimate config file `configuration/ultimate_config.dist.py` to
 
 The config file `ultimate_config.py` allows you to change various parameters for the ultimate backend -- see the comments in [`ultimate_config.dist.py`](https://github.com/ultimate-pa/hanfor/blob/master/hanfor/configuration/ultimate_config.dist.py).
 
-## Launch a Hanfor session
+## Start Hanfor 
 
 ### Launch a new session
 ``` bash
