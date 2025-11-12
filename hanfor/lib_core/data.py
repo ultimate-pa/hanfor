@@ -1218,6 +1218,7 @@ class TransitionSystemNode:
     label: str = ""
     invariant: str = ""
     clock_invariant: str = ""
+    initial: bool = False
     r: int = 0
     x: int = 0
     y: int = 0
@@ -1228,6 +1229,7 @@ class TransitionSystemNode:
             or "label" not in d
             or "invariant" not in d
             or "clock_invariant" not in d
+            or "initial" not in d
             or "r" not in d
             or "x" not in d
             or "y" not in d
@@ -1238,6 +1240,7 @@ class TransitionSystemNode:
         self.label = d["label"]
         self.invariant = d["invariant"]
         self.clock_invariant = d["clock_invariant"]
+        self.initial = bool(d["initial"])
         self.r = d["r"]
         self.x = d["x"]
         self.y = d["y"]
@@ -1257,9 +1260,17 @@ class TransitionSystemTransition:
     event: str = ""
     guard: str = ""
     clock_guard: str = ""
+    bend: float = -40
 
     def parse_from_dict(self, d: dict[str, int | str]) -> bool:
-        if "source" not in d or "target" not in d or "event" not in d or "guard" not in d or "clock_guard" not in d:
+        if (
+            "source" not in d
+            or "target" not in d
+            or "event" not in d
+            or "guard" not in d
+            or "clock_guard" not in d
+            or "bend" not in d
+        ):
             logging.error("TransitionSystemTransition can not be parsed")
             return False
         self.source = d["source"]
@@ -1267,6 +1278,7 @@ class TransitionSystemTransition:
         self.event = d["event"]
         self.guard = d["guard"]
         self.clock_guard = d["clock_guard"]
+        self.bend = d["bend"]
         return True
 
 
