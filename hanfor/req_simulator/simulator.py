@@ -276,17 +276,6 @@ class Simulator:
             # raise ValueError('Time step must be greater than zero.')
             return False
 
-        # primed_vars = {}
-        # primed_vars_mapping = {}
-        # for k, v in self.variables.items():
-        #    k_ = substitute_free_variables(k)
-        #    primed_vars[k_] = v[-1]
-        #    primed_vars_mapping[k_] = k
-
-        # var_asserts = self.build_variables_assertion(primed_vars)
-
-        # self.time_steps[-1] = self.calculate_chop_point()
-
         var_asserts = self.build_variables_assertion({k: v[-1] for k, v in self.variables.items()})
         clock_asserts = self.build_clocks_assertion(self.clocks[-1])
 
@@ -299,77 +288,6 @@ class Simulator:
 
         self.sat_results = self.cartesian_check(inputs, var_asserts, clock_asserts)
         return len(self.sat_results) != 0
-
-        # Compute cartesian product with intermediate checks
-        results: list[Simulator.SatResult] = []
-
-        for e in inputs[0]:
-            model = get_model(e.guard, solver_name=SOLVER_NAME, logic=LOGIC)
-            values = model.get_values(self.variables.keys())
-            values.update({k: v[-1] for k, v in self.variables.items() if v[-1] is not None})
-
-            if e.src is not None:
-                results.append(
-                    Simulator.SatResult(
-                        (e,),
-                        values,
-                        And(var_asserts, clock_asserts, e.guard).simplify(),
-                        # (e,), {primed_vars_mapping[k]: v for k, v in values.items()}, And(var_asserts, clock_asserts, e.guard).simplify()
-                    )
-                )
-            else:
-                results.append(
-                    Simulator.SatResult(
-                        (e,),
-                        values,
-                        And(var_asserts, e.guard).simplify(),
-                        # (e,), {primed_vars_mapping[k]: v for k, v in values.items()}, And(var_asserts, e.guard).simplify()
-                    )
-                )
-
-        for i, input in enumerate(inputs[1:]):
-            results_: list[Simulator.SatResult] = []
-            last_fail = None
-
-            for result in results:
-
-                for e in input:
-                    guard = And(result.guard, e.guard).simplify()
-
-                    if guard == FALSE():
-                        last_fail = guard
-                        continue
-
-                    if i < len(inputs[1:]) - 1:
-                        sat = is_sat(guard, solver_name=SOLVER_NAME, logic=LOGIC)
-
-                        if sat:
-                            results_.append(Simulator.SatResult(result.transitions + (e,), None, guard))
-
-                    else:
-                        model = get_model(guard, solver_name=SOLVER_NAME, logic=LOGIC)
-
-                        if model is not None:
-                            values = model.get_values(self.variables.keys())
-                            values.update({k: v[-1] for k, v in self.variables.items() if v[-1] is not None})
-                            # values = model.get_values(primed_vars.keys())
-                            # values = {primed_vars_mapping[k]: v for k, v in values.items()}
-                            results_.append(Simulator.SatResult(result.transitions + (e,), values, guard))
-
-            results = results_
-
-            if len(results) == 0:
-                self.sat_error = "Requirement violation: %s, Formalization: %s, Countertrace: %s\nReason: %s" % (
-                    self.peas[i].requirement.self.peas[i],
-                    self.peas[i].formalization.id,
-                    self.peas[i].countertrace_id,
-                    get_unsat_core(conjunctive_partition(last_fail)),
-                )
-                return False
-
-        self.sat_results = results
-
-        return True
 
     def cartesian_check(
         self,
@@ -435,50 +353,6 @@ class Simulator:
             )
 
         return result
-
-    """
-    def check_sat_old(self) -> None:
-        if not self.time_steps[-1] > 0.0:
-            raise ValueError('Time step must be greater than zero.')
-
-        self.sat_results = []
-
-        transition_lists = [self.peas[i].get_transitions(self.current_phases[-1][i]) for i in range(len(self.peas))]
-        transition_tuples = list(itertools.product(*transition_lists))
-
-        time_step_max = self.time_steps[-1]
-        for transition_tuple in transition_tuples:
-            for i in range(len(transition_tuple)):
-                transition = transition_tuple[i]
-
-                clock_bound = transition.dst.get_min_clock_bound()
-                if clock_bound is not None:
-                    delta = clock_bound[1] - self.clocks[-1][clock_bound[0]]
-                    time_step_max = time_step_max if delta <= 0 else min(time_step_max, delta)
-
-        self.time_steps[-1] = time_step_max
-
-        for transition_tuple in transition_tuples:
-            f = TRUE()
-
-            for i in range(len(transition_tuple)):
-                transition = transition_tuple[i]
-
-                # TODO: Can be split into two check sat, if it improves performance.
-                # In this case, the substitution of clocks can be omitted.
-                f = And(f, self.build_guard(transition, self.clocks[-1]),
-                        self.build_clock_invariant(transition,
-                                                   self.update_clocks(self.clocks[-1], transition.resets,
-                                                                      self.time_steps[-1])))
-
-            model = get_model(f, SOLVER_NAME, LOGIC)
-
-            if model is not None:
-                primed_variables = {substitute_free_variables(k): k for k in self.variables}
-                model = model.get_values(primed_variables.keys())
-
-                self.sat_results.append((transition_tuple, {v: model[k] for k, v in primed_variables.items()}))
-    """
 
     def step_next(self, enabled_transition_index: int) -> None:
         if self.scenario is not None and self.times[-1] >= self.scenario.times[-1]:
