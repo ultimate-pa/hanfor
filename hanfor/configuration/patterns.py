@@ -5,6 +5,56 @@
 
 VARIABLE_AUTOCOMPLETE_EXTENSION = ["abs()"]
 
+
+class APattern:
+
+    def __init__(self):
+        self.pattern_text: str = "is an empty Pattern"
+        self.env: dict[str, list[str]] = {}
+        self.group: str = "Empty"
+        self.order: int = 0
+        self.countertraces: dict[str, list[str]] = {}
+
+    def get_text(self):
+        pass
+
+    def get_instanciation(self, expressions):
+        """inserts expressions into the pattern text and returns the fully assembled pattern instanciation"""
+        pass
+
+    def get_countertraces(self, expressions, other_patterns):
+        """generate countertraces for a pattern instanciation, possibly refering to other patterns
+        (e.g. for the automaton patterns exclusion of other edges rule)"""
+        pass
+
+    def has_countertraces(self, scope: str):
+        return scope in self.countertraces and self.countertraces[scope]
+
+
+################################################################################
+#                             Available patterns                               #
+################################################################################
+
+
+class Response(APattern):
+    def __init__(self):
+        super().__init__()
+        self.pattern_text: str = "it is always the case that if {R} holds then {S} eventually holds"
+        self.group: str = "Order"
+        self.order: int = 0
+        self.countertraces: dict[str, list[str]] = {
+            "GLOBALLY": [],
+            "BEFORE": ["⌈!P⌉;⌈(!P && (R && !S))⌉;⌈(!P && !S)⌉;⌈P⌉;true"],
+            "AFTER": [],
+            "BETWEEN": ["true;⌈(P && !Q)⌉;⌈!Q⌉;⌈(!Q && (R && !S))⌉;⌈(!Q && !S)⌉;⌈Q⌉;true"],
+            "AFTER_UNTIL": [],
+        }
+        self.env: dict[str, list[str]] = {
+            "R": ["bool"],
+            "S": ["bool"],
+        }
+
+
 ################################################################################
 #                             Available patterns                               #
 ################################################################################
@@ -564,12 +614,12 @@ PATTERNS = {
 }
 
 
-
-def enumerate_transition_patterns(order: int, time: str = "then", event: bool = False , guard: bool = False):
+def enumerate_transition_patterns(order: int, time: str = "then", event: bool = False, guard: bool = False):
     env = {"R": ["bool"], "S": ["bool"]}
     suffix = ""
     match time:
-        case "then": pass
+        case "then":
+            pass
         case "least":
             time = "for at least {T}"
             env["T"] = "real"
@@ -578,7 +628,8 @@ def enumerate_transition_patterns(order: int, time: str = "then", event: bool = 
             time = "for at most {T}"
             env["T"] = "real"
             suffix += "U"
-        case _: raise Exception("Invalid name for automata pattern 'then' part")
+        case _:
+            raise Exception("Invalid name for automata pattern 'then' part")
     if guard:
         partikel = "and" if event else "if"
         gt = partikel + " guard {V} holds"
@@ -595,13 +646,17 @@ def enumerate_transition_patterns(order: int, time: str = "then", event: bool = 
 
     p_text = f"if in location {{R}} {time} transition to {{S}} {ct}."
 
-    return {"Transition" + suffix: {
-        "pattern": p_text,
-        "countertraces": {"GLOBALLY": []},
-        "env": env,
-        "group": "Automaton",
-        "pattern_order": order,
-    }}
+    return {
+        "Transition"
+        + suffix: {
+            "pattern": p_text,
+            "countertraces": {"GLOBALLY": []},
+            "env": env,
+            "group": "Automaton",
+            "pattern_order": order,
+        }
+    }
+
 
 PATTERNS.update(enumerate_transition_patterns(0))
 PATTERNS.update(enumerate_transition_patterns(1, guard=True))
@@ -612,7 +667,7 @@ PATTERNS.update(enumerate_transition_patterns(5, time="most"))
 
 PATTERNS.update(enumerate_transition_patterns(6, event=True))
 PATTERNS.update(enumerate_transition_patterns(7, event=True, guard=True))
-PATTERNS.update(enumerate_transition_patterns(8, event=True,time="least", guard=True))
-PATTERNS.update(enumerate_transition_patterns(9, event=True,time="most", guard=True))
-PATTERNS.update(enumerate_transition_patterns(10, event=True,time="least"))
-PATTERNS.update(enumerate_transition_patterns(11, event=True,time="most"))
+PATTERNS.update(enumerate_transition_patterns(8, event=True, time="least", guard=True))
+PATTERNS.update(enumerate_transition_patterns(9, event=True, time="most", guard=True))
+PATTERNS.update(enumerate_transition_patterns(10, event=True, time="least"))
+PATTERNS.update(enumerate_transition_patterns(11, event=True, time="most"))
