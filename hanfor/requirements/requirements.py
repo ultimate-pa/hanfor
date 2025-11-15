@@ -15,7 +15,7 @@ from lib_core.utils import (
 from configuration.defaults import Color
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
-from configuration.patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
+from configuration.patterns import APattern, VARIABLE_AUTOCOMPLETE_EXTENSION
 
 
 blueprint = Blueprint("requirements", __name__, template_folder="templates", url_prefix="/")
@@ -35,7 +35,12 @@ def index():
     ]
     additional_cols = get_datatable_additional_cols(current_app)["col_defs"]
     return render_template(
-        "index.html", query=request.args, additional_cols=additional_cols, default_cols=default_cols, patterns=PATTERNS
+        # TODO: the object refactor will break this - fix later!!
+        "index.html",
+        query=request.args,
+        additional_cols=additional_cols,
+        default_cols=default_cols,
+        patterns=APattern.to_frontent_dict(),
     )
 
 

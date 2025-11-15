@@ -25,7 +25,7 @@ from json_db_connector.json_db import (
     DatabaseNonSavedField,
     DatabaseFieldType,
 )
-from configuration.patterns import PATTERNS
+from configuration.patterns import APattern
 
 
 @DatabaseTable(TableType.File)
@@ -536,8 +536,8 @@ class Scope(Enum):
 class Pattern:
     def __init__(self, name: str = "NotFormalizable"):
         self.name = name
-        self.pattern = PATTERNS[name]["pattern"]
-        self.environment = PATTERNS[name]["env"]
+        self.pattern = APattern.get_pattern(name).pattern_text
+        self.environment = APattern.get_pattern(name).env
 
     def is_instantiatable(self):
         return self.name != "NotFormalizable"
@@ -549,7 +549,7 @@ class Pattern:
         return self.pattern
 
     def get_allowed_types(self):
-        return BoogieType.alias_env_to_instantiated_env(PATTERNS[self.name]["env"])
+        return BoogieType.alias_env_to_instantiated_env(self.environment)
 
 
 @DatabaseFieldType()

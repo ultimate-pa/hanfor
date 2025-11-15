@@ -21,7 +21,7 @@ from lib_core.utils import (
     choice,
 )
 from lib_core.data import Tag, VariableCollection, Scope, SessionValue, Requirement, Variable
-from configuration.patterns import PATTERNS
+from configuration.patterns import APattern
 from configuration.defaults import Color
 from configuration.tags import STANDARD_TAGS, FUNCTIONAL_TAGS
 
@@ -35,7 +35,7 @@ def config_check(app_config):
             raise SyntaxError("Could not find {} in config.".format(to_ensure_config))
 
     # Check pattern groups set correctly.
-    pattern_groups_used = set((pattern["group"] for pattern in PATTERNS.values()))
+    pattern_groups_used = set((pattern.group for pattern in APattern.get_patterns().values()))
     pattern_groups_set = set((group for group in app_config["PATTERNS_GROUP_ORDER"]))
     # Pattern group for downwards compatibility: Legacy patterns are not shown in dropdown (but still deserializable)
     pattern_groups_set.add("Legacy")

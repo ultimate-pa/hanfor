@@ -1,3 +1,4 @@
+from linecache import cache
 from typing import Union
 
 ################################################################################
@@ -25,13 +26,35 @@ class APattern:
         """inserts expressions into the pattern text and returns the fully assembled pattern instanciation"""
         pass
 
-    def get_countertraces(self, expressions, other_patterns):
-        """generate countertraces for a pattern instanciation, possibly refering to other patterns
-        (e.g. for the automaton patterns exclusion of other edges rule)"""
-        pass
+    def get_countertraces(self, scope):
+        return self.countertraces[scope]
 
     def has_countertraces(self, scope: str):
         return scope in self.countertraces and self.countertraces[scope]
+
+    @classmethod
+    def get_patterns(cls) -> dict[str, "APattern"]:
+        return {t.__name__: t() for t in APattern.__subclasses__()}
+
+    @classmethod
+    def get_pattern(cls, name: str) -> "APattern":
+        # TODO: search in old names for compatibility reasons
+        if name in APattern.get_patterns():
+            return cls.get_patterns()[name]
+        by_old_name = {p.old_name: p for p in cls.get_patterns().values()}
+        if name in by_old_name:
+            return by_old_name[name]
+        raise KeyError(name)
+
+    @classmethod
+    def to_frontent_dict(cls) -> dict:
+        result = dict()
+        for name, pattern in APattern.get_patterns().items():
+            result[name] = {
+                "env": pattern.env,
+                "countertraces": pattern.countertraces,
+            }
+        return result
 
 
 class AAutomatonPattern:
@@ -52,6 +75,24 @@ class AAutomatonPattern:
 ################################################################################
 #                             Available patterns                               #
 ################################################################################
+
+
+class NotFormalizable(APattern):
+
+    def __init__(self):
+        super().__init__()
+        self.pattern_text: str = "no pattern set"
+        self.old_name = "Plumbing"
+        self.env: dict[str, list[str]] = {}
+        self.group: str = "not_formalizable"
+        self.order: int = 0
+        self.countertraces: dict[str, list[str]] = {
+            "GLOBALLY": [],
+            "BEFORE": [],
+            "AFTER": [],
+            "BETWEEN": [],
+            "AFTER_UNTIL": [],
+        }
 
 
 class Response(APattern):
@@ -908,54 +949,3 @@ class TransitionUE(APattern, AAutomatonPattern):
         self.group: str = "Automaton"
         self.order: int = 11
         self.countertraces: dict[str, list[str]] = {"GLOBALLY": []}
-
-
-PATTERNS = [
-    Absence,
-    BndEntryConditionPattern,
-    ConstrainedChain,
-    DurationBoundL,
-    DurationBoundU,
-    EdgeResponseBoundL2,
-    EdgeResponseBoundU1,
-    EdgeResponseDelay,
-    EdgeResponseDelayBoundL2,
-    Existence,
-    ExistenceBoundU,
-    InitialLoc,
-    Initialization,
-    Invariance,
-    InvarianceBoundL2,
-    InvarianceDelay,
-    Persistence,
-    Precedence,
-    PrecedenceChain12,
-    PrecedenceChain21,
-    ReccurrenceBound,
-    Response,
-    ResponseBoundL1,
-    ResponseBoundL12,
-    ResponseChain12,
-    ResponseChain21,
-    ResponseDelay,
-    ResponseDelayBoundL2,
-    Toggle1,
-    Toggle2,
-    Transition,
-    TransitionE,
-    TransitionG,
-    TransitionGE,
-    TransitionL,
-    TransitionLE,
-    TransitionLG,
-    TransitionLGE,
-    TransitionU,
-    TransitionUE,
-    TransitionUG,
-    TransitionUGE,
-    TriggerResponseBoundL1,
-    TriggerResponseDelayBoundL1,
-    Union,
-    Universality,
-    UniversalityDelay,
-]

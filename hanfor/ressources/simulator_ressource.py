@@ -18,7 +18,7 @@ from lib_pea.countertrace_to_pea import build_automaton
 from lib_pea.pea import PhaseSetsPea
 from lib_pea.req_to_pea import get_pea_from_formalisation, has_variable_with_unknown_type
 from lib_pea.utils import get_countertrace_parser, strtobool
-from configuration.patterns import PATTERNS
+from configuration.patterns import APattern
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
 from lib_core.data import Requirement, Formalization, VariableCollection, Variable, ScopedPattern, Scope
@@ -190,14 +190,14 @@ class SimulatorRessource(Ressource):
                 scope = formalization.scoped_pattern.scope.name
                 pattern = formalization.scoped_pattern.pattern.name
 
-                if len(PATTERNS[pattern]["countertraces"][scope]) <= 0:
+                if APattern.get_pattern(pattern).has_countertraces(scope):
                     raise ValueError(f"No countertrace given: {scope}, {pattern}")
 
                 expressions = {}
                 for k, v in formalization.expressions_mapping.items():
                     expressions[k] = v.raw_expression
 
-                for i, ct_str in enumerate(PATTERNS[pattern]["countertraces"][scope]):
+                for i, ct_str in enumerate(APattern.get_pattern(pattern).get_countertraces(scope)):
                     counter_traces.append(ct_str)
                 formalizations[formalization.id] = {"counter_traces": counter_traces, "expressions": expressions}
 
