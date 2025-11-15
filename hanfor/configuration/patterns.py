@@ -131,6 +131,12 @@ PATTERNS = {
             ],
             "AFTER_UNTIL": [],
         },
+        "env": {
+            "U": ["bool"],
+            "R": ["bool"],
+            "S": ["bool"],
+            "T": ["bool"],
+        },
         "group": "Order",
         "pattern_order": 4,
     },
@@ -538,25 +544,6 @@ PATTERNS = {
         "group": "Real-time",
         "pattern_order": 10,
     },
-    "NotFormalizable": {"pattern": "no pattern set", "env": {}, "group": "not_formalizable", "pattern_order": 0},
-    "ConditionalResponseBoundL1": {
-        "pattern": "it is always the case that if {R} holds succeeded by {S} for at least {T} time units, then {U} holds afterwards",
-        "countertraces": {
-            "GLOBALLY": ["true;⌈R⌉;⌈S⌉ ∧ ℓ ≥ T;⌈!U⌉;true"],
-            "BEFORE": [],
-            "AFTER": [],
-            "BETWEEN": [],
-            "AFTER_UNTIL": [],
-        },
-        "env": {
-            "R": ["bool"],
-            "S": ["bool"],
-            "T": ["real"],
-            "U": ["bool"],
-        },
-        "group": "Real-time",
-        "pattern_order": 30,
-    },
     ################################################################################
     #                         Requirement Automaton Patterns                       #
     ################################################################################
@@ -671,3 +658,29 @@ PATTERNS.update(enumerate_transition_patterns(8, event=True, time="least", guard
 PATTERNS.update(enumerate_transition_patterns(9, event=True, time="most", guard=True))
 PATTERNS.update(enumerate_transition_patterns(10, event=True, time="least"))
 PATTERNS.update(enumerate_transition_patterns(11, event=True, time="most"))
+
+
+if __name__ == "__main__":
+    with open("patternlist.py", "w", encoding="utf-8") as f:
+        for name, pattern in PATTERNS.items():
+            print(name)
+            f.write(
+                f"""
+class {name}:
+
+    def __init__(self):
+        self.pattern_text: str = {pattern["pattern"]}
+        self.env: dict[str, list[str]] = 
+        #{{
+        #    {", ".join([f"{k}: [{", ".join(v)}]" for k,v in pattern["env"].items()])}
+        #}}
+        self.group: str =  {pattern["group"]}
+        self.order: int = {pattern["pattern_order"]}
+        self.countertraces: dict[str, list[str]] = 
+        #{{
+            #{", ".join([f"{k}: [{", ".join(v)}]" for k,v in pattern["countertraces"].items()])}
+            #}}
+            
+            
+                """
+            )
