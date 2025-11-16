@@ -536,8 +536,8 @@ class Scope(Enum):
 class Pattern:
     def __init__(self, name: str = "NotFormalizable"):
         self.name = name
-        self.pattern = APattern.get_pattern(name).pattern_text
-        self.environment = APattern.get_pattern(name).env
+        self.pattern = APattern.get_pattern(name)._pattern_text
+        self.environment = APattern.get_pattern(name)._env
 
     def is_instantiatable(self):
         return self.name != "NotFormalizable"
@@ -549,7 +549,7 @@ class Pattern:
         return self.pattern
 
     def get_allowed_types(self):
-        return BoogieType.alias_env_to_instantiated_env(self.environment)
+        return BoogieType.alias_env_to_instantiated_env(APattern.get_pattern(self.name)._env)
 
 
 @DatabaseFieldType()

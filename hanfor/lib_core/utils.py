@@ -66,7 +66,7 @@ def get_default_pattern_options():
     opt_groups = defaultdict(str)
     # Collect pattern in groups.
     for name, pattern in APattern.get_patterns().items():
-        opt_group_lists[pattern.group].append((pattern.order, name, pattern.pattern_text))
+        opt_group_lists[pattern.group].append((pattern.order, name, pattern._pattern_text))
 
     # Sort groups and concatenate pattern options
     for group_name, opt_list in opt_group_lists.items():

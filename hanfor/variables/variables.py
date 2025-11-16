@@ -33,7 +33,9 @@ def index():
 @blueprint2.route("/<rid>", methods=["GET"])
 @nocache
 def variable_import(rid):
-    return render_template("variables/variable-import-session.html", id=rid, query=request.args, patterns=PATTERNS)
+    return render_template(
+        "variables/variable-import-session.html", id=rid, query=request.args, patterns=APattern.to_frontent_dict()
+    )
 
 
 @api_blueprint.route("/gets", methods=["GET"])

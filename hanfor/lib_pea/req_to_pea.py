@@ -42,7 +42,7 @@ def get_pea_from_formalisation(
         expressions[k] = BoogiePysmtTransformer(set(var_collection.collection.values())).transform(tree)
 
     peas = []
-    for i, ct_str in enumerate(APattern.get_pattern(pattern).countertraces[scope]):
+    for i, ct_str in enumerate(APattern.get_pattern(pattern)._countertraces[scope]):
         ct = CountertraceTransformer(expressions).transform(get_countertrace_parser().parse(ct_str))
         peas.append(build_automaton(ct, f"c_{req_id}_{formalization.id}_{i}_"))
     return peas
