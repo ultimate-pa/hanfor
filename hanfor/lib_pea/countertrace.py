@@ -9,19 +9,12 @@ from pysmt.shortcuts import TRUE, Not, And, Or, get_free_variables, get_env
 
 
 class Countertrace:
-    def __init__(self, *dc_phases: DCPhase, path: str = None) -> None:
+    def __init__(self, *dc_phases: DCPhase) -> None:
         self.dc_phases: list[Countertrace.DCPhase] = [dc_phase for dc_phase in dc_phases]
         # super().__init__(path)
 
     def __str__(self) -> str:
         return ";".join([str(dc_phase) for dc_phase in self.dc_phases])
-
-    @classmethod
-    def load(cls, path: str) -> Countertrace:
-        # ct = super().load(path)
-        # ct.normalize(get_env().formula_manager)
-        # return ct
-        raise NotImplementedError
 
     def normalize(self, formula_manager: FormulaManager) -> None:
         for dc_phase in self.dc_phases:

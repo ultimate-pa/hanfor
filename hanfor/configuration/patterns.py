@@ -1,5 +1,11 @@
+from collections import defaultdict
 from linecache import cache
 from typing import Union
+
+from pysmt.fnode import FNode
+
+from lib_pea.countertrace import CountertraceTransformer
+from lib_pea.utils import get_countertrace_parser
 
 ################################################################################
 #                               Miscellaneous                                  #
@@ -17,7 +23,7 @@ class APattern:
         self._env: dict[str, list[str]] = {}
         self.group: str = "Empty"
         self.order: int = 0
-        self._countertraces: dict[str, list[str]] = {}
+        self._countertraces: dict[str, list[str]] = defaultdict(list)
 
     def get_text(self):
         pass
@@ -26,11 +32,18 @@ class APattern:
         """inserts expressions into the pattern text and returns the fully assembled pattern instanciation"""
         pass
 
-    def get_countertraces(self, scope):
+    def get_countertraces(self, scope: str):
         return self._countertraces[scope]
 
     def has_countertraces(self, scope: str):
         return scope in self._countertraces and self._countertraces[scope]
+
+    def get_instanciated_countertraces(self, scope: str, expressions: dict[str, FNode]):
+        cts = []
+        for ct_str in self.get_countertraces(scope):
+            ct_ast = get_countertrace_parser().parse(ct_str)
+            cts.append(CountertraceTransformer(expressions).transform(ct_ast))
+        return cts
 
     @classmethod
     def get_patterns(cls) -> dict[str, "APattern"]:
@@ -86,13 +99,6 @@ class NotFormalizable(APattern):
         self._env: dict[str, list[str]] = {}
         self.group: str = "not_formalizable"
         self.order: int = 0
-        self._countertraces: dict[str, list[str]] = {
-            "GLOBALLY": [],
-            "BEFORE": [],
-            "AFTER": [],
-            "BETWEEN": [],
-            "AFTER_UNTIL": [],
-        }
 
 
 class Response(APattern):
@@ -716,13 +722,6 @@ class Toggle1(APattern):
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["bool"]}
         self.group: str = "Legacy"
         self.order: int = 0
-        self._countertraces: dict[str, list[str]] = {
-            "GLOBALLY": [],
-            "BEFORE": [],
-            "AFTER": [],
-            "BETWEEN": [],
-            "AFTER_UNTIL": [],
-        }
 
 
 class Toggle2(APattern):
@@ -736,13 +735,6 @@ class Toggle2(APattern):
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["bool"], "U": ["real"]}
         self.group: str = "Legacy"
         self.order: int = 0
-        self._countertraces: dict[str, list[str]] = {
-            "GLOBALLY": [],
-            "BEFORE": [],
-            "AFTER": [],
-            "BETWEEN": [],
-            "AFTER_UNTIL": [],
-        }
 
 
 class BndEntryConditionPattern(APattern):
@@ -756,13 +748,6 @@ class BndEntryConditionPattern(APattern):
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"], "T": ["bool"]}
         self.group: str = "Legacy"
         self.order: int = 0
-        self._countertraces: dict[str, list[str]] = {
-            "GLOBALLY": [],
-            "BEFORE": [],
-            "AFTER": [],
-            "BETWEEN": [],
-            "AFTER_UNTIL": [],
-        }
 
 
 class ResponseChain21(APattern):
@@ -776,13 +761,6 @@ class ResponseChain21(APattern):
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["bool"]}
         self.group: str = "Legacy"
         self.order: int = 1
-        self._countertraces: dict[str, list[str]] = {
-            "GLOBALLY": [],
-            "BEFORE": [],
-            "AFTER": [],
-            "BETWEEN": [],
-            "AFTER_UNTIL": [],
-        }
 
 
 class Existence(APattern):
@@ -794,13 +772,6 @@ class Existence(APattern):
         self._env: dict[str, list[str]] = {"R": ["bool"]}
         self.group: str = "Legacy"
         self.order: int = 1
-        self._countertraces: dict[str, list[str]] = {
-            "GLOBALLY": [],
-            "BEFORE": [],
-            "AFTER": [],
-            "BETWEEN": [],
-            "AFTER_UNTIL": [],
-        }
 
 
 class Transition(APattern, AAutomatonPattern):
