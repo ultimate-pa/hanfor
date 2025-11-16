@@ -6,8 +6,8 @@ import string
 from dataclasses import dataclass, field
 from enum import Enum
 from threading import Lock
-from typing import Dict, Tuple
 import re
+from typing import Any
 from uuid import uuid4
 
 from lark import LarkError
@@ -65,7 +65,7 @@ class Tag:
 class Requirement:
     def __init__(self, rid: str, description: str, type_in_csv: str, csv_row: dict[str, str], pos_in_csv: int):
         self.rid: str = rid
-        self.formalizations: Dict[int, Formalization] = dict()
+        self.formalizations: dict[int, Formalization] = dict()
         self.description = description
         self.type_in_csv = type_in_csv
         self.csv_row = csv_row
@@ -106,7 +106,7 @@ class Requirement:
         return d
 
     @property
-    def revision_diff(self) -> Dict[str, str]:
+    def revision_diff(self) -> dict[str, str]:
         if not hasattr(self, "_revision_diff"):
             self._revision_diff = dict()
         return self._revision_diff
@@ -145,7 +145,7 @@ class Requirement:
             self._next_formalization_index += 1
             return i
 
-    def add_empty_formalization(self) -> Tuple[int, "Formalization"]:
+    def add_empty_formalization(self) -> tuple[int, "Formalization"]:
         """Add an empty formalization to the formalizations list."""
         fid = self._next_free_formalization_id()
         self.formalizations[fid] = Formalization(fid)
@@ -837,7 +837,7 @@ class Variable:
 class VariableCollection:
     def __init__(self, app):
         self.app = app
-        self.collection: Dict[str, Variable] = {v.name: v for v in app.db.get_objects(Variable).values()}
+        self.collection: dict[str, Variable] = {v.name: v for v in app.db.get_objects(Variable).values()}
         self.var_req_mapping = dict()
         self.refresh_var_usage(app)
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
@@ -1160,7 +1160,7 @@ class RequirementEditHistory:
 @dataclass()
 class SessionValue:
     name: str
-    value: any
+    value: Any
 
 
 def replace_prefix(input_string: str, prefix_old: str, prefix_new: str):

@@ -1,12 +1,8 @@
-from typing import List
-
 from lib_core import boogie_parsing
 from lib_core.data import Formalization, VariableCollection
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
-from lib_pea.countertrace import CountertraceTransformer
 from lib_pea.countertrace_to_pea import build_automaton
 from lib_pea.pea import PhaseSetsPea
-from lib_pea.utils import get_countertrace_parser
 from configuration.patterns import APattern
 
 
@@ -20,7 +16,7 @@ def has_variable_with_unknown_type(formalization: Formalization, variables: dict
 
 def get_pea_from_formalisation(
     req_id: str, formalization: Formalization, var_collection: VariableCollection
-) -> List[PhaseSetsPea]:
+) -> list[PhaseSetsPea]:
     if not formalization.scoped_pattern.is_instantiatable():
         return []
     variables = {k: v.type for k, v in var_collection.collection.items()}
@@ -37,8 +33,6 @@ def get_pea_from_formalisation(
         tree = boogie_parser.parse(v.raw_expression)
         expressions[k] = BoogiePysmtTransformer(set(var_collection.collection.values())).transform(tree)
 
-    # TODO this whole thing shouls maybe run via the scopes and patterns and not locally here
-    #   is some part of "is instanciable"
     scope = formalization.scoped_pattern.scope.name
     pattern = formalization.scoped_pattern.pattern.name
 

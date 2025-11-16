@@ -1,9 +1,8 @@
 from collections import defaultdict
-from linecache import cache
 from typing import Union
 
 from pysmt.fnode import FNode
-
+from functools import cache
 from lib_pea.countertrace import CountertraceTransformer
 from lib_pea.utils import get_countertrace_parser
 
@@ -46,6 +45,7 @@ class APattern:
         return cts
 
     @classmethod
+    @cache
     def get_patterns(cls) -> dict[str, "APattern"]:
         return {t.__name__: t() for t in APattern.__subclasses__()}
 
