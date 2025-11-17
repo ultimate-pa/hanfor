@@ -11,12 +11,12 @@ from flask import render_template
 from pysmt.shortcuts import Bool, Int, Real
 from pysmt.typing import BOOL, INT, REAL
 
-from lib_core import boogie_parsing
-from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
-from lib_pea.countertrace import CountertraceTransformer
-from lib_pea.countertrace_to_pea import build_automaton
 from lib_pea.pea import PhaseSetsPea
-from lib_pea.req_to_pea import get_pea_from_formalisation, has_variable_with_unknown_type
+from lib_pea.req_to_pea import (
+    get_pea_from_formalisation,
+    has_variable_with_unknown_type,
+    get_semantics_from_requirement,
+)
 from lib_pea.utils import get_countertrace_parser, strtobool
 from configuration.patterns import APattern
 from req_simulator.scenario import Scenario
@@ -145,16 +145,17 @@ class SimulatorRessource(Ressource):
 
         peas = []
         var_collection = VariableCollection(self.app)
+        requirements = list(self.app.db.get_objects(Requirement).values())
 
-        for requirement_id in requirement_ids:
-            peas_tmp = SimulatorRessource.create_phase_event_automata(requirement_id, var_collection, self.app)
-
-            if peas_tmp is None:
-                self.response.success = False
-                self.response.errormsg = f"Unable to constuct phase event automaton for {requirement_id}."
-                return
-
-            peas.extend(peas_tmp)
+        for requirement in requirements:
+            # TODO: filter from simulator requirement_ids
+            cts = get_semantics_from_requirement(requirement, requirements, var_collection)
+            for k, ct in cts:
+                pea = get_pea_from_formalisation(ct)
+                pea.requirement = k[0]
+                pea.formalization = k[1]
+                pea.countertrace_id = k[2]
+                peas.extend(pea)
 
         simulator_id = uuid.uuid4().hex
         self.simulator_cache[simulator_id] = Simulator(peas, name=simulator_name)
@@ -308,22 +309,3 @@ class SimulatorRessource(Ressource):
             self.response.errormsg = "Could not find simulator with given id."
 
         self.get_simulators()
-
-    @staticmethod
-    def create_phase_event_automata(
-        requirement_id: str, var_collection: VariableCollection, app: HanforFlask
-    ) -> List[PhaseSetsPea]:
-        result = []
-
-        requirement = app.db.get_object(Requirement, requirement_id)
-
-        for formalization in requirement.formalizations.values():
-            if not formalization.scoped_pattern.is_instantiatable():
-                continue
-            peas = get_pea_from_formalisation(requirement.rid, formalization, var_collection)
-            for i, pea in enumerate(peas):
-                pea.requirement = requirement
-                pea.formalization = formalization
-                pea.countertrace_id = i
-            result.extend(peas)
-        return result

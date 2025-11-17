@@ -1,8 +1,10 @@
 from collections import defaultdict
 from typing import Union
 
+from lark import Tree
 from pysmt.fnode import FNode
 from functools import cache
+
 from lib_pea.countertrace import CountertraceTransformer
 from lib_pea.utils import get_countertrace_parser
 
@@ -37,12 +39,14 @@ class APattern:
     def has_countertraces(self, scope: str):
         return scope in self._countertraces and self._countertraces[scope]
 
-    def get_instanciated_countertraces(self, scope: str, expressions: dict[str, FNode]):
-        cts = []
+    def get_instanciated_countertraces(
+        self, scope: str, expressions: dict[str, FNode], others: list["Requirement"]
+    ) -> list[Tree]:
+        cts: list[Tree] = []
         for ct_str in self.get_countertraces(scope):
             ct_ast = get_countertrace_parser().parse(ct_str)
             cts.append(CountertraceTransformer(expressions).transform(ct_ast))
-        return cts
+        return cts  # TODO: check that this is really a tree
 
     @classmethod
     @cache
