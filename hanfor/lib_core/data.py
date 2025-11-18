@@ -170,10 +170,7 @@ class Requirement:
         variable_collection.store()
         app.db.update()
 
-    def update_formalization(self, formalization_id, scope_name, pattern_name, mapping, app, variable_collection=None):
-        if variable_collection is None:
-            variable_collection = VariableCollection(app)
-
+    def update_formalization(self, formalization_id, scope_name, pattern_name, mapping, variable_collection):
         # TODO: simplify
         # set scoped pattern
         sp: ScopedPattern = self.formalizations[formalization_id].scoped_pattern
@@ -262,7 +259,6 @@ class Requirement:
                     scope_name=formalization["scope"],
                     pattern_name=formalization["pattern"],
                     mapping=formalization["expression_mapping"],
-                    app=app,
                     variable_collection=variable_collection,
                 )
             except Exception as e:

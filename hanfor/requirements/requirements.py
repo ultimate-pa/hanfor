@@ -227,7 +227,7 @@ def api_new_formalization():
             scope_name=formalization_data["scope"],
             pattern_name=formalization_data["pattern"],
             mapping=formalization_data["expression_mapping"],
-            app=current_app,
+            variable_collection=VariableCollection(current_app),
         )
     current_app.db.update()
     add_msg_to_flask_session_log(current_app, "Added new Formalization to requirement", [requirement])
@@ -311,7 +311,11 @@ def api_add_formalization_from_guess():
     formalization_id, formalization = requirement.add_empty_formalization()
     # Add content to the formalization.
     requirement.update_formalization(
-        formalization_id=formalization_id, scope_name=scope, pattern_name=pattern, mapping=mapping, app=current_app
+        formalization_id=formalization_id,
+        scope_name=scope,
+        pattern_name=pattern,
+        mapping=mapping,
+        variable_collection=VariableCollection(current_app),
     )
     current_app.db.update()
     add_msg_to_flask_session_log(current_app, "Added formalization guess to requirement", [requirement])
@@ -368,7 +372,7 @@ def api_multi_add_top_guess():
                                 scope_name=scoped_pattern.scope.name,
                                 pattern_name=scoped_pattern.pattern.name,
                                 mapping=mapping,
-                                app=current_app,
+                                variable_collection=VariableCollection(current_app),
                             )
                             current_app.db.update()
 
