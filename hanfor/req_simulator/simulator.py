@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Tuple, Any, Union
 
 from pysmt.fnode import FNode
 from pysmt.rewritings import conjunctive_partition
@@ -31,7 +31,7 @@ class Simulator:
         self, peas: list[PhaseSetsPea], scenario: Scenario = None, name: str = "unnamed", test: bool = False
     ) -> None:
         self.name: str = name
-        self.scenario: Scenario = scenario
+        self.scenario: Union[Scenario | None] = scenario
 
         self.times: list[float] = [0.0]  # history
         self.time_steps: list[float] = [1.0]  # history
@@ -75,7 +75,7 @@ class Simulator:
     def get_variables(self) -> dict[str, list[str]]:
         return {str(k): [str(v_) for v_ in v] for k, v in self.variables.items()}
 
-    def get_scenario(self) -> dict[str, any] | None:
+    def get_scenario(self) -> dict[str, Any] | None:
         if self.scenario is None:
             return None
 
@@ -166,19 +166,6 @@ class Simulator:
     @staticmethod
     def build_clocks_assertion(clocks: dict[str, float]) -> FNode:
         return And(Equals(Symbol(k, REAL), Real(v)) for k, v in clocks.items())
-
-    """
-    def build_guard(self, transition: Transition, clocks: dict[str, float]) -> FNode:
-        f = And(self.build_var_assertions(), transition.guard, self.build_clocks_assertion(clocks))
-
-        return f
-
-    def build_clock_invariant(self, transition: Transition, clocks: dict[str, float]) -> FNode:
-        f = And(substitute_free_variables(transition.dst.clock_invariant),
-                substitute_free_variables(self.build_clocks_assertion(clocks)))
-
-        return f
-    """
 
     def calculate_max_time_step(self, transition: PhaseSetsTransition, clocks: dict[str, float], time_step: float):
         k, v = transition.dst.get_min_clock_bound()

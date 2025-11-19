@@ -7,7 +7,7 @@ from hanfor_flask import current_app
 from flask import Blueprint, render_template, Response
 from flask.views import MethodView
 
-from lib_core.data import Requirement, VariableCollection
+from lib_core.data import Requirement, VariableCollection, Variable
 
 BUNDLE_JS = "dist/statistics-bundle.js"
 blueprint = Blueprint("statistics", __name__, template_folder="templates", url_prefix="/statistics")
@@ -76,7 +76,9 @@ class StatisticsApi(MethodView):
             data["type_colors"].append("#%06x" % random.randint(0, 0xFFFFFF))
 
         # Gather most used variables.
-        var_collection = VariableCollection(self.app)
+        var_collection = VariableCollection(
+            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+        )
         var_usage = []
 
         var_nodes = dict()

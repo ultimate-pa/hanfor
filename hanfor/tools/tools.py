@@ -11,7 +11,7 @@ from flask import Blueprint, request, send_file
 
 from hanfor_flask import current_app, nocache, HanforFlask
 from lib_core.utils import get_requirements, generate_file_response, generate_req_file_content
-from lib_core.data import VariableCollection, SessionValue, Tag
+from lib_core.data import VariableCollection, SessionValue, Tag, Variable, Requirement
 
 api_blueprint = Blueprint("tools_api", __name__, url_prefix="/api/tools")
 
@@ -99,7 +99,7 @@ def generate_xls_file_content(
     """Generates the xlsx file content for a session."""
 
     requirements = get_requirements(app, filter_list=filter_list, invert_filter=invert_filter)
-    var_collection = VariableCollection(app)
+    var_collection = VariableCollection(current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values())
     tags = {tag.name: tag.internal for tag in app.db.get_objects(Tag).values()}
 
     # create  styles

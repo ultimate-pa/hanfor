@@ -5,7 +5,7 @@ import datetime
 
 
 from hanfor_flask import current_app, nocache, HanforFlask
-from lib_core.data import Requirement, VariableCollection, SessionValue, RequirementEditHistory, Tag
+from lib_core.data import Requirement, VariableCollection, SessionValue, RequirementEditHistory, Tag, Variable
 from lib_core.utils import (
     get_default_pattern_options,
     formalization_html,
@@ -15,7 +15,7 @@ from lib_core.utils import (
 from configuration.defaults import Color
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
-from configuration.patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
+from configuration.patterns import APattern, VARIABLE_AUTOCOMPLETE_EXTENSION
 
 
 blueprint = Blueprint("requirements", __name__, template_folder="templates", url_prefix="/")
@@ -35,7 +35,12 @@ def index():
     ]
     additional_cols = get_datatable_additional_cols(current_app)["col_defs"]
     return render_template(
-        "index.html", query=request.args, additional_cols=additional_cols, default_cols=default_cols, patterns=PATTERNS
+        # TODO: the object refactor will break this - fix later!!
+        "index.html",
+        query=request.args,
+        additional_cols=additional_cols,
+        default_cols=default_cols,
+        patterns=APattern.to_frontent_dict(),
     )
 
 
@@ -51,7 +56,9 @@ def table_api():
 def api_index():
     rid = request.args.get("id", "")
     requirement = current_app.db.get_object(Requirement, rid)
-    var_collection = VariableCollection(current_app)
+    var_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
 
     result = requirement.to_dict(include_used_vars=True)
     result["formalizations_html"] = formalizations_to_html(current_app, requirement.formalizations)
@@ -222,7 +229,9 @@ def api_new_formalization():
             scope_name=formalization_data["scope"],
             pattern_name=formalization_data["pattern"],
             mapping=formalization_data["expression_mapping"],
-            app=current_app,
+            variable_collection=VariableCollection(
+                current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+            ),
         )
     current_app.db.update()
     add_msg_to_flask_session_log(current_app, "Added new Formalization to requirement", [requirement])
@@ -259,7 +268,9 @@ def api_get_available_guesses():
     else:
         result["available_guesses"] = list()
         tmp_guesses = list()
-        var_collection = VariableCollection(current_app)
+        var_collection = VariableCollection(
+            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+        )
 
         for guesser in REGISTERED_GUESSERS:
             try:
@@ -306,7 +317,13 @@ def api_add_formalization_from_guess():
     formalization_id, formalization = requirement.add_empty_formalization()
     # Add content to the formalization.
     requirement.update_formalization(
-        formalization_id=formalization_id, scope_name=scope, pattern_name=pattern, mapping=mapping, app=current_app
+        formalization_id=formalization_id,
+        scope_name=scope,
+        pattern_name=pattern,
+        mapping=mapping,
+        variable_collection=VariableCollection(
+            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+        ),
     )
     current_app.db.update()
     add_msg_to_flask_session_log(current_app, "Added formalization guess to requirement", [requirement])
@@ -333,7 +350,9 @@ def api_multi_add_top_guess():
     if not result["success"]:
         return result
 
-    var_collection = VariableCollection(current_app)
+    var_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
     requirements = [current_app.db.get_object(Requirement, rid) for rid in requirement_ids]
     for requirement in requirements:
         if requirement is not None:
@@ -363,7 +382,10 @@ def api_multi_add_top_guess():
                                 scope_name=scoped_pattern.scope.name,
                                 pattern_name=scoped_pattern.pattern.name,
                                 mapping=mapping,
-                                app=current_app,
+                                variable_collection=VariableCollection(
+                                    current_app.db.get_objects(Variable).values(),
+                                    current_app.db.get_objects(Requirement).values(),
+                                ),
                             )
                             current_app.db.update()
 
