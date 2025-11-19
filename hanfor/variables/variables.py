@@ -352,13 +352,13 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
         or req.form.get("updated_constraints") == "true"
         or belongs_to_enum != belongs_to_enum_old
     ):
-        logging.info("Update Variable `{}`".format(var_name_old))
+        logging.info(f"Update Variable `{var_name_old}`")
         result["has_changes"] = True
         reload_type_inference = False
 
         # Update type.
         if var_type_old != var_type:
-            logging.info("Change type from `{}` to `{}`.".format(var_type_old, var_type))
+            logging.info(f"Change type from `{var_type_old}` to `{var_type}`.")
             try:
                 var_collection.collection[var_name_old].belongs_to_enum = belongs_to_enum
                 var_collection.set_type(var_name_old, var_type)
@@ -392,17 +392,15 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
             constraints = json.loads(req.form.get("constraints", ""))
             logging.debug("Update Variable Constraints")
             try:
-                var_collection = var_collection.collection[var_name_old].update_constraints(
-                    constraints, app, var_collection
-                )
+                var_collection = var_collection.collection[var_name_old].update_constraints(constraints, var_collection)
                 result["rebuild_table"] = True
                 app.db.update()
             except KeyError as e:
                 result["success"] = False
-                result["error_msg"] = "Could not set constraint: Missing expression/variable for {}".format(e)
+                result["error_msg"] = f"Could not set constraint: Missing expression/variable for {e}"
             except Exception as e:
                 result["success"] = False
-                result["error_msg"] = "Could not parse formalization: `{}`".format(e)
+                result["error_msg"] = f"Could not parse formalization: `{e}`"
         else:
             logging.debug("Skipping variable Constraints update.")
 
