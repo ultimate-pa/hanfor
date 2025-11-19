@@ -144,7 +144,9 @@ class SimulatorRessource(Ressource):
             return
 
         peas = []
-        var_collection = VariableCollection(self.app)
+        var_collection = VariableCollection(
+            self.app.db.get_objects(Variable).values(), self.app.db.get_objects(Requirement).values()
+        )
         requirements = list(self.app.db.get_objects(Requirement).values())
 
         for requirement in requirements:
@@ -172,7 +174,9 @@ class SimulatorRessource(Ressource):
 
         result = {"requirements": {}, "variables": []}
 
-        var_collection = VariableCollection(self.app)
+        var_collection = VariableCollection(
+            self.app.db.get_objects(Variable).values(), self.app.db.get_objects(Requirement).values()
+        )
         variables = {k: v.type for k, v in var_collection.collection.items()}
         result["variables"] = [
             {"name": k, "type": v.type, "value": v.value} for k, v in var_collection.collection.items()

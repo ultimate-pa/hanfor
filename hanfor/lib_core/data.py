@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from threading import Lock
 import re
-from typing import Any
+from typing import Any, Iterable
 from uuid import uuid4
 
 from lark import LarkError
@@ -153,7 +153,9 @@ class Requirement:
 
     def delete_formalization(self, formalization_id, app):
         formalization_id = int(formalization_id)
-        variable_collection = VariableCollection(app)
+        variable_collection = VariableCollection(
+            app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+        )
 
         # Remove formalization
         del self.formalizations[formalization_id]
@@ -246,7 +248,9 @@ class Requirement:
         if current_app.db.get_object(SessionValue, "TAG_has_formalization").value in self.tags:
             self.tags.pop(current_app.db.get_object(SessionValue, "TAG_has_formalization").value)
         logging.debug(f"Updating formalisations of requirement {self.rid}.")
-        variable_collection = VariableCollection(app)
+        variable_collection = VariableCollection(
+            app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+        )
         # Reset the var mapping.
         variable_collection.req_var_mapping[self.rid] = set()
 
@@ -473,7 +477,9 @@ class Expression:
         self.used_variables = set(boogie_parsing.get_variables_list(tree))
         for var_name in self.used_variables:
             if var_name not in variable_collection:
-                variable_collection.add_var(var_name)
+                assert var_name is not None  # TODO: remove, not sure if this may happen here
+                variable = variable_collection.add_var(var_name)
+                current_app.db.add_object(variable)
 
         variable_collection.map_req_to_vars(self.parent_rid, self.used_variables)
         return True
@@ -748,7 +754,7 @@ class Variable:
 
         return variable_collection
 
-    def update_constraints(self, constraints, app, variable_collection=None):
+    def update_constraints(self, constraints, variable_collection=None):
         """replace all constraints with :param constraints.
 
         :return: updated VariableCollection
@@ -756,7 +762,9 @@ class Variable:
         logging.debug(f"Updating constraints for variable `{self.name}`.")
         self.remove_tag(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
         if variable_collection is None:
-            variable_collection = VariableCollection(app)
+            variable_collection = VariableCollection(
+                current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+            )
 
         for constraint in constraints.values():
             logging.debug(f"Updating formalization No. {constraint['id']}.")
@@ -831,15 +839,14 @@ class Variable:
 
 
 class VariableCollection:
-    def __init__(self, app):
-        self.app = app
-        self.collection: dict[str, Variable] = {v.name: v for v in app.db.get_objects(Variable).values()}
+    def __init__(self, variables: Iterable[Variable], requierments: Iterable[Requirement]):
+        self.collection: dict[str, Variable] = {v.name: v for v in variables}
         self.var_req_mapping = dict()
-        self.refresh_var_usage(app)
+        self.refresh_var_usage(requierments)
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
 
     def __contains__(self, item):
-        return item in self.collection.keys()
+        return item in self.collection
 
     def get_available_vars_list(self, sort_by=None, used_only=False, exclude_types=frozenset()):
         """Returns a list of all available var names."""
@@ -868,17 +875,17 @@ class VariableCollection:
     def var_name_exists(self, name):
         return name in self.collection.keys()
 
-    def add_var(self, var_name, variable=None):
+    def add_var(self, var_name, variable=None) -> Variable:
         if not self.var_name_exists(var_name):
             if variable is None:
                 variable = Variable(var_name, None, None)
             logging.debug(f"Adding variable `{var_name}` to collection.")
             self.collection[variable.name] = variable
-            self.app.db.add_object(variable)
+            return variable
+        return None
 
     def store(self):
         self.var_req_mapping = self.invert_mapping(self.req_var_mapping)
-        # self.app.db.update()
 
     @staticmethod
     def invert_mapping(mapping):
@@ -1066,11 +1073,11 @@ class VariableCollection:
             if len(var.get_constraints()) > 0:
                 var.reload_constraints_type_inference_errors(self)
 
-    def refresh_var_usage(self, app):
+    def refresh_var_usage(self, requirements: list[Requirement]):
         mapping = dict()
 
         # Add the requirements using this variable.
-        for req in app.db.get_objects(Requirement).values():
+        for req in requirements:
             for formalization in req.formalizations.values():
                 try:
                     for var_name in formalization.used_variables:
@@ -1094,11 +1101,11 @@ class VariableCollection:
 
         self.var_req_mapping = mapping
 
-    def del_var(self, var_name) -> bool:
-        """Delete a variable if it is not used, or only used by its own constraints.
+    def del_var(self, var_name) -> Variable:
+        """Check if a variable can be deleted ie, is not used somewhere.
 
         :param var_name:
-        :return: True on deletion else False.
+        :return: variable to delete from db or None
         """
         deletable = False
         if var_name not in self.var_req_mapping:
@@ -1114,9 +1121,8 @@ class VariableCollection:
             deleted_var = self.collection.pop(var_name, None)
             self.var_req_mapping.pop(var_name, None)
             if deleted_var:
-                self.app.db.remove_object(deleted_var)
-            return True
-        return False
+                return deleted_var
+        return None
 
     def get_enumerators(self, enum_name: str) -> list["Variable"]:
         enumerators = []

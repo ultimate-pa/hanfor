@@ -12,7 +12,7 @@ from typing import Any
 
 from hanfor_flask import HanforFlask
 from configuration.defaults import Color
-from lib_core.data import Requirement, Formalization, Tag, VariableCollection
+from lib_core.data import Requirement, Formalization, Tag, VariableCollection, Variable
 from lib_core.utils import choice
 
 
@@ -209,7 +209,9 @@ class RequirementCollection:
                         scope_name=formalization_dict["scope"],
                         pattern_name=formalization_dict["pattern"],
                         mapping=formalization_dict["expressions"],
-                        variable_collection= VariableCollection(app)
+                        variable_collection=VariableCollection(
+                            app.db.get_objects(Variable).values(), app.db.get_objects(Requirement).values()
+                        ),
                     )
 
             self.requirements.append(requirement)

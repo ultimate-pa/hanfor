@@ -53,7 +53,7 @@ def config_check(app_config):
 
 
 def update_var_usage(flask_app: HanforFlask, var_collection):
-    var_collection.refresh_var_usage(flask_app)
+    var_collection.refresh_var_usage(flask_app.db.get_objects(Requirement).values())
     var_collection.req_var_mapping = var_collection.invert_mapping(var_collection.var_req_mapping)
     var_collection.refresh_var_constraint_mapping()
     var_collection.store()
@@ -63,7 +63,9 @@ def update_var_usage(flask_app: HanforFlask, var_collection):
 def varcollection_consistency_check(flask_app: HanforFlask, args=None):
     logging.info("Check Variables for consistency.")
     # Update usages and constraint type check.
-    var_collection = VariableCollection(flask_app)
+    var_collection = VariableCollection(
+        flask_app.db.get_objects(Variable).values(), flask_app.db.get_objects(Requirement).values()
+    )
     if args is not None and args.reload_type_inference:
         var_collection.reload_type_inference_errors_in_constraints()
 

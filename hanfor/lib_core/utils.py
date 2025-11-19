@@ -14,8 +14,7 @@ from configuration.patterns import APattern
 from lib_core import boogie_parsing
 from config import PATTERNS_GROUP_ORDER  # TODO should this be in the config?
 from hanfor_flask import HanforFlask
-from lib_core.data import Requirement, VariableCollection
-
+from lib_core.data import Requirement, VariableCollection, Variable
 
 default_scope_options = """
     <option value="NONE">None</option>
@@ -185,7 +184,7 @@ def generate_req_file_content(
     # Get requirements
     requirements = get_requirements(app, filter_list=filter_list, invert_filter=invert_filter)
 
-    var_collection = VariableCollection(app)
+    var_collection = VariableCollection(app.db.get_objects(Variable).values(), app.db.get_objects(Requirement).values())
     available_vars = []
     if filter_list is not None:
         # Filter the available vars to only include the ones actually used by a requirement.
