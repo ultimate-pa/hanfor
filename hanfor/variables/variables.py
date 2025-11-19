@@ -221,6 +221,7 @@ def api_add_new_variable():
         var_collection.store()
         current_app.db.update()
         return result
+    return {"success": False, "errormsg": f"You should not reach this point, something went really wrong."}
 
 
 @api_blueprint.route("/get_enumerators", methods=["POST"])
