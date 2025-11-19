@@ -108,7 +108,7 @@ def api_multi_update():
             var_collection.store()
 
         if delete == "true":
-            logging.info(f"Deleting variables.\nAffected Vars:\n{'\n'.join(var_list)}")
+            logging.info("Deleting variables.\nAffected Vars:\n{}".format("\n".join(var_list)))
             var_collection = VariableCollection(
                 current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
             )
