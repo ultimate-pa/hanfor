@@ -1062,7 +1062,7 @@ function load_requirement(row_idx) {
 
     // Choose the right radio button and then load the status
     let status = `input[name="status"][value="${data.status}"]`
-    $(status).checked = true;
+    $(status).prop("checked", true);
 
     // Set csv_data
     let csv_row_content = $("#csv_content_accordion")

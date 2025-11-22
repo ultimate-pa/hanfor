@@ -24,30 +24,34 @@
                 <input type="hidden" id="modal_associated_row_index" hidden/>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body overflow-hidden">
+            <div class="modal-body">
               <div class="row g-0 h-100">
-                <div class="col h-100 overflow-auto d-flex flex-column p-2">
-                  <h4>Description</h4>
-                  <p id="description_textarea" readonly></p>
-
-                  <h4>Tags</h4>
-                  <div class="input-group">
-                      <input type="text" class="form-control" id="requirement_tag_field" value=""
-                             aria-label="Tags" aria-describedby="requirement-tags-addon">
+                <div class="col h-100 overflow-auto d-flex flex-column">
+                  <div class="p-0">
+                    <h4>Description</h4>
+                    <p id="description_textarea" readonly></p>
                   </div>
-                  <label for="requirement_tag_field">Hit "Enter" to actually set a new tag.</label>
-                  <table class="table table-sm" id="tags_comments_table">
-                      <thead>
-                      <tr>
-                          <th class="col-2" scope="col">Tag</th>
-                          <th scope="col">Comment</th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                      </tbody>
-                  </table>
+                  <div>
+                    <h4>Tags</h4>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="requirement_tag_field" value=""
+                               aria-label="Tags" aria-describedby="requirement-tags-addon">
+                    </div>
+                    <label for="requirement_tag_field">Hit "Enter" to actually set a new tag.</label>
+                    <table class="table table-sm" id="tags_comments_table">
+                        <thead>
+                        <tr>
+                            <th class="col-2" scope="col">Tag</th>
+                            <th scope="col">Comment</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                  </div>
                 </div>
-                <div class="col overflow-auto h-100 p-2">
+                <div class="vr mx-2"></div>
+                <div class="col overflow-auto h-100">
                   <h4 class="sticky-top" style="background-color: white">
                       Definitions
                       <button id="add_formalization" type="button" class="btn btn-success btn-sm"
@@ -66,7 +70,7 @@
                   </h4>
 
                   <div class="overflow-auto">
-                    <div id="formalization_accordion" class="accordion row-spacing"></div>
+                    <div id="formalization_accordion" class="accordion"></div>
                   </div>
                 </div>
                 </div>
