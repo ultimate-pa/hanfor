@@ -1,4 +1,4 @@
-""" Configuration for the reqtransformer flask App.
+"""Configuration for the reqtransformer flask App.
 
 @copyright: 2017 Samuel Roth <samuel@smel.de>
 @licence: GPLv3
@@ -60,6 +60,9 @@ SECRET_KEY = os.environ.get(
 # Specify the PORT the app should be running at
 PORT = os.environ.get("HANFOR_PORT", default=5000)
 
+# Enable Flask templates hot reloading to avoid restarting the app
+TEMPLATES_AUTO_RELOAD = True
+
 # Set the host
 HOST = os.environ.get("HANFOR_HOST", default="127.0.0.1")
 
@@ -91,4 +94,4 @@ FEATURE_TELEMETRY = False
 ################################################################################
 # Define the ordering for pattern grouping in the pattern selection of hanfors frontent.
 # All groups used in PATTERNS must be covered.
-PATTERNS_GROUP_ORDER = ["Occurence", "Order", "Real-time",    'Automaton', "not_formalizable"]
+PATTERNS_GROUP_ORDER = ["Occurence", "Order", "Real-time", "Automaton", "not_formalizable"]

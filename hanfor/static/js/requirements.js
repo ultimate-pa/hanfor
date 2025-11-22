@@ -429,9 +429,8 @@ function init_datatable_manipulators(requirements_table) {
 function store_requirement(requirements_table) {
   let requirement_modal_content = $(".modal-content")
   requirement_modal_content.LoadingOverlay("show")
-
   const req_id = $("#requirement_id").val()
-  const req_status = $("#requirement_status").val()
+  const req_status = $('input[name="status"]:checked').val()
   const updated_formalization = $("#requirement_modal").data("updated_formalization")
   const associated_row_id = parseInt($("#modal_associated_row_index").val())
 
@@ -882,7 +881,7 @@ function init_modal() {
       requirement_modal.data("unsaved_changes", true)
     })
 
-  $("#requirement_status").change(function () {
+  $('input[name="status"]').change(function () {
     $("#requirement_modal").data("unsaved_changes", true)
   })
 
@@ -1061,7 +1060,10 @@ function load_requirement(row_idx) {
       $(this).find("textarea:eq(0)").val(data.tags_comments[tag])
     })
 
-    $("#requirement_status").val(data.status)
+    // Choose the right radio button and then load the status
+    let status = `input[name="status"][value="${data.status}"]`
+    $(status).checked = true;
+
     // Set csv_data
     let csv_row_content = $("#csv_content_accordion")
     csv_row_content.html("")
