@@ -1072,14 +1072,14 @@ function load_requirement(row_idx) {
     let head_row = $("<tr></tr>");
     for (const key in csv_data) {
         if (csv_data.hasOwnProperty(key)) {
-            head_row.append("<th>" + key + "</th>");
+            head_row.append(`<th>${key}</th>`);
         }
     }
     $("#csv-data-table-head").append(head_row);
     let body_row = $("<tr></tr>");
     for (const key in csv_data) {
         if (csv_data.hasOwnProperty(key)) {
-            body_row.append("<td>" + csv_data[key] + "</td>");
+            body_row.append(`<td>${csv_data[key]}</td>`);
         }
     }
     $("#csv-data-table-body").append(body_row);
@@ -1104,13 +1104,13 @@ function load_requirement(row_idx) {
     }
 
     // Set used variables data.
-    let used_variables_accordion = $("#used_variables_accordion")
+    let used_variables_accordion = $("#used-vars-container")
     used_variables_accordion.html("")
 
     data.vars.forEach(function (var_name) {
       let query = "?command=search&col=1&q=%5C%22" + var_name + "%5C%22"
       used_variables_accordion.append(
-        '<span class="badge bg-info">' +
+        '<span class="badge bg-info" style="font-size: 18px">' +
           '<a href="./variables' +
           query +
           '" target="_blank">' +
