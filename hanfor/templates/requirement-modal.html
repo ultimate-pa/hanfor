@@ -1,12 +1,12 @@
 <div id="requirement_modal" class="modal" tabindex="-1" data-keyboard="false" data-modal-index="1" role="dialog"
      aria-hidden="true">
 
-    <div class="modal-dialog modal-fullscreen p-3">
+    <div class="modal-dialog modal-fullscreen p-2">
         <div class="modal-content">
             <div class="modal-header">
                 <h4 id="requirement_modal_title" class="modal-title"></h4>
                 <div class="vr mx-2"></div>
-                <fieldset class="statusContainer">
+                <fieldset>
                   <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="status" id="statusTodo" value="Todo">
                     <label class="form-check-label" for="statusTodo">To Do</label>
@@ -25,19 +25,21 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+              <div class="tab-content h-100" id="myTabContent">
+              <div class="tab-pane fade show active h-100" id="pills-req" role="tabpanel" aria-labelledby="pills-req-tab">
               <div class="row g-0 h-100">
                 <div class="col h-100 overflow-auto d-flex flex-column">
                   <div class="p-0">
                     <h4>Description</h4>
-                    <p id="description_textarea" readonly></p>
+                    <p id="description_textarea"></p>
                   </div>
                   <div>
                     <h4>Tags</h4>
+                    <label for="requirement_tag_field">Hit "Enter" to actually set a new tag.</label>
                     <div class="input-group">
                         <input type="text" class="form-control" id="requirement_tag_field" value=""
                                aria-label="Tags" aria-describedby="requirement-tags-addon">
                     </div>
-                    <label for="requirement_tag_field">Hit "Enter" to actually set a new tag.</label>
                     <table class="table table-sm" id="tags_comments_table">
                         <thead>
                         <tr>
@@ -51,7 +53,7 @@
                   </div>
                 </div>
                 <div class="vr mx-2"></div>
-                <div class="col overflow-auto h-100">
+                <div class="col-8 overflow-auto h-100">
                   <h4 class="sticky-top" style="background-color: white">
                       Definitions
                       <button id="add_formalization" type="button" class="btn btn-success btn-sm"
@@ -74,55 +76,33 @@
                   </div>
                 </div>
                 </div>
-                <!-- 
-                <div class="row d-flex flex-grow-0 flex-shrink-1" style="background-color: green;">
-                  <h5>Status</h5>
-                  <div>
-                      <div class="row form-inline">
-                          <div class="form-group col-md-4">
-                              <select id="requirement_status" class="form-control">
-                                  <option value="Todo">Todo</option>
-                                  <option value="Review">Review</option>
-                                  <option value="Done">Done</option>
-                              </select>
-                          </div>
-                      </div>
-                  </div>
-                  <h5>
-                      <a id="show_csv_content" data-bs-toggle="collapse" href="#csv_content_accordion" role="button"
-                         aria-expanded="false" aria-controls="csv_content_accordion">
-                          Show all csv content
-                      </a>
-                  </h5>
-                  <div id="csv_content_accordion" class="collapse">
-                      No csv content.
-                  </div>
-                  <h5>
-                      <a id="show_revision_diff" data-bs-toggle="collapse" href="#revision_diff_accordion" role="button"
-                         aria-expanded="false" aria-controls="revision_diff_accordion">
-                          Show revision diff
-                      </a>
-                  </h5>
-                  <div id="revision_diff_accordion" class="collapse">
-                      No base revision.
-                  </div>
-                  <h5>
-                      <a id="show_used_variables" data-bs-toggle="collapse" href="#used_variables_accordion" role="button"
-                         aria-expanded="false" aria-controls="used_variables_accordion">
-                          Show used Variables
-                      </a>
-                  </h5>
-                  <div id="used_variables_accordion" class="collapse">
-                      No used variables.
-                  </div>
-              </div>
-             --> 
+                </div>
+                <div class="tab-pane fade" id="pills-csv" role="tabpanel" aria-labelledby="pills-csv-tab">
+                  <table class="table" id="csv-data-table"> 
+                    <thead id="csv-data-table-head"></thead>
+                    <tbody id="csv-data-table-body"></tbody>
+
+                  </table>
+                </div>
+                <div class="tab-pane fade" id="pills-variables" role="tabpanel" aria-labelledby="pills-variables-tab">Ovo je contact</div>
+                </div>
             </div>
             <div class="modal-footer">
+                <ul class="nav nav-pills" id="pills-tab" role="tablist" style="margin-right: auto">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="pills-req-tab" data-bs-toggle="pill" data-bs-target="#pills-req" type="button" role="tab" aria-controls="pills-req" aria-selected="true">Requirement</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pills-csv-tab" data-bs-toggle="pill" data-bs-target="#pills-csv" type="button" role="tab" aria-controls="pills-csv" aria-selected="false">CSV</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pills-variables-tab" data-bs-toggle="pill" data-bs-target="#pills-variables" type="button" role="tab" aria-controls="pills-variables" aria-selected="false">Variables</button>
+                  </li>
+                </ul>
                 <button id="save_requirement_modal" type="button" class="btn btn-primary">Save changes</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
-        </div>
+      </div>
     </div>
 </div>
 

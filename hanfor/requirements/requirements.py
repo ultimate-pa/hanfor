@@ -58,6 +58,7 @@ def api_index():
     result["available_vars"] = var_collection.get_available_var_names_list(used_only=False, exclude_types={"ENUM"})
 
     result["additional_static_available_vars"] = VARIABLE_AUTOCOMPLETE_EXTENSION
+    result["vars_html"] = "workwork"
 
     if requirement:
         return result

@@ -1065,16 +1065,24 @@ function load_requirement(row_idx) {
     $(status).prop("checked", true);
 
     // Set csv_data
-    let csv_row_content = $("#csv_content_accordion")
-    csv_row_content.html("")
+    $("#csv-data-table-head").empty();
+    $("#csv-data-table-body").empty();
+    let csv_data = data.csv_data;
 
-    let csv_data = data.csv_data
+    let head_row = $("<tr></tr>");
     for (const key in csv_data) {
-      if (csv_data.hasOwnProperty(key)) {
-        const value = csv_data[key]
-        csv_row_content.append("<p><strong>" + key + ":</strong>" + value + "</p>")
-      }
+        if (csv_data.hasOwnProperty(key)) {
+            head_row.append("<th>" + key + "</th>");
+        }
     }
+    $("#csv-data-table-head").append(head_row);
+    let body_row = $("<tr></tr>");
+    for (const key in csv_data) {
+        if (csv_data.hasOwnProperty(key)) {
+            body_row.append("<td>" + csv_data[key] + "</td>");
+        }
+    }
+    $("#csv-data-table-body").append(body_row);
 
     // Set revision diff data.
     let revision_diff_link = $("#show_revision_diff")
