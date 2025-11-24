@@ -1,5 +1,5 @@
 require("gasparesganga-jquery-loading-overlay")
-const { Collapse, Modal } = require("bootstrap")
+const { Collapse, Modal, Tab } = require("bootstrap")
 require("datatables.net-bs5")
 require("datatables.net-select-bs5")
 require("jquery-ui/ui/widgets/autocomplete")
@@ -1064,25 +1064,24 @@ function load_requirement(row_idx) {
     let status = `input[name="status"][value="${data.status}"]`
     $(status).prop("checked", true);
 
-    // Set csv_data
-    $("#csv-data-table-head").empty();
-    $("#csv-data-table-body").empty();
-    let csv_data = data.csv_data;
+    // Set the requirement tab always as the default once loaded
+    new Tab($('#pills-req-tab')[0]).show()
 
-    let head_row = $("<tr></tr>");
+    // Set csv_data
+    let csv_tab = $("#pills-csv").empty();
+    let csv_data = data.csv_data;
     for (const key in csv_data) {
         if (csv_data.hasOwnProperty(key)) {
-            head_row.append(`<th>${key}</th>`);
+            csv_tab.append(`<h5>${key}</h5>`)
+            let csv_value = csv_data[key]
+            if (csv_value) {
+              csv_tab.append(`<p>${csv_data[key]}</p>`)
+            }
+            else {
+              csv_tab.append(`<p>No data found in the CSV.</p>`)
+            }
         }
     }
-    $("#csv-data-table-head").append(head_row);
-    let body_row = $("<tr></tr>");
-    for (const key in csv_data) {
-        if (csv_data.hasOwnProperty(key)) {
-            body_row.append(`<td>${csv_data[key]}</td>`);
-        }
-    }
-    $("#csv-data-table-body").append(body_row);
 
     // Set revision diff data.
     let revision_diff_link = $("#show_revision_diff")
@@ -1092,14 +1091,14 @@ function load_requirement(row_idx) {
       revision_diff_link.show()
     }
 
-    let revision_diff_content = $("#revision_diff_accordion")
+    let revision_diff_content = $("#pills-diff")
     revision_diff_content.html("")
 
     let revision_diff = data.revision_diff
     for (const key in revision_diff) {
       if (revision_diff.hasOwnProperty(key)) {
         const value = revision_diff[key]
-        revision_diff_content.append("<p><strong>" + key + ":</strong><pre>" + value + "</pre></p>")
+        revision_diff_content.append(`<p><strong> ${key} :</strong><pre> ${value} </pre></p>`)
       }
     }
 

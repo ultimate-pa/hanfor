@@ -28,7 +28,7 @@
               <div class="tab-content h-100" id="myTabContent">
               <div class="tab-pane show active h-100" id="pills-req" role="tabpanel" aria-labelledby="pills-req-tab">
               <div class="row g-0 h-100">
-                <div class="col-12 col-md-6 h-100 overflow-auto d-flex flex-column">
+                <div class="col-12 col-md-6 h-100 overflow-auto d-flex flex-column" style="padding-right: 10px">
                   <div class="p-0">
                     <h4>Description</h4>
                     <p id="description_textarea"></p>
@@ -54,7 +54,7 @@
                 </div>
                 <div class="col-12 col-md-6 overflow-auto h-100">
                   <h4 class="sticky-top" style="background-color: white">
-                      Definitions
+                      Formlizations
                       <button id="add_formalization" type="button" class="btn btn-success btn-sm"
                               title="Add formalization">
                           <strong>+ Formalization </strong>
@@ -76,19 +76,19 @@
                 </div>
               </div>
               </div>
-              <div class="tab-pane" id="pills-csv" role="tabpanel" aria-labelledby="pills-csv-tab">
+              <div class="tab-pane overflow-auto" id="pills-csv" role="tabpanel" aria-labelledby="pills-csv-tab">
                 <h4> CSV Representation </h4>
-                <table class="table" id="csv-data-table"> 
-                  <thead id="csv-data-table-head"></thead>
-                  <tbody id="csv-data-table-body"></tbody>
-                </table>
-                </div>
-                <div class="tab-pane" id="pills-variables" role="tabpanel" aria-labelledby="pills-variables-tab">
-                  <h4> Used Variables </h4>
-                  <p> In this section you can find all of the variables used by the current requirement</p>
-                  <div class="container d-flex flex-wrap m-0 p-1" id="used-vars-container"></div>
-                </div>
-                </div>
+                <p> Here you can see the requirement data as imported from the CSV file specified for the session.</p>
+              </div>
+              <div class="tab-pane" id="pills-variables" role="tabpanel" aria-labelledby="pills-variables-tab">
+                <h4> Used Variables </h4>
+                <p> In this section you can find all of the variables used by the current requirement</p>
+                <div class="container d-flex flex-wrap m-0 p-1" id="used-vars-container"></div>
+              </div>
+              <div class="tab-pane" id="pills-diff" role="tabpanel" aria-labelledby="pills-diff-tab">
+              
+              </div>
+              </div>
             </div>
             <div class="modal-footer">
                 <ul class="nav nav-pills" id="pills-tab" role="tablist" style="margin-right: auto">
@@ -100,6 +100,9 @@
                   </li>
                   <li class="nav-item" role="presentation">
                     <button class="nav-link" id="pills-variables-tab" data-bs-toggle="pill" data-bs-target="#pills-variables" type="button" role="tab" aria-controls="pills-variables" aria-selected="false">Variables</button>
+                  </li>
+                  <li class="nav-item" role="presentation" id="show_revision_diff">
+                    <button class="nav-link" id="pills-diff-tab" data-bs-toggle="pill" data-bs-target="#pills-diff" type="button" role="tab" aria-controls="pills-diff" aria-selected="false">Diff</button>
                   </li>
                 </ul>
                 <button id="save_requirement_modal" type="button" class="btn btn-primary">Save changes</button>
