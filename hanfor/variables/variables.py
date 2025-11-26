@@ -5,7 +5,7 @@ import re
 import csv
 
 from hanfor_flask import current_app, nocache, HanforFlask
-from lib_core.data import VariableCollection, Variable, Scope, Requirement, replace_prefix
+from lib_core.data import VariableCollection, Variable, Scope, Requirement, replace_prefix, SessionValue
 from lib_core.utils import (
     get_requirements,
     formalizations_to_html,
@@ -152,7 +152,9 @@ def api_del_constraint():
         current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
     )
     var_collection.del_constraint(var_name=var_name, constraint_id=constraint_id)
-    var_collection.collection[var_name].reload_constraints_type_inference_errors(var_collection)
+    var_collection.collection[var_name].reload_constraints_type_inference_errors(
+        var_collection, SessionValue.get_standard_tags(current_app.db)
+    )
     var_collection.store()
     current_app.db.update()
     result["html"] = formalizations_to_html(current_app, var_collection.collection[var_name].get_constraints())
@@ -297,6 +299,7 @@ def api_import_csv():
                 "Universality",
                 {"R": variable["constraint"]},
                 var_collection,
+                SessionValue.get_standard_tags(current_app.db),
             )
 
     var_collection.store()
@@ -393,7 +396,9 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
             constraints = json.loads(req.form.get("constraints", ""))
             logging.debug("Update Variable Constraints")
             try:
-                var_collection = var_collection.collection[var_name_old].update_constraints(constraints, var_collection)
+                var_collection = var_collection.collection[var_name_old].update_constraints(
+                    constraints, var_collection, SessionValue.get_standard_tags(current_app.db)
+                )
                 result["rebuild_table"] = True
                 app.db.update()
             except KeyError as e:
@@ -477,7 +482,7 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
             for rid in var_collection.var_req_mapping[var_name]:
                 if app.db.key_in_table(Requirement, rid):
                     requirement = app.db.get_object(Requirement, rid)
-                    requirement.run_type_checks(var_collection)
+                    requirement.run_type_checks(var_collection, SessionValue.get_standard_tags(app.db))
             app.db.update()
 
     if var_type in ["ENUM_INT", "ENUM_REAL"]:

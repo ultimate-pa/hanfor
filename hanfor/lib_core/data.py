@@ -24,6 +24,7 @@ from json_db_connector.json_db import (
     DatabaseField,
     DatabaseNonSavedField,
     DatabaseFieldType,
+    JsonDatabase,
 )
 from configuration.patterns import APattern
 
@@ -151,11 +152,8 @@ class Requirement:
         self.formalizations[fid] = Formalization(fid)
         return fid, self.formalizations[fid]
 
-    def delete_formalization(self, formalization_id, app):
+    def delete_formalization(self, formalization_id, variable_collection):
         formalization_id = int(formalization_id)
-        variable_collection = VariableCollection(
-            app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
-        )
 
         # Remove formalization
         del self.formalizations[formalization_id]
@@ -170,9 +168,16 @@ class Requirement:
         variable_collection.req_var_mapping[self.rid] = remaining_vars
         variable_collection.var_req_mapping = variable_collection.invert_mapping(variable_collection.req_var_mapping)
         variable_collection.store()
-        app.db.update()
 
-    def update_formalization(self, formalization_id, scope_name, pattern_name, mapping, variable_collection):
+    def update_formalization(
+        self,
+        formalization_id: int,
+        scope_name: str,
+        pattern_name: str,
+        mapping: dict[str, str],
+        variable_collection,
+        standard_tags: dict[str, Tag],
+    ):
         # TODO: simplify
         # set scoped pattern
         sp: ScopedPattern = self.formalizations[formalization_id].scoped_pattern
@@ -187,8 +192,8 @@ class Requirement:
 
         # Add 'Type_inference_error' tag
         if len(self.formalizations[formalization_id].type_inference_errors) > 0:
-            formatted_errors = self.format_error_tag(self.formalizations[formalization_id])
-            self.tags[current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value] = formatted_errors
+            formatted_errors = self.format_error_tag(self.formalizations[formalization_id], standard_tags)
+            self.tags[standard_tags["TAG_Type_inference_error"]] = formatted_errors
 
         # Add 'unknown_type' tag
         vars_with_unknown_type = []
@@ -196,25 +201,23 @@ class Requirement:
             variable_collection, vars_with_unknown_type
         )
         if vars_with_unknown_type:
-            self.tags[current_app.db.get_object(SessionValue, "TAG_unknown_type").value] = self.format_unknown_type_tag(
-                vars_with_unknown_type
-            )
+            self.tags[standard_tags["TAG_unknown_type"]] = self.format_unknown_type_tag(vars_with_unknown_type)
 
         if (
             self.formalizations[formalization_id].scoped_pattern.scope != Scope.NONE
             and self.formalizations[formalization_id].scoped_pattern.pattern.name != "NotFormalizable"
         ):
-            self.tags[current_app.db.get_object(SessionValue, "TAG_has_formalization").value] = ""
+            self.tags[standard_tags["TAG_has_formalization"]] = ""
         else:
-            self.tags[current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value] = (
-                self.format_incomplete_formalization_tag(formalization_id)
+            self.tags[standard_tags["TAG_incomplete_formalization"]] = self.format_incomplete_formalization_tag(
+                formalization_id, standard_tags
             )
 
-    def format_error_tag(self, formalisation: "Formalization") -> str:
-        if current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value not in self.tags:
+    def format_error_tag(self, formalisation: "Formalization", standard_tags: dict[str, Tag]) -> str:
+        if standard_tags["TAG_Type_inference_error"] not in self.tags:
             result = ""
         else:
-            result = self.tags[current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value]
+            result = self.tags[standard_tags["TAG_Type_inference_error"]]
 
         if not formalisation.type_inference_errors:
             return result
@@ -227,30 +230,23 @@ class Requirement:
     def format_unknown_type_tag(variables: list[str]) -> str:
         return ", ".join(sorted(variables))
 
-    def format_incomplete_formalization_tag(self, fid: int) -> str:
+    def format_incomplete_formalization_tag(self, fid: int, standard_tags: dict[str, Tag]) -> str:
         rid_fid = self.rid + "_" + fid.__str__()
-        if current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value not in self.tags:
+        if standard_tags["TAG_incomplete_formalization"] not in self.tags:
             return "- " + rid_fid
         else:
-            return (
-                self.tags[current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value]
-                + "\n- "
-                + rid_fid
-            )
+            return self.tags[standard_tags["TAG_incomplete_formalization"]] + "\n- " + rid_fid
 
-    def update_formalizations(self, formalizations: dict, app):
-        if current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value in self.tags:
-            self.tags.pop(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
-        if current_app.db.get_object(SessionValue, "TAG_unknown_type").value in self.tags:
-            self.tags.pop(current_app.db.get_object(SessionValue, "TAG_unknown_type").value)
-        if current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value in self.tags:
-            self.tags.pop(current_app.db.get_object(SessionValue, "TAG_incomplete_formalization").value)
-        if current_app.db.get_object(SessionValue, "TAG_has_formalization").value in self.tags:
-            self.tags.pop(current_app.db.get_object(SessionValue, "TAG_has_formalization").value)
+    def update_formalizations(self, formalizations: dict, standard_tags: dict[str, Tag], variable_collection):
+        if standard_tags["TAG_Type_inference_error"] in self.tags:
+            self.tags.pop(standard_tags["TAG_Type_inference_error"])
+        if standard_tags["TAG_unknown_type"] in self.tags:
+            self.tags.pop(standard_tags["TAG_unknown_type"])
+        if standard_tags["TAG_incomplete_formalization"] in self.tags:
+            self.tags.pop(standard_tags["TAG_incomplete_formalization"])
+        if standard_tags["TAG_has_formalization"] in self.tags:
+            self.tags.pop(standard_tags["TAG_has_formalization"])
         logging.debug(f"Updating formalisations of requirement {self.rid}.")
-        variable_collection = VariableCollection(
-            app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
-        )
         # Reset the var mapping.
         variable_collection.req_var_mapping[self.rid] = set()
 
@@ -264,24 +260,25 @@ class Requirement:
                     pattern_name=formalization["pattern"],
                     mapping=formalization["expression_mapping"],
                     variable_collection=variable_collection,
+                    standard_tags=standard_tags,
                 )
             except Exception as e:
                 logging.error(f"Could not update Formalization: {e.__str__()}")
                 raise e
 
-    def run_type_checks(self, var_collection):
+    def run_type_checks(self, var_collection, standard_tags: dict[str, Tag]):
         logging.info(f"Run type inference and unknown check for `{self.rid}`")
-        if current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value in self.tags:
-            self.tags.pop(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
-        if current_app.db.get_object(SessionValue, "TAG_unknown_type").value in self.tags:
-            self.tags.pop(current_app.db.get_object(SessionValue, "TAG_unknown_type").value)
+        if standard_tags["TAG_Type_inference_error"] in self.tags:
+            self.tags.pop(standard_tags["TAG_Type_inference_error"])
+        if standard_tags["TAG_unknown_type"] in self.tags:
+            self.tags.pop(standard_tags["TAG_unknown_type"])
         vars_with_unknown_type = []
         for fid in self.formalizations.keys():
             # Run type inference check
             self.formalizations[fid].type_inference_check(var_collection)
             if len(self.formalizations[fid].type_inference_errors) > 0:
-                self.tags[current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value] = (
-                    self.format_error_tag(self.formalizations[fid])
+                self.tags[standard_tags["TAG_Type_inference_error"]] = self.format_error_tag(
+                    self.formalizations[fid], standard_tags
                 )
 
             # Check for variables of type 'unknown' in formalization
@@ -289,9 +286,7 @@ class Requirement:
                 var_collection, vars_with_unknown_type
             )
             if vars_with_unknown_type:
-                self.tags[current_app.db.get_object(SessionValue, "TAG_unknown_type").value] = (
-                    self.format_unknown_type_tag(vars_with_unknown_type)
-                )
+                self.tags[standard_tags["TAG_unknown_type"]] = self.format_unknown_type_tag(vars_with_unknown_type)
 
     def get_formalizations_json(self) -> str:
         """Fetch all formalizations in json format. Used to reload formalizations.
@@ -388,7 +383,7 @@ class Formalization:
                 tree = boogie_parsing.get_parser_instance().parse(expression.raw_expression)
             except LarkError as e:
                 logging.error(
-                    f"Lark could not parse expression `{expression.raw_expression}`: \n {e}. Skipping type inference"
+                    f"Lark could not parse expression `{expression.raw_expression}`: {e}. Skipping type inference"
                 )
                 continue
             expression.set_expression(expression.raw_expression, variable_collection)
@@ -706,19 +701,29 @@ class Variable:
     def get_constraints(self):
         return self.constraints
 
-    def reload_constraints_type_inference_errors(self, var_collection):
+    def reload_constraints_type_inference_errors(
+        self, var_collection: "VariableCollection", standard_tags: dict[str, Tag]
+    ):
         logging.info(f"Reload type inference for variable `{self.name}` constraints")
-        self.remove_tag(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
+        self.remove_tag(standard_tags["TAG_Type_inference_error"])
         for cid in self.constraints:
             try:
                 self.constraints[cid].type_inference_check(var_collection)
                 if len(self.constraints[cid].type_inference_errors) > 0:
-                    self.tags.add(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
+                    self.tags.add(standard_tags["TAG_Type_inference_error"])
             except AttributeError as e:
                 # Probably No pattern set.
                 logging.info(f"Could not derive type inference for variable `{self.name}` constraint No. {cid}. {e}")
 
-    def update_constraint(self, constraint_id, scope_name, pattern_name, mapping, variable_collection):
+    def update_constraint(
+        self,
+        constraint_id: int,
+        scope_name: str,
+        pattern_name: str,
+        mapping: dict[str, str],
+        variable_collection: "VariableCollection",
+        standard_tags: dict[str, Tag],
+    ):
         """Update a single constraint
 
         :param constraint_id:
@@ -748,13 +753,13 @@ class Variable:
                     self.name, constraint_id, [n for n in self.constraints[constraint_id].type_inference_errors.keys()]
                 )
             )
-            self.add_tag(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
+            self.add_tag(standard_tags["TAG_Type_inference_error"])
 
         variable_collection.collection[self.name] = self
 
         return variable_collection
 
-    def update_constraints(self, constraints, variable_collection=None):
+    def update_constraints(self, constraints, variable_collection, standard_tags):
         """replace all constraints with :param constraints.
 
         :return: updated VariableCollection
@@ -776,6 +781,7 @@ class Variable:
                     pattern_name=constraint["pattern"],
                     mapping=constraint["expression_mapping"],
                     variable_collection=variable_collection,
+                    standard_tags=standard_tags,
                 )
             except Exception as e:
                 logging.error(f"Could not update Constraint: {e.__str__()}.")
@@ -1071,7 +1077,7 @@ class VariableCollection:
     def reload_type_inference_errors_in_constraints(self):
         for name, var in self.collection.items():
             if len(var.get_constraints()) > 0:
-                var.reload_constraints_type_inference_errors(self)
+                var.reload_constraints_type_inference_errors(self, SessionValue.get_standard_tags(current_app.db))
 
     def refresh_var_usage(self, requirements: list[Requirement]):
         mapping = dict()
@@ -1163,6 +1169,19 @@ class RequirementEditHistory:
 class SessionValue:
     name: str
     value: Any
+
+    @staticmethod
+    def get_standard_tags(db: JsonDatabase) -> dict[str, Tag]:
+        standard_tags = dict()
+        tag_ids = [
+            "TAG_Type_inference_error",
+            "TAG_unknown_type",
+            "TAG_has_formalization",
+            "TAG_incomplete_formalization",
+        ]
+        for tid in tag_ids:
+            standard_tags[tid] = db.get_object(SessionValue, tid).value
+        return standard_tags
 
 
 def replace_prefix(input_string: str, prefix_old: str, prefix_new: str):

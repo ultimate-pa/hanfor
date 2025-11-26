@@ -12,7 +12,7 @@ from typing import Any
 
 from hanfor_flask import HanforFlask
 from configuration.defaults import Color
-from lib_core.data import Requirement, Formalization, Tag, VariableCollection, Variable
+from lib_core.data import Requirement, Formalization, Tag, VariableCollection, Variable, SessionValue
 from lib_core.utils import choice
 
 
@@ -212,6 +212,7 @@ class RequirementCollection:
                         variable_collection=VariableCollection(
                             app.db.get_objects(Variable).values(), app.db.get_objects(Requirement).values()
                         ),
+                        standard_tags=SessionValue.get_standard_tags(app.db),
                     )
 
             self.requirements.append(requirement)

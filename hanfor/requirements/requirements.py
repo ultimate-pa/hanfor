@@ -127,7 +127,13 @@ def api_update():
             formalizations = json.loads(request.form.get("formalizations", ""))
             logging.debug("Updated Formalizations: {}".format(formalizations))
             try:
-                requirement.update_formalizations(formalizations, current_app)
+                requirement.update_formalizations(
+                    formalizations,
+                    SessionValue.get_standard_tags(current_app.db),
+                    VariableCollection(
+                        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+                    ),
+                )
                 add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
             except KeyError as e:
                 error = True
@@ -247,7 +253,12 @@ def api_del_formalization():
     formalization_id = request.form.get("formalization_id", "")
     requirement_id = request.form.get("requirement_id", "")
     requirement = current_app.db.get_object(Requirement, requirement_id)
-    requirement.delete_formalization(formalization_id, current_app)
+    requirement.delete_formalization(
+        formalization_id,
+        VariableCollection(
+            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+        ),
+    )
     current_app.db.update()
 
     add_msg_to_flask_session_log(current_app, "Deleted formalization from requirement", [requirement])
@@ -324,6 +335,7 @@ def api_add_formalization_from_guess():
         variable_collection=VariableCollection(
             current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
         ),
+        standard_tags=SessionValue.get_standard_tags(current_app.db),
     )
     current_app.db.update()
     add_msg_to_flask_session_log(current_app, "Added formalization guess to requirement", [requirement])
@@ -373,7 +385,13 @@ def api_multi_add_top_guess():
                             raise TypeError("Type: `{}` not supported as guesses".format(type(tmp_guesses[0])))
                         if insert_mode == "override":
                             for f_id in requirement.formalizations.keys():
-                                requirement.delete_formalization(f_id, current_app)
+                                requirement.delete_formalization(
+                                    f_id,
+                                    VariableCollection(
+                                        current_app.db.get_objects(Variable).values(),
+                                        current_app.db.get_objects(Requirement).values(),
+                                    ),
+                                )
                         for score, scoped_pattern, mapping in top_guesses:
                             formalization_id, formalization = requirement.add_empty_formalization()
                             # Add content to the formalization.
@@ -386,6 +404,7 @@ def api_multi_add_top_guess():
                                     current_app.db.get_objects(Variable).values(),
                                     current_app.db.get_objects(Requirement).values(),
                                 ),
+                                standard_tags=SessionValue.get_standard_tags(current_app.db),
                             )
                             current_app.db.update()
 
