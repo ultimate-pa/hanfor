@@ -385,6 +385,10 @@ def api_multi_add_top_guess():
                     guesser_instance.guess()
                     tmp_guesses += guesser_instance.guesses
                     tmp_guesses = sorted(tmp_guesses, key=Guess.eval_score)
+                    variable_collection = VariableCollection(
+                        current_app.db.get_objects(Variable).values(),
+                        current_app.db.get_objects(Requirement).values(),
+                    )
                     if len(tmp_guesses) > 0:
                         if type(tmp_guesses[0]) is Guess:
                             top_guesses = [tmp_guesses[0]]
@@ -396,15 +400,8 @@ def api_multi_add_top_guess():
                             for f_id in requirement.formalizations.keys():
                                 requirement.delete_formalization(
                                     f_id,
-                                    VariableCollection(
-                                        current_app.db.get_objects(Variable).values(),
-                                        current_app.db.get_objects(Requirement).values(),
-                                    ),
+                                    variable_collection,
                                 )
-                        variable_collection = VariableCollection(
-                            current_app.db.get_objects(Variable).values(),
-                            current_app.db.get_objects(Requirement).values(),
-                        )
                         for score, scoped_pattern, mapping in top_guesses:
                             formalization_id, formalization = requirement.add_empty_formalization()
                             # Add content to the formalization.
