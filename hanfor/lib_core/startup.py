@@ -67,7 +67,7 @@ def varcollection_consistency_check(flask_app: HanforFlask, args=None):
         flask_app.db.get_objects(Variable).values(), flask_app.db.get_objects(Requirement).values()
     )
     if args is not None and args.reload_type_inference:
-        var_collection.reload_type_inference_errors_in_constraints()
+        var_collection.reload_type_inference_errors_in_constraints(SessionValue.get_standard_tags(flask_app.db))
 
     update_var_usage(flask_app, var_collection)
     var_collection.store()

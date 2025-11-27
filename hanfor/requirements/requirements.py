@@ -126,15 +126,18 @@ def api_update():
         if request.form.get("update_formalization") == "true":
             formalizations = json.loads(request.form.get("formalizations", ""))
             logging.debug("Updated Formalizations: {}".format(formalizations))
+            variable_collection = VariableCollection(
+                current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+            )
             try:
                 requirement.update_formalizations(
                     formalizations,
                     SessionValue.get_standard_tags(current_app.db),
-                    VariableCollection(
-                        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
-                    ),
+                    variable_collection,
                 )
                 add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
+                for v in variable_collection.new_vars:
+                    current_app.db.add_object(v)
             except KeyError as e:
                 error = True
                 error_msg = f"Could not set formalization: Missing expression/variable for {e}"
@@ -229,16 +232,19 @@ def api_new_formalization():
     requirement = current_app.db.get_object(Requirement, rid)  # type: Requirement
     formalization_id, formalization = requirement.add_empty_formalization()
     formalization_data = json.loads(request.form.get("formalization", ""))
+    variable_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
     if len(formalization_data) != 0:
         requirement.update_formalization(
             formalization_id,
             scope_name=formalization_data["scope"],
             pattern_name=formalization_data["pattern"],
             mapping=formalization_data["expression_mapping"],
-            variable_collection=VariableCollection(
-                current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
-            ),
+            variable_collection=variable_collection,
         )
+    for v in variable_collection.new_vars:
+        current_app.db.add_object(v)
     current_app.db.update()
     add_msg_to_flask_session_log(current_app, "Added new Formalization to requirement", [requirement])
     result = get_formalization_template(current_app.config["TEMPLATES_FOLDER"], formalization_id, formalization)
@@ -327,16 +333,19 @@ def api_add_formalization_from_guess():
     requirement = current_app.db.get_object(Requirement, requirement_id)
     formalization_id, formalization = requirement.add_empty_formalization()
     # Add content to the formalization.
+    variable_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
     requirement.update_formalization(
         formalization_id=formalization_id,
         scope_name=scope,
         pattern_name=pattern,
         mapping=mapping,
-        variable_collection=VariableCollection(
-            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
-        ),
+        variable_collection=variable_collection,
         standard_tags=SessionValue.get_standard_tags(current_app.db),
     )
+    for v in variable_collection.new_vars:
+        current_app.db.add_object(v)
     current_app.db.update()
     add_msg_to_flask_session_log(current_app, "Added formalization guess to requirement", [requirement])
 
@@ -392,6 +401,10 @@ def api_multi_add_top_guess():
                                         current_app.db.get_objects(Requirement).values(),
                                     ),
                                 )
+                        variable_collection = VariableCollection(
+                            current_app.db.get_objects(Variable).values(),
+                            current_app.db.get_objects(Requirement).values(),
+                        )
                         for score, scoped_pattern, mapping in top_guesses:
                             formalization_id, formalization = requirement.add_empty_formalization()
                             # Add content to the formalization.
@@ -400,12 +413,11 @@ def api_multi_add_top_guess():
                                 scope_name=scoped_pattern.scope.name,
                                 pattern_name=scoped_pattern.pattern.name,
                                 mapping=mapping,
-                                variable_collection=VariableCollection(
-                                    current_app.db.get_objects(Variable).values(),
-                                    current_app.db.get_objects(Requirement).values(),
-                                ),
+                                variable_collection=variable_collection,
                                 standard_tags=SessionValue.get_standard_tags(current_app.db),
                             )
+                            for v in variable_collection.new_vars:
+                                current_app.db.add_object(v)
                             current_app.db.update()
 
                 except ValueError as e:

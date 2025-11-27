@@ -181,6 +181,9 @@ class RequirementCollection:
                 csv_row=row,
                 pos_in_csv=index,
             )
+            variable_collection = VariableCollection(
+                app.db.get_objects(Variable).values(), app.db.get_objects(Requirement).values()
+            )
             if self.csv_meta.import_formalizations:
                 # Set the tags
                 if self.csv_meta.tags_header is not None:
@@ -209,12 +212,11 @@ class RequirementCollection:
                         scope_name=formalization_dict["scope"],
                         pattern_name=formalization_dict["pattern"],
                         mapping=formalization_dict["expressions"],
-                        variable_collection=VariableCollection(
-                            app.db.get_objects(Variable).values(), app.db.get_objects(Requirement).values()
-                        ),
+                        variable_collection=variable_collection,
                         standard_tags=SessionValue.get_standard_tags(app.db),
                     )
-
+            for v in variable_collection.new_vars:
+                app.db.add_object(v)
             self.requirements.append(requirement)
 
 

@@ -342,7 +342,7 @@ class Formalization:
 
     def set_expressions_mapping(
         self, mapping: dict[str, str], variable_collection: "VariableCollection", rid: str
-    ) -> None:
+    ) -> list["Variable"]:
         """Parse expression mapping.
             + Extract variables. Replace by their ID. Create new Variables if they do not exist.
             + For used variables and update the "used_by_requirements" set.
@@ -354,13 +354,16 @@ class Formalization:
         :return: type_inference_errors dict {key: type_env, ...}
         """
         changes = False
+        new_vars = []
         for key, expression_string in mapping.items():
             if key not in self.expressions_mapping:
                 self.expressions_mapping[key] = Expression(rid)
-            if self.expressions_mapping[key].set_expression(expression_string, variable_collection):
+            if self.expressions_mapping[key].expression_changed(expression_string):
+                new_vars = self.expressions_mapping[key].set_expression(expression_string, variable_collection)
                 changes = True
         if changes:
             self.type_inference_check(variable_collection)
+        return new_vars
 
     def type_inference_check(self, variable_collection):
         """Apply type inference check for the expressions in this formalization.
@@ -386,7 +389,6 @@ class Formalization:
                     f"Lark could not parse expression `{expression.raw_expression}`: {e}. Skipping type inference"
                 )
                 continue
-            expression.set_expression(expression.raw_expression, variable_collection)
 
             # Derive type for variables in expression and update missing or changed types.
             ti = run_typecheck_fixpoint(tree, var_env, expected_types=allowed_types[key])
@@ -455,29 +457,31 @@ class Expression:
         self.raw_expression = ""
         self.parent_rid = parent_rid
 
-    def set_expression(self, expression: str, variable_collection: "VariableCollection") -> bool:
+    def expression_changed(self, expression: str):
+        return expression != self.raw_expression
+
+    def set_expression(self, expression: str, variable_collection: "VariableCollection") -> list["Variable"]:
         """Parses the Expression using the boogie grammar.
         * Extract variables.
             + Create new ones if not in Variable collection.
             + Replace Variables by their identifier.
         * Store set of used variables to `self.used_variables`
         """
-        if expression == self.raw_expression:
-            return False
         logging.debug(f"Setting expression: `{expression}`")
         self.raw_expression = expression
         # Get the vars occurring in the expression.
         tree = boogie_parsing.get_parser_instance().parse(expression)
 
+        new_vars = []
         self.used_variables = set(boogie_parsing.get_variables_list(tree))
         for var_name in self.used_variables:
             if var_name not in variable_collection:
                 assert var_name is not None  # TODO: remove, not sure if this may happen here
                 variable = variable_collection.add_var(var_name)
-                current_app.db.add_object(variable)
+                new_vars.append(variable)
 
         variable_collection.map_req_to_vars(self.parent_rid, self.used_variables)
-        return True
+        return new_vars
 
     def __str__(self):
         return f'"{self.raw_expression}"'
@@ -740,7 +744,8 @@ class Variable:
             if len(expression_string) == 0:
                 continue
             expression = Expression("Constraint_{}_{}".format(self.name, constraint_id))
-            expression.set_expression(expression_string, variable_collection)
+            if expression.expression_changed(expression_string):
+                expression.set_expression(expression_string, variable_collection)
             if self.constraints[constraint_id].expressions_mapping is None:
                 self.constraints[constraint_id].expressions_mapping = dict()
             self.constraints[constraint_id].expressions_mapping[key] = expression
@@ -765,11 +770,7 @@ class Variable:
         :return: updated VariableCollection
         """
         logging.debug(f"Updating constraints for variable `{self.name}`.")
-        self.remove_tag(current_app.db.get_object(SessionValue, "TAG_Type_inference_error").value)
-        if variable_collection is None:
-            variable_collection = VariableCollection(
-                current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
-            )
+        self.remove_tag(standard_tags["TAG_Type_inference_error"])
 
         for constraint in constraints.values():
             logging.debug(f"Updating formalization No. {constraint['id']}.")
@@ -850,6 +851,7 @@ class VariableCollection:
         self.var_req_mapping = dict()
         self.refresh_var_usage(requierments)
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
+        self.new_vars = set()
 
     def __contains__(self, item):
         return item in self.collection
@@ -887,6 +889,7 @@ class VariableCollection:
                 variable = Variable(var_name, None, None)
             logging.debug(f"Adding variable `{var_name}` to collection.")
             self.collection[variable.name] = variable
+            self.new_vars.add(variable)
             return variable
         return None
 
@@ -1074,12 +1077,12 @@ class VariableCollection:
                     c_name for c_name in self.var_req_mapping[name] if not not_in_constraint(name, c_name)
                 }
 
-    def reload_type_inference_errors_in_constraints(self):
+    def reload_type_inference_errors_in_constraints(self, standard_tags: dict[str, Tag]):
         for name, var in self.collection.items():
             if len(var.get_constraints()) > 0:
-                var.reload_constraints_type_inference_errors(self, SessionValue.get_standard_tags(current_app.db))
+                var.reload_constraints_type_inference_errors(self, standard_tags)
 
-    def refresh_var_usage(self, requirements: list[Requirement]):
+    def refresh_var_usage(self, requirements: Iterable[Requirement]):
         mapping = dict()
 
         # Add the requirements using this variable.
