@@ -1062,25 +1062,24 @@ function load_requirement(row_idx) {
 
     // Choose the right radio button and then load the status
     let status = `input[name="status"][value="${data.status}"]`
-    $(status).prop("checked", true);
+    $(status).prop("checked", true)
 
     // Set the requirement tab always as the default once loaded
-    new Tab($('#pills-req-tab')[0]).show()
+    new Tab($("#pills-req-tab")[0]).show()
 
     // Set csv_data
-    let csv_tab = $("#pills-csv").empty();
-    let csv_data = data.csv_data;
+    let csv_tab = $("#pills-csv").empty()
+    let csv_data = data.csv_data
     for (const key in csv_data) {
-        if (csv_data.hasOwnProperty(key)) {
-            csv_tab.append(`<h5>${key}</h5>`)
-            let csv_value = csv_data[key]
-            if (csv_value) {
-              csv_tab.append(`<p>${csv_data[key]}</p>`)
-            }
-            else {
-              csv_tab.append(`<p>No data found in the CSV.</p>`)
-            }
+      if (csv_data.hasOwnProperty(key)) {
+        csv_tab.append(`<h5>${key}</h5>`)
+        let csv_value = csv_data[key]
+        if (csv_value) {
+          csv_tab.append(`<p>${csv_data[key]}</p>`)
+        } else {
+          csv_tab.append(`<p>No data found in the CSV.</p>`)
         }
+      }
     }
 
     // Set revision diff data.
@@ -1333,13 +1332,27 @@ function update_formalization() {
     }
 
     // Update formalization with variables.
-    let var_p = $("#formalization_var_p" + formalization_id).val()
-    let var_q = $("#formalization_var_q" + formalization_id).val()
-    let var_r = $("#formalization_var_r" + formalization_id).val()
-    let var_s = $("#formalization_var_s" + formalization_id).val()
-    let var_t = $("#formalization_var_t" + formalization_id).val()
-    let var_u = $("#formalization_var_u" + formalization_id).val()
-    let var_v = $("#formalization_var_v" + formalization_id).val()
+    let var_p = $("#formalization_var_p" + formalization_id)
+      .val()
+      .trim()
+    let var_q = $("#formalization_var_q" + formalization_id)
+      .val()
+      .trim()
+    let var_r = $("#formalization_var_r" + formalization_id)
+      .val()
+      .trim()
+    let var_s = $("#formalization_var_s" + formalization_id)
+      .val()
+      .trim()
+    let var_t = $("#formalization_var_t" + formalization_id)
+      .val()
+      .trim()
+    let var_u = $("#formalization_var_u" + formalization_id)
+      .val()
+      .trim()
+    let var_v = $("#formalization_var_v" + formalization_id)
+      .val()
+      .trim()
 
     if (var_p.length > 0) {
       formalization = formalization.replace(/{P}/g, parse_vars_to_link(var_p))

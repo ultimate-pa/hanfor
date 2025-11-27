@@ -119,6 +119,7 @@ def formalization_html(
 
     # Unset remaining vars.
     html_template = re.sub(r"__expr_._content__", "", html_template)
+    html_template = html_template.replace("\n", "")
 
     return html_template
 
