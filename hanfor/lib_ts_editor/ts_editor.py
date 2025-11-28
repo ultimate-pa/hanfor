@@ -33,5 +33,5 @@ class ApiParseTransitionSystem(Resource):
         data = json.loads(request.get_data())
         ts: TransitionSystem = TransitionSystem()
         if ts.parse_from_dict(data):
-            return None, 200
+            return ts.get_hanfor_pl_patterns(), 200
         return None, 400
