@@ -152,7 +152,7 @@ class Requirement:
         self.formalizations[fid] = Formalization(fid)
         return fid, self.formalizations[fid]
 
-    def delete_formalization(self, formalization_id, variable_collection):
+    def delete_formalization(self, formalization_id, variable_collection: "VariableCollection"):
         formalization_id = int(formalization_id)
 
         # Remove formalization
@@ -175,7 +175,7 @@ class Requirement:
         scope_name: str,
         pattern_name: str,
         mapping: dict[str, str],
-        variable_collection,
+        variable_collection: "VariableCollection",
         standard_tags: dict[str, Tag],
     ):
         # TODO: simplify
