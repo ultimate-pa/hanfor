@@ -9,7 +9,7 @@ from configuration.patterns import APattern
 
 def get_semantics_from_requirement(
     requirement: Requirement, requirements: list[Requirement], var_collection: VariableCollection
-) -> dict[str, Countertrace]:
+) -> dict[tuple[Formalization, int], Countertrace]:
     """Instanciate the semantics of a single requirement.
     All other requirements should be passed in to allow for complexer patterns to be generated"""
     dc_formulas = dict()
@@ -35,17 +35,14 @@ def get_semantics_from_requirement(
         for i, ct in enumerate(
             APattern.get_pattern(pattern).get_instanciated_countertraces(scope, expressions, requirements)
         ):
-            dc_formulas[(requirement, formalization, i)] = ct
+            dc_formulas[(formalization, i)] = ct
 
     return dc_formulas
 
 
-def get_pea_from_formalisation(countertraces: dict[str, Countertrace]) -> list[PhaseSetsPea]:
-    peas = []
-    for fid, ct in countertraces.items():
-        sfid = f"c_{fid[0].rid}_{fid[1].id}_{fid[2]}_"
-        peas.append(build_automaton(ct, sfid))
-    return peas
+def get_pea_from_formalisation(req: Requirement, f: Formalization, i: int, ct: Countertrace) -> PhaseSetsPea:
+    sfid = f"c_{req.rid}_{f.id}_{i}_"
+    return build_automaton(ct, sfid)
 
 
 def has_variable_with_unknown_type(formalization: Formalization, variables: dict[str, str]) -> bool:

@@ -4,9 +4,7 @@ import json
 import logging
 import time
 import uuid
-from typing import List
 
-from hanfor_flask import HanforFlask
 from flask import render_template
 from pysmt.shortcuts import Bool, Int, Real
 from pysmt.typing import BOOL, INT, REAL
@@ -17,11 +15,11 @@ from lib_pea.req_to_pea import (
     has_variable_with_unknown_type,
     get_semantics_from_requirement,
 )
-from lib_pea.utils import get_countertrace_parser, strtobool
+from lib_pea.utils import strtobool
 from configuration.patterns import APattern
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
-from lib_core.data import Requirement, Formalization, VariableCollection, Variable, ScopedPattern, Scope
+from lib_core.data import Requirement, VariableCollection, Variable
 from ressources import Ressource
 
 validation_patterns = {BOOL: r"^0|false|False|1|true|True$", INT: r"^[+-]?\d+$", REAL: r"^[+-]?\d*[.]?\d+$"}
@@ -143,7 +141,7 @@ class SimulatorRessource(Ressource):
             self.response.errormsg = "No requirement ids given."
             return
 
-        peas = []
+        peas: list[PhaseSetsPea] = []
         var_collection = VariableCollection(
             self.app.db.get_objects(Variable).values(), self.app.db.get_objects(Requirement).values()
         )
@@ -152,12 +150,12 @@ class SimulatorRessource(Ressource):
         for requirement in requirements:
             # TODO: filter from simulator requirement_ids
             cts = get_semantics_from_requirement(requirement, requirements, var_collection)
-            for k, ct in cts:
-                pea = get_pea_from_formalisation(ct)
-                pea.requirement = k[0]
-                pea.formalization = k[1]
-                pea.countertrace_id = k[2]
-                peas.extend(pea)
+            for (f, i), ct in cts.items():
+                pea = get_pea_from_formalisation(requirement, f, i, ct)
+                pea.requirement = requirement
+                pea.formalization = f
+                pea.countertrace_id = i
+                peas.append(pea)
 
         simulator_id = uuid.uuid4().hex
         self.simulator_cache[simulator_id] = Simulator(peas, name=simulator_name)

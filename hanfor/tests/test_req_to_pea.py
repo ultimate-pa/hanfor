@@ -20,4 +20,4 @@ class TestAbsFunction(TestCase):
             standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
         )
         sem = get_semantics_from_requirement(r, [r], variable_collection)
-        assert False # Todo: now here should the new tests live
+        assert False  # Todo: now here should the new tests live
