@@ -141,14 +141,16 @@ class SimulatorRessource(Ressource):
             self.response.errormsg = "No requirement ids given."
             return
 
-        peas: list[PhaseSetsPea] = []
         var_collection = VariableCollection(
             self.app.db.get_objects(Variable).values(), self.app.db.get_objects(Requirement).values()
         )
         requirements = list(self.app.db.get_objects(Requirement).values())
 
+        peas: list[PhaseSetsPea] = []
         for requirement in requirements:
-            # TODO: filter from simulator requirement_ids
+            # filter for selected requirements
+            if requirement.rid not in requirement_ids:
+                continue
             cts = get_semantics_from_requirement(requirement, requirements, var_collection)
             for (f, i), ct in cts.items():
                 pea = get_pea_from_formalisation(requirement, f, i, ct)
