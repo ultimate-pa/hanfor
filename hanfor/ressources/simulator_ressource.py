@@ -4,24 +4,22 @@ import json
 import logging
 import time
 import uuid
-from typing import List
 
-from hanfor_flask import HanforFlask
 from flask import render_template
 from pysmt.shortcuts import Bool, Int, Real
 from pysmt.typing import BOOL, INT, REAL
 
-from lib_core import boogie_parsing
-from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
-from lib_pea.countertrace import CountertraceTransformer
-from lib_pea.countertrace_to_pea import build_automaton
 from lib_pea.pea import PhaseSetsPea
-from lib_pea.req_to_pea import get_pea_from_formalisation, has_variable_with_unknown_type
-from lib_pea.utils import get_countertrace_parser, strtobool
-from configuration.patterns import PATTERNS
+from lib_pea.req_to_pea import (
+    get_pea_from_formalisation,
+    has_variable_with_unknown_type,
+    get_semantics_from_requirement,
+)
+from lib_pea.utils import strtobool
+from configuration.patterns import APattern
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
-from lib_core.data import Requirement, Formalization, VariableCollection, Variable, ScopedPattern, Scope
+from lib_core.data import Requirement, VariableCollection, Variable
 from ressources import Ressource
 
 validation_patterns = {BOOL: r"^0|false|False|1|true|True$", INT: r"^[+-]?\d+$", REAL: r"^[+-]?\d*[.]?\d+$"}
@@ -143,18 +141,23 @@ class SimulatorRessource(Ressource):
             self.response.errormsg = "No requirement ids given."
             return
 
-        peas = []
-        var_collection = VariableCollection(self.app)
+        var_collection = VariableCollection(
+            self.app.db.get_objects(Variable).values(), self.app.db.get_objects(Requirement).values()
+        )
+        requirements = list(self.app.db.get_objects(Requirement).values())
 
-        for requirement_id in requirement_ids:
-            peas_tmp = SimulatorRessource.create_phase_event_automata(requirement_id, var_collection, self.app)
-
-            if peas_tmp is None:
-                self.response.success = False
-                self.response.errormsg = f"Unable to constuct phase event automaton for {requirement_id}."
-                return
-
-            peas.extend(peas_tmp)
+        peas: list[PhaseSetsPea] = []
+        for requirement in requirements:
+            # filter for selected requirements
+            if requirement.rid not in requirement_ids:
+                continue
+            cts = get_semantics_from_requirement(requirement, requirements, var_collection)
+            for (f, i), ct in cts.items():
+                pea = get_pea_from_formalisation(requirement, f, i, ct)
+                pea.requirement = requirement
+                pea.formalization = f
+                pea.countertrace_id = i
+                peas.append(pea)
 
         simulator_id = uuid.uuid4().hex
         self.simulator_cache[simulator_id] = Simulator(peas, name=simulator_name)
@@ -171,7 +174,9 @@ class SimulatorRessource(Ressource):
 
         result = {"requirements": {}, "variables": []}
 
-        var_collection = VariableCollection(self.app)
+        var_collection = VariableCollection(
+            self.app.db.get_objects(Variable).values(), self.app.db.get_objects(Requirement).values()
+        )
         variables = {k: v.type for k, v in var_collection.collection.items()}
         result["variables"] = [
             {"name": k, "type": v.type, "value": v.value} for k, v in var_collection.collection.items()
@@ -190,14 +195,14 @@ class SimulatorRessource(Ressource):
                 scope = formalization.scoped_pattern.scope.name
                 pattern = formalization.scoped_pattern.pattern.name
 
-                if len(PATTERNS[pattern]["countertraces"][scope]) <= 0:
+                if APattern.get_pattern(pattern).has_countertraces(scope):
                     raise ValueError(f"No countertrace given: {scope}, {pattern}")
 
                 expressions = {}
                 for k, v in formalization.expressions_mapping.items():
                     expressions[k] = v.raw_expression
 
-                for i, ct_str in enumerate(PATTERNS[pattern]["countertraces"][scope]):
+                for i, ct_str in enumerate(APattern.get_pattern(pattern).get_countertraces(scope)):
                     counter_traces.append(ct_str)
                 formalizations[formalization.id] = {"counter_traces": counter_traces, "expressions": expressions}
 
@@ -308,22 +313,3 @@ class SimulatorRessource(Ressource):
             self.response.errormsg = "Could not find simulator with given id."
 
         self.get_simulators()
-
-    @staticmethod
-    def create_phase_event_automata(
-        requirement_id: str, var_collection: VariableCollection, app: HanforFlask
-    ) -> List[PhaseSetsPea]:
-        result = []
-
-        requirement = app.db.get_object(Requirement, requirement_id)
-
-        for formalization in requirement.formalizations.values():
-            if not formalization.scoped_pattern.is_instantiatable():
-                continue
-            peas = get_pea_from_formalisation(requirement.rid, formalization, var_collection)
-            for i, pea in enumerate(peas):
-                pea.requirement = requirement
-                pea.formalization = formalization
-                pea.countertrace_id = i
-            result.extend(peas)
-        return result
