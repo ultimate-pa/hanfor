@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from threading import Lock
 import re
-from typing import Any, Iterable
+from typing import Any, Iterable, Union
 from uuid import uuid4
 
 from lark import LarkError
@@ -1110,7 +1110,7 @@ class VariableCollection:
 
         self.var_req_mapping = mapping
 
-    def del_var(self, var_name) -> Variable:
+    def del_var(self, var_name) -> Union[Variable, None]:
         """Check if a variable can be deleted ie, is not used somewhere.
 
         :param var_name:
