@@ -19,6 +19,8 @@ class TestAbsFunction(TestCase):
             variable_collection=variable_collection,
             standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
         )
+        self.assertIn("aBooleanVar", [var.name for var in variable_collection.new_vars])
+        self.assertIn("anIntegerVar", [var.name for var in variable_collection.new_vars])
         sem = get_semantics_from_requirement(r, [r], variable_collection)
         self.assertEqual("True", list(sem.items())[0][1].dc_phases[0].__str__())
         self.assertEqual("⌈((anIntegerVar = 42) & (! aBooleanVar))⌉", list(sem.items())[0][1].dc_phases[1].__str__())
