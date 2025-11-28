@@ -1303,3 +1303,63 @@ class TransitionSystem:
             if transition.parse_from_dict(t):
                 self.transitions.append(transition)
         return True
+
+    def get_node_by_id(self, node_id: int) -> TransitionSystemNode:
+        for n in self.nodes:
+            if n.id == node_id:
+                return n
+        raise Exception(f"No node with id {node_id}")
+
+    def get_hanfor_pl_patterns(self) -> list[dict]:
+        formalizations: list[dict] = []
+        for location in self.nodes:
+            if location.initial:
+                # add initial pattern
+                formalizations.append(
+                    {"scope": Scope.GLOBALLY.name, "pattern": "InitialLoc", "expressions": {"R": location.label}}
+                )
+            if location.invariant != "":
+                formalizations.append(
+                    {
+                        "scope": Scope.GLOBALLY.name,
+                        "pattern": "Invariant",
+                        "expressions": {"R": location.label, "S": location.invariant},
+                    }
+                )
+            if location.clock_invariant != "":
+                if location.clock_invariant.startswith("<="):
+                    pattern_name = "MaxDuration"
+                elif location.clock_invariant.startswith(">="):
+                    pattern_name = "MinDuration"
+                else:
+                    raise Exception("Not allowed clock invariant")
+                formalizations.append(
+                    {
+                        "scope": Scope.GLOBALLY.name,
+                        "pattern": pattern_name,
+                        "expressions": {"R": location.label, "S": location.invariant, "S": location.clock_invariant[2:]},
+                    }
+                )
+
+        for transition in self.transitions:
+            pattern_name = "Transition"
+            expressions = {
+                "R": self.get_node_by_id(transition.source).label,
+                "S": self.get_node_by_id(transition.target).label,
+            }
+            if transition.clock_guard != "":
+                if transition.clock_guard.startswith("<="):
+                    pattern_name += "U"
+                elif transition.clock_guard.startswith(">="):
+                    pattern_name += "L"
+                expressions["T"] = transition.clock_guard[2:]
+            if transition.guard != "":
+                pattern_name += "G"
+                expressions["V"] = transition.guard
+            if transition.event != "":
+                pattern_name += "E"
+                expressions["U"] = transition.event
+
+            formalizations.append({"scope": Scope.GLOBALLY.name, "pattern": pattern_name, "expressions": expressions})
+
+        return formalizations

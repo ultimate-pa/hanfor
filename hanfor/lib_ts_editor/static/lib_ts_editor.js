@@ -21,7 +21,7 @@ const nodes = [
     id: 1,
     label: "Running",
     invariant: "n>=120",
-    clock_invariant: "<k",
+    clock_invariant: "<=k",
     x: 300,
     y: 100,
     r: 40,
@@ -60,7 +60,7 @@ const transitions = [
     target: 2,
     event: "ebrake",
     guard: "",
-    clock_guard: "<5",
+    clock_guard: "<=5",
     bend: -40,
   },
   {
