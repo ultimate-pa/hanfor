@@ -56,7 +56,6 @@ def api_index():
     result = requirement.to_dict(include_used_vars=True)
     result["formalizations_html"] = formalizations_to_html(current_app, requirement.formalizations)
     result["available_vars"] = var_collection.get_available_var_names_list(used_only=False, exclude_types={"ENUM"})
-
     result["additional_static_available_vars"] = VARIABLE_AUTOCOMPLETE_EXTENSION
 
     if requirement:

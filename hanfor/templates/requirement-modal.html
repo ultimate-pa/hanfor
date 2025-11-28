@@ -1,138 +1,210 @@
-<div id="requirement_modal" class="modal" tabindex="-1" data-keyboard="false" data-modal-index="1" role="dialog"
-     aria-hidden="true">
-
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 id="requirement_modal_title" class="modal-title"></h5>
-                <input type="hidden" id="requirement_id" hidden/>
-                <input type="hidden" id="modal_associated_row_index" hidden/>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <h5>Description</h5>
-                <div class="row-spacing">
-                    <textarea class="form-control" id="description_textarea" rows="3" readonly
-                              title="Description"></textarea>
+<div
+  id="requirement_modal"
+  class="modal"
+  tabindex="-1"
+  data-keyboard="false"
+  data-modal-index="1"
+  role="dialog"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-fullscreen p-2">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 id="requirement_modal_title" class="modal-title"></h4>
+        <div class="vr mx-2"></div>
+        <fieldset>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="status" id="statusTodo" value="Todo" />
+            <label class="form-check-label" for="statusTodo">To Do</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="status" id="statusReview" value="Review" />
+            <label class="form-check-label" for="statusReview">Review</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="status" id="statusDone" value="Done" />
+            <label class="form-check-label" for="statusDone">Done</label>
+          </div>
+        </fieldset>
+        <input type="hidden" id="requirement_id" hidden />
+        <input type="hidden" id="modal_associated_row_index" hidden />
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="tab-content h-100" id="myTabContent">
+          <div class="tab-pane show active h-100" id="pills-req" role="tabpanel" aria-labelledby="pills-req-tab">
+            <div class="row g-0 h-100">
+              <div class="col-12 col-md-6 h-100 overflow-auto d-flex flex-column" style="padding-right: 10px">
+                <div class="p-0">
+                  <h4>Description</h4>
+                  <p id="description_textarea"></p>
                 </div>
-
-                <h5>
-                    Formalizations
-
-                    <button id="add_formalization" type="button" class="btn btn-success btn-sm"
-                            title="Add formalization">
-                        <strong>+</strong>
-                    </button>
-
-                    <button id="add_gussed_formalization" type="button" class="btn btn-success btn-sm"
-                            title="Add guessed formalization">
-                        <strong>+ Guessed formalization</strong>
-                    </button>
-                  <button id="add_copied_formalization" type="button" class="btn btn-success btn-sm"
-                            title="Add copied formalization">
-                        <strong>+ Copied formalization</strong>
-                    </button>
-                </h5>
-                <div id="formalization_accordion" class="accordion row-spacing"></div>
-
-                <h5 class="top-padding">Tags</h5>
-                <div class="input-group">
-                    <input type="text" class="form-control" id="requirement_tag_field" value=""
-                           aria-label="Tags" aria-describedby="requirement-tags-addon">
-                </div>
-                <label for="requirement_tag_field">Hit "Enter" to actually set a new tag.</label>
-
-                <table class="table table-sm" id="tags_comments_table">
+                <div>
+                  <h4>Tags</h4>
+                  <label for="requirement_tag_field">Hit "Enter" to actually set a new tag.</label>
+                  <div class="input-group">
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="requirement_tag_field"
+                      value=""
+                      aria-label="Tags"
+                      aria-describedby="requirement-tags-addon"
+                    />
+                  </div>
+                  <table class="table table-sm" id="tags_comments_table">
                     <thead>
-                    <tr>
+                      <tr>
                         <th class="col-2" scope="col">Tag</th>
                         <th scope="col">Comment</th>
-                    </tr>
+                      </tr>
                     </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="col-12 col-md-6 overflow-auto h-100">
+                <h4 class="sticky-top" style="background-color: white">
+                  Formlizations
+                  <button id="add_formalization" type="button" class="btn btn-success btn-sm" title="Add formalization">
+                    <strong>+ Formalization </strong>
+                  </button>
 
-                <h5>Status</h5>
-                <div class="row-spacing">
-                    <div class="row form-inline">
-                        <div class="form-group col-md-4">
-                            <select id="requirement_status" class="form-control">
-                                <option value="Todo">Todo</option>
-                                <option value="Review">Review</option>
-                                <option value="Done">Done</option>
-                            </select>
-                        </div>
-                    </div>
+                  <button
+                    id="add_gussed_formalization"
+                    type="button"
+                    class="btn btn-success btn-sm"
+                    title="Add guessed formalization"
+                  >
+                    <strong>+ Guessed formalization</strong>
+                  </button>
+                  <button
+                    id="add_copied_formalization"
+                    type="button"
+                    class="btn btn-success btn-sm"
+                    title="Add copied formalization"
+                  >
+                    <strong>+ Copied formalization</strong>
+                  </button>
+                </h4>
+
+                <div class="overflow-auto">
+                  <div id="formalization_accordion" class="accordion"></div>
                 </div>
-                <h5>
-                    <a id="show_csv_content" data-bs-toggle="collapse" href="#csv_content_accordion" role="button"
-                       aria-expanded="false" aria-controls="csv_content_accordion">
-                        Show all csv content
-                    </a>
-                </h5>
-                <div id="csv_content_accordion" class="collapse">
-                    No csv content.
-                </div>
-                <h5>
-                    <a id="show_revision_diff" data-bs-toggle="collapse" href="#revision_diff_accordion" role="button"
-                       aria-expanded="false" aria-controls="revision_diff_accordion">
-                        Show revision diff
-                    </a>
-                </h5>
-                <div id="revision_diff_accordion" class="collapse">
-                    No base revision.
-                </div>
-                <h5>
-                    <a id="show_used_variables" data-bs-toggle="collapse" href="#used_variables_accordion" role="button"
-                       aria-expanded="false" aria-controls="used_variables_accordion">
-                        Show used Variables
-                    </a>
-                </h5>
-                <div id="used_variables_accordion" class="collapse">
-                    No used variables.
-                </div>
+              </div>
             </div>
-            <div class="modal-footer">
-                <button id="save_requirement_modal" type="button" class="btn btn-primary">Save changes</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
+          </div>
+          <div class="tab-pane overflow-auto" id="pills-csv" role="tabpanel" aria-labelledby="pills-csv-tab">
+            <h4>CSV Representation</h4>
+            <p>Here you can see the requirement data as imported from the CSV file specified for the session.</p>
+          </div>
+          <div class="tab-pane" id="pills-variables" role="tabpanel" aria-labelledby="pills-variables-tab">
+            <h4>Used Variables</h4>
+            <p>In this section you can find all of the variables used by the current requirement</p>
+            <div class="container d-flex flex-wrap m-0 p-1" id="used-vars-container"></div>
+          </div>
+          <div class="tab-pane" id="pills-diff" role="tabpanel" aria-labelledby="pills-diff-tab"></div>
         </div>
+      </div>
+      <div class="modal-footer">
+        <ul class="nav nav-pills" id="pills-tab" role="tablist" style="margin-right: auto">
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link active"
+              id="pills-req-tab"
+              data-bs-toggle="pill"
+              data-bs-target="#pills-req"
+              type="button"
+              role="tab"
+              aria-controls="pills-req"
+              aria-selected="true"
+            >
+              Requirement
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link"
+              id="pills-csv-tab"
+              data-bs-toggle="pill"
+              data-bs-target="#pills-csv"
+              type="button"
+              role="tab"
+              aria-controls="pills-csv"
+              aria-selected="false"
+            >
+              CSV
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link"
+              id="pills-variables-tab"
+              data-bs-toggle="pill"
+              data-bs-target="#pills-variables"
+              type="button"
+              role="tab"
+              aria-controls="pills-variables"
+              aria-selected="false"
+            >
+              Variables
+            </button>
+          </li>
+          <li class="nav-item" role="presentation" id="show_revision_diff">
+            <button
+              class="nav-link"
+              id="pills-diff-tab"
+              data-bs-toggle="pill"
+              data-bs-target="#pills-diff"
+              type="button"
+              role="tab"
+              aria-controls="pills-diff"
+              aria-selected="false"
+            >
+              Diff
+            </button>
+          </li>
+        </ul>
+        <button id="save_requirement_modal" type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
     </div>
+  </div>
 </div>
 
 <div class="modal fade" id="requirement_guess_modal" data-bs-modal-index="2" tabindex="-2">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add a guessed formalization.</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal">
-                    <!--<span aria-hidden="true">&times;</span>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add a guessed formalization.</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <!--<span aria-hidden="true">&times;</span>
                     <span class="sr-only">Close</span>-->
-                </button>
-            </div>
+        </button>
+      </div>
 
-            <div class="modal-body">
-                <h6>Description</h6>
-                <div class="form-group">
-                    <textarea id="add_guess_description" class="form-control" rows="3" readonly="" title="Description">Heading</textarea>
-                </div>
-                <h6>Available Guesses:</h6>
-                <div id="available_guesses_cards">
-                    <div class="card">
-                        <div class="pl-1 pr-1">
-                            <p>Hallo</p>
-                        </div>
-                        <button id="add_gess_1" type="button" class="btn btn-success btn-sm"
-                                title="Add formalization">
-                            <strong>+ Add this formalization +</strong>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
-            </div>
+      <div class="modal-body">
+        <h6>Description</h6>
+        <div class="form-group">
+          <textarea id="add_guess_description" class="form-control" rows="3" readonly="" title="Description">
+Heading</textarea
+          >
         </div>
+        <h6>Available Guesses:</h6>
+        <div id="available_guesses_cards">
+          <div class="card">
+            <div class="pl-1 pr-1">
+              <p>Hallo</p>
+            </div>
+            <button id="add_gess_1" type="button" class="btn btn-success btn-sm" title="Add formalization">
+              <strong>+ Add this formalization +</strong>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
+      </div>
     </div>
+  </div>
 </div>
