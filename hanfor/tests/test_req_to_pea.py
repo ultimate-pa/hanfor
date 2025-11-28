@@ -20,4 +20,6 @@ class TestAbsFunction(TestCase):
             standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
         )
         sem = get_semantics_from_requirement(r, [r], variable_collection)
-        assert False  # Todo: now here should the new tests live
+        self.assertEqual("True", list(sem.items())[0][1].dc_phases[0].__str__())
+        self.assertEqual("⌈((anIntegerVar = 42) & (! aBooleanVar))⌉", list(sem.items())[0][1].dc_phases[1].__str__())
+        self.assertEqual("True", list(sem.items())[0][1].dc_phases[2].__str__())
