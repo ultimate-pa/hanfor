@@ -97,6 +97,7 @@ def formalization_html(
     if len(form_desc) < 10:  # Add hint to open if desc is short.
         form_desc += "... (click to open)"
     html_template = html_template.replace("__formal_desc__", form_desc)
+    html_template = html_template.replace("__form__data__id__", str(formalization_id))
 
     scope = formalization.scoped_pattern.get_scope_slug()
     pattern = formalization.scoped_pattern.get_pattern_slug()
