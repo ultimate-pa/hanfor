@@ -32,12 +32,14 @@
     "fuse.js": "^7.0.0",
     "gasparesganga-jquery-loading-overlay": "2.1.7",
     "jquery": "^3.7.1",
+    "jquery-sortablejs": "^1.0.1",
     "jquery-ui": "^1.13.3",
     "js-cookie": "^3.0.5",
     "npm-clean": "^1.0.3",
-    "yargs": "^17.7.2",
     "socket.io-client": "^4.7.5",
-    "uuid": "^10.0.0"
+    "sortablejs": "^1.15.6",
+    "uuid": "^10.0.0",
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.19",

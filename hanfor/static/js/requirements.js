@@ -10,6 +10,8 @@ require("awesomplete/awesomplete.css")
 //require('datatables.net-bs5-colreorderwithresize-npm');
 require("datatables.net-colreorder-bs5")
 require("./bootstrap-confirm-button")
+import Sortable from "sortablejs"
+import "jquery-sortablejs"
 
 let utils = require("./hanfor-utils")
 const autosize = require("autosize/dist/autosize")
@@ -1117,6 +1119,12 @@ function load_requirement(row_idx) {
           "</span>&numsp;",
       )
     })
+
+    const sortable = Sortable.create($("#formalization_accordion")[0], {
+      animation: 200,
+      ghostClass: "ghost",
+    })
+    console.log(sortable)
   }).done(function () {
     update_vars()
     bind_var_autocomplete()
