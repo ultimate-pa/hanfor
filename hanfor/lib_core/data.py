@@ -62,7 +62,6 @@ class Tag:
 @DatabaseField("status", str, default="Todo")
 @DatabaseField("_revision_diff", dict)
 @DatabaseField("_next_formalization_index", int, default=-1)
-@DatabaseField("formalizations_order", list[int], default=[])
 @DatabaseNonSavedField("_formalization_index_mutex", Lock())
 class Requirement:
     def __init__(self, rid: str, description: str, type_in_csv: str, csv_row: dict[str, str], pos_in_csv: int):
@@ -71,7 +70,6 @@ class Requirement:
         self.description = description
         self.type_in_csv = type_in_csv
         self.csv_row = csv_row
-        self.formalizations_order: list[int] = []
         self.pos_in_csv = pos_in_csv
         self.tags: dict[Tag, str] = dict()
         self.status = "Todo"
@@ -325,12 +323,14 @@ class Requirement:
 
 @DatabaseFieldType()
 @DatabaseField("id", int)
+@DatabaseField("order", int)
 @DatabaseField("scoped_pattern", "ScopedPattern")
 @DatabaseField("expressions_mapping", dict)
 @DatabaseField("type_inference_errors", dict)
 class Formalization:
     def __init__(self, fid: int):
         self.id: int = fid
+        self.order: int = fid
         self.scoped_pattern = ScopedPattern()
         self.expressions_mapping: dict[str, Expression] = dict()
         self.type_inference_errors = dict()

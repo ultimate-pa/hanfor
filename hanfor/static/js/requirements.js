@@ -465,11 +465,10 @@ function store_requirement(requirements_table) {
   })
 
   // Store the order of the formalizations to be loaded
-  let load_order = $(".accordion-item")
-    .map(function () {
-      return $(this).data("id")
-    })
-    .get()
+  let load_order = {}
+  $(".accordion-item").each(function (idx) {
+    load_order[$(this).data("id")] = idx
+  })
   console.log(load_order)
 
   let tag_comments = new Map()
@@ -1133,7 +1132,6 @@ function load_requirement(row_idx) {
       animation: 200,
       ghostClass: "ghost",
     })
-    console.log(sortable)
   }).done(function () {
     update_vars()
     bind_var_autocomplete()
