@@ -59,9 +59,8 @@ def api_index():
     var_collection = VariableCollection(
         current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
     )
-
     result = requirement.to_dict(include_used_vars=True)
-    result["formalizations_html"] = formalizations_to_html(current_app, requirement.formalizations)
+    result["formalizations_html"] = formalizations_to_html(current_app, requirement.formalizations, order)
     result["available_vars"] = var_collection.get_available_var_names_list(used_only=False, exclude_types={"ENUM"})
     result["additional_static_available_vars"] = VARIABLE_AUTOCOMPLETE_EXTENSION
 
@@ -88,6 +87,8 @@ def api_update():
     requirement = current_app.db.get_object(Requirement, rid)
     error = False
     error_msg = ""
+    formalizations_order = request.form.get("formalizations_order")
+    requirement.formalizations_order = json.loads(formalizations_order)
 
     if requirement:
         logging.debug(f"Updating requirement: {requirement.rid}")

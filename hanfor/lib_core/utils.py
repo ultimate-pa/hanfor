@@ -97,7 +97,7 @@ def formalization_html(
     if len(form_desc) < 10:  # Add hint to open if desc is short.
         form_desc += "... (click to open)"
     html_template = html_template.replace("__formal_desc__", form_desc)
-    html_template = html_template.replace("__form__data__id__", str(formalization_id))
+    html_template = html_template.replace("__formal__data__id__", str(formalization_id))
 
     scope = formalization.scoped_pattern.get_scope_slug()
     pattern = formalization.scoped_pattern.get_pattern_slug()
@@ -119,11 +119,12 @@ def formalization_html(
     return html_template
 
 
-def formalizations_to_html(app: HanforFlask, formalizations):  # TODO wohin damit, HTML generation
+def formalizations_to_html(app: HanforFlask, formalizations, order: list[int]):  # TODO wohin damit, HTML generation
     result = ""
-    for index, formalization in formalizations.items():
+    for idx in order:
+        formalization = formalizations[idx]
         result += formalization_html(
-            app.config["TEMPLATES_FOLDER"], index, default_scope_options, get_default_pattern_options(), formalization
+            app.config["TEMPLATES_FOLDER"], idx, default_scope_options, get_default_pattern_options(), formalization
         )
     return result
 
