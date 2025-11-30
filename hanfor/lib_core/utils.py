@@ -119,10 +119,9 @@ def formalization_html(
     return html_template
 
 
-def formalizations_to_html(app: HanforFlask, formalizations, order: list[int]):  # TODO wohin damit, HTML generation
+def formalizations_to_html(app: HanforFlask, formalizations):  # TODO wohin damit, HTML generation
     result = ""
-    for idx in order:
-        formalization = formalizations[idx]
+    for idx, formalization in sorted(formalizations.items(), key=lambda item: item[1].order):
         result += formalization_html(
             app.config["TEMPLATES_FOLDER"], idx, default_scope_options, get_default_pattern_options(), formalization
         )

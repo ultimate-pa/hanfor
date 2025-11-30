@@ -60,7 +60,7 @@ def api_index():
         current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
     )
     result = requirement.to_dict(include_used_vars=True)
-    result["formalizations_html"] = formalizations_to_html(current_app, requirement.formalizations, order)
+    result["formalizations_html"] = formalizations_to_html(current_app, requirement.formalizations)
     result["available_vars"] = var_collection.get_available_var_names_list(used_only=False, exclude_types={"ENUM"})
     result["additional_static_available_vars"] = VARIABLE_AUTOCOMPLETE_EXTENSION
 
@@ -85,11 +85,15 @@ def api_update():
     # Update a requirement
     rid = request.form.get("id", "")
     requirement = current_app.db.get_object(Requirement, rid)
+    order = request.form.get("formalizations_order") or "{}"
+    order_dict = json.loads(order)
+    logging.debug(order_dict)
+    for idx, formalization in requirement.formalizations.items():
+        formalization.order = order_dict[str(idx)]
+        logging.debug(f"Formalizaation of {idx} has order of {formalization.order}")
+
     error = False
     error_msg = ""
-    formalizations_order = request.form.get("formalizations_order")
-    requirement.formalizations_order = json.loads(formalizations_order)
-
     if requirement:
         logging.debug(f"Updating requirement: {requirement.rid}")
 
