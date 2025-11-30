@@ -464,6 +464,14 @@ function store_requirement(requirements_table) {
     formalizations[formalization["id"]] = formalization
   })
 
+  // Store the order of the formalizations to be loaded
+  let load_order = $(".accordion-item")
+    .map(function () {
+      return $(this).data("id")
+    })
+    .get()
+  console.log(load_order)
+
   let tag_comments = new Map()
   $("#tags_comments_table tr:gt(0)").each(function () {
     let tag = $(this).find("td:eq(0)").text()
@@ -482,6 +490,7 @@ function store_requirement(requirements_table) {
       tags: JSON.stringify(Object.fromEntries(tag_comments)),
       status: req_status,
       formalizations: JSON.stringify(formalizations),
+      formalizations_order: JSON.stringify(load_order),
     }, // Update requirements table on success or show an error message.
     function (data) {
       requirement_modal_content.LoadingOverlay("hide", true)
