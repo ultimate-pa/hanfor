@@ -20,7 +20,7 @@ class APattern:
 
     def __init__(self):
         self._pattern_text: str = "is an empty Pattern"
-        self.old_name: Union[str, None] = None
+        self.old_names: list[str] = []
         self._env: dict[str, list[str]] = {}
         self.group: str = "Empty"
         self.order: int = 0
@@ -58,7 +58,9 @@ class APattern:
         # TODO: search in old names for compatibility reasons
         if name in APattern.get_patterns():
             return cls.get_patterns()[name]
-        by_old_name = {p.old_name: p for p in cls.get_patterns().values()}
+        by_old_name: dict[str, APattern] = dict()
+        for pattern in cls.get_patterns().values():
+            by_old_name.update({old_name: pattern for old_name in pattern.old_names})
         if name in by_old_name:
             return by_old_name[name]
         raise KeyError(name)
@@ -99,7 +101,7 @@ class NotFormalizable(APattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "no pattern set"
-        self.old_name = "Plumbing"
+        self.old_names = ["Plumbing"]
         self._env: dict[str, list[str]] = {}
         self.group: str = "not_formalizable"
         self.order: int = 0
@@ -110,7 +112,7 @@ class Response(APattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that if {R} holds then {S} eventually holds"
-        self.old_name = "Response"
+        self.old_names = ["Response"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"]}
         self.group: str = "Order"
         self.order: int = 0
@@ -130,7 +132,7 @@ class ResponseChain12(APattern):
         self._pattern_text: str = (
             "it is always the case that if {R} holds then {S} eventually holds and is succeeded by {T}"
         )
-        self.old_name = "ResponseChain1-2"
+        self.old_names = ["ResponseChain1-2"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["bool"]}
         self.group: str = "Order"
         self.order: int = 2
@@ -156,7 +158,7 @@ class ConstrainedChain(APattern):
         self._pattern_text: str = (
             "it is always the case that if {R} holds then {S} eventually holds and is succeeded by {T}, where {U} does not hold between {S} and {T}"
         )
-        self.old_name = "ConstrainedChain"
+        self.old_names = ["ConstrainedChain"]
         self._env: dict[str, list[str]] = {"U": ["bool"], "R": ["bool"], "S": ["bool"], "T": ["bool"]}
         self.group: str = "Order"
         self.order: int = 4
@@ -182,7 +184,7 @@ class Precedence(APattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that if {R} holds then {S} previously held"
-        self.old_name = "Precedence"
+        self.old_names = ["Precedence"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"]}
         self.group: str = "Order"
         self.order: int = 4
@@ -202,7 +204,7 @@ class PrecedenceChain21(APattern):
         self._pattern_text: str = (
             "it is always the case that if {R} holds then {S} previously held and was preceded by {T}"
         )
-        self.old_name = "PrecedenceChain2-1"
+        self.old_names = ["PrecedenceChain2-1"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["bool"]}
         self.group: str = "Order"
         self.order: int = 5
@@ -238,7 +240,7 @@ class PrecedenceChain12(APattern):
         self._pattern_text: str = (
             "it is always the case that if {R} holds and is succeeded by {S}, then {T} previously held"
         )
-        self.old_name = "PrecedenceChain1-2"
+        self.old_names = ["PrecedenceChain1-2"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["bool"]}
         self.group: str = "Order"
         self.order: int = 6
@@ -256,7 +258,7 @@ class Universality(APattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that {R} holds"
-        self.old_name = "Universality"
+        self.old_names = ["Universality"]
         self._env: dict[str, list[str]] = {"R": ["bool"]}
         self.group: str = "Occurence"
         self.order: int = 0
@@ -274,7 +276,7 @@ class UniversalityDelay(APattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that {R} holds after at most {S} time units"
-        self.old_name = "UniversalityDelay"
+        self.old_names = ["UniversalityDelay"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"]}
         self.group: str = "Real-time"
         self.order: int = 5
@@ -292,7 +294,7 @@ class ExistenceBoundU(APattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "transitions to states in which {R} holds occur at most twice"
-        self.old_name = "BoundedExistence"
+        self.old_names = ["BoundedExistence"]
         self._env: dict[str, list[str]] = {"R": ["bool"]}
         self.group: str = "Occurence"
         self.order: int = 3
@@ -312,7 +314,7 @@ class Invariance(APattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that if {R} holds, then {S} holds as well"
-        self.old_name = "Invariant"
+        self.old_names = ["Invariant"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"]}
         self.group: str = "Occurence"
         self.order: int = 2
@@ -330,7 +332,7 @@ class Absence(APattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is never the case that {R} holds"
-        self.old_name = "Absence"
+        self.old_names = ["Absence"]
         self._env: dict[str, list[str]] = {"R": ["bool"]}
         self.group: str = "Occurence"
         self.order: int = 4
@@ -348,7 +350,7 @@ class ResponseDelay(APattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that if {R} holds, then {S} holds after at most {T} time units"
-        self.old_name = "BoundedResponse"
+        self.old_names = ["BoundedResponse"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"]}
         self.group: str = "Real-time"
         self.order: int = 0
@@ -366,7 +368,7 @@ class ReccurrenceBound(APattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that {R} holds at least every {S} time units"
-        self.old_name = "BoundedRecurrence"
+        self.old_names = ["BoundedRecurrence"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"]}
         self.group: str = "Real-time"
         self.order: int = 0
@@ -386,7 +388,7 @@ class DurationBoundU(APattern):
         self._pattern_text: str = (
             "it is always the case that once {R} becomes satisfied, it holds for less than {S} time units"
         )
-        self.old_name = "MaxDuration"
+        self.old_names = ["MaxDuration"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"]}
         self.group: str = "Real-time"
         self.order: int = 0
@@ -406,7 +408,7 @@ class ResponseBoundL12(APattern):
         self._pattern_text: str = (
             "it is always the case that if {R} holds for at least {S} time units, then {T} holds afterwards for at least {U} time units"
         )
-        self.old_name = "TimeConstrainedMinDuration"
+        self.old_names = ["TimeConstrainedMinDuration"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"], "T": ["bool"], "U": ["real"]}
         self.group: str = "Real-time"
         self.order: int = 0
@@ -424,7 +426,7 @@ class InvarianceBoundL2(APattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that if {R} holds, then {S} holds for at least {T} time units"
-        self.old_name = "BoundedInvariance"
+        self.old_names = ["BoundedInvariance"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"]}
         self.group: str = "Real-time"
         self.order: int = 0
@@ -444,7 +446,7 @@ class ResponseBoundL1(APattern):
         self._pattern_text: str = (
             "it is always the case that if {R} holds for at least {S} time units, then {T} holds afterwards"
         )
-        self.old_name = "TimeConstrainedInvariant"
+        self.old_names = ["TimeConstrainedInvariant"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"], "T": ["bool"]}
         self.group: str = "Real-time"
         self.order: int = 0
@@ -464,7 +466,7 @@ class DurationBoundL(APattern):
         self._pattern_text: str = (
             "it is always the case that once {R} becomes satisfied, it holds for at least {S} time units"
         )
-        self.old_name = "MinDuration"
+        self.old_names = ["MinDuration"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"]}
         self.group: str = "Real-time"
         self.order: int = 0
@@ -484,7 +486,7 @@ class ResponseDelayBoundL2(APattern):
         self._pattern_text: str = (
             "it is always the case that if {R} holds, then {S} holds after at most {T} time units for at least {U} time units"
         )
-        self.old_name = "ConstrainedTimedExistence"
+        self.old_names = ["ConstrainedTimedExistence"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"], "U": ["real"]}
         self.group: str = "Real-time"
         self.order: int = 0
@@ -513,7 +515,7 @@ class TriggerResponseBoundL1(APattern):
         self._pattern_text: str = (
             "it is always the case that after {R} holds for at least {S} time units and {T} holds, then {U} holds"
         )
-        self.old_name = "BndTriggeredEntryConditionPattern"
+        self.old_names = ["BndTriggeredEntryConditionPattern"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"], "T": ["bool"], "U": ["bool"]}
         self.group: str = "Real-time"
         self.order: int = 0
@@ -533,7 +535,7 @@ class TriggerResponseDelayBoundL1(APattern):
         self._pattern_text: str = (
             "it is always the case that after {R} holds for at least {S}  time units and {T} holds, then {U} holds after at most {V}  time units"
         )
-        self.old_name = "BndTriggeredEntryConditionPatternDelayed"
+        self.old_names = ["BndTriggeredEntryConditionPatternDelayed"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"], "T": ["bool"], "U": ["bool"], "V": ["real"]}
         self.group: str = "Real-time"
         self.order: int = 0
@@ -555,7 +557,7 @@ class EdgeResponseDelay(APattern):
         self._pattern_text: str = (
             "it is always the case that once {R} becomes satisfied, {S} holds after at most {T} time units"
         )
-        self.old_name = "EdgeResponsePatternDelayed"
+        self.old_names = ["EdgeResponsePatternDelayed"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"]}
         self.group: str = "Real-time"
         self.order: int = 0
@@ -575,7 +577,7 @@ class EdgeResponseBoundL2(APattern):
         self._pattern_text: str = (
             "it is always the case that once {R} becomes satisfied, {S} holds for at least {T} time units"
         )
-        self.old_name = "BndEdgeResponsePattern"
+        self.old_names = ["BndEdgeResponsePattern"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"]}
         self.group: str = "Real-time"
         self.order: int = 0
@@ -604,7 +606,7 @@ class EdgeResponseDelayBoundL2(APattern):
         self._pattern_text: str = (
             "it is always the case that once {R} becomes satisfied, {S} holds after at most {T} time units for at least {U} time units"
         )
-        self.old_name = "BndEdgeResponsePatternDelayed"
+        self.old_names = ["BndEdgeResponsePatternDelayed"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"], "U": ["real"]}
         self.group: str = "Real-time"
         self.order: int = 0
@@ -636,7 +638,7 @@ class EdgeResponseBoundU1(APattern):
         self._pattern_text: str = (
             "it is always the case that once {R} becomes satisfied and holds for at most {S} time units, then {T} holds  afterwards"
         )
-        self.old_name = "BndEdgeResponsePatternTU "
+        self.old_names = ["BndEdgeResponsePatternTU "]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"], "T": ["bool"]}
         self.group: str = "Real-time"
         self.order: int = 0
@@ -654,7 +656,7 @@ class Initialization(APattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that initially {R} holds"
-        self.old_name = "Initialization "
+        self.old_names = ["Initialization "]
         self._env: dict[str, list[str]] = {"R": ["bool"]}
         self.group: str = "Order"
         self.order: int = 6
@@ -672,7 +674,7 @@ class Persistence(APattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that if {R} holds, then it holds persistently"
-        self.old_name = "Persistence"
+        self.old_names = ["Persistence"]
         self._env: dict[str, list[str]] = {"R": ["bool"]}
         self.group: str = "Order"
         self.order: int = 7
@@ -692,7 +694,7 @@ class InvarianceDelay(APattern):
         self._pattern_text: str = (
             "it is always the case that if {R} holds, then {S} holds as well after at most {T} time units"
         )
-        self.old_name = "InvarianceDelay"
+        self.old_names = ["InvarianceDelay"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"]}
         self.group: str = "Real-time"
         self.order: int = 10
@@ -710,7 +712,7 @@ class InitialLoc(APattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "location {R} is an initial location"
-        self.old_name = "InitialLoc "
+        self.old_names = ["InitialLoc "]
         self._env: dict[str, list[str]] = {"R": ["bool"]}
         self.group: str = "Automaton"
         self.order: int = -1
@@ -722,7 +724,7 @@ class Toggle1(APattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that if {R} holds then {S} toggles {T}"
-        self.old_name = "Toggle1"
+        self.old_names = ["Toggle1"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["bool"]}
         self.group: str = "Legacy"
         self.order: int = 0
@@ -735,7 +737,7 @@ class Toggle2(APattern):
         self._pattern_text: str = (
             "it is always the case that if {R} holds then {S} toggles {T} at most {U} time units later"
         )
-        self.old_name = "Toggle2"
+        self.old_names = ["Toggle2"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["bool"], "U": ["real"]}
         self.group: str = "Legacy"
         self.order: int = 0
@@ -748,7 +750,7 @@ class BndEntryConditionPattern(APattern):
         self._pattern_text: str = (
             "it is always the case that after {R} holds for at least {S}  time units, then {T} holds"
         )
-        self.old_name = "BndEntryConditionPattern"
+        self.old_names = ["BndEntryConditionPattern"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"], "T": ["bool"]}
         self.group: str = "Legacy"
         self.order: int = 0
@@ -761,7 +763,7 @@ class ResponseChain21(APattern):
         self._pattern_text: str = (
             "it is always the case that if {R} holds and is succeeded by {S}, then {T} eventually holds after {S}"
         )
-        self.old_name = "ResponseChain2-1"
+        self.old_names = ["ResponseChain2-1"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["bool"]}
         self.group: str = "Legacy"
         self.order: int = 1
@@ -772,7 +774,7 @@ class Existence(APattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "{R} eventually holds"
-        self.old_name = "Existence"
+        self.old_names = ["Existence"]
         self._env: dict[str, list[str]] = {"R": ["bool"]}
         self.group: str = "Legacy"
         self.order: int = 1
@@ -783,7 +785,7 @@ class Transition(APattern, AAutomatonPattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "if in location {R} then transition to {S} is enabled ."
-        self.old_name = "Transition"
+        self.old_names = ["Transition"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"]}
         self.group: str = "Automaton"
         self.order: int = 0
@@ -795,7 +797,7 @@ class TransitionG(APattern, AAutomatonPattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "if in location {R} then transition to {S} is enabled if guard {V} holds."
-        self.old_name = "TransitionG"
+        self.old_names = ["TransitionG"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "V": "bool"}
         self.group: str = "Automaton"
         self.order: int = 1
@@ -807,7 +809,7 @@ class TransitionLG(APattern, AAutomatonPattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "if in location {R} for at least {T} transition to {S} is enabled if guard {V} holds."
-        self.old_name = "TransitionLG"
+        self.old_names = ["TransitionLG"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": "real", "V": "bool"}
         self.group: str = "Automaton"
         self.order: int = 2
@@ -819,7 +821,7 @@ class TransitionUG(APattern, AAutomatonPattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "if in location {R} for at most {T} transition to {S} is enabled if guard {V} holds."
-        self.old_name = "TransitionUG"
+        self.old_names = ["TransitionUG"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": "real", "V": "bool"}
         self.group: str = "Automaton"
         self.order: int = 3
@@ -831,7 +833,7 @@ class TransitionL(APattern, AAutomatonPattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "if in location {R} for at least {T} transition to {S} is enabled ."
-        self.old_name = "TransitionL"
+        self.old_names = ["TransitionL"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": "real"}
         self.group: str = "Automaton"
         self.order: int = 4
@@ -843,7 +845,7 @@ class TransitionU(APattern, AAutomatonPattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "if in location {R} for at most {T} transition to {S} is enabled ."
-        self.old_name = "TransitionU"
+        self.old_names = ["TransitionU"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": "real"}
         self.group: str = "Automaton"
         self.order: int = 5
@@ -855,7 +857,7 @@ class TransitionE(APattern, AAutomatonPattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "if in location {R} then transition to {S} if event {U} fires ."
-        self.old_name = "TransitionE"
+        self.old_names = ["TransitionE"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "U": "bool"}
         self.group: str = "Automaton"
         self.order: int = 6
@@ -867,7 +869,7 @@ class TransitionGE(APattern, AAutomatonPattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "if in location {R} then transition to {S} if event {U} fires and guard {V} holds."
-        self.old_name = "TransitionGE"
+        self.old_names = ["TransitionGE"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "V": "bool", "U": "bool"}
         self.group: str = "Automaton"
         self.order: int = 7
@@ -881,7 +883,7 @@ class TransitionLGE(APattern, AAutomatonPattern):
         self._pattern_text: str = (
             "if in location {R} for at least {T} transition to {S} if event {U} fires and guard {V} holds."
         )
-        self.old_name = "TransitionLGE"
+        self.old_names = ["TransitionLGE"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": "real", "V": "bool", "U": "bool"}
         self.group: str = "Automaton"
         self.order: int = 8
@@ -895,7 +897,7 @@ class TransitionUGE(APattern, AAutomatonPattern):
         self._pattern_text: str = (
             "if in location {R} for at most {T} transition to {S} if event {U} fires and guard {V} holds."
         )
-        self.old_name = "TransitionUGE"
+        self.old_names = ["TransitionUGE"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": "real", "V": "bool", "U": "bool"}
         self.group: str = "Automaton"
         self.order: int = 9
@@ -907,7 +909,7 @@ class TransitionLE(APattern, AAutomatonPattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "if in location {R} for at least {T} transition to {S} if event {U} fires ."
-        self.old_name = "TransitionLE"
+        self.old_names = ["TransitionLE"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": "real", "U": "bool"}
         self.group: str = "Automaton"
         self.order: int = 10
@@ -919,7 +921,7 @@ class TransitionUE(APattern, AAutomatonPattern):
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "if in location {R} for at most {T} transition to {S} if event {U} fires ."
-        self.old_name = "TransitionUE"
+        self.old_names = ["TransitionUE"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": "real", "U": "bool"}
         self.group: str = "Automaton"
         self.order: int = 11
