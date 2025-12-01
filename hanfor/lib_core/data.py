@@ -330,7 +330,7 @@ class Requirement:
 class Formalization:
     def __init__(self, fid: int):
         self.id: int = fid
-        self.order: int = fid
+        self.order: int = 0
         self.scoped_pattern = ScopedPattern()
         self.expressions_mapping: dict[str, Expression] = dict()
         self.type_inference_errors = dict()

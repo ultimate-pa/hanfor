@@ -89,7 +89,7 @@ def api_update():
     order_dict = json.loads(order)
     logging.debug(order_dict)
     for idx, formalization in requirement.formalizations.items():
-        formalization.order = order_dict[str(idx)]
+        formalization.order = order_dict.get(str(idx)) or 0
         logging.debug(f"Formalizaation of {idx} has order of {formalization.order}")
 
     error = False
