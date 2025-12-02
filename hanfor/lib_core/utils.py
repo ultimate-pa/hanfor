@@ -9,12 +9,12 @@ from colorama import Style, Fore
 from terminaltables import DoubleTable
 
 from flask import Response
+
+from configuration.patterns import APattern
 from lib_core import boogie_parsing
 from config import PATTERNS_GROUP_ORDER  # TODO should this be in the config?
 from hanfor_flask import HanforFlask
-from lib_core.data import Requirement, VariableCollection
-from configuration.patterns import PATTERNS
-
+from lib_core.data import Requirement, VariableCollection, Variable
 
 default_scope_options = """
     <option value="NONE">None</option>
@@ -64,17 +64,13 @@ def get_default_pattern_options():
     opt_group_lists = defaultdict(list)
     opt_groups = defaultdict(str)
     # Collect pattern in groups.
-    for name, pattern_dict in PATTERNS.items():
-        opt_group_lists[pattern_dict["group"]].append((pattern_dict["pattern_order"], name, pattern_dict["pattern"]))
+    for name, pattern in APattern.get_patterns().items():
+        opt_group_lists[pattern.group].append((pattern.order, name, pattern._pattern_text))
 
     # Sort groups and concatenate pattern options
     for group_name, opt_list in opt_group_lists.items():
         for _, name, pattern in sorted(opt_list):
-            option = (
-                '<option value="{name}">{pattern}</option>'.format(name=name, pattern=pattern)
-                .replace("{", '"{')
-                .replace("}", '}"')
-            )
+            option = f'<option value="{name}">{pattern}</option>'
             opt_groups[group_name] += option
 
     # Enclose pattern options by their groups.
@@ -119,6 +115,7 @@ def formalization_html(
 
     # Unset remaining vars.
     html_template = re.sub(r"__expr_._content__", "", html_template)
+    html_template = html_template.replace("\n", "")
 
     return html_template
 
@@ -188,7 +185,7 @@ def generate_req_file_content(
     # Get requirements
     requirements = get_requirements(app, filter_list=filter_list, invert_filter=invert_filter)
 
-    var_collection = VariableCollection(app)
+    var_collection = VariableCollection(app.db.get_objects(Variable).values(), app.db.get_objects(Requirement).values())
     available_vars = []
     if filter_list is not None:
         # Filter the available vars to only include the ones actually used by a requirement.
