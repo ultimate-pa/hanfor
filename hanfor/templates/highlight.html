@@ -1,0 +1,19 @@
+<b style="cursor:pointer;"
+   title="{{ var }} [{{ score }}]"
+   onclick="
+        navigator.clipboard.writeText('{{ var }}');
+        const tip = document.createElement('span');
+        tip.innerText = 'Copied!';
+        tip.style.position = 'absolute';
+        tip.style.background = 'yellow';
+        tip.style.padding = '2px 4px';
+        tip.style.borderRadius = '3px';
+        tip.style.zIndex = '9999';
+        document.body.appendChild(tip);
+        const rect = this.getBoundingClientRect();
+        tip.style.left = rect.left + 'px';
+        tip.style.top = (rect.top - 25) + 'px';
+        setTimeout(() => tip.remove(), 1000);
+   ">
+    {{ text }}
+</b>

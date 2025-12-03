@@ -1042,7 +1042,7 @@ function load_requirement(row_idx) {
 
     // Visible information
     $("#requirement_modal_title").html(data.id + ": " + data.type)
-    $('#description_textarea').html(data.desc_highlighted);
+    $("#description_textarea").html(data.desc_highlighted).change()
     $("#add_guess_description").text(data.desc).change()
 
     // Parse the formalizations

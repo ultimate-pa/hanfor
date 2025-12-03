@@ -11,6 +11,7 @@ from lib_core.utils import (
     formalization_html,
     formalizations_to_html,
     default_scope_options,
+    highlight_desc_variable,
 )
 from configuration.defaults import Color
 from guesser.Guess import Guess
@@ -64,6 +65,7 @@ def api_index():
     result["formalizations_html"] = formalizations_to_html(current_app, requirement.formalizations)
     result["available_vars"] = var_collection.get_available_var_names_list(used_only=False, exclude_types={"ENUM"})
     result["additional_static_available_vars"] = VARIABLE_AUTOCOMPLETE_EXTENSION
+    result["desc_highlighted"] = highlight_desc_variable(result["desc"], result["available_vars"])
 
     if requirement:
         return result

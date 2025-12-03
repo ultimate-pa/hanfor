@@ -16,6 +16,15 @@ from config import PATTERNS_GROUP_ORDER  # TODO should this be in the config?
 from hanfor_flask import HanforFlask
 from lib_core.data import Requirement, VariableCollection, Variable
 
+from jinja2 import Environment, FileSystemLoader
+from rapidfuzz import process, fuzz
+from itertools import combinations, permutations, product
+
+TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
+env = Environment(loader=FileSystemLoader(TEMPLATE_DIR), autoescape=False)
+highlight_tpl = env.get_template("highlight.html")
+
+
 default_scope_options = """
     <option value="NONE">None</option>
     <option value="GLOBALLY">Globally</option>
@@ -371,3 +380,251 @@ def choice(choices: list[str], default: str) -> str:
             return choices[c]
 
         print('Illegal choice "' + str(c) + '", choose again')
+
+
+def __normalize_variable(var: str) -> set[str]:
+    """Normalize a variable name by splitting camelCase, preserving number+letter tokens
+    (e.g. "300M"), removing separators, and returning a lowercase set of words.
+
+    :param var: Variable name to normalize
+    :type var: str
+    :return: Set of normalized lowercase words
+    :rtype: set[str]
+    """
+
+    var = var.replace("_", " ").replace("-", " ")
+
+    def camel_case_split(match) -> str:
+        word = match.group()
+        if re.fullmatch(r"\d+[A-Za-z]+", word):
+            return word
+        return re.sub(r"(?<=[a-z])(?=[A-Z])", " ", word)
+
+    var = re.sub(r"\b\w+\b", camel_case_split, var)
+    var = re.sub(r"\s+", " ", var)
+    return set(var.lower().strip().split())
+
+
+def __normalize_and_group_positions_from_desc(desc: str) -> dict[str, list[tuple]]:
+    """Extract all words from a description, split camelCase tokens, and map each
+    lowercase sub-word to its absolute character positions in the text.
+
+    :param desc: Input description text
+    :type desc: str
+    :return: Dict mapping each normalized word to a list of (start, end) positions
+    :rtype: dict[str, list[tuple]]
+    """
+
+    word_positions = defaultdict(list)
+
+    for match in re.finditer(r"\b\w+\b", desc):
+        word = match.group()
+        start = match.start()
+        split_indices = [0] + [m.start() for m in re.finditer(r"(?<=[a-z])(?=[A-Z])", word)] + [len(word)]
+
+        for i in range(len(split_indices) - 1):
+            s = split_indices[i]
+            e = split_indices[i + 1]
+            sub_word = word[s:e].lower()
+            word_positions[sub_word].append((start + s, start + e))
+
+    return word_positions
+
+
+def __words_between(pos1: (int, int), pos2: (int, int), word_positions: dict[str, list[tuple]]) -> int:
+    """Count the number of words occurring between two character positions.
+
+    :param pos1: Tuple of (start, end) indices for the first word
+    :type pos1: tuple[int, int]
+    :param pos2: Tuple of (start, end) indices for the second word
+    :type pos2: tuple[int, int]
+    :param word_positions: Dictionary mapping words to a list of their (start, end) positions
+    :type word_positions: dict[str, list[tuple[int, int]]]
+    :return: Number of words found between pos1 and pos2
+    :rtype: int
+    """
+
+    start, end = pos1[1], pos2[0]
+    count = 0
+    for positions in word_positions.values():
+        for p in positions:
+            if start <= p[0] < end:
+                count += 1
+    return count
+
+
+def __generate_all_ascending_combinations(
+    pos_score_dict: dict, var_word_count: int, threshold: float
+) -> list[tuple[int, list[tuple[int, int]]]]:
+    """Generate all ascending combinations of variable word positions with scores.
+
+    Ensures that positions are in ascending order (no overlap), applies a missing-word
+    penalty, and filters combinations by a minimum score threshold.
+
+    :param pos_score_dict: Dict mapping each word to a list of (position, score) tuples
+    :type pos_score_dict: dict
+    :param var_word_count: Total number of words in the variable
+    :type var_word_count: int
+    :param threshold: Minimum score required to keep a combination
+    :type threshold: float
+    :return: List of tuples (score, positions) for valid combinations
+    :rtype: list[tuple[int, list[tuple[int, int]]]]
+    """
+
+    combos = []
+    for r in range(1, len(pos_score_dict) + 1):
+        for group_combo in combinations(list(pos_score_dict.keys()), r):
+            for perm in permutations(group_combo):
+                group_sets = [pos_score_dict[g] for g in perm]
+                for combo in product(*group_sets):
+                    positions = [p for (p, _) in combo]
+                    scores = [s for (_, s) in combo]
+
+                    ok = True
+                    for (a_s, a_e), (b_s, b_e) in zip(positions, positions[1:]):
+                        if b_s < a_e:
+                            ok = False
+                            break
+                    if not ok:
+                        continue
+
+                    # missing-word penalty
+                    missing = (var_word_count - len(positions)) * 20
+                    score = (sum(scores) / len(scores)) - missing
+
+                    if score >= threshold:
+                        combos.append((score, positions))
+    return combos
+
+
+def __filter_combos(
+    combos: list[tuple[float, list[tuple[int, int]]]], max_gap: int, word_positions: dict[str, list[tuple]]
+) -> list[tuple[float, int, int, list[tuple[int, int]]]]:
+    """Filter combinations by maximum word gap, remove overlapping lower-score segments,
+    and select final segments with start and end positions.
+
+    :param combos: List of (score, positions) tuples
+    :type combos: list[tuple[float, list[tuple[int,int]]]]
+    :param max_gap: Maximum number of words allowed between consecutive positions
+    :type max_gap: int
+    :param word_positions: Dictionary of word -> list of (start, end) positions in description
+    :type word_positions: dict[str, list[tuple[int,int]]]
+    :return: List of (score, start, end, positions) for filtered combinations
+    :rtype: list[tuple[float, int, int, list[tuple[int,int]]]]
+    """
+
+    gap_filtered = []
+    for score, positions in combos:
+        if len(positions) <= 1:
+            gap_filtered.append((score, positions))
+            continue
+
+        ok = True
+        for p1, p2 in zip(positions, positions[1:]):
+            if __words_between(p1, p2, word_positions) > max_gap:
+                ok = False
+                break
+
+        if ok:
+            gap_filtered.append((score, positions))
+
+    # Remove overlapping if lower score
+    gap_filtered = sorted(gap_filtered, key=lambda x: -x[0])
+    cleaned = []
+    for score, positions in gap_filtered:
+        overlap = False
+        for _, k_pos in cleaned:
+            for s1, e1 in positions:
+                for s2, e2 in k_pos:
+                    if not (e1 <= s2 or s1 >= e2):
+                        overlap = True
+                        break
+                if overlap:
+                    break
+            if overlap:
+                break
+        if not overlap:
+            cleaned.append((score, positions))
+
+    # Select segments for this variable
+    selected = []
+    for score, positions in cleaned:
+        start = min(p[0] for p in positions)
+        end = max(p[1] for p in positions)
+        selected.append((score, start, end, positions))
+
+    return selected
+
+
+def highlight_desc_variable(
+    desc: str, variables: list[str], threshold: int = 70, max_gap: int = 1, min_coverage: float = 0.55
+) -> str:
+    """Highlight variable names in a description using fuzzy matching,
+    camelCase splitting, and gap/overlap handling.
+
+    :param desc: Description text to search in
+    :type desc: str
+    :param variables: List of variable names to highlight
+    :type variables: list[str]
+    :param threshold: Minimum score for a match to be considered
+    :type threshold: int
+    :param max_gap: Maximum number of words allowed between parts of a variable
+    :type max_gap: int
+    :param min_coverage: Minimum fraction of variable words that must be matched
+    :type min_coverage: float
+    :return: HTML string with highlighted variable matches
+    :rtype: str
+    """
+
+    # Normalize description and build word positions
+    word_positions = __normalize_and_group_positions_from_desc(desc)
+    desc_words = list(word_positions.keys())
+    final_matches = []
+
+    for var in variables:
+        words = __normalize_variable(var)
+
+        # Fuzzy match all pieces of the variable
+        var_dict = {}
+        for word_var in words:
+            matches = list(process.extract_iter(query=word_var, choices=desc_words, scorer=fuzz.ratio, score_cutoff=80))
+            if matches:
+                var_dict[word_var] = [
+                    {"score": score, "pos": word_positions[word_desc]} for word_desc, score, _ in matches
+                ]
+
+        # Skip variables with insufficient coverage
+        if not var_dict or len(var_dict) / len(words) < min_coverage:
+            continue
+
+        # Build position-score dictionary
+        pos_score_dict = {v: [(p, e["score"]) for e in lst for p in e["pos"]] for v, lst in var_dict.items()}
+
+        # Generate all ascending combinations and filter them
+        var_word_count = len(words)
+        combos = __generate_all_ascending_combinations(pos_score_dict, var_word_count, threshold)
+        selected = __filter_combos(combos, max_gap, word_positions)
+
+        # Add matches for this variable
+        for score, start, end, _ in selected:
+            matched_text = desc[start:end]
+            final_matches.append((start, end, matched_text, var, score))
+
+    # Remove overlaps between different variables
+    final_matches.sort(key=lambda x: (-x[4], x[0], x[1]))
+    result, occupied = [], []
+    for start, end, matched_text, var, score in final_matches:
+        if not any(not (end <= os or start >= oe) for os, oe in occupied):
+            result.append((start, end, matched_text, var, score))
+            occupied.append((start, end))
+    result.sort(key=lambda x: x[0])
+
+    # Build HTML output
+    out, last = [], 0
+    for s, e, matched_text, var, score in result:
+        out.append(desc[last:s])
+        out.append(highlight_tpl.render(text=matched_text, var=var, score=score))
+        last = e
+    out.append(desc[last:])
+
+    return "".join(out)
