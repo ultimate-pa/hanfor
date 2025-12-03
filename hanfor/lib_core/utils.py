@@ -610,21 +610,51 @@ def highlight_desc_variable(
             matched_text = desc[start:end]
             final_matches.append((start, end, matched_text, var, score))
 
-    # Remove overlaps between different variables
-    final_matches.sort(key=lambda x: (-x[4], x[0], x[1]))
-    result, occupied = [], []
+    # Sort intervals by score (desc), length (desc), start position (asc)
+    final_matches.sort(key=lambda x: (-x[4], -(x[1] - x[0]), x[0]))
+    kept_intervals = []
+
+    # Combine similar variables if intervals are exactly the same
     for start, end, matched_text, var, score in final_matches:
-        if not any(not (end <= os or start >= oe) for os, oe in occupied):
-            result.append((start, end, matched_text, var, score))
-            occupied.append((start, end))
-    result.sort(key=lambda x: x[0])
+        overlapping = []
+        for i, (s2, e2, _) in enumerate(kept_intervals):
+            if start < e2 and end > s2:
+                overlapping.append((i, s2, e2))
 
-    # Build HTML output
+        if not overlapping:
+            kept_intervals.append((start, end, [(var, score)]))
+        else:
+            merged = False
+            for i, s2, e2 in overlapping:
+                if start == s2 and end == e2:
+                    kept_intervals[i][2].append((var, score))
+                    merged = True
+                    break
+            if merged:
+                continue
+
+            # Partial overlap -> keep only the best (score, length)
+            for i, s2, e2 in overlapping:
+                main_vars = kept_intervals[i][2]
+                main_score = main_vars[0][1]
+                main_len = e2 - s2
+                curr_len = end - start
+                if score > main_score or (score == main_score and curr_len > main_len):
+                    kept_intervals[i] = (start, end, [(var, score)])
+
+    # Build output
     out, last = [], 0
-    for s, e, matched_text, var, score in result:
+    for s, e, vars_info in sorted(kept_intervals):
         out.append(desc[last:s])
-        out.append(highlight_tpl.render(text=matched_text, var=var, score=score))
-        last = e
-    out.append(desc[last:])
+        vars_info.sort(key=lambda x: -x[1])
+        main_var, main_score = vars_info[0]
+        extra_vars = vars_info[1:]
 
-    return "".join(out)
+        out.append(
+            highlight_tpl.render(text=desc[s:e], main_var=main_var, main_score=main_score, extra_vars=extra_vars)
+        )
+        last = e
+
+    out.append(desc[last:])
+    html_result = "".join(out)
+    return html_result

@@ -1,4 +1,25 @@
 <b style="cursor:pointer;"
+   title="{{ main_var }} [{{ main_score }}]"
+   onclick="
+        navigator.clipboard.writeText('{{main_var}}');
+        const tip = document.createElement('span');
+        tip.innerText = 'Copied!';
+        tip.style.position = 'absolute';
+        tip.style.background = 'yellow';
+        tip.style.padding = '2px 4px';
+        tip.style.borderRadius = '3px';
+        tip.style.zIndex = '9999';
+        document.body.appendChild(tip);
+        const rect = this.getBoundingClientRect();
+        tip.style.left = rect.left + 'px';
+        tip.style.top = (rect.top - 25) + 'px';
+        setTimeout(() => tip.remove(), 1000);
+   ">
+    <span>'</span>{{ text }}<span>'</span>
+</b>
+
+{% for var, score in extra_vars %}
+<b style="cursor:pointer; margin-left:2px;"
    title="{{ var }} [{{ score }}]"
    onclick="
         navigator.clipboard.writeText('{{ var }}');
@@ -15,5 +36,6 @@
         tip.style.top = (rect.top - 25) + 'px';
         setTimeout(() => tip.remove(), 1000);
    ">
-    {{ text }} <i>[{{ var }}:{{ score }}]</i>
+    [{{ loop.index }}]
 </b>
+{% endfor %}
