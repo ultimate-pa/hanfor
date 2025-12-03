@@ -205,7 +205,7 @@ class Requirement:
 
         if (
             self.formalizations[formalization_id].scoped_pattern.scope != Scope.NONE
-            and self.formalizations[formalization_id].scoped_pattern.pattern.name != "NotFormalizable"
+            and self.formalizations[formalization_id].scoped_pattern.pattern.get_name() != "NotFormalizable"
         ):
             self.tags[standard_tags["TAG_has_formalization"]] = ""
         else:
@@ -429,7 +429,7 @@ class Formalization:
     def to_dict(self):
         d = {
             "scope": self.scoped_pattern.scope.name,
-            "pattern": self.scoped_pattern.pattern.name,
+            "pattern": self.scoped_pattern.pattern.get_name(),
             "expressions": {key: exp.raw_expression for key, exp in self.expressions_mapping.items()},
         }
 
@@ -540,6 +540,12 @@ class Pattern:
         self.pattern = APattern.get_pattern(name)._pattern_text
         self.environment = APattern.get_pattern(name)._env
 
+    def get_name(self):
+        # TODO: hack to update the pattern names to new names
+        #  (move to database update when we are able do that)
+        self.name = APattern.get_pattern(self.name).__class__.__name__
+        return self.name
+
     def is_instantiatable(self):
         return self.name != "NotFormalizable"
 
@@ -600,14 +606,10 @@ class ScopedPattern:
         return self.regex_pattern
 
     def get_scope_slug(self):
-        if self.scope:
-            return self.scope.get_slug()
-        return "None"
+        return self.scope.get_slug()
 
     def get_pattern_slug(self):
-        if self.pattern:
-            return self.pattern.name
-        return "None"
+        return self.pattern.get_name()
 
     def __str__(self):
         return str(self.scope) + ", " + str(self.pattern)

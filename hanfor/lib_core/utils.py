@@ -107,12 +107,10 @@ def formalization_html(
         form_desc += "... (click to open)"
     html_template = html_template.replace("__formal_desc__", form_desc)
 
-    # Selected scope and pattern:
-    if formalization.scoped_pattern is not None:
-        scope = formalization.scoped_pattern.get_scope_slug()
-        pattern = formalization.scoped_pattern.get_pattern_slug()
-        scope_options = scope_options.replace('value="{}"'.format(scope), 'value="{}" selected'.format(scope))
-        pattern_options = pattern_options.replace('value="{}"'.format(pattern), 'value="{}" selected'.format(pattern))
+    scope = formalization.scoped_pattern.get_scope_slug()
+    pattern = formalization.scoped_pattern.get_pattern_slug()
+    scope_options = scope_options.replace('value="{}"'.format(scope), 'value="{}" selected'.format(scope))
+    pattern_options = pattern_options.replace('value="{}"'.format(pattern), 'value="{}" selected'.format(pattern))
     html_template = html_template.replace("__scope_options__", scope_options)
     html_template = html_template.replace("__pattern__options__", pattern_options)
 
