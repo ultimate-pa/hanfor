@@ -382,7 +382,7 @@ def choice(choices: list[str], default: str) -> str:
         print('Illegal choice "' + str(c) + '", choose again')
 
 
-def __normalize_variable(var: str) -> set[str]:
+def _normalize_variable(var: str) -> set[str]:
     """Normalize a variable name by splitting camelCase, preserving number+letter tokens
     (e.g. "300M"), removing separators, and returning a lowercase set of words.
 
@@ -398,14 +398,14 @@ def __normalize_variable(var: str) -> set[str]:
         word = match.group()
         if re.fullmatch(r"\d+[A-Za-z]+", word):
             return word
-        return re.sub(r"(?<=[a-z])(?=[A-Z])", " ", word)
+        return re.sub(r"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])", " ", word)
 
     var = re.sub(r"\b\w+\b", camel_case_split, var)
     var = re.sub(r"\s+", " ", var)
     return set(var.lower().strip().split())
 
 
-def __normalize_and_group_positions_from_desc(desc: str) -> dict[str, list[tuple]]:
+def _normalize_and_group_positions_from_desc(desc: str) -> dict[str, list[tuple]]:
     """Extract all words from a description, split camelCase tokens, and map each
     lowercase sub-word to its absolute character positions in the text.
 
@@ -416,6 +416,8 @@ def __normalize_and_group_positions_from_desc(desc: str) -> dict[str, list[tuple
     """
 
     word_positions = defaultdict(list)
+
+    desc = desc.replace("_", " ").replace("-", " ")
 
     for match in re.finditer(r"\b\w+\b", desc):
         word = match.group()
@@ -431,7 +433,7 @@ def __normalize_and_group_positions_from_desc(desc: str) -> dict[str, list[tuple
     return word_positions
 
 
-def __words_between(pos1: (int, int), pos2: (int, int), word_positions: dict[str, list[tuple]]) -> int:
+def _words_between(pos1: (int, int), pos2: (int, int), word_positions: dict[str, list[tuple]]) -> int:
     """Count the number of words occurring between two character positions.
 
     :param pos1: Tuple of (start, end) indices for the first word
@@ -453,7 +455,7 @@ def __words_between(pos1: (int, int), pos2: (int, int), word_positions: dict[str
     return count
 
 
-def __generate_all_ascending_combinations(
+def _generate_all_ascending_combinations(
     pos_score_dict: dict, var_word_count: int, threshold: float
 ) -> list[tuple[int, list[tuple[int, int]]]]:
     """Generate all ascending combinations of variable word positions with scores.
@@ -497,7 +499,7 @@ def __generate_all_ascending_combinations(
     return combos
 
 
-def __filter_combos(
+def _filter_combos(
     combos: list[tuple[float, list[tuple[int, int]]]], max_gap: int, word_positions: dict[str, list[tuple]]
 ) -> list[tuple[float, int, int, list[tuple[int, int]]]]:
     """Filter combinations by maximum word gap, remove overlapping lower-score segments,
@@ -521,7 +523,7 @@ def __filter_combos(
 
         ok = True
         for p1, p2 in zip(positions, positions[1:]):
-            if __words_between(p1, p2, word_positions) > max_gap:
+            if _words_between(p1, p2, word_positions) > max_gap:
                 ok = False
                 break
 
@@ -577,12 +579,12 @@ def highlight_desc_variable(
     """
 
     # Normalize description and build word positions
-    word_positions = __normalize_and_group_positions_from_desc(desc)
+    word_positions = _normalize_and_group_positions_from_desc(desc)
     desc_words = list(word_positions.keys())
     final_matches = []
 
     for var in variables:
-        words = __normalize_variable(var)
+        words = _normalize_variable(var)
 
         # Fuzzy match all pieces of the variable
         var_dict = {}
@@ -602,8 +604,8 @@ def highlight_desc_variable(
 
         # Generate all ascending combinations and filter them
         var_word_count = len(words)
-        combos = __generate_all_ascending_combinations(pos_score_dict, var_word_count, threshold)
-        selected = __filter_combos(combos, max_gap, word_positions)
+        combos = _generate_all_ascending_combinations(pos_score_dict, var_word_count, threshold)
+        selected = _filter_combos(combos, max_gap, word_positions)
 
         # Add matches for this variable
         for score, start, end, _ in selected:
