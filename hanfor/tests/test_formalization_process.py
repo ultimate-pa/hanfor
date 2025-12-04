@@ -276,6 +276,7 @@ class TestFormalizationProcess(TestCase):
             "api/req/add_formalization_from_guess",
             data={
                 "requirement_id": "SysRS FooXY_42",
+                "formalizations_order": "{}",
                 "scope": "GLOBALLY",
                 "pattern": "Response",
                 "mapping": '{"R": "", "S": ""}',
