@@ -1316,14 +1316,14 @@ class TransitionSystem:
             if location.initial:
                 # add initial pattern
                 formalizations.append(
-                    {"scope": Scope.GLOBALLY.name, "pattern": "InitialLoc", "expressions": {"R": location.label}}
+                    {"scope": Scope.GLOBALLY.name, "pattern": "InitialLoc", "expression_mapping": {"R": location.label}}
                 )
             if location.invariant != "":
                 formalizations.append(
                     {
                         "scope": Scope.GLOBALLY.name,
                         "pattern": "Invariant",
-                        "expressions": {"R": location.label, "S": location.invariant},
+                        "expression_mapping": {"R": location.label, "S": location.invariant},
                     }
                 )
             if location.clock_invariant != "":
@@ -1337,7 +1337,11 @@ class TransitionSystem:
                     {
                         "scope": Scope.GLOBALLY.name,
                         "pattern": pattern_name,
-                        "expressions": {"R": location.label, "S": location.invariant, "S": location.clock_invariant[2:]},
+                        "expression_mapping": {
+                            "R": location.label,
+                            "S": location.invariant,
+                            "S": location.clock_invariant[2:],
+                        },
                     }
                 )
 
@@ -1360,6 +1364,8 @@ class TransitionSystem:
                 pattern_name += "E"
                 expressions["U"] = transition.event
 
-            formalizations.append({"scope": Scope.GLOBALLY.name, "pattern": pattern_name, "expressions": expressions})
+            formalizations.append(
+                {"scope": Scope.GLOBALLY.name, "pattern": pattern_name, "expression_mapping": expressions}
+            )
 
         return formalizations

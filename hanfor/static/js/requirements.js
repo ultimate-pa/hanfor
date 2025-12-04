@@ -940,13 +940,15 @@ function init_modal() {
 
   $("#add_copied_formalization").click(function () {
     const cookie = getCookie("copied_formalization")
-    let formalization = {}
+    let formalizations = []
     if (cookie) {
-      formalization = JSON.parse(cookie)
+      formalizations = JSON.parse(cookie)
     }
-    console.log(formalization)
+    console.log(formalizations)
 
-    add_formalization(formalization)
+    formalizations.forEach((formalization) => {
+      add_formalization(formalization)
+    })
   })
 
   $(".modal").on("hidden.bs.modal", function () {
@@ -1302,7 +1304,7 @@ function copy_formalization(formal_id) {
   const d = new Date()
   d.setTime(d.getTime() + 8 * 3600 * 1000)
   let expires = "expires=" + d.toUTCString()
-  document.cookie = "copied_formalization=" + JSON.stringify(formalization) + ";" + expires + ";path=/"
+  document.cookie = "copied_formalization=" + JSON.stringify([formalization]) + ";" + expires + ";path=/"
   localStorage.setItem("cookieUpdate", Date.now())
   setCopyBtnEnable()
   // TODO give some feedback
