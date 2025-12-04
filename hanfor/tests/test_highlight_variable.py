@@ -1,5 +1,5 @@
 import unittest
-from lib_core.utils import (
+from requirements.desc_highlighting import (
     _normalize_variable,
     _normalize_and_group_positions_from_desc,
     _words_between,

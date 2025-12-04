@@ -3,7 +3,6 @@ import logging
 import json
 import datetime
 
-
 from hanfor_flask import current_app, nocache, HanforFlask
 from lib_core.data import Requirement, VariableCollection, SessionValue, RequirementEditHistory, Tag, Variable
 from lib_core.utils import (
@@ -11,13 +10,13 @@ from lib_core.utils import (
     formalization_html,
     formalizations_to_html,
     default_scope_options,
-    highlight_desc_variable,
 )
 from configuration.defaults import Color
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from configuration.patterns import APattern, VARIABLE_AUTOCOMPLETE_EXTENSION
 
+from requirements.desc_highlighting import get_highlighted_desc, updated_variables
 
 blueprint = Blueprint("requirements", __name__, template_folder="templates", url_prefix="/")
 api_blueprint = Blueprint("api_requirements", __name__, url_prefix="/api/req")
@@ -65,7 +64,7 @@ def api_index():
     result["formalizations_html"] = formalizations_to_html(current_app, requirement.formalizations)
     result["available_vars"] = var_collection.get_available_var_names_list(used_only=False, exclude_types={"ENUM"})
     result["additional_static_available_vars"] = VARIABLE_AUTOCOMPLETE_EXTENSION
-    result["desc_highlighted"] = highlight_desc_variable(result["desc"], result["available_vars"])
+    result["desc_highlighted"] = get_highlighted_desc(rid)
 
     if requirement:
         return result
@@ -153,6 +152,7 @@ def api_update():
             return {"success": False, "errormsg": error_msg}
         else:
             current_app.db.update()
+            updated_variables(variable_collection.new_vars)
             return requirement.to_dict(), 200
 
 
@@ -250,6 +250,8 @@ def api_new_formalization():
     current_app.db.update()
     add_msg_to_flask_session_log(current_app, "Added new Formalization to requirement", [requirement])
     result = get_formalization_template(current_app.config["TEMPLATES_FOLDER"], formalization_id, formalization)
+
+    updated_variables(variable_collection.new_vars)
     return result
 
 
@@ -355,6 +357,7 @@ def api_add_formalization_from_guess():
         current_app.config["TEMPLATES_FOLDER"], formalization_id, requirement.formalizations[formalization_id]
     )
 
+    updated_variables(variable_collection.new_vars)
     return result
 
 

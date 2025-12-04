@@ -26,6 +26,7 @@ from configuration.defaults import Color
 from configuration.tags import STANDARD_TAGS, FUNCTIONAL_TAGS
 
 from reqtransformer import RequirementCollection
+from requirements.desc_highlighting import generate_all_highlighted_desc
 
 
 def config_check(app_config):
@@ -237,6 +238,9 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
 
     # Run consistency checks.
     varcollection_consistency_check(flask_app, args)
+
+    with flask_app.app_context():
+        generate_all_highlighted_desc()
 
     return True
 
