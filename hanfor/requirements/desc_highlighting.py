@@ -26,7 +26,6 @@ def updated_variables(variables: set) -> None:
     variable_list = [v.name for v in variables]
 
     if variable_list:
-        print(variable_list)
         generate_all_highlighted_desc(variable_list)
 
 
@@ -35,8 +34,6 @@ def generate_all_highlighted_desc(new_variables: Optional[List[str]] = None) -> 
     Regenerates highlighted descriptions for all requirements.
     If a list of updated variable names is provided, only these variables will
     be reprocessed inside each requirement.
-
-    Also prints timing information per requirement and total duration.
 
     :param new_variables: Optional list of updated variable names
     :type new_variables: list[str] | None
