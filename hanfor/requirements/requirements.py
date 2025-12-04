@@ -241,6 +241,7 @@ def api_new_formalization():
             pattern_name=formalization_data["pattern"],
             mapping=formalization_data["expression_mapping"],
             variable_collection=variable_collection,
+            standard_tags=SessionValue.get_standard_tags(current_app.db),
         )
     for v in variable_collection.new_vars:
         current_app.db.add_object(v)
