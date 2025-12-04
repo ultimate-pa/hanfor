@@ -7,7 +7,6 @@ from rapidfuzz import process, fuzz
 from itertools import combinations, permutations, product
 from hanfor_flask import current_app
 from lib_core.data import Requirement, VariableCollection, Variable
-import time
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
 env = Environment(loader=FileSystemLoader(TEMPLATE_DIR), autoescape=False)
@@ -42,18 +41,10 @@ def generate_all_highlighted_desc(new_variables: Optional[List[str]] = None) -> 
     :param new_variables: Optional list of updated variable names
     :type new_variables: list[str] | None
     """
-    start_total = time.perf_counter()
-
     reqs = current_app.db.get_objects(Requirement)
     req_ids = [reqs[k].to_dict()["id"] for k in sorted(reqs.keys())]
-
     for req_id in req_ids:
-        start_single = time.perf_counter()
         get_highlighted_desc(req_id, new_variables)
-        duration_ms = (time.perf_counter() - start_single) * 1000
-        print(f"{req_id}: {duration_ms:.2f} ms")
-
-    print(f"TOTAL: {(time.perf_counter() - start_total):.3f} s")
 
 
 def get_highlighted_desc(req_id: str, variables: Optional[List[str]] = None) -> Dict[str, Dict]:
