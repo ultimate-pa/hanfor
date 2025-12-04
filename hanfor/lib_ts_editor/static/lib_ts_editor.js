@@ -465,6 +465,7 @@ d3.select("#parseBtn").on("click", () => {
     data: JSON.stringify({ transitions: transitions, nodes: nodes }),
   }).done(function (data) {
     console.log(data)
+    setCookie("copied_formalization", JSON.stringify(data))
   })
 })
 
@@ -600,6 +601,20 @@ function updateEdgeTable() {
     })
 
   rows.exit().remove()
+}
+
+function getCookie(name) {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop().split(";").shift()
+}
+
+function setCookie(name, dataStr, duration = 28800000, path = "/") {
+  const d = new Date()
+  d.setTime(d.getTime() + duration)
+  let expires = "expires=" + d.toUTCString()
+  document.cookie = `${name}=${dataStr};${expires};path=${path}`
+  localStorage.setItem("cookieUpdate", Date.now().toString())
 }
 
 function update() {

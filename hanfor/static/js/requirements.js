@@ -393,7 +393,7 @@ function init_datatable(columnDefs) {
       [10, 50, 100, 500, -1],
       [10, 50, 100, 500, "All"],
     ],
-    // column resizing enabled, avoid using saveState: bool option, due to it 
+    // column resizing enabled, avoid using saveState: bool option, due to it
     // colding with both plugins event handling
     colResize: {
       onResize: function () { throw new Error('Workaround: resizing works fine!'); },
@@ -1198,11 +1198,15 @@ function init_modal() {
 
   $("#add_copied_formalization").click(function () {
     const cookie = getCookie("copied_formalization")
-    let formalization = {}
+    let formalizations = []
     if (cookie) {
-      formalization = JSON.parse(cookie)
+      formalizations = JSON.parse(cookie)
     }
-    add_formalization(formalization)
+    console.log(formalizations)
+
+    formalizations.forEach((formalization) => {
+      add_formalization(formalization)
+    })
   })
 
   $(".modal").on("hidden.bs.modal", function () {
@@ -1583,7 +1587,7 @@ function copy_formalization(formal_id) {
   const d = new Date()
   d.setTime(d.getTime() + 8 * 3600 * 1000)
   let expires = "expires=" + d.toUTCString()
-  document.cookie = "copied_formalization=" + JSON.stringify(formalization) + ";" + expires + ";path=/"
+  document.cookie = "copied_formalization=" + JSON.stringify([formalization]) + ";" + expires + ";path=/"
   localStorage.setItem("cookieUpdate", Date.now())
   setCopyBtnEnable()
   // TODO give some feedback
