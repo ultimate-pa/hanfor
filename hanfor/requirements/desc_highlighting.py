@@ -1,12 +1,13 @@
 import os
 import re
 from collections import defaultdict
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Iterable
 from jinja2 import Environment, FileSystemLoader
 from rapidfuzz import process, fuzz
 from itertools import combinations, permutations, product
 from hanfor_flask import current_app
 from lib_core.data import Requirement, VariableCollection, Variable
+from tqdm import tqdm
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
 env = Environment(loader=FileSystemLoader(TEMPLATE_DIR), autoescape=False)
@@ -15,16 +16,14 @@ highlight_tpl = env.get_template("highlight.html")
 highlight_desc_from_req_id = defaultdict(dict)
 
 
-def updated_variables(variables: set) -> None:
+def updated_variables(variables: set[Variable]) -> None:
     """
     Process a set of updated variable objects and trigger regeneration of highlighted
     descriptions for all requirements.
 
-    :param variables: Set of variable objects that contain a `.name` attribute
-    :type variables: set
+    :param variables: Set of new variables that should be searched in all requirements for marking
     """
     variable_list = [v.name for v in variables]
-
     if variable_list:
         generate_all_highlighted_desc(variable_list)
 
@@ -36,15 +35,20 @@ def generate_all_highlighted_desc(new_variables: Optional[List[str]] = None) -> 
     be reprocessed inside each requirement.
 
     :param new_variables: Optional list of updated variable names
-    :type new_variables: list[str] | None
     """
+    var_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(),
+        current_app.db.get_objects(Requirement).values(),
+    )
     reqs = current_app.db.get_objects(Requirement)
     req_ids = [reqs[k].to_dict()["id"] for k in sorted(reqs.keys())]
     for req_id in req_ids:
-        get_highlighted_desc(req_id, new_variables)
+        get_highlighted_desc(req_id, var_collection, new_variables)
 
 
-def get_highlighted_desc(req_id: str, variables: Optional[List[str]] = None) -> Dict[str, Dict]:
+def get_highlighted_desc(
+    req_id: str, variable_collection: VariableCollection, variables: Optional[list[str]] = None
+) -> dict[str, dict]:
     """
     Retrieves / generates / updates the highlighted description for the given requirement.
 
@@ -52,40 +56,33 @@ def get_highlighted_desc(req_id: str, variables: Optional[List[str]] = None) -> 
     - On update calls: only new/changed variable names are reprocessed and merged.
 
     :param req_id: ID of the requirement to highlight
-    :type req_id: str
     :param variables: Optional list of variable names to update
-    :type variables: list[str] | None
     :return: Highlight result with matches and generated HTML
-    :rtype: dict[str, dict]
     """
-    req = current_app.db.get_object(Requirement, req_id).to_dict()
+    req: Requirement = current_app.db.get_object(Requirement, req_id)
+    all_vars = variable_collection.get_available_var_names_list(used_only=False)
 
     # First initialization
     if req_id not in highlight_desc_from_req_id:
         highlight_desc_from_req_id[req_id] = {}
 
-        all_vars = VariableCollection(
-            current_app.db.get_objects(Variable).values(),
-            current_app.db.get_objects(Requirement).values(),
-        ).get_available_var_names_list(used_only=False)
-
-        matches = _highlight_desc_variable(req["desc"], all_vars)
+        matches = _highlight_desc_variable(req.description, all_vars)
         highlight_desc_from_req_id[req_id]["variable_matches"] = matches
         highlight_desc_from_req_id[req_id]["highlighted_desc"] = generate_html_description(
             matches,
-            req["desc"],
+            req.description,
         )
 
     # Update existing
     else:
         if variables:
-            new_matches = _highlight_desc_variable(req["desc"], variables)
+            new_matches = _highlight_desc_variable(req.description, variables)
 
             if new_matches:
                 highlight_desc_from_req_id[req_id]["variable_matches"].extend(new_matches)
                 highlight_desc_from_req_id[req_id]["highlighted_desc"] = generate_html_description(
                     highlight_desc_from_req_id[req_id]["variable_matches"],
-                    req["desc"],
+                    req.description,
                 )
 
     return highlight_desc_from_req_id[req_id]["highlighted_desc"]
@@ -142,17 +139,14 @@ def _normalize_and_group_positions_from_desc(desc: str) -> dict[str, list[tuple]
     return word_positions
 
 
-def _words_between(pos1: (int, int), pos2: (int, int), word_positions: dict[str, list[tuple]]) -> int:
+def _words_between(pos1: tuple[int, int], pos2: tuple[int, int], word_positions: dict[str, list[tuple]]) -> int:
     """Count the number of words occurring between two character positions.
 
     :param pos1: Tuple of (start, end) indices for the first word
-    :type pos1: tuple[int, int]
     :param pos2: Tuple of (start, end) indices for the second word
-    :type pos2: tuple[int, int]
     :param word_positions: Dictionary mapping words to a list of their (start, end) positions
     :type word_positions: dict[str, list[tuple[int, int]]]
     :return: Number of words found between pos1 and pos2
-    :rtype: int
     """
 
     start, end = pos1[1], pos2[0]
@@ -173,13 +167,9 @@ def _generate_all_ascending_combinations(
     penalty, and filters combinations by a minimum score threshold.
 
     :param pos_score_dict: Dict mapping each word to a list of (position, score) tuples
-    :type pos_score_dict: dict
     :param var_word_count: Total number of words in the variable
-    :type var_word_count: int
     :param threshold: Minimum score required to keep a combination
-    :type threshold: float
     :return: List of tuples (score, positions) for valid combinations
-    :rtype: list[tuple[int, list[tuple[int, int]]]]
     """
 
     combos = []
@@ -190,7 +180,6 @@ def _generate_all_ascending_combinations(
                 for combo in product(*group_sets):
                     positions = [p for (p, _) in combo]
                     scores = [s for (_, s) in combo]
-
                     ok = True
                     for (a_s, a_e), (b_s, b_e) in zip(positions, positions[1:]):
                         if b_s < a_e:
@@ -286,26 +275,26 @@ def _highlight_desc_variable(
     final_matches = []
 
     for var in variables:
-        words = _normalize_variable(var)
+        variable_fragments = _normalize_variable(var)
 
         # Fuzzy match all pieces of the variable
-        var_dict = {}
-        for word_var in words:
-            matches = list(process.extract_iter(query=word_var, choices=desc_words, scorer=fuzz.ratio, score_cutoff=80))
+        sored_matches = {}
+        for fragment in variable_fragments:
+            matches = list(process.extract_iter(query=fragment, choices=desc_words, scorer=fuzz.ratio, score_cutoff=80))
             if matches:
-                var_dict[word_var] = [
+                sored_matches[fragment] = [
                     {"score": score, "pos": word_positions[word_desc]} for word_desc, score, _ in matches
                 ]
 
         # Skip variables with insufficient coverage
-        if not var_dict or len(var_dict) / len(words) < min_coverage:
+        if not sored_matches or len(sored_matches) / len(variable_fragments) < min_coverage:
             continue
 
         # Build position-score dictionary
-        pos_score_dict = {v: [(p, e["score"]) for e in lst for p in e["pos"]] for v, lst in var_dict.items()}
+        pos_score_dict = {v: [(p, e["score"]) for e in lst for p in e["pos"]] for v, lst in sored_matches.items()}
 
         # Generate all ascending combinations and filter them
-        var_word_count = len(words)
+        var_word_count = len(variable_fragments)
         combos = _generate_all_ascending_combinations(pos_score_dict, var_word_count, threshold)
         selected = _filter_combos(combos, max_gap, word_positions)
 
