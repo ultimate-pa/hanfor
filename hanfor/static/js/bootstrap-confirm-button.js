@@ -2,7 +2,7 @@ jQuery.fn.bootstrapConfirmButton = function (options) {
   $(this).on("click", options.selector, function () {
     const btn = this
     if ($(btn).data("html") === undefined) {
-      $(btn).outerWidth($(btn).outerWidth()).data("html", $(btn).html()).html("Do it!")
+      $(btn).data("html", $(btn).html()).html("Do it!")
 
       setTimeout(function () {
         $(btn).html($(btn).data("html")).removeData("html")

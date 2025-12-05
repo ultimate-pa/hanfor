@@ -323,12 +323,14 @@ class Requirement:
 
 @DatabaseFieldType()
 @DatabaseField("id", int)
+@DatabaseField("order", int)
 @DatabaseField("scoped_pattern", "ScopedPattern")
 @DatabaseField("expressions_mapping", dict)
 @DatabaseField("type_inference_errors", dict)
 class Formalization:
     def __init__(self, fid: int):
         self.id: int = fid
+        self.order: int = 0
         self.scoped_pattern = ScopedPattern()
         self.expressions_mapping: dict[str, Expression] = dict()
         self.type_inference_errors = dict()
