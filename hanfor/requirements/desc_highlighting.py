@@ -1,13 +1,12 @@
 import os
 import re
 from collections import defaultdict
-from typing import List, Dict, Optional, Iterable
+from typing import List, Optional
 from jinja2 import Environment, FileSystemLoader
 from rapidfuzz import process, fuzz
 from itertools import combinations, permutations, product
 from hanfor_flask import current_app
 from lib_core.data import Requirement, VariableCollection, Variable
-from tqdm import tqdm
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
 env = Environment(loader=FileSystemLoader(TEMPLATE_DIR), autoescape=False)
