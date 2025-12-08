@@ -474,6 +474,7 @@ class TestEnums(TestCase):
                 "update_formalization": "true",
                 "tags": json.dumps({"unseen": ""}),
                 "status": "Todo",
+                "formalizations_order": "{}",
                 "formalizations": json.dumps(update),
             },
         )
@@ -542,6 +543,7 @@ class TestEnums(TestCase):
                 "scope": "GLOBALLY",
                 "pattern": "Absence",
                 "expression_mapping": {"P": "", "Q": "", "R": "", "S": "", "T": "", "U": ""},
+                "formalizations_order": "{}",
             }
         }
 

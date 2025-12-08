@@ -85,11 +85,11 @@ def api_update():
     # Update a requirement
     rid = request.form.get("id", "")
     requirement = current_app.db.get_object(Requirement, rid)
-    order = request.form.get("formalizations_order") or "{}"
+    order = request.form.get("formalizations_order")
     order_dict = json.loads(order)
     logging.debug(order_dict)
     for idx, formalization in requirement.formalizations.items():
-        formalization.order = order_dict.get(str(idx)) or 0
+        formalization.order = order_dict.get(str(idx))
         logging.debug(f"Formalizaation of {idx} has order of {formalization.order}")
 
     error = False

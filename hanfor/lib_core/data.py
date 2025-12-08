@@ -323,7 +323,7 @@ class Requirement:
 
 @DatabaseFieldType()
 @DatabaseField("id", int)
-@DatabaseField("order", int)
+@DatabaseField("order", int, default=0)
 @DatabaseField("scoped_pattern", "ScopedPattern")
 @DatabaseField("expressions_mapping", dict)
 @DatabaseField("type_inference_errors", dict)
