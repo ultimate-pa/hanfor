@@ -73,15 +73,15 @@ class TestSimpleAutomaton(TestCase):
             variable_collection=variable_collection,
             standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
         )
+        i, f5 = r.add_empty_formalization()
+        r.update_formalization(
+            i,
+            "GLOBALLY",
+            "Transition",
+            mapping={"R": "states == states.B && piffel", "S": "states == states.A && !piffel"},
+            variable_collection=variable_collection,
+            standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
+        )
 
         req_belonging_to_r = AAutomatonPattern.get_hull(f1, [f for f in r.formalizations.values()], variable_collection)
         self.assertSetEqual({f1, f2, f3, f4}, set(req_belonging_to_r))
-
-        """
-        self.assertIn("aBooleanVar", [var.name for var in variable_collection.new_vars])
-        self.assertIn("anIntegerVar", [var.name for var in variable_collection.new_vars])
-        sem = get_semantics_from_requirement(r, [r], variable_collection)
-        self.assertEqual("True", list(sem.items())[0][1].dc_phases[0].__str__())
-        self.assertEqual("⌈((anIntegerVar = 42) & (! aBooleanVar))⌉", list(sem.items())[0][1].dc_phases[1].__str__())
-        self.assertEqual("True", list(sem.items())[0][1].dc_phases[2].__str__())
-        """
