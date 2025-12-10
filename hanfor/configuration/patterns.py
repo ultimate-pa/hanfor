@@ -877,7 +877,7 @@ class TransitionG(AAutomatonPattern, APattern):
         super().__init__()
         self._pattern_text: str = "if in location {R} then transition to {S} is enabled if guard {V} holds."
         self.old_names = ["TransitionG"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "V": "bool"}
+        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "V": ["bool"]}
         self.group: str = "Automaton"
         self.order: int = 1
         self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
@@ -889,7 +889,7 @@ class TransitionLG(AAutomatonPattern, APattern):
         super().__init__()
         self._pattern_text: str = "if in location {R} for at least {T} transition to {S} is enabled if guard {V} holds."
         self.old_names = ["TransitionLG"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": "real", "V": "bool"}
+        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"], "V": ["bool"]}
         self.group: str = "Automaton"
         self.order: int = 2
         self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
@@ -901,7 +901,7 @@ class TransitionUG(AAutomatonPattern, APattern):
         super().__init__()
         self._pattern_text: str = "if in location {R} for at most {T} transition to {S} is enabled if guard {V} holds."
         self.old_names = ["TransitionUG"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": "real", "V": "bool"}
+        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"], "V": ["bool"]}
         self.group: str = "Automaton"
         self.order: int = 3
         self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
@@ -913,7 +913,7 @@ class TransitionL(AAutomatonPattern, APattern):
         super().__init__()
         self._pattern_text: str = "if in location {R} for at least {T} transition to {S} is enabled ."
         self.old_names = ["TransitionL"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": "real"}
+        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"]}
         self.group: str = "Automaton"
         self.order: int = 4
         self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
@@ -925,7 +925,7 @@ class TransitionU(AAutomatonPattern, APattern):
         super().__init__()
         self._pattern_text: str = "if in location {R} for at most {T} transition to {S} is enabled ."
         self.old_names = ["TransitionU"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": "real"}
+        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"]}
         self.group: str = "Automaton"
         self.order: int = 5
         self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
@@ -937,7 +937,7 @@ class TransitionE(AAutomatonPattern, APattern):
         super().__init__()
         self._pattern_text: str = "if in location {R} then transition to {S} if event {U} fires ."
         self.old_names = ["TransitionE"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "U": "bool"}
+        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "U": ["bool"]}
         self.group: str = "Automaton"
         self.order: int = 6
         self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
@@ -949,7 +949,7 @@ class TransitionGE(AAutomatonPattern, APattern):
         super().__init__()
         self._pattern_text: str = "if in location {R} then transition to {S} if event {U} fires and guard {V} holds."
         self.old_names = ["TransitionGE"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "V": "bool", "U": "bool"}
+        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "V": ["bool"], "U": ["bool"]}
         self.group: str = "Automaton"
         self.order: int = 7
         self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
@@ -963,7 +963,7 @@ class TransitionLGE(AAutomatonPattern, APattern):
             "if in location {R} for at least {T} transition to {S} if event {U} fires and guard {V} holds."
         )
         self.old_names = ["TransitionLGE"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": "real", "V": "bool", "U": "bool"}
+        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"], "V": ["bool"], "U": ["bool"]}
         self.group: str = "Automaton"
         self.order: int = 8
         self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
@@ -977,7 +977,7 @@ class TransitionUGE(AAutomatonPattern, APattern):
             "if in location {R} for at most {T} transition to {S} if event {U} fires and guard {V} holds."
         )
         self.old_names = ["TransitionUGE"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": "real", "V": "bool", "U": "bool"}
+        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"], "V": ["bool"], "U": ["bool"]}
         self.group: str = "Automaton"
         self.order: int = 9
         self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
@@ -989,7 +989,7 @@ class TransitionLE(AAutomatonPattern, APattern):
         super().__init__()
         self._pattern_text: str = "if in location {R} for at least {T} transition to {S} if event {U} fires ."
         self.old_names = ["TransitionLE"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": "real", "U": "bool"}
+        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"], "U": ["bool"]}
         self.group: str = "Automaton"
         self.order: int = 10
         self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
@@ -1001,7 +1001,7 @@ class TransitionUE(AAutomatonPattern, APattern):
         super().__init__()
         self._pattern_text: str = "if in location {R} for at most {T} transition to {S} if event {U} fires ."
         self.old_names = ["TransitionUE"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": "real", "U": "bool"}
+        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"], "U": ["bool"]}
         self.group: str = "Automaton"
         self.order: int = 11
         self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
