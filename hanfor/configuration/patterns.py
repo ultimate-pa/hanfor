@@ -153,7 +153,6 @@ class AAutomatonPattern:
         for source, formalization in transitions_by_source:
             # Semantic check as location may be syntactically different in any reference (as it is written by hand).
             if not is_sat(Not(Iff(location, source))):
-                print((location, source))
                 successors.append(formalization)
         # assert len(successors) <= 1
         return successors
