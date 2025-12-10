@@ -120,7 +120,13 @@ def _words_between(pos1, pos2, all_word_starts, max_gap):
     return (i2 - i1) <= max_gap
 
 
-def _generate_combinations(pos_score_dict, var_fragments, max_gap, threshold, all_word_starts):
+def _generate_combinations(
+    pos_score_dict: dict[str, list[tuple[tuple[int, int], float]]],
+    var_fragments: set[str],
+    max_gap: int,
+    threshold: float,
+    all_word_starts: list[int],
+):
     """
     Generate all ascending combinations of variable word positions with scores.
     Applies a missing-word penalty and filters combinations by a minimum score threshold.
