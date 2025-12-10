@@ -2,21 +2,19 @@ import datetime
 import difflib
 import json
 import logging
+import re
 import string
 from dataclasses import dataclass, field
 from enum import Enum
 from threading import Lock
-import re
 from typing import Any, Iterable, Union
 from uuid import uuid4
 
 from lark import LarkError
 from typing_extensions import deprecated
 
-from lib_core import boogie_parsing
-from lib_core.boogie_parsing import run_typecheck_fixpoint, BoogieType
-
-from hanfor_flask import current_app, HanforFlask
+from configuration.patterns import APattern
+from hanfor_flask import HanforFlask
 from json_db_connector.json_db import (
     DatabaseTable,
     TableType,
@@ -26,7 +24,8 @@ from json_db_connector.json_db import (
     DatabaseFieldType,
     JsonDatabase,
 )
-from configuration.patterns import APattern
+from lib_core import boogie_parsing
+from lib_core.boogie_parsing import run_typecheck_fixpoint, BoogieType
 
 
 @DatabaseTable(TableType.File)
@@ -438,6 +437,9 @@ class Formalization:
     def get_string(self):
         return self.scoped_pattern.get_string(self.expressions_mapping)
 
+    def __repr__(self):
+        return f"<{self.__class__.__name__} rid={self.id}: {self.scoped_pattern}>"
+
 
 @DatabaseFieldType()
 @DatabaseField("used_variables", list[str])
@@ -633,7 +635,7 @@ class ScopedPattern:
 class Variable:
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
 
-    def __init__(self, name: str, var_type: str | None, value: str | None):
+    def __init__(self, name: str, var_type: str | None, value: str | None = None):
         self.name: str = name
         self.type: str = var_type
         self.value: str = value

@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Union
 
 from lark.visitors import Transformer
 from pysmt.fnode import FNode
@@ -38,14 +39,14 @@ class Countertrace:
             entry_events: FNode,
             invariant: FNode,
             bound_type: "Countertrace.BoundTypes",
-            bound: int,
+            bound: Union[FNode, None],
             forbid: set[str],
             allow_empty: bool,
         ) -> None:
             self.entry_events: FNode = entry_events
             self.invariant: FNode = invariant
             self.bound_type: Countertrace.BoundTypes = bound_type
-            self.bound: float = bound
+            self.bound: Union[FNode, None] = bound
             self.forbid: set[str] = forbid
             self.allow_empty: bool = allow_empty
 
@@ -112,7 +113,7 @@ class Countertrace:
 
 
 def phaseT() -> Countertrace.DCPhase:
-    return Countertrace.DCPhase(TRUE(), TRUE(), Countertrace.BoundTypes.NONE, 0, set(), True)
+    return Countertrace.DCPhase(TRUE(), TRUE(), Countertrace.BoundTypes.NONE, None, set(), True)
 
 
 def phaseE(invariant: FNode, bound_type: Countertrace.BoundTypes, bound: int) -> Countertrace.DCPhase:

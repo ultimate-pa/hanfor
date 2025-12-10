@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Union
+from typing import Union, TYPE_CHECKING
 
 from pysmt.fnode import FNode
 from pysmt.shortcuts import FALSE, And, Symbol, Solver, simplify
@@ -7,6 +7,9 @@ from pysmt.walkers import IdentityDagWalker
 
 from lib_pea.location import Location
 from lib_pea.transition import Transition
+
+if TYPE_CHECKING:
+    from lib_pea.pea import Pea
 
 SOLVER_NAME = "z3"
 LOGIC = "UFLIRA"
@@ -39,7 +42,7 @@ class PeaOperationsMixin:
         other_locs: set[Location],
         self_clocks: dict[str, str],
         other_clocks: dict[str, str],
-    ) -> dict[(Location, Location), Location]:
+    ) -> dict[tuple[Location, Location], Location]:
         result = dict()
         for sl in self_locs:
             for ol in other_locs:
@@ -63,7 +66,7 @@ class PeaOperationsMixin:
     def __union_transitions(
         self_transitions: defaultdict[Location, set[Transition]],
         other_transitions: defaultdict[Location, set[Transition]],
-        locations: dict[(Location, Location), Location],
+        locations: dict[tuple[Location, Location], Location],
         self_clocks: dict[str, str],
         other_clocks: dict[str, str],
     ) -> defaultdict[Location, set[Transition]]:
