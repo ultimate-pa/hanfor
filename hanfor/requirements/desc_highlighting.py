@@ -3,8 +3,8 @@ import re
 from collections import defaultdict
 from typing import List, Optional, Any
 from jinja2 import Environment, FileSystemLoader
+from line_profiler_pycharm import profile
 from rapidfuzz import process, fuzz
-from itertools import combinations, product
 from lib_core.data import Variable
 from bisect import bisect_left
 from immutabledict import immutabledict
@@ -114,9 +114,10 @@ def _normalize_and_group_positions_from_desc(desc: str) -> dict[str, list[tuple]
     return word_positions
 
 
-def _words_between(pos1, pos2, all_word_starts, max_gap):
-    i1 = bisect_left(all_word_starts, pos1[0])
-    i2 = bisect_left(all_word_starts, pos2[0])
+@profile
+def _words_between(pos1: int, pos2: int, all_word_starts: list[int], max_gap: int):
+    i1 = bisect_left(all_word_starts, pos1)
+    i2 = bisect_left(all_word_starts, pos2)
     return (i2 - i1) <= max_gap
 
 
@@ -125,60 +126,54 @@ def _generate_combinations(
     var_fragments: set[str],
     max_gap: int,
     threshold: float,
+    min_coverage: float,
     all_word_starts: list[int],
 ):
     """
     Generate all ascending combinations of variable word positions with scores.
     Applies a missing-word penalty and filters combinations by a minimum score threshold.
     """
-    # Flatten all hits and sort by start position
-    all_hits = []
-    for f, lst in pos_score_dict.items():
-        for span, score in lst:
-            all_hits.append((f, span, score, span[0]))
-    all_hits.sort(key=lambda x: x[3])
-
     combos = []
-    n = len(all_hits)
+    # all_word_hits_sorted -> [(position_in_desc, variable_fragment, score)]
+    all_word_hits_sorted: list[tuple[tuple[int, int], float, str]] = []
+    for variable_fragment, list_pos_score in pos_score_dict.items():
+        for position_in_desc, score in list_pos_score:
+            all_word_hits_sorted.append((position_in_desc, score, variable_fragment))
+    # Sort by start, end, then score desc
+    all_word_hits_sorted.sort(key=lambda x: (x[0][0], x[0][1], -x[1]))
 
-    # Create sliding windows over sorted hits
-    for i in range(n):
-        base_f, base_span, base_score, base_pos = all_hits[i]
-        for j in range(i, n):
-            f2, span2, score2, pos2 = all_hits[j]
+    min_count_words = len(var_fragments) * min_coverage
 
-            # Stop if the window exceeds the max_gap
-            if not _words_between(base_span, span2, all_word_starts, max_gap):
-                break
+    # Build linear combo starting at index i
+    for i in range(len(all_word_hits_sorted)):
+        combo = []
+        fragments_used = set()
 
-            window = all_hits[i : j + 1]
+        for position_in_desc, score, variable_fragment in all_word_hits_sorted[i:]:
+            if variable_fragment in fragments_used:
+                continue
+            if len(combo) > 0:
+                if position_in_desc[0] == combo[-1][0][0]:
+                    continue
+                if not _words_between(combo[-1][0][0], position_in_desc[0], all_word_starts, max_gap):
+                    break
 
-            # Group hits by fragment within the window
-            grouped = {}
-            for f, span, score, pos in window:
-                grouped.setdefault(f, []).append((span, score))
-            fragments_present = list(grouped.keys())
+            fragments_used.add(variable_fragment)
+            combo.append((position_in_desc, score))
+        else:
+            # punishment for missing words and evaluate if usefull combo
+            missing = var_fragments - fragments_used
+            punishment = len(missing) * (-20)
+            avg_score = sum(p[1] for p in combo) / len(combo)
+            final_score = avg_score + punishment
 
-            # Prepare choices per fragment
-            choices_per_fragment = [[(f, span, score) for (span, score) in grouped[f]] for f in fragments_present]
+            if len(combo) < min_count_words:
+                continue
+            if final_score < threshold:
+                continue
 
-            # Generate all combinations of 1...N fragments
-            for r in range(1, len(choices_per_fragment) + 1):
-                for fragment_indices in combinations(range(len(choices_per_fragment)), r):
-                    selected_lists = [choices_per_fragment[idx] for idx in fragment_indices]
-                    for product_choice in product(*selected_lists):
-
-                        # Calculate score with penalty for missing fragments
-                        used_fragments = {p[0] for p in product_choice}
-                        missing = var_fragments - used_fragments
-                        punishment = len(missing) * (-20)
-                        avg_score = sum(p[2] for p in product_choice) / len(product_choice)
-                        final_score = avg_score + punishment
-
-                        # Keep combination if above threshold
-                        if final_score >= threshold:
-                            positions = [span for (frag, span, score) in product_choice]
-                            combos.append((final_score, positions))
+            positions = [pos for (pos, score) in combo]
+            combos.append((final_score, positions))
 
     return combos
 
@@ -268,7 +263,9 @@ def _highlight_desc_variable(
                 pos_score_dict[fragment] = filtered
 
         # Generate all ascending combinations and filter them
-        combos = _generate_combinations(pos_score_dict, variable_fragments, max_gap, threshold, all_word_starts)
+        combos = _generate_combinations(
+            pos_score_dict, variable_fragments, max_gap, threshold, min_coverage, all_word_starts
+        )
         selected = _filter_combos(combos)
 
         # Add matches for this variable
