@@ -3,7 +3,6 @@ import re
 from collections import defaultdict
 from typing import List, Optional, Any
 from jinja2 import Environment, FileSystemLoader
-from line_profiler_pycharm import profile
 from rapidfuzz import process, fuzz
 from lib_core.data import Variable
 from bisect import bisect_left
@@ -114,7 +113,6 @@ def _normalize_and_group_positions_from_desc(desc: str) -> dict[str, list[tuple]
     return word_positions
 
 
-@profile
 def _words_between(pos1: int, pos2: int, all_word_starts: list[int], max_gap: int):
     i1 = bisect_left(all_word_starts, pos1)
     i2 = bisect_left(all_word_starts, pos2)
@@ -228,17 +226,25 @@ def _highlight_desc_variable(
     min_coverage: float = 0.55,
 ) -> list[tuple[int, int, str, str, float]]:
     """Find positions of variable matches in a description using fuzzy matching and camelCase splitting."""
-    final_matches = []
 
+    final_matches = []
+    fragment_cache = {}
+
+    # Cashing fuzzy output for equal fragments to minimize work
+    all_fragments = {fragment for _, variable_fragments in variable_fragments_list for fragment in variable_fragments}
+    for variable_fragment in all_fragments:
+        fragment_cache[variable_fragment] = list(
+            process.extract_iter(query=variable_fragment, choices=desc_words, scorer=fuzz.ratio, score_cutoff=80)
+        )
+
+    # get all positions
     for var, variable_fragments in variable_fragments_list:
-        # Fuzzy match all pieces of the variable
         sored_matches = {}
         for fragment in variable_fragments:
-            matches = list(process.extract_iter(query=fragment, choices=desc_words, scorer=fuzz.ratio, score_cutoff=80))
-            if matches:
-                sored_matches[fragment] = [
-                    {"score": score, "pos": word_positions[word_desc]} for word_desc, score, _ in matches
-                ]
+            matches = fragment_cache.get(fragment, [])
+            sored_matches[fragment] = [
+                {"score": score, "pos": word_positions[word_desc]} for word_desc, score, _ in matches
+            ]
 
         # Skip variable_sets with insufficient coverage
         if not sored_matches or len(sored_matches) / len(variable_fragments) < min_coverage:
