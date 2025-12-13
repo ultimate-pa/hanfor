@@ -54,6 +54,19 @@ def get_requirements(app: HanforFlask, filter_list=None, invert_filter=False):
     return requirements
 
 
+def prepare_patterns_for_jinja():
+    opt_group_lists = defaultdict(list)
+    for name, pattern in APattern.get_patterns().items():
+        opt_group_lists[pattern.group].append((pattern.order, name, pattern._pattern_text))
+
+    # Sort patterns inside each group
+    grouped_patterns = {}
+    for group_name, opt_list in opt_group_lists.items():
+        grouped_patterns[group_name] = [(name, pattern) for _, name, pattern in sorted(opt_list)]
+
+    return grouped_patterns
+
+
 def get_default_pattern_options():
     """Parse the pattern config into the dropdown list options for the frontend
 

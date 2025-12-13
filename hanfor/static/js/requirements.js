@@ -12,6 +12,7 @@ require("datatables.net-colreorder-bs5")
 require("./bootstrap-confirm-button")
 import Sortable from "sortablejs"
 import "jquery-sortablejs"
+import Mustache from "mustache"
 
 let utils = require("./hanfor-utils")
 const autosize = require("autosize/dist/autosize")
@@ -1023,6 +1024,7 @@ function load_requirement(row_idx) {
 
   // Get row data
   let data = $("#requirements_table").DataTable().row(row_idx).data()
+  console.log(data)
 
   // Prepare requirement Modal
   let requirement_modal_content = $(".modal-content")
@@ -1056,10 +1058,35 @@ function load_requirement(row_idx) {
     $("#add_guess_description").text(data.desc).change()
 
     // Parse the formalizations
-    $("#formalization_accordion").html(data.formalizations_html)
+    $.get(`api/req/formalizations?id=${data.id}`, function (data) {
+      data.forEach(function (entry) {
+        const containerTemplate = $("#formalization-container").html()
+        const contentTemplate = $("#formalization-template").html()
 
-    $("#requirement_scope").val(data.scope)
-    $("#requirement_pattern").val(data.pattern)
+        const containerHtml = Mustache.render(containerTemplate, entry)
+        const contentHtml = Mustache.render(contentTemplate, entry)
+
+        // convert to jQuery object since we need to cast it to string beforehand
+        // due to Mustache expecting it
+        const $container = $(containerHtml)
+        $container.find(".accordion-collapse").append(contentHtml)
+        $container.find(`#requirement_scope${entry.id}`).val(entry.scope)
+        $container.find(`#requirement_pattern${entry.id}`).val(entry.pattern)
+
+        // TODO: This is cursed, but i have no clue how to do it better
+        const vars = ["P", "Q", "R", "S", "T", "U", "V"]
+        vars.forEach((v) => {
+          const val = entry[`expr_${v}`]
+          if (!val) {
+            $container.find(`#requirement_var_group_${v.toLowerCase()}${entry.id}`).hide()
+          }
+        })
+        $("#formalization_accordion").append($container)
+      })
+    })
+    // $("#formalization_accordion").html(data.formalizations_html)
+    // $("#requirement_scope").val(data.scope)
+    // $("#requirement_pattern").val(data.pattern)
 
     // remove all lines from the tag comment table
     $("#tags_comments_table").find("tr:gt(0)").remove()

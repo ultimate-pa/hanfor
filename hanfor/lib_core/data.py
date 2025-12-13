@@ -430,11 +430,14 @@ class Formalization:
 
     def to_dict(self):
         d = {
+            "id": self.id,
+            "order": self.order,
             "scope": self.scoped_pattern.scope.name,
             "pattern": self.scoped_pattern.pattern.get_name(),
-            "expressions": {key: exp.raw_expression for key, exp in self.expressions_mapping.items()},
+            **{
+                f"expr_{key}": exp.raw_expression for key, exp in self.expressions_mapping.items() if exp.raw_expression
+            },
         }
-
         return d
 
     def get_string(self):
