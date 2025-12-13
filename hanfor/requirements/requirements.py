@@ -16,6 +16,7 @@ from lib_core.utils import (
     formalization_html,
     formalizations_to_html,
     default_scope_options,
+    prepare_patterns_for_jinja,
 )
 from requirements.desc_highlighting import get_highlighted_desc, new_variables_regenerate_highlighting
 
@@ -35,6 +36,7 @@ def index():
         {"name": "Formalization", "target": 7},
     ]
     additional_cols = get_datatable_additional_cols(current_app)["col_defs"]
+    pattern_groups = prepare_patterns_for_jinja()
     return render_template(
         # TODO: the object refactor will break this - fix later!!
         "index.html",
@@ -72,6 +74,20 @@ def api_index():
     if requirement:
         return result
     return {"success": False, "errormsg": "This is not an api-enpoint."}, 404
+
+
+@api_blueprint.route("/formalizations", methods=["GET"])
+@nocache
+def get_formalizations():
+    rid = request.args.get("id", "", type=str)
+    requirement = current_app.db.get_object(Requirement, rid)
+    result = []
+    for _, formalization in requirement.formalizations.items():
+        formalization_repr = formalization.to_dict()
+        formalization_repr["type"] = "formalization"
+        formalization_repr["text"] = formalization.get_string()
+        result.append(formalization_repr)
+    return result
 
 
 @api_blueprint.route("/gets", methods=["GET"])

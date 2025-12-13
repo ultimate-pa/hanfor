@@ -1,0 +1,212 @@
+{% raw %}
+<template id="formalization-template">
+  <div id="formal-{{ id }}" class="accordion-body formalization_card" title="{{ id }}">
+    <div class="form-group">
+      <div class="d-flex justify-content-between">
+        <h6>Formalization:</h6>
+        <h6>ID: {{ id }}</h6>
+      </div>
+      <div
+        class="alert alert-secondary formalization-preview"
+        id="current_formalization_textarea{{ id }}"
+        rows="3"
+        readonly
+        title="Current formalization"
+      >
+        {{ text }}
+      </div>
+    </div>
+    <h6>Edit formalization:</h6>
+    <div class="form-group">
+      <div class="row form-inline row-spacing">
+        <div class="form-group col-12">
+          <label for="requirement_scope">Scope</label>
+          <select
+            id="requirement_scope{{ id }}"
+            class="form-control formalization_selector scope_selector mb-3"
+            style="width: 100%"
+            title="{{ id }}"
+          >
+            <option value="NONE">None</option>
+            <option value="GLOBALLY">Globally</option>
+            <option value="BEFORE">Before "{P}"</option>
+            <option value="AFTER">After "{P}"</option>
+            <option value="BETWEEN">Between "{P}" and "{Q}"</option>
+            <option value="AFTER_UNTIL">After "{P}" until "{Q}"</option>
+          </select>
+        </div>
+        <div class="form-group col-12">
+          <label for="requirement_pattern">Pattern</label>
+          <select
+            id="requirement_pattern{{ id }}"
+            class="form-select formalization_selector pattern_selector select-wrap"
+            title="{{ id }}"
+          >
+            {% endraw %}
+            <option value="NotFormalizable">None</option>
+
+            {% for group_name in group_order %} {% if group_name in pattern_groups %}
+            <optgroup label="{{ group_name }}">
+              {% for name, pattern in pattern_groups[group_name] %}
+              <option value="{{ name }}">{{ pattern }}</option>
+              {% endfor %}
+            </optgroup>
+            {% endif %} {% endfor %} {% raw %}
+          </select>
+        </div>
+        <div class="d-flex col-12 justify-content-center gap-2">
+          <div class="form-group m-0">
+            <label></label>
+            <button
+              name="{{ id }}"
+              class="copy_formalization btn btn-large btn-success"
+              style="width: 100%"
+              title="Copy me"
+            >
+              Copy
+            </button>
+          </div>
+          <div class="form-group m-0">
+            <label></label>
+            <button
+              name="{{ id }}"
+              class="delete_formalization btn btn-large btn-danger"
+              data-bs-toggle="confirmation"
+              data-btn-ok-label="Yes"
+              data-btn-ok-class="btn-success"
+              data-btn-cancel-label="Nooo Stoooop!"
+              data-btn-cancel-class="btn-danger"
+              data-title="Sure?"
+              data-content="Delete this Formalization?"
+              style="width: 100%"
+              title="Delete me"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="requirement_var_group_p{{ id }}" class="form-group requirement_var_group">
+      <div class="row form-inline row-spacing">
+        <div class="input-group col-md-12">
+          <span class="input-group-prepend input-group-text" id="p-addon{{ id }}">P</span>
+          <textarea
+            type="text"
+            class="form-control reqirement-variable"
+            id="formalization_var_p{{ id }}"
+            aria-describedby="p-addon"
+            title="P"
+          >
+{{expr_P}}</textarea
+          >
+        </div>
+      </div>
+    </div>
+    <div id="requirement_var_group_q{{ id }}" class="form-group requirement_var_group">
+      <div class="row form-inline row-spacing">
+        <div class="input-group col-md-12">
+          <span class="input-group-prepend input-group-text" id="q-addon{{ id }}">Q</span>
+          <textarea
+            type="text"
+            class="form-control reqirement-variable"
+            id="formalization_var_q{{ id }}"
+            aria-describedby="q-addon"
+            title="Q"
+          >
+{{expr_Q}}
+            </textarea
+          >
+        </div>
+      </div>
+    </div>
+    <div id="requirement_var_group_r{{ id }}" class="form-group requirement_var_group">
+      <div class="row form-inline row-spacing">
+        <div class="input-group col-md-12">
+          <span class="input-group-prepend input-group-text" id="r-addon{{ id }}">R</span>
+          <textarea
+            type="text"
+            class="form-control reqirement-variable"
+            id="formalization_var_r{{ id }}"
+            aria-describedby="r-addon"
+            aria-label="R"
+            title="R"
+          >
+{{expr_R}}</textarea
+          >
+        </div>
+      </div>
+    </div>
+    <div id="requirement_var_group_s{{ id }}" class="form-group requirement_var_group">
+      <div class="row form-inline row-spacing">
+        <div class="input-group col-md-12">
+          <span class="input-group-prepend input-group-text" id="s-addon{{ id }}">S</span>
+          <textarea
+            type="text"
+            class="form-control reqirement-variable"
+            id="formalization_var_s{{ id }}"
+            aria-describedby="s-addon"
+            aria-label="S"
+            title="S"
+          >
+{{expr_S}}
+            </textarea
+          >
+        </div>
+      </div>
+    </div>
+    <div id="requirement_var_group_t{{ id }}" class="form-group requirement_var_group">
+      <div class="row form-inline row-spacing">
+        <div class="input-group col-md-12">
+          <span class="input-group-prepend input-group-text" id="t-addon{{ id }}">T</span>
+          <textarea
+            type="text"
+            class="form-control reqirement-variable"
+            id="formalization_var_t{{ id }}"
+            aria-describedby="t-addon"
+            aria-label="T"
+            title="T"
+          >
+{{expr_T}}</textarea
+          >
+        </div>
+      </div>
+    </div>
+    <div id="requirement_var_group_u{{ id }}" class="form-group requirement_var_group">
+      <div class="row form-inline row-spacing">
+        <div class="input-group col-md-12">
+          <span class="input-group-prepend input-group-text" id="u-addon{{ id }}">U</span>
+          <textarea
+            type="text"
+            class="form-control reqirement-variable"
+            id="formalization_var_u{{ id }}"
+            aria-describedby="u-addon"
+            aria-label="U"
+            title="U"
+          >
+            {{ expr_U }}</textarea
+          >
+        </div>
+      </div>
+    </div>
+    <div id="requirement_var_group_v{{ id }}" class="form-group requirement_var_group">
+      <div class="row form-inline row-spacing">
+        <div class="input-group col-md-12">
+          <span class="input-group-prepend input-group-text" id="v-addon{{ id }}">V</span>
+          <textarea
+            type="text"
+            class="form-control reqirement-variable"
+            id="formalization_var_v{{ id }}"
+            aria-describedby="v-addon"
+            aria-label="V"
+            title="V"
+          >
+{{ expr_V }}</textarea
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+{% endraw %}
