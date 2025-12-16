@@ -1,6 +1,7 @@
 import os
 import re
 from collections import defaultdict
+from dataclasses import dataclass, field
 from typing import List, Optional, Any
 from jinja2 import Environment, FileSystemLoader
 from rapidfuzz import process, fuzz
@@ -12,12 +13,42 @@ TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templat
 env = Environment(loader=FileSystemLoader(TEMPLATE_DIR), autoescape=False)
 highlight_tpl = env.get_template("highlight.html")
 
-highlight_desc_from_req_id = defaultdict(dict)
+
+@dataclass(slots=True)
+class VariableMatch:
+    start: int
+    end: int
+    text: str
+    variable: str
+    score: float
+
+
+@dataclass(slots=True)
+class FragmentMatch:
+    score: float
+    positions: list[tuple[int, int]]
+
+
+@dataclass(slots=True)
+class RequirementHighlightingData:
+    req_id: str
+    description: str
+
+    highlighted_desc: str = ""
+    variable_matches: list[VariableMatch] = field(default_factory=list)
+    variable_fragments_fuzz_matches: dict[str, list[tuple[str, float, int]]] = field(default_factory=dict)
+
+    desc_words_positions: dict[str, list[tuple[int, int]]] = field(default_factory=dict)
+    desc_words: list[str] = field(default_factory=list)
+    desc_words_starting_pos: list[int] = field(default_factory=list)
+
+
+requirement_highlighting_data_per_req: dict[str, RequirementHighlightingData] = {}
 variable_sets = defaultdict(set)
 
 
-def get_highlighted_desc(req_id: str) -> dict[str, dict]:
-    return highlight_desc_from_req_id[req_id]["highlighted_desc"]
+def get_highlighted_desc(req_id: str) -> str:
+    return requirement_highlighting_data_per_req[req_id].highlighted_desc
 
 
 def updated_variables(variables: set[Variable]) -> None:
@@ -48,32 +79,27 @@ def generate_all_highlighted_desc(
     # Initialize entries for each requirement
     if requirements:
         for req_id, requirement in requirements.items():
-            req_entry = highlight_desc_from_req_id[req_id]
-
-            req_entry["description"] = requirement.description
-            req_entry["variable_matches"] = []
-            req_entry["highlighted_desc"] = ""
-
             word_positions = _normalize_and_group_positions_from_desc(requirement.description)
-            req_entry["word_positions"] = word_positions
-            req_entry["desc_words"] = list(word_positions.keys())
-            req_entry["all_word_starts"] = sorted(pos[0] for positions in word_positions.values() for pos in positions)
+
+            requirement_highlighting_data_per_req[req_id] = RequirementHighlightingData(
+                req_id=req_id,
+                description=requirement.description,
+                desc_words_positions=word_positions,
+                desc_words=list(word_positions.keys()),
+                desc_words_starting_pos=sorted(pos[0] for positions in word_positions.values() for pos in positions),
+            )
 
     # (Re)compute variable matches and generate HTML
-    for req_id, req_entry in highlight_desc_from_req_id.items():
-        # Compute new variable matches
+    for req_data in requirement_highlighting_data_per_req.values():
         new_matches = _highlight_desc_variable(
-            req_entry["description"],
+            req_data,
             variable_sets_list,
-            req_entry["word_positions"],
-            req_entry["desc_words"],
-            req_entry["all_word_starts"],
         )
 
-        req_entry["variable_matches"].extend(new_matches)
-        req_entry["highlighted_desc"] = _generate_html_description(
-            req_entry["variable_matches"],
-            req_entry["description"],
+        req_data.variable_matches.extend(new_matches)
+        req_data.highlighted_desc = _generate_html_description(
+            req_data.variable_matches,
+            req_data.description,
         )
 
 
@@ -95,7 +121,7 @@ def _normalize_variable(var: str) -> set[str]:
     return set(var.lower().strip().split())
 
 
-def _normalize_and_group_positions_from_desc(desc: str) -> dict[str, list[tuple]]:
+def _normalize_and_group_positions_from_desc(desc: str) -> dict[str, list[tuple[int, int]]]:
     """Extract all words from a description, split camelCase tokens, and map each
     lowercase sub-word to its absolute character positions in the text.
     """
@@ -216,72 +242,86 @@ def _filter_combos(
 
 
 def _highlight_desc_variable(
-    desc: str,
+    req_data: RequirementHighlightingData,
     variable_fragments_list: list[tuple[str, set]],
-    word_positions: dict[str, list[tuple]],
-    desc_words: list[str],
-    all_word_starts: list[int],
     threshold: int = 70,
     max_gap: int = 1,
     min_coverage: float = 0.55,
-) -> list[tuple[int, int, str, str, float]]:
+) -> list[VariableMatch]:
     """Find positions of variable matches in a description using fuzzy matching and camelCase splitting."""
 
     final_matches = []
-    fragment_cache = {}
 
     # Cashing fuzzy output for equal fragments to minimize work
     all_fragments = {fragment for _, variable_fragments in variable_fragments_list for fragment in variable_fragments}
     for variable_fragment in all_fragments:
-        fragment_cache[variable_fragment] = list(
-            process.extract_iter(query=variable_fragment, choices=desc_words, scorer=fuzz.ratio, score_cutoff=80)
+        req_data.variable_fragments_fuzz_matches[variable_fragment] = list(
+            process.extract_iter(
+                query=variable_fragment, choices=req_data.desc_words, scorer=fuzz.ratio, score_cutoff=80
+            )
         )
 
     # get all positions
     for var, variable_fragments in variable_fragments_list:
-        sored_matches = {}
+        scored_matches: dict[str, list[FragmentMatch]] = {}
         for fragment in variable_fragments:
-            matches = fragment_cache.get(fragment, [])
-            sored_matches[fragment] = [
-                {"score": score, "pos": word_positions[word_desc]} for word_desc, score, _ in matches
+            matches = req_data.variable_fragments_fuzz_matches.get(fragment, [])
+            scored_matches[fragment] = [
+                FragmentMatch(
+                    score=score,
+                    positions=req_data.desc_words_positions[word_desc],
+                )
+                for word_desc, score, _ in matches
             ]
 
         # Skip variable_sets with insufficient coverage
-        if not sored_matches or len(sored_matches) / len(variable_fragments) < min_coverage:
+        if not scored_matches or len(scored_matches) / len(variable_fragments) < min_coverage:
             continue
 
         # Build a global mapping: span -> best score
-        span_to_best = defaultdict(int)
-        for lst in sored_matches.values():
-            for e in lst:
-                for p in e["pos"]:
-                    span_to_best[p] = max(span_to_best[p], e["score"])
+        span_to_best: dict[tuple[int, int], float] = defaultdict(float)
+        for matches in scored_matches.values():
+            for match in matches:
+                for span in match.positions:
+                    span_to_best[span] = max(span_to_best[span], match.score)
 
         # Build position-score dictionary per fragment, keeping only the best score for each span
-        pos_score_dict = {}
-        for fragment, lst in sored_matches.items():
-            filtered = []
-            for e in lst:
-                for p in e["pos"]:
-                    if span_to_best[p] == e["score"]:  # keep only the highest score
-                        filtered.append((p, e["score"]))
-            if filtered:
-                pos_score_dict[fragment] = filtered
+        pos_score_dict: dict[str, list[tuple[tuple[int, int], float]]] = {}
+
+        for fragment, matches in scored_matches.items():
+            best_positions = [
+                (span, match.score)
+                for match in matches
+                for span in match.positions
+                if span_to_best[span] == match.score
+            ]
+
+            if best_positions:
+                pos_score_dict[fragment] = best_positions
 
         # Generate all ascending combinations and filter them
         combos = _generate_combinations(
-            pos_score_dict, variable_fragments, max_gap, threshold, min_coverage, all_word_starts
+            pos_score_dict, variable_fragments, max_gap, threshold, min_coverage, req_data.desc_words_starting_pos
         )
         selected = _filter_combos(combos)
 
         # Add matches for this variable
         for score, start, end, _ in selected:
-            matched_text = desc[start:end]
-            final_matches.append((start, end, matched_text, var, score))
+            matched_text = req_data.description[start:end]
+            final_matches.append(
+                VariableMatch(
+                    start=start,
+                    end=end,
+                    text=matched_text,
+                    variable=var,
+                    score=score,
+                )
+            )
+
     return final_matches
 
 
-def _generate_html_description(final_matches: list[tuple[int, int, str, str, float]], desc) -> str:
+def _generate_html_description(final_matches: list[VariableMatch], desc) -> str:
     """
     Generate HTML-highlighted description from matched intervals.
     This function sorts matches by score and length, resolves overlaps, and applies
@@ -289,11 +329,17 @@ def _generate_html_description(final_matches: list[tuple[int, int, str, str, flo
     """
 
     # Sort intervals by score (desc), length (desc), start position (asc)
-    final_matches.sort(key=lambda x: (-x[4], -(x[1] - x[0]), x[0]))
+    final_matches.sort(key=lambda x: (-x.score, -(x.end - x.start), x.start))
+
     kept_intervals = []
 
     # Combine similar variable_sets if intervals are exactly the same
-    for start, end, matched_text, var, score in final_matches:
+    for match in final_matches:
+        start = match.start
+        end = match.end
+        var = match.variable
+        score = match.score
+
         overlapping = []
         for i, (s2, e2, _) in enumerate(kept_intervals):
             if start < e2 and end > s2:
