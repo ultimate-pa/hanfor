@@ -16,7 +16,7 @@ from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from configuration.patterns import APattern, VARIABLE_AUTOCOMPLETE_EXTENSION
 
-from requirements.desc_highlighting import get_highlighted_desc, updated_variables
+from requirements.desc_highlighting import get_highlighted_desc, new_variables_regenerate_highlighting
 
 blueprint = Blueprint("requirements", __name__, template_folder="templates", url_prefix="/")
 api_blueprint = Blueprint("api_requirements", __name__, url_prefix="/api/req")
@@ -152,7 +152,7 @@ def api_update():
             return {"success": False, "errormsg": error_msg}
         else:
             current_app.db.update()
-            updated_variables(variable_collection.new_vars)
+            new_variables_regenerate_highlighting(variable_collection.new_vars)
             return requirement.to_dict(), 200
 
 
@@ -251,7 +251,7 @@ def api_new_formalization():
     add_msg_to_flask_session_log(current_app, "Added new Formalization to requirement", [requirement])
     result = get_formalization_template(current_app.config["TEMPLATES_FOLDER"], formalization_id, formalization)
 
-    updated_variables(variable_collection.new_vars)
+    new_variables_regenerate_highlighting(variable_collection.new_vars)
     return result
 
 
@@ -357,7 +357,7 @@ def api_add_formalization_from_guess():
         current_app.config["TEMPLATES_FOLDER"], formalization_id, requirement.formalizations[formalization_id]
     )
 
-    updated_variables(variable_collection.new_vars)
+    new_variables_regenerate_highlighting(variable_collection.new_vars)
     return result
 
 

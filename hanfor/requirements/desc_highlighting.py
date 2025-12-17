@@ -51,11 +51,39 @@ def get_highlighted_desc(req_id: str) -> str:
     return requirement_highlighting_data_per_req[req_id].highlighted_desc
 
 
-def updated_variables(variables: set[Variable]) -> None:
+def delete_variables(variables: list[str]) -> None:
+    """
+    If a variable is deleted, it is removed from the variable lookup sets and from all
+    matches within the requirements. Afterward, a new highlighted string is generated.
+    """
+    for variable in variables:
+        if variable in variable_sets[variable]:
+            variable_sets.pop(variable)
+    for req_data in requirement_highlighting_data_per_req.values():
+        for match in req_data.variable_matches:
+            if match.variable in variables:
+                req_data.variable_matches.remove(match)
+        req_data.highlighted_desc = _generate_html_description(
+            req_data.variable_matches,
+            req_data.description,
+        )
+
+
+def changing_variables(variable_name_old: str, variable_name_new: str) -> None:
+    """
+    If a variable name is changed, the old name is removed from all descriptions,
+    and all descriptions are reprocessed with the new name.
+    """
+    delete_variables([variable_name_old])
+    generate_all_highlighted_desc([variable_name_new], None)
+
+
+def new_variables_regenerate_highlighting(variables: set[Variable]) -> None:
     """
     Process a set of updated variable objects and trigger regeneration of highlighted
     descriptions for all requirements.
     """
+    print("new variables...", variables)
     variable_list = [v.name for v in variables]
     if variable_list:
         generate_all_highlighted_desc(variable_list, None)
