@@ -101,7 +101,10 @@ def generate_all_highlighted_desc(
     for var in new_variables:
         if var:
             if var not in variable_sets:
-                variable_sets[var] = _normalize_variable(var)
+                norm = _normalize_variable(var)
+                if not norm:
+                    continue
+                variable_sets[var] = norm
             variable_sets_list.append((var, variable_sets[var]))
 
     # Initialize entries for each requirement
@@ -146,7 +149,7 @@ def _normalize_variable(var: str) -> set[str]:
 
     var = re.sub(r"\b\w+\b", camel_case_split, var)
     var = re.sub(r"\s+", " ", var)
-    return set(var.lower().strip().split())
+    return {token for token in var.lower().strip().split() if len(token) > 2}
 
 
 def _normalize_and_group_positions_from_desc(desc: str) -> dict[str, list[tuple[int, int]]]:
