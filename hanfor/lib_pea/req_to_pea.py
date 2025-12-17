@@ -1,10 +1,10 @@
+from configuration.patterns import APattern
 from lib_core import boogie_parsing
 from lib_core.data import Formalization, VariableCollection, Requirement
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
 from lib_pea.countertrace import Countertrace
 from lib_pea.countertrace_to_pea import build_automaton
 from lib_pea.pea import PhaseSetsPea
-from configuration.patterns import APattern
 
 
 def get_semantics_from_requirement(
@@ -33,7 +33,9 @@ def get_semantics_from_requirement(
             expressions[k] = BoogiePysmtTransformer(set(var_collection.collection.values())).transform(tree)
 
         for i, ct in enumerate(
-            APattern.get_pattern(pattern).get_instanciated_countertraces(scope, expressions, requirements)
+            APattern.get_pattern(pattern).get_instanciated_countertraces(
+                scope, expressions, formalization, requirements
+            )
         ):
             dc_formulas[(formalization, i)] = ct
 

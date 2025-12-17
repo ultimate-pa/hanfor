@@ -50,16 +50,7 @@ class TestAutomatonAssembly(TestCase):
             i,
             "GLOBALLY",
             "InitialLoc",
-            mapping={"R": "states == states.A"},
-            variable_collection=variable_collection,
-            standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
-        )
-        i, f4 = r.add_empty_formalization()
-        r.update_formalization(
-            i,
-            "GLOBALLY",
-            "InitialLoc",
-            mapping={"R": "states == states.B"},
+            mapping={"R": "states == states.A || states == states.B"},
             variable_collection=variable_collection,
             standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
         )
@@ -84,9 +75,11 @@ class TestAutomatonAssembly(TestCase):
             variable_collection=variable_collection,
             standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
         )
-
+        # test general automaton layout
         req_belonging_to_r = AAutomatonPattern.get_hull(f1, [f for f in r.formalizations.values()], variable_collection)
-        self.assertSetEqual({f1, f2, f3, f4}, set(req_belonging_to_r))
+        self.assertSetEqual({f1, f2, f3}, set(req_belonging_to_r))
+        # test formula generation
+        # formulae = get_semantics_from_requirement()
 
     def test_complex_pattern_transitions(self):
         """

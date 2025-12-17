@@ -2,13 +2,12 @@ from collections import defaultdict
 from functools import cache
 from typing import Iterable, TYPE_CHECKING
 
-from lark import Tree
 from pysmt.fnode import FNode
-from pysmt.shortcuts import Iff, Not, is_sat
+from pysmt.shortcuts import Iff, Not, is_sat, Implies
 
 from lib_core import boogie_parsing
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
-from lib_pea.countertrace import CountertraceTransformer
+from lib_pea.countertrace import CountertraceTransformer, Countertrace, phaseT, phase
 from lib_pea.utils import get_countertrace_parser
 
 if TYPE_CHECKING:
@@ -51,9 +50,9 @@ class APattern:
         return scope in self._countertraces and self._countertraces[scope]
 
     def get_instanciated_countertraces(
-        self, scope: str, expressions: dict[str, FNode], others: list["APattern"]
-    ) -> list[Tree]:
-        cts: list[Tree] = []
+        self, scope: str, expressions: dict[str, FNode], f: "Formalization", other_f: list["Formalization"]
+    ) -> list[Countertrace]:
+        cts = []
         for ct_str in self.get_countertraces(scope):
             ct_ast = get_countertrace_parser().parse(ct_str)
             cts.append(CountertraceTransformer(expressions).transform(ct_ast))
@@ -119,15 +118,14 @@ class AAutomatonPattern:
         Successors where the location is a subset of another location are not regarded as this might be another automaton.
         e.g.   x > 5 ---> x <= 5  and x > 5 && turbo ----> x <= 5 && turbo are not of the same automaton.
         """
+        # TODO : wir mache ndas jetzt über die enum : jedr statae darf maximal eine evariable im state haben,
+        # die vairable ist dann für alle variablen so. Alles andre ist fehler.
         transitions_by_source = []
         for f in other_f:
             p_class = APattern.get_pattern(f.scoped_pattern.pattern.name)
             if not isinstance(p_class, AAutomatonPattern):
                 continue
-            if isinstance(p_class, InitialLoc):
-                # add all transtions in the right direction
-                transitions_by_source.append((p_class.get_target_location(f, var_collection), f))
-            else:
+            if not isinstance(p_class, InitialLoc):
                 # add all initial transitions in the opposite direction (as if they were sinks)
                 transitions_by_source.append((p_class.get_source_location(f, var_collection), f))
 
@@ -143,23 +141,54 @@ class AAutomatonPattern:
                 automaton.add(f)
                 queue.append(f)
             successors.clear()
+
+        # find initial locations
+        initial_locs = []
+        for f in other_f:
+            if isinstance(p_class, InitialLoc):
+                initial_locs.append((p_class.get_target_location(f, var_collection), f))
+
         return automaton
 
     @classmethod
     def __find_successors(
         cls, location: "Expression", transitions_by_source: list[tuple["Expression", "Formalization"]]
     ) -> list["Formalization"]:
-        successors = []
+        transitions = []
         for source, formalization in transitions_by_source:
             # Semantic check as location may be syntactically different in any reference (as it is written by hand).
             if not is_sat(Not(Iff(location, source))):
-                successors.append(formalization)
+                transitions.append(formalization)
         # assert len(successors) <= 1
-        return successors
+        return transitions
 
-    def get_formulas(self):
+    @classmethod
+    def __find_initial(
+        cls, location: "Expression", initial_by_target: list[tuple["Expression", "Formalization"]]
+    ) -> list["Formalization"]:
+        transitions = []
+        for target, formalization in initial_by_target:
+            if not is_sat(Not(Implies(location, target))):
+                transitions.append(formalization)
+        # assert len(successors) <= 1
+        return transitions
+
+    def get_instanciated_countertraces(
+        self, scope: str, expressions: dict[str, FNode], f: "Formalization", other_f: list["Formalization"]
+    ) -> Countertrace:
         # TODO use formulas from paper to build formulas for any automaton pattern
-        pass
+
+        # find the hull of this requirement
+        # decide what this is (should be overloaded eh?)
+        ## follow paper
+        # remember initialization is in here too
+        ct = Countertrace()
+        # init has only one phase allowing all initial locations
+
+        # final true phase
+        ct.dc_phases.append(phaseT())
+
+        return ct
 
 
 ################################################################################
@@ -796,6 +825,15 @@ class InitialLoc(APattern, AAutomatonPattern):
     @classmethod
     def get_target_location(cls, f: "Formalization", var_collection: "VariableCollection") -> "Expression":
         return cls._get_letter(f, var_collection, "R")
+
+    def get_instanciated_countertraces(
+        self, scope: str, expressions: dict[str, FNode], f: "Formalization", other_f: list["Formalization"]
+    ) -> Countertrace:
+        ct = Countertrace()
+        # init has only one phase allowing all initial locations followed by a true phase
+        ct.dc_phases.append(phase(Not(expressions["R"])))
+        ct.dc_phases.append(phaseT())
+        return ct
 
 
 class Toggle1(APattern):
