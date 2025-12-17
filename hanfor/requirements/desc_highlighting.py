@@ -215,20 +215,20 @@ def _generate_combinations(
 
             fragments_used.add(variable_fragment)
             combo.append((position_in_desc, score))
-        else:
-            # punishment for missing words and evaluate if usefull combo
-            missing = var_fragments - fragments_used
-            punishment = len(missing) * (-20)
-            avg_score = sum(p[1] for p in combo) / len(combo)
-            final_score = avg_score + punishment
 
-            if len(combo) < min_count_words:
-                continue
-            if final_score < threshold:
-                continue
+        # punishment for missing words and evaluate if usefull combo
+        missing = var_fragments - fragments_used
+        punishment = len(missing) * (-20)
+        avg_score = sum(p[1] for p in combo) / len(combo)
+        final_score = avg_score + punishment
 
-            positions = [pos for (pos, score) in combo]
-            combos.append((final_score, positions))
+        if len(combo) < min_count_words:
+            continue
+        if final_score < threshold:
+            continue
+
+        positions = [pos for (pos, score) in combo]
+        combos.append((final_score, positions))
 
     return combos
 
