@@ -10,6 +10,7 @@ require("awesomplete/awesomplete.css")
 //require('datatables.net-bs5-colreorderwithresize-npm');
 require("datatables.net-colreorder-bs5")
 require("./bootstrap-confirm-button")
+const {marked} = require("marked")
 
 let utils = require("./hanfor-utils")
 const autosize = require("autosize/dist/autosize")
@@ -1063,7 +1064,9 @@ function load_requirement(row_idx) {
 
     // Visible information
     $("#requirement_modal_title").html(data.id + ": " + data.type)
-    $("#description_textarea").html(data.desc_highlighted).change()
+    const html = marked(data.desc_highlighted, { sanitize: false });
+    $("#description_textarea").html(html).change();
+
     $("#add_guess_description").text(data.desc).change()
 
     // Parse the formalizations

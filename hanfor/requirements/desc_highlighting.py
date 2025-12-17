@@ -63,7 +63,7 @@ def delete_variables(variables: list[str]) -> None:
         for match in req_data.variable_matches:
             if match.variable in variables:
                 req_data.variable_matches.remove(match)
-        req_data.highlighted_desc = _generate_html_description(
+        req_data.highlighted_desc = _generate_md_description(
             req_data.variable_matches,
             req_data.description,
         )
@@ -128,7 +128,7 @@ def generate_all_highlighted_desc(
         )
 
         req_data.variable_matches.extend(new_matches)
-        req_data.highlighted_desc = _generate_html_description(
+        req_data.highlighted_desc = _generate_md_description(
             req_data.variable_matches,
             req_data.description,
         )
@@ -352,11 +352,9 @@ def _highlight_desc_variable(
     return final_matches
 
 
-def _generate_html_description(final_matches: list[VariableMatch], desc) -> str:
+def _generate_md_description(final_matches: list[VariableMatch], desc) -> str:
     """
-    Generate HTML-highlighted description from matched intervals.
-    This function sorts matches by score and length, resolves overlaps, and applies
-    highlighting using a template.
+    Generate Markdown-compatible description with embedded HTML for variable highlighting.
     """
 
     # Sort intervals by score (desc), length (desc), start position (asc)
@@ -393,8 +391,7 @@ def _generate_html_description(final_matches: list[VariableMatch], desc) -> str:
                 main_vars = kept_intervals[i][2]
                 main_score = main_vars[0][1]
                 main_len = e2 - s2
-                curr_len = end - start
-                if score > main_score or (score == main_score and curr_len > main_len):
+                if score > main_score or (score == main_score and (end - start) > main_len):
                     kept_intervals[i] = (start, end, [(var, score)])
 
     # Build output
@@ -411,5 +408,4 @@ def _generate_html_description(final_matches: list[VariableMatch], desc) -> str:
         last = e
 
     out.append(desc[last:])
-    html_result = "".join(out)
-    return html_result
+    return "".join(out)
