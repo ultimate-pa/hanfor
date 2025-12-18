@@ -206,15 +206,13 @@ def _generate_combinations(
         fragments_used = set()
 
         for position_in_desc, score, variable_fragment in all_word_hits_sorted[i:]:
-            if variable_fragment in fragments_used:
-                continue
             if len(combo) > 0:
                 if position_in_desc[0] == combo[-1][0][0]:
                     continue
                 if not _words_between(combo[-1][0][0], position_in_desc[0], all_word_starts, max_gap):
                     break
-
-            fragments_used.add(variable_fragment)
+            if variable_fragment not in fragments_used:
+                fragments_used.add(variable_fragment)
             combo.append((position_in_desc, score))
 
         # punishment for missing words and evaluate if usefull combo
