@@ -166,7 +166,8 @@ def _normalize_and_group_positions_from_desc(desc: str) -> dict[str, list[tuple[
             s = split_indices[i]
             e = split_indices[i + 1]
             sub_word = word[s:e].lower()
-            word_positions[sub_word].append((start + s, start + e))
+            if len(sub_word) > 2:
+                word_positions[sub_word].append((start + s, start + e))
     return word_positions
 
 
