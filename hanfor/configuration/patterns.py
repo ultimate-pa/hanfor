@@ -859,6 +859,31 @@ class Existence(APattern):
         self.order: int = 1
 
 
+class ConditionalResponseBoundL1(APattern):
+
+    def __init__(self):
+        super().__init__()
+        self._pattern_text: str = (
+            "it is always the case that if {R} holds succeeded by {S} for at least {T} time units, then {U} holds afterwards"
+        )
+        self.old_names = ["InvarianceDelay"]
+        self._env: dict[str, list[str]] = {
+            "R": ["bool"],
+            "S": ["bool"],
+            "T": ["real"],
+            "U": ["bool"],
+        }
+        self.group: str = "Real-time"
+        self.order: int = 30
+        self._countertraces: dict[str, list[str]] = {
+            "GLOBALLY": ["true;⌈R⌉;⌈S⌉ ∧ ℓ ≥ T;⌈!U⌉;true"],
+            "BEFORE": [],
+            "AFTER": [],
+            "BETWEEN": [],
+            "AFTER_UNTIL": [],
+        }
+
+
 class Transition(AAutomatonPattern, APattern):
 
     def __init__(self):
