@@ -10,6 +10,7 @@ require("awesomplete/awesomplete.css")
 //require('datatables.net-bs5-colreorderwithresize-npm');
 require("datatables.net-colreorder-bs5")
 require("./bootstrap-confirm-button")
+const {marked} = require("marked")
 import Sortable from "sortablejs"
 import "jquery-sortablejs"
 
@@ -1052,7 +1053,8 @@ function load_requirement(row_idx) {
 
     // Visible information
     $("#requirement_modal_title").html(data.id + ": " + data.type)
-    $("#description_textarea").text(data.desc).change()
+    const rendered_descr = marked(data.desc, { sanitize: false })
+    $("#description_textarea").html(rendered_descr).change();
     $("#add_guess_description").text(data.desc).change()
 
     // Parse the formalizations
