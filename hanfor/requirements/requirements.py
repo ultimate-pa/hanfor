@@ -59,7 +59,6 @@ def api_index():
     var_collection = VariableCollection(
         current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
     )
-
     result = requirement.to_dict(include_used_vars=True)
     result["formalizations_html"] = formalizations_to_html(current_app, requirement.formalizations)
     result["available_vars"] = var_collection.get_available_var_names_list(used_only=False, exclude_types={"ENUM"})
@@ -87,9 +86,15 @@ def api_update():
     # Update a requirement
     rid = request.form.get("id", "")
     requirement = current_app.db.get_object(Requirement, rid)
+    order = request.form.get("formalizations_order")
+    order_dict = json.loads(order)
+    logging.debug(order_dict)
+    for idx, formalization in requirement.formalizations.items():
+        formalization.order = order_dict.get(str(idx))
+        logging.debug(f"Formalizaation of {idx} has order of {formalization.order}")
+
     error = False
     error_msg = ""
-
     if requirement:
         logging.debug(f"Updating requirement: {requirement.rid}")
 

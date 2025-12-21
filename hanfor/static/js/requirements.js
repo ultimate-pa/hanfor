@@ -11,6 +11,8 @@ require("awesomplete/awesomplete.css")
 require("datatables.net-colreorder-bs5")
 require("./bootstrap-confirm-button")
 const {marked} = require("marked")
+import Sortable from "sortablejs"
+import "jquery-sortablejs"
 
 let utils = require("./hanfor-utils")
 const autosize = require("autosize/dist/autosize")
@@ -484,6 +486,13 @@ function store_requirement(requirements_table) {
     formalizations[formalization["id"]] = formalization
   })
 
+  // Store the order of the formalizations to be loaded
+  let load_order = {}
+  $(".accordion-item").each(function (idx) {
+    load_order[$(this).data("id")] = idx
+  })
+  console.log(load_order)
+
   let tag_comments = new Map()
   $("#tags_comments_table tr:gt(0)").each(function () {
     let tag = $(this).find("td:eq(0)").text()
@@ -502,6 +511,7 @@ function store_requirement(requirements_table) {
       tags: JSON.stringify(Object.fromEntries(tag_comments)),
       status: req_status,
       formalizations: JSON.stringify(formalizations),
+      formalizations_order: JSON.stringify(load_order),
     }, // Update requirements table on success or show an error message.
     function (data) {
       requirement_modal_content.LoadingOverlay("hide", true)
@@ -1064,9 +1074,8 @@ function load_requirement(row_idx) {
 
     // Visible information
     $("#requirement_modal_title").html(data.id + ": " + data.type)
-    const html = marked(data.desc_highlighted, { sanitize: false });
-    $("#description_textarea").html(html).change();
-
+    const rendered_descr = marked(data.desc_highlighted, { sanitize: false })
+    $("#description_textarea").html(rendered_descr).change();
     $("#add_guess_description").text(data.desc).change()
 
     // Parse the formalizations
@@ -1140,6 +1149,11 @@ function load_requirement(row_idx) {
           "</a>" +
           "</span>&numsp;",
       )
+    })
+
+    const sortable = Sortable.create($("#formalization_accordion")[0], {
+      animation: 200,
+      ghostClass: "ghost",
     })
   }).done(function () {
     update_vars()
