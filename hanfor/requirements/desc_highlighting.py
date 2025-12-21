@@ -156,7 +156,7 @@ def _normalize_variable(var: str) -> set[str]:
 
     def camel_case_split(match) -> str:
         word = match.group()
-        if re.fullmatch(r"\d+[A-Za-z]+", word):
+        if re.fullmatch(r"\d+[A-Za-z]{1,2}", word):
             return word
         return re.sub(r"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])", " ", word)
 
