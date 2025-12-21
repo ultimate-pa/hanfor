@@ -16,7 +16,6 @@ from config import PATTERNS_GROUP_ORDER  # TODO should this be in the config?
 from hanfor_flask import HanforFlask
 from lib_core.data import Requirement, VariableCollection, Variable
 
-
 default_scope_options = """
     <option value="NONE">None</option>
     <option value="GLOBALLY">Globally</option>

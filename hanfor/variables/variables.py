@@ -525,6 +525,7 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
 
         var_collection.store()
         app.db.update()
+
     return result
 
 

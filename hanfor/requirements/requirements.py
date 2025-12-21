@@ -3,6 +3,7 @@ import logging
 import json
 import datetime
 
+
 from hanfor_flask import current_app, nocache, HanforFlask
 from lib_core.data import Requirement, VariableCollection, SessionValue, RequirementEditHistory, Tag, Variable
 from lib_core.utils import (
