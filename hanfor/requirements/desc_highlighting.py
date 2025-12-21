@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 from collections import defaultdict
@@ -56,6 +57,7 @@ def delete_variables(variables: list[str]) -> None:
     If a variable is deleted, it is removed from the variable lookup sets and from all
     matches within the requirements. Afterward, a new highlighted string is generated.
     """
+    logging.info(f"Updating highlighting after deleting variables: {variables}")
     for variable in variables:
         if variable in variable_sets[variable]:
             variable_sets.pop(variable)
@@ -74,6 +76,7 @@ def changing_variables(variable_name_old: str, variable_name_new: str) -> None:
     If a variable name is changed, the old name is removed from all descriptions,
     and all descriptions are reprocessed with the new name.
     """
+    logging.info(f"Changing variable '{variable_name_old}' to '{variable_name_new}'")
     delete_variables([variable_name_old])
     generate_all_highlighted_desc([variable_name_new], None)
 
@@ -83,8 +86,8 @@ def new_variables_regenerate_highlighting(variables: set[Variable]) -> None:
     Process a set of updated variable objects and trigger regeneration of highlighted
     descriptions for all requirements.
     """
-    print("new variables...", variables)
     variable_list = [v.name for v in variables]
+    logging.info(f"Regenerating highlighting for new variables: {variable_list}")
     if variable_list:
         generate_all_highlighted_desc(variable_list, None)
 
@@ -96,6 +99,7 @@ def generate_all_highlighted_desc(
     Regenerates highlighted descriptions for all requirements.
     only the new_variables will be reprocessed inside each requirement.
     """
+    logging.info("Generating highlighted descriptions for requirements...")
     # Normalize variables and build lookup list
     variable_sets_list = []
     for var in new_variables:
@@ -109,6 +113,7 @@ def generate_all_highlighted_desc(
 
     # Initialize entries for each requirement
     if requirements:
+        logging.info("Initialize each requirement...")
         for req_id, requirement in requirements.items():
             word_positions = _normalize_and_group_positions_from_desc(requirement.description)
 
@@ -120,8 +125,12 @@ def generate_all_highlighted_desc(
                 desc_words_starting_pos=sorted(pos[0] for positions in word_positions.values() for pos in positions),
             )
 
+    all_req_data = list(requirement_highlighting_data_per_req.values())
+    total = len(all_req_data)
+    step = max(total // 5, 1)
+
     # (Re)compute variable matches and generate HTML
-    for req_data in requirement_highlighting_data_per_req.values():
+    for idx, req_data in enumerate(all_req_data, start=1):
         new_matches = _highlight_desc_variable(
             req_data,
             variable_sets_list,
@@ -132,6 +141,10 @@ def generate_all_highlighted_desc(
             req_data.variable_matches,
             req_data.description,
         )
+
+        if idx % step == 0 or idx == total:
+            percent = int(idx / total * 100)
+            logging.info(f"Processed {idx}/{total} requirements ({percent}%)")
 
 
 def _normalize_variable(var: str) -> set[str]:
