@@ -1,6 +1,6 @@
 from unittest import TestCase
 import ai.ai_config as config
-from ai.interfaces.similarity_interface import load_similarity_methods
+from ai.ai_utils import load_similarity_methods
 from ai.interfaces.ai_interface import load_ai_prompt_parse_methods
 
 
