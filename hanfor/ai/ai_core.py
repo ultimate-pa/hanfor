@@ -453,6 +453,7 @@ def formalization_integration(formalization: dict, requirement: reqtransformer.R
             }
         }
     )
+    print(formatted_output_json)
     post(
         "http://127.0.0.1:5000/api/req/" + "update",
         data={
@@ -462,6 +463,7 @@ def formalization_integration(formalization: dict, requirement: reqtransformer.R
             "tags": dumps({"ai_formalization": "AI-generated formalization based on human-created formalization"}),
             "status": "Todo",
             "formalizations": formatted_output_json,
+            "formalizations_order": dumps({str(formalization_id): 0}),
         },
     )
 
