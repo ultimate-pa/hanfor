@@ -10,16 +10,19 @@ from lib_pea.config import SOLVER_NAME, LOGIC
 import numexpr
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class Location:
     state_invariant: FNode = TRUE()
     clock_invariant: FNode = TRUE()
     label: str = None
 
+    def __str__(self):
+        return f"{self.label:<10}: {str(self.state_invariant):<40}, {str(self.clock_invariant):<20}"
+
 
 @dataclass
 class PhaseSetsLocation(Location):
-    label: PhaseSets() = PhaseSets()
+    label: PhaseSets = PhaseSets()
 
     def __eq__(self, o: "PhaseSetsLocation") -> bool:
         return (

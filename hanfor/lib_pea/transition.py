@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Union
 
 from pysmt.fnode import FNode
 from pysmt.formula import FormulaManager
@@ -8,12 +9,15 @@ from lib_pea.location import PhaseSetsLocation, Location
 from lib_pea.config import SOLVER_NAME, LOGIC
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class Transition:
-    src: Location = None
+    src: Union[None, Location] = None
     dst: Location = None
     guard: FNode = TRUE()
     resets: frozenset[str] = frozenset()
+
+    def __str__(self):
+        return f"{self.src.label if self.src else 'init':>15} --- {str(self.guard):<30} ({str(self.resets):>5}) ---> {self.dst.label:<15}"
 
 
 @dataclass

@@ -4,13 +4,25 @@ from pysmt.formula import FormulaManager
 
 from lib_pea.countertrace import Countertrace
 from lib_pea.location import PhaseSetsLocation, Location
+from lib_pea.pea_operations import PeaOperationsMixin
 from lib_pea.transition import PhaseSetsTransition, Transition
 
 
-class Pea:
+class Pea(PeaOperationsMixin):
     def __init__(self):
         self.transitions: defaultdict[Location, set[Transition]] = defaultdict(set)
         self.clocks: set[str] = set()
+
+    def locations(self) -> set[Location]:
+        return set(self.transitions.keys())
+
+    def __str__(self):
+        return (
+            "\nPEA:\n"
+            + "\n".join([str(l) for l in self.locations()])
+            + "\n"
+            + "\n".join([str(t) for ts in self.transitions.values() for t in ts])
+        )
 
 
 class PhaseSetsPea(Pea):

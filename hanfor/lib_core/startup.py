@@ -7,6 +7,7 @@ import hashlib
 from typing import Callable
 from terminaltables import DoubleTable
 import shutil
+import re
 
 from hanfor_flask import HanforFlask
 from json_db_connector.json_db import JsonDatabase, remove_json_database_data_tracing_logger
@@ -20,7 +21,7 @@ from lib_core.utils import (
     choice,
 )
 from lib_core.data import Tag, VariableCollection, Scope, SessionValue, Requirement, Variable
-from configuration.patterns import PATTERNS
+from configuration.patterns import APattern
 from configuration.defaults import Color
 from configuration.tags import STANDARD_TAGS, FUNCTIONAL_TAGS
 
@@ -34,7 +35,7 @@ def config_check(app_config):
             raise SyntaxError("Could not find {} in config.".format(to_ensure_config))
 
     # Check pattern groups set correctly.
-    pattern_groups_used = set((pattern["group"] for pattern in PATTERNS.values()))
+    pattern_groups_used = set((pattern.group for pattern in APattern.get_patterns().values()))
     pattern_groups_set = set((group for group in app_config["PATTERNS_GROUP_ORDER"]))
     # Pattern group for downwards compatibility: Legacy patterns are not shown in dropdown (but still deserializable)
     pattern_groups_set.add("Legacy")
@@ -52,7 +53,7 @@ def config_check(app_config):
 
 
 def update_var_usage(flask_app: HanforFlask, var_collection):
-    var_collection.refresh_var_usage(flask_app)
+    var_collection.refresh_var_usage(flask_app.db.get_objects(Requirement).values())
     var_collection.req_var_mapping = var_collection.invert_mapping(var_collection.var_req_mapping)
     var_collection.refresh_var_constraint_mapping()
     var_collection.store()
@@ -62,9 +63,11 @@ def update_var_usage(flask_app: HanforFlask, var_collection):
 def varcollection_consistency_check(flask_app: HanforFlask, args=None):
     logging.info("Check Variables for consistency.")
     # Update usages and constraint type check.
-    var_collection = VariableCollection(flask_app)
+    var_collection = VariableCollection(
+        flask_app.db.get_objects(Variable).values(), flask_app.db.get_objects(Requirement).values()
+    )
     if args is not None and args.reload_type_inference:
-        var_collection.reload_type_inference_errors_in_constraints()
+        var_collection.reload_type_inference_errors_in_constraints(SessionValue.get_standard_tags(flask_app.db))
 
     update_var_usage(flask_app, var_collection)
     var_collection.store()
@@ -736,7 +739,9 @@ def get_available_revisions(config, folder=None):
 
     try:
         names = os.listdir(folder)
-        result = [name for name in names if os.path.isdir(os.path.join(folder, name))]
+        result = [
+            name for name in names if os.path.isdir(os.path.join(folder, name)) and re.match(r"revision_[0-9]+", name)
+        ]
     except Exception as e:
         logging.error("Could not fetch stored revisions: {}".format(e))
 

@@ -7,26 +7,14 @@ toc_depth: 2
 * [pip](https://pypi.org/project/pip/)
 
 
-## Install Hanfor
-To get Hanfor either download the .zip file or clone the repository.
+## Download Hanfor
 
-### Download .zip file
-Download [Hanfor](https://github.com/ultimate-pa/hanfor/archive/master.zip) and unzip it.
-Rename the root folder `hanfor-master` to `hanfor`.
+Download the [release](https://github.com/ultimate-pa/hanfor/releases) release of Hanfor
+and unzip the contents at the intended location.
 
-=== ":material-linux: Linux"
-    ``` bash
-    mv hanfor-master hanfor
-    ```
-=== ":fontawesome-brands-windows: Windows"
-    ``` ps
-    move hanfor-master hanfor
-    ```
-
-### Clone the repository
-``` bash
-git clone https://github.com/ultimate-pa/hanfor.git -b master --single-branch 
-```
+Note: Installing Hanfor from the repository directly is not supported anymore.
+If you want to install directly from the repository, 
+follow the instructions in [contribute](contribute/to_hanfor.md).
 
 ## Install dependencies
 We recommend using a [virtual environment](https://docs.python.org/3/tutorial/venv.html).
@@ -81,7 +69,7 @@ Copy the default ultimate config file `configuration/ultimate_config.dist.py` to
 
 The config file `ultimate_config.py` allows you to change various parameters for the ultimate backend -- see the comments in [`ultimate_config.dist.py`](https://github.com/ultimate-pa/hanfor/blob/master/hanfor/configuration/ultimate_config.dist.py).
 
-## Launch a Hanfor session
+## Start Hanfor 
 
 ### Launch a new session
 ``` bash

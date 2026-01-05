@@ -1,2 +1,7 @@
+[project]
+name = "Hanfor"
+version = "1.0.4"
+
 [tool.black]
 line-length = 120
+
