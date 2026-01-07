@@ -239,14 +239,13 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
     # Run consistency checks.
     varcollection_consistency_check(flask_app, args)
 
-    with flask_app.app_context():
-        generate_all_highlighted_desc(
-            VariableCollection(
-                flask_app.db.get_objects(Variable).values(),
-                flask_app.db.get_objects(Requirement).values(),
-            ).get_available_var_names_list(used_only=False),
-            flask_app.db.get_objects(Requirement),
-        )
+    generate_all_highlighted_desc(
+        VariableCollection(
+            flask_app.db.get_objects(Variable).values(),
+            flask_app.db.get_objects(Requirement).values(),
+        ).get_available_var_names_list(used_only=False),
+        flask_app.db.get_objects(Requirement),
+    )
 
     return True
 
