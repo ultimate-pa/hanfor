@@ -4,6 +4,7 @@ import json
 import re
 import csv
 
+import config
 from hanfor_flask import current_app, nocache, HanforFlask
 from lib_core.data import VariableCollection, Variable, Scope, Requirement, replace_prefix, SessionValue
 from lib_core.utils import (
@@ -14,7 +15,13 @@ from lib_core.utils import (
 )
 from lib_core import boogie_parsing
 from configuration.patterns import APattern
-from requirements.desc_highlighting import delete_variables, changing_variables, new_variables_regenerate_highlighting
+
+if config.FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING:
+    from requirements.desc_highlighting import (
+        delete_variables,
+        changing_variables,
+        new_variables_regenerate_highlighting,
+    )
 
 blueprint = Blueprint("variables", __name__, template_folder="templates", url_prefix="/variables")
 blueprint2 = Blueprint("variables_import", __name__, template_folder="templates", url_prefix="/variable_import")
@@ -122,7 +129,8 @@ def api_multi_update():
                 except KeyError:
                     logging.debug(f"Variable `{var_list}` not found")
             var_collection.store()
-            delete_variables(var_list)
+            if config.FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING:
+                delete_variables(var_list)
     current_app.db.update()
     return result
 
@@ -177,7 +185,8 @@ def api_del_var():
         variable = var_collection.del_var(var_name)
         if not variable:
             return {"success": False, "errormsg": "Variable is used and thus cannot be deleted."}
-        delete_variables(list(var_name))
+        if config.FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING:
+            delete_variables(list(var_name))
         current_app.db.remove_object(variable)
         var_collection.store()
         current_app.db.update()
@@ -225,7 +234,8 @@ def api_add_new_variable():
             var_collection.collection[variable_name].value = variable_value
         var_collection.store()
         current_app.db.update()
-        new_variables_regenerate_highlighting({new_variable})
+        if config.FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING:
+            new_variables_regenerate_highlighting({new_variable})
         return result
     return {"success": False, "errormsg": f"You should not reach this point, something went really wrong."}
 
@@ -446,8 +456,8 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
                 requirements = get_requirements(app)
                 affected_requirements = get_requirements_using_var(requirements, old_enumerator_name)
                 rename_variable_in_expressions(app, affected_requirements, old_enumerator_name, new_enumerator_name)
-
-            changing_variables(var_name_old, var_name)
+            if config.FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING:
+                changing_variables(var_name_old, var_name)
             result["name_changed"] = True
 
         # Change ENUM parent.
