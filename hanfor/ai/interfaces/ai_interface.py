@@ -7,7 +7,7 @@ import reqtransformer
 from ai.ai_enum import AiDataEnum
 from ai.strategies.ai_api_methods_abstract_class import AiApiMethod
 from ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse, get_scope, get_pattern
-import ai.ai_config as ai_config
+import config
 from lib_core import boogie_parsing
 
 pattern = get_pattern().keys()
@@ -147,7 +147,7 @@ class AIFormalization:
             self.__step_test_formalization_complete,
         ]
 
-        while self.try_count < ai_config.MAX_AI_FORMALIZATION_TRYS:
+        while self.try_count < config.MAX_AI_FORMALIZATION_TRYS:
             for step_function in steps:
 
                 # Terminated Ai Threads

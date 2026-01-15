@@ -98,3 +98,37 @@ FEATURE_AI = False
 # Define the ordering for pattern grouping in the pattern selection of hanfors frontent.
 # All groups used in PATTERNS must be covered.
 PATTERNS_GROUP_ORDER = ["Occurence", "Order", "Real-time", "Automaton", "not_formalizable"]
+
+
+################################################################################
+#                                 AI API config                                #
+################################################################################
+
+AI_API_URL = "URL_TO_AI_API"
+AI_MODEL_NAMES = {
+    "MODEL_NAME": "DESCRIPTION",
+}
+STANDARD_AI_MODEL = "STANDARD_AI_MODEL"
+
+################################################################################
+#                           AI formalization                                   #
+################################################################################
+
+
+STANDARD_SIMILARITY_METHOD = "Cosine Similarity"
+STANDARD_AI_PROMPT_PARSE_METHOD = "Small Prompt"
+MAX_AI_FORMALIZATION_TRYS = 5
+DELETION_TIME_AFTER_COMPLETION_FORMALIZATION = 20  # Seconds
+ENABLE_SIMILARITY_ON_STARTUP = True
+
+# switches on interface:
+AUTO_UPDATE_ON_REQUIREMENT_CHANGE = True
+ENABLE_API_AI_REQUESTS = True
+
+
+################################################################################
+#                       Threading Configuration Settings                       #
+################################################################################
+
+MAX_THREADS = 10
+MAX_CONCURRENT_AI_REQUESTS = 2

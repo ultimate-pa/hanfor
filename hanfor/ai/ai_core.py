@@ -4,7 +4,7 @@ from threading import Event
 from typing import Optional
 from ai.strategies import ai_prompt_parse_abstract_class
 from ai.strategies.similarity_abstract_class import SimilarityAlgorithm
-from ai import ai_config
+import config
 from ai.ai_enum import AiDataEnum
 from ai.ai_utils import AiStatistic, AiProcessingQueue, AiData
 from ai.interfaces import ai_interface
@@ -33,7 +33,7 @@ class AiCore:
         self.ai_statistic = AiStatistic()
         self.__ai_data: AiData = AiData(self.ai_statistic)
         self.ai_processing_queue = AiProcessingQueue(self.__ai_data.update_progress)
-        self.__ai_thread_manager = AiThreadManager(ai_config.MAX_THREADS)
+        self.__ai_thread_manager = AiThreadManager(config.MAX_THREADS)
 
     def startup(self, data_folder: str, socketio) -> None:
         """
@@ -42,7 +42,7 @@ class AiCore:
         """
 
         self.__ai_data.set_data_folder(data_folder, socketio)
-        if ai_config.ENABLE_SIMILARITY_ON_STARTUP:
+        if config.ENABLE_SIMILARITY_ON_STARTUP:
             self.start_clustering()
         id_list = []
         for requirement in hanfor_flask.current_app.db.get_objects(reqtransformer.Requirement).values():

@@ -4,8 +4,7 @@ from threading import Lock
 from time import time
 from typing import Optional
 import logging
-
-from ai import ai_config
+import config
 from ai.interfaces.ai_interface import load_ai_prompt_parse_methods, load_ai_api_methods, AIFormalization
 from ai.ai_enum import AiDataEnum
 from ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse
@@ -76,7 +75,7 @@ class RequirementLog:
 class AiProcessingQueue:
     """Manages the queue for AI requests, handling both running and waiting requests"""
 
-    max_ai_requests: int = ai_config.MAX_CONCURRENT_AI_REQUESTS
+    max_ai_requests: int = config.MAX_CONCURRENT_AI_REQUESTS
 
     def __init__(self, update_progress_function) -> None:
         self.current_ai_request = []
@@ -194,8 +193,8 @@ class AiData:
         self.socketio = None
         self.__ai_system_data: dict[AiDataEnum, dict[AiDataEnum, bool | int | str | AiDataEnum]] = {
             AiDataEnum.FLAGS: {
-                AiDataEnum.SYSTEM: ai_config.AUTO_UPDATE_ON_REQUIREMENT_CHANGE,
-                AiDataEnum.AI: ai_config.ENABLE_API_AI_REQUESTS,
+                AiDataEnum.SYSTEM: config.AUTO_UPDATE_ON_REQUIREMENT_CHANGE,
+                AiDataEnum.AI: config.ENABLE_API_AI_REQUESTS,
             },
             AiDataEnum.CLUSTER: {
                 AiDataEnum.STATUS: AiDataEnum.NOT_STARTED,
@@ -208,12 +207,12 @@ class AiData:
         self.__clusters: Optional[set[frozenset[str]]] = None
         self.__cluster_matrix: Optional[tuple[list[list[float]], dict]] = None
         self.__similarity_methods: dict[str, SimilarityAlgorithm] = load_similarity_methods()
-        self.__activ_similarity_method: str = ai_config.STANDARD_SIMILARITY_METHOD
+        self.__activ_similarity_method: str = config.STANDARD_SIMILARITY_METHOD
         self.__sim_threshold = self.__similarity_methods[self.__activ_similarity_method].standard_threshold
 
         self.__formalization_objects: list[AIFormalization] = []
         self.__ai_prompt_parse_methods: dict[str, AiPromptParse] = load_ai_prompt_parse_methods()
-        self.__activ_ai_prompt_parse_method: str = ai_config.STANDARD_AI_PROMPT_PARSE_METHOD
+        self.__activ_ai_prompt_parse_method: str = config.STANDARD_AI_PROMPT_PARSE_METHOD
         self.__used_variables: list[dict] = [{}]
 
         ai_api_methods = load_ai_api_methods()
@@ -223,10 +222,10 @@ class AiData:
         self.__ai_models = {
             key: {
                 "description": value,
-                "selected": key == ai_config.STANDARD_AI_MODEL,
+                "selected": key == config.STANDARD_AI_MODEL,
                 "api_method_object": model_to_api_method.get(key),
             }
-            for key, value in ai_config.AI_MODEL_NAMES.items()
+            for key, value in config.AI_MODEL_NAMES.items()
         }
         for name, value in self.__ai_models.items():
             if not value["api_method_object"]:
@@ -255,7 +254,7 @@ class AiData:
             "ai_models": self.__get_info_ai_models(),
             "ai_statistic": self.__ai_statistic.get_status_report(),
             "req_ids": self.requirement_log.get_ids(),
-            "ai_formalization_deletion_time": ai_config.DELETION_TIME_AFTER_COMPLETION_FORMALIZATION,
+            "ai_formalization_deletion_time": config.DELETION_TIME_AFTER_COMPLETION_FORMALIZATION,
         }
         return ret
 
@@ -488,7 +487,7 @@ class AiData:
             f_obj
             for f_obj in self.__formalization_objects
             if f_obj.del_time is None
-            or (current_time - f_obj.del_time < ai_config.DELETION_TIME_AFTER_COMPLETION_FORMALIZATION)
+            or (current_time - f_obj.del_time < config.DELETION_TIME_AFTER_COMPLETION_FORMALIZATION)
         ]
 
     # endregion
