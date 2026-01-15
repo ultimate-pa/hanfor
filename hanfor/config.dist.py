@@ -95,3 +95,22 @@ FEATURE_TELEMETRY = False
 # Define the ordering for pattern grouping in the pattern selection of hanfors frontent.
 # All groups used in PATTERNS must be covered.
 PATTERNS_GROUP_ORDER = ["Occurence", "Order", "Real-time", "Automaton", "not_formalizable"]
+
+
+################################################################################
+#                                 AI API config                                #
+################################################################################
+
+AI_API_URL = "URL_TO_AI_API"
+AI_MODEL_NAMES = {
+    "MODEL_NAME": "DESCRIPTION",
+}
+STANDARD_AI_MODEL = "STANDARD_AI_MODEL"
+
+
+################################################################################
+#                       Threading Configuration Settings                       #
+################################################################################
+
+MAX_THREADS = 10
+MAX_CONCURRENT_AI_REQUESTS = 2
