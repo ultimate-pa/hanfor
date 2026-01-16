@@ -33,7 +33,7 @@ def load_ai_api_methods() -> list[AiApiMethod]:
     return methods
 
 
-class AiRequestData:
+class AiRequest:
     """
     Holds data for AI requests: model name, selected API method, etc.
     Automatically maps AI models to their API methods.

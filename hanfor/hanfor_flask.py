@@ -1,11 +1,16 @@
 import datetime
 
 from flask import Flask, current_app as fl_current_app, make_response
+
+from ai_request.ai_core_requests import AiRequest
 from json_db_connector.json_db import JsonDatabase
 from functools import wraps, update_wrapper
+from thread_handling.threading_core import ThreadHandler
 
 
 class HanforFlask(Flask):
+    ai_request: AiRequest
+    thread_handler: ThreadHandler
     db: JsonDatabase
 
 
