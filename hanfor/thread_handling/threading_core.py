@@ -12,7 +12,7 @@ from typing import Optional, Callable, Any
 class ThreadGroup(Enum):
     """Represents logical groups of threads for batch stopping or categorization."""
 
-    AI_FORMALIZATION = 0
+    AI = 0
     CLUSTERING = 1
     VARIABLE_HIGHLIGHTING = 2
     OTHER = 3
@@ -104,7 +104,7 @@ class PrioritizedTask:
 
     def __init__(self, thread_task: ThreadTask, result: TaskResult):
         self.priority = thread_task.priority
-        self.task = thread_task
+        self.thread_task = thread_task
         self.result = result
 
     def __lt__(self, other):
@@ -132,21 +132,21 @@ class ThreadHandler:
             stop_event.set()
             remaining_tasks = []
             while not self.queue.empty():
-                task = self.queue.get_nowait()
-                if task.task.group != group:
-                    remaining_tasks.append(task)
+                prio_task = self.queue.get_nowait()
+                if prio_task.thread_task.group != group:
+                    remaining_tasks.append(prio_task)
                 else:
-                    if task.result:
-                        task.result.set_result(None)
-                    task.task.status = "terminated in queue"
-            for task in remaining_tasks:
-                self.queue.put(task)
+                    if prio_task.result:
+                        prio_task.result.set_result(None)
+                    prio_task.thread_task.status = "terminated in queue"
+            for prio_task in remaining_tasks:
+                self.queue.put(prio_task)
 
-        running_tasks = [t for t in self.running_tasks if t.task.group == group]
-        for task in running_tasks:
+        running_tasks_within_group = [t for t in self.running_tasks if t.thread_task.group == group]
+        for running_task in running_tasks_within_group:
             try:
-                logging.info("Waiting for thread %s to terminate", task.task)
-                task.result.result()
+                logging.info("Waiting for thread %s to terminate", running_task.thread_task)
+                running_task.result.result()
             except Exception:
                 pass
 
@@ -157,38 +157,46 @@ class ThreadHandler:
         """
         result = TaskResult()
 
-        task = PrioritizedTask(thread_task, result)
-        self.queue.put(task)
+        prio_task = PrioritizedTask(thread_task, result)
+        self.queue.put(prio_task)
         queued = list(self.queue.queue)
         logging.warning(
-            f"Queued tasks: {[ (t.priority, getattr(t.task.thread_function, '__name__', str(t.task.thread_function))) for t in queued ]}"
+            f"Queued tasks: {[ (t.priority, getattr(t.thread_task.thread_function, '__name__', str(t.thread_task.thread_function))) for t in queued ]}"
         )
         return result
 
-    def __can_start(self, sched_class: SchedulingClass) -> bool:
+    def __can_start(self, thread_task: ThreadTask) -> bool:
         """Check if a task of a given scheduling class can start based on current load."""
+
+        if thread_task.group == ThreadGroup.AI:
+            i = 0
+            for thread in self.running_tasks:
+                if thread.thread_task.group == ThreadGroup.AI:
+                    i += 1
+            if i >= config.MAX_CONCURRENT_AI_REQUESTS:
+                return False
 
         total_active = self.active_threads
         max_threads = self.max_threads
         free_slots = max_threads - total_active
         free_ratio = free_slots / max_threads
-        return free_ratio >= sched_class.min_free_ratio
+        return free_ratio >= thread_task.scheduling_class.min_free_ratio
 
     def __dispatcher(self):
         """Continuously dispatches tasks from the queue, obeying priority rules and resource limits."""
         while True:
-            task = self.queue.get()
+            prio_task = self.queue.get()
 
             # Acquire semaphore to limit total threads
             self.semaphore.acquire()
             started = False
             while not started:
                 with self.lock:
-                    if self.__can_start(task.task.scheduling_class):
+                    if self.__can_start(prio_task.thread_task):
                         # Update counters
                         self.active_threads += 1
-                        self.active_by_priority[task.task.priority] = (
-                            self.active_by_priority.get(task.task.priority, 0) + 1
+                        self.active_by_priority[prio_task.thread_task.priority] = (
+                            self.active_by_priority.get(prio_task.thread_task.priority, 0) + 1
                         )
                         started = True
                     else:
@@ -200,32 +208,32 @@ class ThreadHandler:
 
             # Start the actual worker thread
             logging.info(
-                f"Starting task {task.task.thread_function.__name__} of type {task.task.scheduling_class.label}"
+                f"Starting task {prio_task.thread_task.thread_function.__name__} of type {prio_task.thread_task.scheduling_class.label}"
             )
-            t = threading.Thread(target=self.__run_task, args=(task,), daemon=True)
+            thread = threading.Thread(target=self.__run_task, args=(prio_task,), daemon=True)
             with self.lock:
-                self.running_tasks.append(task)
-            t.start()
+                self.running_tasks.append(prio_task)
+            thread.start()
 
-    def __run_task(self, task: PrioritizedTask):
+    def __run_task(self, prio_task: PrioritizedTask):
         """Runs the given funktion and sets the result and calls callback"""
         try:
-            output = task.task.thread_function(
-                *task.task.args, stop_event=self.group_stop_events[task.task.group], **task.task.kwargs
+            output = prio_task.thread_task.thread_function(
+                *prio_task.thread_task.args, stop_event=self.group_stop_events[prio_task.thread_task.group], **prio_task.thread_task.kwargs
             )
-            if task.result:
-                task.result.set_result(output)
-            if task.task.callback:
-                task.task.callback(output)
+            if prio_task.result:
+                prio_task.result.set_result(output)
+            if prio_task.thread_task.callback:
+                prio_task.thread_task.callback(output)
         except Exception as e:
             logging.exception(f"Exception in task: {e}")
-            if task.result:
-                task.result.set_exception(e)
+            if prio_task.result:
+                prio_task.result.set_exception(e)
         finally:
             with self.lock:
                 self.active_threads -= 1
-                self.active_by_priority[task.task.priority] -= 1
-                self.running_tasks.remove(task)
+                self.active_by_priority[prio_task.thread_task.priority] -= 1
+                self.running_tasks.remove(prio_task)
             self.semaphore.release()
 
     def get_active_count(self) -> int:
