@@ -1081,31 +1081,33 @@ function load_requirement(row_idx) {
 
     // Parse the formalizations
     $.get(`api/req/formalizations/${data.id}`, function (data) {
-      data.forEach(function (entry) {
-        state.commitedIds.add(Number(entry.id))
-        const containerTemplate = $("#formalization-container").html()
-        const contentTemplate = $("#formalization-template").html()
+      data
+        .sort((a, b) => a.order - b.order)
+        .forEach(function (entry) {
+          state.commitedIds.add(Number(entry.id))
+          const containerTemplate = $("#formalization-container").html()
+          const contentTemplate = $("#formalization-template").html()
 
-        const containerHtml = Mustache.render(containerTemplate, entry)
-        const contentHtml = Mustache.render(contentTemplate, entry)
+          const containerHtml = Mustache.render(containerTemplate, entry)
+          const contentHtml = Mustache.render(contentTemplate, entry)
 
-        // convert to jQuery object since we need to cast it to string beforehand
-        // due to Mustache expecting it
-        const $container = $(containerHtml)
-        $container.find(".accordion-collapse").append(contentHtml)
-        $container.find(`#requirement_scope${entry.id}`).val(entry.scope)
-        $container.find(`#requirement_pattern${entry.id}`).val(entry.pattern)
+          // convert to jQuery object since we need to cast it to string beforehand
+          // due to Mustache expecting it
+          const $container = $(containerHtml)
+          $container.find(".accordion-collapse").append(contentHtml)
+          $container.find(`#requirement_scope${entry.id}`).val(entry.scope)
+          $container.find(`#requirement_pattern${entry.id}`).val(entry.pattern)
 
-        // TODO: This is cursed, but i have no clue how to do it better
-        const vars = ["P", "Q", "R", "S", "T", "U", "V"]
-        vars.forEach((v) => {
-          const val = entry[`expr_${v}`]
-          if (!val) {
-            $container.find(`#requirement_var_group_${v.toLowerCase()}${entry.id}`).hide()
-          }
+          // TODO: This is cursed, but i have no clue how to do it better
+          const vars = ["P", "Q", "R", "S", "T", "U", "V"]
+          vars.forEach((v) => {
+            const val = entry[`expr_${v}`]
+            if (!val) {
+              $container.find(`#requirement_var_group_${v.toLowerCase()}${entry.id}`).hide()
+            }
+          })
+          $("#formalization_accordion").append($container)
         })
-        $("#formalization_accordion").append($container)
-      })
     })
 
     state.nextId = data["next_id"]
