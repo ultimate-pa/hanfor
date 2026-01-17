@@ -146,11 +146,12 @@ class Requirement:
             self._next_formalization_index += 1
             return i
 
-    def add_empty_formalization(self) -> tuple[int, "Formalization"]:
+    def next_id(self) -> int:
+        return self._next_free_formalization_id()
+
+    def add_empty_formalization(self, fid: int):
         """Add an empty formalization to the formalizations list."""
-        fid = self._next_free_formalization_id()
         self.formalizations[fid] = Formalization(fid)
-        return fid, self.formalizations[fid]
 
     def delete_formalization(self, formalization_id, variable_collection: "VariableCollection"):
         formalization_id = int(formalization_id)

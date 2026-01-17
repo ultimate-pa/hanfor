@@ -30,6 +30,12 @@ const { TextareaEditor } = require("@textcomplete/textarea")
 let Fuse = require("fuse.js")
 let fuse = new Fuse([], {})
 
+let state = {
+  drafts: new Set(),
+  commitedIds: new Set(),
+  nextId: null,
+}
+
 let available_tags = ["", "has_formalization"]
 let available_status = ["", "Todo", "Review", "Done"]
 let search_autocomplete = [
@@ -439,6 +445,7 @@ function store_requirement(requirements_table) {
 
   // Fetch the formalizations
   let formalizations = {}
+  let drafts = {}
   $(".formalization_card").each(function () {
     // Scope and Pattern
     let formalization = {}
@@ -470,7 +477,6 @@ function store_requirement(requirements_table) {
   $(".accordion-item").each(function (idx) {
     load_order[$(this).data("id")] = idx
   })
-  console.log(load_order)
 
   let tag_comments = new Map()
   $("#tags_comments_table tr:gt(0)").each(function () {
@@ -480,7 +486,22 @@ function store_requirement(requirements_table) {
   })
 
   sendTelemetry("requirements", req_id, "save")
-  // Store the requirement.
+  const draftFormalizations = Object.fromEntries(
+    Object.entries(formalizations).filter(([id]) => state.drafts.has(Number(id))),
+  )
+  const committedFormalizations = Object.fromEntries(
+    Object.entries(formalizations).filter(([id]) => !state.drafts.has(Number(id))),
+  )
+  if (Object.keys(draftFormalizations).length > 0) {
+    $.post(
+      "/api/req/formalizations/new",
+      {
+        id: req_id,
+        drafts: JSON.stringify(draftFormalizations),
+      },
+      function (data) {},
+    )
+  } // Store the requirement.
   $.post(
     "api/req/update",
     {
@@ -489,7 +510,7 @@ function store_requirement(requirements_table) {
       update_formalization: updated_formalization,
       tags: JSON.stringify(Object.fromEntries(tag_comments)),
       status: req_status,
-      formalizations: JSON.stringify(formalizations),
+      formalizations: JSON.stringify(committedFormalizations),
       formalizations_order: JSON.stringify(load_order),
     }, // Update requirements table on success or show an error message.
     function (data) {
@@ -508,6 +529,7 @@ function store_requirement(requirements_table) {
     },
   ).done(function () {
     update_logs()
+    state.drafts = new Set()
   })
 }
 
@@ -1058,8 +1080,9 @@ function load_requirement(row_idx) {
     $("#add_guess_description").text(data.desc).change()
 
     // Parse the formalizations
-    $.get(`api/req/formalizations?id=${data.id}`, function (data) {
+    $.get(`api/req/formalizations/${data.id}`, function (data) {
       data.forEach(function (entry) {
+        state.commitedIds.add(Number(entry.id))
         const containerTemplate = $("#formalization-container").html()
         const contentTemplate = $("#formalization-template").html()
 
@@ -1084,9 +1107,9 @@ function load_requirement(row_idx) {
         $("#formalization_accordion").append($container)
       })
     })
-    // $("#formalization_accordion").html(data.formalizations_html)
-    // $("#requirement_scope").val(data.scope)
-    // $("#requirement_pattern").val(data.pattern)
+
+    state.nextId = data["next_id"]
+    console.log(state)
 
     // remove all lines from the tag comment table
     $("#tags_comments_table").find("tr:gt(0)").remove()
@@ -1158,6 +1181,8 @@ function load_requirement(row_idx) {
     const sortable = Sortable.create($("#formalization_accordion")[0], {
       animation: 200,
       ghostClass: "ghost",
+      filter: "textarea, select",
+      preventOnFilter: false,
     })
   }).done(function () {
     update_vars()
@@ -1260,42 +1285,51 @@ function add_var_autocomplete(dom_obj) {
 }
 
 function add_formalization(formalizationData = {}) {
-  // Request a new Formalization. And add its edit elements to the modal.
-  let requirement_modal_content = $(".modal-content")
-  requirement_modal_content.LoadingOverlay("show")
+  const entry = {
+    id: state.nextId,
+    order: 0,
+    pattern: "NotFormalizable",
+    scope: "NONE",
+    text: "// None, no pattern set",
+    type: "formalization",
+  }
+  state.drafts.add(state.nextId)
+  state.nextId += 1
 
-  const req_id = $("#requirement_id").val()
-  $.post(
-    "api/req/new_formalization",
-    {
-      id: req_id,
-      formalization: JSON.stringify(formalizationData),
-    },
-    function (data) {
-      requirement_modal_content.LoadingOverlay("hide", true)
-      if (data["success"] === false) {
-        alert(data["errormsg"])
-      } else {
-        let formalization = $(data["html"])
-        formalization.find(".reqirement-variable").each(function () {
-          add_var_autocomplete(this)
-        })
-        formalization.appendTo("#formalization_accordion")
-      }
-    },
-  ).done(function () {
-    update_vars()
-    update_formalization()
-    update_logs()
+  const containerTemplate = $("#formalization-container").html()
+  const contentTemplate = $("#formalization-template").html()
+
+  const containerHtml = Mustache.render(containerTemplate, entry)
+  const contentHtml = Mustache.render(contentTemplate, entry)
+
+  const $container = $(containerHtml)
+  $container.addClass("draft")
+  $container.find(".accordion-collapse").append(contentHtml)
+  $container.find(".reqirement-variable").each(function () {
+    add_var_autocomplete(this)
   })
+  $("#formalization_accordion").append($container)
+  update_vars()
+  update_formalization()
+  update_logs()
 }
 
 function delete_formalization(formal_id, card) {
+  console.log(state)
+  console.log(formal_id)
+  if (state.drafts.has(Number(formal_id))) {
+    state.drafts.delete(Number(formal_id))
+    card.remove()
+    update_vars()
+    update_formalization()
+    update_logs()
+    return
+  }
   let requirement_modal_content = $(".modal-content")
   requirement_modal_content.LoadingOverlay("show")
   const req_id = $("#requirement_id").val()
   $.post(
-    "api/req/del_formalization",
+    "api/req/formalizations/delete",
     {
       requirement_id: req_id,
       formalization_id: formal_id,

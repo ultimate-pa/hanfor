@@ -102,6 +102,23 @@
   white-space: pre-wrap;
 }
 
+.draft {
+  position: relative;
+}
+
+.draft::before {
+  content: "";
+  position: absolute;
+  z-index: 99;
+  top: 5px;
+  left: 5px;
+  border-radius: 50%;
+  width: 12px;
+  height: 12px;
+  color: #fff;
+  background-color: var(--bs-danger);
+}
+
 .ghost {
   opacity: 0.4;
 }

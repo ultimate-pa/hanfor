@@ -65,19 +65,18 @@ def api_index():
         current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
     )
     result = requirement.to_dict(include_used_vars=True)
-    result["formalizations_html"] = formalizations_to_html(current_app, requirement.formalizations)
     result["available_vars"] = var_collection.get_available_var_names_list(used_only=False, exclude_types={"ENUM"})
     result["additional_static_available_vars"] = VARIABLE_AUTOCOMPLETE_EXTENSION
+    result["next_id"] = requirement.next_id()
 
     if requirement:
         return result
     return {"success": False, "errormsg": "This is not an api-enpoint."}, 404
 
 
-@api_blueprint.route("/formalizations", methods=["GET"])
+@api_blueprint.route("/formalizations/<string:rid>", methods=["GET"])
 @nocache
-def get_formalizations():
-    rid = request.args.get("id", "", type=str)
+def get_formalizations(rid):
     requirement = current_app.db.get_object(Requirement, rid)
     result = []
     for _, formalization in requirement.formalizations.items():
@@ -96,6 +95,46 @@ def api_gets():
     reqs = current_app.db.get_objects(Requirement)
     result["data"] = [reqs[k].to_dict() for k in sorted(reqs.keys())]
     return result
+
+
+@api_blueprint.route("/formalizations/new", methods=["POST"])
+@nocache
+def store_formalizations_drafts():
+    rid = request.form.get("id", "")
+    drafts = json.loads(request.form.get("drafts", ""))
+    requirement = current_app.db.get_object(Requirement, rid)
+    variable_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
+    for idx, _ in drafts.items():
+        logging.debug(f"Created empty formalization for : ID: {idx}")
+        logging.debug(f"Type of idx: {type(idx)}")
+        requirement.add_empty_formalization(int(idx))
+
+    error_msg = ""
+    error = False
+    try:
+        requirement.update_formalizations(
+            drafts,
+            SessionValue.get_standard_tags(current_app.db),
+            variable_collection,
+        )
+        add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
+        for v in variable_collection.new_vars:
+            current_app.db.add_object(v)
+    except KeyError as e:
+        error = True
+        error_msg = f"Did not find the created empty draft for ID: {e}"
+    except Exception as e:
+        error = True
+        error_msg = f"Could not parse draft: `{e}`"
+
+    if error:
+        logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
+        return {"success": False, "errormsg": error_msg}
+
+    current_app.db.update()
+    return "PONG"
 
 
 @api_blueprint.route("/update", methods=["POST"])
@@ -152,6 +191,7 @@ def api_update():
             variable_collection = VariableCollection(
                 current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
             )
+            logging.debug(f"Formalizations: {requirement.formalizations}")
             try:
                 requirement.update_formalizations(
                     formalizations,
@@ -252,9 +292,10 @@ def api_multi_update():
 def api_new_formalization():
     # Add a new empty formalization
     rid = request.form.get("id", "")
-    requirement = current_app.db.get_object(Requirement, rid)  # type: Requirement
+    requirement: Requirement = current_app.db.get_object(Requirement, rid)
     formalization_id, formalization = requirement.add_empty_formalization()
     formalization_data = json.loads(request.form.get("formalization", ""))
+    logging.debug(f"Leng of the formalization data: {len(formalization_data)}")
     variable_collection = VariableCollection(
         current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
     )
@@ -275,7 +316,7 @@ def api_new_formalization():
     return result
 
 
-@api_blueprint.route("/del_formalization", methods=["POST"])
+@api_blueprint.route("/formalizations/delete", methods=["POST"])
 @nocache
 def api_del_formalization():
     # Delete a formalization
