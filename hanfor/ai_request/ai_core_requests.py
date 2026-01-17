@@ -1,6 +1,6 @@
 import threading
 from typing import Dict, Optional
-import config
+from configuration import ai_config
 import os
 import importlib
 import logging
@@ -47,15 +47,15 @@ class AiRequest:
         self.__ai_models: Dict[str, dict] = {
             key: {
                 "description": value,
-                "selected": key == config.STANDARD_AI_MODEL,
+                "selected": key == ai_config.STANDARD_AI_MODEL,
                 "api_method_object": model_to_api_method.get(key),
             }
-            for key, value in config.AI_MODEL_NAMES.items()
+            for key, value in ai_config.AI_MODEL_NAMES.items()
         }
         for name, value in self.__ai_models.items():
             if not value["api_method_object"]:
                 logging.warning(f"AI model [{name}] has no API method! Please select one or create a new one.")
-        self.model_name: str = config.STANDARD_AI_MODEL
+        self.model_name: str = ai_config.STANDARD_AI_MODEL
         self.ai_api_method = self.__ai_models[self.model_name]["api_method_object"]
 
     def set_model(self, model_name: str):

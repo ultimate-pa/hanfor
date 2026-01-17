@@ -1,6 +1,6 @@
 import logging
 import requests
-import config
+from configuration import ai_config
 from ai_request import ai_api_methods_abstract_class
 
 
@@ -8,7 +8,7 @@ class OllamaStandard(ai_api_methods_abstract_class.AiApiMethod):
     def query_api(self, query: str, model_name: str) -> (str, str):
         try:
             response = requests.post(
-                config.AI_API_URL,
+                ai_config.AI_API_URL,
                 json={"model": model_name, "prompt": query, "stream": False},
             )
             response_json = response.json()

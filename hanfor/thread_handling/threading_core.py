@@ -2,7 +2,7 @@ import inspect
 import logging
 import threading
 import time
-import config
+from configuration import threading_config
 from dataclasses import dataclass, field
 from enum import Enum
 from queue import PriorityQueue
@@ -112,7 +112,7 @@ class PrioritizedTask:
 
 
 class ThreadHandler:
-    def __init__(self, max_threads: int = config.MAX_THREADS):
+    def __init__(self, max_threads: int = threading_config.MAX_THREADS):
         self.max_threads = max_threads
         self.semaphore = threading.Semaphore(max_threads)
         self.queue = PriorityQueue()
@@ -173,7 +173,7 @@ class ThreadHandler:
             for thread in self.running_tasks:
                 if thread.thread_task.group == ThreadGroup.AI:
                     i += 1
-            if i >= config.MAX_CONCURRENT_AI_REQUESTS:
+            if i >= threading_config.MAX_CONCURRENT_AI_REQUESTS:
                 return False
 
         total_active = self.active_threads
@@ -219,7 +219,9 @@ class ThreadHandler:
         """Runs the given funktion and sets the result and calls callback"""
         try:
             output = prio_task.thread_task.thread_function(
-                *prio_task.thread_task.args, stop_event=self.group_stop_events[prio_task.thread_task.group], **prio_task.thread_task.kwargs
+                *prio_task.thread_task.args,
+                stop_event=self.group_stop_events[prio_task.thread_task.group],
+                **prio_task.thread_task.kwargs,
             )
             if prio_task.result:
                 prio_task.result.set_result(output)

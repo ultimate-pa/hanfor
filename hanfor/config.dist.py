@@ -89,6 +89,10 @@ FEATURE_QUICK_CHECKS = False
 # Telemetry
 FEATURE_TELEMETRY = False
 
+# AI
+FEATURE_AI = False
+
+
 ################################################################################
 #                               Miscellaneous                                  #
 ################################################################################
