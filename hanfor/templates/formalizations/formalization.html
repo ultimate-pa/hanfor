@@ -19,11 +19,11 @@
     <h6>Edit formalization:</h6>
     <div class="form-group">
       <div class="row form-inline row-spacing">
-        <div class="form-group col-12">
+        <div class="form-group col-12 col-lg-4 col-xl-2 gx-1">
           <label for="requirement_scope">Scope</label>
           <select
             id="requirement_scope{{ id }}"
-            class="form-control formalization_selector scope_selector mb-3"
+            class="form-control formalization_selector scope_selector mb-3 select-wrap"
             style="width: 100%"
             title="{{ id }}"
           >
@@ -35,11 +35,11 @@
             <option value="AFTER_UNTIL">After "{P}" until "{Q}"</option>
           </select>
         </div>
-        <div class="form-group col-12">
+        <div class="form-group col-12 col-lg-8 col-xl-8 gx-1">
           <label for="requirement_pattern">Pattern</label>
           <select
             id="requirement_pattern{{ id }}"
-            class="form-select formalization_selector pattern_selector select-wrap"
+            class="form-control formalization_selector pattern_selector select-wrap"
             title="{{ id }}"
           >
             {% endraw %}
@@ -54,36 +54,34 @@
             {% endif %} {% endfor %} {% raw %}
           </select>
         </div>
-        <div class="d-flex col-12 justify-content-center gap-2">
-          <div class="form-group m-0">
-            <label></label>
-            <button
-              name="{{ id }}"
-              class="copy_formalization btn btn-large btn-success"
-              style="width: 100%"
-              title="Copy me"
-            >
-              Copy
-            </button>
-          </div>
-          <div class="form-group m-0">
-            <label></label>
-            <button
-              name="{{ id }}"
-              class="delete_formalization btn btn-large btn-danger"
-              data-bs-toggle="confirmation"
-              data-btn-ok-label="Yes"
-              data-btn-ok-class="btn-success"
-              data-btn-cancel-label="Nooo Stoooop!"
-              data-btn-cancel-class="btn-danger"
-              data-title="Sure?"
-              data-content="Delete this Formalization?"
-              style="width: 100%"
-              title="Delete me"
-            >
-              Delete
-            </button>
-          </div>
+        <div class="form-group m-0 col-12 col-xl-1 gx-1">
+          <label></label>
+          <button
+            name="{{ id }}"
+            class="copy_formalization btn btn-large btn-success"
+            style="width: 100%"
+            title="Copy me"
+          >
+            Copy
+          </button>
+        </div>
+        <div class="form-group m-0 col-12 col-xl-1 gx-1">
+          <label></label>
+          <button
+            name="{{ id }}"
+            class="delete_formalization btn btn-large btn-danger"
+            data-bs-toggle="confirmation"
+            data-btn-ok-label="Yes"
+            data-btn-ok-class="btn-success"
+            data-btn-cancel-label="Nooo Stoooop!"
+            data-btn-cancel-class="btn-danger"
+            data-title="Sure?"
+            data-content="Delete this Formalization?"
+            style="width: 100%"
+            title="Delete me"
+          >
+            Delete
+          </button>
         </div>
       </div>
     </div>
@@ -97,9 +95,7 @@
             id="formalization_var_p{{ id }}"
             aria-describedby="p-addon"
             title="P"
-          >
-{{expr_P}}</textarea
-          >
+          >{{expr_P}}</textarea>
         </div>
       </div>
     </div>
@@ -113,10 +109,7 @@
             id="formalization_var_q{{ id }}"
             aria-describedby="q-addon"
             title="Q"
-          >
-{{expr_Q}}
-            </textarea
-          >
+          >{{expr_Q}}</textarea>
         </div>
       </div>
     </div>
@@ -131,8 +124,7 @@
             aria-describedby="r-addon"
             aria-label="R"
             title="R"
-          >
-{{expr_R}}</textarea
+          >{{expr_R}}</textarea
           >
         </div>
       </div>
@@ -149,9 +141,7 @@
             aria-label="S"
             title="S"
           >
-{{expr_S}}
-            </textarea
-          >
+{{expr_S}}</textarea>
         </div>
       </div>
     </div>
@@ -166,9 +156,7 @@
             aria-describedby="t-addon"
             aria-label="T"
             title="T"
-          >
-{{expr_T}}</textarea
-          >
+          >{{expr_T}}</textarea>
         </div>
       </div>
     </div>
@@ -183,9 +171,7 @@
             aria-describedby="u-addon"
             aria-label="U"
             title="U"
-          >
-            {{ expr_U }}</textarea
-          >
+          >{{ expr_U }}</textarea>
         </div>
       </div>
     </div>
@@ -200,8 +186,7 @@
             aria-describedby="v-addon"
             aria-label="V"
             title="V"
-          >
-{{ expr_V }}</textarea
+          >{{ expr_V }}</textarea
           >
         </div>
       </div>
