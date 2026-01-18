@@ -1286,16 +1286,34 @@ function add_var_autocomplete(dom_obj) {
   })
 }
 
+function normalizaFormalization(input) {
+  const { expression_mapping = {}, id, ...rest } = input
+
+  const expandedExpressions = {}
+
+  for (const [key, value] of Object.entries(expression_mapping)) {
+    expandedExpressions[`expr_${key}`] = value ?? ""
+  }
+
+  return {
+    ...rest,
+    ...expandedExpressions,
+  }
+}
+
 function add_formalization(formalizationData = {}) {
-  const entry = {
-    id: state.nextId,
+  const normalized = normalizaFormalization(formalizationData)
+  const entryDefaults = {
     order: 0,
-    pattern: "NotFormalizable",
-    scope: "NONE",
     text: "// None, no pattern set",
     type: "formalization",
   }
-  state.drafts.add(state.nextId)
+  const entry = {
+    ...entryDefaults,
+    ...normalized,
+    id: state.nextId,
+  }
+  state.drafts.add(entry.id)
   state.nextId += 1
 
   const containerTemplate = $("#formalization-container").html()
@@ -1307,8 +1325,15 @@ function add_formalization(formalizationData = {}) {
   const $container = $(containerHtml)
   $container.addClass("draft")
   $container.find(".accordion-collapse").append(contentHtml)
-  $container.find(".reqirement-variable").each(function () {
-    add_var_autocomplete(this)
+  $container.find(`#requirement_scope${entry.id}`).val(entry.scope)
+  $container.find(`#requirement_pattern${entry.id}`).val(entry.pattern)
+
+  const vars = ["P", "Q", "R", "S", "T", "U", "V"]
+  vars.forEach((v) => {
+    const val = entry[`expr_${v}`]
+    if (!val) {
+      $container.find(`#requirement_var_group_${v.toLowerCase()}${entry.id}`).hide()
+    }
   })
   $("#formalization_accordion").append($container)
   update_vars()
@@ -1356,6 +1381,7 @@ function copy_formalization(formal_id) {
   $(".formalization_card").each(function () {
     if ($(this).attr("title") === formal_id) {
       formalization["id"] = $(this).attr("title")
+      formalization["text"] = $(this).find(`#current_formalization_textarea${formal_id}`).text().trim()
       $(this)
         .find("select")
         .each(function () {
