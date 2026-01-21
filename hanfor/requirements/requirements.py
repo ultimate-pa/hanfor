@@ -5,7 +5,7 @@ import datetime
 
 
 from hanfor_flask import current_app, nocache, HanforFlask
-from lib_core.data import Requirement, VariableCollection, SessionValue, RequirementEditHistory, Tag
+from lib_core.data import Requirement, VariableCollection, SessionValue, RequirementEditHistory, Tag, Variable
 from lib_core.utils import (
     get_default_pattern_options,
     formalization_html,
@@ -15,7 +15,7 @@ from lib_core.utils import (
 from configuration.defaults import Color
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
-from configuration.patterns import PATTERNS, VARIABLE_AUTOCOMPLETE_EXTENSION
+from configuration.patterns import APattern, VARIABLE_AUTOCOMPLETE_EXTENSION
 
 
 blueprint = Blueprint("requirements", __name__, template_folder="templates", url_prefix="/")
@@ -35,7 +35,12 @@ def index():
     ]
     additional_cols = get_datatable_additional_cols(current_app)["col_defs"]
     return render_template(
-        "index.html", query=request.args, additional_cols=additional_cols, default_cols=default_cols, patterns=PATTERNS
+        # TODO: the object refactor will break this - fix later!!
+        "index.html",
+        query=request.args,
+        additional_cols=additional_cols,
+        default_cols=default_cols,
+        patterns=APattern.to_frontent_dict(),
     )
 
 
@@ -51,12 +56,12 @@ def table_api():
 def api_index():
     rid = request.args.get("id", "")
     requirement = current_app.db.get_object(Requirement, rid)
-    var_collection = VariableCollection(current_app)
-
+    var_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
     result = requirement.to_dict(include_used_vars=True)
     result["formalizations_html"] = formalizations_to_html(current_app, requirement.formalizations)
     result["available_vars"] = var_collection.get_available_var_names_list(used_only=False, exclude_types={"ENUM"})
-
     result["additional_static_available_vars"] = VARIABLE_AUTOCOMPLETE_EXTENSION
 
     if requirement:
@@ -80,9 +85,15 @@ def api_update():
     # Update a requirement
     rid = request.form.get("id", "")
     requirement = current_app.db.get_object(Requirement, rid)
+    order = request.form.get("formalizations_order")
+    order_dict = json.loads(order)
+    logging.debug(order_dict)
+    for idx, formalization in requirement.formalizations.items():
+        formalization.order = order_dict.get(str(idx))
+        logging.debug(f"Formalizaation of {idx} has order of {formalization.order}")
+
     error = False
     error_msg = ""
-
     if requirement:
         logging.debug(f"Updating requirement: {requirement.rid}")
 
@@ -119,9 +130,18 @@ def api_update():
         if request.form.get("update_formalization") == "true":
             formalizations = json.loads(request.form.get("formalizations", ""))
             logging.debug("Updated Formalizations: {}".format(formalizations))
+            variable_collection = VariableCollection(
+                current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+            )
             try:
-                requirement.update_formalizations(formalizations, current_app)
+                requirement.update_formalizations(
+                    formalizations,
+                    SessionValue.get_standard_tags(current_app.db),
+                    variable_collection,
+                )
                 add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
+                for v in variable_collection.new_vars:
+                    current_app.db.add_object(v)
             except KeyError as e:
                 error = True
                 error_msg = f"Could not set formalization: Missing expression/variable for {e}"
@@ -216,14 +236,20 @@ def api_new_formalization():
     requirement = current_app.db.get_object(Requirement, rid)  # type: Requirement
     formalization_id, formalization = requirement.add_empty_formalization()
     formalization_data = json.loads(request.form.get("formalization", ""))
+    variable_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
     if len(formalization_data) != 0:
         requirement.update_formalization(
             formalization_id,
             scope_name=formalization_data["scope"],
             pattern_name=formalization_data["pattern"],
             mapping=formalization_data["expression_mapping"],
-            app=current_app,
+            variable_collection=variable_collection,
+            standard_tags=SessionValue.get_standard_tags(current_app.db),
         )
+    for v in variable_collection.new_vars:
+        current_app.db.add_object(v)
     current_app.db.update()
     add_msg_to_flask_session_log(current_app, "Added new Formalization to requirement", [requirement])
     result = get_formalization_template(current_app.config["TEMPLATES_FOLDER"], formalization_id, formalization)
@@ -238,7 +264,12 @@ def api_del_formalization():
     formalization_id = request.form.get("formalization_id", "")
     requirement_id = request.form.get("requirement_id", "")
     requirement = current_app.db.get_object(Requirement, requirement_id)
-    requirement.delete_formalization(formalization_id, current_app)
+    requirement.delete_formalization(
+        formalization_id,
+        VariableCollection(
+            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+        ),
+    )
     current_app.db.update()
 
     add_msg_to_flask_session_log(current_app, "Deleted formalization from requirement", [requirement])
@@ -259,7 +290,9 @@ def api_get_available_guesses():
     else:
         result["available_guesses"] = list()
         tmp_guesses = list()
-        var_collection = VariableCollection(current_app)
+        var_collection = VariableCollection(
+            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+        )
 
         for guesser in REGISTERED_GUESSERS:
             try:
@@ -305,9 +338,19 @@ def api_add_formalization_from_guess():
     requirement = current_app.db.get_object(Requirement, requirement_id)
     formalization_id, formalization = requirement.add_empty_formalization()
     # Add content to the formalization.
-    requirement.update_formalization(
-        formalization_id=formalization_id, scope_name=scope, pattern_name=pattern, mapping=mapping, app=current_app
+    variable_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
     )
+    requirement.update_formalization(
+        formalization_id=formalization_id,
+        scope_name=scope,
+        pattern_name=pattern,
+        mapping=mapping,
+        variable_collection=variable_collection,
+        standard_tags=SessionValue.get_standard_tags(current_app.db),
+    )
+    for v in variable_collection.new_vars:
+        current_app.db.add_object(v)
     current_app.db.update()
     add_msg_to_flask_session_log(current_app, "Added formalization guess to requirement", [requirement])
 
@@ -333,7 +376,9 @@ def api_multi_add_top_guess():
     if not result["success"]:
         return result
 
-    var_collection = VariableCollection(current_app)
+    var_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
     requirements = [current_app.db.get_object(Requirement, rid) for rid in requirement_ids]
     for requirement in requirements:
         if requirement is not None:
@@ -345,6 +390,10 @@ def api_multi_add_top_guess():
                     guesser_instance.guess()
                     tmp_guesses += guesser_instance.guesses
                     tmp_guesses = sorted(tmp_guesses, key=Guess.eval_score)
+                    variable_collection = VariableCollection(
+                        current_app.db.get_objects(Variable).values(),
+                        current_app.db.get_objects(Requirement).values(),
+                    )
                     if len(tmp_guesses) > 0:
                         if type(tmp_guesses[0]) is Guess:
                             top_guesses = [tmp_guesses[0]]
@@ -354,7 +403,10 @@ def api_multi_add_top_guess():
                             raise TypeError("Type: `{}` not supported as guesses".format(type(tmp_guesses[0])))
                         if insert_mode == "override":
                             for f_id in requirement.formalizations.keys():
-                                requirement.delete_formalization(f_id, current_app)
+                                requirement.delete_formalization(
+                                    f_id,
+                                    variable_collection,
+                                )
                         for score, scoped_pattern, mapping in top_guesses:
                             formalization_id, formalization = requirement.add_empty_formalization()
                             # Add content to the formalization.
@@ -363,8 +415,11 @@ def api_multi_add_top_guess():
                                 scope_name=scoped_pattern.scope.name,
                                 pattern_name=scoped_pattern.pattern.name,
                                 mapping=mapping,
-                                app=current_app,
+                                variable_collection=variable_collection,
+                                standard_tags=SessionValue.get_standard_tags(current_app.db),
                             )
+                            for v in variable_collection.new_vars:
+                                current_app.db.add_object(v)
                             current_app.db.update()
 
                 except ValueError as e:

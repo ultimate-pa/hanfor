@@ -12,7 +12,7 @@ from typing import Any
 
 from hanfor_flask import HanforFlask
 from configuration.defaults import Color
-from lib_core.data import Requirement, Formalization, Tag
+from lib_core.data import Requirement, Formalization, Tag, VariableCollection, Variable, SessionValue
 from lib_core.utils import choice
 
 
@@ -75,7 +75,7 @@ class RequirementCollection:
             csv.register_dialect("ultimate", delimiter=",", escapechar="\\", quoting=csv.QUOTE_ALL, quotechar='"')
             dialect = "ultimate"
             csvfile.seek(0)
-            reader = csv.DictReader(csvfile, dialect=dialect)
+            reader = csv.DictReader(csvfile, dialect=dialect, restkey="CSV-None")
             self.csv_all_rows = list(reader)
             self.csv_meta.fieldnames = reader.fieldnames
             self.csv_meta.headers = sorted(list(reader.fieldnames))
@@ -181,6 +181,9 @@ class RequirementCollection:
                 csv_row=row,
                 pos_in_csv=index,
             )
+            variable_collection = VariableCollection(
+                app.db.get_objects(Variable).values(), app.db.get_objects(Requirement).values()
+            )
             if self.csv_meta.import_formalizations:
                 # Set the tags
                 if self.csv_meta.tags_header is not None:
@@ -209,9 +212,11 @@ class RequirementCollection:
                         scope_name=formalization_dict["scope"],
                         pattern_name=formalization_dict["pattern"],
                         mapping=formalization_dict["expressions"],
-                        app=app,
+                        variable_collection=variable_collection,
+                        standard_tags=SessionValue.get_standard_tags(app.db),
                     )
-
+            for v in variable_collection.new_vars:
+                app.db.add_object(v)
             self.requirements.append(requirement)
 
 

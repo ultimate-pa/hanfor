@@ -89,6 +89,7 @@ class ApiUltimateJobs(Resource):
     def post(self):
         """Create a new Ultimate job"""
         data = json.loads(request.get_data())
+        # TODO: do some error hanling here, if ultimate server is not reachable
         job = self.ultimate.start_requirement_job(data["req_file"], data["configuration"], data["req_ids"])
         current_app.db.add_object(job)
         return job.get()

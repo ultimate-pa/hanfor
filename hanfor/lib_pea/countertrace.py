@@ -1,27 +1,18 @@
-from __future__ import annotations
-
 from enum import Enum
+from typing import Union
 
 from lark.visitors import Transformer
 from pysmt.fnode import FNode
 from pysmt.formula import FormulaManager
-from pysmt.shortcuts import TRUE, Not, And, Or, get_free_variables, get_env
+from pysmt.shortcuts import TRUE, Not, And, Or, get_free_variables
 
 
 class Countertrace:
-    def __init__(self, *dc_phases: DCPhase, path: str = None) -> None:
+    def __init__(self, *dc_phases: "DCPhase") -> None:
         self.dc_phases: list[Countertrace.DCPhase] = [dc_phase for dc_phase in dc_phases]
-        # super().__init__(path)
 
     def __str__(self) -> str:
         return ";".join([str(dc_phase) for dc_phase in self.dc_phases])
-
-    @classmethod
-    def load(cls, path: str) -> Countertrace:
-        # ct = super().load(path)
-        # ct.normalize(get_env().formula_manager)
-        # return ct
-        raise NotImplementedError
 
     def normalize(self, formula_manager: FormulaManager) -> None:
         for dc_phase in self.dc_phases:
@@ -47,15 +38,15 @@ class Countertrace:
             self,
             entry_events: FNode,
             invariant: FNode,
-            bound_type: Countertrace.BoundTypes,
-            bound: int,
+            bound_type: "Countertrace.BoundTypes",
+            bound: Union[FNode, None],
             forbid: set[str],
             allow_empty: bool,
         ) -> None:
             self.entry_events: FNode = entry_events
             self.invariant: FNode = invariant
             self.bound_type: Countertrace.BoundTypes = bound_type
-            self.bound: float = bound
+            self.bound: Union[FNode, None] = bound
             self.forbid: set[str] = forbid
             self.allow_empty: bool = allow_empty
 
@@ -122,7 +113,7 @@ class Countertrace:
 
 
 def phaseT() -> Countertrace.DCPhase:
-    return Countertrace.DCPhase(TRUE(), TRUE(), Countertrace.BoundTypes.NONE, 0, set(), True)
+    return Countertrace.DCPhase(TRUE(), TRUE(), Countertrace.BoundTypes.NONE, None, set(), True)
 
 
 def phaseE(invariant: FNode, bound_type: Countertrace.BoundTypes, bound: int) -> Countertrace.DCPhase:
@@ -198,6 +189,6 @@ class CountertraceTransformer(Transformer):
     @staticmethod
     def __default__(data, children, meta):
         if len(children) != 1:
-            raise ValueError("Unexpected size of children: %d" % len(children))
+            raise ValueError(f"Unexpected size of children: {len(children)}")
 
         return children[0]

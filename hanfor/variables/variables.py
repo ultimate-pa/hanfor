@@ -5,7 +5,7 @@ import re
 import csv
 
 from hanfor_flask import current_app, nocache, HanforFlask
-from lib_core.data import VariableCollection, Variable, Scope, Requirement, replace_prefix
+from lib_core.data import VariableCollection, Variable, Scope, Requirement, replace_prefix, SessionValue
 from lib_core.utils import (
     get_requirements,
     formalizations_to_html,
@@ -13,7 +13,7 @@ from lib_core.utils import (
     generate_req_file_content,
 )
 from lib_core import boogie_parsing
-from configuration.patterns import PATTERNS
+from configuration.patterns import APattern
 
 blueprint = Blueprint("variables", __name__, template_folder="templates", url_prefix="/variables")
 blueprint2 = Blueprint("variables_import", __name__, template_folder="templates", url_prefix="/variable_import")
@@ -26,20 +26,24 @@ def index():
         "variables/variables.html",
         available_sessions=[],
         query=request.args,
-        patterns=PATTERNS,
+        patterns=APattern.to_frontent_dict(),
     )
 
 
 @blueprint2.route("/<rid>", methods=["GET"])
 @nocache
 def variable_import(rid):
-    return render_template("variables/variable-import-session.html", id=rid, query=request.args, patterns=PATTERNS)
+    return render_template(
+        "variables/variable-import-session.html", id=rid, query=request.args, patterns=APattern.to_frontent_dict()
+    )
 
 
 @api_blueprint.route("/gets", methods=["GET"])
 @nocache
 def api_gets():
-    var_collection = VariableCollection(current_app)
+    var_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
     result = var_collection.get_available_vars_list(used_only=False)
     return {"data": result}
 
@@ -54,7 +58,9 @@ def api_get_constraints_html():
         "type_inference_errors": dict(),
     }
     var_name = request.form.get("name", "").strip()
-    var_collection = VariableCollection(current_app)
+    var_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
     try:
         var = var_collection.collection[var_name]
         var_dict = var.to_dict(var_collection.var_req_mapping)
@@ -86,7 +92,9 @@ def api_multi_update():
     if result["success"]:
         if len(change_type) > 0:  # Change the var type.
             logging.debug("Change type to `{}`.\nAffected Vars:\n{}".format(change_type, "\n".join(var_list)))
-            var_collection = VariableCollection(current_app)
+            var_collection = VariableCollection(
+                current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+            )
             for var_name in var_list:
                 try:
                     logging.debug(
@@ -101,13 +109,17 @@ def api_multi_update():
 
         if delete == "true":
             logging.info("Deleting variables.\nAffected Vars:\n{}".format("\n".join(var_list)))
-            var_collection = VariableCollection(current_app)
+            var_collection = VariableCollection(
+                current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+            )
             for var_name in var_list:
                 try:
-                    logging.debug("Deleting `{}`".format(var_name))
-                    var_collection.del_var(var_name)
+                    logging.debug(f"Deleting `{var_name}`")
+                    variable = var_collection.del_var(var_name)
+                    if variable:
+                        current_app.db.remove_object(variable)
                 except KeyError:
-                    logging.debug("Variable `{}` not found".format(var_list))
+                    logging.debug(f"Variable `{var_list}` not found")
             var_collection.store()
     current_app.db.update()
     return result
@@ -119,7 +131,9 @@ def api_new_constraint():
     result = {"success": True, "errormsg": ""}
     var_name = request.form.get("name", "").strip()
 
-    var_collection = VariableCollection(current_app)
+    var_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
     cid = var_collection.add_new_constraint(var_name=var_name)
     var_collection.store()
     current_app.db.update()
@@ -134,9 +148,13 @@ def api_del_constraint():
     var_name = request.form.get("name", "").strip()
     constraint_id = int(request.form.get("constraint_id", "").strip())
 
-    var_collection = VariableCollection(current_app)
+    var_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
     var_collection.del_constraint(var_name=var_name, constraint_id=constraint_id)
-    var_collection.collection[var_name].reload_constraints_type_inference_errors(var_collection)
+    var_collection.collection[var_name].reload_constraints_type_inference_errors(
+        var_collection, SessionValue.get_standard_tags(current_app.db)
+    )
     var_collection.store()
     current_app.db.update()
     result["html"] = formalizations_to_html(current_app, var_collection.collection[var_name].get_constraints())
@@ -149,12 +167,15 @@ def api_del_var():
     result = {"success": True, "errormsg": ""}
     var_name = request.form.get("name", "").strip()
 
-    var_collection = VariableCollection(current_app)
+    var_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
     try:
-        logging.debug("Deleting `{}`".format(var_name))
-        success = var_collection.del_var(var_name)
-        if not success:
-            result = {"success": False, "errormsg": "Variable is used and thus cannot be deleted."}
+        logging.debug(f"Deleting `{var_name}`")
+        variable = var_collection.del_var(var_name)
+        if not variable:
+            return {"success": False, "errormsg": "Variable is used and thus cannot be deleted."}
+        current_app.db.remove_object(variable)
         var_collection.store()
         current_app.db.update()
     except KeyError:
@@ -170,7 +191,9 @@ def api_add_new_variable():
     variable_name = request.form.get("name", "").strip()
     variable_type = request.form.get("type", "").strip()
     variable_value = request.form.get("value", "").strip()
-    var_collection = VariableCollection(current_app)
+    var_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
 
     # Apply some tests if the new Variable is legal.
     if len(variable_name) == 0 or not re.match("^[a-zA-Z0-9_]+$", variable_name):
@@ -179,9 +202,9 @@ def api_add_new_variable():
             "errormsg": "Illegal Variable name. Must Be at least 1 Char and only alphanum + {_}",
         }
     elif var_collection.var_name_exists(variable_name):
-        result = {"success": False, "errormsg": "`{}` is already existing.".format(variable_name)}
+        result = {"success": False, "errormsg": f"`{variable_name}` is already existing."}
     elif variable_type not in ["ENUM_INT", "ENUM_REAL", "REAL", "INT", "BOOL", "CONST"]:
-        result = {"success": False, "errormsg": "`{}` Is not a valid Variable type.".format(variable_type)}
+        result = {"success": False, "errormsg": f"`{variable_type}` Is not a valid Variable type."}
     if variable_type == "CONST":
         try:
             float(variable_value)
@@ -190,14 +213,17 @@ def api_add_new_variable():
             result = {"success": False, "errormsg": "Const value not valid."}
     # We passed all tests, so add the new variable.
     if result["success"]:
-        logging.debug("Adding new Variable `{}` to Variable collection.".format(variable_name))
+        logging.debug(f"Adding new Variable `{variable_name}` to Variable collection.")
+        # Check if variable is already exists is above already
         new_variable = Variable(variable_name, variable_type, None)
-        var_collection.add_var(variable_name, new_variable)
+        variable = var_collection.add_var(variable_name, new_variable)
+        current_app.db.add_object(variable)
         if variable_type == "CONST":
             var_collection.collection[variable_name].value = variable_value
         var_collection.store()
         current_app.db.update()
         return result
+    return {"success": False, "errormsg": f"You should not reach this point, something went really wrong."}
 
 
 @api_blueprint.route("/get_enumerators", methods=["POST"])
@@ -205,7 +231,9 @@ def api_add_new_variable():
 def api_get_enumerators():
     result = {"success": True, "errormsg": ""}
     enum_name = request.form.get("name", "").strip()
-    var_collection = VariableCollection(current_app)
+    var_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
     enumerators = var_collection.get_enumerators(enum_name)
     enum_results = [(enumerator.name, enumerator.value) for enumerator in enumerators]
     try:
@@ -238,7 +266,9 @@ def api_import_csv():
     result = {"success": True, "errormsg": ""}
 
     variables_csv_str = request.form.get("variables_csv_str", "")
-    var_collection = VariableCollection(current_app)
+    var_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
 
     dict_reader = csv.DictReader(variables_csv_str.splitlines())
     variables = list(dict_reader)
@@ -255,7 +285,7 @@ def api_import_csv():
         if variable["name"] == "" or var_collection.var_name_exists(variable["name"]):
             continue
 
-        var_collection.add_var(variable["name"])
+        current_app.db.add_object(var_collection.add_var(variable["name"]))
         var_collection.collection[variable["name"]].belongs_to_enum = variable["enum_name"]
         var_collection.set_type(variable["name"], variable["type"])
         var_collection.collection[variable["name"]].value = variable["value"]
@@ -269,6 +299,7 @@ def api_import_csv():
                 "Universality",
                 {"R": variable["constraint"]},
                 var_collection,
+                SessionValue.get_standard_tags(current_app.db),
             )
 
     var_collection.store()
@@ -305,7 +336,9 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
     while "" in occurrences:
         occurrences.remove("")
 
-    var_collection = VariableCollection(app)
+    var_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
     result = {
         "success": True,
         "has_changes": False,
@@ -323,13 +356,13 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
         or req.form.get("updated_constraints") == "true"
         or belongs_to_enum != belongs_to_enum_old
     ):
-        logging.info("Update Variable `{}`".format(var_name_old))
+        logging.info(f"Update Variable `{var_name_old}`")
         result["has_changes"] = True
         reload_type_inference = False
 
         # Update type.
         if var_type_old != var_type:
-            logging.info("Change type from `{}` to `{}`.".format(var_type_old, var_type))
+            logging.info(f"Change type from `{var_type_old}` to `{var_type}`.")
             try:
                 var_collection.collection[var_name_old].belongs_to_enum = belongs_to_enum
                 var_collection.set_type(var_name_old, var_type)
@@ -364,16 +397,16 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
             logging.debug("Update Variable Constraints")
             try:
                 var_collection = var_collection.collection[var_name_old].update_constraints(
-                    constraints, app, var_collection
+                    constraints, var_collection, SessionValue.get_standard_tags(current_app.db)
                 )
                 result["rebuild_table"] = True
                 app.db.update()
             except KeyError as e:
                 result["success"] = False
-                result["error_msg"] = "Could not set constraint: Missing expression/variable for {}".format(e)
+                result["error_msg"] = f"Could not set constraint: Missing expression/variable for {e}"
             except Exception as e:
                 result["success"] = False
-                result["error_msg"] = "Could not parse formalization: `{}`".format(e)
+                result["error_msg"] = f"Could not parse formalization: `{e}`"
         else:
             logging.debug("Skipping variable Constraints update.")
 
@@ -449,7 +482,7 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
             for rid in var_collection.var_req_mapping[var_name]:
                 if app.db.key_in_table(Requirement, rid):
                     requirement = app.db.get_object(Requirement, rid)
-                    requirement.run_type_checks(var_collection)
+                    requirement.run_type_checks(var_collection, SessionValue.get_standard_tags(app.db))
             app.db.update()
 
     if var_type in ["ENUM_INT", "ENUM_REAL"]:
@@ -474,10 +507,11 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
                 }
                 break
 
-            enumerator_name = "{}_{}".format(var_name, enumerator_name)
+            enumerator_name = f"{var_name}_{enumerator_name}"
             # Add new enumerators to the var_collection
             if not var_collection.var_name_exists(enumerator_name):
-                var_collection.add_var(enumerator_name)
+                variable = var_collection.add_var(enumerator_name)
+                current_app.db.add_object(variable)
                 new_enumerators.append(enumerator_name)
 
             var_collection.collection[enumerator_name].set_type(f"ENUMERATOR_{var_type[5:]}")

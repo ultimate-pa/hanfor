@@ -474,6 +474,7 @@ class TestEnums(TestCase):
                 "update_formalization": "true",
                 "tags": json.dumps({"unseen": ""}),
                 "status": "Todo",
+                "formalizations_order": "{}",
                 "formalizations": json.dumps(update),
             },
         )

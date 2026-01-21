@@ -1,5 +1,5 @@
 require("gasparesganga-jquery-loading-overlay")
-const { Collapse, Modal } = require("bootstrap")
+const { Collapse, Modal, Tab } = require("bootstrap")
 require("datatables.net-bs5")
 require("datatables.net-select-bs5")
 require("jquery-ui/ui/widgets/autocomplete")
@@ -10,6 +10,9 @@ require("awesomplete/awesomplete.css")
 //require('datatables.net-bs5-colreorderwithresize-npm');
 require("datatables.net-colreorder-bs5")
 require("./bootstrap-confirm-button")
+const {marked} = require("marked")
+import Sortable from "sortablejs"
+import "jquery-sortablejs"
 
 let utils = require("./hanfor-utils")
 const autosize = require("autosize/dist/autosize")
@@ -429,9 +432,8 @@ function init_datatable_manipulators(requirements_table) {
 function store_requirement(requirements_table) {
   let requirement_modal_content = $(".modal-content")
   requirement_modal_content.LoadingOverlay("show")
-
   const req_id = $("#requirement_id").val()
-  const req_status = $("#requirement_status").val()
+  const req_status = $('input[name="status"]:checked').val()
   const updated_formalization = $("#requirement_modal").data("updated_formalization")
   const associated_row_id = parseInt($("#modal_associated_row_index").val())
 
@@ -463,6 +465,13 @@ function store_requirement(requirements_table) {
     formalizations[formalization["id"]] = formalization
   })
 
+  // Store the order of the formalizations to be loaded
+  let load_order = {}
+  $(".accordion-item").each(function (idx) {
+    load_order[$(this).data("id")] = idx
+  })
+  console.log(load_order)
+
   let tag_comments = new Map()
   $("#tags_comments_table tr:gt(0)").each(function () {
     let tag = $(this).find("td:eq(0)").text()
@@ -481,6 +490,7 @@ function store_requirement(requirements_table) {
       tags: JSON.stringify(Object.fromEntries(tag_comments)),
       status: req_status,
       formalizations: JSON.stringify(formalizations),
+      formalizations_order: JSON.stringify(load_order),
     }, // Update requirements table on success or show an error message.
     function (data) {
       requirement_modal_content.LoadingOverlay("hide", true)
@@ -882,7 +892,7 @@ function init_modal() {
       requirement_modal.data("unsaved_changes", true)
     })
 
-  $("#requirement_status").change(function () {
+  $('input[name="status"]').change(function () {
     $("#requirement_modal").data("unsaved_changes", true)
   })
 
@@ -1043,7 +1053,8 @@ function load_requirement(row_idx) {
 
     // Visible information
     $("#requirement_modal_title").html(data.id + ": " + data.type)
-    $("#description_textarea").text(data.desc).change()
+    const rendered_descr = marked(data.desc, { sanitize: false })
+    $("#description_textarea").html(rendered_descr).change();
     $("#add_guess_description").text(data.desc).change()
 
     // Parse the formalizations
@@ -1061,16 +1072,25 @@ function load_requirement(row_idx) {
       $(this).find("textarea:eq(0)").val(data.tags_comments[tag])
     })
 
-    $("#requirement_status").val(data.status)
-    // Set csv_data
-    let csv_row_content = $("#csv_content_accordion")
-    csv_row_content.html("")
+    // Choose the right radio button and then load the status
+    let status = `input[name="status"][value="${data.status}"]`
+    $(status).prop("checked", true)
 
+    // Set the requirement tab always as the default once loaded
+    new Tab($("#pills-req-tab")[0]).show()
+
+    // Set csv_data
+    let csv_tab = $("#pills-csv").empty()
     let csv_data = data.csv_data
     for (const key in csv_data) {
       if (csv_data.hasOwnProperty(key)) {
-        const value = csv_data[key]
-        csv_row_content.append("<p><strong>" + key + ":</strong>" + value + "</p>")
+        csv_tab.append(`<h5>${key}</h5>`)
+        let csv_value = csv_data[key]
+        if (csv_value) {
+          csv_tab.append(`<p>${csv_data[key]}</p>`)
+        } else {
+          csv_tab.append(`<p>No data found in the CSV.</p>`)
+        }
       }
     }
 
@@ -1082,25 +1102,25 @@ function load_requirement(row_idx) {
       revision_diff_link.show()
     }
 
-    let revision_diff_content = $("#revision_diff_accordion")
+    let revision_diff_content = $("#pills-diff")
     revision_diff_content.html("")
 
     let revision_diff = data.revision_diff
     for (const key in revision_diff) {
       if (revision_diff.hasOwnProperty(key)) {
         const value = revision_diff[key]
-        revision_diff_content.append("<p><strong>" + key + ":</strong><pre>" + value + "</pre></p>")
+        revision_diff_content.append(`<p><strong> ${key} :</strong><pre> ${value} </pre></p>`)
       }
     }
 
     // Set used variables data.
-    let used_variables_accordion = $("#used_variables_accordion")
+    let used_variables_accordion = $("#used-vars-container")
     used_variables_accordion.html("")
 
     data.vars.forEach(function (var_name) {
       let query = "?command=search&col=1&q=%5C%22" + var_name + "%5C%22"
       used_variables_accordion.append(
-        '<span class="badge bg-info">' +
+        '<span class="badge bg-info" style="font-size: 18px">' +
           '<a href="./variables' +
           query +
           '" target="_blank">' +
@@ -1108,6 +1128,13 @@ function load_requirement(row_idx) {
           "</a>" +
           "</span>&numsp;",
       )
+    })
+
+    const sortable = Sortable.create($("#formalization_accordion")[0], {
+      animation: 200,
+      ghostClass: "ghost",
+      filter: "textarea, input, select",
+      preventOnFilter: false,
     })
   }).done(function () {
     update_vars()
@@ -1324,13 +1351,27 @@ function update_formalization() {
     }
 
     // Update formalization with variables.
-    let var_p = $("#formalization_var_p" + formalization_id).val()
-    let var_q = $("#formalization_var_q" + formalization_id).val()
-    let var_r = $("#formalization_var_r" + formalization_id).val()
-    let var_s = $("#formalization_var_s" + formalization_id).val()
-    let var_t = $("#formalization_var_t" + formalization_id).val()
-    let var_u = $("#formalization_var_u" + formalization_id).val()
-    let var_v = $("#formalization_var_v" + formalization_id).val()
+    let var_p = $("#formalization_var_p" + formalization_id)
+      .val()
+      .trim()
+    let var_q = $("#formalization_var_q" + formalization_id)
+      .val()
+      .trim()
+    let var_r = $("#formalization_var_r" + formalization_id)
+      .val()
+      .trim()
+    let var_s = $("#formalization_var_s" + formalization_id)
+      .val()
+      .trim()
+    let var_t = $("#formalization_var_t" + formalization_id)
+      .val()
+      .trim()
+    let var_u = $("#formalization_var_u" + formalization_id)
+      .val()
+      .trim()
+    let var_v = $("#formalization_var_v" + formalization_id)
+      .val()
+      .trim()
 
     if (var_p.length > 0) {
       formalization = formalization.replace(/{P}/g, parse_vars_to_link(var_p))

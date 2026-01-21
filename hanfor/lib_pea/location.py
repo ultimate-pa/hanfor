@@ -22,7 +22,7 @@ class Location:
 
 @dataclass
 class PhaseSetsLocation(Location):
-    label: PhaseSets() = PhaseSets()
+    label: PhaseSets = PhaseSets()
 
     def __eq__(self, o: "PhaseSetsLocation") -> bool:
         return (

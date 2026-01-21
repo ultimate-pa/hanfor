@@ -2,7 +2,8 @@ import json
 import os
 
 import requests
-
+import logging
+from requests.exceptions import ConnectionError
 from configuration.ultimate_config import (
     ULTIMATE_API_URL,
     ULTIMATE_USER_SETTINGS_FOLDER,
@@ -37,9 +38,13 @@ class UltimateConnector:
 
     @staticmethod
     def get_version() -> str:
-        r = requests.get(ULTIMATE_API_URL + "version")
-        if r.status_code != 200:
-            return ""
+        try:
+            r = requests.get(ULTIMATE_API_URL + "version")
+            if r.status_code != 200:
+                return ""
+        except ConnectionError as e:
+            logging.error(e)
+            return "ERROR"
         content = json.loads(r.text)
         if "ultimate_version" in content.keys():
             return content["ultimate_version"]
