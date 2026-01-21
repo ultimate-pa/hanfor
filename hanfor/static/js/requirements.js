@@ -156,6 +156,27 @@ $(document).ready(function () {
   bind_tag_field_events()
 })
 
+$(document).on('click', '.highlighted-variable, .highlighted-variable-extra', function() {
+    const varName = $(this).data('main-var') || $(this).data('var');
+    navigator.clipboard.writeText(varName);
+
+    const $tip = $('<span>Copied!</span>').css({
+        position: 'absolute',
+        background: 'yellow',
+        padding: '2px 4px',
+        borderRadius: '3px',
+        zIndex: 9999
+    }).appendTo('body');
+
+    const offset = $(this).offset();
+    $tip.css({
+        left: offset.left + 'px',
+        top: offset.top + $(this).outerHeight() + 5 + 'px'
+    });
+    setTimeout(() => $tip.remove(), 300);
+});
+
+
 /**
  * Fetch requirements from hanfor api and build the requirements table.
  * Apply search queries to table
@@ -1053,7 +1074,7 @@ function load_requirement(row_idx) {
 
     // Visible information
     $("#requirement_modal_title").html(data.id + ": " + data.type)
-    const rendered_descr = marked(data.desc, { sanitize: false })
+    const rendered_descr = marked(data.desc_highlighted, { sanitize: false })
     $("#description_textarea").html(rendered_descr).change();
     $("#add_guess_description").text(data.desc).change()
 
