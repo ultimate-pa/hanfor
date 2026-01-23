@@ -3,7 +3,7 @@ from functools import cache
 from typing import Iterable, TYPE_CHECKING
 
 from pysmt.fnode import FNode
-from pysmt.shortcuts import Iff, Not, is_sat, Implies
+from pysmt.shortcuts import Iff, Not, is_valid
 
 from lib_core import boogie_parsing
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
@@ -114,20 +114,22 @@ class AAutomatonPattern:
     ) -> set["Formalization"]:
         """Figure out what patterns belong to the automaton of `req`.
         This is done by building the hull of all edges found until fixpoint.
-        Note: a location is part of an automaton iff there is another location exactly referencing that location as successor.
-        Successors where the location is a subset of another location are not regarded as this might be another automaton.
-        e.g.   x > 5 ---> x <= 5  and x > 5 && turbo ----> x <= 5 && turbo are not of the same automaton.
+        Locations of automata are equivalent iff they are logically equivalent expressions,
+        i.e. l1 --> l2 , l3 --> l4 is part of the same automaton if  l2 <==> l3 is valid.
         """
-        # TODO : wir mache ndas jetzt über die enum : jedr statae darf maximal eine evariable im state haben,
-        # die vairable ist dann für alle variablen so. Alles andre ist fehler.
-        transitions_by_source = []
+        transitions_by_source: list[tuple["Expression", "Formalization"]] = []
         for f in other_f:
             p_class = APattern.get_pattern(f.scoped_pattern.pattern.name)
             if not isinstance(p_class, AAutomatonPattern):
                 continue
-            if not isinstance(p_class, InitialLoc):
-                # add all initial transitions in the opposite direction (as if they were sinks)
-                transitions_by_source.append((p_class.get_source_location(f, var_collection), f))
+            if isinstance(p_class, InitialLoc):
+                continue
+            transitions_by_source.append((p_class.get_source_location(f, var_collection), f))
+        initials_by_target: list[tuple["Expression", "Formalization"]] = []
+        for f in other_f:
+            p_class = APattern.get_pattern(f.scoped_pattern.pattern.name)
+            if isinstance(p_class, InitialLoc):
+                initials_by_target.append((p_class.get_target_location(f, var_collection), f))
 
         automaton = {formalization}
         queue = [formalization]
@@ -142,12 +144,16 @@ class AAutomatonPattern:
                 queue.append(f)
             successors.clear()
 
-        # find initial locations
-        initial_locs = []
-        for f in other_f:
-            if isinstance(p_class, InitialLoc):
-                initial_locs.append((p_class.get_target_location(f, var_collection), f))
-
+        initials = set()
+        for f in automaton:
+            p_class = APattern.get_pattern(f.scoped_pattern.pattern.name)
+            initials.update(
+                AAutomatonPattern.__find_successors(p_class.get_source_location(f, var_collection), initials_by_target)
+            )
+            initials.update(
+                AAutomatonPattern.__find_successors(p_class.get_target_location(f, var_collection), initials_by_target)
+            )
+        automaton.update(initials)
         return automaton
 
     @classmethod
@@ -157,20 +163,8 @@ class AAutomatonPattern:
         transitions = []
         for source, formalization in transitions_by_source:
             # Semantic check as location may be syntactically different in any reference (as it is written by hand).
-            if not is_sat(Not(Iff(location, source))):
+            if is_valid(Iff(location, source)):
                 transitions.append(formalization)
-        # assert len(successors) <= 1
-        return transitions
-
-    @classmethod
-    def __find_initial(
-        cls, location: "Expression", initial_by_target: list[tuple["Expression", "Formalization"]]
-    ) -> list["Formalization"]:
-        transitions = []
-        for target, formalization in initial_by_target:
-            if not is_sat(Not(Implies(location, target))):
-                transitions.append(formalization)
-        # assert len(successors) <= 1
         return transitions
 
     def get_instanciated_countertraces(

@@ -45,12 +45,21 @@ class TestAutomatonAssembly(TestCase):
             variable_collection=variable_collection,
             standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
         )
-        i, f3 = r.add_empty_formalization()
+        i, f3a = r.add_empty_formalization()
         r.update_formalization(
             i,
             "GLOBALLY",
             "InitialLoc",
-            mapping={"R": "states == states.A || states == states.B"},
+            mapping={"R": "states == states.A"},
+            variable_collection=variable_collection,
+            standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
+        )
+        i, f3b = r.add_empty_formalization()
+        r.update_formalization(
+            i,
+            "GLOBALLY",
+            "InitialLoc",
+            mapping={"R": "states == states.B"},
             variable_collection=variable_collection,
             standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
         )
@@ -71,13 +80,13 @@ class TestAutomatonAssembly(TestCase):
             i,
             "GLOBALLY",
             "Transition",
-            mapping={"R": "states == states.B && piffel", "S": "states == states.A && !piffel"},
+            mapping={"R": "states_other == states.B", "S": "states_other == states.A"},
             variable_collection=variable_collection,
             standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
         )
         # test general automaton layout
         req_belonging_to_r = AAutomatonPattern.get_hull(f1, [f for f in r.formalizations.values()], variable_collection)
-        self.assertSetEqual({f1, f2, f3}, set(req_belonging_to_r))
+        self.assertSetEqual({f1, f2, f3a, f3b}, set(req_belonging_to_r))
         # test formula generation
         # formulae = get_semantics_from_requirement()
 
@@ -150,7 +159,7 @@ class TestAutomatonAssembly(TestCase):
             i,
             "GLOBALLY",
             "Transition",
-            mapping={"R": "states == states.B", "S": "states == states.C && determinisation"},
+            mapping={"R": "states == states.B && piffel", "S": "states == states.C && determinisation"},
             variable_collection=variable_collection,
             standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
         )
@@ -160,7 +169,7 @@ class TestAutomatonAssembly(TestCase):
             i,
             "GLOBALLY",
             "Transition",
-            mapping={"R": "states == states.B", "S": "states == states.C && !determinisation"},
+            mapping={"R": "states == states.C && determinisation", "S": "states == states.C && !determinisation"},
             variable_collection=variable_collection,
             standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
         )
@@ -181,7 +190,7 @@ class TestAutomatonAssembly(TestCase):
             "GLOBALLY",
             "TransitionLGE",
             mapping={
-                "R": "states == states.B && piffel",
+                "R": "states == states.C && !determinisation",
                 "S": "states == states.C && !piffel",
                 "T": "42.0",
                 "U": "anEventVar",
@@ -190,6 +199,20 @@ class TestAutomatonAssembly(TestCase):
             variable_collection=variable_collection,
             standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
         )
+        i, f8 = r.add_empty_formalization()
+        r.update_formalization(
+            i,
+            "GLOBALLY",
+            "InitialLoc",
+            mapping={"R": "states == states.B && piffel"},
+            variable_collection=variable_collection,
+            standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
+        )
 
         req_belonging_to_r = AAutomatonPattern.get_hull(f1, [f for f in r.formalizations.values()], variable_collection)
-        self.assertSetEqual({f1, f2, f3, f5a, f5b, f6}, set(req_belonging_to_r))
+        self.assertSetEqual({f1, f2, f3, f6}, set(req_belonging_to_r))
+
+        req_belonging_to_r = AAutomatonPattern.get_hull(
+            f5a, [f for f in r.formalizations.values()], variable_collection
+        )
+        self.assertSetEqual({f5a, f5b, f7, f8}, set(req_belonging_to_r))

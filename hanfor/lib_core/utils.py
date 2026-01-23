@@ -1,19 +1,19 @@
-import logging
-import re
-import os
 import html
+import logging
+import os
+import re
 import shlex
-import colorama
 from collections import defaultdict
+
+import colorama
 from colorama import Style, Fore
+from flask import Response
 from terminaltables import DoubleTable
 
-from flask import Response
-
-from configuration.patterns import APattern
-from lib_core import boogie_parsing
 from config import PATTERNS_GROUP_ORDER  # TODO should this be in the config?
+from configuration.patterns import APattern
 from hanfor_flask import HanforFlask
+from lib_core import boogie_parsing
 from lib_core.data import Requirement, VariableCollection, Variable
 
 default_scope_options = """
