@@ -90,10 +90,10 @@ FEATURE_QUICK_CHECKS = False
 FEATURE_TELEMETRY = False
 
 # AI
-FEATURE_AI = True
+FEATURE_AI = False
 
 # Threading
-FEATURE_THREADING = True
+FEATURE_THREADING = False
 
 ################################################################################
 #                               Miscellaneous                                  #
