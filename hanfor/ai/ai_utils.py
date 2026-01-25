@@ -5,13 +5,14 @@ from time import time
 from typing import Optional
 import logging
 import config
-from ai.interfaces.ai_interface import load_ai_prompt_parse_methods, load_ai_api_methods, AIFormalization
+from ai.interfaces.ai_interface import load_ai_prompt_parse_methods, AIFormalization
 from ai.ai_enum import AiDataEnum
 from ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse
 from ai.strategies.similarity_abstract_class import SimilarityAlgorithm
 from tinyflux import TinyFlux, Point, TagQuery
 from datetime import datetime
 from ai.ai_socket import send_ai_update
+from configuration import ai_formalization_config
 
 
 class RequirementLog:
@@ -74,8 +75,6 @@ class RequirementLog:
 
 class AiProcessingQueue:
     """Manages the queue for AI requests, handling both running and waiting requests"""
-
-    max_ai_requests: int = config.MAX_CONCURRENT_AI_REQUESTS
 
     def __init__(self, update_progress_function) -> None:
         self.current_ai_request = []
@@ -193,8 +192,8 @@ class AiData:
         self.socketio = None
         self.__ai_system_data: dict[AiDataEnum, dict[AiDataEnum, bool | int | str | AiDataEnum]] = {
             AiDataEnum.FLAGS: {
-                AiDataEnum.SYSTEM: config.AUTO_UPDATE_ON_REQUIREMENT_CHANGE,
-                AiDataEnum.AI: config.ENABLE_API_AI_REQUESTS,
+                AiDataEnum.SYSTEM: ai_formalization_config.AUTO_UPDATE_ON_REQUIREMENT_CHANGE,
+                AiDataEnum.AI: ai_formalization_config.ENABLE_API_AI_REQUESTS,
             },
             AiDataEnum.CLUSTER: {
                 AiDataEnum.STATUS: AiDataEnum.NOT_STARTED,
@@ -207,29 +206,13 @@ class AiData:
         self.__clusters: Optional[set[frozenset[str]]] = None
         self.__cluster_matrix: Optional[tuple[list[list[float]], dict]] = None
         self.__similarity_methods: dict[str, SimilarityAlgorithm] = load_similarity_methods()
-        self.__activ_similarity_method: str = config.STANDARD_SIMILARITY_METHOD
+        self.__activ_similarity_method: str = ai_formalization_config.STANDARD_SIMILARITY_METHOD
         self.__sim_threshold = self.__similarity_methods[self.__activ_similarity_method].standard_threshold
 
         self.__formalization_objects: list[AIFormalization] = []
         self.__ai_prompt_parse_methods: dict[str, AiPromptParse] = load_ai_prompt_parse_methods()
-        self.__activ_ai_prompt_parse_method: str = config.STANDARD_AI_PROMPT_PARSE_METHOD
+        self.__activ_ai_prompt_parse_method: str = ai_formalization_config.STANDARD_AI_PROMPT_PARSE_METHOD
         self.__used_variables: list[dict] = [{}]
-
-        ai_api_methods = load_ai_api_methods()
-        model_to_api_method = {
-            m: method for method in ai_api_methods for m in method.model_names_which_work_with_api_method
-        }
-        self.__ai_models = {
-            key: {
-                "description": value,
-                "selected": key == config.STANDARD_AI_MODEL,
-                "api_method_object": model_to_api_method.get(key),
-            }
-            for key, value in config.AI_MODEL_NAMES.items()
-        }
-        for name, value in self.__ai_models.items():
-            if not value["api_method_object"]:
-                logging.warning(f"AI model [{name}] has no API method! Please select one, or create a new one.")
 
         self.__ai_statistic = ai_statistic
         self.__ai_statistic.set_send_update_method(self.__send_updated_data)
@@ -251,10 +234,10 @@ class AiData:
             "flags": self.__get_info_flags(),
             "sim_methods": self.__get_info_sim_methods(),
             "ai_methods": self.__get_info_ai_methods(),
-            "ai_models": self.__get_info_ai_models(),
+            # "ai_models": self.__get_info_ai_models(),
             "ai_statistic": self.__ai_statistic.get_status_report(),
             "req_ids": self.requirement_log.get_ids(),
-            "ai_formalization_deletion_time": config.DELETION_TIME_AFTER_COMPLETION_FORMALIZATION,
+            "ai_formalization_deletion_time": ai_formalization_config.DELETION_TIME_AFTER_COMPLETION_FORMALIZATION,
         }
         return ret
 
@@ -487,7 +470,7 @@ class AiData:
             f_obj
             for f_obj in self.__formalization_objects
             if f_obj.del_time is None
-            or (current_time - f_obj.del_time < config.DELETION_TIME_AFTER_COMPLETION_FORMALIZATION)
+            or (current_time - f_obj.del_time < ai_formalization_config.DELETION_TIME_AFTER_COMPLETION_FORMALIZATION)
         ]
 
     # endregion

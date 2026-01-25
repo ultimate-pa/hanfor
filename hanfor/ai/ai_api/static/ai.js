@@ -28,7 +28,7 @@ $(document).ready(function () {
     const updateFunctions = {
         ai_formalization: updateAIFormalization,
         ai_methods: updateAIMethods,
-        ai_models: updateAIModels,
+        //ai_models: updateAIModels,
         ai_statistic: updateAIStatistic,
         ai_status: updateAIStatus,
         cluster_status: updateClusterStatus,

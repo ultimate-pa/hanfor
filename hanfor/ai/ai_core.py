@@ -4,36 +4,30 @@ from threading import Event
 from typing import Optional
 from ai.strategies import ai_prompt_parse_abstract_class
 from ai.strategies.similarity_abstract_class import SimilarityAlgorithm
-import config
 from ai.ai_enum import AiDataEnum
 from ai.ai_utils import AiStatistic, AiProcessingQueue, AiData
-from ai.interfaces import ai_interface
 from ai.interfaces.ai_interface import AIFormalization
 import reqtransformer
-import hanfor_flask
 import re
+
+from configuration import ai_formalization_config
 from json_db_connector.json_db import DatabaseKeyError
 from lib_core.data import Variable
-from ai.ai_thread_manager import AiThreadManager, TaskResult
+from thread_handling.threading_core import TaskResult, ThreadTask, SchedulingClass, ThreadGroup
+from hanfor_flask import current_app
 
 
 class AiCore:
     """Main class for handling all Ai related tasks"""
 
     def __init__(self):
-        self.clustering_progress_thread: Optional[TaskResult] = None
-        self.stop_event_cluster = Event()
         self.sim_class = None
         self.__locked_cluster = []
         self.__locked_ids = []
 
-        self.ai_formalization_thread: Optional[list[TaskResult]] = []
-        self.stop_event_ai = Event()
-
         self.ai_statistic = AiStatistic()
         self.__ai_data: AiData = AiData(self.ai_statistic)
         self.ai_processing_queue = AiProcessingQueue(self.__ai_data.update_progress)
-        self.__ai_thread_manager = AiThreadManager(config.MAX_THREADS)
 
     def startup(self, data_folder: str, socketio) -> None:
         """
@@ -42,10 +36,10 @@ class AiCore:
         """
 
         self.__ai_data.set_data_folder(data_folder, socketio)
-        if config.ENABLE_SIMILARITY_ON_STARTUP:
+        if ai_formalization_config.ENABLE_SIMILARITY_ON_STARTUP:
             self.start_clustering()
         id_list = []
-        for requirement in hanfor_flask.current_app.db.get_objects(reqtransformer.Requirement).values():
+        for requirement in current_app.db.get_objects(reqtransformer.Requirement).values():
             id_list.append(requirement.to_dict()["id"])
         self.__ai_data.requirement_log.set_ids(id_list)
 
@@ -53,8 +47,7 @@ class AiCore:
         """Initiates the clustering process thread for requirements using the defined similarity algorithm"""
 
         # If currently clustering, terminate the Thread
-        if self.clustering_progress_thread and not self.clustering_progress_thread.done():
-            self.terminate_cluster_thread()
+        self.terminate_cluster_thread()
 
         self.__ai_data.update_progress(
             AiDataEnum.CLUSTER,
@@ -65,22 +58,25 @@ class AiCore:
                 AiDataEnum.TOTAL: 0,
             },
         )
-        requirements = hanfor_flask.current_app.db.get_objects(reqtransformer.Requirement)
+        requirements = current_app.db.get_objects(reqtransformer.Requirement)
         self.sim_class = self.__ai_data.get_sim_class()
 
-        def clustering_thread(sim_class: SimilarityAlgorithm, stop_event_cluster: Event) -> None:
+        def clustering_thread(sim_class: SimilarityAlgorithm, stop_event: Event) -> None:
+            print(stop_event.is_set())
             clusters, matrix = sim_class.get_clusters_and_similarity_matrix(
                 requirements,
                 self.__ai_data.get_sim_threshold(),
-                stop_event_cluster,
+                stop_event,
                 self.__ai_data.update_progress,
                 self.__ai_data.requirement_log.add_data,
             )
             self.__ai_data.set_clusters(clusters)
             self.__ai_data.set_cluster_matrix(matrix)
 
-        self.clustering_progress_thread = self.__ai_thread_manager.submit(
-            clustering_thread, (self.sim_class, self.stop_event_cluster), 2
+        current_app.thread_handler.submit(
+            ThreadTask(
+                clustering_thread, SchedulingClass.SYSTEM_CALL, ThreadGroup.CLUSTERING, None, (self.sim_class,), {}
+            )
         )
 
     # region Automatic AI-Based Requirement Processing
@@ -99,7 +95,7 @@ class AiCore:
         if a certain validation test is passed.
         """
 
-        req_u = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, rid_u)
+        req_u = current_app.db.get_object(reqtransformer.Requirement, rid_u)
         if not self.__ai_data.get_clusters() or not self.check_template_for_ai_formalization(req_u):
             logging.debug("No Formalization")
             return
@@ -107,17 +103,20 @@ class AiCore:
         req_queue, l_cluster, requirement_with_formalization = self.__load_requirements_to_queue(rid_u)
         self.__update_used_variables()
 
-        generator_thread = self.__ai_thread_manager.submit(
-            self.__generator_thread_of_ai_formalization,
-            (
-                req_queue,
-                requirement_with_formalization,
-                self.stop_event_ai,
-                l_cluster,
-            ),
-            3,
+        current_app.thread_handler.submit(
+            ThreadTask(
+                self.__generator_thread_of_ai_formalization,
+                SchedulingClass.CALLER_DEPTH_1,
+                ThreadGroup.AI_FORMALIZATION,
+                None,
+                (
+                    req_queue,
+                    requirement_with_formalization,
+                    l_cluster,
+                ),
+                {},
+            )
         )
-        self.ai_formalization_thread.append(generator_thread)
 
     # endregion
 
@@ -125,23 +124,16 @@ class AiCore:
 
     def terminate_cluster_thread(self) -> None:
         """Terminates the clustering thread if it is running and resets related states"""
-        if self.clustering_progress_thread and not self.clustering_progress_thread.done():
-            self.stop_event_cluster.set()
-            self.clustering_progress_thread.result()
-            self.sim_class = None
-            self.stop_event_cluster.clear()
-            self.__ai_data.update_progress(AiDataEnum.CLUSTER, AiDataEnum.PROCESSED, 0)
-            self.__ai_data.update_progress(AiDataEnum.CLUSTER, AiDataEnum.STATUS, AiDataEnum.NOT_STARTED)
-            self.__ai_data.set_clusters(None)
-            self.__ai_data.set_cluster_matrix(None)
+        current_app.thread_handler.stop_group(ThreadGroup.CLUSTERING)
+        self.sim_class = None
+        self.__ai_data.update_progress(AiDataEnum.CLUSTER, AiDataEnum.PROCESSED, 0)
+        self.__ai_data.update_progress(AiDataEnum.CLUSTER, AiDataEnum.STATUS, AiDataEnum.NOT_STARTED)
+        self.__ai_data.set_clusters(None)
+        self.__ai_data.set_cluster_matrix(None)
 
     def terminate_ai_formalization_threads(self) -> None:
         """Terminates all active Ai formalization threads"""
-        self.stop_event_ai.set()
-        for thread in self.ai_formalization_thread:
-            if thread and thread.done():
-                thread.result()
-        self.stop_event_ai.clear()
+        current_app.thread_handler.stop_group(ThreadGroup.AI_FORMALIZATION)
 
     # endregion
 
@@ -160,7 +152,7 @@ class AiCore:
 
         for req_id in l_cluster:
             try:
-                requirement = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, req_id)
+                requirement = current_app.db.get_object(reqtransformer.Requirement, req_id)
             except DatabaseKeyError as e:
                 return e
             if self.check_template_for_ai_formalization(requirement):
@@ -178,17 +170,21 @@ class AiCore:
         logging.debug(f"{requirement_with_formalization} requirement_with_formalization")
 
         self.__update_used_variables()
-        generator_thread = self.__ai_thread_manager.submit(
-            self.__generator_thread_of_ai_formalization,
-            (
-                req_queue,
-                requirement_with_formalization,
-                self.stop_event_ai,
-                l_cluster,
-            ),
-            3,
+
+        current_app.thread_handler.submit(
+            ThreadTask(
+                self.__generator_thread_of_ai_formalization,
+                SchedulingClass.CALLER_DEPTH_1,
+                ThreadGroup.AI_FORMALIZATION,
+                None,
+                (
+                    req_queue,
+                    requirement_with_formalization,
+                    l_cluster,
+                ),
+                {},
+            )
         )
-        self.ai_formalization_thread.append(generator_thread)
         return None
 
     def check_all_clusters_for_need_of_ai_formalisation(self):
@@ -197,7 +193,7 @@ class AiCore:
         for cl in self.__ai_data.get_clusters():
             for req_id in cl:
                 logging.debug(f"Checking {req_id}")
-                req = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, req_id)
+                req = current_app.db.get_object(reqtransformer.Requirement, req_id)
                 if self.check_template_for_ai_formalization(req):
                     self.__update_requirement(req_id)
 
@@ -207,23 +203,27 @@ class AiCore:
 
     def query_ai(self, unprocessed_query: str) -> None:
         """Processes and sends a query to the AI model asynchronously"""
-
-        def ai_query_thread(query):
-            response, status = ai_interface.query_ai(
-                query,
-                self.__ai_data.get_activ_ai_model_object(),
-                self.__ai_data.get_flags()[AiDataEnum.AI],
-            )
-            if not response:
-                self.__ai_data.update_progress(AiDataEnum.AI, AiDataEnum.RESPONSE, status)
-            else:
-                self.__ai_data.update_progress(AiDataEnum.AI, AiDataEnum.RESPONSE, response)
-
         processed_query = self.__process_query(unprocessed_query)
         self.__ai_data.update_progress(AiDataEnum.AI, AiDataEnum.QUERY, processed_query)
         self.__ai_data.update_progress(AiDataEnum.AI, AiDataEnum.RESPONSE, None)
 
-        self.__ai_thread_manager.submit(ai_query_thread, (processed_query,), 1)
+        current_app.thread_handler.submit(
+            ThreadTask(
+                current_app.ai_request.ask_ai,
+                SchedulingClass.CALLER_DEPTH_1,
+                ThreadGroup.AI,
+                self.set_ai_response,
+                (processed_query,),
+                {},
+            )
+        )
+
+    def set_ai_response(self, data: tuple) -> None:
+        response, status = data
+        if not response:
+            self.__ai_data.update_progress(AiDataEnum.AI, AiDataEnum.RESPONSE, status)
+        else:
+            self.__ai_data.update_progress(AiDataEnum.AI, AiDataEnum.RESPONSE, response)
 
     def __process_query(self, query: str) -> str:
         """Processes a query string by replacing placeholders with corresponding values"""
@@ -276,7 +276,7 @@ class AiCore:
                         return f"[Error: {req_id_action[1]} not found in {patterns.keys()}]"
 
                 req_id, action = req_id_action
-                req = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, req_id)
+                req = current_app.db.get_object(reqtransformer.Requirement, req_id)
 
                 if req:
                     req_dict = req.to_dict(include_used_vars=True)
@@ -347,7 +347,7 @@ class AiCore:
                 for req_id in cl:
                     if req_id in self.__locked_ids:
                         continue
-                    requirement = hanfor_flask.current_app.db.get_object(reqtransformer.Requirement, req_id)
+                    requirement = current_app.db.get_object(reqtransformer.Requirement, req_id)
                     if self.check_ai_should_formalized(requirement):
                         self.__locked_ids.append(req_id)
                         req_queue.put(requirement)
@@ -362,12 +362,12 @@ class AiCore:
         self,
         req_queue: Queue,
         requirement_with_formalization: list[reqtransformer.Requirement],
-        stop_event_ai: Event,
         l_cluster: frozenset,
+        stop_event_ai: Event,
     ) -> None:
         """Processes requirements from the queue using AI formalization in parallel threads"""
 
-        threads = []
+        tasks: list[TaskResult] = []
         while not req_queue.empty():
             if stop_event_ai.is_set():
                 break
@@ -387,12 +387,23 @@ class AiCore:
             )
             self.__ai_data.add_formalization_object(formalize_object)
             logging.debug(requirement_to_formalize.to_dict())
-            processing_thread = self.__ai_thread_manager.submit(self.__process_queue_element, (formalize_object,), 2)
-            threads.append(processing_thread)
 
-        for thread in threads:
-            if not thread.done():
-                thread.result()
+            tasks.append(
+                current_app.thread_handler.submit(
+                    ThreadTask(
+                        self.__process_queue_element,
+                        SchedulingClass.CALLER_DEPTH_2,
+                        ThreadGroup.AI_FORMALIZATION,
+                        None,
+                        (formalize_object,),
+                        {},
+                    )
+                )
+            )
+
+        for task in tasks:
+            if not task.done():
+                task.result()
 
         if l_cluster:
             for x in l_cluster:
@@ -408,14 +419,12 @@ class AiCore:
 
     def __update_used_variables(self) -> None:
         """Return list of used variables from the database with Typ, etc"""
-        self.__ai_data.set_used_variables(
-            [x.to_dict({}) for x in hanfor_flask.current_app.db.get_objects(Variable).values()]
-        )
+        self.__ai_data.set_used_variables([x.to_dict({}) for x in current_app.db.get_objects(Variable).values()])
 
-    def __process_queue_element(self, formalize_object: AIFormalization) -> None:
+    def __process_queue_element(self, formalize_object: AIFormalization, stop_event_ai: Event) -> None:
         """Processes a single AI formalization task from the queue"""
         formalize_object.run_formalization_process(self.ai_statistic, self.__ai_data.get_activ_ai_method_object().name)
-        if self.stop_event_ai.is_set() or formalize_object.status.startswith("terminated"):
+        if stop_event_ai.is_set() or formalize_object.status.startswith("terminated"):
             logging.warning(formalize_object.status)
             return
         if formalize_object.status == "complete":

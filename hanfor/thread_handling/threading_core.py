@@ -13,9 +13,10 @@ class ThreadGroup(Enum):
     """Represents logical groups of threads for batch stopping or categorization."""
 
     AI = 0
-    CLUSTERING = 1
-    VARIABLE_HIGHLIGHTING = 2
-    OTHER = 3
+    AI_FORMALIZATION = 1
+    CLUSTERING = 2
+    VARIABLE_HIGHLIGHTING = 3
+    OTHER = 4
 
 
 class SchedulingClass(Enum):
@@ -120,6 +121,8 @@ class ThreadHandler:
         self.active_threads = 0
         self.active_by_priority = {sc.priority: 0 for sc in SchedulingClass}
         self.group_stop_events: dict[ThreadGroup, threading.Event] = {group: threading.Event() for group in ThreadGroup}
+        for event in self.group_stop_events.values():
+            event.clear()
         self.running_tasks: list[PrioritizedTask] = []
 
         self.dispatcher_thread = threading.Thread(target=self.__dispatcher, daemon=True)
@@ -149,6 +152,7 @@ class ThreadHandler:
                 running_task.result.result()
             except Exception:
                 pass
+        stop_event.clear()
 
     def submit(self, thread_task: ThreadTask) -> TaskResult:
         """
@@ -218,6 +222,7 @@ class ThreadHandler:
     def __run_task(self, prio_task: PrioritizedTask):
         """Runs the given funktion and sets the result and calls callback"""
         try:
+            print(self.group_stop_events[prio_task.thread_task.group].is_set())
             output = prio_task.thread_task.thread_function(
                 *prio_task.thread_task.args,
                 stop_event=self.group_stop_events[prio_task.thread_task.group],

@@ -1,10 +1,8 @@
-import time
 from threading import Event
 from ai.strategies.similarity_abstract_class import SimilarityAlgorithm
 
 
 def compare(str1: str, str2: str) -> (bool, float):
-    time.sleep(0.01)
     words1 = set(str1.split())
     words2 = set(str2.split())
 

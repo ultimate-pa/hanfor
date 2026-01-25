@@ -5,9 +5,9 @@ from typing import Optional
 import logging
 import reqtransformer
 from ai.ai_enum import AiDataEnum
-from ai.strategies.ai_api_methods_abstract_class import AiApiMethod
 from ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse, get_scope, get_pattern
-import config
+from configuration import ai_formalization_config
+from hanfor_flask import current_app
 from lib_core import boogie_parsing
 
 pattern = get_pattern().keys()
@@ -40,41 +40,6 @@ def load_ai_prompt_parse_methods() -> dict[str, AiPromptParse]:
             except ModuleNotFoundError as e:
                 logging.error(f"Error loading module {module_path}: {e}")
     return methods
-
-
-def load_ai_api_methods() -> list[AiApiMethod]:
-    directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../strategies/ai_api_methods/")
-    methods = []
-    base_package = "ai.strategies.ai_api_methods"
-
-    for filename in os.listdir(directory):
-        if filename.endswith(".py") and filename != "__init__.py":
-            # Import Modul
-            module_name = filename[:-3]
-            module_path = f"{base_package}.{module_name}"
-
-            try:
-                module = importlib.import_module(module_path)
-                for attr_name in dir(module):
-                    attr = getattr(module, attr_name)
-                    if isinstance(attr, type) and issubclass(attr, AiApiMethod) and attr is not AiApiMethod:
-                        try:
-                            instance = attr()
-                            methods.append(instance)
-                        except TypeError as e:
-                            logging.warning(f"Class {attr_name} in module {module_path} could not be instantiated: {e}")
-            except ModuleNotFoundError as e:
-                logging.error(f"Error loading module {module_path}: {e}")
-    return methods
-
-
-def query_ai(query: str, model_info: tuple[str, dict], enable_api_ai_request: bool) -> (str, str):
-    """Sends a query to the AI API. enable_api_ai_request should be the AI flag in AiData."""
-
-    if not enable_api_ai_request:
-        return None, "error_AI_API_requests_off"
-
-    return model_info[1]["api_method_object"].query_api(query, model_info[0])
 
 
 class AIFormalization:
@@ -147,7 +112,7 @@ class AIFormalization:
             self.__step_test_formalization_complete,
         ]
 
-        while self.try_count < config.MAX_AI_FORMALIZATION_TRYS:
+        while self.try_count < ai_formalization_config.MAX_AI_FORMALIZATION_TRYS:
             for step_function in steps:
 
                 # Terminated Ai Threads
@@ -252,7 +217,7 @@ class AIFormalization:
         self.__update_status("waiting_ai_response")
         self.__req_logger_ai_process()
 
-        self.ai_response, self.status = query_ai(self.prompt, self.ai_model, self.enable_api_ai_request)
+        self.ai_response, self.status = current_app.ai_request.ask_ai(self.prompt, None)
         self.__update_status("ai_response_received")
 
         self.ai_processing_queue.complete_request(self.req_id)
