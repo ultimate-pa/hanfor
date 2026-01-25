@@ -90,10 +90,10 @@ FEATURE_QUICK_CHECKS = False
 FEATURE_TELEMETRY = False
 
 # AI
-FEATURE_AI = False
+FEATURE_AI = True
 
 # Threading
-FEATURE_THREADING = False
+FEATURE_THREADING = True
 
 ################################################################################
 #                               Miscellaneous                                  #
@@ -101,22 +101,3 @@ FEATURE_THREADING = False
 # Define the ordering for pattern grouping in the pattern selection of hanfors frontent.
 # All groups used in PATTERNS must be covered.
 PATTERNS_GROUP_ORDER = ["Occurence", "Order", "Real-time", "Automaton", "not_formalizable"]
-
-
-################################################################################
-#                                 AI API config                                #
-################################################################################
-
-AI_API_URL = "URL_TO_AI_API"
-AI_MODEL_NAMES = {
-    "MODEL_NAME": "DESCRIPTION",
-}
-STANDARD_AI_MODEL = "MODEL_NAME"
-
-
-################################################################################
-#                       Threading Configuration Settings                       #
-################################################################################
-
-MAX_THREADS = 10
-MAX_CONCURRENT_AI_REQUESTS = 2
