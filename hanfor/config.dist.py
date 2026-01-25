@@ -92,6 +92,8 @@ FEATURE_TELEMETRY = False
 # AI
 FEATURE_AI = False
 
+# Threading
+FEATURE_THREADING = False
 
 ################################################################################
 #                               Miscellaneous                                  #

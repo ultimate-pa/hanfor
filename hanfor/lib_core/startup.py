@@ -27,7 +27,9 @@ from configuration.defaults import Color
 from configuration.tags import STANDARD_TAGS, FUNCTIONAL_TAGS
 
 from reqtransformer import RequirementCollection
-from thread_handling.threading_core import ThreadHandler
+
+if config.FEATURE_THREADING:
+    from thread_handling.threading_core import ThreadHandler
 
 if config.FEATURE_AI:
     from ai_request.ai_core_requests import AiRequest
@@ -167,8 +169,9 @@ def set_app_config_paths(flask_app: HanforFlask, here):
 
 
 def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool = False) -> bool:
-    flask_app.thread_handler = ThreadHandler()
-    if config.FEATURE_AI:
+    if flask_app.config["FEATURE_THREADING"]:
+        flask_app.thread_handler = ThreadHandler()
+    if flask_app.config["FEATURE_AI"]:
         flask_app.ai_request = AiRequest()
 
     flask_app.db = JsonDatabase(no_data_tracing=no_data_tracing)
