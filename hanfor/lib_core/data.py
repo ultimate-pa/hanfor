@@ -538,14 +538,16 @@ class Scope(Enum):
 @DatabaseField("pattern", str)
 class Pattern:
     def __init__(self, name: str = "NotFormalizable"):
-        self.name = name
+        # Hack: reflect over pattern class to update to correct name
+        self.name = APattern.get_pattern(name).__class__.__name__
         self.pattern = APattern.get_pattern(name)._pattern_text
         self.environment = APattern.get_pattern(name)._env
 
+    def get_patternish(self) -> APattern:
+        # TODO: find good name for pattern template
+        return APattern.get_pattern(self.get_name())
+
     def get_name(self):
-        # TODO: hack to update the pattern names to new names
-        #  (move to database update when we are able do that)
-        self.name = APattern.get_pattern(self.name).__class__.__name__
         return self.name
 
     def is_instantiatable(self):
@@ -558,7 +560,7 @@ class Pattern:
         return self.pattern
 
     def get_allowed_types(self):
-        return BoogieType.alias_env_to_instantiated_env(APattern.get_pattern(self.name)._env)
+        return BoogieType.alias_env_to_instantiated_env(self.get_patternish()._env)
 
 
 @DatabaseFieldType()

@@ -91,15 +91,40 @@ class AAutomatonPattern:
     def __init__(self):
         pass
 
-    @classmethod
-    def get_target_location(cls, f: "Formalization", var_collection: "VariableCollection") -> "Expression":
+    def get_target_location(self, f: "Formalization", var_collection: "VariableCollection") -> "Expression":
         """Return the expression identifying the successor.
         Patterns might have a different placeholder assigned for the successor, so allow resolution here"""
-        return cls._get_letter(f, var_collection, "S")
+        return self._get_letter(f, var_collection, "S")
 
-    @classmethod
-    def get_source_location(cls, f: "Formalization", var_collection: "VariableCollection") -> "Expression":
-        return cls._get_letter(f, var_collection, "R")
+    def get_source_location(self, f: "Formalization", var_collection: "VariableCollection") -> "Expression":
+        return self._get_letter(f, var_collection, "R")
+
+    def get_instanciated_countertraces(
+        self, scope: str, expressions: dict[str, FNode], f: "Formalization", other_f: list["Formalization"]
+    ) -> Countertrace:
+        # TODO use formulas from paper to build formulas for any automaton pattern
+
+        # find the hull of this requirement
+        # decide what this is (should be overloaded eh?)
+        ## follow paper
+        # remember initialization is in here too
+        ct = Countertrace()
+        # init has only one phase allowing all initial locations
+
+        # final true phase
+        ct.dc_phases.append(phaseT())
+
+        return ct
+
+    def __find_successors(
+        self, location: "Expression", transitions_by_source: list[tuple["Expression", "Formalization"]]
+    ) -> list["Formalization"]:
+        transitions = []
+        for source, formalization in transitions_by_source:
+            # Semantic check as location may be syntactically different in any reference (as it is written by hand).
+            if is_valid(Iff(location, source)):
+                transitions.append(formalization)
+        return transitions
 
     @classmethod
     def _get_letter(cls, f: "Formalization", var_collection: "VariableCollection", letter: str) -> "Expression":
@@ -119,7 +144,7 @@ class AAutomatonPattern:
         """
         transitions_by_source: list[tuple["Expression", "Formalization"]] = []
         for f in other_f:
-            p_class = APattern.get_pattern(f.scoped_pattern.pattern.name)
+            p_class = f.scoped_pattern.pattern.get_patternish()
             if not isinstance(p_class, AAutomatonPattern):
                 continue
             if isinstance(p_class, InitialLoc):
@@ -127,7 +152,7 @@ class AAutomatonPattern:
             transitions_by_source.append((p_class.get_source_location(f, var_collection), f))
         initials_by_target: list[tuple["Expression", "Formalization"]] = []
         for f in other_f:
-            p_class = APattern.get_pattern(f.scoped_pattern.pattern.name)
+            p_class = f.scoped_pattern.pattern.get_patternish()
             if isinstance(p_class, InitialLoc):
                 initials_by_target.append((p_class.get_target_location(f, var_collection), f))
 
@@ -135,8 +160,8 @@ class AAutomatonPattern:
         queue = [formalization]
         while queue:
             pivot = queue.pop()
-            pattern: AAutomatonPattern = APattern.get_pattern(pivot.scoped_pattern.pattern.name)  # noqa
-            successors = cls.__find_successors(
+            pattern = pivot.scoped_pattern.pattern.get_patternish()  # noqa
+            successors = pattern.__find_successors(
                 pattern.get_target_location(pivot, var_collection), transitions_by_source
             )
             for f in [f for f in successors if f not in automaton]:
@@ -146,43 +171,15 @@ class AAutomatonPattern:
 
         initials = set()
         for f in automaton:
-            p_class = APattern.get_pattern(f.scoped_pattern.pattern.name)
+            pattern = f.scoped_pattern.pattern.get_patternish()
             initials.update(
-                AAutomatonPattern.__find_successors(p_class.get_source_location(f, var_collection), initials_by_target)
+                pattern.__find_successors(pattern.get_source_location(f, var_collection), initials_by_target)
             )
             initials.update(
-                AAutomatonPattern.__find_successors(p_class.get_target_location(f, var_collection), initials_by_target)
+                pattern.__find_successors(pattern.get_target_location(f, var_collection), initials_by_target)
             )
         automaton.update(initials)
         return automaton
-
-    @classmethod
-    def __find_successors(
-        cls, location: "Expression", transitions_by_source: list[tuple["Expression", "Formalization"]]
-    ) -> list["Formalization"]:
-        transitions = []
-        for source, formalization in transitions_by_source:
-            # Semantic check as location may be syntactically different in any reference (as it is written by hand).
-            if is_valid(Iff(location, source)):
-                transitions.append(formalization)
-        return transitions
-
-    def get_instanciated_countertraces(
-        self, scope: str, expressions: dict[str, FNode], f: "Formalization", other_f: list["Formalization"]
-    ) -> Countertrace:
-        # TODO use formulas from paper to build formulas for any automaton pattern
-
-        # find the hull of this requirement
-        # decide what this is (should be overloaded eh?)
-        ## follow paper
-        # remember initialization is in here too
-        ct = Countertrace()
-        # init has only one phase allowing all initial locations
-
-        # final true phase
-        ct.dc_phases.append(phaseT())
-
-        return ct
 
 
 ################################################################################
