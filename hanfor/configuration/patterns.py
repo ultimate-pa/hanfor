@@ -99,22 +99,30 @@ class AAutomatonPattern:
     def get_source_location(self, f: "Formalization", var_collection: "VariableCollection") -> "Expression":
         return self._get_letter(f, var_collection, "R")
 
-    def get_instanciated_countertraces(
-        self, scope: str, expressions: dict[str, FNode], f: "Formalization", other_f: list["Formalization"]
+    @classmethod
+    def get_instantiated_countertraces(
+        f: "Formalization",
+        other_f: list["Formalization"],
+        scope: str,
+        expressions: dict[str, FNode],
+        variable_collection: "VariableCollection",
     ) -> Countertrace:
         # TODO use formulas from paper to build formulas for any automaton pattern
 
-        # find the hull of this requirement
+        automaton = AAutomatonPattern.get_hull(f, other_f, variable_collection)
         # decide what this is (should be overloaded eh?)
+        pattern = f.scoped_pattern.pattern.get_patternish()
+        ct = pattern.__get_instanciated_coutertrace()
         ## follow paper
         # remember initialization is in here too
         ct = Countertrace()
         # init has only one phase allowing all initial locations
-
         # final true phase
         ct.dc_phases.append(phaseT())
-
         return ct
+
+    def __get_instanciated_coutertrace(self):
+        pass
 
     def __find_successors(
         self, location: "Expression", transitions_by_source: list[tuple["Expression", "Formalization"]]
@@ -138,23 +146,23 @@ class AAutomatonPattern:
         cls, formalization: "Formalization", other_f: Iterable["Formalization"], var_collection: "VariableCollection"
     ) -> set["Formalization"]:
         """Figure out what patterns belong to the automaton of `req`.
-        This is done by building the hull of all edges found until fixpoint.
+        This is done by building the hull of all edges.
         Locations of automata are equivalent iff they are logically equivalent expressions,
         i.e. l1 --> l2 , l3 --> l4 is part of the same automaton if  l2 <==> l3 is valid.
         """
         transitions_by_source: list[tuple["Expression", "Formalization"]] = []
         for f in other_f:
-            p_class = f.scoped_pattern.pattern.get_patternish()
-            if not isinstance(p_class, AAutomatonPattern):
+            pattern = f.scoped_pattern.pattern.get_patternish()
+            if not isinstance(pattern, AAutomatonPattern):
                 continue
-            if isinstance(p_class, InitialLoc):
+            if isinstance(pattern, InitialLoc):
                 continue
-            transitions_by_source.append((p_class.get_source_location(f, var_collection), f))
+            transitions_by_source.append((pattern.get_source_location(f, var_collection), f))
         initials_by_target: list[tuple["Expression", "Formalization"]] = []
         for f in other_f:
-            p_class = f.scoped_pattern.pattern.get_patternish()
-            if isinstance(p_class, InitialLoc):
-                initials_by_target.append((p_class.get_target_location(f, var_collection), f))
+            pattern = f.scoped_pattern.pattern.get_patternish()
+            if isinstance(pattern, InitialLoc):
+                initials_by_target.append((pattern.get_target_location(f, var_collection), f))
 
         automaton = {formalization}
         queue = [formalization]
