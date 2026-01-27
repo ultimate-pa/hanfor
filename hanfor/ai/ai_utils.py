@@ -4,7 +4,6 @@ from threading import Lock
 from time import time
 from typing import Optional
 import logging
-import config
 from ai.interfaces.ai_interface import load_ai_prompt_parse_methods, AIFormalization
 from ai.ai_enum import AiDataEnum
 from ai.strategies.ai_prompt_parse_abstract_class import AiPromptParse
@@ -233,6 +232,7 @@ class AiData:
             "ai_formalization": self.__get_ai_formalization_progress(),
             "flags": self.__get_info_flags(),
             "sim_methods": self.__get_info_sim_methods(),
+            "threshold": self.__sim_threshold,
             "ai_methods": self.__get_info_ai_methods(),
             # "ai_models": self.__get_info_ai_models(),
             "ai_statistic": self.__ai_statistic.get_status_report(),
@@ -253,7 +253,7 @@ class AiData:
                     case AiDataEnum.STATUS:
                         send_dict = {"cluster_status": self.__get_info_cluster_status()}
                     case AiDataEnum.METHOD:
-                        send_dict = {"activ_similarity_method": self.__activ_similarity_method}
+                        send_dict = {"sim_methods": self.__get_info_sim_methods()}
                     case AiDataEnum.CLUSTER:
                         send_dict = {"clusters": self.__get_clusters()}
             case AiDataEnum.AI:
@@ -330,6 +330,7 @@ class AiData:
     def set_sim_threshold(self, threshold: float) -> None:
         logging.debug(f"Setting similarity threshold: {threshold}")
         self.__sim_threshold = threshold
+        self.__send_updated_data(AiDataEnum.CLUSTER, AiDataEnum.METHOD)
 
     def set_ai_methode(self, name: str) -> None:
         if name in self.__ai_prompt_parse_methods.keys():

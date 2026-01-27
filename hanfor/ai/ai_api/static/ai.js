@@ -419,7 +419,7 @@ $(document).ready(function () {
         // Slider-Update (Threshold anpassen)
         const selectedMethod = methods.find(m => m.selected);
         if (selectedMethod) {
-            updateSliderRange(selectedMethod.interval[0], selectedMethod.interval[1], selectedMethod.default);
+            updateSliderRange(selectedMethod.interval[0], selectedMethod.interval[1], threshold);
         }
 
         function updateSliderRange(minVal, maxVal, defaultVal) {
@@ -629,6 +629,7 @@ $(document).ready(function () {
     });
 
     function renderSimilarityMatrix(matrixData) {
+
         const table = document.getElementById("similarity-matrix");
         const thead = table.querySelector("thead");
         const tbody = table.querySelector("tbody");
@@ -636,7 +637,7 @@ $(document).ready(function () {
         thead.innerHTML = '';
         tbody.innerHTML = '';
 
-        const { matrix, indexing } = matrixData;
+        const { matrix, indexing, threshold } = matrixData;
 
         // Create table header
         const headerRow = document.createElement("tr");
@@ -658,12 +659,15 @@ $(document).ready(function () {
             matrix[rowIndex].forEach(value => {
                 const td = document.createElement("td");
                 td.textContent = value.toFixed(2);
-                td.style.backgroundColor = calculateHeatmapColor(value);
+                td.style.backgroundColor = calculateHeatmapColor(value, matrixData.used_threshold);
                 row.appendChild(td);
             });
 
             tbody.appendChild(row);
         });
+
+        const h4 = document.getElementById("similarityTitle");
+        h4.textContent =  `Similarity Matrix (used Threshold: ${matrixData.used_threshold})`;
     }
 
     // Clears the similarity matrix table in case of an error.
@@ -674,12 +678,11 @@ $(document).ready(function () {
         alert('Failed to load similarity matrix.');
     }
 
-    function calculateHeatmapColor(value) {
-        const baseValue = ai_data.sim_methods[0];
-        const distance = Math.abs(value - baseValue);
+    function calculateHeatmapColor(value, threshold) {
+        const distance = Math.abs(value - threshold);
         const alpha = 0.3 + (distance * 0.4); // Scale to an alpha value between 0.3 and 0.7
 
-        return value >= baseValue
+        return value >= threshold
             ? `rgba(0, 0, 180, ${Math.min(alpha, 0.7)})`  // Blue for higher values
             : `rgba(0, 180, 0, ${Math.min(alpha, 0.7)})`; // Green for lower values
     }

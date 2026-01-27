@@ -112,4 +112,4 @@ class SimilarityAlgorithm(ABC):
         self.__update_progress_function(AiDataEnum.CLUSTER, AiDataEnum.STATUS, AiDataEnum.COMPLETED)
 
         clusters = self.__create_clusters(threshold, req_logger)
-        return clusters, {"matrix": self.cluster_matrix, "indexing": self.req_id_to_index}
+        return clusters, {"matrix": self.cluster_matrix, "indexing": self.req_id_to_index, "used_threshold": threshold}
