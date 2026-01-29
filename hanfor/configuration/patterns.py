@@ -50,13 +50,28 @@ class APattern:
         return scope in self._countertraces and self._countertraces[scope]
 
     def get_instanciated_countertraces(
-        self, scope: str, expressions: dict[str, FNode], f: "Formalization", other_f: list["Formalization"]
+        self,
+        scope: str,
+        expressions: dict[str, FNode],
+        f: "Formalization",
+        other_f: list["Formalization"],
+        variable_collection: "VariableCollection",
+    ) -> list[Countertrace]:
+        return self.__get_instanciated_coutertrace(scope, expressions, f, other_f, variable_collection)
+
+    def __get_instanciated_coutertrace(
+        self,
+        scope: str,
+        expressions: dict[str, FNode],
+        f: "Formalization",
+        other_f: list["Formalization"],
+        variable_collection: "VariableCollection",
     ) -> list[Countertrace]:
         cts = []
         for ct_str in self.get_countertraces(scope):
             ct_ast = get_countertrace_parser().parse(ct_str)
             cts.append(CountertraceTransformer(expressions).transform(ct_ast))
-        return cts  # TODO: check that this is really a tree
+        return cts
 
     @classmethod
     @cache
@@ -99,30 +114,8 @@ class AAutomatonPattern:
     def get_source_location(self, f: "Formalization", var_collection: "VariableCollection") -> "Expression":
         return self._get_letter(f, var_collection, "R")
 
-    @classmethod
-    def get_instantiated_countertraces(
-        f: "Formalization",
-        other_f: list["Formalization"],
-        scope: str,
-        expressions: dict[str, FNode],
-        variable_collection: "VariableCollection",
-    ) -> Countertrace:
-        # TODO use formulas from paper to build formulas for any automaton pattern
-
-        automaton = AAutomatonPattern.get_hull(f, other_f, variable_collection)
-        # decide what this is (should be overloaded eh?)
-        pattern = f.scoped_pattern.pattern.get_patternish()
-        ct = pattern.__get_instanciated_coutertrace()
-        ## follow paper
-        # remember initialization is in here too
-        ct = Countertrace()
-        # init has only one phase allowing all initial locations
-        # final true phase
-        ct.dc_phases.append(phaseT())
-        return ct
-
     def __get_instanciated_coutertrace(self):
-        pass
+        raise NotImplemented("This has to be implemented by each pattern...")
 
     def __find_successors(
         self, location: "Expression", transitions_by_source: list[tuple["Expression", "Formalization"]]
@@ -806,7 +799,7 @@ class InvarianceDelay(APattern):
         }
 
 
-class InitialLoc(APattern, AAutomatonPattern):
+class InitialLoc(AAutomatonPattern, APattern):
 
     def __init__(self):
         super().__init__()
@@ -828,6 +821,10 @@ class InitialLoc(APattern, AAutomatonPattern):
     def get_instanciated_countertraces(
         self, scope: str, expressions: dict[str, FNode], f: "Formalization", other_f: list["Formalization"]
     ) -> Countertrace:
+        # collect all initial loc pattern of this automaton
+        # aut = self.get_hull(f, other_f,
+        # generate a countertrace for the whole thing
+
         ct = Countertrace()
         # init has only one phase allowing all initial locations followed by a true phase
         ct.dc_phases.append(phase(Not(expressions["R"])))

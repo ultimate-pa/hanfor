@@ -9,17 +9,16 @@ from flask import render_template
 from pysmt.shortcuts import Bool, Int, Real
 from pysmt.typing import BOOL, INT, REAL
 
+from configuration.patterns import APattern
+from lib_core.data import Requirement, VariableCollection, Variable
+from lib_pea.formal_utils import get_semantics_from_requirement, has_variable_with_unknown_type
 from lib_pea.pea import PhaseSetsPea
 from lib_pea.req_to_pea import (
     get_pea_from_formalisation,
-    has_variable_with_unknown_type,
-    get_semantics_from_requirement,
 )
 from lib_pea.utils import strtobool
-from configuration.patterns import APattern
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
-from lib_core.data import Requirement, VariableCollection, Variable
 from ressources import Ressource
 
 validation_patterns = {BOOL: r"^0|false|False|1|true|True$", INT: r"^[+-]?\d+$", REAL: r"^[+-]?\d*[.]?\d+$"}

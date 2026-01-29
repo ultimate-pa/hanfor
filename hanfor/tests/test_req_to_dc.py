@@ -2,7 +2,7 @@ from collections import defaultdict
 from unittest import TestCase
 
 from lib_core.data import Requirement, VariableCollection, Tag, Variable
-from lib_pea.req_to_pea import get_semantics_from_requirement
+from lib_pea.formal_utils import get_semantics_from_requirement
 
 
 class TestAbsFunction(TestCase):
