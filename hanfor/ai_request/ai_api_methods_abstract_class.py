@@ -1,4 +1,6 @@
+import threading
 from abc import ABC, abstractmethod
+from typing import Optional
 
 
 class AiApiMethod(ABC):
@@ -9,7 +11,9 @@ class AiApiMethod(ABC):
         pass
 
     @abstractmethod
-    def query_api(self, query: str, model_name: str) -> (str, str):
+    def query_api(
+        self, query: str, model_name: str, other_params: Optional[dict], stop_event: Optional[threading.Event]
+    ) -> (str, str):
         """
         The API request method.
         It receives the name of the selected model and the question.

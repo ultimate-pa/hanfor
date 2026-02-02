@@ -1,11 +1,16 @@
 import logging
+import threading
+from typing import Optional
+
 import requests
 from configuration import ai_config
 from ai_request import ai_api_methods_abstract_class
 
 
 class OllamaStandard(ai_api_methods_abstract_class.AiApiMethod):
-    def query_api(self, query: str, model_name: str) -> (str, str):
+    def query_api(
+        self, query: str, model_name: str, other_params: Optional[dict], stop_event: Optional[threading.Event]
+    ) -> (str, str):
         try:
             response = requests.post(
                 ai_config.AI_API_URL,

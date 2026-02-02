@@ -58,18 +58,16 @@ class AiRequest:
         self.model_name: str = ai_config.STANDARD_AI_MODEL
         self.ai_api_method = self.__ai_models[self.model_name]["api_method_object"]
 
-    def set_model(self, model_name: str):
-        """Setzt das AI Modell und lädt die passende API-Methode."""
-        if model_name not in self.__ai_models:
-            raise ValueError(f"Unknown AI model: {model_name}")
-        self.model_name = model_name
-        self.ai_api_method = self.__ai_models[model_name]["api_method_object"]
-        if not self.ai_api_method:
-            logging.warning(f"Selected AI model [{model_name}] has no API method!")
-
     def get_all_models(self):
         return self.__ai_models
 
-    def ask_ai(self, prompt: str, stop_event: Optional[threading.Event]) -> (str, str):
+    def ask_ai(
+        self,
+        prompt: str,
+        model_name: Optional[str],
+        other_params: Optional[dict],
+        stop_event: Optional[threading.Event],
+    ) -> (str, str):
         """returns the ai_response and the status"""
-        return self.ai_api_method.query_api(prompt, self.model_name)
+        name = model_name if model_name else self.model_name
+        return self.__ai_models[name]["api_method_object"](prompt, name, other_params, stop_event)
