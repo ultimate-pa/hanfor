@@ -114,7 +114,6 @@ class PrioritizedTask:
 class ThreadHandler:
     def __init__(self, max_threads: int = threading_config.MAX_THREADS):
         self.max_threads = max_threads
-        self.semaphore = threading.Semaphore(max_threads)
         self.queue = PriorityQueue()
         self.lock = threading.Lock()
         self.active_threads = 0
@@ -147,6 +146,7 @@ class ThreadHandler:
             try:
                 logging.info("Waiting for thread %s to terminate", running_task.thread_task)
                 running_task.result.result()
+                running_task.thread_task.status = "terminated thread"
             except Exception as e:
                 print(e)
 
@@ -160,7 +160,7 @@ class ThreadHandler:
         prio_task = PrioritizedTask(thread_task, result)
         self.queue.put(prio_task)
         queued = list(self.queue.queue)
-        logging.warning(
+        logging.info(
             f"Queued tasks: {[ (t.priority, getattr(t.thread_task.thread_function, '__name__', str(t.thread_task.thread_function))) for t in queued ]}"
         )
         return result
@@ -172,7 +172,7 @@ class ThreadHandler:
         """
         free_ratio = (self.max_threads - self.active_threads) / self.max_threads
         can_start: list[SchedulingClass | ThreadGroup] = [
-            sc for sc in SchedulingClass if free_ratio >= sc.min_free_ratio
+            sc for sc in SchedulingClass if free_ratio > sc.min_free_ratio
         ]
 
         ai_running = sum(t.thread_task.group == ThreadGroup.AI for t in self.running_tasks)
@@ -190,6 +190,7 @@ class ThreadHandler:
         """
 
         while True:
+            selected_task = None
             with self.queue.not_empty:
                 while not self.queue.queue:
                     self.queue.not_empty.wait()
@@ -197,8 +198,9 @@ class ThreadHandler:
                 with self.lock:
                     what_can_start = set(self.__what_can_start())
                     for task in list(self.queue.queue):
-                        if task.scheduling_class in what_can_start and (
-                            task.group != ThreadGroup.AI or ThreadGroup.AI in what_can_start
+                        thread_task = task.thread_task
+                        if task.thread_task.scheduling_class in what_can_start and (
+                            thread_task.group != ThreadGroup.AI or ThreadGroup.AI in what_can_start
                         ):
                             selected_task = task
                             self.queue.queue.remove(selected_task)
@@ -209,9 +211,10 @@ class ThreadHandler:
                                 self.active_by_priority.get(selected_task.priority, 0) + 1
                             )
                             self.running_tasks.append(selected_task)
+                            break
 
             if not selected_task:
-                time.sleep(1)
+                time.sleep(0.1)
                 continue
 
             # Start the actual worker thread
@@ -219,8 +222,6 @@ class ThreadHandler:
                 f"Starting task {selected_task.thread_task.thread_function.__name__} of type {selected_task.thread_task.scheduling_class.label}"
             )
             thread = threading.Thread(target=self.__run_task, args=(selected_task,), daemon=True)
-            with self.lock:
-                self.running_tasks.append(selected_task)
             thread.start()
 
     def __run_task(self, prio_task: PrioritizedTask):
@@ -244,7 +245,6 @@ class ThreadHandler:
                 self.active_threads -= 1
                 self.active_by_priority[prio_task.thread_task.priority] -= 1
                 self.running_tasks.remove(prio_task)
-            self.semaphore.release()
 
     def get_active_count(self) -> int:
         with self.lock:
