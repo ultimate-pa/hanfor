@@ -147,8 +147,8 @@ class ThreadHandler:
             try:
                 logging.info("Waiting for thread %s to terminate", running_task.thread_task)
                 running_task.result.result()
-            except Exception:
-                pass
+            except Exception as e:
+                print(e)
 
     def submit(self, thread_task: ThreadTask) -> TaskResult:
         """
@@ -165,54 +165,62 @@ class ThreadHandler:
         )
         return result
 
-    def __can_start(self, thread_task: ThreadTask) -> bool:
-        """Check if a task of a given scheduling class can start based on current load."""
+    def __what_can_start(self) -> list[SchedulingClass | ThreadGroup]:
+        """
+        Returns all SchedulingClass values that are allowed to start based on the current system load.
+        If ThreadGroup.AI is included in the returned list, AI requests may be started.
+        """
+        free_ratio = (self.max_threads - self.active_threads) / self.max_threads
+        can_start: list[SchedulingClass | ThreadGroup] = [
+            sc for sc in SchedulingClass if free_ratio >= sc.min_free_ratio
+        ]
 
-        if thread_task.group == ThreadGroup.AI:
-            i = 0
-            for thread in self.running_tasks:
-                if thread.thread_task.group == ThreadGroup.AI:
-                    i += 1
-            if i >= threading_config.MAX_CONCURRENT_AI_REQUESTS:
-                return False
+        ai_running = sum(t.thread_task.group == ThreadGroup.AI for t in self.running_tasks)
 
-        total_active = self.active_threads
-        max_threads = self.max_threads
-        free_slots = max_threads - total_active
-        free_ratio = free_slots / max_threads
-        return free_ratio >= thread_task.scheduling_class.min_free_ratio
+        if ai_running < threading_config.MAX_CONCURRENT_AI_REQUESTS:
+            can_start.append(ThreadGroup.AI)
+
+        return can_start
 
     def __dispatcher(self):
-        """Continuously dispatches tasks from the queue, obeying priority rules and resource limits."""
-        while True:
-            prio_task = self.queue.get()
+        """
+        Continuously dispatches tasks from the queue, obeying priority rules and resource limits.
 
-            # Acquire semaphore to limit total threads
-            self.semaphore.acquire()
-            started = False
-            while not started:
+        If high-priority tasks cannot start due to limited resources, lower-priority tasks may be processed instead.
+        """
+
+        while True:
+            with self.queue.not_empty:
+                while not self.queue.queue:
+                    self.queue.not_empty.wait()
+
                 with self.lock:
-                    if self.__can_start(prio_task.thread_task):
-                        # Update counters
-                        self.active_threads += 1
-                        self.active_by_priority[prio_task.thread_task.priority] = (
-                            self.active_by_priority.get(prio_task.thread_task.priority, 0) + 1
-                        )
-                        started = True
-                    else:
-                        # Cannot start now, release semaphore and wait
-                        self.semaphore.release()
-                if not started:
-                    time.sleep(0.1)  # short wait before retry
-                    self.semaphore.acquire()
+                    what_can_start = set(self.__what_can_start())
+                    for task in list(self.queue.queue):
+                        if task.scheduling_class in what_can_start and (
+                            task.group != ThreadGroup.AI or ThreadGroup.AI in what_can_start
+                        ):
+                            selected_task = task
+                            self.queue.queue.remove(selected_task)
+
+                            # Update counters
+                            self.active_threads += 1
+                            self.active_by_priority[selected_task.priority] = (
+                                self.active_by_priority.get(selected_task.priority, 0) + 1
+                            )
+                            self.running_tasks.append(selected_task)
+
+            if not selected_task:
+                time.sleep(1)
+                continue
 
             # Start the actual worker thread
             logging.info(
-                f"Starting task {prio_task.thread_task.thread_function.__name__} of type {prio_task.thread_task.scheduling_class.label}"
+                f"Starting task {selected_task.thread_task.thread_function.__name__} of type {selected_task.thread_task.scheduling_class.label}"
             )
-            thread = threading.Thread(target=self.__run_task, args=(prio_task,), daemon=True)
+            thread = threading.Thread(target=self.__run_task, args=(selected_task,), daemon=True)
             with self.lock:
-                self.running_tasks.append(prio_task)
+                self.running_tasks.append(selected_task)
             thread.start()
 
     def __run_task(self, prio_task: PrioritizedTask):
