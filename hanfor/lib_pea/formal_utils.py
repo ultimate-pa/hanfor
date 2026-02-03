@@ -38,13 +38,9 @@ def get_semantics_from_requirement(
         scope = formalization.scoped_pattern.scope.name
         pattern = formalization.scoped_pattern.pattern.get_patternish()
 
-        expressions = get_expression_mapping_smt(formalization, var_collection)
-
         other_formalisations = [f for r in requirements for f in r.formalizations.values() if f is not formalization]
         for i, ct in enumerate(
-            pattern.get_instanciated_countertraces(
-                scope, expressions, formalization, other_formalisations, var_collection
-            )
+            pattern.get_instanciated_countertraces(scope, formalization, other_formalisations, var_collection)
         ):
             dc_formulas[(formalization, i)] = ct
 

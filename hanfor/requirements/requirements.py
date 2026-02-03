@@ -1,22 +1,21 @@
-from flask import Blueprint, request, render_template
-import logging
-import json
 import datetime
+import json
+import logging
 
+from flask import Blueprint, request, render_template
 
+from configuration.defaults import Color
+from guesser.Guess import Guess
+from guesser.guesser_registerer import REGISTERED_GUESSERS
 from hanfor_flask import current_app, nocache, HanforFlask
 from lib_core.data import Requirement, VariableCollection, SessionValue, RequirementEditHistory, Tag, Variable
+from lib_core.patterns import APattern, VARIABLE_AUTOCOMPLETE_EXTENSION
 from lib_core.utils import (
     get_default_pattern_options,
     formalization_html,
     formalizations_to_html,
     default_scope_options,
 )
-from configuration.defaults import Color
-from guesser.Guess import Guess
-from guesser.guesser_registerer import REGISTERED_GUESSERS
-from configuration.patterns import APattern, VARIABLE_AUTOCOMPLETE_EXTENSION
-
 
 blueprint = Blueprint("requirements", __name__, template_folder="templates", url_prefix="/")
 api_blueprint = Blueprint("api_requirements", __name__, url_prefix="/api/req")

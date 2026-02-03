@@ -13,7 +13,6 @@ from uuid import uuid4
 from lark import LarkError
 from typing_extensions import deprecated
 
-from configuration.patterns import APattern
 from hanfor_flask import HanforFlask
 from json_db_connector.json_db import (
     DatabaseTable,
@@ -26,6 +25,7 @@ from json_db_connector.json_db import (
 )
 from lib_core import boogie_parsing
 from lib_core.boogie_parsing import run_typecheck_fixpoint, BoogieType
+from lib_core.patterns import APattern
 
 
 @DatabaseTable(TableType.File)

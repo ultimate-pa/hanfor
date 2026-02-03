@@ -1,19 +1,20 @@
-from flask import Blueprint, request, render_template, Request
-import logging
-import json
-import re
 import csv
+import json
+import logging
+import re
+
+from flask import Blueprint, request, render_template, Request
 
 from hanfor_flask import current_app, nocache, HanforFlask
+from lib_core import boogie_parsing
 from lib_core.data import VariableCollection, Variable, Scope, Requirement, replace_prefix, SessionValue
+from lib_core.patterns import APattern
 from lib_core.utils import (
     get_requirements,
     formalizations_to_html,
     generate_file_response,
     generate_req_file_content,
 )
-from lib_core import boogie_parsing
-from configuration.patterns import APattern
 
 blueprint = Blueprint("variables", __name__, template_folder="templates", url_prefix="/variables")
 blueprint2 = Blueprint("variables_import", __name__, template_folder="templates", url_prefix="/variable_import")

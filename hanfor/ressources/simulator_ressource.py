@@ -9,8 +9,8 @@ from flask import render_template
 from pysmt.shortcuts import Bool, Int, Real
 from pysmt.typing import BOOL, INT, REAL
 
-from configuration.patterns import APattern
 from lib_core.data import Requirement, VariableCollection, Variable
+from lib_core.patterns import APattern
 from lib_pea.formal_utils import get_semantics_from_requirement, has_variable_with_unknown_type
 from lib_pea.pea import PhaseSetsPea
 from lib_pea.req_to_pea import (

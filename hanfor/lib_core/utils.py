@@ -11,10 +11,10 @@ from flask import Response
 from terminaltables import DoubleTable
 
 from config import PATTERNS_GROUP_ORDER  # TODO should this be in the config?
-from configuration.patterns import APattern
 from hanfor_flask import HanforFlask
 from lib_core import boogie_parsing
 from lib_core.data import Requirement, VariableCollection, Variable
+from lib_core.patterns import APattern
 
 default_scope_options = """
     <option value="NONE">None</option>

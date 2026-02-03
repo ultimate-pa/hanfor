@@ -2,7 +2,8 @@ from collections import defaultdict
 from functools import cache
 from typing import Iterable, TYPE_CHECKING
 
-from pysmt.shortcuts import Iff, Not, is_valid
+from pysmt.shortcuts import Iff, Not, is_valid, FALSE, Or
+from typing_extensions import override
 
 from lib_core import boogie_parsing
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
@@ -56,9 +57,9 @@ class APattern:
         other_f: list["Formalization"],
         variable_collection: "VariableCollection",
     ) -> list[Countertrace]:
-        return self.__get_instanciated_coutertrace(scope, f, other_f, variable_collection)
+        return self._get_instanciated_coutertrace(scope, f, other_f, variable_collection)
 
-    def __get_instanciated_coutertrace(
+    def _get_instanciated_coutertrace(
         self,
         scope: str,
         f: "Formalization",
@@ -113,8 +114,8 @@ class AAutomatonPattern:
     def get_source_location(self, f: "Formalization", var_collection: "VariableCollection") -> "Expression":
         return self._get_letter(f, var_collection, "R")
 
-    def __get_instanciated_coutertrace(self):
-        raise NotImplemented("This has to be implemented by each pattern...")
+    def get_locations(self, f: "Formalization", var_collection: "VariableCollection"):
+        return {self.get_source_location(f, var_collection), self.get_target_location(f, var_collection)}
 
     def __find_successors(
         self, location: "Expression", transitions_by_source: list[tuple["Expression", "Formalization"]]
@@ -809,29 +810,35 @@ class InitialLoc(AAutomatonPattern, APattern):
         self.order: int = -1
         self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
 
-    @classmethod
+    @override
     def get_source_location(cls, f: "Formalization", var_collection: "VariableCollection"):
-        raise Exception("There is no source location in an initial transition. Do not access this field here.")
+        return cls._get_letter(f, var_collection, "R")
 
-    @classmethod
+    @override
     def get_target_location(cls, f: "Formalization", var_collection: "VariableCollection") -> "Expression":
         return cls._get_letter(f, var_collection, "R")
 
-    def __get_instanciated_coutertrace(
+    @override
+    def _get_instanciated_coutertrace(
         self,
         scope: str,
         f: "Formalization",
         other_f: list["Formalization"],
         variable_collection: "VariableCollection",
     ) -> list[Countertrace]:
-        # collect all initial loc pattern of this automaton
-        # aut = self.get_hull(f, other_f,
-        # generate a countertrace for the whole thing
-        # expressions = get_expression_mapping_smt(f, variable_collection)
+        # if scope != Scope.GLOBALLY:
+        #   # TODO integrate with tag-error reporting
+        #    raise NotImplementedError("Pattern does only exist in GLOBALLY scope")
+        expr = FALSE()
+        aut = self.get_hull(f, other_f, variable_collection)
+        for other_init in aut:
+            if not isinstance(other_init, InitialLoc):
+                continue
+            expr_mapping = get_expression_mapping_smt(f, variable_collection)
+            expr = Or(expr, expr_mapping["R"])
+
         ct = Countertrace()
-        expr = get_expression_mapping_smt(f, variable_collection)
-        # init has only one phase allowing all initial locations followed by a true phase
-        ct.dc_phases.append(phase(Not(expr["R"])))
+        ct.dc_phases.append(phase(Not(expr)))
         ct.dc_phases.append(phaseT())
         return [ct]
 
