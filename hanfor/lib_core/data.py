@@ -5,7 +5,6 @@ import logging
 import re
 import string
 from dataclasses import dataclass, field
-from enum import Enum
 from threading import Lock
 from typing import Any, Iterable, Union
 from uuid import uuid4
@@ -26,6 +25,7 @@ from json_db_connector.json_db import (
 from lib_core import boogie_parsing
 from lib_core.boogie_parsing import run_typecheck_fixpoint, BoogieType
 from lib_core.patterns import APattern
+from lib_core.scopes import Scope
 
 
 @DatabaseTable(TableType.File)
@@ -487,50 +487,6 @@ class Expression:
 
     def __str__(self):
         return f'"{self.raw_expression}"'
-
-
-class Scope(Enum):
-    GLOBALLY = "Globally"
-    BEFORE = 'Before "{P}"'
-    AFTER = 'After "{P}"'
-    BETWEEN = 'Between "{P}" and "{Q}"'
-    AFTER_UNTIL = 'After "{P}" until "{Q}"'
-    NONE = "// None"
-
-    def instantiate(self, *args):
-        return str(self.value).format(*args)
-
-    def get_slug(self):
-        """Returns a short slug representing the scope value.
-        Use in applications where you don't want to use the full string.
-
-        :return: Slug like AFTER_UNTIL for 'After "{P}" until "{Q}"'
-        :rtype: str
-        """
-        slug_map = {
-            str(self.GLOBALLY): "GLOBALLY",
-            str(self.BEFORE): "BEFORE",
-            str(self.AFTER): "AFTER",
-            str(self.BETWEEN): "BETWEEN",
-            str(self.AFTER_UNTIL): "AFTER_UNTIL",
-            str(self.NONE): "NONE",
-        }
-        return slug_map[self.__str__()]
-
-    def __str__(self):
-        result = str(self.value).replace('"', "")
-        return result
-
-    def get_allowed_types(self):
-        scope_env = {
-            "GLOBALLY": {},
-            "BEFORE": {"P": [boogie_parsing.BoogieType.bool]},
-            "AFTER": {"P": [boogie_parsing.BoogieType.bool]},
-            "BETWEEN": {"P": [boogie_parsing.BoogieType.bool], "Q": [boogie_parsing.BoogieType.bool]},
-            "AFTER_UNTIL": {"P": [boogie_parsing.BoogieType.bool], "Q": [boogie_parsing.BoogieType.bool]},
-            "NONE": {},
-        }
-        return scope_env[self.name]
 
 
 @DatabaseFieldType()

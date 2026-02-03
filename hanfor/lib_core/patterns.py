@@ -6,6 +6,7 @@ from pysmt.shortcuts import Iff, Not, is_valid, FALSE, Or
 from typing_extensions import override
 
 from lib_core import boogie_parsing
+from lib_core.scopes import Scope
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
 from lib_pea.countertrace import CountertraceTransformer, Countertrace, phaseT, phase
 from lib_pea.formal_utils import get_expression_mapping_smt
@@ -826,9 +827,9 @@ class InitialLoc(AAutomatonPattern, APattern):
         other_f: list["Formalization"],
         variable_collection: "VariableCollection",
     ) -> list[Countertrace]:
-        # if scope != Scope.GLOBALLY:
-        #   # TODO integrate with tag-error reporting
-        #    raise NotImplementedError("Pattern does only exist in GLOBALLY scope")
+        if scope != Scope.GLOBALLY:
+            # TODO integrate with tag-error reporting
+            raise NotImplementedError("Pattern does only exist in GLOBALLY scope")
         expr = FALSE()
         aut = self.get_hull(f, other_f, variable_collection)
         for other_init in aut:

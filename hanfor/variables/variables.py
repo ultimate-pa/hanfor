@@ -7,8 +7,9 @@ from flask import Blueprint, request, render_template, Request
 
 from hanfor_flask import current_app, nocache, HanforFlask
 from lib_core import boogie_parsing
-from lib_core.data import VariableCollection, Variable, Scope, Requirement, replace_prefix, SessionValue
+from lib_core.data import VariableCollection, Variable, Requirement, replace_prefix, SessionValue
 from lib_core.patterns import APattern
+from lib_core.scopes import Scope
 from lib_core.utils import (
     get_requirements,
     formalizations_to_html,

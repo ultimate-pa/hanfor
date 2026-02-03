@@ -1,10 +1,11 @@
 import re
 
 from guesser.AbstractGuesser import AbstractGuesser
+from guesser.FormulaProcessor import FormulaProcessor
 from guesser.Guess import Guess
 from guesser.guesser_registerer import register_guesser
-from lib_core.data import Scope, ScopedPattern, Pattern
-from guesser.FormulaProcessor import FormulaProcessor
+from lib_core.data import ScopedPattern, Pattern
+from lib_core.scopes import Scope
 
 
 @register_guesser
