@@ -2,12 +2,12 @@ from collections import defaultdict
 from functools import cache
 from typing import Iterable, TYPE_CHECKING
 
-from pysmt.fnode import FNode
 from pysmt.shortcuts import Iff, Not, is_valid
 
 from lib_core import boogie_parsing
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
 from lib_pea.countertrace import CountertraceTransformer, Countertrace, phaseT, phase
+from lib_pea.formal_utils import get_expression_mapping_smt
 from lib_pea.utils import get_countertrace_parser
 
 if TYPE_CHECKING:
@@ -52,25 +52,24 @@ class APattern:
     def get_instanciated_countertraces(
         self,
         scope: str,
-        expressions: dict[str, FNode],
         f: "Formalization",
         other_f: list["Formalization"],
         variable_collection: "VariableCollection",
     ) -> list[Countertrace]:
-        return self.__get_instanciated_coutertrace(scope, expressions, f, other_f, variable_collection)
+        return self.__get_instanciated_coutertrace(scope, f, other_f, variable_collection)
 
     def __get_instanciated_coutertrace(
         self,
         scope: str,
-        expressions: dict[str, FNode],
         f: "Formalization",
         other_f: list["Formalization"],
         variable_collection: "VariableCollection",
     ) -> list[Countertrace]:
         cts = []
+        expr = get_expression_mapping_smt(f, variable_collection)
         for ct_str in self.get_countertraces(scope):
             ct_ast = get_countertrace_parser().parse(ct_str)
-            cts.append(CountertraceTransformer(expressions).transform(ct_ast))
+            cts.append(CountertraceTransformer(expr).transform(ct_ast))
         return cts
 
     @classmethod
@@ -818,18 +817,23 @@ class InitialLoc(AAutomatonPattern, APattern):
     def get_target_location(cls, f: "Formalization", var_collection: "VariableCollection") -> "Expression":
         return cls._get_letter(f, var_collection, "R")
 
-    def get_instanciated_countertraces(
-        self, scope: str, expressions: dict[str, FNode], f: "Formalization", other_f: list["Formalization"]
-    ) -> Countertrace:
+    def __get_instanciated_coutertrace(
+        self,
+        scope: str,
+        f: "Formalization",
+        other_f: list["Formalization"],
+        variable_collection: "VariableCollection",
+    ) -> list[Countertrace]:
         # collect all initial loc pattern of this automaton
         # aut = self.get_hull(f, other_f,
         # generate a countertrace for the whole thing
-
+        # expressions = get_expression_mapping_smt(f, variable_collection)
         ct = Countertrace()
+        expr = get_expression_mapping_smt(f, variable_collection)
         # init has only one phase allowing all initial locations followed by a true phase
-        ct.dc_phases.append(phase(Not(expressions["R"])))
+        ct.dc_phases.append(phase(Not(expr["R"])))
         ct.dc_phases.append(phaseT())
-        return ct
+        return [ct]
 
 
 class Toggle1(APattern):

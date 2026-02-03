@@ -1,18 +1,34 @@
-from configuration.patterns import APattern
+from typing import TYPE_CHECKING
+
+from pysmt.fnode import FNode
+
 from lib_core import boogie_parsing
-from lib_core.data import Requirement, VariableCollection, Formalization
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
 from lib_pea.countertrace import Countertrace
 
+if TYPE_CHECKING:
+    from lib_core.data import Requirement, VariableCollection, Formalization
+
+
+def get_expression_mapping_smt(f: "Formalization", vc: "VariableCollection") -> dict[str, FNode]:
+    expressions = {}
+    boogie_parser = boogie_parsing.get_parser_instance()
+    for k, v in f.expressions_mapping.items():
+        # Todo: hack to detect empty expressions (why is this necessary now)?
+        if not v.raw_expression:
+            continue
+        tree = boogie_parser.parse(v.raw_expression)
+        expressions[k] = BoogiePysmtTransformer(set(vc.collection.values())).transform(tree)
+    return expressions
+
 
 def get_semantics_from_requirement(
-    requirement: Requirement, requirements: list[Requirement], var_collection: VariableCollection
-) -> dict[tuple[Formalization, int], Countertrace]:
+    requirement: "Requirement", requirements: list["Requirement"], var_collection: "VariableCollection"
+) -> dict[tuple["Formalization", int], Countertrace]:
     """Instanciate the semantics of a single requirement.
     All other requirements should be passed in to allow for complexer patterns to be generated"""
     dc_formulas = dict()
     variables = {k: v.type for k, v in var_collection.collection.items()}
-    boogie_parser = boogie_parsing.get_parser_instance()
     for formalization in requirement.formalizations.values():
         if not formalization.scoped_pattern.is_instantiatable():
             continue
@@ -20,19 +36,13 @@ def get_semantics_from_requirement(
             continue
 
         scope = formalization.scoped_pattern.scope.name
-        pattern = formalization.scoped_pattern.pattern.name
+        pattern = formalization.scoped_pattern.pattern.get_patternish()
 
-        expressions = {}
-        for k, v in formalization.expressions_mapping.items():
-            # Todo: hack to detect empty expressions (why is this necessary now)?
-            if not v.raw_expression:
-                continue
-            tree = boogie_parser.parse(v.raw_expression)
-            expressions[k] = BoogiePysmtTransformer(set(var_collection.collection.values())).transform(tree)
+        expressions = get_expression_mapping_smt(formalization, var_collection)
 
         other_formalisations = [f for r in requirements for f in r.formalizations.values() if f is not formalization]
         for i, ct in enumerate(
-            APattern.get_pattern(pattern).get_instanciated_countertraces(
+            pattern.get_instanciated_countertraces(
                 scope, expressions, formalization, other_formalisations, var_collection
             )
         ):
@@ -41,7 +51,7 @@ def get_semantics_from_requirement(
     return dc_formulas
 
 
-def has_variable_with_unknown_type(formalization: Formalization, variables: dict[str, str]) -> bool:
+def has_variable_with_unknown_type(formalization: "Formalization", variables: dict[str, str]) -> bool:
     for used_variable in formalization.used_variables:
         if not variables[used_variable] or variables[used_variable] == "unknown" or variables[used_variable] == "error":
             return True

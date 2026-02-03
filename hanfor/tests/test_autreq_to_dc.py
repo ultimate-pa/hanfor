@@ -1,7 +1,7 @@
 from collections import defaultdict
 from unittest import TestCase
 
-from configuration.patterns import AAutomatonPattern
+from configuration.patterns import AAutomatonPattern, APattern
 from lib_core.data import Requirement, VariableCollection, Tag, Variable
 
 
@@ -88,7 +88,9 @@ class TestAutomatonAssembly(TestCase):
         req_belonging_to_r = AAutomatonPattern.get_hull(f1, [f for f in r.formalizations.values()], variable_collection)
         self.assertSetEqual({f1, f2, f3a, f3b}, set(req_belonging_to_r))
         # test formula generation
-        # formulae = get_semantics_from_requirement()
+        formal = APattern.get_instanciated_countertraces(
+            f3a.scoped_pattern.scope, f3a, {f1, f2, f3b}, variable_collection
+        )
 
     def test_complex_pattern_transitions(self):
         """
