@@ -1,7 +1,7 @@
 from typing import Iterable, TYPE_CHECKING
 
 from pysmt.fnode import FNode
-from pysmt.shortcuts import Iff, Not, is_valid, FALSE, Or
+from pysmt.shortcuts import Iff, Not, is_valid, FALSE, Or, And
 from typing_extensions import override
 
 from lib_core.patterns_basic import APattern
@@ -93,6 +93,28 @@ class AAutomatonPattern:
         automaton.update(initials)
         return automaton
 
+    def _generic_transition_builder(
+        self,
+        source_loc: FNode,
+        target_loc: FNode,
+        other_outgoing_loc: list[FNode] = [],  # TODO: fix to immutable something
+        event: FNode = None,
+        guard: FNode = None,
+        other_guards: FNode = None,
+        other_events: list[FNode] = None,
+    ) -> "Countertrace":
+        # Now only for the simplest of transitiosn :)
+        ct = Countertrace()
+        ct.dc_phases.append(phaseT())
+        if not event:
+            ct.dc_phases.append(phase(source_loc))
+            expr = And(Not(source_loc), Not(target_loc), *[Not(loc) for loc in other_outgoing_loc])
+        else:
+            pass  # built with event?
+        ct.dc_phases.append(phase(expr))
+        ct.dc_phases.append(phaseT())
+        return [ct]
+
 
 ################################################################################
 #                             Available patterns                               #
@@ -163,7 +185,21 @@ class Transition(AAutomatonPattern, APattern):
         other_f: list["Formalization"],
         variable_collection: "VariableCollection",
     ) -> list[Countertrace]:
-        pass
+        if scope != Scope.GLOBALLY:
+            # TODO integrate with tag-error reporting
+            raise NotImplementedError("Pattern does only exist in GLOBALLY scope")
+        aut = self.get_hull(f, other_f, variable_collection)
+
+        source_loc = self.get_source_location(f, variable_collection)
+        target_loc = self.get_target_location(f, variable_collection)
+        other_target = []
+        for f in aut:
+            if isinstance(f, InitialLoc):
+                continue
+            if f.scoped_pattern.pattern.get_patternish().get_source_location(f, variable_collection) != source_loc:
+                continue
+            other_target.append(f.scoped_pattern.pattern.get_patternish().get_target_location(f, variable_collection))
+        return [self._generic_transition_builder(source_loc, target_loc, other_target)]
 
 
 class TransitionG(AAutomatonPattern, APattern):
