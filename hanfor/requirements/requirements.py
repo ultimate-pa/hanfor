@@ -9,7 +9,8 @@ from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from hanfor_flask import current_app, nocache, HanforFlask
 from lib_core.data import Requirement, VariableCollection, SessionValue, RequirementEditHistory, Tag, Variable
-from lib_core.patterns import APattern, VARIABLE_AUTOCOMPLETE_EXTENSION
+from lib_core.patterns_basic import APattern
+from lib_core.patterns_functions import VARIABLE_AUTOCOMPLETE_EXTENSION
 from lib_core.utils import (
     get_default_pattern_options,
     formalization_html,

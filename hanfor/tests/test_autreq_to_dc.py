@@ -2,7 +2,7 @@ from collections import defaultdict
 from unittest import TestCase
 
 from lib_core.data import Requirement, VariableCollection, Tag, Variable
-from lib_core.patterns import AAutomatonPattern
+from lib_core.patterns_automata import AAutomatonPattern
 
 
 class TestAutomatonAssembly(TestCase):

@@ -12,14 +12,20 @@ if TYPE_CHECKING:
 
 def get_expression_mapping_smt(f: "Formalization", vc: "VariableCollection") -> dict[str, FNode]:
     expressions = {}
-    boogie_parser = boogie_parsing.get_parser_instance()
+
     for k, v in f.expressions_mapping.items():
         # Todo: hack to detect empty expressions (why is this necessary now)?
         if not v.raw_expression:
             continue
-        tree = boogie_parser.parse(v.raw_expression)
-        expressions[k] = BoogiePysmtTransformer(set(vc.collection.values())).transform(tree)
+        expressions[k] = get_smt_expression(f, vc, k)
+
     return expressions
+
+
+def get_smt_expression(f: "Formalization", vc: "VariableCollection", letter: str) -> FNode:
+    boogie_parser = boogie_parsing.get_parser_instance()
+    tree = boogie_parser.parse(f.expressions_mapping[letter].raw_expression)
+    return BoogiePysmtTransformer(set(vc.collection.values())).transform(tree)
 
 
 def get_semantics_from_requirement(

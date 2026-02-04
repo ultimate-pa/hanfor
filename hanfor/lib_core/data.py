@@ -24,7 +24,7 @@ from json_db_connector.json_db import (
 )
 from lib_core import boogie_parsing
 from lib_core.boogie_parsing import run_typecheck_fixpoint, BoogieType
-from lib_core.patterns import APattern
+from lib_core.patterns_basic import APattern
 from lib_core.scopes import Scope
 
 
