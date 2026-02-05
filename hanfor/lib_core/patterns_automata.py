@@ -7,7 +7,7 @@ from typing_extensions import override
 from lib_core.patterns_basic import APattern
 from lib_core.scopes import Scope
 from lib_pea.countertrace import Countertrace, phaseT, phase
-from lib_pea.formal_utils import get_expression_mapping_smt, get_smt_expression
+from lib_pea.formal_utils import get_smt_expression
 
 if TYPE_CHECKING:
     from lib_core.data import Formalization, Expression
@@ -59,8 +59,6 @@ class AAutomatonPattern:
             pattern = f.scoped_pattern.pattern.get_patternish()
             if not isinstance(pattern, AAutomatonPattern):
                 continue
-            if isinstance(pattern, InitialLoc):
-                continue
             transitions_by_source.append((pattern.get_source_location(f, var_collection), f))
         initials_by_target: list[tuple["FNode", "Formalization"]] = []
         for f in other_f:
@@ -102,7 +100,7 @@ class AAutomatonPattern:
         guard: FNode = None,
         other_guards: FNode = None,
         other_events: list[FNode] = None,
-    ) -> "Countertrace":
+    ) -> list["Countertrace"]:
         # Now only for the simplest of transitiosn :)
         ct = Countertrace()
         ct.dc_phases.append(phaseT())
@@ -154,11 +152,10 @@ class InitialLoc(AAutomatonPattern, APattern):
             raise NotImplementedError("Pattern does only exist in GLOBALLY scope")
         expr = FALSE()
         aut = self.get_hull(f, other_f, variable_collection)
-        for other_init in aut:
-            if not isinstance(other_init, InitialLoc):
+        for t in aut:
+            if not isinstance(t.scoped_pattern.pattern.get_patternish(), InitialLoc):
                 continue
-            expr_mapping = get_expression_mapping_smt(f, variable_collection)
-            expr = Or(expr, expr_mapping["R"])
+            expr = Or(expr, get_smt_expression(f, variable_collection, "R"))
 
         ct = Countertrace()
         ct.dc_phases.append(phase(Not(expr)))
