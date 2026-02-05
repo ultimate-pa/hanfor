@@ -1,7 +1,7 @@
 from typing import Iterable, TYPE_CHECKING
 
 from pysmt.fnode import FNode
-from pysmt.shortcuts import Iff, Not, is_valid, FALSE, Or, And
+from pysmt.shortcuts import Iff, Not, is_valid, FALSE, Or, And, simplify
 from typing_extensions import override
 
 from lib_core.patterns_basic import APattern
@@ -109,7 +109,7 @@ class AAutomatonPattern:
             expr = And(Not(source_loc), Not(target_loc), *[Not(loc) for loc in other_outgoing_loc])
         else:
             pass  # built with event?
-        ct.dc_phases.append(phase(expr))
+        ct.dc_phases.append(phase(simplify(expr)))
         ct.dc_phases.append(phaseT())
         return [ct]
 
@@ -155,8 +155,8 @@ class InitialLoc(AAutomatonPattern, APattern):
         for t in aut:
             if not isinstance(t.scoped_pattern.pattern.get_patternish(), InitialLoc):
                 continue
-            expr = Or(expr, get_smt_expression(f, variable_collection, "R"))
-
+            expr = Or(expr, get_smt_expression(t, variable_collection, "R"))
+        expr = simplify(expr)
         ct = Countertrace()
         ct.dc_phases.append(phase(Not(expr)))
         ct.dc_phases.append(phaseT())
@@ -196,7 +196,7 @@ class Transition(AAutomatonPattern, APattern):
             if f.scoped_pattern.pattern.get_patternish().get_source_location(f, variable_collection) != source_loc:
                 continue
             other_target.append(f.scoped_pattern.pattern.get_patternish().get_target_location(f, variable_collection))
-        return [self._generic_transition_builder(source_loc, target_loc, other_target)]
+        return self._generic_transition_builder(source_loc, target_loc, other_target)
 
 
 class TransitionG(AAutomatonPattern, APattern):

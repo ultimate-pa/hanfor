@@ -86,16 +86,23 @@ class TestAutomatonAssembly(TestCase):
         )
         # test general automaton layout
         req_belonging_to_r = AAutomatonPattern.get_hull(f1, [f for f in r.formalizations.values()], variable_collection)
-        self.assertSetEqual({f1, f2, f3a, f3b}, set(req_belonging_to_r))
+        aut = {f1, f2, f3a, f3b}
+        self.assertSetEqual(aut, set(req_belonging_to_r))
         # test formula generation
         formal_f3a = f3a.scoped_pattern.pattern.get_patternish().get_instanciated_countertraces(
-            f3a.scoped_pattern.scope, f3a, [f1, f2, f3b], variable_collection
+            f3a.scoped_pattern.scope, f3a, aut, variable_collection
         )
-        self.assertIsNotNone(formal_f3a)  # TODO: this is still wrong anyways
+        self.assertIsNotNone(formal_f3a)
+        # States A and B (1 and 2) are initial.
+        self.assertEqual(repr(formal_f3a[0].dc_phases[0].invariant), r"(! ((states = 1) | (states = 2)))")
         formal_f1 = f1.scoped_pattern.pattern.get_patternish().get_instanciated_countertraces(
-            f1.scoped_pattern.scope, f5, [f1, f2, f3b], variable_collection
+            f1.scoped_pattern.scope, f5, aut, variable_collection
         )
-        self.assertIsNotNone(formal_f1)  # TODO: test correctly but seems ok on first sight :)
+        self.assertIsNotNone(formal_f1)
+        self.assertEqual(repr(formal_f1[0].dc_phases[1].invariant), r"(states_other = 2)")
+        self.assertEqual(
+            repr(formal_f1[0].dc_phases[2].invariant), r"((! (states_other = 2)) & (! (states_other = 1)))"
+        )
 
     def test_complex_pattern_transitions(self):
         """
