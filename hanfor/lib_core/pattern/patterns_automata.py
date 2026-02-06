@@ -4,7 +4,7 @@ from pysmt.fnode import FNode
 from pysmt.shortcuts import Iff, Not, is_valid, FALSE, Or, And, simplify
 from typing_extensions import override
 
-from lib_core.patterns_basic import APattern
+from lib_core.pattern.patterns_basic import APattern
 from lib_core.scopes import Scope
 from lib_pea.countertrace import Countertrace, phaseT, phase
 from lib_pea.formal_utils import get_smt_expression
@@ -147,8 +147,8 @@ class InitialLoc(AAutomatonPattern, APattern):
         other_f: list["Formalization"],
         variable_collection: "VariableCollection",
     ) -> list[Countertrace]:
-        if scope != Scope.GLOBALLY:
-            # TODO integrate with tag-error reporting
+        if scope.lower() != Scope.GLOBALLY.value.lower():
+            # TODO integrate with tag-error reporting, also make this check less bad
             raise NotImplementedError("Pattern does only exist in GLOBALLY scope")
         expr = FALSE()
         aut = self.get_hull(f, other_f, variable_collection)
@@ -182,8 +182,8 @@ class Transition(AAutomatonPattern, APattern):
         other_f: list["Formalization"],
         variable_collection: "VariableCollection",
     ) -> list[Countertrace]:
-        if scope != Scope.GLOBALLY:
-            # TODO integrate with tag-error reporting
+        if scope.lower() != Scope.GLOBALLY.value.lower():
+            # TODO integrate with tag-error reporting, also make this check less bad
             raise NotImplementedError("Pattern does only exist in GLOBALLY scope")
         aut = self.get_hull(f, other_f, variable_collection)
 

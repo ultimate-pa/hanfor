@@ -16,7 +16,7 @@ from hanfor_flask import HanforFlask
 from json_db_connector.json_db import JsonDatabase, remove_json_database_data_tracing_logger
 from lib_core import boogie_parsing
 from lib_core.data import Tag, VariableCollection, SessionValue, Requirement, Variable
-from lib_core.patterns_basic import APattern
+from lib_core.pattern.patterns_basic import APattern
 from lib_core.scopes import Scope
 from lib_core.utils import (
     get_requirements,

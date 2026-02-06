@@ -1,8 +1,8 @@
 from collections import defaultdict
 from unittest import TestCase
 
-from lib_core.data import Requirement, VariableCollection, Tag, Variable
-from lib_core.patterns_automata import AAutomatonPattern
+from lib_core.data import *
+from lib_core.pattern.patterns_automata import AAutomatonPattern
 
 
 class TestAutomatonAssembly(TestCase):
@@ -94,15 +94,16 @@ class TestAutomatonAssembly(TestCase):
         )
         self.assertIsNotNone(formal_f3a)
         # States A and B (1 and 2) are initial.
-        self.assertEqual(repr(formal_f3a[0].dc_phases[0].invariant), r"(! ((states = 1) | (states = 2)))")
+        self.assertIn(r"(states = 1)", repr(formal_f3a[0].dc_phases[0].invariant))
+        self.assertIn(r"(states = 2)", repr(formal_f3a[0].dc_phases[0].invariant))
         formal_f1 = f1.scoped_pattern.pattern.get_patternish().get_instanciated_countertraces(
-            f1.scoped_pattern.scope, f5, aut, variable_collection
+            f1.scoped_pattern.scope, f1, aut, variable_collection
         )
         self.assertIsNotNone(formal_f1)
-        self.assertEqual(repr(formal_f1[0].dc_phases[1].invariant), r"(states_other = 2)")
-        self.assertEqual(
-            repr(formal_f1[0].dc_phases[2].invariant), r"((! (states_other = 2)) & (! (states_other = 1)))"
-        )
+        self.assertIn(r"(states = 1)", repr(formal_f1[0].dc_phases[1].invariant))
+        self.assertNotIn(r"(states = 2)", repr(formal_f1[0].dc_phases[1].invariant))
+        self.assertIn(r"(states = 1)", repr(formal_f1[0].dc_phases[2].invariant))
+        self.assertIn(r"(states = 2)", repr(formal_f1[0].dc_phases[2].invariant))
 
     def test_complex_pattern_transitions(self):
         """

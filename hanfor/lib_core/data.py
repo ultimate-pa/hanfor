@@ -24,7 +24,7 @@ from json_db_connector.json_db import (
 )
 from lib_core import boogie_parsing
 from lib_core.boogie_parsing import run_typecheck_fixpoint, BoogieType
-from lib_core.patterns_basic import APattern
+from lib_core.pattern.patterns_basic import APattern
 from lib_core.scopes import Scope
 
 
@@ -808,10 +808,10 @@ class Variable:
 
 
 class VariableCollection:
-    def __init__(self, variables: Iterable[Variable], requierments: Iterable[Requirement]):
+    def __init__(self, variables: Iterable[Variable], requirements: Iterable[Requirement]):
         self.collection: dict[str, Variable] = {v.name: v for v in variables}
         self.var_req_mapping = dict()
-        self.refresh_var_usage(requierments)
+        self.refresh_var_usage(requirements)
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
         self.new_vars = set()
 
