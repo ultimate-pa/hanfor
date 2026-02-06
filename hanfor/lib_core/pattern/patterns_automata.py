@@ -113,6 +113,11 @@ class AAutomatonPattern:
         ct.dc_phases.append(phaseT())
         return [ct]
 
+    def _fail_wrong_scope(self, scope: str):
+        if scope not in [Scope.GLOBALLY.get_slug(), "Globally", Scope.GLOBALLY]:
+            # TODO integrate with tag-error reporting
+            raise NotImplementedError("Pattern does only exist in GLOBALLY scope")
+
 
 ################################################################################
 #                             Available patterns                               #
@@ -147,9 +152,7 @@ class InitialLoc(AAutomatonPattern, APattern):
         other_f: list["Formalization"],
         variable_collection: "VariableCollection",
     ) -> list[Countertrace]:
-        if scope.lower() != Scope.GLOBALLY.value.lower():
-            # TODO integrate with tag-error reporting, also make this check less bad
-            raise NotImplementedError("Pattern does only exist in GLOBALLY scope")
+        self._fail_wrong_scope(scope)
         expr = FALSE()
         aut = self.get_hull(f, other_f, variable_collection)
         for t in aut:
@@ -182,9 +185,7 @@ class Transition(AAutomatonPattern, APattern):
         other_f: list["Formalization"],
         variable_collection: "VariableCollection",
     ) -> list[Countertrace]:
-        if scope.lower() != Scope.GLOBALLY.value.lower():
-            # TODO integrate with tag-error reporting, also make this check less bad
-            raise NotImplementedError("Pattern does only exist in GLOBALLY scope")
+        self._fail_wrong_scope(scope)
         aut = self.get_hull(f, other_f, variable_collection)
 
         source_loc = self.get_source_location(f, variable_collection)
