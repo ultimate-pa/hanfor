@@ -1,7 +1,7 @@
 from typing import Iterable, TYPE_CHECKING
 
 from pysmt.fnode import FNode
-from pysmt.shortcuts import Iff, Not, is_valid, FALSE, Or, And, simplify
+from pysmt.shortcuts import Iff, Not, is_valid, FALSE, Or, And, simplify, TRUE
 from typing_extensions import override
 
 from lib_core.pattern.patterns_basic import APattern
@@ -33,6 +33,14 @@ class AAutomatonPattern:
 
     def get_locations(self, f: "Formalization", var_collection: "VariableCollection"):
         return {self.get_source_location(f, var_collection), self.get_target_location(f, var_collection)}
+
+    def get_guard(self) -> FNode:
+        # Just see non-guarded edges as true
+        return TRUE()
+
+    def get_event(self) -> FNode:
+        # there is no diffecrence between an event always being true versus no event being there
+        return TRUE()
 
     @staticmethod
     def __find_successors(
@@ -94,19 +102,26 @@ class AAutomatonPattern:
     def _generic_transition_builder(
         self,
         source_loc: FNode,
-        target_loc: FNode,
-        other_outgoing_loc: list[FNode] = [],  # TODO: fix to immutable something
+        all_target_loc: list[tuple[FNode, FNode, FNode]] = [],  #  location, guard, event i.e. (l_j, g_j, e_j)
+        # TODO: fix to immutable something
         event: FNode = None,
-        guard: FNode = None,
-        other_guards: FNode = None,
-        other_events: list[FNode] = None,
     ) -> list["Countertrace"]:
+        # TODO: rewrite this as "per locaiton":
+        ## sig: transition_builder(loc, transition_patterns) -> CT
+        ### get location
+        ### collect all edges of the locations over their rejspective "gimme ... s"
+        ### assemble the formula
         # Now only for the simplest of transitiosn :)
         ct = Countertrace()
         ct.dc_phases.append(phaseT())
         if not event:
             ct.dc_phases.append(phase(source_loc))
-            expr = And(Not(source_loc), Not(target_loc), *[Not(loc) for loc in other_outgoing_loc])
+            all_target_expr = []
+            for l, g, e in all_target_loc:
+                g_exp = g if g else TRUE()
+                e_expr = e if e else TRUE()
+                all_target_expr.append(And(l, g_exp, e_expr))
+            expr = Not(Or(source_loc, *all_target_expr))
         else:
             pass  # built with event?
         ct.dc_phases.append(phase(simplify(expr)))
@@ -189,15 +204,16 @@ class Transition(AAutomatonPattern, APattern):
         aut = self.get_hull(f, other_f, variable_collection)
 
         source_loc = self.get_source_location(f, variable_collection)
-        target_loc = self.get_target_location(f, variable_collection)
         other_target = []
         for f in aut:
+            f_pat = f.scoped_pattern.pattern.get_patternish()
             if isinstance(f, InitialLoc):
                 continue
-            if f.scoped_pattern.pattern.get_patternish().get_source_location(f, variable_collection) != source_loc:
+            if f_pat.get_source_location(f, variable_collection) != source_loc:
                 continue
-            other_target.append(f.scoped_pattern.pattern.get_patternish().get_target_location(f, variable_collection))
-        return self._generic_transition_builder(source_loc, target_loc, other_target)
+            # this will also include this transition so no special case is required
+            other_target.append((f_pat.get_target_location(f, variable_collection), None, None))
+        return self._generic_transition_builder(source_loc, other_target)
 
 
 class TransitionG(AAutomatonPattern, APattern):
