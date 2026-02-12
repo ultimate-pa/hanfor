@@ -5,12 +5,36 @@ from lib_core.data import *
 from lib_core.pattern.patterns_automata import AAutomatonPattern
 
 
-class TestComplexutomaton(TestCase):
+class TestComplexAutomaton(TestCase):
 
     def __get_complex_automaton(self):
         """
-        This Test describes a donut A -> B -> C -> A   , with two sinks B -> C & det   and B -> C & !det
-        to test if all successors are found correctly
+        Automaton 1 : {f1, f2, f3, f6}
+                                       ?anEventVar
+                                       aGuardingVar < 44.0
+                                       <= 42.0
+            +--------------------+                        +----------------------+
+            |                    |                        |                      |
+            |       A (1)        +------------------------>        B (2)         |
+            |                    |                        |                      |
+            |                    |                        |                      |
+            +--------------------+                        +--------------+-------+
+                   ^                                        ^            |
+                   |                                        |            |
+                   |  aGuardingVar > 22.0                   |            |   <= 42.0
+                   |                                        |            |   anOtherEventVar
+                   |                                        |            |
+                   |                                        |            |
+                   |                   aGuardingVar < 5.0   |            |
+                   |                                        |            |
+                   |                                        |            |
+                   |                                        |            |
+                   |           +------------------------------+          |
+                   |           |                              |<---------+
+                   +-----------+           C  (3)             |
+                               |                              |
+                               |                              |
+                               +------------------------------+
         """
         r = Requirement(
             "req1",
@@ -90,12 +114,21 @@ class TestComplexutomaton(TestCase):
             variable_collection=variable_collection,
             standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
         )
-        i, f6 = r.add_empty_formalization()
+        i, f6a = r.add_empty_formalization()
         r.update_formalization(
             i,
             "GLOBALLY",
-            "Transition",
-            mapping={"R": "states == states.C", "S": "states == states.A"},
+            "TransitionG",
+            mapping={"R": "states == states.C", "S": "states == states.A", "V": "aGuardingVar > 22.0"},
+            variable_collection=variable_collection,
+            standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
+        )
+        i, f6b = r.add_empty_formalization()
+        r.update_formalization(
+            i,
+            "GLOBALLY",
+            "TransitionG",
+            mapping={"R": "states == states.C", "S": "states == states.B", "V": "aGuardingVar < 5.0"},
             variable_collection=variable_collection,
             standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
         )
@@ -125,14 +158,36 @@ class TestComplexutomaton(TestCase):
             variable_collection=variable_collection,
             standard_tags=defaultdict(lambda: Tag("test", "color", False, "")),
         )
-        return variable_collection, r, f1, f2, f3, f5a, f5b, f6, f7, f8
+        return variable_collection, r, f1, f2, f3, f5a, f5b, f6a, f6b, f7, f8
 
     def test_assembly(self):
-        variable_collection, r, f1, f2, f3, f5a, f5b, f6, f7, f8 = self.__get_complex_automaton()
+        variable_collection, r, f1, f2, f3, f5a, f5b, f6a, f6b, f7, f8 = self.__get_complex_automaton()
+        # First automaton
         req_belonging_to_r = AAutomatonPattern.get_hull(f1, [f for f in r.formalizations.values()], variable_collection)
-        self.assertSetEqual({f1, f2, f3, f6}, set(req_belonging_to_r))
-
+        self.assertSetEqual({f1, f2, f3, f6a, f6b}, set(req_belonging_to_r))
+        # Second Automaton
         req_belonging_to_r = AAutomatonPattern.get_hull(
             f5a, [f for f in r.formalizations.values()], variable_collection
         )
         self.assertSetEqual({f5a, f5b, f7, f8}, set(req_belonging_to_r))
+
+    def test_edge_G(self):
+        variable_collection, r, f1, f2, f3, f5a, f5b, f6a, f6b, f7, f8 = self.__get_complex_automaton()
+        # test general automaton layout
+        aut = {f1, f2, f3, f6a, f6b}
+
+        formal_f6a = f6a.scoped_pattern.pattern.get_patternish().get_instanciated_countertraces(
+            f6a.scoped_pattern.scope, f6a, aut, variable_collection
+        )
+        self.assertIsNotNone(formal_f6a)
+        self.assertIn(r"(states = 3)", repr(formal_f6a[0].dc_phases[1].invariant))
+        self.assertIn(r"(states = 1)", repr(formal_f6a[0].dc_phases[2].invariant))
+        self.assertIn(r"(22.0 < aGuardingVar)", repr(formal_f6a[0].dc_phases[2].invariant))
+        self.assertIn(r"(states = 3)", repr(formal_f6a[0].dc_phases[2].invariant))
+        self.assertIn(r"(aGuardingVar < 5.0)", repr(formal_f6a[0].dc_phases[2].invariant))
+
+    def test_edge_GE(self):
+        pass
+
+    def test_edge_GEL(self):
+        pass

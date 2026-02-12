@@ -109,8 +109,6 @@ class TestSimpleAutomaton(TestCase):
 
     def test_edge_simple(self):
         variable_collection, r, f1, f2, f3a, f3b, f5 = self.__get_aut_easy()
-        # test general automaton layout
-        req_belonging_to_r = AAutomatonPattern.get_hull(f1, [f for f in r.formalizations.values()], variable_collection)
         aut = {f1, f2, f3a, f3b}
 
         formal_f1 = f1.scoped_pattern.pattern.get_patternish().get_instanciated_countertraces(
