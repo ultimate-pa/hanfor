@@ -5,8 +5,9 @@ expr: expr1ni? -> expr
 _exprcommaplus: expr1ni
     | _exprcommaplus _COMMA expr1ni
 
-expr1ni: expr2ni IMPLIES exprimpliesni -> implies
-    | expr2ni IFF exprimpliesni -> iff
+expr1ni: expr2ni IFF exprimpliesni -> iff
+    | expr2ni IMPLIES exprimpliesni -> implies
+    | expr2ni EXPLIES exprimpliesni -> explies
     | expr2ni
 
 exprimpliesni: expr2ni IMPLIES exprimpliesni -> implies
@@ -82,6 +83,7 @@ NOT: "!"
 AND: "&&"
 OR: "||"
 IMPLIES: "==>"
+EXPLIES: "<=="
 IFF: "<==>"
 
 ID: /[A-Za-z'~#$\^_.?\\][0-9A-Za-z'~#$\^_.?\\]*/
