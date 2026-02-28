@@ -19,7 +19,6 @@ from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from configuration.patterns import APattern, VARIABLE_AUTOCOMPLETE_EXTENSION
 
-
 blueprint = Blueprint("requirements", __name__, template_folder="templates", url_prefix="/")
 api_blueprint = Blueprint("api_requirements", __name__, url_prefix="/api/req")
 
@@ -316,24 +315,31 @@ def api_new_formalization():
     return result
 
 
-@api_blueprint.route("/formalizations/delete", methods=["POST"])
+@api_blueprint.route(
+    "/formalizations/<string:requirement_id>/delete/<int:formalization_id>",
+    methods=["POST"],
+)
 @nocache
-def api_del_formalization():
-    # Delete a formalization
+def api_del_formalization(requirement_id, formalization_id):
     result = dict()
-    formalization_id = request.form.get("formalization_id", "")
-    requirement_id = request.form.get("requirement_id", "")
+    logging.debug(f"Deletion formalization ID: {formalization_id}")
+    logging.debug(f"Deletion requirement ID: {requirement_id}")
     requirement = current_app.db.get_object(Requirement, requirement_id)
     requirement.delete_formalization(
         formalization_id,
         VariableCollection(
-            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+            current_app.db.get_objects(Variable).values(),
+            current_app.db.get_objects(Requirement).values(),
         ),
     )
     current_app.db.update()
-
-    add_msg_to_flask_session_log(current_app, "Deleted formalization from requirement", [requirement])
+    add_msg_to_flask_session_log(
+        current_app,
+        "Deleted formalization from requirement",
+        [requirement],
+    )
     result["html"] = formalizations_to_html(current_app, requirement.formalizations)
+
     return result
 
 

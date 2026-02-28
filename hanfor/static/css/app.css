@@ -107,14 +107,12 @@
 }
 
 .draft::before {
-  content: "";
+  content: "Draft";
   position: absolute;
   z-index: 99;
-  top: 5px;
+  top: -10px;
   left: 5px;
-  border-radius: 50%;
-  width: 12px;
-  height: 12px;
+  border-radius: 7px;
   color: #fff;
   background-color: var(--bs-danger);
 }

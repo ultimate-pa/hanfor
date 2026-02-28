@@ -145,7 +145,7 @@ class TestInit(TestCase):
             "pos": 1,
             "scope": "None",
             "type": "req",
-            "formalizations_html": "",
+            "next_id": 0,
             "revision_diff": {},
         }
         self.assertDictEqual(desired_req, result.json)

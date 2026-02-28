@@ -20,15 +20,7 @@ class TestFormalizationProcess(TestCase):
         self.assertListEqual(result.json["formal"], ['Globally, it is never the case that "foo != bar" holds'])
         self.assertListEqual(result.json["vars"], ["bar", "foo"])
 
-        # Adding a new (empty) Formalization:
-        self.mock_hanfor.app.post("api/req/new_formalization", data={"id": "SysRS FooXY_42"})
-        result = self.mock_hanfor.app.get("api/req/get?id=SysRS FooXY_42")
-        self.assertListEqual(
-            result.json["formal"], ['Globally, it is never the case that "foo != bar" holds', "// None, no pattern set"]
-        )
-        self.assertListEqual(result.json["vars"], ["bar", "foo"])
-
-        # Add content to the Formalization
+        # Add content to the existing Formalization
         update = {
             "0": {
                 "id": "0",
@@ -36,6 +28,10 @@ class TestFormalizationProcess(TestCase):
                 "pattern": "Absence",
                 "expression_mapping": {"P": "", "Q": "", "R": "foo != bar", "S": "", "T": "", "U": ""},
             },
+        }
+
+        # And these are all the new created drafts
+        drafts = {
             "1": {
                 "id": "1",
                 "scope": "BEFORE",
@@ -43,6 +39,9 @@ class TestFormalizationProcess(TestCase):
                 "expression_mapping": {"P": "the_world_sinks", "Q": "", "R": "spam == ham", "S": "", "T": "", "U": ""},
             },
         }
+
+        # So we submit then the current frontend state to the backend
+        self.mock_hanfor.app.post("api/req/formalizations/new", data={ "id": "SysRS FooXY_42", "drafts": json.dumps(drafts) })
         self.mock_hanfor.app.post(
             "api/req/update",
             data={
@@ -153,7 +152,7 @@ class TestFormalizationProcess(TestCase):
 
         # Deleting the formalization
         update = {"requirement_id": "SysRS FooXY_42", "formalization_id": "0"}
-        self.mock_hanfor.app.post("api/req/del_formalization", data=update)
+        self.mock_hanfor.app.post("api/req/formalizations/delete", data=update)
 
         # Check current formalization for `SysRS FooXY_42` now empty
         result = self.mock_hanfor.app.get("api/req/get?id=SysRS FooXY_42")

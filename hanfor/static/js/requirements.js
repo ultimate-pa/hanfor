@@ -11,6 +11,7 @@ require("awesomplete/awesomplete.css")
 require("datatables.net-colreorder-bs5")
 require("./bootstrap-confirm-button")
 import Sortable from "sortablejs"
+import FormalizationStore from "./formalizations/store";
 import "jquery-sortablejs"
 import Mustache from "mustache"
 
@@ -35,6 +36,9 @@ let state = {
   commitedIds: new Set(),
   nextId: null,
 }
+
+let store = new FormalizationStore()
+
 
 let available_tags = ["", "has_formalization"]
 let available_status = ["", "Todo", "Review", "Done"]
@@ -502,6 +506,7 @@ function store_requirement(requirements_table) {
       function (data) {},
     )
   } // Store the requirement.
+  store.commitDeletes(req_id)
   $.post(
     "api/req/update",
     {
@@ -1034,6 +1039,8 @@ function modal_closing_routine(event) {
   } else {
     sendTelemetry("requirements", $("#requirement_id").val(), "close")
   }
+  // here we have to reset the last changes
+  store = new FormalizationStore()
 }
 
 function load_requirement(row_idx) {
@@ -1041,6 +1048,8 @@ function load_requirement(row_idx) {
     alert("Requirement not found.")
     return
   }
+
+  console.log(store)
 
   load_tags()
 
@@ -1108,10 +1117,25 @@ function load_requirement(row_idx) {
           })
           $("#formalization_accordion").append($container)
         })
+    }).done(function () {
+      update_vars()
+      bind_var_autocomplete()
+      update_formalization()
+      $("#requirement_modal").data({
+        unsaved_changes: false,
+        updated_formalization: false,
+      })
+      requirement_modal_content.LoadingOverlay("hide", true)
+      sendTelemetry("requirements", data.id, "open")
+      setCopyBtnEnable()
     })
 
     state.nextId = data["next_id"]
+    store.initNextId(data["next_id"])
+    console.log('State:')
     console.log(state)
+    console.log('Store:')
+    console.log(store)
 
     // remove all lines from the tag comment table
     $("#tags_comments_table").find("tr:gt(0)").remove()
@@ -1186,17 +1210,6 @@ function load_requirement(row_idx) {
       filter: "textarea, select",
       preventOnFilter: false,
     })
-  }).done(function () {
-    update_vars()
-    bind_var_autocomplete()
-    update_formalization()
-    $("#requirement_modal").data({
-      unsaved_changes: false,
-      updated_formalization: false,
-    })
-    requirement_modal_content.LoadingOverlay("hide", true)
-    sendTelemetry("requirements", data.id, "open")
-    setCopyBtnEnable()
   })
 }
 
@@ -1233,6 +1246,7 @@ function fuzzy_search(term) {
  */
 function bind_var_autocomplete() {
   $(".reqirement-variable").each(function () {
+    console.log(this)
     add_var_autocomplete(this)
   })
 }
@@ -1315,6 +1329,9 @@ function add_formalization(formalizationData = {}) {
   }
   state.drafts.add(entry.id)
   state.nextId += 1
+  store.create()
+  console.log("Store after add")
+  console.log(store)
 
   const containerTemplate = $("#formalization-container").html()
   const contentTemplate = $("#formalization-template").html()
@@ -1339,41 +1356,42 @@ function add_formalization(formalizationData = {}) {
   update_vars()
   update_formalization()
   update_logs()
+  // TODO: this here has no affect, due to variables being hidden on creation
+  // this should be called on every change of the select option being changed
+  bind_var_autocomplete()
+  $("#requirement_modal").data({
+    unsaved_changes: false,
+    updated_formalization: false,
+  })
+  setCopyBtnEnable()
 }
 
 function delete_formalization(formal_id, card) {
-  console.log(state)
-  console.log(formal_id)
-  if (state.drafts.has(Number(formal_id))) {
-    state.drafts.delete(Number(formal_id))
-    card.remove()
-    update_vars()
-    update_formalization()
-    update_logs()
-    return
-  }
-  let requirement_modal_content = $(".modal-content")
-  requirement_modal_content.LoadingOverlay("show")
-  const req_id = $("#requirement_id").val()
-  $.post(
-    "api/req/formalizations/delete",
-    {
-      requirement_id: req_id,
-      formalization_id: formal_id,
-    },
-    function (data) {
-      requirement_modal_content.LoadingOverlay("hide", true)
-      if (data["success"] === false) {
-        alert(data["errormsg"])
-      } else {
-        card.remove()
-      }
-    },
-  ).done(function () {
-    update_vars()
-    update_formalization()
-    update_logs()
-  })
+  console.log("Store after delete:")
+  store.delete(formal_id)
+  card.remove()
+  update_vars()
+  update_formalization()
+  update_logs()
+  // $.post(
+  //   "api/req/formalizations/delete",
+  //   {
+  //     requirement_id: req_id,
+  //     formalization_id: formal_id,
+  //   },
+  //   function (data) {
+  //     requirement_modal_content.LoadingOverlay("hide", true)
+  //     if (data["success"] === false) {
+  //       alert(data["errormsg"])
+  //     } else {
+  //       card.remove()
+  //     }
+  //   },
+  // ).done(function () {
+  //   update_vars()
+  //   update_formalization()
+  //   update_logs()
+  // })
 }
 
 function copy_formalization(formal_id) {
