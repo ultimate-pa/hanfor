@@ -490,23 +490,11 @@ function store_requirement(requirements_table) {
   })
 
   sendTelemetry("requirements", req_id, "save")
-  const draftFormalizations = Object.fromEntries(
-    Object.entries(formalizations).filter(([id]) => state.drafts.has(Number(id))),
-  )
   const committedFormalizations = Object.fromEntries(
     Object.entries(formalizations).filter(([id]) => !state.drafts.has(Number(id))),
   )
-  if (Object.keys(draftFormalizations).length > 0) {
-    $.post(
-      "/api/req/formalizations/new",
-      {
-        id: req_id,
-        drafts: JSON.stringify(draftFormalizations),
-      },
-      function (data) {},
-    )
-  } // Store the requirement.
   store.commitDeletes(req_id)
+  store.commitCreated(req_id)
   $.post(
     "api/req/update",
     {

@@ -6,7 +6,15 @@ import datetime
 
 from config import PATTERNS_GROUP_ORDER
 from hanfor_flask import current_app, nocache, HanforFlask
-from lib_core.data import Requirement, VariableCollection, SessionValue, RequirementEditHistory, Tag, Variable
+from lib_core.data import (
+    FormalizationOfType,
+    Requirement,
+    VariableCollection,
+    SessionValue,
+    RequirementEditHistory,
+    Tag,
+    Variable,
+)
 from lib_core.utils import (
     get_default_pattern_options,
     formalization_html,
@@ -96,44 +104,53 @@ def api_gets():
     return result
 
 
-@api_blueprint.route("/formalizations/new", methods=["POST"])
+@api_blueprint.route("/formalizations/<string:rid>/new/<string:subtype>", defaults={"fid": None}, methods=["POST"])
+@api_blueprint.route("/formalizations/<string:rid>/new/<string:subtype>/<int:fid>", methods=["POST"])
 @nocache
-def store_formalizations_drafts():
-    rid = request.form.get("id", "")
-    drafts = json.loads(request.form.get("drafts", ""))
+def store_formalizations_drafts(rid, subtype, fid):
+    subtype_enum = None
+    error_msg = ""
+    error = False
+    if subtype:
+        try:
+            subtype_enum = FormalizationOfType(subtype)
+        except ValueError:
+            return {"success": False, "errormsg": f"Unknown subtype: {subtype}"}
+
+    data = json.loads(request.form.get("data", ""))
     requirement = current_app.db.get_object(Requirement, rid)
     variable_collection = VariableCollection(
         current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
     )
-    for idx, _ in drafts.items():
-        logging.debug(f"Created empty formalization for : ID: {idx}")
-        logging.debug(f"Type of idx: {type(idx)}")
-        requirement.add_empty_formalization(int(idx))
-
-    error_msg = ""
-    error = False
-    try:
-        requirement.update_formalizations(
-            drafts,
-            SessionValue.get_standard_tags(current_app.db),
-            variable_collection,
-        )
-        add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
-        for v in variable_collection.new_vars:
-            current_app.db.add_object(v)
-    except KeyError as e:
-        error = True
-        error_msg = f"Did not find the created empty draft for ID: {e}"
-    except Exception as e:
-        error = True
-        error_msg = f"Could not parse draft: `{e}`"
+    if subtype_enum == FormalizationOfType.FORMALIZATION:
+        if fid is None:
+            return {"success": False, "errormsg": "Formalization has to have an id supplied"}
+        requirement.add_empty_formalization(int(fid))
+        try:
+            requirement.update_formalization(
+                fid,
+                data['scope'],
+                data['pattern'],
+                data['expression_mapping'],
+                variable_collection,
+                SessionValue.get_standard_tags(current_app.db),
+            )
+            add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
+            for v in variable_collection.new_vars:
+                current_app.db.add_object(v)
+        except KeyError as e:
+            error = True
+            error_msg = f"Did not find the created empty draft for ID: {e}"
+        except Exception as e:
+            error = True
+            error_msg = f"Could not parse draft: `{e}`"
 
     if error:
         logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
         return {"success": False, "errormsg": error_msg}
 
     current_app.db.update()
-    return "PONG"
+    return {"success": True}
 
 
 @api_blueprint.route("/update", methods=["POST"])
@@ -286,42 +303,12 @@ def api_multi_update():
     return result
 
 
-@api_blueprint.route("/new_formalization", methods=["POST"])
-@nocache
-def api_new_formalization():
-    # Add a new empty formalization
-    rid = request.form.get("id", "")
-    requirement: Requirement = current_app.db.get_object(Requirement, rid)
-    formalization_id, formalization = requirement.add_empty_formalization()
-    formalization_data = json.loads(request.form.get("formalization", ""))
-    logging.debug(f"Leng of the formalization data: {len(formalization_data)}")
-    variable_collection = VariableCollection(
-        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
-    )
-    if len(formalization_data) != 0:
-        requirement.update_formalization(
-            formalization_id,
-            scope_name=formalization_data["scope"],
-            pattern_name=formalization_data["pattern"],
-            mapping=formalization_data["expression_mapping"],
-            variable_collection=variable_collection,
-            standard_tags=SessionValue.get_standard_tags(current_app.db),
-        )
-    for v in variable_collection.new_vars:
-        current_app.db.add_object(v)
-    current_app.db.update()
-    add_msg_to_flask_session_log(current_app, "Added new Formalization to requirement", [requirement])
-    result = get_formalization_template(current_app.config["TEMPLATES_FOLDER"], formalization_id, formalization)
-    return result
-
-
 @api_blueprint.route(
     "/formalizations/<string:requirement_id>/delete/<int:formalization_id>",
     methods=["POST"],
 )
 @nocache
 def api_del_formalization(requirement_id, formalization_id):
-    result = dict()
     logging.debug(f"Deletion formalization ID: {formalization_id}")
     logging.debug(f"Deletion requirement ID: {requirement_id}")
     requirement = current_app.db.get_object(Requirement, requirement_id)
@@ -338,9 +325,7 @@ def api_del_formalization(requirement_id, formalization_id):
         "Deleted formalization from requirement",
         [requirement],
     )
-    result["html"] = formalizations_to_html(current_app, requirement.formalizations)
-
-    return result
+    return {"success": True}
 
 
 @api_blueprint.route("/get_available_guesses", methods=["POST"])

@@ -50,6 +50,17 @@ class Tag:
     def __hash__(self):
         return hash(self.uuid)
 
+class FormalizationOfType(Enum):
+    """
+    Enum for different formalization types.
+    The template_name property returns the string used on the frontend templates.
+    """
+    FORMALIZATION = "formalization"
+    VARIABLE = "variable"
+
+    @property
+    def template_name(self) -> str:
+        return f"{self.value}-template"
 
 @DatabaseTable(TableType.Folder)
 @DatabaseID("rid", str)
