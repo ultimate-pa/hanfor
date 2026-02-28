@@ -1,4 +1,4 @@
-""" 
+"""
 @copyright: 2018 Samuel Roth <samuel@smel.de>
 @licence: GPLv3
 """
