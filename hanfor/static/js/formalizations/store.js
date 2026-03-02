@@ -1,7 +1,7 @@
 export default class FormalizationStore {
   constructor() {
-    this.created = new Set()
-    this.deleted = new Set()
+    this.created = new Map()
+    this.deleted = new Map()
     this.nextId = null
   }
 
@@ -13,33 +13,47 @@ export default class FormalizationStore {
     return this.nextId++
   }
 
-  create() {
+  getSet(map, type) {
+    if (!map.has(type)) {
+      map.set(type, new Set())
+    }
+    return map.get(type)
+  }
+
+  create(type) {
     const id = this.generateId()
-    this.created.add(id)
+    this.getSet(this.created, type).add(id)
     return id
   }
 
-  delete(id) {
+  delete(type, id) {
     id = Number(id)
-    if (this.created.has(id)) {
-      // just cancel here if it just has been created
-      this.created.delete(id)
+
+    const createdSet = this.getSet(this.created, type)
+    const deletedSet = this.getSet(this.deleted, type)
+
+    if (createdSet.has(id)) {
+      createdSet.delete(id)
     } else {
-      this.deleted.add(id)
+      deletedSet.add(id)
     }
+  }
+
+  isCreated(type, id) {
+    return this.getSet(this.created, type).has(Number(id))
   }
 
   getFormalizationFromDOM(id) {
     const card = $(`.formalization_card[title="${id}"]`)
     if (!card.length) return {}
+
     const formalization = { id: id, expression_mapping: {} }
 
-    // Scope and pattern
     card.find("select").each(function () {
       if ($(this).hasClass("scope_selector")) formalization.scope = $(this).val()
       if ($(this).hasClass("pattern_selector")) formalization.pattern = $(this).val()
     })
-    // Expressions
+
     card.find("textarea.reqirement-variable").each(function () {
       const title = $(this).attr("title")
       if (title) formalization.expression_mapping[title] = $(this).val()
@@ -48,26 +62,41 @@ export default class FormalizationStore {
     return formalization
   }
 
-  commitDeletes(requirementId) {
+  commitDeletes(requirementId, type) {
     const requests = []
-    for (const deletedId of this.deleted) {
-      requests.push($.post(`/api/req/formalizations/${requirementId}/delete/${deletedId}`))
-    }
-    this.deleted.clear()
+    const deletedSet = this.getSet(this.deleted, type)
+
+    deletedSet.forEach((id) => {
+      requests.push($.post(`/api/req/formalizations/${requirementId}/delete/${id}`))
+    })
+
+    deletedSet.clear()
     return Promise.all(requests)
   }
 
-  commitCreated(requirementId) {
+  commitCreated(requirementId, type) {
     const requests = []
-    this.created.forEach((id) => {
-      const data = this.getFormalizationFromDOM(id)
-      const req = $.post(`/api/req/formalizations/${requirementId}/new/formalization/${id}`, {
-        id: requirementId,
-        data: JSON.stringify(data),
-      })
-      requests.push(req)
+    const createdSet = this.getSet(this.created, type)
+
+    createdSet.forEach((id) => {
+      if (type === "formalization") {
+        const data = this.getFormalizationFromDOM(id)
+        const req = $.post(`/api/req/formalizations/${requirementId}/new/formalization/${id}`, {
+          id: requirementId,
+          data: JSON.stringify(data),
+        })
+
+        requests.push(req)
+      }
+
+      if (type === "variable") {
+        const req = $.post(`/api/req/formalizations/${requirementId}/new/variable/${id}`)
+
+        requests.push(req)
+      }
     })
-    this.created.clear()
+
+    createdSet.clear()
     return Promise.all(requests)
   }
 }
