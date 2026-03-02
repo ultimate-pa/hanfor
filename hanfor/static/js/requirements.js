@@ -71,6 +71,7 @@ renderer.registerType("variable", {
   },
   templateSelector: "#variable-template",
   afterRender: ($container) => {
+    // autocomplete
     let type_input = $container.find(".variable-type")
     type_input
       .autocomplete({
@@ -80,6 +81,13 @@ renderer.registerType("variable", {
       .on("focus", function () {
         $(this).keydown()
       })
+    // title change listener
+    const name_input = $container.find('input[aria-describedby="variable-name"]')
+    name_input.on("input", function () {
+      const newName = $(this).val().trim()
+      const button = $container.closest(".accordion-item").find(".accordion-button")
+      button.text("Variable: " + (newName ? newName : "New Variable"))
+    })
   },
 })
 
@@ -153,7 +161,6 @@ $(document).ready(function () {
       delete_variable($(this).attr("name"), $(this).closest(".accordion-item"))
     },
   })
-
 
   body.on("click", ".delete_formalization1", function () {
     bootstrapConfirmation({
@@ -548,7 +555,7 @@ function store_requirement(requirements_table) {
   const committedFormalizations = Object.fromEntries(
     Object.entries(formalizations).filter(([id]) => !store.isCreated("formalization", id)),
   )
-  store.commitDeletes(req_id ,"formalization")
+  store.commitDeletes(req_id, "formalization")
   store.commitCreated(req_id)
   $.post(
     "api/req/update",
@@ -1323,7 +1330,7 @@ function add_var_autocomplete(dom_obj) {
 
 function add_variable() {
   const $container = renderer.build("variable", {
-    id: store.create("variable")
+    id: store.create("variable"),
   })
   console.log(store)
   $container.addClass("draft")
