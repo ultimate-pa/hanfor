@@ -147,6 +147,7 @@ def store_formalizations_drafts(rid, subtype, fid):
     elif subtype_enum == FormalizationOfType.VARIABLE:
         if fid is None:
             return {"success": False, "errormsg": "Variable has to have a name for it to be registered"}
+        logging.debug(f"Data set by the variable: {data}")
 
     if error:
         logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")

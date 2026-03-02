@@ -62,6 +62,22 @@ export default class FormalizationStore {
     return formalization
   }
 
+  getVariableFromDOM(id) {
+    const $card = $(`.accordion-item[data-id="${id}"][data-type="variable"]`)
+    if (!$card.length) return {}
+
+    const data = { id: id }
+
+    const $nameInput = $card.find('input[aria-describedby="variable-name"]')
+    data.name = $nameInput.val() || ""
+    data.id = data.name
+
+    const $typeInput = $card.find("input.variable-type")
+    data.type = $typeInput.val() || ""
+
+    return data
+  }
+
   commitDeletes(requirementId, type) {
     const requests = []
     const deletedSet = this.getSet(this.deleted, type)
@@ -74,29 +90,24 @@ export default class FormalizationStore {
     return Promise.all(requests)
   }
 
-  commitCreated(requirementId, type) {
+  commitCreated(requirementId) {
     const requests = []
-    const createdSet = this.getSet(this.created, type)
+    for (const [type, idSet] of this.created.entries()) {
+      idSet.forEach((id) => {
+        let data = {}
+        let endpoint = ""
+        if (type === "formalization") {
+          data = this.getFormalizationFromDOM(id)
+          endpoint = `/api/req/formalizations/${requirementId}/new/formalization/${id}`
+        } else if (type === "variable") {
+          data = this.getVariableFromDOM(id)
+          endpoint = `/api/req/formalizations/${requirementId}/new/variable/${id}`
+        }
 
-    createdSet.forEach((id) => {
-      if (type === "formalization") {
-        const data = this.getFormalizationFromDOM(id)
-        const req = $.post(`/api/req/formalizations/${requirementId}/new/formalization/${id}`, {
-          id: requirementId,
-          data: JSON.stringify(data),
-        })
-
-        requests.push(req)
-      }
-
-      if (type === "variable") {
-        const req = $.post(`/api/req/formalizations/${requirementId}/new/variable/${id}`)
-
-        requests.push(req)
-      }
-    })
-
-    createdSet.clear()
+        requests.push($.post(endpoint, { id: requirementId, data: JSON.stringify(data) }))
+      })
+    }
+    this.created.clear()
     return Promise.all(requests)
   }
 }

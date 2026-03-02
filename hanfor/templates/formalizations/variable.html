@@ -1,22 +1,35 @@
 {% raw %}
 <template id="variable-template">
-  <div id="variable-temp-{{ id }}"class="container-fluid mt-3">
+  <div id="variable-temp-{{ id }}" class="container-fluid mt-3">
     <div>
       <strong class="fs-5 mb-3"> Properties </strong>
-      <button type="button" class="btn btn-danger btn-sm p-1">Delete</button> 
+      <button
+        name="{{ id }}"
+        class="delete_variable btn btn-sm btn-danger"
+        data-bs-toggle="confirmation"
+        data-btn-ok-label="Yes"
+        data-btn-ok-class="btn-success"
+        data-btn-cancel-label="Nooo Stoooop!"
+        data-btn-cancel-class="btn-danger"
+        data-title="Sure?"
+        data-content="Delete this variable?"
+        title="Delete me"
+      >
+        Delete
+      </button>
     </div>
     <div class="input-group my-2">
-      <span class="input-group-text" id="variable-name">Name</span>
-      <input type="text" class="form-control" aria-describedby="variable-name">
+      <span class="input-group-text" id="variable-name" data-id="{{ id }}">Name</span>
+      <input type="text" class="form-control" aria-describedby="variable-name" />
     </div>
     <div class="input-group mb-2">
-      <span class="input-group-text" id="variable-type">Type</span>
-      <input type="text" class="form-control variable-type" aria-describedby="variable-type">
+      <span class="input-group-text" id="variable-type" data-id="{{ id }}">Type</span>
+      <input type="text" class="form-control variable-type" aria-describedby="variable-type" />
     </div>
   </div>
   <div class="container-fluid my-3">
     <strong class="fs-5 mb-2"> Constraints </strong>
-    <button type="button" class="btn btn-success btn-sm p-1">+ Add</button> 
+    <button type="button" class="btn btn-success btn-sm p-1">+ Add</button>
   </div>
 </template>
 {% endraw %}

@@ -147,6 +147,14 @@ $(document).ready(function () {
     },
   })
 
+  $("body").bootstrapConfirmButton({
+    selector: ".delete_variable",
+    onConfirm: function () {
+      delete_variable($(this).attr("name"), $(this).closest(".accordion-item"))
+    },
+  })
+
+
   body.on("click", ".delete_formalization1", function () {
     bootstrapConfirmation({
       yesCallBack: function () {
@@ -541,7 +549,7 @@ function store_requirement(requirements_table) {
     Object.entries(formalizations).filter(([id]) => !store.isCreated("formalization", id)),
   )
   store.commitDeletes(req_id ,"formalization")
-  store.commitCreated(req_id, "formalization")
+  store.commitCreated(req_id)
   $.post(
     "api/req/update",
     {
@@ -1317,6 +1325,7 @@ function add_variable() {
   const $container = renderer.build("variable", {
     id: store.create("variable")
   })
+  console.log(store)
   $container.addClass("draft")
   $("#formalization_accordion").append($container)
 }
@@ -1341,6 +1350,14 @@ function add_formalization(formalizationData = {}) {
     updated_formalization: false,
   })
   setCopyBtnEnable()
+}
+function delete_variable(id, $card) {
+  store.delete("variable", id)
+  $card.remove()
+  console.log(store)
+  update_vars()
+  update_formalization()
+  update_logs()
 }
 
 function delete_formalization(formal_id, card) {
