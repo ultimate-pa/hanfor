@@ -61,6 +61,15 @@ renderer.registerType("formalization", {
   },
 })
 
+// bind it globaly on each selector change so it gets always loaded
+$(document).on(
+  "change",
+  ".scope_selector, .pattern_selector",
+  function () {
+    bind_var_autocomplete()
+  }
+)
+
 let available_tags = ["", "has_formalization"]
 let available_status = ["", "Todo", "Review", "Done"]
 let search_autocomplete = [
@@ -470,7 +479,6 @@ function store_requirement(requirements_table) {
 
   // Fetch the formalizations
   let formalizations = {}
-  let drafts = {}
   $(".formalization_card").each(function () {
     // Scope and Pattern
     let formalization = {}
