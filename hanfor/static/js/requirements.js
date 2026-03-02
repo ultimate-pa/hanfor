@@ -11,9 +11,10 @@ require("awesomplete/awesomplete.css")
 require("datatables.net-colreorder-bs5")
 require("./bootstrap-confirm-button")
 import Sortable from "sortablejs"
-import FormalizationStore from "./formalizations/store";
+import FormalizationStore from "./formalizations/store"
 import "jquery-sortablejs"
 import Mustache from "mustache"
+import FormalizationRenderer from "./formalizations/renderer.js"
 
 let utils = require("./hanfor-utils")
 const autosize = require("autosize/dist/autosize")
@@ -31,14 +32,34 @@ const { TextareaEditor } = require("@textcomplete/textarea")
 let Fuse = require("fuse.js")
 let fuse = new Fuse([], {})
 
-let state = {
-  drafts: new Set(),
-  commitedIds: new Set(),
-  nextId: null,
-}
-
 let store = new FormalizationStore()
-
+let renderer = new FormalizationRenderer()
+// register the types of formalizations with the identifier from the "type" supplied in the API
+renderer.registerType("formalization", {
+  // define the defaults for generating an empty entry
+  defaults: {
+    order: 0,
+    text: "// None, no pattern set",
+    type: "formalization",
+    scope: "",
+    pattern: "",
+  },
+  // a selector that fetches the correct template for the type
+  templateSelector: "#formalization-template",
+  // each function can define after render behavior function that gets applied
+  // after mustache renders it, i.e setting the required variable placeholders as visible
+  afterRender: ($container, entry) => {
+    $container.find(`#requirement_scope${entry.id}`).val(entry.scope)
+    $container.find(`#requirement_pattern${entry.id}`).val(entry.pattern)
+    const vars = ["P", "Q", "R", "S", "T", "U", "V"]
+    vars.forEach((v) => {
+      const val = entry[`expr_${v}`]
+      if (!val) {
+        $container.find(`#requirement_var_group_${v.toLowerCase()}${entry.id}`).hide()
+      }
+    })
+  },
+})
 
 let available_tags = ["", "has_formalization"]
 let available_status = ["", "Todo", "Review", "Done"]
@@ -491,7 +512,7 @@ function store_requirement(requirements_table) {
 
   sendTelemetry("requirements", req_id, "save")
   const committedFormalizations = Object.fromEntries(
-    Object.entries(formalizations).filter(([id]) => !state.drafts.has(Number(id))),
+    Object.entries(formalizations).filter(([id]) => !store.created.has(Number(id))),
   )
   store.commitDeletes(req_id)
   store.commitCreated(req_id)
@@ -522,7 +543,6 @@ function store_requirement(requirements_table) {
     },
   ).done(function () {
     update_logs()
-    state.drafts = new Set()
   })
 }
 
@@ -1037,6 +1057,7 @@ function load_requirement(row_idx) {
     return
   }
 
+  console.log(renderer)
   console.log(store)
 
   load_tags()
@@ -1081,29 +1102,8 @@ function load_requirement(row_idx) {
       data
         .sort((a, b) => a.order - b.order)
         .forEach(function (entry) {
-          state.commitedIds.add(Number(entry.id))
-          const containerTemplate = $("#formalization-container").html()
-          const contentTemplate = $("#formalization-template").html()
-
-          const containerHtml = Mustache.render(containerTemplate, entry)
-          const contentHtml = Mustache.render(contentTemplate, entry)
-
-          // convert to jQuery object since we need to cast it to string beforehand
-          // due to Mustache expecting it
-          const $container = $(containerHtml)
-          $container.find(".accordion-collapse").append(contentHtml)
-          $container.find(`#requirement_scope${entry.id}`).val(entry.scope)
-          $container.find(`#requirement_pattern${entry.id}`).val(entry.pattern)
-
-          // TODO: This is cursed, but i have no clue how to do it better
-          const vars = ["P", "Q", "R", "S", "T", "U", "V"]
-          vars.forEach((v) => {
-            const val = entry[`expr_${v}`]
-            if (!val) {
-              $container.find(`#requirement_var_group_${v.toLowerCase()}${entry.id}`).hide()
-            }
-          })
-          $("#formalization_accordion").append($container)
+          const $formalization = renderer.build(entry.type, entry)
+          $("#formalization_accordion").append($formalization)
         })
     }).done(function () {
       update_vars()
@@ -1118,11 +1118,8 @@ function load_requirement(row_idx) {
       setCopyBtnEnable()
     })
 
-    state.nextId = data["next_id"]
     store.initNextId(data["next_id"])
-    console.log('State:')
-    console.log(state)
-    console.log('Store:')
+    console.log("Store:")
     console.log(store)
 
     // remove all lines from the tag comment table
@@ -1288,58 +1285,13 @@ function add_var_autocomplete(dom_obj) {
   })
 }
 
-function normalizaFormalization(input) {
-  const { expression_mapping = {}, id, ...rest } = input
-
-  const expandedExpressions = {}
-
-  for (const [key, value] of Object.entries(expression_mapping)) {
-    expandedExpressions[`expr_${key}`] = value ?? ""
-  }
-
-  return {
-    ...rest,
-    ...expandedExpressions,
-  }
-}
-
 function add_formalization(formalizationData = {}) {
-  const normalized = normalizaFormalization(formalizationData)
-  const entryDefaults = {
-    order: 0,
-    text: "// None, no pattern set",
-    type: "formalization",
-  }
   const entry = {
-    ...entryDefaults,
-    ...normalized,
-    id: state.nextId,
+    ...formalizationData,
+    id: store.create(),
   }
-  state.drafts.add(entry.id)
-  state.nextId += 1
-  store.create()
-  console.log("Store after add")
-  console.log(store)
-
-  const containerTemplate = $("#formalization-container").html()
-  const contentTemplate = $("#formalization-template").html()
-
-  const containerHtml = Mustache.render(containerTemplate, entry)
-  const contentHtml = Mustache.render(contentTemplate, entry)
-
-  const $container = $(containerHtml)
+  const $container = renderer.build("formalization", entry)
   $container.addClass("draft")
-  $container.find(".accordion-collapse").append(contentHtml)
-  $container.find(`#requirement_scope${entry.id}`).val(entry.scope)
-  $container.find(`#requirement_pattern${entry.id}`).val(entry.pattern)
-
-  const vars = ["P", "Q", "R", "S", "T", "U", "V"]
-  vars.forEach((v) => {
-    const val = entry[`expr_${v}`]
-    if (!val) {
-      $container.find(`#requirement_var_group_${v.toLowerCase()}${entry.id}`).hide()
-    }
-  })
   $("#formalization_accordion").append($container)
   update_vars()
   update_formalization()
@@ -1361,25 +1313,6 @@ function delete_formalization(formal_id, card) {
   update_vars()
   update_formalization()
   update_logs()
-  // $.post(
-  //   "api/req/formalizations/delete",
-  //   {
-  //     requirement_id: req_id,
-  //     formalization_id: formal_id,
-  //   },
-  //   function (data) {
-  //     requirement_modal_content.LoadingOverlay("hide", true)
-  //     if (data["success"] === false) {
-  //       alert(data["errormsg"])
-  //     } else {
-  //       card.remove()
-  //     }
-  //   },
-  // ).done(function () {
-  //   update_vars()
-  //   update_formalization()
-  //   update_logs()
-  // })
 }
 
 function copy_formalization(formal_id) {
