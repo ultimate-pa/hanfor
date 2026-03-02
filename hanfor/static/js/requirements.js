@@ -15,6 +15,7 @@ import FormalizationStore from "./formalizations/store"
 import "jquery-sortablejs"
 import Mustache from "mustache"
 import FormalizationRenderer from "./formalizations/renderer.js"
+import { AVAILABLE_TYPES } from "./variables.js"
 
 let utils = require("./hanfor-utils")
 const autosize = require("autosize/dist/autosize")
@@ -35,6 +36,7 @@ let fuse = new Fuse([], {})
 let store = new FormalizationStore()
 let renderer = new FormalizationRenderer()
 // register the types of formalizations with the identifier from the "type" supplied in the API
+// second example not convoluted with comments is directly below (if noone moved it)
 renderer.registerType("formalization", {
   // define the defaults for generating an empty entry
   defaults: {
@@ -61,14 +63,30 @@ renderer.registerType("formalization", {
   },
 })
 
+renderer.registerType("variable", {
+  defaults: {
+    order: 0,
+    type: "variable",
+    text: "Variable: New Variable",
+  },
+  templateSelector: "#variable-template",
+  afterRender: ($container) => {
+    let type_input = $container.find(".variable-type")
+    type_input
+      .autocomplete({
+        minLength: 0,
+        source: AVAILABLE_TYPES,
+      })
+      .on("focus", function () {
+        $(this).keydown()
+      })
+  },
+})
+
 // bind it globaly on each selector change so it gets always loaded
-$(document).on(
-  "change",
-  ".scope_selector, .pattern_selector",
-  function () {
-    bind_var_autocomplete()
-  }
-)
+$(document).on("change", ".scope_selector, .pattern_selector", function () {
+  bind_var_autocomplete()
+})
 
 let available_tags = ["", "has_formalization"]
 let available_status = ["", "Todo", "Review", "Done"]
@@ -520,10 +538,10 @@ function store_requirement(requirements_table) {
 
   sendTelemetry("requirements", req_id, "save")
   const committedFormalizations = Object.fromEntries(
-    Object.entries(formalizations).filter(([id]) => !store.created.has(Number(id))),
+    Object.entries(formalizations).filter(([id]) => !store.isCreated("formalization", id)),
   )
-  store.commitDeletes(req_id)
-  store.commitCreated(req_id)
+  store.commitDeletes(req_id ,"formalization")
+  store.commitCreated(req_id, "formalization")
   $.post(
     "api/req/update",
     {
@@ -981,6 +999,8 @@ function init_modal() {
     add_formalization()
   })
 
+  $("#add_variable").click(() => add_variable())
+
   // Listener for adding new guessed formalizations.
   $("#add_gussed_formalization").click(function () {
     fetch_available_guesses()
@@ -1293,11 +1313,20 @@ function add_var_autocomplete(dom_obj) {
   })
 }
 
+function add_variable() {
+  const $container = renderer.build("variable", {
+    id: store.create("variable")
+  })
+  $container.addClass("draft")
+  $("#formalization_accordion").append($container)
+}
+
 function add_formalization(formalizationData = {}) {
   const entry = {
     ...formalizationData,
-    id: store.create(),
+    id: store.create("formalization"),
   }
+  console.log(store)
   const $container = renderer.build("formalization", entry)
   $container.addClass("draft")
   $("#formalization_accordion").append($container)
@@ -1315,8 +1344,8 @@ function add_formalization(formalizationData = {}) {
 }
 
 function delete_formalization(formal_id, card) {
-  console.log("Store after delete:")
-  store.delete(formal_id)
+  store.delete("formalization", formal_id)
+  console.log(store)
   card.remove()
   update_vars()
   update_formalization()
@@ -1482,7 +1511,7 @@ function update_vars() {
     const formalization_id = $(this).attr("title")
     const selected_scope = $("#requirement_scope" + formalization_id).val()
     const selected_pattern = $("#requirement_pattern" + formalization_id).val()
-    let header = $("#formalization_heading" + formalization_id)
+    let header = $("#formalization_heading-formalization-" + formalization_id)
     let var_p = $("#requirement_var_group_p" + formalization_id)
     let var_q = $("#requirement_var_group_q" + formalization_id)
     let var_r = $("#requirement_var_group_r" + formalization_id)

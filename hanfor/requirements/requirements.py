@@ -104,8 +104,7 @@ def api_gets():
     return result
 
 
-@api_blueprint.route("/formalizations/<string:rid>/new/<string:subtype>", defaults={"fid": None}, methods=["POST"])
-@api_blueprint.route("/formalizations/<string:rid>/new/<string:subtype>/<int:fid>", methods=["POST"])
+@api_blueprint.route("/formalizations/<string:rid>/new/<string:subtype>/<string:fid>", methods=["POST"])
 @nocache
 def store_formalizations_drafts(rid, subtype, fid):
     subtype_enum = None
@@ -128,7 +127,7 @@ def store_formalizations_drafts(rid, subtype, fid):
         requirement.add_empty_formalization(int(fid))
         try:
             requirement.update_formalization(
-                fid,
+                int(fid),
                 data['scope'],
                 data['pattern'],
                 data['expression_mapping'],
@@ -144,6 +143,10 @@ def store_formalizations_drafts(rid, subtype, fid):
         except Exception as e:
             error = True
             error_msg = f"Could not parse draft: `{e}`"
+
+    elif subtype_enum == FormalizationOfType.VARIABLE:
+        if fid is None:
+            return {"success": False, "errormsg": "Variable has to have a name for it to be registered"}
 
     if error:
         logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")

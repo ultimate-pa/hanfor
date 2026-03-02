@@ -14,7 +14,7 @@ require('./bootstrap-confirm-button');
 let utils = require('./hanfor-utils');
 
 // Globals
-let available_types = ['CONST', 'ENUM_INT', 'ENUM_REAL'];
+export let AVAILABLE_TYPES = ['CONST', 'ENUM_INT', 'ENUM_REAL'];
 let search_autocomplete = [
     ":AND:",
     ":OR:",
@@ -97,8 +97,8 @@ function store_variable(variables_table) {
     });
 
     // Update available types.
-    if (var_type !== null && available_types.indexOf(var_type) <= -1) {
-        available_types.push(var_type);
+    if (var_type !== null && AVAILABLE_TYPES.indexOf(var_type) <= -1) {
+        AVAILABLE_TYPES.push(var_type);
     }
 
     // Process enumerators in case we have an enum
@@ -593,7 +593,7 @@ function load_variable(row_idx) {
 
     type_input.autocomplete({
         minLength: 0,
-        source: available_types
+        source: AVAILABLE_TYPES
     }).on('focus', function () {
         $(this).keydown();
     });
@@ -745,8 +745,8 @@ $(document).ready(function () {
                 "data": "type",
                 "targets": [2],
                 "render": function (data, type, row) {
-                    if (data !== null && available_types.indexOf(data) <= -1) {
-                        available_types.push(data);
+                    if (data !== null && AVAILABLE_TYPES.indexOf(data) <= -1) {
+                        AVAILABLE_TYPES.push(data);
                     }
                     if (data !== null && data === 'CONST') {
                         data = data + ' (' + row['const_val'] + ')';
@@ -983,7 +983,7 @@ $(document).ready(function () {
     // Bind autocomplete for "edit-selected" types
     $('#multi-change-type-input').autocomplete({
         minLength: 0,
-        source: available_types,
+        source: AVAILABLE_TYPES,
         delay: 100
     }).on('focus', function () {
         $(this).keydown();
