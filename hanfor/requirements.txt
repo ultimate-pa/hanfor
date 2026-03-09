@@ -22,5 +22,6 @@ setuptools~=82.0.0
 uuid~=1.30
 werkzeug~=3.1.4
 immutabledict~=4.3.0
+rapidfuzz~=3.14.1
 
 -r lib_pea/requirements.txt
