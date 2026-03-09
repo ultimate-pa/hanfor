@@ -102,6 +102,10 @@ class BoogiePysmtTransformer(Transformer):
         return Implies(children[0], children[2])
 
     @staticmethod
+    def explies(children) -> FNode:
+        return Implies(children[2], children[0])
+
+    @staticmethod
     def iff(children) -> FNode:
         return Iff(children[0], children[2])
 

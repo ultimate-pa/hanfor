@@ -34,58 +34,54 @@
       <h6>Edit formalization:</h6>
       <div class="form-group">
         <div class="row form-inline row-spacing">
-          <div class="form-group col-12">
+          <div class="form-group col-12 col-lg-4 col-xl-2 gx-1">
             <label for="requirement_scope">Scope</label>
             <select
               id="requirement_scope__formal_id__"
-              class="form-control formalization_selector scope_selector mb-3"
+              class="form-control formalization_selector scope_selector mb-3 select-wrap"
               style="width: 100%"
               title="__formal_id__"
             >
               __scope_options__
             </select>
           </div>
-          <div class="form-group col-12">
+          <div class="form-group col-12 col-lg-8 col-xl-8 gx-1">
             <label for="requirement_pattern">Pattern</label>
             <select
               id="requirement_pattern__formal_id__"
-              class="form-select formalization_selector pattern_selector select-wrap"
+              class="form-control formalization_selector pattern_selector select-wrap"
               title="__formal_id__"
             >
               __pattern__options__
             </select>
           </div>
-          <div class="d-flex col-12 justify-content-center gap-2">
-            <div class="form-group m-0">
-              <label></label>
-              <button
-                name="__formal_id__"
-                class="copy_formalization btn btn-large btn-success"
-                style="width: 100%"
-                title="Copy me"
-              >
-                Copy
-              </button>
+            <div class="form-group m-0 col-12 col-xl-1 gx-1">
+                <label></label>
+                <button
+                        name="__formal_id__"
+                        class="copy_formalization btn btn-large btn-success w-100 fs-6 fs-lg-6 fs-xl-6"
+                        title="Copy me"
+                >
+                    Copy
+                </button>
             </div>
-            <div class="form-group m-0">
-              <label></label>
-              <button
-                name="__formal_id__"
-                class="delete_formalization btn btn-large btn-danger"
-                data-bs-toggle="confirmation"
-                data-btn-ok-label="Yes"
-                data-btn-ok-class="btn-success"
-                data-btn-cancel-label="Nooo Stoooop!"
-                data-btn-cancel-class="btn-danger"
-                data-title="Sure?"
-                data-content="Delete this Formalization?"
-                style="width: 100%"
-                title="Delete me"
-              >
-                Delete
-              </button>
+            <div class="form-group m-0 col-12 col-xl-1 gx-1">
+                <label></label>
+                <button
+                        name="__formal_id__"
+                        class="delete_formalization btn btn-large btn-danger w-100 fs-6 fs-lg-6 fs-xl-6"
+                        data-bs-toggle="confirmation"
+                        data-btn-ok-label="Yes"
+                        data-btn-ok-class="btn-success"
+                        data-btn-cancel-label="Nooo Stoooop!"
+                        data-btn-cancel-class="btn-danger"
+                        data-title="Sure?"
+                        data-content="Delete this Formalization?"
+                        title="Delete me"
+                >
+                    Delete
+                </button>
             </div>
-          </div>
         </div>
       </div>
       <div id="requirement_var_group_p__formal_id__" class="form-group requirement_var_group">
