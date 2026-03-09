@@ -27,6 +27,7 @@ from configuration.defaults import Color
 from configuration.tags import STANDARD_TAGS, FUNCTIONAL_TAGS
 
 from reqtransformer import RequirementCollection
+from requirements.desc_highlighting import generate_all_highlighted_desc
 from thread_handling.threading_core import ThreadHandler
 
 if config.FEATURE_AI:
@@ -246,6 +247,15 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
 
     # Run consistency checks.
     varcollection_consistency_check(flask_app, args)
+
+    if config.FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING:
+        generate_all_highlighted_desc(
+            VariableCollection(
+                flask_app.db.get_objects(Variable).values(),
+                flask_app.db.get_objects(Requirement).values(),
+            ).get_available_var_names_list(used_only=False),
+            flask_app.db.get_objects(Requirement),
+        )
 
     return True
 

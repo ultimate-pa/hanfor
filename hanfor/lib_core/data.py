@@ -857,7 +857,7 @@ class VariableCollection:
         self.var_req_mapping = dict()
         self.refresh_var_usage(requierments)
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
-        self.new_vars = set()
+        self.new_vars: set[Variable] = set()
 
     def __contains__(self, item):
         return item in self.collection

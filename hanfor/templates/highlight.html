@@ -1,0 +1,1 @@
+<b class="highlighted-variable" data-main-var="{{ main_var }}" data-score="{{ main_score }}" title="{{ main_var }} [{{ main_score }}]">'{{ text }}'</b>{% for var, score in extra_vars %}<b class="highlighted-variable-extra" data-var="{{ var }}" data-score="{{ score }}" title="{{ var }} [{{ score }}]">[{{ loop.index }}]</b>{% endfor %}
