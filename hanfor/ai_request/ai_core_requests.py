@@ -70,4 +70,4 @@ class AiRequest:
     ) -> (str, str):
         """returns the ai_response and the status"""
         name = model_name if model_name else self.model_name
-        return self.__ai_models[name]["api_method_object"](prompt, name, other_params, stop_event)
+        return self.__ai_models[name]["api_method_object"].query_api(prompt, name, other_params, stop_event)
