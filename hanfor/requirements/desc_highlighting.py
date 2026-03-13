@@ -408,16 +408,30 @@ def _generate_md_description(final_matches: list[VariableMatch], desc) -> str:
 
     # Build output
     out, last = [], 0
+    code_open = False
     for s, e, vars_info in sorted(kept_intervals):
-        out.append(desc[last:s])
+
+        segment = desc[last:s]
+        if "```" in segment:
+            while "```" in segment:
+                tag = "</code></pre>" if code_open else "<pre><code>"
+                segment = segment.replace("```", tag, 1)
+                code_open = not code_open
+        out.append(segment)
+
         vars_info.sort(key=lambda x: -x[1])
         main_var, main_score = vars_info[0]
         extra_vars = vars_info[1:]
-
         out.append(
             highlight_tpl.render(text=desc[s:e], main_var=main_var, main_score=main_score, extra_vars=extra_vars)
         )
         last = e
 
-    out.append(desc[last:])
+    rest = desc[last:]
+    while "```" in rest:
+        tag = "</code></pre>" if code_open else "<pre><code>"
+        rest = rest.replace("```", tag, 1)
+        code_open = not code_open
+    out.append(rest)
+
     return "".join(out)
