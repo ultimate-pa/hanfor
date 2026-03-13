@@ -9,17 +9,16 @@ from flask import render_template
 from pysmt.shortcuts import Bool, Int, Real
 from pysmt.typing import BOOL, INT, REAL
 
+from lib_core.data import Requirement, VariableCollection, Variable
+from lib_core.pattern.patterns_basic import APattern
+from lib_pea.formal_utils import get_semantics_from_requirement, has_variable_with_unknown_type
 from lib_pea.pea import PhaseSetsPea
 from lib_pea.req_to_pea import (
     get_pea_from_formalisation,
-    has_variable_with_unknown_type,
-    get_semantics_from_requirement,
 )
 from lib_pea.utils import strtobool
-from configuration.patterns import APattern
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
-from lib_core.data import Requirement, VariableCollection, Variable
 from ressources import Ressource
 
 validation_patterns = {BOOL: r"^0|false|False|1|true|True$", INT: r"^[+-]?\d+$", REAL: r"^[+-]?\d*[.]?\d+$"}
@@ -195,14 +194,14 @@ class SimulatorRessource(Ressource):
                 scope = formalization.scoped_pattern.scope.name
                 pattern = formalization.scoped_pattern.pattern.name
 
-                if APattern.get_pattern(pattern).has_countertraces(scope):
+                if APattern().get_pattern(pattern).has_countertraces(scope):
                     raise ValueError(f"No countertrace given: {scope}, {pattern}")
 
                 expressions = {}
                 for k, v in formalization.expressions_mapping.items():
                     expressions[k] = v.raw_expression
 
-                for i, ct_str in enumerate(APattern.get_pattern(pattern).get_countertraces(scope)):
+                for i, ct_str in enumerate(APattern().get_pattern(pattern).get_countertraces(scope)):
                     counter_traces.append(ct_str)
                 formalizations[formalization.id] = {"counter_traces": counter_traces, "expressions": expressions}
 

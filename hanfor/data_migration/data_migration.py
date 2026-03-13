@@ -1,30 +1,11 @@
+import argparse
 import logging
 import re
-from json_db_connector.json_db import JsonDatabase, DatabaseKeyError
-from lib_core.data import (
-    Requirement,
-    Formalization,
-    Expression,
-    Scope,
-    ScopedPattern,
-    Pattern,
-    Variable,
-    RequirementEditHistory,
-    SessionValue,
-    Tag,
-)
-from lib_core.utils import get_filenames_from_dir
-from lib_core.startup import add_custom_serializer_to_database
-from ressources.queryapi import Query
-from ressources.reports import Report
-from ultimate.ultimate_job import UltimateJob
-from configuration.defaults import Color
-
-import argparse
+from datetime import datetime
 from os import path, sep, mkdir, listdir
 from shutil import move
-from datetime import datetime
 
+from configuration.defaults import Color
 from data_migration.my_unpickler import (
     pickle_load_from_dump,
     OldRequirement,
@@ -36,6 +17,24 @@ from data_migration.my_unpickler import (
     OldPattern,
     OldExpression,
 )
+from json_db_connector.json_db import JsonDatabase, DatabaseKeyError
+from lib_core.data import (
+    Requirement,
+    Formalization,
+    Expression,
+    ScopedPattern,
+    Pattern,
+    Variable,
+    RequirementEditHistory,
+    SessionValue,
+    Tag,
+)
+from lib_core.scopes import Scope
+from lib_core.startup import add_custom_serializer_to_database
+from lib_core.utils import get_filenames_from_dir
+from ressources.queryapi import Query
+from ressources.reports import Report
+from ultimate.ultimate_job import UltimateJob
 
 
 def get_tag_by_name(jdb: JsonDatabase, name: str) -> Tag | None:

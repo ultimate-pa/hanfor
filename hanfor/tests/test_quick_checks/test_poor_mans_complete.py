@@ -1,7 +1,8 @@
 from unittest import TestCase
 
+from lib_core.data import Variable, Requirement, ScopedPattern, Pattern, Formalization
+from lib_core.scopes import Scope
 from quickchecks.check_poormanscomplete import PoorMansComplete, CompletenessCheckOutcome
-from lib_core.data import Variable, Requirement, ScopedPattern, Scope, Pattern, Formalization
 
 
 class Mock_Expression:

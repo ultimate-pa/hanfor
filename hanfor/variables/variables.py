@@ -1,20 +1,22 @@
-from flask import Blueprint, request, render_template, Request
-import logging
-import json
-import re
 import csv
+import json
+import logging
+import re
+
+from flask import Blueprint, request, render_template, Request
 
 import config
 from hanfor_flask import current_app, nocache, HanforFlask
-from lib_core.data import VariableCollection, Variable, Scope, Requirement, replace_prefix, SessionValue
+from lib_core import boogie_parsing
+from lib_core.data import VariableCollection, Variable, Requirement, replace_prefix, SessionValue
+from lib_core.pattern.patterns_basic import APattern
+from lib_core.scopes import Scope
 from lib_core.utils import (
     get_requirements,
     formalizations_to_html,
     generate_file_response,
     generate_req_file_content,
 )
-from lib_core import boogie_parsing
-from configuration.patterns import APattern
 
 if config.FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING:
     from requirements.desc_highlighting import (
@@ -34,7 +36,7 @@ def index():
         "variables/variables.html",
         available_sessions=[],
         query=request.args,
-        patterns=APattern.to_frontent_dict(),
+        patterns=APattern().to_frontent_dict(),
     )
 
 
@@ -42,7 +44,7 @@ def index():
 @nocache
 def variable_import(rid):
     return render_template(
-        "variables/variable-import-session.html", id=rid, query=request.args, patterns=APattern.to_frontent_dict()
+        "variables/variable-import-session.html", id=rid, query=request.args, patterns=APattern().to_frontent_dict()
     )
 
 
