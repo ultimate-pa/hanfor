@@ -28,6 +28,10 @@ from configuration.tags import STANDARD_TAGS, FUNCTIONAL_TAGS
 
 from reqtransformer import RequirementCollection
 from requirements.desc_highlighting import generate_all_highlighted_desc
+from thread_handling.threading_core import ThreadHandler, ThreadTask, SchedulingClass, ThreadGroup
+
+if config.FEATURE_AI:
+    from ai_request.ai_core_requests import AiRequest
 
 
 def config_check(app_config):
@@ -164,6 +168,10 @@ def set_app_config_paths(flask_app: HanforFlask, here):
 
 
 def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool = False) -> bool:
+    if flask_app.config["FEATURE_AI"]:
+        flask_app.ai_request = AiRequest()
+    flask_app.thread_handler = ThreadHandler()
+
     flask_app.db = JsonDatabase(no_data_tracing=no_data_tracing)
     add_custom_serializer_to_database(flask_app.db)
 
@@ -241,12 +249,21 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
     varcollection_consistency_check(flask_app, args)
 
     if config.FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING:
-        generate_all_highlighted_desc(
-            VariableCollection(
-                flask_app.db.get_objects(Variable).values(),
-                flask_app.db.get_objects(Requirement).values(),
-            ).get_available_var_names_list(used_only=False),
-            flask_app.db.get_objects(Requirement),
+        flask_app.thread_handler.submit(
+            ThreadTask(
+                generate_all_highlighted_desc,
+                SchedulingClass.SYSTEM_CALL,
+                ThreadGroup.VARIABLE_HIGHLIGHTING,
+                None,
+                (
+                    VariableCollection(
+                        flask_app.db.get_objects(Variable).values(),
+                        flask_app.db.get_objects(Requirement).values(),
+                    ).get_available_var_names_list(used_only=False),
+                    flask_app.db.get_objects(Requirement),
+                ),
+                {},
+            )
         )
 
     return True

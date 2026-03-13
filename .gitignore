@@ -2,7 +2,7 @@
 **/stored_sessions
 config.py
 hanfor/data/**
-hanfor/configuration/ultimate_config.py
+hanfor/configuration/*_config.py
 
 **/__pycache__*
 **/.webassets-cache/

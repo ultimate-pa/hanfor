@@ -23,7 +23,9 @@ jobs:
       - name: Install pytest
         run: pip install pytest pytest-cov coverage pytest-md pytest-emoji
       - name: Set up configuration
-        run: cp ./hanfor/config.dist.py ./hanfor/config.py
+        run: |
+          cp ./hanfor/config.dist.py ./hanfor/config.py
+          cp ./hanfor/configuration/threading_config.dist.py ./hanfor/configuration/threading_config.py
       - name: Install Z3
         run: pysmt-install --z3 --confirm-agreement
       - name: Run pytest

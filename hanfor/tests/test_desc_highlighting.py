@@ -1,5 +1,6 @@
 from unittest import TestCase
 from lib_core.data import Requirement
+from threading import Event
 from requirements.desc_highlighting import (
     _words_between,
     _normalize_variable,
@@ -166,7 +167,7 @@ class TestRequirementHighlightingEndToEnd(TestCase):
 
         variables = {"MyVariable", "AnotherVar", "TestDescription"}
 
-        generate_all_highlighted_desc(list(variables), {"REQ1": req})
+        generate_all_highlighted_desc(list(variables), {"REQ1": req}, Event())
         self.assertIn("REQ1", requirement_highlighting_data_per_req)
         req_data: RequirementHighlightingData = requirement_highlighting_data_per_req["REQ1"]
 
