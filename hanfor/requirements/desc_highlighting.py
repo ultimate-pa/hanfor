@@ -131,12 +131,21 @@ def generate_all_highlighted_desc(
 
     # (Re)compute variable matches and generate HTML
     for idx, req_data in enumerate(all_req_data, start=1):
+        exact_variables = []
+        for plain_var, _ in variable_sets_list:
+            plain_var_positions = [
+                (m.start(), m.end()) for m in re.finditer(re.escape(plain_var), req_data.description)
+            ]
+            for pos in plain_var_positions:
+                exact_variables.append(VariableMatch(pos[0], pos[1], plain_var, plain_var, 101))
+
         new_matches = _highlight_desc_variable(
             req_data,
             variable_sets_list,
         )
 
         req_data.variable_matches.extend(new_matches)
+        req_data.variable_matches.extend(exact_variables)
         req_data.highlighted_desc = _generate_md_description(
             req_data.variable_matches,
             req_data.description,
