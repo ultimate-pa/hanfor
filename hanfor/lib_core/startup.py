@@ -168,8 +168,6 @@ def set_app_config_paths(flask_app: HanforFlask, here):
 
 
 def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool = False) -> bool:
-    if flask_app.config["FEATURE_AI"]:
-        flask_app.ai_request = AiRequest()
     flask_app.thread_handler = ThreadHandler()
 
     flask_app.db = JsonDatabase(no_data_tracing=no_data_tracing)
@@ -262,6 +260,21 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
                     ).get_available_var_names_list(used_only=False),
                     flask_app.db.get_objects(Requirement),
                 ),
+                {},
+            )
+        )
+
+    if flask_app.config["FEATURE_AI"]:
+        flask_app.ai_request = AiRequest()
+        flask_app.ai_request.print_catalog()
+
+        flask_app.thread_handler.submit(
+            ThreadTask(
+                flask_app.ai_request.check_all_models,
+                SchedulingClass.SYSTEM_CALL,
+                ThreadGroup.AI,
+                flask_app.ai_request.print_check_results,
+                (),
                 {},
             )
         )

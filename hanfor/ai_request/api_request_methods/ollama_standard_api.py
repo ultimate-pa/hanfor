@@ -9,11 +9,17 @@ from ai_request import ai_api_methods_abstract_class
 
 class OllamaStandard(ai_api_methods_abstract_class.AiApiMethod):
     def query_api(
-        self, query: str, model_name: str, other_params: Optional[dict], stop_event: Optional[threading.Event]
-    ) -> (str, str):
+        self,
+        query: str,
+        url: str,
+        api_key: str,
+        model_name: str,
+        other_params: Optional[dict],
+        stop_event: Optional[threading.Event],
+    ) -> tuple[str | None, str]:
         try:
             response = requests.post(
-                ai_config.AI_API_URL,
+                url,
                 json={"model": model_name, "prompt": query, "stream": False},
             )
             response_json = response.json()
@@ -30,5 +36,5 @@ class OllamaStandard(ai_api_methods_abstract_class.AiApiMethod):
             return None, f"error_ai_response_format_{e}"
 
     @property
-    def model_names_which_work_with_api_method(self) -> list[str]:
-        return ["llama3.1:70b", "llama3.1:8b"]
+    def provider_names_which_work_with_api_method(self) -> list[str]:
+        return ["ollama"]
