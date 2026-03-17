@@ -159,12 +159,19 @@ class TestThreadHandler(TestCase):
     def test_ai_provider(self):
         self.handler.max_threads = 5
 
+        save_config = ai_config.AI_PROVIDERS
+
         ai_config.AI_PROVIDERS = {
             "ollama": {
                 "maximum_concurrent_api_requests": 4,
+                "url": "PROVIDER_API_URL",
+                "api_key": "PROVIDER_API_KEY",
+                "default_model": "MODEL_NAME",
+                "models": {
+                    "MODEL_NAME": "MODEL_DESCRIPTION",
+                },
             },
         }
-
         for i in range(10):
             task = ThreadTask(
                 timeout_task, SchedulingClass.SYSTEM_CALL, ThreadGroup.AI, None, (0.1, f"Test{i}"), {}, "ollama"
@@ -172,3 +179,4 @@ class TestThreadHandler(TestCase):
             self.handler.submit(task)
         time.sleep(0.05)
         assert_equal(len(self.handler.running_tasks), 4)
+        ai_config.AI_PROVIDERS = save_config

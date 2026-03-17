@@ -29,6 +29,7 @@ class AiCatalogPrinter:
         for provider, entry in self.__catalog.items():
             print(f"{'-'*40}")
             print(f"Provider: {provider}")
+            print(f"max_request      {entry.maximum_concurrent_api_requests}")
             print(f"  URL:           {entry.url}")
             print(f"  API Key:       {entry.api_key[:8]}...")
             print(f"  API Methods:   {', '.join(entry.api_methods.keys()) if entry.api_methods else 'None'}")
