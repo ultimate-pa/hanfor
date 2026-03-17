@@ -1,21 +1,23 @@
-from flask import Blueprint, request, render_template
-import logging
-import json
 import datetime
+import json
+import logging
+
+from flask import Blueprint, request, render_template
 
 import config
+from configuration.defaults import Color
+from guesser.Guess import Guess
+from guesser.guesser_registerer import REGISTERED_GUESSERS
 from hanfor_flask import current_app, nocache, HanforFlask
-from lib_core.data import Requirement, VariableCollection, SessionValue, RequirementEditHistory, Tag, Variable
+from lib_core.data import Requirement, SessionValue, RequirementEditHistory, Tag, Variable, VariableCollection
+from lib_core.pattern import APattern
+from lib_core.pattern.patterns_functions import VARIABLE_AUTOCOMPLETE_EXTENSION
 from lib_core.utils import (
     get_default_pattern_options,
     formalization_html,
     formalizations_to_html,
     default_scope_options,
 )
-from configuration.defaults import Color
-from guesser.Guess import Guess
-from guesser.guesser_registerer import REGISTERED_GUESSERS
-from configuration.patterns import APattern, VARIABLE_AUTOCOMPLETE_EXTENSION
 
 if config.FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING:
     from requirements.desc_highlighting import get_highlighted_desc, new_variables_regenerate_highlighting
@@ -42,7 +44,7 @@ def index():
         query=request.args,
         additional_cols=additional_cols,
         default_cols=default_cols,
-        patterns=APattern.to_frontent_dict(),
+        patterns=APattern().to_frontent_dict(),
     )
 
 
