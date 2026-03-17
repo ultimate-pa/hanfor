@@ -2,7 +2,7 @@ import inspect
 import logging
 import threading
 import time
-from configuration import threading_config
+from configuration import threading_config, ai_config
 from dataclasses import dataclass, field
 from enum import Enum
 from queue import PriorityQueue
@@ -60,6 +60,7 @@ class ThreadTask:
     callback: Optional[Callable[[Any], None]]
     args: tuple
     kwargs: dict
+    provider: str | None = None
 
     status: str = field(default="", init=False)
     priority: int = field(init=False)
@@ -121,6 +122,10 @@ class ThreadHandler:
         self.group_stop_events: dict[ThreadGroup, threading.Event] = {group: threading.Event() for group in ThreadGroup}
         self.running_tasks: list[PrioritizedTask] = []
 
+        self.provider_concurrent_requests = {
+            provider: data["maximum_concurrent_api_requests"] for provider, data in ai_config.AI_PROVIDERS.items()
+        }
+
         self.dispatcher_thread = threading.Thread(target=self.__dispatcher, daemon=True)
         self.dispatcher_thread.start()
 
@@ -165,21 +170,32 @@ class ThreadHandler:
         )
         return result
 
-    def __what_can_start(self) -> list[SchedulingClass | ThreadGroup]:
+    def __what_can_start(self) -> list[SchedulingClass | str]:
         """
         Returns all SchedulingClass values that are allowed to start based on the current system load.
         If ThreadGroup.AI is included in the returned list, AI requests may be started.
         """
         free_ratio = (self.max_threads - self.active_threads) / self.max_threads
-        can_start: list[SchedulingClass | ThreadGroup] = [
-            sc for sc in SchedulingClass if free_ratio > sc.min_free_ratio
-        ]
+        can_start: list[SchedulingClass | str] = [sc for sc in SchedulingClass if free_ratio > sc.min_free_ratio]
 
-        ai_running = sum(t.thread_task.group == ThreadGroup.AI for t in self.running_tasks)
+        provider_concurrent_request_copy = self.provider_concurrent_requests.copy()
+        for task in self.running_tasks:
+            provider = ""
+            if task.thread_task.group == ThreadGroup.AI:
+                if task.thread_task.provider:
+                    if task.thread_task.provider in self.provider_concurrent_requests:
+                        provider = task.thread_task.provider
+                    else:
+                        provider = ai_config.DEFAULT_PROVIDER
+                else:
+                    provider = ai_config.DEFAULT_PROVIDER
+                provider_concurrent_request_copy[provider] -= 1
+        for provider, count in provider_concurrent_request_copy.items():
+            if count >= 1:
+                can_start.append(provider)
+        logging.info(provider_concurrent_request_copy)
 
-        if ai_running < threading_config.MAX_CONCURRENT_AI_REQUESTS:
-            can_start.append(ThreadGroup.AI)
-
+        logging.info(can_start)
         return can_start
 
     def __dispatcher(self):
@@ -199,9 +215,14 @@ class ThreadHandler:
                     what_can_start = set(self.__what_can_start())
                     for task in list(self.queue.queue):
                         thread_task = task.thread_task
-                        if task.thread_task.scheduling_class in what_can_start and (
-                            thread_task.group != ThreadGroup.AI or ThreadGroup.AI in what_can_start
-                        ):
+
+                        if thread_task.scheduling_class in what_can_start:
+                            if thread_task.group == ThreadGroup.AI:
+                                if (
+                                    thread_task.provider not in what_can_start
+                                    and thread_task.provider in self.provider_concurrent_requests
+                                ):
+                                    continue
                             selected_task = task
                             self.queue.queue.remove(selected_task)
 

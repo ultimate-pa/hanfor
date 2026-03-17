@@ -1,5 +1,9 @@
 from unittest import TestCase
 import time
+
+from numpy.ma.testutils import assert_equal
+
+from configuration import ai_config
 from thread_handling.threading_core import ThreadHandler, ThreadTask, ThreadGroup, SchedulingClass, TaskResult
 
 
@@ -151,3 +155,20 @@ class TestThreadHandler(TestCase):
         result_1 = task2.status
         result_2 = res_var_highlight.result()
         print(result_1, result_2)
+
+    def test_ai_provider(self):
+        self.handler.max_threads = 5
+
+        ai_config.AI_PROVIDERS = {
+            "ollama": {
+                "maximum_concurrent_api_requests": 4,
+            },
+        }
+
+        for i in range(10):
+            task = ThreadTask(
+                timeout_task, SchedulingClass.SYSTEM_CALL, ThreadGroup.AI, None, (0.1, f"Test{i}"), {}, "ollama"
+            )
+            self.handler.submit(task)
+        time.sleep(0.05)
+        assert_equal(len(self.handler.running_tasks), 4)

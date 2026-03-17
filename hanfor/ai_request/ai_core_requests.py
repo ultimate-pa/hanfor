@@ -12,6 +12,7 @@ import requests
 
 @dataclass(slots=True)
 class ProviderEntry:
+    maximum_concurrent_api_requests: int
     url: str
     api_key: str
     models: dict[str, str]
