@@ -26,6 +26,7 @@ jobs:
         run: |
           cp ./hanfor/config.dist.py ./hanfor/config.py
           cp ./hanfor/configuration/threading_config.dist.py ./hanfor/configuration/threading_config.py
+          cp ./hanfor/configuration/ai_config.dist.py ./hanfor/configuration/ai_config.py
       - name: Install Z3
         run: pysmt-install --z3 --confirm-agreement
       - name: Run pytest
