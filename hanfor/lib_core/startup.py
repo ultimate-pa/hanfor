@@ -1,19 +1,24 @@
+import argparse
+import datetime
+import hashlib
+import json
 import logging
 import os
-import datetime
-import argparse
-import json
-import hashlib
-from typing import Callable
-from terminaltables import DoubleTable
-import shutil
 import re
+import shutil
+from typing import Callable
 
+from terminaltables import DoubleTable
+
+from configuration.defaults import Color
+from configuration.tags import STANDARD_TAGS, FUNCTIONAL_TAGS
 import config
 from hanfor_flask import HanforFlask
 from json_db_connector.json_db import JsonDatabase, remove_json_database_data_tracing_logger
-
 from lib_core import boogie_parsing
+from lib_core.data import Tag, VariableCollection, SessionValue, Requirement, Variable
+from lib_core.pattern.patterns_basic import APattern
+from lib_core.scopes import Scope
 from lib_core.utils import (
     get_requirements,
     get_default_pattern_options,
@@ -21,11 +26,6 @@ from lib_core.utils import (
     get_filenames_from_dir,
     choice,
 )
-from lib_core.data import Tag, VariableCollection, Scope, SessionValue, Requirement, Variable
-from configuration.patterns import APattern
-from configuration.defaults import Color
-from configuration.tags import STANDARD_TAGS, FUNCTIONAL_TAGS
-
 from reqtransformer import RequirementCollection
 from requirements.desc_highlighting import generate_all_highlighted_desc
 from thread_handling.threading_core import ThreadHandler, ThreadTask, SchedulingClass, ThreadGroup
@@ -38,19 +38,17 @@ def config_check(app_config):
     to_ensure_configs = ["PATTERNS_GROUP_ORDER"]
     for to_ensure_config in to_ensure_configs:
         if to_ensure_config not in app_config:
-            raise SyntaxError("Could not find {} in config.".format(to_ensure_config))
+            raise SyntaxError(f"Could not find {to_ensure_config} in config.")
 
     # Check pattern groups set correctly.
-    pattern_groups_used = set((pattern.group for pattern in APattern.get_patterns().values()))
+    pattern_groups_used = set((pattern.group for pattern in APattern().get_patterns().values()))
     pattern_groups_set = set((group for group in app_config["PATTERNS_GROUP_ORDER"]))
     # Pattern group for downwards compatibility: Legacy patterns are not shown in dropdown (but still deserializable)
     pattern_groups_set.add("Legacy")
 
     if not pattern_groups_used == pattern_groups_set:
-        if len(pattern_groups_used - pattern_groups_set) > 0:
-            raise SyntaxError(
-                "No group order set in config for pattern groups {}".format(pattern_groups_used - pattern_groups_set)
-            )
+        if diff := pattern_groups_used - pattern_groups_set:
+            raise SyntaxError(f"No group order set in config for pattern groups {diff}")
 
     try:
         get_default_pattern_options()
