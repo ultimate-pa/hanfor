@@ -1,8 +1,6 @@
+from threading import Semaphore
 from unittest import TestCase
 import time
-from unittest.mock import patch
-
-from configuration import ai_config
 from thread_handling.threading_core import ThreadHandler, ThreadTask, ThreadGroup, SchedulingClass, TaskResult
 
 
@@ -32,6 +30,7 @@ class TestThreadHandler(TestCase):
                 thread_function=timeout_task,
                 scheduling_class=SchedulingClass.SYSTEM_CALL,
                 group=ThreadGroup.OTHER,
+                semaphore=None,
                 callback=lambda r: results.append(r),
                 args=(
                     0.1,
@@ -56,10 +55,10 @@ class TestThreadHandler(TestCase):
     def test_group_stop(self):
         self.handler.max_threads = 1
         task1 = ThreadTask(
-            stopping_task, SchedulingClass.CALLER_DEPTH_1, ThreadGroup.OTHER, None, args=(500,), kwargs={}
+            stopping_task, SchedulingClass.CALLER_DEPTH_1, ThreadGroup.OTHER, None, None, args=(500,), kwargs={}
         )
         task2 = ThreadTask(
-            stopping_task, SchedulingClass.CALLER_DEPTH_1, ThreadGroup.OTHER, None, args=(500,), kwargs={}
+            stopping_task, SchedulingClass.CALLER_DEPTH_1, ThreadGroup.OTHER, None, None, args=(500,), kwargs={}
         )
         self.handler.submit(task1)
         self.handler.submit(task2)
@@ -81,6 +80,7 @@ class TestThreadHandler(TestCase):
                 timeout_task,
                 SchedulingClass.SYSTEM_CALL,
                 ThreadGroup.OTHER,
+                None,
                 lambda r, idx=i: results.append((idx, r)),
                 args=(0.1, f"done{i}"),
                 kwargs={},
@@ -93,7 +93,7 @@ class TestThreadHandler(TestCase):
     def test_idle_detection(self):
         self.handler.max_threads = 5
         task = ThreadTask(
-            timeout_task, SchedulingClass.SYSTEM_CALL, ThreadGroup.OTHER, None, args=(0.1, "x"), kwargs={}
+            timeout_task, SchedulingClass.SYSTEM_CALL, ThreadGroup.OTHER, None, None, args=(0.1, "x"), kwargs={}
         )
         self.handler.submit(task)
         time.sleep(0.01)
@@ -109,6 +109,7 @@ class TestThreadHandler(TestCase):
             timeout_task,
             SchedulingClass.CALLER_DEPTH_2,
             ThreadGroup.OTHER,
+            None,
             lambda r: results.append(("low", r)),
             args=(0.1, "low"),
             kwargs={},
@@ -117,6 +118,7 @@ class TestThreadHandler(TestCase):
             timeout_task,
             SchedulingClass.CALLER_DEPTH_1,
             ThreadGroup.OTHER,
+            None,
             lambda r: results.append(("high", r)),
             args=(0.1, "high"),
             kwargs={},
@@ -137,11 +139,12 @@ class TestThreadHandler(TestCase):
             SchedulingClass.CALLER_DEPTH_1,
             ThreadGroup.VARIABLE_HIGHLIGHTING,
             None,
+            None,
             args=(20,),
             kwargs={},
         )
         task2 = ThreadTask(
-            stopping_task, SchedulingClass.CALLER_DEPTH_1, ThreadGroup.OTHER, None, args=(20,), kwargs={}
+            stopping_task, SchedulingClass.CALLER_DEPTH_1, ThreadGroup.OTHER, None, None, args=(20,), kwargs={}
         )
 
         for _ in range(10):
@@ -153,28 +156,18 @@ class TestThreadHandler(TestCase):
         time.sleep(0.01)
         result_1 = task2.status
         result_2 = res_var_highlight.result()
-        print(result_1, result_2)
+        self.assertEqual(result_1, "terminated thread")
+        self.assertEqual(result_2, "completed")
 
-    @patch(
-        "thread_handling.threading_core.ai_config.AI_PROVIDERS",
-        {
-            "ollama": {
-                "maximum_concurrent_api_requests": 6,
-                "url": "PROVIDER_API_URL",
-                "api_key": "PROVIDER_API_KEY",
-                "default_model": "MODEL_NAME",
-                "models": {
-                    "MODEL_NAME": "MODEL_DESCRIPTION",
-                },
-            },
-        },
-    )
     def test_ai_provider(self):
         self.handler = ThreadHandler(max_threads=15)
+        semaphore = Semaphore(6)
         for i in range(20):
             task = ThreadTask(
-                timeout_task, SchedulingClass.SYSTEM_CALL, ThreadGroup.AI, None, (0.1, f"Test{i}"), {}, "ollama"
+                timeout_task, SchedulingClass.SYSTEM_CALL, ThreadGroup.AI, semaphore, None, (0.1, f"Test{i}"), {}
             )
             self.handler.submit(task)
         time.sleep(0.05)
+        self.assertEqual(len(self.handler.running_tasks), 6)
+        time.sleep(0.1)
         self.assertEqual(len(self.handler.running_tasks), 6)

@@ -2,7 +2,7 @@ import inspect
 import logging
 import threading
 import time
-from configuration import threading_config, ai_config
+from configuration import threading_config
 from dataclasses import dataclass, field
 from enum import Enum
 from queue import PriorityQueue
@@ -57,10 +57,10 @@ class ThreadTask:
     thread_function: Callable[..., Any]
     scheduling_class: SchedulingClass
     group: ThreadGroup
+    semaphore: Optional[threading.Semaphore]
     callback: Optional[Callable[[Any], None]]
     args: tuple
     kwargs: dict
-    provider: str | None = None
 
     status: str = field(default="", init=False)
     priority: int = field(init=False)
@@ -122,10 +122,6 @@ class ThreadHandler:
         self.group_stop_events: dict[ThreadGroup, threading.Event] = {group: threading.Event() for group in ThreadGroup}
         self.running_tasks: list[PrioritizedTask] = []
 
-        self.provider_concurrent_requests = {
-            provider: data["maximum_concurrent_api_requests"] for provider, data in ai_config.AI_PROVIDERS.items()
-        }
-
         self.dispatcher_thread = threading.Thread(target=self.__dispatcher, daemon=True)
         self.dispatcher_thread.start()
 
@@ -177,25 +173,6 @@ class ThreadHandler:
         """
         free_ratio = (self.max_threads - self.active_threads) / self.max_threads
         can_start: list[SchedulingClass | str] = [sc for sc in SchedulingClass if free_ratio > sc.min_free_ratio]
-
-        provider_concurrent_request_copy = self.provider_concurrent_requests.copy()
-        for task in self.running_tasks:
-            provider = ""
-            if task.thread_task.group == ThreadGroup.AI:
-                if task.thread_task.provider:
-                    if task.thread_task.provider in self.provider_concurrent_requests:
-                        provider = task.thread_task.provider
-                    else:
-                        provider = ai_config.DEFAULT_PROVIDER
-                else:
-                    provider = ai_config.DEFAULT_PROVIDER
-                provider_concurrent_request_copy[provider] -= 1
-        for provider, count in provider_concurrent_request_copy.items():
-            if count >= 1:
-                can_start.append(provider)
-        logging.info(provider_concurrent_request_copy)
-
-        logging.info(can_start)
         return can_start
 
     def __dispatcher(self):
@@ -217,22 +194,16 @@ class ThreadHandler:
                         thread_task = task.thread_task
 
                         if thread_task.scheduling_class in what_can_start:
-                            if thread_task.group == ThreadGroup.AI:
-                                if (
-                                    thread_task.provider not in what_can_start
-                                    and thread_task.provider in self.provider_concurrent_requests
-                                ):
-                                    continue
-                            selected_task = task
-                            self.queue.queue.remove(selected_task)
+                            if thread_task.semaphore is None or thread_task.semaphore.acquire(blocking=False):
+                                selected_task = task
+                                self.queue.queue.remove(selected_task)
 
-                            # Update counters
-                            self.active_threads += 1
-                            self.active_by_priority[selected_task.priority] = (
-                                self.active_by_priority.get(selected_task.priority, 0) + 1
-                            )
-                            self.running_tasks.append(selected_task)
-                            break
+                                self.active_threads += 1
+                                self.active_by_priority[selected_task.priority] = (
+                                    self.active_by_priority.get(selected_task.priority, 0) + 1
+                                )
+                                self.running_tasks.append(selected_task)
+                                break
 
             if not selected_task:
                 time.sleep(0.1)
@@ -266,6 +237,8 @@ class ThreadHandler:
                 self.active_threads -= 1
                 self.active_by_priority[prio_task.thread_task.priority] -= 1
                 self.running_tasks.remove(prio_task)
+                if prio_task.thread_task.semaphore:
+                    prio_task.thread_task.semaphore.release()
 
     def get_active_count(self) -> int:
         with self.lock:

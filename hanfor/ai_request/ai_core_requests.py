@@ -1,6 +1,6 @@
-from threading import Event
+from threading import Event, Semaphore
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Callable
 from ai_request.ai_api_methods_abstract_class import AiApiMethod
 from configuration import ai_config
 
@@ -8,6 +8,8 @@ import os
 import importlib
 import logging
 import requests
+
+from thread_handling.threading_core import ThreadHandler, ThreadTask, SchedulingClass, ThreadGroup, TaskResult
 
 
 @dataclass(slots=True)
@@ -18,6 +20,10 @@ class ProviderEntry:
     models: dict[str, str]
     default_model: str
     api_methods: dict[str, AiApiMethod] = field(default_factory=dict)
+    semaphore: Semaphore = field(init=False)
+
+    def __post_init__(self):
+        self.semaphore = Semaphore(self.maximum_concurrent_api_requests)
 
 
 class AiCatalogPrinter:
@@ -29,7 +35,8 @@ class AiCatalogPrinter:
         for provider, entry in self.__catalog.items():
             print(f"{'-'*40}")
             print(f"Provider: {provider}")
-            print(f"max_request      {entry.maximum_concurrent_api_requests}")
+            print(f"  max_request    {entry.maximum_concurrent_api_requests}")
+            print(f"  Semaphore:     {entry.semaphore}")
             print(f"  URL:           {entry.url}")
             print(f"  API Key:       {entry.api_key[:8]}...")
             print(f"  API Methods:   {', '.join(entry.api_methods.keys()) if entry.api_methods else 'None'}")
@@ -114,22 +121,37 @@ class AiCatalogTester:
 class AiRequest:
     """Loads and organizes AI providers and routes incoming requests to the correct API method."""
 
-    def __init__(self):
+    def __init__(self, thread_handler: ThreadHandler):
+        self.__thread_handler = thread_handler
         self.__ai_model_catalog = self.__build_catalog()
         self.__register_api_methods()
         self.__validate_catalog()
         self.__catalog_printer = AiCatalogPrinter(self.__ai_model_catalog)
         self.__catalog_tester = AiCatalogTester(self.__ai_model_catalog)
 
+        self.print_catalog()
+        self.__thread_handler.submit(
+            ThreadTask(
+                self.check_all_models,
+                SchedulingClass.SYSTEM_CALL,
+                ThreadGroup.AI,
+                None,
+                self.print_check_results,
+                (),
+                {},
+            )
+        )
+
     def ask_ai(
         self,
         prompt: str,
+        callback: Callable,
+        scheduling_class: SchedulingClass = SchedulingClass.SYSTEM_CALL,
         provider: Optional[str] = None,
         model_name: Optional[str] = None,
         api_method_name: Optional[str] = None,
         other_params: Optional[dict] = None,
-        stop_event: Optional[Event] = None,
-    ) -> tuple[str | None, str]:
+    ) -> TaskResult:
         """returns the ai_response and the status"""
 
         if not provider or provider not in self.__ai_model_catalog:
@@ -161,9 +183,24 @@ class AiRequest:
         else:
             method = provider_entry.api_methods[api_method_name]
 
-        return method.query_api(
-            prompt, provider_entry.url, provider_entry.api_key, model_name, other_params, stop_event
+        semaphore = provider_entry.semaphore
+
+        ai_task = ThreadTask(
+            method.query_api,
+            scheduling_class,
+            ThreadGroup.AI,
+            semaphore,
+            callback,
+            (
+                prompt,
+                provider_entry.url,
+                provider_entry.api_key,
+                model_name,
+                other_params,
+            ),
+            {},
         )
+        return self.__thread_handler.submit(ai_task)
 
     def get_all_models(self) -> dict[str, ProviderEntry]:
         return dict(self.__ai_model_catalog)
@@ -171,7 +208,7 @@ class AiRequest:
     def check_all_models(self, stop_event: Event) -> dict[str, dict[str, dict[str, str]]]:
         return self.__catalog_tester.check_all_models(stop_event)
 
-    def print_catalog(self):
+    def print_catalog(self) -> None:
         self.__catalog_printer.print_catalog()
 
     def print_check_results(self, tested_catalog: dict[str, dict[str, dict[str, str]]]):

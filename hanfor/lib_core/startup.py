@@ -253,6 +253,7 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
                 SchedulingClass.SYSTEM_CALL,
                 ThreadGroup.VARIABLE_HIGHLIGHTING,
                 None,
+                None,
                 (
                     VariableCollection(
                         flask_app.db.get_objects(Variable).values(),
@@ -265,20 +266,7 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
         )
 
     if flask_app.config["FEATURE_AI"]:
-        flask_app.ai_request = AiRequest()
-        flask_app.ai_request.print_catalog()
-
-        flask_app.thread_handler.submit(
-            ThreadTask(
-                flask_app.ai_request.check_all_models,
-                SchedulingClass.SYSTEM_CALL,
-                ThreadGroup.AI,
-                flask_app.ai_request.print_check_results,
-                (),
-                {},
-            )
-        )
-
+        flask_app.ai_request = AiRequest(flask_app.thread_handler)
     return True
 
 
