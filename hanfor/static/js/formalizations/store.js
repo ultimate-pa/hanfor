@@ -85,7 +85,7 @@ export default class FormalizationStore {
     deletedSet.forEach((id) => {
       requests.push(
         $.ajax({
-          url: `/api/req/formalizations/${requirementId}/delete/${id}`,
+          url: `/api/req/formalizations/${requirementId}/${id}`,
           type: "DELETE",
         }),
       )
@@ -102,10 +102,10 @@ export default class FormalizationStore {
         let endpoint = ""
         if (type === "formalization") {
           data = this.getFormalizationFromDOM(id)
-          endpoint = `/api/req/formalizations/${requirementId}/new/formalization/${id}`
+          endpoint = `/api/req/formalizations/${requirementId}/formalization/${id}`
         } else if (type === "variable") {
           data = this.getVariableFromDOM(id)
-          endpoint = `/api/req/formalizations/${requirementId}/new/variable/${id}`
+          endpoint = `/api/req/formalizations/${requirementId}/variable/${id}`
         }
 
         requests.push($.post(endpoint, { id: requirementId, data: JSON.stringify(data) }))
