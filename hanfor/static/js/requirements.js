@@ -60,6 +60,23 @@ renderer.registerType("formalization", {
         $container.find(`#requirement_var_group_${v.toLowerCase()}${entry.id}`).hide()
       }
     })
+    // this is the title observer for changing the text of the drafts so the users
+    // have easier time knowing which drafts did they create
+    const preview = $container.find(`#current_formalization_textarea${entry.id}`)
+    const accordionItem = $container.closest(".accordion-item")
+    const updateTitle = () => {
+      const text = preview.text().trim() || "// None, no pattern set"
+      accordionItem.attr("title", text)
+      accordionItem.find(".accordion-button").text(text)
+    }
+    updateTitle()
+    // if preview gets updated dynamically, watch it
+    const observer = new MutationObserver(updateTitle)
+    observer.observe(preview[0], {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    })
   },
 })
 
@@ -73,7 +90,7 @@ renderer.registerType("variable", {
   afterRender: ($container) => {
     // autocomplete
     let type_input = $container.find(".variable-type")
-    const id = $container.closest(".accordion-item").data("id");
+    const id = $container.closest(".accordion-item").data("id")
     type_input
       .autocomplete({
         minLength: 0,
@@ -87,7 +104,7 @@ renderer.registerType("variable", {
     name_input.on("input", function () {
       const newName = $(this).val().trim()
       const button = $container.closest(".accordion-item").find(".accordion-button")
-      button.text((newName ? newName : `New Variable ${id}`))
+      button.text(newName ? newName : `New Variable ${id}`)
     })
   },
 })
