@@ -104,7 +104,7 @@ def api_gets():
     return result
 
 
-@api_blueprint.route("/formalizations/<string:rid>/new/<string:subtype>/<string:fid>", methods=["POST"])
+@api_blueprint.route("/formalizations/<string:rid>/<string:subtype>/<string:fid>", methods=["POST"])
 @nocache
 def store_formalizations_drafts(rid, subtype, fid):
     subtype_enum = None
@@ -308,7 +308,7 @@ def api_multi_update():
 
 
 @api_blueprint.route(
-    "/formalizations/<string:requirement_id>/delete/<int:formalization_id>",
+    "/formalizations/<string:requirement_id>/<int:formalization_id>",
     methods=["DELETE"],
 )
 @nocache
