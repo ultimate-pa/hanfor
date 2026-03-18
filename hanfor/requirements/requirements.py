@@ -86,9 +86,10 @@ def api_index():
 def get_formalizations(rid):
     requirement = current_app.db.get_object(Requirement, rid)
     result = []
-    for _, formalization in requirement.formalizations.items():
+    for idx, formalization in requirement.formalizations.items():
         formalization_repr = formalization.to_dict()
         formalization_repr["formalization_type"] = formalization.of_type()
+        formalization_repr["id"] = idx
         formalization_repr["text"] = formalization.get_string()
         result.append(formalization_repr)
     return result
