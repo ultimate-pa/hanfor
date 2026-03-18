@@ -125,10 +125,12 @@ def store_formalizations_drafts(rid, subtype, fid):
     if subtype_enum == FormalizationOfType.FORMALIZATION:
         if fid is None:
             return {"success": False, "errormsg": "Formalization has to have an id supplied"}
+        fid = int(fid)
+        logging.debug(f"FID: {fid}")
         requirement.add_formalization_with_id(Formalization(fid), fid)
         try:
             requirement.update_formalization(
-                int(fid),
+                fid,
                 data['scope'],
                 data['pattern'],
                 data['expression_mapping'],
@@ -317,8 +319,9 @@ def api_del_formalization(requirement_id, formalization_id):
     logging.debug(f"Deletion formalization ID: {formalization_id}")
     logging.debug(f"Deletion requirement ID: {requirement_id}")
     requirement = current_app.db.get_object(Requirement, requirement_id)
+    logging.debug(f"Current: {requirement.formalizations}")
     requirement.delete_formalization(
-        formalization_id,
+        int(formalization_id),
         VariableCollection(
             current_app.db.get_objects(Variable).values(),
             current_app.db.get_objects(Requirement).values(),
