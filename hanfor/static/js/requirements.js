@@ -87,7 +87,7 @@ renderer.registerType("variable", {
     name_input.on("input", function () {
       const newName = $(this).val().trim()
       const button = $container.closest(".accordion-item").find(".accordion-button")
-      button.text("Variable: " + (newName ? newName : "New Variable"))
+      button.text(newName ? newName : "New Variable")
     })
   },
 })
@@ -1123,9 +1123,7 @@ function load_requirement(row_idx) {
     return
   }
 
-  console.log(renderer)
   console.log(store)
-
   load_tags()
 
   // Get row data

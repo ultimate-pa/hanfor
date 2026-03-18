@@ -190,9 +190,10 @@ class Requirement:
         # Collect remaining vars.
         remaining_vars = set()
         for formalization in self.formalizations.values():
-            for expression in formalization.expressions_mapping.values():
-                if expression.used_variables is not None:
-                    remaining_vars = remaining_vars.union(expression.used_variables)
+            if isinstance(formalization, Formalization):
+                for expression in formalization.expressions_mapping.values():
+                    if expression.used_variables is not None:
+                        remaining_vars = remaining_vars.union(expression.used_variables)
 
         # Update the mappings.
         variable_collection.req_var_mapping[self.rid] = remaining_vars
