@@ -132,7 +132,7 @@ class ThreadHandler:
                 running_task.result.result()
                 running_task.thread_task.status = "terminated thread"
             except Exception as e:
-                print(e)
+                logging.error(e)
 
     def submit(self, thread_task: ThreadTask) -> TaskResult:
         """Queues a task and returns a TaskResult to track completion."""
