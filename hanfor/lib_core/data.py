@@ -7,7 +7,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from threading import Lock
 import re
-from typing import Any, Iterable, Union
+from typing import Any, Iterable, Union, Protocol, Dict, runtime_checkable
+from abc import ABC
 from uuid import uuid4
 
 from lark import LarkError
@@ -62,6 +63,18 @@ class FormalizationOfType(Enum):
     def template_name(self) -> str:
         return f"{self.value}-template"
 
+
+# TODO: ask if this is something we actually want
+@runtime_checkable
+class FormalizationProtocol(Protocol):
+    def to_dict(self, **kwargs) -> Dict[str, Any]: ...
+    def get_string(self) -> str: ...
+
+
+class BaseFormalization(ABC):
+    def of_type(self) -> str:
+        return self.__class__.__name__.lower()
+
 @DatabaseTable(TableType.Folder)
 @DatabaseID("rid", str)
 @DatabaseField("formalizations", dict)
@@ -77,7 +90,7 @@ class FormalizationOfType(Enum):
 class Requirement:
     def __init__(self, rid: str, description: str, type_in_csv: str, csv_row: dict[str, str], pos_in_csv: int):
         self.rid: str = rid
-        self.formalizations: dict[int, Formalization] = dict()
+        self.formalizations: dict[int, FormalizationProtocol] = dict()
         self.description = description
         self.type_in_csv = type_in_csv
         self.csv_row = csv_row
@@ -88,15 +101,20 @@ class Requirement:
         self._next_formalization_index: int = -1
         self._formalization_index_mutex: Lock = Lock()
 
+
+    def add_formalization_with_id(self, formalization: FormalizationProtocol, fid: int):
+        self.formalizations[fid] = formalization
+
     def to_dict(self, include_used_vars=False):
         type_inference_errors = dict()
         used_variables = set()
         for index, f in self.formalizations.items():
-            if f.type_inference_errors:
-                type_inference_errors[index] = [key.lower() for key in f.type_inference_errors.keys()]
-            if include_used_vars:
-                for name in f.used_variables:
-                    used_variables.add(name)
+            if isinstance(f, Formalization):
+                if f.type_inference_errors:
+                    type_inference_errors[index] = [key.lower() for key in f.type_inference_errors.keys()]
+                if include_used_vars:
+                    for name in f.used_variables:
+                        used_variables.add(name)
 
         d = {
             "id": self.rid,
@@ -339,7 +357,7 @@ class Requirement:
 @DatabaseField("scoped_pattern", "ScopedPattern")
 @DatabaseField("expressions_mapping", dict)
 @DatabaseField("type_inference_errors", dict)
-class Formalization:
+class Formalization(BaseFormalization):
     def __init__(self, fid: int):
         self.id: int = fid
         self.order: int = 0
@@ -647,7 +665,7 @@ class ScopedPattern:
 @DatabaseField("belongs_to_enum", str)
 @DatabaseField("constraints", dict)
 @DatabaseField("description", str)
-class Variable:
+class Variable(BaseFormalization):
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
 
     def __init__(self, name: str, var_type: str | None, value: str | None):
@@ -661,7 +679,8 @@ class Variable:
         self.constraints = dict()
         self.description: str = ""
 
-    def to_dict(self, var_req_mapping):
+    def to_dict(self, **kwargs):
+        var_req_mapping = kwargs.get("var_req_mapping", {})
         type_inference_errors = dict()
         for index, f in self.get_constraints().items():
             if f.type_inference_errors:
@@ -827,6 +846,10 @@ class Variable:
         self.name = new_name
         self.rename_var_in_constraints(old_name, new_name)
 
+
+    def get_string(self) -> str:
+        return self.name
+
     def get_parent_enum(self, variable_collection):
         """Returns the parent enum in case this variable is an enumerator.
 
@@ -889,7 +912,7 @@ class VariableCollection:
 
             return True
 
-        result = [var.to_dict(self.var_req_mapping) for var in self.collection.values() if in_result(var)]
+        result = [var.to_dict(var_req_mapping=self.var_req_mapping) for var in self.collection.values() if in_result(var)]
 
         if len(result) > 0 and sort_by is not None and sort_by in result[0].keys():
             result = sorted(result, key=lambda k: k[sort_by])
@@ -1107,16 +1130,17 @@ class VariableCollection:
         # Add the requirements using this variable.
         for req in requirements:
             for formalization in req.formalizations.values():
-                try:
-                    for var_name in formalization.used_variables:
-                        if var_name not in mapping.keys():
-                            mapping[var_name] = set()
-                        mapping[var_name].add(req.rid)
-                except TypeError:
-                    pass
-                except Exception as e:
-                    logging.info("Could not read formalizations for `{}`: {}".format(req.rid, e))
-                    raise e
+                if isinstance(formalization, Formalization):
+                    try:
+                        for var_name in formalization.used_variables:
+                            if var_name not in mapping.keys():
+                                mapping[var_name] = set()
+                            mapping[var_name].add(req.rid)
+                    except TypeError:
+                        pass
+                    except Exception as e:
+                        logging.info("Could not read formalizations for `{}`: {}".format(req.rid, e))
+                        raise e
 
         # Add the constraints using this variable.
         for var in self.collection.values():

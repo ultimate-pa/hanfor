@@ -1146,7 +1146,7 @@ function load_requirement(row_idx) {
       data
         .sort((a, b) => a.order - b.order)
         .forEach(function (entry) {
-          const $formalization = renderer.build(entry.type, entry)
+          const $formalization = renderer.build(entry.formalization_type, entry)
           $("#formalization_accordion").append($formalization)
         })
     }).done(function () {
