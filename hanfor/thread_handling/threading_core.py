@@ -19,14 +19,7 @@ class ThreadGroup(Enum):
 
 
 class SchedulingClass(Enum):
-    """
-    Represents the scheduling class of a thread.
-
-    Attributes:
-        label (str): Human-readable label for logging.
-        priority (int): Priority for task selection; lower numbers = higher priority.
-        min_free_ratio (float): Minimum free thread ratio required before this task can start.
-    """
+    """Scheduling class defining priority (smaller == higher) and minimum free thread ratio required to start."""
 
     SYSTEM_CALL = ("syscall", 0, 0.0)
     CALLER_DEPTH_1 = ("depth1", 20, 0.7)
@@ -40,19 +33,7 @@ class SchedulingClass(Enum):
 
 @dataclass
 class ThreadTask:
-    """
-    Represents a single task to be executed in a ThreadHandler.
-
-    Attributes:
-        thread_function: The function to execute; must accept `stop_event`.
-        scheduling_class: Determines priority and resource constraints.
-        group: Logical group for collective stopping.
-        callback: Optional callback called with result.
-        args: Positional arguments for the thread function.
-        kwargs: Keyword arguments for the thread function.
-        status: Current status of the task (internal tracking).
-        priority: Cached priority from scheduling_class.
-    """
+    """Task submitted to ThreadHandler, carrying the function, scheduling metadata, and callback."""
 
     thread_function: Callable[..., Any]
     scheduling_class: SchedulingClass
@@ -113,6 +94,8 @@ class PrioritizedTask:
 
 
 class ThreadHandler:
+    """Schedules and dispatches tasks across a fixed thread pool, respecting priority and resource limits."""
+
     def __init__(self, max_threads: int = threading_config.MAX_THREADS):
         self.max_threads = max_threads
         self.queue = PriorityQueue()
@@ -152,10 +135,7 @@ class ThreadHandler:
                 print(e)
 
     def submit(self, thread_task: ThreadTask) -> TaskResult:
-        """
-        Submits a new task to the queue with a given priority.
-        Returns a TaskResult object to query task completion and result.
-        """
+        """Queues a task and returns a TaskResult to track completion."""
         result = TaskResult()
 
         prio_task = PrioritizedTask(thread_task, result)
@@ -166,13 +146,12 @@ class ThreadHandler:
         )
         return result
 
-    def __what_can_start(self) -> list[SchedulingClass | str]:
+    def __what_can_start(self) -> list[SchedulingClass]:
         """
         Returns all SchedulingClass values that are allowed to start based on the current system load.
-        If ThreadGroup.AI is included in the returned list, AI requests may be started.
         """
         free_ratio = (self.max_threads - self.active_threads) / self.max_threads
-        can_start: list[SchedulingClass | str] = [sc for sc in SchedulingClass if free_ratio > sc.min_free_ratio]
+        can_start: list[SchedulingClass] = [sc for sc in SchedulingClass if free_ratio > sc.min_free_ratio]
         return can_start
 
     def __dispatcher(self):
@@ -217,7 +196,7 @@ class ThreadHandler:
             thread.start()
 
     def __run_task(self, prio_task: PrioritizedTask):
-        """Runs the given funktion and sets the result and calls callback"""
+        """Executes the task, sets the result, calls the callback, and releases if present the semaphore."""
         try:
             output = prio_task.thread_task.thread_function(
                 *prio_task.thread_task.args,
@@ -241,8 +220,10 @@ class ThreadHandler:
                     prio_task.thread_task.semaphore.release()
 
     def get_active_count(self) -> int:
+        """Returns the number of currently running threads."""
         with self.lock:
             return self.active_threads
 
     def is_idle(self) -> bool:
+        """Returns True if no tasks are queued or running."""
         return self.queue.empty() and self.get_active_count() == 0

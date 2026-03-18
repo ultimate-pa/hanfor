@@ -14,6 +14,8 @@ from thread_handling.threading_core import ThreadHandler, ThreadTask, Scheduling
 
 @dataclass(slots=True)
 class ProviderEntry:
+    """Data structure for provider information"""
+
     maximum_concurrent_api_requests: int
     url: str
     api_key: str
@@ -27,41 +29,49 @@ class ProviderEntry:
 
 
 class AiCatalogPrinter:
+    """Prints AI provider catalog and model check results."""
+
     def __init__(self, catalog: dict[str, ProviderEntry]):
         self.__catalog = catalog
 
     def print_catalog(self):
-        print(f"{'='*40}")
+        """Logs all providers with their configuration."""
+        lines = ["\n" + "=" * 40]
         for provider, entry in self.__catalog.items():
-            print(f"{'-'*40}")
-            print(f"Provider: {provider}")
-            print(f"  max_request    {entry.maximum_concurrent_api_requests}")
-            print(f"  Semaphore:     {entry.semaphore}")
-            print(f"  URL:           {entry.url}")
-            print(f"  API Key:       {entry.api_key[:8]}...")
-            print(f"  API Methods:   {', '.join(entry.api_methods.keys()) if entry.api_methods else 'None'}")
-            print(f"  Models:")
+            lines.append("-" * 40)
+            lines.append(f"Provider: {provider}")
+            lines.append(f"  max_request    {entry.maximum_concurrent_api_requests}")
+            lines.append(f"  Semaphore:     {entry.semaphore}")
+            lines.append(f"  URL:           {entry.url}")
+            lines.append(f"  API Key:       {entry.api_key[:8]}...")
+            lines.append(f"  API Methods:   {', '.join(entry.api_methods.keys()) if entry.api_methods else 'None'}")
+            lines.append(f"  Models:")
             for model, description in entry.models.items():
-                print(f"    - {model}: {description}")
-            print(f"  Default Model: {entry.default_model}")
-        print(f"{'-'*40}")
-        print(f"  Default Provider: {ai_config.DEFAULT_PROVIDER}")
-        print(f"{'='*40}")
+                lines.append(f"    - {model}: {description}")
+            lines.append(f"  Default Model: {entry.default_model}")
+        lines.append("-" * 40)
+        lines.append(f"  Default Provider: {ai_config.DEFAULT_PROVIDER}")
+        lines.append("=" * 40)
+        logging.info("\n".join(lines))
 
     @staticmethod
     def print_check_results(results: dict[str, dict[str, dict[str, str]]]):
+        """Logs model check results grouped by provider and API method."""
+        lines = []
         for provider, methods in results.items():
-            print(f"\n{'='*40}")
-            print(f"Provider: {provider}")
+            lines.append("\n" + "=" * 40)
+            lines.append(f"Provider: {provider}")
             for method_name, models in methods.items():
-                print(f"  API Method: {method_name}")
+                lines.append(f"  API Method: {method_name}")
                 for model, status in models.items():
                     icon = "✓" if status == "ok" else "✗"
-                    print(f"    {icon} {model}: {status}")
-        print(f"{'='*40}")
+                    lines.append(f"    {icon} {model}: {status}")
+        lines.append("=" * 40)
+        logging.info("\n".join(lines))
 
 
 class AiCatalogTester:
+    """Tests all models of all providers against their registered API methods."""
 
     def __init__(self, catalog: dict[str, ProviderEntry]):
         self.__catalog = catalog
@@ -152,37 +162,15 @@ class AiRequest:
         api_method_name: Optional[str] = None,
         other_params: Optional[dict] = None,
     ) -> TaskResult:
-        """returns the ai_response and the status"""
+        """
+        Submits an AI query asynchronously. Returns a TaskResult to poll via .done() or block via .result().
+        Result is also delivered to the callback.
+        """
 
-        if not provider or provider not in self.__ai_model_catalog:
-            if provider:
-                logging.warning(f"Provider: {provider} not found, will use: {ai_config.DEFAULT_PROVIDER}")
-            provider = ai_config.DEFAULT_PROVIDER
-            if provider not in self.__ai_model_catalog:
-                raise ValueError(
-                    f"Default provider '{ai_config.DEFAULT_PROVIDER}' not found in catalog. Check your configuration."
-                )
-
+        provider = self.__resolve_provider(provider)
         provider_entry = self.__ai_model_catalog[provider]
-
-        if not model_name or model_name not in provider_entry.models:
-            if model_name:
-                logging.warning(f"Model: {model_name} not found, will use: {provider_entry.default_model}")
-            model_name = provider_entry.default_model
-            if model_name not in provider_entry.models:
-                raise ValueError(
-                    f"Default model '{provider_entry.default_model}' of provider '{provider}' not found in catalog. Check your configuration."
-                )
-
-        if not api_method_name or api_method_name not in provider_entry.api_methods:
-            if api_method_name:
-                logging.warning(f"API method: {api_method_name} not found, will use first available.")
-            method = next(iter(provider_entry.api_methods.values()), None)
-            if not method:
-                raise ValueError(f"No api method available for provider '{provider}'. Check your configuration.")
-        else:
-            method = provider_entry.api_methods[api_method_name]
-
+        model_name = self.__resolve_model(provider_entry, model_name)
+        method = self.__resolve_method(provider_entry, api_method_name)
         semaphore = provider_entry.semaphore
 
         ai_task = ThreadTask(
@@ -214,8 +202,40 @@ class AiRequest:
     def print_check_results(self, tested_catalog: dict[str, dict[str, dict[str, str]]]):
         self.__catalog_printer.print_check_results(tested_catalog)
 
+    def __resolve_provider(self, provider: Optional[str]) -> str:
+        if not provider or provider not in self.__ai_model_catalog:
+            if provider:
+                logging.warning(f"Provider: {provider} not found, will use: {ai_config.DEFAULT_PROVIDER}")
+            provider = ai_config.DEFAULT_PROVIDER
+            if provider not in self.__ai_model_catalog:
+                raise ValueError(f"Default provider '{ai_config.DEFAULT_PROVIDER}' not found in catalog.")
+        return provider
+
+    @staticmethod
+    def __resolve_model(provider_entry: ProviderEntry, model_name: Optional[str]) -> str:
+        if not model_name or model_name not in provider_entry.models:
+            if model_name:
+                logging.warning(f"Model: {model_name} not found, will use: {provider_entry.default_model}")
+            model_name = provider_entry.default_model
+            if model_name not in provider_entry.models:
+                raise ValueError(f"Default model '{provider_entry.default_model}' not found in catalog.")
+        return model_name
+
+    @staticmethod
+    def __resolve_method(provider_entry: ProviderEntry, api_method_name: Optional[str]) -> AiApiMethod:
+        if not api_method_name or api_method_name not in provider_entry.api_methods:
+            if api_method_name:
+                logging.warning(f"API method: {api_method_name} not found, will use first available.")
+            method = next(iter(provider_entry.api_methods.values()), None)
+            if not method:
+                raise ValueError(f"No api method available. Check your configuration.")
+        else:
+            method = provider_entry.api_methods[api_method_name]
+        return method
+
     @staticmethod
     def __build_catalog() -> dict[str, ProviderEntry]:
+        """Builds the provider catalog from ai_config."""
         return {provider: ProviderEntry(**data) for provider, data in ai_config.AI_PROVIDERS.items()}
 
     @staticmethod
@@ -245,6 +265,7 @@ class AiRequest:
         return methods
 
     def __register_api_methods(self):
+        """Assigns loaded API methods to matching providers in the catalog."""
         for name, method in self.__load_ai_api_methods():
             for provider in method.provider_names_which_work_with_api_method:
                 if provider not in self.__ai_model_catalog:
@@ -253,6 +274,7 @@ class AiRequest:
                 self.__ai_model_catalog[provider].api_methods[name] = method
 
     def __validate_catalog(self):
+        """Warns if any provider has no registered API method."""
         for provider, entry in self.__ai_model_catalog.items():
             if not entry.api_methods:
                 logging.warning(f"{provider} has no api method to use.")

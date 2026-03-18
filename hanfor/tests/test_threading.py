@@ -168,6 +168,6 @@ class TestThreadHandler(TestCase):
             )
             self.handler.submit(task)
         time.sleep(0.05)
-        self.assertEqual(len(self.handler.running_tasks), 6)
+        self.assertEqual(self.handler.get_active_count(), 6)
         time.sleep(0.1)
-        self.assertEqual(len(self.handler.running_tasks), 6)
+        self.assertEqual(self.handler.get_active_count(), 6)

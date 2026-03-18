@@ -1,7 +1,7 @@
 import logging
 import os
 import re
-import threading
+from threading import Event
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import List, Optional, Any
@@ -118,7 +118,7 @@ def new_variables_regenerate_highlighting(variables: set[Variable]) -> None:
 
 
 def generate_all_highlighted_desc(
-    new_variables: List[str], requirements: Optional[immutabledict[int | str, Any]], stop_event: threading.Event = None
+    new_variables: List[str], requirements: Optional[immutabledict[int | str, Any]], stop_event: Event = None
 ) -> None:
     """
     Regenerates highlighted descriptions for all requirements.
