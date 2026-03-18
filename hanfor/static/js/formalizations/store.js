@@ -28,15 +28,19 @@ export default class FormalizationStore {
 
   delete(type, id) {
     id = Number(id)
-
+    console.log("DELETE called with:", id, typeof id)
     const createdSet = this.getSet(this.created, type)
     const deletedSet = this.getSet(this.deleted, type)
-
+    console.log("createdSet BEFORE:", [...createdSet])
     if (createdSet.has(id)) {
+      console.log("Removing from created")
       createdSet.delete(id)
     } else {
+      console.log("Adding to deleted")
       deletedSet.add(id)
     }
+    console.log("createdSet AFTER:", [...createdSet])
+    console.log("deletedSet AFTER:", [...deletedSet])
   }
 
   isCreated(type, id) {
@@ -82,6 +86,7 @@ export default class FormalizationStore {
   commitDeletes(requirementId, type) {
     const requests = []
     const deletedSet = this.getSet(this.deleted, type)
+    console.log("Deleted set: ", deletedSet)
 
     deletedSet.forEach((id) => {
       requests.push(

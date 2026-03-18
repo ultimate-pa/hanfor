@@ -66,13 +66,14 @@ renderer.registerType("formalization", {
 renderer.registerType("variable", {
   defaults: {
     order: 0,
-    type: "variable",
-    text: "Variable: New Variable",
+    type: "bool",
+    text: "New Variable",
   },
   templateSelector: "#variable-template",
   afterRender: ($container) => {
     // autocomplete
     let type_input = $container.find(".variable-type")
+    const id = $container.closest(".accordion-item").data("id");
     type_input
       .autocomplete({
         minLength: 0,
@@ -86,7 +87,7 @@ renderer.registerType("variable", {
     name_input.on("input", function () {
       const newName = $(this).val().trim()
       const button = $container.closest(".accordion-item").find(".accordion-button")
-      button.text(newName ? newName : "New Variable")
+      button.text((newName ? newName : `New Variable ${id}`))
     })
   },
 })
@@ -556,6 +557,7 @@ function store_requirement(requirements_table) {
     Object.entries(formalizations).filter(([id]) => !store.isCreated("formalization", id)),
   )
   store.commitDeletes(req_id, "formalization")
+  store.commitDeletes(req_id, "variable")
   store.commitCreated(req_id)
   $.ajax({
     url: "api/req/update",
@@ -1348,8 +1350,6 @@ function add_formalization(formalizationData = {}) {
   update_vars()
   update_formalization()
   update_logs()
-  // TODO: this here has no affect, due to variables being hidden on creation
-  // this should be called on every change of the select option being changed
   bind_var_autocomplete()
   $("#requirement_modal").data({
     unsaved_changes: false,
