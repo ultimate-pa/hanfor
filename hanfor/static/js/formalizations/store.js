@@ -83,9 +83,13 @@ export default class FormalizationStore {
     const deletedSet = this.getSet(this.deleted, type)
 
     deletedSet.forEach((id) => {
-      requests.push($.post(`/api/req/formalizations/${requirementId}/delete/${id}`))
+      requests.push(
+        $.ajax({
+          url: `/api/req/formalizations/${requirementId}/delete/${id}`,
+          type: "DELETE",
+        }),
+      )
     })
-
     deletedSet.clear()
     return Promise.all(requests)
   }
