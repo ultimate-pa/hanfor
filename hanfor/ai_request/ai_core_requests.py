@@ -167,10 +167,10 @@ class AiRequest:
         Result is also delivered to the callback.
         """
 
-        provider = self.__resolve_provider(provider)
+        provider = self._resolve_provider(provider)
         provider_entry = self.__ai_model_catalog[provider]
-        model_name = self.__resolve_model(provider_entry, model_name)
-        method = self.__resolve_method(provider_entry, api_method_name)
+        model_name = self._resolve_model(provider_entry, model_name)
+        method = self._resolve_method(provider_entry, api_method_name)
         semaphore = provider_entry.semaphore
 
         ai_task = ThreadTask(
@@ -202,7 +202,7 @@ class AiRequest:
     def print_check_results(self, tested_catalog: dict[str, dict[str, dict[str, str]]]):
         self.__catalog_printer.print_check_results(tested_catalog)
 
-    def __resolve_provider(self, provider: Optional[str]) -> str:
+    def _resolve_provider(self, provider: Optional[str]) -> str:
         if not provider or provider not in self.__ai_model_catalog:
             if provider:
                 logging.warning(f"Provider: {provider} not found, will use: {ai_config.DEFAULT_PROVIDER}")
@@ -212,7 +212,7 @@ class AiRequest:
         return provider
 
     @staticmethod
-    def __resolve_model(provider_entry: ProviderEntry, model_name: Optional[str]) -> str:
+    def _resolve_model(provider_entry: ProviderEntry, model_name: Optional[str]) -> str:
         if not model_name or model_name not in provider_entry.models:
             if model_name:
                 logging.warning(f"Model: {model_name} not found, will use: {provider_entry.default_model}")
@@ -222,7 +222,7 @@ class AiRequest:
         return model_name
 
     @staticmethod
-    def __resolve_method(provider_entry: ProviderEntry, api_method_name: Optional[str]) -> AiApiMethod:
+    def _resolve_method(provider_entry: ProviderEntry, api_method_name: Optional[str]) -> AiApiMethod:
         if not api_method_name or api_method_name not in provider_entry.api_methods:
             if api_method_name:
                 logging.warning(f"API method: {api_method_name} not found, will use first available.")
