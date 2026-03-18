@@ -10,6 +10,7 @@ from guesser.guesser_registerer import REGISTERED_GUESSERS
 from hanfor_flask import current_app, nocache, HanforFlask
 from lib_core.data import (
     FormalizationOfType,
+    Formalization,
     Requirement,
     VariableCollection,
     SessionValue,
@@ -23,7 +24,6 @@ from lib_core.pattern.patterns_functions import VARIABLE_AUTOCOMPLETE_EXTENSION
 from lib_core.utils import (
     get_default_pattern_options,
     formalization_html,
-    formalizations_to_html,
     default_scope_options,
     prepare_patterns_for_jinja,
 )
@@ -92,7 +92,7 @@ def get_formalizations(rid):
     result = []
     for _, formalization in requirement.formalizations.items():
         formalization_repr = formalization.to_dict()
-        formalization_repr["type"] = "formalization"
+        formalization_repr["formalization_type"] = formalization.of_type()
         formalization_repr["text"] = formalization.get_string()
         result.append(formalization_repr)
     return result
@@ -128,7 +128,7 @@ def store_formalizations_drafts(rid, subtype, fid):
     if subtype_enum == FormalizationOfType.FORMALIZATION:
         if fid is None:
             return {"success": False, "errormsg": "Formalization has to have an id supplied"}
-        requirement.add_empty_formalization(int(fid))
+        requirement.add_formalization_with_id(Formalization(fid), fid)
         try:
             requirement.update_formalization(
                 int(fid),
@@ -152,7 +152,7 @@ def store_formalizations_drafts(rid, subtype, fid):
         if fid is None:
             return {"success": False, "errormsg": "Variable has to have a name for it to be registered"}
         logging.debug(f"Data set by the variable: {data}")
-
+        requirement.add_formalization_with_id(Variable(data["name"], data["type"], value=None), int(data["temp_id"]))
     if error:
         logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
         return {"success": False, "errormsg": error_msg}

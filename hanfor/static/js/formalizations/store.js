@@ -71,6 +71,7 @@ export default class FormalizationStore {
     const $nameInput = $card.find('input[aria-describedby="variable-name"]')
     data.name = $nameInput.val() || ""
     data.id = data.name
+    data.temp_id = id
 
     const $typeInput = $card.find("input.variable-type")
     data.type = $typeInput.val() || ""
