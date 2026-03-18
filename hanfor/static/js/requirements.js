@@ -43,7 +43,7 @@ renderer.registerType("formalization", {
   defaults: {
     order: 0,
     text: "// None, no pattern set",
-    type: "formalization",
+    formalization_type: "formalization",
     scope: "",
     pattern: "",
   },
@@ -67,7 +67,7 @@ renderer.registerType("formalization", {
 renderer.registerType("variable", {
   defaults: {
     order: 0,
-    type: "bool",
+    formalization_type: "variable",
     text: "New Variable",
   },
   templateSelector: "#variable-template",

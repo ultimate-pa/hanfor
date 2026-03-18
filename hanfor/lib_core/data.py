@@ -183,9 +183,11 @@ class Requirement:
         self.formalizations[fid] = Formalization(fid)
 
     def delete_formalization(self, formalization_id, variable_collection: "VariableCollection"):
+        logging.debug(f"Deleting currently the ID: {formalization_id}")
         formalization_id = int(formalization_id)
 
         # Remove formalization
+        logging.debug(f"This is it {self.formalizations[formalization_id]}")
         del self.formalizations[formalization_id]
         # Collect remaining vars.
         remaining_vars = set()
