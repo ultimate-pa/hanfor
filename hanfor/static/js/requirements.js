@@ -557,9 +557,10 @@ function store_requirement(requirements_table) {
   )
   store.commitDeletes(req_id, "formalization")
   store.commitCreated(req_id)
-  $.post(
-    "api/req/update",
-    {
+  $.ajax({
+    url: "api/req/update",
+    method: "PUT",
+    data: {
       id: req_id,
       row_idx: associated_row_id,
       update_formalization: updated_formalization,
@@ -567,22 +568,22 @@ function store_requirement(requirements_table) {
       status: req_status,
       formalizations: JSON.stringify(committedFormalizations),
       formalizations_order: JSON.stringify(load_order),
-    }, // Update requirements table on success or show an error message.
-    function (data) {
+    },
+    success: function (data) {
       requirement_modal_content.LoadingOverlay("hide", true)
+
       if (data["success"] === false) {
         alert(data["errormsg"])
       } else {
         requirements_table.row(associated_row_id).data(data)
 
-        //$('#requirement_modal').data('unsaved_changes', false).modal('hide');
         $("#requirement_modal").data("unsaved_changes", false)
 
         const requirement_modal = document.querySelector("#requirement_modal")
         Modal.getOrCreateInstance(requirement_modal).hide()
       }
     },
-  ).done(function () {
+  }).done(function () {
     update_logs()
   })
 }

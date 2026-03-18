@@ -157,7 +157,7 @@ def store_formalizations_drafts(rid, subtype, fid):
     return {"success": True}
 
 
-@api_blueprint.route("/update", methods=["POST"])
+@api_blueprint.route("/update", methods=["PUT"])
 @nocache
 def api_update():
     # Update a requirement
@@ -309,7 +309,7 @@ def api_multi_update():
 
 @api_blueprint.route(
     "/formalizations/<string:requirement_id>/delete/<int:formalization_id>",
-    methods=["POST"],
+    methods=["DELETE"],
 )
 @nocache
 def api_del_formalization(requirement_id, formalization_id):
