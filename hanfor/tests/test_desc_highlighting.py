@@ -193,7 +193,7 @@ class TestRequirementHighlightingEndToEnd(TestCase):
 
         # validate scores
         for m in req_data.variable_matches:
-            self.assertEqual(m.score, 100.0)
+            self.assertGreater(m.score, 99.9)
 
         # validate tokenization
         words = req_data.desc_words

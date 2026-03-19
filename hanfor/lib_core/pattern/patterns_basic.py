@@ -679,7 +679,7 @@ class Persistence(APattern):
         }
 
 
-class InvarianceDelay(APattern):
+class ConditionalResponseBoundL1(APattern):
 
     def __init__(self):
         super().__init__()
