@@ -1,0 +1,39 @@
+{
+  "root": {
+    "question": "Is the system primarily data-centric?",
+    "answers": [
+      {
+        "answer": "Yes",
+        "next": {
+          "question": "Do read operations dominate?",
+          "answers": [
+            {
+              "answer": "Yes",
+              "next": { "pattern": "Cache-Aside Pattern" }
+            },
+            {
+              "answer": "No",
+              "next": { "pattern": "Event Sourcing" }
+            }
+          ]
+        }
+      },
+      {
+        "answer": "No",
+        "next": {
+          "question": "Are there many external systems to integrate?",
+          "answers": [
+            {
+              "answer": "Yes",
+              "next": { "pattern": "API Gateway Pattern" }
+            },
+            {
+              "answer": "No",
+              "next": { "pattern": "Pipeline & Filter Pattern" }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
