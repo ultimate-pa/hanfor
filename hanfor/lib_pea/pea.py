@@ -8,6 +8,14 @@ from lib_pea.pea_operations import PeaOperationsMixin
 from lib_pea.transition import PhaseSetsTransition, Transition
 
 
+def print_location(l: Location):
+    return f"State: {l.label}, inv: {l.state_invariant}, c_inv: {l.clock_invariant}"
+
+
+def print_transition(t: Transition):
+    return f"Transition: {t.src.label if t.src is not None else 'INIT'} -> {t.dst.label}, grd: {t.guard}, rst: {list(t.resets)}"
+
+
 class Pea(PeaOperationsMixin):
     def __init__(
         self,
