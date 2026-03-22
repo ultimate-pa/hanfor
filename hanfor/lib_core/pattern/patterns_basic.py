@@ -434,6 +434,24 @@ class ResponseBoundL12(APattern):
         }
 
 
+class ResponseUnbounded(APattern):
+
+    def __init__(self):
+        super().__init__()
+        self._pattern_text: str = "it is always the case that if {R} holds, then {T} holds afterwards"
+        self.old_names = []
+        self._env: dict[str, list[str]] = {"R": ["bool"], "T": ["bool"]}
+        self.group: str = "Order"
+        self.order: int = 0
+        self._countertraces: dict[str, list[str]] = {
+            "GLOBALLY": ["true;⌈R⌉ ;⌈!R && !T⌉;true"],
+            "BEFORE": [],
+            "AFTER": [],
+            "BETWEEN": [],
+            "AFTER_UNTIL": [],
+        }
+
+
 class InvarianceBoundL2(APattern):
     group: str = "Real-time"
     order: int = 0
