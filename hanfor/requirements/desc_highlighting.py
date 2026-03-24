@@ -1,14 +1,19 @@
 import logging
 import os
 import re
+from threading import Event
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import List, Optional, Any
 from jinja2 import Environment, FileSystemLoader
 from rapidfuzz import process, fuzz
+
+from hanfor_flask import current_app
 from lib_core.data import Variable
 from bisect import bisect_left
 from immutabledict import immutabledict
+
+from thread_handling.threading_core import ThreadTask, SchedulingClass, ThreadGroup
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
 env = Environment(loader=FileSystemLoader(TEMPLATE_DIR), autoescape=False)
@@ -78,7 +83,17 @@ def changing_variables(variable_name_old: str, variable_name_new: str) -> None:
     """
     logging.info(f"Changing variable '{variable_name_old}' to '{variable_name_new}'")
     delete_variables([variable_name_old])
-    generate_all_highlighted_desc([variable_name_new], None)
+    current_app.thread_handler.submit(
+        ThreadTask(
+            generate_all_highlighted_desc,
+            SchedulingClass.SYSTEM_CALL,
+            ThreadGroup.VARIABLE_HIGHLIGHTING,
+            None,
+            None,
+            ([variable_name_new], None),
+            {},
+        )
+    )
 
 
 def new_variables_regenerate_highlighting(variables: set[Variable]) -> None:
@@ -89,11 +104,21 @@ def new_variables_regenerate_highlighting(variables: set[Variable]) -> None:
     variable_list = [v.name for v in variables]
     logging.info(f"Regenerating highlighting for new variables: {variable_list}")
     if variable_list:
-        generate_all_highlighted_desc(variable_list, None)
+        current_app.thread_handler.submit(
+            ThreadTask(
+                generate_all_highlighted_desc,
+                SchedulingClass.SYSTEM_CALL,
+                ThreadGroup.VARIABLE_HIGHLIGHTING,
+                None,
+                None,
+                (variable_list, None),
+                {},
+            )
+        )
 
 
 def generate_all_highlighted_desc(
-    new_variables: List[str], requirements: Optional[immutabledict[int | str, Any]]
+    new_variables: List[str], requirements: Optional[immutabledict[int | str, Any]], stop_event: Event = None
 ) -> None:
     """
     Regenerates highlighted descriptions for all requirements.
@@ -123,6 +148,7 @@ def generate_all_highlighted_desc(
                 desc_words_positions=word_positions,
                 desc_words=list(word_positions.keys()),
                 desc_words_starting_pos=sorted(pos[0] for positions in word_positions.values() for pos in positions),
+                highlighted_desc=requirement.description,
             )
 
     all_req_data = list(requirement_highlighting_data_per_req.values())
@@ -131,6 +157,8 @@ def generate_all_highlighted_desc(
 
     # (Re)compute variable matches and generate HTML
     for idx, req_data in enumerate(all_req_data, start=1):
+        if stop_event.is_set():
+            break
         exact_variables = []
         for plain_var, _ in variable_sets_list:
             plain_var_positions = [

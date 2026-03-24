@@ -92,6 +92,9 @@ FEATURE_TELEMETRY = False
 # Highlighting in description text
 FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING = False
 
+# AI
+FEATURE_AI = False
+
 ################################################################################
 #                               Miscellaneous                                  #
 ################################################################################
