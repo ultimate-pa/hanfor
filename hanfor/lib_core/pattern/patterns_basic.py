@@ -1,30 +1,13 @@
 from collections import defaultdict
-from functools import cache
-from typing import Iterable, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
-from lark import Tree
-from pysmt.fnode import FNode
-from pysmt.shortcuts import Iff, Not, is_sat
-
-from lib_core import boogie_parsing
-from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
-from lib_pea.countertrace import CountertraceTransformer
+from lib_pea.countertrace import Countertrace, CountertraceTransformer
+from lib_pea.formal_utils import get_expression_mapping_smt
 from lib_pea.utils import get_countertrace_parser
 
 if TYPE_CHECKING:
-    from lib_core.data import Formalization, Expression
+    from lib_core.data import Formalization
     from lib_core.data import VariableCollection
-
-
-SOLVER_NAME = "z3"
-LOGIC = "UFLIRA"
-
-################################################################################
-#                               Miscellaneous                                  #
-################################################################################
-# Additional static terms to be included into the autocomplete field.
-
-VARIABLE_AUTOCOMPLETE_EXTENSION = ["abs()"]
 
 
 class APattern:
@@ -33,7 +16,7 @@ class APattern:
         self._pattern_text: str = "is an empty Pattern"
         self.old_names: list[str] = []
         self._env: dict[str, list[str]] = {}
-        self.group: str = "Empty"
+        self.group: str = "Abstract"
         self.order: int = 0
         self._countertraces: dict[str, list[str]] = defaultdict(list)
 
@@ -51,26 +34,44 @@ class APattern:
         return scope in self._countertraces and self._countertraces[scope]
 
     def get_instanciated_countertraces(
-        self, scope: str, expressions: dict[str, FNode], others: list["APattern"]
-    ) -> list[Tree]:
-        cts: list[Tree] = []
+        self,
+        scope: str,
+        f: "Formalization",
+        other_f: list["Formalization"],
+        variable_collection: "VariableCollection",
+    ) -> list[Countertrace]:
+        return self._get_instanciated_coutertrace(scope, f, other_f, variable_collection)
+
+    def _get_instanciated_coutertrace(
+        self,
+        scope: str,
+        f: "Formalization",
+        other_f: list["Formalization"],
+        variable_collection: "VariableCollection",
+    ) -> list[Countertrace]:
+        cts = []
+        expr = get_expression_mapping_smt(f, variable_collection)
         for ct_str in self.get_countertraces(scope):
             ct_ast = get_countertrace_parser().parse(ct_str)
-            cts.append(CountertraceTransformer(expressions).transform(ct_ast))
-        return cts  # TODO: check that this is really a tree
+            cts.append(CountertraceTransformer(expr).transform(ct_ast))
+        return cts
 
-    @classmethod
-    @cache
-    def get_patterns(cls) -> dict[str, "APattern"]:
-        return {t.__name__: t() for t in APattern.__subclasses__()}
+    def get_patterns(self) -> dict[str, "APattern"]:
+        return {t.__name__: t() for t in self.__get_inheriting_pattern(self.__class__) if t().group != "Abstract"}
 
-    @classmethod
-    def get_pattern(cls, name: str) -> "APattern":
+    def __get_inheriting_pattern(self, t: type["APattern"]) -> set[type["APattern"]]:
+        result = set(t.__subclasses__())
+        for sub in t.__subclasses__():
+            result |= self.__get_inheriting_pattern(sub)
+        return result
+
+    def get_pattern(self, name: str) -> "APattern":
         # TODO: search in old names for compatibility reasons
-        if name in APattern.get_patterns():
-            return cls.get_patterns()[name]
-        by_old_name: dict[str, APattern] = dict()
-        for pattern in cls.get_patterns().values():
+        patterns = APattern().get_patterns()
+        if name in patterns:
+            return patterns[name]
+        by_old_name: dict[str, "APattern"] = dict()
+        for pattern in self.get_patterns().values():
             by_old_name.update({old_name: pattern for old_name in pattern.old_names})
         if name in by_old_name:
             return by_old_name[name]
@@ -79,92 +80,12 @@ class APattern:
     @classmethod
     def to_frontent_dict(cls) -> dict:
         result = dict()
-        for name, pattern in APattern.get_patterns().items():
+        for name, pattern in APattern().get_patterns().items():
             result[name] = {
                 "env": pattern._env,
                 "countertraces": pattern._countertraces,
             }
         return result
-
-
-class AAutomatonPattern:
-
-    def __init__(self):
-        pass
-
-    @classmethod
-    def get_target_location(cls, f: "Formalization", var_collection: "VariableCollection") -> "Expression":
-        """Return the expression identifying the successor.
-        Patterns might have a different placeholder assigned for the successor, so allow resolution here"""
-        return cls._get_letter(f, var_collection, "S")
-
-    @classmethod
-    def get_source_location(cls, f: "Formalization", var_collection: "VariableCollection") -> "Expression":
-        return cls._get_letter(f, var_collection, "R")
-
-    @classmethod
-    def _get_letter(cls, f: "Formalization", var_collection: "VariableCollection", letter: str) -> "Expression":
-        # TODO: importing boogie parsing here is not nice, get this stuff into the expressions or so
-        boogie_parser = boogie_parsing.get_parser_instance()
-        ast = boogie_parser.parse(f.expressions_mapping[letter].raw_expression)
-        return BoogiePysmtTransformer(set(var_collection.collection.values())).transform(ast)
-
-    @classmethod
-    def get_hull(
-        cls, formalization: "Formalization", other_f: Iterable["Formalization"], var_collection: "VariableCollection"
-    ) -> set["Formalization"]:
-        """Figure out what patterns belong to the automaton of `req`.
-        This is done by building the hull of all edges found until fixpoint.
-        Note: a location is part of an automaton iff there is another location exactly referencing that location as successor.
-        Successors where the location is a subset of another location are not regarded as this might be another automaton.
-        e.g.   x > 5 ---> x <= 5  and x > 5 && turbo ----> x <= 5 && turbo are not of the same automaton.
-        """
-        transitions_by_source = []
-        for f in other_f:
-            p_class = APattern.get_pattern(f.scoped_pattern.pattern.name)
-            if not isinstance(p_class, AAutomatonPattern):
-                continue
-            if isinstance(p_class, InitialLoc):
-                # add all transtions in the right direction
-                transitions_by_source.append((p_class.get_target_location(f, var_collection), f))
-            else:
-                # add all initial transitions in the opposite direction (as if they were sinks)
-                transitions_by_source.append((p_class.get_source_location(f, var_collection), f))
-
-        automaton = {formalization}
-        queue = [formalization]
-        while queue:
-            pivot = queue.pop()
-            pattern: AAutomatonPattern = APattern.get_pattern(pivot.scoped_pattern.pattern.name)  # noqa
-            successors = cls.__find_successors(
-                pattern.get_target_location(pivot, var_collection), transitions_by_source
-            )
-            for f in [f for f in successors if f not in automaton]:
-                automaton.add(f)
-                queue.append(f)
-            successors.clear()
-        return automaton
-
-    @classmethod
-    def __find_successors(
-        cls, location: "Expression", transitions_by_source: list[tuple["Expression", "Formalization"]]
-    ) -> list["Formalization"]:
-        successors = []
-        for source, formalization in transitions_by_source:
-            # Semantic check as location may be syntactically different in any reference (as it is written by hand).
-            if not is_sat(Not(Iff(location, source))):
-                successors.append(formalization)
-        # assert len(successors) <= 1
-        return successors
-
-    def get_formulas(self):
-        # TODO use formulas from paper to build formulas for any automaton pattern
-        pass
-
-
-################################################################################
-#                             Available patterns                               #
-################################################################################
 
 
 class NotFormalizable(APattern):
@@ -758,7 +679,7 @@ class Persistence(APattern):
         }
 
 
-class InvarianceDelay(APattern):
+class ConditionalResponseBoundL1(APattern):
 
     def __init__(self):
         super().__init__()
@@ -776,26 +697,6 @@ class InvarianceDelay(APattern):
             "BETWEEN": [],
             "AFTER_UNTIL": [],
         }
-
-
-class InitialLoc(APattern, AAutomatonPattern):
-
-    def __init__(self):
-        super().__init__()
-        self._pattern_text: str = "location {R} is an initial location"
-        self.old_names = ["InitialLoc "]
-        self._env: dict[str, list[str]] = {"R": ["bool"]}
-        self.group: str = "Automaton"
-        self.order: int = -1
-        self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
-
-    @classmethod
-    def get_source_location(cls, f: "Formalization", var_collection: "VariableCollection"):
-        raise Exception("There is no source location in an initial transition. Do not access this field here.")
-
-    @classmethod
-    def get_target_location(cls, f: "Formalization", var_collection: "VariableCollection") -> "Expression":
-        return cls._get_letter(f, var_collection, "R")
 
 
 class Toggle1(APattern):
@@ -857,176 +758,3 @@ class Existence(APattern):
         self._env: dict[str, list[str]] = {"R": ["bool"]}
         self.group: str = "Legacy"
         self.order: int = 1
-
-
-class ConditionalResponseBoundL1(APattern):
-
-    def __init__(self):
-        super().__init__()
-        self._pattern_text: str = (
-            "it is always the case that if {R} holds succeeded by {S} for at least {T} time units, then {U} holds afterwards"
-        )
-        self.old_names = ["InvarianceDelay"]
-        self._env: dict[str, list[str]] = {
-            "R": ["bool"],
-            "S": ["bool"],
-            "T": ["real"],
-            "U": ["bool"],
-        }
-        self.group: str = "Real-time"
-        self.order: int = 30
-        self._countertraces: dict[str, list[str]] = {
-            "GLOBALLY": ["true;⌈R⌉;⌈S⌉ ∧ ℓ ≥ T;⌈!U⌉;true"],
-            "BEFORE": [],
-            "AFTER": [],
-            "BETWEEN": [],
-            "AFTER_UNTIL": [],
-        }
-
-
-class Transition(AAutomatonPattern, APattern):
-
-    def __init__(self):
-        super().__init__()
-        self._pattern_text: str = "if in location {R} then transition to {S} is enabled ."
-        self.old_names = ["Transition"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"]}
-        self.group: str = "Automaton"
-        self.order: int = 0
-        self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
-
-
-class TransitionG(AAutomatonPattern, APattern):
-
-    def __init__(self):
-        super().__init__()
-        self._pattern_text: str = "if in location {R} then transition to {S} is enabled if guard {V} holds."
-        self.old_names = ["TransitionG"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "V": ["bool"]}
-        self.group: str = "Automaton"
-        self.order: int = 1
-        self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
-
-
-class TransitionLG(AAutomatonPattern, APattern):
-
-    def __init__(self):
-        super().__init__()
-        self._pattern_text: str = "if in location {R} for at least {T} transition to {S} is enabled if guard {V} holds."
-        self.old_names = ["TransitionLG"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"], "V": ["bool"]}
-        self.group: str = "Automaton"
-        self.order: int = 2
-        self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
-
-
-class TransitionUG(AAutomatonPattern, APattern):
-
-    def __init__(self):
-        super().__init__()
-        self._pattern_text: str = "if in location {R} for at most {T} transition to {S} is enabled if guard {V} holds."
-        self.old_names = ["TransitionUG"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"], "V": ["bool"]}
-        self.group: str = "Automaton"
-        self.order: int = 3
-        self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
-
-
-class TransitionL(AAutomatonPattern, APattern):
-
-    def __init__(self):
-        super().__init__()
-        self._pattern_text: str = "if in location {R} for at least {T} transition to {S} is enabled ."
-        self.old_names = ["TransitionL"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"]}
-        self.group: str = "Automaton"
-        self.order: int = 4
-        self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
-
-
-class TransitionU(AAutomatonPattern, APattern):
-
-    def __init__(self):
-        super().__init__()
-        self._pattern_text: str = "if in location {R} for at most {T} transition to {S} is enabled ."
-        self.old_names = ["TransitionU"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"]}
-        self.group: str = "Automaton"
-        self.order: int = 5
-        self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
-
-
-class TransitionE(AAutomatonPattern, APattern):
-
-    def __init__(self):
-        super().__init__()
-        self._pattern_text: str = "if in location {R} then transition to {S} if event {U} fires ."
-        self.old_names = ["TransitionE"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "U": ["bool"]}
-        self.group: str = "Automaton"
-        self.order: int = 6
-        self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
-
-
-class TransitionGE(AAutomatonPattern, APattern):
-
-    def __init__(self):
-        super().__init__()
-        self._pattern_text: str = "if in location {R} then transition to {S} if event {U} fires and guard {V} holds."
-        self.old_names = ["TransitionGE"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "V": ["bool"], "U": ["bool"]}
-        self.group: str = "Automaton"
-        self.order: int = 7
-        self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
-
-
-class TransitionLGE(AAutomatonPattern, APattern):
-
-    def __init__(self):
-        super().__init__()
-        self._pattern_text: str = (
-            "if in location {R} for at least {T} transition to {S} if event {U} fires and guard {V} holds."
-        )
-        self.old_names = ["TransitionLGE"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"], "V": ["bool"], "U": ["bool"]}
-        self.group: str = "Automaton"
-        self.order: int = 8
-        self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
-
-
-class TransitionUGE(AAutomatonPattern, APattern):
-
-    def __init__(self):
-        super().__init__()
-        self._pattern_text: str = (
-            "if in location {R} for at most {T} transition to {S} if event {U} fires and guard {V} holds."
-        )
-        self.old_names = ["TransitionUGE"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"], "V": ["bool"], "U": ["bool"]}
-        self.group: str = "Automaton"
-        self.order: int = 9
-        self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
-
-
-class TransitionLE(AAutomatonPattern, APattern):
-
-    def __init__(self):
-        super().__init__()
-        self._pattern_text: str = "if in location {R} for at least {T} transition to {S} if event {U} fires ."
-        self.old_names = ["TransitionLE"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"], "U": ["bool"]}
-        self.group: str = "Automaton"
-        self.order: int = 10
-        self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}
-
-
-class TransitionUE(AAutomatonPattern, APattern):
-
-    def __init__(self):
-        super().__init__()
-        self._pattern_text: str = "if in location {R} for at most {T} transition to {S} if event {U} fires ."
-        self.old_names = ["TransitionUE"]
-        self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"], "U": ["bool"]}
-        self.group: str = "Automaton"
-        self.order: int = 11
-        self._countertraces: dict[str, list[str]] = {"GLOBALLY": []}

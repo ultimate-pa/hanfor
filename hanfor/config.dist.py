@@ -89,6 +89,9 @@ FEATURE_QUICK_CHECKS = False
 # Telemetry
 FEATURE_TELEMETRY = False
 
+# Highlighting in description text
+FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING = False
+
 ################################################################################
 #                               Miscellaneous                                  #
 ################################################################################

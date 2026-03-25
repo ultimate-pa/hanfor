@@ -137,6 +137,7 @@ class TestInit(TestCase):
             "available_vars": [],
             "additional_static_available_vars": ["abs()"],
             "desc": "Dont worry, be happy",
+            "desc_highlighted": "Dont worry, be happy",
             "formal": [],
             "vars": [],
             "tags": [],
