@@ -67,6 +67,8 @@ class FormalizationOfType(Enum):
 # TODO: ask if this is something we actually want
 @runtime_checkable
 class FormalizationProtocol(Protocol):
+    order: int
+
     def to_dict(self, **kwargs) -> Dict[str, Any]: ...
     def get_string(self) -> str: ...
 
@@ -74,6 +76,9 @@ class FormalizationProtocol(Protocol):
 class BaseFormalization(ABC):
     def of_type(self) -> str:
         return self.__class__.__name__.lower()
+
+
+
 
 @DatabaseTable(TableType.Folder)
 @DatabaseID("rid", str)
@@ -662,6 +667,7 @@ class ScopedPattern:
 @DatabaseID("uuid", use_uuid=True)
 @DatabaseField("name", str)
 @DatabaseField("type", str)
+@DatabaseField("order", int, default=0)
 @DatabaseField("value", str)
 @DatabaseField("tags", set[Tag])
 @DatabaseField("script_results", str)
@@ -671,10 +677,11 @@ class ScopedPattern:
 class Variable(BaseFormalization):
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
 
-    def __init__(self, name: str, var_type: str | None, value: str | None):
+    def __init__(self, name: str, var_type: str | None, value: str | None, order: int | None):
         self.name: str = name
         self.type: str = var_type
         self.value: str = value
+        self.order: int = order
         # TODO: Show variables (e.g. typing errors) or remove tags from variables; show them or remove them
         self.tags: set[Tag] = set()
         self.script_results: str = ""
@@ -695,6 +702,7 @@ class Variable(BaseFormalization):
             "type": self.type,
             "const_val": self.value,
             "used_by": used_by,
+            "order": self.order,
             "tags": [tag.name for tag in self.get_tags()],
             "type_inference_errors": type_inference_errors,
             "constraints": [constraint.get_string() for constraint in self.get_constraints().values()],

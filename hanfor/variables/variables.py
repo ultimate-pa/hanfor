@@ -63,7 +63,7 @@ def api_get_constraints_html():
     )
     try:
         var = var_collection.collection[var_name]
-        var_dict = var.to_dict(var_collection.var_req_mapping)
+        var_dict = var.to_dict(var_req_mapping=var_collection.var_req_mapping)
         result["html"] = formalizations_to_html(current_app, var.constraints)
         result["type_inference_errors"] = var_dict["type_inference_errors"]
     except AttributeError:

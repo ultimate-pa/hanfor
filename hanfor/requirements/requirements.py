@@ -151,7 +151,7 @@ def store_formalizations_drafts(rid, subtype, fid):
         if fid is None:
             return {"success": False, "errormsg": "Variable has to have a name for it to be registered"}
         logging.debug(f"Data set by the variable: {data}")
-        requirement.add_formalization_with_id(Variable(data["name"], data["type"], value=None), int(data["temp_id"]))
+        requirement.add_formalization_with_id(Variable(data["name"], data["type"], value=None, order=int(data["temp_id"])), int(data["temp_id"]))
     if error:
         logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
         return {"success": False, "errormsg": error_msg}
@@ -169,6 +169,11 @@ def api_update():
     order = request.form.get("formalizations_order")
     order_dict = json.loads(order)
     logging.debug(order_dict)
+    variable_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
+    logging.debug(f"Variables retrieved {variable_collection.collection}")
+    # TODO: Can't track why here sometimes there is a dictionary size changed expection
     for idx, formalization in requirement.formalizations.items():
         formalization.order = order_dict.get(str(idx))
         logging.debug(f"Formalizaation of {idx} has order of {formalization.order}")
