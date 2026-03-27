@@ -238,7 +238,7 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
     # Run consistency checks.
     varcollection_consistency_check(flask_app, args)
 
-    if config.FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING:
+    if flask_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
         generate_all_highlighted_desc(
             VariableCollection(
                 flask_app.db.get_objects(Variable).values(),
