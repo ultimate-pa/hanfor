@@ -15,7 +15,8 @@ class ThreadGroup(Enum):
     AI = 0
     CLUSTERING = 1
     VARIABLE_HIGHLIGHTING = 2
-    OTHER = 3
+    PATTERN_PREDICTION = 3
+    OTHER = 4
 
 
 class SchedulingClass(Enum):

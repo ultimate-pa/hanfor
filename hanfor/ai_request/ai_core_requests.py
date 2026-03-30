@@ -155,7 +155,7 @@ class AiRequest:
     def ask_ai(
         self,
         prompt: str,
-        callback: Callable,
+        callback: Optional[Callable] = None,
         scheduling_class: SchedulingClass = SchedulingClass.SYSTEM_CALL,
         provider: Optional[str] = None,
         model_name: Optional[str] = None,
