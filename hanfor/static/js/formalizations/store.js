@@ -78,6 +78,8 @@ export default class FormalizationStore {
     data.temp_id = id
     const $typeInput = $card.find("input.variable-type")
     data.type = $typeInput.val() || ""
+    const $variableValue = $card.find("input.variable-value")
+    data.value = $variableValue.val() || ""
 
     return data
   }

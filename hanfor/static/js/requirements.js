@@ -95,6 +95,10 @@ renderer.registerType("variable", {
       .autocomplete({
         minLength: 0,
         source: AVAILABLE_TYPES,
+        select: function () {
+          // input value is updated after select, so we use setTimeout
+          setTimeout(toggle, 0)
+        },
       })
       .on("focus", function () {
         $(this).keydown()
@@ -106,6 +110,17 @@ renderer.registerType("variable", {
       const button = $container.closest(".accordion-item").find(".accordion-button")
       button.text(newName ? newName : `New Variable ${id}`)
     })
+    // value field needed
+    const $block = $container.closest(".accordion-item")
+    const $typeInput = $block.find(".variable-type")
+    const $valueGroup = $block.find(".variable-value-group")
+    function toggle() {
+      console.log("TOGGLE")
+      console.log($typeInput.val())
+      $valueGroup.toggleClass("d-none", $typeInput.val() !== "CONST")
+    }
+    toggle()
+    $typeInput.on("input change autocompleteselect", toggle)
   },
 })
 

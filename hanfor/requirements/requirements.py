@@ -151,7 +151,8 @@ def store_formalizations_drafts(rid, subtype, fid):
         if fid is None:
             return {"success": False, "errormsg": "Variable has to have a name for it to be registered"}
         logging.debug(f"Data set by the variable: {data}")
-        requirement.add_formalization_with_id(Variable(data["name"], data["type"], value=None, order=int(data["temp_id"])), int(data["temp_id"]))
+
+        requirement.add_formalization_with_id(Variable(data["name"], data["type"], value=data.get("value"), order=int(data["temp_id"])), int(data["temp_id"]))
     if error:
         logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
         return {"success": False, "errormsg": error_msg}

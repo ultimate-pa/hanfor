@@ -18,13 +18,19 @@
         Delete
       </button>
     </div>
-    <div class="input-group my-2">
-      <span class="input-group-text" id="variable-name" data-id="{{ id }}">Name</span>
-      <input type="text" class="form-control" aria-describedby="variable-name" value="{{ name }}" />
-    </div>
-    <div class="input-group mb-2">
-      <span class="input-group-text" id="variable-type" data-id="{{ id }}">Type</span>
-      <input type="text" class="form-control variable-type" aria-describedby="variable-type" value="{{ type }}"/>
+    <div class="variable-block">
+      <div class="input-group my-2">
+        <span class="input-group-text" id="variable-name" data-id="{{ id }}">Name</span>
+        <input type="text" class="form-control" aria-describedby="variable-name" value="{{ name }}" />
+      </div>
+      <div class="input-group mb-2">
+        <span class="input-group-text" id="variable-type" data-id="{{ id }}">Type</span>
+        <input type="text" class="form-control variable-type" aria-describedby="variable-type" value="{{ type }}" />
+      </div>
+      <div class="input-group mb-2 variable-value-group d-none">
+        <span class="input-group-text" id="variable-value" data-id="{{ id }}">Value</span>
+        <input type="text" class="form-control variable-value" aria-describedby="variable-value" value="{{ const_val }}" />
+      </div>
     </div>
   </div>
   <div class="container-fluid my-3">
