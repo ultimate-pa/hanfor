@@ -939,7 +939,7 @@ class VariableCollection:
     def add_var(self, var_name, variable=None) -> Variable:
         if not self.var_name_exists(var_name):
             if variable is None:
-                variable = Variable(var_name, None, None)
+                variable = Variable(var_name, None, None, order=0)
             logging.debug(f"Adding variable `{var_name}` to collection.")
             self.collection[variable.name] = variable
             self.new_vars.add(variable)

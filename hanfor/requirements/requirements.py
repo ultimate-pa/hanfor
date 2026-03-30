@@ -173,6 +173,7 @@ def api_update():
     variable_collection = VariableCollection(
         current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
     )
+    # TODO: How should handling variable updates be handled
     logging.debug(f"Variables retrieved {variable_collection.collection}")
     # TODO: Can't track why here sometimes there is a dictionary size changed expection
     for idx, formalization in requirement.formalizations.items():

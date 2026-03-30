@@ -114,13 +114,21 @@ renderer.registerType("variable", {
     const $block = $container.closest(".accordion-item")
     const $typeInput = $block.find(".variable-type")
     const $valueGroup = $block.find(".variable-value-group")
+    const $enumeratorsContainer = $block.find(".enumerators-container")
     function toggle() {
       console.log("TOGGLE")
       console.log($typeInput.val())
-      $valueGroup.toggleClass("d-none", $typeInput.val() !== "CONST")
+      $valueGroup.toggleClass("d-none", $typeInput.val() != "CONST")
+      $enumeratorsContainer.toggleClass("d-none", !$typeInput.val().startsWith("ENUM_"))
     }
     toggle()
     $typeInput.on("input change autocompleteselect", toggle)
+    // enumerators
+    const $addEnumBtn = $container.find(".add-enumerator-btn");
+    $addEnumBtn.off("click").on("click", function () {
+      const $container = $(this).closest(".enumerators-container").find(".enumerators-list");
+      add_enumerator_to_variable(this, $container);
+    });
   },
 })
 
@@ -128,6 +136,10 @@ renderer.registerType("variable", {
 $(document).on("change", ".scope_selector, .pattern_selector", function () {
   bind_var_autocomplete()
 })
+
+$(document).on("click", ".del_enum", function () {
+  $(this).closest(".enumerator-input").remove();
+});
 
 let available_tags = ["", "has_formalization"]
 let available_status = ["", "Todo", "Review", "Done"]
@@ -1894,6 +1906,19 @@ function fetch_available_guesses() {
     })
     modal_content.LoadingOverlay("hide", true)
   })
+}
+
+function add_enumerator_to_variable(button, $container, name = "", value = "") {
+  const enumerator_template = `
+    <div class="input-group enumerator-input my-2">
+      <span class="input-group-text">Name</span>
+      <input class="form-control enum_name_input" type="text" value="${name}">
+      <span class="input-group-text">Value</span>
+      <input class="form-control enum_value_input" type="number" step="any" value="${value}">
+      <button type="button" class="btn btn-danger del_enum">Delete</button>
+    </div>
+  `;
+  $container.append(enumerator_template);
 }
 
 function add_formalization_from_guess(scope, pattern, mapping) {

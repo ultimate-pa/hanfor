@@ -14,7 +14,7 @@ require('./bootstrap-confirm-button');
 let utils = require('./hanfor-utils');
 
 // Globals
-export let AVAILABLE_TYPES = ['CONST', 'ENUM_INT', 'ENUM_REAL', 'bool', 'real'];
+export let AVAILABLE_TYPES = ['CONST', 'ENUM_INT', 'ENUM_REAL', 'bool',];
 let search_autocomplete = [
     ":AND:",
     ":OR:",
