@@ -98,25 +98,27 @@ class ThreadHandler:
     """Schedules and dispatches tasks across a fixed thread pool, respecting priority and resource limits."""
 
     def __init__(self, max_threads: int = threading_config.MAX_THREADS):
-        self.max_threads = max_threads
-        self.queue = PriorityQueue()
-        self.lock = threading.Lock()
-        self.active_threads = 0
-        self.active_by_priority = {sc.priority: 0 for sc in SchedulingClass}
-        self.group_stop_events: dict[ThreadGroup, threading.Event] = {group: threading.Event() for group in ThreadGroup}
-        self.running_tasks: list[PrioritizedTask] = []
+        self._max_threads = max_threads
+        self.__queue: PriorityQueue[PrioritizedTask] = PriorityQueue()  # type: ignore
+        self.__lock = threading.Lock()
+        self.__active_threads = 0
+        self.__active_by_priority = {sc.priority: 0 for sc in SchedulingClass}
+        self.__group_stop_events: dict[ThreadGroup, threading.Event] = {
+            group: threading.Event() for group in ThreadGroup
+        }
+        self.__running_tasks: list[PrioritizedTask] = []
 
-        self.dispatcher_thread = threading.Thread(target=self.__dispatcher, daemon=True)
-        self.dispatcher_thread.start()
+        self.__dispatcher_thread = threading.Thread(target=self.__dispatcher, daemon=True)
+        self.__dispatcher_thread.start()
 
     def stop_group(self, group: ThreadGroup):
         """Stops an entire group of tasks, when running or in queue"""
-        with self.lock:
-            stop_event = self.group_stop_events[group]
+        with self.__lock:
+            stop_event = self.__group_stop_events[group]
             stop_event.set()
             remaining_tasks = []
-            while not self.queue.empty():
-                prio_task = self.queue.get_nowait()
+            while not self.__queue.empty():
+                prio_task = self.__queue.get_nowait()
                 if prio_task.thread_task.group != group:
                     remaining_tasks.append(prio_task)
                 else:
@@ -124,9 +126,9 @@ class ThreadHandler:
                         prio_task.result.set_result(None)
                     prio_task.thread_task.status = "terminated in queue"
             for prio_task in remaining_tasks:
-                self.queue.put(prio_task)
+                self.__queue.put(prio_task)
 
-        running_tasks_within_group = [t for t in self.running_tasks if t.thread_task.group == group]
+        running_tasks_within_group = [t for t in self.__running_tasks if t.thread_task.group == group]
         for running_task in running_tasks_within_group:
             try:
                 logging.info("Waiting for thread %s to terminate", running_task.thread_task)
@@ -140,8 +142,8 @@ class ThreadHandler:
         result = TaskResult()
 
         prio_task = PrioritizedTask(thread_task, result)
-        self.queue.put(prio_task)
-        queued = list(self.queue.queue)
+        self.__queue.put(prio_task)
+        queued = list(self.__queue.queue)
         logging.info(
             f"Queued tasks: {[ (t.priority, getattr(t.thread_task.thread_function, '__name__', str(t.thread_task.thread_function))) for t in queued ]}"
         )
@@ -151,7 +153,7 @@ class ThreadHandler:
         """
         Returns all SchedulingClass values that are allowed to start based on the current system load.
         """
-        free_ratio = (self.max_threads - self.active_threads) / self.max_threads
+        free_ratio = (self._max_threads - self.__active_threads) / self._max_threads
         can_start: list[SchedulingClass] = [sc for sc in SchedulingClass if free_ratio > sc.min_free_ratio]
         return can_start
 
@@ -164,25 +166,25 @@ class ThreadHandler:
 
         while True:
             selected_task = None
-            with self.queue.not_empty:
-                while not self.queue.queue:
-                    self.queue.not_empty.wait()
+            with self.__queue.not_empty:
+                while not self.__queue.queue:
+                    self.__queue.not_empty.wait()
 
-                with self.lock:
+                with self.__lock:
                     what_can_start = set(self.__what_can_start())
-                    for task in list(self.queue.queue):
+                    for task in list(self.__queue.queue):
                         thread_task = task.thread_task
 
                         if thread_task.scheduling_class in what_can_start:
                             if thread_task.semaphore is None or thread_task.semaphore.acquire(blocking=False):
                                 selected_task = task
-                                self.queue.queue.remove(selected_task)
+                                self.__queue.queue.remove(selected_task)
 
-                                self.active_threads += 1
-                                self.active_by_priority[selected_task.priority] = (
-                                    self.active_by_priority.get(selected_task.priority, 0) + 1
+                                self.__active_threads += 1
+                                self.__active_by_priority[selected_task.priority] = (
+                                    self.__active_by_priority.get(selected_task.priority, 0) + 1
                                 )
-                                self.running_tasks.append(selected_task)
+                                self.__running_tasks.append(selected_task)
                                 break
 
             if not selected_task:
@@ -201,7 +203,7 @@ class ThreadHandler:
         try:
             output = prio_task.thread_task.thread_function(
                 *prio_task.thread_task.args,
-                stop_event=self.group_stop_events[prio_task.thread_task.group],
+                stop_event=self.__group_stop_events[prio_task.thread_task.group],
                 **prio_task.thread_task.kwargs,
             )
             if prio_task.result:
@@ -213,18 +215,38 @@ class ThreadHandler:
             if prio_task.result:
                 prio_task.result.set_exception(e)
         finally:
-            with self.lock:
-                self.active_threads -= 1
-                self.active_by_priority[prio_task.thread_task.priority] -= 1
-                self.running_tasks.remove(prio_task)
+            with self.__lock:
+                self.__active_threads -= 1
+                self.__active_by_priority[prio_task.thread_task.priority] -= 1
+                self.__running_tasks.remove(prio_task)
                 if prio_task.thread_task.semaphore:
                     prio_task.thread_task.semaphore.release()
 
+    @staticmethod
+    def __prioritized_task_to_dict(task: PrioritizedTask) -> dict:
+        t = task.thread_task
+        return {
+            "function": t.thread_function.__name__,
+            "group": t.group.name,
+            "scheduling_class": t.scheduling_class.name,
+            "priority": t.priority,
+            "status": t.status,
+        }
+
+    def get_queue(self) -> list[dict]:
+        return [self.__prioritized_task_to_dict(task) for task in self.__queue.queue]
+
+    def get_running_tasks(self) -> list[dict]:
+        return [self.__prioritized_task_to_dict(task) for task in self.__running_tasks]
+
+    def get_max_threads(self) -> int:
+        return self._max_threads
+
     def get_active_count(self) -> int:
         """Returns the number of currently running threads."""
-        with self.lock:
-            return self.active_threads
+        with self.__lock:
+            return self.__active_threads
 
     def is_idle(self) -> bool:
         """Returns True if no tasks are queued or running."""
-        return self.queue.empty() and self.get_active_count() == 0
+        return self.__queue.empty() and self.get_active_count() == 0

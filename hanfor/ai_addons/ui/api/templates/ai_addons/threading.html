@@ -1,0 +1,40 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ai_addons.css') }}">
+<div class="page">
+  <h1>Thread Dashboard</h1>
+    <div class="section">
+      <div class="section-header"><span class="dot dot-g"></span>Debug</div>
+      <button id="btn-dummy" onclick="addDummyTask()">Add Dummy Task</button>
+    </div>
+
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Active Threads</div><div class="metric-value" id="m-active">—</div></div>
+    <div class="metric"><div class="metric-label">Free Threads</div><div class="metric-value" id="m-free">—</div></div>
+    <div class="metric"><div class="metric-label">In Queue</div><div class="metric-value" id="m-queue">—</div></div>
+    <div class="metric"><div class="metric-label">Max Threads</div><div class="metric-value" id="m-max">—</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><span class="dot dot-g"></span>Utilization</div>
+    <div class="bar-wrap"><div class="bar-fill" id="load-bar" style="width:0%"></div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="dot dot-g"></span>Groups
+    </div>
+
+    <div class="groups-wrap">
+      <div class="groups-row" id="groups-row"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><span class="dot dot-run"></span>Running Tasks</div>
+    <div class="hscroll"><div class="tasks-col" id="running-list"></div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><span class="dot dot-q"></span>Queue</div>
+    <div class="hscroll"><div class="tasks-col" id="queue-list"></div></div>
+  </div>
+</div>

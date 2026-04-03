@@ -10,7 +10,6 @@ from typing import Callable
 
 from terminaltables import DoubleTable
 
-from ai_addons.pattern_prediction.pattern_prediction import PatternPrediction
 from configuration.defaults import Color
 from configuration.tags import STANDARD_TAGS, FUNCTIONAL_TAGS
 import config
@@ -266,9 +265,6 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
 
     if flask_app.config["FEATURE_AI"]:
         flask_app.ai_request = AiRequest(flask_app.thread_handler)
-
-    pattern_predict = PatternPrediction(flask_app.thread_handler, flask_app.ai_request)
-    pattern_predict.predict_patterns_for_all_requirements(flask_app.db.get_objects(Requirement))
 
     return True
 

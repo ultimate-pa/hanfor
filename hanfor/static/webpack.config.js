@@ -18,7 +18,10 @@ const config = {
         ultimate: __dirname + '/../ultimate/static/ultimate.js',
         ultimate_tab: __dirname + '/../ultimate/static/ultimate-tab.js',
         telemetry: __dirname + '/../telemetry/static/telemetry.js',
-        telemetry_frontend: __dirname + '/../telemetry/static/telemetry_frontend.js'
+        telemetry_frontend: __dirname + '/../telemetry/static/telemetry_frontend.js',
+        ai_core_addons: __dirname + '/../ai_addons/ui/api/static/ai_core_addons.js',
+        threading: __dirname + '/../ai_addons/ui/api/static/threading.js',
+        ai: __dirname + '/../ai_addons/ui/api/static/ai.js'
     },
     output: {
         filename: '[name]-bundle.js',

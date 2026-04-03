@@ -53,7 +53,7 @@ class TestThreadHandler(TestCase):
         self.assertCountEqual(results, ["done"] * 15)
 
     def test_group_stop(self):
-        self.handler.max_threads = 1
+        self.handler._max_threads = 1
         task1 = ThreadTask(
             stopping_task, SchedulingClass.CALLER_DEPTH_1, ThreadGroup.OTHER, None, None, args=(500,), kwargs={}
         )
@@ -133,7 +133,7 @@ class TestThreadHandler(TestCase):
         self.assertCountEqual([r[1] for r in results], ["high", "low"])
 
     def test_group_stop_with_other_groups(self):
-        self.handler.max_threads = 5
+        self.handler._max_threads = 5
         task1 = ThreadTask(
             stopping_task,
             SchedulingClass.CALLER_DEPTH_1,

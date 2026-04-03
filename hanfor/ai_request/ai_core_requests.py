@@ -1,6 +1,7 @@
 from threading import Event, Semaphore
 from dataclasses import dataclass, field
-from typing import Optional, Callable
+from typing import Optional, Callable, Tuple
+
 from ai_request.ai_api_methods_abstract_class import AiApiMethod
 from configuration import ai_config
 
@@ -10,6 +11,13 @@ import logging
 import requests
 
 from thread_handling.threading_core import ThreadHandler, ThreadTask, SchedulingClass, ThreadGroup, TaskResult
+from enum import Enum
+
+
+class TestedActivity(Enum):
+    ACTIVE = 0
+    NOT_TESTED = 1
+    INACTIVE = 2
 
 
 @dataclass(slots=True)
@@ -19,112 +27,77 @@ class ProviderEntry:
     maximum_concurrent_api_requests: int
     url: str
     api_key: str
-    models: dict[str, str]
+    models: dict[str, Tuple[str, TestedActivity]]
     default_model: str
     api_methods: dict[str, AiApiMethod] = field(default_factory=dict)
+    activity: TestedActivity = TestedActivity.NOT_TESTED
     semaphore: Semaphore = field(init=False)
+    default_provider: bool = False
 
     def __post_init__(self):
         self.semaphore = Semaphore(self.maximum_concurrent_api_requests)
 
 
-class AiCatalogPrinter:
-    """Prints AI provider catalog and model check results."""
-
-    def __init__(self, catalog: dict[str, ProviderEntry]):
-        self.__catalog = catalog
-
-    def print_catalog(self):
-        """Logs all providers with their configuration."""
-        lines = ["\n" + "=" * 40]
-        for provider, entry in self.__catalog.items():
-            lines.append("-" * 40)
-            lines.append(f"Provider: {provider}")
-            lines.append(f"  max_request    {entry.maximum_concurrent_api_requests}")
-            lines.append(f"  Semaphore:     {entry.semaphore}")
-            lines.append(f"  URL:           {entry.url}")
-            lines.append(f"  API Key:       {entry.api_key[:8]}...")
-            lines.append(f"  API Methods:   {', '.join(entry.api_methods.keys()) if entry.api_methods else 'None'}")
-            lines.append(f"  Models:")
-            for model, description in entry.models.items():
-                lines.append(f"    - {model}: {description}")
-            lines.append(f"  Default Model: {entry.default_model}")
-        lines.append("-" * 40)
-        lines.append(f"  Default Provider: {ai_config.DEFAULT_PROVIDER}")
-        lines.append("=" * 40)
-        logging.info("\n".join(lines))
-
-    @staticmethod
-    def print_check_results(results: dict[str, dict[str, dict[str, str]]]):
-        """Logs model check results grouped by provider and API method."""
-        lines = []
-        for provider, methods in results.items():
-            lines.append("\n" + "=" * 40)
-            lines.append(f"Provider: {provider}")
-            for method_name, models in methods.items():
-                lines.append(f"  API Method: {method_name}")
-                for model, status in models.items():
-                    icon = "✓" if status == "ok" else "✗"
-                    lines.append(f"    {icon} {model}: {status}")
-        lines.append("=" * 40)
-        logging.info("\n".join(lines))
-
-
 class AiCatalogTester:
     """Tests all models of all providers against their registered API methods."""
 
-    def __init__(self, catalog: dict[str, ProviderEntry]):
-        self.__catalog = catalog
-
-    def check_all_models(self, stop_event: Event) -> dict[str, dict[str, dict[str, str]]]:
+    def check_all_models_activity(self, catalog: dict[str, ProviderEntry], stop_event: Event):
         """Tests every model of every provider with all registered api methods. Returns {provider: {method: {model: status}}}."""
-        results = {}
-        test_prompt = "Say 'ok'."
-
-        for provider_name, entry in self.__catalog.items():
+        print(catalog)
+        for provider_name, provider_entry in catalog.items():
             if stop_event.is_set():
-                break
+                return
+            self.activity_test_provider(provider_entry, stop_event)
 
-            results[provider_name] = {}
+    def activity_test_provider(self, provider_entry: ProviderEntry, stop_event: Event):
+        if not self.__is_reachable(provider_entry.url):
+            provider_entry.activity = TestedActivity.INACTIVE
+            for model_name, (desc, activity) in provider_entry.models.items():
+                if activity == TestedActivity.ACTIVE:
+                    provider_entry.models[model_name] = (desc, TestedActivity.NOT_TESTED)
+            return
 
-            if not self.__is_reachable(provider_name, entry, results):
-                continue
+        provider_entry.activity = TestedActivity.ACTIVE
 
-            if not entry.api_methods:
-                results[provider_name]["__no_api_method__"] = {"__no_model__": "error: no api method available"}
-                continue
+        if not provider_entry.api_methods:
+            provider_entry.activity = TestedActivity.NOT_TESTED
+            for model_name, (desc, activity) in provider_entry.models.items():
+                provider_entry.models[model_name] = (desc, TestedActivity.NOT_TESTED)
+            return
 
-            for method_name, method in entry.api_methods.items():
-                if stop_event.is_set():
-                    break
-                results[provider_name][method_name] = {}
-                for model_name in entry.models:
-                    if stop_event.is_set():
-                        break
-                    try:
-                        response, status = method.query_api(
-                            test_prompt, entry.url, entry.api_key, model_name, None, None
-                        )
-                        results[provider_name][method_name][model_name] = "ok" if response else f"error: {status}"
-                    except Exception as e:
-                        results[provider_name][method_name][model_name] = f"error: {e}"
-
-        return results
+        for model_name, (desc, activity) in provider_entry.models.items():
+            if stop_event.is_set():
+                return
+            self.activity_test_model(model_name, desc, provider_entry, stop_event)
 
     @staticmethod
-    def __is_reachable(provider_name: str, entry: ProviderEntry, results: dict) -> bool:
+    def activity_test_model(model_name: str, desc: str, provider_entry: ProviderEntry, stop_event: Event):
+        test_prompt = "Say 'ok'."
+        if len(provider_entry.api_methods) <= 0:
+            provider_entry.models[model_name] = (desc, TestedActivity.INACTIVE)
+            return
+        for _, method in provider_entry.api_methods.items():
+            if stop_event.is_set():
+                return
+            try:
+                response, status = method.query_api(
+                    test_prompt, provider_entry.url, provider_entry.api_key, model_name, None, None
+                )
+                if response:
+                    provider_entry.models[model_name] = (desc, TestedActivity.ACTIVE)
+                    return
+            except Exception:
+                pass
+        provider_entry.models[model_name] = (desc, TestedActivity.INACTIVE)
+
+    @staticmethod
+    def __is_reachable(url: str) -> bool:
         """Returns True if the provider URL is reachable, otherwise writes the error into results."""
         try:
-            requests.get(entry.url, timeout=3)
+            requests.get(url, timeout=3)
             return True
-        except requests.exceptions.ConnectionError:
-            results[provider_name]["__unreachable__"] = {
-                "__no_model__": f"error: '{provider_name}' is not reachable at {entry.url}"
-            }
-        except requests.exceptions.Timeout:
-            results[provider_name]["__unreachable__"] = {
-                "__no_model__": f"error: '{provider_name}' timed out at {entry.url}"
-            }
+        except:
+            pass
         return False
 
 
@@ -136,17 +109,15 @@ class AiRequest:
         self.__ai_model_catalog = self.__build_catalog()
         self.__register_api_methods()
         self.__validate_catalog()
-        self.__catalog_printer = AiCatalogPrinter(self.__ai_model_catalog)
-        self.__catalog_tester = AiCatalogTester(self.__ai_model_catalog)
+        self.__catalog_tester = AiCatalogTester()
 
-        self.print_catalog()
         self.__thread_handler.submit(
             ThreadTask(
                 self.check_all_models,
                 SchedulingClass.SYSTEM_CALL,
                 ThreadGroup.AI,
                 None,
-                self.print_check_results,
+                None,
                 (),
                 {},
             )
@@ -190,26 +161,45 @@ class AiRequest:
         )
         return self.__thread_handler.submit(ai_task)
 
-    def get_all_models(self) -> dict[str, ProviderEntry]:
+    def info_for_dashboard(self):
         return dict(self.__ai_model_catalog)
 
-    def check_all_models(self, stop_event: Event) -> dict[str, dict[str, dict[str, str]]]:
-        return self.__catalog_tester.check_all_models(stop_event)
+    def check_all_models(self, stop_event: Event):
+        self.__catalog_tester.check_all_models_activity(self.__ai_model_catalog, stop_event)
 
-    def print_catalog(self) -> None:
-        self.__catalog_printer.print_catalog()
+    def set_default_provider(self, set_provider_name_to_default: str):
+        if set_provider_name_to_default in self.__ai_model_catalog:
+            for provider_name, entry in self.__ai_model_catalog.items():
+                entry.default_provider = provider_name == set_provider_name_to_default
 
-    def print_check_results(self, tested_catalog: dict[str, dict[str, dict[str, str]]]):
-        self.__catalog_printer.print_check_results(tested_catalog)
+    def set_default_model(self, provider, set_model_name_to_default):
+        if provider in self.__ai_model_catalog:
+            if set_model_name_to_default in self.__ai_model_catalog[provider].models:
+                self.__ai_model_catalog[provider].default_model = set_model_name_to_default
+
+    def activity_test_provider(self, provider):
+        print(f"Test {provider}")
+        if provider in self.__ai_model_catalog:
+            self.__catalog_tester.activity_test_provider(self.__ai_model_catalog[provider], Event())
+
+    def activity_test_model(self, provider, model_name):
+        print(f"Test {provider}, {model_name}")
+        if provider in self.__ai_model_catalog:
+            if model_name in self.__ai_model_catalog[provider].models:
+                model = self.__ai_model_catalog[provider].models[model_name]
+                self.__catalog_tester.activity_test_model(
+                    model_name, model[0], self.__ai_model_catalog[provider], Event()
+                )
 
     def _resolve_provider(self, provider: Optional[str]) -> str:
-        if not provider or provider not in self.__ai_model_catalog:
-            if provider:
-                logging.warning(f"Provider: {provider} not found, will use: {ai_config.DEFAULT_PROVIDER}")
-            provider = ai_config.DEFAULT_PROVIDER
-            if provider not in self.__ai_model_catalog:
-                raise ValueError(f"Default provider '{ai_config.DEFAULT_PROVIDER}' not found in catalog.")
-        return provider
+        if provider and provider in self.__ai_model_catalog:
+            return provider
+        if provider:
+            logging.warning(f"Provider '{provider}' not found, using default provider from catalog.")
+        for name, entry in self.__ai_model_catalog.items():
+            if entry.default_provider:
+                return name
+        raise ValueError("No default provider defined in AI model catalog.")
 
     @staticmethod
     def _resolve_model(provider_entry: ProviderEntry, model_name: Optional[str]) -> str:
@@ -236,7 +226,14 @@ class AiRequest:
     @staticmethod
     def __build_catalog() -> dict[str, ProviderEntry]:
         """Builds the provider catalog from ai_config."""
-        return {provider: ProviderEntry(**data) for provider, data in ai_config.AI_PROVIDERS.items()}
+        catalog = {}
+
+        for provider, data in ai_config.AI_PROVIDERS.items():
+            models = {name: (desc, TestedActivity.NOT_TESTED) for name, desc in data["models"].items()}
+            catalog[provider] = ProviderEntry(**{**data, "models": models})
+            if ai_config.DEFAULT_PROVIDER == provider:
+                catalog[provider].default_provider = True
+        return catalog
 
     @staticmethod
     def __load_ai_api_methods() -> list[tuple[str, AiApiMethod]]:
