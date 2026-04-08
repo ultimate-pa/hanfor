@@ -1,68 +1,88 @@
-import json
 import logging
-from dataclasses import dataclass
+import random
 from threading import Event
 
 from ai_request.ai_core_requests import AiRequest
 from thread_handling.threading_core import SchedulingClass, ThreadTask, ThreadGroup, ThreadHandler
 
+import json
+from dataclasses import dataclass
+
 
 @dataclass
 class Option:
+    id: str
     answer: str
-    next_node: "Node | str"
+    next_node: "Node | Leaf"
+    parent: "Node"
 
 
 @dataclass
 class Node:
+    id: str
     question: str
     answers: list[Option]
+    parent: "Node | None" = None
+
+
+@dataclass
+class Leaf:
+    id: str
+    pattern: str
+    parent: "Node | None" = None
 
 
 class Tree:
+
     def __init__(self):
-        self.root: Node | None = None
+        self.root: Node | Leaf | None = None
+        self.id_map: dict[int, int] = {}
         self.load("hanfor/ai_addons/pattern_prediction/pattern_tree.json")
 
     def load(self, path: str) -> None:
         with open(path, encoding="utf-8") as f:
             data = json.load(f)
-        self.root = self._parse_node(data["root"])
 
-    def _parse_node(self, data: dict) -> "Node | str":
+        self.id_map[0] = 0
+        self.root = self._parse_node(data["root"], 0)
+
+    def _parse_node(self, data: dict, depth: int) -> Node | Leaf:
+        self.id_map.setdefault(depth, 0)
+        node_id = f"_D-{hex(depth)}_W-{hex(self.id_map[depth])}"
+
         if "pattern" in data:
-            return data["pattern"]
+            self.id_map[depth] += 1
+            return Leaf(id="p" + node_id, pattern=data["pattern"])
 
-        answers = []
-        for opt in data["answers"]:
-            answers.append(
-                Option(
-                    opt["answer"],
-                    self._parse_node(opt["next"]),
-                )
+        node = Node(id="q" + node_id, question=data["question"], answers=[])
+        self.id_map[depth] += 1
+        for ans in data.get("answers", []):
+            next_node = self._parse_node(ans["next"], depth + 1)
+            option = Option(
+                id=f"a{node_id}_{ans['answer'].replace(' ', '_')}",
+                answer=ans["answer"],
+                next_node=next_node,
+                parent=node,
             )
-        node = Node(data["question"], answers)
+            next_node.parent = node
+            node.answers.append(option)
         return node
 
-    def print(self, node: "Node | str" = None, prefix: str = "", is_last: bool = True) -> None:
+    def to_dict(self, node: "Node | Leaf | None" = None) -> dict:
+
         if node is None:
             node = self.root
 
-        connector = "└── " if is_last else "├── "
-        extension = "    " if is_last else "│   "
+        if isinstance(node, Leaf):
+            return {"id": node.id, "pattern": node.pattern}
 
-        if isinstance(node, str):
-            logging.info(prefix + connector + f"★ {node}")
-            return
-
-        logging.info(prefix + connector + node.question)
-
-        for i, option in enumerate(node.answers):
-            is_last_option = i == len(node.answers) - 1
-            option_connector = "└─ " if is_last_option else "├─ "
-            logging.info(prefix + extension + option_connector + f"[{option.answer}]")
-            child_prefix = prefix + extension + ("    " if is_last_option else "│   ")
-            self.print(option.next_node, child_prefix, True)
+        return {
+            "id": node.id,
+            "question": node.question,
+            "answers": [
+                {"answer": opt.answer, "id": opt.id, "next": self.to_dict(opt.next_node)} for opt in node.answers
+            ],
+        }
 
 
 class PatternPrediction:
@@ -87,6 +107,30 @@ class PatternPrediction:
 
     def print_pattern(self, result):
         print(result)
+
+    def predict_pattern_for_requirement_mock(self, req_id: str, req_desc: str, stop_event: Event):
+        node = self.prediction_tree.root
+        trace = []
+
+        while isinstance(node, Node):
+            if random.randint(0, 5) == 3:
+                break
+            answer_options = [o.answer for o in node.answers]
+
+            raw_scores = [random.random() for _ in answer_options]
+            total = sum(raw_scores)
+            result = {a: round(s / total, 3) for a, s in zip(answer_options, raw_scores)}
+
+            best_key = max(result, key=result.get)
+
+            trace.append({"nodeId": node.id, "question": node.question, "scores": result.copy(), "chosen": best_key})
+
+            for answer in node.answers:
+                if answer.answer == best_key:
+                    node = answer.next_node
+                    break
+
+        return req_id, node, trace
 
     def predict_pattern_for_requirement(self, req_id: str, req_desc: str, stop_event: Event):
         node = self.prediction_tree.root

@@ -76,7 +76,7 @@ function addonCard(a) {
         class="status-tag ${a.enabled ? "enabled" : "disabled"}"
         onclick="toggleAddon('${a.id}', ${!a.enabled})"
       >
-        ${a.enabled ? "aktiviert" : "deaktiviert"}
+        ${a.enabled ? "active" : "deactivate"}
       </button>
     </div>
 

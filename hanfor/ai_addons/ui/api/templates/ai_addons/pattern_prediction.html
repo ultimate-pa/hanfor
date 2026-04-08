@@ -1,0 +1,44 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ai_addons.css') }}">
+<div class="pattern-tree-page">
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="sep"></div>
+  <div id="trace-wrap">
+    <label>Requirement</label>
+    <div id="trace-dropdown">
+      <input id="trace-search" type="text" placeholder="Suche Trace…" autocomplete="off"/>
+      <div id="trace-list"></div>
+    </div>
+    <button id="clear-trace-btn">X Clear</button>
+    <button id="predict-pattern-btn" disabled>Predict Pattern</button>
+    <button id="predict-pattern-all-btn">Predict Pattern All</button>
+  </div>
+  <div id="legend">
+    <div class="leg-item"><div class="leg-dot" style="background:#4a4a46"></div>Question</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--success)"></div>Answer</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#2b6cb0"></div>Pattern</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--warning)"></div>Trace active</div>
+  </div>
+</div>
+
+<!-- CANVAS -->
+<div id="canvas-wrap">
+  <div id="canvas">
+    <svg id="tree-svg"></svg>
+  </div>
+</div>
+
+<!-- ZOOM CONTROLS -->
+<div id="zoom-controls">
+  <button class="zoom-btn" id="zoom-in">+</button>
+  <button class="zoom-btn" id="zoom-reset">o</button>
+  <button class="zoom-btn" id="zoom-out">-</button>
+</div>
+
+<!-- MINIMAP -->
+<div id="minimap">
+  <svg id="minimap-svg" width="160" height="100"></svg>
+  <div id="minimap-viewport"></div>
+</div>
+</div>

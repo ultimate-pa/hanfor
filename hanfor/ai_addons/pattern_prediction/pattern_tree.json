@@ -9,11 +9,41 @@
           "answers": [
             {
               "answer": "Yes",
-              "next": { "pattern": "Cache-Aside Pattern" }
+              "next": {
+                "question": "Is data shared across multiple services?",
+                "answers": [
+                  {
+                    "answer": "Yes",
+                    "next": {
+                      "question": "Do you need real-time invalidation?",
+                      "answers": [
+                        {
+                          "answer": "Yes",
+                          "next": {
+                            "question": "Is network latency a critical concern?",
+                            "answers": [
+                              { "answer": "Yes", "next": { "pattern": "Cache-Aside + CDN Pattern" } },
+                              { "answer": "No", "next": { "pattern": "Cache-Aside Pattern" } }
+                            ]
+                          }
+                        },
+                        {
+                          "answer": "No",
+                          "next": { "pattern": "Read-Through Cache Pattern" }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "answer": "No",
+                    "next": { "pattern": "Cache-Aside Pattern" }
+                  }
+                ]
+              }
             },
             {
               "answer": "No",
-              "next": { "pattern": "Event Sourcing" }
+              "next": { "pattern": "CQRS Pattern" }
             }
           ]
         }
@@ -25,15 +55,69 @@
           "answers": [
             {
               "answer": "Yes",
-              "next": { "pattern": "API Gateway Pattern" }
+              "next": {
+                "question": "Do external systems use different protocols?",
+                "answers": [
+                  {
+                    "answer": "Yes",
+                    "next": {
+                      "question": "Is rate limiting or auth centralized?",
+                      "answers": [
+                        {
+                          "answer": "Yes",
+                          "next": {
+                            "question": "Do clients need a unified API?",
+                            "answers": [
+                              { "answer": "Yes", "next": { "pattern": "API Gateway + BFF Pattern" } },
+                              { "answer": "No", "next": { "pattern": "API Gateway Pattern" } }
+                            ]
+                          }
+                        },
+                        {
+                          "answer": "No",
+                          "next": { "pattern": "Adapter Pattern" }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "answer": "No",
+                    "next": { "pattern": "Message Broker Pattern" }
+                  }
+                ]
+              }
             },
             {
               "answer": "No",
-              "next": { "pattern": "Pipeline & Filter Pattern" }
+              "next": {
+                "question": "Is the processing logic complex and multi-step?",
+                "answers": [
+                  {
+                    "answer": "Yes",
+                    "next": { "pattern": "Pipeline & Filter Pattern" }
+                  },
+                  {
+                    "answer": "No",
+                    "next": {
+                      "question": "Is the system event-driven?",
+                      "answers": [
+                        {
+                          "answer": "Yes",
+                          "next": { "pattern": "Pub/Sub Pattern" }
+                        },
+                        {
+                          "answer": "No",
+                          "next": { "pattern": "Layered Architecture" }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             },
             {
-              "answer": "mabye",
-              "next": { "pattern": "No Pattern" }
+              "answer": "maybe",
+              "next": { "pattern": "Strangler Fig Pattern" }
             }
           ]
         }

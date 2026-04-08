@@ -3,17 +3,18 @@
 {% block content %}
 <div class="card">
     <div class="card-header">
-        <ul id="tab-list" class="nav nav-tabs card-header-tabs" role="tablist">
+        <ul id="tab-list-ai" class="nav nav-tabs card-header-tabs" role="tablist">
             {% for name, page in tabs %}
+            {% set safe_id = page.replace('.html','').replace('/', '_') %}
             <li class="nav-item" role="presentation">
                 <button
                     class="nav-link {% if loop.first %}active{% endif %}"
-                    id="tab-{{ loop.index0 }}-btn"
+                    id="tab-{{ safe_id }}-btn"
                     data-bs-toggle="tab"
-                    data-bs-target="#tab-{{ loop.index0 }}"
+                    data-bs-target="#tab-{{ safe_id }}"
                     type="button"
                     role="tab"
-                    aria-controls="tab-{{ loop.index0 }}"
+                    aria-controls="tab-{{ safe_id }}"
                     aria-selected="{{ 'true' if loop.first else 'false' }}"
                 >{{ name }}</button>
             </li>
@@ -23,11 +24,12 @@
     <div class="card-body">
         <div id="tab-content" class="tab-content">
             {% for name, page in tabs %}
+            {% set safe_id = page.replace('.html','').replace('/', '_') %}
             <div
                 class="tab-pane fade {% if loop.first %}show active{% endif %}"
-                id="tab-{{ loop.index0 }}"
+                id="tab-{{ safe_id }}"
                 role="tabpanel"
-                aria-labelledby="tab-{{ loop.index0 }}-btn"
+                aria-labelledby="tab-{{ safe_id }}-btn"
             >
                 {% include page %}
             </div>

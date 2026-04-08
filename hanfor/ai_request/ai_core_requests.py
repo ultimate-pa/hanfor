@@ -43,7 +43,6 @@ class AiCatalogTester:
 
     def check_all_models_activity(self, catalog: dict[str, ProviderEntry], stop_event: Event):
         """Tests every model of every provider with all registered api methods. Returns {provider: {method: {model: status}}}."""
-        print(catalog)
         for provider_name, provider_entry in catalog.items():
             if stop_event.is_set():
                 return
@@ -178,12 +177,10 @@ class AiRequest:
                 self.__ai_model_catalog[provider].default_model = set_model_name_to_default
 
     def activity_test_provider(self, provider):
-        print(f"Test {provider}")
         if provider in self.__ai_model_catalog:
             self.__catalog_tester.activity_test_provider(self.__ai_model_catalog[provider], Event())
 
     def activity_test_model(self, provider, model_name):
-        print(f"Test {provider}, {model_name}")
         if provider in self.__ai_model_catalog:
             if model_name in self.__ai_model_catalog[provider].models:
                 model = self.__ai_model_catalog[provider].models[model_name]

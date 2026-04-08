@@ -337,3 +337,429 @@ h1 {
 
 .status-tag.disabled { background: #444; color: #ddd; }
 .status-tag.disabled:hover { background: #555; }
+
+
+
+/* -- TREE PAGE WRAPPER ----------------------------------------- */
+
+.pattern-tree-page{
+  display:flex;
+  flex-direction:column;
+  height:70vh;
+  overflow:hidden;
+  font-family:inherit;
+}
+
+/* -- TOPBAR --------------------------------------------------- */
+
+.toolbar-group{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.toolbar-group label{
+  font-size:11px;
+  color:var(--text-secondary);
+  text-transform:uppercase;
+}
+
+#topbar{
+  height:48px;
+  background:var(--bg-primary);
+  border-bottom:1px solid var(--border-t);
+  display:flex;
+  align-items:center;
+  padding:0 14px;
+  gap:12px;
+  border-radius: var(--radius-md);
+}
+
+#topbar h1{
+  font-size:13px;
+  font-weight:600;
+  letter-spacing:.08em;
+  color:var(--text-secondary);
+}
+
+.sep{
+  width:1px;
+  height:20px;
+  background:var(--border-t);
+}
+
+/* -- TRACE SELECTOR ------------------------------------------- */
+
+#trace-wrap{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+#trace-wrap label{
+  font-size:11px;
+  color:var(--text-secondary);
+  text-transform:uppercase;
+}
+
+#trace-dropdown{
+  position:relative;
+  color:var(--text-secondary);
+}
+
+#trace-search{
+  background:var(--bg-primary);
+  border:1px solid var(--border-t);
+  border-radius:var(--radius-md);
+  color:var(--text-secondary);
+  font-size:12px;
+  padding:4px 10px;
+  width:160px;
+  outline:none;
+}
+
+#trace-search:focus{
+  border-color:var(--success);
+}
+
+#trace-list{
+  z-index: 100;
+  display:none;
+  position:absolute;
+  top:calc(100% + 4px);
+  left:0;
+  background:var(--bg-primary);
+  border:1px solid var(--border-t);
+  border-radius:var(--radius-md);
+  min-width:220px;
+  max-height:260px;
+  overflow-y:auto;
+}
+
+.trace-id{
+  font-weight:600;
+  font-size:13px;
+  color:var(--text-secondary);
+}
+
+.trace-desc{
+  font-size:11px;
+  color:var(--text-secondary);
+  margin-top:2px;
+}
+
+.trace-pattern{
+  font-size:11px;
+  color:var(--danger);
+  margin-top:3px;
+}
+
+
+#trace-list.open{ display:block; }
+
+.trace-item{
+  padding:8px 10px;
+  font-size:12px;
+  cursor:pointer;
+  border-bottom:1px solid var(--border-t);
+}
+
+.trace-item:hover{
+  background:var(--bg-secondary);
+}
+
+.trace-item.active{
+  background:var(--success);
+  color:white;
+}
+
+.trace-item .trace-pattern{
+  font-size:10px;
+  opacity:.7;
+}
+
+#predict-pattern-btn{
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:var(--radius-md);
+  border:1px solid var(--border-t);
+  background:transparent;
+  cursor:pointer;
+  color:var(--text-secondary);
+}
+
+#predict-pattern-btn:hover{
+  border-color:var(--success);
+  color:var(--success);
+}
+
+#predict-pattern-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#predict-pattern-all-btn{
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:var(--radius-md);
+  border:1px solid var(--border-t);
+  background:transparent;
+  cursor:pointer;
+  color:var(--text-secondary);
+}
+
+#predict-pattern-all-btn:hover{
+  border-color:var(--success);
+  color:var(--success);
+}
+
+#clear-trace-btn{
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:var(--radius-md);
+  border:1px solid var(--border-t);
+  background:transparent;
+  cursor:pointer;
+  color:var(--text-secondary);
+}
+
+#clear-trace-btn:hover{
+  border-color:var(--danger);
+  color:var(--danger);
+}
+
+/* -- LEGEND --------------------------------------------------- */
+
+#legend{
+  margin-left:auto;
+  display:flex;
+  gap:12px;
+}
+
+.leg-item{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  font-size:10px;
+  color:var(--text-secondary);
+}
+
+.leg-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+}
+
+/* -- CANVAS AREA ---------------------------------------------- */
+
+#canvas-wrap{
+  flex:1;
+  position:relative;
+  overflow:hidden;
+  cursor:grab;
+}
+
+#canvas-wrap.dragging{
+  cursor:grabbing;
+}
+
+#canvas{
+  position:absolute;
+  transform-origin:0 0;
+}
+
+.trace-info-block {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  padding: 8px 12px;
+  background: var(--bg-primary);
+  border: var(--border-t);
+  border-radius: 5px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  font-size: 14px;
+  color: var(--text-secondary);
+  max-width: 300px;
+  max-height: 300px;
+  min-width: 30px;
+  min-height: 30px;
+  overflow: auto;
+
+  scrollbar-color: var(--border-t) var(--bg-primary);
+  scrollbar-width: thin;
+}
+
+.trace-info-block::-webkit-scrollbar {
+  width: 8px;
+}
+
+.trace-info-block::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+.trace-info-block::-webkit-scrollbar-thumb {
+  background: var(--border-t);
+  border-radius: 4px;
+}
+
+.trace-info-block::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+.trace-toggle-btn {
+  border: none;
+  background: transparent;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+/* -- ZOOM CONTROLS --------------------------------------------- */
+
+#zoom-controls{
+  position:absolute;
+  right:16px;
+  bottom:16px;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.zoom-btn{
+  width:30px;
+  height:30px;
+  background:var(--bg-primary);
+  border:1px solid var(--border-t);
+  border-radius:var(--radius-md);
+  cursor:pointer;
+  font-size:16px;
+  color:var(--text-secondary);
+}
+
+.zoom-btn:hover{
+  background:var(--bg-secondary);
+}
+
+/* -- SVG ------------------------------------------------------- */
+
+svg{
+  display:block;
+  overflow:visible;
+}
+
+/* -- TREE NODES ----------------------------------------------- */
+
+.node-q rect{
+  fill:var(--bg-primary);
+  stroke:var(--border-t);
+  stroke-width:1.5;
+  rx:8px;
+}
+
+.node-q text{
+  fill:var(--text-secondary);
+  font-size:14px;
+  font-weight: bold;
+}
+
+.node-a rect{
+  fill:var(--warning);
+  stroke:var(--warning);
+  rx:20px;
+}
+
+.node-a text{
+  fill:var(--text-secondary);
+  font-size:20px;
+  font-weight: bold;
+}
+
+.node-p rect{
+  fill: #274971;
+  stroke: #274971;
+  rx:8px;
+}
+
+.node-p text{
+  fill:var(--text-secondary);
+  font-size:14px;
+  font-weight: bold;
+}
+
+/* -- TRACE HIGHLIGHT ------------------------------------------ */
+
+.node-q.trace-active rect{
+  stroke:var(--success);
+  stroke-width:20;
+}
+
+.node-a.trace-active rect{
+  fill:var(--success);
+  stroke:var(--success);
+  stroke-width:10;
+}
+
+.node-a.trace-inactive rect{
+  stroke:var(--danger);
+  fill:var(--danger);
+  stroke-width:10.5;
+}
+
+.node-p.trace-active rect{
+  stroke-width:20;
+  stroke:var(--success);
+}
+
+/* -- PROBABILITY BADGE --------------------------------------- */
+
+.prob-badge rect{
+  fill:var(--warning);
+  rx:4px;
+}
+
+.prob-badge text{
+  fill:white;
+  font-size:16px;
+  font-weight:600;
+}
+
+/* -- EDGES --------------------------------------------------- */
+
+.edge{
+  fill:none;
+  stroke:var(--text-primary);
+  stroke-width:1.5;
+}
+
+.edge.trace-edge-active{
+  stroke:var(--success);
+  stroke-width:10.5;
+}
+
+.edge.trace-edge-inactive{
+  stroke:var(--danger);
+  stroke-width:10.5;
+}
+
+
+/* -- MINIMAP ------------------------------------------------- */
+
+#minimap{
+  position:absolute;
+  left:16px;
+  bottom:16px;
+  width:160px;
+  height:100px;
+  background: rgb(205 205 205 / 0.25);
+  border:2px solid rgb(0 0 0);
+  border-radius:var(--radius-md);
+  overflow:hidden;
+}
+
+#minimap-viewport{
+  position:absolute;
+  border:1px solid var(--success);
+  background: rgb(136 195 136 / 0.13);
+}

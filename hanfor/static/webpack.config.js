@@ -21,7 +21,8 @@ const config = {
         telemetry_frontend: __dirname + '/../telemetry/static/telemetry_frontend.js',
         ai_core_addons: __dirname + '/../ai_addons/ui/api/static/ai_core_addons.js',
         threading: __dirname + '/../ai_addons/ui/api/static/threading.js',
-        ai: __dirname + '/../ai_addons/ui/api/static/ai.js'
+        ai: __dirname + '/../ai_addons/ui/api/static/ai.js',
+        pattern_prediction: __dirname + '/../ai_addons/ui/api/static/pattern_prediction.js'
     },
     output: {
         filename: '[name]-bundle.js',

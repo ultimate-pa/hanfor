@@ -1,9 +1,12 @@
 import random
 import time
+from threading import Event
 
 from flask import Blueprint, render_template, jsonify, request
 
+from ai_addons.pattern_prediction.pattern_prediction import PatternPrediction, Leaf
 from hanfor_flask import current_app
+from lib_core.data import Requirement
 from thread_handling.threading_core import ThreadGroup, ThreadTask, SchedulingClass
 
 # Define the main blueprint for rendering the frontend
@@ -14,9 +17,14 @@ api_blueprint = Blueprint("api_ai_addons", __name__, url_prefix="/api/ai_addons"
 
 @blueprint.route("/", methods=["GET"])
 def index():
-    BUNDLE_JS = ["dist/ai_core_addons-bundle.js", "dist/threading-bundle.js", "dist/ai-bundle.js"]
-    tab_names = ["Threading", "AI"]
-    tab_pages = ["ai_addons/threading.html", "ai_addons/ai.html"]
+    BUNDLE_JS = [
+        "dist/ai_core_addons-bundle.js",
+        "dist/threading-bundle.js",
+        "dist/ai-bundle.js",
+        "dist/pattern_prediction-bundle.js",
+    ]
+    tab_names = ["Threading", "AI", "Pattern"]
+    tab_pages = ["ai_addons/threading.html", "ai_addons/ai.html", "ai_addons/pattern_prediction.html"]
     tabs = list(zip(tab_names, tab_pages))
     return render_template("ai_addons/index.html", BUNDLE_JS=BUNDLE_JS, tabs=tabs)
 
@@ -146,3 +154,39 @@ def threading_dummy_task():
     )
     current_app.thread_handler.submit(task)
     return threading_data()
+
+
+@blueprint.route("pattern_prediction/tree", methods=["GET"])
+def get_tree():
+
+    pattern_prediction = PatternPrediction(current_app.thread_handler, current_app.ai_request)
+    return jsonify(pattern_prediction.prediction_tree.to_dict(pattern_prediction.prediction_tree.root))
+
+
+@blueprint.route("pattern_prediction/req_ids", methods=["GET"])
+def get_req_ids():
+    return jsonify(list(current_app.db.get_objects(Requirement).keys()))
+
+
+@blueprint.route("pattern_prediction/trace", methods=["POST"])
+def get_trace():
+    payload = request.json
+    req_id = payload.get("req_id")
+    pattern_prediction = PatternPrediction(current_app.thread_handler, current_app.ai_request)
+    req = current_app.db.get_object(Requirement, req_id).to_dict()
+    req_id, final_node, trace = pattern_prediction.predict_pattern_for_requirement_mock(req["id"], req["desc"], Event())
+
+    steps = [{"nodeId": step["nodeId"], "answer": step["chosen"], "confidences": step["scores"]} for step in trace]
+    done = isinstance(final_node, Leaf)
+
+    if done:
+        steps.append({"nodeId": final_node.id, "answer": None, "confidences": {}})
+
+    return jsonify(
+        {
+            "id": req_id,
+            "desc": req["desc"],
+            "pattern": final_node.pattern if done else "calculating" if len(steps) > 0 else None,
+            "steps": steps,
+        }
+    )
