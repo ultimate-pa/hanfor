@@ -1,0 +1,39 @@
+{
+  "root": {
+    "question": "",
+    "answers": [
+      {
+      "answer": "Yes",
+      "next" : {
+        "question": "",
+        "answers": [
+          {
+          "answer": "Yes",
+          "next" : {}
+          },
+          {
+          "answer": "No",
+          "next" : {}
+          }
+        ]
+      }
+      },
+      {
+      "answer": "No",
+      "next" : {
+        "question": "",
+        "answers": [
+          {
+          "answer": "Yes",
+          "next" : {}
+          },
+          {
+          "answer": "No",
+          "next" : {}
+          }
+        ]
+      }
+      }
+    ]
+  }
+}

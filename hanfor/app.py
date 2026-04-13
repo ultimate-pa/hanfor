@@ -9,6 +9,8 @@ import subprocess
 
 from flask import jsonify
 from flask_socketio import SocketIO
+
+from ai_addons.ai_addon_handler import AiAddonData
 from hanfor_flask import HanforFlask
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import HTTPException
@@ -110,6 +112,8 @@ if app.config["FEATURE_QUICK_CHECKS"]:
 telemetry_namespace = TelemetryWs("/telemetry")
 socketio.on_namespace(telemetry_namespace)
 
+ai_addon_namespace = AiAddonData("/ai_addon_data")
+socketio.on_namespace(ai_addon_namespace)
 
 logging.basicConfig(
     format="[%(asctime)s %(filename)s:%(lineno)d] %(levelname)s - %(message)s",

@@ -1,3 +1,5 @@
+const {io} = require("socket.io-client")
+
 document.querySelectorAll('[data-bs-toggle="tab"]').forEach(btn => {
     btn.addEventListener("click", () => {
         document.querySelectorAll('[data-bs-toggle="tab"]').forEach(b => {
@@ -10,5 +12,24 @@ document.querySelectorAll('[data-bs-toggle="tab"]').forEach(btn => {
         btn.classList.add("active");
         btn.setAttribute("aria-selected", "true");
         document.querySelector(btn.dataset.bsTarget).classList.add("show", "active");
+    });
+});
+
+
+
+$(document).ready(function () {
+
+    // region Data handling from API
+
+    let ai_data;
+    let socket = io("/ai_addon_data", {
+      path: url_prefix + "/socket.io/"
+    });
+
+    socket.on('connect', () => console.log("Connected to AI Data WebSocket"));
+    socket.on('disconnect', () => console.log("Disconnected from AI Data WebSocket"));
+
+    socket.on('ai_update', (newData) => {
+        console.log("AI Update received:", newData);
     });
 });

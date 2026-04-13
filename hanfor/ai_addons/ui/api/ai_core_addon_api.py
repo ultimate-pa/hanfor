@@ -174,7 +174,7 @@ def get_trace():
     req_id = payload.get("req_id")
     pattern_prediction = PatternPrediction(current_app.thread_handler, current_app.ai_request)
     req = current_app.db.get_object(Requirement, req_id).to_dict()
-    req_id, final_node, trace = pattern_prediction.predict_pattern_for_requirement_mock(req["id"], req["desc"], Event())
+    req_id, final_node, trace = pattern_prediction.predict_pattern_for_requirement(req["id"], req["desc"], Event())
 
     steps = [{"nodeId": step["nodeId"], "answer": step["chosen"], "confidences": step["scores"]} for step in trace]
     done = isinstance(final_node, Leaf)

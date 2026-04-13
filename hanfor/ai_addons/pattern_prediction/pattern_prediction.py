@@ -158,7 +158,7 @@ class PatternPrediction:
 
             answer_options = [o.answer for o in node.answers]
 
-            task_results = [self.ai_request.ask_ai(query, None, SchedulingClass.CALLER_DEPTH_2) for _ in range(5)]
+            task_results = [self.ai_request.ask_ai(query, None, SchedulingClass.CALLER_DEPTH_2) for _ in range(10)]
 
             result = {a: 0 for a in answer_options}
 
@@ -184,8 +184,7 @@ class PatternPrediction:
                 result[k] /= len(task_results)
 
             best_key = max(result, key=result.get)
-
-            trace.append({"question": node.question, "scores": result.copy(), "chosen": best_key})
+            trace.append({"nodeId": node.id, "question": node.question, "scores": result.copy(), "chosen": best_key})
 
             for answer in node.answers:
                 if answer.answer == best_key:
