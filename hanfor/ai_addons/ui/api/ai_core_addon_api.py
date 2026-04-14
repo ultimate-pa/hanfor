@@ -3,7 +3,6 @@ import time
 from threading import Event
 from flask import Blueprint, render_template, jsonify, request
 
-from ai_addons.pattern_prediction.pattern_prediction import Leaf
 from hanfor_flask import current_app
 from lib_core.data import Requirement
 from thread_handling.threading_core import ThreadGroup, ThreadTask, SchedulingClass
@@ -160,26 +159,25 @@ def get_req_ids():
     return jsonify(list(current_app.db.get_objects(Requirement).keys()))
 
 
-@blueprint.route("pattern_prediction/trace", methods=["POST"])
-def get_trace():
+@blueprint.route("pattern_prediction/set_trace_sid", methods=["POST"])
+def set_trace_sid():
     payload = request.json
     req_id = payload.get("req_id")
     sid = payload.get("sid")
     pattern_prediction = current_app.ai_addons.get_addons()["pattern_prediction"]
     req = current_app.db.get_object(Requirement, req_id).to_dict()
-    req_id, final_node, trace = pattern_prediction.predict_pattern_for_requirement(req["id"], req["desc"], sid, Event())
+    pattern_prediction.set_sid_for_req(req_id, sid)
+    pattern_prediction.predict_pattern_for_requirement(req["id"], req["desc"], Event())
 
-    steps = [{"nodeId": step["nodeId"], "answer": step["chosen"], "confidences": step["scores"]} for step in trace]
-    done = isinstance(final_node, Leaf)
+    return "", 204
 
-    if done:
-        steps.append({"nodeId": final_node.id, "answer": None, "confidences": {}})
 
-    return jsonify(
-        {
-            "id": req_id,
-            "desc": req["desc"],
-            "pattern": final_node.pattern.get_text() if done else "calculating" if len(steps) > 0 else None,
-            "steps": steps,
-        }
-    )
+@blueprint.route("pattern_prediction/clear_trace_sid", methods=["POST"])
+def clear_trace_sid():
+    payload = request.json
+    req_id = payload.get("req_id")
+    sid = payload.get("sid")
+    pattern_prediction = current_app.ai_addons.get_addons()["pattern_prediction"]
+    pattern_prediction.clear_sid_for_req(req_id, sid)
+
+    return "", 204

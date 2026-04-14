@@ -355,22 +355,43 @@ async function applyTrace(requestId) {
   if (requestId === null) {
     applyTraceHighlighting(null);
     removeTraceInfoBlock();
+    await fetch('/ai_addons/ui/api/pattern_prediction/clear_trace_sid', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ req_id: requestId, sid: window.appSocket.id, }),
+    });
     return;
   }
 
-  const response = await fetch('/ai_addons/ui/api/pattern_prediction/trace', {
+  await fetch('/ai_addons/ui/api/pattern_prediction/set_trace_sid', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({ req_id: requestId, sid: window.appSocket.id, }),
   });
 
-  const traceData = await response.json();
-  console.log(traceData);
-
-  predictButton.disabled = traceData.pattern === "calculating";
-  applyTraceHighlighting(traceData);
-  renderTraceInfoBlock(traceData);
 }
+
+
+if (window.appSocket) {
+  window.appSocket.on('ai_update', (newData) => {
+    if (newData.trace) {
+      predictButton.disabled = newData.pattern === "calculating";
+      applyTraceHighlighting(newData.trace);
+      renderTraceInfoBlock(newData.trace);
+    }
+  });
+} else {
+  window.addEventListener('load', () => {
+    window.appSocket.on('ai_update', (newData) => {
+      if (newData.trace) {
+        predictButton.disabled = newData.pattern === "calculating";
+        applyTraceHighlighting(newData.trace);
+        renderTraceInfoBlock(newData.trace);
+      }
+    });
+  });
+}
+
 
 function removeTraceInfoBlock() {
   const existingBlock = document.getElementById('trace-info-block');

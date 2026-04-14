@@ -1,9 +1,6 @@
 import logging
-import random
 from threading import Event
-
 from flask_socketio import SocketIO
-
 from ai_addons.threading_ai_socketio import send_ai_update
 from ai_addons.ai_addon_handler import AiAddonAbstractClass
 from ai_request.ai_core_requests import AiRequest
@@ -99,6 +96,7 @@ class PatternPredictedRequirement:
     description: str
     trace: list[dict]
     pattern: APattern
+    final_node: "Leaf | None" = None
 
 
 class PatternPrediction(AiAddonAbstractClass):
@@ -109,6 +107,8 @@ class PatternPrediction(AiAddonAbstractClass):
         self.thread_handler = thread_handler
         self.ai_request = ai_request
         self.socketio = socketio
+        self.requirement_data: dict[str, PatternPredictedRequirement] = {}
+        self.socketio_data: dict[str, list[str]] = {}
 
     @property
     def addon_name(self) -> str:
@@ -118,8 +118,10 @@ class PatternPrediction(AiAddonAbstractClass):
     def addon_description(self) -> str:
         return "Using a decision tree, a requirement can be assigned to a pattern with the help of an AI."
 
-    def predict_patterns_for_all_requirements(self, requirements):
+    def predict_patterns_for_all_requirements(self, requirements, stop_event: Event):
         for req_id, requirement in requirements.items():
+            if stop_event.is_set():
+                break
             task = ThreadTask(
                 self.predict_pattern_for_requirement,
                 SchedulingClass.CALLER_DEPTH_1,
@@ -131,37 +133,53 @@ class PatternPrediction(AiAddonAbstractClass):
             )
             self.thread_handler.submit(task)
 
-    def predict_pattern_for_requirement_mock(self, req_id: str, req_desc: str, stop_event: Event):
+    def set_sid_for_req(self, req, sid):
+        if req not in self.socketio_data:
+            self.socketio_data[req] = []
+        self.socketio_data[req].append(sid)
+
+    def clear_sid_for_req(self, req, sid):
+        if req in self.socketio_data:
+            self.socketio_data[req].remove(sid)
+            if not self.socketio_data[req]:
+                self.socketio_data.pop(req)
+
+    def update_trace_frontend(self, req_id: str):
+        if req_id not in self.requirement_data:
+            return
+
+        pattern_data = self.requirement_data[req_id]
+
+        steps = [
+            {"nodeId": step["nodeId"], "answer": step["chosen"], "confidences": step["scores"]}
+            for step in pattern_data.trace
+        ]
+
+        if isinstance(pattern_data.final_node, Leaf):
+            steps.append({"nodeId": pattern_data.final_node.id, "answer": None, "confidences": {}})
+
+        payload = {
+            "trace": {
+                "id": req_id,
+                "desc": pattern_data.description,
+                "pattern": pattern_data.pattern.get_text(),
+                "steps": steps,
+            }
+        }
+
+        for sid in self.socketio_data.get(req_id, []):
+            send_ai_update(payload, self.socketio, sid)
+
+    def predict_pattern_for_requirement(self, req_id: str, req_desc: str, stop_event: Event):
         node = self.prediction_tree.root
         trace = []
 
         while isinstance(node, Node):
-            if random.randint(0, 5) == 3:
-                break
-            answer_options = [o.answer for o in node.answers]
+            if stop_event.is_set():
+                self.requirement_data[req_id] = PatternPredictedRequirement(req_id, req_desc, trace, APattern(), None)
+                self.update_trace_frontend(req_id)
+                return
 
-            raw_scores = [random.random() for _ in answer_options]
-            total = sum(raw_scores)
-            result = {a: round(s / total, 3) for a, s in zip(answer_options, raw_scores)}
-
-            best_key = max(result, key=result.get)
-
-            trace.append({"nodeId": node.id, "question": node.question, "scores": result.copy(), "chosen": best_key})
-
-            for answer in node.answers:
-                if answer.answer == best_key:
-                    node = answer.next_node
-                    break
-
-        return req_id, node, trace
-
-    def predict_pattern_for_requirement(self, req_id: str, req_desc: str, sid: str, stop_event: Event):
-        node = self.prediction_tree.root
-        trace = []
-        send_ai_update({"123": "456"}, self.socketio)
-        send_ai_update({"123": "1241235134513461346"}, self.socketio, sid)
-
-        while isinstance(node, Node):
             options = "\n".join(f"{o.answer}" for o in node.answers)
 
             trace_context = ""
@@ -195,6 +213,14 @@ class PatternPrediction(AiAddonAbstractClass):
             result = {a: 0 for a in answer_options}
 
             for task_result in task_results:
+
+                if stop_event.is_set():
+                    self.requirement_data[req_id] = PatternPredictedRequirement(
+                        req_id, req_desc, trace, APattern(), None
+                    )
+                    self.update_trace_frontend(req_id)
+                    return
+
                 ai_response = task_result.result()[0]
                 if not ai_response:
                     continue
@@ -218,9 +244,13 @@ class PatternPrediction(AiAddonAbstractClass):
             best_key = max(result, key=result.get)
             trace.append({"nodeId": node.id, "question": node.question, "scores": result.copy(), "chosen": best_key})
 
+            self.requirement_data[req_id] = PatternPredictedRequirement(req_id, req_desc, trace, APattern(), None)
+            self.update_trace_frontend(req_id)
+
             for answer in node.answers:
                 if answer.answer == best_key:
                     node = answer.next_node
                     break
 
-        return req_id, node, trace
+        self.requirement_data[req_id] = PatternPredictedRequirement(req_id, req_desc, trace, node.pattern, node)
+        self.update_trace_frontend(req_id)
