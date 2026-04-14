@@ -23,6 +23,41 @@ let nodeRegistry = {};  // flat map of all nodes by their ID, built during layou
 
 const predictButton = document.getElementById('predict-pattern-btn');
 
+// --- HELPERS ------------------------------------------------------------------
+
+/**
+ * Splits a long label into wrapped lines that fit within the given width.
+ */
+function wrapTextIntoLines(lines, nodeWidth) {
+  const maxCharWidth = nodeWidth - 16;
+  const result = [];
+
+  lines.forEach(line => {
+    const words = line.split(' ');
+    let currentLine = '';
+
+    words.forEach(word => {
+      const candidate = currentLine ? `${currentLine} ${word}` : word;
+      if (candidate.length * 7 > maxCharWidth && currentLine) {
+        result.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = candidate;
+      }
+    });
+
+    if (currentLine) result.push(currentLine);
+  });
+
+  return result;
+}
+
+function calcDynamicHeight(text, nodeWidth, minHeight, topPad, lineHeight, bottomPad) {
+  const lines = wrapTextIntoLines([text], nodeWidth);
+  const textHeight = lines.length * lineHeight;
+  return Math.max(minHeight, topPad + textHeight + bottomPad);
+}
+
 // --- LAYOUT ENGINE ------------------------------------------------------------
 
 /**
@@ -59,11 +94,21 @@ function calculateNodePositions(node, offsetX, depth) {
   if (node.pattern !== undefined) {
     node._x = offsetX;
     node._y = rowY;
+    node._height = calcDynamicHeight(
+      node.pattern, PATTERN_NODE_WIDTH,
+      PATTERN_NODE_HEIGHT, 14, 15, 10
+    );
     return PATTERN_NODE_WIDTH;
   }
 
   // Question node - recursively lay out children first, then center parent
   if (node.answers) {
+    // Calculate dynamic height for this question node
+    node._height = calcDynamicHeight(
+      node.question, QUESTION_NODE_WIDTH,
+      QUESTION_NODE_HEIGHT, 10, 15, 10
+    );
+
     let totalWidth  = 0;
     const childCenterXs = [];
 
@@ -108,7 +153,7 @@ function renderTree() {
   Object.values(nodeRegistry).forEach(node => {
     if (node._x === undefined) return;
     const w = node.pattern  ? PATTERN_NODE_WIDTH  : (node.answers ? QUESTION_NODE_WIDTH  : ANSWER_NODE_WIDTH);
-    const h = node.pattern  ? PATTERN_NODE_HEIGHT : (node.answers ? QUESTION_NODE_HEIGHT : ANSWER_NODE_HEIGHT);
+    const h = node._height  ?? (node.pattern ? PATTERN_NODE_HEIGHT : (node.answers ? QUESTION_NODE_HEIGHT : ANSWER_NODE_HEIGHT));
     minX = Math.min(minX, node._x);
     maxX = Math.max(maxX, node._x + w);
     minY = Math.min(minY, node._y);
@@ -154,8 +199,10 @@ function drawEdge(parentGroup, fromNode, toNode, edgeType) {
   let x1, y1, x2, y2;
 
   if (edgeType === 'question-to-answer') {
+    // Use the dynamic height of the question node as the bottom edge
+    const fromHeight = fromNode._height ?? QUESTION_NODE_HEIGHT;
     x1 = fromNode._x + QUESTION_NODE_WIDTH / 2;
-    y1 = fromNode._y + QUESTION_NODE_HEIGHT;
+    y1 = fromNode._y + fromHeight;
     x2 = toNode._x  + ANSWER_NODE_WIDTH / 2;
     y2 = toNode._y;
   } else {
@@ -198,49 +245,26 @@ function drawNodes(parentGroup, node) {
   }
 }
 
-/**
- * Splits a long label into wrapped lines that fit within the given width.
- */
-function wrapTextIntoLines(lines, nodeWidth) {
-  const maxCharWidth = nodeWidth - 16;
-  const result = [];
-
-  lines.forEach(line => {
-    const words = line.split(' ');
-    let currentLine = '';
-
-    words.forEach(word => {
-      const candidate = currentLine ? `${currentLine} ${word}` : word;
-      if (candidate.length * 7 > maxCharWidth && currentLine) {
-        result.push(currentLine);
-        currentLine = word;
-      } else {
-        currentLine = candidate;
-      }
-    });
-
-    if (currentLine) result.push(currentLine);
-  });
-
-  return result;
-}
-
 function drawQuestionNode(parentGroup, node) {
   const group = document.createElementNS(SVG_NS, 'g');
   group.setAttribute('class', 'node-q');
   group.setAttribute('data-node-id', node.id);
 
+  const nodeHeight = node._height ?? QUESTION_NODE_HEIGHT;
+  const LINE_HEIGHT = 15;
+  const wrappedLines = wrapTextIntoLines([node.question], QUESTION_NODE_WIDTH);
+
   const rect = document.createElementNS(SVG_NS, 'rect');
   rect.setAttribute('x',      node._x);
   rect.setAttribute('y',      node._y);
   rect.setAttribute('width',  QUESTION_NODE_WIDTH);
-  rect.setAttribute('height', QUESTION_NODE_HEIGHT);
+  rect.setAttribute('height', nodeHeight);
   rect.setAttribute('rx', 8);
   group.appendChild(rect);
 
-  const LINE_HEIGHT = 15;
-  const wrappedLines = wrapTextIntoLines([node.question], QUESTION_NODE_WIDTH);
-  const startY = node._y + QUESTION_NODE_HEIGHT / 2 - (wrappedLines.length * LINE_HEIGHT) / 2 + 10;
+  // Vertically center the text block within the node
+  const totalTextHeight = wrappedLines.length * LINE_HEIGHT;
+  const startY = node._y + (nodeHeight - totalTextHeight) / 2 + LINE_HEIGHT;
 
   wrappedLines.forEach((line, index) => {
     const textEl = document.createElementNS(SVG_NS, 'text');
@@ -269,7 +293,7 @@ function drawAnswerNode(parentGroup, answer) {
 
   const textEl = document.createElementNS(SVG_NS, 'text');
   textEl.setAttribute('x', answer._x + ANSWER_NODE_WIDTH / 2);
-  textEl.setAttribute('y', answer._y + ANSWER_NODE_HEIGHT / 2+7);
+  textEl.setAttribute('y', answer._y + ANSWER_NODE_HEIGHT / 2 + 7);
   textEl.setAttribute('text-anchor', 'middle');
   textEl.textContent = answer.answer;
   group.appendChild(textEl);
@@ -282,26 +306,30 @@ function drawPatternNode(parentGroup, node) {
   group.setAttribute('class', 'node-p');
   group.setAttribute('data-node-id', node.id);
 
+  const nodeHeight = node._height ?? PATTERN_NODE_HEIGHT;
+  const LINE_HEIGHT = 15;
+  const wrappedLines = wrapTextIntoLines([node.pattern], PATTERN_NODE_WIDTH);
+
   const rect = document.createElementNS(SVG_NS, 'rect');
   rect.setAttribute('x',      node._x);
   rect.setAttribute('y',      node._y);
   rect.setAttribute('width',  PATTERN_NODE_WIDTH);
-  rect.setAttribute('height', PATTERN_NODE_HEIGHT);
+  rect.setAttribute('height', nodeHeight);
   rect.setAttribute('rx', 8);
   group.appendChild(rect);
 
-  // Small "PATTERN" category label above the content
+  // Small "PATTERN" category label at the top
   const categoryLabel = document.createElementNS(SVG_NS, 'text');
   categoryLabel.setAttribute('x', node._x + PATTERN_NODE_WIDTH / 2);
-  categoryLabel.setAttribute('y', node._y + 18);
+  categoryLabel.setAttribute('y', node._y + 14);
   categoryLabel.setAttribute('text-anchor', 'middle');
   categoryLabel.setAttribute('fill', '#607899');
   categoryLabel.setAttribute('font-size', '9');
   group.appendChild(categoryLabel);
 
-  const LINE_HEIGHT = 15;
-  const wrappedLines = wrapTextIntoLines([node.pattern], PATTERN_NODE_WIDTH);
-  const startY = node._y + 32;
+  // Vertically center the text block within the node
+  const totalTextHeight = wrappedLines.length * LINE_HEIGHT;
+  const startY = node._y + (nodeHeight - totalTextHeight) / 2 + LINE_HEIGHT;
 
   wrappedLines.forEach((line, index) => {
     const textEl = document.createElementNS(SVG_NS, 'text');
@@ -333,7 +361,7 @@ async function applyTrace(requestId) {
   const response = await fetch('/ai_addons/ui/api/pattern_prediction/trace', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ req_id: requestId }),
+    body:    JSON.stringify({ req_id: requestId, sid: window.appSocket.id, }),
   });
 
   const traceData = await response.json();
@@ -466,7 +494,6 @@ function applyTraceHighlighting(traceData) {
 
         const nextNodeId = traceData.steps[stepIndex + 1]?.nodeId;
         if (nextNodeId) {
-
           const answerEdgeFromId = answerNode.id || answerNode._answerId;
           const edgeAnswerToNext = svgElement.querySelector(
             `[data-edge-id="edge_${answerEdgeFromId}_${nextNodeId}"]`
@@ -477,9 +504,6 @@ function applyTraceHighlighting(traceData) {
         if (edgeQuestionToAnswer) edgeQuestionToAnswer.classList.add('trace-edge-inactive');
         if (answerEl) answerEl.classList.add('trace-inactive');
       }
-
-
-
     });
   });
 }
@@ -619,7 +643,8 @@ function updateMinimap(treeWidth, treeHeight) {
     const isQuestion = !!node.answers;
     const isPattern  = node.pattern !== undefined;
     const w = isPattern ? PATTERN_NODE_WIDTH  : (isQuestion ? QUESTION_NODE_WIDTH  : ANSWER_NODE_WIDTH);
-    const h = isPattern ? PATTERN_NODE_HEIGHT : (isQuestion ? QUESTION_NODE_HEIGHT : ANSWER_NODE_HEIGHT);
+    // Use dynamic height if available, fall back to constants
+    const h = node._height ?? (isPattern ? PATTERN_NODE_HEIGHT : (isQuestion ? QUESTION_NODE_HEIGHT : ANSWER_NODE_HEIGHT));
 
     const rect = document.createElementNS(SVG_NS, 'rect');
     rect.setAttribute('x',       node._x);
@@ -756,5 +781,34 @@ async function loadTreeData() {
 
   renderTree();
 }
+
+
+// --- SVG download function ----- TEMP -----
+window.downloadSVG = function downloadSVG() {
+  const svg     = document.getElementById('tree-svg');
+  const clone   = svg.cloneNode(true);
+
+  const styleEl = document.createElementNS(SVG_NS, "style");
+  styleEl.textContent = Array.from(document.styleSheets)
+    .flatMap(sheet => {
+      try { return Array.from(sheet.cssRules).map(r => r.cssText); }
+      catch { return []; }
+    })
+    .join('\n');
+
+  clone.insertBefore(styleEl, clone.firstChild);
+
+  const serializer = new XMLSerializer();
+  const svgStr = '<?xml version="1.0" encoding="UTF-8"?>\n' + serializer.serializeToString(clone);
+
+  const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'tree.svg';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 
 loadTreeData();

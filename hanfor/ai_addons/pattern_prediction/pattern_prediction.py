@@ -2,7 +2,12 @@ import logging
 import random
 from threading import Event
 
+from flask_socketio import SocketIO
+
+from ai_addons.threading_ai_socketio import send_ai_update
+from ai_addons.ai_addon_handler import AiAddonAbstractClass
 from ai_request.ai_core_requests import AiRequest
+from lib_core.pattern import APattern
 from thread_handling.threading_core import SchedulingClass, ThreadTask, ThreadGroup, ThreadHandler
 
 import json
@@ -28,7 +33,8 @@ class Node:
 @dataclass
 class Leaf:
     id: str
-    pattern: str
+    pattern_name: str
+    pattern: APattern
     parent: "Node | None" = None
 
 
@@ -37,7 +43,7 @@ class Tree:
     def __init__(self):
         self.root: Node | Leaf | None = None
         self.id_map: dict[int, int] = {}
-        self.load("hanfor/ai_addons/pattern_prediction/pattern_tree.json")
+        self.load("hanfor/ai_addons/pattern_prediction/pattern_tree_first_test.json")
 
     def load(self, path: str) -> None:
         with open(path, encoding="utf-8") as f:
@@ -52,7 +58,9 @@ class Tree:
 
         if "pattern" in data:
             self.id_map[depth] += 1
-            return Leaf(id="p" + node_id, pattern=data["pattern"])
+            patterns = APattern().get_patterns()
+            pattern = APattern().get_patterns()[data["pattern"]] if data["pattern"] in patterns.keys() else APattern()
+            return Leaf(id="p" + node_id, pattern_name=data["pattern"], pattern=pattern)
 
         node = Node(id="q" + node_id, question=data["question"], answers=[])
         self.id_map[depth] += 1
@@ -74,7 +82,7 @@ class Tree:
             node = self.root
 
         if isinstance(node, Leaf):
-            return {"id": node.id, "pattern": node.pattern}
+            return {"id": node.id, "pattern": node.pattern.get_text()}
 
         return {
             "id": node.id,
@@ -85,12 +93,30 @@ class Tree:
         }
 
 
-class PatternPrediction:
+@dataclass
+class PatternPredictedRequirement:
+    id: str
+    description: str
+    trace: list[dict]
+    pattern: APattern
 
-    def __init__(self, thread_handler: ThreadHandler, ai_request: AiRequest):
+
+class PatternPrediction(AiAddonAbstractClass):
+    required_dependencies = ["thread_handler", "ai_request", "socketio"]
+
+    def __init__(self, thread_handler: ThreadHandler, ai_request: AiRequest, socketio: SocketIO):
         self.prediction_tree = Tree()
         self.thread_handler = thread_handler
         self.ai_request = ai_request
+        self.socketio = socketio
+
+    @property
+    def addon_name(self) -> str:
+        return "Pattern Prediction"
+
+    @property
+    def addon_description(self) -> str:
+        return "Using a decision tree, a requirement can be assigned to a pattern with the help of an AI."
 
     def predict_patterns_for_all_requirements(self, requirements):
         for req_id, requirement in requirements.items():
@@ -99,14 +125,11 @@ class PatternPrediction:
                 SchedulingClass.CALLER_DEPTH_1,
                 ThreadGroup.PATTERN_PREDICTION,
                 None,
-                self.print_pattern,
+                None,
                 (req_id, requirement.description),
                 {},
             )
             self.thread_handler.submit(task)
-
-    def print_pattern(self, result):
-        print(result)
 
     def predict_pattern_for_requirement_mock(self, req_id: str, req_desc: str, stop_event: Event):
         node = self.prediction_tree.root
@@ -132,16 +155,25 @@ class PatternPrediction:
 
         return req_id, node, trace
 
-    def predict_pattern_for_requirement(self, req_id: str, req_desc: str, stop_event: Event):
+    def predict_pattern_for_requirement(self, req_id: str, req_desc: str, sid: str, stop_event: Event):
         node = self.prediction_tree.root
         trace = []
+        send_ai_update({"123": "456"}, self.socketio)
+        send_ai_update({"123": "1241235134513461346"}, self.socketio, sid)
 
         while isinstance(node, Node):
             options = "\n".join(f"{o.answer}" for o in node.answers)
 
+            trace_context = ""
+            if trace:
+                trace_context = "Decisions made so far:\n"
+                trace_context += "\n".join(f"  - {t['question']} → {t['chosen']}" for t in trace)
+                trace_context += "\n\n"
+
             query = (
-                f"Requirement: {req_desc}\n"
-                f"Question: {node.question}\n"
+                f"Requirement: {req_desc}\n\n"
+                f"{trace_context}"
+                f"Current question: {node.question}\n"
                 f"Options:\n{options}\n\n"
                 "Respond ONLY with lines in the exact format:\n"
                 "<answer>:<score>\n\n"
@@ -153,12 +185,12 @@ class PatternPrediction:
                 "- Output ONLY the answer lines.\n\n"
                 "Example:\n"
                 "Yes:0.7\n"
-                "No:0.3"
+                "No:0.3\n"
             )
 
             answer_options = [o.answer for o in node.answers]
 
-            task_results = [self.ai_request.ask_ai(query, None, SchedulingClass.CALLER_DEPTH_2) for _ in range(10)]
+            task_results = [self.ai_request.ask_ai(query, None, SchedulingClass.CALLER_DEPTH_2) for _ in range(5)]
 
             result = {a: 0 for a in answer_options}
 

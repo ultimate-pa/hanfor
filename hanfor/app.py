@@ -10,7 +10,7 @@ import subprocess
 from flask import jsonify
 from flask_socketio import SocketIO
 
-from ai_addons.ai_addon_handler import AiAddonData
+from ai_addons.threading_ai_socketio import AiAddonData
 from hanfor_flask import HanforFlask
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import HTTPException
@@ -181,6 +181,13 @@ if __name__ == "__main__":
     # Parse python args and startup hanfor session.
     parsed_args = HanforArgumentParser(app).parse_args()
     if startup_hanfor(app, parsed_args, HERE):
+
+        if app.config["FEATURE_AI"]:
+            with app.app_context():
+                app.ai_addons.set_socketio(socketio)
+        with app.app_context():
+            app.thread_handler.set_socketio(socketio)
+
         if app.config["FEATURE_TELEMETRY"]:
             telemetry_namespace.set_data_folder(app.config["REVISION_FOLDER"])
         socketio.run(app, **get_app_options(), allow_unsafe_werkzeug=True)

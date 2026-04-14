@@ -1,19 +1,271 @@
 {
   "root": {
-    "question": "",
+    "question": "Implication?",
     "answers": [
       {
       "answer": "Yes",
       "next" : {
-        "question": "",
+        "question": "Rising edge?",
         "answers": [
           {
           "answer": "Yes",
-          "next" : {}
+          "next" : {
+            "question": "timebound in condition?",
+            "answers": [
+              {
+              "answer": "Yes",
+              "next" : {
+                "question": "upper bound in condition?",
+                "answers": [
+                  {
+                  "answer": "Yes",
+                  "next" : {"pattern": "EdgeResponseBoundU1"}
+                  },
+                  {
+                  "answer": "No",
+                  "next" : {
+                    "question": "upper bound in consequence?",
+                    "answers": [
+                      {
+                      "answer": "Yes",
+                      "next" : {"pattern": "TriggerResponseDelayBoundL1"}
+                      },
+                      {
+                      "answer": "No",
+                      "next" : {"pattern": "TriggerResponseBoundL1"}
+                      }
+                    ]
+                  }
+                  }
+                ]
+              }
+              },
+              {
+              "answer": "No",
+              "next" : {
+                "question": "lower bound in consequence?",
+                "answers": [
+                  {
+                  "answer": "Yes",
+                  "next" : {"pattern": "DurationBoundU"}
+                  },
+                  {
+                  "answer": "No",
+                  "next" : {
+                    "question": "upper bound in consequence?",
+                    "answers": [
+                      {
+                      "answer": "Yes",
+                      "next" : {
+                        "question": "time interval?",
+                        "answers": [
+                          {
+                          "answer": "Yes",
+                          "next" : {"pattern": "EdgeResponseDelayBoundL2"}
+                          },
+                          {
+                          "answer": "No",
+                          "next" : {"pattern": "EdgeResponseDelay"}
+                          }
+                        ]
+                      }
+                      },
+                      {
+                      "answer": "No",
+                      "next" : {
+                        "question": "second signal in consequence?",
+                        "answers": [
+                          {
+                          "answer": "Yes",
+                          "next" : {"pattern": "EdgeResponseBoundL2"}
+                          },
+                          {
+                          "answer": "No",
+                          "next" : {"pattern": "ReccurrenceBound"}
+                          }
+                        ]
+                      }
+                      }
+                    ]
+                  }
+                  }
+                ]
+              }
+              }
+            ]
+          }
           },
           {
           "answer": "No",
-          "next" : {}
+          "next" : {
+            "question": "time bound?",
+            "answers": [
+              {
+              "answer": "Yes",
+              "next" : {
+                "question": "2 time bounds?",
+                "answers": [
+                  {
+                  "answer": "Yes",
+                  "next" : {
+                    "question": "time interval?",
+                    "answers": [
+                      {
+                      "answer": "Yes",
+                      "next" : {"pattern": "ResponseDelayBoundL2"}
+                      },
+                      {
+                      "answer": "No",
+                      "next" : {"pattern": "EdgeResponseDelayBoundL2"}
+                      }
+                    ]
+                  }
+                  },
+                  {
+                  "answer": "No",
+                  "next" : {
+                    "question": "somthing happens after the implication?",
+                    "answers": [
+                      {
+                      "answer": "Yes",
+                      "next" : {
+                        "question": "simple condition?",
+                        "answers": [
+                          {
+                          "answer": "Yes",
+                          "next" : {"pattern": "ResponseBoundL1"}
+                          },
+                          {
+                          "answer": "No",
+                          "next" : {"pattern": "TODO NOT CORRECT"}
+                          }
+                        ]
+                      }
+                      },
+                      {
+                      "answer": "No",
+                      "next" : {
+                        "question": "lower bound?",
+                        "answers": [
+                          {
+                          "answer": "Yes",
+                          "next" : {"pattern": "InvarianceBoundL2"}
+                          },
+                          {
+                          "answer": "No",
+                          "next" : {
+                            "question": "consequence holds as long as condition?",
+                            "answers": [
+                              {
+                              "answer": "Yes",
+                              "next" : {"pattern": "ConditionalResponseBoundL1"}
+                              },
+                              {
+                              "answer": "No",
+                              "next" : {"pattern": "ResponseDelay"}
+                              }
+                            ]
+                          }
+                          }
+                        ]
+                      }
+                      }
+                    ]
+                  }
+                  }
+                ]
+              }
+              },
+              {
+              "answer": "No",
+              "next" : {
+                "question": "invariant?",
+                "answers": [
+                  {
+                  "answer": "Yes",
+                  "next" : {"pattern": "Invariance"}
+                  },
+                  {
+                  "answer": "No",
+                  "next" : {
+                    "question": "eventually?",
+                    "answers": [
+                      {
+                      "answer": "Yes",
+                      "next" : {
+                        "question": "order in consequence?",
+                        "answers": [
+                          {
+                          "answer": "Yes",
+                          "next" : {
+                            "question": "U does not hold between S and T!",
+                            "answers": [
+                              {
+                              "answer": "Yes",
+                              "next" : {"pattern": "ConstrainedChain"}
+                              },
+                              {
+                              "answer": "No",
+                              "next" : {"pattern": "ResponseChain12"}
+                              }
+                            ]
+                          }
+                          },
+                          {
+                          "answer": "No",
+                          "next" : {"pattern": "Response"}
+                          }
+                        ]
+                      }
+                      },
+                      {
+                      "answer": "No",
+                      "next" : {
+                        "question": "persistence?",
+                        "answers": [
+                          {
+                          "answer": "Yes",
+                          "next" : {"pattern": "Persistence"}
+                          },
+                          {
+                          "answer": "No",
+                          "next" : {
+                            "question": "precedence in condition?",
+                            "answers": [
+                              {
+                              "answer": "Yes",
+                              "next" : {"pattern": "PrecedenceChain12"}
+                              },
+                              {
+                              "answer": "No",
+                              "next" : {
+                                "question": "precedence in consequent?",
+                                "answers": [
+                                  {
+                                  "answer": "Yes",
+                                  "next" : {"pattern": "PrecedenceChain21"}
+                                  },
+                                  {
+                                  "answer": "No",
+                                  "next" : {"pattern": "Precedence"}
+                                  }
+                                ]
+                              }
+                              }
+                            ]
+                          }
+                          }
+                        ]
+                      }
+                      }
+                    ]
+                  }
+                  }
+                ]
+              }
+              }
+            ]
+          }
           }
         ]
       }
@@ -21,15 +273,63 @@
       {
       "answer": "No",
       "next" : {
-        "question": "",
+        "question": "invariant?",
         "answers": [
           {
           "answer": "Yes",
-          "next" : {}
+          "next" : {
+            "question": "timed?",
+            "answers": [
+              {
+              "answer": "Yes",
+              "next" : {"pattern": "UniversalityDelay"}
+              },
+              {
+              "answer": "No",
+              "next" : {
+                "question": "positive?",
+                "answers": [
+                  {
+                  "answer": "Yes",
+                  "next" : {"pattern": "Universality"}
+                  },
+                  {
+                  "answer": "No",
+                  "next" : {"pattern": "Absence"}
+                  }
+                ]
+              }
+              }
+            ]
+          }
           },
           {
           "answer": "No",
-          "next" : {}
+          "next" : {
+            "question": "initial / default values?",
+            "answers": [
+              {
+              "answer": "Yes",
+              "next" : {"pattern": "Initialization"}
+              },
+              {
+              "answer": "No",
+              "next" : {
+                "question": "periodic behaviour?",
+                "answers": [
+                  {
+                  "answer": "Yes",
+                  "next" : {"pattern": "ReccurrenceBound"}
+                  },
+                  {
+                  "answer": "No",
+                  "next" : {"pattern": "ExistenceBoundU"}
+                  }
+                ]
+              }
+              }
+            ]
+          }
           }
         ]
       }
@@ -37,3 +337,6 @@
     ]
   }
 }
+
+
+

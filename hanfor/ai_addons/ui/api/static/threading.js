@@ -91,13 +91,33 @@ async function load() {
     const res = await fetch("/ai_addons/ui/api/threading/initial");
     if (!res.ok) throw new Error(res.status);
     const d = await res.json();
-    d.active_count = d.active_tasks.length;
-    d.free_count   = d.max_threads - d.active_count;
-    d.queue_size   = d.queued_tasks.length;
-    render(d);
+    updateData(d.threading);
   } catch {
     document.getElementById('last-update').textContent = 'Fehler beim Laden';
   }
+}
+
+function updateData(data) {
+  data.active_count = data.active_tasks.length;
+  data.free_count   = data.max_threads - data.active_count;
+  data.queue_size   = data.queued_tasks.length;
+  render(data);
+}
+
+if (window.appSocket) {
+  window.appSocket.on('ai_update', (newData) => {
+    if (newData.threading) {
+      updateData(newData.threading);
+    }
+  });
+} else {
+  window.addEventListener('load', () => {
+    window.appSocket.on('ai_update', (newData) => {
+      if (newData.threading) {
+        updateData(newData.threading);
+      }
+    });
+  });
 }
 
 // -- Stop group ----------------------------------------------------------------
@@ -120,13 +140,7 @@ async function stopGroup(group) {
 
 window.addDummyTask = async function addDummyTask() {
   try {
-    const res = await fetch("/ai_addons/ui/api/threading/dummy_task", { method: 'POST' });
-    if (!res.ok) throw new Error(res.status);
-    const d = await res.json();
-    d.active_count = d.active_tasks.length;
-    d.free_count   = d.max_threads - d.active_count;
-    d.queue_size   = d.queued_tasks.length;
-    render(d);
+     await fetch("/ai_addons/ui/api/threading/dummy_task", { method: 'POST' });
   } catch {
   }
 }

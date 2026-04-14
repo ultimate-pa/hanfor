@@ -22,14 +22,14 @@ $(document).ready(function () {
     // region Data handling from API
 
     let ai_data;
-    let socket = io("/ai_addon_data", {
+    window.appSocket = io("/ai_addon_data", {
       path: url_prefix + "/socket.io/"
     });
 
-    socket.on('connect', () => console.log("Connected to AI Data WebSocket"));
-    socket.on('disconnect', () => console.log("Disconnected from AI Data WebSocket"));
+    window.appSocket.on('connect', () => console.log("Connected to AI Data WebSocket"));
+    window.appSocket.on('disconnect', () => console.log("Disconnected from AI Data WebSocket"));
 
-    socket.on('ai_update', (newData) => {
+    window.appSocket.on('ai_update', (newData) => {
         console.log("AI Update received:", newData);
     });
 });

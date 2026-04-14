@@ -1,10 +1,9 @@
 import random
 import time
 from threading import Event
-
 from flask import Blueprint, render_template, jsonify, request
 
-from ai_addons.pattern_prediction.pattern_prediction import PatternPrediction, Leaf
+from ai_addons.pattern_prediction.pattern_prediction import Leaf
 from hanfor_flask import current_app
 from lib_core.data import Requirement
 from thread_handling.threading_core import ThreadGroup, ThreadTask, SchedulingClass
@@ -113,18 +112,9 @@ def activity_test_model():
     return jsonify(data)
 
 
-def threading_data():
-    return {
-        "max_threads": current_app.thread_handler.get_max_threads(),
-        "groups": [group.name for group in ThreadGroup],
-        "active_tasks": current_app.thread_handler.get_running_tasks(),
-        "queued_tasks": current_app.thread_handler.get_queue(),
-    }
-
-
 @blueprint.route("/threading/initial", methods=["GET"])
 def threading_data_initial():
-    return threading_data()
+    return current_app.thread_handler.threading_data()
 
 
 @blueprint.route("/threading/stop_group", methods=["POST"])
@@ -134,11 +124,14 @@ def threading_stop_group():
     group = ThreadGroup[group_name]
     current_app.thread_handler.stop_group(group)
 
-    return threading_data()
+    return current_app.thread_handler.threading_data()
 
 
 def _dummy_task(stop_event):
-    time.sleep(random.uniform(2, 10))
+    for i in range(int(random.uniform(2000, 10000))):
+        time.sleep(0.001)
+        if stop_event.is_set():
+            break
 
 
 @blueprint.route("/threading/dummy_task", methods=["POST"])
@@ -153,13 +146,12 @@ def threading_dummy_task():
         kwargs={},
     )
     current_app.thread_handler.submit(task)
-    return threading_data()
+    return "", 200
 
 
 @blueprint.route("pattern_prediction/tree", methods=["GET"])
 def get_tree():
-
-    pattern_prediction = PatternPrediction(current_app.thread_handler, current_app.ai_request)
+    pattern_prediction = current_app.ai_addons.get_addons()["pattern_prediction"]
     return jsonify(pattern_prediction.prediction_tree.to_dict(pattern_prediction.prediction_tree.root))
 
 
@@ -172,9 +164,10 @@ def get_req_ids():
 def get_trace():
     payload = request.json
     req_id = payload.get("req_id")
-    pattern_prediction = PatternPrediction(current_app.thread_handler, current_app.ai_request)
+    sid = payload.get("sid")
+    pattern_prediction = current_app.ai_addons.get_addons()["pattern_prediction"]
     req = current_app.db.get_object(Requirement, req_id).to_dict()
-    req_id, final_node, trace = pattern_prediction.predict_pattern_for_requirement(req["id"], req["desc"], Event())
+    req_id, final_node, trace = pattern_prediction.predict_pattern_for_requirement(req["id"], req["desc"], sid, Event())
 
     steps = [{"nodeId": step["nodeId"], "answer": step["chosen"], "confidences": step["scores"]} for step in trace]
     done = isinstance(final_node, Leaf)
@@ -186,7 +179,7 @@ def get_trace():
         {
             "id": req_id,
             "desc": req["desc"],
-            "pattern": final_node.pattern if done else "calculating" if len(steps) > 0 else None,
+            "pattern": final_node.pattern.get_text() if done else "calculating" if len(steps) > 0 else None,
             "steps": steps,
         }
     )

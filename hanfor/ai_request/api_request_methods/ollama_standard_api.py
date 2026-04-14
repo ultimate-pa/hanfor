@@ -3,7 +3,6 @@ import threading
 from typing import Optional
 
 import requests
-from configuration import ai_config
 from ai_request import ai_api_methods_abstract_class
 
 

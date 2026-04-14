@@ -2,6 +2,8 @@ import inspect
 import logging
 import threading
 import time
+
+from ai_addons.threading_ai_socketio import send_ai_update
 from configuration import threading_config
 from dataclasses import dataclass, field
 from enum import Enum
@@ -107,9 +109,13 @@ class ThreadHandler:
             group: threading.Event() for group in ThreadGroup
         }
         self.__running_tasks: list[PrioritizedTask] = []
+        self.__socketio = None
 
         self.__dispatcher_thread = threading.Thread(target=self.__dispatcher, daemon=True)
         self.__dispatcher_thread.start()
+
+    def set_socketio(self, socketio):
+        self.__socketio = socketio
 
     def stop_group(self, group: ThreadGroup):
         """Stops an entire group of tasks, when running or in queue"""
@@ -136,6 +142,9 @@ class ThreadHandler:
                 running_task.thread_task.status = "terminated thread"
             except Exception as e:
                 logging.error(e)
+        stop_event.clear()
+        if self.__socketio:
+            send_ai_update(self.threading_data(), self.__socketio)
 
     def submit(self, thread_task: ThreadTask) -> TaskResult:
         """Queues a task and returns a TaskResult to track completion."""
@@ -147,7 +156,19 @@ class ThreadHandler:
         logging.info(
             f"Queued tasks: {[ (t.priority, getattr(t.thread_task.thread_function, '__name__', str(t.thread_task.thread_function))) for t in queued ]}"
         )
+        if self.__socketio:
+            send_ai_update(self.threading_data(), self.__socketio)
         return result
+
+    def threading_data(self):
+        return {
+            "threading": {
+                "max_threads": self.get_max_threads(),
+                "groups": [group.name for group in ThreadGroup],
+                "active_tasks": self.get_running_tasks(),
+                "queued_tasks": self.get_queue(),
+            }
+        }
 
     def __what_can_start(self) -> list[SchedulingClass]:
         """
@@ -195,6 +216,8 @@ class ThreadHandler:
             logging.info(
                 f"Starting task {selected_task.thread_task.thread_function.__name__} of type {selected_task.thread_task.scheduling_class.label}"
             )
+            if self.__socketio:
+                send_ai_update(self.threading_data(), self.__socketio)
             thread = threading.Thread(target=self.__run_task, args=(selected_task,), daemon=True)
             thread.start()
 
@@ -214,6 +237,8 @@ class ThreadHandler:
             logging.exception(f"Exception in task: {e}")
             if prio_task.result:
                 prio_task.result.set_exception(e)
+            if self.__socketio:
+                send_ai_update(self.threading_data(), self.__socketio)
         finally:
             with self.__lock:
                 self.__active_threads -= 1
@@ -221,6 +246,8 @@ class ThreadHandler:
                 self.__running_tasks.remove(prio_task)
                 if prio_task.thread_task.semaphore:
                     prio_task.thread_task.semaphore.release()
+                if self.__socketio:
+                    send_ai_update(self.threading_data(), self.__socketio)
 
     @staticmethod
     def __prioritized_task_to_dict(task: PrioritizedTask) -> dict:
