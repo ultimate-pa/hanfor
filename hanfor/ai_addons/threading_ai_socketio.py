@@ -20,15 +20,15 @@ class AiAddonData(Namespace):
         logging.info(f"Client {sid} disconnected from AI Data WebSocket")
 
 
-def send_ai_update(send_dict, socketio, sid=None):
-    socketio.start_background_task(_emit_ai_update, send_dict, socketio, sid)
+def send_ai_update(send_dict, event, socketio, sid=None):
+    socketio.start_background_task(_emit_ai_update, event, send_dict, socketio, sid)
 
 
-def _emit_ai_update(send_dict, socketio, sid=None):
+def _emit_ai_update(send_dict, event, socketio, sid=None):
     try:
         if sid:
-            socketio.emit("ai_update", send_dict, namespace="/ai_addon_data", to=sid)
+            socketio.emit(send_dict, event, namespace="/ai_addon_data", to=sid)
         else:
-            socketio.emit("ai_update", send_dict, namespace="/ai_addon_data")
+            socketio.emit(send_dict, event, namespace="/ai_addon_data")
     except Exception as e:
         logging.error(f"Error sending AI Update: {e}")

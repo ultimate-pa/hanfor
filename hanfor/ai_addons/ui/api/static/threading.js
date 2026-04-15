@@ -91,7 +91,7 @@ async function load() {
     const res = await fetch("/ai_addons/ui/api/threading/initial");
     if (!res.ok) throw new Error(res.status);
     const d = await res.json();
-    updateData(d.threading);
+    updateData(d);
   } catch {
     document.getElementById('last-update').textContent = 'Fehler beim Laden';
   }
@@ -105,16 +105,17 @@ function updateData(data) {
 }
 
 if (window.appSocket) {
-  window.appSocket.on('ai_update', (newData) => {
-    if (newData.threading) {
-      updateData(newData.threading);
+  window.appSocket.on('socket_threading', (newData) => {
+    if (newData) {
+      updateData(newData);
     }
   });
 } else {
+  console.log("threding, not app soc")
   window.addEventListener('load', () => {
-    window.appSocket.on('ai_update', (newData) => {
-      if (newData.threading) {
-        updateData(newData.threading);
+    window.appSocket.on('socket_threading', (newData) => {
+      if (newData) {
+        updateData(newData);
       }
     });
   });

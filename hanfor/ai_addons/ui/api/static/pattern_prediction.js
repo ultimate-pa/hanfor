@@ -23,6 +23,7 @@ let nodeRegistry = {};  // flat map of all nodes by their ID, built during layou
 
 const predictButton = document.getElementById('predict-pattern-btn');
 
+let chosen_id;
 // --- HELPERS ------------------------------------------------------------------
 
 /**
@@ -373,20 +374,21 @@ async function applyTrace(requestId) {
 
 
 if (window.appSocket) {
-  window.appSocket.on('ai_update', (newData) => {
-    if (newData.trace) {
-      predictButton.disabled = newData.pattern === "calculating";
-      applyTraceHighlighting(newData.trace);
-      renderTraceInfoBlock(newData.trace);
+  window.appSocket.on('socket_pattern_prediction', (newData) => {
+    if (newData) {
+        console.log(newData)
+
+        applyTraceHighlighting(newData);
+        renderTraceInfoBlock(newData);
     }
   });
 } else {
   window.addEventListener('load', () => {
-    window.appSocket.on('ai_update', (newData) => {
-      if (newData.trace) {
-        predictButton.disabled = newData.pattern === "calculating";
-        applyTraceHighlighting(newData.trace);
-        renderTraceInfoBlock(newData.trace);
+    window.appSocket.on('socket_pattern_prediction', (newData) => {
+      if (newData) {
+        console.log(newData)
+        applyTraceHighlighting(newData);
+        renderTraceInfoBlock(newData);
       }
     });
   });
@@ -726,6 +728,7 @@ function buildRequestIdList(filter = '') {
         document.getElementById('trace-search').value = id;
         listEl.classList.remove('open');
         predictButton.disabled = false;
+        chosen_id = id
         applyTrace(id);
       };
       listEl.appendChild(item);
@@ -766,6 +769,23 @@ document.getElementById('clear-trace-btn').onclick = () => {
   predictButton.disabled = true;
   applyTrace(null);
 };
+
+predictButton.onclick = async () => {
+  await fetch('/ai_addons/ui/api/pattern_prediction/generate_trace', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ req_id: chosen_id }),
+  });
+}
+
+document.getElementById('predict-pattern-all-btn').addEventListener('click', async () => {
+  await fetch('/ai_addons/ui/api/pattern_prediction/generate_trace_all', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ req_id: chosen_id }),
+  });
+});
+
 
 // --- TAB CHANGE LISTENER ------------------------------------------------------
 

@@ -2,12 +2,33 @@ from abc import ABC, abstractmethod
 import os
 import importlib
 import logging
+from functools import wraps
 
 from ai_request.ai_core_requests import AiRequest
 from thread_handling.threading_core import ThreadHandler
 
 
 class AiAddonAbstractClass(ABC):
+
+    @staticmethod
+    def requires_enabled(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            if not self.enabled:
+                return None
+            return func(self, *args, **kwargs)
+
+        return wrapper
+
+    @property
+    @abstractmethod
+    def enabled(self) -> bool:
+        pass
+
+    @abstractmethod
+    def toggle_addon(self):
+        pass
+
     @property
     @abstractmethod
     def addon_name(self) -> str:
@@ -18,13 +39,23 @@ class AiAddonAbstractClass(ABC):
     def addon_description(self) -> str:
         pass
 
+    @property
+    @abstractmethod
+    def addon_html(self) -> str:
+        pass
+
+    @property
+    @abstractmethod
+    def addon_js(self) -> str:
+        pass
+
 
 class AiAddons:
     def __init__(self, thread_handler: ThreadHandler, ai_request: AiRequest):
         self.__thread_handler = thread_handler
         self.__ai_request = ai_request
         self.__socketio = None
-        self.__addons = {}
+        self.__addons: dict[str, AiAddonAbstractClass] = {}
 
     @property
     def __dependencies(self):
@@ -38,8 +69,12 @@ class AiAddons:
         self.__socketio = socketio
         self.__load_all_ai_addons()
 
-    def get_addons(self):
+    def get_addons(self) -> dict[str, AiAddonAbstractClass]:
         return self.__addons
+
+    def toggle_addon(self, id: str):
+        if id in self.__addons.keys():
+            self.__addons[id].toggle_addon()
 
     def __load_all_ai_addons(self):
         """Dynamically loads all AI addons from within addon subfolder."""

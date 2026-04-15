@@ -40,7 +40,7 @@ class Tree:
     def __init__(self):
         self.root: Node | Leaf | None = None
         self.id_map: dict[int, int] = {}
-        self.load("hanfor/ai_addons/pattern_prediction/pattern_tree_first_test.json")
+        self.load("hanfor/ai_addons/pattern_prediction/pattern_tree_longer_questions.json")
 
     def load(self, path: str) -> None:
         with open(path, encoding="utf-8") as f:
@@ -100,15 +100,34 @@ class PatternPredictedRequirement:
 
 
 class PatternPrediction(AiAddonAbstractClass):
+    @property
+    def addon_js(self) -> str:
+        return "dist/pattern_prediction-bundle.js"
+
+    @property
+    def addon_html(self) -> str:
+        return "ai_addons/pattern_prediction.html"
+
+    def toggle_addon(self):
+        self.__enabled = not self.__enabled
+        if not self.prediction_tree:
+            self.initialize()
+
+    @property
+    def enabled(self) -> bool:
+        return self.__enabled
+
     required_dependencies = ["thread_handler", "ai_request", "socketio"]
 
     def __init__(self, thread_handler: ThreadHandler, ai_request: AiRequest, socketio: SocketIO):
-        self.prediction_tree = Tree()
+        self.__enabled: bool = False
         self.thread_handler = thread_handler
         self.ai_request = ai_request
         self.socketio = socketio
         self.requirement_data: dict[str, PatternPredictedRequirement] = {}
         self.socketio_data: dict[str, list[str]] = {}
+        self.prediction_tree = None
+        self.initialize()
 
     @property
     def addon_name(self) -> str:
@@ -118,10 +137,16 @@ class PatternPrediction(AiAddonAbstractClass):
     def addon_description(self) -> str:
         return "Using a decision tree, a requirement can be assigned to a pattern with the help of an AI."
 
+    @AiAddonAbstractClass.requires_enabled
+    def initialize(self):
+        self.prediction_tree = Tree()
+
+    @AiAddonAbstractClass.requires_enabled
     def predict_patterns_for_all_requirements(self, requirements, stop_event: Event):
         for req_id, requirement in requirements.items():
             if stop_event.is_set():
                 break
+            requirement.to_dict()
             task = ThreadTask(
                 self.predict_pattern_for_requirement,
                 SchedulingClass.CALLER_DEPTH_1,
@@ -133,17 +158,21 @@ class PatternPrediction(AiAddonAbstractClass):
             )
             self.thread_handler.submit(task)
 
+    @AiAddonAbstractClass.requires_enabled
     def set_sid_for_req(self, req, sid):
         if req not in self.socketio_data:
             self.socketio_data[req] = []
         self.socketio_data[req].append(sid)
+        self.update_trace_frontend(req)
 
+    @AiAddonAbstractClass.requires_enabled
     def clear_sid_for_req(self, req, sid):
         if req in self.socketio_data:
             self.socketio_data[req].remove(sid)
             if not self.socketio_data[req]:
                 self.socketio_data.pop(req)
 
+    @AiAddonAbstractClass.requires_enabled
     def update_trace_frontend(self, req_id: str):
         if req_id not in self.requirement_data:
             return
@@ -159,17 +188,16 @@ class PatternPrediction(AiAddonAbstractClass):
             steps.append({"nodeId": pattern_data.final_node.id, "answer": None, "confidences": {}})
 
         payload = {
-            "trace": {
-                "id": req_id,
-                "desc": pattern_data.description,
-                "pattern": pattern_data.pattern.get_text(),
-                "steps": steps,
-            }
+            "id": req_id,
+            "desc": pattern_data.description,
+            "pattern": pattern_data.pattern.get_text(),
+            "steps": steps,
         }
-
         for sid in self.socketio_data.get(req_id, []):
-            send_ai_update(payload, self.socketio, sid)
+            pass
+            send_ai_update(payload, "socket_pattern_prediction", self.socketio, sid)
 
+    @AiAddonAbstractClass.requires_enabled
     def predict_pattern_for_requirement(self, req_id: str, req_desc: str, stop_event: Event):
         node = self.prediction_tree.root
         trace = []

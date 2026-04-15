@@ -1,4 +1,5 @@
-let data;
+let addon_data;
+let provider_data;
 
 // -- HELPER FUNCTIONS ---------------------------------------------------------
 function led(activity) {
@@ -106,11 +107,25 @@ function setDefaultProvider(name) {
         },
         body: JSON.stringify({ provider: name })
     })
-    .then(response => response.json())
-    .then(data => {
-        renderProviders(data.providers);
-    })
 }
+
+
+if (window.appSocket) {
+  window.appSocket.on('socket_provider_info', (newData) => {
+    if (newData.providers) {
+          renderProviders(newData.providers);
+    }
+  });
+} else {
+  window.addEventListener('load', () => {
+    window.appSocket.on('socket_provider_info', (newData) => {
+      if (newData.providers) {
+          renderProviders(newData.providers);
+      }
+    });
+  });
+}
+
 
 
 function setDefaultModel(providerName, modelName) {
@@ -119,11 +134,7 @@ function setDefaultModel(providerName, modelName) {
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ provider: providerName , model: modelName})
-    })
-    .then(res => res.json())
-    .then(data => {
-        renderProviders(data.providers);
+        body: JSON.stringify({provider: providerName, model: modelName})
     })
 }
 
@@ -133,11 +144,6 @@ function testProvider(name) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider: name })
     })
-    .then(res => res.json())
-    .then(data => {
-        renderProviders(data.providers);
-    })
-    .catch(err => console.error("Test Provider failed", err));
 }
 
 function testModel(providerName, modelName) {
@@ -146,27 +152,30 @@ function testModel(providerName, modelName) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider: providerName, model: modelName })
     })
-    .then(res => res.json())
-    .then(data => {
-        renderProviders(data.providers);
-    })
-    .catch(err => console.error("Test Model failed", err));
 }
 
-function toggleAddon(id, checked) {
-  const a = data.addons.find(x => x.id === id);
-  if (!a) return;
-  a.enabled = checked;
-  renderAddons(data.addons);
-}
+function toggleAddon(id) {
+    fetch("/ai_addons/ui/api/toggle_addon", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({addon: id})
+    }).then(d => {
+        window.location.reload();
+    });
+ }
 
 // -- INIT ---------------------------------------------------------------------
 
 async function load() {
-  const response = await fetch("/ai_addons/ui/api/data");
-  data = await response.json();
-  renderProviders(data.providers);
-  renderAddons(data.addons);
+  const provider_response = await fetch("/ai_addons/ui/api/ai_provider_data");
+  provider_data = await provider_response.json();
+  renderProviders(provider_data.providers);
+
+  const addon_response = await fetch("/ai_addons/ui/api/ai_addon_data");
+  addon_data = await addon_response.json();
+  renderAddons(addon_data.addons);
 }
 
 load();

@@ -1,6 +1,8 @@
 import random
 import time
 from threading import Event
+
+from engineio import payload
 from flask import Blueprint, render_template, jsonify, request
 
 from hanfor_flask import current_app
@@ -11,62 +13,58 @@ from thread_handling.threading_core import ThreadGroup, ThreadTask, SchedulingCl
 blueprint = Blueprint("ai_addons", __name__, template_folder="templates", url_prefix="/ai_addons/ui/api/")
 # Define the blueprint for the API endpoints
 api_blueprint = Blueprint("api_ai_addons", __name__, url_prefix="/api/ai_addons")
+BUNDLE_JS = ["dist/ai_core_addons-bundle.js", "dist/threading-bundle.js"]
+TAB_NAMES = ["Threading"]
+TAB_PAGES = ["ai_addons/threading.html"]
 
 
 @blueprint.route("/", methods=["GET"])
 def index():
-    BUNDLE_JS = [
-        "dist/ai_core_addons-bundle.js",
-        "dist/threading-bundle.js",
-        "dist/ai-bundle.js",
-        "dist/pattern_prediction-bundle.js",
-    ]
-    tab_names = ["Threading", "AI", "Pattern"]
-    tab_pages = ["ai_addons/threading.html", "ai_addons/ai.html", "ai_addons/pattern_prediction.html"]
+    tab_names = TAB_NAMES.copy()
+    tab_pages = TAB_PAGES.copy()
+    tab_js = BUNDLE_JS.copy()
+    if current_app.config["FEATURE_AI"]:
+        tab_names.append("AI")
+        tab_pages.append("ai_addons/ai.html")
+        tab_js.append("dist/ai-bundle.js")
+        for addon_id, addon in current_app.ai_addons.get_addons().items():
+            if addon.enabled:
+                tab_names.append(addon.addon_name)
+                tab_pages.append(addon.addon_html)
+                tab_js.append(addon.addon_js)
+
     tabs = list(zip(tab_names, tab_pages))
-    return render_template("ai_addons/index.html", BUNDLE_JS=BUNDLE_JS, tabs=tabs)
+    return render_template("ai_addons/index.html", BUNDLE_JS=tab_js, tabs=tabs)
 
 
-def catalog_to_frontend(catalog):
-    data = {"providers": []}
+@blueprint.route("/ai_provider_data", methods=["GET"])
+def get_ai_provider_data():
+    return jsonify(current_app.ai_request.catalog_to_frontend())
 
-    for provider_name, entry in catalog.items():
-        provider_dict = {
-            "name": provider_name,
-            "default": entry.default_provider,
-            "url": entry.url,
-            "max_request": entry.maximum_concurrent_api_requests,
-            "api_method": ", ".join(entry.api_methods.keys()),
-            "reachable": entry.activity.name,
-            "models": [],
-        }
 
-        for model_name, (desc, activity) in entry.models.items():
-            model_dict = {
-                "name": model_name,
-                "desc": desc,
-                "default": model_name == entry.default_model,
-                "active": activity.name,
+@blueprint.route("/ai_addon_data", methods=["GET"])
+def get_ai_addon_data():
+    send_data = {}
+    addons = current_app.ai_addons.get_addons()
+    for addon_id, addon in addons.items():
+
+        send_data["addons"] = [
+            {
+                "id": addon_id,
+                "name": addon.addon_name,
+                "desc": addon.addon_description,
+                "enabled": addon.enabled,
             }
-            provider_dict["models"].append(model_dict)
-
-        data["providers"].append(provider_dict)
-
-    return data
-
-
-@blueprint.route("/data", methods=["GET"])
-def get_data():
-    send_data = catalog_to_frontend(current_app.ai_request.info_for_dashboard())
-    send_data["addons"] = [
-        {
-            "id": "pattern_prediction",
-            "name": "Pattern Prediction",
-            "desc": "Using a decision tree, a requirement can be assigned to a pattern with the help of an AI.",
-            "enabled": True,
-        }
-    ]
+        ]
     return jsonify(send_data)
+
+
+@blueprint.route("/toggle_addon", methods=["POST"])
+def toggle_addon():
+    payload = request.json
+    id = payload.get("addon")
+    current_app.ai_addons.toggle_addon(id)
+    return "", 204
 
 
 @blueprint.route("/set_default_provider", methods=["POST"])
@@ -74,9 +72,7 @@ def set_default_provider():
     payload = request.json
     name = payload.get("provider")
     current_app.ai_request.set_default_provider(name)
-
-    data = catalog_to_frontend(current_app.ai_request.info_for_dashboard())
-    return jsonify(data)
+    return "", 204
 
 
 @blueprint.route("/set_default_model", methods=["POST"])
@@ -85,9 +81,7 @@ def set_default_model():
     provider = payload.get("provider")
     model = payload.get("model")
     current_app.ai_request.set_default_model(provider, model)
-
-    data = catalog_to_frontend(current_app.ai_request.info_for_dashboard())
-    return jsonify(data)
+    return "", 204
 
 
 @blueprint.route("/test_provider", methods=["POST"])
@@ -95,9 +89,7 @@ def activity_test_provider():
     payload = request.json
     provider = payload.get("provider")
     current_app.ai_request.activity_test_provider(provider)
-
-    data = catalog_to_frontend(current_app.ai_request.info_for_dashboard())
-    return jsonify(data)
+    return "", 204
 
 
 @blueprint.route("/test_model", methods=["POST"])
@@ -106,9 +98,7 @@ def activity_test_model():
     provider = payload.get("provider")
     model = payload.get("model")
     current_app.ai_request.activity_test_model(provider, model)
-
-    data = catalog_to_frontend(current_app.ai_request.info_for_dashboard())
-    return jsonify(data)
+    return "", 204
 
 
 @blueprint.route("/threading/initial", methods=["GET"])
@@ -165,10 +155,26 @@ def set_trace_sid():
     req_id = payload.get("req_id")
     sid = payload.get("sid")
     pattern_prediction = current_app.ai_addons.get_addons()["pattern_prediction"]
-    req = current_app.db.get_object(Requirement, req_id).to_dict()
     pattern_prediction.set_sid_for_req(req_id, sid)
-    pattern_prediction.predict_pattern_for_requirement(req["id"], req["desc"], Event())
 
+    return "", 204
+
+
+@blueprint.route("pattern_prediction/generate_trace", methods=["POST"])
+def generate_trace_for_req():
+    payload = request.json
+    req_id = payload.get("req_id")
+    pattern_prediction = current_app.ai_addons.get_addons()["pattern_prediction"]
+    req = current_app.db.get_object(Requirement, req_id).to_dict()
+    pattern_prediction.predict_pattern_for_requirement(req["id"], req["desc"], Event())
+    return "", 204
+
+
+@blueprint.route("pattern_prediction/generate_trace_all", methods=["POST"])
+def generate_trace_for_req_all():
+    pattern_prediction = current_app.ai_addons.get_addons()["pattern_prediction"]
+    req = current_app.db.get_objects(Requirement)
+    pattern_prediction.predict_patterns_for_all_requirements(req, Event())
     return "", 204
 
 

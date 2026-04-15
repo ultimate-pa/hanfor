@@ -144,7 +144,7 @@ class ThreadHandler:
                 logging.error(e)
         stop_event.clear()
         if self.__socketio:
-            send_ai_update(self.threading_data(), self.__socketio)
+            send_ai_update(self.threading_data(), "socket_threading", self.__socketio)
 
     def submit(self, thread_task: ThreadTask) -> TaskResult:
         """Queues a task and returns a TaskResult to track completion."""
@@ -157,17 +157,15 @@ class ThreadHandler:
             f"Queued tasks: {[ (t.priority, getattr(t.thread_task.thread_function, '__name__', str(t.thread_task.thread_function))) for t in queued ]}"
         )
         if self.__socketio:
-            send_ai_update(self.threading_data(), self.__socketio)
+            send_ai_update(self.threading_data(), "socket_threading", self.__socketio)
         return result
 
     def threading_data(self):
         return {
-            "threading": {
-                "max_threads": self.get_max_threads(),
-                "groups": [group.name for group in ThreadGroup],
-                "active_tasks": self.get_running_tasks(),
-                "queued_tasks": self.get_queue(),
-            }
+            "max_threads": self.get_max_threads(),
+            "groups": [group.name for group in ThreadGroup],
+            "active_tasks": self.get_running_tasks(),
+            "queued_tasks": self.get_queue(),
         }
 
     def __what_can_start(self) -> list[SchedulingClass]:
@@ -217,7 +215,7 @@ class ThreadHandler:
                 f"Starting task {selected_task.thread_task.thread_function.__name__} of type {selected_task.thread_task.scheduling_class.label}"
             )
             if self.__socketio:
-                send_ai_update(self.threading_data(), self.__socketio)
+                send_ai_update(self.threading_data(), "socket_threading", self.__socketio)
             thread = threading.Thread(target=self.__run_task, args=(selected_task,), daemon=True)
             thread.start()
 
@@ -238,7 +236,7 @@ class ThreadHandler:
             if prio_task.result:
                 prio_task.result.set_exception(e)
             if self.__socketio:
-                send_ai_update(self.threading_data(), self.__socketio)
+                send_ai_update(self.threading_data(), "socket_threading", self.__socketio)
         finally:
             with self.__lock:
                 self.__active_threads -= 1
@@ -247,7 +245,7 @@ class ThreadHandler:
                 if prio_task.thread_task.semaphore:
                     prio_task.thread_task.semaphore.release()
                 if self.__socketio:
-                    send_ai_update(self.threading_data(), self.__socketio)
+                    send_ai_update(self.threading_data(), "socket_threading", self.__socketio)
 
     @staticmethod
     def __prioritized_task_to_dict(task: PrioritizedTask) -> dict:

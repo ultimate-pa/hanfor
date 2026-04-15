@@ -1,7 +1,11 @@
+from socket import SocketIO
 from threading import Event, Semaphore
 from dataclasses import dataclass, field
 from typing import Optional, Callable, Tuple
 
+import socketio
+
+from ai_addons.threading_ai_socketio import send_ai_update
 from ai_request.ai_api_methods_abstract_class import AiApiMethod
 from configuration import ai_config
 
@@ -109,6 +113,7 @@ class AiRequest:
         self.__register_api_methods()
         self.__validate_catalog()
         self.__catalog_tester = AiCatalogTester()
+        self.__socketio = None
 
         self.__thread_handler.submit(
             ThreadTask(
@@ -121,6 +126,9 @@ class AiRequest:
                 {},
             )
         )
+
+    def set_socketio(self, socketio: SocketIO):
+        self.__socketio = socketio
 
     def ask_ai(
         self,
@@ -160,8 +168,35 @@ class AiRequest:
         )
         return self.__thread_handler.submit(ai_task)
 
-    def info_for_dashboard(self):
+    def ai_model_catalog(self):
         return dict(self.__ai_model_catalog)
+
+    def catalog_to_frontend(self):
+        data = {"providers": []}
+
+        for provider_name, entry in self.__ai_model_catalog.items():
+            provider_dict = {
+                "name": provider_name,
+                "default": entry.default_provider,
+                "url": entry.url,
+                "max_request": entry.maximum_concurrent_api_requests,
+                "api_method": ", ".join(entry.api_methods.keys()),
+                "reachable": entry.activity.name,
+                "models": [],
+            }
+
+            for model_name, (desc, activity) in entry.models.items():
+                model_dict = {
+                    "name": model_name,
+                    "desc": desc,
+                    "default": model_name == entry.default_model,
+                    "active": activity.name,
+                }
+                provider_dict["models"].append(model_dict)
+
+            data["providers"].append(provider_dict)
+
+        return data
 
     def check_all_models(self, stop_event: Event):
         self.__catalog_tester.check_all_models_activity(self.__ai_model_catalog, stop_event)
@@ -170,15 +205,22 @@ class AiRequest:
         if set_provider_name_to_default in self.__ai_model_catalog:
             for provider_name, entry in self.__ai_model_catalog.items():
                 entry.default_provider = provider_name == set_provider_name_to_default
+        if self.__socketio:
+            send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
 
     def set_default_model(self, provider, set_model_name_to_default):
         if provider in self.__ai_model_catalog:
             if set_model_name_to_default in self.__ai_model_catalog[provider].models:
                 self.__ai_model_catalog[provider].default_model = set_model_name_to_default
+        if self.__socketio:
+            send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
 
     def activity_test_provider(self, provider):
         if provider in self.__ai_model_catalog:
             self.__catalog_tester.activity_test_provider(self.__ai_model_catalog[provider], Event())
+
+        if self.__socketio:
+            send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
 
     def activity_test_model(self, provider, model_name):
         if provider in self.__ai_model_catalog:
@@ -187,6 +229,8 @@ class AiRequest:
                 self.__catalog_tester.activity_test_model(
                     model_name, model[0], self.__ai_model_catalog[provider], Event()
                 )
+        if self.__socketio:
+            send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
 
     def _resolve_provider(self, provider: Optional[str]) -> str:
         if provider and provider in self.__ai_model_catalog:

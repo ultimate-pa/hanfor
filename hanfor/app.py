@@ -167,6 +167,11 @@ def get_app_options():
     return app_options
 
 
+@app.route("/.well-known/appspecific/com.chrome.devtools.json")
+def chrome_dev():
+    return "", 204
+
+
 if __name__ == "__main__":
     setup_logging(app)
     app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix=app.config["URL_PREFIX"])
@@ -185,6 +190,7 @@ if __name__ == "__main__":
         if app.config["FEATURE_AI"]:
             with app.app_context():
                 app.ai_addons.set_socketio(socketio)
+                app.ai_request.set_socketio(socketio)
         with app.app_context():
             app.thread_handler.set_socketio(socketio)
 
