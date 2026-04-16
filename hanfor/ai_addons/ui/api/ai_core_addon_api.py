@@ -1,10 +1,7 @@
 import random
 import time
 from threading import Event
-
-from engineio import payload
 from flask import Blueprint, render_template, jsonify, request
-
 from hanfor_flask import current_app
 from lib_core.data import Requirement
 from thread_handling.threading_core import ThreadGroup, ThreadTask, SchedulingClass

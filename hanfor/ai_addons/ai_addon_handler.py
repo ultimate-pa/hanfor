@@ -4,7 +4,9 @@ import importlib
 import logging
 from functools import wraps
 
+from ai_addons.threading_ai_socketio import send_ai_update
 from ai_request.ai_core_requests import AiRequest
+from configuration import ai_config
 from thread_handling.threading_core import ThreadHandler
 
 
@@ -75,6 +77,7 @@ class AiAddons:
     def toggle_addon(self, id: str):
         if id in self.__addons.keys():
             self.__addons[id].toggle_addon()
+            send_ai_update({}, "reload", self.__socketio)
 
     def __load_all_ai_addons(self):
         """Dynamically loads all AI addons from within addon subfolder."""
@@ -101,11 +104,11 @@ class AiAddons:
                                 and attr.__name__ != "AiAddonAbstractClass"
                                 and any(base.__name__ == "AiAddonAbstractClass" for base in attr.__mro__)
                             ):
-                                print(attr_name)
                                 try:
                                     deps = {
                                         k: v for k, v in self.__dependencies.items() if k in attr.required_dependencies
                                     }
+                                    deps["enabled"] = getattr(ai_config, f"ADDON_{module_name.upper()}", False)
                                     instance = attr(**deps)
                                     self.__addons[module_name] = instance
                                 except TypeError as e:

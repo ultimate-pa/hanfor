@@ -10,10 +10,8 @@ from typing import Callable
 
 from terminaltables import DoubleTable
 
-from ai_addons.ai_addon_handler import AiAddons
 from configuration.defaults import Color
 from configuration.tags import STANDARD_TAGS, FUNCTIONAL_TAGS
-import config
 from hanfor_flask import HanforFlask
 from json_db_connector.json_db import JsonDatabase, remove_json_database_data_tracing_logger
 from lib_core import boogie_parsing
@@ -30,9 +28,8 @@ from lib_core.utils import (
 from reqtransformer import RequirementCollection
 from requirements.desc_highlighting import generate_all_highlighted_desc
 from thread_handling.threading_core import ThreadHandler, ThreadTask, SchedulingClass, ThreadGroup
-
-if config.FEATURE_AI:
-    from ai_request.ai_core_requests import AiRequest
+from ai_request.ai_core_requests import AiRequest
+from ai_addons.ai_addon_handler import AiAddons
 
 
 def config_check(app_config):

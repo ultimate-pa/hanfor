@@ -1,21 +1,16 @@
 import datetime
 from flask import Flask, current_app as fl_current_app, make_response
-
-import config
 from json_db_connector.json_db import JsonDatabase
 from functools import wraps, update_wrapper
 
 from thread_handling.threading_core import ThreadHandler
-
-if config.FEATURE_AI:
-    from ai_request.ai_core_requests import AiRequest
-    from ai_addons.ai_addon_handler import AiAddons
+from ai_request.ai_core_requests import AiRequest
+from ai_addons.ai_addon_handler import AiAddons
 
 
 class HanforFlask(Flask):
-    if config.FEATURE_AI:
-        ai_request: AiRequest
-        ai_addons: AiAddons
+    ai_request: AiRequest
+    ai_addons: AiAddons
     thread_handler: ThreadHandler
     db: JsonDatabase
 

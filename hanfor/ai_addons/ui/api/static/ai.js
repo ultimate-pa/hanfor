@@ -155,16 +155,36 @@ function testModel(providerName, modelName) {
 }
 
 function toggleAddon(id) {
+    // Save current tab and scroll position before reload
+    const activeTab = document.querySelector('#tab-list-ai .nav-link.active');
+    if (activeTab) sessionStorage.setItem('activeTab', activeTab.id);
+    sessionStorage.setItem('scrollY', window.scrollY);
+
     fetch("/ai_addons/ui/api/toggle_addon", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({addon: id})
-    }).then(d => {
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ addon: id })
+    }).then(() => {
         window.location.reload();
     });
- }
+}
+
+function restoreState() {
+    const tabId = sessionStorage.getItem('activeTab');
+    const scrollY = sessionStorage.getItem('scrollY');
+
+    if (tabId) {
+        const btn = document.getElementById(tabId);
+        if (btn) btn.click();
+        sessionStorage.removeItem('activeTab');
+    }
+    if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY));
+        sessionStorage.removeItem('scrollY');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', restoreState);
 
 // -- INIT ---------------------------------------------------------------------
 

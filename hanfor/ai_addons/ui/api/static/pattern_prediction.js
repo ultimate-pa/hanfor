@@ -86,15 +86,12 @@ function assignNodeLevels(node, level, parentId) {
  * Recursively calculates x/y positions for every node and returns
  * the total width consumed by this subtree.
  */
-function calculateNodePositions(node, offsetX, depth) {
+function calculateNodePositions(node, offsetX, depth, startY = 0) {
   if (!node) return 0;
 
-  const rowY = depth * (QUESTION_NODE_HEIGHT + VERTICAL_GAP);
-
-  // Pattern (leaf) node - fixed size, no children
   if (node.pattern !== undefined) {
     node._x = offsetX;
-    node._y = rowY;
+    node._y = startY;
     node._height = calcDynamicHeight(
       node.pattern, PATTERN_NODE_WIDTH,
       PATTERN_NODE_HEIGHT, 14, 15, 10
@@ -102,33 +99,36 @@ function calculateNodePositions(node, offsetX, depth) {
     return PATTERN_NODE_WIDTH;
   }
 
-  // Question node - recursively lay out children first, then center parent
   if (node.answers) {
-    // Calculate dynamic height for this question node
     node._height = calcDynamicHeight(
       node.question, QUESTION_NODE_WIDTH,
       QUESTION_NODE_HEIGHT, 10, 15, 10
     );
 
-    let totalWidth  = 0;
+    node._x = offsetX;
+    node._y = startY;
+
+    // Next row starts below this node + gap
+    const answerRowY = startY + node._height + VERTICAL_GAP;
+    // Row after answer bubbles
+    const childRowY  = answerRowY + ANSWER_NODE_HEIGHT + VERTICAL_GAP;
+
+    let totalWidth = 0;
     const childCenterXs = [];
 
     node.answers.forEach(answer => {
-      const childWidth = calculateNodePositions(answer.next, offsetX + totalWidth, depth + 2);
+      const childWidth = calculateNodePositions(answer.next, offsetX + totalWidth, depth + 2, childRowY);
       childCenterXs.push(offsetX + totalWidth + childWidth / 2);
       totalWidth += childWidth + HORIZONTAL_GAP;
     });
 
-    totalWidth -= HORIZONTAL_GAP; // remove trailing gap
+    totalWidth -= HORIZONTAL_GAP;
 
-    // Center parent question node over its children
     node._x = (childCenterXs[0] + childCenterXs[childCenterXs.length - 1]) / 2 - QUESTION_NODE_WIDTH / 2;
-    node._y = rowY;
 
-    // Position each answer bubble between parent and next question
     node.answers.forEach((answer, index) => {
       answer._x = childCenterXs[index] - ANSWER_NODE_WIDTH / 2;
-      answer._y = (depth + 1) * (QUESTION_NODE_HEIGHT + VERTICAL_GAP);
+      answer._y = answerRowY;
     });
 
     return totalWidth;
@@ -143,7 +143,7 @@ function calculateNodePositions(node, offsetX, depth) {
 function renderTree() {
   nodeRegistry = {};
   assignNodeLevels(treeData, 0, null);
-  calculateNodePositions(treeData, 0, 0);
+  calculateNodePositions(treeData, 0, 0, 0);
 
   svgElement = document.getElementById('tree-svg');
 
@@ -393,6 +393,39 @@ if (window.appSocket) {
     });
   });
 }
+
+if (window.appSocket) {
+  window.appSocket.on('socket_pattern_prediction_error', (newData) => {
+    if (newData) {
+      console.log(newData.error)
+      showErrorBanner(newData.error);
+    }
+  });
+} else {
+  window.addEventListener('load', () => {
+    window.appSocket.on('socket_pattern_prediction_error', (newData) => {
+      if (newData) {
+        console.log(newData.error)
+        showErrorBanner(newData.error);
+      }
+    });
+  });
+}
+
+function showErrorBanner(message) {
+  const existing = document.getElementById('prediction-error-banner');
+  if (existing) existing.remove();
+
+  const banner = document.createElement('div');
+  banner.id = 'prediction-error-banner';
+  banner.className = 'alert alert-danger alert-dismissible m-2';
+  banner.innerHTML = `
+    <strong>Prediction error:</strong> ${message}
+    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+  `;
+  document.querySelector('main').prepend(banner);
+}
+
 
 
 function removeTraceInfoBlock() {

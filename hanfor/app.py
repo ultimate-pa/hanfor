@@ -167,6 +167,7 @@ def get_app_options():
     return app_options
 
 
+# Suppress Chrome DevTools route-not-found error
 @app.route("/.well-known/appspecific/com.chrome.devtools.json")
 def chrome_dev():
     return "", 204
@@ -187,6 +188,7 @@ if __name__ == "__main__":
     parsed_args = HanforArgumentParser(app).parse_args()
     if startup_hanfor(app, parsed_args, HERE):
 
+        # Provide socket access to features that need regular frontend updates
         if app.config["FEATURE_AI"]:
             with app.app_context():
                 app.ai_addons.set_socketio(socketio)

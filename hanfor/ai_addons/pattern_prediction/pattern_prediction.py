@@ -1,5 +1,8 @@
 import logging
 from threading import Event
+
+import select
+from flask_restx import model
 from flask_socketio import SocketIO
 from ai_addons.threading_ai_socketio import send_ai_update
 from ai_addons.ai_addon_handler import AiAddonAbstractClass
@@ -119,14 +122,15 @@ class PatternPrediction(AiAddonAbstractClass):
 
     required_dependencies = ["thread_handler", "ai_request", "socketio"]
 
-    def __init__(self, thread_handler: ThreadHandler, ai_request: AiRequest, socketio: SocketIO):
-        self.__enabled: bool = False
+    def __init__(self, thread_handler: ThreadHandler, ai_request: AiRequest, socketio: SocketIO, enabled: bool):
+        self.__enabled: bool = enabled
         self.thread_handler = thread_handler
         self.ai_request = ai_request
         self.socketio = socketio
         self.requirement_data: dict[str, PatternPredictedRequirement] = {}
         self.socketio_data: dict[str, list[str]] = {}
         self.prediction_tree = None
+        self.selected_ai_provider_model = {"provider": "", "model": ""}
         self.initialize()
 
     @property
@@ -139,6 +143,10 @@ class PatternPrediction(AiAddonAbstractClass):
 
     @AiAddonAbstractClass.requires_enabled
     def initialize(self):
+        for provider_name, provider_data in self.ai_request.ai_model_catalog().items():
+            if provider_data.default_provider:
+                self.selected_ai_provider_model["provider"] = provider_name
+                self.selected_ai_provider_model["model"] = provider_data.default_model
         self.prediction_tree = Tree()
 
     @AiAddonAbstractClass.requires_enabled
@@ -173,7 +181,9 @@ class PatternPrediction(AiAddonAbstractClass):
                 self.socketio_data.pop(req)
 
     @AiAddonAbstractClass.requires_enabled
-    def update_trace_frontend(self, req_id: str):
+    def update_trace_frontend(self, req_id: str, status=None):
+        if status is None:
+            status = {}
         if req_id not in self.requirement_data:
             return
 
@@ -194,8 +204,10 @@ class PatternPrediction(AiAddonAbstractClass):
             "steps": steps,
         }
         for sid in self.socketio_data.get(req_id, []):
-            pass
-            send_ai_update(payload, "socket_pattern_prediction", self.socketio, sid)
+            if status:
+                send_ai_update(status, "socket_pattern_prediction_error", self.socketio, sid)
+            else:
+                send_ai_update(payload, "socket_pattern_prediction", self.socketio, sid)
 
     @AiAddonAbstractClass.requires_enabled
     def predict_pattern_for_requirement(self, req_id: str, req_desc: str, stop_event: Event):
@@ -210,15 +222,8 @@ class PatternPrediction(AiAddonAbstractClass):
 
             options = "\n".join(f"{o.answer}" for o in node.answers)
 
-            trace_context = ""
-            if trace:
-                trace_context = "Decisions made so far:\n"
-                trace_context += "\n".join(f"  - {t['question']} → {t['chosen']}" for t in trace)
-                trace_context += "\n\n"
-
             query = (
                 f"Requirement: {req_desc}\n\n"
-                f"{trace_context}"
                 f"Current question: {node.question}\n"
                 f"Options:\n{options}\n\n"
                 "Respond ONLY with lines in the exact format:\n"
@@ -236,7 +241,16 @@ class PatternPrediction(AiAddonAbstractClass):
 
             answer_options = [o.answer for o in node.answers]
 
-            task_results = [self.ai_request.ask_ai(query, None, SchedulingClass.CALLER_DEPTH_2) for _ in range(5)]
+            task_results = [
+                self.ai_request.ask_ai(
+                    query,
+                    None,
+                    SchedulingClass.CALLER_DEPTH_2,
+                    self.selected_ai_provider_model["provider"],
+                    self.selected_ai_provider_model["model"],
+                )
+                for _ in range(5)
+            ]
 
             result = {a: 0 for a in answer_options}
 
@@ -249,7 +263,15 @@ class PatternPrediction(AiAddonAbstractClass):
                     self.update_trace_frontend(req_id)
                     return
 
-                ai_response = task_result.result()[0]
+                ai_response, ai_status = task_result.result()
+
+                if isinstance(ai_status, str) and ai_status.startswith("error"):
+                    self.requirement_data[req_id] = PatternPredictedRequirement(
+                        req_id, req_desc, trace, APattern(), None
+                    )
+                    self.update_trace_frontend(req_id, {"error": ai_status})
+                    return
+
                 if not ai_response:
                     continue
                 for line in ai_response.splitlines():
