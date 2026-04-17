@@ -351,7 +351,6 @@ function drawPatternNode(parentGroup, node) {
  * Passing null clears the current trace.
  */
 async function applyTrace(requestId) {
-  console.log(requestId);
 
   if (requestId === null) {
     applyTraceHighlighting(null);
@@ -373,44 +372,25 @@ async function applyTrace(requestId) {
 }
 
 
-if (window.appSocket) {
-  window.appSocket.on('socket_pattern_prediction', (newData) => {
-    if (newData) {
-        console.log(newData)
-
-        applyTraceHighlighting(newData);
-        renderTraceInfoBlock(newData);
-    }
-  });
-} else {
   window.addEventListener('load', () => {
     window.appSocket.on('socket_pattern_prediction', (newData) => {
       if (newData) {
-        console.log(newData)
         applyTraceHighlighting(newData);
         renderTraceInfoBlock(newData);
       }
     });
   });
-}
 
-if (window.appSocket) {
-  window.appSocket.on('socket_pattern_prediction_error', (newData) => {
-    if (newData) {
-      console.log(newData.error)
-      showErrorBanner(newData.error);
-    }
-  });
-} else {
+
+
   window.addEventListener('load', () => {
     window.appSocket.on('socket_pattern_prediction_error', (newData) => {
       if (newData) {
-        console.log(newData.error)
         showErrorBanner(newData.error);
       }
     });
   });
-}
+
 
 function showErrorBanner(message) {
   const existing = document.getElementById('prediction-error-banner');
@@ -850,15 +830,14 @@ async function loadTreeData() {
   requestIds = await idsResponse.json();
   treeData   = await treeResponse.json();
 
-  console.log("Request IDs:", requestIds);
-  console.log("Tree data:",   treeData);
 
   renderTree();
 }
 
 
 // --- SVG download function ----- TEMP -----
-window.downloadSVG = function downloadSVG() {
+
+document.getElementById('download-svg-btn').addEventListener('click', () => {
   const svg     = document.getElementById('tree-svg');
   const clone   = svg.cloneNode(true);
 
@@ -882,7 +861,231 @@ window.downloadSVG = function downloadSVG() {
   a.download = 'tree.svg';
   a.click();
   URL.revokeObjectURL(url);
+});
+
+// --- PROVIDER / MODEL SELECTOR ------------------------------------------------
+
+let providerData = [];
+let selectedProvider = null;
+let selectedModel = null;
+
+function led(activity) {
+  let color = "led-off";
+  if (activity === "ACTIVE") color = "led-on";
+  else if (activity === "NOT_TESTED") color = "led-yellow";
+  return `<span class="led ${color}"></span>`;
 }
+
+// for places with no inner HTML
+function ledEmoji(activity) {
+  if (activity === "ACTIVE") return "🟢";
+  if (activity === "NOT_TESTED") return "🟡";
+  return "🔴";
+}
+
+function buildProviderList(filter = '') {
+  const listEl = document.getElementById('provider-list');
+  listEl.innerHTML = '';
+  const filterLower = filter.toLowerCase();
+
+  providerData
+      .filter(p => p.name.toLowerCase().includes(filterLower))
+      .forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'trace-item' + (selectedProvider?.name === p.name ? ' active' : '');
+        item.innerHTML = `<div class="trace-id">${led(p.reachable)} ${p.name}</div>`;
+        item.onclick = () => {
+          selectedProvider = p;
+          selectedModel = null;
+          listEl.classList.remove('open');
+          buildModelList('');
+
+          fetch('/ai_addons/ui/api/pattern_prediction/set_provider', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              provider: p.name
+            })
+          })
+
+        };
+        listEl.appendChild(item);
+      });
+}
+
+document.getElementById('model-search').disabled = true;
+
+// In buildModelList — oben, nach dem Early-Return
+function buildModelList(filter = '') {
+  const listEl = document.getElementById('model-list');
+  const modelInput = document.getElementById('model-search');
+  listEl.innerHTML = '';
+
+  if (!selectedProvider) {
+    modelInput.disabled = true;
+    return;
+  }
+  modelInput.disabled = false;
+  listEl.innerHTML = '';
+
+  const filterLower = filter.toLowerCase();
+  selectedProvider.models
+    .filter(m => {
+      const name = typeof m === 'string' ? m : m.name;
+      return name.toLowerCase().includes(filterLower);
+    })
+    .forEach(m => {
+      const name = typeof m === 'string' ? m : m.name;
+      const reachable = typeof m === 'string' ? null : (m.active ?? null);
+      const item = document.createElement('div');
+      item.className = 'trace-item' + (selectedModel === name ? ' active' : '');
+      item.innerHTML = `<div class="trace-id">${reachable !== null ? led(reachable) : ''} ${name}</div>`;
+      item.onclick = () => {
+        listEl.classList.remove('open');
+        fetch('/ai_addons/ui/api/pattern_prediction/set_model', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: name
+            })
+          })
+
+      };
+      listEl.appendChild(item);
+    });
+}
+
+// Provider search input
+const providerSearch = document.getElementById('provider-search');
+providerSearch.addEventListener('focus', () => {
+  buildProviderList('');
+  document.getElementById('provider-list').classList.add('open');
+});
+providerSearch.addEventListener('input', e => {
+  buildProviderList(e.target.value);
+  document.getElementById('provider-list').classList.add('open');
+});
+
+// Model search input
+const modelSearch = document.getElementById('model-search');
+modelSearch.addEventListener('focus', () => {
+  buildModelList('');
+  document.getElementById('model-list').classList.add('open');
+});
+modelSearch.addEventListener('input', e => {
+  buildModelList(e.target.value);
+  document.getElementById('model-list').classList.add('open');
+});
+
+// Close dropdowns on outside click
+document.addEventListener('click', e => {
+  if (!document.getElementById('provider-dropdown').contains(e.target))
+    document.getElementById('provider-list').classList.remove('open');
+  if (!document.getElementById('model-dropdown').contains(e.target))
+    document.getElementById('model-list').classList.remove('open');
+});
+
+// Fetch provider data
+async function loadProviderData() {
+  const res = await fetch('/ai_addons/ui/api/ai_provider_data');
+  const data = await res.json();
+  const selected_provider_model = await fetch('/ai_addons/ui/api/pattern_prediction/get_selected_provider_model');
+  const selected_provider_model_data = await selected_provider_model.json();
+  providerData = data.providers;
+  console.log(selected_provider_model_data)
+  set_provider(selected_provider_model_data.provider)
+  set_model(selected_provider_model_data.model)
+  buildProviderList();
+  selected_provider_reload();
+}
+
+function selected_provider_reload(){
+  if (!selectedProvider) return;
+
+  selectedProvider = providerData.find(p => p.name === selectedProvider.name) ?? null;
+
+  const providerInput = document.getElementById('provider-search');
+  const modelInput = document.getElementById('model-search');
+
+  if (!selectedProvider) {
+    providerInput.value = '';
+    modelInput.value = '';
+    selectedModel = null;
+    return;
+  }
+
+  providerInput.value = `${ledEmoji(selectedProvider.reachable)} ${selectedProvider.name}`;
+
+  if (!selectedModel) {
+    modelInput.value = '';
+  } else {
+    const updatedModel = selectedProvider.models.find(m => {
+      const name = typeof m === 'string' ? m : m.name;
+      return name === selectedModel;
+    });
+
+    if (!updatedModel) {
+      selectedModel = null;
+      modelInput.value = '';
+    } else {
+      const reachable = typeof updatedModel !== 'string'
+        ? (updatedModel.active ?? null)
+        : null;
+
+      modelInput.value = `${ledEmoji(reachable)} ${selectedModel}`;
+    }
+  }
+
+  buildModelList(modelSearch.value);
+}
+function set_provider(provider){
+  if (provider) {
+      selectedProvider = providerData.find(p => p.name === provider) ?? null;
+    }
+}
+
+function set_model(model_name){
+  if (!model_name) {
+    selectedModel = null;
+    return;
+  }
+
+  if (selectedProvider) {
+    const model = selectedProvider.models.find(m => {
+      const name = typeof m === "string" ? m : m.name;
+      return name === model_name;
+    });
+
+    selectedModel = model ? (typeof model === "string" ? model : model.name) : null;
+  }
+}
+
+
+// Live updates via socket
+window.addEventListener('load', () => {
+  window.appSocket.on('socket_provider_info', (newData) => {
+    if (newData.providers) {
+      providerData = newData.providers;
+      buildProviderList(providerSearch.value);
+      selected_provider_reload()
+    }
+  });
+
+  window.appSocket.on("socket_pattern_predicion_provider_model", (newData) => {
+    set_provider(newData.set_provider)
+    set_model(newData.set_model)
+
+    selected_provider_reload()
+  })
+});
+
+
+
+loadProviderData();
 
 
 loadTreeData();

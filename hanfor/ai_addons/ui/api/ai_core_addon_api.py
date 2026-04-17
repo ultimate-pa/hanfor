@@ -2,6 +2,8 @@ import random
 import time
 from threading import Event
 from flask import Blueprint, render_template, jsonify, request
+
+from ai_addons.pattern_prediction.pattern_prediction import PatternPrediction
 from hanfor_flask import current_app
 from lib_core.data import Requirement
 from thread_handling.threading_core import ThreadGroup, ThreadTask, SchedulingClass
@@ -153,8 +155,31 @@ def set_trace_sid():
     sid = payload.get("sid")
     pattern_prediction = current_app.ai_addons.get_addons()["pattern_prediction"]
     pattern_prediction.set_sid_for_req(req_id, sid)
-
     return "", 204
+
+
+@blueprint.route("pattern_prediction/set_provider", methods=["POST"])
+def set_provider():
+    payload = request.json
+    provider = payload.get("provider")
+    pattern_prediction = current_app.ai_addons.get_addons()["pattern_prediction"]
+    pattern_prediction.set_provider(provider)
+    return "", 204
+
+
+@blueprint.route("pattern_prediction/set_model", methods=["POST"])
+def set_model():
+    payload = request.json
+    model = payload.get("model")
+    pattern_prediction = current_app.ai_addons.get_addons()["pattern_prediction"]
+    pattern_prediction.set_model(model)
+    return "", 204
+
+
+@blueprint.route("pattern_prediction/get_selected_provider_model", methods=["GET"])
+def get_selected_provider_model():
+    pattern_prediction = current_app.ai_addons.get_addons()["pattern_prediction"]
+    return jsonify(pattern_prediction.get_selected_provider_model())
 
 
 @blueprint.route("pattern_prediction/generate_trace", methods=["POST"])

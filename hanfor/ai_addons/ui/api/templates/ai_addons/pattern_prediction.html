@@ -3,18 +3,36 @@
 
 <!-- TOP BAR -->
 <div id="topbar">
-  <div class="sep"></div>
   <div id="trace-wrap">
     <label>Requirement</label>
     <div id="trace-dropdown">
-      <input id="trace-search" type="text" placeholder="Suche Trace…" autocomplete="off"/>
+      <input id="trace-search" type="text" placeholder="Search Req…" autocomplete="off"/>
       <div id="trace-list"></div>
     </div>
     <button id="clear-trace-btn">X Clear</button>
     <button id="predict-pattern-btn" disabled>Predict Pattern</button>
     <button id="predict-pattern-all-btn">Predict Pattern All</button>
-      <button id="download-svg-btn" onclick="downloadSVG()">SVG herunterladen</button>
+    <div class="sep"></div>
+      <div class="sep"></div>
+      <button id="download-svg-btn" >SVG Tree download</button>
+
+    <div class="sep"></div>
+    <div class="sep"></div>
   </div>
+
+    <div id="provider-wrap" style="display: flex; align-items: center; gap: 12px;">
+      <label>Provider</label>
+      <div id="provider-dropdown">
+        <input id="provider-search" type="text" placeholder="Provider…" autocomplete="off" readonly/>
+        <div id="provider-list"></div>
+      </div>
+      <label>Model</label>
+      <div id="model-dropdown">
+        <input id="model-search" type="text" placeholder="Model…" autocomplete="off" readonly/>
+        <div id="model-list"></div>
+      </div>
+    </div>
+
   <div id="legend">
     <div class="leg-item"><div class="leg-dot" style="background:#4a4a46"></div>Question</div>
     <div class="leg-item"><div class="leg-dot" style="background:var(--success)"></div>Answer</div>

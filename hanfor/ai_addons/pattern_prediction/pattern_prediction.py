@@ -1,12 +1,13 @@
 import logging
 from threading import Event
 
-import select
-from flask_restx import model
 from flask_socketio import SocketIO
+
 from ai_addons.threading_ai_socketio import send_ai_update
 from ai_addons.ai_addon_handler import AiAddonAbstractClass
 from ai_request.ai_core_requests import AiRequest
+from hanfor_flask import current_app
+from lib_core.data import Requirement
 from lib_core.pattern import APattern
 from thread_handling.threading_core import SchedulingClass, ThreadTask, ThreadGroup, ThreadHandler
 
@@ -148,6 +149,10 @@ class PatternPrediction(AiAddonAbstractClass):
                 self.selected_ai_provider_model["provider"] = provider_name
                 self.selected_ai_provider_model["model"] = provider_data.default_model
         self.prediction_tree = Tree()
+        for req_id, requirement in current_app.db.get_objects(Requirement).items():
+            self.requirement_data[str(req_id)] = PatternPredictedRequirement(
+                str(req_id), requirement.description, [], APattern(), None
+            )
 
     @AiAddonAbstractClass.requires_enabled
     def predict_patterns_for_all_requirements(self, requirements, stop_event: Event):
@@ -165,6 +170,21 @@ class PatternPrediction(AiAddonAbstractClass):
                 {},
             )
             self.thread_handler.submit(task)
+
+    @AiAddonAbstractClass.requires_enabled
+    def set_provider(self, set_provider: str):
+        self.selected_ai_provider_model["provider"] = set_provider
+        self.set_model("")
+        send_ai_update({"set_provider": set_provider}, "socket_pattern_predicion_provider_model", self.socketio)
+
+    @AiAddonAbstractClass.requires_enabled
+    def set_model(self, set_model: str):
+        self.selected_ai_provider_model["model"] = set_model
+        send_ai_update({"set_model": set_model}, "socket_pattern_predicion_provider_model", self.socketio)
+
+    @AiAddonAbstractClass.requires_enabled
+    def get_selected_provider_model(self):
+        return self.selected_ai_provider_model
 
     @AiAddonAbstractClass.requires_enabled
     def set_sid_for_req(self, req, sid):

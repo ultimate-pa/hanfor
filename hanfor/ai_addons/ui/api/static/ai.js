@@ -110,13 +110,7 @@ function setDefaultProvider(name) {
 }
 
 
-if (window.appSocket) {
-  window.appSocket.on('socket_provider_info', (newData) => {
-    if (newData.providers) {
-          renderProviders(newData.providers);
-    }
-  });
-} else {
+
   window.addEventListener('load', () => {
     window.appSocket.on('socket_provider_info', (newData) => {
       if (newData.providers) {
@@ -124,7 +118,7 @@ if (window.appSocket) {
       }
     });
   });
-}
+
 
 
 
