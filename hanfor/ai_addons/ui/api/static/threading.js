@@ -41,6 +41,34 @@ function taskRow(t) {
 }
 
 // -- Render --------------------------------------------------------------------
+function renderGroups(d, byGroup) {
+  const container = document.getElementById('groups-row');
+
+  d.groups.forEach((g, i) => {
+    const cnt = byGroup[g];
+    const idle = cnt.running === 0 && cnt.queued === 0;
+    let card = container.querySelector(`[data-group="${g}"]`);
+
+    if (!card) {
+      card = document.createElement('div');
+      card.className = 'group-card';
+      card.dataset.group = g;
+      card.innerHTML = `
+        <span class="badge badge-${g}">${g}</span>
+        <div class="group-counts"></div>
+        <button class="stop-btn" onclick="stopGroup('${g}')">STOP</button>
+      `;
+      container.appendChild(card);
+    }
+
+    card.querySelector('.group-counts').textContent = `${cnt.running} aktiv · ${cnt.queued} in Queue`;
+    card.querySelector('.stop-btn').disabled = idle;
+  });
+}
+
+
+
+
 function render(d) {
   injectGroupStyles(d.groups);
   document.getElementById('m-active').textContent = d.active_count;
@@ -66,15 +94,7 @@ function render(d) {
     if (byGroup[t.group]) byGroup[t.group].queued++;
   });
 
-  document.getElementById('groups-row').innerHTML = d.groups.map(g => {
-    const cnt = byGroup[g];
-    const idle = cnt.running === 0 && cnt.queued === 0;
-    return `<div class="group-card">
-      <span class="badge badge-${g}">${g}</span>
-      <div class="group-counts">${cnt.running} aktiv &middot; ${cnt.queued} in Queue</div>
-      <button class="stop-btn" ${idle ? 'disabled' : ''} onclick="stopGroup('${g}')">STOP</button>
-    </div>`;
-  }).join('');
+  renderGroups(d, byGroup);
 
   document.getElementById('running-list').innerHTML = d.active_tasks.length
       ? d.active_tasks.map(taskRow).join('')
@@ -88,7 +108,7 @@ function render(d) {
 // -- Load ----------------------------------------------------------------------
 async function load() {
   try {
-    const res = await fetch("/ai_addons/ui/api/threading/initial");
+    const res = await fetch("/threading/initial");
     if (!res.ok) throw new Error(res.status);
     const d = await res.json();
     updateData(d);
@@ -124,7 +144,7 @@ if (window.appSocket) {
 // -- Stop group ----------------------------------------------------------------
 async function stopGroup(group) {
   try {
-    const res = await fetch("/ai_addons/ui/api/threading/stop_group", {
+    const res = await fetch("/threading/stop_group", {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ group }),
@@ -141,10 +161,12 @@ async function stopGroup(group) {
 
 window.addDummyTask = async function addDummyTask() {
   try {
-     await fetch("/ai_addons/ui/api/threading/dummy_task", { method: 'POST' });
+     await fetch("/threading/dummy_task", { method: 'POST' });
   } catch {
   }
 }
+
+
 
 load();
 

@@ -355,7 +355,7 @@ async function applyTrace(requestId) {
   if (requestId === null) {
     applyTraceHighlighting(null);
     removeTraceInfoBlock();
-    await fetch('/ai_addons/ui/api/pattern_prediction/clear_trace_sid', {
+    await fetch('/ai_addons/pattern_prediction/clear_trace_sid', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ req_id: requestId, sid: window.appSocket.id, }),
@@ -363,7 +363,7 @@ async function applyTrace(requestId) {
     return;
   }
 
-  await fetch('/ai_addons/ui/api/pattern_prediction/set_trace_sid', {
+  await fetch('/ai_addons/pattern_prediction/set_trace_sid', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({ req_id: requestId, sid: window.appSocket.id, }),
@@ -784,7 +784,7 @@ document.getElementById('clear-trace-btn').onclick = () => {
 };
 
 predictButton.onclick = async () => {
-  await fetch('/ai_addons/ui/api/pattern_prediction/generate_trace', {
+  await fetch('/ai_addons/pattern_prediction/generate_trace', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({ req_id: chosen_id }),
@@ -792,7 +792,7 @@ predictButton.onclick = async () => {
 }
 
 document.getElementById('predict-pattern-all-btn').addEventListener('click', async () => {
-  await fetch('/ai_addons/ui/api/pattern_prediction/generate_trace_all', {
+  await fetch('/ai_addons/pattern_prediction/generate_trace_all', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({ req_id: chosen_id }),
@@ -823,8 +823,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function loadTreeData() {
   const [idsResponse, treeResponse] = await Promise.all([
-    fetch("/ai_addons/ui/api/pattern_prediction/req_ids"),
-    fetch("/ai_addons/ui/api/pattern_prediction/tree"),
+    fetch("/core_ai_addon/req_ids"),
+    fetch("/ai_addons/pattern_prediction/tree"),
   ]);
 
   requestIds = await idsResponse.json();
@@ -900,7 +900,7 @@ function buildProviderList(filter = '') {
           listEl.classList.remove('open');
           buildModelList('');
 
-          fetch('/ai_addons/ui/api/pattern_prediction/set_provider', {
+          fetch('/ai_addons/pattern_prediction/set_provider', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -944,7 +944,7 @@ function buildModelList(filter = '') {
       item.innerHTML = `<div class="trace-id">${reachable !== null ? led(reachable) : ''} ${name}</div>`;
       item.onclick = () => {
         listEl.classList.remove('open');
-        fetch('/ai_addons/ui/api/pattern_prediction/set_model', {
+        fetch('/ai_addons/pattern_prediction/set_model', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -991,9 +991,9 @@ document.addEventListener('click', e => {
 
 // Fetch provider data
 async function loadProviderData() {
-  const res = await fetch('/ai_addons/ui/api/ai_provider_data');
+  const res = await fetch('/core_ai_addon/ai_provider_data');
   const data = await res.json();
-  const selected_provider_model = await fetch('/ai_addons/ui/api/pattern_prediction/get_selected_provider_model');
+  const selected_provider_model = await fetch('/ai_addons/pattern_prediction/get_selected_provider_model');
   const selected_provider_model_data = await selected_provider_model.json();
   providerData = data.providers;
   console.log(selected_provider_model_data)

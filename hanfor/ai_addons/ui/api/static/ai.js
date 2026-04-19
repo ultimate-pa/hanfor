@@ -100,7 +100,7 @@ function renderAddons(data) {
 
 // -- ACTIONS ------------------------------------------------------------------
 function setDefaultProvider(name) {
-    fetch("/ai_addons/ui/api/set_default_provider", {
+    fetch("/ai/set_default_provider", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -123,7 +123,7 @@ function setDefaultProvider(name) {
 
 
 function setDefaultModel(providerName, modelName) {
-    fetch("/ai_addons/ui/api/set_default_model", {
+    fetch("/ai/set_default_model", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -133,7 +133,7 @@ function setDefaultModel(providerName, modelName) {
 }
 
 function testProvider(name) {
-    fetch("/ai_addons/ui/api/test_provider", {
+    fetch("/ai/test_provider", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider: name })
@@ -141,7 +141,7 @@ function testProvider(name) {
 }
 
 function testModel(providerName, modelName) {
-    fetch("/ai_addons/ui/api/test_model", {
+    fetch("/ai/test_model", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider: providerName, model: modelName })
@@ -154,7 +154,7 @@ function toggleAddon(id) {
     if (activeTab) sessionStorage.setItem('activeTab', activeTab.id);
     sessionStorage.setItem('scrollY', window.scrollY);
 
-    fetch("/ai_addons/ui/api/toggle_addon", {
+    fetch("/ai/toggle_addon", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ addon: id })
@@ -183,11 +183,11 @@ document.addEventListener('DOMContentLoaded', restoreState);
 // -- INIT ---------------------------------------------------------------------
 
 async function load() {
-  const provider_response = await fetch("/ai_addons/ui/api/ai_provider_data");
+  const provider_response = await fetch("/core_ai_addon/ai_provider_data");
   provider_data = await provider_response.json();
   renderProviders(provider_data.providers);
 
-  const addon_response = await fetch("/ai_addons/ui/api/ai_addon_data");
+  const addon_response = await fetch("/ai/ai_addon_data");
   addon_data = await addon_response.json();
   renderAddons(addon_data.addons);
 }

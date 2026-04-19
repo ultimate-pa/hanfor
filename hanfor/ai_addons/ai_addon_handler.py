@@ -1,55 +1,14 @@
-from abc import ABC, abstractmethod
 import os
 import importlib
 import logging
-from functools import wraps
-
+from ai_addons.ai_addon_abstract_class import AiAddonAbstractClass
 from ai_addons.threading_ai_socketio import send_ai_update
 from ai_request.ai_core_requests import AiRequest
 from configuration import ai_config
 from thread_handling.threading_core import ThreadHandler
+from typing import TypeVar, Type
 
-
-class AiAddonAbstractClass(ABC):
-
-    @staticmethod
-    def requires_enabled(func):
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            if not self.enabled:
-                return None
-            return func(self, *args, **kwargs)
-
-        return wrapper
-
-    @property
-    @abstractmethod
-    def enabled(self) -> bool:
-        pass
-
-    @abstractmethod
-    def toggle_addon(self):
-        pass
-
-    @property
-    @abstractmethod
-    def addon_name(self) -> str:
-        pass
-
-    @property
-    @abstractmethod
-    def addon_description(self) -> str:
-        pass
-
-    @property
-    @abstractmethod
-    def addon_html(self) -> str:
-        pass
-
-    @property
-    @abstractmethod
-    def addon_js(self) -> str:
-        pass
+T = TypeVar("T", bound=AiAddonAbstractClass)
 
 
 class AiAddons:
@@ -71,7 +30,10 @@ class AiAddons:
         self.__socketio = socketio
         self.__load_all_ai_addons()
 
-    def get_addons(self) -> dict[str, AiAddonAbstractClass]:
+    def get_addon(self, addon_id: str, addon_type: Type[T]) -> T:
+        return self.__addons[addon_id]
+
+    def get_all_addons(self) -> dict[str, AiAddonAbstractClass]:
         return self.__addons
 
     def toggle_addon(self, id: str):
@@ -85,10 +47,11 @@ class AiAddons:
         base_package = "ai_addons"
 
         for directory in os.listdir(base_directory):
-            if directory in ["ui", "ai_addon_handler.py", "__pycache__", "threading_ai_socketio.py"]:
+
+            addon_directory = os.path.join(str(base_directory), str(directory))
+            if not os.path.isdir(addon_directory) or directory in ["ui", "__pycache__"]:
                 continue
 
-            addon_directory = os.path.join(base_directory, directory)
             for filename in os.listdir(addon_directory):
                 if filename.endswith(".py") and filename != "__init__.py":
                     module_name = filename[:-3]

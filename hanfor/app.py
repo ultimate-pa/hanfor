@@ -27,7 +27,7 @@ from reports.reports import api_blueprint as reports_api
 from tools.tools import api_blueprint as tools_api
 from queries.queries import api_blueprint as queries_api
 from req_simulator import simulator_blueprint
-from ai_addons.ui.api import ai_core_addon_api
+from ai_addons.ui.api import all_threading_ai_addon_blueprints
 from tags import tags
 from statistics import statistics
 
@@ -80,7 +80,8 @@ app.register_blueprint(queries_api)
 # Simulator
 app.register_blueprint(simulator_blueprint.blueprint)
 # AI Addons
-app.register_blueprint(ai_core_addon_api.blueprint)
+for threading_ai_addon_bluprint in all_threading_ai_addon_blueprints:
+    app.register_blueprint(threading_ai_addon_bluprint)
 
 # Register feature blueprints and apis
 if app.config["FEATURE_EXAMPLE_BLUEPRINT"]:
