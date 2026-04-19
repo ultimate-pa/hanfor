@@ -6,6 +6,8 @@ class AiAddonAbstractClass(ABC):
 
     @staticmethod
     def requires_enabled(func):
+        """Decorator, returns None if the addon is disabled"""
+
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             if not self.enabled:

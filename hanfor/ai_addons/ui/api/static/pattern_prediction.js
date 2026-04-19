@@ -1075,7 +1075,7 @@ window.addEventListener('load', () => {
     }
   });
 
-  window.appSocket.on("socket_pattern_predicion_provider_model", (newData) => {
+  window.appSocket.on("socket_pattern_prediction_provider_model", (newData) => {
     set_provider(newData.set_provider)
     set_model(newData.set_model)
 

@@ -1,4 +1,5 @@
 import logging
+from os import path
 from threading import Event
 
 from flask_socketio import SocketIO
@@ -16,58 +17,61 @@ from dataclasses import dataclass
 
 
 @dataclass
-class Option:
+class PatternPredictionTreeOption:
     id: str
     answer: str
-    next_node: "Node | Leaf"
-    parent: "Node"
+    next_node: "PatternPredictionTreeNode | PatternPredictionTreeLeaf"
+    parent: "PatternPredictionTreeNode"
 
 
 @dataclass
-class Node:
+class PatternPredictionTreeNode:
     id: str
     question: str
-    answers: list[Option]
-    parent: "Node | None" = None
+    answers: list[PatternPredictionTreeOption]
+    parent: "PatternPredictionTreeNode | None" = None
 
 
 @dataclass
-class Leaf:
+class PatternPredictionTreeLeaf:
     id: str
     pattern_name: str
     pattern: APattern
-    parent: "Node | None" = None
+    parent: "PatternPredictionTreeNode | None" = None
 
 
 class Tree:
 
     def __init__(self):
-        self.root: Node | Leaf | None = None
+        self.root: PatternPredictionTreeNode | PatternPredictionTreeLeaf | None = None
         self.id_map: dict[int, int] = {}
-        self.load("hanfor/ai_addons/pattern_prediction/pattern_tree_longer_questions.json")
+        base_dir = path.dirname(path.abspath(__file__))
+        self.load(path.join(base_dir, "pattern_tree_longer_questions.json"))
 
-    def load(self, path: str) -> None:
-        with open(path, encoding="utf-8") as f:
+    def load(self, tree_path: str):
+        with open(tree_path, encoding="utf-8") as f:
             data = json.load(f)
 
         self.id_map[0] = 0
         self.root = self._parse_node(data["root"], 0)
 
-    def _parse_node(self, data: dict, depth: int) -> Node | Leaf:
+    def _parse_node(self, data: dict, depth: int) -> PatternPredictionTreeNode | PatternPredictionTreeLeaf:
         self.id_map.setdefault(depth, 0)
         node_id = f"_D-{hex(depth)}_W-{hex(self.id_map[depth])}"
 
         if "pattern" in data:
+            # Leaf node - no further branching
             self.id_map[depth] += 1
             patterns = APattern().get_patterns()
-            pattern = APattern().get_patterns()[data["pattern"]] if data["pattern"] in patterns.keys() else APattern()
-            return Leaf(id="p" + node_id, pattern_name=data["pattern"], pattern=pattern)
+            pattern = patterns[data["pattern"]] if data["pattern"] in patterns.keys() else APattern()
+            return PatternPredictionTreeLeaf(id="p" + node_id, pattern_name=data["pattern"], pattern=pattern)
 
-        node = Node(id="q" + node_id, question=data["question"], answers=[])
+        # Inner node - recurse into answers
+        node = PatternPredictionTreeNode(id="q" + node_id, question=data["question"], answers=[])
         self.id_map[depth] += 1
         for ans in data.get("answers", []):
             next_node = self._parse_node(ans["next"], depth + 1)
-            option = Option(
+            option = PatternPredictionTreeOption(
                 id=f"a{node_id}_{ans['answer'].replace(' ', '_')}",
                 answer=ans["answer"],
                 next_node=next_node,
@@ -77,12 +81,14 @@ class Tree:
             node.answers.append(option)
         return node
 
-    def to_dict(self, node: "Node | Leaf | None" = None) -> dict:
+    def to_dict(self, node: "PatternPredictionTreeNode | PatternPredictionTreeLeaf | None" = None) -> dict:
 
         if node is None:
             node = self.root
+        if node is None:
+            return {}
 
-        if isinstance(node, Leaf):
+        if isinstance(node, PatternPredictionTreeLeaf):
             return {"id": node.id, "pattern": node.pattern.get_text()}
 
         return {
@@ -100,7 +106,7 @@ class PatternPredictedRequirement:
     description: str
     trace: list[dict]
     pattern: APattern
-    final_node: "Leaf | None" = None
+    final_node: "PatternPredictionTreeLeaf | None" = None
 
 
 class PatternPrediction(AiAddonAbstractClass):
@@ -159,7 +165,6 @@ class PatternPrediction(AiAddonAbstractClass):
         for req_id, requirement in requirements.items():
             if stop_event.is_set():
                 break
-            requirement.to_dict()
             task = ThreadTask(
                 self.predict_pattern_for_requirement,
                 SchedulingClass.CALLER_DEPTH_1,
@@ -175,12 +180,12 @@ class PatternPrediction(AiAddonAbstractClass):
     def set_provider(self, set_provider: str):
         self.selected_ai_provider_model["provider"] = set_provider
         self.set_model("")
-        send_ai_update({"set_provider": set_provider}, "socket_pattern_predicion_provider_model", self.socketio)
+        send_ai_update({"set_provider": set_provider}, "socket_pattern_prediction_provider_model", self.socketio)
 
     @AiAddonAbstractClass.requires_enabled
     def set_model(self, set_model: str):
         self.selected_ai_provider_model["model"] = set_model
-        send_ai_update({"set_model": set_model}, "socket_pattern_predicion_provider_model", self.socketio)
+        send_ai_update({"set_model": set_model}, "socket_pattern_prediction_provider_model", self.socketio)
 
     @AiAddonAbstractClass.requires_enabled
     def get_selected_provider_model(self):
@@ -214,7 +219,7 @@ class PatternPrediction(AiAddonAbstractClass):
             for step in pattern_data.trace
         ]
 
-        if isinstance(pattern_data.final_node, Leaf):
+        if isinstance(pattern_data.final_node, PatternPredictionTreeLeaf):
             steps.append({"nodeId": pattern_data.final_node.id, "answer": None, "confidences": {}})
 
         payload = {
@@ -230,35 +235,16 @@ class PatternPrediction(AiAddonAbstractClass):
                 send_ai_update(payload, "socket_pattern_prediction", self.socketio, sid)
 
     @AiAddonAbstractClass.requires_enabled
-    def predict_pattern_for_requirement(self, req_id: str, req_desc: str, stop_event: Event):
+    def predict_pattern_for_requirement(self, req_id: str, req_desc: str, stop_event: Event, num_votes=5):
         node = self.prediction_tree.root
         trace = []
 
-        while isinstance(node, Node):
+        while isinstance(node, PatternPredictionTreeNode):
             if stop_event.is_set():
-                self.requirement_data[req_id] = PatternPredictedRequirement(req_id, req_desc, trace, APattern(), None)
-                self.update_trace_frontend(req_id)
+                self._abort_prediction(req_id, trace)
                 return
 
-            options = "\n".join(f"{o.answer}" for o in node.answers)
-
-            query = (
-                f"Requirement: {req_desc}\n\n"
-                f"Current question: {node.question}\n"
-                f"Options:\n{options}\n\n"
-                "Respond ONLY with lines in the exact format:\n"
-                "<answer>:<score>\n\n"
-                "Rules:\n"
-                "- One line per answer option.\n"
-                "- Score must be a number between 0 and 1.\n"
-                "- No explanations.\n"
-                "- No additional text.\n"
-                "- Output ONLY the answer lines.\n\n"
-                "Example:\n"
-                "Yes:0.7\n"
-                "No:0.3\n"
-            )
-
+            query = self._build_query(req_desc, node)
             answer_options = [o.answer for o in node.answers]
 
             task_results = [
@@ -269,58 +255,103 @@ class PatternPrediction(AiAddonAbstractClass):
                     self.selected_ai_provider_model["provider"],
                     self.selected_ai_provider_model["model"],
                 )
-                for _ in range(5)
+                for _ in range(num_votes)
             ]
 
-            result = {a: 0 for a in answer_options}
+            if stop_event.is_set():
+                self._abort_prediction(req_id, trace)
+                return
 
-            for task_result in task_results:
+            result, ai_status = self._collect_scores(task_results, answer_options)
+            if result is None:
+                self._abort_prediction(req_id, trace, error=ai_status)
+                return
 
-                if stop_event.is_set():
-                    self.requirement_data[req_id] = PatternPredictedRequirement(
-                        req_id, req_desc, trace, APattern(), None
-                    )
-                    self.update_trace_frontend(req_id)
-                    return
-
-                ai_response, ai_status = task_result.result()
-
-                if isinstance(ai_status, str) and ai_status.startswith("error"):
-                    self.requirement_data[req_id] = PatternPredictedRequirement(
-                        req_id, req_desc, trace, APattern(), None
-                    )
-                    self.update_trace_frontend(req_id, {"error": ai_status})
-                    return
-
-                if not ai_response:
-                    continue
-                for line in ai_response.splitlines():
-                    if ":" not in line:
-                        continue
-                    try:
-                        ai_answer, score = line.split(":", 1)
-                        ai_answer = ai_answer.strip()
-                        score = float(score.replace(",", "."))
-                    except:
-                        logging.warning("Couldn't parse AI response:" + task_result.result()[0])
-                        continue
-
-                    if ai_answer in answer_options:
-                        result[ai_answer] += score
-
-            for k in result:
-                result[k] /= len(task_results)
-
-            best_key = max(result, key=result.get)
+            best_key = max(result, key=lambda k: result[k])
             trace.append({"nodeId": node.id, "question": node.question, "scores": result.copy(), "chosen": best_key})
 
-            self.requirement_data[req_id] = PatternPredictedRequirement(req_id, req_desc, trace, APattern(), None)
+            data = self.requirement_data[req_id]
+            data.trace = trace
+            data.pattern = APattern()
+            data.final_node = None
             self.update_trace_frontend(req_id)
 
-            for answer in node.answers:
-                if answer.answer == best_key:
-                    node = answer.next_node
-                    break
+            next_node = next((a.next_node for a in node.answers if a.answer == best_key), None)
+            if next_node is not None:
+                node = next_node
 
-        self.requirement_data[req_id] = PatternPredictedRequirement(req_id, req_desc, trace, node.pattern, node)
+        # Leaf reached - store final pattern
+        data = self.requirement_data[req_id]
+        data.trace = trace
+        data.pattern = node.pattern
+        data.final_node = node
         self.update_trace_frontend(req_id)
+
+    def _abort_prediction(self, req_id: str, trace: list, error: str | None = None):
+        """Reset requirement state and notify frontend on prediction abort."""
+        data = self.requirement_data[req_id]
+        data.trace = trace
+        data.pattern = APattern()
+        data.final_node = None
+        self.update_trace_frontend(req_id, {"error": error} if error else None)
+
+    @staticmethod
+    def _build_query(req_desc: str, node: PatternPredictionTreeNode) -> str:
+        """Build the AI prompt for a given requirement and decision tree node"""
+        options = "\n".join(o.answer for o in node.answers)
+        return (
+            f"Requirement: {req_desc}\n\n"
+            f"Current question: {node.question}\n"
+            f"Options:\n{options}\n\n"
+            "Respond ONLY with lines in the exact format:\n"
+            "<answer>:<score>\n\n"
+            "Rules:\n"
+            "- One line per answer option.\n"
+            "- Score must be a number between 0 and 1.\n"
+            "- No explanations.\n"
+            "- No additional text.\n"
+            "- Output ONLY the answer lines.\n\n"
+            "Example:\n"
+            "Yes:0.7\n"
+            "No:0.3\n"
+        )
+
+    @staticmethod
+    def _collect_scores(task_results, answer_options) -> tuple[dict[str, float] | None, str | None]:
+        """Aggregate and normalize scores from all AI responses. Returns None on error."""
+        result = {a: 0.0 for a in answer_options}
+        successful = 0
+
+        for task_result in task_results:
+            ai_response, ai_status = task_result.result()
+
+            if isinstance(ai_status, str) and ai_status.startswith("error"):
+                logging.warning(f"AI request failed: {ai_status}")
+                return None, ai_status
+
+            successful += 1
+
+            if not ai_response:
+                continue
+
+            for line in ai_response.splitlines():
+                if ":" not in line:
+                    continue
+                try:
+                    ai_answer, score = line.split(":", 1)
+                    ai_answer = ai_answer.strip()
+                    score = float(score.replace(",", "."))
+                except (ValueError, AttributeError) as e:
+                    logging.warning(
+                        f"Couldn't parse AI response line '{line}': {e}\nFull answer: {ai_response}, status: {ai_status}"
+                    )
+                    continue
+
+                if ai_answer in answer_options:
+                    result[ai_answer] += score
+
+        # Normalize across successful responses
+        for k in result:
+            result[k] /= max(successful, 1)
+
+        return result, None

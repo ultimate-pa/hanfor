@@ -1,21 +1,12 @@
-import random
-import time
 from flask import Blueprint, request
 from hanfor_flask import current_app
-from thread_handling.threading_core import ThreadGroup, ThreadTask, SchedulingClass
+from thread_handling.threading_core import ThreadGroup
 
 threading_blueprint = Blueprint(
     "threading",
     __name__,
     url_prefix="/threading",
 )
-
-
-def _dummy_task(stop_event):
-    for i in range(int(random.uniform(2000, 10000))):
-        time.sleep(0.001)
-        if stop_event.is_set():
-            break
 
 
 @threading_blueprint.route("/initial", methods=["GET"])
@@ -30,8 +21,12 @@ def threading_stop_group():
     return current_app.thread_handler.threading_data()
 
 
+# ---- temp---------
 @threading_blueprint.route("/dummy_task", methods=["POST"])
 def threading_dummy_task():
+    from thread_handling.threading_core import ThreadTask, SchedulingClass
+    import random
+
     task = ThreadTask(
         thread_function=_dummy_task,
         scheduling_class=random.choice(list(SchedulingClass)),
@@ -43,3 +38,13 @@ def threading_dummy_task():
     )
     current_app.thread_handler.submit(task)
     return "", 200
+
+
+def _dummy_task(stop_event):
+    import random
+    import time
+
+    for i in range(int(random.uniform(2000, 10000))):
+        time.sleep(0.001)
+        if stop_event.is_set():
+            break
