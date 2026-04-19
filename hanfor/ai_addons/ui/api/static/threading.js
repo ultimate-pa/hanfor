@@ -1,57 +1,50 @@
 const GROUP_COLORS = [
-  '#3b338f',
-  '#0b937d',
-  '#0b539a',
-  '#985608',
-  '#6e6e69',
-  '#8f3518',
-  '#832446',
-  '#4a7a2e',
-  '#6b2d8f',
-  '#1a6b6b',
-  '#8f6b00',
-  '#2d4a8f',
+  '#3b338f', '#0b937d', '#0b539a', '#985608',
+  '#6e6e69', '#8f3518', '#832446', '#4a7a2e',
+  '#6b2d8f', '#1a6b6b', '#8f6b00', '#2d4a8f',
 ];
 
-function injectGroupStyles(groups) {
-  const existing = document.getElementById('group-badge-styles');
-  if (existing) existing.remove();
+// -- STYLE INJECTION -----------------------------------------------------------
 
-  const rules = groups.map((g, i) => {
-    const c = GROUP_COLORS[i % GROUP_COLORS.length];
-    return `.badge-${CSS.escape(g)} { background: ${c}; }`;
-  }).join('\n');
+function injectGroupStyles(groups) {
+  document.getElementById('group-badge-styles')?.remove();
+
+  const rules = groups.map((g, i) =>
+    `.badge-${CSS.escape(g)} { background: ${GROUP_COLORS[i % GROUP_COLORS.length]}; }`
+  ).join('\n');
 
   const style = document.createElement('style');
-  style.id = 'group-badge-styles';
+  style.id          = 'group-badge-styles';
   style.textContent = rules;
   document.head.appendChild(style);
 }
 
-// -- Helpers -------------------------------------------------------------------
+// -- HELPERS -------------------------------------------------------------------
 
 function taskRow(t) {
-  return `<div class="task-row">
-    <span class="task-fn">${t.function}</span>
-    <span style="flex:1"></span>
-    <span class="badge badge-${t.group}">${t.group}</span>
-    <span class="badge badge-sc">${t.scheduling_class}</span>
-    <span class="prio">p${t.priority}</span>
-  </div>`;
+  return `
+    <div class="task-row">
+      <span class="task-fn">${t.function}</span>
+      <span style="flex:1"></span>
+      <span class="badge badge-${t.group}">${t.group}</span>
+      <span class="badge badge-sc">${t.scheduling_class}</span>
+      <span class="prio">p${t.priority}</span>
+    </div>`;
 }
 
-// -- Render --------------------------------------------------------------------
+// -- RENDER --------------------------------------------------------------------
+
 function renderGroups(d, byGroup) {
   const container = document.getElementById('groups-row');
 
-  d.groups.forEach((g, i) => {
-    const cnt = byGroup[g];
+  d.groups.forEach(g => {
+    const cnt  = byGroup[g];
     const idle = cnt.running === 0 && cnt.queued === 0;
-    let card = container.querySelector(`[data-group="${g}"]`);
+    let card   = container.querySelector(`[data-group="${g}"]`);
 
     if (!card) {
       card = document.createElement('div');
-      card.className = 'group-card';
+      card.className    = 'group-card';
       card.dataset.group = g;
       card.innerHTML = `
         <span class="badge badge-${g}">${g}</span>
@@ -66,108 +59,86 @@ function renderGroups(d, byGroup) {
   });
 }
 
-
-
-
 function render(d) {
   injectGroupStyles(d.groups);
+
   document.getElementById('m-active').textContent = d.active_count;
-  document.getElementById('m-max').textContent = d.max_threads;
-  document.getElementById('m-queue').textContent = d.queue_size;
+  document.getElementById('m-max').textContent    = d.max_threads;
+  document.getElementById('m-queue').textContent  = d.queue_size;
 
   const freeEl = document.getElementById('m-free');
   freeEl.textContent = d.free_count;
-  freeEl.className = 'metric-value ' + (d.free_count === 0 ? 'bad' : d.free_count <= 2 ? 'warn' : 'ok');
+  freeEl.className   = 'metric-value ' + (d.free_count === 0 ? 'bad' : d.free_count <= 2 ? 'warn' : 'ok');
 
   const pct = d.max_threads > 0 ? Math.round(d.active_count / d.max_threads * 100) : 0;
   const bar = document.getElementById('load-bar');
   bar.style.width = pct + '%';
-  bar.className = 'bar-fill' + (pct >= 90 ? ' danger' : pct >= 60 ? ' warn' : '');
+  bar.className   = 'bar-fill' + (pct >= 90 ? ' danger' : pct >= 60 ? ' warn' : '');
 
-  // groups
-  const byGroup = {};
-  d.groups.forEach(g => byGroup[g] = {running: 0, queued: 0});
-  d.active_tasks.forEach(t => {
-    if (byGroup[t.group]) byGroup[t.group].running++;
-  });
-  d.queued_tasks.forEach(t => {
-    if (byGroup[t.group]) byGroup[t.group].queued++;
-  });
+  // Build per-group counts
+  const byGroup = Object.fromEntries(d.groups.map(g => [g, { running: 0, queued: 0 }]));
+  d.active_tasks.forEach(t  => { if (byGroup[t.group]) byGroup[t.group].running++; });
+  d.queued_tasks.forEach(t  => { if (byGroup[t.group]) byGroup[t.group].queued++;  });
 
   renderGroups(d, byGroup);
 
   document.getElementById('running-list').innerHTML = d.active_tasks.length
-      ? d.active_tasks.map(taskRow).join('')
-      : '<div class="empty">No active Tasks</div>';
+    ? d.active_tasks.map(taskRow).join('')
+    : '<div class="empty">No active tasks</div>';
 
   document.getElementById('queue-list').innerHTML = d.queued_tasks.length
-      ? d.queued_tasks.map(taskRow).join('')
-      : '<div class="empty">Queue is empty</div>';
+    ? d.queued_tasks.map(taskRow).join('')
+    : '<div class="empty">Queue is empty</div>';
 }
 
-// -- Load ----------------------------------------------------------------------
+// -- DATA ----------------------------------------------------------------------
+
+function normalise(data) {
+  data.active_count = data.active_tasks.length;
+  data.free_count   = data.max_threads - data.active_count;
+  data.queue_size   = data.queued_tasks.length;
+  return data;
+}
+
 async function load() {
   try {
-    const res = await fetch("/threading/initial");
+    const res = await fetch('/threading/initial');
     if (!res.ok) throw new Error(res.status);
-    const d = await res.json();
-    updateData(d);
+    render(normalise(await res.json()));
   } catch {
     document.getElementById('last-update').textContent = 'Fehler beim Laden';
   }
 }
 
-function updateData(data) {
-  data.active_count = data.active_tasks.length;
-  data.free_count   = data.max_threads - data.active_count;
-  data.queue_size   = data.queued_tasks.length;
-  render(data);
-}
+// -- SOCKET SUBSCRIPTIONS --------------------------------------------------------------------
 
-if (window.appSocket) {
-  window.appSocket.on('socket_threading', (newData) => {
-    if (newData) {
-      updateData(newData);
-    }
-  });
-} else {
-  console.log("threding, not app soc")
-  window.addEventListener('load', () => {
-    window.appSocket.on('socket_threading', (newData) => {
-      if (newData) {
-        updateData(newData);
-      }
-    });
-  });
-}
+window.tabSubs.register('ai_addons_threading', [
+  {
+    event:   'socket_threading',
+    handler: newData => {
+      if (newData) render(normalise(newData)); },
+  },
+]);
 
-// -- Stop group ----------------------------------------------------------------
+window.tabSubs.onActivate('ai_addons_threading', load);
+
+// -- ACTIONS -------------------------------------------------------------------
+
 async function stopGroup(group) {
   try {
-    const res = await fetch("/threading/stop_group", {
+    const res = await fetch('/threading/stop_group', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ group }),
     });
     if (!res.ok) throw new Error(res.status);
-    const d = await res.json();
-    d.active_count = d.active_tasks.length;
-    d.free_count   = d.max_threads - d.active_count;
-    d.queue_size   = d.queued_tasks.length;
-    render(d);
-  } catch {
-  }
+    render(normalise(await res.json()));
+  } catch { /* swallow */ }
 }
 
-window.addDummyTask = async function addDummyTask() {
-  try {
-     await fetch("/threading/dummy_task", { method: 'POST' });
-  } catch {
-  }
-}
-
-
-
-load();
+window.addDummyTask = async function () {
+  try { await fetch('/threading/dummy_task', { method: 'POST' }); }
+  catch { /* swallow */ }
+};
 
 window.stopGroup = stopGroup;

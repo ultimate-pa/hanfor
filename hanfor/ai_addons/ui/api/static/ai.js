@@ -1,201 +1,152 @@
-let addon_data;
-let provider_data;
+let addonData;
+let providerData;
 
-// -- HELPER FUNCTIONS ---------------------------------------------------------
-function led(activity) {
-    let color = "led-off";
-    if (activity === "ACTIVE") color = "led-on";
-    else if (activity === "NOT_TESTED") color = "led-yellow";
-    return `<span class="led ${color}"></span>`;
+// -- HELPERS -------------------------------------------------------------------
+
+window.led = function led(activity) {
+  const color = activity === 'ACTIVE' ? 'led-on'
+              : activity === 'NOT_TESTED' ? 'led-yellow'
+              : 'led-off';
+  return `<span class="led ${color}"></span>`;
 }
 
-// Combined default tag + button
 function btnDefault(isDefault, action) {
-  if (isDefault) {
-    return `<span class="tag-default">default</span>`;
-  }
-  return `<button class="default-btn" onclick="${action}">set default</button>`;
+  return isDefault
+    ? `<span class="tag-default">default</span>`
+    : `<button class="default-btn" onclick="${action}">set default</button>`;
 }
 
 function modelCard(provider, m) {
   return `
-  <div class="model-card">
-    <div class="model-header">
-      <div class="model-title">
-        ${led(m.active)}
-        <span class="model-name">${m.name}</span>
+    <div class="model-card">
+      <div class="model-header">
+        <div class="model-title">
+          ${led(m.active)}
+          <span class="model-name">${m.name}</span>
+        </div>
+        <div class="model-actions">
+          <button class="test-btn" onclick="testModel('${provider}','${m.name}')">test</button>
+          ${btnDefault(m.default, `setDefaultModel('${provider}','${m.name}')`)}
+        </div>
       </div>
-      <div class="model-actions">
-        <button class="test-btn" onclick="testModel('${provider}','${m.name}')">test</button>
-        ${btnDefault(m.default, `setDefaultModel('${provider}','${m.name}')`)}
-      </div>
-    </div>
-    <div class="model-desc">${m.desc}</div>
-  </div>`;
+      <div class="model-desc">${m.desc}</div>
+    </div>`;
 }
 
 function providerCard(p) {
   return `
-  <div class="provider-card">
-    <div class="provider-header">
-      <div class="provider-title">
-        ${led(p.reachable)}
-        <span class="provider-name">${p.name}</span>
+    <div class="provider-card">
+      <div class="provider-header">
+        <div class="provider-title">
+          ${led(p.reachable)}
+          <span class="provider-name">${p.name}</span>
+        </div>
+        <div class="provider-actions">
+          <button class="test-btn" onclick="testProvider('${p.name}')">test</button>
+          ${btnDefault(p.default, `setDefaultProvider('${p.name}')`)}
+        </div>
       </div>
-      <div class="provider-actions">
-        <button class="test-btn" onclick="testProvider('${p.name}')">test</button>
-        ${btnDefault(p.default, `setDefaultProvider('${p.name}')`)}
+      <div class="provider-info">
+        <div class="info-row"><span class="info-label">Max Concurrent Requests</span><span>${p.max_request}</span></div>
+        <div class="info-row"><span class="info-label">Method</span><span>${p.api_method}</span></div>
+        <div class="info-row"><span class="info-label">URL</span><span class="info-url">${p.url}</span></div>
       </div>
-    </div>
-    <div class="provider-info">
-      <div class="info-row"><span class="info-label">Max Concurrent Requests</span><span>${p.max_request}</span></div>
-      <div class="info-row"><span class="info-label">Method</span><span>${p.api_method}</span></div>
-      <div class="info-row"><span class="info-label">URL</span><span class="info-url">${p.url}</span></div>
-    </div>
-    <div class="provider-models">
-      ${p.models.map(m => modelCard(p.name, m)).join("")}
-    </div>
-  </div>`;
+      <div class="provider-models">
+        ${p.models.map(m => modelCard(p.name, m)).join('')}
+      </div>
+    </div>`;
 }
 
 function addonCard(a) {
   return `
-  <div class="addon-card ${a.enabled ? "addon-enabled" : ""}" id="addon-${a.id}">
-    
-    <div class="addon-header">
-      <div class="addon-title">
+    <div class="addon-card ${a.enabled ? 'addon-enabled' : ''}" id="addon-${a.id}">
+      <div class="addon-header">
         <span class="addon-name">${a.name}</span>
       </div>
-    </div>
-
-    <div class="addon-desc">
-      ${a.desc}
-    </div>
-
-    <div class="addon-footer">
-      <button 
-        class="status-tag ${a.enabled ? "enabled" : "disabled"}"
-        onclick="toggleAddon('${a.id}', ${!a.enabled})"
-      >
-        ${a.enabled ? "active" : "deactivate"}
-      </button>
-    </div>
-
-  </div>
-  `;
+      <div class="addon-desc">${a.desc}</div>
+      <div class="addon-footer">
+        <button
+          class="status-tag ${a.enabled ? 'enabled' : 'disabled'}"
+          onclick="toggleAddon('${a.id}')"
+        >${a.enabled ? 'active' : 'deactivate'}</button>
+      </div>
+    </div>`;
 }
 
-// -- RENDER -------------------------------------------------------------------
+// -- RENDER --------------------------------------------------------------------
+
 function renderProviders(providers) {
-  const c = document.getElementById("providers-container");
-  if (!c) return;
-  c.innerHTML = providers.map(providerCard).join("");
+  const c = document.getElementById('providers-container');
+  if (c) c.innerHTML = providers.map(providerCard).join('');
 }
 
-function renderAddons(data) {
-  const c = document.getElementById("addon-container");
-  if (!c) return;
-  c.innerHTML = data.map(addonCard).join("");
+function renderAddons(addons) {
+  const c = document.getElementById('addon-container');
+  if (c) c.innerHTML = addons.map(addonCard).join('');
 }
 
-// -- ACTIONS ------------------------------------------------------------------
-function setDefaultProvider(name) {
-    fetch("/ai/set_default_provider", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ provider: name })
-    })
-}
+// -- ACTIONS -------------------------------------------------------------------
 
-
-
-  window.addEventListener('load', () => {
-    window.appSocket.on('socket_provider_info', (newData) => {
-      if (newData.providers) {
-          renderProviders(newData.providers);
-      }
-    });
+function post(url, body) {
+  return fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   });
-
-
-
-
-function setDefaultModel(providerName, modelName) {
-    fetch("/ai/set_default_model", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({provider: providerName, model: modelName})
-    })
 }
 
-function testProvider(name) {
-    fetch("/ai/test_provider", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider: name })
-    })
-}
-
-function testModel(providerName, modelName) {
-    fetch("/ai/test_model", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider: providerName, model: modelName })
-    })
-}
+function setDefaultProvider(name)               { post('/ai/set_default_provider',  { provider: name }); }
+function setDefaultModel(providerName, modelName){ post('/ai/set_default_model',     { provider: providerName, model: modelName }); }
+function testProvider(name)                      { post('/ai/test_provider',          { provider: name }); }
+function testModel(providerName, modelName)      { post('/ai/test_model',             { provider: providerName, model: modelName }); }
 
 function toggleAddon(id) {
-    // Save current tab and scroll position before reload
-    const activeTab = document.querySelector('#tab-list-ai .nav-link.active');
-    if (activeTab) sessionStorage.setItem('activeTab', activeTab.id);
-    sessionStorage.setItem('scrollY', window.scrollY);
+  // Persist active tab + scroll so they survive the reload
+  const activeTab = document.querySelector('#tab-list-ai .nav-link.active');
+  if (activeTab) sessionStorage.setItem('activeTab', activeTab.id);
+  sessionStorage.setItem('scrollY', window.scrollY);
 
-    fetch("/ai/toggle_addon", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ addon: id })
-    }).then(() => {
-        window.location.reload();
-    });
+  post('/ai/toggle_addon', { addon: id }).then(() => window.location.reload());
 }
 
 function restoreState() {
-    const tabId = sessionStorage.getItem('activeTab');
-    const scrollY = sessionStorage.getItem('scrollY');
-
-    if (tabId) {
-        const btn = document.getElementById(tabId);
-        if (btn) btn.click();
-        sessionStorage.removeItem('activeTab');
-    }
-    if (scrollY) {
-        window.scrollTo(0, parseInt(scrollY));
-        sessionStorage.removeItem('scrollY');
-    }
+  const tabId   = sessionStorage.getItem('activeTab');
+  const scrollY = sessionStorage.getItem('scrollY');
+  if (tabId)   { document.getElementById(tabId)?.click(); sessionStorage.removeItem('activeTab'); }
+  if (scrollY) { window.scrollTo(0, parseInt(scrollY));   sessionStorage.removeItem('scrollY');  }
 }
 
 document.addEventListener('DOMContentLoaded', restoreState);
 
-// -- INIT ---------------------------------------------------------------------
+// -- SOCKET SUBSCRIPTIONS --------------------------------------------------------------
+
+window.tabSubs.register('ai_addons_ai', [
+  {
+    event:   'socket_provider_info',
+    handler: ({ providers }) => {
+      if (providers) renderProviders(providers); },
+  },
+]);
+
+window.tabSubs.onActivate('ai_addons_ai', load);
+
+// -- INIT ----------------------------------------------------------------------
 
 async function load() {
-  const provider_response = await fetch("/core_ai_addon/ai_provider_data");
-  provider_data = await provider_response.json();
-  renderProviders(provider_data.providers);
-
-  const addon_response = await fetch("/ai/ai_addon_data");
-  addon_data = await addon_response.json();
-  renderAddons(addon_data.addons);
+  const [provRes, addonRes] = await Promise.all([
+    fetch('/core_ai_addon/ai_provider_data'),
+    fetch('/ai/ai_addon_data'),
+  ]);
+  providerData = await provRes.json();
+  addonData    = await addonRes.json();
+  renderProviders(providerData.providers);
+  renderAddons(addonData.addons);
 }
 
-load();
 
-window.testModel = testModel;
-window.setDefaultModel = setDefaultModel;
-window.testProvider = testProvider;
+// Expose to inline onclick handlers
+window.testModel          = testModel;
+window.setDefaultModel    = setDefaultModel;
+window.testProvider       = testProvider;
 window.setDefaultProvider = setDefaultProvider;
-window.toggleAddon = toggleAddon;
+window.toggleAddon        = toggleAddon;

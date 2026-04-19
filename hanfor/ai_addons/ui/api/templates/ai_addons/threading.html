@@ -1,16 +1,18 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ai_addons.css') }}">
+
 <div class="page">
   <h1>Thread Dashboard</h1>
-    <div class="section">
-      <div class="section-header"><span class="dot dot-g"></span>Debug</div>
-      <button id="btn-dummy" onclick="addDummyTask()">Add Dummy Task</button>
-    </div>
+
+  <div class="section">
+    <div class="section-header"><span class="dot dot-g"></span>Debug</div>
+    <button onclick="addDummyTask()">Add Dummy Task</button>
+  </div>
 
   <div class="metrics">
-    <div class="metric"><div class="metric-label">Active Threads</div><div class="metric-value" id="m-active">—</div></div>
-    <div class="metric"><div class="metric-label">Free Threads</div><div class="metric-value" id="m-free">—</div></div>
-    <div class="metric"><div class="metric-label">In Queue</div><div class="metric-value" id="m-queue">—</div></div>
-    <div class="metric"><div class="metric-label">Max Threads</div><div class="metric-value" id="m-max">—</div></div>
+    <div class="metric"><div class="metric-label">Active Threads</div><div class="metric-value" id="m-active">-</div></div>
+    <div class="metric"><div class="metric-label">Free Threads</div><div class="metric-value" id="m-free">-</div></div>
+    <div class="metric"><div class="metric-label">In Queue</div><div class="metric-value" id="m-queue">-</div></div>
+    <div class="metric"><div class="metric-label">Max Threads</div><div class="metric-value" id="m-max">-</div></div>
   </div>
 
   <div class="section">
@@ -19,13 +21,8 @@
   </div>
 
   <div class="section">
-    <div class="section-header">
-      <span class="dot dot-g"></span>Groups
-    </div>
-
-    <div class="groups-wrap">
-      <div class="groups-row" id="groups-row"></div>
-    </div>
+    <div class="section-header"><span class="dot dot-g"></span>Groups</div>
+    <div class="groups-row" id="groups-row"></div>
   </div>
 
   <div class="section">

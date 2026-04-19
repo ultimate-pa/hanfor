@@ -1,63 +1,65 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ai_addons.css') }}">
+
 <div class="pattern-tree-page">
 
-<!-- TOP BAR -->
-<div id="topbar">
-  <div id="trace-wrap">
-    <label>Requirement</label>
-    <div id="trace-dropdown">
-      <input id="trace-search" type="text" placeholder="Search Req…" autocomplete="off"/>
-      <div id="trace-list"></div>
-    </div>
-    <button id="clear-trace-btn">X Clear</button>
-    <button id="predict-pattern-btn" disabled>Predict Pattern</button>
-    <button id="predict-pattern-all-btn">Predict Pattern All</button>
-    <div class="sep"></div>
+  <!-- TOPBAR -->
+  <div id="topbar">
+
+    <div id="trace-wrap">
+      <label>Requirement</label>
+      <div id="trace-dropdown">
+        <input id="trace-search" type="text" placeholder="Search Req…" autocomplete="off">
+        <div id="trace-list"></div>
+      </div>
+      <button id="clear-trace-btn">X Clear</button>
+      <button id="predict-pattern-btn" disabled>Predict Pattern</button>
+      <button id="predict-pattern-all-btn">Predict All</button>
       <div class="sep"></div>
-      <button id="download-svg-btn" >SVG Tree download</button>
+      <button id="download-svg-btn">Download SVG</button>
+    </div>
 
     <div class="sep"></div>
-    <div class="sep"></div>
-  </div>
 
-    <div id="provider-wrap" style="display: flex; align-items: center; gap: 12px;">
+    <div id="provider-wrap">
       <label>Provider</label>
       <div id="provider-dropdown">
-        <input id="provider-search" type="text" placeholder="Provider…" autocomplete="off" readonly/>
+        <input id="provider-search" type="text" placeholder="Provider…" autocomplete="off" readonly>
         <div id="provider-list"></div>
       </div>
       <label>Model</label>
       <div id="model-dropdown">
-        <input id="model-search" type="text" placeholder="Model…" autocomplete="off" readonly/>
+        <input id="model-search" type="text" placeholder="Model…" autocomplete="off" readonly>
         <div id="model-list"></div>
       </div>
     </div>
 
-  <div id="legend">
-    <div class="leg-item"><div class="leg-dot" style="background:#4a4a46"></div>Question</div>
-    <div class="leg-item"><div class="leg-dot" style="background:var(--success)"></div>Answer</div>
-    <div class="leg-item"><div class="leg-dot" style="background:#2b6cb0"></div>Pattern</div>
-    <div class="leg-item"><div class="leg-dot" style="background:var(--warning)"></div>Trace active</div>
+    <div id="legend">
+      <div class="leg-item"><div class="leg-dot" style="background:#4a4a46"></div>Question</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--success)"></div>Answer</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#2b6cb0"></div>Pattern</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--warning)"></div>Trace active</div>
+    </div>
+
   </div>
-</div>
 
-<!-- CANVAS -->
-<div id="canvas-wrap">
-  <div id="canvas">
-    <svg id="tree-svg"></svg>
+  <!-- CANVAS -->
+  <div id="canvas-wrap">
+    <div id="canvas">
+      <svg id="tree-svg"></svg>
+    </div>
   </div>
-</div>
 
-<!-- ZOOM CONTROLS -->
-<div id="zoom-controls">
-  <button class="zoom-btn" id="zoom-in">+</button>
-  <button class="zoom-btn" id="zoom-reset">o</button>
-  <button class="zoom-btn" id="zoom-out">-</button>
-</div>
+  <!-- ZOOM CONTROLS -->
+  <div id="zoom-controls">
+    <button class="zoom-btn" id="zoom-in">+</button>
+    <button class="zoom-btn" id="zoom-reset">o</button>
+    <button class="zoom-btn" id="zoom-out">-</button>
+  </div>
 
-<!-- MINIMAP -->
-<div id="minimap">
-  <svg id="minimap-svg" width="160" height="100"></svg>
-  <div id="minimap-viewport"></div>
-</div>
+  <!-- MINIMAP -->
+  <div id="minimap">
+    <svg id="minimap-svg" width="160" height="100"></svg>
+    <div id="minimap-viewport"></div>
+  </div>
+
 </div>

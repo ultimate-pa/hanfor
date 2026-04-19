@@ -1,4 +1,4 @@
-// --- CONSTANTS ----------------------------------------------------------------
+// -- CONSTANTS -----------------------------------------------------------------
 
 const QUESTION_NODE_WIDTH  = 200;
 const QUESTION_NODE_HEIGHT = 56;
@@ -8,109 +8,79 @@ const PATTERN_NODE_WIDTH   = 210;
 const PATTERN_NODE_HEIGHT  = 54;
 const HORIZONTAL_GAP       = 60;
 const VERTICAL_GAP         = 80;
+const SVG_NS               = 'http://www.w3.org/2000/svg';
 
-const SVG_NS = "http://www.w3.org/2000/svg";
+// -- STATE ---------------------------------------------------------------------
 
-// --- STATE --------------------------------------------------------------------
-
-let treeData;       // raw tree JSON from the API
-let requestIds;     // list of request IDs for the trace search
-
-let svgElement   = null;  // main SVG DOM element
-let activeTrace  = null;  // currently selected request ID
-
-let nodeRegistry = {};  // flat map of all nodes by their ID, built during layout
+let treeData;
+let requestIds;
+let svgElement  = null;
+let activeTrace = null;
+let nodeRegistry = {};
+let chosenId;
 
 const predictButton = document.getElementById('predict-pattern-btn');
 
-let chosen_id;
-// --- HELPERS ------------------------------------------------------------------
+// -- TEXT HELPERS --------------------------------------------------------------
 
-/**
- * Splits a long label into wrapped lines that fit within the given width.
- */
 function wrapTextIntoLines(lines, nodeWidth) {
-  const maxCharWidth = nodeWidth - 16;
+  const maxPx = nodeWidth - 16;
   const result = [];
-
   lines.forEach(line => {
     const words = line.split(' ');
-    let currentLine = '';
-
+    let current = '';
     words.forEach(word => {
-      const candidate = currentLine ? `${currentLine} ${word}` : word;
-      if (candidate.length * 7 > maxCharWidth && currentLine) {
-        result.push(currentLine);
-        currentLine = word;
+      const candidate = current ? `${current} ${word}` : word;
+      if (candidate.length * 7 > maxPx && current) {
+        result.push(current);
+        current = word;
       } else {
-        currentLine = candidate;
+        current = candidate;
       }
     });
-
-    if (currentLine) result.push(currentLine);
+    if (current) result.push(current);
   });
-
   return result;
 }
 
 function calcDynamicHeight(text, nodeWidth, minHeight, topPad, lineHeight, bottomPad) {
   const lines = wrapTextIntoLines([text], nodeWidth);
-  const textHeight = lines.length * lineHeight;
-  return Math.max(minHeight, topPad + textHeight + bottomPad);
+  return Math.max(minHeight, topPad + lines.length * lineHeight + bottomPad);
 }
 
-// --- LAYOUT ENGINE ------------------------------------------------------------
+// -- LAYOUT ENGINE -------------------------------------------------------------
 
-/**
- * Recursively walks the tree and assigns a level depth and parent reference
- * to each node. Also registers every node in the flat nodeRegistry map.
- */
 function assignNodeLevels(node, level, parentId) {
   if (!node) return;
-
   node._level    = level;
   node._parentId = parentId;
   nodeRegistry[node.id] = node;
 
   if (!node.answers) return;
-
   node.answers.forEach(answer => {
-    answer._answerId      = `ans_${node.id}_${answer.answer.replace(/\s/g, '_')}`;
-    answer._parentQuestionId = node.id;
+    answer._answerId           = `ans_${node.id}_${answer.answer.replace(/\s/g, '_')}`;
+    answer._parentQuestionId   = node.id;
     nodeRegistry[answer._answerId] = answer;
     assignNodeLevels(answer.next, level + 2, answer._answerId);
   });
 }
 
-/**
- * Recursively calculates x/y positions for every node and returns
- * the total width consumed by this subtree.
- */
 function calculateNodePositions(node, offsetX, depth, startY = 0) {
   if (!node) return 0;
 
   if (node.pattern !== undefined) {
     node._x = offsetX;
     node._y = startY;
-    node._height = calcDynamicHeight(
-      node.pattern, PATTERN_NODE_WIDTH,
-      PATTERN_NODE_HEIGHT, 14, 15, 10
-    );
+    node._height = calcDynamicHeight(node.pattern, PATTERN_NODE_WIDTH, PATTERN_NODE_HEIGHT, 14, 15, 10);
     return PATTERN_NODE_WIDTH;
   }
 
   if (node.answers) {
-    node._height = calcDynamicHeight(
-      node.question, QUESTION_NODE_WIDTH,
-      QUESTION_NODE_HEIGHT, 10, 15, 10
-    );
-
+    node._height = calcDynamicHeight(node.question, QUESTION_NODE_WIDTH, QUESTION_NODE_HEIGHT, 10, 15, 10);
     node._x = offsetX;
     node._y = startY;
 
-    // Next row starts below this node + gap
     const answerRowY = startY + node._height + VERTICAL_GAP;
-    // Row after answer bubbles
     const childRowY  = answerRowY + ANSWER_NODE_HEIGHT + VERTICAL_GAP;
 
     let totalWidth = 0;
@@ -121,13 +91,11 @@ function calculateNodePositions(node, offsetX, depth, startY = 0) {
       childCenterXs.push(offsetX + totalWidth + childWidth / 2);
       totalWidth += childWidth + HORIZONTAL_GAP;
     });
-
     totalWidth -= HORIZONTAL_GAP;
 
     node._x = (childCenterXs[0] + childCenterXs[childCenterXs.length - 1]) / 2 - QUESTION_NODE_WIDTH / 2;
-
-    node.answers.forEach((answer, index) => {
-      answer._x = childCenterXs[index] - ANSWER_NODE_WIDTH / 2;
+    node.answers.forEach((answer, i) => {
+      answer._x = childCenterXs[i] - ANSWER_NODE_WIDTH / 2;
       answer._y = answerRowY;
     });
 
@@ -135,11 +103,8 @@ function calculateNodePositions(node, offsetX, depth, startY = 0) {
   }
 }
 
-// --- RENDERING ----------------------------------------------------------------
+// -- RENDER TREE ---------------------------------------------------------------
 
-/**
- * Rebuilds the entire SVG from scratch using the current treeData.
- */
 function renderTree() {
   nodeRegistry = {};
   assignNodeLevels(treeData, 0, null);
@@ -147,10 +112,7 @@ function renderTree() {
 
   svgElement = document.getElementById('tree-svg');
 
-  // Calculate bounding box across all registered nodes
-  let minX = Infinity, maxX = -Infinity;
-  let minY = Infinity, maxY = -Infinity;
-
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
   Object.values(nodeRegistry).forEach(node => {
     if (node._x === undefined) return;
     const w = node.pattern  ? PATTERN_NODE_WIDTH  : (node.answers ? QUESTION_NODE_WIDTH  : ANSWER_NODE_WIDTH);
@@ -161,16 +123,16 @@ function renderTree() {
     maxY = Math.max(maxY, node._y + h);
   });
 
-  const PADDING = 60;
-  const totalWidth  = maxX - minX + PADDING * 2;
-  const totalHeight = maxY - minY + PADDING * 2;
+  const PAD = 60;
+  const totalWidth  = maxX - minX + PAD * 2;
+  const totalHeight = maxY - minY + PAD * 2;
 
   svgElement.setAttribute('width',  totalWidth);
   svgElement.setAttribute('height', totalHeight);
   svgElement.innerHTML = '';
 
   const rootGroup = document.createElementNS(SVG_NS, 'g');
-  rootGroup.setAttribute('transform', `translate(${PADDING - minX},${PADDING - minY})`);
+  rootGroup.setAttribute('transform', `translate(${PAD - minX},${PAD - minY})`);
   svgElement.appendChild(rootGroup);
 
   drawEdges(rootGroup, treeData);
@@ -180,13 +142,12 @@ function renderTree() {
   updateMinimap(totalWidth, totalHeight);
 }
 
-// --- EDGES --------------------------------------------------------------------
+// -- EDGES ---------------------------------------------------------------------
 
 function drawEdges(parentGroup, node) {
-  if (!node || !node.answers) return;
-
+  if (!node?.answers) return;
   node.answers.forEach(answer => {
-    drawEdge(parentGroup, node, answer, 'question-to-answer');
+    drawEdge(parentGroup, node,   answer,      'question-to-answer');
     if (answer.next) {
       drawEdge(parentGroup, answer, answer.next, 'answer-to-next');
       drawEdges(parentGroup, answer.next);
@@ -198,45 +159,33 @@ function drawEdge(parentGroup, fromNode, toNode, edgeType) {
   if (fromNode._x === undefined || toNode._x === undefined) return;
 
   let x1, y1, x2, y2;
-
   if (edgeType === 'question-to-answer') {
-    // Use the dynamic height of the question node as the bottom edge
-    const fromHeight = fromNode._height ?? QUESTION_NODE_HEIGHT;
+    const fromH = fromNode._height ?? QUESTION_NODE_HEIGHT;
     x1 = fromNode._x + QUESTION_NODE_WIDTH / 2;
-    y1 = fromNode._y + fromHeight;
-    x2 = toNode._x  + ANSWER_NODE_WIDTH / 2;
+    y1 = fromNode._y + fromH;
+    x2 = toNode._x   + ANSWER_NODE_WIDTH / 2;
     y2 = toNode._y;
   } else {
-    const toWidth = toNode.answers ? QUESTION_NODE_WIDTH : (toNode.pattern ? PATTERN_NODE_WIDTH : ANSWER_NODE_WIDTH);
+    const toW = toNode.answers ? QUESTION_NODE_WIDTH : (toNode.pattern ? PATTERN_NODE_WIDTH : ANSWER_NODE_WIDTH);
     x1 = fromNode._x + ANSWER_NODE_WIDTH / 2;
     y1 = fromNode._y + ANSWER_NODE_HEIGHT;
-    x2 = toNode._x  + toWidth / 2;
+    x2 = toNode._x   + toW / 2;
     y2 = toNode._y;
   }
 
-  const controlY = (y1 + y2) / 2;
-
+  const cy = (y1 + y2) / 2;
   const path = document.createElementNS(SVG_NS, 'path');
-  path.setAttribute('d', `M${x1},${y1} C${x1},${controlY} ${x2},${controlY} ${x2},${y2}`);
+  path.setAttribute('d', `M${x1},${y1} C${x1},${cy} ${x2},${cy} ${x2},${y2}`);
   path.setAttribute('class', 'edge');
-
-  const fromId = fromNode.id || fromNode._answerId;
-  const toId   = toNode.id   || toNode._answerId;
-  path.setAttribute('data-edge-id', `edge_${fromId}_${toId}`);
-
+  path.setAttribute('data-edge-id', `edge_${fromNode.id || fromNode._answerId}_${toNode.id || toNode._answerId}`);
   parentGroup.appendChild(path);
 }
 
-// --- NODES --------------------------------------------------------------------
+// -- NODES ---------------------------------------------------------------------
 
 function drawNodes(parentGroup, node) {
   if (!node) return;
-
-  if (node.pattern !== undefined) {
-    drawPatternNode(parentGroup, node);
-    return;
-  }
-
+  if (node.pattern !== undefined) { drawPatternNode(parentGroup, node); return; }
   if (node.answers) {
     drawQuestionNode(parentGroup, node);
     node.answers.forEach(answer => {
@@ -246,36 +195,37 @@ function drawNodes(parentGroup, node) {
   }
 }
 
+function svgRect(x, y, w, h, rx) {
+  const r = document.createElementNS(SVG_NS, 'rect');
+  r.setAttribute('x', x); r.setAttribute('y', y);
+  r.setAttribute('width', w); r.setAttribute('height', h);
+  r.setAttribute('rx', rx);
+  return r;
+}
+
+function svgText(x, y, content, anchor = 'middle') {
+  const t = document.createElementNS(SVG_NS, 'text');
+  t.setAttribute('x', x); t.setAttribute('y', y);
+  t.setAttribute('text-anchor', anchor);
+  t.textContent = content;
+  return t;
+}
+
 function drawQuestionNode(parentGroup, node) {
   const group = document.createElementNS(SVG_NS, 'g');
   group.setAttribute('class', 'node-q');
   group.setAttribute('data-node-id', node.id);
 
-  const nodeHeight = node._height ?? QUESTION_NODE_HEIGHT;
-  const LINE_HEIGHT = 15;
-  const wrappedLines = wrapTextIntoLines([node.question], QUESTION_NODE_WIDTH);
+  const h       = node._height ?? QUESTION_NODE_HEIGHT;
+  const LINE_H  = 15;
+  const lines   = wrapTextIntoLines([node.question], QUESTION_NODE_WIDTH);
+  const textH   = lines.length * LINE_H;
+  const startY  = node._y + (h - textH) / 2 + LINE_H;
 
-  const rect = document.createElementNS(SVG_NS, 'rect');
-  rect.setAttribute('x',      node._x);
-  rect.setAttribute('y',      node._y);
-  rect.setAttribute('width',  QUESTION_NODE_WIDTH);
-  rect.setAttribute('height', nodeHeight);
-  rect.setAttribute('rx', 8);
-  group.appendChild(rect);
-
-  // Vertically center the text block within the node
-  const totalTextHeight = wrappedLines.length * LINE_HEIGHT;
-  const startY = node._y + (nodeHeight - totalTextHeight) / 2 + LINE_HEIGHT;
-
-  wrappedLines.forEach((line, index) => {
-    const textEl = document.createElementNS(SVG_NS, 'text');
-    textEl.setAttribute('x', node._x + QUESTION_NODE_WIDTH / 2);
-    textEl.setAttribute('y', startY + index * LINE_HEIGHT);
-    textEl.setAttribute('text-anchor', 'middle');
-    textEl.textContent = line;
-    group.appendChild(textEl);
-  });
-
+  group.appendChild(svgRect(node._x, node._y, QUESTION_NODE_WIDTH, h, 8));
+  lines.forEach((line, i) =>
+    group.appendChild(svgText(node._x + QUESTION_NODE_WIDTH / 2, startY + i * LINE_H, line))
+  );
   parentGroup.appendChild(group);
 }
 
@@ -284,21 +234,12 @@ function drawAnswerNode(parentGroup, answer) {
   group.setAttribute('class', 'node-a');
   group.setAttribute('data-node-id', answer._answerId);
 
-  const rect = document.createElementNS(SVG_NS, 'rect');
-  rect.setAttribute('x',      answer._x);
-  rect.setAttribute('y',      answer._y);
-  rect.setAttribute('width',  ANSWER_NODE_WIDTH);
-  rect.setAttribute('height', ANSWER_NODE_HEIGHT);
-  rect.setAttribute('rx', 20);
-  group.appendChild(rect);
-
-  const textEl = document.createElementNS(SVG_NS, 'text');
-  textEl.setAttribute('x', answer._x + ANSWER_NODE_WIDTH / 2);
-  textEl.setAttribute('y', answer._y + ANSWER_NODE_HEIGHT / 2 + 7);
-  textEl.setAttribute('text-anchor', 'middle');
-  textEl.textContent = answer.answer;
-  group.appendChild(textEl);
-
+  group.appendChild(svgRect(answer._x, answer._y, ANSWER_NODE_WIDTH, ANSWER_NODE_HEIGHT, 20));
+  group.appendChild(svgText(
+    answer._x + ANSWER_NODE_WIDTH / 2,
+    answer._y + ANSWER_NODE_HEIGHT / 2 + 7,
+    answer.answer
+  ));
   parentGroup.appendChild(group);
 }
 
@@ -307,116 +248,124 @@ function drawPatternNode(parentGroup, node) {
   group.setAttribute('class', 'node-p');
   group.setAttribute('data-node-id', node.id);
 
-  const nodeHeight = node._height ?? PATTERN_NODE_HEIGHT;
-  const LINE_HEIGHT = 15;
-  const wrappedLines = wrapTextIntoLines([node.pattern], PATTERN_NODE_WIDTH);
+  const h      = node._height ?? PATTERN_NODE_HEIGHT;
+  const LINE_H = 15;
+  const lines  = wrapTextIntoLines([node.pattern], PATTERN_NODE_WIDTH);
+  const textH  = lines.length * LINE_H;
+  const startY = node._y + (h - textH) / 2 + LINE_H;
 
-  const rect = document.createElementNS(SVG_NS, 'rect');
-  rect.setAttribute('x',      node._x);
-  rect.setAttribute('y',      node._y);
-  rect.setAttribute('width',  PATTERN_NODE_WIDTH);
-  rect.setAttribute('height', nodeHeight);
-  rect.setAttribute('rx', 8);
-  group.appendChild(rect);
+  group.appendChild(svgRect(node._x, node._y, PATTERN_NODE_WIDTH, h, 8));
 
-  // Small "PATTERN" category label at the top
-  const categoryLabel = document.createElementNS(SVG_NS, 'text');
-  categoryLabel.setAttribute('x', node._x + PATTERN_NODE_WIDTH / 2);
-  categoryLabel.setAttribute('y', node._y + 14);
-  categoryLabel.setAttribute('text-anchor', 'middle');
-  categoryLabel.setAttribute('fill', '#607899');
-  categoryLabel.setAttribute('font-size', '9');
-  group.appendChild(categoryLabel);
+  // Subtle "PATTERN" category label
+  const label = document.createElementNS(SVG_NS, 'text');
+  label.setAttribute('x', node._x + PATTERN_NODE_WIDTH / 2);
+  label.setAttribute('y', node._y + 14);
+  label.setAttribute('text-anchor', 'middle');
+  label.setAttribute('fill', '#607899');
+  label.setAttribute('font-size', '9');
+  group.appendChild(label);
 
-  // Vertically center the text block within the node
-  const totalTextHeight = wrappedLines.length * LINE_HEIGHT;
-  const startY = node._y + (nodeHeight - totalTextHeight) / 2 + LINE_HEIGHT;
-
-  wrappedLines.forEach((line, index) => {
-    const textEl = document.createElementNS(SVG_NS, 'text');
-    textEl.setAttribute('x', node._x + PATTERN_NODE_WIDTH / 2);
-    textEl.setAttribute('y', startY + index * LINE_HEIGHT);
-    textEl.setAttribute('text-anchor', 'middle');
-    textEl.textContent = line;
-    group.appendChild(textEl);
-  });
-
+  lines.forEach((line, i) =>
+    group.appendChild(svgText(node._x + PATTERN_NODE_WIDTH / 2, startY + i * LINE_H, line))
+  );
   parentGroup.appendChild(group);
 }
 
-// --- TRACE HIGHLIGHTING -------------------------------------------------------
+// -- TRACE HIGHLIGHTING --------------------------------------------------------
 
-/**
- * Fetches the trace for a given request ID and applies visual highlighting.
- * Passing null clears the current trace.
- */
 async function applyTrace(requestId) {
-
   if (requestId === null) {
     applyTraceHighlighting(null);
     removeTraceInfoBlock();
     await fetch('/ai_addons/pattern_prediction/clear_trace_sid', {
-      method:  'POST',
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ req_id: requestId, sid: window.appSocket.id, }),
+      body: JSON.stringify({ req_id: requestId, sid: window.appSocket.id }),
     });
     return;
   }
 
   await fetch('/ai_addons/pattern_prediction/set_trace_sid', {
-    method:  'POST',
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ req_id: requestId, sid: window.appSocket.id, }),
+    body: JSON.stringify({ req_id: requestId, sid: window.appSocket.id }),
   });
-
 }
 
+function applyTraceHighlighting(traceData) {
+  if (!svgElement) return;
 
-  window.addEventListener('load', () => {
-    window.appSocket.on('socket_pattern_prediction', (newData) => {
-      if (newData) {
-        applyTraceHighlighting(newData);
-        renderTraceInfoBlock(newData);
+  // Clear previous state
+  svgElement.querySelectorAll(
+    '.trace-active, .trace-inactive, .trace-edge-active, .trace-edge-inactive'
+  ).forEach(el => el.classList.remove('trace-active', 'trace-inactive', 'trace-edge-active', 'trace-edge-inactive'));
+  svgElement.querySelectorAll('.prob-badge').forEach(el => el.remove());
+
+  if (!traceData?.steps?.length) return;
+
+  traceData.steps.forEach((step, stepIndex) => {
+    const questionEl = svgElement.querySelector(`[data-node-id="${step.nodeId}"]`);
+    if (questionEl) questionEl.classList.add('trace-active');
+
+    Object.entries(step.confidences || {}).forEach(([answerText, confidence]) => {
+      const answerNode = Object.values(nodeRegistry).find(
+        n => n._parentQuestionId === step.nodeId && n.answer === answerText
+      );
+      if (!answerNode) return;
+
+      const answerEdgeId       = answerNode.id || answerNode._answerId;
+      const edgeQuestionAnswer = svgElement.querySelector(`[data-edge-id="edge_${step.nodeId}_${answerEdgeId}"]`);
+      const answerEl           = svgElement.querySelector(`[data-node-id="${answerNode._answerId}"]`);
+
+      // Probability badge
+      if (answerEl) {
+        const badge  = document.createElementNS(SVG_NS, 'g');
+        badge.setAttribute('class', 'prob-badge');
+
+        const textEl = document.createElementNS(SVG_NS, 'text');
+        textEl.textContent = (confidence * 100).toFixed(0) + '%';
+        textEl.setAttribute('text-anchor', 'middle');
+        textEl.setAttribute('dominant-baseline', 'middle');
+
+        const bgRect = document.createElementNS(SVG_NS, 'rect');
+        bgRect.setAttribute('rx', 4);
+        bgRect.setAttribute('ry', 4);
+        badge.appendChild(bgRect);
+        badge.appendChild(textEl);
+        svgElement.querySelector('g').appendChild(badge);
+
+        const bb = textEl.getBBox();
+        bgRect.setAttribute('width',  bb.width  + 8);
+        bgRect.setAttribute('height', bb.height + 4);
+        bgRect.setAttribute('x', -(bb.width  + 8) / 2);
+        bgRect.setAttribute('y', -(bb.height + 4) / 2);
+        badge.setAttribute('transform', `translate(${answerNode._x + ANSWER_NODE_WIDTH / 2},${answerNode._y - bb.height + 4})`);
+      }
+
+      const chosen = step.answer === answerText;
+      if (chosen) {
+        if (edgeQuestionAnswer) edgeQuestionAnswer.classList.add('trace-edge-active');
+        if (answerEl) answerEl.classList.add('trace-active');
+
+        const nextNodeId = traceData.steps[stepIndex + 1]?.nodeId;
+        if (nextNodeId) {
+          const edgeAnswerNext = svgElement.querySelector(`[data-edge-id="edge_${answerEdgeId}_${nextNodeId}"]`);
+          if (edgeAnswerNext) edgeAnswerNext.classList.add('trace-edge-active');
+        }
+      } else {
+        if (edgeQuestionAnswer) edgeQuestionAnswer.classList.add('trace-edge-inactive');
+        if (answerEl) answerEl.classList.add('trace-inactive');
       }
     });
   });
-
-
-
-  window.addEventListener('load', () => {
-    window.appSocket.on('socket_pattern_prediction_error', (newData) => {
-      if (newData) {
-        showErrorBanner(newData.error);
-      }
-    });
-  });
-
-
-function showErrorBanner(message) {
-  const existing = document.getElementById('prediction-error-banner');
-  if (existing) existing.remove();
-
-  const banner = document.createElement('div');
-  banner.id = 'prediction-error-banner';
-  banner.className = 'alert alert-danger alert-dismissible m-2';
-  banner.innerHTML = `
-    <strong>Prediction error:</strong> ${message}
-    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
-  `;
-  document.querySelector('main').prepend(banner);
 }
 
-
+// -- TRACE INFO BLOCK ---------------------------------------------------------
 
 function removeTraceInfoBlock() {
-  const existingBlock = document.getElementById('trace-info-block');
-  if (existingBlock) existingBlock.remove();
+  document.getElementById('trace-info-block')?.remove();
 }
 
-/**
- * Creates or updates the floating info panel showing description and pattern
- * for the currently selected trace.
- */
 function renderTraceInfoBlock(traceData) {
   let infoBlock = document.getElementById('trace-info-block');
 
@@ -425,126 +374,43 @@ function renderTraceInfoBlock(traceData) {
     infoBlock.id        = 'trace-info-block';
     infoBlock.className = 'trace-info-block';
 
-    const toggleButton = document.createElement('button');
-    toggleButton.textContent = '−';
-    toggleButton.className   = 'trace-toggle-btn';
-    toggleButton.onclick = () => {
-      const contentEl = infoBlock.querySelector('.trace-content');
-      const isCollapsed = contentEl.style.display === 'none';
-      contentEl.style.display   = isCollapsed ? 'block' : 'none';
-      toggleButton.textContent  = isCollapsed ? '−' : '+';
-      infoBlock.classList.toggle('minimized', !isCollapsed);
+    const toggleBtn = document.createElement('button');
+    toggleBtn.textContent = '−';
+    toggleBtn.className   = 'trace-toggle-btn';
+    toggleBtn.onclick = () => {
+      const content = infoBlock.querySelector('.trace-content');
+      const collapsed = content.style.display === 'none';
+      content.style.display  = collapsed ? 'block' : 'none';
+      toggleBtn.textContent  = collapsed ? '−' : '+';
+      infoBlock.classList.toggle('minimized', !collapsed);
     };
-
-    infoBlock.appendChild(toggleButton);
 
     const contentEl = document.createElement('div');
     contentEl.className = 'trace-content';
+    infoBlock.appendChild(toggleBtn);
     infoBlock.appendChild(contentEl);
-
     document.getElementById('canvas-wrap').appendChild(infoBlock);
   }
 
-  const contentEl = infoBlock.querySelector('.trace-content');
-  const patternText = traceData.pattern && traceData.pattern !== "none"
-    ? traceData.pattern
-    : 'none';
+  const patternText = traceData.pattern && traceData.pattern !== 'none' ? traceData.pattern : 'none';
+  infoBlock.querySelector('.trace-content').innerHTML =
+    `<strong>Description:</strong> ${traceData.desc || '–'}<br><br><strong>Pattern:</strong> ${patternText}`;
+}
 
-  contentEl.innerHTML = `
-    <strong>Description:</strong> ${traceData.desc || '-'}<br><br>
-    <strong>Pattern:</strong> ${patternText}
+function showErrorBanner(message) {
+  document.getElementById('prediction-error-banner')?.remove();
+
+  const banner = document.createElement('div');
+  banner.id        = 'prediction-error-banner';
+  banner.className = 'alert alert-danger alert-dismissible m-2';
+  banner.innerHTML = `
+    <strong>Prediction error:</strong> ${message}
+    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
   `;
+  document.querySelector('main').prepend(banner);
 }
 
-/**
- * Applies or clears CSS highlight classes on SVG nodes and edges
- * based on the trace steps and their confidence scores.
- */
-function applyTraceHighlighting(traceData) {
-  if (!svgElement) return;
-
-  // Clear all previous trace styling
-  svgElement.querySelectorAll(
-    '.trace-active, .trace-inactive, .trace-edge-active, .trace-edge-inactive'
-  ).forEach(el => el.classList.remove(
-    'trace-active', 'trace-inactive', 'trace-edge-active', 'trace-edge-inactive'
-  ));
-
-  // Remove old probability badges
-  svgElement.querySelectorAll('.prob-badge').forEach(el => el.remove());
-
-  if (!traceData || traceData.steps.length === 0) return;
-
-  traceData.steps.forEach((step, stepIndex) => {
-    const questionNodeId = step.nodeId;
-    const questionEl = svgElement.querySelector(`[data-node-id="${questionNodeId}"]`);
-    if (questionEl) questionEl.classList.add('trace-active');
-
-    Object.entries(step.confidences || {}).forEach(([answerText, confidence]) => {
-      const answerNode = Object.values(nodeRegistry).find(
-        n => n._parentQuestionId === questionNodeId && n.answer === answerText
-      );
-      if (!answerNode) return;
-
-      const answerEdgeFromId = answerNode.id || answerNode._answerId;
-      const edgeQuestionToAnswer = svgElement.querySelector(
-        `[data-edge-id="edge_${questionNodeId}_${answerEdgeFromId}"]`
-      );
-      const answerEl = svgElement.querySelector(`[data-node-id="${answerNode._answerId}"]`);
-
-      // Draw a small confidence percentage badge above the answer bubble
-      if (answerEl) {
-        const badge = document.createElementNS(SVG_NS, 'g');
-        badge.setAttribute('class', 'prob-badge');
-
-        const textEl = document.createElementNS(SVG_NS, 'text');
-        textEl.textContent = (confidence * 100).toFixed(0) + '%';
-        textEl.setAttribute('text-anchor', 'middle');
-        textEl.setAttribute('dominant-baseline', 'middle');
-        badge.appendChild(textEl);
-
-        const bgRect = document.createElementNS(SVG_NS, 'rect');
-        bgRect.setAttribute('rx', 4);
-        bgRect.setAttribute('ry', 4);
-        badge.insertBefore(bgRect, textEl);
-
-        svgElement.querySelector('g').appendChild(badge);
-
-        const textBBox = textEl.getBBox();
-        bgRect.setAttribute('width',  textBBox.width  + 8);
-        bgRect.setAttribute('height', textBBox.height + 4);
-        bgRect.setAttribute('x', -(textBBox.width  + 8) / 2);
-        bgRect.setAttribute('y', -(textBBox.height + 4) / 2);
-
-        const badgeX = answerNode._x + ANSWER_NODE_WIDTH / 2;
-        const badgeY = answerNode._y - textBBox.height + 4;
-        badge.setAttribute('transform', `translate(${badgeX}, ${badgeY})`);
-      }
-
-      // Highlight each edge and answer node based on whether it was taken
-      const wasAnswerChosen = step.answer === answerText;
-
-      if (wasAnswerChosen) {
-        if (edgeQuestionToAnswer) edgeQuestionToAnswer.classList.add('trace-edge-active');
-        if (answerEl) answerEl.classList.add('trace-active');
-
-        const nextNodeId = traceData.steps[stepIndex + 1]?.nodeId;
-        if (nextNodeId) {
-          const answerEdgeFromId = answerNode.id || answerNode._answerId;
-          const edgeAnswerToNext = svgElement.querySelector(
-            `[data-edge-id="edge_${answerEdgeFromId}_${nextNodeId}"]`
-          );
-          if (edgeAnswerToNext) edgeAnswerToNext.classList.add('trace-edge-active');
-        }
-      } else {
-        if (edgeQuestionToAnswer) edgeQuestionToAnswer.classList.add('trace-edge-inactive');
-        if (answerEl) answerEl.classList.add('trace-inactive');
-      }
-    });
-  });
-}
-
-// --- PAN / ZOOM ---------------------------------------------------------------
+// -- PAN / ZOOM ----------------------------------------------------------------
 
 let panX = 40, panY = 40, zoomScale = 1.0;
 let isPanning = false, panStartX = 0, panStartY = 0;
@@ -560,17 +426,16 @@ function initPanZoom(width, height) {
   canvasWidth  = width;
   canvasHeight = height;
 
-  const wrapper = document.getElementById('canvas-wrap');
-  const viewportW = wrapper.clientWidth;
-  const viewportH = wrapper.clientHeight;
+  const wrapper  = document.getElementById('canvas-wrap');
+  const vpW = wrapper.clientWidth;
+  const vpH = wrapper.clientHeight;
 
-  // Fit the tree into view on initial load
-  zoomScale = Math.min(1, (viewportW - 80) / width, (viewportH - 80) / height);
-  panX = (viewportW - width * zoomScale) / 2;
+  zoomScale = Math.min(1, (vpW - 80) / width, (vpH - 80) / height);
+  panX = (vpW - width * zoomScale) / 2;
   panY = 30;
   applyCanvasTransform();
 
-  // Mouse pan
+  // Mouse
   wrapper.addEventListener('mousedown', e => {
     if (e.button !== 0) return;
     isPanning = true;
@@ -584,38 +449,33 @@ function initPanZoom(width, height) {
     panY = e.clientY - panStartY;
     applyCanvasTransform();
   });
-  wrapper.addEventListener('mouseup',   () => { isPanning = false; wrapper.classList.remove('dragging'); });
+  wrapper.addEventListener('mouseup',    () => { isPanning = false; wrapper.classList.remove('dragging'); });
   wrapper.addEventListener('mouseleave', () => { isPanning = false; wrapper.classList.remove('dragging'); });
 
-  // Scroll to zoom (ignore scroll inside the info block)
+  // Wheel zoom
   wrapper.addEventListener('wheel', e => {
     if (e.target.closest('.trace-info-block')) return;
     e.preventDefault();
-
-    const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+    const factor = e.deltaY > 0 ? 0.9 : 1.1;
     const bounds = wrapper.getBoundingClientRect();
-    const mouseX = e.clientX - bounds.left;
-    const mouseY = e.clientY - bounds.top;
-
-    panX = mouseX - (mouseX - panX) * zoomFactor;
-    panY = mouseY - (mouseY - panY) * zoomFactor;
-    zoomScale = Math.max(0.1, Math.min(3, zoomScale * zoomFactor));
-
+    const mx = e.clientX - bounds.left;
+    const my = e.clientY - bounds.top;
+    panX = mx - (mx - panX) * factor;
+    panY = my - (my - panY) * factor;
+    zoomScale = Math.max(0.1, Math.min(3, zoomScale * factor));
     applyCanvasTransform();
   }, { passive: false });
 
-  // Touch pan & pinch-to-zoom
-  let lastPinchDistance = null;
-
+  // Touch
+  let lastPinchDist = null;
   wrapper.addEventListener('touchstart', e => {
     if (e.touches.length === 1) {
-      isPanning    = true;
-      panStartX    = e.touches[0].clientX - panX;
-      panStartY    = e.touches[0].clientY - panY;
+      isPanning = true;
+      panStartX = e.touches[0].clientX - panX;
+      panStartY = e.touches[0].clientY - panY;
     }
-    if (e.touches.length === 2) lastPinchDistance = null;
+    if (e.touches.length === 2) lastPinchDist = null;
   });
-
   wrapper.addEventListener('touchmove', e => {
     e.preventDefault();
     if (e.touches.length === 1 && isPanning) {
@@ -626,22 +486,18 @@ function initPanZoom(width, height) {
     if (e.touches.length === 2) {
       const dx   = e.touches[0].clientX - e.touches[1].clientX;
       const dy   = e.touches[0].clientY - e.touches[1].clientY;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (lastPinchDistance) {
-        zoomScale = Math.max(0.1, Math.min(3, zoomScale * (dist / lastPinchDistance)));
+      const dist = Math.hypot(dx, dy);
+      if (lastPinchDist) {
+        zoomScale = Math.max(0.1, Math.min(3, zoomScale * (dist / lastPinchDist)));
         applyCanvasTransform();
       }
-      lastPinchDistance = dist;
+      lastPinchDist = dist;
     }
   }, { passive: false });
-
-  wrapper.addEventListener('touchend', () => {
-    isPanning         = false;
-    lastPinchDistance = null;
-  });
+  wrapper.addEventListener('touchend', () => { isPanning = false; lastPinchDist = null; });
 
   // Toolbar buttons
-  document.getElementById('zoom-in').onclick    = () => { zoomScale = Math.min(3, zoomScale * 1.2); applyCanvasTransform(); };
+  document.getElementById('zoom-in').onclick    = () => { zoomScale = Math.min(3,   zoomScale * 1.2); applyCanvasTransform(); };
   document.getElementById('zoom-out').onclick   = () => { zoomScale = Math.max(0.1, zoomScale / 1.2); applyCanvasTransform(); };
   document.getElementById('zoom-reset').onclick = resetZoom;
 }
@@ -649,86 +505,68 @@ function initPanZoom(width, height) {
 function resetZoom() {
   const wrapper = document.getElementById('canvas-wrap');
   if (!wrapper) return;
-  const viewportW = wrapper.clientWidth;
-  const viewportH = wrapper.clientHeight;
-  zoomScale = Math.min(1, (viewportW - 80) / canvasWidth, (viewportH - 80) / canvasHeight);
-  panX = (viewportW - canvasWidth * zoomScale) / 2;
+  const vpW = wrapper.clientWidth;
+  const vpH = wrapper.clientHeight;
+  zoomScale = Math.min(1, (vpW - 80) / canvasWidth, (vpH - 80) / canvasHeight);
+  panX = (vpW - canvasWidth * zoomScale) / 2;
   panY = 30;
   applyCanvasTransform();
 }
 
-// --- MINIMAP ------------------------------------------------------------------
+// -- MINIMAP -------------------------------------------------------------------
 
-const MINIMAP_WIDTH  = 160;
-const MINIMAP_HEIGHT = 100;
+const MINIMAP_W = 160, MINIMAP_H = 100;
 
 function updateMinimap(treeWidth, treeHeight) {
-  const minimapSvg = document.getElementById('minimap-svg');
-  const scale = Math.min(MINIMAP_WIDTH / treeWidth, MINIMAP_HEIGHT / treeHeight) * 0.9;
-  minimapSvg.innerHTML = '';
+  const mmSvg  = document.getElementById('minimap-svg');
+  const scale  = Math.min(MINIMAP_W / treeWidth, MINIMAP_H / treeHeight) * 0.9;
+  const offX   = (MINIMAP_W - treeWidth  * scale) / 2;
+  const offY   = (MINIMAP_H - treeHeight * scale) / 2;
 
-  const offsetX = (MINIMAP_WIDTH  - treeWidth  * scale) / 2;
-  const offsetY = (MINIMAP_HEIGHT - treeHeight * scale) / 2;
-
+  mmSvg.innerHTML = '';
   const group = document.createElementNS(SVG_NS, 'g');
-  group.setAttribute('transform', `translate(${offsetX},${offsetY}) scale(${scale})`);
+  group.setAttribute('transform', `translate(${offX},${offY}) scale(${scale})`);
 
   Object.values(nodeRegistry).forEach(node => {
     if (node._x === undefined) return;
-
-    const isQuestion = !!node.answers;
-    const isPattern  = node.pattern !== undefined;
-    const w = isPattern ? PATTERN_NODE_WIDTH  : (isQuestion ? QUESTION_NODE_WIDTH  : ANSWER_NODE_WIDTH);
-    // Use dynamic height if available, fall back to constants
-    const h = node._height ?? (isPattern ? PATTERN_NODE_HEIGHT : (isQuestion ? QUESTION_NODE_HEIGHT : ANSWER_NODE_HEIGHT));
-
-    const rect = document.createElementNS(SVG_NS, 'rect');
-    rect.setAttribute('x',       node._x);
-    rect.setAttribute('y',       node._y);
-    rect.setAttribute('width',   w);
-    rect.setAttribute('height',  h);
-    rect.setAttribute('rx',      4);
-    rect.setAttribute('fill',    isPattern ? '#2b6cb0' : (isQuestion ? '#3a3a38' : '#1a3a2a'));
-    rect.setAttribute('opacity', '0.8');
-    group.appendChild(rect);
+    const isQ = !!node.answers;
+    const isP = node.pattern !== undefined;
+    const w   = isP ? PATTERN_NODE_WIDTH : (isQ ? QUESTION_NODE_WIDTH : ANSWER_NODE_WIDTH);
+    const h   = node._height ?? (isP ? PATTERN_NODE_HEIGHT : (isQ ? QUESTION_NODE_HEIGHT : ANSWER_NODE_HEIGHT));
+    const r   = document.createElementNS(SVG_NS, 'rect');
+    r.setAttribute('x',       node._x); r.setAttribute('y',      node._y);
+    r.setAttribute('width',   w);       r.setAttribute('height',  h);
+    r.setAttribute('rx',      4);       r.setAttribute('opacity', '0.8');
+    r.setAttribute('fill',    isP ? '#2b6cb0' : (isQ ? '#3a3a38' : '#1a3a2a'));
+    group.appendChild(r);
   });
 
-  minimapSvg.appendChild(group);
+  mmSvg.appendChild(group);
   updateMinimapViewport();
 }
 
 function updateMinimapViewport() {
   const wrapper = document.getElementById('canvas-wrap');
-  const mmScale = Math.min(MINIMAP_WIDTH / canvasWidth, MINIMAP_HEIGHT / canvasHeight) * 0.9;
-  const offsetX = (MINIMAP_WIDTH  - canvasWidth  * mmScale) / 2;
-  const offsetY = (MINIMAP_HEIGHT - canvasHeight * mmScale) / 2;
+  const scale   = Math.min(MINIMAP_W / canvasWidth, MINIMAP_H / canvasHeight) * 0.9;
+  const offX    = (MINIMAP_W - canvasWidth  * scale) / 2;
+  const offY    = (MINIMAP_H - canvasHeight * scale) / 2;
+  const vpW     = wrapper.clientWidth;
+  const vpH     = wrapper.clientHeight - 54;
 
-  const viewportW = wrapper.clientWidth;
-  const viewportH = wrapper.clientHeight - 54;
-
-  const vpX = (-panX / zoomScale) * mmScale + offsetX;
-  const vpY = (-panY / zoomScale) * mmScale + offsetY;
-  const vpW = (viewportW / zoomScale) * mmScale;
-  const vpH = (viewportH / zoomScale) * mmScale;
-
-  const viewport = document.getElementById('minimap-viewport');
-  viewport.style.left   = Math.max(0, vpX) + 'px';
-  viewport.style.top    = Math.max(0, vpY) + 'px';
-  viewport.style.width  = Math.min(MINIMAP_WIDTH,  vpW) + 'px';
-  viewport.style.height = Math.min(MINIMAP_HEIGHT, vpH) + 'px';
+  const vp = document.getElementById('minimap-viewport');
+  vp.style.left   = Math.max(0, (-panX / zoomScale) * scale + offX) + 'px';
+  vp.style.top    = Math.max(0, (-panY / zoomScale) * scale + offY) + 'px';
+  vp.style.width  = Math.min(MINIMAP_W, (vpW / zoomScale) * scale) + 'px';
+  vp.style.height = Math.min(MINIMAP_H, (vpH / zoomScale) * scale) + 'px';
 }
 
-// --- TRACE SEARCH UI ----------------------------------------------------------
+// -- TRACE SEARCH UI -----------------------------------------------------------
 
-/**
- * Rebuilds the dropdown list of request IDs, filtered by the given search string.
- */
 function buildRequestIdList(filter = '') {
-  const listEl  = document.getElementById('trace-list');
-  listEl.innerHTML = '';
-  predictButton.disabled = true;
-
+  const listEl      = document.getElementById('trace-list');
   const filterLower = filter.toLowerCase();
+  listEl.innerHTML  = '';
+  predictButton.disabled = true;
 
   requestIds
     .filter(id => id.toLowerCase().includes(filterLower))
@@ -737,25 +575,23 @@ function buildRequestIdList(filter = '') {
       item.className = 'trace-item' + (activeTrace === id ? ' active' : '');
       item.innerHTML = `<div class="trace-id">${id}</div>`;
       item.onclick   = () => {
-        activeTrace = id;
-        document.getElementById('trace-search').value = id;
+        activeTrace   = id;
+        chosenId      = id;
+        searchInput.value          = id;
+        predictButton.disabled     = false;
         listEl.classList.remove('open');
-        predictButton.disabled = false;
-        chosen_id = id
         applyTrace(id);
       };
       listEl.appendChild(item);
     });
 }
 
-// Clear input and rebuild list when the user focuses the search field
 const searchInput = document.getElementById('trace-search');
+
 searchInput.addEventListener('focus', () => {
-  if (activeTrace) {
-    searchInput.value = '';
-    buildRequestIdList('');
-    predictButton.disabled = true;
-  }
+  if (activeTrace) { searchInput.value = ''; predictButton.disabled = true; }
+  buildRequestIdList(searchInput.value);
+  document.getElementById('trace-list').classList.add('open');
 });
 
 searchInput.addEventListener('input', e => {
@@ -763,23 +599,15 @@ searchInput.addEventListener('input', e => {
   document.getElementById('trace-list').classList.add('open');
 });
 
-searchInput.addEventListener('focus', () => {
-  buildRequestIdList(searchInput.value);
-  document.getElementById('trace-list').classList.add('open');
-});
-
-// Close dropdown when clicking outside the search widget
 document.addEventListener('click', e => {
-  if (!document.getElementById('trace-dropdown').contains(e.target)) {
+  if (!document.getElementById('trace-dropdown').contains(e.target))
     document.getElementById('trace-list').classList.remove('open');
-  }
 });
 
-// Clear the active trace and reset the search field
 document.getElementById('clear-trace-btn').onclick = () => {
   activeTrace = null;
-  searchInput.value = '';
-  predictButton.disabled = true;
+  searchInput.value       = '';
+  predictButton.disabled  = true;
   applyTrace(null);
 };
 
@@ -787,148 +615,65 @@ predictButton.onclick = async () => {
   await fetch('/ai_addons/pattern_prediction/generate_trace', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ req_id: chosen_id }),
+    body:    JSON.stringify({ req_id: chosenId }),
   });
-}
+};
 
 document.getElementById('predict-pattern-all-btn').addEventListener('click', async () => {
   await fetch('/ai_addons/pattern_prediction/generate_trace_all', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ req_id: chosen_id }),
+    body:    JSON.stringify({ req_id: chosenId }),
   });
 });
 
+// -- PROVIDER / MODEL SELECTOR -------------------------------------------------
 
-// --- TAB CHANGE LISTENER ------------------------------------------------------
-
-// Reset zoom when the user switches back to this tab, so the tree is centered.
-document.addEventListener("DOMContentLoaded", () => {
-  const tabObserver = new MutationObserver(() => {
-    const tabButton = document.querySelector(
-      '[data-bs-toggle="tab"][data-bs-target="#tab-ai_addons_pattern_prediction"]'
-    );
-    if (tabButton && !tabButton.dataset.listenerSet) {
-      tabButton.addEventListener("click", () => {
-        if (typeof resetZoom === "function") setTimeout(resetZoom, 100);
-      });
-      tabButton.dataset.listenerSet = "true";
-      tabObserver.disconnect();
-    }
-  });
-  tabObserver.observe(document.body, { childList: true, subtree: true });
-});
-
-// --- INITIALISATION -----------------------------------------------------------
-
-async function loadTreeData() {
-  const [idsResponse, treeResponse] = await Promise.all([
-    fetch("/core_ai_addon/req_ids"),
-    fetch("/ai_addons/pattern_prediction/tree"),
-  ]);
-
-  requestIds = await idsResponse.json();
-  treeData   = await treeResponse.json();
-
-
-  renderTree();
-}
-
-
-// --- SVG download function ----- TEMP -----
-
-document.getElementById('download-svg-btn').addEventListener('click', () => {
-  const svg     = document.getElementById('tree-svg');
-  const clone   = svg.cloneNode(true);
-
-  const styleEl = document.createElementNS(SVG_NS, "style");
-  styleEl.textContent = Array.from(document.styleSheets)
-    .flatMap(sheet => {
-      try { return Array.from(sheet.cssRules).map(r => r.cssText); }
-      catch { return []; }
-    })
-    .join('\n');
-
-  clone.insertBefore(styleEl, clone.firstChild);
-
-  const serializer = new XMLSerializer();
-  const svgStr = '<?xml version="1.0" encoding="UTF-8"?>\n' + serializer.serializeToString(clone);
-
-  const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = 'tree.svg';
-  a.click();
-  URL.revokeObjectURL(url);
-});
-
-// --- PROVIDER / MODEL SELECTOR ------------------------------------------------
-
-let providerData = [];
+let providerData     = [];
 let selectedProvider = null;
-let selectedModel = null;
+let selectedModel    = null;
 
-function led(activity) {
-  let color = "led-off";
-  if (activity === "ACTIVE") color = "led-on";
-  else if (activity === "NOT_TESTED") color = "led-yellow";
-  return `<span class="led ${color}"></span>`;
-}
-
-// for places with no inner HTML
 function ledEmoji(activity) {
-  if (activity === "ACTIVE") return "🟢";
-  if (activity === "NOT_TESTED") return "🟡";
-  return "🔴";
+  if (activity === 'ACTIVE')      return '🟢';
+  if (activity === 'NOT_TESTED')  return '🟡';
+  return '🔴';
 }
 
 function buildProviderList(filter = '') {
-  const listEl = document.getElementById('provider-list');
-  listEl.innerHTML = '';
+  const listEl      = document.getElementById('provider-list');
   const filterLower = filter.toLowerCase();
+  listEl.innerHTML  = '';
 
   providerData
-      .filter(p => p.name.toLowerCase().includes(filterLower))
-      .forEach(p => {
-        const item = document.createElement('div');
-        item.className = 'trace-item' + (selectedProvider?.name === p.name ? ' active' : '');
-        item.innerHTML = `<div class="trace-id">${led(p.reachable)} ${p.name}</div>`;
-        item.onclick = () => {
-          selectedProvider = p;
-          selectedModel = null;
-          listEl.classList.remove('open');
-          buildModelList('');
-
-          fetch('/ai_addons/pattern_prediction/set_provider', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              provider: p.name
-            })
-          })
-
-        };
-        listEl.appendChild(item);
-      });
+    .filter(p => p.name.toLowerCase().includes(filterLower))
+    .forEach(p => {
+      const item = document.createElement('div');
+      item.className = 'trace-item' + (selectedProvider?.name === p.name ? ' active' : '');
+      item.innerHTML = `<div class="trace-id">${led(p.reachable)} ${p.name}</div>`;
+      item.onclick   = () => {
+        selectedProvider = p;
+        selectedModel    = null;
+        listEl.classList.remove('open');
+        buildModelList('');
+        fetch('/ai_addons/pattern_prediction/set_provider', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ provider: p.name }),
+        });
+      };
+      listEl.appendChild(item);
+    });
 }
 
 document.getElementById('model-search').disabled = true;
 
-// In buildModelList — oben, nach dem Early-Return
 function buildModelList(filter = '') {
-  const listEl = document.getElementById('model-list');
+  const listEl    = document.getElementById('model-list');
   const modelInput = document.getElementById('model-search');
   listEl.innerHTML = '';
 
-  if (!selectedProvider) {
-    modelInput.disabled = true;
-    return;
-  }
+  if (!selectedProvider) { modelInput.disabled = true; return; }
   modelInput.disabled = false;
-  listEl.innerHTML = '';
 
   const filterLower = filter.toLowerCase();
   selectedProvider.models
@@ -937,29 +682,25 @@ function buildModelList(filter = '') {
       return name.toLowerCase().includes(filterLower);
     })
     .forEach(m => {
-      const name = typeof m === 'string' ? m : m.name;
+      const name      = typeof m === 'string' ? m : m.name;
       const reachable = typeof m === 'string' ? null : (m.active ?? null);
-      const item = document.createElement('div');
-      item.className = 'trace-item' + (selectedModel === name ? ' active' : '');
-      item.innerHTML = `<div class="trace-id">${reachable !== null ? led(reachable) : ''} ${name}</div>`;
-      item.onclick = () => {
+      const item      = document.createElement('div');
+      item.className  = 'trace-item' + (selectedModel === name ? ' active' : '');
+      item.innerHTML  = `<div class="trace-id">${reachable !== null ? led(reachable) : ''} ${name}</div>`;
+      item.onclick    = () => {
+        selectedModel = name;
+        modelInput.value = `${ledEmoji(reachable)} ${name}`;
         listEl.classList.remove('open');
         fetch('/ai_addons/pattern_prediction/set_model', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              model: name
-            })
-          })
-
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ model: name }),
+        });
       };
       listEl.appendChild(item);
     });
 }
 
-// Provider search input
 const providerSearch = document.getElementById('provider-search');
 providerSearch.addEventListener('focus', () => {
   buildProviderList('');
@@ -970,7 +711,6 @@ providerSearch.addEventListener('input', e => {
   document.getElementById('provider-list').classList.add('open');
 });
 
-// Model search input
 const modelSearch = document.getElementById('model-search');
 modelSearch.addEventListener('focus', () => {
   buildModelList('');
@@ -981,7 +721,6 @@ modelSearch.addEventListener('input', e => {
   document.getElementById('model-list').classList.add('open');
 });
 
-// Close dropdowns on outside click
 document.addEventListener('click', e => {
   if (!document.getElementById('provider-dropdown').contains(e.target))
     document.getElementById('provider-list').classList.remove('open');
@@ -989,32 +728,27 @@ document.addEventListener('click', e => {
     document.getElementById('model-list').classList.remove('open');
 });
 
-// Fetch provider data
-async function loadProviderData() {
-  const res = await fetch('/core_ai_addon/ai_provider_data');
-  const data = await res.json();
-  const selected_provider_model = await fetch('/ai_addons/pattern_prediction/get_selected_provider_model');
-  const selected_provider_model_data = await selected_provider_model.json();
-  providerData = data.providers;
-  console.log(selected_provider_model_data)
-  set_provider(selected_provider_model_data.provider)
-  set_model(selected_provider_model_data.model)
-  buildProviderList();
-  selected_provider_reload();
+function setProvider(name) {
+  if (name) selectedProvider = providerData.find(p => p.name === name) ?? null;
 }
 
-function selected_provider_reload(){
-  if (!selectedProvider) return;
+function setModel(modelName) {
+  if (!modelName || !selectedProvider) { selectedModel = null; return; }
+  const found = selectedProvider.models.find(m => (typeof m === 'string' ? m : m.name) === modelName);
+  selectedModel = found ? (typeof found === 'string' ? found : found.name) : null;
+}
 
+function reloadSelectedProvider() {
+  if (!selectedProvider) return;
   selectedProvider = providerData.find(p => p.name === selectedProvider.name) ?? null;
 
   const providerInput = document.getElementById('provider-search');
-  const modelInput = document.getElementById('model-search');
+  const modelInput    = document.getElementById('model-search');
 
   if (!selectedProvider) {
     providerInput.value = '';
-    modelInput.value = '';
-    selectedModel = null;
+    modelInput.value    = '';
+    selectedModel       = null;
     return;
   }
 
@@ -1023,69 +757,117 @@ function selected_provider_reload(){
   if (!selectedModel) {
     modelInput.value = '';
   } else {
-    const updatedModel = selectedProvider.models.find(m => {
-      const name = typeof m === 'string' ? m : m.name;
-      return name === selectedModel;
-    });
-
-    if (!updatedModel) {
-      selectedModel = null;
+    const updated = selectedProvider.models.find(m => (typeof m === 'string' ? m : m.name) === selectedModel);
+    if (!updated) {
+      selectedModel    = null;
       modelInput.value = '';
     } else {
-      const reachable = typeof updatedModel !== 'string'
-        ? (updatedModel.active ?? null)
-        : null;
-
+      const reachable  = typeof updated !== 'string' ? (updated.active ?? null) : null;
       modelInput.value = `${ledEmoji(reachable)} ${selectedModel}`;
     }
   }
 
   buildModelList(modelSearch.value);
 }
-function set_provider(provider){
-  if (provider) {
-      selectedProvider = providerData.find(p => p.name === provider) ?? null;
-    }
+
+async function loadProviderData() {
+  const [provRes, selRes] = await Promise.all([
+    fetch('/core_ai_addon/ai_provider_data'),
+    fetch('/ai_addons/pattern_prediction/get_selected_provider_model'),
+  ]);
+  const provJson = await provRes.json();
+  const selJson  = await selRes.json();
+
+  providerData = provJson.providers;
+  setProvider(selJson.provider);
+  setModel(selJson.model);
+  buildProviderList();
+  reloadSelectedProvider();
 }
 
-function set_model(model_name){
-  if (!model_name) {
-    selectedModel = null;
-    return;
-  }
+// -- SOCKET SUBSCRIPTIONS ----------------------------------------------------------
 
-  if (selectedProvider) {
-    const model = selectedProvider.models.find(m => {
-      const name = typeof m === "string" ? m : m.name;
-      return name === model_name;
-    });
+window.tabSubs.register('ai_addons_pattern_prediction', [
+  {
+    event:   'socket_provider_info',
+    handler: ({ providers }) => {
+      if (providers) {
+        providerData = providers;
+        buildProviderList(providerSearch.value);
+        reloadSelectedProvider();
+      }
+    },
+  },
+  {
+    event:   'socket_pattern_prediction',
+    handler: newData => {
+      if (newData) { applyTraceHighlighting(newData); renderTraceInfoBlock(newData); }
+    },
+  },
+  {
+    event:   'socket_pattern_prediction_error',
+    handler: ({ error } = {}) => { if (error) showErrorBanner(error); },
+  },
+  {
+    event:   'socket_pattern_prediction_provider_model',
+    handler: newData => {
+      setProvider(newData.set_provider);
+      setModel(newData.set_model);
+      reloadSelectedProvider();
+    },
+  },
+]);
 
-    selectedModel = model ? (typeof model === "string" ? model : model.name) : null;
-  }
-}
-
-
-// Live updates via socket
-window.addEventListener('load', () => {
-  window.appSocket.on('socket_provider_info', (newData) => {
-    if (newData.providers) {
-      providerData = newData.providers;
-      buildProviderList(providerSearch.value);
-      selected_provider_reload()
-    }
-  });
-
-  window.appSocket.on("socket_pattern_prediction_provider_model", (newData) => {
-    set_provider(newData.set_provider)
-    set_model(newData.set_model)
-
-    selected_provider_reload()
-  })
+window.tabSubs.onActivate('ai_addons_pattern_prediction', () => {
+  loadProviderData();
+  setTimeout(resetZoom, 100);
 });
 
+// -- SVG DOWNLOAD --------------------------------------------------------------
 
+document.getElementById('download-svg-btn').addEventListener('click', () => {
+  const svg   = document.getElementById('tree-svg');
+  const clone = svg.cloneNode(true);
 
-loadProviderData();
+  const styleEl = document.createElementNS(SVG_NS, 'style');
+  styleEl.textContent = Array.from(document.styleSheets)
+    .flatMap(sheet => { try { return Array.from(sheet.cssRules).map(r => r.cssText); } catch { return []; } })
+    .join('\n');
+  clone.insertBefore(styleEl, clone.firstChild);
 
+  const svgStr = '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(clone);
+  const url    = URL.createObjectURL(new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' }));
+  const a      = Object.assign(document.createElement('a'), { href: url, download: 'tree.svg' });
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+// -- TAB CHANGE LISTENER -------------------------------------------------------
+
+document.addEventListener('DOMContentLoaded', () => {
+  const observer = new MutationObserver(() => {
+    const tabButton = document.querySelector(
+      '[data-bs-toggle="tab"][data-bs-target="#tab-ai_addons_pattern_prediction"]'
+    );
+    if (tabButton && !tabButton.dataset.listenerSet) {
+      tabButton.addEventListener('click', () => { if (typeof resetZoom === 'function') setTimeout(resetZoom, 100); });
+      tabButton.dataset.listenerSet = 'true';
+      observer.disconnect();
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+});
+
+// -- INIT ----------------------------------------------------------------------
+
+async function loadTreeData() {
+  const [idsRes, treeRes] = await Promise.all([
+    fetch('/core_ai_addon/req_ids'),
+    fetch('/ai_addons/pattern_prediction/tree'),
+  ]);
+  requestIds = await idsRes.json();
+  treeData   = await treeRes.json();
+  renderTree();
+}
 
 loadTreeData();
