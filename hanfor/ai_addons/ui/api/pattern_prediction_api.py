@@ -1,9 +1,9 @@
-from threading import Event
 from flask import Blueprint, jsonify, request
 
 from ai_addons.pattern_prediction.pattern_prediction import PatternPrediction
 from hanfor_flask import current_app
 from lib_core.data import Requirement
+from thread_handling.threading_core import ThreadTask, SchedulingClass, ThreadGroup
 
 pattern_blueprint = Blueprint(
     "ai_addons_pattern_prediction",
@@ -57,12 +57,38 @@ def get_selected_provider_model():
 def generate_trace_for_req():
     req_id = request.json.get("req_id")
     req = current_app.db.get_object(Requirement, req_id).to_dict()
-    _get_addon().predict_pattern_for_requirement(req["id"], req["desc"], Event())
+    current_app.thread_handler.submit(
+        ThreadTask(
+            _get_addon().predict_pattern_for_requirement,
+            SchedulingClass.SYSTEM_CALL,
+            ThreadGroup.PATTERN_PREDICTION,
+            None,
+            None,
+            (
+                req["id"],
+                req["desc"],
+            ),
+            {},
+        )
+    )
+
     return "", 204
 
 
 @pattern_blueprint.route("/generate_trace_all", methods=["POST"])
 def generate_trace_for_req_all():
     reqs = current_app.db.get_objects(Requirement)
-    _get_addon().predict_patterns_for_all_requirements(reqs, Event())
+
+    current_app.thread_handler.submit(
+        ThreadTask(
+            _get_addon().predict_patterns_for_all_requirements,
+            SchedulingClass.CALLER_DEPTH_1,
+            ThreadGroup.PATTERN_PREDICTION,
+            None,
+            None,
+            (reqs,),
+            {},
+        )
+    )
+
     return "", 204

@@ -323,10 +323,17 @@ class PatternPrediction(AiAddonAbstractClass):
         successful = 0
 
         for task_result in task_results:
+            if not task_result:
+                continue
+
             ai_response, ai_status = task_result.result()
 
             if isinstance(ai_status, str) and ai_status.startswith("error"):
                 logging.warning(f"AI request failed: {ai_status}")
+                return None, ai_status
+
+            if isinstance(ai_status, str) and ai_status == "cancelled":
+                logging.warning(f"AI request cancelled!")
                 return None, ai_status
 
             successful += 1

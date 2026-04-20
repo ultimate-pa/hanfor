@@ -20,4 +20,6 @@ DEFAULT_PROVIDER = "PROVIDER_NAME"
 #                                AI ADDON config                               #
 ################################################################################
 
+ADDON_EXAMPLE_AI_ADDON = False
+
 ADDON_PATTERN_PREDICTION = False
