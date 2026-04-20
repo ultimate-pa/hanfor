@@ -1,9 +1,21 @@
 # Writing a New AI Addon
 
+There is a sample AI addon (`example_ai_addon`) that you can use to get an idea of the structure of an AI addon.
+
+In this MD file, I also provide an overview of the structure and some tips on using specific features.
+
+If you follow the instructions, you don’t need to do anything else. Your addon will be automatically detected and will be accessible via the web.
+You can enable or disable the add-on via the web.
+
+
 ## 1. File Structure
+`my_addon` is only a fill word. You can name your addon as you want.
+
+The filename of the file containing the implementation of `AiAddonAbstractClass` (more in 2.) will be the id of this addon.
+
 
     ai_addon/
-    ├── my_addon/
+    ├── my_addon/                # your own folder
     │   ├── my_addon.py          # addon class
     │   └── (any other files)
     │
@@ -25,6 +37,8 @@ Create **one class per addon**, implementing `AiAddonAbstractClass`.
 
 Declare `required_dependencies` for what you need - they are injected
 automatically into `__init__` together with `enabled`.
+
+Your `__init__` needs to accept at least enabled and all `required_dependencies` you specified.
 
 ``` python
 from ai_addon.ai_addon_abstract_class import AiAddonAbstractClass
@@ -75,6 +89,8 @@ addon is disabled**:
 
 ``` python
 @AiAddonAbstractClass.requires_enabled
+def do_something():
+    pass
 ```
 
 ------------------------------------------------------------------------
@@ -99,11 +115,13 @@ Then **register the blueprint** in:
 
     ui/api/__init__.py
 
+There you need to add your blueprint into the `all_threading_ai_addon_blueprints` list.
+
 Before creating new endpoints, check:
 
     ai_core_addon_api.py
 
-It already contains **shared endpoints** (e.g. provider data, request
+It already contains **shared endpoints** (e.g. provider data, request
 IDs).
 
 ------------------------------------------------------------------------
@@ -116,11 +134,7 @@ The tab ID is always derived from `addon_html`.
 
     "ai_addons/my_addon.html" -> "ai_addons_my_addon"
 
-Rule:
-
-``` js
-.replace('.html', '').replace('/', '_')
-```
+This is used for the socket connection
 
 ------------------------------------------------------------------------
 
@@ -128,7 +142,7 @@ Rule:
 
 ``` javascript
 // Socket events - only active while the tab is visible
-window.tabSubs.register('ai_addons_my_addon', [
+window.tabSubs.register('ai_addons_my_addon', [ //<- tab-id
   {
     event: 'socket_my_event',
     handler: (data) => {
