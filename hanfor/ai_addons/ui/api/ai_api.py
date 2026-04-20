@@ -12,15 +12,16 @@ ai_blueprint = Blueprint(
 def get_ai_addon_data():
     send_data = {}
     addons = current_app.ai_addons.get_all_addons()
-    for addon_id, addon in addons.items():
-        send_data["addons"] = [
-            {
-                "id": addon_id,
-                "name": addon.addon_name,
-                "desc": addon.addon_description,
-                "enabled": addon.enabled,
-            }
-        ]
+
+    send_data["addons"] = [
+        {
+            "id": addon_id,
+            "name": addon.addon_name,
+            "desc": addon.addon_description,
+            "enabled": addon.enabled,
+        }
+        for addon_id, addon in addons.items()
+    ]
     return jsonify(send_data)
 
 

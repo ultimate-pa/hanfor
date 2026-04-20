@@ -44,3 +44,9 @@ class AiAddonAbstractClass(ABC):
     @abstractmethod
     def addon_js(self) -> str:
         pass
+
+    required_dependencies = []
+
+    @abstractmethod
+    def __init__(self, enabled: bool):
+        pass

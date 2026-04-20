@@ -22,6 +22,7 @@ const config = {
         ai_core_addons: __dirname + '/../ai_addons/ui/api/static/ai_core_addons.js',
         threading: __dirname + '/../ai_addons/ui/api/static/threading.js',
         ai: __dirname + '/../ai_addons/ui/api/static/ai.js',
+        example_ai_addon: __dirname + '/../ai_addons/ui/api/static/example_ai_addon.js',
         pattern_prediction: __dirname + '/../ai_addons/ui/api/static/pattern_prediction.js'
     },
     output: {
