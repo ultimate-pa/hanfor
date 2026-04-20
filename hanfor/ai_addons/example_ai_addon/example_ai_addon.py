@@ -8,6 +8,7 @@ class ExampleAiAddon(AiAddonAbstractClass):
 
     def toggle_addon(self):
         self._enabled = not self._enabled
+        self.initialize()
 
     @property
     def addon_name(self) -> str:
@@ -27,3 +28,9 @@ class ExampleAiAddon(AiAddonAbstractClass):
 
     def __init__(self, enabled: bool):
         self._enabled = enabled
+        self.initialize()
+
+    @AiAddonAbstractClass.requires_enabled
+    def initialize(self):
+        # do some init
+        pass
