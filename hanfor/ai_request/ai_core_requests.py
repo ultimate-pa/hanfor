@@ -3,8 +3,6 @@ from threading import Event, Semaphore
 from dataclasses import dataclass, field
 from typing import Optional, Callable, Tuple
 
-import socketio
-
 from ai_addons.threading_ai_socketio import send_ai_update
 from ai_request.ai_api_methods_abstract_class import AiApiMethod
 from configuration import ai_config
@@ -200,6 +198,7 @@ class AiRequest:
 
     def check_all_models(self, stop_event: Event):
         self.__catalog_tester.check_all_models_activity(self.__ai_model_catalog, stop_event)
+        send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
 
     def set_default_provider(self, set_provider_name_to_default: str):
         if set_provider_name_to_default in self.__ai_model_catalog:

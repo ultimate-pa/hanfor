@@ -359,6 +359,8 @@ button { font-family: inherit; }
 .trace-pattern { font-size: 11px;  color: var(--danger); margin-top: 3px; }
 
 /* Topbar action buttons (shared style) */
+.ensemble-save-btn,
+.ensemble-add-btn,
 #download-svg-btn,
 #predict-pattern-btn,
 #predict-pattern-all-btn {
@@ -370,6 +372,9 @@ button { font-family: inherit; }
   cursor: pointer;
   color: var(--text-secondary);
 }
+
+.ensemble-add-btn:hover,
+.ensemble-save-btn:hover,
 #download-svg-btn:hover,
 #predict-pattern-btn:hover,
 #predict-pattern-all-btn:hover { border-color: var(--success); color: var(--success); }
@@ -495,8 +500,3 @@ svg { display: block; overflow: visible; }
 .edge.trace-edge-active   { stroke: var(--success); stroke-width: 10.5; }
 .edge.trace-edge-inactive { stroke: var(--danger);  stroke-width: 10.5; }
 
-/* -- Example Addon ------------------------------------------------------------- */
-.metric-label,
-.metric-value{
-  color: var(--text-primary);
-}

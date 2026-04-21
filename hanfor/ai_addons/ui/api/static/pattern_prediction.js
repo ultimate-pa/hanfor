@@ -18,6 +18,8 @@ let svgElement  = null;
 let activeTrace = null;
 let nodeRegistry = {};
 let chosenId;
+let ensembleEntries = [];
+let ensembleIdCounter = 0;
 
 const predictButton = document.getElementById('predict-pattern-btn');
 
@@ -665,124 +667,18 @@ function buildProviderList(filter = '') {
     });
 }
 
-document.getElementById('model-search').disabled = true;
-
-function buildModelList(filter = '') {
-  const listEl    = document.getElementById('model-list');
-  const modelInput = document.getElementById('model-search');
-  listEl.innerHTML = '';
-
-  if (!selectedProvider) { modelInput.disabled = true; return; }
-  modelInput.disabled = false;
-
-  const filterLower = filter.toLowerCase();
-  selectedProvider.models
-    .filter(m => {
-      const name = typeof m === 'string' ? m : m.name;
-      return name.toLowerCase().includes(filterLower);
-    })
-    .forEach(m => {
-      const name      = typeof m === 'string' ? m : m.name;
-      const reachable = typeof m === 'string' ? null : (m.active ?? null);
-      const item      = document.createElement('div');
-      item.className  = 'trace-item' + (selectedModel === name ? ' active' : '');
-      item.innerHTML  = `<div class="trace-id">${reachable !== null ? led(reachable) : ''} ${name}</div>`;
-      item.onclick    = () => {
-        selectedModel = name;
-        modelInput.value = `${ledEmoji(reachable)} ${name}`;
-        listEl.classList.remove('open');
-        fetch('/ai_addons/pattern_prediction/set_model', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ model: name }),
-        });
-      };
-      listEl.appendChild(item);
-    });
-}
-
-const providerSearch = document.getElementById('provider-search');
-providerSearch.addEventListener('focus', () => {
-  buildProviderList('');
-  document.getElementById('provider-list').classList.add('open');
-});
-providerSearch.addEventListener('input', e => {
-  buildProviderList(e.target.value);
-  document.getElementById('provider-list').classList.add('open');
-});
-
-const modelSearch = document.getElementById('model-search');
-modelSearch.addEventListener('focus', () => {
-  buildModelList('');
-  document.getElementById('model-list').classList.add('open');
-});
-modelSearch.addEventListener('input', e => {
-  buildModelList(e.target.value);
-  document.getElementById('model-list').classList.add('open');
-});
-
-document.addEventListener('click', e => {
-  if (!document.getElementById('provider-dropdown').contains(e.target))
-    document.getElementById('provider-list').classList.remove('open');
-  if (!document.getElementById('model-dropdown').contains(e.target))
-    document.getElementById('model-list').classList.remove('open');
-});
-
-function setProvider(name) {
-  if (name) selectedProvider = providerData.find(p => p.name === name) ?? null;
-}
-
-function setModel(modelName) {
-  if (!modelName || !selectedProvider) { selectedModel = null; return; }
-  const found = selectedProvider.models.find(m => (typeof m === 'string' ? m : m.name) === modelName);
-  selectedModel = found ? (typeof found === 'string' ? found : found.name) : null;
-}
-
-function reloadSelectedProvider() {
-  if (!selectedProvider) return;
-  selectedProvider = providerData.find(p => p.name === selectedProvider.name) ?? null;
-
-  const providerInput = document.getElementById('provider-search');
-  const modelInput    = document.getElementById('model-search');
-
-  if (!selectedProvider) {
-    providerInput.value = '';
-    modelInput.value    = '';
-    selectedModel       = null;
-    return;
-  }
-
-  providerInput.value = `${ledEmoji(selectedProvider.reachable)} ${selectedProvider.name}`;
-
-  if (!selectedModel) {
-    modelInput.value = '';
-  } else {
-    const updated = selectedProvider.models.find(m => (typeof m === 'string' ? m : m.name) === selectedModel);
-    if (!updated) {
-      selectedModel    = null;
-      modelInput.value = '';
-    } else {
-      const reachable  = typeof updated !== 'string' ? (updated.active ?? null) : null;
-      modelInput.value = `${ledEmoji(reachable)} ${selectedModel}`;
-    }
-  }
-
-  buildModelList(modelSearch.value);
-}
 
 async function loadProviderData() {
   const [provRes, selRes] = await Promise.all([
     fetch('/core_ai_addon/ai_provider_data'),
-    fetch('/ai_addons/pattern_prediction/get_selected_provider_model'),
+    fetch('/ai_addons/pattern_prediction/get_selected_ensemble'),
   ]);
   const provJson = await provRes.json();
   const selJson  = await selRes.json();
 
   providerData = provJson.providers;
-  setProvider(selJson.provider);
-  setModel(selJson.model);
-  buildProviderList();
-  reloadSelectedProvider();
+  ensembleEntries = selJson.ensemble
+  renderEnsembleList()
 }
 
 // -- SOCKET SUBSCRIPTIONS ----------------------------------------------------------
@@ -793,8 +689,7 @@ window.tabSubs.register('ai_addons_pattern_prediction', [
     handler: ({ providers }) => {
       if (providers) {
         providerData = providers;
-        buildProviderList(providerSearch.value);
-        reloadSelectedProvider();
+        renderEnsembleList();
       }
     },
   },
@@ -809,11 +704,10 @@ window.tabSubs.register('ai_addons_pattern_prediction', [
     handler: ({ error } = {}) => { if (error) showErrorBanner(error); },
   },
   {
-    event:   'socket_pattern_prediction_provider_model',
+    event:   'socket_pattern_prediction_ensemble',
     handler: newData => {
-      setProvider(newData.set_provider);
-      setModel(newData.set_model);
-      reloadSelectedProvider();
+    ensembleEntries = newData.ensemble
+    renderEnsembleList()
     },
   },
 ]);
@@ -865,6 +759,206 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   observer.observe(document.body, { childList: true, subtree: true });
+});
+
+// -- SETTINGS MODAL -----------------------------------------------------------
+
+document.getElementById('open-settings-btn').addEventListener('click', () => {
+  document.getElementById('settings-overlay').hidden = false;
+});
+
+function closeSettings() {
+  document.getElementById('settings-overlay').hidden = true;
+  document.querySelectorAll('#provider-list, #model-list, .ensemble-dropdown-list')
+    .forEach(el => el.classList.remove('open'));
+}
+
+document.getElementById('close-settings-btn').addEventListener('click', closeSettings);
+document.getElementById('settings-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeSettings();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeSettings();
+});
+
+// Tab switching
+document.querySelectorAll('.stab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.stab').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+    });
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+    document.querySelectorAll('.settings-panel').forEach(p => { p.hidden = true; });
+    document.getElementById('stab-' + btn.dataset.tab).hidden = false;
+  });
+});
+
+// Close dropdowns when clicking outside modal panels
+document.addEventListener('click', e => {
+  if (!e.target.closest('#provider-dropdown'))
+    document.getElementById('provider-list')?.classList.remove('open');
+  if (!e.target.closest('#model-dropdown'))
+    document.getElementById('model-list')?.classList.remove('open');
+  if (!e.target.closest('.ensemble-entry-dropwrap'))
+    document.querySelectorAll('.ensemble-dropdown-list').forEach(el => el.classList.remove('open'));
+});
+
+// -- ENSEMBLE LIST ------------------------------------------------------------
+function ensembleProviderReachable(providerName) {
+  const p = providerData.find(p => p.name === providerName);
+  return p ? p.reachable : null;
+}
+
+function ensembleModelReachable(providerName, modelName) {
+  const p = providerData.find(p => p.name === providerName);
+  if (!p) return null;
+  const m = p.models.find(m => (typeof m === 'string' ? m : m.name) === modelName);
+  if (!m || typeof m === 'string') return null;
+  return m.active ?? null;
+}
+
+function renderEnsembleList() {
+  const container = document.getElementById('ensemble-list');
+  container.innerHTML = '';
+
+  ensembleEntries.forEach(entry => {
+    const provReachable  = entry.provider ? ensembleProviderReachable(entry.provider) : null;
+    const modReachable   = (entry.provider && entry.model) ? ensembleModelReachable(entry.provider, entry.model) : null;
+    const provDisplay    = entry.provider ? `${ledEmoji(provReachable)} ${entry.provider}` : '';
+    const modDisplay     = entry.model    ? `${ledEmoji(modReachable)} ${entry.model}`     : '';
+
+    const el = document.createElement('div');
+    el.className = 'ensemble-entry';
+    el.dataset.id = entry.id;
+    el.innerHTML = `
+      <div class="ensemble-entry-fields">
+        <div class="ensemble-entry-dropwrap half" data-entry-id="${entry.id}" data-role="provider">
+          <input class="ensemble-input ensemble-provider-input"
+                 type="text" placeholder="Provider…" autocomplete="off" readonly
+                 value="${provDisplay}">
+          <div class="ensemble-dropdown-list"></div>
+        </div>
+        <div class="ensemble-entry-dropwrap half" data-entry-id="${entry.id}" data-role="model">
+          <input class="ensemble-input ensemble-model-input"
+                 type="text" placeholder="Model…" autocomplete="off" readonly
+                 value="${modDisplay}" ${entry.provider ? '' : 'disabled'}>
+          <div class="ensemble-dropdown-list"></div>
+        </div>
+      </div>
+      <div class="ensemble-entry-nums">
+        <div class="ensemble-num-wrap">
+          <input class="ensemble-num-input ensemble-count-input"
+                 type="number" min="1" step="1" value="${entry.count}" title="Times to ask">
+          <div class="ensemble-num-label">Count</div>
+        </div>
+        <div class="ensemble-num-wrap">
+          <input class="ensemble-num-input ensemble-weight-input"
+                 type="number" min="0" step="0.1" value="${entry.weight}" title="Weight">
+          <div class="ensemble-num-label">Weight</div>
+        </div>
+      </div>
+      <button class="ensemble-remove-btn" title="Remove">✕</button>
+    `;
+
+    // Provider dropdown
+    const provWrap  = el.querySelector('[data-role="provider"]');
+    const provInput = provWrap.querySelector('.ensemble-provider-input');
+    const provList  = provWrap.querySelector('.ensemble-dropdown-list');
+
+    provInput.addEventListener('click', () => {
+      document.querySelectorAll('.ensemble-dropdown-list').forEach(d => d.classList.remove('open'));
+      buildEnsembleProviderList(provList, entry);
+      provList.classList.add('open');
+    });
+
+    // Model dropdown
+    const modWrap  = el.querySelector('[data-role="model"]');
+    const modInput = modWrap.querySelector('.ensemble-model-input');
+    const modList  = modWrap.querySelector('.ensemble-dropdown-list');
+
+    modInput.addEventListener('click', () => {
+      if (!entry.provider) return;
+      document.querySelectorAll('.ensemble-dropdown-list').forEach(d => d.classList.remove('open'));
+      buildEnsembleModelList(modList, entry);
+      modList.classList.add('open');
+    });
+
+    // Count
+    el.querySelector('.ensemble-count-input').addEventListener('change', e => {
+      entry.count = Math.max(1, parseInt(e.target.value) || 1);
+      e.target.value = entry.count;
+    });
+
+    // Weight
+    el.querySelector('.ensemble-weight-input').addEventListener('change', e => {
+      const v = parseFloat(e.target.value);
+      entry.weight = isNaN(v) ? 1 : Math.max(0, v);
+      e.target.value = entry.weight;
+    });
+
+    // Remove
+    el.querySelector('.ensemble-remove-btn').addEventListener('click', () => {
+      ensembleEntries = ensembleEntries.filter(en => en.id !== entry.id);
+      renderEnsembleList();
+    });
+
+    container.appendChild(el);
+  });
+}
+
+function buildEnsembleProviderList(listEl, entry) {
+  listEl.innerHTML = '';
+  providerData.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'trace-item' + (entry.provider === p.name ? ' active' : '');
+    item.innerHTML = `<div class="trace-id">${led(p.reachable)} ${p.name}</div>`;
+    item.addEventListener('click', e => {
+      e.stopPropagation();
+      entry.provider = p.name;
+      entry.model    = null;
+      listEl.classList.remove('open');
+      renderEnsembleList();
+    });
+    listEl.appendChild(item);
+  });
+}
+
+function buildEnsembleModelList(listEl, entry) {
+  listEl.innerHTML = '';
+  const prov = providerData.find(p => p.name === entry.provider);
+  if (!prov) return;
+  prov.models.forEach(m => {
+    const name      = typeof m === 'string' ? m : m.name;
+    const reachable = typeof m === 'string' ? null : (m.active ?? null);
+    const item      = document.createElement('div');
+    item.className  = 'trace-item' + (entry.model === name ? ' active' : '');
+    item.innerHTML  = `<div class="trace-id">${reachable !== null ? led(reachable) : ''} ${name}</div>`;
+    item.addEventListener('click', e => {
+      e.stopPropagation();
+      entry.model = name;
+      listEl.classList.remove('open');
+      renderEnsembleList();
+    });
+    listEl.appendChild(item);
+  });
+}
+
+document.getElementById('add-ensemble-entry-btn').addEventListener('click', () => {
+  ensembleEntries.push({ id: ++ensembleIdCounter, provider: null, model: null, count: 1, weight: 1 });
+  renderEnsembleList();
+});
+
+document.getElementById('save-ensemble-entry-btn').addEventListener('click', async () =>{
+
+  await fetch('/ai_addons/pattern_prediction/set_selected_ensemble', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ "ensemble": ensembleEntries }),
+  });
+
+  console.log(ensembleEntries)
 });
 
 // -- INIT ----------------------------------------------------------------------

@@ -36,21 +36,15 @@ def clear_trace_sid():
     return "", 204
 
 
-@pattern_blueprint.route("/set_provider", methods=["POST"])
-def set_provider():
-    _get_addon().set_provider(request.json.get("provider"))
+@pattern_blueprint.route("/set_selected_ensemble", methods=["POST"])
+def set_selected_ensemble():
+    _get_addon().set_selected_ensemble(request.json.get("ensemble"))
     return "", 204
 
 
-@pattern_blueprint.route("/set_model", methods=["POST"])
-def set_model():
-    _get_addon().set_model(request.json.get("model"))
-    return "", 204
-
-
-@pattern_blueprint.route("/get_selected_provider_model", methods=["GET"])
-def get_selected_provider_model():
-    return jsonify(_get_addon().get_selected_provider_model())
+@pattern_blueprint.route("/get_selected_ensemble", methods=["GET"])
+def get_selected_ensemble():
+    return jsonify({"ensemble": _get_addon().get_selected_ensemble()})
 
 
 @pattern_blueprint.route("/generate_trace", methods=["POST"])

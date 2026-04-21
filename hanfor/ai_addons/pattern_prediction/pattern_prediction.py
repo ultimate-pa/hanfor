@@ -10,7 +10,7 @@ from ai_request.ai_core_requests import AiRequest
 from hanfor_flask import current_app
 from lib_core.data import Requirement
 from lib_core.pattern import APattern
-from thread_handling.threading_core import SchedulingClass, ThreadTask, ThreadGroup, ThreadHandler
+from thread_handling.threading_core import SchedulingClass, ThreadTask, ThreadGroup, ThreadHandler, TaskResult
 
 import json
 from dataclasses import dataclass
@@ -119,12 +119,14 @@ class PatternPrediction(AiAddonAbstractClass):
         self.requirement_data: dict[str, PatternPredictedRequirement] = {}
         self.socketio_data: dict[str, list[str]] = {}
         self.prediction_tree = None
-        self.selected_ai_provider_model = {"provider": "", "model": ""}
+        self.selected_ensemble: list[dict[str, str | int | float]] = [
+            {"id": 1, "provider": "", "model": "", "count": 1, "weight": 1.0}
+        ]
 
         for provider_name, provider_data in self.ai_request.ai_model_catalog().items():
             if provider_data.default_provider:
-                self.selected_ai_provider_model["provider"] = provider_name
-                self.selected_ai_provider_model["model"] = provider_data.default_model
+                self.selected_ensemble[0]["provider"] = provider_name
+                self.selected_ensemble[0]["model"] = provider_data.default_model
         self.prediction_tree = Tree()
         for req_id, requirement in current_app.db.get_objects(Requirement).items():
             self.requirement_data[str(req_id)] = PatternPredictedRequirement(
@@ -164,19 +166,13 @@ class PatternPrediction(AiAddonAbstractClass):
             self.thread_handler.submit(task)
 
     @AiAddonAbstractClass.requires_enabled
-    def set_provider(self, set_provider: str):
-        self.selected_ai_provider_model["provider"] = set_provider
-        self.set_model("")
-        send_ai_update({"set_provider": set_provider}, "socket_pattern_prediction_provider_model", self.socketio)
+    def set_selected_ensemble(self, ensemble: list[dict]):
+        self.selected_ensemble = ensemble
+        send_ai_update({"ensemble": self.selected_ensemble}, "socket_pattern_prediction_ensemble", self.socketio)
 
     @AiAddonAbstractClass.requires_enabled
-    def set_model(self, set_model: str):
-        self.selected_ai_provider_model["model"] = set_model
-        send_ai_update({"set_model": set_model}, "socket_pattern_prediction_provider_model", self.socketio)
-
-    @AiAddonAbstractClass.requires_enabled
-    def get_selected_provider_model(self):
-        return self.selected_ai_provider_model
+    def get_selected_ensemble(self) -> list[dict]:
+        return self.selected_ensemble
 
     @AiAddonAbstractClass.requires_enabled
     def set_sid_for_req(self, req, sid):
@@ -234,16 +230,22 @@ class PatternPrediction(AiAddonAbstractClass):
             query = self._build_query(req_desc, node)
             answer_options = [o.answer for o in node.answers]
 
-            task_results = [
-                self.ai_request.ask_ai(
-                    query,
-                    None,
-                    SchedulingClass.CALLER_DEPTH_2,
-                    self.selected_ai_provider_model["provider"],
-                    self.selected_ai_provider_model["model"],
-                )
-                for _ in range(num_votes)
-            ]
+            task_results: list[tuple[TaskResult, float]] = []
+
+            for entry in self.selected_ensemble:
+                for _ in range(entry["count"]):
+                    task_results.append(
+                        (
+                            self.ai_request.ask_ai(
+                                query,
+                                None,
+                                SchedulingClass.CALLER_DEPTH_2,
+                                entry["provider"],
+                                entry["model"],
+                            ),
+                            entry["weight"],
+                        )
+                    )
 
             if stop_event.is_set():
                 self._abort_prediction(req_id, trace)
@@ -304,12 +306,14 @@ class PatternPrediction(AiAddonAbstractClass):
         )
 
     @staticmethod
-    def _collect_scores(task_results, answer_options) -> tuple[dict[str, float] | None, str | None]:
+    def _collect_scores(
+        task_results: list[tuple[TaskResult, float]], answer_options: list[str]
+    ) -> tuple[dict[str, float] | None, str | None]:
         """Aggregate and normalize scores from all AI responses. Returns None on error."""
         result = {a: 0.0 for a in answer_options}
         successful = 0
 
-        for task_result in task_results:
+        for task_result, weight in task_results:
             if not task_result:
                 continue
 
@@ -323,7 +327,7 @@ class PatternPrediction(AiAddonAbstractClass):
                 logging.warning(f"AI request cancelled!")
                 return None, ai_status
 
-            successful += 1
+            successful += 1 * weight
 
             if not ai_response:
                 continue
@@ -342,7 +346,7 @@ class PatternPrediction(AiAddonAbstractClass):
                     continue
 
                 if ai_answer in answer_options:
-                    result[ai_answer] += score
+                    result[ai_answer] += score * weight
 
         # Normalize across successful responses
         for k in result:
