@@ -1,1 +1,23 @@
-<h2>EXAMPLE AI ADDON</h2>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ai_addons.css') }}">
+
+<div class="page">
+    <div class="section">
+        <div class="section-header">Example Addon - Counter</div>
+
+        <div class="metrics">
+            <div>
+                <div class="metric-label">My Counter</div>
+                <div class="metric-value" id="private-counter">0</div>
+            </div>
+            <div>
+                <div class="metric-label">Global Counter</div>
+                <div class="metric-value" id="global-counter">0</div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <button id="btn-private">Increment mine</button>
+            <button id="btn-global">Increment for everyone</button>
+        </div>
+    </div>
+</div>

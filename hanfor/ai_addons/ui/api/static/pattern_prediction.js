@@ -823,6 +823,15 @@ window.tabSubs.onActivate('ai_addons_pattern_prediction', () => {
   setTimeout(resetZoom, 100);
 });
 
+window.tabSubs.onDeactivate('ai_addons_pattern_prediction', async () => {
+  document.getElementById('clear-trace-btn').click();
+  await fetch('/ai_addons/pattern_prediction/clear_trace_sid', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ req_id: chosenId, sid: window.appSocket.id }),
+    });
+});
+
 // -- SVG DOWNLOAD --------------------------------------------------------------
 
 document.getElementById('download-svg-btn').addEventListener('click', () => {

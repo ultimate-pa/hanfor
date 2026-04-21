@@ -110,46 +110,17 @@ class PatternPredictedRequirement:
 
 
 class PatternPrediction(AiAddonAbstractClass):
-    @property
-    def addon_js(self) -> str:
-        return "dist/pattern_prediction-bundle.js"
-
-    @property
-    def addon_html(self) -> str:
-        return "ai_addons/pattern_prediction.html"
-
-    def toggle_addon(self):
-        self.__enabled = not self.__enabled
-        if not self.prediction_tree:
-            self.initialize()
-
-    @property
-    def enabled(self) -> bool:
-        return self.__enabled
-
     required_dependencies = ["thread_handler", "ai_request", "socketio"]
+    thread_handler: ThreadHandler
+    ai_request: AiRequest
+    socketio: SocketIO
 
-    def __init__(self, thread_handler: ThreadHandler, ai_request: AiRequest, socketio: SocketIO, enabled: bool):
-        self.__enabled: bool = enabled
-        self.thread_handler = thread_handler
-        self.ai_request = ai_request
-        self.socketio = socketio
+    def _do_initialize(self):
         self.requirement_data: dict[str, PatternPredictedRequirement] = {}
         self.socketio_data: dict[str, list[str]] = {}
         self.prediction_tree = None
         self.selected_ai_provider_model = {"provider": "", "model": ""}
-        self.initialize()
 
-    @property
-    def addon_name(self) -> str:
-        return "Pattern Prediction"
-
-    @property
-    def addon_description(self) -> str:
-        return "Using a decision tree, a requirement can be assigned to a pattern with the help of an AI."
-
-    @AiAddonAbstractClass.requires_enabled
-    def initialize(self):
         for provider_name, provider_data in self.ai_request.ai_model_catalog().items():
             if provider_data.default_provider:
                 self.selected_ai_provider_model["provider"] = provider_name
@@ -159,6 +130,22 @@ class PatternPrediction(AiAddonAbstractClass):
             self.requirement_data[str(req_id)] = PatternPredictedRequirement(
                 str(req_id), requirement.description, [], APattern(), None
             )
+
+    @property
+    def addon_name(self) -> str:
+        return "Pattern Prediction"
+
+    @property
+    def addon_description(self) -> str:
+        return "Using a decision tree, a requirement can be assigned to a pattern with the help of an AI."
+
+    @property
+    def addon_js(self) -> str:
+        return "dist/pattern_prediction-bundle.js"
+
+    @property
+    def addon_html(self) -> str:
+        return "ai_addons/pattern_prediction.html"
 
     @AiAddonAbstractClass.requires_enabled
     def predict_patterns_for_all_requirements(self, requirements, stop_event: Event):

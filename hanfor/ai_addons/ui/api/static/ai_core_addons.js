@@ -3,6 +3,7 @@ const { io } = require('socket.io-client');
 window.tabSubs = (() => {
   const registry      = {};
   const activateHooks = {};
+  const deactivateHooks = {};
   let activeTabId     = null;
   let socketReady     = false;
 
@@ -38,7 +39,10 @@ window.tabSubs = (() => {
     },
 
     activate(tabId) {
-      if (activeTabId && activeTabId !== tabId) detach(activeTabId);
+      if (activeTabId && activeTabId !== tabId) {
+        detach(activeTabId);
+        (deactivateHooks[activeTabId] || []).forEach(fn => fn());
+      }
       activeTabId = tabId;
       attach(tabId);
       (activateHooks[tabId] || []).forEach(fn => fn());
@@ -54,6 +58,11 @@ window.tabSubs = (() => {
     onActivate(tabId, fn) {
       if (!activateHooks[tabId]) activateHooks[tabId] = [];
       activateHooks[tabId].push(fn);
+    },
+
+    onDeactivate(tabId, fn) {
+      if (!deactivateHooks[tabId]) deactivateHooks[tabId] = [];
+      deactivateHooks[tabId].push(fn);
     },
   };
 })();

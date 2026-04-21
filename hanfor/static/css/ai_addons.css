@@ -494,3 +494,9 @@ svg { display: block; overflow: visible; }
 .edge { fill: none; stroke: var(--text-primary); stroke-width: 1.5; }
 .edge.trace-edge-active   { stroke: var(--success); stroke-width: 10.5; }
 .edge.trace-edge-inactive { stroke: var(--danger);  stroke-width: 10.5; }
+
+/* -- Example Addon ------------------------------------------------------------- */
+.metric-label,
+.metric-value{
+  color: var(--text-primary);
+}
