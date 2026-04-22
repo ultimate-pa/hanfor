@@ -249,7 +249,7 @@ class PatternPrediction(AiAddonAbstractClass):
                                 entry["model"],
                             ),
                             entry["weight"],
-                            f"{entry["provider"]}-{entry["model"]}",
+                            f"{entry['provider']}-{entry['model']}",
                         )
                     )
 
