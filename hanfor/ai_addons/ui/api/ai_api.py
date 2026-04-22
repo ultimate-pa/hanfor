@@ -59,7 +59,7 @@ def activity_test_model():
 
 @ai_blueprint.route("/rescan_provider", methods=["POST"])
 def rescan_provider():
-    current_app.ai_request.scan_provider()
+    current_app.ai_request.scan_provider(True)
     return "", 204
 
 

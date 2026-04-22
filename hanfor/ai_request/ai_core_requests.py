@@ -114,8 +114,8 @@ class AiRequest:
         self.scan_provider()
         self.test_all_provider_models()
 
-    def scan_provider(self):
-        if "configuration.ai_config" in sys.modules:
+    def scan_provider(self, reload_config: bool = False):
+        if reload_config and "configuration.ai_config" in sys.modules:
             importlib.reload(sys.modules["configuration.ai_config"])
 
         self.__ai_model_catalog = self.__build_catalog()

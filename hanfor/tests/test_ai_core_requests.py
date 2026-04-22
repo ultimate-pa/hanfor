@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from thread_handling.threading_core import ThreadHandler
-from ai_request.ai_core_requests import AiRequest, ProviderEntry, TestedActivity
+from ai_request.ai_core_requests import AiRequest, TestedActivity
 from configuration import ai_config
 
 
