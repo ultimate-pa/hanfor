@@ -957,8 +957,20 @@ document.getElementById('save-ensemble-entry-btn').addEventListener('click', asy
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({ "ensemble": ensembleEntries }),
   });
+});
 
-  console.log(ensembleEntries)
+document.getElementById('download-detailed-traces-btn').addEventListener('click', async () => {
+    const response = await fetch('/ai_addons/pattern_prediction/get_all_detailed_traces_as_file', {
+        method: 'GET',
+    });
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'detailed_traces.json';
+    a.click();
+    URL.revokeObjectURL(url);
 });
 
 // -- INIT ----------------------------------------------------------------------

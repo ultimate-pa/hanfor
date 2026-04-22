@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, json, Response
 
 from ai_addons.pattern_prediction.pattern_prediction import PatternPrediction
 from hanfor_flask import current_app
@@ -67,6 +67,17 @@ def generate_trace_for_req():
     )
 
     return "", 204
+
+
+@pattern_blueprint.route("/get_all_detailed_traces_as_file", methods=["GET"])
+def get_all_detailed_traces_as_file():
+
+    traces = _get_addon().get_all_detailed_traces_as_file()
+    return Response(
+        json.dumps(traces, indent=2, ensure_ascii=False),
+        mimetype="application/json",
+        headers={"Content-Disposition": "attachment; filename=detailed_traces.json"},
+    )
 
 
 @pattern_blueprint.route("/generate_trace_all", methods=["POST"])

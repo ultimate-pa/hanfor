@@ -1,3 +1,4 @@
+import base64
 import logging
 from os import path
 from threading import Event
@@ -105,7 +106,9 @@ class PatternPredictedRequirement:
     id: str
     description: str
     trace: list[dict]
+    detailed_trace: list[dict]
     pattern: APattern
+    pattern_name: str
     final_node: "PatternPredictionTreeLeaf | None" = None
 
 
@@ -116,6 +119,7 @@ class PatternPrediction(AiAddonAbstractClass):
     socketio: SocketIO
 
     def _do_initialize(self):
+        self.__export_to_file = False
         self.requirement_data: dict[str, PatternPredictedRequirement] = {}
         self.socketio_data: dict[str, list[str]] = {}
         self.prediction_tree = None
@@ -130,7 +134,7 @@ class PatternPrediction(AiAddonAbstractClass):
         self.prediction_tree = Tree()
         for req_id, requirement in current_app.db.get_objects(Requirement).items():
             self.requirement_data[str(req_id)] = PatternPredictedRequirement(
-                str(req_id), requirement.description, [], APattern(), None
+                str(req_id), requirement.description, [], [], APattern(), "", None
             )
 
     @property
@@ -218,9 +222,10 @@ class PatternPrediction(AiAddonAbstractClass):
                 send_ai_update(payload, "socket_pattern_prediction", self.socketio, sid)
 
     @AiAddonAbstractClass.requires_enabled
-    def predict_pattern_for_requirement(self, req_id: str, req_desc: str, stop_event: Event, num_votes=5):
+    def predict_pattern_for_requirement(self, req_id: str, req_desc: str, stop_event: Event):
         node = self.prediction_tree.root
         trace = []
+        detailed_trace = []
 
         while isinstance(node, PatternPredictionTreeNode):
             if stop_event.is_set():
@@ -230,7 +235,7 @@ class PatternPrediction(AiAddonAbstractClass):
             query = self._build_query(req_desc, node)
             answer_options = [o.answer for o in node.answers]
 
-            task_results: list[tuple[TaskResult, float]] = []
+            task_results: list[tuple[TaskResult, float, str]] = []
 
             for entry in self.selected_ensemble:
                 for _ in range(entry["count"]):
@@ -244,6 +249,7 @@ class PatternPrediction(AiAddonAbstractClass):
                                 entry["model"],
                             ),
                             entry["weight"],
+                            f"{entry["provider"]}-{entry["model"]}",
                         )
                     )
 
@@ -251,16 +257,26 @@ class PatternPrediction(AiAddonAbstractClass):
                 self._abort_prediction(req_id, trace)
                 return
 
-            result, ai_status = self._collect_scores(task_results, answer_options)
+            result, ai_status, model_ansers = self._collect_scores(task_results, answer_options)
             if result is None:
                 self._abort_prediction(req_id, trace, error=ai_status)
                 return
 
             best_key = max(result, key=lambda k: result[k])
             trace.append({"nodeId": node.id, "question": node.question, "scores": result.copy(), "chosen": best_key})
+            detailed_trace.append(
+                {
+                    "nodeId": node.id,
+                    "question": node.question,
+                    "scores": result.copy(),
+                    "chosen": best_key,
+                    "model_answers": model_ansers,
+                }
+            )
 
             data = self.requirement_data[req_id]
             data.trace = trace
+            data.detailed_trace = detailed_trace
             data.pattern = APattern()
             data.final_node = None
             self.update_trace_frontend(req_id)
@@ -273,8 +289,24 @@ class PatternPrediction(AiAddonAbstractClass):
         data = self.requirement_data[req_id]
         data.trace = trace
         data.pattern = node.pattern
+        data.pattern_name = node.pattern_name
         data.final_node = node
         self.update_trace_frontend(req_id)
+
+    @AiAddonAbstractClass.requires_enabled
+    def get_all_detailed_traces_as_file(self) -> dict:
+
+        traces = {}
+
+        for req_id, req_data in self.requirement_data.items():
+            trace = req_data.detailed_trace
+            if trace is not None:
+                traces[req_id] = {
+                    "detailed_trace": trace,
+                    "chosen Pattern": f"{req_data.pattern_name}: {req_data.pattern.get_text()}",
+                }
+
+        return traces
 
     def _abort_prediction(self, req_id: str, trace: list, error: str | None = None):
         """Reset requirement state and notify frontend on prediction abort."""
@@ -308,13 +340,14 @@ class PatternPrediction(AiAddonAbstractClass):
 
     @staticmethod
     def _collect_scores(
-        task_results: list[tuple[TaskResult, float]], answer_options: list[str]
-    ) -> tuple[dict[str, float] | None, str | None]:
+        task_results: list[tuple[TaskResult, float, str]], answer_options: list[str]
+    ) -> tuple[dict[str, float] | None, str | None, None | list]:
         """Aggregate and normalize scores from all AI responses. Returns None on error."""
         result = {a: 0.0 for a in answer_options}
+        model_ansers = []
         successful = 0
 
-        for task_result, weight in task_results:
+        for task_result, weight, provider_model_pair in task_results:
             if not task_result:
                 continue
 
@@ -322,16 +355,16 @@ class PatternPrediction(AiAddonAbstractClass):
 
             if isinstance(ai_status, str) and ai_status.startswith("error"):
                 logging.warning(f"AI request failed: {ai_status}")
-                return None, ai_status
+                return None, ai_status, None
 
             if isinstance(ai_status, str) and ai_status == "cancelled":
                 logging.warning(f"AI request cancelled!")
-                return None, ai_status
-
-            successful += 1 * weight
+                return None, ai_status, None
 
             if not ai_response:
                 continue
+
+            model_ansers_model_response = {"provider-model": provider_model_pair, "weight": weight, "answers": []}
 
             for line in ai_response.splitlines():
                 if ":" not in line:
@@ -347,10 +380,13 @@ class PatternPrediction(AiAddonAbstractClass):
                     continue
 
                 if ai_answer in answer_options:
+                    model_ansers_model_response["answers"].append((ai_answer, score))
                     result[ai_answer] += score * weight
+            successful += 1 * weight
+            model_ansers.append(model_ansers_model_response)
 
         # Normalize across successful responses
         for k in result:
             result[k] /= max(successful, 1)
 
-        return result, None
+        return result, None, model_ansers

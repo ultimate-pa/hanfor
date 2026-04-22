@@ -369,6 +369,7 @@ button { font-family: inherit; }
 #rescan-provider-btn,
 #test-all-provider-btn,
 #download-svg-btn,
+#download-detailed-traces-btn,
 #predict-pattern-btn,
 #predict-pattern-all-btn {
   font-size: 11px;
@@ -387,6 +388,7 @@ button { font-family: inherit; }
 .ensemble-add-btn:hover,
 .ensemble-save-btn:hover,
 #download-svg-btn:hover,
+#download-detailed-traces-btn:hover,
 #predict-pattern-btn:hover,
 #predict-pattern-all-btn:hover { border-color: var(--success); color: var(--success); }
 #predict-pattern-btn:disabled  { opacity: .5; cursor: not-allowed; }
