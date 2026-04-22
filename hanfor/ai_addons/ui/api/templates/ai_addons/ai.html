@@ -1,7 +1,17 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ai_addons.css') }}">
 
-<h2>LLM Providers</h2>
+<div id="ai-wrap">
+  <label>LLM PROVIDERS</label>
+  <button id="rescan-provider-btn">Rescan Provider Config</button>
+  <button id="test-all-provider-btn">Test All Provider</button>
+</div>
+<br>
 <div id="providers-container"></div>
 
-<h2>AI Addons</h2>
+<div id="ai-wrap">
+  <label>AI ADDONS</label>
+  <button id="activate-all-addons-btn">Activate All Addons</button>
+  <button id="deactivate-all-addons-btn">Deactivate All Addons</button>
+</div>
+<br>
 <div class="addon-grid" id="addon-container"></div>

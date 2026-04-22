@@ -44,7 +44,6 @@ window.tabSubs.onDeactivate(TAB_ID, async () => {
 // -------------------------------------------------------------------------
 
 document.getElementById("btn-private").addEventListener("click", async () => {
-    console.log("btn-private")
     await fetch("/ai_addons/example_ai_addon/increment_for_client", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -53,7 +52,6 @@ document.getElementById("btn-private").addEventListener("click", async () => {
 });
 
 document.getElementById("btn-global").addEventListener("click", async () => {
-    console.log("btn-global")
     await fetch("/ai_addons/example_ai_addon/increment_for_all", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

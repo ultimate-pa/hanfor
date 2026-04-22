@@ -103,3 +103,13 @@ class AiAddons:
                                     logging.warning(f"Cannot instantiate {attr_name}: {e}")
                     except ModuleNotFoundError as e:
                         logging.error(f"Error loading module {module_path}: {e}")
+
+    def activate_all_addons(self):
+        for addon_id, instance in self.__addons.items():
+            if not instance.enabled:
+                self.toggle_addon(addon_id)
+
+    def deactivate_all_addons(self):
+        for addon_id, instance in self.__addons.items():
+            if instance.enabled:
+                self.toggle_addon(addon_id)

@@ -55,3 +55,27 @@ def activity_test_model():
     payload = request.json
     current_app.ai_request.activity_test_model(payload.get("provider"), payload.get("model"))
     return "", 204
+
+
+@ai_blueprint.route("/rescan_provider", methods=["POST"])
+def rescan_provider():
+    current_app.ai_request.scan_provider()
+    return "", 204
+
+
+@ai_blueprint.route("/test_all_provider", methods=["POST"])
+def test_all_provider():
+    current_app.ai_request.test_all_provider_models()
+    return "", 204
+
+
+@ai_blueprint.route("/activate_all_addons", methods=["POST"])
+def activate_all_addons():
+    current_app.ai_addons.activate_all_addons()
+    return "", 204
+
+
+@ai_blueprint.route("/deactivate_all_addons", methods=["POST"])
+def deactivate_all_addons():
+    current_app.ai_addons.deactivate_all_addons()
+    return "", 204

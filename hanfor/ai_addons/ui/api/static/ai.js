@@ -143,6 +143,37 @@ async function load() {
   renderAddons(addonData.addons);
 }
 
+document.getElementById('rescan-provider-btn').addEventListener("click", async () => {
+    await fetch("/ai/rescan_provider", {
+        method: "POST",
+    });
+});
+
+document.getElementById('test-all-provider-btn').addEventListener("click", async () => {
+    await fetch("/ai/test_all_provider", {
+        method: "POST",
+    });
+});
+
+document.getElementById('activate-all-addons-btn').addEventListener("click", async () => {
+      // Persist active tab + scroll so they survive the reload
+  const activeTab = document.querySelector('#tab-list-ai .nav-link.active');
+  if (activeTab) sessionStorage.setItem('activeTab', activeTab.id);
+  sessionStorage.setItem('scrollY', window.scrollY);
+    await fetch("/ai/activate_all_addons", {
+        method: "POST",
+    }).then(() => window.location.reload());
+});
+
+document.getElementById('deactivate-all-addons-btn').addEventListener("click", async () => {
+      // Persist active tab + scroll so they survive the reload
+  const activeTab = document.querySelector('#tab-list-ai .nav-link.active');
+  if (activeTab) sessionStorage.setItem('activeTab', activeTab.id);
+  sessionStorage.setItem('scrollY', window.scrollY);
+    await fetch("/ai/deactivate_all_addons", {
+        method: "POST",
+    }).then(() => window.location.reload());
+});
 
 // Expose to inline onclick handlers
 window.testModel          = testModel;

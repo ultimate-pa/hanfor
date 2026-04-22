@@ -1,3 +1,4 @@
+import sys
 from socket import SocketIO
 from threading import Event, Semaphore
 from dataclasses import dataclass, field
@@ -107,15 +108,35 @@ class AiRequest:
 
     def __init__(self, thread_handler: ThreadHandler):
         self.__thread_handler = thread_handler
+        self.__catalog_tester = AiCatalogTester()
+        self.__socketio = None
+        self.__ai_model_catalog: dict[str, ProviderEntry] = {}
+        self.scan_provider()
+        self.test_all_provider_models()
+
+    def scan_provider(self):
+        if "configuration.ai_config" in sys.modules:
+            importlib.reload(sys.modules["configuration.ai_config"])
+
         self.__ai_model_catalog = self.__build_catalog()
         self.__register_api_methods()
         self.__validate_catalog()
-        self.__catalog_tester = AiCatalogTester()
-        self.__socketio = None
+
+        if self.__socketio:
+            send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
+
+    def test_all_provider_models(self):
+        for _, provider_entry in self.__ai_model_catalog.items():
+            provider_entry.activity = TestedActivity.NOT_TESTED
+            for model_name, (model_desc, activity) in provider_entry.models.items():
+                provider_entry.models[model_name] = (model_desc, TestedActivity.NOT_TESTED)
+
+        if self.__socketio:
+            send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
 
         self.__thread_handler.submit(
             ThreadTask(
-                self.check_all_models,
+                self.__check_all_models,
                 SchedulingClass.SYSTEM_CALL,
                 ThreadGroup.AI,
                 None,
@@ -196,7 +217,7 @@ class AiRequest:
 
         return data
 
-    def check_all_models(self, stop_event: Event):
+    def __check_all_models(self, stop_event: Event):
         self.__catalog_tester.check_all_models_activity(self.__ai_model_catalog, stop_event)
         send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
 

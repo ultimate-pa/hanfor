@@ -299,6 +299,7 @@ class PatternPrediction(AiAddonAbstractClass):
             "- Score must be a number between 0 and 1.\n"
             "- No explanations.\n"
             "- No additional text.\n"
+            "- all scores must be addup to exactly 1"
             "- Output ONLY the answer lines.\n\n"
             "Example:\n"
             "Yes:0.7\n"

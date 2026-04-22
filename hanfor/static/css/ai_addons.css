@@ -275,7 +275,8 @@ button { font-family: inherit; }
 }
 
 /* Topbar */
-#topbar {
+#topbar,
+#ai-wrap {
   height: 48px;
   background: var(--bg-primary);
   border-bottom: 1px solid var(--border-t);
@@ -288,12 +289,14 @@ button { font-family: inherit; }
 }
 
 #trace-wrap,
+#ai-wrap,
 #provider-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 #trace-wrap label,
+#ai-wrap label,
 #provider-wrap label {
   font-size: 11px;
   color: var(--text-secondary);
@@ -361,6 +364,10 @@ button { font-family: inherit; }
 /* Topbar action buttons (shared style) */
 .ensemble-save-btn,
 .ensemble-add-btn,
+#deactivate-all-addons-btn,
+#activate-all-addons-btn,
+#rescan-provider-btn,
+#test-all-provider-btn,
 #download-svg-btn,
 #predict-pattern-btn,
 #predict-pattern-all-btn {
@@ -373,6 +380,10 @@ button { font-family: inherit; }
   color: var(--text-secondary);
 }
 
+#deactivate-all-addons-btn:hover,
+#activate-all-addons-btn:hover,
+#rescan-provider-btn:hover,
+#test-all-provider-btn:hover,
 .ensemble-add-btn:hover,
 .ensemble-save-btn:hover,
 #download-svg-btn:hover,
