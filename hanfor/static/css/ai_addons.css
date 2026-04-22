@@ -306,6 +306,7 @@ button { font-family: inherit; }
 .sep { width: 1px; height: 20px; background: var(--border-t); }
 
 /* Shared topbar search inputs */
+#tree-search,
 #trace-search,
 #provider-search,
 #model-search {
@@ -318,16 +319,23 @@ button { font-family: inherit; }
   width: 160px;
   outline: none;
 }
+
+#tree-search{width: 300px;}
+
+
+#tree-search:focus,
 #trace-search:focus,
 #provider-search:focus,
 #model-search:focus { border-color: var(--success); }
 #model-search:disabled { opacity: .4; cursor: not-allowed; }
 
 /* Shared dropdown containers */
+#tree-dropdown,
 #trace-dropdown,
 #provider-dropdown,
 #model-dropdown { position: relative; }
 
+#tree-list,
 #trace-list,
 #provider-list,
 #model-list {
@@ -343,19 +351,25 @@ button { font-family: inherit; }
   max-height: 260px;
   overflow-y: auto;
 }
+
+#tree-list.open,
 #trace-list.open,
 #provider-list.open,
 #model-list.open { display: block; }
 
+.tree-item,
 .trace-item {
   padding: 8px 10px;
   font-size: 12px;
   cursor: pointer;
+  color: var(--text-secondary);
   border-bottom: 1px solid var(--border-t);
 }
+.tree-item:hover,
 .trace-item:hover        { background: var(--bg-secondary); }
+.tree-item:active,
 .trace-item.active       { background: var(--success); color: white; }
-.trace-item .trace-pattern { font-size: 10px; opacity: .7; }
+.tree-item .trace-item .trace-pattern { font-size: 10px; opacity: .7; }
 
 .trace-id      { font-weight: 600; font-size: 13px; color: var(--text-secondary); }
 .trace-desc    { font-size: 11px;  color: var(--text-secondary); margin-top: 2px; }

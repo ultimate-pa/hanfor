@@ -641,33 +641,6 @@ function ledEmoji(activity) {
   return '🔴';
 }
 
-function buildProviderList(filter = '') {
-  const listEl      = document.getElementById('provider-list');
-  const filterLower = filter.toLowerCase();
-  listEl.innerHTML  = '';
-
-  providerData
-    .filter(p => p.name.toLowerCase().includes(filterLower))
-    .forEach(p => {
-      const item = document.createElement('div');
-      item.className = 'trace-item' + (selectedProvider?.name === p.name ? ' active' : '');
-      item.innerHTML = `<div class="trace-id">${led(p.reachable)} ${p.name}</div>`;
-      item.onclick   = () => {
-        selectedProvider = p;
-        selectedModel    = null;
-        listEl.classList.remove('open');
-        buildModelList('');
-        fetch('/ai_addons/pattern_prediction/set_provider', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ provider: p.name }),
-        });
-      };
-      listEl.appendChild(item);
-    });
-}
-
-
 async function loadProviderData() {
   const [provRes, selRes] = await Promise.all([
     fetch('/core_ai_addon/ai_provider_data'),
@@ -710,9 +683,21 @@ window.tabSubs.register('ai_addons_pattern_prediction', [
     renderEnsembleList()
     },
   },
+  {
+    event:   'socket_pattern_prediction_new_tree',
+    handler:  newTree => {
+        console.log(newTree)
+        treeData     = newTree.tree;
+        selectedFile = newTree.file;
+        treeInput.value = selectedFile ?? '';
+        renderTree();
+        renderTreeList(treefiles);
+    },
+  },
 ]);
 
 window.tabSubs.onActivate('ai_addons_pattern_prediction', () => {
+  loadTreeData();
   loadProviderData();
   setTimeout(resetZoom, 100);
 });
@@ -973,16 +958,72 @@ document.getElementById('download-detailed-traces-btn').addEventListener('click'
     URL.revokeObjectURL(url);
 });
 
+// -------- TREE ------------------------------------------------------------------------------
+
+let treefiles;
+let selectedFile;
+const treeInput = document.getElementById('tree-search');
+const treeList  = document.getElementById('tree-list');
+
+function renderTreeList(files) {
+  treeList.innerHTML = '';
+  files.forEach(filename => {
+    const item = document.createElement('div');
+    item.className = 'tree-item';
+    item.textContent = filename;
+    item.addEventListener('click', () => {
+    treeList.classList.remove('open');
+    fetch('/ai_addons/pattern_prediction/select_tree_file', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file: filename })
+    });
+  });
+    treeList.appendChild(item);
+  });
+}
+
+function filterList(query) {
+  const items = treeList.querySelectorAll('.tree-item');
+  items.forEach(item => {
+    item.style.display = item.textContent.toLowerCase().includes(query.toLowerCase())
+      ? '' : 'none';
+  });
+}
+
+treeInput.addEventListener('focus', () => {
+  if (activeTrace) { searchInput.value = ''; predictButton.disabled = true; }
+  treeList.classList.add('open');
+});
+
+treeInput.addEventListener('input', e => {
+  treeList.classList.add('open');
+  filterList(e.target.value);
+});
+
+document.addEventListener('click', e => {
+  if (!document.getElementById('tree-dropdown').contains(e.target))
+    treeList.classList.remove('open');
+});
+
+
 // -- INIT ----------------------------------------------------------------------
 
 async function loadTreeData() {
-  const [idsRes, treeRes] = await Promise.all([
+  const [idsRes, treeRes, treefilesRes] = await Promise.all([
     fetch('/core_ai_addon/req_ids'),
     fetch('/ai_addons/pattern_prediction/tree'),
+    fetch('/ai_addons/pattern_prediction/get_all_tree_file')
   ]);
-  requestIds = await idsRes.json();
-  treeData   = await treeRes.json();
-  renderTree();
-}
 
-loadTreeData();
+  const treeJson = await treeRes.json();
+
+  requestIds   = await idsRes.json();
+  treeData     = treeJson.tree;
+  selectedFile = treeJson.file;
+  treeInput.value = selectedFile ?? '';
+  treefiles    = await treefilesRes.json();
+
+  renderTree();
+  renderTreeList(treefiles);
+}

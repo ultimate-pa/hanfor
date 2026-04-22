@@ -18,8 +18,7 @@ def _get_addon() -> PatternPrediction:
 
 @pattern_blueprint.route("/tree", methods=["GET"])
 def get_tree():
-    pp = _get_addon()
-    return jsonify(pp.prediction_tree.to_dict(pp.prediction_tree.root))
+    return jsonify({"file": _get_addon().get_tree_file_name(), "tree": _get_addon().prediction_tree.to_dict()})
 
 
 @pattern_blueprint.route("/set_trace_sid", methods=["POST"])
@@ -96,4 +95,16 @@ def generate_trace_for_req_all():
         )
     )
 
+    return "", 204
+
+
+@pattern_blueprint.route("/get_all_tree_file", methods=["GET"])
+def get_all_tree_file():
+    return jsonify(_get_addon().get_all_tree_file())
+
+
+@pattern_blueprint.route("/select_tree_file", methods=["POST"])
+def select_tree_file():
+    file = request.json.get("file")
+    _get_addon().select_tree_file(file)
     return "", 204

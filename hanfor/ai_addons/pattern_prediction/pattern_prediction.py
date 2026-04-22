@@ -1,6 +1,5 @@
-import base64
 import logging
-from os import path
+from os import path, listdir
 from threading import Event
 
 from flask_socketio import SocketIO
@@ -43,11 +42,11 @@ class PatternPredictionTreeLeaf:
 
 class Tree:
 
-    def __init__(self):
+    def __init__(self, tree_path: str):
         self.root: PatternPredictionTreeNode | PatternPredictionTreeLeaf | None = None
         self.id_map: dict[int, int] = {}
-        base_dir = path.dirname(path.abspath(__file__))
-        self.load(path.join(base_dir, "pattern_tree_longer_questions.json"))
+        base_dir = path.join(path.dirname(path.abspath(__file__)), "tree")
+        self.load(path.join(base_dir, tree_path))
 
     def load(self, tree_path: str):
         with open(tree_path, encoding="utf-8") as f:
@@ -119,6 +118,7 @@ class PatternPrediction(AiAddonAbstractClass):
     socketio: SocketIO
 
     def _do_initialize(self):
+        self.__tree_path = "pattern_tree_longer_questions.json"
         self.__export_to_file = False
         self.requirement_data: dict[str, PatternPredictedRequirement] = {}
         self.socketio_data: dict[str, list[str]] = {}
@@ -131,7 +131,7 @@ class PatternPrediction(AiAddonAbstractClass):
             if provider_data.default_provider:
                 self.selected_ensemble[0]["provider"] = provider_name
                 self.selected_ensemble[0]["model"] = provider_data.default_model
-        self.prediction_tree = Tree()
+        self.prediction_tree = Tree(self.__tree_path)
         for req_id, requirement in current_app.db.get_objects(Requirement).items():
             self.requirement_data[str(req_id)] = PatternPredictedRequirement(
                 str(req_id), requirement.description, [], [], APattern(), "", None
@@ -238,17 +238,17 @@ class PatternPrediction(AiAddonAbstractClass):
             task_results: list[tuple[TaskResult, float, str]] = []
 
             for entry in self.selected_ensemble:
-                for _ in range(entry["count"]):
+                for _ in range(int(entry["count"])):
                     task_results.append(
                         (
                             self.ai_request.ask_ai(
                                 query,
                                 None,
                                 SchedulingClass.CALLER_DEPTH_2,
-                                entry["provider"],
-                                entry["model"],
+                                str(entry["provider"]),
+                                str(entry["model"]),
                             ),
-                            entry["weight"],
+                            float(entry["weight"]),
                             f"{entry['provider']}-{entry['model']}",
                         )
                     )
@@ -390,3 +390,24 @@ class PatternPrediction(AiAddonAbstractClass):
             result[k] /= max(successful, 1)
 
         return result, None, model_ansers
+
+    @AiAddonAbstractClass.requires_enabled
+    def get_all_tree_file(self):
+        tree_dir = path.join(str(path.dirname(__file__)), "tree")
+        return [f for f in listdir(str(tree_dir)) if path.isfile(path.join(str(tree_dir), f))]
+
+    @AiAddonAbstractClass.requires_enabled
+    def get_tree_file_name(self):
+        return self.__tree_path
+
+    @AiAddonAbstractClass.requires_enabled
+    def select_tree_file(self, tree_path: str):
+        self.__tree_path = tree_path
+        self.thread_handler.stop_group(ThreadGroup.PATTERN_PREDICTION)
+
+        self.prediction_tree = Tree(self.__tree_path)
+        send_ai_update(
+            {"file": self.get_tree_file_name(), "tree": self.prediction_tree.to_dict()},
+            "socket_pattern_prediction_new_tree",
+            self.socketio,
+        )
