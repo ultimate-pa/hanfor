@@ -3,6 +3,7 @@
 config.py
 hanfor/data/**
 hanfor/configuration/*_config.py
+hanfor/ai_addons/pattern_prediction/tree
 
 **/__pycache__*
 **/.webassets-cache/
