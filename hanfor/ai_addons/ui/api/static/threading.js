@@ -102,9 +102,11 @@ function normalise(data) {
 
 async function load() {
   try {
-    const res = await fetch('/threading/initial');
+    const res = await fetch(`${window.baseUrl}/threading`);
     if (!res.ok) throw new Error(res.status);
-    render(normalise(await res.json()));
+    let json_res = await res.json()
+    render(normalise(json_res));
+    console.log(json_res);
   } catch {
     document.getElementById('last-update').textContent = 'Fehler beim Laden';
   }
@@ -125,16 +127,15 @@ window.tabSubs.onActivate('ai_addons_threading', load);
 // -- ACTIONS -------------------------------------------------------------------
 
 async function stopGroup(group) {
-  try {
-    const res = await fetch('/threading/stop_group', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ group }),
-    });
-    if (!res.ok) throw new Error(res.status);
-    render(normalise(await res.json()));
-  } catch { /* swallow */ }
+  window.showBanner(`try stopping: ${group}`, 'success', 'thread-info-banner');
+  const res = await fetch(`${window.baseUrl}/threading/stop_group/${group}`, {
+    method: 'POST',
+  });
+  if (!res.ok) throw new Error(res.status);
+  const data = await res.json();
+  window.showBanner(data.info, 'success', 'thread-info-banner');
 }
+
 
 window.addDummyTask = async function () {
   try { await fetch('/threading/dummy_task', { method: 'POST' }); }

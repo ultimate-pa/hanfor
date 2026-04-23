@@ -22,21 +22,12 @@ window.tabSubs.register(TAB_ID, [
 // -------------------------------------------------------------------------
 
 window.tabSubs.onActivate(TAB_ID, async () => {
-    await fetch("/ai_addons/example_ai_addon/set_sid", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({sid: window.appSocket.id }),
-    });
+    await fetch(`${window.baseUrl}/example-ai-addon/${window.appSocket.id}`, { method: "POST" });
 });
 
 window.tabSubs.onDeactivate(TAB_ID, async () => {
-    await fetch("/ai_addons/example_ai_addon/clear_sid", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({sid: window.appSocket.id }),
-    });
+    await fetch(`${window.baseUrl}/example-ai-addon/${window.appSocket.id}`, { method: "DELETE" });
 });
-
 
 
 // -------------------------------------------------------------------------
@@ -44,16 +35,9 @@ window.tabSubs.onDeactivate(TAB_ID, async () => {
 // -------------------------------------------------------------------------
 
 document.getElementById("btn-private").addEventListener("click", async () => {
-    await fetch("/ai_addons/example_ai_addon/increment_for_client", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({sid: window.appSocket.id }),
-    });
+    await fetch(`${window.baseUrl}/example-ai-addon/increment-client-counter/${window.appSocket.id}`, { method: "POST" });
 });
 
 document.getElementById("btn-global").addEventListener("click", async () => {
-    await fetch("/ai_addons/example_ai_addon/increment_for_all", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-    });
+    await fetch(`${window.baseUrl}/example-ai-addon/increment-global-counter`, { method: "POST" });
 });

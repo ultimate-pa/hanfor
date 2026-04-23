@@ -80,8 +80,10 @@ app.register_blueprint(queries_api)
 # Simulator
 app.register_blueprint(simulator_blueprint.blueprint)
 # AI Addons
-for threading_ai_addon_bluprint in all_threading_ai_addon_blueprints:
-    app.register_blueprint(threading_ai_addon_bluprint)
+for threading_ai_addon_blueprint, threading_ai_addon_namespace in all_threading_ai_addon_blueprints:
+    app.register_blueprint(threading_ai_addon_blueprint)
+    if threading_ai_addon_namespace:
+        api.add_namespace(threading_ai_addon_namespace)
 
 # Register feature blueprints and apis
 if app.config["FEATURE_EXAMPLE_BLUEPRINT"]:

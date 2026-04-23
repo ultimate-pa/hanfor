@@ -42,6 +42,9 @@
 
 {% block scripts %}
 {{ super() }}
+    <script>
+    window.baseUrl = "{{ BASE_URL }}";
+    </script>
 {% for js_file in BUNDLE_JS %}
   <script src="{{ url_for('static', filename=js_file) }}"></script>
 {% endfor %}

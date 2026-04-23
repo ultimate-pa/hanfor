@@ -1,12 +1,17 @@
 from flask import Blueprint, render_template, jsonify
+
+import config
 from hanfor_flask import current_app
 from lib_core.data import Requirement
+from flask_restx import Resource, Namespace, fields
 
 # Define the main blueprint for rendering the frontend
 blueprint = Blueprint("ai_addons", __name__, template_folder="templates", url_prefix="/core_ai_addon")
 BUNDLE_JS = ["dist/ai_core_addons-bundle.js", "dist/threading-bundle.js"]
 TAB_NAMES = ["Threading"]
 TAB_PAGES = ["ai_addons/threading.html"]
+
+api = Namespace("AI Addons", "AI Addons Description", path="/ai-addon", ordered=True)
 
 
 @blueprint.route("/", methods=["GET"])
@@ -25,7 +30,7 @@ def index():
                 tab_js.append(addon.addon_js)
 
     tabs = list(zip(tab_names, tab_pages))
-    return render_template("ai_addons/index.html", BUNDLE_JS=tab_js, tabs=tabs)
+    return render_template("ai_addons/index.html", BUNDLE_JS=tab_js, tabs=tabs, BASE_URL=f"{config.URL_PREFIX}/api/v1")
 
 
 @blueprint.route("/ai_provider_data", methods=["GET"])

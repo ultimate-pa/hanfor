@@ -400,16 +400,7 @@ function renderTraceInfoBlock(traceData) {
 }
 
 function showErrorBanner(message) {
-  document.getElementById('prediction-error-banner')?.remove();
-
-  const banner = document.createElement('div');
-  banner.id        = 'prediction-error-banner';
-  banner.className = 'alert alert-danger alert-dismissible m-2';
-  banner.innerHTML = `
-    <strong>Prediction error:</strong> ${message}
-    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
-  `;
-  document.querySelector('main').prepend(banner);
+  window.showBanner(`<strong>Prediction error:</strong> ${message}`, 'danger', 'prediction-error-banner');
 }
 
 // -- PAN / ZOOM ----------------------------------------------------------------

@@ -97,11 +97,23 @@ $(document).ready(() => {
   });
 
   window.appSocket.on('reload', () => {
-    if (document.getElementById('reload-banner')) return;
-    const banner = document.createElement('div');
-    banner.id        = 'reload-banner';
-    banner.className = 'alert alert-warning alert-dismissible m-2';
-    banner.innerHTML = `Configuration changed. <a href="#" onclick="location.reload()">Reload now</a> to apply updates.`;
-    document.querySelector('main').prepend(banner);
+      showBanner(
+      'Configuration changed. <a href="#" onclick="location.reload()">Reload now</a> to apply updates.',
+      'warning',
+      'reload-banner'
+    );
   });
 });
+
+window.showBanner = function showBanner(message, type = 'info', id = 'generic-banner') {
+  document.getElementById(id)?.remove();
+
+  const banner = document.createElement('div');
+  banner.id        = id;
+  banner.className = `alert alert-${type} alert-dismissible m-2`;
+  banner.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+  `;
+  document.querySelector('main').prepend(banner);
+}

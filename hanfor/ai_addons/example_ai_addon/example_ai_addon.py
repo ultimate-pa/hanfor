@@ -72,7 +72,7 @@ class ExampleAiAddon(AiAddonAbstractClass):
         )
 
     @AiAddonAbstractClass.requires_enabled
-    def increment_for_all(self):
+    def increment_global_counter(self):
         """Increment the global counter and broadcast the update to all clients."""
         self.global_counter += 1
 
