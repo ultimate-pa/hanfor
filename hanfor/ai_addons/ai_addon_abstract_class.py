@@ -4,21 +4,38 @@ from functools import wraps
 
 class AiAddonAbstractClass(ABC):
 
+    class AddonDisabledError(Exception):
+        pass
+
     # -------------------------------------------------------------------------
     # Decorator
     # -------------------------------------------------------------------------
 
     @staticmethod
     def requires_enabled(func):
-        """Returns None if the addon is disabled."""
-
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             if not self.enabled:
-                return None
+                raise AiAddonAbstractClass.AddonDisabledError()
             return func(self, *args, **kwargs)
 
         return wrapper
+
+    @staticmethod
+    def handle_disabled(namespace):
+        """Factory that returns a decorator bound to the given namespace."""
+
+        def decorator(func):
+            @wraps(func)
+            def wrapper(self, *args, **kwargs):
+                try:
+                    return func(self, *args, **kwargs)
+                except AiAddonAbstractClass.AddonDisabledError:
+                    namespace.abort(403, "Addon is disabled")
+
+            return wrapper
+
+        return decorator
 
     # -------------------------------------------------------------------------
     # Abstract properties

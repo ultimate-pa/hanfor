@@ -9,6 +9,7 @@ const PATTERN_NODE_HEIGHT  = 54;
 const HORIZONTAL_GAP       = 60;
 const VERTICAL_GAP         = 80;
 const SVG_NS               = 'http://www.w3.org/2000/svg';
+const ADDON_NAME = "pattern-prediction"
 
 // -- STATE ---------------------------------------------------------------------
 
@@ -279,19 +280,11 @@ async function applyTrace(requestId) {
   if (requestId === null) {
     applyTraceHighlighting(null);
     removeTraceInfoBlock();
-    await fetch('/ai_addons/pattern_prediction/clear_trace_sid', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ req_id: requestId, sid: window.appSocket.id }),
-    });
-    return;
+    await window.del(ADDON_NAME, "trace-sid", { req_id: chosenId, sid: window.appSocket.id })
   }
-
-  await fetch('/ai_addons/pattern_prediction/set_trace_sid', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ req_id: requestId, sid: window.appSocket.id }),
-  });
+  else{
+    await window.post(ADDON_NAME, "trace-sid", { req_id: requestId, sid: window.appSocket.id })
+  }
 }
 
 function applyTraceHighlighting(traceData) {
@@ -605,19 +598,11 @@ document.getElementById('clear-trace-btn').onclick = () => {
 };
 
 predictButton.onclick = async () => {
-  await fetch('/ai_addons/pattern_prediction/generate_trace', {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ req_id: chosenId }),
-  });
+  await window.post(ADDON_NAME, "generate-trace/" + encodeURIComponent(chosenId))
 };
 
 document.getElementById('predict-pattern-all-btn').addEventListener('click', async () => {
-  await fetch('/ai_addons/pattern_prediction/generate_trace_all', {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ req_id: chosenId }),
-  });
+  await window.post(ADDON_NAME, "generate-trace/__all__")
 });
 
 // -- PROVIDER / MODEL SELECTOR -------------------------------------------------
@@ -633,15 +618,12 @@ function ledEmoji(activity) {
 }
 
 async function loadProviderData() {
-  const [provRes, selRes] = await Promise.all([
-    fetch('/core_ai_addon/ai_provider_data'),
-    fetch('/ai_addons/pattern_prediction/get_selected_ensemble'),
+  const [prov, selectedEnsemble] = await Promise.all([
+    window.get("core-ai-addon", "ai-provider-data"),
+    window.get(ADDON_NAME, "ensemble"),
   ]);
-  const provJson = await provRes.json();
-  const selJson  = await selRes.json();
-
-  providerData = provJson.providers;
-  ensembleEntries = selJson.ensemble
+  providerData = prov.providers;
+  ensembleEntries = selectedEnsemble.ensemble
   renderEnsembleList()
 }
 
@@ -695,11 +677,7 @@ window.tabSubs.onActivate('ai_addons_pattern_prediction', () => {
 
 window.tabSubs.onDeactivate('ai_addons_pattern_prediction', async () => {
   document.getElementById('clear-trace-btn').click();
-  await fetch('/ai_addons/pattern_prediction/clear_trace_sid', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ req_id: chosenId, sid: window.appSocket.id }),
-    });
+  await window.del(ADDON_NAME,"trace-sid",{ req_id: chosenId, sid: window.appSocket.id })
 });
 
 // -- SVG DOWNLOAD --------------------------------------------------------------
@@ -928,17 +906,11 @@ document.getElementById('add-ensemble-entry-btn').addEventListener('click', () =
 
 document.getElementById('save-ensemble-entry-btn').addEventListener('click', async () =>{
 
-  await fetch('/ai_addons/pattern_prediction/set_selected_ensemble', {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ "ensemble": ensembleEntries }),
-  });
+  await window.post(ADDON_NAME, "ensemble", { "ensemble": ensembleEntries })
 });
 
 document.getElementById('download-detailed-traces-btn').addEventListener('click', async () => {
-    const response = await fetch('/ai_addons/pattern_prediction/get_all_detailed_traces_as_file', {
-        method: 'GET',
-    });
+    const response = await window.get(ADDON_NAME, "detailed-traces-file", { raw: true });
 
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
@@ -964,11 +936,7 @@ function renderTreeList(files) {
     item.textContent = filename;
     item.addEventListener('click', () => {
     treeList.classList.remove('open');
-    fetch('/ai_addons/pattern_prediction/select_tree_file', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ file: filename })
-    });
+    window.post(ADDON_NAME, "tree-file",{ file: filename })
   });
     treeList.appendChild(item);
   });
@@ -1001,19 +969,17 @@ document.addEventListener('click', e => {
 // -- INIT ----------------------------------------------------------------------
 
 async function loadTreeData() {
-  const [idsRes, treeRes, treefilesRes] = await Promise.all([
-    fetch('/core_ai_addon/req_ids'),
-    fetch('/ai_addons/pattern_prediction/tree'),
-    fetch('/ai_addons/pattern_prediction/get_all_tree_file')
+  const [idsRes, tree, treefilesRespose] = await Promise.all([
+      window.get("core-ai-addon","req-ids"),
+      window.get(ADDON_NAME,"tree"),
+      window.get(ADDON_NAME,"tree-file"),
   ]);
 
-  const treeJson = await treeRes.json();
-
-  requestIds   = await idsRes.json();
-  treeData     = treeJson.tree;
-  selectedFile = treeJson.file;
+  requestIds   = idsRes.ids;
+  treeData     = tree.tree;
+  selectedFile = tree.file;
   treeInput.value = selectedFile ?? '';
-  treefiles    = await treefilesRes.json();
+  treefiles = treefilesRespose
 
   renderTree();
   renderTreeList(treefiles);

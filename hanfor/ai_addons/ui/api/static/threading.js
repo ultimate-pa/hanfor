@@ -3,6 +3,7 @@ const GROUP_COLORS = [
   '#6e6e69', '#8f3518', '#832446', '#4a7a2e',
   '#6b2d8f', '#1a6b6b', '#8f6b00', '#2d4a8f',
 ];
+const ADDON_NAME = "threading"
 
 // -- STYLE INJECTION -----------------------------------------------------------
 
@@ -101,15 +102,8 @@ function normalise(data) {
 }
 
 async function load() {
-  try {
-    const res = await fetch(`${window.baseUrl}/threading`);
-    if (!res.ok) throw new Error(res.status);
-    let json_res = await res.json()
-    render(normalise(json_res));
-    console.log(json_res);
-  } catch {
-    document.getElementById('last-update').textContent = 'Fehler beim Laden';
-  }
+  const res = await window.get(ADDON_NAME, "");
+  render(normalise(res));
 }
 
 // -- SOCKET SUBSCRIPTIONS --------------------------------------------------------------------
@@ -128,9 +122,7 @@ window.tabSubs.onActivate('ai_addons_threading', load);
 
 async function stopGroup(group) {
   window.showBanner(`try stopping: ${group}`, 'success', 'thread-info-banner');
-  const res = await fetch(`${window.baseUrl}/threading/stop_group/${group}`, {
-    method: 'POST',
-  });
+  const res = await window.post(ADDON_NAME, "stop-group/" + group);
   if (!res.ok) throw new Error(res.status);
   const data = await res.json();
   window.showBanner(data.info, 'success', 'thread-info-banner');
@@ -138,7 +130,7 @@ async function stopGroup(group) {
 
 
 window.addDummyTask = async function () {
-  try { await fetch('/threading/dummy_task', { method: 'POST' }); }
+  try { await window.post(ADDON_NAME,"dummy-task"); }
   catch { /* swallow */ }
 };
 

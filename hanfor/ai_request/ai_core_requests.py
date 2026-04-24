@@ -228,21 +228,21 @@ class AiRequest:
         if self.__socketio:
             send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
 
-    def set_default_model(self, provider, set_model_name_to_default):
+    def set_default_model(self, provider: str, set_model_name_to_default: str):
         if provider in self.__ai_model_catalog:
             if set_model_name_to_default in self.__ai_model_catalog[provider].models:
                 self.__ai_model_catalog[provider].default_model = set_model_name_to_default
         if self.__socketio:
             send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
 
-    def activity_test_provider(self, provider):
+    def activity_test_provider(self, provider: str):
         if provider in self.__ai_model_catalog:
             self.__catalog_tester.activity_test_provider(self.__ai_model_catalog[provider], Event())
 
         if self.__socketio:
             send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
 
-    def activity_test_model(self, provider, model_name):
+    def activity_test_model(self, provider: str, model_name: str):
         if provider in self.__ai_model_catalog:
             if model_name in self.__ai_model_catalog[provider].models:
                 model = self.__ai_model_catalog[provider].models[model_name]

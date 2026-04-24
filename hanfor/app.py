@@ -81,7 +81,8 @@ app.register_blueprint(queries_api)
 app.register_blueprint(simulator_blueprint.blueprint)
 # AI Addons
 for threading_ai_addon_blueprint, threading_ai_addon_namespace in all_threading_ai_addon_blueprints:
-    app.register_blueprint(threading_ai_addon_blueprint)
+    if threading_ai_addon_blueprint:
+        app.register_blueprint(threading_ai_addon_blueprint)
     if threading_ai_addon_namespace:
         api.add_namespace(threading_ai_addon_namespace)
 

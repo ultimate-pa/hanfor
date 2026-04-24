@@ -1,5 +1,6 @@
 let addonData;
 let providerData;
+const ADDON_NAME = "ai"
 
 // -- HELPERS -------------------------------------------------------------------
 
@@ -87,26 +88,25 @@ function renderAddons(addons) {
 
 // -- ACTIONS -------------------------------------------------------------------
 
-function post(url, body) {
-  return fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-}
 
-function setDefaultProvider(name)               { post('/ai/set_default_provider',  { provider: name }); }
-function setDefaultModel(providerName, modelName){ post('/ai/set_default_model',     { provider: providerName, model: modelName }); }
-function testProvider(name)                      { post('/ai/test_provider',          { provider: name }); }
-function testModel(providerName, modelName)      { post('/ai/test_model',             { provider: providerName, model: modelName }); }
+function setDefaultProvider(name)                { window.post(ADDON_NAME,'/provider/set_default',  { provider: name }); }
+function setDefaultModel(providerName, modelName){ window.post(ADDON_NAME,'/model/set_default',     { provider: providerName, model: modelName }); }
+function testProvider(name)                      { window.post(ADDON_NAME,'/provider/test',          { provider: name }); }
+function testModel(providerName, modelName)      { window.post(ADDON_NAME,'/model/test',             { provider: providerName, model: modelName }); }
+
 
 function toggleAddon(id) {
-  // Persist active tab + scroll so they survive the reload
   const activeTab = document.querySelector('#tab-list-ai .nav-link.active');
   if (activeTab) sessionStorage.setItem('activeTab', activeTab.id);
   sessionStorage.setItem('scrollY', window.scrollY);
+  window.post(ADDON_NAME,'/addon/toggle', { addon_id: id }).then(() => window.location.reload());
+}
 
-  post('/ai/toggle_addon', { addon: id }).then(() => window.location.reload());
+function reloadWithState(promise) {
+  const activeTab = document.querySelector('#tab-list-ai .nav-link.active');
+  if (activeTab) sessionStorage.setItem('activeTab', activeTab.id);
+  sessionStorage.setItem('scrollY', window.scrollY);
+  promise.then(() => window.location.reload());
 }
 
 function restoreState() {
@@ -133,46 +133,32 @@ window.tabSubs.onActivate('ai_addons_ai', load);
 // -- INIT ----------------------------------------------------------------------
 
 async function load() {
-  const [provRes, addonRes] = await Promise.all([
-    fetch('/core_ai_addon/ai_provider_data'),
-    fetch('/ai/ai_addon_data'),
+  const [providerDataRes, addonDataRes] = await Promise.all([
+    window.get("core-ai-addon", "ai-provider-data"),
+    window.get(ADDON_NAME, "")
   ]);
-  providerData = await provRes.json();
-  addonData    = await addonRes.json();
+  providerData = providerDataRes
+  addonData = addonDataRes
   renderProviders(providerData.providers);
-  renderAddons(addonData.addons);
+  renderAddons(addonDataRes.addons);
 }
 
-document.getElementById('rescan-provider-btn').addEventListener("click", async () => {
-    await fetch("/ai/rescan_provider", {
-        method: "POST",
-    });
+// -- BUTTON LISTENERS ----------------------------------------------------------
+
+document.getElementById('rescan-provider-btn').addEventListener('click', () => {
+  window.post(ADDON_NAME,'/provider/rescan');
 });
 
-document.getElementById('test-all-provider-btn').addEventListener("click", async () => {
-    await fetch("/ai/test_all_provider", {
-        method: "POST",
-    });
+document.getElementById('test-all-provider-btn').addEventListener('click', () => {
+  window.post(ADDON_NAME,'/provider/test_all');
 });
 
-document.getElementById('activate-all-addons-btn').addEventListener("click", async () => {
-      // Persist active tab + scroll so they survive the reload
-  const activeTab = document.querySelector('#tab-list-ai .nav-link.active');
-  if (activeTab) sessionStorage.setItem('activeTab', activeTab.id);
-  sessionStorage.setItem('scrollY', window.scrollY);
-    await fetch("/ai/activate_all_addons", {
-        method: "POST",
-    }).then(() => window.location.reload());
+document.getElementById('activate-all-addons-btn').addEventListener('click', () => {
+  reloadWithState(window.post(ADDON_NAME,'/addon/activate_all'));
 });
 
-document.getElementById('deactivate-all-addons-btn').addEventListener("click", async () => {
-      // Persist active tab + scroll so they survive the reload
-  const activeTab = document.querySelector('#tab-list-ai .nav-link.active');
-  if (activeTab) sessionStorage.setItem('activeTab', activeTab.id);
-  sessionStorage.setItem('scrollY', window.scrollY);
-    await fetch("/ai/deactivate_all_addons", {
-        method: "POST",
-    }).then(() => window.location.reload());
+document.getElementById('deactivate-all-addons-btn').addEventListener('click', () => {
+  reloadWithState(window.post(ADDON_NAME,'/addon/deactivate_all'));
 });
 
 // Expose to inline onclick handlers

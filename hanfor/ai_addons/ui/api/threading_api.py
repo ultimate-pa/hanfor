@@ -1,14 +1,7 @@
-from flask import Blueprint
 from flask_restx import Resource, fields, Namespace
 
 from hanfor_flask import current_app
 from thread_handling.threading_core import ThreadGroup
-
-threading_blueprint = Blueprint(
-    "threading",
-    __name__,
-    url_prefix="/threading",
-)
 
 threading_api_namespace = Namespace("Threading", "Dashboard data threading", path="/threading", ordered=True)
 
@@ -35,43 +28,50 @@ THREAD_DATA = threading_api_namespace.model(
 )
 
 THREAD_STOP_RESPONSE = threading_api_namespace.model(
-    "Info", {"info": fields.String(example=f"stopping thread_group: AI")}
+    "ThreadStopResponse", {"info": fields.String(example="stopped thread_group: AI")}
 )
 
 
 @threading_api_namespace.route("/")
 class ApiThreadingData(Resource):
-    @threading_api_namespace.response(200, "Success", THREAD_DATA)
+    @threading_api_namespace.marshal_with(THREAD_DATA, code=200)
     def get(self):
         return current_app.thread_handler.threading_data()
 
 
-@threading_api_namespace.route("/stop_group/<string:thread_group>")
+@threading_api_namespace.route("/stop-group/<string:thread_group>")
 class ApiThreadingStopGroup(Resource):
-    @threading_api_namespace.response(200, "Success", THREAD_STOP_RESPONSE)
+    @threading_api_namespace.marshal_with(THREAD_STOP_RESPONSE, code=200)
+    @threading_api_namespace.response(404, "Unknown thread group")
     def post(self, thread_group: str):
-        group = ThreadGroup[thread_group]
+        try:
+            group = ThreadGroup[thread_group]
+        except KeyError:
+            threading_api_namespace.abort(404, f"Unknown thread group: {thread_group}")
+
         current_app.thread_handler.stop_group(group)
         return {"info": f"stopped thread_group: {group}"}
 
 
-# ---- temp---------
-@threading_blueprint.route("/dummy_task", methods=["POST"])
-def threading_dummy_task():
-    from thread_handling.threading_core import ThreadTask, SchedulingClass
-    import random
+# ---- TEMP TODO ---------
+@threading_api_namespace.route("/dummy-task")
+class ApiThreadingDummy(Resource):
+    @threading_api_namespace.response(204, "Success")
+    def post(self):
+        from thread_handling.threading_core import ThreadTask, SchedulingClass
+        import random
 
-    task = ThreadTask(
-        thread_function=_dummy_task,
-        scheduling_class=random.choice(list(SchedulingClass)),
-        group=random.choice(list(ThreadGroup)),
-        semaphore=None,
-        callback=None,
-        args=(),
-        kwargs={},
-    )
-    current_app.thread_handler.submit(task)
-    return "", 200
+        task = ThreadTask(
+            thread_function=_dummy_task,
+            scheduling_class=random.choice(list(SchedulingClass)),
+            group=random.choice(list(ThreadGroup)),
+            semaphore=None,
+            callback=None,
+            args=(),
+            kwargs={},
+        )
+        current_app.thread_handler.submit(task)
+        return None, 204
 
 
 def _dummy_task(stop_event):

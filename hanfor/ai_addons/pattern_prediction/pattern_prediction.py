@@ -406,6 +406,7 @@ class PatternPrediction(AiAddonAbstractClass):
         self.thread_handler.stop_group(ThreadGroup.PATTERN_PREDICTION)
 
         self.prediction_tree = Tree(self.__tree_path)
+
         send_ai_update(
             {"file": self.get_tree_file_name(), "tree": self.prediction_tree.to_dict()},
             "socket_pattern_prediction_new_tree",

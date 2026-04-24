@@ -1,20 +1,54 @@
-from flask import Blueprint, render_template, jsonify
-
+from flask import Blueprint, render_template
 import config
 from hanfor_flask import current_app
 from lib_core.data import Requirement
 from flask_restx import Resource, Namespace, fields
 
-# Define the main blueprint for rendering the frontend
-blueprint = Blueprint("ai_addons", __name__, template_folder="templates", url_prefix="/core_ai_addon")
+core_ai_addon_blueprint = Blueprint("ai_addons", __name__, template_folder="templates", url_prefix="/core_ai_addon")
 BUNDLE_JS = ["dist/ai_core_addons-bundle.js", "dist/threading-bundle.js"]
 TAB_NAMES = ["Threading"]
 TAB_PAGES = ["ai_addons/threading.html"]
 
-api = Namespace("AI Addons", "AI Addons Description", path="/ai-addon", ordered=True)
+core_ai_addon_api_namespace = Namespace(
+    "Core AI Addon", "Routes for core things for the ai Addon", path="/core-ai-addon", ordered=True
+)
+
+REQ_IDS = core_ai_addon_api_namespace.model(
+    "Requirement Ids", {"ids": fields.List(fields.String, example=["REQ001", "REQ002", "REQ003"])}
+)
+
+MODEL_DATA = core_ai_addon_api_namespace.model(
+    "Model Data",
+    {
+        "name": fields.String(description="Model name"),
+        "desc": fields.String(description="Model description"),
+        "default": fields.Boolean(description="Whether this is the default model"),
+        "active": fields.String(description="Model activity status"),
+    },
+)
+
+PROVIDER_DATA = core_ai_addon_api_namespace.model(
+    "Provider Data",
+    {
+        "name": fields.String(description="Provider name"),
+        "default": fields.Boolean(description="Whether this is the default provider"),
+        "url": fields.String(description="Provider URL"),
+        "max_request": fields.Integer(description="Maximum concurrent API requests"),
+        "api_method": fields.String(description="Supported API methods"),
+        "reachable": fields.String(description="Provider reachability/activity status"),
+        "models": fields.List(fields.Nested(MODEL_DATA), description="Available models"),
+    },
+)
+
+PROVIDERS_RESPONSE = core_ai_addon_api_namespace.model(
+    "Providers Response",
+    {
+        "providers": fields.List(fields.Nested(PROVIDER_DATA), description="List of providers"),
+    },
+)
 
 
-@blueprint.route("/", methods=["GET"])
+@core_ai_addon_blueprint.route("/", methods=["GET"])
 def index():
     tab_names = TAB_NAMES.copy()
     tab_pages = TAB_PAGES.copy()
@@ -33,11 +67,15 @@ def index():
     return render_template("ai_addons/index.html", BUNDLE_JS=tab_js, tabs=tabs, BASE_URL=f"{config.URL_PREFIX}/api/v1")
 
 
-@blueprint.route("/ai_provider_data", methods=["GET"])
-def get_ai_provider_data():
-    return jsonify(current_app.ai_request.catalog_to_frontend())
+@core_ai_addon_api_namespace.route("/ai-provider-data")
+class CoreAiAddonProviderData(Resource):
+    @core_ai_addon_api_namespace.response(200, "Success", PROVIDERS_RESPONSE)
+    def get(self):
+        return current_app.ai_request.catalog_to_frontend()
 
 
-@blueprint.route("/req_ids", methods=["GET"])
-def get_req_ids():
-    return jsonify(list(current_app.db.get_objects(Requirement).keys()))
+@core_ai_addon_api_namespace.route("/req-ids")
+class CoreAiAddonReqIds(Resource):
+    @core_ai_addon_api_namespace.response(200, "Success", REQ_IDS)
+    def get(self):
+        return {"ids": list(current_app.db.get_objects(Requirement).keys())}
