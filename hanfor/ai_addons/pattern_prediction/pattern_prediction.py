@@ -145,14 +145,6 @@ class PatternPrediction(AiAddonAbstractClass):
     def addon_description(self) -> str:
         return "Using a decision tree, a requirement can be assigned to a pattern with the help of an AI."
 
-    @property
-    def addon_js(self) -> str:
-        return "dist/pattern_prediction-bundle.js"
-
-    @property
-    def addon_html(self) -> str:
-        return "ai_addons/pattern_prediction.html"
-
     @AiAddonAbstractClass.requires_enabled
     def predict_patterns_for_all_requirements(self, requirements, stop_event: Event):
         for req_id, requirement in requirements.items():

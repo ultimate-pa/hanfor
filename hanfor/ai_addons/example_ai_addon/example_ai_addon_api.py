@@ -1,9 +1,17 @@
+from flask import Blueprint
 from flask_restx import Namespace, Resource
 
 from ai_addons.ai_addon_abstract_class import AiAddonAbstractClass
 from ai_addons.example_ai_addon.example_ai_addon import ExampleAiAddon
 from hanfor_flask import current_app
 
+
+# Blueprint: required for serving addon-specific static files (CSS)
+blueprint = Blueprint(
+    "example_ai_addon", __name__, static_folder="static", static_url_path="/ai_addons/example_ai_addon/static"
+)
+
+# Namespace: REST endpoints with Swagger documentation
 example_ai_addon_api_namespace = Namespace(
     "Example AI ADDON", "Example AI ADDON Description", path="/example-ai-addon", ordered=True
 )

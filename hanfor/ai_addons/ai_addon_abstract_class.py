@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from functools import wraps
+import os
+import inspect
 
 
 class AiAddonAbstractClass(ABC):
@@ -38,6 +40,39 @@ class AiAddonAbstractClass(ABC):
         return decorator
 
     # -------------------------------------------------------------------------
+    # Autodetect properties
+    # -------------------------------------------------------------------------
+
+    _addon_static_folder: str = None
+    _addon_template_folder: str = None
+
+    def normalize_addon_name(self) -> str:
+        return self.addon_name.lower().replace(" ", "_")
+
+    @property
+    def addon_html(self) -> str:
+        return f"ai_addons/{self.normalize_addon_name()}.html"
+
+    @property
+    def addon_js(self) -> str:
+        # Convention: dist/<addon_name>-bundle.js
+        return f"dist/{self.normalize_addon_name()}-bundle.js"
+
+    @classmethod
+    def get_template_folder(cls) -> str | None:
+        """Returns the addon template folder."""
+        addon_dir = os.path.dirname(inspect.getfile(cls))
+        template_path = os.path.join(addon_dir, "templates")
+        return template_path if os.path.isdir(template_path) else None
+
+    @classmethod
+    def get_static_folder(cls) -> str | None:
+        """Returns the addon static folder."""
+        addon_dir = os.path.dirname(inspect.getfile(cls))
+        static_path = os.path.join(addon_dir, "static")
+        return static_path if os.path.isdir(static_path) else None
+
+    # -------------------------------------------------------------------------
     # Abstract properties
     # -------------------------------------------------------------------------
 
@@ -53,16 +88,6 @@ class AiAddonAbstractClass(ABC):
     @property
     @abstractmethod
     def addon_description(self) -> str:
-        pass
-
-    @property
-    @abstractmethod
-    def addon_html(self) -> str:
-        pass
-
-    @property
-    @abstractmethod
-    def addon_js(self) -> str:
         pass
 
     # -------------------------------------------------------------------------

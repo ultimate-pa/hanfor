@@ -1,5 +1,23 @@
 const webpack = require('webpack');
 const path = require("path");
+const fs = require('fs');
+
+// auto-discovery of ai-addons
+const aiAddonEntries = fs.readdirSync(__dirname + '/../ai_addons')
+    .filter(dir => !['__pycache__'].includes(dir))
+    .filter(dir => fs.statSync(__dirname + '/../ai_addons/' + dir).isDirectory())
+    .reduce((entries, dir) => {
+        const staticPath = __dirname + '/../ai_addons/' + dir + '/static/';
+        if (fs.existsSync(staticPath)) {
+            fs.readdirSync(staticPath)
+                .filter(file => file.endsWith('.js'))
+                .forEach(file => {
+                    const name = path.basename(file, '.js');
+                    entries[name] = staticPath + file;
+                });
+        }
+        return entries;
+    }, {});
 
 const config = {
     entry: {
@@ -19,11 +37,7 @@ const config = {
         ultimate_tab: __dirname + '/../ultimate/static/ultimate-tab.js',
         telemetry: __dirname + '/../telemetry/static/telemetry.js',
         telemetry_frontend: __dirname + '/../telemetry/static/telemetry_frontend.js',
-        ai_core_addons: __dirname + '/../ai_addons/ui/api/static/ai_core_addons.js',
-        threading: __dirname + '/../ai_addons/ui/api/static/threading.js',
-        ai: __dirname + '/../ai_addons/ui/api/static/ai.js',
-        example_ai_addon: __dirname + '/../ai_addons/ui/api/static/example_ai_addon.js',
-        pattern_prediction: __dirname + '/../ai_addons/ui/api/static/pattern_prediction.js'
+        ...aiAddonEntries,
     },
     output: {
         filename: '[name]-bundle.js',

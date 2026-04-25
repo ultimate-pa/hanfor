@@ -19,16 +19,6 @@ class ExampleAiAddon(AiAddonAbstractClass):
     def addon_description(self) -> str:
         return "This is an example AI addon"
 
-    @property
-    def addon_html(self) -> str:
-        # Must match the template path under ui/api/templates/
-        return "ai_addons/example_ai_addon.html"
-
-    @property
-    def addon_js(self) -> str:
-        # Must match the bundle name defined in webpack.config.js
-        return "dist/example_ai_addon-bundle.js"
-
     def _do_initialize(self):
         # Called once automatically when the addon is enabled.
         # Use this to set up state, load data, or connect to services.
@@ -61,8 +51,8 @@ class ExampleAiAddon(AiAddonAbstractClass):
     def increment_for_client(self, sid: str):
         """Increment a per-client counter and send the update only to that client."""
 
-        current = self._sid_map.get(f"{sid}_counter", 0) + 1
-        self._sid_map[f"{sid}_counter"] = current
+        current = self._sid_map.get(sid, 0) + 1
+        self._sid_map[sid] = current
 
         send_ai_update(
             {"counter": current, "scope": "private"},

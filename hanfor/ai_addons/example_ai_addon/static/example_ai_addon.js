@@ -1,4 +1,5 @@
 const TAB_ID = "ai_addons_example_ai_addon";
+const ADDON_NAME = "example-ai-addon"
 
 // -------------------------------------------------------------------------
 // Socket - receives counter updates from the backend
@@ -22,11 +23,11 @@ window.tabSubs.register(TAB_ID, [
 // -------------------------------------------------------------------------
 
 window.tabSubs.onActivate(TAB_ID, async () => {
-    await fetch(`${window.baseUrl}/example-ai-addon/${window.appSocket.id}`, { method: "POST" });
+    await window.post(ADDON_NAME, window.appSocket.id);
 });
 
 window.tabSubs.onDeactivate(TAB_ID, async () => {
-    await fetch(`${window.baseUrl}/example-ai-addon/${window.appSocket.id}`, { method: "DELETE" });
+    await window.del(ADDON_NAME, window.appSocket.id);
 });
 
 
@@ -35,9 +36,9 @@ window.tabSubs.onDeactivate(TAB_ID, async () => {
 // -------------------------------------------------------------------------
 
 document.getElementById("btn-private").addEventListener("click", async () => {
-    await fetch(`${window.baseUrl}/example-ai-addon/increment-client-counter/${window.appSocket.id}`, { method: "POST" });
+    await window.post(ADDON_NAME, "increment-client-counter/" + window.appSocket.id);
 });
 
 document.getElementById("btn-global").addEventListener("click", async () => {
-    await fetch(`${window.baseUrl}/example-ai-addon/increment-global-counter`, { method: "POST" });
+    await window.post(ADDON_NAME, "increment-global-counter");
 });

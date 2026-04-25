@@ -1,103 +1,92 @@
 # Writing a New AI Addon
 
-There is a sample AI addon (`example_ai_addon`) that you can use to get an idea of the structure of an AI addon.
+> **Starting point:** Copy `example_ai_addon/` and use it as your base. The sections
+> below explain what each file does and what you need to change.
 
-If you follow the instructions, you don't need to do anything else. Your addon will be automatically detected and will be accessible via the web.
-You can enable or disable the add-on via the web.
+> **Important:** You don't have to provide a frontend, but it is highly recommended to interact with the addon.
+---
 
+## Overview: What happens automatically?
 
-## 1. File Structure
-`my_addon` is only a placeholder name. You can name your addon however you want.
+Everything in your addon folder is **auto-discovered** - nothing needs to be registered
+anywhere. All you need to do:
 
-The filename of the file containing the implementation of `AiAddonAbstractClass` (more in 2.) will be the id of this addon.
+1. Create a folder under `ai_addons/`
+2. Run `npm run build`
+3. Enable the addon via the web UI
 
-    ai_addon/
-    ├── my_addon/                # your own folder
-    │   ├── my_addon.py          # addon class
-    │   └── (any other files)
-    │
-    └── ui/
-        └── api/
-            ├── my_addon_api.py  # blueprint + routes
-            ├── __init__.py      # register blueprint here
-            ├── static/
-            │   └── my_addon.js  # bundled to dist/my_addon-bundle.js
-            └── templates/
-                └── ai_addons/
-                    └── my_addon.html
+| What | How it's discovered |
+|---|---|
+| Addon class | Any class implementing `AiAddonAbstractClass` |
+| API routes | Any file ending in `_api.py` |
+| JS bundle | Any `.js` file in `my_addon/static/` |
+| Templates | Any `templates/` folder |
+| Static files | Served under `/ai_addons/my_addon/static/` |
 
 ---
 
-## 2. Addon Class
+## File Structure
 
-Create **one class per addon**, implementing `AiAddonAbstractClass`.
+```
+ai_addons/
+└── my_addon/
+    ├── my_addon.py            # Addon class
+    ├── my_addon_api.py        # API routes
+    ├── static/
+    │   └── my_addon.js        # built to dist/my_addon-bundle.js
+    └── templates/
+        └── ai_addons/
+            └── my_addon.html
+```
 
-The base class handles:
-- `enabled` property
-- `toggle_addon()` (flips `_enabled`, triggers `initialize()`)
-- `initialize()` (calls `_do_initialize()` exactly once while enabled)
-- dependency injection via `required_dependencies`
+The filename of `my_addon.py` (without `.py`) becomes the **addon ID** and determines
+the config key (`my_addon -> ADDON_MY_ADDON`).
 
-Declare `required_dependencies` with the names of what you need - they are injected
-automatically into `__init__` together with `enabled`.
+`addon_html` and `addon_js` are derived from the `addon_name` **property** inside your
+class (lowercased and `_` instead of spaces).
 
-Never define `__init__` in your subclass. Put all initialization logic in `_do_initialize()` instead.
+---
+
+## 1. Addon Class (`my_addon.py`)
+
+Implement `AiAddonAbstractClass`. The base class handles:
+- `enabled` property and `toggle_addon()`
+- Dependency injection (no `__init__` needed - or allowed; the base class owns it)
+- Deriving `addon_html` and `addon_js` from `addon_name`
 
 ```python
-from ai_addon.ai_addon_abstract_class import AiAddonAbstractClass
+from ai_addons.ai_addon_abstract_class import AiAddonAbstractClass
 
 class MyAddon(AiAddonAbstractClass):
 
-    # Declare dependencies - injected automatically from **kwargs
+    # Which dependencies you need - injected automatically
     required_dependencies = ["thread_handler", "ai_request", "socketio"]
 
-    # Type hints for IDE support (no runtime effect)
+    # Type hints for IDE support only, no runtime effect
     thread_handler: ThreadHandler
     ai_request: AiRequest
     socketio: SocketIO
 
-    def __init__(self, enabled: bool, **kwargs):
-        super().__init__(enabled, **kwargs)
-
     @property
     def addon_name(self) -> str:
+        # Lowercased + spaces replaced with underscores:
+        # "My Addon" -> addon_html: "ai_addons/my_addon.html"
+        #            -> addon_js:   "dist/my_addon-bundle.js"
         return "My Addon"
 
     @property
     def addon_description(self) -> str:
         return "Does something useful."
 
-    @property
-    def addon_html(self) -> str:
-        return "ai_addons/my_addon.html"
-
-    @property
-    def addon_js(self) -> str:
-        return "dist/my_addon-bundle.js"
-
     def _do_initialize(self):
-        # Called automatically once when the addon is enabled.
+        # Called once when the addon is enabled.
         # self.thread_handler, self.ai_request, self.socketio are available here.
         pass
 ```
 
-### What the base class provides
+**Available dependencies:** `thread_handler`, `ai_request`, `socketio`
 
-| Member | Description                                            |
-|---|--------------------------------------------------------|
-| `self.enabled` | Returns `self._enabled`                                |
-| `toggle_addon()` | Flips `_enabled`, calls `initialize()`                 |
-| `initialize()` | Calls `_do_initialize()` once while enabled            |
-| `_do_initialize()` | **Abstract** - your initialization logic goes here     |
-| `requires_enabled` | Decorator - function will not be called if not enabled |
-
-### Available dependencies
-
-    thread_handler
-    ai_request
-    socketio
-
-Use the decorator below for methods that should **do nothing when the addon is disabled**:
+For methods that should do nothing when the addon is disabled:
 
 ```python
 @AiAddonAbstractClass.requires_enabled
@@ -105,55 +94,88 @@ def do_something(self):
     pass
 ```
 
+### What the base class provides
+
+| Member | Description |
+|---|---|
+| `self.enabled` | Returns `self._enabled` |
+| `toggle_addon()` | Flips `_enabled`, calls `initialize()` |
+| `initialize()` | Calls `_do_initialize()` once while enabled |
+| `_do_initialize()` | **Abstract** - your initialization logic |
+| `requires_enabled` | Decorator - method does nothing when disabled |
+| `addon_html` | `f"ai_addons/{name}.html"` where `name = addon_name.lower().replace(" ", "_")` |
+| `addon_js` | `f"dist/{name}-bundle.js"` - same transformation |
+| `get_template_folder()` | Path to the `templates/` folder |
+| `get_static_folder()` | Path to the `static/` folder |
+
 ---
 
-## 3. API Routes
+## 2. Configuration (`ai_config.py`)
 
-Create `ui/api/my_addon_api.py`.
+Add the feature flag to **both** files:
 
-```python
-from flask import Blueprint
-
-my_addon_blueprint = Blueprint(
-    "my_addon", __name__, url_prefix="/ai_addons/my_addon"
-)
-
-@my_addon_blueprint.route("/data")
-def get_data():
-    ...
+```
+configuration/ai_config.py
+configuration/ai_config.dist.py   ← template for new instances
 ```
 
-Then **register the blueprint** in:
+```python
+ADDON_MY_ADDON = False
+```
 
-    ui/api/__init__.py
+Naming convention: `my_addon -> ADDON_MY_ADDON`
 
-There you need to add your blueprint into the `all_threading_ai_addon_blueprints` list.
-
-Before creating new endpoints, check:
-
-    ai_core_addon_api.py
-
-It already contains **shared endpoints** (e.g. provider data, request IDs).
+If the flag is missing, the addon defaults to disabled and a warning is logged.
 
 ---
 
-## 4. Frontend JS
+## 3. API Routes (`my_addon_api.py`)
+
+Use a **Namespace** for REST endpoints. A **Blueprint** is only needed if you want to
+serve your own static files or additional HTML pages.
+
+Before adding new endpoints, check `core_ui/ai_core_addon_api.py` - it already contains
+**shared endpoints** (e.g. provider data, request IDs).
+
+```python
+from ai_addons.ai_addon_abstract_class import AiAddonAbstractClass
+
+_handle_disabled = AiAddonAbstractClass.handle_disabled(my_addon_namespace)
+
+def _get_addon() -> MyAddon:
+    return current_app.ai_addons.get_addon("my_addon", MyAddon)
+
+
+@my_addon_namespace.route("/data")
+class MyAddonData(Resource):
+
+    @my_addon_namespace.response(200, "Success")
+    @my_addon_namespace.response(403, "Addon is disabled")
+    @_handle_disabled
+    def get(self):
+        return _get_addon().some_method()
+```
+
+`@_handle_disabled` must be on **every endpoint** that accesses the addon instance -
+it automatically returns `403` when the addon is disabled.
+
+---
+
+## 4. Frontend (`my_addon.js`)
 
 ### Tab ID
 
-The tab ID is always derived from `addon_html`.
+The tab ID is derived from the template path - slashes become underscores:
 
-    "ai_addons/my_addon.html" -> "ai_addons_my_addon"
+```
+ai_addons/my_addon/templates/ai_addons/my_addon.html  ->  "ai_addons_my_addon"
+```
 
-This is used for the socket connection.
-
----
-
-### Socket + Lifecycle
+### Socket Events and Lifecycle
 
 ```javascript
-// Socket events - only active while the tab is visible
-window.tabSubs.register('ai_addons_my_addon', [ //<- tab-id
+// Events - only active while the tab is visible
+window.tabSubs.register('ai_addons_my_addon', [
   {
     event: 'socket_my_event',
     handler: (data) => {
@@ -162,7 +184,7 @@ window.tabSubs.register('ai_addons_my_addon', [ //<- tab-id
   }
 ]);
 
-// Runs every time the user switches to your tab
+// Called every time the user switches to your tab
 window.tabSubs.onActivate('ai_addons_my_addon', () => {
   loadMyData();
 });
@@ -175,215 +197,191 @@ window.tabSubs.onDeactivate('ai_addons_my_addon', () => {
 loadStaticData();
 ```
 
-### Important rules
-
 **Never do this:**
-
 ```javascript
 window.appSocket.on(...)
 ```
-
-Always use:
-
-    tabSubs.register(...)
-
-Also **never call `load()` at the bottom of the file**.
-Use `onActivate()` instead.
-
----
-
-## 5. Configuration
-
-Add a feature flag to:
-
-    configuration/ai_config.py
-
-```python
-ADDON_MY_ADDON = False
+**Always use:**
+```javascript
+window.tabSubs.register(...)
 ```
 
-Naming convention:
+Also: don't call `load()` at the bottom of the file - use `onActivate()` instead.
 
-    my_addon  →  ADDON_MY_ADDON
-
----
-
-## 6. Webpack
-
-Register the JS file in:
-
-    static/webpack.config.js
+### API Calls
 
 ```javascript
-my_addon: __dirname + '/../ai_addon/ui/api/static/my_addon.js',
+const data = await window.get("my-addon", "data");
+await window.post("my-addon", "set_sid", { key: myKey, sid: window.appSocket.id });
+await window.del("my-addon", "item", { id: myId });
 ```
 
-The bundle name must match what `addon_js` returns.
+The first argument is the `path` of your namespace (e.g. `path="/my-addon"` -> `"my-addon"`).
 
-Example:
-
-    my_addon → dist/my_addon-bundle.js
-
----
-
-## 7. Sending Socket Events
-
-Use `send_ai_update` from:
-
-    ai_addon/threading_ai_socketio.py
-
-```python
-from ai_addon.threading_ai_socketio import send_ai_update
-
-# broadcast to all clients
-send_ai_update({"key": "value"}, "socket_my_event", self.socketio)
-
-# send to one client only
-send_ai_update({"key": "value"}, "socket_my_event", self.socketio, sid=sid)
-```
-
----
-
-## 8. Targeting a Specific Client (sid)
-
-If you want to send updates **only to one client**, you must track the `sid`.
-
-The pattern is:
-
-1. Client sends `window.appSocket.id`
-2. Addon stores it
-3. Addon uses it when emitting events
-
-### Backend
-
-```python
-def _do_initialize(self):
-    self._sid_map = {}  # example: { req_id: sid }
-
-def set_sid(self, key, sid):
-    self._sid_map[key] = sid
-
-def clear_sid(self, key):
-    self._sid_map.pop(key, None)
-```
-
-```python
-@my_addon_blueprint.route("/set_sid", methods=["POST"])
-def set_sid():
-    payload = request.json
-    _get_addon().set_sid(payload.get("key"), payload.get("sid"))
-    return "", 204
-
-
-@my_addon_blueprint.route("/clear_sid", methods=["POST"])
-def clear_sid():
-    payload = request.json
-    _get_addon().clear_sid(payload.get("key"))
-    return "", 204
-```
-
-### Frontend
+Error handling is built in:
+- `403` -> throws `"Addon is disabled"`
+- `204` -> returns `null`
+- Other errors -> throws `"Request failed: <status>"`
 
 ```javascript
-await fetch('/ai_addons/my_addon/set_sid', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    key: myKey,
-    sid: window.appSocket.id
-  })
-});
+try {
+  const data = await window.get("my-addon", "data");
+} catch (e) {
+  if (e.message === "Addon is disabled") return;
+  console.error(e);
+}
 ```
 
+User-facing notifications:
 ```javascript
-await fetch('/ai_addons/my_addon/clear_sid', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    key: myKey
-  })
-});
+window.showBanner("Something went wrong", "danger");
+window.showBanner("Saved successfully", "success");
 ```
 
 ---
 
-## 9. Auto-Discovery
+## 5. HTML Template (`my_addon.html`)
 
-Addons are **automatically discovered and instantiated**.
-
-The handler:
-
-1. Scans every subdirectory in `ai_addon/`
-2. Finds classes implementing `AiAddonAbstractClass`
-3. Instantiates them with dependencies + `enabled` flag
-
-### Addon Key
-
-    ai_addon/my_addon/my_addon.py
-
-→ key:
-
-    "my_addon"
-
-### Config Mapping
-
-    my_addon → ADDON_MY_ADDON
-
-If the flag is missing:
-
-- addon defaults to **disabled**
-- a **warning is logged**
-
----
-
-## 10. Accessing Addons at Runtime
-
-Get **all addons**:
-
-```python
-current_app.ai_addons.get_all_addons()
-```
-
-Example return:
-
-    {
-      "my_addon": instance,
-      ...
-    }
-
-Get **one addon**:
-
-```python
-current_app.ai_addons.get_addon("my_addon")
-```
-
-### Typical API Pattern
-
-```python
-def _get_addon():
-    return current_app.ai_addons.get_addon("my_addon")
-
-
-@my_addon_blueprint.route("/data")
-def get_data():
-    return jsonify(_get_addon().some_method())
-```
-
----
-
-## 11. HTML Template
-
-Always include the shared stylesheet at the top:
+The template is included via `{% include page %}` into the tab system - **no** `<html>`,
+`<head>`, or `<body>` tags, just your content fragment.
 
 ```html
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ai_addons.css') }}">
 ```
 
+Addon-specific CSS:
+```html
+<link rel="stylesheet" href="/ai_addons/my_addon/static/my_addon.css">
+```
+
 `ai_addons.css` already provides:
-- CSS variables (`--bg-primary`, `--success`, `--warning`, `--danger`, `--radius-md`, ...)
-- Layout utilities: `.page`, `.section`, `.section-header`, `.metrics`, `.hscroll`
+- CSS variables (`--bg-primary`, `--success`, `--warning`, `--danger`, `--radius-md`, …)
+- Layout: `.page`, `.section`, `.section-header`, `.metrics`, `.hscroll`
 - Components: `.badge`, `.led`, `.dot`, `.bar-wrap`, `.group-card`, `.task-row`
 - Addon cards: `.addon-grid`, `.addon-card`, `.status-tag`
 - Provider/model cards: `.provider-card`, `.model-card`, `.test-btn`, `.default-btn`
 
-The template is rendered via `{% include page %}` inside the tab system - no `<html>`, `<head>`, or `<body>` tags, just your content fragment.
+---
+
+## 6. Build
+
+```bash
+npm run build
+```
+
+Webpack automatically picks up all `.js` files in `my_addon/static/`:
+
+```
+my_addon.js  ->  dist/my_addon-bundle.js
+```
+
+---
+
+## Reference: Sending Socket Events
+
+```python
+from ai_addons.threading_ai_socketio import send_ai_update
+
+# Broadcast to all clients
+send_ai_update({"key": "value"}, "socket_my_event", self.socketio)
+
+# Send to one specific client
+send_ai_update({"key": "value"}, "socket_my_event", self.socketio, sid=sid)
+```
+
+---
+
+## Reference: Targeting a Specific Client (sid Tracking)
+
+If you want events to go to **one client only**:
+
+1. Client registers its `sid` via POST when the tab activates
+2. Addon stores it
+3. Addon uses it when emitting events
+4. Client unregisters via DELETE when the tab deactivates
+
+**Backend:**
+```python
+def _do_initialize(self):
+    self._sid_map = {}
+
+@AiAddonAbstractClass.requires_enabled
+def set_sid(self, sid: str):
+    self._sid_map[sid] = some_state
+    send_ai_update({"key": "value"}, "socket_my_event", self.socketio, sid=sid)
+
+@AiAddonAbstractClass.requires_enabled
+def clear_sid(self, sid: str):
+    self._sid_map.pop(sid, None)
+```
+
+**Option A - sid as URL parameter**:
+
+```python
+@my_addon_namespace.route("/<string:socket_io_sid>")
+class ApiSid(Resource):
+
+    @my_addon_namespace.response(204, "Success")
+    @my_addon_namespace.response(403, "Addon is disabled")
+    @_handle_disabled
+    def post(self, socket_io_sid: str):
+        _get_addon().set_sid(socket_io_sid)
+        return None, 204
+
+    @my_addon_namespace.response(204, "Success")
+    @my_addon_namespace.response(403, "Addon is disabled")
+    @_handle_disabled
+    def delete(self, socket_io_sid: str):
+        _get_addon().clear_sid(socket_io_sid)
+        return None, 204
+```
+
+```javascript
+// Frontend - Option A
+window.tabSubs.onActivate(TAB_ID, async () => {
+    await window.post(ADDON_NAME, window.appSocket.id);
+});
+window.tabSubs.onDeactivate(TAB_ID, async () => {
+    await window.del(ADDON_NAME, window.appSocket.id);
+});
+```
+
+**Option B - sid + key in body**:
+
+```python
+SID_INPUT = my_addon_namespace.model("Sid Input", {
+    "key": fields.String(),
+    "sid": fields.String(),
+})
+
+@my_addon_namespace.route("/trace-sid")
+class ApiTraceSid(Resource):
+
+    @my_addon_namespace.expect(SID_INPUT)
+    @my_addon_namespace.response(204, "Success")
+    @my_addon_namespace.response(403, "Addon is disabled")
+    @_handle_disabled
+    def post(self):
+        payload = my_addon_namespace.payload
+        _get_addon().set_sid(payload.get("key"), payload.get("sid"))
+        return None, 204
+
+    @my_addon_namespace.expect(SID_INPUT)
+    @my_addon_namespace.response(204, "Success")
+    @my_addon_namespace.response(403, "Addon is disabled")
+    @_handle_disabled
+    def delete(self):
+        payload = my_addon_namespace.payload
+        _get_addon().clear_sid(payload.get("key"))
+        return None, 204
+```
+
+```javascript
+// Frontend - Option B
+window.tabSubs.onActivate('ai_addons_my_addon', async () => {
+    await window.post("my-addon", "trace-sid", { key: myKey, sid: window.appSocket.id });
+});
+window.tabSubs.onDeactivate('ai_addons_my_addon', async () => {
+    await window.del("my-addon", "trace-sid", { key: myKey, sid: window.appSocket.id });
+});
+```

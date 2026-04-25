@@ -1,5 +1,5 @@
 /* -- Example Addon ------------------------------------------------------------- */
-.metric-label,
-.metric-value{
+.example-addon-metric-label,
+.example-addon-metric-value{
   color: var(--text-primary);
 }

@@ -79,6 +79,7 @@ class AiAddons:
                                 isinstance(attr, type)
                                 and attr.__name__ != "AiAddonAbstractClass"
                                 and any(base.__name__ == "AiAddonAbstractClass" for base in attr.__mro__)
+                                and attr.__module__ == module_path
                             ):
                                 try:
                                     # Inject only dependencies the addon declares

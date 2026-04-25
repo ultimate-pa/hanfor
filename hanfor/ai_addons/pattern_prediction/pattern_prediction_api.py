@@ -1,4 +1,4 @@
-from flask import json, Response
+from flask import json, Response, Blueprint
 from flask_restx import Namespace, Resource, fields
 
 from ai_addons.ai_addon_abstract_class import AiAddonAbstractClass
@@ -7,6 +7,11 @@ from hanfor_flask import current_app
 from json_db_connector.json_db import DatabaseKeyError
 from lib_core.data import Requirement
 from thread_handling.threading_core import ThreadTask, SchedulingClass, ThreadGroup
+
+
+blueprint = Blueprint(
+    "pattern_prediction", __name__, static_folder="static", static_url_path="/ai_addons/pattern_prediction/static"
+)
 
 pattern_prediction_namespace = Namespace(
     "Pattern Prediction", description="Pattern Prediction API", path="/pattern-prediction", ordered=True

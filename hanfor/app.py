@@ -10,6 +10,8 @@ import subprocess
 from flask import jsonify
 from flask_socketio import SocketIO
 
+from ai_addons.core_ui import all_threading_ai_addon_blueprints
+from ai_addons.core_ui.ai_core_addon_api import register_addon_templates, register_addon_statics
 from ai_addons.threading_ai_socketio import AiAddonData
 from hanfor_flask import HanforFlask
 from flask_debugtoolbar import DebugToolbarExtension
@@ -27,7 +29,6 @@ from reports.reports import api_blueprint as reports_api
 from tools.tools import api_blueprint as tools_api
 from queries.queries import api_blueprint as queries_api
 from req_simulator import simulator_blueprint
-from ai_addons.ui.api import all_threading_ai_addon_blueprints
 from tags import tags
 from statistics import statistics
 
@@ -197,6 +198,9 @@ if __name__ == "__main__":
             with app.app_context():
                 app.ai_addons.set_socketio(socketio)
                 app.ai_request.set_socketio(socketio)
+
+                register_addon_templates(app, app.ai_addons.get_all_addons())
+                register_addon_statics(app, app.ai_addons.get_all_addons())
         with app.app_context():
             app.thread_handler.set_socketio(socketio)
 
