@@ -1,15 +1,23 @@
-<div id="ai-wrap">
-  <label>LLM PROVIDERS</label>
-  <button id="rescan-provider-btn">Rescan Provider Config</button>
-  <button id="test-all-provider-btn">Test All Provider</button>
-</div>
-<br>
-<div id="providers-container"></div>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ai.css') }}">
+<!-- LLM Providers -->
+<section class="section" id="ai-providers">
+    <div class="section-header">LLM Providers</div>
+    <div class="section-body">
+        <button class="btn" id="ai-rescan-provider-btn">Rescan Provider Config</button>
+        <button class="btn" id="ai-test-all-provider-btn">Test All Providers</button>
+        <div id="ai-providers-list"></div>
+    </div>
 
-<div id="ai-wrap">
-  <label>AI ADDONS</label>
-  <button id="activate-all-addons-btn">Activate All Addons</button>
-  <button id="deactivate-all-addons-btn">Deactivate All Addons</button>
-</div>
-<br>
-<div class="addon-grid" id="addon-container"></div>
+</section>
+
+<!-- AI Addons -->
+<section class="section" id="ai-addons">
+    <div class="section-header">AI Addons</div>
+    <div class="section-body">
+        <button class="btn" id="ai-activate-all-addons-btn">Activate All Addons</button>
+        <button class="btn" id="ai-deactivate-all-addons-btn">Deactivate All Addons</button>
+        <div class="ai-addon-grid" id="ai-addon-grid"></div>
+    </div>
+
+</section>
+

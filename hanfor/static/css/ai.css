@@ -1,0 +1,240 @@
+/* ======================================================
+   AI ADDON — SPECIFIC STYLES
+   ====================================================== */
+
+
+/* ======================================================
+   PROVIDER CARDS
+   ====================================================== */
+#ai-providers-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.ai-provider-card {
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  width: 320px;
+}
+
+.ai-provider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.ai-provider-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-provider-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+
+.ai-provider-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-provider-info {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ai-info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-bright);
+}
+
+.ai-info-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text-bright);
+  opacity: 0.6;
+  min-width: 160px;
+}
+
+.ai-info-url {
+  font-family: monospace;
+  font-size: 11px;
+  word-break: break-all;
+}
+
+.ai-provider-models {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px;
+}
+
+
+/* ======================================================
+   MODEL CARDS
+   ====================================================== */
+.ai-model-card {
+  background: var(--surface-overlay);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+}
+
+.ai-model-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.ai-model-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-model-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-bright);
+}
+
+.ai-model-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-model-desc {
+  font-size: 11px;
+  color: var(--text-bright);
+  opacity: 0.6;
+}
+
+
+/* ======================================================
+   INLINE ACTION BUTTONS (test / set default)
+   ====================================================== */
+.ai-test-btn,
+.ai-default-btn {
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-muted);
+  background: var(--surface-base);
+  color: var(--text-bright);
+  cursor: pointer;
+  transition: background .15s ease;
+}
+.ai-test-btn:hover,
+.ai-default-btn:hover { background: var(--surface-overlay); }
+
+.ai-tag-default {
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--status-ok);
+  color: var(--status-ok);
+  background: transparent;
+}
+
+
+/* ======================================================
+   ADDON GRID
+   ====================================================== */
+.ai-addon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+  padding: 12px;
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.ai-addon-card {
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color .15s ease;
+}
+.ai-addon-card.addon-enabled {
+  border-color: var(--status-ok);
+}
+
+.ai-addon-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ai-addon-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+
+.ai-addon-desc {
+  font-size: 12px;
+  color: var(--text-bright);
+  opacity: 0.6;
+  flex: 1;
+}
+
+.ai-addon-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ai-status-tag {
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-muted);
+  cursor: pointer;
+  transition: background .15s ease;
+}
+.ai-status-tag.enabled {
+  border-color: var(--status-ok);
+  color: var(--status-ok);
+  background: transparent;
+}
+.ai-status-tag.enabled:hover {
+  background: color-mix(in srgb, var(--status-ok) 12%, transparent);
+}
+.ai-status-tag.disabled {
+  border-color: var(--status-danger);
+  color: var(--status-danger);
+  background: transparent;
+}
+.ai-status-tag.disabled:hover {
+  background: color-mix(in srgb, var(--status-danger) 12%, transparent);
+}

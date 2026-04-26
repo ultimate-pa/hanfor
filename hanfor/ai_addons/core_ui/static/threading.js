@@ -111,13 +111,13 @@ function renderGroups(groups, counts) {
       card.innerHTML     = `
           <span class="pill-name badge-${g}">${g}</span>
         <span class="pill-count" data-counts></span>
-        <button class="stop-btn">STOP</button>
+        <button class="th-stop-btn">STOP</button>
       `;
-      card.querySelector('.stop-btn').addEventListener('click', () => stopGroup(g));
+      card.querySelector('.th-stop-btn').addEventListener('click', () => stopGroup(g));
       container.appendChild(card);
     }
     card.querySelector('[data-counts]').textContent = `${running} running · ${queued} queued`;
-    card.querySelector('.stop-btn').disabled = idle;
+    card.querySelector('.th-stop-btn').disabled = idle;
   });
 }
 
