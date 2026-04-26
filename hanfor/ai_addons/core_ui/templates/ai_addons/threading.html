@@ -1,38 +1,67 @@
-<link rel="stylesheet" href="{{ url_for('static', filename='css/ai_addons.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/threading.css') }}">
 
-<div class="page">
-  <div id="thread-banner-anchor"></div>
-  <h1>Thread Dashboard</h1>
-
-  <div class="section">
-    <div class="section-header"><span class="dot dot-g"></span>Debug</div>
-    <button onclick="addDummyTask()">Add Dummy Task</button>
-  </div>
-
-  <div class="metrics">
-    <div class="metric"><div class="metric-label">Active Threads</div><div class="metric-value" id="m-active">-</div></div>
-    <div class="metric"><div class="metric-label">Free Threads</div><div class="metric-value" id="m-free">-</div></div>
-    <div class="metric"><div class="metric-label">In Queue</div><div class="metric-value" id="m-queue">-</div></div>
-    <div class="metric"><div class="metric-label">Max Threads</div><div class="metric-value" id="m-max">-</div></div>
-  </div>
-
-  <div class="section">
-    <div class="section-header"><span class="dot dot-g"></span>Utilization</div>
-    <div class="bar-wrap"><div class="bar-fill" id="load-bar" style="width:0%"></div></div>
-  </div>
-
-  <div class="section">
-    <div class="section-header"><span class="dot dot-g"></span>Groups</div>
-    <div class="groups-row" id="groups-row"></div>
-  </div>
-
-  <div class="section">
-    <div class="section-header"><span class="dot dot-run"></span>Running Tasks</div>
-    <div class="hscroll"><div class="tasks-col" id="running-list"></div></div>
-  </div>
-
-  <div class="section">
-    <div class="section-header"><span class="dot dot-q"></span>Queue</div>
-    <div class="hscroll"><div class="tasks-col" id="queue-list"></div></div>
-  </div>
+<div class="section">
+    <div class="section-header">Debug</div>
+    <div class="section-body">
+        <button class="btn" id="add-dummy-task-btn">+ Dummy Task</button>
+    </div>
 </div>
+
+
+<!-- Thread Dashboard -->
+<section class="section" id="th-overview">
+  <div class="section-header">Thread Dashboard</div>
+  <div class="section-body">
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">Active</div>
+        <div class="metric-value" id="th-metric-active">-</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Free</div>
+        <div class="metric-value" id="th-metric-free">-</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">In Queue</div>
+        <div class="metric-value" id="th-metric-queue">-</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Max</div>
+        <div class="metric-value" id="th-metric-max">-</div>
+      </div>
+    </div>
+
+    <div class="bar-label">Utilisation</div>
+    <div class="bar-wrap">
+      <div class="bar-fill" id="th-load-bar" style="width: 0%"></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Groups -->
+<section class="section" id="th-groups">
+  <div class="section-header">Groups</div>
+  <div class="pills-row" id="th-groups-row"></div>
+</section>
+
+<!-- Running Tasks -->
+<section class="section" id="th-running">
+  <div class="section-header">Running Tasks</div>
+  <div class="hscroll">
+    <div class="list-col" id="th-running-list"></div>
+  </div>
+</section>
+
+<!-- Queued Tasks -->
+<section class="section" id="th-queued">
+  <div class="section-header">Queued Tasks</div>
+  <div class="hscroll">
+    <div class="list-col" id="th-queue-list"></div>
+  </div>
+</section>
+
+
+
+

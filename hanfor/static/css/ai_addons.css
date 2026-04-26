@@ -33,20 +33,7 @@ body {
 
 h1 { font-size: 18px; font-weight: 500; margin-bottom: 1.5rem; }
 
-/* -- SECTIONS ------------------------------------------------------------ */
-.section { margin-bottom: 1.5rem; }
 
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-}
 
 /* -- METRICS ------------------------------------------------------------- */
 .metrics {

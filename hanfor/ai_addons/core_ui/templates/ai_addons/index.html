@@ -1,5 +1,4 @@
 {% extends "layout.html" %}
-
 {% block content %}
 <div class="card">
   <div class="card-header">
@@ -41,6 +40,7 @@
 {% endblock %}
 
 {% block scripts %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ai_addons.css') }}">
 {{ super() }}
     <script>
     window.baseUrl = "{{ BASE_URL }}";
