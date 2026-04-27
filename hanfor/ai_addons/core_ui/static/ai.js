@@ -104,7 +104,7 @@ function btnDefault(isDefault, action, dataset) {
     .map(([k, v]) => `data-${k}="${v}"`)
     .join(" ");
 
-  return `<button class="ai-default-btn" data-action="${action}" ${data}>set default</button>`;
+  return `<button class="btn-light" data-action="${action}" ${data}>set default</button>`;
 }
 
 
@@ -126,7 +126,7 @@ function modelCard(provider, m) {
         <div class="ai-model-actions">
 
           <button
-            class="ai-test-btn"
+            class="btn-light"
             data-action="test-model"
             data-provider="${provider}"
             data-model="${m.name}">
@@ -164,7 +164,7 @@ function providerCard(p) {
         <div class="ai-provider-actions">
 
           <button
-            class="ai-test-btn"
+            class="btn-light"
             data-action="test-provider"
             data-provider="${p.name}">
             test

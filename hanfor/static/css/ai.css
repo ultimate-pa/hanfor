@@ -135,20 +135,7 @@
 /* ======================================================
    INLINE ACTION BUTTONS (test / set default)
    ====================================================== */
-.ai-test-btn,
-.ai-default-btn {
-  padding: 3px 8px;
-  font-size: 11px;
-  font-weight: 500;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-muted);
-  background: var(--surface-base);
-  color: var(--text-bright);
-  cursor: pointer;
-  transition: background .15s ease;
-}
-.ai-test-btn:hover,
-.ai-default-btn:hover { background: var(--surface-overlay); }
+
 
 .ai-tag-default {
   padding: 3px 8px;

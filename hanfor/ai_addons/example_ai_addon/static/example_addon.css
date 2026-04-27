@@ -3,3 +3,7 @@
 .example-addon-metric-value{
   color: var(--text-bright);
 }
+.example-addon-counter-div{
+  display: flex;
+  gap: 20px;
+}
