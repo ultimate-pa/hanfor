@@ -22,7 +22,7 @@ let chosenId;
 let ensembleEntries = [];
 let ensembleIdCounter = 0;
 
-const predictButton = document.getElementById('predict-pattern-btn');
+const predictButton = document.getElementById('pp-predict-pattern-btn');
 
 // -- TEXT HELPERS --------------------------------------------------------------
 
@@ -113,7 +113,7 @@ function renderTree() {
   assignNodeLevels(treeData, 0, null);
   calculateNodePositions(treeData, 0, 0, 0);
 
-  svgElement = document.getElementById('tree-svg');
+  svgElement = document.getElementById('pp-tree-svg');
 
   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
   Object.values(nodeRegistry).forEach(node => {
@@ -358,20 +358,21 @@ function applyTraceHighlighting(traceData) {
 // -- TRACE INFO BLOCK ---------------------------------------------------------
 
 function removeTraceInfoBlock() {
-  document.getElementById('trace-info-block')?.remove();
+  document.getElementById('pp-trace-info-block')?.remove();
 }
 
 function renderTraceInfoBlock(traceData) {
-  let infoBlock = document.getElementById('trace-info-block');
+  let infoBlock = document.getElementById('pp-trace-info-block');
 
   if (!infoBlock) {
     infoBlock = document.createElement('div');
-    infoBlock.id        = 'trace-info-block';
-    infoBlock.className = 'trace-info-block';
+    infoBlock.id        = 'pp-trace-info-block';
+    infoBlock.className = 'pp-trace-info-block scrollbar';
 
     const toggleBtn = document.createElement('button');
     toggleBtn.textContent = '−';
-    toggleBtn.className   = 'trace-toggle-btn';
+    toggleBtn.className   = 'btn';
+    toggleBtn.id = "pp-trace-toggle-btn";
     toggleBtn.onclick = () => {
       const content = infoBlock.querySelector('.trace-content');
       const collapsed = content.style.display === 'none';
@@ -384,7 +385,10 @@ function renderTraceInfoBlock(traceData) {
     contentEl.className = 'trace-content';
     infoBlock.appendChild(toggleBtn);
     infoBlock.appendChild(contentEl);
-    document.getElementById('canvas-wrap').appendChild(infoBlock);
+    document.getElementById('pp-canvas-wrap').appendChild(infoBlock);
+    infoBlock.addEventListener("wheel", (e) => {
+      e.stopPropagation();
+    });
   }
 
   const patternText = traceData.pattern && traceData.pattern !== 'none' ? traceData.pattern : 'none';
@@ -403,7 +407,7 @@ let isPanning = false, panStartX = 0, panStartY = 0;
 let canvasWidth = 0, canvasHeight = 0;
 
 function applyCanvasTransform() {
-  document.getElementById('canvas').style.transform =
+  document.getElementById('pp-canvas').style.transform =
     `translate(${panX}px,${panY}px) scale(${zoomScale})`;
   updateMinimapViewport();
 }
@@ -412,7 +416,7 @@ function initPanZoom(width, height) {
   canvasWidth  = width;
   canvasHeight = height;
 
-  const wrapper  = document.getElementById('canvas-wrap');
+  const wrapper  = document.getElementById('pp-canvas-wrap');
   const vpW = wrapper.clientWidth;
   const vpH = wrapper.clientHeight;
 
@@ -483,13 +487,13 @@ function initPanZoom(width, height) {
   wrapper.addEventListener('touchend', () => { isPanning = false; lastPinchDist = null; });
 
   // Toolbar buttons
-  document.getElementById('zoom-in').onclick    = () => { zoomScale = Math.min(3,   zoomScale * 1.2); applyCanvasTransform(); };
-  document.getElementById('zoom-out').onclick   = () => { zoomScale = Math.max(0.1, zoomScale / 1.2); applyCanvasTransform(); };
-  document.getElementById('zoom-reset').onclick = resetZoom;
+  document.getElementById('pp-zoom-in').onclick    = () => { zoomScale = Math.min(3,   zoomScale * 1.2); applyCanvasTransform(); };
+  document.getElementById('pp-zoom-out').onclick   = () => { zoomScale = Math.max(0.1, zoomScale / 1.2); applyCanvasTransform(); };
+  document.getElementById('pp-zoom-reset').onclick = resetZoom;
 }
 
 function resetZoom() {
-  const wrapper = document.getElementById('canvas-wrap');
+  const wrapper = document.getElementById('pp-canvas-wrap');
   if (!wrapper) return;
   const vpW = wrapper.clientWidth;
   const vpH = wrapper.clientHeight;
@@ -504,7 +508,7 @@ function resetZoom() {
 const MINIMAP_W = 160, MINIMAP_H = 100;
 
 function updateMinimap(treeWidth, treeHeight) {
-  const mmSvg  = document.getElementById('minimap-svg');
+  const mmSvg  = document.getElementById('pp-minimap-svg');
   const scale  = Math.min(MINIMAP_W / treeWidth, MINIMAP_H / treeHeight) * 0.9;
   const offX   = (MINIMAP_W - treeWidth  * scale) / 2;
   const offY   = (MINIMAP_H - treeHeight * scale) / 2;
@@ -532,14 +536,14 @@ function updateMinimap(treeWidth, treeHeight) {
 }
 
 function updateMinimapViewport() {
-  const wrapper = document.getElementById('canvas-wrap');
+  const wrapper = document.getElementById('pp-canvas-wrap');
   const scale   = Math.min(MINIMAP_W / canvasWidth, MINIMAP_H / canvasHeight) * 0.9;
   const offX    = (MINIMAP_W - canvasWidth  * scale) / 2;
   const offY    = (MINIMAP_H - canvasHeight * scale) / 2;
   const vpW     = wrapper.clientWidth;
   const vpH     = wrapper.clientHeight - 54;
 
-  const vp = document.getElementById('minimap-viewport');
+  const vp = document.getElementById('pp-minimap-viewport');
   vp.style.left   = Math.max(0, (-panX / zoomScale) * scale + offX) + 'px';
   vp.style.top    = Math.max(0, (-panY / zoomScale) * scale + offY) + 'px';
   vp.style.width  = Math.min(MINIMAP_W, (vpW / zoomScale) * scale) + 'px';
@@ -549,7 +553,7 @@ function updateMinimapViewport() {
 // -- TRACE SEARCH UI -----------------------------------------------------------
 
 function buildRequestIdList(filter = '') {
-  const listEl      = document.getElementById('trace-list');
+  const listEl      = document.getElementById('pp-trace-list');
   const filterLower = filter.toLowerCase();
   listEl.innerHTML  = '';
   predictButton.disabled = true;
@@ -558,8 +562,8 @@ function buildRequestIdList(filter = '') {
     .filter(id => id.toLowerCase().includes(filterLower))
     .forEach(id => {
       const item = document.createElement('div');
-      item.className = 'trace-item' + (activeTrace === id ? ' active' : '');
-      item.innerHTML = `<div class="trace-id">${id}</div>`;
+      item.className = 'search-list-item' + (activeTrace === id ? ' active' : '');
+      item.innerHTML = `<div id="pp-search-item">${id}</div>`;
       item.onclick   = () => {
         activeTrace   = id;
         chosenId      = id;
@@ -572,25 +576,25 @@ function buildRequestIdList(filter = '') {
     });
 }
 
-const searchInput = document.getElementById('trace-search');
+const searchInput = document.getElementById('pp-trace-search');
 
 searchInput.addEventListener('focus', () => {
   if (activeTrace) { searchInput.value = ''; predictButton.disabled = true; }
   buildRequestIdList(searchInput.value);
-  document.getElementById('trace-list').classList.add('open');
+  document.getElementById('pp-trace-list').classList.add('open');
 });
 
 searchInput.addEventListener('input', e => {
   buildRequestIdList(e.target.value);
-  document.getElementById('trace-list').classList.add('open');
+  document.getElementById('pp-trace-list').classList.add('open');
 });
 
 document.addEventListener('click', e => {
-  if (!document.getElementById('trace-dropdown').contains(e.target))
-    document.getElementById('trace-list').classList.remove('open');
+  if (!document.getElementById('pp-trace-dropdown').contains(e.target))
+    document.getElementById('pp-trace-list').classList.remove('open');
 });
 
-document.getElementById('clear-trace-btn').onclick = () => {
+document.getElementById('pp-clear-trace-btn').onclick = () => {
   activeTrace = null;
   searchInput.value       = '';
   predictButton.disabled  = true;
@@ -601,7 +605,7 @@ predictButton.onclick = async () => {
   await window.post(ADDON_NAME, "generate-trace/" + encodeURIComponent(chosenId))
 };
 
-document.getElementById('predict-pattern-all-btn').addEventListener('click', async () => {
+document.getElementById('pp-predict-pattern-all-btn').addEventListener('click', async () => {
   await window.post(ADDON_NAME, "generate-trace/__all__")
 });
 
@@ -676,14 +680,14 @@ window.tabSubs.onActivate('ai_addons_pattern_prediction', () => {
 });
 
 window.tabSubs.onDeactivate('ai_addons_pattern_prediction', async () => {
-  document.getElementById('clear-trace-btn').click();
+  document.getElementById('pp-clear-trace-btn').click();
   await window.del(ADDON_NAME,"trace-sid",{ req_id: chosenId, sid: window.appSocket.id })
 });
 
 // -- SVG DOWNLOAD --------------------------------------------------------------
 
-document.getElementById('download-svg-btn').addEventListener('click', () => {
-  const svg   = document.getElementById('tree-svg');
+document.getElementById('pp-download-svg-btn').addEventListener('click', () => {
+  const svg   = document.getElementById('pp-tree-svg');
   const clone = svg.cloneNode(true);
 
   const styleEl = document.createElementNS(SVG_NS, 'style');
@@ -717,18 +721,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // -- SETTINGS MODAL -----------------------------------------------------------
 
-document.getElementById('open-settings-btn').addEventListener('click', () => {
-  document.getElementById('settings-overlay').hidden = false;
+document.getElementById('pp-open-settings-btn').addEventListener('click', () => {
+  document.getElementById('pp-settings-overlay').hidden = false;
 });
 
 function closeSettings() {
-  document.getElementById('settings-overlay').hidden = true;
+  document.getElementById('pp-settings-overlay').hidden = true;
   document.querySelectorAll('#provider-list, #model-list, .ensemble-dropdown-list')
     .forEach(el => el.classList.remove('open'));
 }
 
-document.getElementById('close-settings-btn').addEventListener('click', closeSettings);
-document.getElementById('settings-overlay').addEventListener('click', e => {
+document.getElementById('pp-close-settings-btn').addEventListener('click', closeSettings);
+document.getElementById('pp-settings-overlay').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeSettings();
 });
 document.addEventListener('keydown', e => {
@@ -745,16 +749,16 @@ document.querySelectorAll('.stab').forEach(btn => {
     btn.classList.add('active');
     btn.setAttribute('aria-selected', 'true');
     document.querySelectorAll('.settings-panel').forEach(p => { p.hidden = true; });
-    document.getElementById('stab-' + btn.dataset.tab).hidden = false;
+    document.getElementById('pp-stab-' + btn.dataset.tab).hidden = false;
   });
 });
 
 // Close dropdowns when clicking outside modal panels
 document.addEventListener('click', e => {
   if (!e.target.closest('#provider-dropdown'))
-    document.getElementById('provider-list')?.classList.remove('open');
+    document.getElementById('pp-provider-list')?.classList.remove('open');
   if (!e.target.closest('#model-dropdown'))
-    document.getElementById('model-list')?.classList.remove('open');
+    document.getElementById('pp-model-list')?.classList.remove('open');
   if (!e.target.closest('.ensemble-entry-dropwrap'))
     document.querySelectorAll('.ensemble-dropdown-list').forEach(el => el.classList.remove('open'));
 });
@@ -774,7 +778,7 @@ function ensembleModelReachable(providerName, modelName) {
 }
 
 function renderEnsembleList() {
-  const container = document.getElementById('ensemble-list');
+  const container = document.getElementById('pp-ensemble-list');
   container.innerHTML = '';
 
   ensembleEntries.forEach(entry => {
@@ -788,22 +792,22 @@ function renderEnsembleList() {
     el.dataset.id = entry.id;
     el.innerHTML = `
       <div class="ensemble-entry-fields">
-        <div class="ensemble-entry-dropwrap half" data-entry-id="${entry.id}" data-role="provider">
+        <div class="search-dropdown half" data-entry-id="${entry.id}" data-role="provider">
           <input class="ensemble-input ensemble-provider-input"
                  type="text" placeholder="Provider…" autocomplete="off" readonly
                  value="${provDisplay}">
-          <div class="ensemble-dropdown-list"></div>
+          <div class="search-list"></div>
         </div>
-        <div class="ensemble-entry-dropwrap half" data-entry-id="${entry.id}" data-role="model">
-          <input class="ensemble-input ensemble-model-input"
+        <div class="search-dropdown half" data-entry-id="${entry.id}" data-role="model">
+          <input class="search"
                  type="text" placeholder="Model…" autocomplete="off" readonly
                  value="${modDisplay}" ${entry.provider ? '' : 'disabled'}>
-          <div class="ensemble-dropdown-list"></div>
+          <div class="search-list"></div>
         </div>
       </div>
       <div class="ensemble-entry-nums">
         <div class="ensemble-num-wrap">
-          <input class="ensemble-num-input ensemble-count-input"
+          <input class="search"
                  type="number" min="1" step="1" value="${entry.count}" title="Times to ask">
           <div class="ensemble-num-label">Count</div>
         </div>
@@ -899,17 +903,17 @@ function buildEnsembleModelList(listEl, entry) {
   });
 }
 
-document.getElementById('add-ensemble-entry-btn').addEventListener('click', () => {
+document.getElementById('pp-add-ensemble-entry-btn').addEventListener('click', () => {
   ensembleEntries.push({ id: ++ensembleIdCounter, provider: null, model: null, count: 1, weight: 1 });
   renderEnsembleList();
 });
 
-document.getElementById('save-ensemble-entry-btn').addEventListener('click', async () =>{
+document.getElementById('pp-save-ensemble-entry-btn').addEventListener('click', async () =>{
 
   await window.post(ADDON_NAME, "ensemble", { "ensemble": ensembleEntries })
 });
 
-document.getElementById('download-detailed-traces-btn').addEventListener('click', async () => {
+document.getElementById('pp-download-detailed-traces-btn').addEventListener('click', async () => {
     const response = await window.get(ADDON_NAME, "detailed-traces-file", { raw: true });
 
     const blob = await response.blob();
@@ -925,8 +929,8 @@ document.getElementById('download-detailed-traces-btn').addEventListener('click'
 
 let treefiles;
 let selectedFile;
-const treeInput = document.getElementById('tree-search');
-const treeList  = document.getElementById('tree-list');
+const treeInput = document.getElementById('pp-tree-search');
+const treeList  = document.getElementById('pp-tree-list');
 
 function renderTreeList(files) {
   treeList.innerHTML = '';
@@ -961,7 +965,7 @@ treeInput.addEventListener('input', e => {
 });
 
 document.addEventListener('click', e => {
-  if (!document.getElementById('tree-dropdown').contains(e.target))
+  if (!document.getElementById('pp-tree-dropdown').contains(e.target))
     treeList.classList.remove('open');
 });
 

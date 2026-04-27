@@ -1,66 +1,62 @@
-<link rel="stylesheet" href="{{ url_for('static', filename='css/ai_addons.css') }}">
 <link rel="stylesheet" href="/ai_addons/pattern_prediction/static/pattern_prediction.css">
 
-<div class="pattern-tree-page">
+<div class="section">
+    <div class="section-header">
+        <label>Requirement</label>
+        <div class="search-dropdown" id="pp-trace-dropdown">
+            <input class="search" id="pp-trace-search" type="text" placeholder="Search Req…" autocomplete="off">
+            <div class="search-list scrollbar" id="pp-trace-list"></div>
+        </div>
+        <button class="btn-light" id="pp-clear-trace-btn">X Clear</button>
+        <button class="btn-light" id="pp-predict-pattern-btn" disabled>Predict Pattern</button>
+        <button class="btn-light" id="pp-predict-pattern-all-btn">Predict All</button>
 
-  <!-- TOPBAR -->
-  <div id="topbar">
-    <div id="trace-wrap">
-      <label>Requirement</label>
-      <div id="trace-dropdown">
-        <input id="trace-search" type="text" placeholder="Search Req…" autocomplete="off">
-        <div id="trace-list"></div>
-      </div>
-      <button id="clear-trace-btn">X Clear</button>
-      <button id="predict-pattern-btn" disabled>Predict Pattern</button>
-      <button id="predict-pattern-all-btn">Predict All</button>
+
+        <button class="btn-light" id="pp-open-settings-btn" title="Settings">
+            <img src="/ai_addons/pattern_prediction/static/cog.svg" alt="Settings">
+        </button>
     </div>
 
-    <button id="open-settings-btn" title="Settings">
-      <svg width="15" height="15" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="1.6"/>
-        <path d="M17.1 10c0-.32-.03-.63-.07-.94l2.03-1.58a.5.5 0 0 0 .12-.63l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a6.9 6.9 0 0 0-1.62-.94l-.36-2.54A.49.49 0 0 0 11.8 1H8.2a.49.49 0 0 0-.49.41l-.36 2.54a6.9 6.9 0 0 0-1.62.94l-2.39-.96a.5.5 0 0 0-.61.22L.81 7.47a.49.49 0 0 0 .12.63l2.03 1.58A7.1 7.1 0 0 0 2.9 10c0 .32.03.63.07.94L.94 12.52a.5.5 0 0 0-.12.63l1.92 3.32a.5.5 0 0 0 .61.22l2.39-.96c.5.36 1.04.67 1.62.94l.36 2.54c.06.24.27.41.49.41h3.6c.24 0 .44-.17.49-.41l.36-2.54a6.9 6.9 0 0 0 1.62-.94l2.39.96a.5.5 0 0 0 .61-.22l1.92-3.32a.49.49 0 0 0-.12-.63L17.03 10.94c.04-.31.07-.62.07-.94Z" stroke="currentColor" stroke-width="1.6"/>
-      </svg>
-    </button>
-  </div>
+    <div class="section-body">
+        <!-- CANVAS -->
+        <div id="pp-canvas-wrap">
+            <div id="pp-canvas">
+                <svg id="pp-tree-svg"></svg>
+            </div>
 
-  <!-- CANVAS -->
-  <div id="canvas-wrap">
-    <div id="canvas">
-      <svg id="tree-svg"></svg>
+        <!-- LEGEND OVERLAY -->
+            <div id="pp-legend">
+                <div id="pp-leg-item"><div id="pp-leg-dot" style="background:#4a4a46"></div>Question</div>
+                <div id="pp-leg-item"><div id="pp-leg-dot" style="background:var(--status-ok)"></div>Answer</div>
+                <div id="pp-leg-item"><div id="pp-leg-dot" style="background:#2b6cb0"></div>Pattern</div>
+                <div id="pp-leg-item"><div id="pp-leg-dot" style="background:var(--status-warn)"></div>Trace active</div>
+            </div>
+        </div>
+
+        <!-- ZOOM CONTROLS -->
+        <div id="pp-zoom-controls">
+            <button class="btn" id="pp-zoom-in">+</button>
+            <button class="btn" id="pp-zoom-reset">o</button>
+            <button class="btn" id="pp-zoom-out">-</button>
+        </div>
+
+        <!-- MINIMAP -->
+        <div id="pp-minimap">
+            <svg id="pp-minimap-svg" width="160" height="100"></svg>
+            <div id="pp-minimap-viewport"></div>
+        </div>
     </div>
-
-    <!-- LEGEND OVERLAY -->
-    <div id="legend">
-      <div class="leg-item"><div class="leg-dot" style="background:#4a4a46"></div>Question</div>
-      <div class="leg-item"><div class="leg-dot" style="background:var(--success)"></div>Answer</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#2b6cb0"></div>Pattern</div>
-      <div class="leg-item"><div class="leg-dot" style="background:var(--warning)"></div>Trace active</div>
-    </div>
-  </div>
-
-  <!-- ZOOM CONTROLS -->
-  <div id="zoom-controls">
-    <button class="zoom-btn" id="zoom-in">+</button>
-    <button class="zoom-btn" id="zoom-reset">o</button>
-    <button class="zoom-btn" id="zoom-out">-</button>
-  </div>
-
-  <!-- MINIMAP -->
-  <div id="minimap">
-    <svg id="minimap-svg" width="160" height="100"></svg>
-    <div id="minimap-viewport"></div>
-  </div>
-
 </div>
 
+
+
 <!-- ---------- SETTINGS MODAL ----------- -->
-<div id="settings-overlay" class="settings-overlay" hidden>
+<div id="pp-settings-overlay" class="settings-overlay" hidden>
   <div class="settings-modal" role="dialog" aria-modal="true" aria-label="Settings">
 
     <div class="settings-header">
       <span class="settings-title">Settings</span>
-      <button id="close-settings-btn" class="settings-close" aria-label="Close">x</button>
+      <button id="pp-close-settings-btn" class="settings-close" aria-label="Close">x</button>
     </div>
 
     <div class="settings-tabs" role="tablist">
@@ -69,32 +65,32 @@
     </div>
 
     <!-- Tab: Model Select -->
-    <div class="settings-panel" id="stab-model">
+    <div class="settings-panel" id="pp-stab-model">
 
       <!-- Model ensemble list -->
       <div class="settings-section-label">
         Model Ensemble
-        <button id="add-ensemble-entry-btn" class="ensemble-add-btn" title="Add entry">+</button>
-        <button id="save-ensemble-entry-btn" class="ensemble-save-btn" title="Save">Save</button>
+        <button id="pp-add-ensemble-entry-btn" class="btn-light" title="Add entry">+</button>
+        <button id="pp-save-ensemble-entry-btn" class="btn-light" title="Save">Save</button>
       </div>
 
-      <div id="ensemble-list">
+      <div id="pp-ensemble-list">
         <!-- entries injected by JS -->
       </div>
 
     </div>
 
     <!-- Tab: Basic Settings -->
-    <div class="settings-panel" id="stab-basic" hidden>
+    <div class="settings-panel" id="pp-stab-basic" hidden>
       <div class="settings-field">
         <label class="settings-label">TREE</label>
-        <div id="tree-dropdown">
-            <input id="tree-search" type="text" placeholder="Search Tree…" autocomplete="off">
-        <div id="tree-list"></div>
+        <div id="pp-tree-dropdown">
+            <input id="pp-tree-search" type="text" placeholder="Search Tree…" autocomplete="off">
+        <div id="pp-tree-list"></div>
         </div>
         <label class="settings-label">Export</label>
-        <button id="download-svg-btn" class="settings-action-btn">⬇ Download SVG</button>
-        <button id="download-detailed-traces-btn" class="settings-action-btn">⬇ Download Detailed Traces</button>
+        <button id="pp-download-svg-btn" class="settings-action-btn">⬇ Download SVG</button>
+        <button id="pp-download-detailed-traces-btn" class="settings-action-btn">⬇ Download Detailed Traces</button>
       </div>
     </div>
 
