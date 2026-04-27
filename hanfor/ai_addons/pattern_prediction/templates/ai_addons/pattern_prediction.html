@@ -51,21 +51,22 @@
 
 
 <!-- ---------- SETTINGS MODAL ----------- -->
-<div id="pp-settings-overlay" class="settings-overlay" hidden>
+<div id="pp-settings-overlay" class="settings-overlay scrollbar" hidden>
   <div class="settings-modal" role="dialog" aria-modal="true" aria-label="Settings">
 
     <div class="settings-header">
       <span class="settings-title">Settings</span>
-      <button id="pp-close-settings-btn" class="settings-close" aria-label="Close">x</button>
+      <button id="pp-close-settings-btn" class="btn" aria-label="Close">X</button>
     </div>
 
     <div class="settings-tabs" role="tablist">
-      <button class="stab active" data-tab="model" role="tab" aria-selected="true">Model Select</button>
-      <button class="stab"        data-tab="basic" role="tab" aria-selected="false">Basic Settings</button>
+      <button class="settings-tab active" data-tab="model" role="tab" aria-selected="true">Model Select</button>
+      <button class="settings-tab "        data-tab="basic" role="tab" aria-selected="false">Basic Settings</button>
     </div>
 
+
     <!-- Tab: Model Select -->
-    <div class="settings-panel" id="pp-stab-model">
+    <div class="settings-panel" id="pp-settings-tab-model">
 
       <!-- Model ensemble list -->
       <div class="settings-section-label">
@@ -80,13 +81,15 @@
 
     </div>
 
+
+
     <!-- Tab: Basic Settings -->
-    <div class="settings-panel" id="pp-stab-basic" hidden>
+    <div class="settings-panel" id="pp-settings-tab-basic" hidden>
       <div class="settings-field">
         <label class="settings-label">TREE</label>
-        <div id="pp-tree-dropdown">
-            <input id="pp-tree-search" type="text" placeholder="Search Tree…" autocomplete="off">
-        <div id="pp-tree-list"></div>
+        <div class="search-dropdown" id="pp-tree-dropdown">
+            <input class="search" id="pp-tree-search" type="text" placeholder="Search Tree…" autocomplete="off">
+            <div class="search-list scrollbar" id="pp-tree-list"></div>
         </div>
         <label class="settings-label">Export</label>
         <button id="pp-download-svg-btn" class="settings-action-btn">⬇ Download SVG</button>

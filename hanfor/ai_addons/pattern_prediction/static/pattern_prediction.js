@@ -740,16 +740,16 @@ document.addEventListener('keydown', e => {
 });
 
 // Tab switching
-document.querySelectorAll('.stab').forEach(btn => {
+document.querySelectorAll('.settings-tab').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.stab').forEach(b => {
+    document.querySelectorAll('.settings-tab').forEach(b => {
       b.classList.remove('active');
       b.setAttribute('aria-selected', 'false');
     });
     btn.classList.add('active');
     btn.setAttribute('aria-selected', 'true');
     document.querySelectorAll('.settings-panel').forEach(p => { p.hidden = true; });
-    document.getElementById('pp-stab-' + btn.dataset.tab).hidden = false;
+    document.getElementById('pp-settings-tab-' + btn.dataset.tab).hidden = false;
   });
 });
 
@@ -782,75 +782,103 @@ function renderEnsembleList() {
   container.innerHTML = '';
 
   ensembleEntries.forEach(entry => {
-    const provReachable  = entry.provider ? ensembleProviderReachable(entry.provider) : null;
-    const modReachable   = (entry.provider && entry.model) ? ensembleModelReachable(entry.provider, entry.model) : null;
-    const provDisplay    = entry.provider ? `${ledEmoji(provReachable)} ${entry.provider}` : '';
-    const modDisplay     = entry.model    ? `${ledEmoji(modReachable)} ${entry.model}`     : '';
+
+    const provReachable = entry.provider ? ensembleProviderReachable(entry.provider) : null;
+    const modReachable  = (entry.provider && entry.model) ? ensembleModelReachable(entry.provider, entry.model) : null;
+
+    const provDisplay = entry.provider ? `${ledEmoji(provReachable)} ${entry.provider}` : '';
+    const modDisplay  = entry.model    ? `${ledEmoji(modReachable)} ${entry.model}` : '';
 
     const el = document.createElement('div');
     el.className = 'ensemble-entry';
-    el.dataset.id = entry.id;
+
     el.innerHTML = `
-      <div class="ensemble-entry-fields">
-        <div class="search-dropdown half" data-entry-id="${entry.id}" data-role="provider">
-          <input class="ensemble-input ensemble-provider-input"
-                 type="text" placeholder="Provider…" autocomplete="off" readonly
-                 value="${provDisplay}">
-          <div class="search-list"></div>
+      <div class="ensemble-entry-main">
+    
+        <div class="ensemble-entry-left">
+    
+          <div class="ensemble-entry-fields">
+            <div class="search-dropdown half" data-role="provider">
+              <input class="provider-input search"
+                     type="text"
+                     placeholder="Provider…"
+                     readonly
+                     value="${provDisplay}">
+              <div class="search-list provider-list"></div>
+            </div>
+    
+            <div class="search-dropdown half" data-role="model">
+              <input class="model-input search"
+                     type="text"
+                     placeholder="Model…"
+                     readonly
+                     value="${modDisplay}"
+                     ${entry.provider ? '' : 'disabled'}>
+              <div class="search-list model-list"></div>
+            </div>
+          </div>
+    
+          <div class="ensemble-entry-nums">
+            <div class="ensemble-num-wrap">
+            <div class="ensemble-num-label">Count</div>
+              <input class="ensemble-count-input search"
+                     type="number"
+                     min="1"
+                     step="1"
+                     value="${entry.count}">
+              
+            </div>
+    
+            <div class="ensemble-num-wrap">
+            <div class="ensemble-num-label">Weight</div>
+              <input class="ensemble-weight-input search"
+                     type="number"
+                     min="0"
+                     step="0.1"
+                     value="${entry.weight}">
+              
+            </div>
+          </div>
+    
         </div>
-        <div class="search-dropdown half" data-entry-id="${entry.id}" data-role="model">
-          <input class="search"
-                 type="text" placeholder="Model…" autocomplete="off" readonly
-                 value="${modDisplay}" ${entry.provider ? '' : 'disabled'}>
-          <div class="search-list"></div>
-        </div>
+    
+        <button class="ensemble-remove-btn btn" id="pp-ensemble-close-btn">X</button>
+    
       </div>
-      <div class="ensemble-entry-nums">
-        <div class="ensemble-num-wrap">
-          <input class="search"
-                 type="number" min="1" step="1" value="${entry.count}" title="Times to ask">
-          <div class="ensemble-num-label">Count</div>
-        </div>
-        <div class="ensemble-num-wrap">
-          <input class="ensemble-num-input ensemble-weight-input"
-                 type="number" min="0" step="0.1" value="${entry.weight}" title="Weight">
-          <div class="ensemble-num-label">Weight</div>
-        </div>
-      </div>
-      <button class="ensemble-remove-btn" title="Remove">✕</button>
     `;
 
-    // Provider dropdown
-    const provWrap  = el.querySelector('[data-role="provider"]');
-    const provInput = provWrap.querySelector('.ensemble-provider-input');
-    const provList  = provWrap.querySelector('.ensemble-dropdown-list');
+    const provInput = el.querySelector('.provider-input');
+    const provList  = el.querySelector('.provider-list');
 
+    const modInput  = el.querySelector('.model-input');
+    const modList   = el.querySelector('.model-list');
+
+    const countInput  = el.querySelector('.ensemble-count-input');
+    const weightInput = el.querySelector('.ensemble-weight-input');
+
+    // Provider dropdown
     provInput.addEventListener('click', () => {
-      document.querySelectorAll('.ensemble-dropdown-list').forEach(d => d.classList.remove('open'));
+      document.querySelectorAll('.search-list').forEach(d => d.classList.remove('open'));
       buildEnsembleProviderList(provList, entry);
       provList.classList.add('open');
     });
 
     // Model dropdown
-    const modWrap  = el.querySelector('[data-role="model"]');
-    const modInput = modWrap.querySelector('.ensemble-model-input');
-    const modList  = modWrap.querySelector('.ensemble-dropdown-list');
-
     modInput.addEventListener('click', () => {
       if (!entry.provider) return;
-      document.querySelectorAll('.ensemble-dropdown-list').forEach(d => d.classList.remove('open'));
+      document.querySelectorAll('.search-list').forEach(d => d.classList.remove('open'));
       buildEnsembleModelList(modList, entry);
       modList.classList.add('open');
     });
 
     // Count
-    el.querySelector('.ensemble-count-input').addEventListener('change', e => {
+    countInput.addEventListener('change', e => {
       entry.count = Math.max(1, parseInt(e.target.value) || 1);
       e.target.value = entry.count;
     });
 
     // Weight
-    el.querySelector('.ensemble-weight-input').addEventListener('change', e => {
+    weightInput.addEventListener('change', e => {
       const v = parseFloat(e.target.value);
       entry.weight = isNaN(v) ? 1 : Math.max(0, v);
       e.target.value = entry.weight;
@@ -870,8 +898,8 @@ function buildEnsembleProviderList(listEl, entry) {
   listEl.innerHTML = '';
   providerData.forEach(p => {
     const item = document.createElement('div');
-    item.className = 'trace-item' + (entry.provider === p.name ? ' active' : '');
-    item.innerHTML = `<div class="trace-id">${led(p.reachable)} ${p.name}</div>`;
+    item.className = 'search-list-item' + (entry.provider === p.name ? ' active' : '');
+    item.innerHTML = `<div class="trace-id">${ledEmoji(p.reachable)} ${p.name}</div>`;
     item.addEventListener('click', e => {
       e.stopPropagation();
       entry.provider = p.name;
@@ -891,8 +919,8 @@ function buildEnsembleModelList(listEl, entry) {
     const name      = typeof m === 'string' ? m : m.name;
     const reachable = typeof m === 'string' ? null : (m.active ?? null);
     const item      = document.createElement('div');
-    item.className  = 'trace-item' + (entry.model === name ? ' active' : '');
-    item.innerHTML  = `<div class="trace-id">${reachable !== null ? led(reachable) : ''} ${name}</div>`;
+    item.className  = 'search-list-item' + (entry.model === name ? ' active' : '');
+    item.innerHTML  = `<div class="trace-id">${reachable !== null ? ledEmoji(reachable) : ''} ${name}</div>`;
     item.addEventListener('click', e => {
       e.stopPropagation();
       entry.model = name;
@@ -936,7 +964,7 @@ function renderTreeList(files) {
   treeList.innerHTML = '';
   files.forEach(filename => {
     const item = document.createElement('div');
-    item.className = 'tree-item';
+    item.className = 'search-list-item';
     item.textContent = filename;
     item.addEventListener('click', () => {
     treeList.classList.remove('open');
