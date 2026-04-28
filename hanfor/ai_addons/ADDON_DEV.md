@@ -249,18 +249,12 @@ The template is included via `{% include page %}` into the tab system - **no** `
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ai_addons.css') }}">
 ```
 
+Is always available you don't need to include it. (located under `static/css`)
+
 Addon-specific CSS:
 ```html
 <link rel="stylesheet" href="/ai_addons/my_addon/static/my_addon.css">
 ```
-
-`ai_addons.css` already provides:
-- CSS variables (`--bg-primary`, `--success`, `--warning`, `--danger`, `--radius-md`, …)
-- Layout: `.page`, `.section`, `.section-header`, `.metrics`, `.hscroll`
-- Components: `.badge`, `.led`, `.dot`, `.bar-wrap`, `.group-card`, `.task-row`
-- Addon cards: `.addon-grid`, `.addon-card`, `.status-tag`
-- Provider/model cards: `.provider-card`, `.model-card`, `.test-btn`, `.default-btn`
-
 ---
 
 ## 6. Build

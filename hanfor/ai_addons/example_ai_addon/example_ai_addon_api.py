@@ -13,7 +13,7 @@ blueprint = Blueprint(
 
 # Namespace: REST endpoints with Swagger documentation
 example_ai_addon_api_namespace = Namespace(
-    "Example AI ADDON", "Example AI ADDON Description", path="/example-ai-addon", ordered=True
+    "AI Addon: Example", "Example AI ADDON Description", path="/example-ai-addon", ordered=True
 )
 
 _handle_disabled = AiAddonAbstractClass.handle_disabled(example_ai_addon_api_namespace)

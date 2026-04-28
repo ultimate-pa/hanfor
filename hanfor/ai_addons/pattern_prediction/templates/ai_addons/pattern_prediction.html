@@ -26,10 +26,25 @@
 
         <!-- LEGEND OVERLAY -->
             <div id="pp-legend">
-                <div id="pp-leg-item"><div id="pp-leg-dot" style="background:#4a4a46"></div>Question</div>
-                <div id="pp-leg-item"><div id="pp-leg-dot" style="background:var(--status-ok)"></div>Answer</div>
-                <div id="pp-leg-item"><div id="pp-leg-dot" style="background:#2b6cb0"></div>Pattern</div>
-                <div id="pp-leg-item"><div id="pp-leg-dot" style="background:var(--status-warn)"></div>Trace active</div>
+                <div class="pp-leg-item">
+                    <div class="pp-leg-dot" style="background:#4a4a46"></div>
+                    Question
+                </div>
+
+                <div class="pp-leg-item">
+                    <div class="pp-leg-dot" style="background:var(--status-warn)"></div>
+                    Answer
+                </div>
+
+                <div class="pp-leg-item">
+                    <div class="pp-leg-dot" style="background:#2b6cb0"></div>
+                    Pattern
+                </div>
+
+                <div class="pp-leg-item">
+                    <div class="pp-leg-dot half"></div>
+                    Trace active
+                </div>
             </div>
         </div>
 
@@ -42,7 +57,7 @@
 
         <!-- MINIMAP -->
         <div id="pp-minimap">
-            <svg id="pp-minimap-svg" width="160" height="100"></svg>
+            <svg id="pp-minimap-svg" width="100%" height="100%"></svg>
             <div id="pp-minimap-viewport"></div>
         </div>
     </div>

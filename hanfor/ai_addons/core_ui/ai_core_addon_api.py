@@ -19,7 +19,7 @@ TAB_NAMES = ["Threading"]
 TAB_PAGES = ["ai_addons/threading.html"]
 
 core_ai_addon_api_namespace = Namespace(
-    "Core AI Addon", "Routes for core things for the ai Addon", path="/core-ai-addon", ordered=True
+    "AI Addon: Core", "Routes for core things for the ai Addon", path="/core-ai-addon", ordered=True
 )
 
 REQ_IDS = core_ai_addon_api_namespace.model(

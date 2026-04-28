@@ -14,7 +14,7 @@ blueprint = Blueprint(
 )
 
 pattern_prediction_namespace = Namespace(
-    "Pattern Prediction", description="Pattern Prediction API", path="/pattern-prediction", ordered=True
+    "AI Addon: Pattern Prediction", description="Pattern Prediction API", path="/pattern-prediction", ordered=True
 )
 
 _handle_disabled = AiAddonAbstractClass.handle_disabled(pattern_prediction_namespace)
