@@ -1,8 +1,6 @@
 import logging
 import os
 import re
-import time
-from threading import Event
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import List, Optional, Any
@@ -183,7 +181,6 @@ def generate_all_highlighted_desc(
 
         percent = int(idx / total * 100)
         set_status(f"Processed {idx}/{total} requirements ({percent}%)")
-        time.sleep(0.5)
 
 
 def _normalize_variable(var: str) -> set[str]:
