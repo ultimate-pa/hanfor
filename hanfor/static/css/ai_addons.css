@@ -222,7 +222,7 @@
 
 
 
-.btn-light {
+.btn-bright {
   padding: 3px 8px;
   font-size: 11px;
   font-weight: 500;
@@ -233,11 +233,11 @@
   cursor: pointer;
   transition: background .15s ease;
 }
-.btn-light:hover{
+.btn-bright:hover{
   background: var(--surface-overlay);
 }
 
-.btn-light:disabled { opacity: .35; cursor: not-allowed; pointer-events: none; }
+.btn-bright:disabled { opacity: .35; cursor: not-allowed; pointer-events: none; }
 
 
 /* ======================================================
