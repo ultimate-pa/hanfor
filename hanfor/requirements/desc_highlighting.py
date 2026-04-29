@@ -118,7 +118,7 @@ def new_variables_regenerate_highlighting(variables: set[Variable]) -> None:
 
 
 def generate_all_highlighted_desc(
-    new_variables: List[str], requirements: Optional[immutabledict[int | str, Any]], stop_event: Event = None
+    new_variables: List[str], requirements: Optional[immutabledict[int | str, Any]], stop_events: list[Event] = []
 ) -> None:
     """
     Regenerates highlighted descriptions for all requirements.
@@ -157,7 +157,7 @@ def generate_all_highlighted_desc(
 
     # (Re)compute variable matches and generate HTML
     for idx, req_data in enumerate(all_req_data, start=1):
-        if stop_event.is_set():
+        if any(e.is_set() for e in stop_events):
             break
         exact_variables = []
         for plain_var, _ in variable_sets_list:

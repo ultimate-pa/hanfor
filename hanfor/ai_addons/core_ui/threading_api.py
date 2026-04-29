@@ -12,8 +12,11 @@ TASK_MODEL = threading_api_namespace.model(
         "function": fields.String(example="process_job"),
         "group": fields.String(example="workers"),
         "scheduling_class": fields.String(example="REALTIME"),
-        "priority": fields.Integer(example=1),
         "status": fields.String(example=""),
+        "task_id": fields.String(example="abc-123"),
+        "queued_at": fields.Float(example=1234567890.123),
+        "started_at": fields.Float(example=1234567890.123),
+        "info_text": fields.String(example="something usefully"),
     },
 )
 
@@ -29,6 +32,10 @@ THREAD_DATA = threading_api_namespace.model(
 
 THREAD_STOP_RESPONSE = threading_api_namespace.model(
     "ThreadStopResponse", {"info": fields.String(example="stopped thread_group: AI")}
+)
+
+THREAD_CANCEL_RESPONSE = threading_api_namespace.model(
+    "ThreadCancelResponse", {"info": fields.String(example="cancelled task: abc-123"), "found": fields.Boolean()}
 )
 
 
@@ -53,6 +60,14 @@ class ApiThreadingStopGroup(Resource):
         return {"info": f"stopped thread_group: {group}"}
 
 
+@threading_api_namespace.route("/cancel-task/<string:task_id>")
+class ApiThreadingCancelTask(Resource):
+    @threading_api_namespace.marshal_with(THREAD_CANCEL_RESPONSE, code=200)
+    def post(self, task_id: str):
+        found = current_app.thread_handler.cancel_task(task_id)
+        return {"info": f"cancel requested: {task_id}", "found": found}
+
+
 # ---- TEMP TODO ---------
 @threading_api_namespace.route("/dummy-task")
 class ApiThreadingDummy(Resource):
@@ -61,24 +76,27 @@ class ApiThreadingDummy(Resource):
         from thread_handling.threading_core import ThreadTask, SchedulingClass
         import random
 
+        sleep = int(random.uniform(2000, 10000))
+        seconds = sleep / 1000
+
         task = ThreadTask(
             thread_function=_dummy_task,
             scheduling_class=random.choice(list(SchedulingClass)),
             group=random.choice(list(ThreadGroup)),
             semaphore=None,
             callback=None,
-            args=(),
+            args=(sleep,),
             kwargs={},
+            info_text=f"{seconds:.1f}s sleep",
         )
         current_app.thread_handler.submit(task)
         return None, 204
 
 
-def _dummy_task(stop_event):
-    import random
+def _dummy_task(sleep, stop_events):
     import time
 
-    for i in range(int(random.uniform(2000, 10000))):
+    for i in range(sleep):
         time.sleep(0.001)
-        if stop_event.is_set():
+        if any(e.is_set() for e in stop_events):
             break

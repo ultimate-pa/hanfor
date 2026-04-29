@@ -44,14 +44,14 @@ class ProviderEntry:
 class AiCatalogTester:
     """Tests all models of all providers against their registered API methods."""
 
-    def check_all_models_activity(self, catalog: dict[str, ProviderEntry], stop_event: Event):
+    def check_all_models_activity(self, catalog: dict[str, ProviderEntry], stop_events: Optional[list[Event]]):
         """Tests every model of every provider with all registered api methods. Returns {provider: {method: {model: status}}}."""
         for provider_name, provider_entry in catalog.items():
-            if stop_event.is_set():
+            if stop_events and any(e.is_set() for e in stop_events):
                 return
-            self.activity_test_provider(provider_entry, stop_event)
+            self.activity_test_provider(provider_entry, stop_events)
 
-    def activity_test_provider(self, provider_entry: ProviderEntry, stop_event: Event):
+    def activity_test_provider(self, provider_entry: ProviderEntry, stop_events: Optional[list[Event]]):
         if not self.__is_reachable(provider_entry.url):
             provider_entry.activity = TestedActivity.INACTIVE
             for model_name, (desc, activity) in provider_entry.models.items():
@@ -68,22 +68,24 @@ class AiCatalogTester:
             return
 
         for model_name, (desc, activity) in provider_entry.models.items():
-            if stop_event.is_set():
+            if stop_events and any(e.is_set() for e in stop_events):
                 return
-            self.activity_test_model(model_name, desc, provider_entry, stop_event)
+            self.activity_test_model(model_name, desc, provider_entry, stop_events)
 
     @staticmethod
-    def activity_test_model(model_name: str, desc: str, provider_entry: ProviderEntry, stop_event: Event):
+    def activity_test_model(
+        model_name: str, desc: str, provider_entry: ProviderEntry, stop_events: Optional[list[Event]]
+    ):
         test_prompt = "Say 'ok'."
         if len(provider_entry.api_methods) <= 0:
             provider_entry.models[model_name] = (desc, TestedActivity.INACTIVE)
             return
         for _, method in provider_entry.api_methods.items():
-            if stop_event.is_set():
+            if stop_events and any(e.is_set() for e in stop_events):
                 return
             try:
                 response, status = method.query_api(
-                    test_prompt, provider_entry.url, provider_entry.api_key, model_name, None, None
+                    test_prompt, provider_entry.url, provider_entry.api_key, model_name, None, stop_events
                 )
                 if response:
                     provider_entry.models[model_name] = (desc, TestedActivity.ACTIVE)
@@ -143,6 +145,7 @@ class AiRequest:
                 None,
                 (),
                 {},
+                info_text="provider/model status check",
             )
         )
 
@@ -158,6 +161,7 @@ class AiRequest:
         model_name: Optional[str] = None,
         api_method_name: Optional[str] = None,
         other_params: Optional[dict] = None,
+        info_text: str = "Not Specified",
     ) -> TaskResult:
         """
         Submits an AI query asynchronously. Returns a TaskResult to poll via .done() or block via .result().
@@ -184,6 +188,7 @@ class AiRequest:
                 other_params,
             ),
             {},
+            info_text=f"{info_text} - {provider} | {model_name}",
         )
         return self.__thread_handler.submit(ai_task)
 
@@ -217,8 +222,8 @@ class AiRequest:
 
         return data
 
-    def __check_all_models(self, stop_event: Event):
-        self.__catalog_tester.check_all_models_activity(self.__ai_model_catalog, stop_event)
+    def __check_all_models(self, stop_events: Optional[list[Event]]):
+        self.__catalog_tester.check_all_models_activity(self.__ai_model_catalog, stop_events)
         send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
 
     def set_default_provider(self, set_provider_name_to_default: str):

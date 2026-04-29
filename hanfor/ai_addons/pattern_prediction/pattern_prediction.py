@@ -146,9 +146,9 @@ class PatternPrediction(AiAddonAbstractClass):
         return "Using a decision tree, a requirement can be assigned to a pattern with the help of an AI."
 
     @AiAddonAbstractClass.requires_enabled
-    def predict_patterns_for_all_requirements(self, requirements, stop_event: Event):
+    def predict_patterns_for_all_requirements(self, requirements, stop_events: list[Event]):
         for req_id, requirement in requirements.items():
-            if stop_event.is_set():
+            if stop_events and any(e.is_set() for e in stop_events):
                 break
             task = ThreadTask(
                 self.predict_pattern_for_requirement,
@@ -158,6 +158,7 @@ class PatternPrediction(AiAddonAbstractClass):
                 None,
                 (req_id, requirement.description),
                 {},
+                task_id=f"PP for {req_id}",
             )
             self.thread_handler.submit(task)
 
@@ -214,14 +215,14 @@ class PatternPrediction(AiAddonAbstractClass):
                 send_ai_update(payload, "socket_pattern_prediction", self.socketio, sid)
 
     @AiAddonAbstractClass.requires_enabled
-    def predict_pattern_for_requirement(self, req_id: str, req_desc: str, stop_event: Event):
+    def predict_pattern_for_requirement(self, req_id: str, req_desc: str, stop_events: list[Event]):
         node = self.prediction_tree.root
         trace = []
         detailed_trace = []
 
         while isinstance(node, PatternPredictionTreeNode):
-            if stop_event.is_set():
-                self._abort_prediction(req_id, trace)
+            if stop_events and any(e.is_set() for e in stop_events):
+                self._abort_prediction([], req_id, trace)
                 return
 
             query = self._build_query(req_desc, node)
@@ -239,19 +240,21 @@ class PatternPrediction(AiAddonAbstractClass):
                                 SchedulingClass.CALLER_DEPTH_2,
                                 str(entry["provider"]),
                                 str(entry["model"]),
+                                info_text=f"PP for {req_id}",
                             ),
                             float(entry["weight"]),
                             f"{entry['provider']}-{entry['model']}",
                         )
                     )
 
-            if stop_event.is_set():
-                self._abort_prediction(req_id, trace)
+            if stop_events and any(e.is_set() for e in stop_events):
+                self._abort_prediction(task_results, req_id, trace)
                 return
 
-            result, ai_status, model_ansers = self._collect_scores(task_results, answer_options)
+            result, ai_status, model_answers = self._collect_scores(task_results, answer_options, stop_events)
             if result is None:
-                self._abort_prediction(req_id, trace, error=ai_status)
+                self._abort_prediction(task_results, req_id, trace, error=ai_status)
+
                 return
 
             best_key = max(result, key=lambda k: result[k])
@@ -262,7 +265,7 @@ class PatternPrediction(AiAddonAbstractClass):
                     "question": node.question,
                     "scores": result.copy(),
                     "chosen": best_key,
-                    "model_answers": model_ansers,
+                    "model_answers": model_answers,
                 }
             )
 
@@ -300,8 +303,13 @@ class PatternPrediction(AiAddonAbstractClass):
 
         return traces
 
-    def _abort_prediction(self, req_id: str, trace: list, error: str | None = None):
+    def _abort_prediction(
+        self, task_results: list[tuple[TaskResult, float, str]], req_id: str, trace: list, error: str | None = None
+    ):
         """Reset requirement state and notify frontend on prediction abort."""
+        for result, _, _ in task_results:
+            self.thread_handler.cancel_task(result.task_id())
+
         data = self.requirement_data[req_id]
         data.trace = trace
         data.pattern = APattern()
@@ -332,7 +340,7 @@ class PatternPrediction(AiAddonAbstractClass):
 
     @staticmethod
     def _collect_scores(
-        task_results: list[tuple[TaskResult, float, str]], answer_options: list[str]
+        task_results: list[tuple[TaskResult, float, str]], answer_options: list[str], stop_events: list[Event]
     ) -> tuple[dict[str, float] | None, str | None, None | list]:
         """Aggregate and normalize scores from all AI responses. Returns None on error."""
         result = {a: 0.0 for a in answer_options}
@@ -340,10 +348,18 @@ class PatternPrediction(AiAddonAbstractClass):
         successful = 0
 
         for task_result, weight, provider_model_pair in task_results:
+
             if not task_result:
                 continue
 
-            ai_response, ai_status = task_result.result()
+            while True:
+                if stop_events and any(e.is_set() for e in stop_events):
+                    return None, "cancelled", None
+                try:
+                    ai_response, ai_status = task_result.result(timeout=0.05)
+                    break
+                except TimeoutError:
+                    continue
 
             if isinstance(ai_status, str) and ai_status.startswith("error"):
                 logging.warning(f"AI request failed: {ai_status}")

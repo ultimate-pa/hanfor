@@ -167,7 +167,7 @@ class TestRequirementHighlightingEndToEnd(TestCase):
 
         variables = {"MyVariable", "AnotherVar", "TestDescription"}
 
-        generate_all_highlighted_desc(list(variables), {"REQ1": req}, Event())
+        generate_all_highlighted_desc(list(variables), {"REQ1": req}, [Event()])
         self.assertIn("REQ1", requirement_highlighting_data_per_req)
         req_data: RequirementHighlightingData = requirement_highlighting_data_per_req["REQ1"]
 

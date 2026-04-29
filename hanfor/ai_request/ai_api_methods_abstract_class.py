@@ -18,7 +18,7 @@ class AiApiMethod(ABC):
         api_key: str,
         model_name: str,
         other_params: Optional[dict],
-        stop_event: Optional[threading.Event],
+        stop_events: Optional[list[threading.Event]],
     ) -> tuple[str | None, str]:
         """Sends a query to the AI API, returns (response, status)."""
         pass

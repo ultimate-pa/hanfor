@@ -168,6 +168,7 @@ class ApiGenerateTrace(Resource):
                         req["desc"],
                     ),
                     {},
+                    info_text=f"PP for {req["id"]}",
                 )
             )
         return None, 204

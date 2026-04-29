@@ -59,15 +59,45 @@ function injectGroupStyles(groups) {
 // HELPERS
 // --------------------------------------------------------------------------------
 
-function taskRow({ function: fn, group, scheduling_class, priority }) {
+async function cancelTask(taskId) {
+  const data = await window.post(ADDON_NAME, 'cancel-task/' + taskId);
+  window.showBanner(data.info, data.found ? 'success' : 'warn', 'thread-info-banner');
+}
+
+function taskRow({ function: fn, group, scheduling_class, task_id, status, queued_at, started_at, info_text}) {
+  const isCancelling = status === 'cancel requested';
+  const ts = started_at ?? queued_at;
+  console.log(`${info_text}: ${started_at}, ${queued_at}`)
+
+
   return `
     <div class="list-row">
-      <span class="list-name">${fn}</span>
+      <span class="list-name">${fn}() - ${info_text}</span>
       <span class="badge badge-${group}">${group}</span>
       <span class="badge badge-sc">${scheduling_class}</span>
-      <span class="list-value">p${priority}</span>
+      <span class="list-elapsed" data-since="${ts}">0s</span>
+      <button
+        class="th-cancel-btn${isCancelling ? ' cancelling' : ''}"
+        data-task-id="${task_id}"
+        ${isCancelling ? 'disabled' : ''}
+      >${isCancelling ? '…' : '✕'}</button>
     </div>`;
 }
+
+function formatElapsed(seconds) {
+  if (seconds < 60)  return `${Math.floor(seconds)}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${Math.floor(seconds % 60)}s`;
+  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+}
+
+function tickElapsed() {
+  const now = Date.now() / 1000;
+  document.querySelectorAll('.list-elapsed[data-since]').forEach(el => {
+    el.textContent = formatElapsed(now - parseFloat(el.dataset.since));
+  });
+}
+
+setInterval(tickElapsed, 1000);
 
 function buildGroupCounts(groups, activeTasks, queuedTasks) {
   const counts = Object.fromEntries(groups.map(g => [g, { running: 0, queued: 0 }]));
@@ -126,6 +156,12 @@ function renderTaskList(elementId, tasks) {
   el.innerHTML = tasks.length
     ? tasks.map(taskRow).join('')
     : `<div class="list-row"><span class="list-meta">${elementId === 'th-running-list' ? 'No active tasks' : 'Queue is empty'}</span></div>`;
+
+  tickElapsed();
+
+  el.querySelectorAll('.th-cancel-btn[data-task-id]').forEach(btn => {
+    btn.addEventListener('click', () => cancelTask(btn.dataset.taskId));
+  });
 }
 
 function render(d) {

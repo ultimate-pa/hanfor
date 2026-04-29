@@ -2,6 +2,7 @@ import inspect
 import logging
 import threading
 import time
+import uuid
 
 from ai_addons.threading_ai_socketio import send_ai_update
 from configuration import threading_config
@@ -46,6 +47,14 @@ class ThreadTask:
     args: tuple
     kwargs: dict
 
+    task_id: str = field(default_factory=lambda: str(uuid.uuid4().hex[:8]))
+    task_stop_event: threading.Event = field(default_factory=threading.Event)
+
+    queued_at: float = field(default_factory=time.time, init=False)
+    started_at: Optional[float] = field(default=None, init=False)
+
+    info_text: str = field(default="")
+
     status: str = field(default="", init=False)
     priority: int = field(init=False)
 
@@ -53,17 +62,21 @@ class ThreadTask:
         self.priority = self.scheduling_class.priority
 
         sig = inspect.signature(self.thread_function)
-        if "stop_event" not in sig.parameters:
-            raise ValueError(f"Thread function {self.thread_function.__name__} must accept 'stop_event'")
+        if "stop_events" not in sig.parameters:
+            raise ValueError(f"Thread function {self.thread_function.__name__} must accept 'stop_events'")
 
 
 class TaskResult:
     """Mimics threading.Thread's interface with `.done()` and `.result()` to track task completion and results."""
 
-    def __init__(self):
+    def __init__(self, task_id: str):
         self._event = threading.Event()
         self._result = None
         self._exception = None
+        self._task_id: str = task_id
+
+    def task_id(self) -> str:
+        return self._task_id
 
     def set_result(self, result: Any):
         self._result = result
@@ -117,6 +130,29 @@ class ThreadHandler:
     def set_socketio(self, socketio):
         self.__socketio = socketio
 
+    def cancel_task(self, task_id: str) -> bool:
+        with self.__lock:
+            for prio_task in list(self.__queue.queue):
+                if prio_task.thread_task.task_id == task_id:
+                    prio_task.thread_task.task_stop_event.set()
+                    prio_task.thread_task.status = "cancelled in queue"
+                    self.__queue.queue.remove(prio_task)
+                    if prio_task.result:
+                        prio_task.result.set_result(None)
+                    if self.__socketio:
+                        send_ai_update(self.threading_data(), "socket_threading", self.__socketio)
+                    return True
+
+            for prio_task in self.__running_tasks:
+                if prio_task.thread_task.task_id == task_id:
+                    prio_task.thread_task.task_stop_event.set()
+                    prio_task.thread_task.status = "cancel requested"
+                    if self.__socketio:
+                        send_ai_update(self.threading_data(), "socket_threading", self.__socketio)
+                    return True
+
+        return False
+
     def stop_group(self, group: ThreadGroup):
         """Stops an entire group of tasks, when running or in queue"""
         with self.__lock:
@@ -128,6 +164,7 @@ class ThreadHandler:
                 if prio_task.thread_task.group != group:
                     remaining_tasks.append(prio_task)
                 else:
+                    prio_task.thread_task.task_stop_event.set()
                     if prio_task.result:
                         prio_task.result.set_result(None)
                     prio_task.thread_task.status = "terminated in queue"
@@ -148,13 +185,12 @@ class ThreadHandler:
 
     def submit(self, thread_task: ThreadTask) -> TaskResult:
         """Queues a task and returns a TaskResult to track completion."""
-        result = TaskResult()
-
+        result = TaskResult(thread_task.task_id)
         prio_task = PrioritizedTask(thread_task, result)
         self.__queue.put(prio_task)
         queued = list(self.__queue.queue)
         logging.info(
-            f"Queued tasks: {[ (t.priority, getattr(t.thread_task.thread_function, '__name__', str(t.thread_task.thread_function))) for t in queued ]}"
+            f"Queued tasks: {[(t.priority, getattr(t.thread_task.thread_function, '__name__', str(t.thread_task.thread_function))) for t in queued]}"
         )
         if self.__socketio:
             send_ai_update(self.threading_data(), "socket_threading", self.__socketio)
@@ -173,8 +209,7 @@ class ThreadHandler:
         Returns all SchedulingClass values that are allowed to start based on the current system load.
         """
         free_ratio = (self._max_threads - self.__active_threads) / self._max_threads
-        can_start: list[SchedulingClass] = [sc for sc in SchedulingClass if free_ratio > sc.min_free_ratio]
-        return can_start
+        return [sc for sc in SchedulingClass if free_ratio > sc.min_free_ratio]
 
     def __dispatcher(self):
         """
@@ -198,7 +233,6 @@ class ThreadHandler:
                             if thread_task.semaphore is None or thread_task.semaphore.acquire(blocking=False):
                                 selected_task = task
                                 self.__queue.queue.remove(selected_task)
-
                                 self.__active_threads += 1
                                 self.__active_by_priority[selected_task.priority] = (
                                     self.__active_by_priority.get(selected_task.priority, 0) + 1
@@ -212,7 +246,9 @@ class ThreadHandler:
 
             # Start the actual worker thread
             logging.info(
-                f"Starting task {selected_task.thread_task.thread_function.__name__} of type {selected_task.thread_task.scheduling_class.label}"
+                f"Starting task {selected_task.thread_task.thread_function.__name__} "
+                f"(id={selected_task.thread_task.task_id}) "
+                f"of type {selected_task.thread_task.scheduling_class.label}"
             )
             if self.__socketio:
                 send_ai_update(self.threading_data(), "socket_threading", self.__socketio)
@@ -221,16 +257,25 @@ class ThreadHandler:
 
     def __run_task(self, prio_task: PrioritizedTask):
         """Executes the task, sets the result, calls the callback, and releases if present the semaphore."""
+        task = prio_task.thread_task
+        task.started_at = time.time()
+
+        stop_events: list[threading.Event] = [
+            task.task_stop_event,
+            self.__group_stop_events[task.group],
+        ]
+        if self.__socketio:
+            send_ai_update(self.threading_data(), "socket_threading", self.__socketio)
         try:
-            output = prio_task.thread_task.thread_function(
-                *prio_task.thread_task.args,
-                stop_event=self.__group_stop_events[prio_task.thread_task.group],
-                **prio_task.thread_task.kwargs,
+            output = task.thread_function(
+                *task.args,
+                stop_events=stop_events,
+                **task.kwargs,
             )
             if prio_task.result:
                 prio_task.result.set_result(output)
-            if prio_task.thread_task.callback:
-                prio_task.thread_task.callback(output)
+            if task.callback:
+                task.callback(output)
         except Exception as e:
             logging.exception(f"Exception in task: {e}")
             if prio_task.result:
@@ -240,10 +285,10 @@ class ThreadHandler:
         finally:
             with self.__lock:
                 self.__active_threads -= 1
-                self.__active_by_priority[prio_task.thread_task.priority] -= 1
+                self.__active_by_priority[task.priority] -= 1
                 self.__running_tasks.remove(prio_task)
-                if prio_task.thread_task.semaphore:
-                    prio_task.thread_task.semaphore.release()
+                if task.semaphore:
+                    task.semaphore.release()
                 if self.__socketio:
                     send_ai_update(self.threading_data(), "socket_threading", self.__socketio)
 
@@ -254,8 +299,11 @@ class ThreadHandler:
             "function": t.thread_function.__name__,
             "group": t.group.name,
             "scheduling_class": t.scheduling_class.name,
-            "priority": t.priority,
             "status": t.status,
+            "task_id": t.task_id,
+            "queued_at": t.queued_at,
+            "started_at": t.started_at,
+            "info_text": t.info_text,
         }
 
     def get_queue(self) -> list[dict]:
