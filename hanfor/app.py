@@ -13,10 +13,10 @@ from flask_socketio import SocketIO
 from ai_addons.core_ui import all_threading_ai_addon_blueprints
 from ai_addons.core_ui.ai_core_addon_api import register_addon_templates, register_addon_statics
 from ai_addons.threading_ai_socketio import AiAddonData
-from hanfor_flask import HanforFlask
+from hanfor_flask import HanforFlask, Api
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import HTTPException
-from flask_restx import Api
+
 
 from lib_core.startup import startup_hanfor, PrefixMiddleware, HanforArgumentParser
 from lib_core.utils import setup_logging
