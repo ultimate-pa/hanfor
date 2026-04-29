@@ -147,6 +147,8 @@ def api_update():
                 add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
                 for v in variable_collection.new_vars:
                     current_app.db.add_object(v)
+                if current_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
+                    new_variables_regenerate_highlighting(variable_collection.new_vars)
             except KeyError as e:
                 error = True
                 error_msg = f"Could not set formalization: Missing expression/variable for {e}"
@@ -159,11 +161,9 @@ def api_update():
         if error:
             logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
             return {"success": False, "errormsg": error_msg}
-        else:
-            current_app.db.update()
-            if current_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
-                new_variables_regenerate_highlighting(variable_collection.new_vars)
-            return requirement.to_dict(), 200
+
+        current_app.db.update()
+        return requirement.to_dict(), 200
 
 
 @api_blueprint.route("/multi_update", methods=["POST"])
