@@ -968,14 +968,8 @@ document.addEventListener("click", e => {
   if (!document.getElementById("pp-tree-dropdown").contains(e.target))
     treeList.classList.remove("open");
 
-  if (!e.target.closest("#provider-dropdown"))
-    document.getElementById("pp-provider-list")?.classList.remove("open");
-
-  if (!e.target.closest("#model-dropdown"))
-    document.getElementById("pp-model-list")?.classList.remove("open");
-
-  if (!e.target.closest(".pp-ensemble-entry-dropwrap"))
-    document.querySelectorAll(".pp-ensemble-dropdown-list").forEach(el => el.classList.remove("open"));
+  if (!e.target.closest(".search-dropdown"))
+    document.querySelectorAll(".search-list").forEach(el => el.classList.remove("open"));
 });
 
 

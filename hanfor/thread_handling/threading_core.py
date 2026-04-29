@@ -61,10 +61,6 @@ class ThreadTask:
     def __post_init__(self):
         self.priority = self.scheduling_class.priority
 
-        sig = inspect.signature(self.thread_function)
-        if "stop_events" not in sig.parameters:
-            raise ValueError(f"Thread function {self.thread_function.__name__} must accept 'stop_events'")
-
 
 class TaskResult:
     """Mimics threading.Thread's interface with `.done()` and `.result()` to track task completion and results."""
@@ -257,6 +253,8 @@ class ThreadHandler:
 
     def __run_task(self, prio_task: PrioritizedTask):
         """Executes the task, sets the result, calls the callback, and releases if present the semaphore."""
+        from thread_handling.thread_function_decorator import _stop_events_var, _set_status_var
+
         task = prio_task.thread_task
         task.started_at = time.time()
 
@@ -264,12 +262,22 @@ class ThreadHandler:
             task.task_stop_event,
             self.__group_stop_events[task.group],
         ]
+
+        # Inject context vars so stop_events() and set_status() work inside the task
+        # and anywhere deeper in the call stack – fully isolated per thread.
+        def _update_status(text: str) -> None:
+            task.status = text
+            if self.__socketio:
+                send_ai_update(self.threading_data(), "socket_threading", self.__socketio)
+
+        token_status = _set_status_var.set(_update_status)
+        token_events = _stop_events_var.set(stop_events)
+
         if self.__socketio:
             send_ai_update(self.threading_data(), "socket_threading", self.__socketio)
         try:
             output = task.thread_function(
                 *task.args,
-                stop_events=stop_events,
                 **task.kwargs,
             )
             if prio_task.result:
@@ -283,6 +291,8 @@ class ThreadHandler:
             if self.__socketio:
                 send_ai_update(self.threading_data(), "socket_threading", self.__socketio)
         finally:
+            _stop_events_var.reset(token_events)
+            _set_status_var.reset(token_status)
             with self.__lock:
                 self.__active_threads -= 1
                 self.__active_by_priority[task.priority] -= 1

@@ -1,17 +1,19 @@
 from threading import Semaphore
 from unittest import TestCase
 import time
+
+from thread_handling.thread_function_decorator import thread_function, is_stopped
 from thread_handling.threading_core import ThreadHandler, ThreadTask, ThreadGroup, SchedulingClass, TaskResult
 
-
-def timeout_task(seconds, rtn, stop_events):
+@thread_function
+def timeout_task(seconds, rtn):
     time.sleep(seconds)
     return rtn
 
-
-def stopping_task(milliseconds, stop_events):
+@thread_function
+def stopping_task(milliseconds):
     for _ in range(milliseconds):
-        if stop_events and any(e.is_set() for e in stop_events):
+        if is_stopped():
             return "stopped"
         time.sleep(0.001)
     return "completed"

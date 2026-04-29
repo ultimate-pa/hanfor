@@ -153,9 +153,26 @@
 /* ======================================================
    SCROLLABLE LIST
    ====================================================== */
-.hscroll { overflow-x: auto; }
+.hscroll {
+    overflow-x: auto;
+    background: var(--surface-base);
+    border: 1px solid var(--border-subtle);
+    border-top: none;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    padding: 12px;
+
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-overlay) transparent;
+}
+
+.hscroll::-webkit-scrollbar { height: 6px; }
+.hscroll::-webkit-scrollbar-track { background: transparent; }
+.hscroll::-webkit-scrollbar-thumb { background: var(--surface-overlay); border-radius: 6px; }
+.hscroll::-webkit-scrollbar-thumb:hover { background: var(--surface-raised); }
 
 .list-col {
+  min-width: max-content;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -167,6 +184,7 @@
   min-height: 48px;
 }
 .list-row {
+  min-width: max-content;
   display: flex;
   align-items: center;
   gap: 10px;

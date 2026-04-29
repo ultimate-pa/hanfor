@@ -202,6 +202,14 @@ svg { display: block; overflow: visible; }
   gap:8px;
 }
 
+.pp-ensemble-entry .search-dropdown {
+    position: relative;
+}
+
+.pp-ensemble-entry .search-list {
+    width: 100%;
+}
+
 .pp-ensemble-entry-fields{
   display:flex;
   gap:4px;

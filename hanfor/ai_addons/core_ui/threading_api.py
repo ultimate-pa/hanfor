@@ -1,6 +1,7 @@
 from flask_restx import Resource, fields, Namespace
 
 from hanfor_flask import current_app
+from thread_handling.thread_function_decorator import thread_function, is_stopped, set_status
 from thread_handling.threading_core import ThreadGroup
 
 threading_api_namespace = Namespace("Threading", "Dashboard data threading", path="/threading", ordered=True)
@@ -76,7 +77,7 @@ class ApiThreadingDummy(Resource):
         from thread_handling.threading_core import ThreadTask, SchedulingClass
         import random
 
-        sleep = int(random.uniform(2000, 10000))
+        sleep = int(random.uniform(2000, 10000000))
         seconds = sleep / 1000
 
         task = ThreadTask(
@@ -93,10 +94,15 @@ class ApiThreadingDummy(Resource):
         return None, 204
 
 
-def _dummy_task(sleep, stop_events):
+@thread_function
+def _dummy_task(sleep):
     import time
 
+    c = 0
     for i in range(sleep):
-        time.sleep(0.001)
-        if any(e.is_set() for e in stop_events):
+        if c % 100 == 0:
+            set_status(f"{c/100}s")
+        time.sleep(0.01)
+        c += 1
+        if is_stopped():
             break

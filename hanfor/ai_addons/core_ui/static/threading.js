@@ -67,12 +67,10 @@ async function cancelTask(taskId) {
 function taskRow({ function: fn, group, scheduling_class, task_id, status, queued_at, started_at, info_text}) {
   const isCancelling = status === 'cancel requested';
   const ts = started_at ?? queued_at;
-  console.log(`${info_text}: ${started_at}, ${queued_at}`)
-
 
   return `
     <div class="list-row">
-      <span class="list-name">${fn}() - ${info_text}</span>
+      <span class="list-name">${fn}() - ${info_text} - status: ${status}</span>
       <span class="badge badge-${group}">${group}</span>
       <span class="badge badge-sc">${scheduling_class}</span>
       <span class="list-elapsed" data-since="${ts}">0s</span>
@@ -80,7 +78,7 @@ function taskRow({ function: fn, group, scheduling_class, task_id, status, queue
         class="th-cancel-btn${isCancelling ? ' cancelling' : ''}"
         data-task-id="${task_id}"
         ${isCancelling ? 'disabled' : ''}
-      >${isCancelling ? '…' : '✕'}</button>
+      >${isCancelling ? '-' : 'x'}</button>
     </div>`;
 }
 

@@ -11,6 +11,7 @@ from hanfor_flask import current_app
 from lib_core.data import Requirement
 from lib_core.pattern import APattern
 from thread_handling.threading_core import SchedulingClass, ThreadTask, ThreadGroup, ThreadHandler, TaskResult
+from thread_handling.thread_function_decorator import thread_function, is_stopped, set_status
 
 import json
 from dataclasses import dataclass
@@ -146,9 +147,10 @@ class PatternPrediction(AiAddonAbstractClass):
         return "Using a decision tree, a requirement can be assigned to a pattern with the help of an AI."
 
     @AiAddonAbstractClass.requires_enabled
-    def predict_patterns_for_all_requirements(self, requirements, stop_events: list[Event]):
+    @thread_function
+    def predict_patterns_for_all_requirements(self, requirements):
         for req_id, requirement in requirements.items():
-            if stop_events and any(e.is_set() for e in stop_events):
+            if is_stopped():
                 break
             task = ThreadTask(
                 self.predict_pattern_for_requirement,
@@ -215,13 +217,15 @@ class PatternPrediction(AiAddonAbstractClass):
                 send_ai_update(payload, "socket_pattern_prediction", self.socketio, sid)
 
     @AiAddonAbstractClass.requires_enabled
-    def predict_pattern_for_requirement(self, req_id: str, req_desc: str, stop_events: list[Event]):
+    @thread_function
+    def predict_pattern_for_requirement(self, req_id: str, req_desc: str):
         node = self.prediction_tree.root
         trace = []
         detailed_trace = []
 
         while isinstance(node, PatternPredictionTreeNode):
-            if stop_events and any(e.is_set() for e in stop_events):
+            set_status(f"node: {node.id}")
+            if is_stopped():
                 self._abort_prediction([], req_id, trace)
                 return
 
@@ -247,17 +251,19 @@ class PatternPrediction(AiAddonAbstractClass):
                         )
                     )
 
-            if stop_events and any(e.is_set() for e in stop_events):
+            set_status(f"node: {node.id} | waiting for {len(task_results)} AI responses")
+            if is_stopped():
                 self._abort_prediction(task_results, req_id, trace)
                 return
 
-            result, ai_status, model_answers = self._collect_scores(task_results, answer_options, stop_events)
+            result, ai_status, model_answers = self._collect_scores(task_results, answer_options, is_stopped)
             if result is None:
                 self._abort_prediction(task_results, req_id, trace, error=ai_status)
 
                 return
 
             best_key = max(result, key=lambda k: result[k])
+            set_status(f"node: {node.id} | chose: {best_key}")
             trace.append({"nodeId": node.id, "question": node.question, "scores": result.copy(), "chosen": best_key})
             detailed_trace.append(
                 {
@@ -281,6 +287,7 @@ class PatternPrediction(AiAddonAbstractClass):
                 node = next_node
 
         # Leaf reached - store final pattern
+        set_status(f"done | pattern: {node.pattern_name}")
         data = self.requirement_data[req_id]
         data.trace = trace
         data.pattern = node.pattern
@@ -340,7 +347,7 @@ class PatternPrediction(AiAddonAbstractClass):
 
     @staticmethod
     def _collect_scores(
-        task_results: list[tuple[TaskResult, float, str]], answer_options: list[str], stop_events: list[Event]
+        task_results: list[tuple[TaskResult, float, str]], answer_options: list[str], is_stoped: callable
     ) -> tuple[dict[str, float] | None, str | None, None | list]:
         """Aggregate and normalize scores from all AI responses. Returns None on error."""
         result = {a: 0.0 for a in answer_options}
@@ -353,7 +360,7 @@ class PatternPrediction(AiAddonAbstractClass):
                 continue
 
             while True:
-                if stop_events and any(e.is_set() for e in stop_events):
+                if is_stoped():
                     return None, "cancelled", None
                 try:
                     ai_response, ai_status = task_result.result(timeout=0.05)

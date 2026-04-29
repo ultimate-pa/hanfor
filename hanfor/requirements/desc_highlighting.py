@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import time
 from threading import Event
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -13,6 +14,7 @@ from lib_core.data import Variable
 from bisect import bisect_left
 from immutabledict import immutabledict
 
+from thread_handling.thread_function_decorator import thread_function, is_stopped, set_status
 from thread_handling.threading_core import ThreadTask, SchedulingClass, ThreadGroup
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
@@ -117,8 +119,9 @@ def new_variables_regenerate_highlighting(variables: set[Variable]) -> None:
         )
 
 
+@thread_function
 def generate_all_highlighted_desc(
-    new_variables: List[str], requirements: Optional[immutabledict[int | str, Any]], stop_events: list[Event] = []
+    new_variables: List[str], requirements: Optional[immutabledict[int | str, Any]]
 ) -> None:
     """
     Regenerates highlighted descriptions for all requirements.
@@ -138,7 +141,7 @@ def generate_all_highlighted_desc(
 
     # Initialize entries for each requirement
     if requirements:
-        logging.info("Initialize each requirement...")
+        set_status("Initialize each requirement...")
         for req_id, requirement in requirements.items():
             word_positions = _normalize_and_group_positions_from_desc(requirement.description)
 
@@ -153,11 +156,10 @@ def generate_all_highlighted_desc(
 
     all_req_data = list(requirement_highlighting_data_per_req.values())
     total = len(all_req_data)
-    step = max(total // 5, 1)
 
     # (Re)compute variable matches and generate HTML
     for idx, req_data in enumerate(all_req_data, start=1):
-        if any(e.is_set() for e in stop_events):
+        if is_stopped():
             break
         exact_variables = []
         for plain_var, _ in variable_sets_list:
@@ -179,9 +181,9 @@ def generate_all_highlighted_desc(
             req_data.description,
         )
 
-        if idx % step == 0 or idx == total:
-            percent = int(idx / total * 100)
-            logging.info(f"Processed {idx}/{total} requirements ({percent}%)")
+        percent = int(idx / total * 100)
+        set_status(f"Processed {idx}/{total} requirements ({percent}%)")
+        time.sleep(0.5)
 
 
 def _normalize_variable(var: str) -> set[str]:

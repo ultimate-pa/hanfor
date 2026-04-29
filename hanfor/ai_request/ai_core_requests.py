@@ -13,6 +13,7 @@ import importlib
 import logging
 import requests
 
+from thread_handling.thread_function_decorator import thread_function, is_stopped, set_status
 from thread_handling.threading_core import ThreadHandler, ThreadTask, SchedulingClass, ThreadGroup, TaskResult
 from enum import Enum
 
@@ -44,15 +45,18 @@ class ProviderEntry:
 class AiCatalogTester:
     """Tests all models of all providers against their registered API methods."""
 
-    def check_all_models_activity(self, catalog: dict[str, ProviderEntry], stop_events: Optional[list[Event]]):
-        """Tests every model of every provider with all registered api methods. Returns {provider: {method: {model: status}}}."""
+    def check_all_models_activity(self, catalog: dict[str, ProviderEntry]):
+        """Tests every model of every provider with all registered api methods."""
         for provider_name, provider_entry in catalog.items():
-            if stop_events and any(e.is_set() for e in stop_events):
+            if is_stopped():
+                print("STOP")
                 return
-            self.activity_test_provider(provider_entry, stop_events)
+            set_status(f"checking provider: {provider_name}")
+            self.activity_test_provider(provider_name, provider_entry)
 
-    def activity_test_provider(self, provider_entry: ProviderEntry, stop_events: Optional[list[Event]]):
+    def activity_test_provider(self, provider_name: str, provider_entry: ProviderEntry):
         if not self.__is_reachable(provider_entry.url):
+            set_status(f"{provider_name}: unreachable")
             provider_entry.activity = TestedActivity.INACTIVE
             for model_name, (desc, activity) in provider_entry.models.items():
                 if activity == TestedActivity.ACTIVE:
@@ -67,25 +71,27 @@ class AiCatalogTester:
                 provider_entry.models[model_name] = (desc, TestedActivity.NOT_TESTED)
             return
 
-        for model_name, (desc, activity) in provider_entry.models.items():
-            if stop_events and any(e.is_set() for e in stop_events):
+        total = len(provider_entry.models)
+        for i, (model_name, (desc, activity)) in enumerate(provider_entry.models.items(), 1):
+            if is_stopped():
+                print("STOP")
                 return
-            self.activity_test_model(model_name, desc, provider_entry, stop_events)
+            set_status(f"{provider_name}: testing {model_name} ({i}/{total})")
+            self.activity_test_model(model_name, desc, provider_entry)
 
     @staticmethod
-    def activity_test_model(
-        model_name: str, desc: str, provider_entry: ProviderEntry, stop_events: Optional[list[Event]]
-    ):
+    def activity_test_model(model_name: str, desc: str, provider_entry: ProviderEntry):
         test_prompt = "Say 'ok'."
         if len(provider_entry.api_methods) <= 0:
             provider_entry.models[model_name] = (desc, TestedActivity.INACTIVE)
             return
         for _, method in provider_entry.api_methods.items():
-            if stop_events and any(e.is_set() for e in stop_events):
+            if is_stopped():
+                print("STOP")
                 return
             try:
                 response, status = method.query_api(
-                    test_prompt, provider_entry.url, provider_entry.api_key, model_name, None, stop_events
+                    test_prompt, provider_entry.url, provider_entry.api_key, model_name, None
                 )
                 if response:
                     provider_entry.models[model_name] = (desc, TestedActivity.ACTIVE)
@@ -96,13 +102,12 @@ class AiCatalogTester:
 
     @staticmethod
     def __is_reachable(url: str) -> bool:
-        """Returns True if the provider URL is reachable, otherwise writes the error into results."""
+        """Returns True if the provider URL is reachable."""
         try:
             requests.get(url, timeout=3)
             return True
-        except:
-            pass
-        return False
+        except Exception:
+            return False
 
 
 class AiRequest:
@@ -222,8 +227,9 @@ class AiRequest:
 
         return data
 
-    def __check_all_models(self, stop_events: Optional[list[Event]]):
-        self.__catalog_tester.check_all_models_activity(self.__ai_model_catalog, stop_events)
+    @thread_function
+    def __check_all_models(self):
+        self.__catalog_tester.check_all_models_activity(self.__ai_model_catalog)
         send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
 
     def set_default_provider(self, set_provider_name_to_default: str):
