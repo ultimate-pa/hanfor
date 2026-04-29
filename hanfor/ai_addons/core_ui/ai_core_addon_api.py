@@ -69,6 +69,15 @@ def register_addon_templates(app, addons: dict):
 
 
 def register_addon_statics(app, addons: dict):
+
+    core_static = Blueprint(
+        "core_ui_static",
+        __name__,
+        static_folder=path.join(str(path.dirname(__file__)), "static"),
+        static_url_path="/ai_addons/core_ui/static",
+    )
+    app.register_blueprint(core_static)
+
     for addon_name, addon in addons.items():
         static_folder = addon.get_static_folder()
         if static_folder:
