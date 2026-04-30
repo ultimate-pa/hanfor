@@ -230,7 +230,8 @@ class AiRequest:
     @thread_function
     def __check_all_models(self):
         self.__catalog_tester.check_all_models_activity(self.__ai_model_catalog)
-        send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
+        if self.__socketio:
+            send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
 
     def set_default_provider(self, set_provider_name_to_default: str):
         if set_provider_name_to_default in self.__ai_model_catalog:
