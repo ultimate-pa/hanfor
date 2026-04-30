@@ -111,8 +111,15 @@ function applyTrace(requestId) {
   }
 }
 
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 function showErrorBanner(message) {
-  window.showBanner(`<strong>Prediction error:</strong> ${message}`, "danger", "prediction-error-banner");
+  window.showBanner(`<strong>Prediction error:</strong> ${escapeHtml(message)}`, "danger", "prediction-error-banner");
 }
 
 
