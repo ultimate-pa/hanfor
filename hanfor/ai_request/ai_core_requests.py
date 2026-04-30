@@ -1,6 +1,6 @@
 import sys
 from socket import SocketIO
-from threading import Event, Semaphore
+from threading import Semaphore
 from dataclasses import dataclass, field
 from typing import Optional, Callable, Tuple
 
@@ -249,7 +249,7 @@ class AiRequest:
 
     def activity_test_provider(self, provider: str):
         if provider in self.__ai_model_catalog:
-            self.__catalog_tester.activity_test_provider(self.__ai_model_catalog[provider], Event())
+            self.__catalog_tester.activity_test_provider(provider, self.__ai_model_catalog[provider])
 
         if self.__socketio:
             send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
@@ -258,9 +258,7 @@ class AiRequest:
         if provider in self.__ai_model_catalog:
             if model_name in self.__ai_model_catalog[provider].models:
                 model = self.__ai_model_catalog[provider].models[model_name]
-                self.__catalog_tester.activity_test_model(
-                    model_name, model[0], self.__ai_model_catalog[provider], Event()
-                )
+                self.__catalog_tester.activity_test_model(model_name, model[0], self.__ai_model_catalog[provider])
         if self.__socketio:
             send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
 
