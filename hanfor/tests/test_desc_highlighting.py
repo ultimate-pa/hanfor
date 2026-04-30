@@ -1,6 +1,5 @@
 from unittest import TestCase
 from lib_core.data import Requirement
-from threading import Event
 from requirements.desc_highlighting import (
     _words_between,
     _normalize_variable,
