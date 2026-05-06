@@ -198,7 +198,7 @@ function providerCard(p) {
 
       </div>
 
-      <div class="ai-provider-models">
+      <div class="ai-provider-models scrollbar">
         ${p.models.map(m => modelCard(p.name, m)).join("")}
       </div>
 

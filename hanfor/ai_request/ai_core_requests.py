@@ -45,16 +45,17 @@ class ProviderEntry:
 class AiCatalogTester:
     """Tests all models of all providers against their registered API methods."""
 
-    def check_all_models_activity(self, catalog: dict[str, ProviderEntry]):
+    def check_all_models_activity(self, catalog: dict[str, ProviderEntry], socketio: SocketIO):
         """Tests every model of every provider with all registered api methods."""
         for provider_name, provider_entry in catalog.items():
             if is_stopped():
-                print("STOP")
                 return
             set_status(f"checking provider: {provider_name}")
-            self.activity_test_provider(provider_name, provider_entry)
+            self.activity_test_provider(provider_name, provider_entry, socketio, catalog)
 
-    def activity_test_provider(self, provider_name: str, provider_entry: ProviderEntry):
+    def activity_test_provider(
+        self, provider_name: str, provider_entry: ProviderEntry, socketio: SocketIO, catalog: dict[str, ProviderEntry]
+    ):
         if not self.__is_reachable(provider_entry.url):
             set_status(f"{provider_name}: unreachable")
             provider_entry.activity = TestedActivity.INACTIVE
@@ -74,20 +75,20 @@ class AiCatalogTester:
         total = len(provider_entry.models)
         for i, (model_name, (desc, activity)) in enumerate(provider_entry.models.items(), 1):
             if is_stopped():
-                print("STOP")
                 return
             set_status(f"{provider_name}: testing {model_name} ({i}/{total})")
             self.activity_test_model(model_name, desc, provider_entry)
+            if socketio:
+                send_ai_update(catalog_to_frontend(catalog), "socket_provider_info", socketio)
 
     @staticmethod
     def activity_test_model(model_name: str, desc: str, provider_entry: ProviderEntry):
-        test_prompt = "Say 'ok'."
+        test_prompt = "only respond with the word 'ok'."
         if len(provider_entry.api_methods) <= 0:
             provider_entry.models[model_name] = (desc, TestedActivity.INACTIVE)
             return
         for _, method in provider_entry.api_methods.items():
             if is_stopped():
-                print("STOP")
                 return
             try:
                 response, status = method.query_api(
@@ -110,6 +111,34 @@ class AiCatalogTester:
             return False
 
 
+def catalog_to_frontend(catalog):
+    data = {"providers": []}
+
+    for provider_name, entry in catalog.items():
+        provider_dict = {
+            "name": provider_name,
+            "default": entry.default_provider,
+            "url": entry.url,
+            "max_request": entry.maximum_concurrent_api_requests,
+            "api_method": ", ".join(entry.api_methods.keys()),
+            "reachable": entry.activity.name,
+            "models": [],
+        }
+
+        for model_name, (desc, activity) in entry.models.items():
+            model_dict = {
+                "name": model_name,
+                "desc": desc,
+                "default": model_name == entry.default_model,
+                "active": activity.name,
+            }
+            provider_dict["models"].append(model_dict)
+
+        data["providers"].append(provider_dict)
+
+    return data
+
+
 class AiRequest:
     """Loads and organizes AI providers and routes incoming requests to the correct API method."""
 
@@ -119,7 +148,9 @@ class AiRequest:
         self.__socketio = None
         self.__ai_model_catalog: dict[str, ProviderEntry] = {}
         self.scan_provider()
-        self.test_all_provider_models()
+
+    def catalog_to_frontend(self):
+        return catalog_to_frontend(self.__ai_model_catalog)
 
     def scan_provider(self, reload_config: bool = False):
         if reload_config and "configuration.ai_config" in sys.modules:
@@ -130,7 +161,7 @@ class AiRequest:
         self.__validate_catalog()
 
         if self.__socketio:
-            send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
+            send_ai_update(catalog_to_frontend(self.__ai_model_catalog), "socket_provider_info", self.__socketio)
 
     def test_all_provider_models(self):
         for _, provider_entry in self.__ai_model_catalog.items():
@@ -139,7 +170,7 @@ class AiRequest:
                 provider_entry.models[model_name] = (model_desc, TestedActivity.NOT_TESTED)
 
         if self.__socketio:
-            send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
+            send_ai_update(catalog_to_frontend(self.__ai_model_catalog), "socket_provider_info", self.__socketio)
 
         self.__thread_handler.submit(
             ThreadTask(
@@ -200,59 +231,34 @@ class AiRequest:
     def ai_model_catalog(self):
         return dict(self.__ai_model_catalog)
 
-    def catalog_to_frontend(self):
-        data = {"providers": []}
-
-        for provider_name, entry in self.__ai_model_catalog.items():
-            provider_dict = {
-                "name": provider_name,
-                "default": entry.default_provider,
-                "url": entry.url,
-                "max_request": entry.maximum_concurrent_api_requests,
-                "api_method": ", ".join(entry.api_methods.keys()),
-                "reachable": entry.activity.name,
-                "models": [],
-            }
-
-            for model_name, (desc, activity) in entry.models.items():
-                model_dict = {
-                    "name": model_name,
-                    "desc": desc,
-                    "default": model_name == entry.default_model,
-                    "active": activity.name,
-                }
-                provider_dict["models"].append(model_dict)
-
-            data["providers"].append(provider_dict)
-
-        return data
-
     @thread_function
     def __check_all_models(self):
-        self.__catalog_tester.check_all_models_activity(self.__ai_model_catalog)
+        self.__catalog_tester.check_all_models_activity(self.__ai_model_catalog, self.__socketio)
         if self.__socketio:
-            send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
+            send_ai_update(catalog_to_frontend(self.__ai_model_catalog), "socket_provider_info", self.__socketio)
 
     def set_default_provider(self, set_provider_name_to_default: str):
         if set_provider_name_to_default in self.__ai_model_catalog:
             for provider_name, entry in self.__ai_model_catalog.items():
                 entry.default_provider = provider_name == set_provider_name_to_default
         if self.__socketio:
-            send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
+            send_ai_update(catalog_to_frontend(self.__ai_model_catalog), "socket_provider_info", self.__socketio)
 
     def set_default_model(self, provider: str, set_model_name_to_default: str):
         if provider in self.__ai_model_catalog:
             if set_model_name_to_default in self.__ai_model_catalog[provider].models:
                 self.__ai_model_catalog[provider].default_model = set_model_name_to_default
         if self.__socketio:
-            send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
+            send_ai_update(catalog_to_frontend(self.__ai_model_catalog), "socket_provider_info", self.__socketio)
 
     def activity_test_provider(self, provider: str):
         if provider in self.__ai_model_catalog:
-            self.__catalog_tester.activity_test_provider(provider, self.__ai_model_catalog[provider])
+            self.__catalog_tester.activity_test_provider(
+                provider, self.__ai_model_catalog[provider], self.__socketio, self.__ai_model_catalog
+            )
 
         if self.__socketio:
-            send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
+            send_ai_update(catalog_to_frontend(self.__ai_model_catalog), "socket_provider_info", self.__socketio)
 
     def activity_test_model(self, provider: str, model_name: str):
         if provider in self.__ai_model_catalog:
@@ -260,7 +266,7 @@ class AiRequest:
                 model = self.__ai_model_catalog[provider].models[model_name]
                 self.__catalog_tester.activity_test_model(model_name, model[0], self.__ai_model_catalog[provider])
         if self.__socketio:
-            send_ai_update(self.catalog_to_frontend(), "socket_provider_info", self.__socketio)
+            send_ai_update(catalog_to_frontend(self.__ai_model_catalog), "socket_provider_info", self.__socketio)
 
     def _resolve_provider(self, provider: Optional[str]) -> str:
         if provider and provider in self.__ai_model_catalog:
