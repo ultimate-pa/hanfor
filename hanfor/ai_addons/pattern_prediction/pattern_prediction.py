@@ -306,6 +306,7 @@ class PatternPrediction(AiAddonAbstractClass):
                 traces[req_id] = {
                     "detailed_trace": trace,
                     "chosen_pattern": f"{req_data.pattern_name}",
+                    "chosen_scope": "Globally",
                 }
 
         return traces
