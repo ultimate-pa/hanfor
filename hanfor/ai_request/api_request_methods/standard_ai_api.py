@@ -117,7 +117,6 @@ class OllamaStandard(ai_api_methods_abstract_class.AiApiMethod):
                 logging.error("Empty response from API")
                 return None, "error_ai_response_empty"
 
-            print("".join(full_response))
             set_status(f"done ({len(''.join(full_response))} chars)")
             return "".join(full_response), "ai_response_received"
 

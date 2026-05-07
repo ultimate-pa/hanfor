@@ -305,7 +305,7 @@ class PatternPrediction(AiAddonAbstractClass):
             if trace is not None:
                 traces[req_id] = {
                     "detailed_trace": trace,
-                    "chosen Pattern": f"{req_data.pattern_name}: {req_data.pattern.get_text()}",
+                    "chosen_pattern": f"{req_data.pattern_name}",
                 }
 
         return traces
