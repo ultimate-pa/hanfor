@@ -22,6 +22,8 @@ core_ai_addon_api_namespace = Namespace(
     "AI Addon: Core", "Routes for core things for the ai Addon", path="/core-ai-addon", ordered=True
 )
 
+# --- Models ---
+
 REQ_IDS = core_ai_addon_api_namespace.model(
     "Requirement Ids", {"ids": fields.List(fields.String, example=["REQ001", "REQ002", "REQ003"])}
 )
@@ -56,6 +58,8 @@ PROVIDERS_RESPONSE = core_ai_addon_api_namespace.model(
     },
 )
 
+# --- Helpers ---
+
 
 def register_addon_templates(app, addons: dict):
     extra_loaders = []
@@ -88,6 +92,9 @@ def register_addon_statics(app, addons: dict):
                 static_url_path=f"/ai_addons/{addon_name}/static",
             )
             app.register_blueprint(blueprint)
+
+
+# --- API Routes ---
 
 
 @core_ai_addon_blueprint.route("/", methods=["GET"])

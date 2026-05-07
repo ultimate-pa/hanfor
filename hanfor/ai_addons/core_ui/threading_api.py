@@ -6,6 +6,7 @@ from thread_handling.threading_core import ThreadGroup
 
 threading_api_namespace = Namespace("Threading", "Dashboard data threading", path="/threading", ordered=True)
 
+# --- Models ---
 
 TASK_MODEL = threading_api_namespace.model(
     "Task",
@@ -39,6 +40,8 @@ THREAD_CANCEL_RESPONSE = threading_api_namespace.model(
     "ThreadCancelResponse", {"info": fields.String(example="cancelled task: abc-123"), "found": fields.Boolean()}
 )
 
+# --- API Routes ---
+
 
 @threading_api_namespace.route("/")
 class ApiThreadingData(Resource):
@@ -69,7 +72,7 @@ class ApiThreadingCancelTask(Resource):
         return {"info": f"cancel requested: {task_id}", "found": found}
 
 
-# ---- TEMP TODO ---------
+# ---- TEMP DEBUG ---------
 @threading_api_namespace.route("/dummy-task")
 class ApiThreadingDummy(Resource):
     @threading_api_namespace.response(204, "Success")

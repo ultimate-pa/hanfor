@@ -1,9 +1,9 @@
-from engineio import payload
 from flask_restx import Namespace, Resource, fields
 from hanfor_flask import current_app
 
 ai_api_namespace = Namespace("AI", "Dashboard data for AI", path="/ai", ordered=True)
 
+# --- Models ---
 
 AI_ADDON_ITEM = ai_api_namespace.model(
     "AI Addon Item",
@@ -33,6 +33,8 @@ PROVIDER_MODEL_INPUT = ai_api_namespace.model(
     },
 )
 MODEL_ACTIONS = ["set_default", "test"]
+
+# --- API Routes ---
 
 
 @ai_api_namespace.route("/")

@@ -73,7 +73,7 @@ def _get_addon() -> PatternPrediction:
     return current_app.ai_addons.get_addon("pattern_prediction", PatternPrediction)
 
 
-# --- Resources ---
+# --- API Routes ---
 
 
 @pattern_prediction_namespace.route("/tree")
