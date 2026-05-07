@@ -84,7 +84,7 @@ class MyAddon(AiAddonAbstractClass):
         pass
 ```
 
-**Available dependencies:** `thread_handler`, `ai_request`, `socketio`
+**Available dependencies:** `thread_handler`, `ai_request`, `socketio`, `db`
 
 For methods that should do nothing when the addon is disabled:
 

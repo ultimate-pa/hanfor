@@ -7,6 +7,7 @@ from ai_addons.ai_addon_abstract_class import AiAddonAbstractClass
 from ai_addons.threading_ai_socketio import send_ai_update
 from ai_request.ai_core_requests import AiRequest
 from configuration import ai_config
+from json_db_connector.json_db import JsonDatabase
 from thread_handling.threading_core import ThreadHandler
 from typing import TypeVar, Type
 
@@ -16,10 +17,11 @@ T = TypeVar("T", bound=AiAddonAbstractClass)
 class AiAddons:
     """Registry for all AI addons. Handles loading, access, and toggling"""
 
-    def __init__(self, thread_handler: ThreadHandler, ai_request: AiRequest):
+    def __init__(self, thread_handler: ThreadHandler, ai_request: AiRequest, db: JsonDatabase):
         self.__thread_handler = thread_handler
         self.__ai_request = ai_request
         self.__socket_io = None
+        self.__db = db
         self.__addons: dict[str, AiAddonAbstractClass] = {}
 
     @property
@@ -29,6 +31,7 @@ class AiAddons:
             "thread_handler": self.__thread_handler,
             "ai_request": self.__ai_request,
             "socketio": self.__socket_io,
+            "db": self.__db,
         }
 
     def set_socketio(self, socket_io: SocketIO):

@@ -263,7 +263,7 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
 
     if flask_app.config["FEATURE_AI"]:
         flask_app.ai_request = AiRequest(flask_app.thread_handler)
-        flask_app.ai_addons = AiAddons(flask_app.thread_handler, flask_app.ai_request)
+        flask_app.ai_addons = AiAddons(flask_app.thread_handler, flask_app.ai_request, flask_app.db)
 
     return True
 
