@@ -9,8 +9,13 @@ import subprocess
 
 from flask import jsonify
 from flask_socketio import SocketIO
+from sentry_sdk import ai
 
-from ai_addons.core_ui import all_threading_ai_addon_blueprints
+from ai_addons.core_ui import (
+    all_ai_addon_namespaces_and_blueprints,
+    threading_namespace_and_blueprint,
+    ai_namespace_and_blueprint,
+)
 from ai_addons.core_ui.ai_core_addon_api import register_addon_templates, register_addon_statics
 from ai_addons.threading_ai_socketio import AiAddonData
 from hanfor_flask import HanforFlask, Api
@@ -80,12 +85,25 @@ app.register_blueprint(tools_api)
 app.register_blueprint(queries_api)
 # Simulator
 app.register_blueprint(simulator_blueprint.blueprint)
-# AI Addons
-for threading_ai_addon_blueprint, threading_ai_addon_namespace in all_threading_ai_addon_blueprints:
-    if threading_ai_addon_blueprint:
-        app.register_blueprint(threading_ai_addon_blueprint)
-    if threading_ai_addon_namespace:
-        api.add_namespace(threading_ai_addon_namespace)
+# Threading
+for blueprint, namespace in threading_namespace_and_blueprint:
+    if blueprint:
+        app.register_blueprint(blueprint)
+    if namespace:
+        api.add_namespace(namespace)
+
+# AI and AI Addons
+if app.config["FEATURE_AI"]:
+    ai_blueprint, ai_namespace = ai_namespace_and_blueprint
+    if ai_blueprint:
+        app.register_blueprint(ai_blueprint)
+    if ai_namespace:
+        api.add_namespace(ai_namespace)
+    for ai_addon_blueprint, ai_addon_namespace in all_ai_addon_namespaces_and_blueprints:
+        if ai_addon_blueprint:
+            app.register_blueprint(ai_addon_blueprint)
+        if ai_addon_namespace:
+            api.add_namespace(ai_addon_namespace)
 
 # Register feature blueprints and apis
 if app.config["FEATURE_EXAMPLE_BLUEPRINT"]:

@@ -11,9 +11,12 @@ core_ai_addon_blueprint = Blueprint(
     "ai_addons",
     __name__,
     template_folder="templates",
-    static_folder="static",
+    static_folder=path.join(str(path.dirname(__file__)), "static"),
+    static_url_path="/ai_addons/core_ui/static",
     url_prefix="/core_ai_addon",
 )
+
+
 BUNDLE_JS = ["dist/ai_core_addons-bundle.js", "dist/threading-bundle.js"]
 TAB_NAMES = ["Threading"]
 TAB_PAGES = ["ai_addons/threading.html"]
@@ -73,15 +76,6 @@ def register_addon_templates(app, addons: dict):
 
 
 def register_addon_statics(app, addons: dict):
-
-    core_static = Blueprint(
-        "core_ui_static",
-        __name__,
-        static_folder=path.join(str(path.dirname(__file__)), "static"),
-        static_url_path="/ai_addons/core_ui/static",
-    )
-    app.register_blueprint(core_static)
-
     for addon_name, addon in addons.items():
         static_folder = addon.get_static_folder()
         if static_folder:
@@ -133,8 +127,11 @@ def index():
 @core_ai_addon_api_namespace.route("/ai-provider-data")
 class CoreAiAddonProviderData(Resource):
     @core_ai_addon_api_namespace.response(200, "Success", PROVIDERS_RESPONSE)
+    @core_ai_addon_api_namespace.response(403, "AI is disabled")
     def get(self):
-        return current_app.ai_request.catalog_to_frontend()
+        if current_app.config["FEATURE_AI"]:
+            return current_app.ai_request.catalog_to_frontend()
+        return 403, "AI is disabled"
 
 
 @core_ai_addon_api_namespace.route("/req-ids")

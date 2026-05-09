@@ -28,11 +28,6 @@ _set_status_var: ContextVar[Optional[Callable[[str], None]]] = ContextVar("_set_
 # ---------------------------------------------------------------------------
 
 
-def stop_events() -> list[threading.Event]:
-    """Return the stop-event list for the currently running task."""
-    return _stop_events_var.get()
-
-
 def is_stopped() -> bool:
     """True if any stop event has been set."""
     return any(e.is_set() for e in _stop_events_var.get())
