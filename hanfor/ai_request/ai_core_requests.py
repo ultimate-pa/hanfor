@@ -4,7 +4,7 @@ from threading import Semaphore
 from dataclasses import dataclass, field
 from typing import Optional, Callable, Tuple
 
-from ai_addons.threading_ai_socketio import send_ai_update
+from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
 from ai_request.ai_api_methods_abstract_class import AiApiMethod
 from configuration import ai_config
 
@@ -43,13 +43,15 @@ class ProviderEntry:
 
 
 class AiCatalogTester:
-    def __init__(self, ask_ai: Callable, socket_io: SocketIO, thread_handler: ThreadHandler):
+    def __init__(
+        self, ask_ai: Callable, send_update_threading_and_ai: SendUpdateThreadingAndAi, thread_handler: ThreadHandler
+    ):
         self.ask_ai = ask_ai
-        self.socket_io = socket_io
+        self.send_update_threading_and_ai = send_update_threading_and_ai
         self.__thread_handler = thread_handler
 
     def send_update(self, catalog):
-        send_ai_update(catalog_to_frontend(catalog), "socket_provider_info", self.socket_io)
+        self.send_update_threading_and_ai.send_ai_update(catalog_to_frontend(catalog), "socket_provider_info")
 
     @staticmethod
     def __is_reachable(url: str) -> bool:
@@ -165,10 +167,10 @@ def catalog_to_frontend(catalog):
 class AiRequest:
     """Loads and organizes AI providers and routes incoming requests to the correct API method."""
 
-    def __init__(self, thread_handler: ThreadHandler):
+    def __init__(self, thread_handler: ThreadHandler, send_update_threading_and_ai: SendUpdateThreadingAndAi):
         self.__thread_handler = thread_handler
-        self.__catalog_tester: AiCatalogTester = None
-        self.__socketio: SocketIO = None
+        self.__catalog_tester = AiCatalogTester(self.ask_ai, send_update_threading_and_ai, self.__thread_handler)
+        self.__send_update_threading_and_ai: SendUpdateThreadingAndAi = send_update_threading_and_ai
         self.__ai_model_catalog: dict[str, ProviderEntry] = {}
         self.scan_provider()
 
@@ -183,8 +185,9 @@ class AiRequest:
         self.__register_api_methods()
         self.__validate_catalog()
 
-        if self.__socketio:
-            send_ai_update(catalog_to_frontend(self.__ai_model_catalog), "socket_provider_info", self.__socketio)
+        self.__send_update_threading_and_ai.send_ai_update(
+            catalog_to_frontend(self.__ai_model_catalog), "socket_provider_info"
+        )
 
     def test_all_provider_models(self):
         for _, provider_entry in self.__ai_model_catalog.items():
@@ -192,8 +195,9 @@ class AiRequest:
             for model_name, (model_desc, activity) in provider_entry.models.items():
                 provider_entry.models[model_name] = (model_desc, TestedActivity.NOT_TESTED)
 
-        if self.__socketio:
-            send_ai_update(catalog_to_frontend(self.__ai_model_catalog), "socket_provider_info", self.__socketio)
+        self.__send_update_threading_and_ai.send_ai_update(
+            catalog_to_frontend(self.__ai_model_catalog), "socket_provider_info"
+        )
 
         self.__thread_handler.submit(
             ThreadTask(
@@ -207,10 +211,6 @@ class AiRequest:
                 info_text="provider/model status check",
             )
         )
-
-    def set_socketio(self, socketio: SocketIO):
-        self.__socketio = socketio
-        self.__catalog_tester = AiCatalogTester(self.ask_ai, socketio, self.__thread_handler)
 
     def ask_ai(
         self,
@@ -259,15 +259,17 @@ class AiRequest:
         if set_provider_name_to_default in self.__ai_model_catalog:
             for provider_name, entry in self.__ai_model_catalog.items():
                 entry.default_provider = provider_name == set_provider_name_to_default
-        if self.__socketio:
-            send_ai_update(catalog_to_frontend(self.__ai_model_catalog), "socket_provider_info", self.__socketio)
+            self.__send_update_threading_and_ai.send_ai_update(
+                catalog_to_frontend(self.__ai_model_catalog), "socket_provider_info"
+            )
 
     def set_default_model(self, provider: str, set_model_name_to_default: str):
         if provider in self.__ai_model_catalog:
             if set_model_name_to_default in self.__ai_model_catalog[provider].models:
                 self.__ai_model_catalog[provider].default_model = set_model_name_to_default
-        if self.__socketio:
-            send_ai_update(catalog_to_frontend(self.__ai_model_catalog), "socket_provider_info", self.__socketio)
+            self.__send_update_threading_and_ai.send_ai_update(
+                catalog_to_frontend(self.__ai_model_catalog), "socket_provider_info"
+            )
 
     def activity_test_provider(self, provider: str):
         if provider in self.__ai_model_catalog:

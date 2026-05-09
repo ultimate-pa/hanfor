@@ -1,10 +1,9 @@
 import os
 import importlib
 import logging
-from socket import SocketIO
 
 from ai_addons.ai_addon_abstract_class import AiAddonAbstractClass
-from ai_addons.threading_ai_socketio import send_ai_update
+from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
 from ai_request.ai_core_requests import AiRequest
 from configuration import ai_config
 from json_db_connector.json_db import JsonDatabase
@@ -17,12 +16,21 @@ T = TypeVar("T", bound=AiAddonAbstractClass)
 class AiAddons:
     """Registry for all AI addons. Handles loading, access, and toggling"""
 
-    def __init__(self, thread_handler: ThreadHandler, ai_request: AiRequest, db: JsonDatabase):
+    def __init__(
+        self,
+        thread_handler: ThreadHandler,
+        ai_request: AiRequest,
+        db: JsonDatabase,
+        send_update_threading_and_ai: SendUpdateThreadingAndAi,
+    ):
         self.__thread_handler = thread_handler
         self.__ai_request = ai_request
-        self.__socket_io = None
+        self.__send_update_threading_and_ai = send_update_threading_and_ai
         self.__db = db
         self.__addons: dict[str, AiAddonAbstractClass] = {}
+
+    def load_all_ai_addons(self):
+        self.__load_all_ai_addons()
 
     @property
     def __dependencies(self) -> dict[str, object]:
@@ -30,14 +38,9 @@ class AiAddons:
         return {
             "thread_handler": self.__thread_handler,
             "ai_request": self.__ai_request,
-            "socketio": self.__socket_io,
+            "send_update_threading_and_ai": self.__send_update_threading_and_ai,
             "db": self.__db,
         }
-
-    def set_socketio(self, socket_io: SocketIO):
-        """Set the SocketIO instance and trigger addon loading"""
-        self.__socket_io = socket_io
-        self.__load_all_ai_addons()
 
     def get_addon(self, addon_id: str, addon_type: Type[T]) -> T:
         """Return a specific addon by ID"""
@@ -51,7 +54,7 @@ class AiAddons:
         """Toggle an addon on/off and notify the frontend to reload."""
         if addon_id in self.__addons.keys():
             self.__addons[addon_id].toggle_addon()
-            send_ai_update({}, "reload", self.__socket_io)
+            self.__send_update_threading_and_ai.send_ai_update({}, "reload")
 
     def __load_all_ai_addons(self):
         """Dynamically discover and instantiate all addons in subdirectories."""

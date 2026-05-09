@@ -6,10 +6,8 @@
 import logging
 import os
 import subprocess
-
 from flask import jsonify
 from flask_socketio import SocketIO
-from sentry_sdk import ai
 
 from ai_addons.core_ui import (
     all_ai_addon_namespaces_and_blueprints,
@@ -17,7 +15,7 @@ from ai_addons.core_ui import (
     ai_namespace_and_blueprint,
 )
 from ai_addons.core_ui.ai_core_addon_api import register_addon_templates, register_addon_statics
-from ai_addons.threading_ai_socketio import AiAddonData
+from ai_addons.threading_ai_socketio import AiAddonData, SendUpdateThreadingAndAi
 from hanfor_flask import HanforFlask, Api
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import HTTPException
@@ -55,6 +53,7 @@ app.db = None
 
 # Initialize SocketIO
 socketio = SocketIO(app, **app.config["SOCKETIO_SETTINGS"])
+
 
 # Initialize Api framework
 api = Api(app, version="1.0", title="Hanfor API", prefix="/api/v1", doc="/api")
@@ -138,6 +137,9 @@ socketio.on_namespace(telemetry_namespace)
 ai_addon_namespace = AiAddonData("/ai_addon_data")
 socketio.on_namespace(ai_addon_namespace)
 
+# socket messanger for threading and ai / ai addon updats
+send_update_threading_and_ai = SendUpdateThreadingAndAi(socketio)
+
 logging.basicConfig(
     format="[%(asctime)s %(filename)s:%(lineno)d] %(levelname)s - %(message)s",
     datefmt="%y-%m-%d %H:%M:%S",
@@ -209,18 +211,14 @@ if __name__ == "__main__":
 
     # Parse python args and startup hanfor session.
     parsed_args = HanforArgumentParser(app).parse_args()
-    if startup_hanfor(app, parsed_args, HERE):
+    if startup_hanfor(app, parsed_args, HERE, send_update_threading_and_ai=send_update_threading_and_ai):
 
-        # Provide socket access to features that need regular frontend updates
+        # Register additional addon templates and static files
         if app.config["FEATURE_AI"]:
             with app.app_context():
-                app.ai_addons.set_socketio(socketio)
-                app.ai_request.set_socketio(socketio)
-
+                app.ai_addons.load_all_ai_addons()
                 register_addon_templates(app, app.ai_addons.get_all_addons())
                 register_addon_statics(app, app.ai_addons.get_all_addons())
-        with app.app_context():
-            app.thread_handler.set_socketio(socketio)
 
         if app.config["FEATURE_TELEMETRY"]:
             telemetry_namespace.set_data_folder(app.config["REVISION_FOLDER"])

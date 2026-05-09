@@ -10,6 +10,7 @@ from typing import Callable
 
 from terminaltables import DoubleTable
 
+from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
 from configuration.defaults import Color
 from configuration.tags import STANDARD_TAGS, FUNCTIONAL_TAGS
 from hanfor_flask import HanforFlask
@@ -163,8 +164,15 @@ def set_app_config_paths(flask_app: HanforFlask, here):
     flask_app.config["TEMPLATES_FOLDER"] = os.path.join(here, "templates")
 
 
-def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool = False) -> bool:
-    flask_app.thread_handler = ThreadHandler()
+def startup_hanfor(
+    flask_app: HanforFlask,
+    args,
+    here,
+    *,
+    send_update_threading_and_ai: SendUpdateThreadingAndAi = SendUpdateThreadingAndAi(),
+    no_data_tracing: bool = False,
+) -> bool:
+    flask_app.thread_handler = ThreadHandler(send_update_threading_and_ai)
 
     flask_app.db = JsonDatabase(no_data_tracing=no_data_tracing)
     add_custom_serializer_to_database(flask_app.db)
@@ -262,8 +270,10 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
         )
 
     if flask_app.config["FEATURE_AI"]:
-        flask_app.ai_request = AiRequest(flask_app.thread_handler)
-        flask_app.ai_addons = AiAddons(flask_app.thread_handler, flask_app.ai_request, flask_app.db)
+        flask_app.ai_request = AiRequest(flask_app.thread_handler, send_update_threading_and_ai)
+        flask_app.ai_addons = AiAddons(
+            flask_app.thread_handler, flask_app.ai_request, flask_app.db, send_update_threading_and_ai
+        )
 
     return True
 

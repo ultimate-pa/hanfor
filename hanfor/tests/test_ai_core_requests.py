@@ -1,5 +1,6 @@
 from unittest import TestCase
 
+from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
 from thread_handling.threading_core import ThreadHandler
 from ai_request.ai_core_requests import AiRequest, TestedActivity
 from configuration import ai_config
@@ -21,8 +22,8 @@ class TestAiCoreRequests(TestCase):
             },
         }
         ai_config.DEFAULT_PROVIDER = "TEST_PROVIDER"
-        self.thread_handler = ThreadHandler()
-        self.ai_request = AiRequest(self.thread_handler)
+        self.thread_handler = ThreadHandler(SendUpdateThreadingAndAi())
+        self.ai_request = AiRequest(self.thread_handler, SendUpdateThreadingAndAi())
 
     def test_catalog(self):
         self.assertEqual(self.ai_request.ai_model_catalog()["TEST_PROVIDER"].maximum_concurrent_api_requests, 4)

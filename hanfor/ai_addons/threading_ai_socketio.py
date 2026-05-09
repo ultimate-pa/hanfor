@@ -1,4 +1,6 @@
-from flask_socketio import Namespace
+from typing import Optional
+
+from flask_socketio import Namespace, SocketIO
 from flask import request
 import logging
 
@@ -20,17 +22,21 @@ class AiAddonData(Namespace):
         logging.info(f"Client {sid} disconnected from AI Data WebSocket")
 
 
-def send_ai_update(send_dict: dict, event: str, socketio, sid: str | None = None):
-    """Queue an AI update to be emitted via SocketIO in a background task"""
-    socketio.start_background_task(_emit_ai_update, event, send_dict, socketio, sid)
+class SendUpdateThreadingAndAi:
+    def __init__(self, socketio: Optional[SocketIO] = None):
+        self.socketio = socketio
 
+    def send_ai_update(self, send_dict: dict, event: str, sid: str | None = None):
+        """Queue an AI update to be emitted via SocketIO in a background task"""
+        if self.socketio:
+            self.socketio.start_background_task(self.__emit_ai_update, event, send_dict, sid)
 
-def _emit_ai_update(event: str, send_dict: dict, socketio, sid: str | None = None):
-    """Emit an AI update event to all clients or a specific client"""
-    try:
-        if sid:
-            socketio.emit(event, send_dict, namespace="/ai_addon_data", to=sid)
-        else:
-            socketio.emit(event, send_dict, namespace="/ai_addon_data")
-    except Exception as e:
-        logging.error(f"Error sending AI update (event={event}): {e}")
+    def __emit_ai_update(self, event: str, send_dict: dict, sid: str | None = None):
+        """Emit an AI update event to all clients or a specific client"""
+        try:
+            if sid:
+                self.socketio.emit(event, send_dict, namespace="/ai_addon_data", to=sid)
+            else:
+                self.socketio.emit(event, send_dict, namespace="/ai_addon_data")
+        except Exception as e:
+            logging.error(f"Error sending AI update (event={event}): {e}")

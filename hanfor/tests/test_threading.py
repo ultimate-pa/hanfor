@@ -2,13 +2,16 @@ from threading import Semaphore
 from unittest import TestCase
 import time
 
+from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
 from thread_handling.thread_function_decorator import thread_function, is_stopped
 from thread_handling.threading_core import ThreadHandler, ThreadTask, ThreadGroup, SchedulingClass, TaskResult
+
 
 @thread_function
 def timeout_task(seconds, rtn):
     time.sleep(seconds)
     return rtn
+
 
 @thread_function
 def stopping_task(milliseconds):
@@ -21,7 +24,7 @@ def stopping_task(milliseconds):
 
 class TestThreadHandler(TestCase):
     def setUp(self):
-        self.handler = ThreadHandler(max_threads=5)
+        self.handler = ThreadHandler(SendUpdateThreadingAndAi(), max_threads=5)
 
     def test_simple_task_execution(self):
         self.handler.max_threads = 5
@@ -162,7 +165,7 @@ class TestThreadHandler(TestCase):
         self.assertEqual(result_2, "completed")
 
     def test_ai_provider(self):
-        self.handler = ThreadHandler(max_threads=15)
+        self.handler = ThreadHandler(SendUpdateThreadingAndAi(), max_threads=15)
         semaphore = Semaphore(6)
         for i in range(20):
             task = ThreadTask(

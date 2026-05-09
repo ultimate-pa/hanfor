@@ -1,15 +1,15 @@
 from flask_socketio import SocketIO
 
 from ai_addons.ai_addon_abstract_class import AiAddonAbstractClass
-from ai_addons.threading_ai_socketio import send_ai_update
+from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
 
 
 class ExampleAiAddon(AiAddonAbstractClass):
     # Optional: declare dependencies you need (injected automatically)
-    required_dependencies = ["socketio"]
+    required_dependencies = ["send_update_threading_and_ai"]
 
     # Optional: type hints for IDE support (no runtime effect)
-    socketio: SocketIO
+    send_update_threading_and_ai: SendUpdateThreadingAndAi
 
     @property
     def addon_name(self) -> str:
@@ -33,10 +33,9 @@ class ExampleAiAddon(AiAddonAbstractClass):
     def set_sid(self, sid: str):
         self._sid_map[sid] = 0
 
-        send_ai_update(
+        self.send_update_threading_and_ai.send_ai_update(
             {"counter": self.global_counter, "scope": "global"},
             "socket_example_counter",
-            self.socketio,
         )
 
     @AiAddonAbstractClass.requires_enabled
@@ -54,10 +53,9 @@ class ExampleAiAddon(AiAddonAbstractClass):
         current = self._sid_map.get(sid, 0) + 1
         self._sid_map[sid] = current
 
-        send_ai_update(
+        self.send_update_threading_and_ai.send_ai_update(
             {"counter": current, "scope": "private"},
             "socket_example_counter",
-            self.socketio,
             sid=sid,
         )
 
@@ -66,8 +64,7 @@ class ExampleAiAddon(AiAddonAbstractClass):
         """Increment the global counter and broadcast the update to all clients."""
         self.global_counter += 1
 
-        send_ai_update(
+        self.send_update_threading_and_ai.send_ai_update(
             {"counter": self.global_counter, "scope": "global"},
             "socket_example_counter",
-            self.socketio,
         )

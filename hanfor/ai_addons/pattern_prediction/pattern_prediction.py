@@ -1,10 +1,7 @@
 import logging
 from os import path, listdir
-from threading import Event
-
 from flask_socketio import SocketIO
-
-from ai_addons.threading_ai_socketio import send_ai_update
+from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
 from ai_addons.ai_addon_handler import AiAddonAbstractClass
 from ai_request.ai_core_requests import AiRequest
 from hanfor_flask import current_app
@@ -113,10 +110,10 @@ class PatternPredictedRequirement:
 
 
 class PatternPrediction(AiAddonAbstractClass):
-    required_dependencies = ["thread_handler", "ai_request", "socketio"]
+    required_dependencies = ["thread_handler", "ai_request", "send_update_threading_and_ai"]
     thread_handler: ThreadHandler
     ai_request: AiRequest
-    socketio: SocketIO
+    send_update_threading_and_ai: SendUpdateThreadingAndAi
 
     def _do_initialize(self):
         self.__tree_path = "pattern_tree_longer_questions.json"
@@ -167,7 +164,9 @@ class PatternPrediction(AiAddonAbstractClass):
     @AiAddonAbstractClass.requires_enabled
     def set_selected_ensemble(self, ensemble: list[dict]):
         self.selected_ensemble = ensemble
-        send_ai_update({"ensemble": self.selected_ensemble}, "socket_pattern_prediction_ensemble", self.socketio)
+        self.send_update_threading_and_ai.send_ai_update(
+            {"ensemble": self.selected_ensemble}, "socket_pattern_prediction_ensemble"
+        )
 
     @AiAddonAbstractClass.requires_enabled
     def get_selected_ensemble(self) -> list[dict]:
@@ -212,9 +211,9 @@ class PatternPrediction(AiAddonAbstractClass):
         }
         for sid in self.socketio_data.get(req_id, []):
             if status:
-                send_ai_update(status, "socket_pattern_prediction_error", self.socketio, sid)
+                self.send_update_threading_and_ai.send_ai_update(status, "socket_pattern_prediction_error", sid)
             else:
-                send_ai_update(payload, "socket_pattern_prediction", self.socketio, sid)
+                self.send_update_threading_and_ai.send_ai_update(payload, "socket_pattern_prediction", sid)
 
     @AiAddonAbstractClass.requires_enabled
     @thread_function
@@ -423,8 +422,7 @@ class PatternPrediction(AiAddonAbstractClass):
 
         self.prediction_tree = Tree(self.__tree_path)
 
-        send_ai_update(
+        self.send_update_threading_and_ai.send_ai_update(
             {"file": self.get_tree_file_name(), "tree": self.prediction_tree.to_dict()},
             "socket_pattern_prediction_new_tree",
-            self.socketio,
         )
