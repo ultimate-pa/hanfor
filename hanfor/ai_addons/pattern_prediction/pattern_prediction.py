@@ -153,7 +153,7 @@ class PatternPrediction(AiAddonAbstractClass):
             task = ThreadTask(
                 self.predict_pattern_for_requirement,
                 SchedulingClass.CALLER_DEPTH_1,
-                ThreadGroup.PATTERN_PREDICTION,
+                ThreadGroup("PATTERN_PREDICTION"),
                 None,
                 None,
                 (req_id, requirement.description),

@@ -202,7 +202,7 @@ class AiRequest:
             ThreadTask(
                 self.__catalog_tester.check_all_providers_and_models,
                 SchedulingClass.SYSTEM_CALL,
-                ThreadGroup.AI,
+                ThreadGroup("AI"),
                 None,
                 None,
                 (self.__ai_model_catalog,),
@@ -236,7 +236,7 @@ class AiRequest:
         ai_task = ThreadTask(
             method.query_api,
             scheduling_class,
-            ThreadGroup.AI,
+            ThreadGroup("AI"),
             semaphore,
             callback,
             (
@@ -276,7 +276,7 @@ class AiRequest:
                 ThreadTask(
                     self.__catalog_tester.check_one_provider_with_models,
                     SchedulingClass.SYSTEM_CALL,
-                    ThreadGroup.AI,
+                    ThreadGroup("AI"),
                     None,
                     None,
                     (
@@ -295,7 +295,7 @@ class AiRequest:
                     ThreadTask(
                         self.__catalog_tester.check_one_model,
                         SchedulingClass.SYSTEM_CALL,
-                        ThreadGroup.AI,
+                        ThreadGroup("AI"),
                         None,
                         None,
                         (

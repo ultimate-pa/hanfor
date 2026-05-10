@@ -143,7 +143,7 @@ class ApiGenerateTrace(Resource):
                 ThreadTask(
                     _get_addon().predict_patterns_for_all_requirements,
                     SchedulingClass.CALLER_DEPTH_1,
-                    ThreadGroup.PATTERN_PREDICTION,
+                    ThreadGroup("PATTERN_PREDICTION"),
                     None,
                     None,
                     (reqs,),
@@ -160,7 +160,7 @@ class ApiGenerateTrace(Resource):
                 ThreadTask(
                     _get_addon().predict_pattern_for_requirement,
                     SchedulingClass.SYSTEM_CALL,
-                    ThreadGroup.PATTERN_PREDICTION,
+                    ThreadGroup("PATTERN_PREDICTION"),
                     None,
                     None,
                     (

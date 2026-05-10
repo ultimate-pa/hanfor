@@ -9,7 +9,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # still test for 3.11 as this is debian 12 standard
         python: ["3.12","3.13","3.14"]
 
     steps:

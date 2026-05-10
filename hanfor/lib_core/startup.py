@@ -255,7 +255,7 @@ def startup_hanfor(
             ThreadTask(
                 generate_all_highlighted_desc,
                 SchedulingClass.SYSTEM_CALL,
-                ThreadGroup.VARIABLE_HIGHLIGHTING,
+                ThreadGroup("VARIABLE_HIGHLIGHTING"),
                 None,
                 None,
                 (

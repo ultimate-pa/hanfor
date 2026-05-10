@@ -55,11 +55,9 @@ class ApiThreadingStopGroup(Resource):
     @threading_api_namespace.marshal_with(THREAD_STOP_RESPONSE, code=200)
     @threading_api_namespace.response(404, "Unknown thread group")
     def post(self, thread_group: str):
-        try:
-            group = ThreadGroup[thread_group]
-        except KeyError:
+        group = ThreadGroup.get(thread_group)
+        if group is None:
             threading_api_namespace.abort(404, f"Unknown thread group: {thread_group}")
-
         current_app.thread_handler.stop_group(group)
         return {"info": f"stopped thread_group: {group}"}
 
@@ -80,13 +78,13 @@ class ApiThreadingDummy(Resource):
         from thread_handling.threading_core import ThreadTask, SchedulingClass
         import random
 
-        sleep = int(random.uniform(2000, 10000000))
+        sleep = int(random.uniform(200, 10000))
         seconds = sleep / 1000
 
         task = ThreadTask(
             thread_function=_dummy_task,
             scheduling_class=random.choice(list(SchedulingClass)),
-            group=random.choice(list(ThreadGroup)),
+            group=ThreadGroup(random.choice(["AI", "CLUSTERING", "OTHER"])),
             semaphore=None,
             callback=None,
             args=(sleep,),

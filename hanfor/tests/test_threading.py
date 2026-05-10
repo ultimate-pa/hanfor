@@ -44,7 +44,7 @@ class TestThreadHandler(TestCase):
             ThreadTask(
                 thread_function=timeout_task,
                 scheduling_class=SchedulingClass.SYSTEM_CALL,
-                group=ThreadGroup.OTHER,
+                group=ThreadGroup("OTHER"),
                 semaphore=None,
                 callback=lambda r: results.append(r),
                 args=(0.1, "done"),
@@ -70,7 +70,7 @@ class TestThreadHandler(TestCase):
             task = ThreadTask(
                 timeout_task,
                 SchedulingClass.SYSTEM_CALL,
-                ThreadGroup.OTHER,
+                ThreadGroup("OTHER"),
                 None,
                 lambda r, idx=i: results.append((idx, r)),
                 args=(0.1, f"done{i}"),
@@ -83,7 +83,7 @@ class TestThreadHandler(TestCase):
 
     def test_idle_detection(self):
         task = ThreadTask(
-            timeout_task, SchedulingClass.SYSTEM_CALL, ThreadGroup.OTHER, None, None, args=(0.1, "x"), kwargs={}
+            timeout_task, SchedulingClass.SYSTEM_CALL, ThreadGroup("OTHER"), None, None, args=(0.1, "x"), kwargs={}
         )
         self.handler.submit(task)
         time.sleep(0.01)
@@ -97,7 +97,7 @@ class TestThreadHandler(TestCase):
         low_task = ThreadTask(
             timeout_task,
             SchedulingClass.CALLER_DEPTH_2,
-            ThreadGroup.OTHER,
+            ThreadGroup("OTHER"),
             None,
             lambda r: results.append(("low", r)),
             args=(0.1, "low"),
@@ -106,7 +106,7 @@ class TestThreadHandler(TestCase):
         high_task = ThreadTask(
             timeout_task,
             SchedulingClass.CALLER_DEPTH_1,
-            ThreadGroup.OTHER,
+            ThreadGroup("OTHER"),
             None,
             lambda r: results.append(("high", r)),
             args=(0.1, "high"),
@@ -125,14 +125,14 @@ class TestThreadHandler(TestCase):
         task1 = ThreadTask(
             stopping_task,
             SchedulingClass.CALLER_DEPTH_1,
-            ThreadGroup.VARIABLE_HIGHLIGHTING,
+            ThreadGroup("VARIABLE_HIGHLIGHTING"),
             None,
             None,
             args=(20,),
             kwargs={},
         )
         task2 = ThreadTask(
-            stopping_task, SchedulingClass.CALLER_DEPTH_1, ThreadGroup.OTHER, None, None, args=(20,), kwargs={}
+            stopping_task, SchedulingClass.CALLER_DEPTH_1, ThreadGroup("OTHER"), None, None, args=(20,), kwargs={}
         )
 
         for _ in range(10):
@@ -140,7 +140,7 @@ class TestThreadHandler(TestCase):
             self.handler.submit(task2)
 
         time.sleep(0.01)
-        self.handler.stop_group(ThreadGroup.OTHER)
+        self.handler.stop_group(ThreadGroup("OTHER"))
         time.sleep(0.01)
         result_1 = task2.status
         result_2 = res_var_highlight.result()
@@ -149,7 +149,7 @@ class TestThreadHandler(TestCase):
 
     def test_task_exception_propagation(self):
         result = self.handler.submit(
-            ThreadTask(failing_task, SchedulingClass.SYSTEM_CALL, ThreadGroup.OTHER, None, None, (), {})
+            ThreadTask(failing_task, SchedulingClass.SYSTEM_CALL, ThreadGroup("OTHER"), None, None, (), {})
         )
         time.sleep(0.1)
         self.assertTrue(result.done())
@@ -158,7 +158,7 @@ class TestThreadHandler(TestCase):
 
     def test_task_result_timeout(self):
         result = self.handler.submit(
-            ThreadTask(stopping_task, SchedulingClass.SYSTEM_CALL, ThreadGroup.OTHER, None, None, (10000,), {})
+            ThreadTask(stopping_task, SchedulingClass.SYSTEM_CALL, ThreadGroup("OTHER"), None, None, (10000,), {})
         )
         with self.assertRaises(TimeoutError):
             result.result(timeout=0.1)
@@ -169,25 +169,25 @@ class TestThreadHandler(TestCase):
 
     def test_stop_group_catches_exception_from_result(self):
         self.handler.submit(
-            ThreadTask(failing_task_stop_event, SchedulingClass.SYSTEM_CALL, ThreadGroup.AI, None, None, (), {})
+            ThreadTask(failing_task_stop_event, SchedulingClass.SYSTEM_CALL, ThreadGroup("AI"), None, None, (), {})
         )
         time.sleep(0.1)
-        self.handler.stop_group(ThreadGroup.AI)
+        self.handler.stop_group(ThreadGroup("AI"))
         self.assertTrue(self.handler.is_idle())
 
     def test_group_stop(self):
         self.handler._max_threads = 1
         task1 = ThreadTask(
-            stopping_task, SchedulingClass.CALLER_DEPTH_1, ThreadGroup.OTHER, None, None, args=(500,), kwargs={}
+            stopping_task, SchedulingClass.CALLER_DEPTH_1, ThreadGroup("OTHER"), None, None, args=(500,), kwargs={}
         )
         task2 = ThreadTask(
-            stopping_task, SchedulingClass.CALLER_DEPTH_1, ThreadGroup.OTHER, None, None, args=(500,), kwargs={}
+            stopping_task, SchedulingClass.CALLER_DEPTH_1, ThreadGroup("OTHER"), None, None, args=(500,), kwargs={}
         )
         self.handler.submit(task1)
         self.handler.submit(task2)
 
         time.sleep(0.1)
-        self.handler.stop_group(ThreadGroup.OTHER)
+        self.handler.stop_group(ThreadGroup("OTHER"))
 
         result1 = task1.status
         result2 = task2.status
@@ -199,7 +199,7 @@ class TestThreadHandler(TestCase):
         semaphore = Semaphore(6)
         for i in range(20):
             task = ThreadTask(
-                timeout_task, SchedulingClass.SYSTEM_CALL, ThreadGroup.AI, semaphore, None, (0.1, f"Test{i}"), {}
+                timeout_task, SchedulingClass.SYSTEM_CALL, ThreadGroup("AI"), semaphore, None, (0.1, f"Test{i}"), {}
             )
             self.handler.submit(task)
         time.sleep(0.05)
@@ -211,7 +211,7 @@ class TestThreadHandler(TestCase):
         self.handler._max_threads = 2
         tasks = [
             self.handler.submit(
-                ThreadTask(stopping_task, SchedulingClass.SYSTEM_CALL, ThreadGroup.OTHER, None, None, (1000,), {})
+                ThreadTask(stopping_task, SchedulingClass.SYSTEM_CALL, ThreadGroup("OTHER"), None, None, (1000,), {})
             )
             for _ in range(5)
         ]
@@ -220,3 +220,23 @@ class TestThreadHandler(TestCase):
             self.handler.cancel_task(task.task_id())
         time.sleep(0.1)
         self.assertTrue(self.handler.is_idle())
+
+
+class TestThreadGroup(TestCase):
+    def setUp(self):
+        ThreadGroup._registry.clear()
+
+    def test_thread_group_get_known(self):
+        ThreadGroup("CLUSTERING")
+        result = ThreadGroup.get("clustering")
+        self.assertIsNotNone(result)
+        self.assertEqual(result, ThreadGroup("CLUSTERING"))
+
+    def test_thread_group_get_unknown(self):
+        result = ThreadGroup.get("DOES_NOT_EXIST")
+        self.assertIsNone(result)
+
+    def test_thread_group_same_instance(self):
+        g1 = ThreadGroup("AI")
+        g2 = ThreadGroup("AI")
+        self.assertIs(g1, g2)

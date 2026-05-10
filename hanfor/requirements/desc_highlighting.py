@@ -87,7 +87,7 @@ def changing_variables(variable_name_old: str, variable_name_new: str) -> None:
         ThreadTask(
             generate_all_highlighted_desc,
             SchedulingClass.SYSTEM_CALL,
-            ThreadGroup.VARIABLE_HIGHLIGHTING,
+            ThreadGroup("VARIABLE_HIGHLIGHTING"),
             None,
             None,
             ([variable_name_new], None),
@@ -108,7 +108,7 @@ def new_variables_regenerate_highlighting(variables: set[Variable]) -> None:
             ThreadTask(
                 generate_all_highlighted_desc,
                 SchedulingClass.SYSTEM_CALL,
-                ThreadGroup.VARIABLE_HIGHLIGHTING,
+                ThreadGroup("VARIABLE_HIGHLIGHTING"),
                 None,
                 None,
                 (variable_list, None),

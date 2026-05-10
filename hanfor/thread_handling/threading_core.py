@@ -1,24 +1,45 @@
 import logging
 import threading
 import time
+from collections import defaultdict
 import uuid
-
 from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
 from configuration import threading_config
 from dataclasses import dataclass, field
 from enum import Enum
 from queue import PriorityQueue
-from typing import Optional, Callable, Any
+from typing import Optional, Callable, Any, ClassVar
+from thread_handling.thread_function_decorator import _stop_events_var, _set_status_var
 
 
-class ThreadGroup(Enum):
-    """Represents logical groups of threads for batch stopping or categorization."""
+class ThreadGroup(str):
+    """A dynamic thread group identifier. Groups are auto-registered on first use."""
 
-    AI = 0
-    CLUSTERING = 1
-    VARIABLE_HIGHLIGHTING = 2
-    PATTERN_PREDICTION = 3
-    OTHER = 4
+    _registry: ClassVar[dict[str, "ThreadGroup"]] = {}
+
+    def __new__(cls, name: str) -> "ThreadGroup":
+        upper = name.upper()
+        if upper in cls._registry:
+            return cls._registry[upper]
+        instance: "ThreadGroup" = str.__new__(cls, upper)  # type: ignore[arg-type]
+        instance._stop_event = threading.Event()
+        cls._registry[upper] = instance
+        return instance
+
+    @property
+    def stop_event(self) -> threading.Event:
+        return self._stop_event
+
+    @classmethod
+    def all_groups(cls) -> list["ThreadGroup"]:
+        return list(cls._registry.values())
+
+    @classmethod
+    def get(cls, name: str) -> Optional["ThreadGroup"]:
+        return cls._registry.get(name.upper())
+
+    def __hash__(self) -> int:
+        return str.__hash__(self)
 
 
 class SchedulingClass(Enum):
@@ -115,9 +136,7 @@ class ThreadHandler:
         self.__lock = threading.Lock()
         self.__active_threads = 0
         self.__active_by_priority = {sc.priority: 0 for sc in SchedulingClass}
-        self.__group_stop_events: dict[ThreadGroup, threading.Event] = {
-            group: threading.Event() for group in ThreadGroup
-        }
+        self.__group_stop_events: defaultdict[ThreadGroup, threading.Event] = defaultdict(threading.Event)
         self.__running_tasks: list[PrioritizedTask] = []
         self.__send_update_threading_and_ai = send_update_threading_and_ai
 
@@ -148,7 +167,7 @@ class ThreadHandler:
     def stop_group(self, group: ThreadGroup):
         """Stops an entire group of tasks, when running or in queue"""
         with self.__lock:
-            stop_event = self.__group_stop_events[group]
+            stop_event = group.stop_event
             stop_event.set()
             remaining_tasks = []
             while not self.__queue.empty():
@@ -176,6 +195,7 @@ class ThreadHandler:
 
     def submit(self, thread_task: ThreadTask) -> TaskResult:
         """Queues a task and returns a TaskResult to track completion."""
+
         result = TaskResult(thread_task.task_id)
         prio_task = PrioritizedTask(thread_task, result)
         self.__queue.put(prio_task)
@@ -189,7 +209,7 @@ class ThreadHandler:
     def threading_data(self):
         return {
             "max_threads": self.get_max_threads(),
-            "groups": [group.name for group in ThreadGroup],
+            "groups": list(ThreadGroup.all_groups()),
             "active_tasks": self.get_running_tasks(),
             "queued_tasks": self.get_queue(),
         }
@@ -246,15 +266,11 @@ class ThreadHandler:
 
     def __run_task(self, prio_task: PrioritizedTask):
         """Executes the task, sets the result, calls the callback, and releases if present the semaphore."""
-        from thread_handling.thread_function_decorator import _stop_events_var, _set_status_var
 
         task = prio_task.thread_task
         task.started_at = time.time()
 
-        stop_events: list[threading.Event] = [
-            task.task_stop_event,
-            self.__group_stop_events[task.group],
-        ]
+        stop_events = [task.task_stop_event, task.group.stop_event]
 
         # Inject context vars so stop_events() and set_status() work inside the task
         # and anywhere deeper in the call stack – fully isolated per thread.
@@ -296,7 +312,7 @@ class ThreadHandler:
         t = task.thread_task
         return {
             "function": t.thread_function.__name__,
-            "group": t.group.name,
+            "group": str(t.group),
             "scheduling_class": t.scheduling_class.name,
             "status": t.status,
             "task_id": t.task_id,
