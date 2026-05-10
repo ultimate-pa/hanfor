@@ -32,7 +32,7 @@ task_result = current_app.thread_handler.submit(
     ThreadTask(
         thread_function=my_task,
         scheduling_class=SchedulingClass.SYSTEM_CALL,
-        group=ThreadGroup.OTHER,
+        group=ThreadGroup("OTHER"),
         semaphore=None,
         callback=None,
         args=(),
@@ -110,7 +110,7 @@ Cancel all entries in `spawned` before returning, regardless of whether they hav
 Signals all queued and running tasks in that group to stop.
 
 ```python
-current_app.thread_handler.stop_group(ThreadGroup.AI)
+current_app.thread_handler.stop_group(ThreadGroup("AI"))
 ```
 
 ### Query status

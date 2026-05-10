@@ -60,12 +60,12 @@ from ai_addons.ai_addon_abstract_class import AiAddonAbstractClass
 class MyAddon(AiAddonAbstractClass):
 
     # Which dependencies you need - injected automatically
-    required_dependencies = ["thread_handler", "ai_request", "socketio"]
+    required_dependencies = ["thread_handler", "ai_request", "send_update_threading_and_ai"]
 
     # Type hints for IDE support only, no runtime effect
     thread_handler: ThreadHandler
     ai_request: AiRequest
-    socketio: SocketIO
+    send_update_threading_and_ai: SendUpdateThreadingAndAi
 
     @property
     def addon_name(self) -> str:
@@ -80,11 +80,11 @@ class MyAddon(AiAddonAbstractClass):
 
     def _do_initialize(self):
         # Called once when the addon is enabled.
-        # self.thread_handler, self.ai_request, self.socketio are available here.
+        # self.thread_handler, self.ai_request, self.send_update_threading_and_ai are available here.
         pass
 ```
 
-**Available dependencies:** `thread_handler`, `ai_request`, `socketio`, `db`
+**Available dependencies:** `thread_handler`, `ai_request`, `send_update_threading_and_ai`, `db`
 
 For methods that should do nothing when the addon is disabled:
 
@@ -296,13 +296,12 @@ my_addon.js  ->  dist/my_addon-bundle.js
 ## Reference: Sending Socket Events
 
 ```python
-from ai_addons.threading_ai_socketio import send_ai_update
 
 # Broadcast to all clients
-send_ai_update({"key": "value"}, "socket_my_event", self.socketio)
+self.send_update_threading_and_ai.send_ai_update({"key": "value"}, "socket_my_event")
 
 # Send to one specific client
-send_ai_update({"key": "value"}, "socket_my_event", self.socketio, sid=sid)
+self.send_update_threading_and_ai.send_ai_update({"key": "value"}, "socket_my_event", sid=sid)
 ```
 
 ---
@@ -324,7 +323,7 @@ def _do_initialize(self):
 @AiAddonAbstractClass.requires_enabled
 def set_sid(self, sid: str):
     self._sid_map[sid] = some_state
-    send_ai_update({"key": "value"}, "socket_my_event", self.socketio, sid=sid)
+    self.send_update_threading_and_ai.send_ai_update({"key": "value"}, "socket_my_event", sid=sid)
 
 @AiAddonAbstractClass.requires_enabled
 def clear_sid(self, sid: str):
