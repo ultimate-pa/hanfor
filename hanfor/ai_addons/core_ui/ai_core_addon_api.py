@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template
 import config
 import logging
+
+from ai_request.ai_core_requests import TestedActivity
 from hanfor_flask import current_app, HanforFlask
 from lib_core.data import Requirement
 from flask_restx import Resource, Namespace, fields
@@ -34,25 +36,37 @@ REQ_IDS = core_ai_addon_api_namespace.model(
 MODEL_DATA = core_ai_addon_api_namespace.model(
     "Model Data",
     {
-        "name": fields.String(description="Model name"),
-        "desc": fields.String(description="Model description"),
-        "default": fields.Boolean(description="Whether this is the default model"),
-        "active": fields.String(description="Model activity status"),
+        "name": fields.String(description="Model name", example="llama3.1:8b"),
+        "desc": fields.String(
+            description="Model description",
+            example="An efficient 8B-parameter model for advanced text understanding and generation.",
+        ),
+        "default": fields.Boolean(description="Whether this is the default model", example=True),
+        "active": fields.String(
+            description="Model activity status",
+            enum=[s.name for s in TestedActivity],
+            example=TestedActivity.INACTIVE.name,
+        ),
     },
 )
 
 PROVIDER_DATA = core_ai_addon_api_namespace.model(
     "Provider Data",
     {
-        "name": fields.String(description="Provider name"),
-        "default": fields.Boolean(description="Whether this is the default provider"),
-        "url": fields.String(description="Provider URL"),
-        "max_request": fields.Integer(description="Maximum concurrent API requests"),
-        "api_method": fields.String(description="Supported API methods"),
-        "reachable": fields.String(description="Provider reachability/activity status"),
+        "name": fields.String(description="Provider name", example="ollama"),
+        "default": fields.Boolean(description="Whether this is the default provider", example=True),
+        "url": fields.String(description="Provider URL", example="http://localhost:11434/api/chat"),
+        "max_request": fields.Integer(description="Maximum concurrent API requests", example=4),
+        "api_method": fields.String(description="Supported API methods", example="standard_ai_api"),
+        "reachable": fields.String(
+            description="Provider reachability status",
+            enum=[s.name for s in TestedActivity],
+            example=TestedActivity.INACTIVE.name,
+        ),
         "models": fields.List(fields.Nested(MODEL_DATA), description="Available models"),
     },
 )
+
 
 PROVIDERS_RESPONSE = core_ai_addon_api_namespace.model(
     "Providers Response",

@@ -74,7 +74,7 @@ class AddonActions(Resource):
             ai_api_namespace.abort(400, f"Unknown action: {action}")
 
         if action == "activate" or action == "deactivate":
-            actions[action](ai_api_namespace.payload.get("addon_id"), action == "activate")  # ignore
+            actions[action](ai_api_namespace.payload.get("addon_id"), action == "activate")  # type: ignore
         else:
             actions[action]()
         return None, 204
@@ -113,5 +113,5 @@ class ModelActions(Resource):
         if action not in actions:
             ai_api_namespace.abort(400, f"Unknown action: {action}")
         payload = ai_api_namespace.payload
-        actions[action](payload.get("provider"), payload.get("model"))
+        actions[action](payload.get("provider"), payload.get("model"))  # type: ignore
         return None, 204

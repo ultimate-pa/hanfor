@@ -1,5 +1,4 @@
 import sys
-from socket import SocketIO
 from threading import Semaphore
 from dataclasses import dataclass, field
 from typing import Optional, Callable, Tuple
