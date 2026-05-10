@@ -22,14 +22,24 @@ def stopping_task(milliseconds):
     return "completed"
 
 
+@thread_function
+def failing_task():
+    raise ValueError("something went wrong")
+
+
+@thread_function
+def failing_task_stop_event():
+    while True:
+        if is_stopped():
+            raise ValueError("something went wrong")
+
+
 class TestThreadHandler(TestCase):
     def setUp(self):
         self.handler = ThreadHandler(SendUpdateThreadingAndAi(), max_threads=5)
 
     def test_simple_task_execution(self):
-        self.handler.max_threads = 5
         results = []
-
         tasks = [
             ThreadTask(
                 thread_function=timeout_task,
@@ -37,10 +47,7 @@ class TestThreadHandler(TestCase):
                 group=ThreadGroup.OTHER,
                 semaphore=None,
                 callback=lambda r: results.append(r),
-                args=(
-                    0.1,
-                    "done",
-                ),
+                args=(0.1, "done"),
                 kwargs={},
             )
             for _ in range(15)
@@ -50,34 +57,13 @@ class TestThreadHandler(TestCase):
             self.handler.submit(task)
 
         time.sleep(0.15)
-        print(self.handler.get_active_count())
         self.assertCountEqual(results, ["done"] * 5)
         time.sleep(0.1)
         self.assertCountEqual(results, ["done"] * 10)
         time.sleep(0.2)
         self.assertCountEqual(results, ["done"] * 15)
 
-    def test_group_stop(self):
-        self.handler._max_threads = 1
-        task1 = ThreadTask(
-            stopping_task, SchedulingClass.CALLER_DEPTH_1, ThreadGroup.OTHER, None, None, args=(500,), kwargs={}
-        )
-        task2 = ThreadTask(
-            stopping_task, SchedulingClass.CALLER_DEPTH_1, ThreadGroup.OTHER, None, None, args=(500,), kwargs={}
-        )
-        self.handler.submit(task1)
-        self.handler.submit(task2)
-
-        time.sleep(0.1)
-        self.handler.stop_group(ThreadGroup.OTHER)
-
-        result1 = task1.status
-        result2 = task2.status
-        self.assertIn(result1, "terminated thread")
-        self.assertIn(result2, "terminated in queue")
-
     def test_multiple_callbacks(self):
-        self.handler.max_threads = 5
         results = []
 
         for i in range(3):
@@ -96,7 +82,6 @@ class TestThreadHandler(TestCase):
         self.assertCountEqual([r[1] for r in results], ["done0", "done1", "done2"])
 
     def test_idle_detection(self):
-        self.handler.max_threads = 5
         task = ThreadTask(
             timeout_task, SchedulingClass.SYSTEM_CALL, ThreadGroup.OTHER, None, None, args=(0.1, "x"), kwargs={}
         )
@@ -107,7 +92,6 @@ class TestThreadHandler(TestCase):
         self.assertTrue(self.handler.is_idle())
 
     def test_priority_order(self):
-        self.handler.max_threads = 5
         results = []
 
         low_task = ThreadTask(
@@ -138,7 +122,6 @@ class TestThreadHandler(TestCase):
         self.assertCountEqual([r[1] for r in results], ["high", "low"])
 
     def test_group_stop_with_other_groups(self):
-        self.handler._max_threads = 5
         task1 = ThreadTask(
             stopping_task,
             SchedulingClass.CALLER_DEPTH_1,
@@ -164,8 +147,55 @@ class TestThreadHandler(TestCase):
         self.assertEqual(result_1, "terminated thread")
         self.assertEqual(result_2, "completed")
 
-    def test_ai_provider(self):
-        self.handler = ThreadHandler(SendUpdateThreadingAndAi(), max_threads=15)
+    def test_task_exception_propagation(self):
+        result = self.handler.submit(
+            ThreadTask(failing_task, SchedulingClass.SYSTEM_CALL, ThreadGroup.OTHER, None, None, (), {})
+        )
+        time.sleep(0.1)
+        self.assertTrue(result.done())
+        with self.assertRaises(ValueError):
+            result.result()
+
+    def test_task_result_timeout(self):
+        result = self.handler.submit(
+            ThreadTask(stopping_task, SchedulingClass.SYSTEM_CALL, ThreadGroup.OTHER, None, None, (10000,), {})
+        )
+        with self.assertRaises(TimeoutError):
+            result.result(timeout=0.1)
+
+    def test_cancel_task_not_found(self):
+        result = self.handler.cancel_task("nonexistent_id")
+        self.assertFalse(result)
+
+    def test_stop_group_catches_exception_from_result(self):
+        self.handler.submit(
+            ThreadTask(failing_task_stop_event, SchedulingClass.SYSTEM_CALL, ThreadGroup.AI, None, None, (), {})
+        )
+        time.sleep(0.1)
+        self.handler.stop_group(ThreadGroup.AI)
+        self.assertTrue(self.handler.is_idle())
+
+    def test_group_stop(self):
+        self.handler._max_threads = 1
+        task1 = ThreadTask(
+            stopping_task, SchedulingClass.CALLER_DEPTH_1, ThreadGroup.OTHER, None, None, args=(500,), kwargs={}
+        )
+        task2 = ThreadTask(
+            stopping_task, SchedulingClass.CALLER_DEPTH_1, ThreadGroup.OTHER, None, None, args=(500,), kwargs={}
+        )
+        self.handler.submit(task1)
+        self.handler.submit(task2)
+
+        time.sleep(0.1)
+        self.handler.stop_group(ThreadGroup.OTHER)
+
+        result1 = task1.status
+        result2 = task2.status
+        self.assertIn(result1, "terminated thread")
+        self.assertIn(result2, "terminated in queue")
+
+    def test_with_additional_semaphore(self):
+        self.handler._max_threads = 15
         semaphore = Semaphore(6)
         for i in range(20):
             task = ThreadTask(
@@ -176,3 +206,17 @@ class TestThreadHandler(TestCase):
         self.assertEqual(self.handler.get_active_count(), 6)
         time.sleep(0.1)
         self.assertEqual(self.handler.get_active_count(), 6)
+
+    def test_id_task_stop(self):
+        self.handler._max_threads = 2
+        tasks = [
+            self.handler.submit(
+                ThreadTask(stopping_task, SchedulingClass.SYSTEM_CALL, ThreadGroup.OTHER, None, None, (1000,), {})
+            )
+            for _ in range(5)
+        ]
+        time.sleep(0.1)
+        for task in tasks:
+            self.handler.cancel_task(task.task_id())
+        time.sleep(0.1)
+        self.assertTrue(self.handler.is_idle())

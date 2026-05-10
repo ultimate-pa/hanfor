@@ -335,9 +335,7 @@ def _highlight_desc_variable(
     all_fragments = {fragment for _, variable_fragments in variable_fragments_list for fragment in variable_fragments}
     for variable_fragment in all_fragments:
         req_data.variable_fragments_fuzz_matches[variable_fragment] = list(
-            process.extract_iter(
-                query=variable_fragment, choices=req_data.desc_words, scorer=fuzz.ratio, score_cutoff=80
-            )
+            process.extract_iter(query=variable_fragment, choices=req_data.desc_words, scorer=fuzz.ratio, score_cutoff=80)  # type: ignore
         )
 
     # get all positions
@@ -354,7 +352,8 @@ def _highlight_desc_variable(
             ]
 
         # Skip variable_sets with insufficient coverage
-        if not scored_matches or len(scored_matches) / len(variable_fragments) < min_coverage:
+        matched_fragments = sum(1 for m in scored_matches.values() if m)
+        if not matched_fragments or matched_fragments / len(variable_fragments) < min_coverage:
             continue
 
         # Build a global mapping: span -> best score
@@ -433,14 +432,6 @@ def _generate_md_description(final_matches: list[VariableMatch], desc) -> str:
                     break
             if merged:
                 continue
-
-            # Partial overlap -> keep only the best (score, length)
-            for i, s2, e2 in overlapping:
-                main_vars = kept_intervals[i][2]
-                main_score = main_vars[0][1]
-                main_len = e2 - s2
-                if score > main_score or (score == main_score and (end - start) > main_len):
-                    kept_intervals[i] = (start, end, [(var, score)])
 
     # Build output
     out, last = [], 0
