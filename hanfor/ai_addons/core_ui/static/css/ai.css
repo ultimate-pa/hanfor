@@ -176,6 +176,12 @@
 }
 .ai-addon-card.addon-enabled {
   border-color: var(--status-ok);
+  border-width: 5px;
+}
+
+.ai-addon-card.addon-disabled {
+  border-color: var(--status-danger);
+  border-width: 5px;
 }
 
 .ai-addon-header {
@@ -212,18 +218,18 @@
   transition: background .15s ease;
 }
 .ai-status-tag.enabled {
-  border-color: var(--status-ok);
-  color: var(--status-ok);
-  background: transparent;
-}
-.ai-status-tag.enabled:hover {
-  background: color-mix(in srgb, var(--status-ok) 12%, transparent);
-}
-.ai-status-tag.disabled {
   border-color: var(--status-danger);
   color: var(--status-danger);
   background: transparent;
 }
-.ai-status-tag.disabled:hover {
+.ai-status-tag.enabled:hover {
   background: color-mix(in srgb, var(--status-danger) 12%, transparent);
+}
+.ai-status-tag.disabled {
+  border-color: var(--status-ok);
+  color: var(--status-ok);
+  background: transparent;
+}
+.ai-status-tag.disabled:hover {
+  background: color-mix(in srgb, var(--status-ok) 12%, transparent);
 }

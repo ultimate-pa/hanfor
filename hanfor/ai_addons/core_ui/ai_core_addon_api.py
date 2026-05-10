@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template
 import config
 import logging
-from hanfor_flask import current_app
+from hanfor_flask import current_app, HanforFlask
 from lib_core.data import Requirement
 from flask_restx import Resource, Namespace, fields
 from jinja2 import ChoiceLoader, FileSystemLoader, TemplateNotFound
@@ -64,7 +64,7 @@ PROVIDERS_RESPONSE = core_ai_addon_api_namespace.model(
 # --- Helpers ---
 
 
-def register_addon_templates(app, addons: dict):
+def register_addon_templates(app: HanforFlask, addons: dict):
     extra_loaders = []
     for addon in addons.values():
         template_folder = addon.get_template_folder()
@@ -75,7 +75,7 @@ def register_addon_templates(app, addons: dict):
         app.jinja_loader = ChoiceLoader([app.jinja_loader] + extra_loaders)
 
 
-def register_addon_statics(app, addons: dict):
+def register_addon_statics(app: HanforFlask, addons: dict):
     for addon_name, addon in addons.items():
         static_folder = addon.get_static_folder()
         if static_folder:

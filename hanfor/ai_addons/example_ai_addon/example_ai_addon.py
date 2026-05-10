@@ -1,5 +1,3 @@
-from flask_socketio import SocketIO
-
 from ai_addons.ai_addon_abstract_class import AiAddonAbstractClass
 from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
 

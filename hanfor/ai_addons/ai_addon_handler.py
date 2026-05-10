@@ -50,9 +50,11 @@ class AiAddons:
         """Return all loaded addons"""
         return self.__addons
 
-    def toggle_addon(self, addon_id: str):
+    def toggle_addon(self, addon_id: str, enabled: bool):
         """Toggle an addon on/off and notify the frontend to reload."""
         if addon_id in self.__addons.keys():
+            if self.__addons[addon_id].enabled == enabled:
+                return
             self.__addons[addon_id].toggle_addon()
             self.__send_update_threading_and_ai.send_ai_update({}, "reload")
 

@@ -45,12 +45,12 @@ function testModel(provider, model) {
   window.post(ADDON_NAME, "/model/test", { provider, model });
 }
 
-function toggleAddon(id) {
-  saveState();
+function activateAddon(id) {
+  reloadWithState(window.post(ADDON_NAME, "/addon/activate", { addon_id: id }));
+}
 
-  window
-    .post(ADDON_NAME, "/addon/toggle", { addon_id: id })
-    .then(() => window.location.reload());
+function deactivateAddon(id) {
+  reloadWithState(window.post(ADDON_NAME, "/addon/deactivate", { addon_id: id }));
 }
 
 function reloadWithState(promise) {
@@ -68,7 +68,8 @@ const actions = {
   "set-default-provider": ({ provider })        => setDefaultProvider(provider),
   "test-model":           ({ provider, model }) => testModel(provider, model),
   "set-default-model":    ({ provider, model }) => setDefaultModel(provider, model),
-  "toggle-addon":         ({ addon })           => toggleAddon(addon)
+  "activate-addon":       ({ addon })           => activateAddon(addon),
+  "deactivate-addon":     ({ addon })           => deactivateAddon(addon)
 };
 
 document.addEventListener("click", (e) => {
@@ -208,7 +209,7 @@ function providerCard(p) {
 
 function addonCard(a) {
   return `
-    <div class="ai-addon-card ${a.enabled ? "addon-enabled" : ""}" id="addon-${a.id}">
+    <div class="ai-addon-card ${a.enabled ? "addon-enabled" : "addon-disabled"}" id="addon-${a.id}">
 
       <div class="ai-addon-header">
         <span class="ai-addon-name">${a.name}</span>
@@ -222,9 +223,9 @@ function addonCard(a) {
 
         <button
           class="ai-status-tag ${a.enabled ? "enabled" : "disabled"}"
-          data-action="toggle-addon"
+          data-action="${a.enabled ? "deactivate-addon" : "activate-addon"}"
           data-addon="${a.id}">
-          ${a.enabled ? "active" : "deactivate"}
+          ${a.enabled ? "deactivate" : "activate"}
         </button>
 
       </div>

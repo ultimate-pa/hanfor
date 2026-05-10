@@ -1,6 +1,7 @@
 import logging
 from os import path, listdir
-from flask_socketio import SocketIO
+from immutabledict import immutabledict
+
 from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
 from ai_addons.ai_addon_handler import AiAddonAbstractClass
 from ai_request.ai_core_requests import AiRequest
@@ -145,7 +146,7 @@ class PatternPrediction(AiAddonAbstractClass):
 
     @AiAddonAbstractClass.requires_enabled
     @thread_function
-    def predict_patterns_for_all_requirements(self, requirements):
+    def predict_patterns_for_all_requirements(self, requirements: immutabledict[int | str, Requirement]):
         for req_id, requirement in requirements.items():
             if is_stopped():
                 break

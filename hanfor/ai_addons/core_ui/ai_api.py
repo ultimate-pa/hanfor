@@ -8,17 +8,17 @@ ai_api_namespace = Namespace("AI", "Dashboard data for AI", path="/ai", ordered=
 AI_ADDON_ITEM = ai_api_namespace.model(
     "AI Addon Item",
     {
-        "id": fields.String(description="Addon identifier"),
-        "name": fields.String(description="Addon name"),
-        "desc": fields.String(description="Addon description"),
-        "enabled": fields.Boolean(description="Whether the addon is active"),
+        "id": fields.String(description="Addon identifier", example="example_ai_addon"),
+        "name": fields.String(description="Addon name", example="Example AI addon"),
+        "desc": fields.String(description="Addon description", example="This is an example AI addon"),
+        "enabled": fields.Boolean(description="Whether the addon is active", example=True),
     },
 )
 AI_ADDON_DATA = ai_api_namespace.model("AI Addon Data", {"addons": fields.List(fields.Nested(AI_ADDON_ITEM))})
 ADDON_INPUT = ai_api_namespace.model(
     "AddonInput", {"addon_id": fields.String(required=True, description="Addon identifier if action toggle")}
 )
-ADDON_ACTIONS = ["toggle", "activate_all", "deactivate_all"]
+ADDON_ACTIONS = ["activate", "deactivate", "activate_all", "deactivate_all"]
 
 PROVIDER_INPUT = ai_api_namespace.model(
     "ProviderInput", {"provider": fields.String(required=True, description="Provider identifier")}
@@ -65,15 +65,16 @@ class AddonActions(Resource):
     @ai_api_namespace.response(400, "Unknown action")
     def post(self, action):
         actions = {
-            "toggle": current_app.ai_addons.toggle_addon,
+            "activate": current_app.ai_addons.toggle_addon,
+            "deactivate": current_app.ai_addons.toggle_addon,
             "activate_all": current_app.ai_addons.activate_all_addons,
             "deactivate_all": current_app.ai_addons.deactivate_all_addons,
         }
         if action not in actions:
             ai_api_namespace.abort(400, f"Unknown action: {action}")
 
-        if action == "toggle":
-            actions[action](ai_api_namespace.payload.get("addon_id"))
+        if action == "activate" or action == "deactivate":
+            actions[action](ai_api_namespace.payload.get("addon_id"), action == "activate")  # ignore
         else:
             actions[action]()
         return None, 204
