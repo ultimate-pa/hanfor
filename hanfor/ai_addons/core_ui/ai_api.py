@@ -57,13 +57,13 @@ class ApiAiData(Resource):
         }
 
 
-@ai_api_namespace.route("/addon/<action>")
+@ai_api_namespace.route("/addon/<string:action>")
 @ai_api_namespace.doc(params={"action": f"One of: {', '.join(ADDON_ACTIONS)}"})
 class AddonActions(Resource):
     @ai_api_namespace.expect(ADDON_INPUT)
     @ai_api_namespace.response(204, "Success")
     @ai_api_namespace.response(400, "Unknown action")
-    def post(self, action):
+    def post(self, action: str):
         actions = {
             "activate": current_app.ai_addons.toggle_addon,
             "deactivate": current_app.ai_addons.toggle_addon,
@@ -80,13 +80,13 @@ class AddonActions(Resource):
         return None, 204
 
 
-@ai_api_namespace.route("/provider/<action>")
+@ai_api_namespace.route("/provider/<string:action>")
 @ai_api_namespace.doc(params={"action": f"One of: {', '.join(PROVIDER_ACTIONS)}"})
 class ProviderActions(Resource):
     @ai_api_namespace.expect(PROVIDER_INPUT)
     @ai_api_namespace.response(204, "Success")
     @ai_api_namespace.response(400, "Unknown action")
-    def post(self, action):
+    def post(self, action: str):
         actions = {
             "set_default": current_app.ai_request.set_default_provider,
             "test": current_app.ai_request.activity_test_provider,
@@ -99,13 +99,13 @@ class ProviderActions(Resource):
         return None, 204
 
 
-@ai_api_namespace.route("/model/<action>")
+@ai_api_namespace.route("/model/<string:action>")
 @ai_api_namespace.doc(params={"action": f"One of: {', '.join(MODEL_ACTIONS)}"})
 class ModelActions(Resource):
     @ai_api_namespace.expect(PROVIDER_MODEL_INPUT)
     @ai_api_namespace.response(204, "Success")
     @ai_api_namespace.response(400, "Unknown action")
-    def post(self, action):
+    def post(self, action: str):
         actions = {
             "set_default": current_app.ai_request.set_default_model,
             "test": current_app.ai_request.activity_test_model,
