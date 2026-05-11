@@ -1,7 +1,10 @@
+import json
 from unittest import TestCase
 from unittest.mock import MagicMock
 
 from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
+from lib_core.data import Requirement
+from tests.mock_hanfor import MockHanfor
 from thread_handling.threading_core import ThreadHandler
 from ai_request.ai_core_requests import AiRequest, AiCatalogTester, TestedActivity, catalog_to_frontend
 from configuration import ai_config
@@ -316,3 +319,173 @@ class TestAiCatalogTester(TestCase):
         send_update_mock.send_ai_update.assert_called_once()
         args = send_update_mock.send_ai_update.call_args[0]
         self.assertEqual(args[1], "socket_provider_info")
+
+
+class TestAiApi(TestCase):
+    def setUp(self) -> None:
+        self.mock_hanfor = MockHanfor(session_tags=["simple"], test_session_source="test_api_threading")
+        self.mock_hanfor.set_up()
+
+    def tearDown(self) -> None:
+        self.mock_hanfor.tear_down()
+
+    def test_api_get(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+        self.assertListEqual(list(json.loads(self.mock_hanfor.app.get("api/v1/ai/").data)["addons"]), [])
+
+    def test_addon_activate(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+        response = self.mock_hanfor.app.post(
+            "api/v1/ai/addon/activate",
+            json={"addon_id": "example_addon"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 204)
+
+    def test_addon_deactivate(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+        response = self.mock_hanfor.app.post(
+            "api/v1/ai/addon/deactivate",
+            json={"addon_id": "example_addon"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 204)
+
+    def test_addon_activate_all(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+        response = self.mock_hanfor.app.post(
+            "api/v1/ai/addon/activate_all",
+            json={"addon_id": ""},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 204)
+
+    def test_addon_deactivate_all(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+        response = self.mock_hanfor.app.post(
+            "api/v1/ai/addon/deactivate_all",
+            json={"addon_id": ""},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 204)
+
+    def test_addon_unknown_action(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+        response = self.mock_hanfor.app.post(
+            "api/v1/ai/addon/unknown_action",
+            json={"addon_id": "example_addon"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_provider_set_default(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+        response = self.mock_hanfor.app.post(
+            "api/v1/ai/provider/set_default",
+            json={"provider": "openai"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 204)
+
+    def test_provider_test(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+        response = self.mock_hanfor.app.post(
+            "api/v1/ai/provider/test",
+            json={"provider": "openai"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 204)
+
+    def test_provider_test_all(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+        response = self.mock_hanfor.app.post(
+            "api/v1/ai/provider/test_all",
+            json={"provider": ""},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 204)
+
+    def test_provider_unknown_action(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+        response = self.mock_hanfor.app.post(
+            "api/v1/ai/provider/unknown_action",
+            json={"provider": "openai"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_model_set_default(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+        response = self.mock_hanfor.app.post(
+            "api/v1/ai/model/set_default",
+            json={"provider": "openai", "model": "gpt-4"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 204)
+
+    def test_model_test(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+        response = self.mock_hanfor.app.post(
+            "api/v1/ai/model/test",
+            json={"provider": "openai", "model": "gpt-4"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 204)
+
+    def test_model_unknown_action(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+        response = self.mock_hanfor.app.post(
+            "api/v1/ai/model/unknown_action",
+            json={"provider": "openai", "model": "gpt-4"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+
+
+class TestCoreAiAddonApi(TestCase):
+    def setUp(self) -> None:
+        self.mock_hanfor = MockHanfor(session_tags=["simple"], test_session_source="test_api_threading")
+        self.mock_hanfor.set_up()
+
+    def tearDown(self) -> None:
+        self.mock_hanfor.tear_down()
+
+    def test_provider_data_ai_enabled(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+        self.mock_hanfor.app.application.config["FEATURE_AI"] = True
+
+        response = self.mock_hanfor.app.get("api/v1/core-ai-addon/ai-provider-data")
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertIn("providers", data)
+        self.assertIsInstance(data["providers"], list)
+
+        self.mock_hanfor.app.application.config["FEATURE_AI"] = False
+
+    def test_provider_data_ai_disabled(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+        self.mock_hanfor.app.application.config["FEATURE_AI"] = False
+
+        response = self.mock_hanfor.app.get("api/v1/core-ai-addon/ai-provider-data")
+
+        print(response.status_code)
+        self.assertEqual(response.status_code, 403)
+
+    def test_req_ids_returns_list(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+        response = self.mock_hanfor.app.get("api/v1/core-ai-addon/req-ids")
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertIn("ids", data)
+        self.assertIsInstance(data["ids"], list)
+
+    def test_req_ids_content(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+        response = self.mock_hanfor.app.get("api/v1/core-ai-addon/req-ids")
+        data = json.loads(response.data)
+        requirements = list(self.mock_hanfor.app.application.db.get_objects(Requirement).keys())
+        self.assertListEqual(data["ids"], requirements)

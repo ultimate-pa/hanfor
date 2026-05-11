@@ -38,9 +38,6 @@ class ThreadGroup(str):
     def get(cls, name: str) -> Optional["ThreadGroup"]:
         return cls._registry.get(name.upper())
 
-    def __hash__(self) -> int:
-        return str.__hash__(self)
-
 
 class SchedulingClass(Enum):
     """Scheduling class defining priority (smaller == higher) and minimum free thread ratio required to start."""

@@ -145,7 +145,7 @@ class CoreAiAddonProviderData(Resource):
     def get(self):
         if current_app.config["FEATURE_AI"]:
             return current_app.ai_request.catalog_to_frontend()
-        return 403, "AI is disabled"
+        return "AI is disabled", 403
 
 
 @core_ai_addon_api_namespace.route("/req-ids")

@@ -1,10 +1,12 @@
+import json
 from threading import Semaphore
 from unittest import TestCase
 import time
 
 from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
+from tests.mock_hanfor import MockHanfor
 from thread_handling.thread_function_decorator import thread_function, is_stopped
-from thread_handling.threading_core import ThreadHandler, ThreadTask, ThreadGroup, SchedulingClass, TaskResult
+from thread_handling.threading_core import ThreadHandler, ThreadTask, ThreadGroup, SchedulingClass
 
 
 @thread_function
@@ -240,3 +242,39 @@ class TestThreadGroup(TestCase):
         g1 = ThreadGroup("AI")
         g2 = ThreadGroup("AI")
         self.assertIs(g1, g2)
+
+
+class TestThreadingApi(TestCase):
+    def setUp(self) -> None:
+        self.mock_hanfor = MockHanfor(session_tags=["simple"], test_session_source="test_api_threading")
+        self.mock_hanfor.set_up()
+
+    def tearDown(self) -> None:
+        self.mock_hanfor.tear_down()
+
+    def test_api_get(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+        self.assertListEqual(
+            list(json.loads(self.mock_hanfor.app.get("api/v1/threading/").data).keys()),
+            ["max_threads", "groups", "active_tasks", "queued_tasks"],
+        )
+
+    def test_stop_group(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+        self.assertTrue(
+            json.loads(self.mock_hanfor.app.post("api/v1/threading/stop-group/TEST_NOT_EXISTING").data)[
+                "message"
+            ].startswith("Unknown thread group: TEST_NOT_EXISTING.")
+        )
+        ThreadTask(lambda x: None, SchedulingClass.SYSTEM_CALL, ThreadGroup("TEST_EXISTING"), None, None, (), {})
+        self.assertEqual(
+            json.loads(self.mock_hanfor.app.post("api/v1/threading/stop-group/TEST_EXISTING").data),
+            {"info": "stopped thread_group: TEST_EXISTING"},
+        )
+
+    def test_cancel_task(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+        self.assertEqual(
+            json.loads(self.mock_hanfor.app.post("api/v1/threading/cancel-task/123456").data),
+            {"info": "cancel requested: 123456", "found": False},
+        )

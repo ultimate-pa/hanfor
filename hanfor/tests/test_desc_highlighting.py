@@ -267,6 +267,7 @@ class TestGenerateAllHighlightedDesc(TestCase):
             )
         )
         time.sleep(0.05)
+        self.assertTrue(not handler.is_idle())
         handler.cancel_task(result.task_id())
         time.sleep(0.2)
         self.assertTrue(handler.is_idle())
