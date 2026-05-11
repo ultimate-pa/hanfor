@@ -3,7 +3,7 @@ name: Make Typechecks
 on: [push]
 
 jobs:
-  build:
+  type-check:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
