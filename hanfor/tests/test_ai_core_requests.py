@@ -14,6 +14,7 @@ class TestAiCoreRequests(TestCase):
                 "maximum_concurrent_api_requests": 4,
                 "url": "http://TEST_URL",
                 "api_key": "PROVIDER_API_KEY",
+                "api_methods_names": ["API_METHOD_NAME"],
                 "default_model": "TEST_DEFAULT_MODEL",
                 "models": {
                     "TEST_DEFAULT_MODEL": "TEST_DEFAULT_MODEL_DESC",
@@ -75,6 +76,7 @@ class TestAiCoreRequests(TestCase):
             "maximum_concurrent_api_requests": 2,
             "url": "http://OTHER_URL",
             "api_key": "OTHER_KEY",
+            "api_methods_names": ["API_METHOD_NAME"],
             "default_model": "OTHER_MODEL",
             "models": {"OTHER_MODEL": "OTHER_MODEL_DESC"},
         }
@@ -171,6 +173,7 @@ class TestCatalogToFrontend(TestCase):
                 "maximum_concurrent_api_requests": 4,
                 "url": "http://TEST_URL",
                 "api_key": "PROVIDER_API_KEY",
+                "api_methods_names": ["API_METHOD_NAME"],
                 "default_model": "TEST_DEFAULT_MODEL",
                 "models": {
                     "TEST_DEFAULT_MODEL": "TEST_DEFAULT_MODEL_DESC",
@@ -223,6 +226,7 @@ class TestAiCatalogTester(TestCase):
                 "maximum_concurrent_api_requests": 4,
                 "url": "http://TEST_URL",
                 "api_key": "PROVIDER_API_KEY",
+                "api_methods_names": ["API_METHOD_NAME"],
                 "default_model": "TEST_DEFAULT_MODEL",
                 "models": models or {"TEST_DEFAULT_MODEL": "TEST_DEFAULT_MODEL_DESC"},
             }

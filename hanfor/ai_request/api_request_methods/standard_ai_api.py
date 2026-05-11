@@ -125,7 +125,3 @@ class OllamaStandard(ai_api_methods_abstract_class.AiApiMethod):
                 return None, "cancelled"
             logging.error(f"Request failed: {e}")
             return None, f"error_ai_connection_{e}"
-
-    @property
-    def provider_names_which_work_with_api_method(self) -> list[str]:
-        return ["ollama", "openai", "uni", "ollama-laptop"]

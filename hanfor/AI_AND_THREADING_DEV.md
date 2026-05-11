@@ -160,7 +160,7 @@ task_result = current_app.ai_request.ask_ai(
     prompt="Write a poem.",
     provider="ollama",                         # optional – falls back to default provider
     model_name="llama3",                       # optional – falls back to default model
-    api_method_name="ollama_standard_api",     # optional – falls back to first available
+    api_method_name="standard_ai_api",         # optional – falls back to first available
     info_text="my-feature / poem-generator",
 )
 ```
@@ -193,11 +193,7 @@ from ai_request.ai_api_methods_abstract_class import AiApiMethod
 from thread_handling.thread_function_decorator import is_stopped, set_status
  
 class MyCustomMethod(AiApiMethod):
- 
-    @property
-    def provider_names_which_work_with_api_method(self) -> list[str]:
-        return ["my_provider"]  # must match the provider name in ai_config
- 
+    
     def query_api(
         self,
         query: str,

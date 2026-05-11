@@ -30,6 +30,7 @@ class ProviderEntry:
     maximum_concurrent_api_requests: int
     url: str
     api_key: str
+    api_methods_names: list[str]
     models: dict[str, Tuple[str, TestedActivity]]
     default_model: str
     api_methods: dict[str, AiApiMethod] = field(default_factory=dict)
@@ -353,10 +354,10 @@ class AiRequest:
         return catalog
 
     @staticmethod
-    def __load_ai_api_methods() -> list[tuple[str, AiApiMethod]]:
+    def __load_ai_api_methods() -> dict[str, AiApiMethod]:
         """Dynamically loads all AI API method classes from strategies folder."""
         directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "api_request_methods/")
-        methods = []
+        methods: dict[str, AiApiMethod] = {}
         base_package = "ai_request.api_request_methods"
 
         for filename in os.listdir(directory):
@@ -371,7 +372,7 @@ class AiRequest:
                         if isinstance(attr, type) and issubclass(attr, AiApiMethod) and attr is not AiApiMethod:
                             try:
                                 instance = attr()
-                                methods.append((module_name, instance))
+                                methods[module_name] = instance
                             except TypeError as e:
                                 logging.warning(f"Cannot instantiate {attr_name} in {module_path}: {e}")
                 except ModuleNotFoundError as e:
@@ -380,12 +381,24 @@ class AiRequest:
 
     def __register_api_methods(self):
         """Assigns loaded API methods to matching providers in the catalog."""
-        for name, method in self.__load_ai_api_methods():
-            for provider in method.provider_names_which_work_with_api_method:
-                if provider not in self.__ai_model_catalog:
-                    logging.warning(f"Provider '{provider}' from method '{name}' not found in catalog, skipping.")
+        methods = self.__load_ai_api_methods()
+        standard_ai_api_method_name = "standard_ai_api"
+
+        for provider_name, provider_data in self.__ai_model_catalog.items():
+            for api_method_name in provider_data.api_methods_names:
+                if api_method_name not in methods:
+                    logging.warning(
+                        f"Api method '{api_method_name}' for provider '{provider_name}' not found skipping."
+                    )
                     continue
-                self.__ai_model_catalog[provider].api_methods[name] = method
+                self.__ai_model_catalog[provider_name].api_methods[api_method_name] = methods[api_method_name]
+            if standard_ai_api_method_name not in provider_data.api_methods:
+                logging.info(
+                    f"Api method '{standard_ai_api_method_name}' added to provider '{provider_name}' without being specified in the configuration."
+                )
+                self.__ai_model_catalog[provider_name].api_methods[standard_ai_api_method_name] = methods[
+                    standard_ai_api_method_name
+                ]
 
     def __validate_catalog(self):
         """Warns if any provider has no registered API method."""
