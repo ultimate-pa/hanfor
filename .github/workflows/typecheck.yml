@@ -1,4 +1,4 @@
-name: Run Bilds of the static web content
+name: Make Typechecks
 # This is just experimental at the moment
 on: [push]
 
