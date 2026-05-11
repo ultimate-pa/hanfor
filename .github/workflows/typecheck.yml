@@ -12,9 +12,9 @@ jobs:
         run: pip install -r ./hanfor/requirements-dev.txt -r ./hanfor/requirements.txt
       - name: Install mypy
         run: pip install mypy
-      - name: Run mypy
-        uses: sasanquaneuf/mypy-github-action@releases/v1
+      - name: Run Mypy
+        uses: jashparekh/mypy-action@v2
         with:
-          checkName: 'mypy'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          path: './hanfor'
+          mypy_flags: '--verbose'
+          requirement_files: 'requirements.txt'
