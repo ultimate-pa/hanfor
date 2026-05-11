@@ -320,11 +320,11 @@ document
 document
   .getElementById("ai-activate-all-addons-btn")
   ?.addEventListener("click", () => {
-    reloadWithState(window.post(ADDON_NAME, "/addon/activate_all"));
+    reloadWithState(window.post(ADDON_NAME, "addon/activate_all"));
   });
 
 document
   .getElementById("ai-deactivate-all-addons-btn")
   ?.addEventListener("click", () => {
-    reloadWithState(window.post(ADDON_NAME, "/addon/deactivate_all"));
+    reloadWithState(window.post(ADDON_NAME, "addon/deactivate_all"));
   });

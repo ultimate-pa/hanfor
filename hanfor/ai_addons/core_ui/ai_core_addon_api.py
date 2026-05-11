@@ -135,7 +135,7 @@ def index():
                 tab_js.append(js_path)
 
     tabs = list(zip(tab_names, tab_pages))
-    return render_template("ai_addons/index.html", BUNDLE_JS=tab_js, tabs=tabs, BASE_URL=f"{config.URL_PREFIX}/api/v1")
+    return render_template("ai_addons/index.html", BUNDLE_JS=tab_js, tabs=tabs, BASE_URL=f"{config.URL_PREFIX}")
 
 
 @core_ai_addon_api_namespace.route("/ai-provider-data")

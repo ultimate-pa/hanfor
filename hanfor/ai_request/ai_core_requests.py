@@ -347,6 +347,8 @@ class AiRequest:
         catalog = {}
 
         for provider, data in ai_config.AI_PROVIDERS.items():
+            if provider == "PROVIDER_NAME":
+                continue
             models = {name: (desc, TestedActivity.NOT_TESTED) for name, desc in data["models"].items()}
             catalog[provider] = ProviderEntry(**{**data, "models": models})
             if ai_config.DEFAULT_PROVIDER == provider:

@@ -13,13 +13,13 @@ async function handleResponse(response) {
 }
 
 window.get = async function get(addon_url, route_url, { raw = false } = {}) {
-  const response = await fetch(window.baseUrl + "/" + addon_url + "/" + route_url, { method: "GET" });
+  const response = await fetch(window.baseUrl + "/api/v1/" + addon_url + "/" + route_url, { method: "GET" });
   if (raw) return response;
   return handleResponse(response);
 }
 
 window.post = async function post(addon_url, route_url, body = {}) {
-  const response = await fetch(window.baseUrl + "/" + addon_url + "/" + route_url, {
+  const response = await fetch(window.baseUrl + "/api/v1/" + addon_url + "/" + route_url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -28,7 +28,7 @@ window.post = async function post(addon_url, route_url, body = {}) {
 }
 
 window.del = async function del(addon_url, route_url, body = {}) {
-  const response = await fetch(window.baseUrl + "/" + addon_url + "/" + route_url, {
+  const response = await fetch(window.baseUrl + "/api/v1/" + addon_url + "/" + route_url, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
