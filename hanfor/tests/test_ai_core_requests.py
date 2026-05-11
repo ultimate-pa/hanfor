@@ -4,10 +4,13 @@ from unittest.mock import MagicMock
 
 from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
 from lib_core.data import Requirement
-from tests.mock_hanfor import MockHanfor
+
 from thread_handling.threading_core import ThreadHandler
 from ai_request.ai_core_requests import AiRequest, AiCatalogTester, TestedActivity, catalog_to_frontend
 from configuration import ai_config
+from mock_hanfor import MockHanfor
+from app import app, api
+from ai_addons.core_ui import ai_namespace_and_blueprint
 
 
 class TestAiCoreRequests(TestCase):
@@ -322,6 +325,21 @@ class TestAiCatalogTester(TestCase):
 
 
 class TestAiApi(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        app.config["FEATURE_AI"] = True
+        existing_rules = {str(r) for r in app.url_map.iter_rules()}
+        if "/api/v1/ai/" not in existing_rules:
+            ai_blueprint, ai_namespace = ai_namespace_and_blueprint
+            if ai_blueprint:
+                app.register_blueprint(ai_blueprint)
+            if ai_namespace:
+                api.add_namespace(ai_namespace)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        app.config["FEATURE_AI"] = False
+
     def setUp(self) -> None:
         self.mock_hanfor = MockHanfor(session_tags=["simple"], test_session_source="test_api_threading")
         self.mock_hanfor.set_up()
@@ -441,6 +459,14 @@ class TestAiApi(TestCase):
         )
         self.assertEqual(response.status_code, 400)
 
+    def test_provider_data_ai_enabled(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+        response = self.mock_hanfor.app.get("api/v1/core-ai-addon/ai-provider-data")
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertIn("providers", data)
+        self.assertIsInstance(data["providers"], list)
+
 
 class TestCoreAiAddonApi(TestCase):
     def setUp(self) -> None:
@@ -450,24 +476,8 @@ class TestCoreAiAddonApi(TestCase):
     def tearDown(self) -> None:
         self.mock_hanfor.tear_down()
 
-    def test_provider_data_ai_enabled(self):
-        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
-
-        self.mock_hanfor.app.application.config["FEATURE_AI"] = True
-
-        response = self.mock_hanfor.app.get("api/v1/core-ai-addon/ai-provider-data")
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.data)
-        self.assertIn("providers", data)
-        self.assertIsInstance(data["providers"], list)
-
-        self.mock_hanfor.app.application.config["FEATURE_AI"] = False
-
     def test_provider_data_ai_disabled(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
-
-        self.mock_hanfor.app.application.config["FEATURE_AI"] = False
-
         response = self.mock_hanfor.app.get("api/v1/core-ai-addon/ai-provider-data")
 
         print(response.status_code)
