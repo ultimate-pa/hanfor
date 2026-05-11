@@ -1,0 +1,20 @@
+name: Run Bilds of the static web content
+# This is just experimental at the moment
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pip install -r ./hanfor/requirements-dev.txt -r ./hanfor/requirements.txt
+      - name: Install mypy
+        run: pip install mypy
+      - name: Run mypy
+        uses: sasanquaneuf/mypy-github-action@releases/v1
+        with:
+          checkName: 'mypy'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
