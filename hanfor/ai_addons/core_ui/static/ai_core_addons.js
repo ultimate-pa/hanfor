@@ -1,3 +1,4 @@
+require('../../../telemetry/static/telemetry')
 const { io } = require('socket.io-client');
 
 // --------------------------------------------------------------------------------

@@ -128,7 +128,7 @@ class ThreadHandler:
     def __init__(
         self, send_update_threading_and_ai: SendUpdateThreadingAndAi, max_threads: int = threading_config.MAX_THREADS
     ):
-        self._max_threads = max_threads
+        self._max_threads = max(max_threads, 2)
         self.__queue: PriorityQueue[PrioritizedTask] = PriorityQueue()  # type: ignore
         self.__lock = threading.Lock()
         self.__active_threads = 0
