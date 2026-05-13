@@ -4,6 +4,7 @@ import threading
 from typing import Optional
 
 import requests
+from requests import Response
 
 from ai_request import ai_api_methods_abstract_class
 from thread_handling.thread_function_decorator import is_stopped, set_status
@@ -32,96 +33,52 @@ class OllamaStandard(ai_api_methods_abstract_class.AiApiMethod):
         payload = {
             "model": model_name,
             "messages": [{"role": "system", "content": ""}, {"role": "user", "content": query}],
-            "stream": True,
             **(other_params or {}),
+            "stream": False,
         }
 
-        response_container = [None]
-        exception_container = [None]
-        ready_event = threading.Event()
+        result: dict[str, None | Exception | Response] = {"response": None, "exception": None}
 
         def do_request():
             try:
-                response_container[0] = requests.post(
+                result["response"] = requests.post(
                     url,
                     headers=headers,
                     json=payload,
                     timeout=120,
-                    stream=True,
                 )
-            except Exception as e:
-                exception_container[0] = e
-            finally:
-                ready_event.set()
+            except Exception as exept:
+                result["exception"] = exept
 
         request_thread = threading.Thread(target=do_request, daemon=True)
         request_thread.start()
 
-        while not ready_event.wait(timeout=0.2):
+        while request_thread.is_alive():
+            request_thread.join(timeout=0.2)
             if is_stopped():
                 return None, "cancelled"
 
-        if is_stopped():
-            return None, "cancelled"
-
-        if exception_container[0]:
-            e = exception_container[0]
+        if result["exception"]:
+            e = result["exception"]
             logging.error(f"Request failed: {e}")
             return None, f"error_ai_connection_{e}"
 
-        response = response_container[0]
+        response: Response = result["response"]
 
         if not response.ok:
             logging.error(f"HTTP error: {response.status_code} {response.text}")
             return None, f"error_ai_connection_http_{response.status_code}"
 
-        set_status("streaming response...")
+        data = response.json()
 
-        try:
-            full_response = []
-            for line in response.iter_lines(chunk_size=1):
-                if is_stopped():
-                    response.close()
-                    return None, "cancelled"
+        # OpenAI format
+        if "choices" in data:
+            text = data["choices"][0]["message"]["content"]
+        # Ollama format
+        elif "message" in data:
+            text = data["message"]["content"]
+        else:
+            logging.error(f"Unknown response format: {data}")
+            return None, "error_ai_unknown_format"
 
-                if not line:
-                    continue
-
-                text = line.decode("utf-8") if isinstance(line, bytes) else line
-
-                payload_str = text[len("data:") :].strip() if text.startswith("data:") else text
-
-                if payload_str == "[DONE]":
-                    break
-
-                try:
-                    data = json.loads(payload_str)
-                except ValueError as e:
-                    logging.error(f"Invalid JSON in response: {e}")
-                    return None, f"error_ai_response_format_{e}"
-
-                if "error" in data:
-                    logging.error(f"API error: {data['error']}")
-                    return None, f"error_ai_response_format_{data['error']}"
-
-                chunk = data.get("choices", [{}])[0].get("delta", {}).get("content") or data.get("message", {}).get(
-                    "content"
-                )
-                if chunk:
-                    full_response.append(chunk)
-
-                if data.get("message", {}).get("done"):
-                    break
-
-            if not full_response:
-                logging.error("Empty response from API")
-                return None, "error_ai_response_empty"
-
-            set_status(f"done ({len(''.join(full_response))} chars)")
-            return "".join(full_response), "ai_response_received"
-
-        except requests.exceptions.RequestException as e:
-            if is_stopped():
-                return None, "cancelled"
-            logging.error(f"Request failed: {e}")
-            return None, f"error_ai_connection_{e}"
+        return text, "ai_response_received"
