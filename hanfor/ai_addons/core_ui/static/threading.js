@@ -26,10 +26,6 @@ window.tabSubs.onActivate(TAB_ID, load);
 // ACTIONS
 // --------------------------------------------------------------------------------
 
-document.getElementById('add-dummy-task-btn').addEventListener('click', async () => {
-  await window.post(ADDON_NAME, 'dummy-task');
-});
-
 async function stopGroup(group) {
   window.showBanner(`try stopping: ${group}`, 'success', 'thread-info-banner');
   const data  = await window.post(ADDON_NAME, 'stop-group/' + group);

@@ -1,9 +1,6 @@
 from http import HTTPStatus
-
 from flask_restx import Resource, fields, Namespace
-
 from hanfor_flask import current_app
-from thread_handling.thread_function_decorator import thread_function, is_stopped, set_status
 from thread_handling.threading_core import ThreadGroup
 
 threading_api_namespace = Namespace("Threading", "Dashboard data threading", path="/threading", ordered=True)
@@ -73,42 +70,3 @@ class ApiThreadingCancelTask(Resource):
         if found:
             return {"info": f"cancel requested: {task_id}"}, HTTPStatus.OK
         return {"info": f"task: {task_id} not found"}, HTTPStatus.NOT_FOUND
-
-
-# ---- TEMP DEBUG ---------
-@threading_api_namespace.route("/dummy-task")
-class ApiThreadingDummy(Resource):
-    @threading_api_namespace.response(HTTPStatus.NO_CONTENT, "Success")
-    def post(self):
-        from thread_handling.threading_core import ThreadTask, SchedulingClass
-        import random
-
-        sleep = int(random.uniform(HTTPStatus.OK, 10000))
-        seconds = sleep / 1000
-
-        task = ThreadTask(
-            thread_function=_dummy_task,
-            scheduling_class=random.choice(list(SchedulingClass)),
-            group=ThreadGroup(random.choice(["AI", "CLUSTERING", "OTHER"])),
-            semaphore=None,
-            callback=None,
-            args=(sleep,),
-            kwargs={},
-            info_text=f"{seconds:.1f}s sleep",
-        )
-        current_app.thread_handler.submit(task)
-        return None, HTTPStatus.NO_CONTENT
-
-
-@thread_function
-def _dummy_task(sleep):
-    import time
-
-    c = 0
-    for i in range(sleep):
-        if c % 100 == 0:
-            set_status(f"{c/100}s")
-        time.sleep(0.01)
-        c += 1
-        if is_stopped():
-            break
