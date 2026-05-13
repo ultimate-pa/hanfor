@@ -1,4 +1,5 @@
 import sys
+import time
 from threading import Semaphore
 from dataclasses import dataclass, field
 from typing import Optional, Callable, Tuple
@@ -125,6 +126,7 @@ class AiCatalogTester:
                     self.__thread_handler.cancel_task(task.task_id())
                     self.send_update(catalog)
                     return
+                time.sleep(0.2)
 
             response, status = task.result()
 
