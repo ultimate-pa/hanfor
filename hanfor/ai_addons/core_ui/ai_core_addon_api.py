@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from flask import Blueprint, render_template
 import config
 import logging
@@ -140,16 +142,16 @@ def index():
 
 @core_ai_addon_api_namespace.route("/ai-provider-data")
 class CoreAiAddonProviderData(Resource):
-    @core_ai_addon_api_namespace.response(200, "Success", PROVIDERS_RESPONSE)
-    @core_ai_addon_api_namespace.response(403, "AI is disabled")
+    @core_ai_addon_api_namespace.response(HTTPStatus.OK, "Success", PROVIDERS_RESPONSE)
+    @core_ai_addon_api_namespace.response(HTTPStatus.FORBIDDEN, "AI is disabled")
     def get(self):
         if current_app.config["FEATURE_AI"]:
             return current_app.ai_request.catalog_to_frontend()
-        return "AI is disabled", 403
+        return "AI is disabled", HTTPStatus.FORBIDDEN
 
 
 @core_ai_addon_api_namespace.route("/req-ids")
 class CoreAiAddonReqIds(Resource):
-    @core_ai_addon_api_namespace.response(200, "Success", REQ_IDS)
+    @core_ai_addon_api_namespace.response(HTTPStatus.OK, "Success", REQ_IDS)
     def get(self):
         return {"ids": list(current_app.db.get_objects(Requirement).keys())}

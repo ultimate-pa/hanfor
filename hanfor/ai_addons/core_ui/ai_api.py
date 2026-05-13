@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from flask_restx import Namespace, Resource, fields
 from hanfor_flask import current_app
 
@@ -61,8 +63,8 @@ class ApiAiData(Resource):
 @ai_api_namespace.doc(params={"action": f"One of: {', '.join(ADDON_ACTIONS)}"})
 class AddonActions(Resource):
     @ai_api_namespace.expect(ADDON_INPUT)
-    @ai_api_namespace.response(204, "Success")
-    @ai_api_namespace.response(400, "Unknown action")
+    @ai_api_namespace.response(HTTPStatus.NO_CONTENT, "Success")
+    @ai_api_namespace.response(HTTPStatus.BAD_REQUEST, "Unknown action")
     def post(self, action: str):
         actions = {
             "activate": current_app.ai_addons.toggle_addon,
@@ -71,21 +73,21 @@ class AddonActions(Resource):
             "deactivate_all": current_app.ai_addons.deactivate_all_addons,
         }
         if action not in actions:
-            ai_api_namespace.abort(400, f"Unknown action: {action}")
+            ai_api_namespace.abort(HTTPStatus.BAD_REQUEST, f"Unknown action: {action}")
 
         if action == "activate" or action == "deactivate":
             actions[action](ai_api_namespace.payload.get("addon_id"), action == "activate")  # type: ignore
         else:
             actions[action]()
-        return None, 204
+        return None, HTTPStatus.NO_CONTENT
 
 
 @ai_api_namespace.route("/provider/<string:action>")
 @ai_api_namespace.doc(params={"action": f"One of: {', '.join(PROVIDER_ACTIONS)}"})
 class ProviderActions(Resource):
     @ai_api_namespace.expect(PROVIDER_INPUT)
-    @ai_api_namespace.response(204, "Success")
-    @ai_api_namespace.response(400, "Unknown action")
+    @ai_api_namespace.response(HTTPStatus.NO_CONTENT, "Success")
+    @ai_api_namespace.response(HTTPStatus.BAD_REQUEST, "Unknown action")
     def post(self, action: str):
         actions = {
             "set_default": current_app.ai_request.set_default_provider,
@@ -94,24 +96,24 @@ class ProviderActions(Resource):
             "test_all": lambda _: current_app.ai_request.test_all_provider_models(),
         }
         if action not in actions:
-            ai_api_namespace.abort(400, f"Unknown action: {action}")
+            ai_api_namespace.abort(HTTPStatus.BAD_REQUEST, f"Unknown action: {action}")
         actions[action](ai_api_namespace.payload.get("provider"))
-        return None, 204
+        return None, HTTPStatus.NO_CONTENT
 
 
 @ai_api_namespace.route("/model/<string:action>")
 @ai_api_namespace.doc(params={"action": f"One of: {', '.join(MODEL_ACTIONS)}"})
 class ModelActions(Resource):
     @ai_api_namespace.expect(PROVIDER_MODEL_INPUT)
-    @ai_api_namespace.response(204, "Success")
-    @ai_api_namespace.response(400, "Unknown action")
+    @ai_api_namespace.response(HTTPStatus.NO_CONTENT, "Success")
+    @ai_api_namespace.response(HTTPStatus.BAD_REQUEST, "Unknown action")
     def post(self, action: str):
         actions = {
             "set_default": current_app.ai_request.set_default_model,
             "test": current_app.ai_request.activity_test_model,
         }
         if action not in actions:
-            ai_api_namespace.abort(400, f"Unknown action: {action}")
+            ai_api_namespace.abort(HTTPStatus.BAD_REQUEST, f"Unknown action: {action}")
         payload = ai_api_namespace.payload
         actions[action](payload.get("provider"), payload.get("model"))  # type: ignore
-        return None, 204
+        return None, HTTPStatus.NO_CONTENT

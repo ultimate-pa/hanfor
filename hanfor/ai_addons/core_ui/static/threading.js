@@ -60,8 +60,8 @@ function injectGroupStyles(groups) {
 // --------------------------------------------------------------------------------
 
 async function cancelTask(taskId) {
-  const data = await window.post(ADDON_NAME, 'cancel-task/' + taskId);
-  window.showBanner(data.info, data.found ? 'success' : 'warn', 'thread-info-banner');
+  const data = await window.del(ADDON_NAME, 'task/' + taskId);
+  window.showBanner(data.info,'success', 'thread-info-banner');
 }
 
 function taskRow({ function: fn, group, scheduling_class, task_id, status, queued_at, started_at, info_text}) {
@@ -162,15 +162,15 @@ function renderTaskList(elementId, tasks) {
   });
 }
 
-function render(d) {
-  injectGroupStyles(d.groups);
-  renderMetrics(d);
+function render(data) {
+  injectGroupStyles(data.groups);
+  renderMetrics(data);
 
-  const counts = buildGroupCounts(d.groups, d.active_tasks, d.queued_tasks);
-  renderGroups(d.groups, counts);
+  const counts = buildGroupCounts(data.groups, data.active_tasks, data.queued_tasks);
+  renderGroups(data.groups, counts);
 
-  renderTaskList('th-running-list', d.active_tasks);
-  renderTaskList('th-queue-list',   d.queued_tasks);
+  renderTaskList('th-running-list', data.active_tasks);
+  renderTaskList('th-queue-list',   data.queued_tasks);
 }
 
 

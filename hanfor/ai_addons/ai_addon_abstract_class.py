@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from functools import wraps
 import os
 import inspect
+from http import HTTPStatus
 
 
 class AiAddonAbstractClass(ABC):
@@ -33,7 +34,7 @@ class AiAddonAbstractClass(ABC):
                 try:
                     return func(self, *args, **kwargs)
                 except AiAddonAbstractClass.AddonDisabledError:
-                    namespace.abort(403, "Addon is disabled")
+                    namespace.abort(HTTPStatus.FORBIDDEN, "Addon is disabled")
 
             return wrapper
 

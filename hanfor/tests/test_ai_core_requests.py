@@ -1,4 +1,5 @@
 import json
+from http import HTTPStatus
 from unittest import TestCase
 from unittest.mock import MagicMock
 
@@ -358,7 +359,7 @@ class TestAiApi(TestCase):
             json={"addon_id": "example_addon"},
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.status_code, HTTPStatus.NO_CONTENT)
 
     def test_addon_deactivate(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
@@ -367,7 +368,7 @@ class TestAiApi(TestCase):
             json={"addon_id": "example_addon"},
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.status_code, HTTPStatus.NO_CONTENT)
 
     def test_addon_activate_all(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
@@ -376,7 +377,7 @@ class TestAiApi(TestCase):
             json={"addon_id": ""},
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.status_code, HTTPStatus.NO_CONTENT)
 
     def test_addon_deactivate_all(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
@@ -385,7 +386,7 @@ class TestAiApi(TestCase):
             json={"addon_id": ""},
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.status_code, HTTPStatus.NO_CONTENT)
 
     def test_addon_unknown_action(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
@@ -394,7 +395,7 @@ class TestAiApi(TestCase):
             json={"addon_id": "example_addon"},
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
 
     def test_provider_set_default(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
@@ -403,7 +404,7 @@ class TestAiApi(TestCase):
             json={"provider": "openai"},
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.status_code, HTTPStatus.NO_CONTENT)
 
     def test_provider_test(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
@@ -412,7 +413,7 @@ class TestAiApi(TestCase):
             json={"provider": "openai"},
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.status_code, HTTPStatus.NO_CONTENT)
 
     def test_provider_test_all(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
@@ -421,7 +422,7 @@ class TestAiApi(TestCase):
             json={"provider": ""},
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.status_code, HTTPStatus.NO_CONTENT)
 
     def test_provider_unknown_action(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
@@ -430,7 +431,7 @@ class TestAiApi(TestCase):
             json={"provider": "openai"},
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
 
     def test_model_set_default(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
@@ -439,7 +440,7 @@ class TestAiApi(TestCase):
             json={"provider": "openai", "model": "gpt-4"},
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.status_code, HTTPStatus.NO_CONTENT)
 
     def test_model_test(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
@@ -448,7 +449,7 @@ class TestAiApi(TestCase):
             json={"provider": "openai", "model": "gpt-4"},
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.status_code, HTTPStatus.NO_CONTENT)
 
     def test_model_unknown_action(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
@@ -457,12 +458,12 @@ class TestAiApi(TestCase):
             json={"provider": "openai", "model": "gpt-4"},
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
 
     def test_provider_data_ai_enabled(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
         response = self.mock_hanfor.app.get("api/v1/core-ai-addon/ai-provider-data")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         data = json.loads(response.data)
         self.assertIn("providers", data)
         self.assertIsInstance(data["providers"], list)
@@ -481,13 +482,13 @@ class TestCoreAiAddonApi(TestCase):
         response = self.mock_hanfor.app.get("api/v1/core-ai-addon/ai-provider-data")
 
         print(response.status_code)
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
 
     def test_req_ids_returns_list(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
 
         response = self.mock_hanfor.app.get("api/v1/core-ai-addon/req-ids")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         data = json.loads(response.data)
         self.assertIn("ids", data)
         self.assertIsInstance(data["ids"], list)

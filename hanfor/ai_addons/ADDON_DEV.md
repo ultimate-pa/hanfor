@@ -139,25 +139,30 @@ Before adding new endpoints, check `core_ui/ai_core_addon_api.py` - it already c
 
 ```python
 from ai_addons.ai_addon_abstract_class import AiAddonAbstractClass
+from http import HTTPStatus
+from flask_restx import Namespace, Resource, fields
+from current_app import ai_addons
+
+my_addon_namespace = Namespace("MyAddon", "Description MyAddon", path="/my_addon", ordered=True)
 
 _handle_disabled = AiAddonAbstractClass.handle_disabled(my_addon_namespace)
 
 def _get_addon() -> MyAddon:
-    return current_app.ai_addons.get_addon("my_addon", MyAddon)
+    return ai_addons.get_addon("my_addon", MyAddon)
 
 
 @my_addon_namespace.route("/data")
 class MyAddonData(Resource):
 
-    @my_addon_namespace.response(200, "Success")
-    @my_addon_namespace.response(403, "Addon is disabled")
+    @my_addon_namespace.response(HTTPStatus.OK, "Success")
+    @my_addon_namespace.response(HTTPStatus.FORBIDDEN, "Addon is disabled")
     @_handle_disabled
     def get(self):
         return _get_addon().some_method()
 ```
 
 `@_handle_disabled` must be on **every endpoint** that accesses the addon instance -
-it automatically returns `403` when the addon is disabled.
+it automatically returns `HTTPStatus.FORBIDDEN` when the addon is disabled.
 
 ---
 

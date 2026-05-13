@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from flask import Blueprint
 from flask_restx import Namespace, Resource
 
@@ -25,36 +27,36 @@ def _get_addon() -> ExampleAiAddon:
 
 @example_ai_addon_api_namespace.route("/<string:socket_io_sid>")
 class ApiExampleAiAddonSocket(Resource):
-    @example_ai_addon_api_namespace.response(204, "Success")
-    @example_ai_addon_api_namespace.response(403, "Addon is disabled")
+    @example_ai_addon_api_namespace.response(HTTPStatus.NO_CONTENT, "Success")
+    @example_ai_addon_api_namespace.response(HTTPStatus.FORBIDDEN, "Addon is disabled")
     @_handle_disabled
     def post(self, socket_io_sid: str):
         _get_addon().set_sid(socket_io_sid)
-        return None, 204
+        return None, HTTPStatus.NO_CONTENT
 
-    @example_ai_addon_api_namespace.response(204, "Success")
-    @example_ai_addon_api_namespace.response(403, "Addon is disabled")
+    @example_ai_addon_api_namespace.response(HTTPStatus.NO_CONTENT, "Success")
+    @example_ai_addon_api_namespace.response(HTTPStatus.FORBIDDEN, "Addon is disabled")
     @_handle_disabled
     def delete(self, socket_io_sid: str):
         _get_addon().clear_sid(socket_io_sid)
-        return None, 204
+        return None, HTTPStatus.NO_CONTENT
 
 
 @example_ai_addon_api_namespace.route("/increment-client-counter/<string:socket_io_sid>")
 class ApiExampleAiAddonCounterClient(Resource):
-    @example_ai_addon_api_namespace.response(204, "Success")
-    @example_ai_addon_api_namespace.response(403, "Addon is disabled")
+    @example_ai_addon_api_namespace.response(HTTPStatus.NO_CONTENT, "Success")
+    @example_ai_addon_api_namespace.response(HTTPStatus.FORBIDDEN, "Addon is disabled")
     @_handle_disabled
     def post(self, socket_io_sid: str):
         _get_addon().increment_for_client(socket_io_sid)
-        return None, 204
+        return None, HTTPStatus.NO_CONTENT
 
 
 @example_ai_addon_api_namespace.route("/increment-global-counter")
 class ApiExampleAiAddonGlobalCounter(Resource):
-    @example_ai_addon_api_namespace.response(204, "Success")
-    @example_ai_addon_api_namespace.response(403, "Addon is disabled")
+    @example_ai_addon_api_namespace.response(HTTPStatus.NO_CONTENT, "Success")
+    @example_ai_addon_api_namespace.response(HTTPStatus.FORBIDDEN, "Addon is disabled")
     @_handle_disabled
     def post(self):
         _get_addon().increment_global_counter()
-        return None, 204
+        return None, HTTPStatus.NO_CONTENT

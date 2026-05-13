@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from flask import json, Response, Blueprint
 from flask_restx import Namespace, Resource, fields
 
@@ -79,8 +81,8 @@ def _get_addon() -> PatternPrediction:
 @pattern_prediction_namespace.route("/tree")
 class ApiTree(Resource):
 
-    @pattern_prediction_namespace.response(200, "Success")
-    @pattern_prediction_namespace.response(403, "Addon is disabled")
+    @pattern_prediction_namespace.response(HTTPStatus.OK, "Success")
+    @pattern_prediction_namespace.response(HTTPStatus.FORBIDDEN, "Addon is disabled")
     @_handle_disabled
     def get(self):
         addon = _get_addon()
@@ -90,40 +92,40 @@ class ApiTree(Resource):
 @pattern_prediction_namespace.route("/trace-sid")
 class ApiTraceSid(Resource):
     @pattern_prediction_namespace.expect(TRACE_SID_INPUT)
-    @pattern_prediction_namespace.response(204, "Success")
-    @pattern_prediction_namespace.response(403, "Addon is disabled")
+    @pattern_prediction_namespace.response(HTTPStatus.NO_CONTENT, "Success")
+    @pattern_prediction_namespace.response(HTTPStatus.FORBIDDEN, "Addon is disabled")
     @_handle_disabled
     def post(self):
         payload = pattern_prediction_namespace.payload
         _get_addon().set_sid_for_req(payload.get("req_id"), payload.get("sid"))
-        return None, 204
+        return None, HTTPStatus.NO_CONTENT
 
     @pattern_prediction_namespace.expect(TRACE_SID_INPUT)
-    @pattern_prediction_namespace.response(204, "Success")
-    @pattern_prediction_namespace.response(403, "Addon is disabled")
+    @pattern_prediction_namespace.response(HTTPStatus.NO_CONTENT, "Success")
+    @pattern_prediction_namespace.response(HTTPStatus.FORBIDDEN, "Addon is disabled")
     @_handle_disabled
     def delete(self):
         payload = pattern_prediction_namespace.payload
         _get_addon().clear_sid_for_req(payload.get("req_id"), payload.get("sid"))
-        return None, 204
+        return None, HTTPStatus.NO_CONTENT
 
 
 @pattern_prediction_namespace.route("/ensemble")
 class ApiEnsemble(Resource):
 
-    @pattern_prediction_namespace.response(200, "Success")
-    @pattern_prediction_namespace.response(403, "Addon is disabled")
+    @pattern_prediction_namespace.response(HTTPStatus.OK, "Success")
+    @pattern_prediction_namespace.response(HTTPStatus.FORBIDDEN, "Addon is disabled")
     @_handle_disabled
     def get(self):
         return {"ensemble": _get_addon().get_selected_ensemble()}
 
     @pattern_prediction_namespace.expect(ENSEMBLE_INPUT)
-    @pattern_prediction_namespace.response(204, "Success")
-    @pattern_prediction_namespace.response(403, "Addon is disabled")
+    @pattern_prediction_namespace.response(HTTPStatus.NO_CONTENT, "Success")
+    @pattern_prediction_namespace.response(HTTPStatus.FORBIDDEN, "Addon is disabled")
     @_handle_disabled
     def post(self):
         _get_addon().set_selected_ensemble(pattern_prediction_namespace.payload.get("ensemble"))
-        return None, 204
+        return None, HTTPStatus.NO_CONTENT
 
 
 @pattern_prediction_namespace.route("/generate-trace/<string:req_id>")
@@ -132,8 +134,8 @@ class ApiEnsemble(Resource):
 )
 class ApiGenerateTrace(Resource):
 
-    @pattern_prediction_namespace.response(204, "Success")
-    @pattern_prediction_namespace.response(403, "Addon is disabled")
+    @pattern_prediction_namespace.response(HTTPStatus.NO_CONTENT, "Success")
+    @pattern_prediction_namespace.response(HTTPStatus.FORBIDDEN, "Addon is disabled")
     @pattern_prediction_namespace.response(404, "Requirement ID not found")
     @_handle_disabled
     def post(self, req_id: str):
@@ -171,14 +173,14 @@ class ApiGenerateTrace(Resource):
                     info_text=f"PP for {req["id"]}",
                 )
             )
-        return None, 204
+        return None, HTTPStatus.NO_CONTENT
 
 
 @pattern_prediction_namespace.route("/detailed-traces-file")
 class ApiDetailedTracesFile(Resource):
 
-    @pattern_prediction_namespace.response(200, "Success")
-    @pattern_prediction_namespace.response(403, "Addon is disabled")
+    @pattern_prediction_namespace.response(HTTPStatus.OK, "Success")
+    @pattern_prediction_namespace.response(HTTPStatus.FORBIDDEN, "Addon is disabled")
     @_handle_disabled
     def get(self):
         traces = _get_addon().get_all_detailed_traces_as_file()
@@ -192,16 +194,16 @@ class ApiDetailedTracesFile(Resource):
 @pattern_prediction_namespace.route("/tree-file")
 class ApiTreeFile(Resource):
 
-    @pattern_prediction_namespace.response(200, "Success")
-    @pattern_prediction_namespace.response(403, "Addon is disabled")
+    @pattern_prediction_namespace.response(HTTPStatus.OK, "Success")
+    @pattern_prediction_namespace.response(HTTPStatus.FORBIDDEN, "Addon is disabled")
     @_handle_disabled
     def get(self):
         return _get_addon().get_all_tree_file()
 
     @pattern_prediction_namespace.expect(FILE_INPUT)
-    @pattern_prediction_namespace.response(204, "Success")
-    @pattern_prediction_namespace.response(403, "Addon is disabled")
+    @pattern_prediction_namespace.response(HTTPStatus.NO_CONTENT, "Success")
+    @pattern_prediction_namespace.response(HTTPStatus.FORBIDDEN, "Addon is disabled")
     @_handle_disabled
     def post(self):
         _get_addon().select_tree_file(pattern_prediction_namespace.payload.get("file"))
-        return None, 204
+        return None, HTTPStatus.NO_CONTENT

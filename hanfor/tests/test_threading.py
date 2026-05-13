@@ -275,6 +275,6 @@ class TestThreadingApi(TestCase):
     def test_cancel_task(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
         self.assertEqual(
-            json.loads(self.mock_hanfor.app.post("api/v1/threading/cancel-task/123456").data),
-            {"info": "cancel requested: 123456", "found": False},
+            json.loads(self.mock_hanfor.app.delete("api/v1/threading/task/123456").data),
+            {"info": "task: 123456 not found"},
         )

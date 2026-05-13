@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from flask_restx import Resource, fields, Namespace
 
 from hanfor_flask import current_app
@@ -37,7 +39,7 @@ THREAD_STOP_RESPONSE = threading_api_namespace.model(
 )
 
 THREAD_CANCEL_RESPONSE = threading_api_namespace.model(
-    "ThreadCancelResponse", {"info": fields.String(example="cancelled task: abc-123"), "found": fields.Boolean()}
+    "ThreadCancelResponse", {"info": fields.String(example="cancelled task: abc-123")}
 )
 
 # --- API Routes ---
@@ -45,40 +47,43 @@ THREAD_CANCEL_RESPONSE = threading_api_namespace.model(
 
 @threading_api_namespace.route("/")
 class ApiThreadingData(Resource):
-    @threading_api_namespace.marshal_with(THREAD_DATA, code=200)
+    @threading_api_namespace.marshal_with(THREAD_DATA, code=HTTPStatus.OK)
     def get(self):
         return current_app.thread_handler.threading_data()
 
 
 @threading_api_namespace.route("/stop-group/<string:thread_group>")
 class ApiThreadingStopGroup(Resource):
-    @threading_api_namespace.marshal_with(THREAD_STOP_RESPONSE, code=200)
-    @threading_api_namespace.response(404, "Unknown thread group")
+    @threading_api_namespace.marshal_with(THREAD_STOP_RESPONSE, code=HTTPStatus.OK)
+    @threading_api_namespace.response(HTTPStatus.NOT_FOUND, "Unknown thread group")
     def post(self, thread_group: str):
         group = ThreadGroup.get(thread_group)
         if group is None:
-            threading_api_namespace.abort(404, f"Unknown thread group: {thread_group}")
+            threading_api_namespace.abort(HTTPStatus.NOT_FOUND, f"Unknown thread group: {thread_group}")
         current_app.thread_handler.stop_group(group)
         return {"info": f"stopped thread_group: {group}"}
 
 
-@threading_api_namespace.route("/cancel-task/<string:task_id>")
+@threading_api_namespace.route("/task/<string:task_id>")
 class ApiThreadingCancelTask(Resource):
-    @threading_api_namespace.marshal_with(THREAD_CANCEL_RESPONSE, code=200)
-    def post(self, task_id: str):
+    @threading_api_namespace.marshal_with(THREAD_CANCEL_RESPONSE, code=HTTPStatus.OK)
+    @threading_api_namespace.marshal_with(THREAD_CANCEL_RESPONSE, code=HTTPStatus.NOT_FOUND)
+    def delete(self, task_id: str):
         found = current_app.thread_handler.cancel_task(task_id)
-        return {"info": f"cancel requested: {task_id}", "found": found}
+        if found:
+            return {"info": f"cancel requested: {task_id}"}, HTTPStatus.OK
+        return {"info": f"task: {task_id} not found"}, HTTPStatus.NOT_FOUND
 
 
 # ---- TEMP DEBUG ---------
 @threading_api_namespace.route("/dummy-task")
 class ApiThreadingDummy(Resource):
-    @threading_api_namespace.response(204, "Success")
+    @threading_api_namespace.response(HTTPStatus.NO_CONTENT, "Success")
     def post(self):
         from thread_handling.threading_core import ThreadTask, SchedulingClass
         import random
 
-        sleep = int(random.uniform(200, 10000))
+        sleep = int(random.uniform(HTTPStatus.OK, 10000))
         seconds = sleep / 1000
 
         task = ThreadTask(
@@ -92,7 +97,7 @@ class ApiThreadingDummy(Resource):
             info_text=f"{seconds:.1f}s sleep",
         )
         current_app.thread_handler.submit(task)
-        return None, 204
+        return None, HTTPStatus.NO_CONTENT
 
 
 @thread_function
