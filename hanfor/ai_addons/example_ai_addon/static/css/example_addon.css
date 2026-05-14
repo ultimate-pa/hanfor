@@ -1,9 +1,0 @@
-/* -- Example Addon ------------------------------------------------------------- */
-.example-addon-metric-label,
-.example-addon-metric-value{
-  color: var(--text-dark);
-}
-.example-addon-counter-div{
-  display: flex;
-  gap: 20px;
-}

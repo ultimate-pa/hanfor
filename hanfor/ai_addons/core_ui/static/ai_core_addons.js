@@ -1,4 +1,5 @@
 require('../../../telemetry/static/telemetry')
+require("bootstrap");
 const { io } = require('socket.io-client');
 
 // --------------------------------------------------------------------------------
@@ -72,25 +73,22 @@ $(document).ready(() => {
 
 
 // ---------------------------------------------------------------------------------
-// TAB SWITCHING
+// BOOTSTRAP TAB EVENTS
 // ---------------------------------------------------------------------------------
 
-document.querySelectorAll('[data-bs-toggle="tab"]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(b => {
-      b.classList.remove('active');
-      b.setAttribute('aria-selected', 'false');
-    });
-    document.querySelectorAll('.tab-pane').forEach(p => {
-      p.classList.remove('show', 'active');
-    });
-    btn.classList.add('active');
-    btn.setAttribute('aria-selected', 'true');
-    document.querySelector(btn.dataset.bsTarget).classList.add('show', 'active');
+document.addEventListener('shown.bs.tab', event => {
+  const target = event.target;
 
-    const tabId = btn.dataset.bsTarget?.replace('#tab-', '');
-    if (tabId) window.tabSubs.activate(tabId);
-  });
+  const tabId =
+    target.getAttribute('data-bs-target')
+      ?.replace('#tab-', '') ||
+    target.getAttribute('href')
+      ?.replace('#tab-', '')
+      ?.replace('-pane', '');
+
+  if (tabId) {
+    window.tabSubs.activate(tabId);
+  }
 });
 
 

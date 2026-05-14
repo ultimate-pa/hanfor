@@ -27,21 +27,21 @@ window.tabSubs.onActivate(TAB_ID, load);
 // --------------------------------------------------------------------------------
 
 async function stopGroup(group) {
-  window.showBanner(`try stopping: ${group}`, 'success', 'thread-info-banner');
-  const data  = await window.post(ADDON_NAME, 'stop-group/' + group);
+  window.showBanner(`Trying to stop: ${group}`, 'info', 'thread-info-banner');
+  const data = await window.post(ADDON_NAME, 'stop-group/' + group);
   window.showBanner(data.info, 'success', 'thread-info-banner');
 }
 
 
 // --------------------------------------------------------------------------------
-// STYLES
+// STYLES - inject only the coloured badge backgrounds for the groups, nothing structural
 // --------------------------------------------------------------------------------
 
 function injectGroupStyles(groups) {
   document.getElementById('group-badge-styles')?.remove();
 
   const css = groups
-    .map((g, i) => `.badge-${CSS.escape(g)} { background: ${GROUP_COLORS[i % GROUP_COLORS.length]}; }`)
+    .map((g, i) => `.badge-group-${CSS.escape(g)} { background-color: ${GROUP_COLORS[i % GROUP_COLORS.length]} !important; color: #fff !important; }`)
     .join('\n');
 
   const style       = document.createElement('style');
@@ -57,36 +57,37 @@ function injectGroupStyles(groups) {
 
 async function cancelTask(taskId) {
   const data = await window.del(ADDON_NAME, 'task/' + taskId);
-  window.showBanner(data.info,'success', 'thread-info-banner');
+  window.showBanner(data.info, 'success', 'thread-info-banner');
 }
 
-function taskRow({ function: fn, group, scheduling_class, task_id, status, queued_at, started_at, info_text}) {
+function taskRow({ function: fn, group, scheduling_class, task_id, status, queued_at, started_at, info_text }) {
   const isCancelling = status === 'cancel requested';
   const ts = started_at ?? queued_at;
 
   return `
-    <div class="list-row">
-      <span class="list-name">${fn}() - ${info_text} - status: ${status}</span>
-      <span class="badge badge-${group}">${group}</span>
-      <span class="badge badge-sc">${scheduling_class}</span>
-      <span class="list-elapsed" data-since="${ts}">0s</span>
+    <div class="d-flex align-items-center gap-2 px-3 py-2 border-bottom" style="font-size:12px; white-space:nowrap;">
+      <span class="fw-medium flex-grow-1">${fn}() -|- ${info_text} -|- <span class="text-muted">${status}</span></span>
+      <span class="badge badge-group-${group}">${group}</span>
+      <span class="badge text-bg-secondary">${scheduling_class}</span>
+      <span class="text-muted font-monospace" style="font-size:11px; min-width:48px; text-align:right;" data-since="${ts}">0s</span>
       <button
-        class="th-cancel-btn${isCancelling ? ' cancelling' : ''}"
+        class="btn btn-sm btn-outline-danger py-0 px-2${isCancelling ? ' disabled' : ''}"
         data-task-id="${task_id}"
         ${isCancelling ? 'disabled' : ''}
-      >${isCancelling ? '-' : 'x'}</button>
+        style="font-size:11px; line-height:1.6;"
+      >${isCancelling ? '…' : '✕'}</button>
     </div>`;
 }
 
 function formatElapsed(seconds) {
-  if (seconds < 60)  return `${Math.floor(seconds)}s`;
+  if (seconds < 60)   return `${Math.floor(seconds)}s`;
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${Math.floor(seconds % 60)}s`;
   return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
 }
 
 function tickElapsed() {
   const now = Date.now() / 1000;
-  document.querySelectorAll('.list-elapsed[data-since]').forEach(el => {
+  document.querySelectorAll('[data-since]').forEach(el => {
     el.textContent = formatElapsed(now - parseFloat(el.dataset.since));
   });
 }
@@ -110,14 +111,14 @@ function renderMetrics({ active_count, max_threads, queue_size, free_count }) {
   document.getElementById('th-metric-max').textContent    = max_threads;
   document.getElementById('th-metric-queue').textContent  = queue_size;
 
-  const freeEl       = document.getElementById('th-metric-free');
+  const freeEl = document.getElementById('th-metric-free');
   freeEl.textContent = free_count;
-  freeEl.className   = `metric-value ${free_count === 0 ? 'bad' : free_count <= 2 ? 'warn' : 'ok'}`;
+  freeEl.className = `fs-4 fw-semibold ${free_count === 0 ? 'text-danger' : free_count <= 2 ? 'text-warning' : 'text-success'}`;
 
   const pct = max_threads > 0 ? Math.round(active_count / max_threads * 100) : 0;
   const bar = document.getElementById('th-load-bar');
   bar.style.width = `${pct}%`;
-  bar.className   = `bar-fill ${pct >= 90 ? 'bad' : pct >= 60 ? 'warn' : ''}`.trimEnd();
+  bar.className   = `progress-bar ${pct >= 90 ? 'bg-danger' : pct >= 60 ? 'bg-warning' : 'bg-success'}`;
 }
 
 function renderGroups(groups, counts) {
@@ -130,18 +131,20 @@ function renderGroups(groups, counts) {
     let card = container.querySelector(`[data-group="${g}"]`);
     if (!card) {
       card = document.createElement('div');
-      card.className     = 'pill';
-      card.dataset.group = g;
-      card.innerHTML     = `
-          <span class="pill-name badge-${g}">${g}</span>
-        <span class="pill-count" data-counts></span>
-        <button class="th-stop-btn">STOP</button>
+      card.className     = 'd-flex align-items-center gap-2 border rounded px-3 py-2';
+      card.style.fontSize = '12px';
+      card.dataset.group  = g;
+      card.innerHTML = `
+        <span class="badge badge-group-${g}">${g}</span>
+        <span class="text-muted" data-counts></span>
+        <button class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:11px;">STOP</button>
       `;
-      card.querySelector('.th-stop-btn').addEventListener('click', () => stopGroup(g));
+      card.querySelector('button').addEventListener('click', () => stopGroup(g));
       container.appendChild(card);
     }
+
     card.querySelector('[data-counts]').textContent = `${running} running · ${queued} queued`;
-    card.querySelector('.th-stop-btn').disabled = idle;
+    card.querySelector('button').disabled = idle;
   });
 }
 
@@ -149,11 +152,11 @@ function renderTaskList(elementId, tasks) {
   const el = document.getElementById(elementId);
   el.innerHTML = tasks.length
     ? tasks.map(taskRow).join('')
-    : `<div class="list-row"><span class="list-meta">${elementId === 'th-running-list' ? 'No active tasks' : 'Queue is empty'}</span></div>`;
+    : `<p class="text-muted px-3 py-2 mb-0" style="font-size:12px;">${elementId === 'th-running-list' ? 'No active tasks.' : 'Queue is empty.'}</p>`;
 
   tickElapsed();
 
-  el.querySelectorAll('.th-cancel-btn[data-task-id]').forEach(btn => {
+  el.querySelectorAll('button[data-task-id]').forEach(btn => {
     btn.addEventListener('click', () => cancelTask(btn.dataset.taskId));
   });
 }

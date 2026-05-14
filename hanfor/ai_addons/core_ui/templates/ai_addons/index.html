@@ -40,11 +40,10 @@
 {% endblock %}
 
 {% block scripts %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ai_addons.css') }}">
 {{ super() }}
-    <script>
-    window.baseUrl = "{{ BASE_URL }}";
-    </script>
+<script>
+  window.baseUrl = "{{ BASE_URL }}";
+</script>
 {% for js_file in BUNDLE_JS %}
   <script src="{{ url_for('static', filename=js_file) }}"></script>
 {% endfor %}

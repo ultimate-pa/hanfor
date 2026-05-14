@@ -75,7 +75,6 @@ const actions = {
 document.addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-action]");
   if (!btn) return;
-
   const fn = actions[btn.dataset.action];
   if (fn) fn(btn.dataset);
 });
@@ -85,27 +84,23 @@ document.addEventListener("click", (e) => {
 // HELPERS
 // --------------------------------------------------------------------------------
 
+// LED - Bootstrap badge dot
 window.aiLed = function aiLed(activity) {
   const color =
-    activity === "ACTIVE"
-      ? "led-on"
-      : activity === "NOT_TESTED"
-        ? "led-yellow"
-        : "led-off";
-
-  return `<span class="led ${color}"></span>`;
+    activity === "ACTIVE"      ? "bg-success" :
+    activity === "NOT_TESTED"  ? "bg-warning"  :
+                                 "bg-danger";
+  return `<span class="badge rounded-pill ${color} p-1">&nbsp;</span>`;
 };
 
 function btnDefault(isDefault, action, dataset) {
   if (isDefault) {
-    return `<span class="ai-tag-default">default</span>`;
+    return `<span class="badge text-bg-success">default</span>`;
   }
-
   const data = Object.entries(dataset)
     .map(([k, v]) => `data-${k}="${v}"`)
     .join(" ");
-
-  return `<button class="btn-bright" data-action="${action}" ${data}>set default</button>`;
+  return `<button class="btn btn-outline-secondary btn-sm" data-action="${action}" ${data}>set default</button>`;
 }
 
 
@@ -115,121 +110,82 @@ function btnDefault(isDefault, action, dataset) {
 
 function modelCard(provider, m) {
   return `
-    <div class="ai-model-card">
-
-      <div class="ai-model-header">
-
-        <div class="ai-model-title">
-          ${aiLed(m.active)}
-          <span class="ai-model-name">${m.name}</span>
+    <div class="card mb-2 border-0 bg-light">
+      <div class="card-body py-2 px-3">
+        <div class="d-flex align-items-center justify-content-between mb-1">
+          <div class="d-flex align-items-center gap-2">
+            ${aiLed(m.active)}
+            <span class="fw-semibold small">${m.name}</span>
+          </div>
+          <div class="d-flex align-items-center gap-1">
+            <button class="btn btn-outline-secondary btn-sm"
+              data-action="test-model"
+              data-provider="${provider}"
+              data-model="${m.name}">test</button>
+            ${btnDefault(m.default, "set-default-model", { provider, model: m.name })}
+          </div>
         </div>
-
-        <div class="ai-model-actions">
-
-          <button
-            class="btn-bright"
-            data-action="test-model"
-            data-provider="${provider}"
-            data-model="${m.name}">
-            test
-          </button>
-
-          ${btnDefault(
-      m.default,
-      "set-default-model",
-      {provider, model: m.name}
-  )}
-
-        </div>
+        <p class="text-muted mb-0" style="font-size:11px;">${m.desc}</p>
       </div>
-
-      <div class="ai-model-desc">
-        ${m.desc}
-      </div>
-
     </div>
   `;
 }
 
 function providerCard(p) {
   return `
-    <div class="ai-provider-card">
-
-      <div class="ai-provider-header">
-
-        <div class="ai-provider-title">
+    <div class="card" style="width:340px; flex-shrink:0;">
+      <div class="card-header d-flex align-items-center justify-content-between py-2">
+        <div class="d-flex align-items-center gap-2">
           ${aiLed(p.reachable)}
-          <span class="ai-provider-name">${p.name}</span>
+          <span class="fw-semibold">${p.name}</span>
         </div>
-
-        <div class="ai-provider-actions">
-
-          <button
-            class="btn-bright"
+        <div class="d-flex align-items-center gap-1">
+          <button class="btn btn-outline-secondary btn-sm"
             data-action="test-provider"
-            data-provider="${p.name}">
-            test
-          </button>
-
-          ${btnDefault(
-      p.default,
-      "set-default-provider",
-      {provider: p.name}
-  )}
-
+            data-provider="${p.name}">test</button>
+          ${btnDefault(p.default, "set-default-provider", { provider: p.name })}
         </div>
       </div>
-
-      <div class="ai-provider-info">
-
-        <div class="ai-info-row">
-          <span class="ai-info-label">Max Concurrent Requests</span>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item d-flex justify-content-between py-1 px-3" style="font-size:12px;">
+          <span class="text-muted">Max Concurrent Requests</span>
           <span>${p.max_request}</span>
-        </div>
-
-        <div class="ai-info-row">
-          <span class="ai-info-label">Method</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between py-1 px-3" style="font-size:12px;">
+          <span class="text-muted">Method</span>
           <span>${p.api_method}</span>
-        </div>
-
-        <div class="ai-info-row">
-          <span class="ai-info-label">URL</span>
-          <span class="ai-info-url">${p.url}</span>
-        </div>
-
-      </div>
-
-      <div class="ai-provider-models scrollbar">
+        </li>
+        <li class="list-group-item py-1 px-3" style="font-size:12px;">
+          <span class="text-muted d-block">URL</span>
+          <code style="font-size:11px; word-break:break-all;">${p.url}</code>
+        </li>
+      </ul>
+      <div class="card-body p-2 overflow-auto" style="max-height:260px;">
         ${p.models.map(m => modelCard(p.name, m)).join("")}
       </div>
-
     </div>
   `;
 }
 
 function addonCard(a) {
+  const borderClass = a.enabled ? "border-success" : "border-secondary";
+  const btnClass    = a.enabled ? "btn-outline-danger" : "btn-outline-success";
+  const btnAction   = a.enabled ? "deactivate-addon" : "activate-addon";
+  const btnLabel    = a.enabled ? "Deactivate" : "Activate";
+
   return `
-    <div class="ai-addon-card ${a.enabled ? "addon-enabled" : "addon-disabled"}" id="addon-${a.id}">
-
-      <div class="ai-addon-header">
-        <span class="ai-addon-name">${a.name}</span>
+    <div class="col">
+      <div class="card h-100 ${borderClass}" id="addon-${a.id}" style="border-left-width:4px;">
+        <div class="card-body d-flex flex-column gap-2 py-2 px-3">
+          <span class="fw-semibold">${a.name}</span>
+          <p class="text-muted mb-0 flex-grow-1" style="font-size:12px;">${a.desc}</p>
+          <div class="d-flex justify-content-end">
+            <button class="btn btn-sm ${btnClass}"
+              data-action="${btnAction}"
+              data-addon="${a.id}">${btnLabel}</button>
+          </div>
+        </div>
       </div>
-
-      <div class="ai-addon-desc">
-        ${a.desc}
-      </div>
-
-      <div class="ai-addon-footer">
-
-        <button
-          class="ai-status-tag ${a.enabled ? "enabled" : "disabled"}"
-          data-action="${a.enabled ? "deactivate-addon" : "activate-addon"}"
-          data-addon="${a.id}">
-          ${a.enabled ? "deactivate" : "activate"}
-        </button>
-
-      </div>
-
     </div>
   `;
 }
@@ -256,23 +212,17 @@ function renderAddons(addons) {
 
 function saveState() {
   const activeTab = document.querySelector("#tab-list-ai .nav-link.active");
-
-  if (activeTab) {
-    sessionStorage.setItem("activeTab", activeTab.id);
-  }
-
+  if (activeTab) sessionStorage.setItem("activeTab", activeTab.id);
   sessionStorage.setItem("scrollY", window.scrollY);
 }
 
 function restoreState() {
   const tabId   = sessionStorage.getItem("activeTab");
   const scrollY = sessionStorage.getItem("scrollY");
-
   if (tabId) {
     document.getElementById(tabId)?.click();
     sessionStorage.removeItem("activeTab");
   }
-
   if (scrollY) {
     window.scrollTo(0, parseInt(scrollY));
     sessionStorage.removeItem("scrollY");
@@ -287,7 +237,6 @@ document.addEventListener("DOMContentLoaded", restoreState);
 // --------------------------------------------------------------------------------
 
 async function load() {
-
   const [providerRes, addonRes] = await Promise.all([
     window.get("core-ai-addon", "ai-provider-data"),
     window.get(ADDON_NAME, "")

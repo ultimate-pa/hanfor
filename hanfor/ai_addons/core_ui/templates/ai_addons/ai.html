@@ -1,24 +1,27 @@
-<link rel="stylesheet" href="/core_ai_addon/ai_addons/core_ui/static/css/ai.css">
-
 <!-- LLM Providers -->
-<section class="section" id="ai-providers">
-    <div class="section-header">LLM Providers</div>
-    <div class="section-body">
-        <button class="btn" id="ai-rescan-provider-btn">Rescan Provider Config</button>
-        <button class="btn" id="ai-test-all-provider-btn">Test All Providers</button>
-        <div id="ai-providers-list"></div>
+<div class="card mb-3">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span class="fw-semibold">LLM Providers</span>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-secondary" id="ai-rescan-provider-btn">Rescan Provider Config</button>
+      <button class="btn btn-sm btn-outline-secondary" id="ai-test-all-provider-btn">Test All Providers</button>
     </div>
-
-</section>
+  </div>
+  <div class="card-body p-2">
+    <div id="ai-providers-list" class="d-flex flex-wrap gap-2"></div>
+  </div>
+</div>
 
 <!-- AI Addons -->
-<section class="section" id="ai-addons">
-    <div class="section-header">AI Addons</div>
-    <div class="section-body">
-        <button class="btn" id="ai-activate-all-addons-btn">Activate All Addons</button>
-        <button class="btn" id="ai-deactivate-all-addons-btn">Deactivate All Addons</button>
-        <div class="ai-addon-grid" id="ai-addon-grid"></div>
+<div class="card mb-3">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span class="fw-semibold">AI Addons</span>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-success" id="ai-activate-all-addons-btn">Activate All</button>
+      <button class="btn btn-sm btn-outline-danger"  id="ai-deactivate-all-addons-btn">Deactivate All</button>
     </div>
-
-</section>
-
+  </div>
+  <div class="card-body p-2">
+    <div id="ai-addon-grid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-2"></div>
+  </div>
+</div>

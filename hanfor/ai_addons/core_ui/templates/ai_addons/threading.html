@@ -1,59 +1,75 @@
-<link rel="stylesheet" href="/core_ai_addon/ai_addons/core_ui/static/css/threading.css">
-
 <!-- Thread Dashboard -->
-<section class="section" id="th-overview">
-  <div class="section-header">Thread Dashboard</div>
-  <div class="section-body">
+<div class="card mb-3">
+  <div class="card-header fw-semibold">Thread Dashboard</div>
+  <div class="card-body">
 
-    <div class="metrics">
-      <div class="metric">
-        <div class="metric-label">Active</div>
-        <div class="metric-value" id="th-metric-active">-</div>
+    <div class="row row-cols-2 row-cols-sm-4 g-2 mb-3">
+      <div class="col">
+        <div class="card text-center border-0 bg-light h-100">
+          <div class="card-body py-2">
+            <div class="small text-muted text-uppercase fw-semibold">Active</div>
+            <div class="fs-4 fw-semibold" id="th-metric-active">-</div>
+          </div>
+        </div>
       </div>
-      <div class="metric">
-        <div class="metric-label">Free</div>
-        <div class="metric-value" id="th-metric-free">-</div>
+      <div class="col">
+        <div class="card text-center border-0 bg-light h-100">
+          <div class="card-body py-2">
+            <div class="small text-muted text-uppercase fw-semibold">Free</div>
+            <div class="fs-4 fw-semibold" id="th-metric-free">-</div>
+          </div>
+        </div>
       </div>
-      <div class="metric">
-        <div class="metric-label">In Queue</div>
-        <div class="metric-value" id="th-metric-queue">-</div>
+      <div class="col">
+        <div class="card text-center border-0 bg-light h-100">
+          <div class="card-body py-2">
+            <div class="small text-muted text-uppercase fw-semibold">In Queue</div>
+            <div class="fs-4 fw-semibold" id="th-metric-queue">-</div>
+          </div>
+        </div>
       </div>
-      <div class="metric">
-        <div class="metric-label">Max</div>
-        <div class="metric-value" id="th-metric-max">-</div>
+      <div class="col">
+        <div class="card text-center border-0 bg-light h-100">
+          <div class="card-body py-2">
+            <div class="small text-muted text-uppercase fw-semibold">Max</div>
+            <div class="fs-4 fw-semibold" id="th-metric-max">-</div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="bar-label">Utilisation</div>
-    <div class="bar-wrap">
-      <div class="bar-fill" id="th-load-bar" style="width: 0%"></div>
+    <div class="small text-muted text-uppercase fw-semibold mb-1">Utilisation</div>
+    <div class="progress" style="height: 6px;">
+      <div class="progress-bar" id="th-load-bar" role="progressbar" style="width: 0%"></div>
     </div>
 
   </div>
-</section>
+</div>
 
 <!-- Groups -->
-<section class="section" id="th-groups">
-  <div class="section-header">Groups</div>
-  <div class="pills-row" id="th-groups-row"></div>
-</section>
+<div class="card mb-3">
+  <div class="card-header fw-semibold">Groups</div>
+  <div class="card-body p-2">
+    <div id="th-groups-row" class="d-flex flex-wrap gap-2"></div>
+  </div>
+</div>
 
 <!-- Running Tasks -->
-<section class="section" id="th-running">
-  <div class="section-header">Running Tasks</div>
-  <div class="hscroll">
-    <div class="list-col" id="th-running-list"></div>
+<div class="card mb-3">
+  <div class="card-header fw-semibold">Running Tasks</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <div id="th-running-list"></div>
+    </div>
   </div>
-</section>
+</div>
 
 <!-- Queued Tasks -->
-<section class="section" id="th-queued">
-  <div class="section-header">Queued Tasks</div>
-  <div class="hscroll">
-    <div class="list-col" id="th-queue-list"></div>
+<div class="card mb-3">
+  <div class="card-header fw-semibold">Queued Tasks</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <div id="th-queue-list"></div>
+    </div>
   </div>
-</section>
-
-
-
-
+</div>
