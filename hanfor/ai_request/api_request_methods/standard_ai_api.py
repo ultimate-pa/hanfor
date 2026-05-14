@@ -46,8 +46,8 @@ class OllamaStandard(ai_api_methods_abstract_class.AiApiMethod):
                     json=payload,
                     timeout=120,
                 )
-            except Exception as exept:
-                exception = exept
+            except Exception as e:
+                exception = e
 
         request_thread = threading.Thread(target=do_request, daemon=True)
         request_thread.start()
@@ -60,9 +60,8 @@ class OllamaStandard(ai_api_methods_abstract_class.AiApiMethod):
                 return None, "cancelled"
 
         if exception:
-            e = exception
-            logging.error(f"Request failed: {e}")
-            return None, f"error_ai_connection_{e}"
+            logging.error(f"Request failed: {exception}")
+            return None, f"error_ai_connection_{exception}"
 
         if not response.ok:
             logging.error(f"HTTP error: {response.status_code} {response.text}")
