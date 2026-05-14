@@ -251,36 +251,13 @@ The template is included via `{% include page %}` into the tab system. It contai
 
 ### Including Stylesheets
 
-The global addon stylesheet (`ai_addons.css`) is available automatically and does **not** need to be included manually:
-
-```
-static/css/ai_addons.css
-```
-
 For addon-specific CSS, an additional stylesheet can be included:
 
 ```html
 <link rel="stylesheet" href="/ai_addons/my_addon/static/my_addon.css">
 ```
 
-### Available CSS Classes (`ai_addons.css`)
-
-The global stylesheet provides ready-to-use components that can be used directly in any template:
-
-| Component | Classes                                                  | Description                                   |
-|---|----------------------------------------------------------|-----------------------------------------------|
-| **Layout** | `.section`, `.section-header`, `.section-body`           | Groups content into cards with a header bar   |
-| **Metrics** | `.metrics`, `.metric`, `.metric-label`, `.metric-value`  | 4-column grid for key figures                 |
-| **Status colors** | `.ok`, `.warn`, `.bad`                                   | Green / Orange / Red – for text and bar fills |
-| **Bar** | `.bar-wrap`, `.bar-fill`                                 | Horizontal progress / utilization bar         |
-| **Pills** | `.pills-row`, `.pill`, `.pill-name`, `.dot`              | Tag-style status badges with colored dot      |
-| **Lists** | `.list-col`, `.list-row`, `.list-name`, `.list-meta`     | Scrollable row lists                          |
-| **Buttons** | `.btn`, `.btn-danger`, `.btn-bright`                     | Default, danger, and bright variant           |
-| **LED** | `.led`, `.led-on`, `.led-yellow`, `.led-off`             | Small circular status indicator               |
-| **Search** | `.search`, `.search-dropdown`, `.search-list`            | Text input with optional dropdown             |
-| **Modal** | `.settings-overlay`, `.settings-modal`, `.settings-tabs` | Settings dialog with tab navigation           |
-
-Design tokens (CSS variables such as `--surface-raised`, `--status-ok`, etc.) are also globally available and can be referenced directly in addon-specific CSS.
+Prefer Bootstrap classes for layout and styling whenever possible to maintain consistency with the existing UI.
 
 ---
 
