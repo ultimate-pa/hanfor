@@ -52,6 +52,8 @@ class OllamaStandard(ai_api_methods_abstract_class.AiApiMethod):
         request_thread = threading.Thread(target=do_request, daemon=True)
         request_thread.start()
 
+        set_status("Waiting on Response...")
+
         while request_thread.is_alive():
             request_thread.join(timeout=0.2)
             if is_stopped():
@@ -66,7 +68,13 @@ class OllamaStandard(ai_api_methods_abstract_class.AiApiMethod):
             logging.error(f"HTTP error: {response.status_code} {response.text}")
             return None, f"error_ai_connection_http_{response.status_code}"
 
-        data = response.json()
+        set_status("Parse Response...")
+
+        try:
+            data = response.json()
+        except Exception as e:
+            logging.error(f"Json Response error: {e}")
+            return None, f"error_ai_json_parse_{e}"
 
         # OpenAI format
         if "choices" in data:
