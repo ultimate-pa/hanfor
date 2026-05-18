@@ -21,7 +21,7 @@ class APattern:
         self._countertraces: dict[str, list[str]] = defaultdict(list)
 
     def get_text(self):
-        pass
+        return self._pattern_text
 
     def get_instanciation(self, expressions):
         """inserts expressions into the pattern text and returns the fully assembled pattern instanciation"""

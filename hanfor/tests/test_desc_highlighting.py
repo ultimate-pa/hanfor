@@ -1,4 +1,7 @@
+import time
 from unittest import TestCase
+
+from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
 from lib_core.data import Requirement
 from requirements.desc_highlighting import (
     _words_between,
@@ -8,7 +11,12 @@ from requirements.desc_highlighting import (
     RequirementHighlightingData,
     requirement_highlighting_data_per_req,
     generate_all_highlighted_desc,
+    VariableMatch,
+    delete_variables,
+    _highlight_desc_variable,
+    _generate_md_description,
 )
+from thread_handling.threading_core import ThreadHandler, ThreadTask, SchedulingClass, ThreadGroup
 
 
 class TestWordsBetween(TestCase):
@@ -75,6 +83,20 @@ class TestNormalizeVariable(TestCase):
         self.assertEqual(_normalize_variable("my_variable_TEMP"), {"temp", "variable"})
         self.assertEqual(_normalize_variable("another_enum_MAX"), {"max", "another", "enum"})
 
+    def test_empty_after_filter(self):
+        """all tokens <= 2 chars -> empty result"""
+        result = _normalize_variable("a_b")
+        self.assertEqual(result, set())
+
+    def test_preserves_number_letter_token(self):
+        """digits followed by 1-2 letters kept as-is"""
+        result = _normalize_variable("300M")
+        self.assertIn("300m", result)
+
+    def test_preserves_two_letter_suffix(self):
+        result = _normalize_variable("128GB")
+        self.assertIn("128gb", result)
+
 
 class TestGenerateCombinations(TestCase):
     def test_simple_combinations(self):
@@ -121,6 +143,19 @@ class TestGenerateCombinations(TestCase):
         )
         self.assertEqual(combos, [])
 
+    def test_skips_same_start_position(self):
+        """duplicate start position in pos_score_dict -> second entry skipped"""
+        pos_score_dict = {
+            "foo": [((0, 3), 90.0), ((0, 5), 85.0)],
+            "bar": [((10, 13), 90.0)],
+        }
+        combos = _generate_combinations(
+            pos_score_dict, {"foo", "bar"}, max_gap=5, threshold=50, min_coverage=0.5, all_word_starts=[0, 10]
+        )
+        for _, positions in combos:
+            starts = [p[0] for p in positions]
+            self.assertEqual(len(starts), len(set(starts)))
+
 
 class TestFilterCombos(TestCase):
     def test_simple_non_overlapping(self):
@@ -154,6 +189,93 @@ class TestFilterCombos(TestCase):
         self.assertTrue([] == filtered)
 
 
+class TestHighlightDescVariable(TestCase):
+    def test_skips_insufficient_coverage(self):
+        """scored_matches / variable_fragments < min_coverage -> empty result"""
+        req_data = RequirementHighlightingData(
+            req_id="R1",
+            description="hello world",
+            desc_words=["hello", "world"],
+            desc_words_positions={"hello": [(0, 5)], "world": [(6, 11)]},
+            desc_words_starting_pos=[0, 6],
+        )
+        result = _highlight_desc_variable(req_data, [("UNMATCHED_XYZ_VAR", {"xyz", "abc", "def", "ghi", "jkl"})])
+        self.assertEqual(result, [])
+
+    def test_skips_insufficient_coverage_with_min_coverage(self):
+        """explicit min_coverage threshold respected"""
+        req_data = RequirementHighlightingData(
+            req_id="R1",
+            description="hello world foo bar",
+            desc_words=["hello", "world", "foo", "bar"],
+            desc_words_positions={
+                "hello": [(0, 5)],
+                "world": [(6, 11)],
+                "foo": [(12, 15)],
+                "bar": [(16, 19)],
+            },
+            desc_words_starting_pos=[0, 6, 12, 16],
+        )
+        result = _highlight_desc_variable(
+            req_data,
+            [("NOMATCH_VAR", {"zzz", "qqq", "xxx", "aaa", "bbb", "ccc"})],
+            min_coverage=0.55,
+        )
+        self.assertEqual(result, [])
+
+
+class TestGenerateMdDescription(TestCase):
+    def test_same_score_longer_span_wins(self):
+        """equal score but longer span -> longer match replaces shorter"""
+        matches = [
+            VariableMatch(0, 4, "hell", "VAR_A", 80.0),
+            VariableMatch(0, 9, "hello wor", "VAR_B", 80.0),
+        ]
+        result = _generate_md_description(matches, "hello world")
+        self.assertIn("VAR_B", result)
+        self.assertNotIn("VAR_A", result)
+
+
+class TestGenerateAllHighlightedDesc(TestCase):
+    def test_empty_variable_string_skipped(self):
+        req = Requirement(rid="R1", description="fo ba", type_in_csv="Feature", csv_row={}, pos_in_csv=0)
+        generate_all_highlighted_desc(["fo", "ba"], {"R1": req})
+        self.assertIn("R1", requirement_highlighting_data_per_req)
+
+    def test_is_stopped_breaks_loop(self):
+        """cancelling the task stops processing before all reqs are handled"""
+        reqs = {
+            f"R{i}": Requirement(
+                rid=f"R{i}",
+                description="some description with variableName and anotherVar",
+                type_in_csv="Feature",
+                csv_row={},
+                pos_in_csv=0,
+            )
+            for i in range(500)
+        }
+        handler = ThreadHandler(SendUpdateThreadingAndAi(), max_threads=5)
+        result = handler.submit(
+            ThreadTask(
+                generate_all_highlighted_desc,
+                SchedulingClass.SYSTEM_CALL,
+                ThreadGroup("VARIABLE_HIGHLIGHTING"),
+                None,
+                None,
+                (["variableName", "anotherVar"], reqs),
+                {},
+            )
+        )
+
+        timeout = time.time() + 2
+        while handler.is_idle() and time.time() < timeout:
+            time.sleep(0.01)
+        self.assertTrue(not handler.is_idle())
+        handler.cancel_task(result.task_id())
+        time.sleep(0.2)
+        self.assertTrue(handler.is_idle())
+
+
 class TestRequirementHighlightingEndToEnd(TestCase):
     def test_requirement_highlighting(self):
         req = Requirement(
@@ -170,13 +292,11 @@ class TestRequirementHighlightingEndToEnd(TestCase):
         self.assertIn("REQ1", requirement_highlighting_data_per_req)
         req_data: RequirementHighlightingData = requirement_highlighting_data_per_req["REQ1"]
 
-        # basic checks
         self.assertTrue(req_data.variable_matches)
         self.assertTrue(req_data.highlighted_desc)
         matched_vars = {m.variable for m in req_data.variable_matches}
         self.assertTrue(variables.intersection(matched_vars))
 
-        # validate positions
         for m in req_data.variable_matches:
             self.assertLessEqual(m.start, m.end)
             self.assertGreaterEqual(m.end, 0)
@@ -185,18 +305,39 @@ class TestRequirementHighlightingEndToEnd(TestCase):
         self.assertEqual(positions["MyVariable"], (33, 41))
         self.assertEqual(positions["AnotherVar"], (46, 56))
 
-        # validate HTML highlighting
         html = req_data.highlighted_desc
         for var in variables:
             self.assertIn(f'data-main-var="{var}"', html)
 
-        # validate scores
         for m in req_data.variable_matches:
             self.assertGreater(m.score, 99.9)
 
-        # validate tokenization
         words = req_data.desc_words
-        self.assertNotIn("my", words)  # small token ignored
+        self.assertNotIn("my", words)
         self.assertIn("variable", words)
         self.assertIn("test", words)
         self.assertIn("description", words)
+
+
+class TestDeleteVariables(TestCase):
+    def setUp(self):
+        requirement_highlighting_data_per_req.clear()
+
+    def test_delete_variable_removes_match(self):
+        req_data = RequirementHighlightingData(req_id="R1", description="test description variable")
+        req_data.variable_matches = [VariableMatch(0, 4, "test", "VAR_A", 90)]
+        requirement_highlighting_data_per_req["R1"] = req_data
+        delete_variables(["VAR_A"])
+        self.assertEqual(len(requirement_highlighting_data_per_req["R1"].variable_matches), 0)
+
+    def test_delete_variable_keeps_other_matches(self):
+        req_data = RequirementHighlightingData(req_id="R1", description="test description variable")
+        req_data.variable_matches = [
+            VariableMatch(0, 4, "test", "VAR_A", 90),
+            VariableMatch(5, 10, "descr", "VAR_B", 85),
+        ]
+        requirement_highlighting_data_per_req["R1"] = req_data
+        delete_variables(["VAR_A"])
+        matches = requirement_highlighting_data_per_req["R1"].variable_matches
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(matches[0].variable, "VAR_B")

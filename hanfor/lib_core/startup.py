@@ -10,9 +10,9 @@ from typing import Callable
 
 from terminaltables import DoubleTable
 
+from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
 from configuration.defaults import Color
 from configuration.tags import STANDARD_TAGS, FUNCTIONAL_TAGS
-import config
 from hanfor_flask import HanforFlask
 from json_db_connector.json_db import JsonDatabase, remove_json_database_data_tracing_logger
 from lib_core import boogie_parsing
@@ -28,6 +28,9 @@ from lib_core.utils import (
 )
 from reqtransformer import RequirementCollection
 from requirements.desc_highlighting import generate_all_highlighted_desc
+from thread_handling.threading_core import ThreadHandler, ThreadTask, SchedulingClass, ThreadGroup
+from ai_request.ai_core_requests import AiRequest
+from ai_addons.ai_addon_handler import AiAddons
 
 
 def config_check(app_config):
@@ -161,7 +164,16 @@ def set_app_config_paths(flask_app: HanforFlask, here):
     flask_app.config["TEMPLATES_FOLDER"] = os.path.join(here, "templates")
 
 
-def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool = False) -> bool:
+def startup_hanfor(
+    flask_app: HanforFlask,
+    args,
+    here,
+    *,
+    send_update_threading_and_ai: SendUpdateThreadingAndAi = SendUpdateThreadingAndAi(),
+    no_data_tracing: bool = False,
+) -> bool:
+    flask_app.thread_handler = ThreadHandler(send_update_threading_and_ai)
+
     flask_app.db = JsonDatabase(no_data_tracing=no_data_tracing)
     add_custom_serializer_to_database(flask_app.db)
 
@@ -239,12 +251,28 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
     varcollection_consistency_check(flask_app, args)
 
     if flask_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
-        generate_all_highlighted_desc(
-            VariableCollection(
-                flask_app.db.get_objects(Variable).values(),
-                flask_app.db.get_objects(Requirement).values(),
-            ).get_available_var_names_list(used_only=False),
-            flask_app.db.get_objects(Requirement),
+        flask_app.thread_handler.submit(
+            ThreadTask(
+                generate_all_highlighted_desc,
+                SchedulingClass.SYSTEM_CALL,
+                ThreadGroup("VARIABLE_HIGHLIGHTING"),
+                None,
+                None,
+                (
+                    VariableCollection(
+                        flask_app.db.get_objects(Variable).values(),
+                        flask_app.db.get_objects(Requirement).values(),
+                    ).get_available_var_names_list(used_only=False),
+                    flask_app.db.get_objects(Requirement),
+                ),
+                {},
+            )
+        )
+
+    if flask_app.config["FEATURE_AI"]:
+        flask_app.ai_request = AiRequest(flask_app.thread_handler, send_update_threading_and_ai)
+        flask_app.ai_addons = AiAddons(
+            flask_app.thread_handler, flask_app.ai_request, flask_app.db, send_update_threading_and_ai
         )
 
     return True

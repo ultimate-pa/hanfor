@@ -6,9 +6,14 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Any
 from jinja2 import Environment, FileSystemLoader
 from rapidfuzz import process, fuzz
+
+from hanfor_flask import current_app
 from lib_core.data import Variable
 from bisect import bisect_left
 from immutabledict import immutabledict
+
+from thread_handling.thread_function_decorator import thread_function, is_stopped, set_status
+from thread_handling.threading_core import ThreadTask, SchedulingClass, ThreadGroup
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
 env = Environment(loader=FileSystemLoader(TEMPLATE_DIR), autoescape=False)
@@ -78,7 +83,17 @@ def changing_variables(variable_name_old: str, variable_name_new: str) -> None:
     """
     logging.info(f"Changing variable '{variable_name_old}' to '{variable_name_new}'")
     delete_variables([variable_name_old])
-    generate_all_highlighted_desc([variable_name_new], None)
+    current_app.thread_handler.submit(
+        ThreadTask(
+            generate_all_highlighted_desc,
+            SchedulingClass.SYSTEM_CALL,
+            ThreadGroup("VARIABLE_HIGHLIGHTING"),
+            None,
+            None,
+            ([variable_name_new], None),
+            {},
+        )
+    )
 
 
 def new_variables_regenerate_highlighting(variables: set[Variable]) -> None:
@@ -89,9 +104,20 @@ def new_variables_regenerate_highlighting(variables: set[Variable]) -> None:
     variable_list = [v.name for v in variables]
     logging.info(f"Regenerating highlighting for new variables: {variable_list}")
     if variable_list:
-        generate_all_highlighted_desc(variable_list, None)
+        current_app.thread_handler.submit(
+            ThreadTask(
+                generate_all_highlighted_desc,
+                SchedulingClass.SYSTEM_CALL,
+                ThreadGroup("VARIABLE_HIGHLIGHTING"),
+                None,
+                None,
+                (variable_list, None),
+                {},
+            )
+        )
 
 
+@thread_function
 def generate_all_highlighted_desc(
     new_variables: List[str], requirements: Optional[immutabledict[int | str, Any]]
 ) -> None:
@@ -113,7 +139,7 @@ def generate_all_highlighted_desc(
 
     # Initialize entries for each requirement
     if requirements:
-        logging.info("Initialize each requirement...")
+        set_status("Initialize each requirement...")
         for req_id, requirement in requirements.items():
             word_positions = _normalize_and_group_positions_from_desc(requirement.description)
 
@@ -123,14 +149,16 @@ def generate_all_highlighted_desc(
                 desc_words_positions=word_positions,
                 desc_words=list(word_positions.keys()),
                 desc_words_starting_pos=sorted(pos[0] for positions in word_positions.values() for pos in positions),
+                highlighted_desc=requirement.description,
             )
 
     all_req_data = list(requirement_highlighting_data_per_req.values())
     total = len(all_req_data)
-    step = max(total // 5, 1)
 
     # (Re)compute variable matches and generate HTML
     for idx, req_data in enumerate(all_req_data, start=1):
+        if is_stopped():
+            break
         exact_variables = []
         for plain_var, _ in variable_sets_list:
             plain_var_positions = [
@@ -151,9 +179,8 @@ def generate_all_highlighted_desc(
             req_data.description,
         )
 
-        if idx % step == 0 or idx == total:
-            percent = int(idx / total * 100)
-            logging.info(f"Processed {idx}/{total} requirements ({percent}%)")
+        percent = int(idx / total * 100)
+        set_status(f"Processed {idx}/{total} requirements ({percent}%)")
 
 
 def _normalize_variable(var: str) -> set[str]:
@@ -308,9 +335,7 @@ def _highlight_desc_variable(
     all_fragments = {fragment for _, variable_fragments in variable_fragments_list for fragment in variable_fragments}
     for variable_fragment in all_fragments:
         req_data.variable_fragments_fuzz_matches[variable_fragment] = list(
-            process.extract_iter(
-                query=variable_fragment, choices=req_data.desc_words, scorer=fuzz.ratio, score_cutoff=80
-            )
+            process.extract_iter(query=variable_fragment, choices=req_data.desc_words, scorer=fuzz.ratio, score_cutoff=80)  # type: ignore
         )
 
     # get all positions
@@ -327,7 +352,8 @@ def _highlight_desc_variable(
             ]
 
         # Skip variable_sets with insufficient coverage
-        if not scored_matches or len(scored_matches) / len(variable_fragments) < min_coverage:
+        matched_fragments = sum(1 for m in scored_matches.values() if m)
+        if not matched_fragments or matched_fragments / len(variable_fragments) < min_coverage:
             continue
 
         # Build a global mapping: span -> best score
@@ -406,14 +432,6 @@ def _generate_md_description(final_matches: list[VariableMatch], desc) -> str:
                     break
             if merged:
                 continue
-
-            # Partial overlap -> keep only the best (score, length)
-            for i, s2, e2 in overlapping:
-                main_vars = kept_intervals[i][2]
-                main_score = main_vars[0][1]
-                main_len = e2 - s2
-                if score > main_score or (score == main_score and (end - start) > main_len):
-                    kept_intervals[i] = (start, end, [(var, score)])
 
     # Build output
     out, last = [], 0
