@@ -1,12 +1,49 @@
+import asyncio
 import logging
-import threading
 from typing import Optional
-import requests
+import httpx
 from ai_request import ai_api_methods_abstract_class
 from thread_handling.thread_function_decorator import is_stopped, set_status
 
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+logging.getLogger("asyncio").setLevel(logging.WARNING)
+
 
 class OllamaStandard(ai_api_methods_abstract_class.AiApiMethod):
+
+    @staticmethod
+    async def do_request(url: str, headers: dict, payload: dict):
+        async def _fetch():
+            async with httpx.AsyncClient(timeout=120) as client:
+                return await client.post(url, headers=headers, json=payload)
+
+        async def _watch():
+            while True:
+                await asyncio.sleep(0.2)
+                if is_stopped():
+                    return
+
+        fetch_task = asyncio.create_task(_fetch())
+        watch_task = asyncio.create_task(_watch())
+
+        done, _ = await asyncio.wait([fetch_task, watch_task], return_when=asyncio.FIRST_COMPLETED)
+
+        for t in [fetch_task, watch_task]:
+            if not t.done():
+                t.cancel()
+                try:
+                    await t
+                except asyncio.CancelledError:
+                    pass
+
+        if watch_task in done:
+            return None, "cancelled"
+
+        try:
+            return fetch_task.result(), None
+        except Exception as e:
+            return None, e
 
     def query_api(
         self,
@@ -18,8 +55,6 @@ class OllamaStandard(ai_api_methods_abstract_class.AiApiMethod):
     ) -> tuple[str | None, str]:
         if is_stopped():
             return None, "cancelled"
-
-        set_status("connecting...")
 
         headers = {
             "Content-Type": "application/json",
@@ -33,37 +68,16 @@ class OllamaStandard(ai_api_methods_abstract_class.AiApiMethod):
             "stream": False,
         }
 
-        response = None
-        exception = None
+        set_status("Wait for a Response")
+        response, error = asyncio.run(self.do_request(url, headers, payload))
 
-        def do_request():
-            nonlocal response
-            nonlocal exception
-            try:
-                response = requests.post(
-                    url,
-                    headers=headers,
-                    json=payload,
-                    timeout=120,
-                )
-            except Exception as e:
-                exception = e
+        if error == "cancelled":
+            return None, "cancelled"
+        if error:
+            logging.error(f"Request failed: {error}")
+            return None, f"error_ai_connection_{error}"
 
-        request_thread = threading.Thread(target=do_request, daemon=True)
-        request_thread.start()
-
-        set_status("Waiting on Response...")
-
-        while request_thread.is_alive():
-            request_thread.join(timeout=0.2)
-            if is_stopped():
-                return None, "cancelled"
-
-        if exception:
-            logging.error(f"Request failed: {exception}")
-            return None, f"error_ai_connection_{exception}"
-
-        if not response.ok:
+        if not response.is_success:
             logging.error(f"HTTP error: {response.status_code} {response.text}")
             return None, f"error_ai_connection_http_{response.status_code}"
 
