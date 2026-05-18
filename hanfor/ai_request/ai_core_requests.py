@@ -118,15 +118,16 @@ class AiCatalogTester:
                 provider=provider_name,
                 model_name=model_name,
                 api_method_name=api_method_name,
+                scheduling_class=SchedulingClass.CALLER_DEPTH_2,
                 info_text="Testing Model",
             )
 
             while not task.done():
+                time.sleep(0.2)
                 if is_stopped():
                     self.__thread_handler.cancel_task(task.task_id())
                     self.send_update(catalog)
                     return
-                time.sleep(0.2)
 
             response, status = task.result()
 
@@ -204,7 +205,7 @@ class AiRequest:
         self.__thread_handler.submit(
             ThreadTask(
                 self.__catalog_tester.check_all_providers_and_models,
-                SchedulingClass.SYSTEM_CALL,
+                SchedulingClass.CALLER_DEPTH_1,
                 ThreadGroup("AI"),
                 None,
                 None,
@@ -278,7 +279,7 @@ class AiRequest:
             self.__thread_handler.submit(
                 ThreadTask(
                     self.__catalog_tester.check_one_provider_with_models,
-                    SchedulingClass.SYSTEM_CALL,
+                    SchedulingClass.CALLER_DEPTH_1,
                     ThreadGroup("AI"),
                     None,
                     None,
@@ -297,7 +298,7 @@ class AiRequest:
                 self.__thread_handler.submit(
                     ThreadTask(
                         self.__catalog_tester.check_one_model,
-                        SchedulingClass.SYSTEM_CALL,
+                        SchedulingClass.CALLER_DEPTH_1,
                         ThreadGroup("AI"),
                         None,
                         None,
