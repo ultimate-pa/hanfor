@@ -13,7 +13,7 @@ import importlib
 import logging
 import requests
 
-from thread_handling.thread_function_decorator import thread_function, is_stopped, set_status
+from thread_handling.thread_function_decorator import is_stopped, set_status
 from thread_handling.threading_core import ThreadHandler, ThreadTask, SchedulingClass, ThreadGroup, TaskResult
 from enum import Enum
 

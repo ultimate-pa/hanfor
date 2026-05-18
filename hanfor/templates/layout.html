@@ -42,7 +42,7 @@
                         </li>
                     {% endif %}
                     <li class="nav-item{% if request.path.startswith('/ai_addons/core_structure/api') %} active{% endif %}">
-                        <a class="nav-link" href="{{ url_for('ai_addons.index') }}">Threading{% if config.FEATURE_AI %} & AI Addons{% endif %}</a>
+                        <a class="nav-link" href="{{ url_for('ai_addons.index') }}">Threading{% if config.FEATURE_AI %} & AI{% endif %}</a>
                     </li>
                     {% if config.FEATURE_EXAMPLE_BLUEPRINT %}
                         <li id="ultimate-nav" class="nav-item{% if request.path == '/example-blueprint' %} active{% endif %}">
