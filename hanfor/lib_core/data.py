@@ -1018,8 +1018,19 @@ class VariableCollection:
             elif var.type == "CONST":
                 # Check for int, real or unknown based on value.
                 try:
+                    logging.debug(
+                            f"Variable {var.name}: "
+                            f"Value={repr(var.value)}, "
+                            f"Type={type(var.value)}, "
+                    )
                     float(var.value)
-                except ValueError:
+                except (TypeError, ValueError) as e:
+                    logging.debug(
+                            f"Failed variable {var.name}: "
+                            f"value={repr(var.value)}, "
+                            f"type={type(var.value)}, "
+                            f"error={e}"
+                    )
                     type_env[name] = mapping["unknown"]
                     continue
 

@@ -5,12 +5,30 @@ export default class FormalizationStore {
     this.nextId = null
   }
 
+  hasNoDrafts(type = null) {
+    if (type) {
+      const createdSet = this.getSet(this.created, type)
+      const deletedSet = this.getSet(this.deleted, type)
+
+      return createdSet.size === 0 && deletedSet.size === 0
+    }
+
+    const mapsAreEmpty = (map) => {
+      for (const set of map.values()) {
+        if (set.size > 0) return false
+      }
+      return true
+    }
+
+    return mapsAreEmpty(this.created) && mapsAreEmpty(this.deleted)
+  }
+
   initNextId(nextId) {
-    this.nextId = nextId
+    this.nextId = Number(nextId)
   }
 
   generateId() {
-    return this.nextId++
+    return Number(this.nextId++)
   }
 
   getSet(map, type) {
@@ -21,7 +39,7 @@ export default class FormalizationStore {
   }
 
   create(type) {
-    const id = this.generateId()
+    const id = Number(this.generateId())
     this.getSet(this.created, type).add(id)
     return id
   }

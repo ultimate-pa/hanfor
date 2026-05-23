@@ -14,7 +14,6 @@ const {marked} = require("marked")
 import Sortable from "sortablejs"
 import FormalizationStore from "./formalizations/store"
 import "jquery-sortablejs"
-import Mustache from "mustache"
 import FormalizationRenderer from "./formalizations/renderer.js"
 import { AVAILABLE_TYPES } from "./variables.js"
 
@@ -125,11 +124,11 @@ renderer.registerType("variable", {
     toggle()
     $typeInput.on("input change autocompleteselect", toggle)
     // enumerators
-    const $addEnumBtn = $container.find(".add-enumerator-btn");
+    const $addEnumBtn = $container.find(".add-enumerator-btn")
     $addEnumBtn.off("click").on("click", function () {
-      const $container = $(this).closest(".enumerators-container").find(".enumerators-list");
-      add_enumerator_to_variable(this, $container);
-    });
+      const $container = $(this).closest(".enumerators-container").find(".enumerators-list")
+      add_enumerator_to_variable(this, $container)
+    })
   },
 })
 
@@ -139,8 +138,8 @@ $(document).on("change", ".scope_selector, .pattern_selector", function () {
 })
 
 $(document).on("click", ".del_enum", function () {
-  $(this).closest(".enumerator-input").remove();
-});
+  $(this).closest(".enumerator-input").remove()
+})
 
 let available_tags = ["", "has_formalization"]
 let available_status = ["", "Todo", "Review", "Done"]
@@ -1403,6 +1402,7 @@ function add_variable() {
   console.log(store)
   $container.addClass("draft")
   $("#formalization_accordion").append($container)
+  $("#requirement_modal").data("unsaved_changes", true)
 }
 
 function add_formalization(formalizationData = {}) {
@@ -1418,11 +1418,8 @@ function add_formalization(formalizationData = {}) {
   update_formalization()
   update_logs()
   bind_var_autocomplete()
-  $("#requirement_modal").data({
-    unsaved_changes: false,
-    updated_formalization: false,
-  })
   setCopyBtnEnable()
+  $("#requirement_modal").data("unsaved_changes", true)
 }
 function delete_variable(id, $card) {
   store.delete("variable", id)
@@ -1431,6 +1428,8 @@ function delete_variable(id, $card) {
   update_vars()
   update_formalization()
   update_logs()
+  const hasUnsavedChanges = !store.hasNoDrafts("variable")
+  $("#requirement_modal").data("unsaved_changes", hasUnsavedChanges)
 }
 
 function delete_formalization(formal_id, card) {
@@ -1439,7 +1438,9 @@ function delete_formalization(formal_id, card) {
   card.remove()
   update_vars()
   update_formalization()
-  update_logs()
+  const hasUnsavedChanges = !store.hasNoDrafts("formalization")
+  console.log(hasUnsavedChanges)
+  $("#requirement_modal").data("unsaved_changes", hasUnsavedChanges)
 }
 
 function copy_formalization(formal_id) {
@@ -1940,8 +1941,8 @@ function add_enumerator_to_variable(button, $container, name = "", value = "") {
       <input class="form-control enum_value_input" type="number" step="any" value="${value}">
       <button type="button" class="btn btn-danger del_enum">Delete</button>
     </div>
-  `;
-  $container.append(enumerator_template);
+  `
+  $container.append(enumerator_template)
 }
 
 function add_formalization_from_guess(scope, pattern, mapping) {
