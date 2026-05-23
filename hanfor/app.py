@@ -63,7 +63,7 @@ api.add_namespace(api_models)
 # Register core blueprints and apis
 # Requirements
 app.register_blueprint(requirements.blueprint)
-app.register_blueprint(requirements.api_blueprint)
+api.add_namespace(requirements.api_ns)
 # Variables
 app.register_blueprint(variables.blueprint)
 app.register_blueprint(variables.blueprint2)  # import for variable_import
