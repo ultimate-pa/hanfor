@@ -50,6 +50,114 @@ TagRequestModel = api_models.model(
 
 TagListModel = fields.List(Nested(TagModel))
 
+# Requirements models
+
+RequirementModel = api_models.model(
+    "Requirement",
+    {
+        "id": fields.String(example="SysRS FooXY_42"),
+        "desc": fields.String(example="The system shall ..."),
+        "type": fields.String(example="Functional"),
+        "tags": fields.List(fields.String, example=["unseen"]),
+        "tags_comments": fields.Wildcard(fields.String, example={"unseen": ""}),
+        "formal": fields.List(fields.String, example=["Globally, it is never the case that ..."]),
+        "scope": fields.String(example="None"),
+        "pattern": fields.String(example="None"),
+        "vars": fields.List(fields.String, example=["bar", "foo"]),
+        "pos": fields.Integer(example=1),
+        "status": fields.String(example="Todo"),
+        "csv_data": fields.Wildcard(fields.String, example={"col": "val"}),
+        "type_inference_errors": fields.Wildcard(fields.List(fields.String), example={"0": ["p", "q"]}),
+        "revision_diff": fields.Wildcard(fields.Raw, example={}),
+    },
+)
+
+RequirementListModel = api_models.model(
+    "Requirement List",
+    {
+        "data": fields.List(fields.Nested(RequirementModel)),
+    },
+)
+
+RequirementDetailModel = api_models.model(
+    "Requirement Detail",
+    {
+        "id": fields.String(example="SysRS FooXY_42"),
+        "desc": fields.String(example="The system shall ..."),
+        "type": fields.String(example="Functional"),
+        "tags": fields.List(fields.String, example=["unseen"]),
+        "tags_comments": fields.Wildcard(fields.String, example={"unseen": ""}),
+        "formal": fields.List(fields.String, example=["Globally, it is never the case that ..."]),
+        "scope": fields.String(example="None"),
+        "pattern": fields.String(example="None"),
+        "vars": fields.List(fields.String, example=["bar", "foo"]),
+        "pos": fields.Integer(example=1),
+        "status": fields.String(example="Todo"),
+        "csv_data": fields.Wildcard(fields.String, example={"col": "val"}),
+        "type_inference_errors": fields.Wildcard(fields.List(fields.String), example={"0": ["p", "q"]}),
+        "revision_diff": fields.Wildcard(fields.Raw, example={}),
+        "available_vars": fields.List(fields.String, example=["bar", "foo"]),
+        "additional_static_available_vars": fields.List(fields.String, example=["TRUE", "FALSE"]),
+        "next_id": fields.String(example="SysRS FooXY_43"),
+    },
+)
+
+FormalizationModel = api_models.model(
+    "Formalization",
+    {
+        "id": fields.Integer(example=0),
+        "formalization_type": fields.String(example="formalization"),
+        "text": fields.String(example="Globally, it is never the case that \"foo != bar\" holds."),
+        "order": fields.Integer(example=0),
+        "scope": fields.String(example="GLOBALLY"),
+        "pattern": fields.String(example="Absence"),
+        "expr": fields.Wildcard(fields.String, example={"P": "", "R": "foo != bar"}),
+    },
+)
+
+ColumnDefModel = api_models.model(
+    "Column Def",
+    {
+        "target": fields.Integer(example=8),
+        "csv_name": fields.String(example="csv_data.column_name"),
+        "table_header_name": fields.String(example="csv: column_name"),
+    },
+)
+
+ColumnDefsModel = api_models.model(
+    "Column Defs",
+    {
+        "col_defs": fields.List(fields.Nested(ColumnDefModel)),
+    },
+)
+
+SuccessResponseModel = api_models.model(
+    "Success Response",
+    {
+        "success": fields.Boolean(example=True),
+        "errormsg": fields.String(example=""),
+    },
+)
+
+AvailableGuessModel = api_models.model(
+    "Available Guess",
+    {
+        "scope": fields.String(example="GLOBALLY"),
+        "pattern": fields.String(example="Absence"),
+        "mapping": fields.Wildcard(fields.String, example={"P": "", "R": "foo != bar"}),
+        "string": fields.String(example='Globally, it is never the case that "foo != bar" holds.'),
+    },
+)
+
+AvailableGuessesModel = api_models.model(
+    "Available Guesses",
+    {
+        "success": fields.Boolean(example=True),
+        "errormsg": fields.String(example=""),
+        "available_guesses": fields.List(fields.Nested(AvailableGuessModel)),
+    },
+)
+
 # Ultimate models
 UltimateVersionModel = api_models.model("Ultimate Version", {"version": fields.String})
 

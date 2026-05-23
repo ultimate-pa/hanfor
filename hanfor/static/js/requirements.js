@@ -297,7 +297,7 @@ function init_datatable(columnDefs) {
       [10, 50, 100, 500, "All"],
     ],
     dom: 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
-    ajax: "api/req/gets",
+    ajax: "api/v1/req/gets",
     deferRender: true,
     columnDefs: columnDefs,
     createdRow: function (row, data) {
@@ -603,7 +603,7 @@ function store_requirement(requirements_table) {
   store.commitDeletes(req_id, "variable")
   store.commitCreated(req_id)
   $.ajax({
-    url: "api/req/update",
+    url: "api/v1/req/update",
     method: "PUT",
     data: {
       id: req_id,
@@ -718,7 +718,7 @@ function load_datatable() {
     },
   ]
   // Load generic colums.
-  $.get("api/req/colum_defs", "", function (data) {
+  $.get("api/v1/req/colum_defs", "", function (data) {
     const dataLength = data["col_defs"].length
     for (let i = 0; i < dataLength; i++) {
       columnDefs.push({
@@ -912,7 +912,7 @@ function apply_multi_edit(requirements_table) {
   let selected_ids = get_selected_requirement_ids(requirements_table)
 
   $.post(
-    "api/req/multi_update",
+    "api/v1/req/multi_update",
     {
       add_tag: add_tag,
       remove_tag: remove_tag,
@@ -937,7 +937,7 @@ function add_top_guess_to_selected_requirements(requirements_table) {
   let insert_mode = $("#top_guess_append_mode").val()
 
   $.post(
-    "api/req/multi_add_top_guess",
+    "api/v1/req/multi_add_top_guess",
     {
       selected_ids: JSON.stringify(selected_ids),
       insert_mode: insert_mode,
@@ -1166,7 +1166,7 @@ function load_requirement(row_idx) {
   $("#requirement_tag_field").data("bs.tokenfield").$input.autocomplete({ source: available_tags })
 
   // Get the requirement data and set the modal.
-  $.get("api/req/get", { id: data["id"], row_idx: row_idx }, function (data) {
+  $.get("api/v1/req/get", { id: data["id"], row_idx: row_idx }, function (data) {
     if (data.success === false) {
       alert("Could Not load the Requirement: " + data.errormsg)
       return
@@ -1185,7 +1185,7 @@ function load_requirement(row_idx) {
     $("#add_guess_description").text(data.desc).change()
 
     // Parse the formalizations
-    $.get(`api/req/formalizations/${data.id}`, function (data) {
+    $.get(`api/v1/req/formalizations/${data.id}`, function (data) {
       data
         .sort((a, b) => a.order - b.order)
         .forEach(function (entry) {
@@ -1888,7 +1888,7 @@ function fetch_available_guesses() {
   }
 
   $.post(
-    "api/req/get_available_guesses",
+    "api/v1/req/get_available_guesses",
     {
       requirement_id: requirement_id,
     },
@@ -1929,7 +1929,7 @@ function add_formalization_from_guess(scope, pattern, mapping) {
 
   let requirement_id = $("#requirement_id").val()
   $.post(
-    "api/req/add_formalization_from_guess",
+    "api/v1/req/add_formalization_from_guess",
     {
       requirement_id: requirement_id,
       scope: scope,

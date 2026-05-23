@@ -485,6 +485,7 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
                     requirement.run_type_checks(var_collection, SessionValue.get_standard_tags(app.db))
             app.db.update()
 
+    # TODO: Analyze how this code creates addditional variables
     if var_type in ["ENUM_INT", "ENUM_REAL"]:
         new_enumerators = []
         for enumerator_name, enumerator_value in enumerators:

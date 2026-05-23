@@ -467,7 +467,7 @@ class TestEnums(TestCase):
 
     def apply_update(self, update):
         result = self.mock_hanfor.app.post(
-            "api/req/update",
+            "api/v1/req/update",
             data={
                 "id": "SysRS FooXY_91",
                 "row_idx": "1",
