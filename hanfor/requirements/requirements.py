@@ -241,8 +241,6 @@ class ApiRequirementUpdate(Resource):
         variable_collection = VariableCollection(
             current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
         )
-        # TODO: How should handling variable updates be handled, i.e renaming
-        logging.debug(f"Variables retrieved {variable_collection.collection}")
         # TODO: Can't track why here sometimes there is a dictionary size changed expection
         for idx, formalization in requirement.formalizations.items():
             formalization.order = order_dict.get(str(idx))
@@ -290,21 +288,73 @@ class ApiRequirementUpdate(Resource):
                     current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
                 )
                 logging.debug(f"Formalizations: {requirement.formalizations}")
-                try:
-                    requirement.update_formalizations(
-                        formalizations,
-                        SessionValue.get_standard_tags(current_app.db),
-                        variable_collection,
+
+                # Separate variable entries from formal-formalizations
+                variable_entries = {
+                    k: v for k, v in formalizations.items()
+                    if v.get("formalization_type") == "variable"
+                }
+                formal_entries = {
+                    k: v for k, v in formalizations.items()
+                    if v.get("formalization_type") == "formalization"
+                }
+                logging.debug(f"Only Formalizations: {formal_entries}")
+                logging.debug(f"Only Variables: {variable_entries}")
+
+                # Process formal-formalizations
+                if formal_entries:
+                    try:
+                        requirement.update_formalizations(
+                            formal_entries,
+                            SessionValue.get_standard_tags(current_app.db),
+                            variable_collection,
+                        )
+                        add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
+                        for v in variable_collection.new_vars:
+                            current_app.db.add_object(v)
+                    except KeyError as e:
+                        error = True
+                        error_msg = f"Could not set formalization: Missing expression/variable for {e}"
+                    except Exception as e:
+                        error = True
+                        error_msg = f"Could not parse formalization: `{e}`"
+
+                # Process variable entries
+                logging.debug(f"variable_entries: {json.dumps(variable_entries, indent=2)}")
+                for fid, entry in variable_entries.items():
+                    var_name = entry.get("name", "")
+                    var_type = entry.get("var_type", "")
+                    var_value = entry.get("const_val", "")
+                    enumerators = entry.get("enumerators", [])
+
+                    logging.debug(
+                        f"Variable update: fid={fid} name={var_name} type={var_type} "
+                        f"value={var_value} enumerators={enumerators}"
                     )
-                    add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
-                    for v in variable_collection.new_vars:
-                        current_app.db.add_object(v)
-                except KeyError as e:
-                    error = True
-                    error_msg = f"Could not set formalization: Missing expression/variable for {e}"
-                except Exception as e:
-                    error = True
-                    error_msg = f"Could not parse formalization: `{e}`"
+
+                    if int(fid) in requirement.formalizations:
+                        var = requirement.formalizations[int(fid)]
+                        logging.debug(f"Found in formalizations: name={var.name} old_type={var.type}")
+                        if isinstance(var, Variable):
+                            # When renaming we check for the old_name ane we pop it of the collection
+                            # to break the connection between the variable and the requirement
+                            old_name = var.name
+                            if old_name != var_name:
+                                if variable_collection.var_name_exists(old_name):
+                                    variable_collection.collection[var_name] = variable_collection.collection.pop(old_name)
+                                var.name = var_name
+                            var.type = var_type
+                            var.value = var_value
+                            logging.debug(f"Updated: name={var.name} type={var.type} value={var.value}")
+                        else:
+                            logging.debug(f"Not a Variable instance, got: {type(var).__name__}")
+
+                    success, errormsg, _ = variable_collection.create_enum_variable(
+                        var_name, var_type, enumerators, current_app
+                    )
+                    if not success:
+                        error = True
+                        error_msg = errormsg
             else:
                 logging.debug("Skipping formalization update.")
 
