@@ -1169,6 +1169,55 @@ class VariableCollection:
                 enumerators.append(other_var)
         return enumerators
 
+    # TODO: Maybe there is a smarter way to do construct this return type
+    def create_enum_variable(
+        self, var_name: str, var_type: str, enumerators: list[list[str]], app: HanforFlask
+    ) -> tuple[bool, str | None, list[str]]:
+        """Create an ENUM_INT/ENUM_REAL variable and its ENUMERATOR sub-variables.
+
+        If the ENUM variable doesn't exist in the collection, it is created.
+        Each enumerator becomes a variable named ``<var_name>_<enum_variant>``
+        with type ``ENUMERATOR_INT`` or ``ENUMERATOR_REAL``, the given value,
+        and ``belongs_to_enum`` set to *var_name*.
+
+        :returns: ``(success, errormsg, new_var_names)``
+        """
+        if var_type not in ["ENUM_INT", "ENUM_REAL"]:
+            return True, None, []
+
+        if not self.var_name_exists(var_name):
+            enum_var = self.add_var(var_name)
+            app.db.add_object(enum_var)
+        self.collection[var_name].set_type(var_type)
+
+        new_vars = []
+        for enumerator_name, enumerator_value in enumerators:
+            if not enumerator_name and not enumerator_value:
+                continue
+            if not enumerator_name or not re.match(r"^[a-zA-Z0-9_-]+$", enumerator_name):
+                return False, f"Enumerator name `{enumerator_name}` not valid", []
+            try:
+                if var_type == "ENUM_INT":
+                    int(enumerator_value)
+                else:
+                    float(enumerator_value)
+            except Exception as e:
+                return False, f"Enumerator value `{enumerator_value}` not valid: {e}", []
+
+            full_name = f"{var_name}_{enumerator_name}"
+            if not self.var_name_exists(full_name):
+                var = self.add_var(full_name)
+                app.db.add_object(var)
+                new_vars.append(full_name)
+
+            self.collection[full_name].set_type(f"ENUMERATOR_{var_type[5:]}")
+            self.collection[full_name].value = enumerator_value
+            self.collection[full_name].belongs_to_enum = var_name
+
+        self.store()
+        app.db.update()
+        return True, None, new_vars
+
     def import_session(self, import_collection):
         """Import another VariableCollection into this.
 
