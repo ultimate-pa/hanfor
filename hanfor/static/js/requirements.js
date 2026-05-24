@@ -102,12 +102,19 @@ renderer.registerType("variable", {
       .on("focus", function () {
         $(this).keydown()
       })
+    function markDirty() {
+      $("#requirement_modal").data({
+        unsaved_changes: true,
+        updated_formalization: true,
+      })
+    }
     // title change listener
     const name_input = $container.find('input[aria-describedby="variable-name"]')
     name_input.on("input", function () {
       const newName = $(this).val().trim()
       const button = $container.closest(".accordion-item").find(".accordion-button")
       button.text(newName ? newName : `New Variable ${id}`)
+      markDirty()
     })
     // value field needed
     const $block = $container.closest(".accordion-item")
@@ -121,12 +128,18 @@ renderer.registerType("variable", {
       $enumeratorsContainer.toggleClass("d-none", !$typeInput.val().startsWith("ENUM_"))
     }
     toggle()
-    $typeInput.on("input change autocompleteselect", toggle)
+    $typeInput.on("input change autocompleteselect", function () {
+      toggle()
+      markDirty()
+    })
+    const $variableValue = $block.find("input.variable-value")
+    $variableValue.on("input", markDirty)
     // enumerators
     const $addEnumBtn = $container.find(".add-enumerator-btn")
     $addEnumBtn.off("click").on("click", function () {
       const $container = $(this).closest(".enumerators-container").find(".enumerators-list")
       add_enumerator_to_variable(this, $container)
+      markDirty()
     })
     // pre-populate enumerators for existing ENUM variables
     if (entry && entry.enumerators && entry.enumerators.length > 0) {
@@ -145,6 +158,17 @@ $(document).on("change", ".scope_selector, .pattern_selector", function () {
 
 $(document).on("click", ".del_enum", function () {
   $(this).closest(".enumerator-input").remove()
+  $("#requirement_modal").data({
+    unsaved_changes: true,
+    updated_formalization: true,
+  })
+})
+
+$(document).on("input", ".enum_name_input, .enum_value_input", function () {
+  $("#requirement_modal").data({
+    unsaved_changes: true,
+    updated_formalization: true,
+  })
 })
 
 let available_tags = ["", "has_formalization"]
@@ -563,30 +587,33 @@ function store_requirement(requirements_table) {
 
   // Fetch the formalizations
   let formalizations = {}
-  $(".formalization_card").each(function () {
-    // Scope and Pattern
-    let formalization = {}
-    formalization["id"] = $(this).attr("title")
-    $(this)
-      .find("select")
-      .each(function () {
-        if ($(this).hasClass("scope_selector")) {
-          formalization["scope"] = $(this).val()
-        }
-        if ($(this).hasClass("pattern_selector")) {
-          formalization["pattern"] = $(this).val()
-        }
-      })
+  $("#formalization_accordion > .accordion-item").each(function () {
+    const $item = $(this)
+    const id = String($item.data("id"))
+    let formalization = { id: id }
 
-    // Expressions
-    formalization["expression_mapping"] = {}
-    $(this)
-      .find("textarea.reqirement-variable")
-      .each(function () {
-        if ($(this).attr("title") !== "") formalization["expression_mapping"][$(this).attr("title")] = $(this).val()
+    if ($item.data("type") === "variable") {
+      formalization["formalization_type"] = "variable"
+      formalization["name"] = $item.find('input[aria-describedby="variable-name"]').val() || ""
+      formalization["var_type"] = $item.find("input.variable-type").val() || ""
+      formalization["const_val"] = $item.find("input.variable-value").val() || ""
+      const enumerators = []
+      $item.find(".enum_name_input").each(function (i) {
+        enumerators.push([$(this).val(), $item.find(".enum_value_input").eq(i).val() || ""])
       })
+      formalization["enumerators"] = enumerators
+    } else {
+      formalization["scope"] = $item.find(".scope_selector").val()
+      formalization["formalization_type"] = "formalization"
+      formalization["pattern"] = $item.find(".pattern_selector").val()
+      formalization["expression_mapping"] = {}
+      $item.find("textarea.reqirement-variable").each(function () {
+        const title = $(this).attr("title")
+        if (title) formalization["expression_mapping"][title] = $(this).val()
+      })
+    }
 
-    formalizations[formalization["id"]] = formalization
+    formalizations[id] = formalization
   })
 
   // Store the order of the formalizations to be loaded
@@ -606,6 +633,7 @@ function store_requirement(requirements_table) {
   const committedFormalizations = Object.fromEntries(
     Object.entries(formalizations).filter(([id]) => !store.isCreated("formalization", id)),
   )
+  console.log("Committed formalizations:", JSON.stringify(committedFormalizations, null, 2))
   store.commitDeletes(req_id, "formalization")
   store.commitDeletes(req_id, "variable")
   store.commitCreated(req_id)
@@ -1386,7 +1414,10 @@ function add_variable() {
   console.log(store)
   $container.addClass("draft")
   $("#formalization_accordion").append($container)
-  $("#requirement_modal").data("unsaved_changes", true)
+  $("#requirement_modal").data({
+    unsaved_changes: true,
+    updated_formalization: true,
+  })
 }
 
 function add_formalization(formalizationData = {}) {
