@@ -1191,6 +1191,16 @@ class VariableCollection:
         self.collection[var_name].set_type(var_type)
 
         new_vars = []
+
+        # This should resolve deleting existing enumerators
+        # once the formalizer deletes it in the frontend
+        incoming = {f"{var_name}_{e[0]}" for e in enumerators if e[0]}
+        for existing in self.get_enumerators(var_name):
+            if existing.name not in incoming:
+                self.collection.pop(existing.name, None)
+                self.var_req_mapping.pop(existing.name, None)
+                app.db.remove_object(existing)
+
         for enumerator_name, enumerator_value in enumerators:
             if not enumerator_name and not enumerator_value:
                 continue
