@@ -485,42 +485,10 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
                     requirement.run_type_checks(var_collection, SessionValue.get_standard_tags(app.db))
             app.db.update()
 
-    # TODO: Analyze how this code creates addditional variables
-    if var_type in ["ENUM_INT", "ENUM_REAL"]:
-        new_enumerators = []
-        for enumerator_name, enumerator_value in enumerators:
-            if len(enumerator_name) == 0 and len(enumerator_value) == 0:
-                continue
-            if len(enumerator_name) == 0 or not re.match("^[a-zA-Z0-9_-]+$", enumerator_name):
-                result = {"success": False, "errormsg": "Enumerator name `{}` not valid".format(enumerator_name)}
-                break
-            try:
-                if var_type == "ENUM_INT":
-                    int(enumerator_value)
-                if var_type == "ENUM_REAL":
-                    float(enumerator_value)
-            except Exception as e:
-                result = {
-                    "success": False,
-                    "errormsg": "Enumerator value `{}` for enumerator `{}` not valid: {}".format(
-                        enumerator_value, enumerator_name, e
-                    ),
-                }
-                break
-
-            enumerator_name = f"{var_name}_{enumerator_name}"
-            # Add new enumerators to the var_collection
-            if not var_collection.var_name_exists(enumerator_name):
-                variable = var_collection.add_var(enumerator_name)
-                current_app.db.add_object(variable)
-                new_enumerators.append(enumerator_name)
-
-            var_collection.collection[enumerator_name].set_type(f"ENUMERATOR_{var_type[5:]}")
-            var_collection.collection[enumerator_name].value = enumerator_value
-            var_collection.collection[enumerator_name].belongs_to_enum = var_name
-
-        var_collection.store()
-        app.db.update()
+    success, errormsg, _ = var_collection.create_enum_variable(var_name, var_type, enumerators, app)
+    if not success:
+        result = {"success": False, "errormsg": errormsg}
+        return result
 
     return result
 

@@ -86,7 +86,7 @@ renderer.registerType("variable", {
     text: "New Variable",
   },
   templateSelector: "#variable-template",
-  afterRender: ($container) => {
+  afterRender: ($container, entry) => {
     // autocomplete
     let type_input = $container.find(".variable-type")
     const id = $container.closest(".accordion-item").data("id")
@@ -128,6 +128,13 @@ renderer.registerType("variable", {
       const $container = $(this).closest(".enumerators-container").find(".enumerators-list")
       add_enumerator_to_variable(this, $container)
     })
+    // pre-populate enumerators for existing ENUM variables
+    if (entry && entry.enumerators && entry.enumerators.length > 0) {
+      const $list = $container.find(".enumerators-list")
+      entry.enumerators.forEach(function (e) {
+        add_enumerator_to_variable(null, $list, e.name || e[0], e.value || e[1])
+      })
+    }
   },
 })
 

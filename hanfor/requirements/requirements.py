@@ -106,12 +106,20 @@ class ApiFormalizations(Resource):
     @nocache
     def get(self, rid):
         requirement = current_app.db.get_object(Requirement, rid)
+        var_collection = VariableCollection(
+            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+        )
         result = []
         for idx, formalization in requirement.formalizations.items():
             formalization_repr = formalization.to_dict()
             formalization_repr["formalization_type"] = formalization.of_type()
             formalization_repr["id"] = idx
             formalization_repr["text"] = formalization.get_string()
+            if formalization.of_type() == "variable" and formalization.type in ("ENUM_INT", "ENUM_REAL"):
+                enums = var_collection.get_enumerators(formalization.name)
+                formalization_repr["enumerators"] = [
+                    {"name": e.name[len(formalization.name) + 1:], "value": e.value} for e in enums
+                ]
             result.append(formalization_repr)
         return result
 
@@ -187,6 +195,13 @@ class ApiFormalizationStore(Resource):
                 Variable(data["name"], data["type"], value=data.get("value"), order=int(data["temp_id"])),
                 int(data["temp_id"]),
             )
+
+            success, errormsg, _ = variable_collection.create_enum_variable(
+                data["name"], data["type"], data.get("enumerators", []), current_app
+            )
+            if not success:
+                error = True
+                error_msg = errormsg
         if error:
             logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
             return {"success": False, "errormsg": error_msg}

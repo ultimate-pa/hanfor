@@ -99,6 +99,14 @@ export default class FormalizationStore {
     const $variableValue = $card.find("input.variable-value")
     data.value = $variableValue.val() || ""
 
+    // Collect enumerators for ENUM types
+    data.enumerators = []
+    $card.find(".enum_name_input").each(function (i) {
+      const enumName = $(this).val() || ""
+      const enumValue = $card.find(".enum_value_input").eq(i).val() || ""
+      data.enumerators.push([enumName, enumValue])
+    })
+
     return data
   }
 
