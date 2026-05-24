@@ -128,7 +128,7 @@ class Requirement:
             "type": self.type_in_csv if isinstance(self.type_in_csv, str) else "None",
             "tags": [tag.name for tag in self.tags.keys()],
             "tags_comments": {tag.name: comment for tag, comment in self.tags.items()},
-            "formal": [f.get_string() for f in self.formalizations.values()],
+            "formal": [f.get_string() for f in sorted(self.formalizations.values(), key=lambda f: f.order or 0)],
             "scope": "None",  # TODO: remove: This is obsolete since a requirement can hold multiple Formalizations.
             "pattern": "None",  # TODO: remove: This is obsolete since a requirement can hold multiple Formalizations.
             "vars": sorted([name for name in used_variables]),
