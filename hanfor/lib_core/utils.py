@@ -1,3 +1,5 @@
+import functools
+import json
 import logging
 import re
 import os
@@ -8,7 +10,7 @@ from collections import defaultdict
 from colorama import Style, Fore
 from terminaltables import DoubleTable
 
-from flask import Response
+from flask import request, Response
 
 from configuration.patterns import APattern
 from lib_core import boogie_parsing
@@ -385,3 +387,53 @@ def choice(choices: list[str], default: str) -> str:
             return choices[c]
 
         print('Illegal choice "' + str(c) + '", choose again')
+
+
+def log_request_response(cls):
+    """
+    Class decorator for flask_restx Resource classes.
+    Logs the incoming request data and the outgoing response at DEBUG level.
+    """
+    original_dispatch = cls.dispatch_request
+    @functools.wraps(original_dispatch)
+    def wrapper(self, *args, **kwargs):
+        request_data = {}
+        if request.form:
+            request_data = dict(request.form)
+        elif request.args:
+            request_data = dict(request.args)
+        elif request.is_json and request.json:
+            request_data = request.json
+
+        logging.debug(
+            ">>> %s %s\n>>> Request data: %s",
+            request.method,
+            request.path,
+            json.dumps(request_data, indent=2, default=str),
+        )
+
+        result = original_dispatch(self, *args, **kwargs)
+
+        if isinstance(result, tuple):
+            response_body = result[0]
+            response_status = next(
+                (v for v in result[1:] if isinstance(v, int)),
+                200,
+            )
+            logging.debug(
+                "<<< Response (%s): %s",
+                response_status,
+                json.dumps(response_body, indent=2, default=str),
+            )
+        elif isinstance(result, Response):
+            logging.debug("<<< Response (Flask Response): %s", result.status)
+        else:
+            logging.debug(
+                "<<< Response (200): %s",
+                json.dumps(result, indent=2, default=str),
+            )
+
+        return result
+
+    cls.dispatch_request = wrapper
+    return cls

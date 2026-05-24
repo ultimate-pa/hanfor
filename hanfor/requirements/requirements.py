@@ -22,6 +22,7 @@ from lib_core.utils import (
     formalization_html,
     default_scope_options,
     prepare_patterns_for_jinja,
+    log_request_response,
 )
 from configuration.defaults import Color
 from guesser.Guess import Guess
@@ -67,6 +68,7 @@ def index():
 
 
 @api_ns.route("/colum_defs")
+@log_request_response
 class ApiColumnDefs(Resource):
     @api_ns.response(200, "Success", ColumnDefsModel)
     @nocache
@@ -76,6 +78,7 @@ class ApiColumnDefs(Resource):
 
 
 @api_ns.route("/get")
+@log_request_response
 class ApiRequirementGet(Resource):
     @api_ns.response(200, "Success", RequirementDetailModel)
     @api_ns.response(404, "Not Found", ErrorMessageModel)
@@ -97,6 +100,7 @@ class ApiRequirementGet(Resource):
 
 
 @api_ns.route("/formalizations/<string:rid>")
+@log_request_response
 class ApiFormalizations(Resource):
     @api_ns.response(200, "Success", [FormalizationModel])
     @nocache
@@ -113,6 +117,7 @@ class ApiFormalizations(Resource):
 
 
 @api_ns.route("/gets")
+@log_request_response
 class ApiRequirementsList(Resource):
     @api_ns.response(200, "Success", RequirementListModel)
     @nocache
@@ -125,6 +130,7 @@ class ApiRequirementsList(Resource):
 
 
 @api_ns.route("/formalizations/<string:rid>/<string:subtype>/<string:fid>")
+@log_request_response
 class ApiFormalizationStore(Resource):
     @api_ns.response(200, "Success", SuccessResponseModel)
     @api_ns.response(400, "Bad Request", ErrorMessageModel)
@@ -190,6 +196,7 @@ class ApiFormalizationStore(Resource):
 
 
 @api_ns.route("/update")
+@log_request_response
 class ApiRequirementUpdate(Resource):
     @api_ns.response(200, "Success", RequirementDetailModel)
     @api_ns.response(400, "Bad Request", ErrorMessageModel)
@@ -212,7 +219,7 @@ class ApiRequirementUpdate(Resource):
         variable_collection = VariableCollection(
             current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
         )
-        # TODO: How should handling variable updates be handled
+        # TODO: How should handling variable updates be handled, i.e renaming
         logging.debug(f"Variables retrieved {variable_collection.collection}")
         # TODO: Can't track why here sometimes there is a dictionary size changed expection
         for idx, formalization in requirement.formalizations.items():
@@ -288,6 +295,7 @@ class ApiRequirementUpdate(Resource):
 
 
 @api_ns.route("/multi_update")
+@log_request_response
 class ApiMultiUpdate(Resource):
     @api_ns.response(200, "Success", SuccessResponseModel)
     @api_ns.doc(params={
@@ -365,6 +373,7 @@ class ApiMultiUpdate(Resource):
 
 
 @api_ns.route("/formalizations/<string:requirement_id>/<int:formalization_id>")
+@log_request_response
 class ApiFormalizationDelete(Resource):
     @api_ns.response(200, "Success", SuccessResponseModel)
     @nocache
@@ -390,6 +399,7 @@ class ApiFormalizationDelete(Resource):
 
 
 @api_ns.route("/get_available_guesses")
+@log_request_response
 class ApiAvailableGuesses(Resource):
     @api_ns.response(200, "Success", AvailableGuessesModel)
     @api_ns.doc(params={
@@ -443,6 +453,7 @@ class ApiAvailableGuesses(Resource):
 
 
 @api_ns.route("/add_formalization_from_guess")
+@log_request_response
 class ApiAddFormalizationFromGuess(Resource):
     @api_ns.response(200, "Success")
     @api_ns.doc(params={
@@ -487,6 +498,7 @@ class ApiAddFormalizationFromGuess(Resource):
 
 
 @api_ns.route("/multi_add_top_guess")
+@log_request_response
 class ApiMultiAddTopGuess(Resource):
     @api_ns.response(200, "Success", SuccessResponseModel)
     @api_ns.doc(params={
