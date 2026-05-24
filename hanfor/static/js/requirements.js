@@ -12,6 +12,7 @@ require("datatables.net-colreorder-bs5")
 require("./bootstrap-confirm-button")
 const {marked} = require("marked")
 import Sortable from "sortablejs"
+import Mustache from "mustache"
 import FormalizationStore from "./formalizations/store"
 import "jquery-sortablejs"
 import FormalizationRenderer from "./formalizations/renderer.js"
@@ -1971,16 +1972,8 @@ function fetch_available_guesses() {
 }
 
 function add_enumerator_to_variable(button, $container, name = "", value = "") {
-  const enumerator_template = `
-    <div class="input-group enumerator-input my-2">
-      <span class="input-group-text">Name</span>
-      <input class="form-control enum_name_input" type="text" value="${name}">
-      <span class="input-group-text">Value</span>
-      <input class="form-control enum_value_input" type="number" step="any" value="${value}">
-      <button type="button" class="btn btn-danger del_enum">Delete</button>
-    </div>
-  `
-  $container.append(enumerator_template)
+  const html = Mustache.render($("#enumerator-template").html(), { name, value })
+  $container.append(html)
 }
 
 function add_formalization_from_guess(scope, pattern, mapping) {
