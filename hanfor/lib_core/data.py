@@ -333,6 +333,8 @@ class Requirement:
             str: The json formatted version of the formalizations.
 
         """
+        # TODO: This now fetches variables and failes due to them not having scoped_pattern
+        # but being formalizations
         result = dict()
         for key, formalization in self.formalizations.items():
             if formalization.scoped_pattern is None:
