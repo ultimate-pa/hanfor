@@ -769,6 +769,7 @@ function load_datatable() {
         data: data["col_defs"][i]["csv_name"],
         visible: false,
         searchable: true,
+        defaultContent: "",
       })
     }
   }).done(function () {
