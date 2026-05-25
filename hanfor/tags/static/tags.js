@@ -2,6 +2,8 @@ require("gasparesganga-jquery-loading-overlay")
 const { Modal } = require("bootstrap")
 require("datatables.net-bs5")
 require("datatables.net-colreorder-bs5")
+require("datatables.net-colresize-unofficial")
+require("datatables.net-colresize-unofficial/jquery.dataTables.colResize.css")
 require("jquery-ui/ui/widgets/autocomplete")
 require("../../static/js/bootstrap-tokenfield.js")
 require("jquery-ui/ui/effects/effect-highlight")
@@ -86,6 +88,9 @@ function initDatatable() {
     stateSave: true,
     pageLength: 50,
     responsive: true,
+    colResize: {
+      onResize: function () { throw new Error('Workaround: resizing works fine!'); },
+    },
     lengthMenu: [
       [10, 50, 100, 500, -1],
       [10, 50, 100, 500, "All"],

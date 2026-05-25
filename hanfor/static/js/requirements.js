@@ -355,8 +355,7 @@ function init_datatable(columnDefs) {
     // column resizing enabled, avoid using saveState: bool option, due to it 
     // colding with both plugins event handling
     colResize: {
-      onResizeStart: () => table.colReorder.enable(false),
-      onResizeEnd: () => table.colReorder.enable(true),
+      onResize: function () { throw new Error('Workaround: resizing works fine!'); },
     },
     dom: 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
     ajax: "api/v1/req/gets",
