@@ -18,9 +18,6 @@ from lib_core.data import (
     Variable,
 )
 from lib_core.utils import (
-    get_default_pattern_options,
-    formalization_html,
-    default_scope_options,
     prepare_patterns_for_jinja,
     log_request_response,
 )

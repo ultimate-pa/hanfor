@@ -9,6 +9,8 @@ require("awesomplete")
 require("awesomplete/awesomplete.css")
 //require('datatables.net-bs5-colreorderwithresize-npm');
 require("datatables.net-colreorder-bs5")
+require("datatables.net-colresize-unofficial")
+require("datatables.net-colresize-unofficial/jquery.dataTables.colResize.css")
 require("./bootstrap-confirm-button")
 import Sortable from "sortablejs"
 import Mustache from "mustache"
@@ -328,6 +330,12 @@ function init_datatable(columnDefs) {
       [10, 50, 100, 500, -1],
       [10, 50, 100, 500, "All"],
     ],
+    // column resizing enabled, avoid using saveState: bool option, due to it 
+    // colding with both plugins event handling
+    colResize: {
+      onResizeStart: () => table.colReorder.enable(false),
+      onResizeEnd: () => table.colReorder.enable(true),
+    },
     dom: 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
     ajax: "api/v1/req/gets",
     deferRender: true,
@@ -1303,12 +1311,12 @@ function load_requirement(row_idx) {
       let query = "?command=search&col=1&q=%5C%22" + var_name + "%5C%22"
       used_variables_accordion.append(
         '<span class="badge bg-info" style="font-size: 18px">' +
-          '<a href="./variables' +
-          query +
-          '" target="_blank">' +
-          var_name +
-          "</a>" +
-          "</span>&numsp;",
+        '<a href="./variables' +
+        query +
+        '" target="_blank">' +
+        var_name +
+        "</a>" +
+        "</span>&numsp;",
       )
     })
 
