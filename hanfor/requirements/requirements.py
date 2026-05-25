@@ -64,7 +64,7 @@ def index():
     pattern_groups = prepare_patterns_for_jinja()
     return render_template(
         # TODO: the object refactor will break this - fix later!!
-        "index.html",
+        "requirements/index.html",
         query=request.args,
         additional_cols=additional_cols,
         default_cols=default_cols,
@@ -644,18 +644,6 @@ class ApiMultiAddTopGuess(Resource):
         add_msg_to_flask_session_log(current_app, "Added top guess to requirements", requirements)
 
         return result
-
-
-def get_formalization_template(templates_folder, formalization_id, formalization):  # TODO wohin damit, HTML generation
-    result = {
-        "success": True,
-        "html": formalization_html(
-            templates_folder, formalization_id, default_scope_options, get_default_pattern_options(), formalization
-        ),
-    }
-
-    return result
-
 
 def get_datatable_additional_cols(app: HanforFlask):  # TODO nach requirements
     offset = 8  # we have 8 fixed cols.
