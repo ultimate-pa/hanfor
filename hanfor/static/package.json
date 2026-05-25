@@ -27,6 +27,7 @@
     "cytoscape-fcose": "^2.2.0",
     "datatables.net-bs5": "^2.0.8",
     "datatables.net-colreorder-bs5": "^2.0.3",
+    "datatables.net-colresize-unofficial": "^2.0.0",
     "datatables.net-select-bs5": "^2.0.3",
     "downloadjs": "^1.4.7",
     "fuse.js": "^7.0.0",

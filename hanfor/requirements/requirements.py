@@ -25,9 +25,6 @@ from lib_core.data import Requirement, SessionValue, RequirementEditHistory, Tag
 from lib_core.pattern import APattern
 from lib_core.pattern.patterns_functions import VARIABLE_AUTOCOMPLETE_EXTENSION
 from lib_core.utils import (
-    get_default_pattern_options,
-    formalization_html,
-    default_scope_options,
     prepare_patterns_for_jinja,
     log_request_response,
 )
