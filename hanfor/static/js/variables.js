@@ -1,7 +1,10 @@
 require('gasparesganga-jquery-loading-overlay');
 const {Modal} = require("bootstrap");
+
 require('datatables.net-bs5');
 require('datatables.net-select');
+require("datatables.net-colresize-unofficial")
+require("datatables.net-colresize-unofficial/jquery.dataTables.colResize.css")
 require('jquery-ui/ui/widgets/autocomplete');
 require('./bootstrap-tokenfield.js');
 require('jquery-ui/ui/effects/effect-highlight');
@@ -726,6 +729,9 @@ $(document).ready(function () {
         "dom": 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
         "ajax": "api/var/gets",
         "deferRender": true,
+        colResize: {
+          onResize: function () { throw new Error('Workaround: resizing works fine!'); },
+        },
         "columns": [
             {
                 "orderable": false,
