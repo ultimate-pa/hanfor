@@ -16,10 +16,10 @@
         {{ text }}
       </div>
     </div>
-    <h6>Edit formalization:</h6>
     <div class="form-group">
+      <h6>Edit formalization:</h6>
       <div class="row form-inline row-spacing">
-        <div class="form-group col-12 col-lg-4 col-xl-2 gx-1">
+        <div class="form-group col-12 col-lg-3 col-xl-2">
           <label for="requirement_scope">Scope</label>
           <select
             id="requirement_scope{{ id }}"
@@ -35,7 +35,7 @@
             <option value="AFTER_UNTIL">After "{P}" until "{Q}"</option>
           </select>
         </div>
-        <div class="form-group col-12 col-lg-8 col-xl-8 gx-1">
+        <div class="form-group col-12 col-lg-9 col-xl-7">
           <label for="requirement_pattern">Pattern</label>
           <select
             id="requirement_pattern{{ id }}"
@@ -54,34 +54,36 @@
             {% endif %} {% endfor %} {% raw %}
           </select>
         </div>
-        <div class="form-group m-0 col-12 col-xl-1 gx-1">
-          <label></label>
-          <button
-            name="{{ id }}"
-            class="copy_formalization btn btn-large btn-success"
-            style="width: 100%"
-            title="Copy me"
-          >
-            Copy
-          </button>
-        </div>
-        <div class="form-group m-0 col-12 col-xl-1 gx-1">
-          <label></label>
-          <button
-            name="{{ id }}"
-            class="delete_formalization btn btn-large btn-danger"
-            data-bs-toggle="confirmation"
-            data-btn-ok-label="Yes"
-            data-btn-ok-class="btn-success"
-            data-btn-cancel-label="Nooo Stoooop!"
-            data-btn-cancel-class="btn-danger"
-            data-title="Sure?"
-            data-content="Delete this Formalization?"
-            style="width: 100%"
-            title="Delete me"
-          >
-            Delete
-          </button>
+        <div class="col-12 col-xl-3 d-flex justify-content-around align-items-center row">
+          <div class="m-0 col-12 col-xl-6">
+            <label></label>
+            <button
+              name="{{ id }}"
+              class="copy_formalization btn btn-large btn-success"
+              style="width: 100%"
+              title="Copy me"
+            >
+              Copy
+            </button>
+          </div>
+          <div class="m-0 col-12 col-xl-6">
+            <label></label>
+            <button
+              name="{{ id }}"
+              class="delete_formalization btn btn-large btn-danger"
+              data-bs-toggle="confirmation"
+              data-btn-ok-label="Yes"
+              data-btn-ok-class="btn-success"
+              data-btn-cancel-label="Nooo Stoooop!"
+              data-btn-cancel-class="btn-danger"
+              data-title="Sure?"
+              data-content="Delete this Formalization?"
+              style="width: 100%"
+              title="Delete me"
+            >
+              Delete
+            </button>
+          </div>
         </div>
       </div>
     </div>
