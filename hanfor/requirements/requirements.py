@@ -1,38 +1,41 @@
-from flask import Blueprint, request, render_template
-import logging
-import json
 import datetime
-from flask_restx import Resource, Namespace
+import json
+import logging
 
+from flask import Blueprint, render_template, request
+from flask_restx import Namespace, Resource
 
 from config import PATTERNS_GROUP_ORDER
-from hanfor_flask import current_app, nocache, HanforFlask
-from lib_core.data import (
-    FormalizationOfType,
-    Formalization,
-    Requirement,
-    VariableCollection,
-    SessionValue,
-    RequirementEditHistory,
-    Tag,
-    Variable,
-)
-from lib_core.utils import (
-    prepare_patterns_for_jinja,
-    log_request_response,
-)
 from configuration.defaults import Color
+from configuration.patterns import VARIABLE_AUTOCOMPLETE_EXTENSION, APattern
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
-from configuration.patterns import APattern, VARIABLE_AUTOCOMPLETE_EXTENSION
+from hanfor_flask import HanforFlask, current_app, nocache
 from lib_core.api_models import (
-    RequirementListModel,
-    RequirementDetailModel,
-    FormalizationModel,
-    ColumnDefsModel,
-    SuccessResponseModel,
     AvailableGuessesModel,
+    ColumnDefsModel,
     ErrorMessageModel,
+    FormalizationModel,
+    RequirementDetailModel,
+    RequirementListModel,
+    SuccessResponseModel,
+)
+from lib_core.data import (
+    Formalization,
+    FormalizationOfType,
+    Requirement,
+    RequirementEditHistory,
+    SessionValue,
+    Tag,
+    Variable,
+    VariableCollection,
+)
+from lib_core.utils import (
+    default_scope_options,
+    formalization_html,
+    get_default_pattern_options,
+    log_request_response,
+    prepare_patterns_for_jinja,
 )
 
 blueprint = Blueprint("requirements", __name__, template_folder="templates", url_prefix="/")
@@ -556,6 +559,7 @@ class ApiAddFormalizationFromGuess(Resource):
             current_app.config["TEMPLATES_FOLDER"], formalization_id, requirement.formalizations[formalization_id]
         )
 
+
         return result
 
 
@@ -634,6 +638,16 @@ class ApiMultiAddTopGuess(Resource):
         add_msg_to_flask_session_log(current_app, "Added top guess to requirements", requirements)
 
         return result
+
+def get_formalization_template(templates_folder, formalization_id, formalization):  # TODO wohin damit, HTML generation
+    result = {
+        "success": True,
+        "html": formalization_html(
+            templates_folder, formalization_id, default_scope_options, get_default_pattern_options(), formalization
+        ),
+    }
+
+    return result
 
 def get_datatable_additional_cols(app: HanforFlask):  # TODO nach requirements
     offset = 8  # we have 8 fixed cols.
