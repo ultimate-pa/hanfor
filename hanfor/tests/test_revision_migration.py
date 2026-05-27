@@ -154,7 +154,7 @@ class TestRevisionMigration(TestCase):
         args = HanforArgumentParser(app).parse_args([TEST_TAGS["simple"], "-c", CSV_FILES["simple"]])
         self.startup_hanfor(args, user_mock_answers=[2, 0, 1, 3, 0])
         # Get the available requirements.
-        initial_req_gets = self.app.get("api/v1/req/gets")
+        initial_req_gets = self.app.get("api/v1/req")
         self.assertEqual(initial_req_gets.json["data"][1]["desc"], "always look on the bright side of life")
         self.assertListEqual(initial_req_gets.json["data"][1]["tags"], [])
 
@@ -168,7 +168,7 @@ class TestRevisionMigration(TestCase):
         args = HanforArgumentParser(app).parse_args([TEST_TAGS["simple"], "-c", CSV_FILES["simple_changed_desc"]])
         self.startup_hanfor(args, user_mock_answers=[1])
         # Get available requirements from new revision.
-        new_revision_req_gets = self.app.get("api/v1/req/gets")
+        new_revision_req_gets = self.app.get("api/v1/req")
         self.assertEqual(new_revision_req_gets.json["data"][1]["desc"], "Mostly look on the bright side of life")
         self.assertCountEqual(
             new_revision_req_gets.json["data"][1]["tags"],
@@ -182,7 +182,7 @@ class TestRevisionMigration(TestCase):
         args = HanforArgumentParser(app).parse_args([TEST_TAGS["real"], "-c", CSV_FILES["test_real_rev_0"]])
         self.startup_hanfor(args, user_mock_answers=[1, 5, 27, 8, 0])
         # Get the available requirements.
-        initial_req_gets = self.app.get("api/v1/req/gets")
+        initial_req_gets = self.app.get("api/v1/req")
         self.assertEqual("DySok ASPDOJ_123", initial_req_gets.json["data"][0]["id"])
         self.assertListEqual([], initial_req_gets.json["data"][0]["tags"])
 
@@ -196,7 +196,7 @@ class TestRevisionMigration(TestCase):
         args = HanforArgumentParser(app).parse_args([TEST_TAGS["real"], "-c", CSV_FILES["test_real_rev_1"]])
         self.startup_hanfor(args, user_mock_answers=[1])
         # Get available requirements from new revision.
-        new_revision_req_gets = self.app.get("api/v1/req/gets")
+        new_revision_req_gets = self.app.get("api/v1/req")
         # Do tests
         self.assertListEqual(
             ["FWEPOFKWPFOK"],

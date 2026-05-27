@@ -2,7 +2,7 @@
 Test initializing a new plain hanfor session from csv.
 
 Init a new session from ./test_sessions/test_init/simple.csv
-Check if API api/v1/req/gets returns correct requirements.
+Check if API api/v1/req returns correct requirements.
 """
 
 from app import app, startup_hanfor
