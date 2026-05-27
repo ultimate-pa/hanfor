@@ -72,6 +72,10 @@ def index():
 @api_ns.route("/colum_defs")
 @log_request_response
 class ApiColumnDefs(Resource):
+    @api_ns.doc(
+        description="Returns additional column definitions "
+                    "for the requirements DataTable from CSV field names."
+    )
     @api_ns.response(200, "Success", ColumnDefsModel)
     @nocache
     def get(self):
@@ -79,17 +83,22 @@ class ApiColumnDefs(Resource):
         return result
 
 
-@api_ns.route("/<string:requirement_id>")
+@api_ns.route("/<string:rid>")
 @log_request_response
 class ApiRequirementSingle(Resource):
+    @api_ns.doc(
+        description="Returns full detail for one requirement, including "
+                    "formalizations, available variables, and next formalization ID.",
+        params={"rid": "The requirement ID (e.g. 'SysRS FooXY_42')"},
+    )
     @api_ns.response(200, "Success", RequirementDetailModel)
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
-    def get(self, requirement_id):
+    def get(self, rid):
         try:
-            requirement = current_app.db.get_object(Requirement, requirement_id)
+            requirement = current_app.db.get_object(Requirement, rid)
         except DatabaseKeyError:
-            return {"success": False, "errormsg": f"Requirement '{requirement_id}' not found."}, 404
+            return {"success": False, "errormsg": f"Requirement '{rid}' not found."}, 404
         var_collection = VariableCollection(
             current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
         )
@@ -99,21 +108,26 @@ class ApiRequirementSingle(Resource):
         result["next_id"] = requirement.next_id()
         return result
 
+    @api_ns.doc(
+        description="Partial update - only form fields that are sent are "
+                    "changed. Omitted fields remain untouched.",
+        params={
+            "rid": "The requirement ID",
+            "status": "New status value (empty string = no change)",
+            "tags": "JSON dict of {tag_name: comment}. Replaces all tags.",
+            "update_formalization": "Set 'true' to update formalizations",
+            "formalizations": "JSON-encoded formalization data",
+            "formalizations_order": "JSON dict of {fid: order} for reordering",
+        },
+    )
     @api_ns.response(200, "Success", RequirementDetailModel)
     @api_ns.response(400, "Bad Request", ErrorMessageModel)
-    @api_ns.doc(params={
-        "status": "New status value",
-        "tags": "JSON-encoded dict of tag -> comment",
-        "update_formalization": "Set to 'true' to update formalizations",
-        "formalizations": "JSON-encoded formalization data",
-        "formalizations_order": "JSON-encoded order of the formalizations",
-    })
     @nocache
-    def patch(self, requirement_id):
+    def patch(self, rid):
         try:
-            requirement = current_app.db.get_object(Requirement, requirement_id)
+            requirement = current_app.db.get_object(Requirement, rid)
         except DatabaseKeyError:
-            return {"success": False, "errormsg": f"Requirement '{requirement_id}' not found."}, 404
+            return {"success": False, "errormsg": f"Requirement '{rid}' not found."}, 404
 
         self._update_formalizations_order(requirement, request.form.get("formalizations_order"))
         self._update_status(requirement, request.form.get("status", ""))
@@ -250,6 +264,11 @@ class ApiRequirementSingle(Resource):
 @api_ns.route("/formalizations/<string:rid>")
 @log_request_response
 class ApiFormalizations(Resource):
+    @api_ns.doc(
+        description="Returns all formalizations (including variables) for "
+                    "a requirement, with enumerator data where applicable.",
+        params={"rid": "The requirement ID"},
+    )
     @api_ns.response(200, "Success", [FormalizationModel])
     @nocache
     def get(self, rid):
@@ -272,9 +291,13 @@ class ApiFormalizations(Resource):
         return result
 
 
-@api_ns.route("/gets")
+@api_ns.route("")
 @log_request_response
 class ApiRequirementsList(Resource):
+    @api_ns.doc(
+        description="Returns every requirement in the database "
+                    "as a sorted flat array. Called by the DataTable on page load."
+    )
     @api_ns.response(200, "Success", RequirementListModel)
     @nocache
     def get(self):
@@ -288,11 +311,20 @@ class ApiRequirementsList(Resource):
 @api_ns.route("/formalizations/<string:rid>/<string:subtype>/<string:fid>")
 @log_request_response
 class ApiFormalizationStore(Resource):
+    @api_ns.doc(
+        description="Stores a formalization (real or variable) on a requirement. "
+                    "Creates the formalization or variable entry and updates "
+                    "the variable collection.",
+        params={
+            "rid": "The requirement ID",
+            "subtype": "Either 'formalization' or 'variable'",
+            "fid": "The formalization ID (integer for formalization, "
+                   "temp_id for variable)",
+            "data": "JSON-encoded dict with scope, pattern, expression_mapping",
+        },
+    )
     @api_ns.response(200, "Success", SuccessResponseModel)
     @api_ns.response(400, "Bad Request", ErrorMessageModel)
-    @api_ns.doc(params={
-        "data": "JSON-encoded dict containing scope, pattern, expression_mapping",
-    })
     @nocache
     def post(self, rid, subtype, fid):
         subtype_enum = None
@@ -360,17 +392,22 @@ class ApiFormalizationStore(Resource):
         return {"success": True}
 
 
-@api_ns.route("/<string:requirement_id>/tags/<string:tag_name>")
+@api_ns.route("/<string:rid>/tags/<string:tag_name>")
 @log_request_response
 class ApiRequirementTag(Resource):
+    @api_ns.doc(
+        description="Adds a tag to the requirement. Creates the Tag "
+                    "object if it doesn't exist. No-op if already present.",
+        params={"rid": "The requirement ID", "tag_name": "Name of the tag to add"},
+    )
     @api_ns.response(200, "Success", SuccessResponseModel)
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
-    def post(self, requirement_id, tag_name):
+    def post(self, rid, tag_name):
         try:
-            requirement = current_app.db.get_object(Requirement, requirement_id)
+            requirement = current_app.db.get_object(Requirement, rid)
         except DatabaseKeyError:
-            return {"success": False, "errormsg": f"Requirement '{requirement_id}' not found."}, 404
+            return {"success": False, "errormsg": f"Requirement '{rid}' not found."}, 404
         all_tags: dict[str, Tag] = {t.name: t for t in current_app.db.get_objects(Tag).values()}
         if tag_name not in all_tags:
             tag = Tag(tag_name, Color.BS_INFO.value, False, "")
@@ -383,14 +420,19 @@ class ApiRequirementTag(Resource):
         current_app.db.update()
         return {"success": True}
 
+    @api_ns.doc(
+        description="Removes a tag from the requirement. "
+                    "No-op if the tag doesn't exist or isn't linked.",
+        params={"rid": "The requirement ID", "tag_name": "Name of the tag to remove"},
+    )
     @api_ns.response(200, "Success", SuccessResponseModel)
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
-    def delete(self, requirement_id, tag_name):
+    def delete(self, rid, tag_name):
         try:
-            requirement = current_app.db.get_object(Requirement, requirement_id)
+            requirement = current_app.db.get_object(Requirement, rid)
         except DatabaseKeyError:
-            return {"success": False, "errormsg": f"Requirement '{requirement_id}' not found."}, 404
+            return {"success": False, "errormsg": f"Requirement '{rid}' not found."}, 404
         all_tags: dict[str, Tag] = {t.name: t for t in current_app.db.get_objects(Tag).values()}
         if tag_name in all_tags and all_tags[tag_name] in requirement.tags:
             requirement.tags.pop(all_tags[tag_name])
@@ -399,18 +441,26 @@ class ApiRequirementTag(Resource):
         return {"success": True}
 
 
-@api_ns.route("/formalizations/<string:requirement_id>/<int:formalization_id>")
+@api_ns.route("/formalizations/<string:rid>/<int:fid>")
 @log_request_response
 class ApiFormalizationDelete(Resource):
+    @api_ns.doc(
+        description="Removes the formalization with the given ID from "
+                    "the requirement and re-runs type inference.",
+        params={
+            "rid": "The requirement ID",
+            "fid": "The formalization ID to delete",
+        },
+    )
     @api_ns.response(200, "Success", SuccessResponseModel)
     @nocache
-    def delete(self, requirement_id, formalization_id):
-        logging.debug(f"Deletion formalization ID: {formalization_id}")
-        logging.debug(f"Deletion requirement ID: {requirement_id}")
-        requirement = current_app.db.get_object(Requirement, requirement_id)
+    def delete(self, rid, fid):
+        logging.debug(f"Deletion formalization ID: {fid}")
+        logging.debug(f"Deletion requirement ID: {rid}")
+        requirement = current_app.db.get_object(Requirement, rid)
         logging.debug(f"Current: {requirement.formalizations}")
         requirement.delete_formalization(
-            int(formalization_id),
+            int(fid),
             VariableCollection(
                 current_app.db.get_objects(Variable).values(),
                 current_app.db.get_objects(Requirement).values(),
@@ -428,10 +478,12 @@ class ApiFormalizationDelete(Resource):
 @api_ns.route("/get_available_guesses")
 @log_request_response
 class ApiAvailableGuesses(Resource):
+    @api_ns.doc(
+        description="Runs all registered guessers and returns available "
+                    "formalization guesses for the given requirement.",
+        params={"requirement_id": "The requirement to get guesses for"},
+    )
     @api_ns.response(200, "Success", AvailableGuessesModel)
-    @api_ns.doc(params={
-        "requirement_id": "The requirement to get guesses for",
-    })
     @nocache
     def post(self):
         # Get available guesses.
@@ -482,13 +534,17 @@ class ApiAvailableGuesses(Resource):
 @api_ns.route("/add_formalization_from_guess")
 @log_request_response
 class ApiAddFormalizationFromGuess(Resource):
+    @api_ns.doc(
+        description="Adds an empty formalization, then fills it with "
+                    "the data from the selected scope, pattern, and mapping.",
+        params={
+            "requirement_id": "Requirement ID",
+            "scope": "Scope name",
+            "pattern": "Pattern name",
+            "mapping": "JSON-encoded mapping dict",
+        },
+    )
     @api_ns.response(200, "Success")
-    @api_ns.doc(params={
-        "requirement_id": "Requirement ID",
-        "scope": "Scope name",
-        "pattern": "Pattern name",
-        "mapping": "JSON-encoded mapping dict",
-    })
     @nocache
     def post(self):
         requirement_id = request.form.get("requirement_id", "")
@@ -528,11 +584,15 @@ class ApiAddFormalizationFromGuess(Resource):
 @api_ns.route("/multi_add_top_guess")
 @log_request_response
 class ApiMultiAddTopGuess(Resource):
+    @api_ns.doc(
+        description="Adds the highest-scored guess to one or more "
+                    "requirements. Supports append and override modes.",
+        params={
+            "selected_ids": "JSON-encoded list of requirement IDs",
+            "insert_mode": "'append' or 'override'",
+        },
+    )
     @api_ns.response(200, "Success", SuccessResponseModel)
-    @api_ns.doc(params={
-        "selected_ids": "JSON-encoded list of requirement IDs",
-        "insert_mode": "'append' or 'override'",
-    })
     @nocache
     def post(self):
         result = {"success": True}

@@ -358,7 +358,7 @@ function init_datatable(columnDefs) {
       onResize: function () { throw new Error('Workaround: resizing works fine!'); },
     },
     dom: 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
-    ajax: "api/v1/req/gets",
+    ajax: "api/v1/req",
     deferRender: true,
     columnDefs: columnDefs,
     createdRow: function (row, data) {
