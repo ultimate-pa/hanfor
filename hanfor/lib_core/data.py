@@ -183,9 +183,11 @@ class Requirement:
     def next_id(self) -> int:
         return self._next_free_formalization_id()
 
-    def add_empty_formalization(self, fid: int):
+    def add_empty_formalization(self) -> tuple[int, "Formalization"]:
         """Add an empty formalization to the formalizations list."""
-        self.formalizations[fid] = Formalization(fid)
+        id = self.next_id()
+        self.formalizations[id] = Formalization(id)
+        return id, self.formalizations[id]
 
     def delete_formalization(self, formalization_id, variable_collection: "VariableCollection"):
         logging.debug(f"Deleting currently the ID: {formalization_id}")
@@ -643,7 +645,7 @@ class ScopedPattern:
 class Variable(BaseFormalization):
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
 
-    def __init__(self, name: str, var_type: str | None, value: str | None, order: int | None):
+    def __init__(self, name: str, var_type: str | None, value: str | None, order: int = 0):
         self.name: str = name
         self.type: str = var_type
         self.value: str = value
