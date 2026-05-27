@@ -74,6 +74,7 @@ class TestHanforVersionMigrations(TestCase):
                 "const_val": None,
                 "tags": [],
                 "type": "bool",
+                "order": 0,
                 "belongs_to_enum": "",
             },
             var_gets.json["data"],
