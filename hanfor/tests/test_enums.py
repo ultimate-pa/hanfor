@@ -466,10 +466,9 @@ class TestEnums(TestCase):
         # self.assertEqual(response.status_code, 422)
 
     def apply_update(self, update):
-        result = self.mock_hanfor.app.post(
-            "api/v1/req/update",
+        result = self.mock_hanfor.app.patch(
+            "api/v1/req/SysRS%20FooXY_91",
             data={
-                "id": "SysRS FooXY_91",
                 "row_idx": "1",
                 "update_formalization": "true",
                 "tags": json.dumps({"unseen": ""}),

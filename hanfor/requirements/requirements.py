@@ -77,15 +77,16 @@ class ApiColumnDefs(Resource):
         return result
 
 
-@api_ns.route("/get")
+@api_ns.route("/<string:requirement_id>")
 @log_request_response
-class ApiRequirementGet(Resource):
+class ApiRequirementSingle(Resource):
     @api_ns.response(200, "Success", RequirementDetailModel)
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
-    def get(self):
-        rid = request.args.get("id", "")
-        requirement = current_app.db.get_object(Requirement, rid)
+    def get(self, requirement_id):
+        requirement = current_app.db.get_object(Requirement, requirement_id)
+        if not requirement:
+            return {"success": False, "errormsg": f"Requirement '{requirement_id}' not found."}, 404
         var_collection = VariableCollection(
             current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
         )
@@ -93,10 +94,141 @@ class ApiRequirementGet(Resource):
         result["available_vars"] = var_collection.get_available_var_names_list(used_only=False, exclude_types={"ENUM"})
         result["additional_static_available_vars"] = VARIABLE_AUTOCOMPLETE_EXTENSION
         result["next_id"] = requirement.next_id()
+        return result
 
+    @api_ns.response(200, "Success", RequirementDetailModel)
+    @api_ns.response(400, "Bad Request", ErrorMessageModel)
+    @api_ns.doc(params={
+        "status": "New status value",
+        "tags": "JSON-encoded dict of tag -> comment",
+        "update_formalization": "Set to 'true' to update formalizations",
+        "formalizations": "JSON-encoded formalization data",
+        "formalizations_order": "JSON-encoded order of the formalizations",
+    })
+    @nocache
+    def patch(self, requirement_id):
+        requirement = current_app.db.get_object(Requirement, requirement_id)
+        order = request.form.get("formalizations_order")
+        order_dict = json.loads(order)
+        logging.debug(order_dict)
+        variable_collection = VariableCollection(
+            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+        )
+        for idx, formalization in requirement.formalizations.items():
+            formalization.order = order_dict.get(str(idx))
+            logging.debug(f"Formalizaation of {idx} has order of {formalization.order}")
+
+        error = False
+        error_msg = ""
         if requirement:
-            return result
-        return {"success": False, "errormsg": "This is not an api-enpoint."}, 404
+            logging.debug(f"Updating requirement: {requirement.rid}")
+
+            new_status = request.form.get("status", "")
+            if requirement.status != new_status:
+                requirement.status = new_status
+                add_msg_to_flask_session_log(current_app, f"Set status to {new_status} for requirement", [requirement])
+                logging.debug(f"Requirement status set to {requirement.status}")
+
+            new_tag_set = json.loads(request.form.get("tags", ""))
+            req_tags = {t.name: c for t, c in requirement.tags.items()}
+            if req_tags != new_tag_set:
+                added_tags = new_tag_set.keys() - req_tags.keys()
+                all_tags: dict[str, Tag] = {t.name: t for t in current_app.db.get_objects(Tag).values()}
+                removed_tags = req_tags.keys() - new_tag_set.keys()
+                for tag in removed_tags:
+                    if tag not in all_tags:
+                        continue
+                    requirement.tags.pop(all_tags[tag])
+                for tag, comment in new_tag_set.items():
+                    if tag not in all_tags:
+                        tag = Tag(tag, Color.BS_INFO.value, False, "")
+                        current_app.db.add_object(tag)
+                    else:
+                        tag = all_tags[tag]
+                    requirement.tags[tag] = comment
+                add_msg_to_flask_session_log(
+                    current_app, f"Tags: + {added_tags} and - {removed_tags} to requirement", [requirement]
+                )
+                logging.debug(f"Tags: + {added_tags} and - {removed_tags} to requirement {requirement.rid}")
+
+            if request.form.get("update_formalization") == "true":
+                formalizations = json.loads(request.form.get("formalizations", ""))
+                logging.debug("Updated Formalizations: {}".format(formalizations))
+                variable_collection = VariableCollection(
+                    current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+                )
+                logging.debug(f"Formalizations: {requirement.formalizations}")
+
+                variable_entries = {
+                    k: v for k, v in formalizations.items()
+                    if v.get("formalization_type") == "variable"
+                }
+                formal_entries = {
+                    k: v for k, v in formalizations.items()
+                    if v.get("formalization_type") == "formalization"
+                }
+                logging.debug(f"Only Formalizations: {formal_entries}")
+                logging.debug(f"Only Variables: {variable_entries}")
+
+                if formal_entries:
+                    try:
+                        requirement.update_formalizations(
+                            formal_entries,
+                            SessionValue.get_standard_tags(current_app.db),
+                            variable_collection,
+                        )
+                        add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
+                        for v in variable_collection.new_vars:
+                            current_app.db.add_object(v)
+                    except KeyError as e:
+                        error = True
+                        error_msg = f"Could not set formalization: Missing expression/variable for {e}"
+                    except Exception as e:
+                        error = True
+                        error_msg = f"Could not parse formalization: `{e}`"
+
+                logging.debug(f"variable_entries: {json.dumps(variable_entries, indent=2)}")
+                for fid, entry in variable_entries.items():
+                    var_name = entry.get("name", "")
+                    var_type = entry.get("var_type", "")
+                    var_value = entry.get("const_val", "")
+                    enumerators = entry.get("enumerators", [])
+
+                    logging.debug(
+                        f"Variable update: fid={fid} name={var_name} type={var_type} "
+                        f"value={var_value} enumerators={enumerators}"
+                    )
+
+                    if int(fid) in requirement.formalizations:
+                        var = requirement.formalizations[int(fid)]
+                        logging.debug(f"Found in formalizations: name={var.name} old_type={var.type}")
+                        if isinstance(var, Variable):
+                            old_name = var.name
+                            if old_name != var_name:
+                                if variable_collection.var_name_exists(old_name):
+                                    variable_collection.collection[var_name] = variable_collection.collection.pop(old_name)
+                                var.name = var_name
+                            var.type = var_type
+                            var.value = var_value
+                            logging.debug(f"Updated: name={var.name} type={var.type} value={var.value}")
+                        else:
+                            logging.debug(f"Not a Variable instance, got: {type(var).__name__}")
+
+                    success, errormsg, _ = variable_collection.create_enum_variable(
+                        var_name, var_type, enumerators, current_app
+                    )
+                    if not success:
+                        error = True
+                        error_msg = errormsg
+            else:
+                logging.debug("Skipping formalization update.")
+
+            if error:
+                logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
+                return {"success": False, "errormsg": error_msg}
+            else:
+                current_app.db.update()
+                return requirement.to_dict(), 200
 
 
 @api_ns.route("/formalizations/<string:rid>")
@@ -208,155 +340,6 @@ class ApiFormalizationStore(Resource):
 
         current_app.db.update()
         return {"success": True}
-
-
-@api_ns.route("/update")
-@log_request_response
-class ApiRequirementUpdate(Resource):
-    @api_ns.response(200, "Success", RequirementDetailModel)
-    @api_ns.response(400, "Bad Request", ErrorMessageModel)
-    @api_ns.doc(params={
-        "id": "Requirement ID",
-        "status": "New status value",
-        "tags": "JSON-encoded dict of tag -> comment",
-        "update_formalization": "Set to 'true' to update formalizations",
-        "formalizations": "JSON-encoded formalization data",
-        "formalizations_order": "JSON-encoded order dict",
-    })
-    @nocache
-    def put(self):
-        # Update a requirement
-        rid = request.form.get("id", "")
-        requirement = current_app.db.get_object(Requirement, rid)
-        order = request.form.get("formalizations_order")
-        order_dict = json.loads(order)
-        logging.debug(order_dict)
-        variable_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
-        )
-        # TODO: Can't track why here sometimes there is a dictionary size changed expection
-        for idx, formalization in requirement.formalizations.items():
-            formalization.order = order_dict.get(str(idx))
-            logging.debug(f"Formalizaation of {idx} has order of {formalization.order}")
-
-        error = False
-        error_msg = ""
-        if requirement:
-            logging.debug(f"Updating requirement: {requirement.rid}")
-
-            new_status = request.form.get("status", "")
-            if requirement.status != new_status:
-                requirement.status = new_status
-                add_msg_to_flask_session_log(current_app, f"Set status to {new_status} for requirement", [requirement])
-                logging.debug(f"Requirement status set to {requirement.status}")
-
-            new_tag_set = json.loads(request.form.get("tags", ""))
-            req_tags = {t.name: c for t, c in requirement.tags.items()}
-            if req_tags != new_tag_set:
-                added_tags = new_tag_set.keys() - req_tags.keys()
-                all_tags: dict[str, Tag] = {t.name: t for t in current_app.db.get_objects(Tag).values()}
-                removed_tags = req_tags.keys() - new_tag_set.keys()
-                for tag in removed_tags:
-                    if tag not in all_tags:
-                        continue
-                    requirement.tags.pop(all_tags[tag])
-                for tag, comment in new_tag_set.items():
-                    if tag not in all_tags:
-                        tag = Tag(tag, Color.BS_INFO.value, False, "")
-                        current_app.db.add_object(tag)
-                    else:
-                        tag = all_tags[tag]
-                    requirement.tags[tag] = comment
-                # do logging
-                add_msg_to_flask_session_log(
-                    current_app, f"Tags: + {added_tags} and - {removed_tags} to requirement", [requirement]
-                )
-                logging.debug(f"Tags: + {added_tags} and - {removed_tags} to requirement {requirement.rid}")
-
-            # Update formalization.
-            if request.form.get("update_formalization") == "true":
-                formalizations = json.loads(request.form.get("formalizations", ""))
-                logging.debug("Updated Formalizations: {}".format(formalizations))
-                variable_collection = VariableCollection(
-                    current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
-                )
-                logging.debug(f"Formalizations: {requirement.formalizations}")
-
-                # Separate variable entries from formal-formalizations
-                variable_entries = {
-                    k: v for k, v in formalizations.items()
-                    if v.get("formalization_type") == "variable"
-                }
-                formal_entries = {
-                    k: v for k, v in formalizations.items()
-                    if v.get("formalization_type") == "formalization"
-                }
-                logging.debug(f"Only Formalizations: {formal_entries}")
-                logging.debug(f"Only Variables: {variable_entries}")
-
-                # Process formal-formalizations
-                if formal_entries:
-                    try:
-                        requirement.update_formalizations(
-                            formal_entries,
-                            SessionValue.get_standard_tags(current_app.db),
-                            variable_collection,
-                        )
-                        add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
-                        for v in variable_collection.new_vars:
-                            current_app.db.add_object(v)
-                    except KeyError as e:
-                        error = True
-                        error_msg = f"Could not set formalization: Missing expression/variable for {e}"
-                    except Exception as e:
-                        error = True
-                        error_msg = f"Could not parse formalization: `{e}`"
-
-                # Process variable entries
-                logging.debug(f"variable_entries: {json.dumps(variable_entries, indent=2)}")
-                for fid, entry in variable_entries.items():
-                    var_name = entry.get("name", "")
-                    var_type = entry.get("var_type", "")
-                    var_value = entry.get("const_val", "")
-                    enumerators = entry.get("enumerators", [])
-
-                    logging.debug(
-                        f"Variable update: fid={fid} name={var_name} type={var_type} "
-                        f"value={var_value} enumerators={enumerators}"
-                    )
-
-                    if int(fid) in requirement.formalizations:
-                        var = requirement.formalizations[int(fid)]
-                        logging.debug(f"Found in formalizations: name={var.name} old_type={var.type}")
-                        if isinstance(var, Variable):
-                            # When renaming we check for the old_name ane we pop it of the collection
-                            # to break the connection between the variable and the requirement
-                            old_name = var.name
-                            if old_name != var_name:
-                                if variable_collection.var_name_exists(old_name):
-                                    variable_collection.collection[var_name] = variable_collection.collection.pop(old_name)
-                                var.name = var_name
-                            var.type = var_type
-                            var.value = var_value
-                            logging.debug(f"Updated: name={var.name} type={var.type} value={var.value}")
-                        else:
-                            logging.debug(f"Not a Variable instance, got: {type(var).__name__}")
-
-                    success, errormsg, _ = variable_collection.create_enum_variable(
-                        var_name, var_type, enumerators, current_app
-                    )
-                    if not success:
-                        error = True
-                        error_msg = errormsg
-            else:
-                logging.debug("Skipping formalization update.")
-
-            if error:
-                logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
-                return {"success": False, "errormsg": error_msg}
-            else:
-                current_app.db.update()
-                return requirement.to_dict(), 200
 
 
 @api_ns.route("/multi_update")

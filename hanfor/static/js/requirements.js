@@ -646,10 +646,9 @@ function store_requirement(requirements_table) {
   store.commitDeletes(req_id, "variable")
   store.commitCreated(req_id)
   $.ajax({
-    url: "api/v1/req/update",
-    method: "PUT",
+      url: `api/v1/req/${req_id}`,
+    method: "PATCH",
     data: {
-      id: req_id,
       row_idx: associated_row_id,
       update_formalization: updated_formalization,
       tags: JSON.stringify(Object.fromEntries(tag_comments)),
@@ -1210,7 +1209,7 @@ function load_requirement(row_idx) {
   $("#requirement_tag_field").data("bs.tokenfield").$input.autocomplete({ source: available_tags })
 
   // Get the requirement data and set the modal.
-  $.get("api/v1/req/get", { id: data["id"], row_idx: row_idx }, function (data) {
+  $.get(`api/v1/req/${data["id"]}`, { row_idx: row_idx }, function (data) {
     if (data.success === false) {
       alert("Could Not load the Requirement: " + data.errormsg)
       return
