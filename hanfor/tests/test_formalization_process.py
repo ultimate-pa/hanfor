@@ -230,13 +230,11 @@ class TestFormalizationProcess(TestCase):
 
     def test_get_available_guesses(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
-        result = self.mock_hanfor.app.post(
-            "api/v1/req/get_available_guesses",
-            data={
-                "requirement_id": "SysRS FooXY_42",
-            },
+        result = self.mock_hanfor.app.get(
+            "api/v1/req/SysRS%20FooXY_42/guesses"
         )
         self.assertEqual(result.status, "200 OK")
+        self.assertIn("available_guesses", result.json)
         result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertEqual(result.status, "200 OK")
 

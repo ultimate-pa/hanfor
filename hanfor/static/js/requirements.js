@@ -1936,21 +1936,16 @@ function fetch_available_guesses() {
     available_guesses_cards.append(template)
   }
 
-  $.post(
-    "api/v1/req/get_available_guesses",
-    {
-      requirement_id: requirement_id,
-    },
+  $.get(
+    `api/v1/req/${requirement_id}/guesses`,
     function (data) {
-      if (data["success"] === false) {
-        alert(data["errormsg"])
-      } else {
-        for (let i = 0; i < data["available_guesses"].length; i++) {
-          add_available_guess(data["available_guesses"][i])
-        }
+      for (let i = 0; i < data["available_guesses"].length; i++) {
+        add_available_guess(data["available_guesses"][i])
       }
     },
-  ).done(function () {
+  ).fail(function () {
+    alert("Failed to load guesses for this requirement.")
+  }).done(function () {
     $(".add_guess").click(function () {
       add_formalization_from_guess($(this).data("scope"), $(this).data("pattern"), $(this).data("mapping"))
     })
