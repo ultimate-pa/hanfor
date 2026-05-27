@@ -1,0 +1,27 @@
+name: Deploy Docs
+
+on:
+   push:
+     branches:
+       - release
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: github.server_url == 'https://github.com'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./documentation
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v5
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Build Documentation
+        run: mkdocs gh-deploy
