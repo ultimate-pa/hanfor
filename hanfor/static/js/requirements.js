@@ -954,23 +954,26 @@ function apply_multi_edit(requirements_table) {
   let set_status = $("#multi-set-status-input").val().trim()
   let selected_ids = get_selected_requirement_ids(requirements_table)
 
-  $.post(
-    "api/v1/req/multi_update",
-    {
-      add_tag: add_tag,
-      remove_tag: remove_tag,
-      set_status: set_status,
-      selected_ids: JSON.stringify(selected_ids),
-    }, // Update requirements table on success or show an error message.
-    function (data) {
-      page.LoadingOverlay("hide", true)
-      if (data["success"] === false) {
-        alert(data["errormsg"])
-      } else {
-        location.reload()
-      }
-    },
-  )
+  let requests = []
+  for (let id of selected_ids) {
+    if (add_tag) {
+      requests.push($.ajax({ url: `api/v1/req/${id}/tags/${encodeURIComponent(add_tag)}`, method: "POST" }))
+    }
+    if (remove_tag) {
+      requests.push($.ajax({ url: `api/v1/req/${id}/tags/${encodeURIComponent(remove_tag)}`, method: "DELETE" }))
+    }
+    if (set_status) {
+      requests.push($.ajax({ url: `api/v1/req/${id}`, method: "PATCH", data: { status: set_status } }))
+    }
+  }
+
+  $.when(...requests).done(function () {
+    page.LoadingOverlay("hide", true)
+    location.reload()
+  }).fail(function () {
+    page.LoadingOverlay("hide", true)
+    alert("Failed to update one or more requirements.")
+  })
 }
 
 function add_top_guess_to_selected_requirements(requirements_table) {

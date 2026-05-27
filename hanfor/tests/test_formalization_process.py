@@ -183,78 +183,40 @@ class TestFormalizationProcess(TestCase):
         result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertEqual(result.json["status"], "Done")
 
-    def test_multi_update(self):
+    def test_add_and_remove_tag(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
-        result = self.mock_hanfor.app.post(
-            "api/v1/req/multi_update",
-            data={
-                "add_tag": "some-mass-added-tag",
-                "remove_tag": "",
-                "set_status": "Done",
-                "selected_ids": json.dumps(["SysRS FooXY_42", "SysRS FooXY_91"]),
-            },
-        )
+
+        # POST a tag
+        result = self.mock_hanfor.app.post("api/v1/req/SysRS%20FooXY_42/tags/some-mass-added-tag")
         self.assertEqual(result.status, "200 OK")
 
-        # Check if content is correct.
         result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
-        self.assertEqual(result.status, "200 OK")
         self.assertIn("some-mass-added-tag", result.json["tags"])
-        self.assertIn("Done", result.json["status"])
 
-        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_91")
-        self.assertEqual(result.status, "200 OK")
-        self.assertIn("some-mass-added-tag", result.json["tags"])
-        self.assertIn("Done", result.json["status"])
-
-        # tests the other way round
-        result = self.mock_hanfor.app.post(
-            "api/v1/req/multi_update",
-            data={
-                "add_tag": "",
-                "remove_tag": "some-mass-added-tag",
-                "set_status": "Todo",
-                "selected_ids": json.dumps(["SysRS FooXY_42", "SysRS FooXY_91"]),
-            },
-        )
+        # DELETE a tag
+        result = self.mock_hanfor.app.delete("api/v1/req/SysRS%20FooXY_42/tags/some-mass-added-tag")
         self.assertEqual(result.status, "200 OK")
 
-        # Check if content is correct.
         result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
-        self.assertEqual(result.status, "200 OK")
         self.assertNotIn("some-mass-added-tag", result.json["tags"])
-        self.assertEqual("Todo", result.json["status"])
 
-        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_91")
+        # Adding a tag that doesn't exist yet creates it
+        result = self.mock_hanfor.app.post("api/v1/req/SysRS%20FooXY_42/tags/brand-new-tag")
         self.assertEqual(result.status, "200 OK")
-        self.assertEqual(["unseen"], result.json["tags"])
-        self.assertEqual("Todo", result.json["status"])
 
-        # test multi updating with no content selected
-        result = self.mock_hanfor.app.post(
-            "api/v1/req/multi_update",
-            data={
-                "add_tag": "some-mass-added-tag",
-                "remove_tag": "",
-                "set_status": "Todo",
-                "selected_ids": json.dumps([]),
-            },
-        )
-        self.assertEqual(result.status, "200 OK")
-        # self.assertEqual(result.json['errormsg'], 'No requirements selected.')
-        self.assertEqual(result.json["errormsg"], "")
-        self.assertEqual(result.json["success"], True)
-
-        # Check to see the new tag has not been added to the requirements.
         result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
-        self.assertEqual(result.status, "200 OK")
-        self.assertNotIn("some-mass-added-tag", result.json["tags"])
-        self.assertEqual("Todo", result.json["status"])
+        self.assertIn("brand-new-tag", result.json["tags"])
 
-        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_91")
-        self.assertEqual(["unseen"], result.json["tags"])
+        # Removing a non-existent tag is a no-op (200)
+        result = self.mock_hanfor.app.delete("api/v1/req/SysRS%20FooXY_42/tags/nonexistent")
         self.assertEqual(result.status, "200 OK")
-        self.assertEqual("Todo", result.json["status"])
+
+        # 404 for non-existent requirement
+        result = self.mock_hanfor.app.post("api/v1/req/NONEXISTENT/tags/foo")
+        self.assertEqual(result.status, "404 NOT FOUND")
+
+        result = self.mock_hanfor.app.delete("api/v1/req/NONEXISTENT/tags/foo")
+        self.assertEqual(result.status, "404 NOT FOUND")
 
     def test_get_available_guesses(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
