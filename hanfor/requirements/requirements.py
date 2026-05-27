@@ -703,58 +703,53 @@ class ApiRequirementTag(Resource):
 
 
 
-@api_ns.route("/get_available_guesses")
+@api_ns.route("/<string:rid>/guesses")
 @log_request_response
-class ApiAvailableGuesses(Resource):
+class ApiRequirementGuesses(Resource):
     @api_ns.doc(
         description="Runs all registered guessers and returns available "
                     "formalization guesses for the given requirement.",
-        params={"requirement_id": "The requirement to get guesses for"},
+        params={"rid": "The requirement ID"},
     )
     @api_ns.response(200, "Success", AvailableGuessesModel)
+    @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
-    def post(self):
-        # Get available guesses.
-        result = {"success": True}
-        requirement_id = request.form.get("requirement_id", "")
-        requirement = current_app.db.get_object(Requirement, requirement_id)
+    def get(self, rid):
+        requirement = current_app.db.get_object(Requirement, rid)
         if requirement is None:
-            result["success"] = False
-            result["errormsg"] = "Requirement `{}` not found".format(requirement_id)
-        else:
-            result["available_guesses"] = list()
-            tmp_guesses = list()
-            var_collection = VariableCollection(
-                current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+            return {"success": False, "errormsg": f"Requirement '{rid}' not found."}, 404
+
+        result = {"available_guesses": []}
+        var_collection = VariableCollection(
+            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+        )
+        tmp_guesses = []
+
+        for guesser in REGISTERED_GUESSERS:
+            try:
+                guesser_instance = guesser(requirement, var_collection, current_app)
+                guesser_instance.guess()
+                tmp_guesses += guesser_instance.guesses
+            except ValueError as e:
+                return {"success": False, "errormsg": f"Could not determine a guess: {e}"}, 400
+
+        tmp_guesses = sorted(tmp_guesses, key=Guess.eval_score)
+        guesses = []
+        for g in tmp_guesses:
+            if type(g) is list:
+                guesses += g
+            else:
+                guesses.append(g)
+
+        for score, scoped_pattern, mapping in guesses:
+            result["available_guesses"].append(
+                {
+                    "scope": scoped_pattern.scope.name,
+                    "pattern": scoped_pattern.pattern.name,
+                    "mapping": mapping,
+                    "string": scoped_pattern.get_string(mapping),
+                }
             )
-
-            for guesser in REGISTERED_GUESSERS:
-                try:
-                    guesser_instance = guesser(requirement, var_collection, current_app)
-                    guesser_instance.guess()
-                    tmp_guesses += guesser_instance.guesses
-                except ValueError as e:
-                    result["success"] = False
-                    result["errormsg"] = "Could not determine a guess: "
-                    result["errormsg"] += e.__str__()
-
-            tmp_guesses = sorted(tmp_guesses, key=Guess.eval_score)
-            guesses = list()
-            for g in tmp_guesses:
-                if type(g) is list:
-                    guesses += g
-                else:
-                    guesses.append(g)
-
-            for score, scoped_pattern, mapping in guesses:
-                result["available_guesses"].append(
-                    {
-                        "scope": scoped_pattern.scope.name,
-                        "pattern": scoped_pattern.pattern.name,
-                        "mapping": mapping,
-                        "string": scoped_pattern.get_string(mapping),
-                    }
-                )
 
         return result
 
