@@ -11,6 +11,7 @@ from configuration.patterns import VARIABLE_AUTOCOMPLETE_EXTENSION, APattern
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from hanfor_flask import HanforFlask, current_app, nocache
+from json_db_connector.json_db import DatabaseKeyError
 from lib_core.api_models import (
     AvailableGuessesModel,
     ColumnDefsModel,
@@ -84,8 +85,9 @@ class ApiRequirementSingle(Resource):
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
     def get(self, requirement_id):
-        requirement = current_app.db.get_object(Requirement, requirement_id)
-        if not requirement:
+        try:
+            requirement = current_app.db.get_object(Requirement, requirement_id)
+        except DatabaseKeyError:
             return {"success": False, "errormsg": f"Requirement '{requirement_id}' not found."}, 404
         var_collection = VariableCollection(
             current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
@@ -107,8 +109,9 @@ class ApiRequirementSingle(Resource):
     })
     @nocache
     def patch(self, requirement_id):
-        requirement = current_app.db.get_object(Requirement, requirement_id)
-        if not requirement:
+        try:
+            requirement = current_app.db.get_object(Requirement, requirement_id)
+        except DatabaseKeyError:
             return {"success": False, "errormsg": f"Requirement '{requirement_id}' not found."}, 404
 
         self._update_formalizations_order(requirement, request.form.get("formalizations_order"))
@@ -361,8 +364,9 @@ class ApiRequirementTag(Resource):
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
     def post(self, requirement_id, tag_name):
-        requirement = current_app.db.get_object(Requirement, requirement_id)
-        if not requirement:
+        try:
+            requirement = current_app.db.get_object(Requirement, requirement_id)
+        except DatabaseKeyError:
             return {"success": False, "errormsg": f"Requirement '{requirement_id}' not found."}, 404
         all_tags: dict[str, Tag] = {t.name: t for t in current_app.db.get_objects(Tag).values()}
         if tag_name not in all_tags:
@@ -380,8 +384,9 @@ class ApiRequirementTag(Resource):
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
     def delete(self, requirement_id, tag_name):
-        requirement = current_app.db.get_object(Requirement, requirement_id)
-        if not requirement:
+        try:
+            requirement = current_app.db.get_object(Requirement, requirement_id)
+        except DatabaseKeyError:
             return {"success": False, "errormsg": f"Requirement '{requirement_id}' not found."}, 404
         all_tags: dict[str, Tag] = {t.name: t for t in current_app.db.get_objects(Tag).values()}
         if tag_name in all_tags and all_tags[tag_name] in requirement.tags:

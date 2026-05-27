@@ -39,6 +39,7 @@ class TestEnums(TestCase):
                 "script_results": "",
                 "type": "ENUM_INT",
                 "const_val": None,
+                "order": 0,
                 "belongs_to_enum": "",
             }
         )
@@ -70,6 +71,7 @@ class TestEnums(TestCase):
                 "script_results": "",
                 "type": "ENUM_REAL",
                 "const_val": None,
+                "order": 0,
                 "belongs_to_enum": "",
             }
         )
@@ -116,6 +118,7 @@ class TestEnums(TestCase):
                 "script_results": "",
                 "type": "ENUM_INT",
                 "const_val": None,
+                "order": 0,
                 "belongs_to_enum": "",
             }
         )
@@ -129,6 +132,7 @@ class TestEnums(TestCase):
                 "tags": [],
                 "constraints": [],
                 "script_results": "",
+                "order": 0,
                 "belongs_to_enum": "my_first_enum",
             }
         )
@@ -142,6 +146,7 @@ class TestEnums(TestCase):
                 "tags": [],
                 "constraints": [],
                 "script_results": "",
+                "order": 0,
                 "belongs_to_enum": "my_first_enum",
             }
         )
@@ -270,6 +275,7 @@ class TestEnums(TestCase):
                 "script_results": "",
                 "type": "ENUM_REAL",
                 "const_val": None,
+                "order": 0,
                 "belongs_to_enum": "",
             }
         )
@@ -283,6 +289,7 @@ class TestEnums(TestCase):
                 "tags": [],
                 "constraints": [],
                 "script_results": "",
+                "order": 0,
                 "belongs_to_enum": "my_first_enum",
             }
         )
@@ -296,6 +303,7 @@ class TestEnums(TestCase):
                 "tags": [],
                 "constraints": [],
                 "script_results": "",
+                "order": 0,
                 "belongs_to_enum": "my_first_enum",
             }
         )
@@ -387,6 +395,7 @@ class TestEnums(TestCase):
                 "script_results": "",
                 "type": "ENUM_REAL",
                 "const_val": None,
+                "order": 0,
                 "belongs_to_enum": "",
             }
         )
@@ -400,6 +409,7 @@ class TestEnums(TestCase):
                 "tags": [],
                 "constraints": [],
                 "script_results": "",
+                "order": 0,
                 "belongs_to_enum": "my_third_enum",
             }
         )
@@ -413,6 +423,7 @@ class TestEnums(TestCase):
                 "tags": [],
                 "constraints": [],
                 "script_results": "",
+                "order": 0,
                 "belongs_to_enum": "my_third_enum",
             }
         )
@@ -437,6 +448,7 @@ class TestEnums(TestCase):
                 "tags": [],
                 "constraints": [],
                 "script_results": "",
+                "order": 0,
                 "belongs_to_enum": "my_third_enum",
             }
         )
@@ -498,6 +510,7 @@ class TestEnums(TestCase):
         update = {
             "0": {
                 "id": "0",
+                "formalization_type": "formalization",
                 "scope": "GLOBALLY",
                 "pattern": "Absence",
                 "expression_mapping": {"P": "", "Q": "", "R": "", "S": "", "T": "", "U": ""},
@@ -539,6 +552,7 @@ class TestEnums(TestCase):
         update = {
             "0": {
                 "id": "0",
+                "formalization_type": "formalization",
                 "scope": "GLOBALLY",
                 "pattern": "Absence",
                 "expression_mapping": {"P": "", "Q": "", "R": "", "S": "", "T": "", "U": ""},
@@ -567,6 +581,7 @@ class TestEnums(TestCase):
             "script_results": "",
             "type": "int",
             "const_val": None,
+            "order": 0,
             "belongs_to_enum": "",
         }
         self.assertIn(new_variable, updated_vars)
@@ -588,6 +603,7 @@ class TestEnums(TestCase):
             "script_results": "",
             "type": "int",
             "const_val": None,
+            "order": 0,
             "belongs_to_enum": "",
         }
         self.assertIn(new_variable, updated_vars)
@@ -609,6 +625,7 @@ class TestEnums(TestCase):
             "script_results": "",
             "type": "real",
             "const_val": None,
+            "order": 0,
             "belongs_to_enum": "",
         }
         self.assertIn(new_variable, updated_vars)
@@ -630,6 +647,7 @@ class TestEnums(TestCase):
             "script_results": "",
             "type": "real",
             "const_val": None,
+            "order": 0,
             "belongs_to_enum": "",
         }
         self.assertIn(new_variable, updated_vars)
@@ -651,6 +669,7 @@ class TestEnums(TestCase):
         update = {
             "0": {
                 "id": "0",
+                "formalization_type": "formalization",
                 "scope": "GLOBALLY",
                 "pattern": "Absence",
                 "expression_mapping": {"P": "", "Q": "", "R": "", "S": "", "T": "", "U": ""},
@@ -668,6 +687,7 @@ class TestEnums(TestCase):
             "script_results": "",
             "type": "unknown",
             "const_val": None,
+            "order": 0,
             "belongs_to_enum": "",
         }
         self.assertIn(unknown, variables)
@@ -689,6 +709,7 @@ class TestEnums(TestCase):
             "script_results": "",
             "type": "int",
             "const_val": None,
+            "order": 0,
             "belongs_to_enum": "",
         }
         self.assertIn(unknown, variables)
@@ -710,6 +731,7 @@ class TestEnums(TestCase):
         update = {
             "0": {
                 "id": "0",
+                "formalization_type": "formalization",
                 "scope": "GLOBALLY",
                 "pattern": "Absence",
                 "expression_mapping": {"P": "", "Q": "", "R": "", "S": "", "T": "", "U": ""},
@@ -727,6 +749,7 @@ class TestEnums(TestCase):
             "script_results": "",
             "type": "unknown",
             "const_val": None,
+            "order": 0,
             "belongs_to_enum": "",
         }
         self.assertIn(unknown, variables)
@@ -748,6 +771,7 @@ class TestEnums(TestCase):
             "script_results": "",
             "type": "int",
             "const_val": None,
+            "order": 0,
             "belongs_to_enum": "",
         }
         self.assertIn(unknown, variables)
@@ -769,6 +793,7 @@ class TestEnums(TestCase):
         update = {
             "0": {
                 "id": "0",
+                "formalization_type": "formalization",
                 "scope": "GLOBALLY",
                 "pattern": "Absence",
                 "expression_mapping": {"P": "", "Q": "", "R": "", "S": "", "T": "", "U": ""},
@@ -786,6 +811,7 @@ class TestEnums(TestCase):
             "script_results": "",
             "type": "unknown",
             "const_val": None,
+            "order": 0,
             "belongs_to_enum": "",
         }
         self.assertIn(unknown, variables)
@@ -807,6 +833,7 @@ class TestEnums(TestCase):
             "script_results": "",
             "type": "real",
             "const_val": None,
+            "order": 0,
             "belongs_to_enum": "",
         }
         self.assertIn(unknown, variables)
@@ -828,6 +855,7 @@ class TestEnums(TestCase):
         update = {
             "0": {
                 "id": "0",
+                "formalization_type": "formalization",
                 "scope": "GLOBALLY",
                 "pattern": "Absence",
                 "expression_mapping": {"P": "", "Q": "", "R": "", "S": "", "T": "", "U": ""},
@@ -845,6 +873,7 @@ class TestEnums(TestCase):
             "script_results": "",
             "type": "unknown",
             "const_val": None,
+            "order": 0,
             "belongs_to_enum": "",
         }
         self.assertIn(unknown, variables)
@@ -866,6 +895,7 @@ class TestEnums(TestCase):
             "script_results": "",
             "type": "real",
             "const_val": None,
+            "order": 0,
             "belongs_to_enum": "",
         }
         self.assertIn(unknown, variables)

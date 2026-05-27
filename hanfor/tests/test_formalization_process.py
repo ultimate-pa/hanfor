@@ -24,6 +24,7 @@ class TestFormalizationProcess(TestCase):
         update = {
             "0": {
                 "id": "0",
+                "formalization_type": "formalization",
                 "scope": "GLOBALLY",
                 "pattern": "Absence",
                 "expression_mapping": {"P": "", "Q": "", "R": "foo != bar", "S": "", "T": "", "U": ""},
@@ -41,7 +42,16 @@ class TestFormalizationProcess(TestCase):
         }
 
         # So we submit then the current frontend state to the backend
-        self.mock_hanfor.app.post("api/v1/req/formalizations/new", data={ "id": "SysRS FooXY_42", "drafts": json.dumps(drafts) })
+        for draft in drafts.values():
+            self.mock_hanfor.app.post(
+                "api/v1/req/add_formalization_from_guess",
+                data={
+                    "requirement_id": "SysRS FooXY_42",
+                    "scope": draft["scope"],
+                    "pattern": draft["pattern"],
+                    "mapping": json.dumps(draft["expression_mapping"]),
+                },
+            )
         self.mock_hanfor.app.patch(
             "api/v1/req/SysRS%20FooXY_42",
             data={
@@ -86,6 +96,7 @@ class TestFormalizationProcess(TestCase):
         update = {
             "0": {
                 "id": "0",
+                "formalization_type": "formalization",
                 "scope": "GLOBALLY",
                 "pattern": "Absence",
                 "expression_mapping": {"P": "", "Q": "", "R": "foo != bas", "S": "", "T": "", "U": ""},
@@ -149,8 +160,7 @@ class TestFormalizationProcess(TestCase):
         self.assertCountEqual(result.json["vars"], ["bar", "foo"])
 
         # Deleting the formalization
-        update = {"requirement_id": "SysRS FooXY_42", "formalization_id": "0"}
-        self.mock_hanfor.app.post("api/v1/req/formalizations/delete", data=update)
+        self.mock_hanfor.app.delete("api/v1/req/formalizations/SysRS%20FooXY_42/0")
 
         # Check current formalization for `SysRS FooXY_42` now empty
         result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
