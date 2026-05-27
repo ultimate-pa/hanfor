@@ -73,7 +73,7 @@ class TestInit(TestCase):
     def test_2_get_requirements(self):
         args = HanforArgumentParser(app).parse_args([TEST_TAG, "-c", TEST_CSV])
         self.startup_hanfor(args, [2, 0, 1, 3, 0])
-        result = self.app.get("api/v1/req/gets")
+        result = self.app.get("api/v1/req")
         self.maxDiff = None
         desired_reqs = [
             {

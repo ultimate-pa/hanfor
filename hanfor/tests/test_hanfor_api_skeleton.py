@@ -73,7 +73,7 @@ class TestHanforApiSkeleton(TestCase):
         args = HanforArgumentParser(app).parse_args([TEST_TAGS["simple"], "-c", CSV_FILES["simple"]])
         self.startup_hanfor(args, user_mock_answers=[2, 0, 1, 3])
         # Get the available requirements.
-        initial_req_gets = self.app.get("api/v1/req/gets")
+        initial_req_gets = self.app.get("api/v1/req")
         self.assertEqual(initial_req_gets.json["data"][1]["desc"], "always look on the bright side of life")
         self.assertListEqual(initial_req_gets.json["data"][1]["tags"], [])
 
