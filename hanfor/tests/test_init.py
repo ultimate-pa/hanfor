@@ -122,7 +122,7 @@ class TestInit(TestCase):
         ]
         self.assertListEqual(desired_reqs, result.json["data"])
 
-        result = self.app.get("api/v1/req/get?id=SysRS FooXY_42")
+        result = self.app.get("api/v1/req/SysRS%20FooXY_42")
         desired_req = {
             "id": "SysRS FooXY_42",
             "type_inference_errors": {},

@@ -16,7 +16,7 @@ class TestFormalizationProcess(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
 
         # Check current formalization for `SysRS FooXY_42`
-        result = self.mock_hanfor.app.get("api/v1/req/get?id=SysRS FooXY_42")
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertListEqual(result.json["formal"], ['Globally, it is never the case that "foo != bar" holds'])
         self.assertListEqual(result.json["vars"], ["bar", "foo"])
 
@@ -42,10 +42,9 @@ class TestFormalizationProcess(TestCase):
 
         # So we submit then the current frontend state to the backend
         self.mock_hanfor.app.post("api/v1/req/formalizations/new", data={ "id": "SysRS FooXY_42", "drafts": json.dumps(drafts) })
-        self.mock_hanfor.app.post(
-            "api/v1/req/update",
+        self.mock_hanfor.app.patch(
+            "api/v1/req/SysRS%20FooXY_42",
             data={
-                "id": "SysRS FooXY_42",
                 "row_idx": "0",
                 "update_formalization": "true",
                 "formalizations_order": "{}",
@@ -55,7 +54,7 @@ class TestFormalizationProcess(TestCase):
             },
         )
         # Check if content is correct.
-        result = self.mock_hanfor.app.get("api/v1/req/get?id=SysRS FooXY_42")
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertListEqual(
             result.json["formal"],
             [
@@ -74,7 +73,7 @@ class TestFormalizationProcess(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
 
         # Check current formalization for `SysRS FooXY_42`
-        result = self.mock_hanfor.app.get("api/v1/req/get?id=SysRS FooXY_42")
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertListEqual(result.json["formal"], ['Globally, it is never the case that "foo != bar" holds'])
         self.assertCountEqual(result.json["vars"], ["bar", "foo"])
 
@@ -92,10 +91,9 @@ class TestFormalizationProcess(TestCase):
                 "expression_mapping": {"P": "", "Q": "", "R": "foo != bas", "S": "", "T": "", "U": ""},
             }
         }
-        self.mock_hanfor.app.post(
-            "api/v1/req/update",
+        self.mock_hanfor.app.patch(
+            "api/v1/req/SysRS%20FooXY_42",
             data={
-                "id": "SysRS FooXY_42",
                 "row_idx": "0",
                 "update_formalization": "true",
                 "tags": json.dumps({}),
@@ -105,7 +103,7 @@ class TestFormalizationProcess(TestCase):
             },
         )
         # Check if content is correct.
-        result = self.mock_hanfor.app.get("api/v1/req/get?id=SysRS FooXY_42")
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertListEqual(result.json["formal"], ['Globally, it is never the case that "foo != bas" holds'])
         self.assertCountEqual(result.json["vars"], ["foo", "bas"])
 
@@ -116,7 +114,7 @@ class TestFormalizationProcess(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
 
         # Check current formalization for `SysRS FooXY_42`
-        result = self.mock_hanfor.app.get("api/v1/req/get?id=SysRS FooXY_42")
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertListEqual(result.json["formal"], ['Globally, it is never the case that "foo != bar" holds'])
         self.assertListEqual(result.json["vars"], ["bar", "foo"])
 
@@ -138,7 +136,7 @@ class TestFormalizationProcess(TestCase):
         self.mock_hanfor.app.post("api/var/update", data=update)
 
         # Check changed formalization for `SysRS FooXY_42`
-        result = self.mock_hanfor.app.get("api/v1/req/get?id=SysRS FooXY_42")
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertListEqual(result.json["formal"], ['Globally, it is never the case that "bas!=bar" holds'])
         self.assertCountEqual(result.json["vars"], ["bar", "bas"])
 
@@ -146,7 +144,7 @@ class TestFormalizationProcess(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
 
         # Check current formalization for `SysRS FooXY_42`
-        result = self.mock_hanfor.app.get("api/v1/req/get?id=SysRS FooXY_42")
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertListEqual(result.json["formal"], ['Globally, it is never the case that "foo != bar" holds'])
         self.assertCountEqual(result.json["vars"], ["bar", "foo"])
 
@@ -155,7 +153,7 @@ class TestFormalizationProcess(TestCase):
         self.mock_hanfor.app.post("api/v1/req/formalizations/delete", data=update)
 
         # Check current formalization for `SysRS FooXY_42` now empty
-        result = self.mock_hanfor.app.get("api/v1/req/get?id=SysRS FooXY_42")
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertListEqual(result.json["formal"], [])
         self.assertListEqual(result.json["vars"], [])
 
@@ -163,17 +161,16 @@ class TestFormalizationProcess(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
 
         # Check current formalization for `SysRS FooXY_42`
-        result = self.mock_hanfor.app.get("api/v1/req/get?id=SysRS FooXY_42")
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertListEqual(result.json["formal"], ['Globally, it is never the case that "foo != bar" holds'])
         self.assertCountEqual(result.json["vars"], ["bar", "foo"])
 
         # Check current available variables.
         self.assertCountEqual(result.json["available_vars"], ["spam_ham", "bar", "foo", "spam_egg", "spam"])
 
-        self.mock_hanfor.app.post(
-            "api/v1/req/update",
+        self.mock_hanfor.app.patch(
+            "api/v1/req/SysRS%20FooXY_42",
             data={
-                "id": "SysRS FooXY_42",
                 "row_idx": "0",
                 "update_formalization": "true",
                 "formalizations_order": "{}",
@@ -183,7 +180,7 @@ class TestFormalizationProcess(TestCase):
             },
         )
         # Check if content is correct.
-        result = self.mock_hanfor.app.get("api/v1/req/get?id=SysRS FooXY_42")
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertEqual(result.json["status"], "Done")
 
     def test_multi_update(self):
@@ -200,12 +197,12 @@ class TestFormalizationProcess(TestCase):
         self.assertEqual(result.status, "200 OK")
 
         # Check if content is correct.
-        result = self.mock_hanfor.app.get("api/v1/req/get?id=SysRS FooXY_42")
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertEqual(result.status, "200 OK")
         self.assertIn("some-mass-added-tag", result.json["tags"])
         self.assertIn("Done", result.json["status"])
 
-        result = self.mock_hanfor.app.get("api/v1/req/get?id=SysRS FooXY_91")
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_91")
         self.assertEqual(result.status, "200 OK")
         self.assertIn("some-mass-added-tag", result.json["tags"])
         self.assertIn("Done", result.json["status"])
@@ -223,12 +220,12 @@ class TestFormalizationProcess(TestCase):
         self.assertEqual(result.status, "200 OK")
 
         # Check if content is correct.
-        result = self.mock_hanfor.app.get("api/v1/req/get?id=SysRS FooXY_42")
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertEqual(result.status, "200 OK")
         self.assertNotIn("some-mass-added-tag", result.json["tags"])
         self.assertEqual("Todo", result.json["status"])
 
-        result = self.mock_hanfor.app.get("api/v1/req/get?id=SysRS FooXY_91")
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_91")
         self.assertEqual(result.status, "200 OK")
         self.assertEqual(["unseen"], result.json["tags"])
         self.assertEqual("Todo", result.json["status"])
@@ -249,12 +246,12 @@ class TestFormalizationProcess(TestCase):
         self.assertEqual(result.json["success"], True)
 
         # Check to see the new tag has not been added to the requirements.
-        result = self.mock_hanfor.app.get("api/v1/req/get?id=SysRS FooXY_42")
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertEqual(result.status, "200 OK")
         self.assertNotIn("some-mass-added-tag", result.json["tags"])
         self.assertEqual("Todo", result.json["status"])
 
-        result = self.mock_hanfor.app.get("api/v1/req/get?id=SysRS FooXY_91")
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_91")
         self.assertEqual(["unseen"], result.json["tags"])
         self.assertEqual(result.status, "200 OK")
         self.assertEqual("Todo", result.json["status"])
@@ -268,7 +265,7 @@ class TestFormalizationProcess(TestCase):
             },
         )
         self.assertEqual(result.status, "200 OK")
-        result = self.mock_hanfor.app.get("api/v1/req/get?id=SysRS FooXY_42")
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertEqual(result.status, "200 OK")
 
     def test_add_formalization_from_guess(self):
@@ -285,7 +282,7 @@ class TestFormalizationProcess(TestCase):
             },
         )
         self.assertEqual(result.status, "200 OK")
-        result = self.mock_hanfor.app.get("api/v1/req/get?id=SysRS FooXY_42")
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertEqual(result.status, "200 OK")
 
     def test_update_csv_hashcollision(self):
