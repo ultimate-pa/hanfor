@@ -145,6 +145,7 @@ class ApiRequirementSingle(Resource):
         if not order_json:
             return
         order_dict = json.loads(order_json)
+        # TODO: still a problem with dictionary changing size, but the changes going through
         for idx, formalization in requirement.formalizations.items():
             formalization.order = order_dict.get(str(idx))
             logging.debug(f"Formalizaation of {idx} has order of {formalization.order}")
@@ -265,8 +266,10 @@ class ApiRequirementSingle(Resource):
 class ApiFormalizations(Resource):
     @api_ns.doc(
         description="Returns all formalizations (including variables) for "
-                    "a requirement, with enumerator data where applicable.",
-        params={"rid": "The requirement ID"},
+                    "a requirement, with enumerator data where applicable. "
+                    "Use ?subtype=formalization|variable to filter by type.",
+        params={"rid": "The requirement ID",
+                "subtype": "Query param: 'formalization' or 'variable'"},
     )
     @api_ns.response(200, "Success", [FormalizationModel])
     @nocache
@@ -275,8 +278,11 @@ class ApiFormalizations(Resource):
         var_collection = VariableCollection(
             current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
         )
+        subtype = request.args.get("subtype")
         result = []
         for idx, formalization in requirement.formalizations.items():
+            if subtype and formalization.of_type() != subtype:
+                continue
             formalization_repr = formalization.to_dict()
             formalization_repr["formalization_type"] = formalization.of_type()
             formalization_repr["id"] = idx
@@ -305,6 +311,75 @@ class ApiRequirementsList(Resource):
         reqs = current_app.db.get_objects(Requirement)
         result["data"] = [reqs[k].to_dict() for k in sorted(reqs.keys())]
         return result
+
+
+@api_ns.route("/formalizations/<string:rid>/<string:fid>")
+@api_ns.route("/formalizations/<string:rid>/<int:fid>")
+@log_request_response
+class ApiFormalizationResource(Resource):
+    @api_ns.doc(
+        description="Fetches a single formalization by rid and fid. "
+                    "Use ?subtype=formalization|variable to filter by type.",
+        params={
+            "rid": "The requirement ID",
+            "fid": "The formalization ID",
+            "subtype": "Query param: 'formalization' or 'variable'",
+        },
+    )
+    @api_ns.response(200, "Success", FormalizationModel)
+    @api_ns.response(404, "Not Found", ErrorMessageModel)
+    @nocache
+    def get(self, rid, fid):
+        subtype = request.args.get("subtype")
+        requirement = current_app.db.get_object(Requirement, rid)
+        formalization = requirement.formalizations.get(int(fid))
+        if not formalization:
+            return {"success": False, "errormsg": "Formalization not found."}, 404
+        if subtype and formalization.of_type() != subtype:
+            return {"success": False, "errormsg": "Subtype mismatch."}, 404
+        var_collection = VariableCollection(
+            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+        )
+        result = formalization.to_dict()
+        result["formalization_type"] = formalization.of_type()
+        result["id"] = int(fid)
+        result["text"] = formalization.get_string()
+        if formalization.of_type() == "variable" and formalization.type in ("ENUM_INT", "ENUM_REAL"):
+            enums = var_collection.get_enumerators(formalization.name)
+            result["enumerators"] = [
+                {"name": e.name[len(formalization.name) + 1:], "value": e.value} for e in enums
+            ]
+        return result
+
+    @api_ns.doc(
+        description="Removes the formalization with the given ID from "
+                    "the requirement and re-runs type inference.",
+        params={
+            "rid": "The requirement ID",
+            "fid": "The formalization ID to delete",
+        },
+    )
+    @api_ns.response(200, "Success", SuccessResponseModel)
+    @nocache
+    def delete(self, rid, fid):
+        logging.debug(f"Deletion formalization ID: {fid}")
+        logging.debug(f"Deletion requirement ID: {rid}")
+        requirement = current_app.db.get_object(Requirement, rid)
+        logging.debug(f"Current: {requirement.formalizations}")
+        requirement.delete_formalization(
+            int(fid),
+            VariableCollection(
+                current_app.db.get_objects(Variable).values(),
+                current_app.db.get_objects(Requirement).values(),
+            ),
+        )
+        current_app.db.update()
+        add_msg_to_flask_session_log(
+            current_app,
+            "Deleted formalization from requirement",
+            [requirement],
+        )
+        return {"success": True}
 
 
 @api_ns.route("/formalizations/<string:rid>/<string:subtype>/<string:fid>")
@@ -388,6 +463,192 @@ class ApiFormalizationStore(Resource):
         current_app.db.update()
         return {"success": True}
 
+    @api_ns.doc(
+        description="Partially updates a formalization or variable. Only fields "
+                    "included in the 'data' JSON are changed; omitted fields keep "
+                    "their existing values. 404 if the fid does not exist.",
+        params={
+            "rid": "The requirement ID",
+            "subtype": "Either 'formalization' or 'variable'",
+            "fid": "The formalization ID",
+            "data": "JSON-encoded dict with optional fields (scope, pattern, "
+                    "expression_mapping for formalizations; name, type, value, "
+                    "enumerators for variables)",
+        },
+    )
+    @api_ns.response(200, "Success", SuccessResponseModel)
+    @api_ns.response(400, "Bad Request", ErrorMessageModel)
+    @api_ns.response(404, "Not Found", ErrorMessageModel)
+    @nocache
+    def patch(self, rid, subtype, fid):
+        subtype_enum = None
+        if subtype:
+            try:
+                subtype_enum = FormalizationOfType(subtype)
+            except ValueError:
+                return {"success": False, "errormsg": f"Unknown subtype: {subtype}"}, 400
+
+        data = json.loads(request.form.get("data", "{}"))
+        if not data:
+            return {"success": False, "errormsg": "No data provided."}, 400
+
+        requirement = current_app.db.get_object(Requirement, rid)
+
+        if subtype_enum == FormalizationOfType.FORMALIZATION:
+            formalization = requirement.formalizations.get(int(fid))
+            if not formalization or not isinstance(formalization, Formalization):
+                return {"success": False, "errormsg": "Formalization not found."}, 404
+
+            variable_collection = VariableCollection(
+                current_app.db.get_objects(Variable).values(),
+                current_app.db.get_objects(Requirement).values(),
+            )
+
+            merged_scope = data.get("scope", formalization.scoped_pattern.scope.name)
+            merged_pattern = data.get("pattern", formalization.scoped_pattern.pattern.get_name())
+            merged_mapping = {
+                **{k: v.raw_expression for k, v in formalization.expressions_mapping.items()},
+                **data.get("expression_mapping", {}),
+            }
+
+            try:
+                requirement.update_formalization(
+                    int(fid),
+                    merged_scope,
+                    merged_pattern,
+                    merged_mapping,
+                    variable_collection,
+                    SessionValue.get_standard_tags(current_app.db),
+                )
+                for v in variable_collection.new_vars:
+                    current_app.db.add_object(v)
+            except KeyError as e:
+                return {"success": False, "errormsg": f"Could not update formalization: {e}"}, 400
+            except Exception as e:
+                return {"success": False, "errormsg": f"Could not parse formalization: `{e}`"}, 400
+
+        elif subtype_enum == FormalizationOfType.VARIABLE:
+            variable = requirement.formalizations.get(int(fid))
+            if not variable or not isinstance(variable, Variable):
+                return {"success": False, "errormsg": "Variable not found."}, 404
+
+            if "name" in data:
+                variable.name = data["name"]
+            if "type" in data:
+                variable.type = data["type"]
+            if "value" in data:
+                variable.value = data["value"]
+            if "order" in data:
+                variable.order = int(data["order"])
+
+            if "enumerators" in data:
+                variable_collection = VariableCollection(
+                    current_app.db.get_objects(Variable).values(),
+                    current_app.db.get_objects(Requirement).values(),
+                )
+                success, errormsg, _ = variable_collection.create_enum_variable(
+                    variable.name, variable.type, data["enumerators"], current_app
+                )
+                if not success:
+                    return {"success": False, "errormsg": errormsg}, 400
+
+        current_app.db.update()
+        add_msg_to_flask_session_log(
+            current_app,
+            f"Patched formalization {fid} of requirement",
+            [requirement],
+        )
+        return {"success": True}
+
+    @api_ns.doc(
+        description="Fully replaces a formalization or variable. All required "
+                    "fields must be present. 404 if the fid does not exist, "
+                    "400 if required fields are missing.",
+        params={
+            "rid": "The requirement ID",
+            "subtype": "Either 'formalization' or 'variable'",
+            "fid": "The formalization ID",
+            "data": "JSON-encoded dict. For formalizations: scope, pattern, "
+                    "expression_mapping (all required). For variables: "
+                    "name, type (required), value, order, enumerators (optional).",
+        },
+    )
+    @api_ns.response(200, "Success", SuccessResponseModel)
+    @api_ns.response(400, "Bad Request", ErrorMessageModel)
+    @api_ns.response(404, "Not Found", ErrorMessageModel)
+    @nocache
+    def put(self, rid, subtype, fid):
+        subtype_enum = None
+        if subtype:
+            try:
+                subtype_enum = FormalizationOfType(subtype)
+            except ValueError:
+                return {"success": False, "errormsg": f"Unknown subtype: {subtype}"}, 400
+
+        data = json.loads(request.form.get("data", "{}"))
+        requirement = current_app.db.get_object(Requirement, rid)
+
+        if subtype_enum == FormalizationOfType.FORMALIZATION:
+            if "scope" not in data or "pattern" not in data or "expression_mapping" not in data:
+                return {"success": False, "errormsg": "scope, pattern, and expression_mapping are required"}, 400
+
+            formalization = requirement.formalizations.get(int(fid))
+            if not formalization or not isinstance(formalization, Formalization):
+                return {"success": False, "errormsg": "Formalization not found."}, 404
+
+            variable_collection = VariableCollection(
+                current_app.db.get_objects(Variable).values(),
+                current_app.db.get_objects(Requirement).values(),
+            )
+
+            try:
+                requirement.update_formalization(
+                    int(fid),
+                    data["scope"],
+                    data["pattern"],
+                    data["expression_mapping"],
+                    variable_collection,
+                    SessionValue.get_standard_tags(current_app.db),
+                )
+                for v in variable_collection.new_vars:
+                    current_app.db.add_object(v)
+            except KeyError as e:
+                return {"success": False, "errormsg": f"Could not update formalization: {e}"}, 400
+            except Exception as e:
+                return {"success": False, "errormsg": f"Could not parse formalization: `{e}`"}, 400
+
+        elif subtype_enum == FormalizationOfType.VARIABLE:
+            if "name" not in data or "type" not in data:
+                return {"success": False, "errormsg": "name and type are required"}, 400
+
+            variable = requirement.formalizations.get(int(fid))
+            if not variable or not isinstance(variable, Variable):
+                return {"success": False, "errormsg": "Variable not found."}, 404
+
+            variable.name = data["name"]
+            variable.type = data["type"]
+            variable.value = data.get("value", "")
+            variable.order = int(data.get("order", 0))
+
+            if "enumerators" in data:
+                variable_collection = VariableCollection(
+                    current_app.db.get_objects(Variable).values(),
+                    current_app.db.get_objects(Requirement).values(),
+                )
+                success, errormsg, _ = variable_collection.create_enum_variable(
+                    variable.name, variable.type, data["enumerators"], current_app
+                )
+                if not success:
+                    return {"success": False, "errormsg": errormsg}, 400
+
+        current_app.db.update()
+        add_msg_to_flask_session_log(
+            current_app,
+            f"Replaced formalization {fid} of requirement",
+            [requirement],
+        )
+        return {"success": True}
+
 
 @api_ns.route("/<string:rid>/tags/<string:tag_name>")
 @log_request_response
@@ -437,39 +698,6 @@ class ApiRequirementTag(Resource):
         current_app.db.update()
         return {"success": True}
 
-
-@api_ns.route("/formalizations/<string:rid>/<int:fid>")
-@log_request_response
-class ApiFormalizationDelete(Resource):
-    @api_ns.doc(
-        description="Removes the formalization with the given ID from "
-                    "the requirement and re-runs type inference.",
-        params={
-            "rid": "The requirement ID",
-            "fid": "The formalization ID to delete",
-        },
-    )
-    @api_ns.response(200, "Success", SuccessResponseModel)
-    @nocache
-    def delete(self, rid, fid):
-        logging.debug(f"Deletion formalization ID: {fid}")
-        logging.debug(f"Deletion requirement ID: {rid}")
-        requirement = current_app.db.get_object(Requirement, rid)
-        logging.debug(f"Current: {requirement.formalizations}")
-        requirement.delete_formalization(
-            int(fid),
-            VariableCollection(
-                current_app.db.get_objects(Variable).values(),
-                current_app.db.get_objects(Requirement).values(),
-            ),
-        )
-        current_app.db.update()
-        add_msg_to_flask_session_log(
-            current_app,
-            "Deleted formalization from requirement",
-            [requirement],
-        )
-        return {"success": True}
 
 
 @api_ns.route("/get_available_guesses")

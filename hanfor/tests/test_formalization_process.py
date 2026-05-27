@@ -257,6 +257,190 @@ class TestFormalizationProcess(TestCase):
         result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertEqual(result.status, "200 OK")
 
+    def test_get_single_formalization(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+        result = self.mock_hanfor.app.get(
+            "api/v1/req/formalizations/SysRS%20FooXY_42/0"
+        )
+        self.assertEqual(result.status, "200 OK")
+        self.assertEqual(result.json["id"], 0)
+        self.assertEqual(result.json["formalization_type"], "formalization")
+        self.assertEqual(
+            result.json["text"],
+            'Globally, it is never the case that "foo != bar" holds',
+        )
+        self.assertIn("scope", result.json)
+        self.assertIn("pattern", result.json)
+
+        # 404 for non-existent fid
+        result = self.mock_hanfor.app.get(
+            "api/v1/req/formalizations/SysRS%20FooXY_42/999"
+        )
+        self.assertEqual(result.status, "404 NOT FOUND")
+
+    def test_get_single_formalization_with_subtype(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+        result = self.mock_hanfor.app.get(
+            "api/v1/req/formalizations/SysRS%20FooXY_42/0?subtype=formalization"
+        )
+        self.assertEqual(result.status, "200 OK")
+        self.assertEqual(result.json["id"], 0)
+
+        # Mismatching subtype returns 404
+        result = self.mock_hanfor.app.get(
+            "api/v1/req/formalizations/SysRS%20FooXY_42/0?subtype=variable"
+        )
+        self.assertEqual(result.status, "404 NOT FOUND")
+
+    def test_list_formalizations_with_subtype_filter(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+        # No filter returns all formalizations
+        result = self.mock_hanfor.app.get(
+            "api/v1/req/formalizations/SysRS%20FooXY_42"
+        )
+        self.assertEqual(result.status, "200 OK")
+        all_count = len(result.json)
+
+        # Filter by formalization returns the same set (only formalizations exist)
+        result = self.mock_hanfor.app.get(
+            "api/v1/req/formalizations/SysRS%20FooXY_42?subtype=formalization"
+        )
+        self.assertEqual(result.status, "200 OK")
+        self.assertEqual(len(result.json), all_count)
+
+        # Filter by variable returns empty (no variable-type formalizations)
+        result = self.mock_hanfor.app.get(
+            "api/v1/req/formalizations/SysRS%20FooXY_42?subtype=variable"
+        )
+        self.assertEqual(result.status, "200 OK")
+        self.assertEqual(len(result.json), 0)
+
+    def test_patch_formalization_scope_only(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+        result = self.mock_hanfor.app.patch(
+            "api/v1/req/formalizations/SysRS%20FooXY_42/formalization/0",
+            data={"data": json.dumps({"scope": "AFTER"})},
+        )
+        self.assertEqual(result.status, "200 OK")
+
+        result = self.mock_hanfor.app.get(
+            "api/v1/req/formalizations/SysRS%20FooXY_42/0"
+        )
+        self.assertEqual(result.json["scope"], "AFTER")
+        self.assertEqual(result.json["pattern"], "Absence")
+        self.assertEqual(result.json["expr_R"], "foo != bar")
+
+    def test_patch_formalization_pattern_only(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+        result = self.mock_hanfor.app.patch(
+            "api/v1/req/formalizations/SysRS%20FooXY_42/formalization/0",
+            data={"data": json.dumps({"pattern": "Response"})},
+        )
+        self.assertEqual(result.status, "200 OK")
+
+        result = self.mock_hanfor.app.get(
+            "api/v1/req/formalizations/SysRS%20FooXY_42/0"
+        )
+        self.assertEqual(result.json["pattern"], "Response")
+        self.assertEqual(result.json["scope"], "GLOBALLY")
+
+    def test_patch_formalization_expression(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+        result = self.mock_hanfor.app.patch(
+            "api/v1/req/formalizations/SysRS%20FooXY_42/formalization/0",
+            data={"data": json.dumps({"expression_mapping": {"R": "spam == ham"}})},
+        )
+        self.assertEqual(result.status, "200 OK")
+
+        result = self.mock_hanfor.app.get(
+            "api/v1/req/formalizations/SysRS%20FooXY_42/0"
+        )
+        self.assertEqual(result.json["expr_R"], "spam == ham")
+        self.assertEqual(result.json["scope"], "GLOBALLY")
+        self.assertEqual(result.json["pattern"], "Absence")
+
+    def test_patch_formalization_404(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+        result = self.mock_hanfor.app.patch(
+            "api/v1/req/formalizations/SysRS%20FooXY_42/formalization/999",
+            data={"data": json.dumps({"scope": "AFTER"})},
+        )
+        self.assertEqual(result.status, "404 NOT FOUND")
+
+        result = self.mock_hanfor.app.patch(
+            "api/v1/req/formalizations/SysRS%20FooXY_42/variable/999",
+            data={"data": json.dumps({"name": "newname"})},
+        )
+        self.assertEqual(result.status, "404 NOT FOUND")
+
+    def test_put_formalization_full_replace(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+        result = self.mock_hanfor.app.put(
+            "api/v1/req/formalizations/SysRS%20FooXY_42/formalization/0",
+            data={"data": json.dumps({
+                "scope": "AFTER",
+                "pattern": "Response",
+                "expression_mapping": {"R": "spam == ham", "S": "true"},
+            })},
+        )
+        self.assertEqual(result.status, "200 OK")
+
+        result = self.mock_hanfor.app.get(
+            "api/v1/req/formalizations/SysRS%20FooXY_42/0"
+        )
+        self.assertEqual(result.json["scope"], "AFTER")
+        self.assertEqual(result.json["pattern"], "Response")
+        self.assertEqual(result.json["expr_R"], "spam == ham")
+        self.assertIn("expr_S", result.json)
+
+    def test_put_formalization_404(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+        result = self.mock_hanfor.app.put(
+            "api/v1/req/formalizations/SysRS%20FooXY_42/formalization/999",
+            data={"data": json.dumps({
+                "scope": "AFTER", "pattern": "Response",
+                "expression_mapping": {"R": "true"},
+            })},
+        )
+        self.assertEqual(result.status, "404 NOT FOUND")
+
+    def test_put_formalization_missing_field(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+        result = self.mock_hanfor.app.put(
+            "api/v1/req/formalizations/SysRS%20FooXY_42/formalization/0",
+            data={"data": json.dumps({"scope": "AFTER"})},
+        )
+        self.assertEqual(result.status, "400 BAD REQUEST")
+
+    def test_put_formalization_idempotent(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+        body = {"data": json.dumps({
+            "scope": "AFTER", "pattern": "Response",
+            "expression_mapping": {"R": "foo != bar"},
+        })}
+        store_url = "api/v1/req/formalizations/SysRS%20FooXY_42/formalization/0"
+
+        r1 = self.mock_hanfor.app.put(store_url, data=body)
+        r2 = self.mock_hanfor.app.put(store_url, data=body)
+        self.assertEqual(r1.status, "200 OK")
+        self.assertEqual(r2.status, "200 OK")
+
+        result = self.mock_hanfor.app.get(
+            "api/v1/req/formalizations/SysRS%20FooXY_42/0"
+        )
+        self.assertEqual(result.json["scope"], "AFTER")
+
     def test_update_csv_hashcollision(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
         success = self.mock_hanfor.startup_hanfor("simple_hashcollision.csv", "simple", [1])
