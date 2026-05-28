@@ -1,20 +1,23 @@
 from dataclasses import dataclass
 from typing import Union
 
+from pysmt.environment import Environment
 from pysmt.fnode import FNode
-from pysmt.formula import FormulaManager
-from pysmt.shortcuts import TRUE, is_valid, Iff
 
 from lib_pea.location import PhaseSetsLocation, Location
-from lib_pea.config import SOLVER_NAME, LOGIC
 
 
 @dataclass(unsafe_hash=True)
 class Transition:
+    smt_env: Environment
     src: Union[None, Location] = None
     dst: Location = None
-    guard: FNode = TRUE()
+    guard: FNode = None
     resets: frozenset[str] = frozenset()
+
+    def __post_init__(self):
+        if not self.guard:
+            self.guard = self.smt_env.formula_manager.TRUE()
 
     def __str__(self):
         return f"{self.src.label if self.src else 'init':>15} --- {str(self.guard):<30} ({str(self.resets):>5}) ---> {self.dst.label:<15}"
@@ -22,7 +25,7 @@ class Transition:
 
 @dataclass
 class PhaseSetsTransition(Transition):
-    src: PhaseSetsLocation = None
+    src: PhaseSetsLocation | None = None
     dst: PhaseSetsLocation = None
 
     def __eq__(self, o: "PhaseSetsTransition") -> bool:
@@ -31,7 +34,9 @@ class PhaseSetsTransition(Transition):
             and o.src == self.src
             and o.dst == self.dst
             and o.resets == self.resets
-            and is_valid(Iff(o.guard, self.guard), solver_name=SOLVER_NAME, logic=LOGIC)
+            and self.smt_env.factory.get_solver(name="z3").is_valid(
+                self.smt_env.formula_manager.Iff(o.guard, self.guard)
+            )
         )
 
     def __hash__(self) -> int:
@@ -48,12 +53,13 @@ class PhaseSetsTransition(Transition):
     def __repr__(self):
         return str(self)
 
-    def normalize(self, formula_manager: FormulaManager) -> None:
+    def normalize(self) -> None:
+        fmgr = self.smt_env.formula_manager
         if self.src is not None:
-            self.src.normalize(formula_manager)
+            self.src.normalize()
 
         if self.dst is not None:
-            self.dst.normalize(formula_manager)
+            self.dst.normalize()
 
-        if self.guard not in formula_manager:
-            self.guard = formula_manager.normalize(self.guard)
+        if self.guard not in fmgr:
+            self.guard = fmgr.normalize(self.guard)

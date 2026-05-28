@@ -1,20 +1,25 @@
 from dataclasses import dataclass
 from fractions import Fraction
 
+import numexpr
+from pysmt.environment import Environment
 from pysmt.fnode import FNode
-from pysmt.formula import FormulaManager
-from pysmt.shortcuts import TRUE, is_valid, Iff
 
 from lib_pea.phase_sets import PhaseSets
-from lib_pea.config import SOLVER_NAME, LOGIC
-import numexpr
 
 
 @dataclass(unsafe_hash=True)
 class Location:
-    state_invariant: FNode = TRUE()
-    clock_invariant: FNode = TRUE()
+    smt_env: Environment
+    state_invariant: FNode = None
+    clock_invariant: FNode = None
     label: str = None
+
+    def __post_init__(self):
+        if self.state_invariant is None:
+            self.state_invariant = self.smt_env.formula_manager.TRUE()
+        if self.clock_invariant is None:
+            self.clock_invariant = self.smt_env.formula_manager.TRUE()
 
     def __str__(self):
         return f"{self.label:<10}: {str(self.state_invariant):<40}, {str(self.clock_invariant):<20}"
@@ -22,14 +27,19 @@ class Location:
 
 @dataclass
 class PhaseSetsLocation(Location):
+    smt_env: Environment
     label: PhaseSets = PhaseSets()
 
     def __eq__(self, o: "PhaseSetsLocation") -> bool:
         return (
             isinstance(o, PhaseSetsLocation)
             and o.label == self.label
-            and is_valid(Iff(o.state_invariant, self.state_invariant), solver_name=SOLVER_NAME, logic=LOGIC)
-            and is_valid(Iff(o.clock_invariant, self.clock_invariant), solver_name=SOLVER_NAME, logic=LOGIC)
+            and self.smt_env.factory.get_solver(name="z3").is_valid(
+                self.smt_env.formula_manager.Iff(o.state_invariant, self.state_invariant)
+            )
+            and self.smt_env.factory.get_solver(name="z3").is_valid(
+                self.smt_env.formula_manager.Iff(o.clock_invariant, self.clock_invariant)
+            )
         )
 
     def __hash__(self) -> int:
@@ -41,12 +51,13 @@ class PhaseSetsLocation(Location):
     def __repr__(self):
         return str(self.label)
 
-    def normalize(self, formula_manager: FormulaManager) -> None:
-        if self.state_invariant not in formula_manager:
-            self.state_invariant = formula_manager.normalize(self.state_invariant)
+    def normalize(self) -> None:
+        fmgr = self.smt_env.formula_manager
+        if self.state_invariant not in fmgr:
+            self.state_invariant = fmgr.normalize(self.state_invariant)
 
-        if self.clock_invariant not in formula_manager:
-            self.clock_invariant = formula_manager.normalize(self.clock_invariant)
+        if self.clock_invariant not in fmgr:
+            self.clock_invariant = fmgr.normalize(self.clock_invariant)
 
     def get_min_clock_bound(self) -> tuple[str, float, bool] | None:
         result = None

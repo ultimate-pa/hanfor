@@ -497,13 +497,14 @@ class Expression:
 class Pattern:
     def __init__(self, name: str = "NotFormalizable"):
         # Hack: reflect over pattern class to update to correct name
-        self.name = APattern().get_pattern(name).__class__.__name__
-        self.pattern = APattern().get_pattern(name)._pattern_text
-        self.environment = APattern().get_pattern(name)._env
+        pattern = APattern.get_pattern(name)
+        self.name = pattern.__name__
+        self.pattern = pattern()._pattern_text
+        self.environment = pattern()._env
 
     def get_patternish(self) -> APattern:
         # TODO: find good name for pattern template
-        return APattern().get_pattern(self.get_name())
+        return APattern.get_pattern(self.get_name())()
 
     def get_name(self):
         return self.name
@@ -518,7 +519,7 @@ class Pattern:
         return self.pattern
 
     def get_allowed_types(self):
-        return BoogieType.alias_env_to_instantiated_env(self.get_patternish()._env)
+        return BoogieType.alias_env_to_instantiated_env(self.get_patternish().env)
 
 
 @DatabaseFieldType()
@@ -947,7 +948,7 @@ class VariableCollection:
             self.rename(old_enumerator_name, new_enumerator_name, app)
         return affected_enumerators
 
-    def get_boogie_type_env(self):
+    def get_boogie_type_env(self) -> dict[str, BoogieType]:
         mapping = {
             "bool": boogie_parsing.BoogieType.bool,
             "int": boogie_parsing.BoogieType.int,
