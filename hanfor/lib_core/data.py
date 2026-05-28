@@ -645,7 +645,7 @@ class ScopedPattern:
 class Variable(BaseFormalization):
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
 
-    def __init__(self, name: str, var_type: str | None, value: str | None, order: int = 0):
+    def __init__(self, name: str, var_type: str | None, value: str | None = None, order: int = 0):
         self.name: str = name
         self.type: str = var_type
         self.value: str = value
