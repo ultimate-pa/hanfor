@@ -8,16 +8,12 @@ from collections import defaultdict
 
 import colorama
 from colorama import Style, Fore
-from flask import Response
 from terminaltables import DoubleTable
-
 from flask import request, Response
 
-from configuration.patterns import APattern
 from lib_core import boogie_parsing
 from config import PATTERNS_GROUP_ORDER  # TODO should this be in the config?
 from hanfor_flask import HanforFlask
-from lib_core import boogie_parsing
 from lib_core.data import Requirement, VariableCollection, Variable
 from lib_core.pattern.patterns_basic import APattern
 
@@ -61,7 +57,7 @@ def get_requirements(app: HanforFlask, filter_list=None, invert_filter=False):
 
 def prepare_patterns_for_jinja():
     opt_group_lists = defaultdict(list)
-    for name, pattern in APattern.get_patterns().items():
+    for name, pattern in APattern().get_patterns().items():
         opt_group_lists[pattern.group].append((pattern.order, name, pattern._pattern_text))
 
     # Sort patterns inside each group

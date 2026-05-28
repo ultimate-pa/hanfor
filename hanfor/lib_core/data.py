@@ -6,8 +6,8 @@ import re
 import string
 from dataclasses import dataclass, field
 from threading import Lock
-import re
 from typing import Any, Iterable, Union, Protocol, Dict, runtime_checkable
+from enum import Enum
 from abc import ABC
 from uuid import uuid4
 

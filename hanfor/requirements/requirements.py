@@ -7,7 +7,6 @@ from flask_restx import Namespace, Resource
 
 from config import PATTERNS_GROUP_ORDER
 from configuration.defaults import Color
-from configuration.patterns import VARIABLE_AUTOCOMPLETE_EXTENSION, APattern
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from hanfor_flask import HanforFlask, current_app, nocache
@@ -31,9 +30,9 @@ from lib_core.data import (
     Variable,
     VariableCollection,
 )
-from lib_core.data import Requirement, SessionValue, RequirementEditHistory, Tag, Variable, VariableCollection
 from lib_core.pattern import APattern
 from lib_core.pattern.patterns_functions import VARIABLE_AUTOCOMPLETE_EXTENSION
+from requirements.desc_highlighting import get_highlighted_desc, new_variables_regenerate_highlighting
 from lib_core.utils import (
     default_scope_options,
     formalization_html,
@@ -65,6 +64,8 @@ def index():
         query=request.args,
         additional_cols=additional_cols,
         default_cols=default_cols,
+        pattern_groups=pattern_groups,
+        group_order=PATTERNS_GROUP_ORDER,
         patterns=APattern().to_frontent_dict(),
     )
 
@@ -105,6 +106,10 @@ class ApiRequirementSingle(Resource):
         result = requirement.to_dict(include_used_vars=True)
         result["available_vars"] = var_collection.get_available_var_names_list(used_only=False, exclude_types={"ENUM"})
         result["additional_static_available_vars"] = VARIABLE_AUTOCOMPLETE_EXTENSION
+        if current_app.config.get("FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"):
+            result["desc_highlighted"] = get_highlighted_desc(rid)
+        else:
+            result["desc_highlighted"] = result["desc"]
         result["next_id"] = requirement.next_id()
         return result
 
