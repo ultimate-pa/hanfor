@@ -17,7 +17,7 @@ require('./bootstrap-confirm-button');
 let utils = require('./hanfor-utils');
 
 // Globals
-export let AVAILABLE_TYPES = ['CONST', 'ENUM_INT', 'ENUM_REAL', 'bool',];
+export let AVAILABLE_TYPES = ['CONST', 'ENUM_INT', 'ENUM_REAL', 'BOOL',];
 let search_autocomplete = [
     ":AND:",
     ":OR:",
@@ -53,11 +53,35 @@ function update_search() {
     search_tree = SearchNode.fromQuery(var_search_string);
 }
 
+function validateNameInput($input) {
+    const val = $input.val().trim();
+    const re = /^[a-zA-Z][a-zA-Z0-9_.]*$/;
+    if (val && !re.test(val)) {
+        $input.addClass("is-invalid");
+        return false;
+    }
+    $input.removeClass("is-invalid");
+    return true;
+}
+
+function validateTypeInput($input) {
+    const val = $input.val();
+    if (val && !AVAILABLE_TYPES.includes(val)) {
+        $input.addClass("is-invalid");
+        return false;
+    }
+    $input.removeClass("is-invalid");
+    return true;
+}
+
 /**
  * Store the currently active (in the modal) variable.
  * @param variables_table
  */
 function store_variable(variables_table) {
+    if (!validateNameInput($('#variable_name'))) return;
+    if (!validateTypeInput($('#variable_type'))) return;
+
     let var_modal_content = $('.modal-content');
     var_modal_content.LoadingOverlay('show');
 
@@ -601,6 +625,10 @@ function load_variable(row_idx) {
         $(this).keydown();
     });
 
+    $('#variable-type-feedback').text("Supported: " + AVAILABLE_TYPES.join(", "));
+    validateNameInput($('#variable_name'));
+    validateTypeInput($('#variable_type'));
+
     // Load constraints
     get_variable_constraints_html(data.name);
     // TODO send variable UUID
@@ -610,6 +638,7 @@ function load_variable(row_idx) {
 }
 
 function add_variable_via_modal() {
+    if (!validateNameInput($('#new_variable_name'))) return;
     const new_variable_name = $('#new_variable_name').val();
     const new_variable_type = $('#new_variable_type').val();
     const new_variable_value = $('#new_variable_const_value').val();
@@ -935,7 +964,16 @@ $(document).ready(function () {
         store_variable(variables_table);
     });
 
+    $('#variable_name').on('input', function () {
+        validateNameInput($(this));
+    });
+
+    $('#new_variable_name').on('input', function () {
+        validateNameInput($(this));
+    });
+
     $('#variable_type').on('keyup change autocompleteclose', function () {
+        validateTypeInput($(this));
         if ($(this).val() === 'CONST') {
             show_variable_val_input();
         } else {

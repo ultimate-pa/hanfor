@@ -353,7 +353,7 @@ class Requirement:
         """
         result = False
         for formalization in self.formalizations.values():  # type: Formalization
-            if var_name in formalization.used_variables:
+            if isinstance(formalization, Formalization) and var_name in formalization.used_variables:
                 result = True
                 break
         return result
@@ -646,7 +646,7 @@ class Variable(BaseFormalization):
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
 
     def __init__(self, name: str, var_type: str | None, value: str | None = None, order: int = 0):
-        self.name: str = name
+        self.set_name(name)
         self.type: str = var_type
         self.value: str = value
         self.order: int = order
@@ -688,6 +688,11 @@ class Variable(BaseFormalization):
 
     def get_tags(self):
         return self.tags
+
+    def set_name(self, new_name):
+        if not new_name or not re.match(r"^[a-zA-Z][a-zA-Z0-9_\.]*$", new_name):
+            raise ValueError(f"Illegal variable name: `{new_name}`.")
+        self.name = new_name
 
     def set_type(self, new_type):
         allowed_types = ["CONST"]
@@ -822,7 +827,7 @@ class Variable(BaseFormalization):
 
     def rename(self, new_name):
         old_name = self.name
-        self.name = new_name
+        self.set_name(new_name)
         self.rename_var_in_constraints(old_name, new_name)
 
 

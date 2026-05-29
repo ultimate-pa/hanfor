@@ -113,11 +113,22 @@ renderer.registerType("variable", {
       })
     }
     // title change listener
-    const name_input = $container.find('input[aria-describedby="variable-name"]')
+    const name_input = $container.find('input[aria-describedby="variable-name-feedback"]')
+    function validateName() {
+      const val = name_input.val().trim()
+      const re = /^[a-zA-Z][a-zA-Z0-9_.]*$/
+      if (val && !re.test(val)) {
+        name_input.addClass("is-invalid")
+      } else {
+        name_input.removeClass("is-invalid")
+      }
+    }
+    validateName()
     name_input.on("input", function () {
       const newName = $(this).val().trim()
       const button = $container.closest(".accordion-item").find(".accordion-button")
-      button.text(newName ? newName : `New Variable ${id}`)
+      button.text(newName ? newName : `new_variable_${id}`)
+      validateName()
       markDirty()
     })
     // value field needed
@@ -126,14 +137,23 @@ renderer.registerType("variable", {
     const $valueGroup = $block.find(".variable-value-group")
     const $enumeratorsContainer = $block.find(".enumerators-container")
     function toggle() {
-      console.log("TOGGLE")
-      console.log($typeInput.val())
       $valueGroup.toggleClass("d-none", $typeInput.val() != "CONST")
       $enumeratorsContainer.toggleClass("d-none", !$typeInput.val().startsWith("ENUM_"))
     }
+    function validateType() {
+      const val = $typeInput.val()
+      if (val && !AVAILABLE_TYPES.includes(val)) {
+        $typeInput.addClass("is-invalid")
+      } else {
+        $typeInput.removeClass("is-invalid")
+      }
+    }
     toggle()
+    validateType()
+    $container.find("#variable-type-feedback").text("Supported types are " + AVAILABLE_TYPES.join(", "))
     $typeInput.on("input change autocompleteselect", function () {
       toggle()
+      validateType()
       markDirty()
     })
     const $variableValue = $block.find("input.variable-value")
@@ -624,7 +644,7 @@ function store_requirement(requirements_table) {
 
     if ($item.data("type") === "variable") {
       formalization["formalization_type"] = "variable"
-      formalization["name"] = $item.find('input[aria-describedby="variable-name"]').val() || ""
+      formalization["name"] = $item.find('input[aria-describedby="variable-name-feedback"]').val() || ""
       formalization["var_type"] = $item.find("input.variable-type").val() || ""
       formalization["const_val"] = $item.find("input.variable-value").val() || ""
       const enumerators = []
@@ -1147,8 +1167,6 @@ function init_modal() {
     if (cookie) {
       formalization = JSON.parse(cookie)
     }
-    console.log(formalization)
-
     add_formalization(formalization)
   })
 

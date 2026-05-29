@@ -251,7 +251,10 @@ class ApiRequirementSingle(Resource):
                     if old_name != var_name:
                         if variable_collection.var_name_exists(old_name):
                             variable_collection.collection[var_name] = variable_collection.collection.pop(old_name)
-                        var.name = var_name
+                        try:
+                            var.set_name(var_name)
+                        except ValueError as e:
+                            return True, str(e)
                     try:
                         var.set_type(var_type)
                     except ValueError as e:
@@ -456,7 +459,10 @@ class ApiFormalizationStore(Resource):
                 return {"success": False, "errormsg": "Variable has to have a name for it to be registered"}
             logging.debug(f"Data set by the variable: {data}")
 
-            var = Variable(data["name"], data["type"], value=data.get("value"), order=int(data["temp_id"]))
+            try:
+                var = Variable(data["name"], data["type"], value=data.get("value"), order=int(data["temp_id"]))
+            except ValueError as e:
+                return {"success": False, "errormsg": str(e)}
             try:
                 var.set_type(data["type"])
             except ValueError as e:
@@ -549,7 +555,10 @@ class ApiFormalizationStore(Resource):
                 return {"success": False, "errormsg": "Variable not found."}, 404
 
             if "name" in data:
-                variable.name = data["name"]
+                try:
+                    variable.set_name(data["name"])
+                except ValueError as e:
+                    return {"success": False, "errormsg": str(e)}, 400
             if "type" in data:
                 variable.type = data["type"]
             if "value" in data:
@@ -641,7 +650,10 @@ class ApiFormalizationStore(Resource):
             if not variable or not isinstance(variable, Variable):
                 return {"success": False, "errormsg": "Variable not found."}, 404
 
-            variable.name = data["name"]
+            try:
+                variable.set_name(data["name"])
+            except ValueError as e:
+                return {"success": False, "errormsg": str(e)}, 400
             variable.type = data["type"]
             variable.value = data.get("value", "")
             variable.order = int(data.get("order", 0))

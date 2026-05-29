@@ -228,7 +228,10 @@ def api_add_new_variable():
     if result["success"]:
         logging.debug(f"Adding new Variable `{variable_name}` to Variable collection.")
         # Check if variable is already exists is above already
-        new_variable = Variable(variable_name, variable_type, None)
+        try:
+            new_variable = Variable(variable_name, variable_type, None)
+        except ValueError as e:
+            return {"success": False, "errormsg": str(e)}
         variable = var_collection.add_var(variable_name, new_variable)
         current_app.db.add_object(variable)
         if variable_type == "CONST":
@@ -299,8 +302,11 @@ def api_import_csv():
     for variable in variables:
         if variable["name"] == "" or var_collection.var_name_exists(variable["name"]):
             continue
-
-        current_app.db.add_object(var_collection.add_var(variable["name"]))
+        try:
+            current_app.db.add_object(var_collection.add_var(variable["name"]))
+        except ValueError as e:
+            logging.warning(f"Skipping CSV import for invalid variable name: {e}")
+            continue
         var_collection.collection[variable["name"]].belongs_to_enum = variable["enum_name"]
         var_collection.set_type(variable["name"], variable["type"])
         var_collection.collection[variable["name"]].value = variable["value"]
@@ -432,7 +438,11 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
             if var_name not in var_collection:
                 logging.debug("`{}` is a new var name. Rename the var, replace occurrences.".format(var_name))
                 # Rename the var (Copy to new name and remove the old item. Rename it)
-                affected_enumerators = var_collection.rename(var_name_old, var_name, app)
+                try:
+                    affected_enumerators = var_collection.rename(var_name_old, var_name, app)
+                except ValueError as e:
+                    result = {"success": False, "errormsg": str(e)}
+                    return result
 
             else:  # Case: New name exists. -> Merge the two vars into one. -> Complete rebuild.
                 if var_collection.collection[var_name_old].type != var_collection.collection[var_name].type:
@@ -443,7 +453,11 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
                     return result
                 logging.debug("`{}` is an existing var name. Merging the two vars. ".format(var_name))
                 # var_collection.merge_vars(var_name_old, var_name, app)
-                affected_enumerators = var_collection.rename(var_name_old, var_name, app)
+                try:
+                    affected_enumerators = var_collection.rename(var_name_old, var_name, app)
+                except ValueError as e:
+                    result = {"success": False, "errormsg": str(e)}
+                    return result
                 result["rebuild_table"] = True
                 reload_type_inference = True
 
@@ -487,7 +501,11 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
                 return result
 
             var_collection.collection[var_name].belongs_to_enum = belongs_to_enum
-            var_collection.rename(var_name, new_enumerator_name, app)
+            try:
+                var_collection.rename(var_name, new_enumerator_name, app)
+            except ValueError as e:
+                result = {"success": False, "errormsg": str(e)}
+                return result
 
         logging.info("Store updated variables.")
         var_collection.refresh_var_constraint_mapping()
