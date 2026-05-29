@@ -252,7 +252,10 @@ class ApiRequirementSingle(Resource):
                         if variable_collection.var_name_exists(old_name):
                             variable_collection.collection[var_name] = variable_collection.collection.pop(old_name)
                         var.name = var_name
-                    var.type = var_type
+                    try:
+                        var.set_type(var_type)
+                    except ValueError as e:
+                        return True, str(e)
                     var.value = var_value
                     logging.debug(f"Updated: name={var.name} type={var.type} value={var.value}")
                 else:
@@ -453,8 +456,13 @@ class ApiFormalizationStore(Resource):
                 return {"success": False, "errormsg": "Variable has to have a name for it to be registered"}
             logging.debug(f"Data set by the variable: {data}")
 
+            var = Variable(data["name"], data["type"], value=data.get("value"), order=int(data["temp_id"]))
+            try:
+                var.set_type(data["type"])
+            except ValueError as e:
+                return {"success": False, "errormsg": str(e)}
             requirement.add_formalization_with_id(
-                Variable(data["name"], data["type"], value=data.get("value"), order=int(data["temp_id"])),
+                var,
                 int(data["temp_id"]),
             )
 

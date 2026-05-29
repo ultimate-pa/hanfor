@@ -381,7 +381,7 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
             try:
                 var_collection.collection[var_name_old].belongs_to_enum = belongs_to_enum
                 var_collection.set_type(var_name_old, var_type)
-            except TypeError as e:
+            except (TypeError, ValueError) as e:
                 result = {"success": False, "errormsg": str(e)}
                 return result
             result["type_changed"] = True
@@ -501,7 +501,11 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
                     requirement.run_type_checks(var_collection, SessionValue.get_standard_tags(app.db))
             app.db.update()
 
-    success, errormsg, _ = var_collection.create_enum_variable(var_name, var_type, enumerators, app)
+    try:
+        success, errormsg, _ = var_collection.create_enum_variable(var_name, var_type, enumerators, app)
+    except ValueError as e:
+        result = {"success": False, "errormsg": str(e)}
+        return result
     if not success:
         result = {"success": False, "errormsg": errormsg}
         return result
