@@ -628,13 +628,16 @@ function init_datatable_manipulators(requirements_table) {
  * @param {DataTable} requirements_table
  */
 function store_requirement(requirements_table) {
+  if ($('#formalization_accordion').find('.is-invalid').length > 0) {
+    alert('Please fix invalid variable names or types before saving.')
+    return
+  }
   let requirement_modal_content = $(".modal-content")
   requirement_modal_content.LoadingOverlay("show")
   const req_id = $("#requirement_id").val()
   const req_status = $('input[name="status"]:checked').val()
   const updated_formalization = $("#requirement_modal").data("updated_formalization")
   const associated_row_id = parseInt($("#modal_associated_row_index").val())
-
   // Fetch the formalizations
   let formalizations = {}
   $("#formalization_accordion > .accordion-item").each(function () {
