@@ -25,7 +25,7 @@ jobs:
             npm run build
 
       # store built hanfor in the job's artifact page
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: Hanfor-${{ env.SAFE_NAME }}.zip
           path: |
