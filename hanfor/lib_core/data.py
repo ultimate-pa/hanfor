@@ -881,7 +881,7 @@ class VariableCollection:
         for var in used_variables:
             self.req_var_mapping[rid].add(var)
 
-    def rename(self, old_name: str, new_name: str, app: HanforFlask) -> list[tuple[str, str]]:
+    def rename(self, old_name: str, new_name: str, app: "HanforFlask") -> list[tuple[str, str]]:
         """Rename a var in the collection. Merges the variables if new_name variable exists.
 
         :param old_name: The old var name.
@@ -1143,7 +1143,7 @@ class SessionValue:
     value: Any
 
     @staticmethod
-    def get_standard_tags(db: JsonDatabase) -> dict[str, Tag]:
+    def get_standard_tags(db: "JsonDatabase") -> dict[str, Tag]:
         standard_tags = dict()
         tag_ids = [
             "TAG_Type_inference_error",
