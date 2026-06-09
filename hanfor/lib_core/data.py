@@ -6,13 +6,12 @@ import re
 import string
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import Any, Iterable, Union
+from typing import Any, Iterable, Union, TYPE_CHECKING
 from uuid import uuid4
 
 from lark import LarkError
 from typing_extensions import deprecated
 
-from hanfor_flask import HanforFlask
 from json_db_connector.json_db import (
     DatabaseTable,
     TableType,
@@ -20,12 +19,15 @@ from json_db_connector.json_db import (
     DatabaseField,
     DatabaseNonSavedField,
     DatabaseFieldType,
-    JsonDatabase,
 )
 from lib_core import boogie_parsing
 from lib_core.boogie_parsing import run_typecheck_fixpoint, BoogieType
 from lib_core.pattern.patterns_basic import APattern
 from lib_core.scopes import Scope
+
+if TYPE_CHECKING:
+    from hanfor_flask import HanforFlask
+    from json_db_connector.json_db import JsonDatabase
 
 
 @DatabaseTable(TableType.File)
