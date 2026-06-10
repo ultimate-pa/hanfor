@@ -1,4 +1,8 @@
 # Threading Usage Guide
+Hanfor runs background tasks like AI calls and batch jobs in a managed thread pool.
+This guide explains how to submit tasks, track their state, and cancel them cleanly.
+Scheduling and capacity are handled automatically.
+You only need to define your task and choose the right scheduling class.
 
 Access `thread_handler` via `current_app`:
 

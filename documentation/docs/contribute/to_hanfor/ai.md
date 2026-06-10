@@ -1,5 +1,9 @@
 # AI Usage Guide
 
+Hanfor provides abstractions that make it straightforward to integrate LLMs into features.
+An abstraction layer handles provider setup, model selection, and threading - 
+so you only need to send a prompt and handle the response.
+
 Access `ai_request` via `current_app`:
 
 ```python
@@ -28,6 +32,8 @@ current_app.ai_request.ask_ai(
 ```
 
 ### Wait for Result (Blocking)
+Useful when you're already running in a background thread and need the AI response
+before continuing. The current thread pauses until the response arrives or the timeout is reached.
 
 ```python
 task_result = current_app.ai_request.ask_ai(
@@ -51,6 +57,7 @@ task_result = current_app.ai_request.ask_ai(
 ```
 
 ### Non-Blocking Poll
+Useful when you need to do work while waiting - for example, checking for a stop signal.
 
 ```python
 task = current_app.ai_request.ask_ai(
@@ -59,6 +66,8 @@ task = current_app.ai_request.ask_ai(
 )
 
 while not task.done():
+    if is_stopped():
+        return
     time.sleep(0.1)
 
 response, status = task.result()
