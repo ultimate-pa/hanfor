@@ -1235,7 +1235,6 @@ function load_requirement(row_idx) {
     return
   }
 
-  console.log(store)
   load_tags()
 
   // Get row data
@@ -1296,9 +1295,6 @@ function load_requirement(row_idx) {
     })
 
     store.initNextId(data["next_id"])
-    console.log("Store:")
-    console.log(store)
-
     // remove all lines from the tag comment table
     $("#tags_comments_table").find("tr:gt(0)").remove()
     // set Tag field and comments in Table (table rows are created via event)

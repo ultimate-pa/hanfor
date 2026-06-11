@@ -6,7 +6,7 @@ import re
 import string
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import Any, Iterable, Union, Protocol, Dict, runtime_checkable
+from typing import Any, Iterable, Union, Protocol, Dict, runtime_checkable, Literal
 from enum import Enum
 from abc import ABC
 from uuid import uuid4
@@ -64,7 +64,6 @@ class FormalizationOfType(Enum):
         return f"{self.value}-template"
 
 
-# TODO: ask if this is something we actually want
 @runtime_checkable
 class FormalizationProtocol(Protocol):
     order: int
@@ -703,10 +702,7 @@ class Variable(BaseFormalization):
         self.type = new_type
 
     def _next_free_constraint_id(self):
-        i = 0
-        while i in self.constraints.keys():
-            i += 1
-        return i
+        return max(self.constraints, default=-1) + 1
 
     def add_constraint(self):
         """Add a new empty constraint
@@ -1027,11 +1023,6 @@ class VariableCollection:
             elif var.type == "CONST":
                 # Check for int, real or unknown based on value.
                 try:
-                    logging.debug(
-                            f"Variable {var.name}: "
-                            f"Value={repr(var.value)}, "
-                            f"Type={type(var.value)}, "
-                    )
                     float(var.value)
                 except (TypeError, ValueError) as e:
                     logging.debug(
@@ -1296,3 +1287,29 @@ def replace_prefix(input_string: str, prefix_old: str, prefix_new: str):
     if input_string.startswith(prefix_old):
         input_string = "".join((prefix_new, input_string[len(prefix_old) :]))
     return input_string
+
+class Constraint:
+    formalization: Formalization
+    owner_type: Literal["requirement", "variable"]
+    owner_id: str
+
+    def __init__(self, formalization: Formalization, owner_type: str, owner_id: str):
+        self.formalization = formalization
+        self.owner_type = owner_type
+        self.owner_id = owner_id
+
+    @classmethod
+    def from_requirement(cls, formalization: Formalization, rid: str) -> "Constraint":
+        return cls(formalization, "requirement", rid)
+
+    @classmethod
+    def from_variable(cls, formalization: Formalization, var_name: str) -> "Constraint":
+        return cls(formalization, "variable", var_name)
+
+    @property
+    def usage_key(self) -> str:
+        if self.owner_type == "variable":
+            return f"Constraint_{self.owner_id}_{self.formalization.id}"
+        return f"{self.owner_id}:{self.formalization.id}"
+
+
