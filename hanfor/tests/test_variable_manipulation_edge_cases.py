@@ -71,6 +71,7 @@ class TestHanforVersionMigrations(TestCase):
                 "type_inference_errors": {},
                 "script_results": "",
                 "used_by": ["SysRS FooXY_91"],
+                "constraint_refs": ["SysRS FooXY_91:0"],
                 "const_val": None,
                 "tags": [],
                 "type": "bool",
@@ -120,7 +121,8 @@ class TestHanforVersionMigrations(TestCase):
                     {
                         "name": "egg",
                         "constraints": ['Globally, it is always the case that "egg > 10" holds'],
-                        "used_by": ["Constraint_egg_0", "SysRS FooXY_91"],
+                        "used_by": ["SysRS FooXY_91"],
+                        "constraint_refs": ["SysRS FooXY_91:0", "Constraint_egg_0"],
                         "tags": [],
                         "type_inference_errors": {},
                         "const_val": None,
@@ -135,7 +137,8 @@ class TestHanforVersionMigrations(TestCase):
             {
                 "name": "egg",
                 "constraints": ['Globally, it is always the case that "egg > 10" holds'],
-                "used_by": ["Constraint_egg_0", "SysRS FooXY_91"],
+                "used_by": ["SysRS FooXY_91"],
+                "constraint_refs": ["SysRS FooXY_91:0", "Constraint_egg_0"],
                 "tags": [],
                 "type_inference_errors": {},
                 "const_val": None,

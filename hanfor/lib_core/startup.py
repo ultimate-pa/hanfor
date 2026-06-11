@@ -56,9 +56,8 @@ def config_check(app_config):
 
 
 def update_var_usage(flask_app: HanforFlask, var_collection):
-    var_collection.refresh_var_usage(flask_app.db.get_objects(Requirement).values())
+    var_collection._build_all(flask_app.db.get_objects(Requirement).values())
     var_collection.req_var_mapping = var_collection.invert_mapping(var_collection.var_req_mapping)
-    var_collection.refresh_var_constraint_mapping()
     var_collection.store()
     flask_app.db.update()
 

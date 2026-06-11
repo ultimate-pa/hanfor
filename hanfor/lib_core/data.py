@@ -870,7 +870,7 @@ class VariableCollection:
         self.collection: dict[str, Variable] = {v.name: v for v in variables}
         self._constraints: dict[str, Constraint]
         self.var_req_mapping = dict()
-        self.refresh_var_usage(requirements)
+        self._build_all(requirements)
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
         self.new_vars: set[Variable] = set()
 
@@ -1073,45 +1073,12 @@ class VariableCollection:
         self.req_var_mapping.pop("Constraint_{}_{}".format(var_name, constraint_id), None)
         return self.collection[var_name].del_constraint(constraint_id)
 
-    def refresh_var_constraint_mapping(self):
-        def not_in_constraint(var_name, constraint_name):
-            """Checks if var_name is used in constraint_name (if constraint_name is existing).
-
-            :param var_name:
-            :param constraint_name:
-            :return:
-            """
-            match = re.match(Variable.CONSTRAINT_REGEX, constraint_name)
-            if match:
-                constraint_variable_name = match.group(2)
-                if constraint_variable_name not in self.collection.keys():
-                    # The referenced variable is no longer existing.
-                    if constraint_name in self.req_var_mapping and var_name in self.req_var_mapping[constraint_name]:
-                        self.req_var_mapping[constraint_name].discard(var_name)
-                    return True
-                else:
-                    # The variable exists. Now check if var_name occurs in one of its constraints.
-                    for constraint in self.collection[constraint_variable_name].get_constraints().values():
-                        if var_name in constraint.get_string():
-                            return False
-                    if constraint_name in self.req_var_mapping and var_name in self.req_var_mapping[constraint_name]:
-                        self.req_var_mapping[constraint_name].discard(var_name)
-                    return True
-
-            return False
-
-        for name, variable in self.collection.items():
-            if name in self.var_req_mapping:
-                self.var_req_mapping[name] = {
-                    c_name for c_name in self.var_req_mapping[name] if not not_in_constraint(name, c_name)
-                }
-
     def reload_type_inference_errors_in_constraints(self, standard_tags: dict[str, Tag]):
         for name, var in self.collection.items():
             if len(var.get_constraints()) > 0:
                 var.reload_constraints_type_inference_errors(self, standard_tags)
 
-    def refresh_var_usage(self, requirements: Iterable[Requirement]):
+    def _build_all(self, requirements: Iterable[Requirement]):
         self._constraints: dict[str, list[Constraint]] = {}
         self.var_req_mapping: dict[str, set[str]] = {}
 
@@ -1136,12 +1103,15 @@ class VariableCollection:
         # Add the constraints using this variable.
         for var in self.collection.values():
             for cid, constraint in var.get_constraints().items():
+                self._constraints.setdefault(var.name, []).append(
+                    Constraint.from_variable(constraint, var.name)
+                )
                 for expression in constraint.expressions_mapping.values():
                     for var_name in expression.used_variables:
-                        if var_name not in self.var_req_mapping.keys():
-                            self.var_req_mapping[var_name] = set()
-                        self.var_req_mapping[var_name].add("Constraint_{}_{}".format(var.name, cid))
-                        self._constraints.setdefault(var_name, []).append(Constraint.from_variable(constraint, var.name))
+                        if var_name != var.name:
+                            self._constraints.setdefault(var_name, []).append(
+                                Constraint.from_variable(constraint, var.name)
+                            )
 
     def del_var(self, var_name) -> Union[Variable, None]:
         """Check if a variable can be deleted ie, is not used somewhere.

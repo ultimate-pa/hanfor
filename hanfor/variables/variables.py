@@ -5,7 +5,6 @@ import re
 
 from flask import Blueprint, request, render_template, Request
 
-import config
 from hanfor_flask import current_app, nocache, HanforFlask
 from lib_core import boogie_parsing
 from lib_core.boogie_parsing import BoogieType
@@ -35,10 +34,7 @@ def index():
     return render_template(
         "variables/variables.html",
         available_sessions=[],
-        available_variable_types=["CONST"] + [
-            t for t in BoogieType.get_valid_type_names()
-            if t not in ("ENUMERATOR_INT", "ENUMERATOR_REAL")
-        ],
+        available_variable_types=["CONST"] + list(BoogieType.get_valid_type_names()),
         query=request.args,
         patterns=APattern().to_frontent_dict(),
     )
@@ -59,6 +55,10 @@ def api_gets():
         current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
     )
     result = var_collection.get_available_vars_list(used_only=False)
+    for entry in result:
+        entry["constraint_refs"] = [
+            c.usage_key for c in var_collection._constraints.get(entry["name"], [])
+        ]
     return {"data": result}
 
 
@@ -513,7 +513,6 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
                 return result
 
         logging.info("Store updated variables.")
-        var_collection.refresh_var_constraint_mapping()
         var_collection.store()
         app.db.update()
         logging.info("Update derived types by parsing affected formalizations.")
