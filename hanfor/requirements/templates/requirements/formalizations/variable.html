@@ -39,10 +39,27 @@
       </div>
     </div>
   </div>
-  <div class="container-fluid my-3">
-    <strong class="fs-5 mb-2"> Constraints </strong>
-    <button type="button" class="btn btn-success btn-sm p-1">+ Add</button>
-  </div>
+   <div class="container-fluid my-3">
+     <strong class="fs-5 mb-2"> Constraints </strong>
+     <div class="container px-0">
+       <div class="d-flex flex-wrap gap-1" id="constraints-wrapper">
+         {{#constraint_refs}}
+         <span href="#"
+            class="badge text-bg-success constraint-badge fs-6"
+            data-bs-toggle="popover"
+            data-bs-trigger="hover focus"
+            data-bs-placement="top"
+            data-bs-title="In: {{ owner_id }}"
+            data-bs-content="{{ pattern_text }}">
+           {{ usage_key }}
+         </span>
+         {{/constraint_refs}}
+         {{^constraint_refs}}
+         <div class="text-muted small">No constraints.</div>
+         {{/constraint_refs}}
+       </div>
+     </div>
+   </div>
   <div class="container-fluid my-3 d-none enumerators-container">
     <strong class="fs-5 mb-2"> Enumerators </strong>
     <button type="button" class="btn btn-success btn-sm p-1 add-enumerator-btn">+ Add</button>

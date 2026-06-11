@@ -51,11 +51,13 @@ class Tag:
     def __hash__(self):
         return hash(self.uuid)
 
+
 class FormalizationOfType(Enum):
     """
     Enum for different formalization types.
     The template_name property returns the string used on the frontend templates.
     """
+
     FORMALIZATION = "formalization"
     VARIABLE = "variable"
 
@@ -75,8 +77,6 @@ class FormalizationProtocol(Protocol):
 class BaseFormalization(ABC):
     def of_type(self) -> str:
         return self.__class__.__name__.lower()
-
-
 
 
 @DatabaseTable(TableType.Folder)
@@ -104,7 +104,6 @@ class Requirement:
         self._revision_diff = dict()
         self._next_formalization_index: int = -1
         self._formalization_index_mutex: Lock = Lock()
-
 
     def add_formalization_with_id(self, formalization: FormalizationProtocol, fid: int):
         self.formalizations[fid] = formalization
@@ -826,7 +825,6 @@ class Variable(BaseFormalization):
         self.set_name(new_name)
         self.rename_var_in_constraints(old_name, new_name)
 
-
     def get_string(self) -> str:
         return self.name
 
@@ -870,6 +868,7 @@ class Variable(BaseFormalization):
 class VariableCollection:
     def __init__(self, variables: Iterable[Variable], requirements: Iterable[Requirement]):
         self.collection: dict[str, Variable] = {v.name: v for v in variables}
+        self._constraints: dict[str, Constraint]
         self.var_req_mapping = dict()
         self.refresh_var_usage(requirements)
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
@@ -892,7 +891,9 @@ class VariableCollection:
 
             return True
 
-        result = [var.to_dict(var_req_mapping=self.var_req_mapping) for var in self.collection.values() if in_result(var)]
+        result = [
+            var.to_dict(var_req_mapping=self.var_req_mapping) for var in self.collection.values() if in_result(var)
+        ]
 
         if len(result) > 0 and sort_by is not None and sort_by in result[0].keys():
             result = sorted(result, key=lambda k: k[sort_by])
@@ -1026,10 +1027,10 @@ class VariableCollection:
                     float(var.value)
                 except (TypeError, ValueError) as e:
                     logging.debug(
-                            f"Failed variable {var.name}: "
-                            f"value={repr(var.value)}, "
-                            f"type={type(var.value)}, "
-                            f"error={e}"
+                        f"Failed variable {var.name}: "
+                        f"value={repr(var.value)}, "
+                        f"type={type(var.value)}, "
+                        f"error={e}"
                     )
                     type_env[name] = mapping["unknown"]
                     continue
@@ -1111,7 +1112,8 @@ class VariableCollection:
                 var.reload_constraints_type_inference_errors(self, standard_tags)
 
     def refresh_var_usage(self, requirements: Iterable[Requirement]):
-        mapping = dict()
+        self._constraints: dict[str, list[Constraint]] = {}
+        self.var_req_mapping: dict[str, set[str]] = {}
 
         # Add the requirements using this variable.
         for req in requirements:
@@ -1119,9 +1121,12 @@ class VariableCollection:
                 if isinstance(formalization, Formalization):
                     try:
                         for var_name in formalization.used_variables:
-                            if var_name not in mapping.keys():
-                                mapping[var_name] = set()
-                            mapping[var_name].add(req.rid)
+                            if var_name not in self.var_req_mapping.keys():
+                                self.var_req_mapping[var_name] = set()
+                            self.var_req_mapping[var_name].add(req.rid)
+                            self._constraints.setdefault(var_name, []).append(
+                                Constraint.from_requirement(formalization, req.rid)
+                            )
                     except TypeError:
                         pass
                     except Exception as e:
@@ -1130,14 +1135,13 @@ class VariableCollection:
 
         # Add the constraints using this variable.
         for var in self.collection.values():
-            for constraint in var.get_constraints().values():
-                for constraint_id, expression in enumerate(constraint.expressions_mapping.values()):
+            for cid, constraint in var.get_constraints().items():
+                for expression in constraint.expressions_mapping.values():
                     for var_name in expression.used_variables:
-                        if var_name not in mapping.keys():
-                            mapping[var_name] = set()
-                        mapping[var_name].add("Constraint_{}_{}".format(var.name, constraint_id))
-
-        self.var_req_mapping = mapping
+                        if var_name not in self.var_req_mapping.keys():
+                            self.var_req_mapping[var_name] = set()
+                        self.var_req_mapping[var_name].add("Constraint_{}_{}".format(var.name, cid))
+                        self._constraints.setdefault(var_name, []).append(Constraint.from_variable(constraint, var.name))
 
     def del_var(self, var_name) -> Union[Variable, None]:
         """Check if a variable can be deleted ie, is not used somewhere.
@@ -1288,6 +1292,7 @@ def replace_prefix(input_string: str, prefix_old: str, prefix_new: str):
         input_string = "".join((prefix_new, input_string[len(prefix_old) :]))
     return input_string
 
+
 class Constraint:
     formalization: Formalization
     owner_type: Literal["requirement", "variable"]
@@ -1311,5 +1316,3 @@ class Constraint:
         if self.owner_type == "variable":
             return f"Constraint_{self.owner_id}_{self.formalization.id}"
         return f"{self.owner_id}:{self.formalization.id}"
-
-

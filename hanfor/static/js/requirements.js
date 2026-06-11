@@ -1,5 +1,5 @@
 require("gasparesganga-jquery-loading-overlay")
-const { Collapse, Modal, Tab } = require("bootstrap")
+const { Collapse, Modal, Popover, Tab } = require("bootstrap")
 require("datatables.net-bs5")
 require("datatables.net-select-bs5")
 require("jquery-ui/ui/widgets/autocomplete")
@@ -18,7 +18,7 @@ import Mustache from "mustache"
 import FormalizationStore from "./formalizations/store"
 import "jquery-sortablejs"
 import FormalizationRenderer from "./formalizations/renderer.js"
-import { AVAILABLE_TYPES } from "./variables.js"
+import { AVAILABLE_VARIABLE_TYPES } from "./variables.js"
 
 let utils = require("./hanfor-utils")
 const autosize = require("autosize/dist/autosize")
@@ -97,7 +97,7 @@ renderer.registerType("variable", {
     type_input
       .autocomplete({
         minLength: 0,
-        source: AVAILABLE_TYPES,
+        source: AVAILABLE_VARIABLE_TYPES,
         select: function () {
           // input value is updated after select, so we use setTimeout
           setTimeout(toggle, 0)
@@ -142,7 +142,7 @@ renderer.registerType("variable", {
     }
     function validateType() {
       const val = $typeInput.val()
-      if (val && !AVAILABLE_TYPES.includes(val)) {
+      if (val && !AVAILABLE_VARIABLE_TYPES.includes(val)) {
         $typeInput.addClass("is-invalid")
       } else {
         $typeInput.removeClass("is-invalid")
@@ -150,7 +150,7 @@ renderer.registerType("variable", {
     }
     toggle()
     validateType()
-    $container.find("#variable-type-feedback").text("Supported types are " + AVAILABLE_TYPES.join(", "))
+    $container.find("#variable-type-feedback").text("Supported types are " + AVAILABLE_VARIABLE_TYPES.join(", "))
     $typeInput.on("input change autocompleteselect", function () {
       toggle()
       validateType()
@@ -1111,6 +1111,10 @@ function init_modal() {
 
   //requirement_modal.on('hide.bs.modal', function (event) {
   requirement_modal[0].addEventListener("hide.bs.modal", function (event) {
+    $(".constraint-badge").each(function () {
+      const popover = Popover.getInstance(this)
+      if (popover) popover.dispose()
+    })
     modal_closing_routine(event)
   })
 
@@ -1285,6 +1289,9 @@ function load_requirement(row_idx) {
       update_vars()
       bind_var_autocomplete()
       update_formalization()
+      $(".constraint-badge").each(function () {
+        new Popover(this, { trigger: "hover focus", placement: "top" })
+      })
       $("#requirement_modal").data({
         unsaved_changes: false,
         updated_formalization: false,

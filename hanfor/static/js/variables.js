@@ -17,7 +17,8 @@ require('./bootstrap-confirm-button');
 let utils = require('./hanfor-utils');
 
 // Globals
-export let AVAILABLE_TYPES = ['CONST', 'ENUM_INT', 'ENUM_REAL', 'BOOL',];
+export let AVAILABLE_VARIABLE_TYPES = window.AVAILABLE_VARIABLE_TYPES
+    || ['CONST', 'ENUM_INT', 'ENUM_REAL', 'BOOL'];
 let search_autocomplete = [
     ":AND:",
     ":OR:",
@@ -66,7 +67,7 @@ function validateNameInput($input) {
 
 function validateTypeInput($input) {
     const val = $input.val();
-    if (val && !AVAILABLE_TYPES.includes(val)) {
+    if (val && !AVAILABLE_VARIABLE_TYPES.includes(val)) {
         $input.addClass("is-invalid");
         return false;
     }
@@ -122,11 +123,6 @@ function store_variable(variables_table) {
 
         constraints[constraint['id']] = constraint;
     });
-
-    // Update available types.
-    if (var_type !== null && AVAILABLE_TYPES.indexOf(var_type) <= -1) {
-        AVAILABLE_TYPES.push(var_type);
-    }
 
     // Process enumerators in case we have an enum
     let enumerators = [];
@@ -620,12 +616,12 @@ function load_variable(row_idx) {
 
     type_input.autocomplete({
         minLength: 0,
-        source: AVAILABLE_TYPES
+        source: AVAILABLE_VARIABLE_TYPES
     }).on('focus', function () {
         $(this).keydown();
     });
 
-    $('#variable-type-feedback').text("Supported: " + AVAILABLE_TYPES.join(", "));
+    $('#variable-type-feedback').text("Supported: " + AVAILABLE_VARIABLE_TYPES.join(", "));
     validateNameInput($('#variable_name'));
     validateTypeInput($('#variable_type'));
 
@@ -780,9 +776,6 @@ $(document).ready(function () {
                 "data": "type",
                 "targets": [2],
                 "render": function (data, type, row) {
-                    if (data !== null && AVAILABLE_TYPES.indexOf(data) <= -1) {
-                        AVAILABLE_TYPES.push(data);
-                    }
                     if (data !== null && data === 'CONST') {
                         data = data + ' (' + row['const_val'] + ')';
                     }
@@ -1027,7 +1020,7 @@ $(document).ready(function () {
     // Bind autocomplete for "edit-selected" types
     $('#multi-change-type-input').autocomplete({
         minLength: 0,
-        source: AVAILABLE_TYPES,
+        source: AVAILABLE_VARIABLE_TYPES,
         delay: 100
     }).on('focus', function () {
         $(this).keydown();

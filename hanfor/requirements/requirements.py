@@ -32,13 +32,17 @@ from lib_core.data import (
 )
 from lib_core.pattern import APattern
 from lib_core.pattern.patterns_functions import VARIABLE_AUTOCOMPLETE_EXTENSION
-from requirements.desc_highlighting import get_highlighted_desc, new_variables_regenerate_highlighting
 from lib_core.utils import (
     default_scope_options,
     formalization_html,
     get_default_pattern_options,
     log_request_response,
     prepare_patterns_for_jinja,
+)
+from lib_core.boogie_parsing import BoogieType
+from requirements.desc_highlighting import (
+    get_highlighted_desc,
+    new_variables_regenerate_highlighting,
 )
 
 blueprint = Blueprint("requirements", __name__, template_folder="templates", url_prefix="/")
@@ -61,6 +65,11 @@ def index():
     return render_template(
         # TODO: the object refactor will break this - fix later!!
         "requirements/index.html",
+        available_variable_types=["CONST"] + [
+            t for t in BoogieType.get_valid_type_names()
+            # im ignoring this for now since idk what these are used for
+            if t not in ("ENUMERATOR_INT", "ENUMERATOR_REAL")
+        ],
         query=request.args,
         additional_cols=additional_cols,
         default_cols=default_cols,
@@ -299,11 +308,23 @@ class ApiFormalizations(Resource):
             formalization_repr["formalization_type"] = formalization.of_type()
             formalization_repr["id"] = idx
             formalization_repr["text"] = formalization.get_string()
-            if formalization.of_type() == "variable" and formalization.type in ("ENUM_INT", "ENUM_REAL"):
-                enums = var_collection.get_enumerators(formalization.name)
-                formalization_repr["enumerators"] = [
-                    {"name": e.name[len(formalization.name) + 1:], "value": e.value} for e in enums
+            if formalization.of_type() == "variable":
+                constraint_refs = var_collection._constraints.get(formalization.name, [])
+                formalization_repr["constraint_refs"] = [
+                    {
+                        "usage_key": c.usage_key,
+                        "owner_type": c.owner_type,
+                        "owner_id": c.owner_id,
+                        "pattern_text": c.formalization.get_string(),
+                    }
+                    for c in constraint_refs
                 ]
+                if formalization.type in ("ENUM_INT", "ENUM_REAL"):
+                    enums = var_collection.get_enumerators(formalization.name)
+                    formalization_repr["enumerators"] = [
+                        {"name": e.name[len(formalization.name) + 1:], "value": e.value} for e in enums
+                    ]
+ 
             result.append(formalization_repr)
         return result
 
