@@ -12,7 +12,7 @@ require("datatables.net-colreorder-bs5")
 require("datatables.net-colresize-unofficial")
 require("datatables.net-colresize-unofficial/jquery.dataTables.colResize.css")
 require("./bootstrap-confirm-button")
-const {marked} = require("marked")
+const { marked } = require("marked")
 import Sortable from "sortablejs"
 import Mustache from "mustache"
 import FormalizationStore from "./formalizations/store"
@@ -184,6 +184,79 @@ renderer.registerType("variable", {
   },
 })
 
+document.addEventListener("show.bs.dropdown", function (event) {
+  const target= event.target.closest("#constraint-dropdown")
+  if (!target) return;
+
+  const $dropdown = $(target)
+  const $ul = $dropdown.find("#potential-constraints-holder")
+  const $varAccordion = $dropdown.closest(".accordion-item")
+  $ul.empty()
+  const rid = $("#requirement_id").val()
+  $("#formalization_accordion")
+    .find('.accordion-item[data-type="formalization"]').each(function () {
+      const fid = $(this).data("id")
+      const text = $(this).find(".accordion-button").text().trim()
+      const truncated = text.length > 55
+        ? text.substring(0, 52) + "..."
+        : text
+
+      $ul.append(
+        $("<li>").append(
+          $('<a class="dropdown-item" href="#">')
+            .text(`FID:${fid}  ${truncated}`)
+            .on("click", function () {
+              const usageKey = `${rid}:${fid}`
+              if ($varAccordion.find(`.pending-constraint-badge[data-usage-key="${usageKey}"]`).length) {
+                return
+              }
+              addSelectedConstraint($varAccordion, usageKey, fid, text)
+              $("#requirement_modal").data({
+                unsaved_changes: true,
+                updated_formalization: true,
+              })
+            })
+        )
+      )
+    })
+})
+
+function addSelectedConstraint($accordionItem, usageKey, fid, text) {
+  const $pending = $accordionItem.find(".pending-constraints")
+  const $list = $pending.find(".pending-constraints-list")
+
+  $pending.removeClass("d-none")
+
+  const truncated = text.length > 50
+    ? text.substring(0, 47) + "..."
+    : text
+
+  const $badge = $(`
+    <span class="badge text-bg-danger fs-6 pending-constraint-badge"
+          data-usage-key="${usageKey}"
+          data-bs-toggle="popover"
+          data-bs-trigger="hover focus"
+          data-bs-placement="top"
+          data-bs-title="FID:${fid}"
+          data-bs-content="${truncated}">
+      ${usageKey}
+      <button class="btn-close btn-close-white ms-1" style="font-size:0.5rem"></button>
+    </span>
+  `)
+
+  $badge.find(".btn-close").on("click", function (e) {
+    e.stopPropagation()
+    $badge.remove()
+    if (!$list.children().length) $pending.addClass("d-none")
+    $("#requirement_modal").data({
+      unsaved_changes: true,
+      updated_formalization: true,
+    })
+  })
+
+  $list.append($badge)
+}
+
 // bind it globaly on each selector change so it gets always loaded
 $(document).on("change", ".scope_selector, .pattern_selector", function () {
   bind_var_autocomplete()
@@ -337,24 +410,24 @@ $(document).ready(function () {
   bind_tag_field_events()
 })
 
-$(document).on('click', '.highlighted-variable, .highlighted-variable-extra', function() {
-    const varName = $(this).data('main-var') || $(this).data('var');
-    navigator.clipboard.writeText(varName);
+$(document).on('click', '.highlighted-variable, .highlighted-variable-extra', function () {
+  const varName = $(this).data('main-var') || $(this).data('var');
+  navigator.clipboard.writeText(varName);
 
-    const $tip = $('<span>Copied!</span>').css({
-        position: 'absolute',
-        background: 'yellow',
-        padding: '2px 4px',
-        borderRadius: '3px',
-        zIndex: 9999
-    }).appendTo('body');
+  const $tip = $('<span>Copied!</span>').css({
+    position: 'absolute',
+    background: 'yellow',
+    padding: '2px 4px',
+    borderRadius: '3px',
+    zIndex: 9999
+  }).appendTo('body');
 
-    const offset = $(this).offset();
-    $tip.css({
-        left: offset.left + 'px',
-        top: offset.top + $(this).outerHeight() + 5 + 'px'
-    });
-    setTimeout(() => $tip.remove(), 300);
+  const offset = $(this).offset();
+  $tip.css({
+    left: offset.left + 'px',
+    top: offset.top + $(this).outerHeight() + 5 + 'px'
+  });
+  setTimeout(() => $tip.remove(), 300);
 });
 
 
@@ -664,6 +737,12 @@ function store_requirement(requirements_table) {
         enumerators.push([$(this).val(), $item.find(".enum_value_input").eq(i).val() || ""])
       })
       formalization["enumerators"] = enumerators
+      const constraints = []
+      $item.find(".pending-constraint-badge").each(function () {
+        constraints.push($(this).data("usage-key"))
+      })
+      formalization["constraints"] = constraints
+      console.log(formalization["constraints"])
     } else {
       formalization["scope"] = $item.find(".scope_selector").val()
       formalization["formalization_type"] = "formalization"
@@ -702,7 +781,7 @@ function store_requirement(requirements_table) {
     store.commitCreated(req_id),
   ).done(function () {
     $.ajax({
-        url: `api/v1/req/${req_id}`,
+      url: `api/v1/req/${req_id}`,
       method: "PATCH",
       data: {
         row_idx: associated_row_id,
