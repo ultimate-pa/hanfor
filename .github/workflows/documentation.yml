@@ -1,9 +1,11 @@
 name: Deploy Docs
 
-on: 
+on:
   push:
-      paths:
-      - './documentation/**'
+    branches:
+      - '**'
+    paths:
+      - 'documentation/**'
 
 permissions:
   contents: write
