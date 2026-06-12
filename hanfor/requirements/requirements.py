@@ -65,11 +65,7 @@ def index():
     return render_template(
         # TODO: the object refactor will break this - fix later!!
         "requirements/index.html",
-        available_variable_types=["CONST"] + [
-            t for t in BoogieType.get_valid_type_names()
-            # im ignoring this for now since idk what these are used for
-            if t not in ("ENUMERATOR_INT", "ENUMERATOR_REAL")
-        ],
+        available_variable_types=["CONST"] + list(BoogieType.get_valid_type_names()),
         query=request.args,
         additional_cols=additional_cols,
         default_cols=default_cols,
@@ -274,7 +270,7 @@ class ApiRequirementSingle(Resource):
                     logging.debug(f"Not a Variable instance, got: {type(var).__name__}")
 
             success, errormsg, _ = variable_collection.create_enum_variable(
-                var_name, var_type, enumerators, current_app
+                var_name, var_type, enumerators
             )
             if not success:
                 return True, errormsg
@@ -494,7 +490,7 @@ class ApiFormalizationStore(Resource):
             )
 
             success, errormsg, _ = variable_collection.create_enum_variable(
-                data["name"], data["type"], data.get("enumerators", []), current_app
+                data["name"], data["type"], data.get("enumerators", [])
             )
             if not success:
                 error = True
@@ -593,7 +589,7 @@ class ApiFormalizationStore(Resource):
                     current_app.db.get_objects(Requirement).values(),
                 )
                 success, errormsg, _ = variable_collection.create_enum_variable(
-                    variable.name, variable.type, data["enumerators"], current_app
+                    variable.name, variable.type, data["enumerators"]
                 )
                 if not success:
                     return {"success": False, "errormsg": errormsg}, 400
@@ -685,7 +681,7 @@ class ApiFormalizationStore(Resource):
                     current_app.db.get_objects(Requirement).values(),
                 )
                 success, errormsg, _ = variable_collection.create_enum_variable(
-                    variable.name, variable.type, data["enumerators"], current_app
+                    variable.name, variable.type, data["enumerators"]
                 )
                 if not success:
                     return {"success": False, "errormsg": errormsg}, 400

@@ -83,6 +83,15 @@ renderer.registerType("formalization", {
   },
 })
 
+function debounce(fn, delay) {
+  let timer
+  return function () {
+    let ctx = this, args = arguments
+    clearTimeout(timer)
+    timer = setTimeout(function () { fn.apply(ctx, args) }, delay)
+  }
+}
+
 renderer.registerType("variable", {
   defaults: {
     order: 0,
@@ -124,13 +133,13 @@ renderer.registerType("variable", {
       }
     }
     validateName()
-    name_input.on("input", function () {
+    name_input.on("input", debounce(function () {
       const newName = $(this).val().trim()
       const button = $container.closest(".accordion-item").find(".accordion-button")
       button.text(newName ? newName : `new_variable_${id}`)
       validateName()
       markDirty()
-    })
+    }, 300))
     // value field needed
     const $block = $container.closest(".accordion-item")
     const $typeInput = $block.find(".variable-type")
@@ -151,11 +160,11 @@ renderer.registerType("variable", {
     toggle()
     validateType()
     $container.find("#variable-type-feedback").text("Supported types are " + AVAILABLE_VARIABLE_TYPES.join(", "))
-    $typeInput.on("input change autocompleteselect", function () {
+    $typeInput.on("input change autocompleteselect", debounce(function () {
       toggle()
       validateType()
       markDirty()
-    })
+    }, 300))
     const $variableValue = $block.find("input.variable-value")
     $variableValue.on("input", markDirty)
     // enumerators
@@ -687,36 +696,42 @@ function store_requirement(requirements_table) {
     Object.entries(formalizations).filter(([id]) => !store.isCreated("formalization", id)),
   )
   console.log("Committed formalizations:", JSON.stringify(committedFormalizations, null, 2))
-  store.commitDeletes(req_id, "formalization")
-  store.commitDeletes(req_id, "variable")
-  store.commitCreated(req_id)
-  $.ajax({
-      url: `api/v1/req/${req_id}`,
-    method: "PATCH",
-    data: {
-      row_idx: associated_row_id,
-      update_formalization: updated_formalization,
-      tags: JSON.stringify(Object.fromEntries(tag_comments)),
-      status: req_status,
-      formalizations: JSON.stringify(committedFormalizations),
-      formalizations_order: JSON.stringify(load_order),
-    },
-    success: function (data) {
-      requirement_modal_content.LoadingOverlay("hide", true)
+  $.when(
+    store.commitDeletes(req_id, "formalization"),
+    store.commitDeletes(req_id, "variable"),
+    store.commitCreated(req_id),
+  ).done(function () {
+    $.ajax({
+        url: `api/v1/req/${req_id}`,
+      method: "PATCH",
+      data: {
+        row_idx: associated_row_id,
+        update_formalization: updated_formalization,
+        tags: JSON.stringify(Object.fromEntries(tag_comments)),
+        status: req_status,
+        formalizations: JSON.stringify(committedFormalizations),
+        formalizations_order: JSON.stringify(load_order),
+      },
+      success: function (data) {
+        requirement_modal_content.LoadingOverlay("hide", true)
 
-      if (data["success"] === false) {
-        alert(data["errormsg"])
-      } else {
-        requirements_table.row(associated_row_id).data(data)
+        if (data["success"] === false) {
+          alert(data["errormsg"])
+        } else {
+          requirements_table.row(associated_row_id).data(data)
 
-        $("#requirement_modal").data("unsaved_changes", false)
+          $("#requirement_modal").data("unsaved_changes", false)
 
-        const requirement_modal = document.querySelector("#requirement_modal")
-        Modal.getOrCreateInstance(requirement_modal).hide()
-      }
-    },
-  }).done(function () {
-    update_logs()
+          const requirement_modal = document.querySelector("#requirement_modal")
+          Modal.getOrCreateInstance(requirement_modal).hide()
+        }
+      },
+    }).done(function () {
+      update_logs()
+    })
+  }).fail(function (err) {
+    requirement_modal_content.LoadingOverlay("hide", true)
+    alert("Save failed: " + (err && err.errormsg || "Unknown error"))
   })
 }
 

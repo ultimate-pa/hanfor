@@ -524,7 +524,7 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
             app.db.update()
 
     try:
-        success, errormsg, _ = var_collection.create_enum_variable(var_name, var_type, enumerators, app)
+        success, errormsg, _ = var_collection.create_enum_variable(var_name, var_type, enumerators)
     except ValueError as e:
         result = {"success": False, "errormsg": str(e)}
         return result

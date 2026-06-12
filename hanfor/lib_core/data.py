@@ -14,7 +14,7 @@ from uuid import uuid4
 from lark import LarkError
 from typing_extensions import deprecated
 
-from hanfor_flask import HanforFlask
+from hanfor_flask import current_app, HanforFlask
 from json_db_connector.json_db import (
     DatabaseTable,
     TableType,
@@ -1145,7 +1145,7 @@ class VariableCollection:
 
     # TODO: Maybe there is a smarter way to do construct this return type
     def create_enum_variable(
-        self, var_name: str, var_type: str, enumerators: list[list[str]], app: HanforFlask
+        self, var_name: str, var_type: str, enumerators: list[list[str]]
     ) -> tuple[bool, str | None, list[str]]:
         """Create an ENUM_INT/ENUM_REAL variable and its ENUMERATOR sub-variables.
 
@@ -1161,7 +1161,7 @@ class VariableCollection:
 
         if not self.var_name_exists(var_name):
             enum_var = self.add_var(var_name)
-            app.db.add_object(enum_var)
+            current_app.db.add_object(enum_var)
         self.collection[var_name].set_type(var_type)
 
         new_vars = []
@@ -1173,7 +1173,7 @@ class VariableCollection:
             if existing.name not in incoming:
                 self.collection.pop(existing.name, None)
                 self.var_req_mapping.pop(existing.name, None)
-                app.db.remove_object(existing)
+                current_app.db.remove_object(existing)
 
         for enumerator_name, enumerator_value in enumerators:
             if not enumerator_name and not enumerator_value:
@@ -1191,7 +1191,7 @@ class VariableCollection:
             full_name = f"{var_name}_{enumerator_name}"
             if not self.var_name_exists(full_name):
                 var = self.add_var(full_name)
-                app.db.add_object(var)
+                current_app.db.add_object(var)
                 new_vars.append(full_name)
 
             self.collection[full_name].set_type(f"ENUMERATOR_{var_type[5:]}")
@@ -1199,7 +1199,7 @@ class VariableCollection:
             self.collection[full_name].belongs_to_enum = var_name
 
         self.store()
-        app.db.update()
+        current_app.db.update()
         return True, None, new_vars
 
     def import_session(self, import_collection):
