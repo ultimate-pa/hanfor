@@ -13,7 +13,7 @@ _Hanfor_ is a web based tool running on JavaScript on the client side and python
 
 ### Backend
 
-Prepare the python environment as described in the [installation guide](../installation/installation.md#install-dependencies).
+Prepare the python environment as described in the [installation guide](../../installation/installation.md#install-dependencies).
 
 Additionally install the development requirements
 
@@ -59,7 +59,7 @@ npm run dev-build
 
 ### Backend
 
-Launch a Hanfor session as explained in the [installation guide](../installation/installation.md#launch-a-hanfor-session).
+Launch a Hanfor session as explained in the [installation guide](../../installation/installation.md#launch-a-hanfor-session).
 
 
 ## Analysis Connector
