@@ -1,19 +1,23 @@
 import logging
 import os
 import re
+from bisect import bisect_left
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import List, Optional, Any
+from typing import Any, List, Optional
+
+from immutabledict import immutabledict
 from jinja2 import Environment, FileSystemLoader
-from rapidfuzz import process, fuzz
+from rapidfuzz import fuzz, process
 
 from hanfor_flask import current_app
 from lib_core.data import Variable
-from bisect import bisect_left
-from immutabledict import immutabledict
-
-from thread_handling.thread_function_decorator import thread_function, is_stopped, set_status
-from thread_handling.threading_core import ThreadTask, SchedulingClass, ThreadGroup
+from thread_handling.thread_function_decorator import (
+    is_stopped,
+    set_status,
+    thread_function,
+)
+from thread_handling.threading_core import SchedulingClass, ThreadGroup, ThreadTask
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
 env = Environment(loader=FileSystemLoader(TEMPLATE_DIR), autoescape=False)
@@ -42,7 +46,9 @@ class RequirementHighlightingData:
 
     highlighted_desc: str = ""
     variable_matches: list[VariableMatch] = field(default_factory=list)
-    variable_fragments_fuzz_matches: dict[str, list[tuple[str, float, int]]] = field(default_factory=dict)
+    variable_fragments_fuzz_matches: dict[str, list[tuple[str, float, int]]] = field(
+        default_factory=dict
+    )
 
     desc_words_positions: dict[str, list[tuple[int, int]]] = field(default_factory=dict)
     desc_words: list[str] = field(default_factory=list)
@@ -67,9 +73,9 @@ def delete_variables(variables: list[str]) -> None:
         if variable in variable_sets[variable]:
             variable_sets.pop(variable)
     for req_data in requirement_highlighting_data_per_req.values():
-        for match in req_data.variable_matches:
-            if match.variable in variables:
-                req_data.variable_matches.remove(match)
+        req_data.variable_matches = [
+            m for m in req_data.variable_matches if m.variable not in variables
+        ]
         req_data.highlighted_desc = _generate_md_description(
             req_data.variable_matches,
             req_data.description,
@@ -141,14 +147,18 @@ def generate_all_highlighted_desc(
     if requirements:
         set_status("Initialize each requirement...")
         for req_id, requirement in requirements.items():
-            word_positions = _normalize_and_group_positions_from_desc(requirement.description)
+            word_positions = _normalize_and_group_positions_from_desc(
+                requirement.description
+            )
 
             requirement_highlighting_data_per_req[req_id] = RequirementHighlightingData(
                 req_id=req_id,
                 description=requirement.description,
                 desc_words_positions=word_positions,
                 desc_words=list(word_positions.keys()),
-                desc_words_starting_pos=sorted(pos[0] for positions in word_positions.values() for pos in positions),
+                desc_words_starting_pos=sorted(
+                    pos[0] for positions in word_positions.values() for pos in positions
+                ),
                 highlighted_desc=requirement.description,
             )
 
@@ -162,10 +172,13 @@ def generate_all_highlighted_desc(
         exact_variables = []
         for plain_var, _ in variable_sets_list:
             plain_var_positions = [
-                (m.start(), m.end()) for m in re.finditer(re.escape(plain_var), req_data.description)
+                (m.start(), m.end())
+                for m in re.finditer(re.escape(plain_var), req_data.description)
             ]
             for pos in plain_var_positions:
-                exact_variables.append(VariableMatch(pos[0], pos[1], plain_var, plain_var, 101))
+                exact_variables.append(
+                    VariableMatch(pos[0], pos[1], plain_var, plain_var, 101)
+                )
 
         new_matches = _highlight_desc_variable(
             req_data,
@@ -201,7 +214,9 @@ def _normalize_variable(var: str) -> set[str]:
     return {token for token in var.lower().strip().split() if len(token) > 2}
 
 
-def _normalize_and_group_positions_from_desc(desc: str) -> dict[str, list[tuple[int, int]]]:
+def _normalize_and_group_positions_from_desc(
+    desc: str,
+) -> dict[str, list[tuple[int, int]]]:
     """Extract all words from a description, split camelCase tokens, and map each
     lowercase sub-word to its absolute character positions in the text.
     """
@@ -210,7 +225,11 @@ def _normalize_and_group_positions_from_desc(desc: str) -> dict[str, list[tuple[
     for match in re.finditer(r"\b\w+\b", desc):
         word = match.group()
         start = match.start()
-        split_indices = [0] + [m.start() for m in re.finditer(r"(?<=[a-z])(?=[A-Z])", word)] + [len(word)]
+        split_indices = (
+            [0]
+            + [m.start() for m in re.finditer(r"(?<=[a-z])(?=[A-Z])", word)]
+            + [len(word)]
+        )
         for i in range(len(split_indices) - 1):
             s = split_indices[i]
             e = split_indices[i + 1]
@@ -258,7 +277,9 @@ def _generate_combinations(
             if len(combo) > 0:
                 if position_in_desc[0] == combo[-1][0][0]:
                     continue
-                if not _words_between(combo[-1][0][0], position_in_desc[0], all_word_starts, max_gap):
+                if not _words_between(
+                    combo[-1][0][0], position_in_desc[0], all_word_starts, max_gap
+                ):
                     break
             if variable_fragment not in fragments_used:
                 fragments_used.add(variable_fragment)
@@ -282,7 +303,7 @@ def _generate_combinations(
 
 
 def _filter_combos(
-    combos: list[tuple[float, list[tuple[int, int]]]]
+    combos: list[tuple[float, list[tuple[int, int]]]],
 ) -> list[tuple[float, int, int, list[tuple[int, int]]]]:
     """Filter combinations remove overlapping lower-score segments,
     and select final segments with start and end positions.
@@ -332,10 +353,19 @@ def _highlight_desc_variable(
     final_matches = []
 
     # Cashing fuzzy output for equal fragments to minimize work
-    all_fragments = {fragment for _, variable_fragments in variable_fragments_list for fragment in variable_fragments}
+    all_fragments = {
+        fragment
+        for _, variable_fragments in variable_fragments_list
+        for fragment in variable_fragments
+    }
     for variable_fragment in all_fragments:
         req_data.variable_fragments_fuzz_matches[variable_fragment] = list(
-            process.extract_iter(query=variable_fragment, choices=req_data.desc_words, scorer=fuzz.ratio, score_cutoff=80)  # type: ignore
+            process.extract_iter(
+                query=variable_fragment,
+                choices=req_data.desc_words,
+                scorer=fuzz.ratio,
+                score_cutoff=80,
+            )  # type: ignore
         )
 
     # get all positions
@@ -353,7 +383,10 @@ def _highlight_desc_variable(
 
         # Skip variable_sets with insufficient coverage
         matched_fragments = sum(1 for m in scored_matches.values() if m)
-        if not matched_fragments or matched_fragments / len(variable_fragments) < min_coverage:
+        if (
+            not matched_fragments
+            or matched_fragments / len(variable_fragments) < min_coverage
+        ):
             continue
 
         # Build a global mapping: span -> best score
@@ -379,7 +412,12 @@ def _highlight_desc_variable(
 
         # Generate all ascending combinations and filter them
         combos = _generate_combinations(
-            pos_score_dict, variable_fragments, max_gap, threshold, min_coverage, req_data.desc_words_starting_pos
+            pos_score_dict,
+            variable_fragments,
+            max_gap,
+            threshold,
+            min_coverage,
+            req_data.desc_words_starting_pos,
         )
         selected = _filter_combos(combos)
 
@@ -436,7 +474,6 @@ def _generate_md_description(final_matches: list[VariableMatch], desc) -> str:
     # Build output
     out, last = [], 0
     for s, e, vars_info in sorted(kept_intervals):
-
         segment = desc[last:s]
         out.append(segment)
 
@@ -444,7 +481,12 @@ def _generate_md_description(final_matches: list[VariableMatch], desc) -> str:
         main_var, main_score = vars_info[0]
         extra_vars = vars_info[1:]
         out.append(
-            highlight_tpl.render(text=desc[s:e], main_var=main_var, main_score=main_score, extra_vars=extra_vars)
+            highlight_tpl.render(
+                text=desc[s:e],
+                main_var=main_var,
+                main_score=main_score,
+                extra_vars=extra_vars,
+            )
         )
         last = e
 
@@ -452,6 +494,8 @@ def _generate_md_description(final_matches: list[VariableMatch], desc) -> str:
     out.append(rest)
 
     desc_highlighted = "".join(out)
-    desc_highlighted = re.sub(r"```(.*?)```", r"<pre><code>\1</code></pre>", desc_highlighted, flags=re.DOTALL)
+    desc_highlighted = re.sub(
+        r"```(.*?)```", r"<pre><code>\1</code></pre>", desc_highlighted, flags=re.DOTALL
+    )
     desc_highlighted = re.sub(r"`([^`]+)`", r"<code>\1</code>", desc_highlighted)
     return desc_highlighted
