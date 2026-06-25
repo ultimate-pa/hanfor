@@ -20,6 +20,7 @@ from lib_core.api_models import (
     RequirementListModel,
     SuccessResponseModel,
 )
+from lib_core.boogie_parsing import BoogieType
 from lib_core.data import (
     Formalization,
     FormalizationOfType,
@@ -39,14 +40,17 @@ from lib_core.utils import (
     log_request_response,
     prepare_patterns_for_jinja,
 )
-from lib_core.boogie_parsing import BoogieType
 from requirements.desc_highlighting import (
     get_highlighted_desc,
     new_variables_regenerate_highlighting,
 )
 
-blueprint = Blueprint("requirements", __name__, template_folder="templates", url_prefix="/")
-api_ns = Namespace("Requirements", "Requirements API description", path="/req", ordered=True)
+blueprint = Blueprint(
+    "requirements", __name__, template_folder="templates", url_prefix="/"
+)
+api_ns = Namespace(
+    "Requirements", "Requirements API description", path="/req", ordered=True
+)
 
 
 @blueprint.route("", methods=["GET"])
@@ -80,7 +84,7 @@ def index():
 class ApiColumnDefs(Resource):
     @api_ns.doc(
         description="Returns additional column definitions "
-                    "for the requirements DataTable from CSV field names."
+        "for the requirements DataTable from CSV field names."
     )
     @api_ns.response(200, "Success", ColumnDefsModel)
     @nocache
@@ -94,7 +98,7 @@ class ApiColumnDefs(Resource):
 class ApiRequirementSingle(Resource):
     @api_ns.doc(
         description="Returns full detail for one requirement, including "
-                    "formalizations, available variables, and next formalization ID.",
+        "formalizations, available variables, and next formalization ID.",
         params={"rid": "The requirement ID (e.g. 'SysRS FooXY_42')"},
     )
     @api_ns.response(200, "Success", RequirementDetailModel)
@@ -104,12 +108,18 @@ class ApiRequirementSingle(Resource):
         try:
             requirement = current_app.db.get_object(Requirement, rid)
         except DatabaseKeyError:
-            return {"success": False, "errormsg": f"Requirement '{rid}' not found."}, 404
+            return {
+                "success": False,
+                "errormsg": f"Requirement '{rid}' not found.",
+            }, 404
         var_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+            current_app.db.get_objects(Variable).values(),
+            current_app.db.get_objects(Requirement).values(),
         )
         result = requirement.to_dict(include_used_vars=True)
-        result["available_vars"] = var_collection.get_available_var_names_list(used_only=False, exclude_types={"ENUM"})
+        result["available_vars"] = var_collection.get_available_var_names_list(
+            used_only=False, exclude_types={"ENUM"}
+        )
         result["additional_static_available_vars"] = VARIABLE_AUTOCOMPLETE_EXTENSION
         if current_app.config.get("FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"):
             result["desc_highlighted"] = get_highlighted_desc(rid)
@@ -120,7 +130,7 @@ class ApiRequirementSingle(Resource):
 
     @api_ns.doc(
         description="Partial update - only form fields that are sent are "
-                    "changed. Omitted fields remain untouched.",
+        "changed. Omitted fields remain untouched.",
         params={
             "rid": "The requirement ID",
             "status": "New status value (empty string = no change)",
@@ -137,15 +147,22 @@ class ApiRequirementSingle(Resource):
         try:
             requirement = current_app.db.get_object(Requirement, rid)
         except DatabaseKeyError:
-            return {"success": False, "errormsg": f"Requirement '{rid}' not found."}, 404
+            return {
+                "success": False,
+                "errormsg": f"Requirement '{rid}' not found.",
+            }, 404
 
-        self._update_formalizations_order(requirement, request.form.get("formalizations_order"))
+        self._update_formalizations_order(
+            requirement, request.form.get("formalizations_order")
+        )
         self._update_status(requirement, request.form.get("status", ""))
         self._update_tags(requirement, request.form.get("tags"))
         error, error_msg = self._update_formalizations(requirement)
 
         if error:
-            logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
+            logging.error(
+                f"We got an error parsing the expressions: {error_msg}. Omitting requirement update."
+            )
             return {"success": False, "errormsg": error_msg}
 
         current_app.db.update()
@@ -166,7 +183,9 @@ class ApiRequirementSingle(Resource):
         if not new_status or requirement.status == new_status:
             return
         requirement.status = new_status
-        add_msg_to_flask_session_log(current_app, f"Set status to {new_status} for requirement", [requirement])
+        add_msg_to_flask_session_log(
+            current_app, f"Set status to {new_status} for requirement", [requirement]
+        )
         logging.debug(f"Requirement status set to {requirement.status}")
 
     @staticmethod
@@ -179,7 +198,9 @@ class ApiRequirementSingle(Resource):
             return
 
         added_tags = new_tag_set.keys() - req_tags.keys()
-        all_tags: dict[str, Tag] = {t.name: t for t in current_app.db.get_objects(Tag).values()}
+        all_tags: dict[str, Tag] = {
+            t.name: t for t in current_app.db.get_objects(Tag).values()
+        }
         removed_tags = req_tags.keys() - new_tag_set.keys()
         for tag in removed_tags:
             if tag not in all_tags:
@@ -193,9 +214,13 @@ class ApiRequirementSingle(Resource):
                 tag = all_tags[tag]
             requirement.tags[tag] = comment
         add_msg_to_flask_session_log(
-            current_app, f"Tags: + {added_tags} and - {removed_tags} to requirement", [requirement]
+            current_app,
+            f"Tags: + {added_tags} and - {removed_tags} to requirement",
+            [requirement],
         )
-        logging.debug(f"Tags: + {added_tags} and - {removed_tags} to requirement {requirement.rid}")
+        logging.debug(
+            f"Tags: + {added_tags} and - {removed_tags} to requirement {requirement.rid}"
+        )
 
     @staticmethod
     def _update_formalizations(requirement):
@@ -204,18 +229,26 @@ class ApiRequirementSingle(Resource):
             return False, ""
 
         formalizations = json.loads(request.form.get("formalizations", ""))
+        if request.form.get("update_formalization") != "true":
+            logging.debug("Skipping formalization update.")
+            return False, ""
+
+        formalizations = json.loads(request.form.get("formalizations", ""))
         logging.debug("Updated Formalizations: {}".format(formalizations))
         variable_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+            current_app.db.get_objects(Variable).values(),
+            current_app.db.get_objects(Requirement).values(),
         )
         logging.debug(f"Formalizations: {requirement.formalizations}")
 
         variable_entries = {
-            k: v for k, v in formalizations.items()
+            k: v
+            for k, v in formalizations.items()
             if v.get("formalization_type") == "variable"
         }
         formal_entries = {
-            k: v for k, v in formalizations.items()
+            k: v
+            for k, v in formalizations.items()
             if v.get("formalization_type") == "formalization"
         }
         logging.debug(f"Only Formalizations: {formal_entries}")
@@ -228,11 +261,26 @@ class ApiRequirementSingle(Resource):
                     SessionValue.get_standard_tags(current_app.db),
                     variable_collection,
                 )
-                add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
+                add_msg_to_flask_session_log(
+                    current_app, "Updated requirement formalization", [requirement]
+                )
                 for v in variable_collection.new_vars:
                     current_app.db.add_object(v)
+                # Persist is_constraint on each updated formalization.
+                for fid_str, entry in formal_entries.items():
+                    try:
+                        fid = int(fid_str)
+                    except (TypeError, ValueError):
+                        continue
+                    if fid in requirement.formalizations and "is_constraint" in entry:
+                        requirement.formalizations[fid].is_constraint = bool(
+                            entry.get("is_constraint", False)
+                        )
             except KeyError as e:
-                return True, f"Could not set formalization: Missing expression/variable for {e}"
+                return (
+                    True,
+                    f"Could not set formalization: Missing expression/variable for {e}",
+                )
             except Exception as e:
                 return True, f"Could not parse formalization: `{e}`"
 
@@ -250,12 +298,16 @@ class ApiRequirementSingle(Resource):
 
             if int(fid) in requirement.formalizations:
                 var = requirement.formalizations[int(fid)]
-                logging.debug(f"Found in formalizations: name={var.name} old_type={var.type}")
+                logging.debug(
+                    f"Found in formalizations: name={var.name} old_type={var.type}"
+                )
                 if isinstance(var, Variable):
                     old_name = var.name
                     if old_name != var_name:
                         if variable_collection.var_name_exists(old_name):
-                            variable_collection.collection[var_name] = variable_collection.collection.pop(old_name)
+                            variable_collection.collection[var_name] = (
+                                variable_collection.collection.pop(old_name)
+                            )
                         try:
                             var.set_name(var_name)
                         except ValueError as e:
@@ -265,7 +317,9 @@ class ApiRequirementSingle(Resource):
                     except ValueError as e:
                         return True, str(e)
                     var.value = var_value
-                    logging.debug(f"Updated: name={var.name} type={var.type} value={var.value}")
+                    logging.debug(
+                        f"Updated: name={var.name} type={var.type} value={var.value}"
+                    )
                 else:
                     logging.debug(f"Not a Variable instance, got: {type(var).__name__}")
 
@@ -283,17 +337,20 @@ class ApiRequirementSingle(Resource):
 class ApiFormalizations(Resource):
     @api_ns.doc(
         description="Returns all formalizations (including variables) for "
-                    "a requirement, with enumerator data where applicable. "
-                    "Use ?subtype=formalization|variable to filter by type.",
-        params={"rid": "The requirement ID",
-                "subtype": "Query param: 'formalization' or 'variable'"},
+        "a requirement, with enumerator data where applicable. "
+        "Use ?subtype=formalization|variable to filter by type.",
+        params={
+            "rid": "The requirement ID",
+            "subtype": "Query param: 'formalization' or 'variable'",
+        },
     )
     @api_ns.response(200, "Success", [FormalizationModel])
     @nocache
     def get(self, rid):
         requirement = current_app.db.get_object(Requirement, rid)
         var_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+            current_app.db.get_objects(Variable).values(),
+            current_app.db.get_objects(Requirement).values(),
         )
         subtype = request.args.get("subtype")
         result = []
@@ -304,8 +361,14 @@ class ApiFormalizations(Resource):
             formalization_repr["formalization_type"] = formalization.of_type()
             formalization_repr["id"] = idx
             formalization_repr["text"] = formalization.get_string()
+            if isinstance(formalization, Formalization):
+                formalization_repr["is_constraint"] = getattr(
+                    formalization, "is_constraint", False
+                )
             if formalization.of_type() == "variable":
-                constraint_refs = var_collection._constraints.get(formalization.name, [])
+                constraint_refs = var_collection._constraints.get(
+                    formalization.name, []
+                )
                 formalization_repr["constraint_refs"] = [
                     {
                         "usage_key": c.usage_key,
@@ -318,9 +381,13 @@ class ApiFormalizations(Resource):
                 if formalization.type in ("ENUM_INT", "ENUM_REAL"):
                     enums = var_collection.get_enumerators(formalization.name)
                     formalization_repr["enumerators"] = [
-                        {"name": e.name[len(formalization.name) + 1:], "value": e.value} for e in enums
+                        {
+                            "name": e.name[len(formalization.name) + 1 :],
+                            "value": e.value,
+                        }
+                        for e in enums
                     ]
- 
+
             result.append(formalization_repr)
         return result
 
@@ -330,7 +397,7 @@ class ApiFormalizations(Resource):
 class ApiRequirementsList(Resource):
     @api_ns.doc(
         description="Returns every requirement in the database "
-                    "as a sorted flat array. Called by the DataTable on page load."
+        "as a sorted flat array. Called by the DataTable on page load."
     )
     @api_ns.response(200, "Success", RequirementListModel)
     @nocache
@@ -348,7 +415,7 @@ class ApiRequirementsList(Resource):
 class ApiFormalizationResource(Resource):
     @api_ns.doc(
         description="Fetches a single formalization by rid and fid. "
-                    "Use ?subtype=formalization|variable to filter by type.",
+        "Use ?subtype=formalization|variable to filter by type.",
         params={
             "rid": "The requirement ID",
             "fid": "The formalization ID",
@@ -367,22 +434,27 @@ class ApiFormalizationResource(Resource):
         if subtype and formalization.of_type() != subtype:
             return {"success": False, "errormsg": "Subtype mismatch."}, 404
         var_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+            current_app.db.get_objects(Variable).values(),
+            current_app.db.get_objects(Requirement).values(),
         )
         result = formalization.to_dict()
         result["formalization_type"] = formalization.of_type()
         result["id"] = int(fid)
         result["text"] = formalization.get_string()
-        if formalization.of_type() == "variable" and formalization.type in ("ENUM_INT", "ENUM_REAL"):
+        if formalization.of_type() == "variable" and formalization.type in (
+            "ENUM_INT",
+            "ENUM_REAL",
+        ):
             enums = var_collection.get_enumerators(formalization.name)
             result["enumerators"] = [
-                {"name": e.name[len(formalization.name) + 1:], "value": e.value} for e in enums
+                {"name": e.name[len(formalization.name) + 1 :], "value": e.value}
+                for e in enums
             ]
         return result
 
     @api_ns.doc(
         description="Removes the formalization with the given ID from "
-                    "the requirement and re-runs type inference.",
+        "the requirement and re-runs type inference.",
         params={
             "rid": "The requirement ID",
             "fid": "The formalization ID to delete",
@@ -416,13 +488,13 @@ class ApiFormalizationResource(Resource):
 class ApiFormalizationStore(Resource):
     @api_ns.doc(
         description="Stores a formalization (real or variable) on a requirement. "
-                    "Creates the formalization or variable entry and updates "
-                    "the variable collection.",
+        "Creates the formalization or variable entry and updates "
+        "the variable collection.",
         params={
             "rid": "The requirement ID",
             "subtype": "Either 'formalization' or 'variable'",
             "fid": "The formalization ID (integer for formalization, "
-                   "temp_id for variable)",
+            "temp_id for variable)",
             "data": "JSON-encoded dict with scope, pattern, expression_mapping",
         },
     )
@@ -442,11 +514,15 @@ class ApiFormalizationStore(Resource):
         data = json.loads(request.form.get("data", ""))
         requirement = current_app.db.get_object(Requirement, rid)
         variable_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+            current_app.db.get_objects(Variable).values(),
+            current_app.db.get_objects(Requirement).values(),
         )
         if subtype_enum == FormalizationOfType.FORMALIZATION:
             if fid is None:
-                return {"success": False, "errormsg": "Formalization has to have an id supplied"}
+                return {
+                    "success": False,
+                    "errormsg": "Formalization has to have an id supplied",
+                }
             fid = int(fid)
             logging.debug(f"FID: {fid}")
             requirement.add_formalization_with_id(Formalization(fid), fid)
@@ -459,11 +535,18 @@ class ApiFormalizationStore(Resource):
                     variable_collection,
                     SessionValue.get_standard_tags(current_app.db),
                 )
-                add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
+                add_msg_to_flask_session_log(
+                    current_app, "Updated requirement formalization", [requirement]
+                )
                 for v in variable_collection.new_vars:
                     current_app.db.add_object(v)
                 if current_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
                     new_variables_regenerate_highlighting(variable_collection.new_vars)
+                # Persist is_constraint on the new formalization.
+                if "is_constraint" in data:
+                    requirement.formalizations[fid].is_constraint = bool(
+                        data["is_constraint"]
+                    )
             except KeyError as e:
                 error = True
                 error_msg = f"Did not find the created empty draft for ID: {e}"
@@ -473,11 +556,19 @@ class ApiFormalizationStore(Resource):
 
         elif subtype_enum == FormalizationOfType.VARIABLE:
             if fid is None:
-                return {"success": False, "errormsg": "Variable has to have a name for it to be registered"}
+                return {
+                    "success": False,
+                    "errormsg": "Variable has to have a name for it to be registered",
+                }
             logging.debug(f"Data set by the variable: {data}")
 
             try:
-                var = Variable(data["name"], data["type"], value=data.get("value"), order=int(data["temp_id"]))
+                var = Variable(
+                    data["name"],
+                    data["type"],
+                    value=data.get("value"),
+                    order=int(data["temp_id"]),
+                )
             except ValueError as e:
                 return {"success": False, "errormsg": str(e)}
             try:
@@ -496,7 +587,9 @@ class ApiFormalizationStore(Resource):
                 error = True
                 error_msg = errormsg
         if error:
-            logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
+            logging.error(
+                f"We got an error parsing the expressions: {error_msg}. Omitting requirement update."
+            )
             return {"success": False, "errormsg": error_msg}
 
         current_app.db.update()
@@ -504,15 +597,15 @@ class ApiFormalizationStore(Resource):
 
     @api_ns.doc(
         description="Partially updates a formalization or variable. Only fields "
-                    "included in the 'data' JSON are changed; omitted fields keep "
-                    "their existing values. 404 if the fid does not exist.",
+        "included in the 'data' JSON are changed; omitted fields keep "
+        "their existing values. 404 if the fid does not exist.",
         params={
             "rid": "The requirement ID",
             "subtype": "Either 'formalization' or 'variable'",
             "fid": "The formalization ID",
             "data": "JSON-encoded dict with optional fields (scope, pattern, "
-                    "expression_mapping for formalizations; name, type, value, "
-                    "enumerators for variables)",
+            "expression_mapping for formalizations; name, type, value, "
+            "enumerators for variables)",
         },
     )
     @api_ns.response(200, "Success", SuccessResponseModel)
@@ -525,7 +618,10 @@ class ApiFormalizationStore(Resource):
             try:
                 subtype_enum = FormalizationOfType(subtype)
             except ValueError:
-                return {"success": False, "errormsg": f"Unknown subtype: {subtype}"}, 400
+                return {
+                    "success": False,
+                    "errormsg": f"Unknown subtype: {subtype}",
+                }, 400
 
         data = json.loads(request.form.get("data", "{}"))
         if not data:
@@ -544,9 +640,14 @@ class ApiFormalizationStore(Resource):
             )
 
             merged_scope = data.get("scope", formalization.scoped_pattern.scope.name)
-            merged_pattern = data.get("pattern", formalization.scoped_pattern.pattern.get_name())
+            merged_pattern = data.get(
+                "pattern", formalization.scoped_pattern.pattern.get_name()
+            )
             merged_mapping = {
-                **{k: v.raw_expression for k, v in formalization.expressions_mapping.items()},
+                **{
+                    k: v.raw_expression
+                    for k, v in formalization.expressions_mapping.items()
+                },
                 **data.get("expression_mapping", {}),
             }
 
@@ -562,9 +663,15 @@ class ApiFormalizationStore(Resource):
                 for v in variable_collection.new_vars:
                     current_app.db.add_object(v)
             except KeyError as e:
-                return {"success": False, "errormsg": f"Could not update formalization: {e}"}, 400
+                return {
+                    "success": False,
+                    "errormsg": f"Could not update formalization: {e}",
+                }, 400
             except Exception as e:
-                return {"success": False, "errormsg": f"Could not parse formalization: `{e}`"}, 400
+                return {
+                    "success": False,
+                    "errormsg": f"Could not parse formalization: `{e}`",
+                }, 400
 
         elif subtype_enum == FormalizationOfType.VARIABLE:
             variable = requirement.formalizations.get(int(fid))
@@ -604,15 +711,15 @@ class ApiFormalizationStore(Resource):
 
     @api_ns.doc(
         description="Fully replaces a formalization or variable. All required "
-                    "fields must be present. 404 if the fid does not exist, "
-                    "400 if required fields are missing.",
+        "fields must be present. 404 if the fid does not exist, "
+        "400 if required fields are missing.",
         params={
             "rid": "The requirement ID",
             "subtype": "Either 'formalization' or 'variable'",
             "fid": "The formalization ID",
             "data": "JSON-encoded dict. For formalizations: scope, pattern, "
-                    "expression_mapping (all required). For variables: "
-                    "name, type (required), value, order, enumerators (optional).",
+            "expression_mapping (all required). For variables: "
+            "name, type (required), value, order, enumerators (optional).",
         },
     )
     @api_ns.response(200, "Success", SuccessResponseModel)
@@ -625,14 +732,24 @@ class ApiFormalizationStore(Resource):
             try:
                 subtype_enum = FormalizationOfType(subtype)
             except ValueError:
-                return {"success": False, "errormsg": f"Unknown subtype: {subtype}"}, 400
+                return {
+                    "success": False,
+                    "errormsg": f"Unknown subtype: {subtype}",
+                }, 400
 
         data = json.loads(request.form.get("data", "{}"))
         requirement = current_app.db.get_object(Requirement, rid)
 
         if subtype_enum == FormalizationOfType.FORMALIZATION:
-            if "scope" not in data or "pattern" not in data or "expression_mapping" not in data:
-                return {"success": False, "errormsg": "scope, pattern, and expression_mapping are required"}, 400
+            if (
+                "scope" not in data
+                or "pattern" not in data
+                or "expression_mapping" not in data
+            ):
+                return {
+                    "success": False,
+                    "errormsg": "scope, pattern, and expression_mapping are required",
+                }, 400
 
             formalization = requirement.formalizations.get(int(fid))
             if not formalization or not isinstance(formalization, Formalization):
@@ -655,9 +772,15 @@ class ApiFormalizationStore(Resource):
                 for v in variable_collection.new_vars:
                     current_app.db.add_object(v)
             except KeyError as e:
-                return {"success": False, "errormsg": f"Could not update formalization: {e}"}, 400
+                return {
+                    "success": False,
+                    "errormsg": f"Could not update formalization: {e}",
+                }, 400
             except Exception as e:
-                return {"success": False, "errormsg": f"Could not parse formalization: `{e}`"}, 400
+                return {
+                    "success": False,
+                    "errormsg": f"Could not parse formalization: `{e}`",
+                }, 400
 
         elif subtype_enum == FormalizationOfType.VARIABLE:
             if "name" not in data or "type" not in data:
@@ -700,7 +823,7 @@ class ApiFormalizationStore(Resource):
 class ApiRequirementTag(Resource):
     @api_ns.doc(
         description="Adds a tag to the requirement. Creates the Tag "
-                    "object if it doesn't exist. No-op if already present.",
+        "object if it doesn't exist. No-op if already present.",
         params={"rid": "The requirement ID", "tag_name": "Name of the tag to add"},
     )
     @api_ns.response(200, "Success", SuccessResponseModel)
@@ -710,8 +833,13 @@ class ApiRequirementTag(Resource):
         try:
             requirement = current_app.db.get_object(Requirement, rid)
         except DatabaseKeyError:
-            return {"success": False, "errormsg": f"Requirement '{rid}' not found."}, 404
-        all_tags: dict[str, Tag] = {t.name: t for t in current_app.db.get_objects(Tag).values()}
+            return {
+                "success": False,
+                "errormsg": f"Requirement '{rid}' not found.",
+            }, 404
+        all_tags: dict[str, Tag] = {
+            t.name: t for t in current_app.db.get_objects(Tag).values()
+        }
         if tag_name not in all_tags:
             tag = Tag(tag_name, Color.BS_INFO.value, False, "")
             current_app.db.add_object(tag)
@@ -719,13 +847,15 @@ class ApiRequirementTag(Resource):
             tag = all_tags[tag_name]
         if tag not in requirement.tags:
             requirement.tags[tag] = ""
-            add_msg_to_flask_session_log(current_app, f"Added tag `{tag_name}` to requirement.", [requirement])
+            add_msg_to_flask_session_log(
+                current_app, f"Added tag `{tag_name}` to requirement.", [requirement]
+            )
         current_app.db.update()
         return {"success": True}
 
     @api_ns.doc(
         description="Removes a tag from the requirement. "
-                    "No-op if the tag doesn't exist or isn't linked.",
+        "No-op if the tag doesn't exist or isn't linked.",
         params={"rid": "The requirement ID", "tag_name": "Name of the tag to remove"},
     )
     @api_ns.response(200, "Success", SuccessResponseModel)
@@ -735,14 +865,22 @@ class ApiRequirementTag(Resource):
         try:
             requirement = current_app.db.get_object(Requirement, rid)
         except DatabaseKeyError:
-            return {"success": False, "errormsg": f"Requirement '{rid}' not found."}, 404
-        all_tags: dict[str, Tag] = {t.name: t for t in current_app.db.get_objects(Tag).values()}
+            return {
+                "success": False,
+                "errormsg": f"Requirement '{rid}' not found.",
+            }, 404
+        all_tags: dict[str, Tag] = {
+            t.name: t for t in current_app.db.get_objects(Tag).values()
+        }
         if tag_name in all_tags and all_tags[tag_name] in requirement.tags:
             requirement.tags.pop(all_tags[tag_name])
-            add_msg_to_flask_session_log(current_app, f"Removed tag `{tag_name}` from requirement.", [requirement])
+            add_msg_to_flask_session_log(
+                current_app,
+                f"Removed tag `{tag_name}` from requirement.",
+                [requirement],
+            )
         current_app.db.update()
         return {"success": True}
-
 
 
 @api_ns.route("/<string:rid>/guesses")
@@ -750,7 +888,7 @@ class ApiRequirementTag(Resource):
 class ApiRequirementGuesses(Resource):
     @api_ns.doc(
         description="Runs all registered guessers and returns available "
-                    "formalization guesses for the given requirement.",
+        "formalization guesses for the given requirement.",
         params={"rid": "The requirement ID"},
     )
     @api_ns.response(200, "Success", AvailableGuessesModel)
@@ -759,11 +897,15 @@ class ApiRequirementGuesses(Resource):
     def get(self, rid):
         requirement = current_app.db.get_object(Requirement, rid)
         if requirement is None:
-            return {"success": False, "errormsg": f"Requirement '{rid}' not found."}, 404
+            return {
+                "success": False,
+                "errormsg": f"Requirement '{rid}' not found.",
+            }, 404
 
         result = {"available_guesses": []}
         var_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+            current_app.db.get_objects(Variable).values(),
+            current_app.db.get_objects(Requirement).values(),
         )
         tmp_guesses = []
 
@@ -773,7 +915,10 @@ class ApiRequirementGuesses(Resource):
                 guesser_instance.guess()
                 tmp_guesses += guesser_instance.guesses
             except ValueError as e:
-                return {"success": False, "errormsg": f"Could not determine a guess: {e}"}, 400
+                return {
+                    "success": False,
+                    "errormsg": f"Could not determine a guess: {e}",
+                }, 400
 
         tmp_guesses = sorted(tmp_guesses, key=Guess.eval_score)
         guesses = []
@@ -801,7 +946,7 @@ class ApiRequirementGuesses(Resource):
 class ApiAddFormalizationFromGuess(Resource):
     @api_ns.doc(
         description="Adds an empty formalization, then fills it with "
-                    "the data from the selected scope, pattern, and mapping.",
+        "the data from the selected scope, pattern, and mapping.",
         params={
             "requirement_id": "Requirement ID",
             "scope": "Scope name",
@@ -823,7 +968,8 @@ class ApiAddFormalizationFromGuess(Resource):
         formalization_id, formalization = requirement.add_empty_formalization()
         # Add content to the formalization.
         variable_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+            current_app.db.get_objects(Variable).values(),
+            current_app.db.get_objects(Requirement).values(),
         )
         requirement.update_formalization(
             formalization_id=formalization_id,
@@ -836,12 +982,15 @@ class ApiAddFormalizationFromGuess(Resource):
         for v in variable_collection.new_vars:
             current_app.db.add_object(v)
         current_app.db.update()
-        add_msg_to_flask_session_log(current_app, "Added formalization guess to requirement", [requirement])
-
-        result = get_formalization_template(
-            current_app.config["TEMPLATES_FOLDER"], formalization_id, requirement.formalizations[formalization_id]
+        add_msg_to_flask_session_log(
+            current_app, "Added formalization guess to requirement", [requirement]
         )
 
+        result = get_formalization_template(
+            current_app.config["TEMPLATES_FOLDER"],
+            formalization_id,
+            requirement.formalizations[formalization_id],
+        )
 
         return result
 
@@ -851,7 +1000,7 @@ class ApiAddFormalizationFromGuess(Resource):
 class ApiMultiAddTopGuess(Resource):
     @api_ns.doc(
         description="Adds the highest-scored guess to one or more "
-                    "requirements. Supports append and override modes.",
+        "requirements. Supports append and override modes.",
         params={
             "selected_ids": "JSON-encoded list of requirement IDs",
             "insert_mode": "'append' or 'override'",
@@ -873,16 +1022,23 @@ class ApiMultiAddTopGuess(Resource):
             return result
 
         var_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+            current_app.db.get_objects(Variable).values(),
+            current_app.db.get_objects(Requirement).values(),
         )
-        requirements = [current_app.db.get_object(Requirement, rid) for rid in requirement_ids]
+        requirements = [
+            current_app.db.get_object(Requirement, rid) for rid in requirement_ids
+        ]
         for requirement in requirements:
             if requirement is not None:
-                logging.info("Add top guess to requirement `{}`".format(requirement.rid))
+                logging.info(
+                    "Add top guess to requirement `{}`".format(requirement.rid)
+                )
                 tmp_guesses = list()
                 for guesser in REGISTERED_GUESSERS:
                     try:
-                        guesser_instance = guesser(requirement, var_collection, current_app)
+                        guesser_instance = guesser(
+                            requirement, var_collection, current_app
+                        )
                         guesser_instance.guess()
                         tmp_guesses += guesser_instance.guesses
                         tmp_guesses = sorted(tmp_guesses, key=Guess.eval_score)
@@ -896,7 +1052,11 @@ class ApiMultiAddTopGuess(Resource):
                             elif type(tmp_guesses[0]) is list:
                                 top_guesses = tmp_guesses[0]
                             else:
-                                raise TypeError("Type: `{}` not supported as guesses".format(type(tmp_guesses[0])))
+                                raise TypeError(
+                                    "Type: `{}` not supported as guesses".format(
+                                        type(tmp_guesses[0])
+                                    )
+                                )
                             if insert_mode == "override":
                                 for f_id in requirement.formalizations.keys():
                                     requirement.delete_formalization(
@@ -904,7 +1064,9 @@ class ApiMultiAddTopGuess(Resource):
                                         variable_collection,
                                     )
                             for score, scoped_pattern, mapping in top_guesses:
-                                formalization_id, formalization = requirement.add_empty_formalization()
+                                formalization_id, formalization = (
+                                    requirement.add_empty_formalization()
+                                )
                                 # Add content to the formalization.
                                 requirement.update_formalization(
                                     formalization_id=formalization_id,
@@ -912,7 +1074,9 @@ class ApiMultiAddTopGuess(Resource):
                                     pattern_name=scoped_pattern.pattern.name,
                                     mapping=mapping,
                                     variable_collection=variable_collection,
-                                    standard_tags=SessionValue.get_standard_tags(current_app.db),
+                                    standard_tags=SessionValue.get_standard_tags(
+                                        current_app.db
+                                    ),
                                 )
                                 for v in variable_collection.new_vars:
                                     current_app.db.add_object(v)
@@ -922,19 +1086,29 @@ class ApiMultiAddTopGuess(Resource):
                         result["success"] = False
                         result["errormsg"] = "Could not determine a guess: "
                         result["errormsg"] += e.__str__()
-        add_msg_to_flask_session_log(current_app, "Added top guess to requirements", requirements)
+        add_msg_to_flask_session_log(
+            current_app, "Added top guess to requirements", requirements
+        )
 
         return result
 
-def get_formalization_template(templates_folder, formalization_id, formalization):  # TODO wohin damit, HTML generation
+
+def get_formalization_template(
+    templates_folder, formalization_id, formalization
+):  # TODO wohin damit, HTML generation
     result = {
         "success": True,
         "html": formalization_html(
-            templates_folder, formalization_id, default_scope_options, get_default_pattern_options(), formalization
+            templates_folder,
+            formalization_id,
+            default_scope_options,
+            get_default_pattern_options(),
+            formalization,
         ),
     }
 
     return result
+
 
 def get_datatable_additional_cols(app: HanforFlask):  # TODO nach requirements
     offset = 8  # we have 8 fixed cols.
@@ -961,4 +1135,6 @@ def add_msg_to_flask_session_log(
     :param app: The flask app
     :param message: Log message string
     """
-    app.db.add_object(RequirementEditHistory(datetime.datetime.now(), message, req_list))
+    app.db.add_object(
+        RequirementEditHistory(datetime.datetime.now(), message, req_list)
+    )

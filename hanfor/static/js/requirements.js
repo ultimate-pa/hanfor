@@ -56,6 +56,7 @@ renderer.registerType("formalization", {
   afterRender: ($container, entry) => {
     $container.find(`#requirement_scope${entry.id}`).val(entry.scope)
     $container.find(`#requirement_pattern${entry.id}`).val(entry.pattern)
+    $container.find(`#is_constraint${entry.id}`).prop("checked", !!entry.is_constraint)
     const vars = ["P", "Q", "R", "S", "T", "U", "V"]
     vars.forEach((v) => {
       const val = entry[`expr_${v}`]
@@ -184,79 +185,6 @@ renderer.registerType("variable", {
   },
 })
 
-document.addEventListener("show.bs.dropdown", function (event) {
-  const target= event.target.closest("#constraint-dropdown")
-  if (!target) return;
-
-  const $dropdown = $(target)
-  const $ul = $dropdown.find("#potential-constraints-holder")
-  const $varAccordion = $dropdown.closest(".accordion-item")
-  $ul.empty()
-  const rid = $("#requirement_id").val()
-  $("#formalization_accordion")
-    .find('.accordion-item[data-type="formalization"]').each(function () {
-      const fid = $(this).data("id")
-      const text = $(this).find(".accordion-button").text().trim()
-      const truncated = text.length > 55
-        ? text.substring(0, 52) + "..."
-        : text
-
-      $ul.append(
-        $("<li>").append(
-          $('<a class="dropdown-item" href="#">')
-            .text(`FID:${fid}  ${truncated}`)
-            .on("click", function () {
-              const usageKey = `${rid}:${fid}`
-              if ($varAccordion.find(`.pending-constraint-badge[data-usage-key="${usageKey}"]`).length) {
-                return
-              }
-              addSelectedConstraint($varAccordion, usageKey, fid, text)
-              $("#requirement_modal").data({
-                unsaved_changes: true,
-                updated_formalization: true,
-              })
-            })
-        )
-      )
-    })
-})
-
-function addSelectedConstraint($accordionItem, usageKey, fid, text) {
-  const $pending = $accordionItem.find(".pending-constraints")
-  const $list = $pending.find(".pending-constraints-list")
-
-  $pending.removeClass("d-none")
-
-  const truncated = text.length > 50
-    ? text.substring(0, 47) + "..."
-    : text
-
-  const $badge = $(`
-    <span class="badge text-bg-danger fs-6 pending-constraint-badge"
-          data-usage-key="${usageKey}"
-          data-bs-toggle="popover"
-          data-bs-trigger="hover focus"
-          data-bs-placement="top"
-          data-bs-title="FID:${fid}"
-          data-bs-content="${truncated}">
-      ${usageKey}
-      <button class="btn-close btn-close-white ms-1" style="font-size:0.5rem"></button>
-    </span>
-  `)
-
-  $badge.find(".btn-close").on("click", function (e) {
-    e.stopPropagation()
-    $badge.remove()
-    if (!$list.children().length) $pending.addClass("d-none")
-    $("#requirement_modal").data({
-      unsaved_changes: true,
-      updated_formalization: true,
-    })
-  })
-
-  $list.append($badge)
-}
-
 // bind it globaly on each selector change so it gets always loaded
 $(document).on("change", ".scope_selector, .pattern_selector", function () {
   bind_var_autocomplete()
@@ -376,8 +304,19 @@ $(document).ready(function () {
   })
 
   // Bind formalization update.
-  body.on("change", ".formalization_selector, .reqirement-variable, .req_var_type", function () {
-    update_formalization()
+  body.on(
+    "change",
+    ".formalization_selector, .reqirement-variable, .req_var_type, .is-constraint-checkbox",
+    function () {
+      update_formalization()
+    }
+  )
+  // Bind is_constraint checkbox change so the save flag is set.
+  body.on("change", ".is-constraint-checkbox", function () {
+    $("#requirement_modal").data({
+      unsaved_changes: true,
+      updated_formalization: true,
+    })
   })
   // Bind formalization variable update.
   body.on("change", ".formalization_selector", function () {
@@ -737,16 +676,11 @@ function store_requirement(requirements_table) {
         enumerators.push([$(this).val(), $item.find(".enum_value_input").eq(i).val() || ""])
       })
       formalization["enumerators"] = enumerators
-      const constraints = []
-      $item.find(".pending-constraint-badge").each(function () {
-        constraints.push($(this).data("usage-key"))
-      })
-      formalization["constraints"] = constraints
-      console.log(formalization["constraints"])
     } else {
       formalization["scope"] = $item.find(".scope_selector").val()
       formalization["formalization_type"] = "formalization"
       formalization["pattern"] = $item.find(".pattern_selector").val()
+      formalization["is_constraint"] = $item.find(".is-constraint-checkbox").is(":checked")
       formalization["expression_mapping"] = {}
       $item.find("textarea.reqirement-variable").each(function () {
         const title = $(this).attr("title")
@@ -1393,6 +1327,9 @@ function load_requirement(row_idx) {
       requirement_modal_content.LoadingOverlay("hide", true)
       sendTelemetry("requirements", data.id, "open")
       setCopyBtnEnable()
+    }).fail(function () {
+      // Defensive: hide the overlay even if a render error prevented .done from running.
+      requirement_modal_content.LoadingOverlay("hide", true)
     })
 
     store.initNextId(data["next_id"])
@@ -1626,6 +1563,12 @@ function copy_formalization(formal_id) {
             formalization["pattern"] = $(this).val()
           }
         })
+
+      // is_constraint checkbox
+      formalization["is_constraint"] = $(this)
+        .closest(".accordion-item")
+        .find(".is-constraint-checkbox")
+        .is(":checked")
 
       // Expressions
       formalization["expression_mapping"] = {}

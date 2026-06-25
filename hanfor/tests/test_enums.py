@@ -923,3 +923,81 @@ class TestEnums(TestCase):
             "belongs_to_enum": "",
         }
         self.assertIn(unknown, variables)
+
+    def test_build_all_filters_requirement_constraints_by_is_constraint(self):
+        """_build_all only includes requirement-owned formalizations with
+        is_constraint=True in var._constraints.
+        """
+        from lib_core.data import (
+            Expression,
+            Formalization,
+            Requirement,
+            Variable,
+            VariableCollection,
+        )
+
+        var = Variable(name="v", var_type="bool")
+        req = Requirement(rid="r1", description="", type_in_csv="", csv_row={}, pos_in_csv=0)
+        for fid, is_constraint in [(0, True), (1, False)]:
+            form = Formalization(fid=fid)
+            form.is_constraint = is_constraint
+            form.expressions_mapping["R"] = Expression(parent_rid="r1")
+            form.expressions_mapping["R"].raw_expression = "v"
+            form.expressions_mapping["R"].used_variables = {"v"}
+            req.formalizations[fid] = form
+
+        vc = VariableCollection(variables=[var], requirements=[req])
+        usage_keys = [r.usage_key for r in vc._constraints.get("v", [])]
+        self.assertIn("r1:0", usage_keys)
+        self.assertNotIn("r1:1", usage_keys)
+
+    def test_new_formalization_with_is_constraint_appears_in_constraints(self):
+        """A formalization with is_constraint=True is included in
+        _constraints after VariableCollection construction.
+        """
+        from lib_core.data import (
+            Expression,
+            Formalization,
+            Requirement,
+            Variable,
+            VariableCollection,
+        )
+
+        var = Variable(name="v", var_type="bool")
+        req = Requirement(rid="r1", description="", type_in_csv="", csv_row={}, pos_in_csv=0)
+        form = Formalization(fid=0)
+        form.is_constraint = True
+        form.expressions_mapping["R"] = Expression(parent_rid="r1")
+        form.expressions_mapping["R"].raw_expression = "v"
+        form.expressions_mapping["R"].used_variables = {"v"}
+        req.formalizations[0] = form
+
+        vc = VariableCollection(variables=[var], requirements=[req])
+        self.assertIn("r1:0", [r.usage_key for r in vc._constraints.get("v", [])])
+        self.assertTrue(req.formalizations[0].is_constraint)
+
+    def test_variable_owned_constraint_shows_in_owner_and_referenced_tabs(self):
+        """A variable-owned constraint referencing a different variable must
+        appear in BOTH the owning variable's and the referenced variable's
+        _constraints entry.
+        """
+        from lib_core.data import (
+            Expression,
+            Formalization,
+            Variable,
+            VariableCollection,
+        )
+
+        var_a = Variable(name="a", var_type="bool")
+        var_b = Variable(name="b", var_type="bool")
+        form = Formalization(fid=0)
+        form.is_constraint = True
+        form.expressions_mapping["R"] = Expression(parent_rid="Constraint_a_0")
+        form.expressions_mapping["R"].raw_expression = "b"
+        form.expressions_mapping["R"].used_variables = {"b"}
+        var_a.constraints[0] = form
+
+        vc = VariableCollection(variables=[var_a, var_b], requirements=[])
+        expected = "Constraint_a_0"
+        self.assertIn(expected, [r.usage_key for r in vc._constraints.get("a", [])])
+        self.assertIn(expected, [r.usage_key for r in vc._constraints.get("b", [])])

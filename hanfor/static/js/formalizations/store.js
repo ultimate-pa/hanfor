@@ -76,6 +76,8 @@ export default class FormalizationStore {
       if ($(this).hasClass("pattern_selector")) formalization.pattern = $(this).val()
     })
 
+    formalization["is_constraint"] = card.find(".is-constraint-checkbox").is(":checked")
+
     card.find("textarea.reqirement-variable").each(function () {
       const title = $(this).attr("title")
       if (title) formalization.expression_mapping[title] = $(this).val()
