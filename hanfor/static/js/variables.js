@@ -455,6 +455,7 @@ function add_constraint() {
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
+                $('#formalization_accordion .no-constraints-placeholder').remove();
                 constraint.appendTo('#formalization_accordion');
             }
         }).done(function () {

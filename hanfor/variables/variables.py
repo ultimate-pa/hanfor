@@ -87,7 +87,7 @@ def api_get_constraints_html():
     result = {
         "success": True,
         "errormsg": "",
-        "html": "<p>No constraints set.</p>",
+        "html": '<p class="no-constraints-placeholder">No constraints set.</p>',
         "type_inference_errors": dict(),
     }
     var_name = request.form.get("name", "").strip()
