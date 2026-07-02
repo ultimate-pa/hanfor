@@ -3,7 +3,6 @@
   <div id="formal-{{ id }}" class="accordion-body formalization_card" title="{{ id }}">
     <div class="form-group">
       <div class="d-flex justify-content-between">
-        <h6>Formalization:</h6>
         <h6>ID: {{ id }}</h6>
       </div>
       <div
@@ -17,7 +16,6 @@
       </div>
     </div>
     <div class="form-group">
-      <h6>Edit formalization:</h6>
       <div class="row form-inline row-spacing">
         <div class="form-group col-12 col-lg-3 col-xl-2">
           <label for="requirement_scope">Scope</label>
@@ -54,49 +52,47 @@
             {% endif %} {% endfor %} {% raw %}
           </select>
         </div>
-        <div class="col-12 col-xl-3 d-flex justify-content-around align-items-center row">
-          <div class="m-0 col-12 col-xl-6">
-            <label></label>
-            <button
-              name="{{ id }}"
-              class="copy_formalization btn btn-large btn-success"
-              style="width: 100%"
-              title="Copy me"
-            >
-              Copy
-            </button>
+        <div class="col-12 col-xl-3 d-flex flex-xl-column justify-content-around align-items-center">
+          <div class="d-flex w-xl-100 flex-grow-1 flex-xl-grow-0">
+            <div class="flex-fill pe-1">
+              <button
+                name="{{ id }}"
+                class="copy_formalization btn btn-large btn-success"
+                title="Copy me"
+                style="width: 100%"
+              >
+                Copy
+              </button>
+            </div>
+            <div class="flex-fill ps-1">
+              <button
+                name="{{ id }}"
+                class="delete_formalization btn btn-large btn-danger"
+                data-bs-toggle="confirmation"
+                data-btn-ok-label="Yes"
+                data-btn-ok-class="btn-success"
+                data-btn-cancel-label="Nooo Stoooop!"
+                data-btn-cancel-class="btn-danger"
+                data-title="Sure?"
+                data-content="Delete this Formalization?"
+                style="width: 100%"
+                title="Delete me"
+              >
+                Delete
+              </button>
+            </div>
           </div>
-          <div class="m-0 col-12 col-xl-6">
-            <label></label>
-            <button
-              name="{{ id }}"
-              class="delete_formalization btn btn-large btn-danger"
-              data-bs-toggle="confirmation"
-              data-btn-ok-label="Yes"
-              data-btn-ok-class="btn-success"
-              data-btn-cancel-label="Nooo Stoooop!"
-              data-btn-cancel-class="btn-danger"
-              data-title="Sure?"
-              data-content="Delete this Formalization?"
-              style="width: 100%"
-              title="Delete me"
-            >
-              Delete
-            </button>
+          <div class="form-check mt-xl-1 ms-2 ms-xl-0">
+            <input
+              class="form-check-input is-constraint-checkbox"
+              type="checkbox"
+              id="is_constraint{{ id }}"
+              title="{{ id }}"
+            />
+            <label class="form-check-label" for="is_constraint{{ id }}">
+              Mark as "Constraint"
+            </label>
           </div>
-        </div>
-      </div>
-      <div class="form-group col-12 col-lg-12 col-xl-12 mt-2">
-        <div class="form-check">
-          <input
-            class="form-check-input is-constraint-checkbox"
-            type="checkbox"
-            id="is_constraint{{ id }}"
-            title="{{ id }}"
-          />
-          <label class="form-check-label" for="is_constraint{{ id }}">
-            Treat this formalization as a constraint
-          </label>
         </div>
       </div>
     </div>
