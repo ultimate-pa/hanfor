@@ -165,6 +165,15 @@ class ApiRequirementSingle(Resource):
             )
             return {"success": False, "errormsg": error_msg}
 
+        variable_collection = VariableCollection(
+            current_app.db.get_objects(Variable).values(),
+            current_app.db.get_objects(Requirement).values(),
+        )
+        requirement.run_type_checks(
+            variable_collection,
+            SessionValue.get_standard_tags(current_app.db),
+        )
+
         current_app.db.update()
         return requirement.to_dict(), 200
 
@@ -547,6 +556,8 @@ class ApiFormalizationStore(Resource):
                     requirement.formalizations[fid].is_constraint = bool(
                         data["is_constraint"]
                     )
+                # now rerun the inference checks, expensive, but works (and we don't care)
+                requirement.run_type_checks(variable_collection, SessionValue.get_standard_tags(current_app.db))
             except KeyError as e:
                 error = True
                 error_msg = f"Did not find the created empty draft for ID: {e}"

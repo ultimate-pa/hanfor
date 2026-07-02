@@ -320,6 +320,8 @@ class Requirement:
         vars_with_unknown_type = []
         for fid in self.formalizations.keys():
             # Run type inference check
+            if not isinstance(self.formalizations[fid], Formalization):
+                continue
             self.formalizations[fid].type_inference_check(var_collection)
             if len(self.formalizations[fid].type_inference_errors) > 0:
                 self.tags[standard_tags["TAG_Type_inference_error"]] = self.format_error_tag(
