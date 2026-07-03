@@ -31,16 +31,14 @@ class PhaseSetsLocation(Location):
     label: PhaseSets = PhaseSets()
 
     def __eq__(self, o: "PhaseSetsLocation") -> bool:
-        return (
-            isinstance(o, PhaseSetsLocation)
-            and o.label == self.label
-            and self.smt_env.factory.get_solver(name="z3").is_valid(
+        if not isinstance(o, PhaseSetsLocation):
+            return False
+        if not o.label == self.label:
+            return False
+        with self.smt_env.factory.get_solver(name="z3") as solver:
+            return solver.is_valid(
                 self.smt_env.formula_manager.Iff(o.state_invariant, self.state_invariant)
-            )
-            and self.smt_env.factory.get_solver(name="z3").is_valid(
-                self.smt_env.formula_manager.Iff(o.clock_invariant, self.clock_invariant)
-            )
-        )
+            ) and solver.is_valid(self.smt_env.formula_manager.Iff(o.clock_invariant, self.clock_invariant))
 
     def __hash__(self) -> int:
         return hash((self.label))

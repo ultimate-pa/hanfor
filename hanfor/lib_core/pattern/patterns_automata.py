@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 class AAutomatonPattern(APattern):
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__()
         self.group = "Abstract"
 
@@ -53,10 +53,11 @@ class AAutomatonPattern(APattern):
     ) -> list["Formalization"]:
         transitions = []
         fmgr = smt_env.formula_manager
-        for source, formalization in transitions_by_source:
-            # Semantic check as location may be syntactically different in any reference (as it is written by hand).
-            if smt_env.factory.get_solver(name="z3").is_valid(fmgr.Iff(location, source)):
-                transitions.append(formalization)
+        with smt_env.factory.get_solver(name="z3") as solver:
+            for source, formalization in transitions_by_source:
+                # Semantic check as location may be syntactically different in any reference (as it is written by hand).
+                if solver.is_valid(fmgr.Iff(location, source)):
+                    transitions.append(formalization)
         return transitions
 
     @staticmethod

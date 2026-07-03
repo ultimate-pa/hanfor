@@ -29,15 +29,12 @@ class PhaseSetsTransition(Transition):
     dst: PhaseSetsLocation = None
 
     def __eq__(self, o: "PhaseSetsTransition") -> bool:
-        return (
-            isinstance(o, PhaseSetsTransition)
-            and o.src == self.src
-            and o.dst == self.dst
-            and o.resets == self.resets
-            and self.smt_env.factory.get_solver(name="z3").is_valid(
-                self.smt_env.formula_manager.Iff(o.guard, self.guard)
-            )
-        )
+        if not isinstance(o, PhaseSetsTransition):
+            return False
+        if not (o.src == self.src and o.dst == self.dst and o.resets == self.resets):
+            return False
+        with self.smt_env.factory.get_solver(name="z3") as solver:
+            return solver.is_valid(self.smt_env.formula_manager.Iff(o.guard, self.guard))
 
     def __hash__(self) -> int:
         return hash((self.src, self.dst, self.resets))
