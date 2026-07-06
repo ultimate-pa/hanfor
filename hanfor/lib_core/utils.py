@@ -1,22 +1,22 @@
 import functools
+import html
 import json
 import logging
-import re
 import os
-import html
+import re
 import shlex
-import colorama
 from collections import defaultdict
+
+import colorama
 from colorama import Style, Fore
 from terminaltables import DoubleTable
-
 from flask import request, Response
 
-from configuration.patterns import APattern
 from lib_core import boogie_parsing
 from config import PATTERNS_GROUP_ORDER  # TODO should this be in the config?
 from hanfor_flask import HanforFlask
 from lib_core.data import Requirement, VariableCollection, Variable
+from lib_core.pattern.patterns_basic import APattern
 
 default_scope_options = """
     <option value="NONE">None</option>
@@ -58,7 +58,7 @@ def get_requirements(app: HanforFlask, filter_list=None, invert_filter=False):
 
 def prepare_patterns_for_jinja():
     opt_group_lists = defaultdict(list)
-    for name, pattern in APattern.get_patterns().items():
+    for name, pattern in APattern().get_patterns().items():
         opt_group_lists[pattern.group].append((pattern.order, name, pattern._pattern_text))
 
     # Sort patterns inside each group
@@ -79,7 +79,7 @@ def get_default_pattern_options():
     opt_group_lists = defaultdict(list)
     opt_groups = defaultdict(str)
     # Collect pattern in groups.
-    for name, pattern in APattern.get_patterns().items():
+    for name, pattern in APattern().get_patterns().items():
         opt_group_lists[pattern.group].append((pattern.order, name, pattern._pattern_text))
 
     # Sort groups and concatenate pattern options

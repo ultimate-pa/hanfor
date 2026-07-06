@@ -1,0 +1,61 @@
+{"ebb64b44-f641-45e6-a296-46b19434659a": {
+        "description": "",
+        "internal": false,
+        "color": "#5bc0de",
+        "name": "incomplete_formalization",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "b8322e3a-6d4a-41d1-9afe-6d31123b65a3": {
+        "description": "",
+        "internal": false,
+        "color": "#5bc0de",
+        "name": "has_formalization",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "1116c214-f486-4533-b630-32a300615a87": {
+        "description": "test",
+        "internal": true,
+        "color": "#dc3545",
+        "name": "unknown_type",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "18daf198-a21a-417b-b88a-42c4ae6476ed": {
+        "description": "",
+        "internal": true,
+        "color": "#dc3545",
+        "name": "Type_inference_error",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    },
+    "e13e9019-d4ad-4d7b-a9f9-6f587b2fd5d9": {
+        "description": "",
+        "internal": true,
+        "color": "#6c757d",
+        "name": "Ultimate_raw_data",
+        "$meta": {
+            "type": "JsonDatabaseMetaData",
+            "data": {
+                "is_deleted": false
+            }
+        }
+    }
+}

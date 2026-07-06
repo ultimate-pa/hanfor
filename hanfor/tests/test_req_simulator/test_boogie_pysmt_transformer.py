@@ -3,8 +3,8 @@ from unittest import TestCase
 from parameterized import parameterized
 
 from lib_core import boogie_parsing
-from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
 from lib_core.data import Variable
+from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
 
 parser = boogie_parsing.get_parser_instance()
 
@@ -16,6 +16,8 @@ class TestBoogiePysmtTransformer(TestCase):
         [
             # Bool
             ("!a ==> true", "((! a) -> True)"),
+            ("!a <== true", "(True -> (! a))"),
+            ("!a <==> true", "((! a) <-> True)"),
             # Int
             ("x + 1 == 2 && x - 1 == 0", "(((x + 1) = 2) & ((x - 1) = 0))"),
             ("x * 2 == 8 && x / 2 == 4", "(((x * 2) = 8) & ((x / 2) = 4))"),

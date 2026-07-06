@@ -76,6 +76,8 @@ export default class FormalizationStore {
       if ($(this).hasClass("pattern_selector")) formalization.pattern = $(this).val()
     })
 
+    formalization["is_constraint"] = card.find(".is-constraint-checkbox").is(":checked")
+
     card.find("textarea.reqirement-variable").each(function () {
       const title = $(this).attr("title")
       if (title) formalization.expression_mapping[title] = $(this).val()
@@ -90,7 +92,7 @@ export default class FormalizationStore {
 
     const data = { id: id }
 
-    const $nameInput = $card.find('input[aria-describedby="variable-name"]')
+    const $nameInput = $card.find('input[aria-describedby="variable-name-feedback"]')
     data.name = $nameInput.val() || ""
     data.id = data.name
     data.temp_id = id
@@ -120,6 +122,8 @@ export default class FormalizationStore {
         $.ajax({
           url: `/api/v1/req/formalizations/${requirementId}/${id}`,
           type: "DELETE",
+        }).then(function (res) {
+          if (!res.success) return $.Deferred().reject(res).promise()
         }),
       )
     })
@@ -141,7 +145,12 @@ export default class FormalizationStore {
           endpoint = `/api/v1/req/formalizations/${requirementId}/variable/${id}`
         }
 
-        requests.push($.post(endpoint, { id: requirementId, data: JSON.stringify(data) }))
+        requests.push(
+          $.post(endpoint, { id: requirementId, data: JSON.stringify(data) })
+            .then(function (res) {
+              if (!res.success) return $.Deferred().reject(res).promise()
+            }),
+        )
       })
     }
     this.created.clear()

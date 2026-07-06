@@ -6,13 +6,20 @@
 import logging
 import os
 import subprocess
-
 from flask import jsonify
 from flask_socketio import SocketIO
-from hanfor_flask import HanforFlask
+
+from ai_addons.core_ui import (
+    all_ai_addon_namespaces_and_blueprints,
+    threading_namespace_and_blueprint,
+    ai_namespace_and_blueprint,
+)
+from ai_addons.core_ui.ai_core_addon_api import register_addon_templates, register_addon_statics
+from ai_addons.threading_ai_socketio import AiAddonData, SendUpdateThreadingAndAi
+from hanfor_flask import HanforFlask, Api
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import HTTPException
-from flask_restx import Api
+
 
 from lib_core.startup import startup_hanfor, PrefixMiddleware, HanforArgumentParser
 from lib_core.utils import setup_logging
@@ -47,6 +54,7 @@ app.db = None
 # Initialize SocketIO
 socketio = SocketIO(app, **app.config["SOCKETIO_SETTINGS"])
 
+
 # Initialize Api framework
 api = Api(app, version="1.0", title="Hanfor API", prefix="/api/v1", doc="/api")
 # load all api models
@@ -76,6 +84,25 @@ app.register_blueprint(tools_api)
 app.register_blueprint(queries_api)
 # Simulator
 app.register_blueprint(simulator_blueprint.blueprint)
+# Threading
+for blueprint, namespace in threading_namespace_and_blueprint:
+    if blueprint:
+        app.register_blueprint(blueprint)
+    if namespace:
+        api.add_namespace(namespace)
+
+# AI and AI Addons
+if app.config["FEATURE_AI"]:
+    ai_blueprint, ai_namespace = ai_namespace_and_blueprint
+    if ai_blueprint:
+        app.register_blueprint(ai_blueprint)
+    if ai_namespace:
+        api.add_namespace(ai_namespace)
+    for ai_addon_blueprint, ai_addon_namespace in all_ai_addon_namespaces_and_blueprints:
+        if ai_addon_blueprint:
+            app.register_blueprint(ai_addon_blueprint)
+        if ai_addon_namespace:
+            api.add_namespace(ai_addon_namespace)
 
 # Register feature blueprints and apis
 if app.config["FEATURE_EXAMPLE_BLUEPRINT"]:
@@ -107,6 +134,11 @@ if app.config["FEATURE_QUICK_CHECKS"]:
 telemetry_namespace = TelemetryWs("/telemetry")
 socketio.on_namespace(telemetry_namespace)
 
+ai_addon_namespace = AiAddonData("/ai_addon_data")
+socketio.on_namespace(ai_addon_namespace)
+
+# socket messanger for threading and ai / ai addon updats
+send_update_threading_and_ai = SendUpdateThreadingAndAi(socketio)
 
 logging.basicConfig(
     format="[%(asctime)s %(filename)s:%(lineno)d] %(levelname)s - %(message)s",
@@ -160,6 +192,12 @@ def get_app_options():
     return app_options
 
 
+# Suppress Chrome DevTools route-not-found error
+@app.route("/.well-known/appspecific/com.chrome.devtools.json")
+def chrome_dev():
+    return "", 204
+
+
 if __name__ == "__main__":
     setup_logging(app)
     app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix=app.config["URL_PREFIX"])
@@ -173,7 +211,15 @@ if __name__ == "__main__":
 
     # Parse python args and startup hanfor session.
     parsed_args = HanforArgumentParser(app).parse_args()
-    if startup_hanfor(app, parsed_args, HERE):
+    if startup_hanfor(app, parsed_args, HERE, send_update_threading_and_ai=send_update_threading_and_ai):
+
+        # Register additional addon templates and static files
+        if app.config["FEATURE_AI"]:
+            with app.app_context():
+                app.ai_addons.load_all_ai_addons()
+                register_addon_templates(app, app.ai_addons.get_all_addons())
+                register_addon_statics(app, app.ai_addons.get_all_addons())
+
         if app.config["FEATURE_TELEMETRY"]:
             telemetry_namespace.set_data_folder(app.config["REVISION_FOLDER"])
         socketio.run(app, **get_app_options(), allow_unsafe_werkzeug=True)

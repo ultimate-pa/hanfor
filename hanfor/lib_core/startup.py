@@ -1,61 +1,84 @@
+import argparse
+import datetime
+import hashlib
+import json
 import logging
 import os
-import datetime
-import argparse
-import json
-import hashlib
-from typing import Callable
-from terminaltables import DoubleTable
-import shutil
 import re
+import shutil
+from typing import Callable
 
-from hanfor_flask import HanforFlask
-from json_db_connector.json_db import JsonDatabase, remove_json_database_data_tracing_logger
+from terminaltables import DoubleTable
 
-from lib_core import boogie_parsing
-from lib_core.utils import (
-    get_requirements,
-    get_default_pattern_options,
-    clean_identifier_for_ultimate_parser,
-    get_filenames_from_dir,
-    choice,
-)
-from lib_core.data import Tag, VariableCollection, Scope, SessionValue, Requirement, Variable
-from configuration.patterns import APattern
+from ai_addons.ai_addon_handler import AiAddons
+from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
+from ai_request.ai_core_requests import AiRequest
 from configuration.defaults import Color
-from configuration.tags import STANDARD_TAGS, FUNCTIONAL_TAGS
-
+from configuration.tags import FUNCTIONAL_TAGS, STANDARD_TAGS
+from hanfor_flask import HanforFlask
+from json_db_connector.json_db import (
+    JsonDatabase,
+    remove_json_database_data_tracing_logger,
+)
+from lib_core import boogie_parsing
+from lib_core.data import (
+    Formalization,
+    Requirement,
+    SessionValue,
+    Tag,
+    Variable,
+    VariableCollection,
+)
+from lib_core.pattern.patterns_basic import APattern
+from lib_core.scopes import Scope
+from lib_core.utils import (
+    choice,
+    clean_identifier_for_ultimate_parser,
+    get_default_pattern_options,
+    get_filenames_from_dir,
+    get_requirements,
+)
 from reqtransformer import RequirementCollection
+from requirements.desc_highlighting import generate_all_highlighted_desc
+from thread_handling.threading_core import (
+    SchedulingClass,
+    ThreadGroup,
+    ThreadHandler,
+    ThreadTask,
+)
 
 
 def config_check(app_config):
     to_ensure_configs = ["PATTERNS_GROUP_ORDER"]
     for to_ensure_config in to_ensure_configs:
         if to_ensure_config not in app_config:
-            raise SyntaxError("Could not find {} in config.".format(to_ensure_config))
+            raise SyntaxError(f"Could not find {to_ensure_config} in config.")
 
     # Check pattern groups set correctly.
-    pattern_groups_used = set((pattern.group for pattern in APattern.get_patterns().values()))
+    pattern_groups_used = set(
+        (pattern.group for pattern in APattern().get_patterns().values())
+    )
     pattern_groups_set = set((group for group in app_config["PATTERNS_GROUP_ORDER"]))
     # Pattern group for downwards compatibility: Legacy patterns are not shown in dropdown (but still deserializable)
     pattern_groups_set.add("Legacy")
 
     if not pattern_groups_used == pattern_groups_set:
-        if len(pattern_groups_used - pattern_groups_set) > 0:
-            raise SyntaxError(
-                "No group order set in config for pattern groups {}".format(pattern_groups_used - pattern_groups_set)
-            )
+        if diff := pattern_groups_used - pattern_groups_set:
+            raise SyntaxError(f"No group order set in config for pattern groups {diff}")
 
     try:
         get_default_pattern_options()
     except Exception as e:
-        raise SyntaxError("Could not parse pattern config. Please check your config.py: {}.".format(e))
+        raise SyntaxError(
+            "Could not parse pattern config. Please check your config.py: {}.".format(e)
+        )
 
 
 def update_var_usage(flask_app: HanforFlask, var_collection):
-    var_collection.refresh_var_usage(flask_app.db.get_objects(Requirement).values())
-    var_collection.req_var_mapping = var_collection.invert_mapping(var_collection.var_req_mapping)
-    var_collection.refresh_var_constraint_mapping()
+    var_collection._build_all(flask_app.db.get_objects(Requirement).values())
+    var_collection.req_var_mapping = var_collection.invert_mapping(
+        var_collection.var_req_mapping
+    )
     var_collection.store()
     flask_app.db.update()
 
@@ -64,10 +87,13 @@ def varcollection_consistency_check(flask_app: HanforFlask, args=None):
     logging.info("Check Variables for consistency.")
     # Update usages and constraint type check.
     var_collection = VariableCollection(
-        flask_app.db.get_objects(Variable).values(), flask_app.db.get_objects(Requirement).values()
+        flask_app.db.get_objects(Variable).values(),
+        flask_app.db.get_objects(Requirement).values(),
     )
     if args is not None and args.reload_type_inference:
-        var_collection.reload_type_inference_errors_in_constraints(SessionValue.get_standard_tags(flask_app.db))
+        var_collection.reload_type_inference_errors_in_constraints(
+            SessionValue.get_standard_tags(flask_app.db)
+        )
 
     update_var_usage(flask_app, var_collection)
     var_collection.store()
@@ -81,11 +107,17 @@ def create_revision(flask_app: HanforFlask, args, base_revision_name):
 
 def load_revision(flask_app: HanforFlask, revision_id):
     if revision_id not in get_available_revisions(flask_app.config):
-        logging.error("Revision `{}` not found in `{}`".format(revision_id, flask_app.config["SESSION_FOLDER"]))
+        logging.error(
+            "Revision `{}` not found in `{}`".format(
+                revision_id, flask_app.config["SESSION_FOLDER"]
+            )
+        )
         raise FileNotFoundError
 
     flask_app.config["USING_REVISION"] = revision_id
-    flask_app.config["REVISION_FOLDER"] = os.path.join(flask_app.config["SESSION_FOLDER"], revision_id)
+    flask_app.config["REVISION_FOLDER"] = os.path.join(
+        flask_app.config["SESSION_FOLDER"], revision_id
+    )
     flask_app.config["SESSION_VARIABLE_COLLECTION"] = os.path.join(
         flask_app.config["REVISION_FOLDER"], "session_variable_collection.pickle"
     )
@@ -94,18 +126,25 @@ def load_revision(flask_app: HanforFlask, revision_id):
 
 def user_request_new_revision(flask_app: HanforFlask, args):
     logging.info("Generating a new revision.")
-    available_sessions = get_stored_session_names(flask_app.config["SESSION_BASE_FOLDER"], only_names=True)
+    available_sessions = get_stored_session_names(
+        flask_app.config["SESSION_BASE_FOLDER"], only_names=True
+    )
     if flask_app.config["SESSION_TAG"] not in available_sessions:
         logging.error(
             "Session `{tag}` not found (in `{sessions_folder}`)".format(
-                tag=flask_app.config["SESSION_TAG"], sessions_folder=flask_app.config["SESSION_BASE_FOLDER"]
+                tag=flask_app.config["SESSION_TAG"],
+                sessions_folder=flask_app.config["SESSION_BASE_FOLDER"],
             )
         )
         raise FileNotFoundError
     # Ask user for base revision.
     available_revisions = get_available_revisions(flask_app.config)
     if len(available_revisions) == 0:
-        logging.error("No base revisions found in `{}`.".format(flask_app.config["SESSION_FOLDER"]))
+        logging.error(
+            "No base revisions found in `{}`.".format(
+                flask_app.config["SESSION_FOLDER"]
+            )
+        )
         raise FileNotFoundError
     print("Which revision should I use as a base?")
     base_revision_choice = choice(available_revisions, "revision_0")
@@ -134,14 +173,20 @@ def user_choose_start_revision(flask_app: HanforFlask):
     # If there is no revision it means probably that this is an old hanfor version.
     # ask the user to migrate.
     elif len(available_revisions) == 0:
-        print("No revisions found. You might use a deprecated session version without revision support.")
+        print(
+            "No revisions found. You might use a deprecated session version without revision support."
+        )
         print("Is that true and should I migrate this session?")
         migrate_session = choice(["yes", "no"], "no")
         if migrate_session == "yes":
             file_paths = [
-                path for path in get_filenames_from_dir(flask_app.config["SESSION_FOLDER"]) if path.endswith(".pickle")
+                path
+                for path in get_filenames_from_dir(flask_app.config["SESSION_FOLDER"])
+                if path.endswith(".pickle")
             ]
-            revision_folder = os.path.join(flask_app.config["SESSION_FOLDER"], revision_choice)
+            revision_folder = os.path.join(
+                flask_app.config["SESSION_FOLDER"], revision_choice
+            )
             logging.info("Create revision folder and copy existing data.")
             os.makedirs(revision_folder, exist_ok=True)
             for path in file_paths:
@@ -161,7 +206,16 @@ def set_app_config_paths(flask_app: HanforFlask, here):
     flask_app.config["TEMPLATES_FOLDER"] = os.path.join(here, "templates")
 
 
-def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool = False) -> bool:
+def startup_hanfor(
+    flask_app: HanforFlask,
+    args,
+    here,
+    *,
+    send_update_threading_and_ai: SendUpdateThreadingAndAi = SendUpdateThreadingAndAi(),
+    no_data_tracing: bool = False,
+) -> bool:
+    flask_app.thread_handler = ThreadHandler(send_update_threading_and_ai)
+
     flask_app.db = JsonDatabase(no_data_tracing=no_data_tracing)
     add_custom_serializer_to_database(flask_app.db)
 
@@ -171,7 +225,9 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
     # Create a new revision if requested.
     if args.revision:
         if args.input_csv is None:
-            HanforArgumentParser(flask_app).error("--revision requires a Input CSV -c INPUT_CSV.")
+            HanforArgumentParser(flask_app).error(
+                "--revision requires a Input CSV -c INPUT_CSV."
+            )
         user_request_new_revision(flask_app, args)
     else:
         if not os.path.exists(flask_app.config["SESSION_FOLDER"]):
@@ -181,14 +237,20 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
             for name, values in FUNCTIONAL_TAGS.items():
                 tag = Tag(name, **values)
                 flask_app.db.add_object(tag, delay_update=True)
-                flask_app.db.add_object(SessionValue(f"TAG_{name}", tag), delay_update=True)
+                flask_app.db.add_object(
+                    SessionValue(f"TAG_{name}", tag), delay_update=True
+                )
             for name, properties in STANDARD_TAGS.items():
                 flask_app.db.add_object(Tag(name, **properties), delay_update=True)
             flask_app.db.update()
         else:
             # If this is an already existing session, ask the user which revision to start.
             revision_choice = user_choose_start_revision(flask_app)
-            logging.info("Loading session `{}` at `{}`".format(flask_app.config["SESSION_TAG"], revision_choice))
+            logging.info(
+                "Loading session `{}` at `{}`".format(
+                    flask_app.config["SESSION_TAG"], revision_choice
+                )
+            )
             load_revision(flask_app, revision_choice)
 
     if args.input_csv:
@@ -209,17 +271,25 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
         if not flask_app.db.key_in_table(SessionValue, "csv_input_file"):
             flask_app.db.add_object(SessionValue("csv_input_file", args.input_csv))
         else:
-            flask_app.db.get_object(SessionValue, "csv_input_file").value = args.input_csv
+            flask_app.db.get_object(
+                SessionValue, "csv_input_file"
+            ).value = args.input_csv
         flask_app.db.update()
 
-    flask_app.config["CSV_INPUT_FILE"] = os.path.basename(flask_app.db.get_object(SessionValue, "csv_input_file").value)
-    flask_app.config["CSV_INPUT_FILE_PATH"] = flask_app.db.get_object(SessionValue, "csv_input_file").value
+    flask_app.config["CSV_INPUT_FILE"] = os.path.basename(
+        flask_app.db.get_object(SessionValue, "csv_input_file").value
+    )
+    flask_app.config["CSV_INPUT_FILE_PATH"] = flask_app.db.get_object(
+        SessionValue, "csv_input_file"
+    ).value
 
     # Initialize variables collection, import session
     config_check(flask_app.config)
 
     # check functional Tags
-    existing_tags: dict[str, Tag] = {t.name: t for t in flask_app.db.get_objects(Tag).values()}
+    existing_tags: dict[str, Tag] = {
+        t.name: t for t in flask_app.db.get_objects(Tag).values()
+    }
     for name, values in FUNCTIONAL_TAGS.items():
         if name not in existing_tags:
             tag = Tag(name, **values)
@@ -237,6 +307,36 @@ def startup_hanfor(flask_app: HanforFlask, args, here, *, no_data_tracing: bool 
 
     # Run consistency checks.
     varcollection_consistency_check(flask_app, args)
+
+    if flask_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
+        flask_app.thread_handler.submit(
+            ThreadTask(
+                generate_all_highlighted_desc,
+                SchedulingClass.SYSTEM_CALL,
+                ThreadGroup("VARIABLE_HIGHLIGHTING"),
+                None,
+                None,
+                (
+                    VariableCollection(
+                        flask_app.db.get_objects(Variable).values(),
+                        flask_app.db.get_objects(Requirement).values(),
+                    ).get_available_var_names_list(used_only=False),
+                    flask_app.db.get_objects(Requirement),
+                ),
+                {},
+            )
+        )
+
+    if flask_app.config["FEATURE_AI"]:
+        flask_app.ai_request = AiRequest(
+            flask_app.thread_handler, send_update_threading_and_ai
+        )
+        flask_app.ai_addons = AiAddons(
+            flask_app.thread_handler,
+            flask_app.ai_request,
+            flask_app.db,
+            send_update_threading_and_ai,
+        )
 
     return True
 
@@ -275,7 +375,9 @@ class Revision:  # TODO wohin damit
             self._generate_session_values()
         else:
             self._update_session_values()
-            self._try_save(self._merge_with_base_revision, " Could not merge with base session")
+            self._try_save(
+                self._merge_with_base_revision, " Could not merge with base session"
+            )
 
     def _try_save(self, what, error_msg):
         """Safely run a method. Cleanup the revision in case of an exception.
@@ -287,17 +389,33 @@ class Revision:  # TODO wohin damit
         try:
             what()
         except Exception as e:
-            logging.error("Abort creating revision. {msg}: {error}".format(msg=error_msg, error=type(e)))
+            logging.error(
+                "Abort creating revision. {msg}: {error}".format(
+                    msg=error_msg, error=type(e)
+                )
+            )
             self._revert_and_cleanup()
             raise e
 
     def _set_revision_name(self):
         if not self.base_revision_name:
-            logging.info("No revisions for `{}`. Creating initial revision.".format(self.args.tag))
+            logging.info(
+                "No revisions for `{}`. Creating initial revision.".format(
+                    self.args.tag
+                )
+            )
             self.revision_name = "revision_0"
         # Revision based on an existing revision
         else:
-            new_revision_count = max([int(name.split("_")[1]) for name in get_available_revisions(self.app.config)]) + 1
+            new_revision_count = (
+                max(
+                    [
+                        int(name.split("_")[1])
+                        for name in get_available_revisions(self.app.config)
+                    ]
+                )
+                + 1
+            )
             self.revision_name = "revision_{}".format(new_revision_count)
 
     def _set_base_revision_db(self):
@@ -308,7 +426,9 @@ class Revision:  # TODO wohin damit
 
     def _set_base_revision_folder(self):
         if not self.is_initial_revision:
-            self.base_revision_folder = os.path.join(self.app.config["SESSION_FOLDER"], self.base_revision_name)
+            self.base_revision_folder = os.path.join(
+                self.app.config["SESSION_FOLDER"], self.base_revision_name
+            )
 
     def _set_is_initial_revision(self):
         if self.base_revision_name:
@@ -316,10 +436,15 @@ class Revision:  # TODO wohin damit
 
     def _set_config_vars(self):
         self.app.config["USING_REVISION"] = self.revision_name
-        self.app.config["REVISION_FOLDER"] = os.path.join(self.app.config["SESSION_FOLDER"], self.revision_name)
+        self.app.config["REVISION_FOLDER"] = os.path.join(
+            self.app.config["SESSION_FOLDER"], self.revision_name
+        )
 
     def _check_base_revision_available(self):
-        if not self.is_initial_revision and self.base_revision_name not in get_available_revisions(self.app.config):
+        if (
+            not self.is_initial_revision
+            and self.base_revision_name not in get_available_revisions(self.app.config)
+        ):
             logging.error(
                 "Base revision `{}` not found in `{}`".format(
                     self.base_revision_name, self.app.config["SESSION_FOLDER"]
@@ -328,12 +453,16 @@ class Revision:  # TODO wohin damit
             raise FileNotFoundError
 
     def _set_available_sessions(self):
-        self.available_sessions = get_stored_session_names(self.app.config["SESSION_BASE_FOLDER"], with_revisions=True)
+        self.available_sessions = get_stored_session_names(
+            self.app.config["SESSION_BASE_FOLDER"], with_revisions=True
+        )
 
     def _load_from_csv(self):
         # Load requirements from .csv file and store them into separate requirements.
         if self.args.input_csv is None:
-            HanforArgumentParser(self.app).error("Creating an (initial) revision requires -c INPUT_CSV")
+            HanforArgumentParser(self.app).error(
+                "Creating an (initial) revision requires -c INPUT_CSV"
+            )
         self.requirement_collection = RequirementCollection()
         base_revision_headers = {}
         if self.base_revision_db:
@@ -343,7 +472,9 @@ class Revision:  # TODO wohin damit
             app=self.app,
             input_encoding="utf8",
             base_revision_headers=base_revision_headers,
-            user_provided_headers=(json.loads(self.args.headers) if self.args.headers else None),
+            user_provided_headers=(
+                json.loads(self.args.headers) if self.args.headers else None
+            ),
             available_sessions=self.available_sessions,
         )
 
@@ -356,12 +487,18 @@ class Revision:  # TODO wohin damit
     def _revert_and_cleanup(self):
         logging.info("Reverting revision creation.")
         if self.is_initial_revision:
-            logging.debug("Revert initialized session folder. Deleting: `{}`".format(self.app.config["SESSION_FOLDER"]))
+            logging.debug(
+                "Revert initialized session folder. Deleting: `{}`".format(
+                    self.app.config["SESSION_FOLDER"]
+                )
+            )
             remove_json_database_data_tracing_logger(True)
             shutil.rmtree(self.app.config["SESSION_FOLDER"])
         else:
             logging.debug(
-                "Revert initialized revision folder. Deleting: `{}`".format(self.app.config["REVISION_FOLDER"])
+                "Revert initialized revision folder. Deleting: `{}`".format(
+                    self.app.config["REVISION_FOLDER"]
+                )
             )
             remove_json_database_data_tracing_logger(True)
             shutil.rmtree(self.app.config["REVISION_FOLDER"])
@@ -369,30 +506,68 @@ class Revision:  # TODO wohin damit
     def _generate_session_values(self):
         # Generate the session values: Store some meta information.
         self.app.db.add_object(SessionValue("csv_input_file", self.args.input_csv))
-        self.app.db.add_object(SessionValue("csv_fieldnames", self.requirement_collection.csv_meta.fieldnames))
-        self.app.db.add_object(SessionValue("csv_id_header", self.requirement_collection.csv_meta.id_header))
-        self.app.db.add_object(SessionValue("csv_formal_header", self.requirement_collection.csv_meta.formal_header))
-        self.app.db.add_object(SessionValue("csv_type_header", self.requirement_collection.csv_meta.type_header))
-        self.app.db.add_object(SessionValue("csv_desc_header", self.requirement_collection.csv_meta.desc_header))
-        self.app.db.add_object(SessionValue("csv_hash", hash_file_sha1(self.args.input_csv)))
+        self.app.db.add_object(
+            SessionValue(
+                "csv_fieldnames", self.requirement_collection.csv_meta.fieldnames
+            )
+        )
+        self.app.db.add_object(
+            SessionValue(
+                "csv_id_header", self.requirement_collection.csv_meta.id_header
+            )
+        )
+        self.app.db.add_object(
+            SessionValue(
+                "csv_formal_header", self.requirement_collection.csv_meta.formal_header
+            )
+        )
+        self.app.db.add_object(
+            SessionValue(
+                "csv_type_header", self.requirement_collection.csv_meta.type_header
+            )
+        )
+        self.app.db.add_object(
+            SessionValue(
+                "csv_desc_header", self.requirement_collection.csv_meta.desc_header
+            )
+        )
+        self.app.db.add_object(
+            SessionValue("csv_hash", hash_file_sha1(self.args.input_csv))
+        )
 
     def _update_session_values(self):
         # Update the session values: Store some meta information.
-        self.app.db.get_object(SessionValue, "csv_input_file").value = self.args.input_csv
-        self.app.db.get_object(SessionValue, "csv_fieldnames").value = self.requirement_collection.csv_meta.fieldnames
-        self.app.db.get_object(SessionValue, "csv_id_header").value = self.requirement_collection.csv_meta.id_header
-        self.app.db.get_object(SessionValue, "csv_formal_header").value = (
-            self.requirement_collection.csv_meta.formal_header
+        self.app.db.get_object(
+            SessionValue, "csv_input_file"
+        ).value = self.args.input_csv
+        self.app.db.get_object(
+            SessionValue, "csv_fieldnames"
+        ).value = self.requirement_collection.csv_meta.fieldnames
+        self.app.db.get_object(
+            SessionValue, "csv_id_header"
+        ).value = self.requirement_collection.csv_meta.id_header
+        self.app.db.get_object(
+            SessionValue, "csv_formal_header"
+        ).value = self.requirement_collection.csv_meta.formal_header
+        self.app.db.get_object(
+            SessionValue, "csv_type_header"
+        ).value = self.requirement_collection.csv_meta.type_header
+        self.app.db.get_object(
+            SessionValue, "csv_desc_header"
+        ).value = self.requirement_collection.csv_meta.desc_header
+        self.app.db.get_object(SessionValue, "csv_hash").value = hash_file_sha1(
+            self.args.input_csv
         )
-        self.app.db.get_object(SessionValue, "csv_type_header").value = self.requirement_collection.csv_meta.type_header
-        self.app.db.get_object(SessionValue, "csv_desc_header").value = self.requirement_collection.csv_meta.desc_header
-        self.app.db.get_object(SessionValue, "csv_hash").value = hash_file_sha1(self.args.input_csv)
 
     def _merge_with_base_revision(self):
         # Merge the old revision into the new revision
-        logging.info(f"Merging `{self.base_revision_name}` into `{self.revision_name}`.")
+        logging.info(
+            f"Merging `{self.base_revision_name}` into `{self.revision_name}`."
+        )
         reqs: dict[str, Requirement] = dict(self.app.db.get_objects(Requirement))
-        new_reqs: dict[str, Requirement] = {r.rid: r for r in self.requirement_collection.requirements}
+        new_reqs: dict[str, Requirement] = {
+            r.rid: r for r in self.requirement_collection.requirements
+        }
 
         req_ids: set[str] = set(reqs.keys())
         new_req_ids: set[str] = set(new_reqs.keys())
@@ -402,7 +577,9 @@ class Revision:  # TODO wohin damit
             self.app.db.remove_object(reqs[rid])
 
         # insert and tag new reqs
-        revision_tag_name = f"{self.base_revision_name}_to_{self.revision_name}_new_requirement"
+        revision_tag_name = (
+            f"{self.base_revision_name}_to_{self.revision_name}_new_requirement"
+        )
         if not self.app.db.key_in_table(Tag, revision_tag_name):
             revision_tag = Tag(revision_tag_name, Color.BS_INFO.value, False, "")
         else:
@@ -414,37 +591,57 @@ class Revision:  # TODO wohin damit
             self.app.db.add_object(new_reqs[rid])
 
         # updating existing requirements
-        data_changed_tag_name = f"{self.base_revision_name}_to_{self.revision_name}_data_changed"
+        data_changed_tag_name = (
+            f"{self.base_revision_name}_to_{self.revision_name}_data_changed"
+        )
         if not self.app.db.key_in_table(Tag, data_changed_tag_name):
-            data_changed_tag = Tag(data_changed_tag_name, Color.BS_INFO.value, False, "")
+            data_changed_tag = Tag(
+                data_changed_tag_name, Color.BS_INFO.value, False, ""
+            )
         else:
             data_changed_tag = self.app.db.get_object(Tag, data_changed_tag_name)
 
-        description_changed_tag_name = f"{self.base_revision_name}_to_{self.revision_name}_description_changed"
+        description_changed_tag_name = (
+            f"{self.base_revision_name}_to_{self.revision_name}_description_changed"
+        )
         if not self.app.db.key_in_table(Tag, description_changed_tag_name):
-            description_changed_tag = Tag(description_changed_tag_name, Color.BS_INFO.value, False, "")
+            description_changed_tag = Tag(
+                description_changed_tag_name, Color.BS_INFO.value, False, ""
+            )
         else:
-            description_changed_tag = self.app.db.get_object(Tag, description_changed_tag_name)
+            description_changed_tag = self.app.db.get_object(
+                Tag, description_changed_tag_name
+            )
 
-        migrated_formalization_tag_name = f"{self.base_revision_name}_to_{self.revision_name}_migrated_formalization"
+        migrated_formalization_tag_name = (
+            f"{self.base_revision_name}_to_{self.revision_name}_migrated_formalization"
+        )
         if not self.app.db.key_in_table(Tag, migrated_formalization_tag_name):
-            migrated_formalization_tag = Tag(migrated_formalization_tag_name, Color.BS_INFO.value, False, "")
+            migrated_formalization_tag = Tag(
+                migrated_formalization_tag_name, Color.BS_INFO.value, False, ""
+            )
         else:
-            migrated_formalization_tag = self.app.db.get_object(Tag, migrated_formalization_tag_name)
+            migrated_formalization_tag = self.app.db.get_object(
+                Tag, migrated_formalization_tag_name
+            )
 
         for rid in new_req_ids.intersection(req_ids):
             r = reqs[rid]
             new_r = new_reqs[rid]
             # add revision diff and update description, type_in_csv, csv_row and pos_in_csv
             if r.description != new_r.description:
-                logging.info(f"Description changed. Add `description_changed` tag to `{rid}`.")
+                logging.info(
+                    f"Description changed. Add `description_changed` tag to `{rid}`."
+                )
                 r.tags[description_changed_tag] = ""
                 r.status = "Todo"
 
             r.revision_diff = new_r
 
             if len(r.revision_diff) > 0:
-                logging.info(f"CSV entry changed. Add `revision_data_changed` tag to `{rid}`.")
+                logging.info(
+                    f"CSV entry changed. Add `revision_data_changed` tag to `{rid}`."
+                )
                 r.tags[data_changed_tag] = ""
 
             # If the new formalization is empty: just migrate the formalization.
@@ -477,7 +674,10 @@ class HanforArgumentParser(argparse.ArgumentParser):
     def __init__(self, app):
         super().__init__()
         self.app = app
-        self.add_argument("tag", help="A tag for the session. Session will be reloaded, if tag exists.")
+        self.add_argument(
+            "tag",
+            help="A tag for the session. Session will be reloaded, if tag exists.",
+        )
         self.add_argument("-c", "--input_csv", help="Path to the csv to be processed.")
         self.add_argument(
             "-r",
@@ -486,7 +686,10 @@ class HanforArgumentParser(argparse.ArgumentParser):
             help="Create a new session by updating a existing session with a new csv file.",
         )
         self.add_argument(
-            "-rti", "--reload_type_inference", action="store_true", help="Reload the type inference results."
+            "-rti",
+            "--reload_type_inference",
+            action="store_true",
+            help="Reload the type inference results.",
         )
         self.add_argument(
             "-L",
@@ -519,10 +722,14 @@ class ListStoredSessions(argparse.Action):
 
     def __init__(self, option_strings, app, dest, *args, **kwargs):
         self.app = app
-        super(ListStoredSessions, self).__init__(option_strings=option_strings, dest=dest, *args, **kwargs)
+        super(ListStoredSessions, self).__init__(
+            option_strings=option_strings, dest=dest, *args, **kwargs
+        )
 
     def __call__(self, *args, **kwargs):
-        entries = get_stored_session_names(self.app.config["SESSION_BASE_FOLDER"], with_revisions=True)
+        entries = get_stored_session_names(
+            self.app.config["SESSION_BASE_FOLDER"], with_revisions=True
+        )
         data = [["Tag", "Revision", "Last Modified"]]
         for entry in entries:
             revisions = list()
@@ -558,36 +765,60 @@ class GenerateScopedPatternTrainingData(argparse.Action):
         result = dict()
         for entry in entries:
             logging.debug("Looking into {}".format(entry[1]))
-            current_session_folder = os.path.join(self.app.config["SESSION_BASE_FOLDER"], entry[1])
-            revisions = get_available_revisions(self.app.config, folder=current_session_folder)
+            current_session_folder = os.path.join(
+                self.app.config["SESSION_BASE_FOLDER"], entry[1]
+            )
+            revisions = get_available_revisions(
+                self.app.config, folder=current_session_folder
+            )
             for revision in revisions:
-                current_revision_folder = os.path.join(str(current_session_folder), revision)
+                current_revision_folder = os.path.join(
+                    str(current_session_folder), revision
+                )
                 logging.debug("Processing `{}`".format(current_revision_folder))
                 requirements = get_requirements(self.app)
-                logging.debug("Found {} requirements .. fetching the formalized ones.".format(len(requirements)))
+                logging.debug(
+                    "Found {} requirements .. fetching the formalized ones.".format(
+                        len(requirements)
+                    )
+                )
                 used_slugs = set()
                 for requirement in requirements:
                     try:
                         if len(requirement.description) == 0:
                             continue
-                        slug, used_slugs = clean_identifier_for_ultimate_parser(requirement.rid, 0, used_slugs)
+                        slug, used_slugs = clean_identifier_for_ultimate_parser(
+                            requirement.rid, 0, used_slugs
+                        )
                         result[slug] = dict()
                         result[slug]["desc"] = requirement.description
                         for index, formalization in requirement.formalizations.items():
                             if formalization.scoped_pattern is None:
                                 continue
-                            if formalization.scoped_pattern.get_scope_slug().lower() == "none":
+                            if (
+                                formalization.scoped_pattern.get_scope_slug().lower()
+                                == "none"
+                            ):
                                 continue
-                            if formalization.scoped_pattern.get_pattern_slug() in ["NotFormalizable", "None"]:
+                            if formalization.scoped_pattern.get_pattern_slug() in [
+                                "NotFormalizable",
+                                "None",
+                            ]:
                                 continue
                             if len(formalization.get_string()) == 0:
                                 # formalization string is empty if expressions are missing or none set. Ignore in output
                                 continue
                             f_key = "formalization_{}".format(index)
                             result[slug][f_key] = dict()
-                            result[slug][f_key]["scope"] = formalization.scoped_pattern.get_scope_slug()
-                            result[slug][f_key]["pattern"] = formalization.scoped_pattern.get_pattern_slug()
-                            result[slug][f_key]["formalization"] = formalization.get_string()
+                            result[slug][f_key]["scope"] = (
+                                formalization.scoped_pattern.get_scope_slug()
+                            )
+                            result[slug][f_key]["pattern"] = (
+                                formalization.scoped_pattern.get_pattern_slug()
+                            )
+                            result[slug][f_key]["formalization"] = (
+                                formalization.get_string()
+                            )
                     except AttributeError:
                         continue
             with open("training_data.json", mode="w", encoding="utf-8") as f:
@@ -595,7 +826,9 @@ class GenerateScopedPatternTrainingData(argparse.Action):
         exit(0)
 
 
-def get_stored_session_names(session_folder, only_names=False, with_revisions=False) -> tuple:
+def get_stored_session_names(
+    session_folder, only_names=False, with_revisions=False
+) -> tuple:
     """Get stored session tags (folder names) including os.stat.
     Returned tuple is (
         (os.stat(), name),
@@ -630,7 +863,9 @@ def get_stored_session_names(session_folder, only_names=False, with_revisions=Fa
     """
     result = ()
     if not session_folder:
-        session_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")
+        session_folder = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "data"
+        )
 
     try:
         result = [
@@ -693,12 +928,16 @@ def get_last_edit_from_path(path_str):
     :param path_str: str to path.
     :return: "%A %d. %B %Y at %X" formatted mtime
     """
-    return datetime.datetime.fromtimestamp(os.stat(path_str).st_mtime).strftime("%A %d. %B %Y at %X")
+    return datetime.datetime.fromtimestamp(os.stat(path_str).st_mtime).strftime(
+        "%A %d. %B %Y at %X"
+    )
 
 
 def add_custom_serializer_to_database(database: JsonDatabase) -> None:
 
-    def scope_serialize(obj: Scope, db_serializer: Callable[[any, str], any], user: str) -> dict:
+    def scope_serialize(
+        obj: Scope, db_serializer: Callable[[any, str], any], user: str
+    ) -> dict:
         return db_serializer(obj.value, user)
 
     def scope_deserialize(data: dict, db_deserializer: Callable[[any], any]) -> Scope:
@@ -706,23 +945,35 @@ def add_custom_serializer_to_database(database: JsonDatabase) -> None:
 
     database.add_custom_serializer(Scope, scope_serialize, scope_deserialize)
 
-    def datetime_serialize(obj: datetime.datetime, db_serializer: Callable[[any, str], any], user: str) -> dict:
+    def datetime_serialize(
+        obj: datetime.datetime, db_serializer: Callable[[any, str], any], user: str
+    ) -> dict:
         return db_serializer(obj.isoformat(), user)
 
-    def datetime_deserialize(data: dict, db_deserializer: Callable[[any], any]) -> datetime.datetime:
+    def datetime_deserialize(
+        data: dict, db_deserializer: Callable[[any], any]
+    ) -> datetime.datetime:
         return datetime.datetime.fromisoformat(db_deserializer(data))
 
-    database.add_custom_serializer(datetime.datetime, datetime_serialize, datetime_deserialize)
+    database.add_custom_serializer(
+        datetime.datetime, datetime_serialize, datetime_deserialize
+    )
 
     def boogie_type_serialize(
-        obj: boogie_parsing.BoogieType, db_serializer: Callable[[any, str], any], user: str
+        obj: boogie_parsing.BoogieType,
+        db_serializer: Callable[[any, str], any],
+        user: str,
     ) -> dict:
         return db_serializer(obj.value, user)
 
-    def boogie_type_deserialize(data: dict, db_deserializer: Callable[[any], any]) -> boogie_parsing.BoogieType:
+    def boogie_type_deserialize(
+        data: dict, db_deserializer: Callable[[any], any]
+    ) -> boogie_parsing.BoogieType:
         return boogie_parsing.BoogieType(db_deserializer(data))
 
-    database.add_custom_serializer(boogie_parsing.BoogieType, boogie_type_serialize, boogie_type_deserialize)
+    database.add_custom_serializer(
+        boogie_parsing.BoogieType, boogie_type_serialize, boogie_type_deserialize
+    )
 
 
 def get_available_revisions(config, folder=None):
@@ -741,7 +992,10 @@ def get_available_revisions(config, folder=None):
     try:
         names = os.listdir(folder)
         result = [
-            name for name in names if os.path.isdir(os.path.join(folder, name)) and re.match(r"revision_[0-9]+", name)
+            name
+            for name in names
+            if os.path.isdir(os.path.join(folder, name))
+            and re.match(r"revision_[0-9]+", name)
         ]
     except Exception as e:
         logging.error("Could not fetch stored revisions: {}".format(e))

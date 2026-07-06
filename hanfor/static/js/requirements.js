@@ -1,5 +1,5 @@
 require("gasparesganga-jquery-loading-overlay")
-const { Collapse, Modal, Tab } = require("bootstrap")
+const { Collapse, Modal, Popover, Tab } = require("bootstrap")
 require("datatables.net-bs5")
 require("datatables.net-select-bs5")
 require("jquery-ui/ui/widgets/autocomplete")
@@ -12,12 +12,13 @@ require("datatables.net-colreorder-bs5")
 require("datatables.net-colresize-unofficial")
 require("datatables.net-colresize-unofficial/jquery.dataTables.colResize.css")
 require("./bootstrap-confirm-button")
+const { marked } = require("marked")
 import Sortable from "sortablejs"
 import Mustache from "mustache"
 import FormalizationStore from "./formalizations/store"
 import "jquery-sortablejs"
 import FormalizationRenderer from "./formalizations/renderer.js"
-import { AVAILABLE_TYPES } from "./variables.js"
+import { AVAILABLE_VARIABLE_TYPES } from "./variables.js"
 
 let utils = require("./hanfor-utils")
 const autosize = require("autosize/dist/autosize")
@@ -55,6 +56,7 @@ renderer.registerType("formalization", {
   afterRender: ($container, entry) => {
     $container.find(`#requirement_scope${entry.id}`).val(entry.scope)
     $container.find(`#requirement_pattern${entry.id}`).val(entry.pattern)
+    $container.find(`#is_constraint${entry.id}`).prop("checked", !!entry.is_constraint)
     const vars = ["P", "Q", "R", "S", "T", "U", "V"]
     vars.forEach((v) => {
       const val = entry[`expr_${v}`]
@@ -82,6 +84,15 @@ renderer.registerType("formalization", {
   },
 })
 
+function debounce(fn, delay) {
+  let timer
+  return function () {
+    let ctx = this, args = arguments
+    clearTimeout(timer)
+    timer = setTimeout(function () { fn.apply(ctx, args) }, delay)
+  }
+}
+
 renderer.registerType("variable", {
   defaults: {
     order: 0,
@@ -96,7 +107,7 @@ renderer.registerType("variable", {
     type_input
       .autocomplete({
         minLength: 0,
-        source: AVAILABLE_TYPES,
+        source: AVAILABLE_VARIABLE_TYPES,
         select: function () {
           // input value is updated after select, so we use setTimeout
           setTimeout(toggle, 0)
@@ -112,29 +123,49 @@ renderer.registerType("variable", {
       })
     }
     // title change listener
-    const name_input = $container.find('input[aria-describedby="variable-name"]')
-    name_input.on("input", function () {
+    const name_input = $container.find('input[aria-describedby="variable-name-feedback"]')
+    function validateName() {
+      const val = name_input.val().trim()
+      const re = /^[a-zA-Z][a-zA-Z0-9_.]*$/
+      if (val && !re.test(val)) {
+        name_input.addClass("is-invalid")
+      } else {
+        name_input.removeClass("is-invalid")
+      }
+    }
+    validateName()
+    name_input.on("input", debounce(function () {
       const newName = $(this).val().trim()
       const button = $container.closest(".accordion-item").find(".accordion-button")
-      button.text(newName ? newName : `New Variable ${id}`)
+      button.text(newName ? newName : `new_variable_${id}`)
+      validateName()
       markDirty()
-    })
+    }, 300))
     // value field needed
     const $block = $container.closest(".accordion-item")
     const $typeInput = $block.find(".variable-type")
     const $valueGroup = $block.find(".variable-value-group")
     const $enumeratorsContainer = $block.find(".enumerators-container")
     function toggle() {
-      console.log("TOGGLE")
-      console.log($typeInput.val())
       $valueGroup.toggleClass("d-none", $typeInput.val() != "CONST")
       $enumeratorsContainer.toggleClass("d-none", !$typeInput.val().startsWith("ENUM_"))
     }
+    function validateType() {
+      const val = $typeInput.val()
+      if (val && !AVAILABLE_VARIABLE_TYPES.includes(val)) {
+        $typeInput.addClass("is-invalid")
+      } else {
+        $typeInput.removeClass("is-invalid")
+      }
+    }
     toggle()
-    $typeInput.on("input change autocompleteselect", function () {
+    validateType()
+    $container.find("#variable-type-feedback").text("Supported types are " + AVAILABLE_VARIABLE_TYPES.join(", "))
+    $typeInput.on("input change autocompleteselect", debounce(function () {
       toggle()
+      validateType()
       markDirty()
-    })
+    }, 300))
     const $variableValue = $block.find("input.variable-value")
     $variableValue.on("input", markDirty)
     // enumerators
@@ -273,8 +304,19 @@ $(document).ready(function () {
   })
 
   // Bind formalization update.
-  body.on("change", ".formalization_selector, .reqirement-variable, .req_var_type", function () {
-    update_formalization()
+  body.on(
+    "change",
+    ".formalization_selector, .reqirement-variable, .req_var_type, .is-constraint-checkbox",
+    function () {
+      update_formalization()
+    }
+  )
+  // Bind is_constraint checkbox change so the save flag is set.
+  body.on("change", ".is-constraint-checkbox", function () {
+    $("#requirement_modal").data({
+      unsaved_changes: true,
+      updated_formalization: true,
+    })
   })
   // Bind formalization variable update.
   body.on("change", ".formalization_selector", function () {
@@ -306,6 +348,27 @@ $(document).ready(function () {
   })
   bind_tag_field_events()
 })
+
+$(document).on('click', '.highlighted-variable, .highlighted-variable-extra', function () {
+  const varName = $(this).data('main-var') || $(this).data('var');
+  navigator.clipboard.writeText(varName);
+
+  const $tip = $('<span>Copied!</span>').css({
+    position: 'absolute',
+    background: 'yellow',
+    padding: '2px 4px',
+    borderRadius: '3px',
+    zIndex: 9999
+  }).appendTo('body');
+
+  const offset = $(this).offset();
+  $tip.css({
+    left: offset.left + 'px',
+    top: offset.top + $(this).outerHeight() + 5 + 'px'
+  });
+  setTimeout(() => $tip.remove(), 300);
+});
+
 
 /**
  * Fetch requirements from hanfor api and build the requirements table.
@@ -586,13 +649,16 @@ function init_datatable_manipulators(requirements_table) {
  * @param {DataTable} requirements_table
  */
 function store_requirement(requirements_table) {
+  if ($('#formalization_accordion').find('.is-invalid').length > 0) {
+    alert('Please fix invalid variable names or types before saving.')
+    return
+  }
   let requirement_modal_content = $(".modal-content")
   requirement_modal_content.LoadingOverlay("show")
   const req_id = $("#requirement_id").val()
   const req_status = $('input[name="status"]:checked').val()
   const updated_formalization = $("#requirement_modal").data("updated_formalization")
   const associated_row_id = parseInt($("#modal_associated_row_index").val())
-
   // Fetch the formalizations
   let formalizations = {}
   $("#formalization_accordion > .accordion-item").each(function () {
@@ -602,7 +668,7 @@ function store_requirement(requirements_table) {
 
     if ($item.data("type") === "variable") {
       formalization["formalization_type"] = "variable"
-      formalization["name"] = $item.find('input[aria-describedby="variable-name"]').val() || ""
+      formalization["name"] = $item.find('input[aria-describedby="variable-name-feedback"]').val() || ""
       formalization["var_type"] = $item.find("input.variable-type").val() || ""
       formalization["const_val"] = $item.find("input.variable-value").val() || ""
       const enumerators = []
@@ -614,6 +680,7 @@ function store_requirement(requirements_table) {
       formalization["scope"] = $item.find(".scope_selector").val()
       formalization["formalization_type"] = "formalization"
       formalization["pattern"] = $item.find(".pattern_selector").val()
+      formalization["is_constraint"] = $item.find(".is-constraint-checkbox").is(":checked")
       formalization["expression_mapping"] = {}
       $item.find("textarea.reqirement-variable").each(function () {
         const title = $(this).attr("title")
@@ -642,36 +709,42 @@ function store_requirement(requirements_table) {
     Object.entries(formalizations).filter(([id]) => !store.isCreated("formalization", id)),
   )
   console.log("Committed formalizations:", JSON.stringify(committedFormalizations, null, 2))
-  store.commitDeletes(req_id, "formalization")
-  store.commitDeletes(req_id, "variable")
-  store.commitCreated(req_id)
-  $.ajax({
+  $.when(
+    store.commitDeletes(req_id, "formalization"),
+    store.commitDeletes(req_id, "variable"),
+    store.commitCreated(req_id),
+  ).done(function () {
+    $.ajax({
       url: `api/v1/req/${req_id}`,
-    method: "PATCH",
-    data: {
-      row_idx: associated_row_id,
-      update_formalization: updated_formalization,
-      tags: JSON.stringify(Object.fromEntries(tag_comments)),
-      status: req_status,
-      formalizations: JSON.stringify(committedFormalizations),
-      formalizations_order: JSON.stringify(load_order),
-    },
-    success: function (data) {
-      requirement_modal_content.LoadingOverlay("hide", true)
+      method: "PATCH",
+      data: {
+        row_idx: associated_row_id,
+        update_formalization: updated_formalization,
+        tags: JSON.stringify(Object.fromEntries(tag_comments)),
+        status: req_status,
+        formalizations: JSON.stringify(committedFormalizations),
+        formalizations_order: JSON.stringify(load_order),
+      },
+      success: function (data) {
+        requirement_modal_content.LoadingOverlay("hide", true)
 
-      if (data["success"] === false) {
-        alert(data["errormsg"])
-      } else {
-        requirements_table.row(associated_row_id).data(data)
+        if (data["success"] === false) {
+          alert(data["errormsg"])
+        } else {
+          requirements_table.row(associated_row_id).data(data)
 
-        $("#requirement_modal").data("unsaved_changes", false)
+          $("#requirement_modal").data("unsaved_changes", false)
 
-        const requirement_modal = document.querySelector("#requirement_modal")
-        Modal.getOrCreateInstance(requirement_modal).hide()
-      }
-    },
-  }).done(function () {
-    update_logs()
+          const requirement_modal = document.querySelector("#requirement_modal")
+          Modal.getOrCreateInstance(requirement_modal).hide()
+        }
+      },
+    }).done(function () {
+      update_logs()
+    })
+  }).fail(function (err) {
+    requirement_modal_content.LoadingOverlay("hide", true)
+    alert("Save failed: " + (err && err.errormsg || "Unknown error"))
   })
 }
 
@@ -1066,6 +1139,10 @@ function init_modal() {
 
   //requirement_modal.on('hide.bs.modal', function (event) {
   requirement_modal[0].addEventListener("hide.bs.modal", function (event) {
+    $(".constraint-badge").each(function () {
+      const popover = Popover.getInstance(this)
+      if (popover) popover.dispose()
+    })
     modal_closing_routine(event)
   })
 
@@ -1125,8 +1202,6 @@ function init_modal() {
     if (cookie) {
       formalization = JSON.parse(cookie)
     }
-    console.log(formalization)
-
     add_formalization(formalization)
   })
 
@@ -1227,7 +1302,8 @@ function load_requirement(row_idx) {
 
     // Visible information
     $("#requirement_modal_title").html(data.id + ": " + data.type)
-    $("#description_textarea").text(data.desc).change()
+    const rendered_descr = marked(data.desc_highlighted, { sanitize: false })
+    $("#description_textarea").html(rendered_descr).change();
     $("#add_guess_description").text(data.desc).change()
 
     // Parse the formalizations
@@ -1242,6 +1318,9 @@ function load_requirement(row_idx) {
       update_vars()
       bind_var_autocomplete()
       update_formalization()
+      $(".constraint-badge").each(function () {
+        new Popover(this, { trigger: "hover focus", placement: "top" })
+      })
       $("#requirement_modal").data({
         unsaved_changes: false,
         updated_formalization: false,
@@ -1249,12 +1328,12 @@ function load_requirement(row_idx) {
       requirement_modal_content.LoadingOverlay("hide", true)
       sendTelemetry("requirements", data.id, "open")
       setCopyBtnEnable()
+    }).fail(function () {
+      // Defensive: hide the overlay even if a render error prevented .done from running.
+      requirement_modal_content.LoadingOverlay("hide", true)
     })
 
     store.initNextId(data["next_id"])
-    console.log("Store:")
-    console.log(store)
-
     // remove all lines from the tag comment table
     $("#tags_comments_table").find("tr:gt(0)").remove()
     // set Tag field and comments in Table (table rows are created via event)
@@ -1325,7 +1404,7 @@ function load_requirement(row_idx) {
     const sortable = Sortable.create($("#formalization_accordion")[0], {
       animation: 200,
       ghostClass: "ghost",
-      filter: "textarea, select",
+      filter: "textarea, input, select",
       preventOnFilter: false,
     })
   })
@@ -1485,6 +1564,12 @@ function copy_formalization(formal_id) {
             formalization["pattern"] = $(this).val()
           }
         })
+
+      // is_constraint checkbox
+      formalization["is_constraint"] = $(this)
+        .closest(".accordion-item")
+        .find(".is-constraint-checkbox")
+        .is(":checked")
 
       // Expressions
       formalization["expression_mapping"] = {}

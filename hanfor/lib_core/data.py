@@ -2,32 +2,32 @@ import datetime
 import difflib
 import json
 import logging
+import re
 import string
+from abc import ABC
 from dataclasses import dataclass, field
 from enum import Enum
 from threading import Lock
-import re
-from typing import Any, Iterable, Union, Protocol, Dict, runtime_checkable
-from abc import ABC
+from typing import Any, Dict, Iterable, Literal, Protocol, Union, runtime_checkable
 from uuid import uuid4
 
 from lark import LarkError
 from typing_extensions import deprecated
 
-from lib_core import boogie_parsing
-from lib_core.boogie_parsing import run_typecheck_fixpoint, BoogieType
-
-from hanfor_flask import current_app, HanforFlask
+from hanfor_flask import HanforFlask, current_app
 from json_db_connector.json_db import (
-    DatabaseTable,
-    TableType,
-    DatabaseID,
     DatabaseField,
-    DatabaseNonSavedField,
     DatabaseFieldType,
+    DatabaseID,
+    DatabaseNonSavedField,
+    DatabaseTable,
     JsonDatabase,
+    TableType,
 )
-from configuration.patterns import APattern
+from lib_core import boogie_parsing
+from lib_core.boogie_parsing import BoogieType, run_typecheck_fixpoint
+from lib_core.pattern.patterns_basic import APattern
+from lib_core.scopes import Scope
 
 
 @DatabaseTable(TableType.File)
@@ -80,6 +80,33 @@ class BaseFormalization(ABC):
 
 
 
+class FormalizationOfType(Enum):
+    """
+    Enum for different formalization types.
+    The template_name property returns the string used on the frontend templates.
+    """
+
+    FORMALIZATION = "formalization"
+    VARIABLE = "variable"
+
+    @property
+    def template_name(self) -> str:
+        return f"{self.value}-template"
+
+
+@runtime_checkable
+class FormalizationProtocol(Protocol):
+    order: int
+
+    def to_dict(self, **kwargs) -> Dict[str, Any]: ...
+    def get_string(self) -> str: ...
+
+
+class BaseFormalization(ABC):
+    def of_type(self) -> str:
+        return self.__class__.__name__.lower()
+
+
 @DatabaseTable(TableType.Folder)
 @DatabaseID("rid", str)
 @DatabaseField("formalizations", dict)
@@ -93,7 +120,14 @@ class BaseFormalization(ABC):
 @DatabaseField("_next_formalization_index", int, default=-1)
 @DatabaseNonSavedField("_formalization_index_mutex", Lock())
 class Requirement:
-    def __init__(self, rid: str, description: str, type_in_csv: str, csv_row: dict[str, str], pos_in_csv: int):
+    def __init__(
+        self,
+        rid: str,
+        description: str,
+        type_in_csv: str,
+        csv_row: dict[str, str],
+        pos_in_csv: int,
+    ):
         self.rid: str = rid
         self.formalizations: dict[int, FormalizationProtocol] = dict()
         self.description = description
@@ -105,7 +139,6 @@ class Requirement:
         self._revision_diff = dict()
         self._next_formalization_index: int = -1
         self._formalization_index_mutex: Lock = Lock()
-
 
     def add_formalization_with_id(self, formalization: FormalizationProtocol, fid: int):
         self.formalizations[fid] = formalization
@@ -315,6 +348,8 @@ class Requirement:
         vars_with_unknown_type = []
         for fid in self.formalizations.keys():
             # Run type inference check
+            if not isinstance(self.formalizations[fid], Formalization):
+                continue
             self.formalizations[fid].type_inference_check(var_collection)
             if len(self.formalizations[fid].type_inference_errors) > 0:
                 self.tags[standard_tags["TAG_Type_inference_error"]] = self.format_error_tag(
@@ -353,7 +388,7 @@ class Requirement:
         """
         result = False
         for formalization in self.formalizations.values():  # type: Formalization
-            if var_name in formalization.used_variables:
+            if isinstance(formalization, Formalization) and var_name in formalization.used_variables:
                 result = True
                 break
         return result
@@ -369,6 +404,7 @@ class Requirement:
 @DatabaseField("scoped_pattern", "ScopedPattern")
 @DatabaseField("expressions_mapping", dict)
 @DatabaseField("type_inference_errors", dict)
+@DatabaseField("is_constraint", bool, default=True)
 class Formalization(BaseFormalization):
     def __init__(self, fid: int):
         self.id: int = fid
@@ -376,6 +412,7 @@ class Formalization(BaseFormalization):
         self.scoped_pattern = ScopedPattern()
         self.expressions_mapping: dict[str, Expression] = dict()
         self.type_inference_errors = dict()
+        self.is_constraint: bool = True
 
     @property
     def used_variables(self):
@@ -385,7 +422,10 @@ class Formalization(BaseFormalization):
         return list(set(result))
 
     def set_expressions_mapping(
-        self, mapping: dict[str, str], variable_collection: "VariableCollection", rid: str
+        self,
+        mapping: dict[str, str],
+        variable_collection: "VariableCollection",
+        rid: str,
     ) -> list["Variable"]:
         """Parse expression mapping.
             + Extract variables. Replace by their ID. Create new Variables if they do not exist.
@@ -436,7 +476,11 @@ class Formalization(BaseFormalization):
 
             # Derive type for variables in expression and update missing or changed types.
             ti = run_typecheck_fixpoint(tree, var_env, expected_types=allowed_types[key])
-            expression_type, type_env, type_errors = ti.type_root.t, ti.type_env, ti.type_errors
+            expression_type, type_env, type_errors = (
+                ti.type_root.t,
+                ti.type_env,
+                ti.type_errors,
+            )
 
             # Add type error if a variable is used in a timing expression
             if allowed_types[key] != [BoogieType.bool]:
@@ -484,6 +528,9 @@ class Formalization(BaseFormalization):
 
     def get_string(self):
         return self.scoped_pattern.get_string(self.expressions_mapping)
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} rid={self.id}: {self.scoped_pattern}>"
 
 
 @DatabaseFieldType()
@@ -534,63 +581,21 @@ class Expression:
         return f'"{self.raw_expression}"'
 
 
-class Scope(Enum):
-    GLOBALLY = "Globally"
-    BEFORE = 'Before "{P}"'
-    AFTER = 'After "{P}"'
-    BETWEEN = 'Between "{P}" and "{Q}"'
-    AFTER_UNTIL = 'After "{P}" until "{Q}"'
-    NONE = "// None"
-
-    def instantiate(self, *args):
-        return str(self.value).format(*args)
-
-    def get_slug(self):
-        """Returns a short slug representing the scope value.
-        Use in applications where you don't want to use the full string.
-
-        :return: Slug like AFTER_UNTIL for 'After "{P}" until "{Q}"'
-        :rtype: str
-        """
-        slug_map = {
-            str(self.GLOBALLY): "GLOBALLY",
-            str(self.BEFORE): "BEFORE",
-            str(self.AFTER): "AFTER",
-            str(self.BETWEEN): "BETWEEN",
-            str(self.AFTER_UNTIL): "AFTER_UNTIL",
-            str(self.NONE): "NONE",
-        }
-        return slug_map[self.__str__()]
-
-    def __str__(self):
-        result = str(self.value).replace('"', "")
-        return result
-
-    def get_allowed_types(self):
-        scope_env = {
-            "GLOBALLY": {},
-            "BEFORE": {"P": [boogie_parsing.BoogieType.bool]},
-            "AFTER": {"P": [boogie_parsing.BoogieType.bool]},
-            "BETWEEN": {"P": [boogie_parsing.BoogieType.bool], "Q": [boogie_parsing.BoogieType.bool]},
-            "AFTER_UNTIL": {"P": [boogie_parsing.BoogieType.bool], "Q": [boogie_parsing.BoogieType.bool]},
-            "NONE": {},
-        }
-        return scope_env[self.name]
-
-
 @DatabaseFieldType()
 @DatabaseField("name", str)
 @DatabaseField("pattern", str)
 class Pattern:
     def __init__(self, name: str = "NotFormalizable"):
-        self.name = name
-        self.pattern = APattern.get_pattern(name)._pattern_text
-        self.environment = APattern.get_pattern(name)._env
+        # Hack: reflect over pattern class to update to correct name
+        self.name = APattern().get_pattern(name).__class__.__name__
+        self.pattern = APattern().get_pattern(name)._pattern_text
+        self.environment = APattern().get_pattern(name)._env
+
+    def get_patternish(self) -> APattern:
+        # TODO: find good name for pattern template
+        return APattern().get_pattern(self.get_name())
 
     def get_name(self):
-        # TODO: hack to update the pattern names to new names
-        #  (move to database update when we are able do that)
-        self.name = APattern.get_pattern(self.name).__class__.__name__
         return self.name
 
     def is_instantiatable(self):
@@ -603,7 +608,7 @@ class Pattern:
         return self.pattern
 
     def get_allowed_types(self):
-        return BoogieType.alias_env_to_instantiated_env(APattern.get_pattern(self.name)._env)
+        return BoogieType.alias_env_to_instantiated_env(self.get_patternish()._env)
 
 
 @DatabaseFieldType()
@@ -666,6 +671,9 @@ class ScopedPattern:
         result.update(self.pattern.get_allowed_types())
         return result
 
+    def get_patternish(self):
+        return self.pattern.get_patternish()
+
 
 @DatabaseTable(TableType.Folder)
 @DatabaseID("uuid", use_uuid=True)
@@ -681,8 +689,8 @@ class ScopedPattern:
 class Variable(BaseFormalization):
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
 
-    def __init__(self, name: str, var_type: str | None, value: str | None, order: int = 0):
-        self.name: str = name
+    def __init__(self, name: str, var_type: str | None, value: str | None = None, order: int = 0):
+        self.set_name(name)
         self.type: str = var_type
         self.value: str = value
         self.order: int = order
@@ -725,26 +733,27 @@ class Variable(BaseFormalization):
     def get_tags(self):
         return self.tags
 
+    def set_name(self, new_name):
+        if not new_name or not re.match(r"^[a-zA-Z][a-zA-Z0-9_\.]*$", new_name):
+            raise ValueError(f"Illegal variable name: `{new_name}`.")
+        self.name = new_name
+
     def set_type(self, new_type):
         allowed_types = ["CONST"]
         allowed_types += boogie_parsing.BoogieType.get_valid_type_names()
         if new_type not in allowed_types:
             raise ValueError(f"Illegal variable type: `{new_type}`. Allowed types are: `{allowed_types}`")
-
         self.type = new_type
 
-    def _next_free_constraint_id(self):
-        i = 0
-        while i in self.constraints.keys():
-            i += 1
-        return i
-
     def add_constraint(self):
-        """Add a new empty constraint
+        """Add a new empty constraint.
 
-        :return: (index: int, The constraint: Formalization)
+        Allocates the next free id from the existing keys, so soft-deleted
+        ids are never reused and no migration is needed.
+
+        :return: the new constraint id
         """
-        fid = self._next_free_constraint_id()
+        fid = max(self.constraints.keys(), default=-1) + 1
         self.constraints[fid] = Formalization(fid)
         return fid
 
@@ -808,7 +817,9 @@ class Variable(BaseFormalization):
         if len(self.constraints[constraint_id].type_inference_errors) > 0:
             logging.debug(
                 "Type inference Error in variable `{}` constraint `{}` at {}.".format(
-                    self.name, constraint_id, [n for n in self.constraints[constraint_id].type_inference_errors.keys()]
+                    self.name,
+                    constraint_id,
+                    [n for n in self.constraints[constraint_id].type_inference_errors.keys()],
                 )
             )
             self.add_tag(standard_tags["TAG_Type_inference_error"])
@@ -850,7 +861,9 @@ class Variable(BaseFormalization):
                 if old_name not in expression.raw_expression:
                     continue
                 new_expression = boogie_parsing.replace_var_in_expression(
-                    expression=expression.raw_expression, old_var=old_name, new_var=new_name
+                    expression=expression.raw_expression,
+                    old_var=old_name,
+                    new_var=new_name,
                 )
                 self.constraints[index].expressions_mapping[key].raw_expression = new_expression
                 self.constraints[index].expressions_mapping[key].used_variables.discard(old_name)
@@ -858,9 +871,8 @@ class Variable(BaseFormalization):
 
     def rename(self, new_name):
         old_name = self.name
-        self.name = new_name
+        self.set_name(new_name)
         self.rename_var_in_constraints(old_name, new_name)
-
 
     def get_string(self) -> str:
         return self.name
@@ -903,12 +915,13 @@ class Variable(BaseFormalization):
 
 
 class VariableCollection:
-    def __init__(self, variables: Iterable[Variable], requierments: Iterable[Requirement]):
+    def __init__(self, variables: Iterable[Variable], requirements: Iterable[Requirement]):
         self.collection: dict[str, Variable] = {v.name: v for v in variables}
+        self._constraints: dict[str, list[ConstraintReference]] = {}
         self.var_req_mapping = dict()
-        self.refresh_var_usage(requierments)
+        self._build_all(requirements)
         self.req_var_mapping = self.invert_mapping(self.var_req_mapping)
-        self.new_vars = set()
+        self.new_vars: set[Variable] = set()
 
     def __contains__(self, item):
         return item in self.collection
@@ -927,7 +940,9 @@ class VariableCollection:
 
             return True
 
-        result = [var.to_dict(var_req_mapping=self.var_req_mapping) for var in self.collection.values() if in_result(var)]
+        result = [
+            var.to_dict(var_req_mapping=self.var_req_mapping) for var in self.collection.values() if in_result(var)
+        ]
 
         if len(result) > 0 and sort_by is not None and sort_by in result[0].keys():
             result = sorted(result, key=lambda k: k[sort_by])
@@ -1066,10 +1081,10 @@ class VariableCollection:
                     float(var.value)
                 except (TypeError, ValueError) as e:
                     logging.debug(
-                            f"Failed variable {var.name}: "
-                            f"value={repr(var.value)}, "
-                            f"type={type(var.value)}, "
-                            f"error={e}"
+                        f"Failed variable {var.name}: "
+                        f"value={repr(var.value)}, "
+                        f"type={type(var.value)}, "
+                        f"error={e}"
                     )
                     type_env[name] = mapping["unknown"]
                     continue
@@ -1112,72 +1127,51 @@ class VariableCollection:
         self.req_var_mapping.pop("Constraint_{}_{}".format(var_name, constraint_id), None)
         return self.collection[var_name].del_constraint(constraint_id)
 
-    def refresh_var_constraint_mapping(self):
-        def not_in_constraint(var_name, constraint_name):
-            """Checks if var_name is used in constraint_name (if constraint_name is existing).
-
-            :param var_name:
-            :param constraint_name:
-            :return:
-            """
-            match = re.match(Variable.CONSTRAINT_REGEX, constraint_name)
-            if match:
-                constraint_variable_name = match.group(2)
-                if constraint_variable_name not in self.collection.keys():
-                    # The referenced variable is no longer existing.
-                    if constraint_name in self.req_var_mapping and var_name in self.req_var_mapping[constraint_name]:
-                        self.req_var_mapping[constraint_name].discard(var_name)
-                    return True
-                else:
-                    # The variable exists. Now check if var_name occurs in one of its constraints.
-                    for constraint in self.collection[constraint_variable_name].get_constraints().values():
-                        if var_name in constraint.get_string():
-                            return False
-                    if constraint_name in self.req_var_mapping and var_name in self.req_var_mapping[constraint_name]:
-                        self.req_var_mapping[constraint_name].discard(var_name)
-                    return True
-
-            return False
-
-        for name, variable in self.collection.items():
-            if name in self.var_req_mapping:
-                self.var_req_mapping[name] = {
-                    c_name for c_name in self.var_req_mapping[name] if not not_in_constraint(name, c_name)
-                }
-
     def reload_type_inference_errors_in_constraints(self, standard_tags: dict[str, Tag]):
         for name, var in self.collection.items():
             if len(var.get_constraints()) > 0:
                 var.reload_constraints_type_inference_errors(self, standard_tags)
 
-    def refresh_var_usage(self, requirements: Iterable[Requirement]):
-        mapping = dict()
-
-        # Add the requirements using this variable.
+    def _build_all(self, requirements: Iterable[Requirement]):
         for req in requirements:
             for formalization in req.formalizations.values():
                 if isinstance(formalization, Formalization):
-                    try:
-                        for var_name in formalization.used_variables:
-                            if var_name not in mapping.keys():
-                                mapping[var_name] = set()
-                            mapping[var_name].add(req.rid)
-                    except TypeError:
-                        pass
-                    except Exception as e:
-                        logging.info("Could not read formalizations for `{}`: {}".format(req.rid, e))
-                        raise e
+                    for var_name in formalization.used_variables:
+                        self.var_req_mapping.setdefault(var_name, set()).add(req.rid)
 
-        # Add the constraints using this variable.
+        # _constraints: per-variable iteration. For each variable, build the list
+        # of all constraints that touch it
         for var in self.collection.values():
-            for constraint in var.get_constraints().values():
-                for constraint_id, expression in enumerate(constraint.expressions_mapping.values()):
-                    for var_name in expression.used_variables:
-                        if var_name not in mapping.keys():
-                            mapping[var_name] = set()
-                        mapping[var_name].add("Constraint_{}_{}".format(var.name, constraint_id))
-
-        self.var_req_mapping = mapping
+            refs: list[ConstraintReference] = []
+            # Requirement-owned
+            for req in requirements:
+                for fid, form in req.formalizations.items():
+                    if (
+                        isinstance(form, Formalization)
+                        and getattr(form, "is_constraint", False)
+                        and var.name in form.used_variables
+                    ):
+                        refs.append(ConstraintReference(f"{req.rid}:{fid}", "requirement", req.rid, form))
+            # Variable-owned
+            for cid, form in var.constraints.items():
+                refs.append(ConstraintReference(f"Constraint_{var.name}_{cid}", "variable", var.name, form))
+            # Variable-owned: constraints stored on OTHER variables whose
+            # expression references this variable
+            for other_var in self.collection.values():
+                if other_var.name == var.name:
+                    continue
+                for cid, form in other_var.constraints.items():
+                    if var.name in form.used_variables:
+                        refs.append(
+                            ConstraintReference(
+                                f"Constraint_{other_var.name}_{cid}",
+                                "variable",
+                                other_var.name,
+                                form,
+                            )
+                        )
+            if refs:
+                self._constraints[var.name] = refs
 
     def del_var(self, var_name) -> Union[Variable, None]:
         """Check if a variable can be deleted ie, is not used somewhere.
@@ -1211,7 +1205,7 @@ class VariableCollection:
 
     # TODO: Maybe there is a smarter way to do construct this return type
     def create_enum_variable(
-        self, var_name: str, var_type: str, enumerators: list[list[str]], app: HanforFlask
+        self, var_name: str, var_type: str, enumerators: list[list[str]]
     ) -> tuple[bool, str | None, list[str]]:
         """Create an ENUM_INT/ENUM_REAL variable and its ENUMERATOR sub-variables.
 
@@ -1227,7 +1221,7 @@ class VariableCollection:
 
         if not self.var_name_exists(var_name):
             enum_var = self.add_var(var_name)
-            app.db.add_object(enum_var)
+            current_app.db.add_object(enum_var)
         self.collection[var_name].set_type(var_type)
 
         new_vars = []
@@ -1239,7 +1233,7 @@ class VariableCollection:
             if existing.name not in incoming:
                 self.collection.pop(existing.name, None)
                 self.var_req_mapping.pop(existing.name, None)
-                app.db.remove_object(existing)
+                current_app.db.remove_object(existing)
 
         for enumerator_name, enumerator_value in enumerators:
             if not enumerator_name and not enumerator_value:
@@ -1252,12 +1246,16 @@ class VariableCollection:
                 else:
                     float(enumerator_value)
             except Exception as e:
-                return False, f"Enumerator value `{enumerator_value}` not valid: {e}", []
+                return (
+                    False,
+                    f"Enumerator value `{enumerator_value}` not valid: {e}",
+                    [],
+                )
 
             full_name = f"{var_name}_{enumerator_name}"
             if not self.var_name_exists(full_name):
                 var = self.add_var(full_name)
-                app.db.add_object(var)
+                current_app.db.add_object(var)
                 new_vars.append(full_name)
 
             self.collection[full_name].set_type(f"ENUMERATOR_{var_type[5:]}")
@@ -1265,7 +1263,7 @@ class VariableCollection:
             self.collection[full_name].belongs_to_enum = var_name
 
         self.store()
-        app.db.update()
+        current_app.db.update()
         return True, None, new_vars
 
     def import_session(self, import_collection):
@@ -1327,3 +1325,26 @@ def replace_prefix(input_string: str, prefix_old: str, prefix_new: str):
     if input_string.startswith(prefix_old):
         input_string = "".join((prefix_new, input_string[len(prefix_old) :]))
     return input_string
+
+
+# TODO: This will later all be pydantic checked, this is just a prep to later do thing properly
+class ConstraintReference:
+    """
+    Holds the data about the constraint, where it was defined and a refrence to the formalization
+    data itself
+    """
+
+    def __init__(
+        self,
+        usage_key: str,
+        owner_type: str,
+        owner_id: str,
+        formalization: Formalization,
+    ):
+        self.usage_key = usage_key
+        self.owner_type = owner_type
+        self.owner_id = owner_id
+        self.formalization = formalization
+
+    def __repr__(self):
+        return f"<ConstraintReference usage_key={self.usage_key} owner_type={self.owner_type} owner_id={self.owner_id}>"

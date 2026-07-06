@@ -3,7 +3,8 @@ from guesser.Guess import Guess
 from guesser.guesser_registerer import register_guesser
 from guesser.reqsyntaxtree import ReqSyntaxTree, ReqTransformer
 from guesser.utils import flatten_list, replace_characters
-from lib_core.data import Scope, ScopedPattern, Pattern
+from lib_core.data import ScopedPattern, Pattern
+from lib_core.scopes import Scope
 
 
 @register_guesser

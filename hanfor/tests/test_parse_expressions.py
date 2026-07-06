@@ -3,9 +3,11 @@ Test correct parsing of expressions using the boogie_parser w.r.t the grammar de
 Test reconstruction from parse trees to expression string.
 """
 
-from lib_core import boogie_parsing
 from unittest import TestCase
+
 from lark.exceptions import UnexpectedInput
+
+from lib_core import boogie_parsing
 
 
 class TestParseExpressions(TestCase):
@@ -34,6 +36,7 @@ class TestParseExpressions(TestCase):
             "((-1.2341<-0.2340)&&(BAR<-0.000023498))==>(-1234.1<FOO)",
             "((-1.2341<-0.2340)&&(BAR+-2.000023498))==>(-1234.1<FOO)",
             "((-1.2341<-0.2340)&&(BAR+-2.000023498))<==>(-1234.1<FOO)",
+            "((-1.2341<-0.2340)&&(BAR+-2.000023498))<==(-1234.1<FOO)",
         ]
         for index, expression in enumerate(expressions):
             try:
@@ -65,26 +68,3 @@ class TestParseExpressions(TestCase):
             used_variables = set(boogie_parsing.get_variables_list(tree))
             print("For {} I found {} variables".format(expr, used_variables))
             self.assertEqual(set(), used_variables)
-
-    # def test_if_else_expressions(self):
-    #     expressions = [
-    #         'if foo==bar then bar==true else spam==false',
-    #         'if(if foo==bar then bar==true else spam==false)then bar==foo else spam==false',
-    #         'if(if foo==bar then bar==true else spam==false)then(if foo==bar then bar==foo else spam==false)else '
-    #         'spam==false',
-    #     ]
-    #
-    #     for expr in expressions:
-    #         parser = boogie_parsing.get_parser_instance()
-    #         tree = parser.parse(expr)
-    #         used_variables = set(boogie_parsing.get_variables_list(tree))
-    #         print('For {} I found {} variables'.format(expr, used_variables))
-    #         self.assertEqual(
-    #             {'foo', 'bar', 'spam'},
-    #             used_variables
-    #         )
-    #         reconstructed_expression = boogie_parsing.Reconstructor(parser).reconstruct(tree)
-    #         self.assertEqual(
-    #             expr,
-    #             reconstructed_expression
-    #         )

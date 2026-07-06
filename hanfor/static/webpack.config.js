@@ -1,5 +1,23 @@
 const webpack = require('webpack');
 const path = require("path");
+const fs = require('fs');
+
+// auto-discovery of ai-addons
+const aiAddonEntries = fs.readdirSync(__dirname + '/../ai_addons')
+    .filter(dir => !['__pycache__'].includes(dir))
+    .filter(dir => fs.statSync(__dirname + '/../ai_addons/' + dir).isDirectory())
+    .reduce((entries, dir) => {
+        const staticPath = __dirname + '/../ai_addons/' + dir + '/static/';
+        if (fs.existsSync(staticPath)) {
+            fs.readdirSync(staticPath)
+                .filter(file => file.endsWith('.js'))
+                .forEach(file => {
+                    const name = path.basename(file, '.js');
+                    entries[name] = staticPath + file;
+                });
+        }
+        return entries;
+    }, {});
 
 const config = {
     entry: {
@@ -18,7 +36,8 @@ const config = {
         ultimate: __dirname + '/../ultimate/static/ultimate.js',
         ultimate_tab: __dirname + '/../ultimate/static/ultimate-tab.js',
         telemetry: __dirname + '/../telemetry/static/telemetry.js',
-        telemetry_frontend: __dirname + '/../telemetry/static/telemetry_frontend.js'
+        telemetry_frontend: __dirname + '/../telemetry/static/telemetry_frontend.js',
+        ...aiAddonEntries,
     },
     output: {
         filename: '[name]-bundle.js',

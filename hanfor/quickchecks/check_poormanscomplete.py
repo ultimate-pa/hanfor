@@ -6,9 +6,10 @@ from pysmt.fnode import FNode
 from pysmt.shortcuts import FALSE, Or, Not, Solver, TRUE, get_free_variables, And, Bool, simplify
 from pysmt.walkers import IdentityDagWalker
 
-from lib_core import boogie_parsing
 from json_db_connector.json_db import DatabaseField, DatabaseFieldType
-from lib_core.data import Requirement, Variable, Scope
+from lib_core import boogie_parsing
+from lib_core.data import Requirement, Variable
+from lib_core.scopes import Scope
 from lib_pea.boogie_pysmt_transformer import BoogiePysmtTransformer
 
 SOLVER_NAME = "z3"
