@@ -26,17 +26,17 @@ class SendUpdateThreadingAndAi:
     def __init__(self, socketio: Optional[SocketIO] = None):
         self.socketio = socketio
 
-    def send_ai_update(self, send_dict: dict, event: str, sid: str | None = None):
+    def send_ai_update(self, send_object: object, event: str, sid: str | None = None):
         """Queue an AI update to be emitted via SocketIO in a background task"""
         if self.socketio:
-            self.socketio.start_background_task(self.__emit_ai_update, event, send_dict, sid)
+            self.socketio.start_background_task(self.__emit_ai_update, event, send_object, sid)
 
-    def __emit_ai_update(self, event: str, send_dict: dict, sid: str | None = None):
+    def __emit_ai_update(self, event: str, send_object: object, sid: str | None = None):
         """Emit an AI update event to all clients or a specific client"""
         try:
             if sid:
-                self.socketio.emit(event, send_dict, namespace="/ai_addon_data", to=sid)
+                self.socketio.emit(event, send_object, namespace="/ai_addon_data", to=sid)
             else:
-                self.socketio.emit(event, send_dict, namespace="/ai_addon_data")
+                self.socketio.emit(event, send_object, namespace="/ai_addon_data")
         except Exception as e:
             logging.error(f"Error sending AI update (event={event}): {e}")

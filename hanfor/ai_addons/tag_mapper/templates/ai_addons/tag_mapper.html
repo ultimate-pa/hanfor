@@ -1,0 +1,66 @@
+<div class="mb-3 d-flex gap-3 align-items-end">
+  <div>
+    <label class="form-label text-muted small text-uppercase fw-semibold">Provider</label>
+    <select class="form-select" id="provider-select">
+      <option value="">Loading...</option>
+    </select>
+  </div>
+  <div>
+    <label class="form-label text-muted small text-uppercase fw-semibold">Model</label>
+    <select class="form-select" id="model-select" disabled>
+      <option value="">-</option>
+    </select>
+  </div>
+</div>
+
+<div class="mb-3 d-flex gap-2">
+  <button class="btn btn-sm btn-primary" id="btn-add-mapping">Add Mapping</button>
+  <button class="btn btn-sm btn-outline-secondary" id="btn-save-config">Save Configuration</button>
+  <button class="btn btn-sm btn-success ms-auto" id="btn-run-all">Run All</button>
+</div>
+
+<div id="tag-mapper-list" class="d-flex flex-column gap-3"></div>
+
+<template id="tag-mapping-row-template">
+  <div class="card tag-mapping-row" data-mapping-id="">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label text-muted small text-uppercase fw-semibold">Tag</label>
+          <div class="tag-selector position-relative">
+            <input
+              type="text"
+              class="form-control tag-search-input"
+              placeholder="Search or create tag..."
+              autocomplete="off"
+            >
+            <div
+              class="dropdown-menu tag-dropdown-menu w-100"
+              style="max-height: 220px; overflow-y: auto;"
+            ></div>
+          </div>
+        </div>
+
+        <div class="col-md-7">
+          <label class="form-label text-muted small text-uppercase fw-semibold">Prompt</label>
+          <textarea
+            class="form-control prompt-editor"
+            rows="3"
+            style="resize: vertical; overflow-y: auto; min-height: 4.5rem;"
+            placeholder="Enter the yes/no prompt for the AI..."
+          ></textarea>
+        </div>
+
+        <div class="col-md-2 d-flex flex-column gap-2">
+          <button class="btn btn-sm btn-outline-success btn-run-mapping" type="button">
+            <span class="run-spinner spinner-border spinner-border-sm d-none" role="status"></span>
+            Run
+          </button>
+          <button class="btn btn-sm btn-outline-danger btn-delete-mapping" type="button">Delete</button>
+        </div>
+      </div>
+
+      <div class="small text-muted mt-2 mapping-status"></div>
+    </div>
+  </div>
+</template>
