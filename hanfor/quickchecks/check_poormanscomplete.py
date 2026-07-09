@@ -2,8 +2,8 @@ import logging
 from dataclasses import dataclass
 from typing import List
 
+from pysmt.environment import Environment
 from pysmt.fnode import FNode
-from pysmt.shortcuts import FALSE, Or, Not, Solver, TRUE, get_free_variables, And, Bool, simplify
 from pysmt.walkers import IdentityDagWalker
 
 from json_db_connector.json_db import DatabaseField, DatabaseFieldType
@@ -52,10 +52,15 @@ class PoorMansComplete:
 
     CHECK_ID = "poormans_complete"
 
+    def __init__(self, smt_env: Environment):
+        self.__stm_env = smt_env
+        self.__fmgr = smt_env.formula_manager
+        self.__tmgr = smt_env.type_manager
+
     def run(self, reqs: list[Requirement], variables: set[Variable]) -> list[CompletenessCheckResult]:
         logging.info("Starting PoorMansComplete Analysis for requirements set...")
         results = []
-        smt_transformer = BoogiePysmtTransformer(variables)
+        smt_transformer = BoogiePysmtTransformer(self.__stm_env, variables)
         smt_to_vars = {
             smt_transformer.smt_vars[hanfor_var.name]: hanfor_var
             for hanfor_var in variables
@@ -63,28 +68,29 @@ class PoorMansComplete:
         }
         env_full = self.extract_environment_assumption(variables, smt_transformer)
         for target_var, hanfor_var in smt_to_vars.items():
-            env_assumptions = simplify(And([t for t in env_full if target_var in get_free_variables(t)]))
+            env_assumptions = self.__stm_env.simplifier.simplify(
+                self.__fmgr.And([t for t in env_full if target_var in self.__stm_env.fvo.get_free_variables(t)])
+            )
             # env_full  # ProjectionWalker(target_var).walk(env_full)
             terms = self.extract_reqs_term(smt_transformer, reqs, target_var)
             results.append(self.check_env_violated(terms, target_var, env_assumptions, hanfor_var))
-            results.append(self.check_complete_var(Or(terms), target_var, env_assumptions, hanfor_var))
+            results.append(self.check_complete_var(self.__fmgr.Or(terms), target_var, env_assumptions, hanfor_var))
         logging.info("... finished PoorMansComplete.")
         return results
 
-    @staticmethod
     def check_complete_var(
-        term: FNode, target_var: FNode, env_assumption: FNode, hanfor_var: Variable
+        self, term: FNode, target_var: FNode, env_assumption: FNode, hanfor_var: Variable
     ) -> CompletenessCheckResult:
         """Check if all values (under an environment) of a variable are possible in term"""
-        with Solver(name=SOLVER_NAME, logic=LOGIC) as solver:
-            q_form = And(Not(term), env_assumption)
+        with self.__stm_env.factory.get_solver(name="z3", logic=LOGIC) as solver:
+            q_form = self.__fmgr.And(self.__fmgr.Not(term), env_assumption)
             is_incomplete = solver.is_sat(q_form)
             if is_incomplete:
                 return CompletenessCheckResult(
                     hanfor_var.name,
                     (
                         CompletenessCheckOutcome.INCOMPLETE
-                        if target_var in get_free_variables(env_assumption)
+                        if target_var in self.__stm_env.fvo.get_free_variables(env_assumption)
                         else CompletenessCheckOutcome.INCOMPLETE_UNCONSTRAINT
                     ),
                     f"{target_var.symbol_name()}: value {solver.get_value(target_var)}  is uncovered.\n"
@@ -107,12 +113,13 @@ class PoorMansComplete:
         for req in reqs:
             terms.extend(self.extract_req_terms(smt_transformer, req, target_var))
         if use_projection:
-            terms = [ProjectionWalker(target_var).walk(term) for term in terms]
-        non_trivial_terms = [t for t in terms if t is not FALSE() and t is not TRUE()]
+            terms = [ProjectionWalker(self.__stm_env, target_var).walk(term) for term in terms]
+        non_trivial_terms = [t for t in terms if t is not self.__fmgr.FALSE() and t is not self.__fmgr.TRUE()]
         return non_trivial_terms
 
-    @staticmethod
-    def extract_req_terms(smt_transformer: BoogiePysmtTransformer, req: Requirement, target_var: FNode) -> List[FNode]:
+    def extract_req_terms(
+        self, smt_transformer: BoogiePysmtTransformer, req: Requirement, target_var: FNode
+    ) -> List[FNode]:
         parser = boogie_parsing.get_parser_instance()
         terms = []
         for _, formalisation in req.formalizations.items():
@@ -133,14 +140,13 @@ class PoorMansComplete:
                         f"Parsing error in requirement: {req.rid} expression `{expression.raw_expression}`.\n {e}"
                     )
                     continue
-                if target_var not in get_free_variables(smt_expr):
+                if target_var not in self.__stm_env.fvo.get_free_variables(smt_expr):
                     continue
                 terms.append(smt_expr)
         return terms
 
-    @staticmethod
     def extract_environment_assumption(
-        variables: set[Variable], smt_transformer: BoogiePysmtTransformer
+        self, variables: set[Variable], smt_transformer: BoogiePysmtTransformer
     ) -> List[FNode]:
         assumptions = []
         parser = boogie_parsing.get_parser_instance()
@@ -172,22 +178,21 @@ class PoorMansComplete:
                         case "Universality":
                             assumptions.append(smt_expr)
                         case "Absence":
-                            assumptions.append(Not(smt_expr))
+                            assumptions.append(self.__fmgr.Not(smt_expr))
         return assumptions
 
-    @staticmethod
     def check_env_violated(
-        terms: List[FNode], target_var: FNode, env_assumption: FNode, hanfor_var: Variable
+        self, terms: List[FNode], target_var: FNode, env_assumption: FNode, hanfor_var: Variable
     ) -> CompletenessCheckResult:
-        """Check if all values a variable can tanke are inside the environment (if applicable)"""
-        if target_var not in get_free_variables(env_assumption):
+        """Check if all values a variable can take are inside the environment (if applicable)"""
+        if target_var not in self.__stm_env.fvo.get_free_variables(env_assumption):
             return CompletenessCheckResult(
                 hanfor_var.name, CompletenessCheckOutcome.OK, f"'{target_var.symbol_name()}' has no env assumptions."
             )
-        with Solver(name=SOLVER_NAME, logic=LOGIC) as solver:
+        with self.__stm_env.factory.get_solver(name="z3", logic=LOGIC) as solver:
             for term in terms:
-                if target_var in get_free_variables(env_assumption):
-                    a_form = And(term, env_assumption)
+                if target_var in self.__stm_env.fvo.get_free_variables(env_assumption):
+                    a_form = self.__fmgr.And(term, env_assumption)
                     intersects_environment = solver.is_sat(a_form)
                     if not intersects_environment:
                         return CompletenessCheckResult(
@@ -202,10 +207,13 @@ class PoorMansComplete:
 
 
 class ProjectionWalker(IdentityDagWalker):
-    def __init__(self, variable):
+    def __init__(self, smt_env: Environment, variable):
         super().__init__()
         self.parents = {}
         self.variable = variable
+        self.__smt_env = smt_env
+        self.__fmgr = self.__smt_env.formula_manager
+        self.__tmgr = self.__smt_env.type_manager
 
     def walk(self, formula, **kwargs):
         for arg in formula.args():
@@ -214,37 +222,39 @@ class ProjectionWalker(IdentityDagWalker):
         return super().walk(formula, **kwargs)
 
     def walk_and(self, formula, args, **kwargs):
-        relevant_args = [f for f in args if self.variable in get_free_variables(f)]
+        relevant_args = [f for f in formula.args() if self.variable in self.__smt_env.fvo.get_free_variables(f)]
         if relevant_args:
-            return And(relevant_args)
+            return self.__fmgr.And(relevant_args)
         return self.__get_neutral_parent(formula)
 
     def walk_or(self, formula, args, **kwargs):
-        relevant_args = [f for f in args if self.variable in get_free_variables(f)]
+        relevant_args = [f for f in formula.args() if self.variable in self.__smt_env.fvo.get_free_variables(f)]
         if relevant_args:
-            return Or(relevant_args)
+            return self.__fmgr.Or(relevant_args)
         return self.__get_neutral_parent(formula)
 
     def __get_neutral_parent(self, formula):
         # if this leaf is empty, return the neutral element of the parent operator
-        if formula not in self.parents:
-            return Bool(True)
+        if formula not in self.parents:  # complicated way of checking that formula is the root
+            return self.__fmgr.Bool(True)
         par = self.parents[formula]
         if par.is_and():
-            return Bool(True)
+            return self.__fmgr.Bool(True)
+        elif par.is_or():
+            return self.__fmgr.Bool(False)
         elif par.is_not():
-            return self.__get_neutral_parent(par)
+            return self.__fmgr.Not(self.__get_neutral_parent(par))
         else:
             # TODO: figure out which nodes are there additionally (e.g. implication, just braces)
-            return Bool(True)
+            return self.__fmgr.Bool(True)
 
     def walk_not(self, formula, args, **kwargs):
         arg = args[0]
-        if self.variable in get_free_variables(arg):
-            return Not(arg)
+        if self.variable in self.__smt_env.fvo.get_free_variables(arg):
+            return self.__fmgr.Not(arg)
         return self.__get_neutral_parent(formula)
 
     def walk_atom(self, formula, **kwargs):
-        if self.variable in get_free_variables(formula):
+        if self.variable in self.__smt_env.fvo.get_free_variables(formula):
             return formula
         return self.__get_neutral_parent(formula)

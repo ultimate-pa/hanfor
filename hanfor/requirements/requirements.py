@@ -41,7 +41,7 @@ def index():
         query=request.args,
         additional_cols=additional_cols,
         default_cols=default_cols,
-        patterns=APattern().to_frontent_dict(),
+        patterns=APattern.to_frontent_dict(),
     )
 
 
