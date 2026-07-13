@@ -45,7 +45,7 @@ class TagMapperAddon(AiAddonAbstractClass):
     def _get_all_requirements(self) -> dict[str, str]:
         return {req.rid: req.description for req in self.db.get_objects(Requirement).values()}
 
-    def _broadcast_mappings_now(self):
+    def _broadcast_mappings(self):
         self.send_update_threading_and_ai.send_ai_update(
             self.get_mappings(),
             "socket_tag_mapper_mappings_updated",
@@ -167,7 +167,7 @@ class TagMapperAddon(AiAddonAbstractClass):
             "last_event": "",
         }
         self._mappings[mapping_id] = mapping
-        self._broadcast_mappings_now()
+        self._broadcast_mappings()
         return mapping
 
     @AiAddonAbstractClass.requires_enabled
@@ -179,13 +179,13 @@ class TagMapperAddon(AiAddonAbstractClass):
             return None
         mapping["tag"] = tag
         mapping["prompt"] = prompt
-        self._broadcast_mappings_now()
+        self._broadcast_mappings()
         return mapping
 
     @AiAddonAbstractClass.requires_enabled
     def delete_mapping(self, mapping_id: int):
         self._mappings.pop(mapping_id, None)
-        self._broadcast_mappings_now()
+        self._broadcast_mappings()
 
     # -------------------------------------------------------------------
     # Tags
@@ -272,7 +272,7 @@ class TagMapperAddon(AiAddonAbstractClass):
         mapping["running"] = True
         mapping["progress"] = {"processed": 0, "total": total}
         mapping["last_event"] = ""
-        self._broadcast_mappings_now()
+        self._broadcast_mappings()
 
         set_status(f"running '{tag}' on {total} requirements")
 
@@ -286,7 +286,7 @@ class TagMapperAddon(AiAddonAbstractClass):
                 processed += 1
                 mapping["progress"]["processed"] = processed
                 mapping["last_event"] = f"Skipped {rid} (already tagged)"
-                self._broadcast_mappings_now()
+                self._broadcast_mappings()
                 continue
 
             full_prompt = (
@@ -310,7 +310,7 @@ class TagMapperAddon(AiAddonAbstractClass):
             for _, task_result in spawned:
                 self.thread_handler.cancel_task(task_result.task_id())
             mapping["running"] = False
-            self._broadcast_mappings_now()
+            self._broadcast_mappings()
             return
 
         assigned_any = False
@@ -326,7 +326,7 @@ class TagMapperAddon(AiAddonAbstractClass):
                 processed += 1
                 mapping["progress"]["processed"] = processed
                 mapping["last_event"] = f"Error checking {rid}"
-                self._broadcast_mappings_now()
+                self._broadcast_mappings()
                 continue
 
             processed += 1
@@ -345,10 +345,10 @@ class TagMapperAddon(AiAddonAbstractClass):
             else:
                 mapping["last_event"] = f"No match: {rid}"
 
-            self._broadcast_mappings_now()
+            self._broadcast_mappings()
 
         if assigned_any:
             self.db.update()
 
         mapping["running"] = False
-        self._broadcast_mappings_now()
+        self._broadcast_mappings()
