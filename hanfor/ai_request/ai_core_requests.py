@@ -104,7 +104,7 @@ class AiCatalogTester:
         test_prompt = "only respond with the word 'ok'."
 
         provider_entry = catalog[provider_name]
-        (model_desc, model_activity) = provider_entry.models[model_name]
+        model_desc, model_activity = provider_entry.models[model_name]
 
         if len(provider_entry.api_methods) <= 0:
             provider_entry.models[model_name] = (model_desc, TestedActivity.INACTIVE)
@@ -350,12 +350,15 @@ class AiRequest:
         catalog = {}
 
         for provider, data in ai_config.AI_PROVIDERS.items():
-            if provider == "PROVIDER_NAME":
-                continue
-            models = {name: (desc, TestedActivity.NOT_TESTED) for name, desc in data["models"].items()}
-            catalog[provider] = ProviderEntry(**{**data, "models": models})
-            if ai_config.DEFAULT_PROVIDER == provider:
-                catalog[provider].default_provider = True
+            try:
+                if provider == "PROVIDER_NAME":
+                    continue
+                models = {name: (desc, TestedActivity.NOT_TESTED) for name, desc in data["models"].items()}
+                catalog[provider] = ProviderEntry(**{**data, "models": models})
+                if ai_config.DEFAULT_PROVIDER == provider:
+                    catalog[provider].default_provider = True
+            except Exception as e:
+                logging.error(f"Misstructured Configuration for api provider '{provider}' with error:\n {e}")
         return catalog
 
     @staticmethod
