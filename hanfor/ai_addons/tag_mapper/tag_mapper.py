@@ -1,11 +1,11 @@
 import itertools
 import logging
+
 from ai_addons.ai_addon_abstract_class import AiAddonAbstractClass
 from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
 from ai_request.ai_core_requests import AiRequest
 from json_db_connector.json_db import JsonDatabase
 from lib_core.data import Tag, Requirement
-from lib_core.pattern.patterns_basic import Response
 from thread_handling.thread_function_decorator import thread_function, is_stopped, set_status
 from thread_handling.threading_core import ThreadTask, ThreadGroup, SchedulingClass, TaskResult, ThreadHandler
 
@@ -290,7 +290,12 @@ class TagMapperAddon(AiAddonAbstractClass):
                 continue
 
             full_prompt = (
-                f"{prompt}\n\nRequirement:\n{desc}\n\n" "Answer with exactly one word, YES or NO, and nothing else."
+                f"{prompt}\n"
+                "\n"
+                "Requirement:\n"
+                f"{desc}\n"
+                "\n"
+                "Answer with exactly one word, YES or NO, and nothing else."
             )
 
             task_result = self.ai_request.ask_ai(
@@ -327,6 +332,7 @@ class TagMapperAddon(AiAddonAbstractClass):
             processed += 1
             mapping["progress"]["processed"] = processed
 
+            logging.debug(f"AI Response: {response}")
             if response and response.strip().upper().startswith("YES"):
                 if not self._requirement_has_tag(rid, tag):
                     self._assign_tag_to_requirement(rid, tag)

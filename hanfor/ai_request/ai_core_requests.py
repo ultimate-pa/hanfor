@@ -1,21 +1,23 @@
+import importlib
+import logging
 import sys
 import time
-from threading import Semaphore
 from dataclasses import dataclass, field
+from enum import Enum
+from threading import Semaphore
 from typing import Optional, Callable, Tuple
+
+import requests
 
 from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
 from ai_request.ai_api_methods_abstract_class import AiApiMethod
+from ai_request.api_request_methods.standard_ai_api import OllamaStandard
 from configuration import ai_config
-
-import os
-import importlib
-import logging
-import requests
-
 from thread_handling.thread_function_decorator import is_stopped, set_status
 from thread_handling.threading_core import ThreadHandler, ThreadTask, SchedulingClass, ThreadGroup, TaskResult
-from enum import Enum
+
+# Add available api methods here (default is excluded)
+API_METHODS: dict[str, AiApiMethod] = {}
 
 
 class TestedActivity(Enum):
@@ -361,52 +363,21 @@ class AiRequest:
                 logging.error(f"Misstructured Configuration for api provider '{provider}' with error:\n {e}")
         return catalog
 
-    @staticmethod
-    def __load_ai_api_methods() -> dict[str, AiApiMethod]:
-        """Dynamically loads all AI API method classes from strategies folder."""
-        directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "api_request_methods/")
-        methods: dict[str, AiApiMethod] = {}
-        base_package = "ai_request.api_request_methods"
-
-        for filename in os.listdir(directory):
-            if filename.endswith(".py") and filename != "__init__.py":
-                module_name = filename[:-3]
-                module_path = f"{base_package}.{module_name}"
-
-                try:
-                    module = importlib.import_module(module_path)
-                    for attr_name in dir(module):
-                        attr = getattr(module, attr_name)
-                        if isinstance(attr, type) and issubclass(attr, AiApiMethod) and attr is not AiApiMethod:
-                            try:
-                                instance = attr()
-                                methods[module_name] = instance
-                            except TypeError as e:
-                                logging.warning(f"Cannot instantiate {attr_name} in {module_path}: {e}")
-                except ModuleNotFoundError as e:
-                    logging.error(f"Error loading module {module_path}: {e}")
-        return methods
-
     def __register_api_methods(self):
         """Assigns loaded API methods to matching providers in the catalog."""
-        methods = self.__load_ai_api_methods()
+        standard_method = OllamaStandard()
         standard_ai_api_method_name = "standard_ai_api"
 
         for provider_name, provider_data in self.__ai_model_catalog.items():
             for api_method_name in provider_data.api_methods_names:
-                if api_method_name not in methods:
+                if api_method_name not in API_METHODS:
                     logging.warning(
                         f"Api method '{api_method_name}' for provider '{provider_name}' not found skipping."
                     )
                     continue
-                self.__ai_model_catalog[provider_name].api_methods[api_method_name] = methods[api_method_name]
+                self.__ai_model_catalog[provider_name].api_methods[api_method_name] = API_METHODS[api_method_name]
             if standard_ai_api_method_name not in provider_data.api_methods:
-                logging.info(
-                    f"Api method '{standard_ai_api_method_name}' added to provider '{provider_name}' without being specified in the configuration."
-                )
-                self.__ai_model_catalog[provider_name].api_methods[standard_ai_api_method_name] = methods[
-                    standard_ai_api_method_name
-                ]
+                self.__ai_model_catalog[provider_name].api_methods[standard_ai_api_method_name] = standard_method
 
     def __validate_catalog(self):
         """Warns if any provider has no registered API method."""
