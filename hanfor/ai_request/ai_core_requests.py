@@ -8,6 +8,7 @@ from threading import Semaphore
 from typing import Optional, Callable, Tuple
 
 import requests
+from requests import RequestException
 
 from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
 from ai_request.ai_api_methods_abstract_class import AiApiMethod
@@ -27,8 +28,7 @@ class TestedActivity(Enum):
 
 
 @dataclass(slots=True)
-class ProviderEntry:
-    """Data structure for provider information"""
+class AiProviderProperties:
 
     maximum_concurrent_api_requests: int
     url: str
@@ -62,10 +62,10 @@ class AiCatalogTester:
         try:
             requests.get(url, timeout=3)
             return True
-        except Exception:
+        except RequestException:
             return False
 
-    def check_all_providers_and_models(self, catalog: dict[str, ProviderEntry]):
+    def check_all_providers_and_models(self, catalog: dict[str, AiProviderProperties]):
         """Tests every model of every provider with all registered api methods."""
         for provider_name, provider_entry in catalog.items():
             if is_stopped():
@@ -74,7 +74,7 @@ class AiCatalogTester:
             self.check_one_provider_with_models(catalog, provider_name)
             self.send_update(catalog)
 
-    def check_one_provider_with_models(self, catalog: dict[str, ProviderEntry], provider_name: str):
+    def check_one_provider_with_models(self, catalog: dict[str, AiProviderProperties], provider_name: str):
         provider_entry = catalog[provider_name]
         if not self.__is_reachable(provider_entry.url):
             set_status(f"{provider_name}: unreachable")
@@ -102,7 +102,7 @@ class AiCatalogTester:
             set_status(f"{provider_name}: testing {model_name} ({i}/{total})")
             self.check_one_model(catalog, provider_name, model_name)
 
-    def check_one_model(self, catalog: dict[str, ProviderEntry], provider_name: str, model_name: str):
+    def check_one_model(self, catalog: dict[str, AiProviderProperties], provider_name: str, model_name: str):
         test_prompt = "only respond with the word 'ok'."
 
         provider_entry = catalog[provider_name]
@@ -176,7 +176,7 @@ class AiRequest:
         self.__thread_handler = thread_handler
         self.__catalog_tester = AiCatalogTester(self.ask_ai, send_update_threading_and_ai, self.__thread_handler)
         self.__send_update_threading_and_ai: SendUpdateThreadingAndAi = send_update_threading_and_ai
-        self.__ai_model_catalog: dict[str, ProviderEntry] = {}
+        self.__ai_model_catalog: dict[str, AiProviderProperties] = {}
         self.scan_provider()
 
     def catalog_to_frontend(self):
@@ -325,7 +325,7 @@ class AiRequest:
         raise ValueError("No default provider defined in AI model catalog.")
 
     @staticmethod
-    def _resolve_model(provider_entry: ProviderEntry, model_name: Optional[str]) -> str:
+    def _resolve_model(provider_entry: AiProviderProperties, model_name: Optional[str]) -> str:
         if not model_name or model_name not in provider_entry.models:
             if model_name:
                 logging.warning(f"Model: {model_name} not found, will use: {provider_entry.default_model}")
@@ -335,7 +335,7 @@ class AiRequest:
         return model_name
 
     @staticmethod
-    def _resolve_method(provider_entry: ProviderEntry, api_method_name: Optional[str]) -> AiApiMethod:
+    def _resolve_method(provider_entry: AiProviderProperties, api_method_name: Optional[str]) -> AiApiMethod:
         if not api_method_name or api_method_name not in provider_entry.api_methods:
             if api_method_name:
                 logging.warning(f"API method: {api_method_name} not found, will use first available.")
@@ -347,7 +347,7 @@ class AiRequest:
         return method
 
     @staticmethod
-    def __build_catalog() -> dict[str, ProviderEntry]:
+    def __build_catalog() -> dict[str, AiProviderProperties]:
         """Builds the provider catalog from ai_config."""
         catalog = {}
 
@@ -356,7 +356,7 @@ class AiRequest:
                 if provider == "PROVIDER_NAME":
                     continue
                 models = {name: (desc, TestedActivity.NOT_TESTED) for name, desc in data["models"].items()}
-                catalog[provider] = ProviderEntry(**{**data, "models": models})
+                catalog[provider] = AiProviderProperties(**{**data, "models": models})
                 if ai_config.DEFAULT_PROVIDER == provider:
                     catalog[provider].default_provider = True
             except Exception as e:
