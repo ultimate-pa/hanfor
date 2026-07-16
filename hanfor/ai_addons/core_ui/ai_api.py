@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
 from flask_restx import Namespace, Resource, fields
+
 from hanfor_flask import current_app
 
 ai_api_namespace = Namespace("AI", "Dashboard data for AI", path="/ai", ordered=True)
@@ -25,7 +26,7 @@ ADDON_ACTIONS = ["activate", "deactivate", "activate_all", "deactivate_all"]
 PROVIDER_INPUT = ai_api_namespace.model(
     "ProviderInput", {"provider": fields.String(required=True, description="Provider identifier")}
 )
-PROVIDER_ACTIONS = ["set_default", "test", "rescan", "test_all"]
+PROVIDER_ACTIONS = ["set_default", "test", "test_all"]
 
 PROVIDER_MODEL_INPUT = ai_api_namespace.model(
     "ProviderModelInput",
@@ -92,7 +93,6 @@ class ProviderActions(Resource):
         actions = {
             "set_default": current_app.ai_request.set_default_provider,
             "test": current_app.ai_request.activity_test_provider,
-            "rescan": lambda _: current_app.ai_request.scan_provider(True),
             "test_all": lambda _: current_app.ai_request.test_all_provider_models(),
         }
         if action not in actions:

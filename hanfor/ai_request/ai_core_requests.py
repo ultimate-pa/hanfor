@@ -1,11 +1,9 @@
-import importlib
 import logging
-import sys
 import time
 from dataclasses import dataclass, field
 from enum import Enum
 from threading import Semaphore
-from typing import Optional, Callable, Tuple
+from typing import Optional, Callable, Tuple, Any
 
 import requests
 from requests import RequestException
@@ -141,7 +139,7 @@ class AiCatalogTester:
         self.send_update(catalog)
 
 
-def catalog_to_frontend(catalog):
+def catalog_to_frontend(catalog) -> dict[str, list[Any]]:
     data = {"providers": []}
 
     for provider_name, entry in catalog.items():
@@ -182,9 +180,7 @@ class AiRequest:
     def catalog_to_frontend(self):
         return catalog_to_frontend(self.__ai_model_catalog)
 
-    def scan_provider(self, reload_config: bool = False):
-        if reload_config and "configuration.ai_config" in sys.modules:
-            importlib.reload(sys.modules["configuration.ai_config"])
+    def scan_provider(self):
 
         self.__ai_model_catalog = self.__build_catalog()
         self.__register_api_methods()

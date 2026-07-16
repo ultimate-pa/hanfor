@@ -255,12 +255,6 @@ async function load() {
 // --------------------------------------------------------------------------------
 
 document
-  .getElementById("ai-rescan-provider-btn")
-  ?.addEventListener("click", () => {
-    window.post(ADDON_NAME, "/provider/rescan");
-  });
-
-document
   .getElementById("ai-test-all-provider-btn")
   ?.addEventListener("click", () => {
     window.post(ADDON_NAME, "/provider/test_all");
