@@ -1,13 +1,17 @@
-""" 
+"""
 @copyright: 2018 Samuel Roth <samuel@smel.de>
 @licence: GPLv3
 """
 
 import logging
+import mimetypes
 import os
 import subprocess
+
 from flask import jsonify
+from flask_debugtoolbar import DebugToolbarExtension
 from flask_socketio import SocketIO
+from werkzeug.exceptions import HTTPException
 
 from ai_addons.core_ui import (
     all_ai_addon_namespaces_and_blueprints,
@@ -15,31 +19,22 @@ from ai_addons.core_ui import (
     ai_namespace_and_blueprint,
 )
 from ai_addons.core_ui.ai_core_addon_api import register_addon_templates, register_addon_statics
-from ai_addons.threading_ai_socketio import AiAddonData, SendUpdateThreadingAndAi
+from ai_addons.threading_ai_socketio import AiAddonData, SendGuiUpdate
 from hanfor_flask import HanforFlask, Api
-from flask_debugtoolbar import DebugToolbarExtension
-from werkzeug.exceptions import HTTPException
-
-
+from lib_core.api_models import api_models
 from lib_core.startup import startup_hanfor, PrefixMiddleware, HanforArgumentParser
 from lib_core.utils import setup_logging
-from lib_core.api_models import api_models
-
-from requirements import requirements
-from variables import variables
 from logs.logs import api_blueprint as logs_api
-from reports.reports import api_blueprint as reports_api
-from tools.tools import api_blueprint as tools_api
 from queries.queries import api_blueprint as queries_api
+from reports.reports import api_blueprint as reports_api
 from req_simulator import simulator_blueprint
-from tags import tags
+from requirements import requirements
 from statistics import statistics
-
-import mimetypes
-
+from tags import tags
 # import Socket IO modules
 from telemetry.telemetry import TelemetryWs
-
+from tools.tools import api_blueprint as tools_api
+from variables import variables
 
 mimetypes.add_type("text/css", ".css")
 mimetypes.add_type("text/javascript", ".js")
@@ -138,7 +133,7 @@ ai_addon_namespace = AiAddonData("/ai_addon_data")
 socketio.on_namespace(ai_addon_namespace)
 
 # socket messanger for threading and ai / ai addon updats
-send_update_threading_and_ai = SendUpdateThreadingAndAi(socketio)
+send_update_threading_and_ai = SendGuiUpdate(socketio)
 
 logging.basicConfig(
     format="[%(asctime)s %(filename)s:%(lineno)d] %(levelname)s - %(message)s",

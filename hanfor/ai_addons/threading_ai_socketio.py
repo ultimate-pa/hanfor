@@ -1,8 +1,8 @@
+import logging
 from typing import Optional
 
-from flask_socketio import Namespace, SocketIO
 from flask import request
-import logging
+from flask_socketio import Namespace, SocketIO
 
 
 class AiAddonData(Namespace):
@@ -22,7 +22,7 @@ class AiAddonData(Namespace):
         logging.info(f"Client {sid} disconnected from AI Data WebSocket")
 
 
-class SendUpdateThreadingAndAi:
+class SendGuiUpdate:
     def __init__(self, socketio: Optional[SocketIO] = None):
         self.socketio = socketio
 

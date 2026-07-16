@@ -2,7 +2,7 @@ import itertools
 import logging
 
 from ai_addons.ai_addon_abstract_class import AiAddonAbstractClass
-from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
+from ai_addons.threading_ai_socketio import SendGuiUpdate
 from ai_request.ai_core_requests import AiRequest
 from json_db_connector.json_db import JsonDatabase
 from lib_core.data import Tag, Requirement
@@ -19,7 +19,7 @@ class TagMapperAddon(AiAddonAbstractClass):
 
     required_dependencies = ["send_update_threading_and_ai", "thread_handler", "ai_request", "db"]
 
-    send_update_threading_and_ai: SendUpdateThreadingAndAi
+    send_update_threading_and_ai: SendGuiUpdate
     db: JsonDatabase
     thread_handler: ThreadHandler
     ai_request: AiRequest

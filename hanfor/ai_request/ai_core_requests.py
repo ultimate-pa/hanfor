@@ -8,7 +8,7 @@ from typing import Optional, Callable, Tuple, Any
 import requests
 from requests import RequestException
 
-from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
+from ai_addons.threading_ai_socketio import SendGuiUpdate
 from ai_request.ai_api_methods_abstract_class import AiApiMethod
 from ai_request.api_request_methods.standard_ai_api import OllamaStandard
 from configuration import ai_config
@@ -44,9 +44,7 @@ class AiProviderProperties:
 
 
 class AiCatalogTester:
-    def __init__(
-        self, ask_ai: Callable, send_update_threading_and_ai: SendUpdateThreadingAndAi, thread_handler: ThreadHandler
-    ):
+    def __init__(self, ask_ai: Callable, send_update_threading_and_ai: SendGuiUpdate, thread_handler: ThreadHandler):
         self.ask_ai = ask_ai
         self.send_update_threading_and_ai = send_update_threading_and_ai
         self.__thread_handler = thread_handler
@@ -170,10 +168,10 @@ def catalog_to_frontend(catalog) -> dict[str, list[Any]]:
 class AiRequest:
     """Loads and organizes AI providers and routes incoming requests to the correct API method."""
 
-    def __init__(self, thread_handler: ThreadHandler, send_update_threading_and_ai: SendUpdateThreadingAndAi):
+    def __init__(self, thread_handler: ThreadHandler, send_update_threading_and_ai: SendGuiUpdate):
         self.__thread_handler = thread_handler
         self.__catalog_tester = AiCatalogTester(self.ask_ai, send_update_threading_and_ai, self.__thread_handler)
-        self.__send_update_threading_and_ai: SendUpdateThreadingAndAi = send_update_threading_and_ai
+        self.__send_update_threading_and_ai: SendGuiUpdate = send_update_threading_and_ai
         self.__ai_model_catalog: dict[str, AiProviderProperties] = {}
         self.scan_provider()
 

@@ -1,7 +1,7 @@
 import time
 from unittest import TestCase
 
-from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
+from ai_addons.threading_ai_socketio import SendGuiUpdate
 from lib_core.data import Requirement
 from requirements.desc_highlighting import (
     _words_between,
@@ -254,7 +254,7 @@ class TestGenerateAllHighlightedDesc(TestCase):
             )
             for i in range(500)
         }
-        handler = ThreadHandler(SendUpdateThreadingAndAi(), max_threads=5)
+        handler = ThreadHandler(SendGuiUpdate(), max_threads=5)
         result = handler.submit(
             ThreadTask(
                 generate_all_highlighted_desc,

@@ -1,9 +1,9 @@
 import json
+import time
 from threading import Semaphore
 from unittest import TestCase
-import time
 
-from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
+from ai_addons.threading_ai_socketio import SendGuiUpdate
 from tests.mock_hanfor import MockHanfor
 from thread_handling.thread_function_decorator import thread_function, is_stopped
 from thread_handling.threading_core import ThreadHandler, ThreadTask, ThreadGroup, SchedulingClass
@@ -38,7 +38,7 @@ def failing_task_stop_event():
 
 class TestThreadHandler(TestCase):
     def setUp(self):
-        self.handler = ThreadHandler(SendUpdateThreadingAndAi(), max_threads=5)
+        self.handler = ThreadHandler(SendGuiUpdate(), max_threads=5)
 
     def test_simple_task_execution(self):
         results = []

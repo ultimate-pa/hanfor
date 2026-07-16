@@ -1,5 +1,5 @@
 from ai_addons.ai_addon_abstract_class import AiAddonAbstractClass
-from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
+from ai_addons.threading_ai_socketio import SendGuiUpdate
 
 
 class ExampleAiAddon(AiAddonAbstractClass):
@@ -7,7 +7,7 @@ class ExampleAiAddon(AiAddonAbstractClass):
     required_dependencies = ["send_update_threading_and_ai"]
 
     # Optional: type hints for IDE support (no runtime effect)
-    send_update_threading_and_ai: SendUpdateThreadingAndAi
+    send_update_threading_and_ai: SendGuiUpdate
 
     @property
     def addon_name(self) -> str:

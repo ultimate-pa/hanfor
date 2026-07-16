@@ -3,15 +3,14 @@ from http import HTTPStatus
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
-from lib_core.data import Requirement
-
-from thread_handling.threading_core import ThreadHandler
-from ai_request.ai_core_requests import AiRequest, AiCatalogTester, TestedActivity, catalog_to_frontend
-from configuration import ai_config
-from mock_hanfor import MockHanfor
-from app import app, api
 from ai_addons.core_ui import ai_namespace_and_blueprint
+from ai_addons.threading_ai_socketio import SendGuiUpdate
+from ai_request.ai_core_requests import AiRequest, AiCatalogTester, TestedActivity, catalog_to_frontend
+from app import app, api
+from configuration import ai_config
+from lib_core.data import Requirement
+from mock_hanfor import MockHanfor
+from thread_handling.threading_core import ThreadHandler
 
 
 class TestAiCoreRequests(TestCase):
@@ -31,8 +30,8 @@ class TestAiCoreRequests(TestCase):
             },
         }
         ai_config.DEFAULT_PROVIDER = "TEST_PROVIDER"
-        self.thread_handler = ThreadHandler(SendUpdateThreadingAndAi())
-        self.ai_request = AiRequest(self.thread_handler, SendUpdateThreadingAndAi())
+        self.thread_handler = ThreadHandler(SendGuiUpdate())
+        self.ai_request = AiRequest(self.thread_handler, SendGuiUpdate())
 
     def test_catalog(self):
         self.assertEqual(self.ai_request.ai_model_catalog()["TEST_PROVIDER"].maximum_concurrent_api_requests, 4)
@@ -62,7 +61,7 @@ class TestAiCoreRequests(TestCase):
 
     def test_resolve_provider_no_default_raises(self):
         ai_config.DEFAULT_PROVIDER = "NONEXISTENT"
-        ai_request = AiRequest(self.thread_handler, SendUpdateThreadingAndAi())
+        ai_request = AiRequest(self.thread_handler, SendGuiUpdate())
         with self.assertRaises(ValueError):
             ai_request._resolve_provider("also_nonexistent")
 
@@ -87,7 +86,7 @@ class TestAiCoreRequests(TestCase):
             "default_model": "OTHER_MODEL",
             "models": {"OTHER_MODEL": "OTHER_MODEL_DESC"},
         }
-        ai_request = AiRequest(self.thread_handler, SendUpdateThreadingAndAi())
+        ai_request = AiRequest(self.thread_handler, SendGuiUpdate())
         ai_request.set_default_provider("SECOND_PROVIDER")
         catalog = ai_request.ai_model_catalog()
         self.assertFalse(catalog["TEST_PROVIDER"].default_provider)
@@ -189,7 +188,7 @@ class TestCatalogToFrontend(TestCase):
             },
         }
         ai_config.DEFAULT_PROVIDER = "TEST_PROVIDER"
-        self.ai_request = AiRequest(ThreadHandler(SendUpdateThreadingAndAi()), SendUpdateThreadingAndAi())
+        self.ai_request = AiRequest(ThreadHandler(SendGuiUpdate()), SendGuiUpdate())
 
     def test_frontend_structure(self):
         result = self.ai_request.catalog_to_frontend()
@@ -239,7 +238,7 @@ class TestAiCatalogTester(TestCase):
             }
         }
         ai_config.DEFAULT_PROVIDER = "TEST_PROVIDER"
-        ai_request = AiRequest(ThreadHandler(SendUpdateThreadingAndAi()), SendUpdateThreadingAndAi())
+        ai_request = AiRequest(ThreadHandler(SendGuiUpdate()), SendGuiUpdate())
         catalog = ai_request.ai_model_catalog()
         if api_methods is not None:
             catalog["TEST_PROVIDER"].api_methods = api_methods

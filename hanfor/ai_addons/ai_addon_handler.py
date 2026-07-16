@@ -1,14 +1,14 @@
-import os
 import importlib
 import logging
+import os
+from typing import TypeVar, Type
 
 from ai_addons.ai_addon_abstract_class import AiAddonAbstractClass
-from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
+from ai_addons.threading_ai_socketio import SendGuiUpdate
 from ai_request.ai_core_requests import AiRequest
 from configuration import ai_config
 from json_db_connector.json_db import JsonDatabase
 from thread_handling.threading_core import ThreadHandler
-from typing import TypeVar, Type
 
 T = TypeVar("T", bound=AiAddonAbstractClass)
 
@@ -21,7 +21,7 @@ class AiAddons:
         thread_handler: ThreadHandler,
         ai_request: AiRequest,
         db: JsonDatabase,
-        send_update_threading_and_ai: SendUpdateThreadingAndAi,
+        send_update_threading_and_ai: SendGuiUpdate,
     ):
         self.__thread_handler = thread_handler
         self.__ai_request = ai_request

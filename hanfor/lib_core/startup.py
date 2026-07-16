@@ -10,7 +10,9 @@ from typing import Callable, Any
 
 from terminaltables import DoubleTable
 
-from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
+from ai_addons.ai_addon_handler import AiAddons
+from ai_addons.threading_ai_socketio import SendGuiUpdate
+from ai_request.ai_core_requests import AiRequest
 from configuration.defaults import Color
 from configuration.tags import STANDARD_TAGS, FUNCTIONAL_TAGS
 from hanfor_flask import HanforFlask
@@ -29,8 +31,6 @@ from lib_core.utils import (
 from reqtransformer import RequirementCollection
 from requirements.desc_highlighting import generate_all_highlighted_desc
 from thread_handling.threading_core import ThreadHandler, ThreadTask, SchedulingClass, ThreadGroup
-from ai_request.ai_core_requests import AiRequest
-from ai_addons.ai_addon_handler import AiAddons
 
 
 def config_check(app_config):
@@ -169,7 +169,7 @@ def startup_hanfor(
     args,
     here,
     *,
-    send_update_threading_and_ai: SendUpdateThreadingAndAi = SendUpdateThreadingAndAi(),
+    send_update_threading_and_ai: SendGuiUpdate = SendGuiUpdate(),
     no_data_tracing: bool = False,
 ) -> bool:
     flask_app.thread_handler = ThreadHandler(send_update_threading_and_ai)

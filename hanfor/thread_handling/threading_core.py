@@ -1,14 +1,15 @@
 import logging
 import threading
 import time
-from collections import defaultdict
 import uuid
-from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
-from configuration import threading_config
+from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
 from queue import PriorityQueue
 from typing import Optional, Callable, Any, ClassVar
+
+from ai_addons.threading_ai_socketio import SendGuiUpdate
+from configuration import threading_config
 from thread_handling.thread_function_decorator import _stop_events_var, _set_status_var
 
 
@@ -125,9 +126,7 @@ class PrioritizedTask:
 class ThreadHandler:
     """Schedules and dispatches tasks across a fixed thread pool, respecting priority and resource limits."""
 
-    def __init__(
-        self, send_update_threading_and_ai: SendUpdateThreadingAndAi, max_threads: int = threading_config.MAX_THREADS
-    ):
+    def __init__(self, send_update_threading_and_ai: SendGuiUpdate, max_threads: int = threading_config.MAX_THREADS):
         self._max_threads = max(max_threads, 2)
         self.__queue: PriorityQueue[PrioritizedTask] = PriorityQueue()  # type: ignore
         self.__lock = threading.Lock()
