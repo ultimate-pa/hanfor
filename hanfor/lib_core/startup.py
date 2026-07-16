@@ -6,7 +6,7 @@ import logging
 import os
 import re
 import shutil
-from typing import Callable
+from typing import Callable, Any
 
 from terminaltables import DoubleTable
 
@@ -735,28 +735,28 @@ def get_last_edit_from_path(path_str):
 
 def add_custom_serializer_to_database(database: JsonDatabase) -> None:
 
-    def scope_serialize(obj: Scope, db_serializer: Callable[[any, str], any], user: str) -> dict:
+    def scope_serialize(obj: Scope, db_serializer: Callable[[Any, str], Any], user: str) -> dict:
         return db_serializer(obj.value, user)
 
-    def scope_deserialize(data: dict, db_deserializer: Callable[[any], any]) -> Scope:
+    def scope_deserialize(data: dict, db_deserializer: Callable[[Any], Any]) -> Scope:
         return Scope(db_deserializer(data))
 
     database.add_custom_serializer(Scope, scope_serialize, scope_deserialize)
 
-    def datetime_serialize(obj: datetime.datetime, db_serializer: Callable[[any, str], any], user: str) -> dict:
+    def datetime_serialize(obj: datetime.datetime, db_serializer: Callable[[Any, str], Any], user: str) -> dict:
         return db_serializer(obj.isoformat(), user)
 
-    def datetime_deserialize(data: dict, db_deserializer: Callable[[any], any]) -> datetime.datetime:
+    def datetime_deserialize(data: dict, db_deserializer: Callable[[Any], Any]) -> datetime.datetime:
         return datetime.datetime.fromisoformat(db_deserializer(data))
 
     database.add_custom_serializer(datetime.datetime, datetime_serialize, datetime_deserialize)
 
     def boogie_type_serialize(
-        obj: boogie_parsing.BoogieType, db_serializer: Callable[[any, str], any], user: str
+        obj: boogie_parsing.BoogieType, db_serializer: Callable[[Any, str], Any], user: str
     ) -> dict:
         return db_serializer(obj.value, user)
 
-    def boogie_type_deserialize(data: dict, db_deserializer: Callable[[any], any]) -> boogie_parsing.BoogieType:
+    def boogie_type_deserialize(data: dict, db_deserializer: Callable[[Any], Any]) -> boogie_parsing.BoogieType:
         return boogie_parsing.BoogieType(db_deserializer(data))
 
     database.add_custom_serializer(boogie_parsing.BoogieType, boogie_type_serialize, boogie_type_deserialize)
