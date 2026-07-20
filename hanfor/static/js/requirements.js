@@ -724,6 +724,7 @@ function store_requirement(requirements_table) {
         status: req_status,
         formalizations: JSON.stringify(committedFormalizations),
         formalizations_order: JSON.stringify(load_order),
+        description: $("#description_editor").val(),
       },
       success: function (data) {
         requirement_modal_content.LoadingOverlay("hide", true)
@@ -1303,7 +1304,16 @@ function load_requirement(row_idx) {
     // Visible information
     $("#requirement_modal_title").html(data.id + ": " + data.type)
     const rendered_descr = marked(data.desc_highlighted, { sanitize: false })
-    $("#description_textarea").html(rendered_descr).change();
+    $("#description_display").html(rendered_descr)
+    $("#description_editor").val(data.desc)
+
+    const previewTab = new Tab(document.querySelector("#desc-preview-tab"))
+    document.querySelector("#desc-preview-tab").addEventListener("shown.bs.tab", function () {
+      data.desc = $("#description_editor").val()
+      $("#description_display").html(marked(data.desc, { sanitize: false }))
+    })
+    previewTab.show()
+
     $("#add_guess_description").text(data.desc).change()
 
     // Parse the formalizations

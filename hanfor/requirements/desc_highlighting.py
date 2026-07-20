@@ -63,6 +63,45 @@ def get_highlighted_desc(req_id: str) -> str:
     return requirement_highlighting_data_per_req[req_id].highlighted_desc
 
 
+# TODO: this is AI generated just to serve as proof of concept
+# and to save me time not looking at the highligting code, needs refactor
+def rehighlight_requirement(req_id: str, description: str) -> str:
+    """Recompute highlighted description for a single requirement synchronously.
+    Updates the cache and returns the new highlighted HTML."""
+    word_positions = _normalize_and_group_positions_from_desc(description)
+
+    req_data = requirement_highlighting_data_per_req.get(req_id)
+    if not req_data:
+        requirement_highlighting_data_per_req[req_id] = RequirementHighlightingData(
+            req_id=req_id, description=description
+        )
+        req_data = requirement_highlighting_data_per_req[req_id]
+
+    req_data.description = description
+    req_data.desc_words_positions = word_positions
+    req_data.desc_words = list(word_positions.keys())
+    req_data.desc_words_starting_pos = sorted(
+        pos[0] for positions in word_positions.values() for pos in positions
+    )
+
+    variable_sets_list = [(var, variable_sets[var]) for var in variable_sets if var]
+
+    req_data.variable_matches = []
+    for plain_var, _ in variable_sets_list:
+        for m in re.finditer(re.escape(plain_var), description):
+            req_data.variable_matches.append(
+                VariableMatch(m.start(), m.end(), plain_var, plain_var, 101)
+            )
+
+    fuzzy_matches = _highlight_desc_variable(req_data, variable_sets_list)
+    req_data.variable_matches.extend(fuzzy_matches)
+
+    req_data.highlighted_desc = _generate_md_description(
+        req_data.variable_matches, description
+    )
+    return req_data.highlighted_desc
+
+
 def delete_variables(variables: list[str]) -> None:
     """
     If a variable is deleted, it is removed from the variable lookup sets and from all

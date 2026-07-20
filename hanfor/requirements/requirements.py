@@ -7,7 +7,6 @@ from flask_restx import Namespace, Resource
 
 from config import PATTERNS_GROUP_ORDER
 from configuration.defaults import Color
-from configuration.patterns import VARIABLE_AUTOCOMPLETE_EXTENSION, APattern
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from hanfor_flask import HanforFlask, current_app, nocache
@@ -116,7 +115,14 @@ class ApiRequirementSingle(Resource):
         result["available_vars"] = var_collection.get_available_var_names_list(used_only=False, exclude_types={"ENUM"})
         result["additional_static_available_vars"] = VARIABLE_AUTOCOMPLETE_EXTENSION
         if current_app.config.get("FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"):
-            result["desc_highlighted"] = get_highlighted_desc(rid)
+            try:
+                highlighted = get_highlighted_desc(rid)
+                if highlighted == result["desc"]:
+                    from requirements.desc_highlighting import rehighlight_requirement
+                    highlighted = rehighlight_requirement(rid, result["desc"])
+                result["desc_highlighted"] = highlighted
+            except KeyError:
+                result["desc_highlighted"] = result["desc"]
         else:
             result["desc_highlighted"] = result["desc"]
         result["next_id"] = requirement.next_id()
@@ -148,6 +154,7 @@ class ApiRequirementSingle(Resource):
         self._update_formalizations_order(requirement, request.form.get("formalizations_order"))
         self._update_status(requirement, request.form.get("status", ""))
         self._update_tags(requirement, request.form.get("tags"))
+        self._update_description(requirement, request.form.get("description"))
         error, error_msg = self._update_formalizations(requirement)
 
         if error:
@@ -164,7 +171,13 @@ class ApiRequirementSingle(Resource):
         )
 
         current_app.db.update()
-        return requirement.to_dict(), 200
+        result = requirement.to_dict()
+        if current_app.config.get("FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"):
+            from requirements.desc_highlighting import rehighlight_requirement
+            result["desc_highlighted"] = rehighlight_requirement(rid, requirement.description)
+        else:
+            result["desc_highlighted"] = result["desc"]
+        return result, 200
 
     @staticmethod
     def _update_formalizations_order(requirement, order_json):
@@ -213,6 +226,15 @@ class ApiRequirementSingle(Resource):
             [requirement],
         )
         logging.debug(f"Tags: + {added_tags} and - {removed_tags} to requirement {requirement.rid}")
+
+    @staticmethod
+    def _update_description(requirement, desc_markdown):
+        if desc_markdown is None:
+            return
+        requirement.description = desc_markdown
+        add_msg_to_flask_session_log(
+            current_app, f"Updated description for requirement", [requirement]
+        )
 
     @staticmethod
     def _update_formalizations(requirement):
