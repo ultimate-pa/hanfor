@@ -1306,6 +1306,7 @@ function load_requirement(row_idx) {
     const rendered_descr = marked(data.desc_highlighted, { sanitize: false })
     $("#description_display").html(rendered_descr)
     $("#description_editor").val(data.desc)
+    $("#description_original_display").html(marked(data.original_desc || "", { sanitize: false }))
 
     const previewTab = new Tab(document.querySelector("#desc-preview-tab"))
     document.querySelector("#desc-preview-tab").addEventListener("shown.bs.tab", function () {
@@ -1313,6 +1314,8 @@ function load_requirement(row_idx) {
       $("#description_display").html(marked(data.desc, { sanitize: false }))
     })
     previewTab.show()
+
+    new Tab(document.querySelector("#desc-original-tab"))
 
     $("#add_guess_description").text(data.desc).change()
 

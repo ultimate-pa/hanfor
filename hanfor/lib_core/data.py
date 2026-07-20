@@ -111,6 +111,7 @@ class BaseFormalization(ABC):
 @DatabaseID("rid", str)
 @DatabaseField("formalizations", dict)
 @DatabaseField("description", str)
+@DatabaseField("original_desc", str, default="")
 @DatabaseField("type_in_csv", str)
 @DatabaseField("csv_row", dict)
 @DatabaseField("pos_in_csv", int)
@@ -131,6 +132,7 @@ class Requirement:
         self.rid: str = rid
         self.formalizations: dict[int, FormalizationProtocol] = dict()
         self.description = description
+        self.original_desc = description
         self.type_in_csv = type_in_csv
         self.csv_row = csv_row
         self.pos_in_csv = pos_in_csv
@@ -157,6 +159,7 @@ class Requirement:
         d = {
             "id": self.rid,
             "desc": self.description,
+            "original_desc": self.original_desc,
             # Typecheck is for downwards compatibility (please do not remove)
             "type": self.type_in_csv if isinstance(self.type_in_csv, str) else "None",
             "tags": [tag.name for tag in self.tags.keys()],

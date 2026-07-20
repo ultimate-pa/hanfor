@@ -83,7 +83,8 @@ RequirementDetailModel = api_models.model(
     "Requirement Detail",
     {
         "id": fields.String(example="SysRS FooXY_42"),
-        "desc": fields.String(example="The system shall ..."),
+        "desc": fields.String(example="## Title\nThe system shall ..."),
+        "original_desc": fields.String(example="The system shall ..."),
         "type": fields.String(example="Functional"),
         "tags": fields.List(fields.String, example=["unseen"]),
         "tags_comments": fields.Wildcard(fields.String, example={"unseen": ""}),
@@ -98,6 +99,7 @@ RequirementDetailModel = api_models.model(
         "revision_diff": fields.Wildcard(fields.Raw, example={}),
         "available_vars": fields.List(fields.String, example=["bar", "foo"]),
         "additional_static_available_vars": fields.List(fields.String, example=["TRUE", "FALSE"]),
+        "original_desc": fields.String(example="The system shall ..."),
         "next_id": fields.String(example="SysRS FooXY_43"),
     },
 )
