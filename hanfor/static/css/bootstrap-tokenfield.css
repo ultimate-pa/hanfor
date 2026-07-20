@@ -93,8 +93,8 @@
   display: inline-block;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding-left: 4px;
-  vertical-align: top;
+  padding: 0 4px;
+  line-height: 22px;
 }
 .tokenfield .token .close {
   font-family: Arial;

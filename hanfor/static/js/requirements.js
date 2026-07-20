@@ -1805,6 +1805,18 @@ function bind_tag_field_events() {
     })
     .on("tokenfield:createdtoken", function (e) {
       add_tag_table_row(e.attrs.value)
+      var color = tag_colors[e.attrs.value]
+      if (color) {
+        var $token = $(e.relatedTarget)
+        $token.css("background-color", color)
+        var hex = color.replace("#", "")
+        var r = parseInt(hex.substr(0, 2), 16)
+        var g = parseInt(hex.substr(2, 2), 16)
+        var b = parseInt(hex.substr(4, 2), 16)
+        var luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+        $token.css("color", luminance > 0.5 ? "#000" : "#fff")
+        $token.find(".close").css("color", luminance > 0.5 ? "#000" : "#fff")
+      }
     })
     .on("tokenfield:removedtoken", function (e) {
       $("#tags_comments_table tr:gt(0)").each(function () {
