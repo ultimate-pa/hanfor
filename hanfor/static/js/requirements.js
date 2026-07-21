@@ -1304,7 +1304,16 @@ function load_requirement(row_idx) {
     const rendered_descr = marked(data.desc_highlighted, { sanitize: false })
     $("#description_display").html(rendered_descr)
     $("#description_editor").val(data.desc)
-    $("#description_original_display").html(marked(data.original_desc || "", { sanitize: false }))
+    $.ajax({
+      url: `api/v1/req/${data.id}/highlight-description`,
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ description: data.original_desc || "" }),
+    }).done(function (resp) {
+      $("#description_original_display").html(marked(resp.desc_highlighted, { sanitize: false }))
+    }).fail(function () {
+      $("#description_original_display").html(marked(data.original_desc || "", { sanitize: false }))
+    })
 
     const previewTab = new Tab(document.querySelector("#desc-preview-tab"))
     document.querySelector("#desc-preview-tab").addEventListener("shown.bs.tab", async function () {
