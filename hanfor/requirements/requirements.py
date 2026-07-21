@@ -326,6 +326,25 @@ class ApiRequirementSingle(Resource):
         return False, ""
 
 
+@api_ns.route("/<string:rid>/highlight-description")
+@log_request_response
+class ApiHighlightDescription(Resource):
+    @api_ns.doc(description="Server-side variable highlighting for a description text.")
+    @nocache
+    def post(self, rid):
+        body = request.get_json()
+        if not body or "description" not in body:
+            return {"success": False, "errormsg": "Missing 'description' field."}, 400
+
+        if current_app.config.get("FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"):
+            from requirements.desc_highlighting import highlight_text
+            highlighted = highlight_text(body["description"])
+        else:
+            highlighted = body["description"]
+
+        return {"desc_highlighted": highlighted}
+
+
 @api_ns.route("/formalizations/<string:rid>")
 @log_request_response
 class ApiFormalizations(Resource):

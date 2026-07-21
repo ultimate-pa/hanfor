@@ -63,6 +63,31 @@ def get_highlighted_desc(req_id: str) -> str:
     return requirement_highlighting_data_per_req[req_id].highlighted_desc
 
 
+def highlight_text(text: str) -> str:
+    """Variable highlighting for arbitrary text. Does not modify the global cache."""
+    word_positions = _normalize_and_group_positions_from_desc(text)
+    variable_sets_list = [(var, variable_sets[var]) for var in variable_sets if var]
+
+    req_data = RequirementHighlightingData(
+        req_id="", description=text,
+        desc_words_positions=word_positions,
+        desc_words=list(word_positions.keys()),
+        desc_words_starting_pos=sorted(
+            pos[0] for positions in word_positions.values() for pos in positions
+        ),
+    )
+
+    matches = []
+    for plain_var, _ in variable_sets_list:
+        for m in re.finditer(re.escape(plain_var), text):
+            matches.append(VariableMatch(m.start(), m.end(), plain_var, plain_var, 101))
+
+    fuzzy = _highlight_desc_variable(req_data, variable_sets_list)
+    matches.extend(fuzzy)
+
+    return _generate_md_description(matches, text)
+
+
 # TODO: this is AI generated just to serve as proof of concept
 # and to save me time not looking at the highligting code, needs refactor
 def rehighlight_requirement(req_id: str, description: str) -> str:

@@ -1268,12 +1268,10 @@ function load_requirement(row_idx) {
     return
   }
 
-  console.log(store)
   load_tags()
 
   // Get row data
   let data = $("#requirements_table").DataTable().row(row_idx).data()
-  console.log(data)
 
   // Prepare requirement Modal
   let requirement_modal_content = $(".modal-content")
@@ -1309,9 +1307,15 @@ function load_requirement(row_idx) {
     $("#description_original_display").html(marked(data.original_desc || "", { sanitize: false }))
 
     const previewTab = new Tab(document.querySelector("#desc-preview-tab"))
-    document.querySelector("#desc-preview-tab").addEventListener("shown.bs.tab", function () {
-      data.desc = $("#description_editor").val()
-      $("#description_display").html(marked(data.desc, { sanitize: false }))
+    document.querySelector("#desc-preview-tab").addEventListener("shown.bs.tab", async function () {
+      const currentDesc = $("#description_editor").val()
+      const resp = await $.ajax({
+        url: `api/v1/req/${data.id}/highlight-description`,
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ description: currentDesc }),
+      })
+      $("#description_display").html(marked(resp.desc_highlighted, { sanitize: false }))
     })
     previewTab.show()
 
