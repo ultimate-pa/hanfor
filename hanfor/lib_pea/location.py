@@ -24,6 +24,9 @@ class Location:
     def __str__(self):
         return f"{self.label:<10}: {str(self.state_invariant):<40}, {str(self.clock_invariant):<20}"
 
+    def pretty_str(self):
+        return f"Location: {self.label}\n\t  invar: {str(self.state_invariant)}\n\tc invar: {str(self.clock_invariant)}"
+
 
 @dataclass
 class PhaseSetsLocation(Location):

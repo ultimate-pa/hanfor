@@ -29,6 +29,15 @@ class Pea(PeaOperationsMixin):
             + "\n".join([str(t) for ts in self.transitions.values() for t in ts])
         )
 
+    def pretty_str(self):
+        return (
+            "PEA:\n"
+            + "\n".join([loc.pretty_str() for loc in self.locations() if loc is not None])
+            + "\n"
+            + "\n".join([t.pretty_str() for ts in self.transitions.values() for t in ts])
+            + "\n"
+        )
+
 
 class PhaseSetsPea(Pea):
     def __init__(self, smt_env: Environment, countertrace: Countertrace):

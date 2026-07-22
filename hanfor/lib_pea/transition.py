@@ -20,7 +20,16 @@ class Transition:
             self.guard = self.smt_env.formula_manager.TRUE()
 
     def __str__(self):
-        return f"{self.src.label if self.src else 'init':>15} --- {str(self.guard):<30} ({str(self.resets):>5}) ---> {self.dst.label:<15}"
+        return (
+            f"{self.src.label if self.src else 'init':>15} --- {str(self.guard):<30} ({str(self.resets):>5})"
+            f" ---> {self.dst.label:<15}"
+        )
+
+    def pretty_str(self):
+        return (
+            f"Transition: {self.src.label if self.src else 'init'}  ---> {self.dst.label}\n"
+            f"\t guard: {str(self.guard)}\n\tresets: {str(self.resets)}"
+        )
 
 
 @dataclass

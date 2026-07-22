@@ -22,7 +22,7 @@ class BoogiePysmtTransformer(Transformer):
         self.__fmgr = self.__smt_env.formula_manager
         self.__tmgr = self.__smt_env.type_manager
 
-        hanfor_to_pysmt_mapping = {
+        self.hanfor_to_pysmt_mapping = {
             "bool": lambda name, value: self.__fmgr.Symbol(name, self.__tmgr.BOOL()),
             "int": lambda name, value: self.__fmgr.Symbol(name, self.__tmgr.INT()),
             "real": lambda name, value: self.__fmgr.Symbol(name, self.__tmgr.REAL()),
@@ -38,10 +38,10 @@ class BoogiePysmtTransformer(Transformer):
         self.smt_symbols = dict()
         self.smt_vars = dict()
         for v in variables:
-            sym = hanfor_to_pysmt_mapping[v.type](v.name, v.value)
+            sym = self.hanfor_to_pysmt_mapping[v.type](v.name, v.value)
             self.smt_symbols[v.name] = sym
             if sym.is_symbol():
-                self.smt_vars[v.name] = hanfor_to_pysmt_mapping[v.type](v.name, v.value)
+                self.smt_vars[v.name] = self.hanfor_to_pysmt_mapping[v.type](v.name, v.value)
 
     def expr(self, children) -> FNode:
         return self.__fmgr.And(children[0], *self.additional_assertions)
