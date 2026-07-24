@@ -77,15 +77,15 @@ def compute_clock_invariant(ct: Countertrace, p: PhaseSets, cp: str) -> FNode:
 
 
 def build_successors(
-        i: int,
-        p: PhaseSets,
-        p_: PhaseSets,
-        resets: set[str],
-        guard: FNode,
-        ct: Countertrace,
-        enter: dict[int, FNode],
-        keep: dict[int, FNode],
-        cp: str,
+    i: int,
+    p: PhaseSets,
+    p_: PhaseSets,
+    resets: set[str],
+    guard: FNode,
+    ct: Countertrace,
+    enter: dict[int, FNode],
+    keep: dict[int, FNode],
+    cp: str,
 ) -> list[tuple[PhaseSets, FNode, set[str]]]:
     result = []
     guard = simplify_with_z3(guard)
@@ -276,7 +276,7 @@ def build_successors(
 
 
 def compute_enter_keep(
-        ct: Countertrace, p: PhaseSets, init: bool, cp: str
+    ct: Countertrace, p: PhaseSets, init: bool, cp: str
 ) -> tuple[dict[int, FNode], dict[int, FNode]]:
     enter_, keep_ = {}, {}
 
@@ -350,6 +350,6 @@ def simplify_with_z3(f: FNode) -> FNode:
     result = solver_z3.converter.back(result)
 
     # TODO: Implement this in a testcase.
-    #assert is_valid(Iff(f, result)), f"Failed to simplify: {f} is not equivalent to {result}"
+    # assert is_valid(Iff(f, result)), f"Failed to simplify: {f} is not equivalent to {result}"
 
     return result

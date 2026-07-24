@@ -303,7 +303,7 @@ class ApiRequirementSingle(Resource):
         return False, ""
 
 
-@api_ns.route("/formalizations/<string:rid>")
+@api_ns.route("/<string:rid>/formalizations")
 @log_request_response
 class ApiFormalizations(Resource):
     @api_ns.doc(
@@ -376,8 +376,8 @@ class ApiRequirementsList(Resource):
         return result
 
 
-@api_ns.route("/formalizations/<string:rid>/<string:fid>")
-@api_ns.route("/formalizations/<string:rid>/<int:fid>")
+@api_ns.route("/<string:rid>/formalizations/<string:fid>")
+@api_ns.route("/<string:rid>/formalizations/<int:fid>")
 @log_request_response
 class ApiFormalizationResource(Resource):
     @api_ns.doc(
@@ -446,7 +446,7 @@ class ApiFormalizationResource(Resource):
         return {"success": True}
 
 
-@api_ns.route("/formalizations/<string:rid>/<string:subtype>/<string:fid>")
+@api_ns.route("/<string:rid>/formalizations/<string:subtype>/<string:fid>")
 @log_request_response
 class ApiFormalizationStore(Resource):
     @api_ns.doc(

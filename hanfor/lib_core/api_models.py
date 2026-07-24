@@ -107,7 +107,7 @@ FormalizationModel = api_models.model(
     {
         "id": fields.Integer(example=0),
         "formalization_type": fields.String(example="formalization"),
-        "text": fields.String(example="Globally, it is never the case that \"foo != bar\" holds."),
+        "text": fields.String(example='Globally, it is never the case that "foo != bar" holds.'),
         "order": fields.Integer(example=0),
         "scope": fields.String(example="GLOBALLY"),
         "pattern": fields.String(example="Absence"),
