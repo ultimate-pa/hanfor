@@ -1,5 +1,7 @@
 from flask_restx import Namespace, Resource
 from flask import current_app
+from hanfor_flask import nocache
+from lib_core.api_models import PatternsResponseModel
 from lib_core.pattern.patterns_basic import APattern
 
 patterns_ns = Namespace("Patterns", path="/patterns")
@@ -7,6 +9,9 @@ patterns_ns = Namespace("Patterns", path="/patterns")
 
 @patterns_ns.route("")
 class ApiPatterns(Resource):
+    @patterns_ns.doc(description="Returns all patterns grouped by category, with group ordering and scope options.")
+    @patterns_ns.response(200, "Success", PatternsResponseModel)
+    @nocache
     def get(self):
         frontend = APattern.to_frontent_dict()
         groups = {}

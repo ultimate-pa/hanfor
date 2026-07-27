@@ -209,3 +209,38 @@ UltimateJobRequestModel = api_models.model(
         "req_ids": fields.List(fields.String),
     },
 )
+
+PatternModel = api_models.model(
+    "Pattern",
+    {
+        "name": fields.String(example="Absence"),
+        "text": fields.String(example='it is never the case that {R} holds'),
+        "env": fields.Wildcard(fields.List(fields.String), example={"R": ["bool"]}),
+    },
+)
+
+PatternsResponseModel = api_models.model(
+    "Patterns Response",
+    {
+        "groups": fields.Wildcard(
+            fields.List(fields.Nested(PatternModel)),
+            example={
+                "Occurence": [
+                    {
+                        "name": "Absence",
+                        "text": "it is never the case that {R} holds",
+                        "env": {"R": ["bool"]},
+                    }
+                ]
+            },
+        ),
+        "group_order": fields.List(
+            fields.String,
+            example=["Occurence", "Order", "Real-time", "Automaton", "not_formalizable"],
+        ),
+        "scopes": fields.List(
+            fields.Wildcard(fields.String),
+            example=[{"value": "GLOBALLY", "label": "Globally"}, {"value": "NONE", "label": "None"}],
+        ),
+    },
+)
