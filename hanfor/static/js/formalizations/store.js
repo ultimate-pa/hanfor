@@ -1,3 +1,7 @@
+import ApiClient from "../api/ApiClient.js"
+
+const api = new ApiClient()
+
 export default class FormalizationStore {
   constructor() {
     this.created = new Map()
@@ -119,10 +123,7 @@ export default class FormalizationStore {
 
     deletedSet.forEach((id) => {
       requests.push(
-        $.ajax({
-          url: `/api/v1/req/${requirementId}/formalizations/${id}`,
-          type: "DELETE",
-        }).then(function (res) {
+        api.deleteFormalization(requirementId, id).then(function (res) {
           if (!res.success) return $.Deferred().reject(res).promise()
         }),
       )
@@ -135,22 +136,21 @@ export default class FormalizationStore {
     const requests = []
     for (const [type, idSet] of this.created.entries()) {
       idSet.forEach((id) => {
-        let data = {}
-        let endpoint = ""
         if (type === "formalization") {
           data = this.getFormalizationFromDOM(id)
-          endpoint = `/api/v1/req/${requirementId}/formalizations/formalization/${id}`
-        } else if (type === "variable") {
-          data = this.getVariableFromDOM(id)
-          endpoint = `/api/v1/req/${requirementId}/formalizations/variable/${id}`
-        }
-
-        requests.push(
-          $.post(endpoint, { id: requirementId, data: JSON.stringify(data) })
-            .then(function (res) {
+          requests.push(
+            api.createFormalization(requirementId, data).then(function (res) {
               if (!res.success) return $.Deferred().reject(res).promise()
             }),
-        )
+          )
+        } else if (type === "variable") {
+          data = this.getVariableFromDOM(id)
+          requests.push(
+            api.createVariable(requirementId, data).then(function (res) {
+              if (!res.success) return $.Deferred().reject(res).promise()
+            }),
+          )
+        }
       })
     }
     this.created.clear()

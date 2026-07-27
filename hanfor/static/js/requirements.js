@@ -19,6 +19,12 @@ import FormalizationStore from "./formalizations/store"
 import "jquery-sortablejs"
 import FormalizationRenderer from "./formalizations/renderer.js"
 import { AVAILABLE_VARIABLE_TYPES } from "./variables.js"
+import ApiClient from "./api/ApiClient.js"
+
+const api = new ApiClient()
+api.onError = (err, method, path) => {
+  console.error(`API ${method} ${path} failed:`, err.responseJSON?.errormsg || err.statusText)
+}
 
 let utils = require("./hanfor-utils")
 const autosize = require("autosize/dist/autosize")
@@ -714,32 +720,27 @@ function store_requirement(requirements_table) {
     store.commitDeletes(req_id, "variable"),
     store.commitCreated(req_id),
   ).done(function () {
-    $.ajax({
-      url: `api/v1/req/${req_id}`,
-      method: "PATCH",
-      data: {
-        row_idx: associated_row_id,
-        update_formalization: updated_formalization,
-        tags: JSON.stringify(Object.fromEntries(tag_comments)),
-        status: req_status,
-        formalizations: JSON.stringify(committedFormalizations),
-        formalizations_order: JSON.stringify(load_order),
-        description: $("#description_editor").val(),
-      },
-      success: function (data) {
-        requirement_modal_content.LoadingOverlay("hide", true)
+    api.patchRequirement(req_id, {
+      row_idx: associated_row_id,
+      update_formalization: updated_formalization,
+      tags: JSON.stringify(Object.fromEntries(tag_comments)),
+      status: req_status,
+      formalizations: JSON.stringify(committedFormalizations),
+      formalizations_order: JSON.stringify(load_order),
+      description: $("#description_editor").val(),
+    }).done(function (data) {
+      requirement_modal_content.LoadingOverlay("hide", true)
 
-        if (data["success"] === false) {
-          alert(data["errormsg"])
-        } else {
-          requirements_table.row(associated_row_id).data(data)
+      if (data["success"] === false) {
+        alert(data["errormsg"])
+      } else {
+        requirements_table.row(associated_row_id).data(data)
 
-          $("#requirement_modal").data("unsaved_changes", false)
+        $("#requirement_modal").data("unsaved_changes", false)
 
-          const requirement_modal = document.querySelector("#requirement_modal")
-          Modal.getOrCreateInstance(requirement_modal).hide()
-        }
-      },
+        const requirement_modal = document.querySelector("#requirement_modal")
+        Modal.getOrCreateInstance(requirement_modal).hide()
+      }
     }).done(function () {
       update_logs()
     })
@@ -834,7 +835,7 @@ function load_datatable() {
     },
   ]
   // Load generic colums.
-  $.get("api/v1/req/colum_defs", "", function (data) {
+  api.getColumnDefs().done(function (data) {
     const dataLength = data["col_defs"].length
     for (let i = 0; i < dataLength; i++) {
       columnDefs.push({
@@ -1031,13 +1032,13 @@ function apply_multi_edit(requirements_table) {
   let requests = []
   for (let id of selected_ids) {
     if (add_tag) {
-      requests.push($.ajax({ url: `api/v1/req/${id}/tags/${encodeURIComponent(add_tag)}`, method: "POST" }))
+      requests.push(api.addTag(id, add_tag))
     }
     if (remove_tag) {
-      requests.push($.ajax({ url: `api/v1/req/${id}/tags/${encodeURIComponent(remove_tag)}`, method: "DELETE" }))
+      requests.push(api.removeTag(id, remove_tag))
     }
     if (set_status) {
-      requests.push($.ajax({ url: `api/v1/req/${id}`, method: "PATCH", data: { status: set_status } }))
+      requests.push(api.setStatus(id, set_status))
     }
   }
 
@@ -1056,21 +1057,17 @@ function add_top_guess_to_selected_requirements(requirements_table) {
   let selected_ids = get_selected_requirement_ids(requirements_table)
   let insert_mode = $("#top_guess_append_mode").val()
 
-  $.post(
-    "api/v1/req/multi_add_top_guess",
-    {
-      selected_ids: JSON.stringify(selected_ids),
-      insert_mode: insert_mode,
-    }, // Update requirements table on success or show an error message.
-    function (data) {
-      page.LoadingOverlay("hide", true)
-      if (data["success"] === false) {
-        alert(data["errormsg"])
-      } else {
-        location.reload()
-      }
-    },
-  )
+  api.addMultiTopGuess({
+    selected_ids: JSON.stringify(selected_ids),
+    insert_mode: insert_mode,
+  }).done(function (data) {
+    page.LoadingOverlay("hide", true)
+    if (data["success"] === false) {
+      alert(data["errormsg"])
+    } else {
+      location.reload()
+    }
+  })
 }
 
 /**
@@ -1286,7 +1283,7 @@ function load_requirement(row_idx) {
   $("#requirement_tag_field").data("bs.tokenfield").$input.autocomplete({ source: available_tags })
 
   // Get the requirement data and set the modal.
-  $.get(`api/v1/req/${data["id"]}`, { row_idx: row_idx }, function (data) {
+  api.getRequirement(data["id"]).done(function (data) {
     if (data.success === false) {
       alert("Could Not load the Requirement: " + data.errormsg)
       return
@@ -1304,12 +1301,7 @@ function load_requirement(row_idx) {
     const rendered_descr = marked(data.desc_highlighted, { sanitize: false })
     $("#description_display").html(rendered_descr)
     $("#description_editor").val(data.desc)
-    $.ajax({
-      url: `api/v1/req/${data.id}/highlight-description`,
-      method: "POST",
-      contentType: "application/json",
-      data: JSON.stringify({ description: data.original_desc || "" }),
-    }).done(function (resp) {
+    api.highlightDescription(data.id, data.original_desc || "").done(function (resp) {
       $("#description_original_display").html(marked(resp.desc_highlighted, { sanitize: false }))
     }).fail(function () {
       $("#description_original_display").html(marked(data.original_desc || "", { sanitize: false }))
@@ -1318,12 +1310,7 @@ function load_requirement(row_idx) {
     const previewTab = new Tab(document.querySelector("#desc-preview-tab"))
     document.querySelector("#desc-preview-tab").addEventListener("shown.bs.tab", async function () {
       const currentDesc = $("#description_editor").val()
-      const resp = await $.ajax({
-        url: `api/v1/req/${data.id}/highlight-description`,
-        method: "POST",
-        contentType: "application/json",
-        data: JSON.stringify({ description: currentDesc }),
-      })
+      const resp = await api.highlightDescription(data.id, currentDesc)
       $("#description_display").html(marked(resp.desc_highlighted, { sanitize: false }))
     })
     previewTab.show()
@@ -1333,7 +1320,7 @@ function load_requirement(row_idx) {
     $("#add_guess_description").text(data.desc).change()
 
     // Parse the formalizations
-    $.get(`api/v1/req/${data.id}/formalizations`, function (data) {
+    api.getFormalizations(data.id).done(function (data) {
       data
         .sort((a, b) => a.order - b.order)
         .forEach(function (entry) {
@@ -1426,7 +1413,6 @@ function load_requirement(row_idx) {
         "</span>&numsp;",
       )
     })
-
     const sortable = Sortable.create($("#formalization_accordion")[0], {
       animation: 200,
       ghostClass: "ghost",
@@ -1435,7 +1421,6 @@ function load_requirement(row_idx) {
     })
   })
 }
-
 /**
  * Reload fuse the fuzzy search provider used for autocomplete.
  * fuse will be reloaded with available_vars.
@@ -1795,10 +1780,7 @@ function update_vars() {
 }
 
 function load_tags() {
-  $.ajax({
-    type: "GET",
-    url: "api/v1/tags",
-  })
+  api.getTags()
     .done(function (data) {
       available_tags = []
       for (let tag of data) {
@@ -2059,13 +2041,11 @@ function fetch_available_guesses() {
     available_guesses_cards.append(template)
   }
 
-  $.get(
-    `api/v1/req/${requirement_id}/guesses`,
-    function (data) {
-      for (let i = 0; i < data["available_guesses"].length; i++) {
-        add_available_guess(data["available_guesses"][i])
-      }
-    },
+  api.getGuesses(requirement_id).done(function (data) {
+    for (let i = 0; i < data["available_guesses"].length; i++) {
+      add_available_guess(data["available_guesses"][i])
+    }
+  }
   ).fail(function () {
     alert("Failed to load guesses for this requirement.")
   }).done(function () {
@@ -2087,23 +2067,18 @@ function add_formalization_from_guess(scope, pattern, mapping) {
   requirement_modal_content.LoadingOverlay("show")
 
   let requirement_id = $("#requirement_id").val()
-  $.post(
-    "api/v1/req/add_formalization_from_guess",
-    {
-      requirement_id: requirement_id,
-      scope: scope,
-      pattern: pattern,
-      mapping: JSON.stringify(mapping),
-    },
-    function (data) {
-      requirement_modal_content.LoadingOverlay("hide", true)
-      if (data["success"] === false) {
-        alert(data["errormsg"])
-      } else {
-        $("#formalization_accordion").append(data["html"])
-      }
-    },
-  ).done(function () {
+  api.addFormalizationFromGuess({
+    requirement_id: requirement_id,
+    scope: scope,
+    pattern: pattern,
+    mapping: JSON.stringify(mapping),
+  }).done(function (data) {
+    requirement_modal_content.LoadingOverlay("hide", true)
+    if (data["success"] === false) {
+      alert(data["errormsg"])
+    } else {
+      $("#formalization_accordion").append(data["html"])
+    }
     update_vars()
     update_formalization()
     bind_var_autocomplete()
