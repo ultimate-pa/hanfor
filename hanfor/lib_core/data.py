@@ -221,9 +221,9 @@ class Requirement:
 
     def add_empty_formalization(self) -> tuple[int, "Formalization"]:
         """Add an empty formalization to the formalizations list."""
-        id = self.next_id()
-        self.formalizations[id] = Formalization(id)
-        return id, self.formalizations[id]
+        fid = self.next_id()
+        self.formalizations[fid] = Formalization(fid)
+        return fid, self.formalizations[fid]
 
     def delete_formalization(self, formalization_id, variable_collection: "VariableCollection"):
         logging.debug(f"Deleting currently the ID: {formalization_id}")
