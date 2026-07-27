@@ -15,7 +15,7 @@ require("./bootstrap-confirm-button")
 const { marked } = require("marked")
 import Sortable from "sortablejs"
 import Mustache from "mustache"
-import FormalizationStore from "./formalizations/store"
+import store from "./formalizations/store"
 import "jquery-sortablejs"
 import FormalizationRenderer from "./formalizations/renderer.js"
 import { AVAILABLE_VARIABLE_TYPES } from "./variables.js"
@@ -42,7 +42,6 @@ const { TextareaEditor } = require("@textcomplete/textarea")
 let Fuse = require("fuse.js")
 let fuse = new Fuse([], {})
 
-let store = new FormalizationStore()
 let renderer = new FormalizationRenderer()
 // register the types of formalizations with the identifier from the "type" supplied in the API
 // second example not convoluted with comments is directly below (if noone moved it)
@@ -718,7 +717,8 @@ function store_requirement(requirements_table) {
   $.when(
     store.commitDeletes(req_id, "formalization"),
     store.commitDeletes(req_id, "variable"),
-    store.commitCreated(req_id),
+    store.commitCreated(req_id, "formalization"),
+    store.commitCreated(req_id, "variable"),
   ).done(function () {
     api.patchRequirement(req_id, {
       row_idx: associated_row_id,
@@ -1256,7 +1256,7 @@ function modal_closing_routine(event) {
     sendTelemetry("requirements", $("#requirement_id").val(), "close")
   }
   // here we have to reset the last changes
-  store = new FormalizationStore()
+  store.reset()
 }
 
 function load_requirement(row_idx) {
