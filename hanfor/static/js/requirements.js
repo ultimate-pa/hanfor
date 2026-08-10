@@ -51,7 +51,7 @@ renderer.registerType("formalization", {
     order: 0,
     text: "// None, no pattern set",
     formalization_type: "formalization",
-    scope: "None",
+    scope: "NONE",
     pattern: "NotFormalizable",
   },
   // a selector that fetches the correct template for the type
@@ -59,8 +59,8 @@ renderer.registerType("formalization", {
   // each function can define after render behavior function that gets applied
   // after mustache renders it, i.e setting the required variable placeholders as visible
   afterRender: ($container, entry) => {
-    $container.find(`#requirement_scope${entry.id}`).val(entry.scope)
-    $container.find(`#requirement_pattern${entry.id}`).val(entry.pattern)
+    if (entry.scope) $container.find(`#requirement_scope${entry.id}`).val(entry.scope)
+    if (entry.pattern) $container.find(`#requirement_pattern${entry.id}`).val(entry.pattern)
     $container.find(`#is_constraint${entry.id}`).prop("checked", !!entry.is_constraint)
     const vars = ["P", "Q", "R", "S", "T", "U", "V"]
     vars.forEach((v) => {

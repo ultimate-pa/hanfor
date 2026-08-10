@@ -256,6 +256,8 @@ class Requirement:
     ):
         # TODO: simplify
         # set scoped pattern
+        scope_name = scope_name or Scope.NONE.name
+        pattern_name = pattern_name or "NotFormalizable"
         sp: ScopedPattern = self.formalizations[formalization_id].scoped_pattern
         if not sp.scope.name == scope_name or not sp.pattern.name == pattern_name:
             self.formalizations[formalization_id].scoped_pattern = ScopedPattern(
@@ -313,15 +315,27 @@ class Requirement:
         else:
             return self.tags[standard_tags["TAG_incomplete_formalization"]] + "\n- " + rid_fid
 
+    def recompute_formalization_tags(self, standard_tags: dict[str, Tag]) -> None:
+        for key in ("TAG_incomplete_formalization", "TAG_has_formalization"):
+            tag = standard_tags[key]
+            if tag in self.tags:
+                self.tags.pop(tag)
+        for fid, formalization in self.formalizations.items():
+            if not isinstance(formalization, Formalization):
+                continue
+            sp = formalization.scoped_pattern
+            if sp.scope != Scope.NONE and sp.pattern.get_name() != "NotFormalizable":
+                self.tags[standard_tags["TAG_has_formalization"]] = ""
+            else:
+                self.tags[standard_tags["TAG_incomplete_formalization"]] = (
+                    self.format_incomplete_formalization_tag(fid, standard_tags)
+                )
+
     def update_formalizations(self, formalizations: dict, standard_tags: dict[str, Tag], variable_collection):
         if standard_tags["TAG_Type_inference_error"] in self.tags:
             self.tags.pop(standard_tags["TAG_Type_inference_error"])
         if standard_tags["TAG_unknown_type"] in self.tags:
             self.tags.pop(standard_tags["TAG_unknown_type"])
-        if standard_tags["TAG_incomplete_formalization"] in self.tags:
-            self.tags.pop(standard_tags["TAG_incomplete_formalization"])
-        if standard_tags["TAG_has_formalization"] in self.tags:
-            self.tags.pop(standard_tags["TAG_has_formalization"])
         logging.debug(f"Updating formalisations of requirement {self.rid}.")
         # Reset the var mapping.
         variable_collection.req_var_mapping[self.rid] = set()
@@ -341,6 +355,10 @@ class Requirement:
             except Exception as e:
                 logging.error(f"Could not update Formalization: {e.__str__()}")
                 raise e
+
+        # Recompute tags from the full state so formalizations created in the
+        # same save via the create (POST, since those are new) endpoint are included as well
+        self.recompute_formalization_tags(standard_tags)
 
     def run_type_checks(self, var_collection, standard_tags: dict[str, Tag]):
         logging.info(f"Run type inference and unknown check for `{self.rid}`")
