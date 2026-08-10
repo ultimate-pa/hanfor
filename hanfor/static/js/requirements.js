@@ -17,7 +17,7 @@ import Sortable from "sortablejs"
 import Mustache from "mustache"
 import store from "./formalizations/store"
 import "jquery-sortablejs"
-import FormalizationRenderer from "./formalizations/renderer.js"
+import TemplateRenderer from "./template/TemplateRenderer.js"
 import { AVAILABLE_VARIABLE_TYPES } from "./variables.js"
 import ApiClient from "./api/ApiClient.js"
 
@@ -42,7 +42,7 @@ const { TextareaEditor } = require("@textcomplete/textarea")
 let Fuse = require("fuse.js")
 let fuse = new Fuse([], {})
 
-let renderer = new FormalizationRenderer()
+let renderer = new TemplateRenderer({ baseUrl: "/static/templates/formalizations" })
 // register the types of formalizations with the identifier from the "type" supplied in the API
 // second example not convoluted with comments is directly below (if noone moved it)
 renderer.registerType("formalization", {
@@ -56,6 +56,8 @@ renderer.registerType("formalization", {
   },
   // a selector that fetches the correct template for the type
   template: "formalization",
+  container: "container",
+  contentSelector: ".accordion-collapse",
   withPatterns: true,
   // each function can define after render behavior function that gets applied
   // after mustache renders it, i.e setting the required variable placeholders as visible
@@ -106,6 +108,9 @@ renderer.registerType("variable", {
     text: "New Variable",
   },
   template: "variable",
+  container: "container",
+  contentSelector: ".accordion-collapse",
+  requires: ["enumerator"],
   afterRender: ($container, entry) => {
     // autocomplete
     let type_input = $container.find(".variable-type")
@@ -1511,8 +1516,7 @@ function add_var_autocomplete(dom_obj) {
   })
 }
 
-async function add_variable() {
-  await renderer.ready()
+function add_variable() {
   const $container = renderer.build("variable", {
     id: store.create("variable"),
   })
@@ -1525,8 +1529,7 @@ async function add_variable() {
   })
 }
 
-async function add_formalization(formalizationData = {}) {
-  await renderer.ready()
+function add_formalization(formalizationData = {}) {
   const entry = {
     ...formalizationData,
     id: store.create("formalization"),
@@ -2061,10 +2064,8 @@ function fetch_available_guesses() {
   })
 }
 
-async function add_enumerator_to_variable(button, $container, name = "", value = "") {
-  await renderer.ready()
-  const html = Mustache.render(renderer.templates.getTemplate("enumerator"), { name, value })
-  $container.append(html)
+function add_enumerator_to_variable(button, $container, name = "", value = "") {
+  $container.append(Mustache.render(renderer.getTemplate("enumerator"), { name, value }))
 }
 
 function add_formalization_from_guess(scope, pattern, mapping) {
