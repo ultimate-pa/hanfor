@@ -51,8 +51,8 @@ renderer.registerType("formalization", {
     order: 0,
     text: "// None, no pattern set",
     formalization_type: "formalization",
-    scope: "",
-    pattern: "",
+    scope: "None",
+    pattern: "NotFormalizable",
   },
   // a selector that fetches the correct template for the type
   templateSelector: "#formalization-template",

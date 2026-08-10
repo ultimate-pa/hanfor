@@ -14,9 +14,11 @@ store.registerType("formalization", {
     card.find("select").each(function () {
       if ($(this).hasClass("scope_selector")) data.scope = $(this).val()
       if ($(this).hasClass("pattern_selector")) data.pattern = $(this).val()
+      console.log(`Scope: ${data.scope}, Pattern: ${data.pattern}`)
     })
 
     data.is_constraint = card.find(".is-constraint-checkbox").is(":checked")
+    console.log(`Constraint: ${data.is_constraint}`)
 
     card.find("textarea.reqirement-variable").each(function () {
       const title = $(this).attr("title")

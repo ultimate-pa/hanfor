@@ -552,6 +552,7 @@ class ApiFormalizationStore(Resource):
             except KeyError as e:
                 error = True
                 error_msg = f"Did not find the created empty draft for ID: {e}"
+                logging.error(data)
             except Exception as e:
                 error = True
                 error_msg = f"Could not parse draft: `{e}`"
