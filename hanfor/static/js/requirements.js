@@ -55,7 +55,8 @@ renderer.registerType("formalization", {
     pattern: "NotFormalizable",
   },
   // a selector that fetches the correct template for the type
-  templateSelector: "#formalization-template",
+  template: "formalization",
+  withPatterns: true,
   // each function can define after render behavior function that gets applied
   // after mustache renders it, i.e setting the required variable placeholders as visible
   afterRender: ($container, entry) => {
@@ -104,7 +105,7 @@ renderer.registerType("variable", {
     formalization_type: "variable",
     text: "New Variable",
   },
-  templateSelector: "#variable-template",
+  template: "variable",
   afterRender: ($container, entry) => {
     // autocomplete
     let type_input = $container.find(".variable-type")
@@ -251,6 +252,7 @@ $(document).ready(function () {
   update_logs()
   init_report_generation()
   init_simulator_tab()
+  renderer.ready().catch(console.error)
 
   let body = $("body")
   // Bind formalization deletion.
@@ -1259,13 +1261,14 @@ function modal_closing_routine(event) {
   store.reset()
 }
 
-function load_requirement(row_idx) {
+async function load_requirement(row_idx) {
   if (row_idx === -1) {
     alert("Requirement not found.")
     return
   }
 
   load_tags()
+  await renderer.ready()
 
   // Get row data
   let data = $("#requirements_table").DataTable().row(row_idx).data()
@@ -1508,7 +1511,8 @@ function add_var_autocomplete(dom_obj) {
   })
 }
 
-function add_variable() {
+async function add_variable() {
+  await renderer.ready()
   const $container = renderer.build("variable", {
     id: store.create("variable"),
   })
@@ -1521,7 +1525,8 @@ function add_variable() {
   })
 }
 
-function add_formalization(formalizationData = {}) {
+async function add_formalization(formalizationData = {}) {
+  await renderer.ready()
   const entry = {
     ...formalizationData,
     id: store.create("formalization"),
@@ -2056,8 +2061,9 @@ function fetch_available_guesses() {
   })
 }
 
-function add_enumerator_to_variable(button, $container, name = "", value = "") {
-  const html = Mustache.render($("#enumerator-template").html(), { name, value })
+async function add_enumerator_to_variable(button, $container, name = "", value = "") {
+  await renderer.ready()
+  const html = Mustache.render(renderer.templates.getTemplate("enumerator"), { name, value })
   $container.append(html)
 }
 

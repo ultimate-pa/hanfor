@@ -1,14 +1,27 @@
 import Mustache from "mustache"
+import TemplateRenderer from "../template/TemplateRenderer.js"
 
-// can be default due to only one instance exisiting each time and data not getting changed
 export default class FormalizationRenderer {
   constructor() {
-    this.containerTemplate = $("#formalization-container").html()
+    this.templates = new TemplateRenderer({ baseUrl: "/static/templates/formalizations" })
     this.types = new Map()
+    this._ready = null
   }
 
   registerType(type, config) {
     this.types.set(type, config)
+  }
+
+  ready() {
+    if (!this._ready) {
+      const names = new Set(["container"])
+      this.types.forEach(config => {
+        if (config.template) names.add(config.template)
+      })
+      names.add("enumerator")
+      this._ready = this.templates.ready([...names])
+    }
+    return this._ready
   }
 
   build(type, entry) {
@@ -23,8 +36,18 @@ export default class FormalizationRenderer {
       ...entry,
     }
 
-    const containerHtml = Mustache.render(this.containerTemplate, finalEntry)
-    const contentTemplate = $(config.templateSelector).html()
+    const containerTemplate = this.templates.getTemplate("container")
+    const contentTemplate = this.templates.getTemplate(config.template)
+    if (!containerTemplate || !contentTemplate) {
+      throw new Error(`Templates for type '${type}' are not loaded yet. Await renderer.ready() before building.`)
+    }
+
+    if (config.withPatterns && this.templates.patternData) {
+      finalEntry.groups = this.templates.patternData.groups
+      finalEntry.scopes = this.templates.patternData.scopes
+    }
+
+    const containerHtml = Mustache.render(containerTemplate, finalEntry)
     const contentHtml = Mustache.render(contentTemplate, finalEntry)
 
     const $container = $(containerHtml)
