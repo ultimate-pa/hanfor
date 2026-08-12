@@ -8,7 +8,7 @@ from abc import ABC
 from dataclasses import dataclass, field
 from enum import Enum
 from threading import Lock
-from typing import Any, Dict, Iterable, Literal, Protocol, Union, runtime_checkable
+from typing import Any, Dict, Iterable, Protocol, Union, runtime_checkable
 from uuid import uuid4
 
 from lark import LarkError
@@ -51,11 +51,13 @@ class Tag:
     def __hash__(self):
         return hash(self.uuid)
 
+
 class FormalizationOfType(Enum):
     """
     Enum for different formalization types.
     The template_name property returns the string used on the frontend templates.
     """
+
     FORMALIZATION = "formalization"
     VARIABLE = "variable"
 
@@ -76,8 +78,6 @@ class FormalizationProtocol(Protocol):
 class BaseFormalization(ABC):
     def of_type(self) -> str:
         return self.__class__.__name__.lower()
-
-
 
 
 class FormalizationOfType(Enum):
@@ -327,8 +327,8 @@ class Requirement:
             if sp.scope != Scope.NONE and sp.pattern.get_name() != "NotFormalizable":
                 self.tags[standard_tags["TAG_has_formalization"]] = ""
             else:
-                self.tags[standard_tags["TAG_incomplete_formalization"]] = (
-                    self.format_incomplete_formalization_tag(fid, standard_tags)
+                self.tags[standard_tags["TAG_incomplete_formalization"]] = self.format_incomplete_formalization_tag(
+                    fid, standard_tags
                 )
 
     def update_formalizations(self, formalizations: dict, standard_tags: dict[str, Tag], variable_collection):
@@ -540,7 +540,9 @@ class Formalization(BaseFormalization):
             "id": self.id,
             "order": self.order,
             "scope": self.scoped_pattern.scope.name,
-            "pattern": self.scoped_pattern.pattern.get_name(),
+            # NOTE: this is just a hack to force Hanfor to only communicate new pattern names (no legacy names)
+            # TODO: do migration when loading database the first time
+            "pattern": self.scoped_pattern.pattern.get_patternish().__class__.__name__,
             **{
                 f"expr_{key}": exp.raw_expression for key, exp in self.expressions_mapping.items() if exp.raw_expression
             },
@@ -1094,11 +1096,7 @@ class VariableCollection:
             elif var.type == "CONST":
                 # Check for int, real or unknown based on value.
                 try:
-                    logging.debug(
-                            f"Variable {var.name}: "
-                            f"Value={repr(var.value)}, "
-                            f"Type={type(var.value)}, "
-                    )
+                    logging.debug(f"Variable {var.name}: " f"Value={repr(var.value)}, " f"Type={type(var.value)}, ")
                     float(var.value)
                 except (TypeError, ValueError) as e:
                     logging.debug(
