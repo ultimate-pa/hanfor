@@ -425,7 +425,7 @@ class Requirement:
 @DatabaseField("scoped_pattern", "ScopedPattern")
 @DatabaseField("expressions_mapping", dict)
 @DatabaseField("type_inference_errors", dict)
-@DatabaseField("is_constraint", bool, default=True)
+@DatabaseField("is_constraint", bool, default=False)
 class Formalization(BaseFormalization):
     def __init__(self, fid: int):
         self.id: int = fid
