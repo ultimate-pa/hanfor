@@ -113,41 +113,41 @@ class AAutomatonPattern(APattern):
         self,
         smt_env: Environment,
         scope: str,
-        this_f: "Formalization",
+        f: "Formalization",
         other_f: list["Formalization"],
-        vc: "VariableCollection",
+        variable_collection: "VariableCollection",
     ) -> list[Countertrace]:
         self._fail_wrong_scope(scope)
-        aut = self.get_hull(smt_env, this_f, other_f, vc)
+        aut = self.get_hull(smt_env, f, other_f, variable_collection)
 
-        source_loc = self.get_source_location(smt_env, this_f, vc)
-        target_loc = self.get_target_location(smt_env, this_f, vc)
+        source_loc = self.get_source_location(smt_env, f, variable_collection)
+        target_loc = self.get_target_location(smt_env, f, variable_collection)
         other_edges = []
         for of in aut:
             f_pat = of.scoped_pattern.get_patternish()
             if isinstance(f_pat, InitialLoc):
                 continue
-            if f_pat.get_source_location(smt_env, of, vc) != source_loc:
+            if f_pat.get_source_location(smt_env, of, variable_collection) != source_loc:
                 continue
             # this will also include this transition so no special case is required
             other_edges.append(
                 (
-                    f_pat.get_guard(smt_env, of, vc),
-                    f_pat.get_event(smt_env, of, vc),
-                    f_pat.get_target_location(smt_env, of, vc),
+                    f_pat.get_guard(smt_env, of, variable_collection),
+                    f_pat.get_event(smt_env, of, variable_collection),
+                    f_pat.get_target_location(smt_env, of, variable_collection),
                 )
             )
 
-        this_pat = this_f.scoped_pattern.get_patternish()
+        this_pat = f.scoped_pattern.get_patternish()
         return self._generic_transition_builder(
             smt_env,
             source_loc,
             target_loc,
-            this_pat.get_event(smt_env, this_f, vc),
-            this_pat.get_guard(smt_env, this_f, vc),
+            this_pat.get_event(smt_env, f, variable_collection),
+            this_pat.get_guard(smt_env, f, variable_collection),
             other_edges,
             this_pat.get_bound_type(),
-            this_pat.get_bound(smt_env, this_f, vc),
+            this_pat.get_bound(smt_env, f, variable_collection),
         )
 
     def _generic_transition_builder(
@@ -159,7 +159,7 @@ class AAutomatonPattern(APattern):
         guard: FNode | None = None,
         outgoing_edges: list[tuple[FNode, FNode, FNode]] | None = None,  #  location, guard, event i.e. (g_j, e_j, l_)
         bound_type: BoundTypes = BoundTypes.NONE,
-        time_bound: float = 0.0,
+        time_bound: int = 0,
     ) -> list["Countertrace"]:
         """
         Generate different formulas to get CTs equivalent to the automaton, see (TODO: doi for the old paper)
@@ -237,7 +237,7 @@ class AAutomatonPattern(APattern):
         target_loc: FNode,
         guard: FNode | None,
         bound_type: BoundTypes,
-        time_bound: float,
+        time_bound: int,
         source_event: FNode | None = None,  # the event of the transition we want to encode here
         outgoing_edges: list[tuple[FNode, FNode, FNode]] | None = None,  #  location, guard, event i.e. (g_j, e_j, l_j)
     ) -> Countertrace:
@@ -315,7 +315,7 @@ class InitialLoc(AAutomatonPattern):
         scope: str,
         f: "Formalization",
         other_f: list["Formalization"],
-        vc: "VariableCollection",
+        variable_collection: "VariableCollection",
     ) -> list[Countertrace]:
         """Generate the counter-trace of the initial edges of the automaton                       (formula 16 in paper)
         e.g. [A || B]; true
@@ -323,11 +323,11 @@ class InitialLoc(AAutomatonPattern):
         self._fail_wrong_scope(scope)
         fmgr = smt_env.formula_manager
         expr = fmgr.FALSE()
-        aut = self.get_hull(smt_env, f, other_f, vc)
+        aut = self.get_hull(smt_env, f, other_f, variable_collection)
         for t in aut:
             if not isinstance(t.scoped_pattern.get_patternish(), InitialLoc):
                 continue
-            expr = fmgr.Or(expr, get_smt_expression(smt_env, t, vc, "R"))
+            expr = fmgr.Or(expr, get_smt_expression(smt_env, t, variable_collection, "R"))
         expr = smt_env.simplifier.simplify(expr)
         ct = Countertrace(smt_env)
         ct.dc_phases.append(phase(smt_env, fmgr.Not(expr)))
