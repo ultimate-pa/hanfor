@@ -2,6 +2,7 @@ import tempfile
 
 from parameterized import parameterized
 from pyfakefs.fake_filesystem_unittest import TestCase
+from pysmt.environment import Environment
 
 from req_simulator.scenario import Scenario
 
@@ -35,8 +36,11 @@ class TestScenario(TestCase):
         path = "/test/file.txt"
         self.fs.create_file(path)
 
-        expected = Scenario.from_object(object)
-        Scenario.save_to_file(expected, path)
-        actual = Scenario.load_from_file(path)
+        smt_env: Environment = Environment()
+        expected = Scenario(smt_env).from_object(object)
+        expected.save_to_file(path)
+        actual = Scenario(smt_env).load_from_file(path)
 
-        self.assertEqual(expected, actual, msg="Error while parsing scenario.")
+        self.assertEqual(expected.variables, actual.variables, msg="Error while parsing scenario.")
+        self.assertEqual(expected.times, actual.times, msg="Error while parsing scenario.")
+        self.assertEqual(expected.types, actual.types, msg="Error while parsing scenario.")
