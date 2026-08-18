@@ -376,7 +376,7 @@ class Requirement:
 @DatabaseField("scoped_pattern", "ScopedPattern")
 @DatabaseField("expressions_mapping", dict)
 @DatabaseField("type_inference_errors", dict)
-@DatabaseField("is_constraint", bool, default=True)
+@DatabaseField("is_constraint", bool, default=False)
 class Formalization(BaseFormalization):
     def __init__(self, fid: int):
         self.id: int = fid
@@ -384,7 +384,7 @@ class Formalization(BaseFormalization):
         self.scoped_pattern = ScopedPattern()
         self.expressions_mapping: dict[str, Expression] = dict()
         self.type_inference_errors = dict()
-        self.is_constraint: bool = True
+        self.is_constraint: bool = False
 
     @property
     def used_variables(self):
@@ -491,7 +491,9 @@ class Formalization(BaseFormalization):
             "id": self.id,
             "order": self.order,
             "scope": self.scoped_pattern.scope.name,
-            "pattern": self.scoped_pattern.pattern.get_name(),
+            # NOTE: this is just a hack to force Hanfor to only communicate new pattern names (no legacy names)
+            # TODO: do migration when loading database the first time
+            "pattern": self.scoped_pattern.pattern.get_patternish().__class__.__name__,
             **{
                 f"expr_{key}": exp.raw_expression for key, exp in self.expressions_mapping.items() if exp.raw_expression
             },
