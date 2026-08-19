@@ -58,8 +58,8 @@ def get_requirements(app: HanforFlask, filter_list=None, invert_filter=False):
 
 def prepare_patterns_for_jinja():
     opt_group_lists = defaultdict(list)
-    for name, pattern in APattern().get_patterns().items():
-        opt_group_lists[pattern.group].append((pattern.order, name, pattern._pattern_text))
+    for name, pattern in APattern.get_patterns().items():
+        opt_group_lists[pattern.group].append((pattern.order, name, pattern()._pattern_text))
 
     # Sort patterns inside each group
     grouped_patterns = {}
