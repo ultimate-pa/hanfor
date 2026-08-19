@@ -27,6 +27,7 @@ jobs:
           python3 -m venv .venv
           .venv/bin/pip install -r requirements.txt
           pip install mkdocs
+          pip install -r requirements.txt
       - name: Just check if the documentation is building
         if: github.ref_name != 'release'
         run: mkdocs build

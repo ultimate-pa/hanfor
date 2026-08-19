@@ -1,7 +1,10 @@
 require('gasparesganga-jquery-loading-overlay');
 const {Modal} = require("bootstrap");
+
 require('datatables.net-bs5');
 require('datatables.net-select');
+require("datatables.net-colresize-unofficial")
+require("datatables.net-colresize-unofficial/jquery.dataTables.colResize.css")
 require('jquery-ui/ui/widgets/autocomplete');
 require('./bootstrap-tokenfield.js');
 require('jquery-ui/ui/effects/effect-highlight');
@@ -14,7 +17,8 @@ require('./bootstrap-confirm-button');
 let utils = require('./hanfor-utils');
 
 // Globals
-let available_types = ['CONST', 'ENUM_INT', 'ENUM_REAL'];
+export let AVAILABLE_VARIABLE_TYPES = window.AVAILABLE_VARIABLE_TYPES
+    || ['CONST', 'ENUM_INT', 'ENUM_REAL', 'BOOL'];
 let search_autocomplete = [
     ":AND:",
     ":OR:",
@@ -50,11 +54,35 @@ function update_search() {
     search_tree = SearchNode.fromQuery(var_search_string);
 }
 
+function validateNameInput($input) {
+    const val = $input.val().trim();
+    const re = /^[a-zA-Z][a-zA-Z0-9_.]*$/;
+    if (val && !re.test(val)) {
+        $input.addClass("is-invalid");
+        return false;
+    }
+    $input.removeClass("is-invalid");
+    return true;
+}
+
+function validateTypeInput($input) {
+    const val = $input.val();
+    if (val && !AVAILABLE_VARIABLE_TYPES.includes(val)) {
+        $input.addClass("is-invalid");
+        return false;
+    }
+    $input.removeClass("is-invalid");
+    return true;
+}
+
 /**
  * Store the currently active (in the modal) variable.
  * @param variables_table
  */
 function store_variable(variables_table) {
+    if (!validateNameInput($('#variable_name'))) return;
+    if (!validateTypeInput($('#variable_type'))) return;
+
     let var_modal_content = $('.modal-content');
     var_modal_content.LoadingOverlay('show');
 
@@ -95,11 +123,6 @@ function store_variable(variables_table) {
 
         constraints[constraint['id']] = constraint;
     });
-
-    // Update available types.
-    if (var_type !== null && available_types.indexOf(var_type) <= -1) {
-        available_types.push(var_type);
-    }
 
     // Process enumerators in case we have an enum
     let enumerators = [];
@@ -432,6 +455,7 @@ function add_constraint() {
             if (data['success'] === false) {
                 alert(data['errormsg']);
             } else {
+                $('#formalization_accordion .no-constraints-placeholder').remove();
                 constraint.appendTo('#formalization_accordion');
             }
         }).done(function () {
@@ -593,10 +617,14 @@ function load_variable(row_idx) {
 
     type_input.autocomplete({
         minLength: 0,
-        source: available_types
+        source: AVAILABLE_VARIABLE_TYPES
     }).on('focus', function () {
         $(this).keydown();
     });
+
+    $('#variable-type-feedback').text("Supported: " + AVAILABLE_VARIABLE_TYPES.join(", "));
+    validateNameInput($('#variable_name'));
+    validateTypeInput($('#variable_type'));
 
     // Load constraints
     get_variable_constraints_html(data.name);
@@ -607,6 +635,7 @@ function load_variable(row_idx) {
 }
 
 function add_variable_via_modal() {
+    if (!validateNameInput($('#new_variable_name'))) return;
     const new_variable_name = $('#new_variable_name').val();
     const new_variable_type = $('#new_variable_type').val();
     const new_variable_value = $('#new_variable_const_value').val();
@@ -726,6 +755,9 @@ $(document).ready(function () {
         "dom": 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
         "ajax": "api/var/gets",
         "deferRender": true,
+        colResize: {
+          onResize: function () { throw new Error('Workaround: resizing works fine!'); },
+        },
         "columns": [
             {
                 "orderable": false,
@@ -745,9 +777,6 @@ $(document).ready(function () {
                 "data": "type",
                 "targets": [2],
                 "render": function (data, type, row) {
-                    if (data !== null && available_types.indexOf(data) <= -1) {
-                        available_types.push(data);
-                    }
                     if (data !== null && data === 'CONST') {
                         data = data + ' (' + row['const_val'] + ')';
                     }
@@ -929,7 +958,16 @@ $(document).ready(function () {
         store_variable(variables_table);
     });
 
+    $('#variable_name').on('input', function () {
+        validateNameInput($(this));
+    });
+
+    $('#new_variable_name').on('input', function () {
+        validateNameInput($(this));
+    });
+
     $('#variable_type').on('keyup change autocompleteclose', function () {
+        validateTypeInput($(this));
         if ($(this).val() === 'CONST') {
             show_variable_val_input();
         } else {
@@ -983,7 +1021,7 @@ $(document).ready(function () {
     // Bind autocomplete for "edit-selected" types
     $('#multi-change-type-input').autocomplete({
         minLength: 0,
-        source: available_types,
+        source: AVAILABLE_VARIABLE_TYPES,
         delay: 100
     }).on('focus', function () {
         $(this).keydown();

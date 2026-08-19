@@ -136,7 +136,8 @@
                                 }
                             }
                         },
-                        "id": 0
+                        "id": 0,
+                        "is_constraint": true
                     }
                 }
             }

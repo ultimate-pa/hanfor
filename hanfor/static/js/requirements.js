@@ -1,5 +1,5 @@
 require("gasparesganga-jquery-loading-overlay")
-const { Collapse, Modal, Tab } = require("bootstrap")
+const { Collapse, Modal, Popover, Tab } = require("bootstrap")
 require("datatables.net-bs5")
 require("datatables.net-select-bs5")
 require("jquery-ui/ui/widgets/autocomplete")
@@ -9,10 +9,16 @@ require("awesomplete")
 require("awesomplete/awesomplete.css")
 //require('datatables.net-bs5-colreorderwithresize-npm');
 require("datatables.net-colreorder-bs5")
+require("datatables.net-colresize-unofficial")
+require("datatables.net-colresize-unofficial/jquery.dataTables.colResize.css")
 require("./bootstrap-confirm-button")
-const {marked} = require("marked")
+const { marked } = require("marked")
 import Sortable from "sortablejs"
+import Mustache from "mustache"
+import FormalizationStore from "./formalizations/store"
 import "jquery-sortablejs"
+import FormalizationRenderer from "./formalizations/renderer.js"
+import { AVAILABLE_VARIABLE_TYPES } from "./variables.js"
 
 let utils = require("./hanfor-utils")
 const autosize = require("autosize/dist/autosize")
@@ -29,6 +35,175 @@ const { TextareaEditor } = require("@textcomplete/textarea")
 
 let Fuse = require("fuse.js")
 let fuse = new Fuse([], {})
+
+let store = new FormalizationStore()
+let renderer = new FormalizationRenderer()
+// register the types of formalizations with the identifier from the "type" supplied in the API
+// second example not convoluted with comments is directly below (if noone moved it)
+renderer.registerType("formalization", {
+  // define the defaults for generating an empty entry
+  defaults: {
+    order: 0,
+    text: "// None, no pattern set",
+    formalization_type: "formalization",
+    scope: "",
+    pattern: "",
+  },
+  // a selector that fetches the correct template for the type
+  templateSelector: "#formalization-template",
+  // each function can define after render behavior function that gets applied
+  // after mustache renders it, i.e setting the required variable placeholders as visible
+  afterRender: ($container, entry) => {
+    $container.find(`#requirement_scope${entry.id}`).val(entry.scope)
+    $container.find(`#requirement_pattern${entry.id}`).val(entry.pattern)
+    $container.find(`#is_constraint${entry.id}`).prop("checked", !!entry.is_constraint)
+    const vars = ["P", "Q", "R", "S", "T", "U", "V"]
+    vars.forEach((v) => {
+      const val = entry[`expr_${v}`]
+      if (!val) {
+        $container.find(`#requirement_var_group_${v.toLowerCase()}${entry.id}`).hide()
+      }
+    })
+    // this is the title observer for changing the text of the drafts so the users
+    // have easier time knowing which drafts did they create
+    const preview = $container.find(`#current_formalization_textarea${entry.id}`)
+    const accordionItem = $container.closest(".accordion-item")
+    const updateTitle = () => {
+      const text = preview.text().trim() || "// None, no pattern set"
+      accordionItem.attr("title", text)
+      accordionItem.find(".accordion-button").text(text)
+    }
+    updateTitle()
+    // if preview gets updated dynamically, watch it
+    const observer = new MutationObserver(updateTitle)
+    observer.observe(preview[0], {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    })
+  },
+})
+
+function debounce(fn, delay) {
+  let timer
+  return function () {
+    let ctx = this, args = arguments
+    clearTimeout(timer)
+    timer = setTimeout(function () { fn.apply(ctx, args) }, delay)
+  }
+}
+
+renderer.registerType("variable", {
+  defaults: {
+    order: 0,
+    formalization_type: "variable",
+    text: "New Variable",
+  },
+  templateSelector: "#variable-template",
+  afterRender: ($container, entry) => {
+    // autocomplete
+    let type_input = $container.find(".variable-type")
+    const id = $container.closest(".accordion-item").data("id")
+    type_input
+      .autocomplete({
+        minLength: 0,
+        source: AVAILABLE_VARIABLE_TYPES,
+        select: function () {
+          // input value is updated after select, so we use setTimeout
+          setTimeout(toggle, 0)
+        },
+      })
+      .on("focus", function () {
+        $(this).keydown()
+      })
+    function markDirty() {
+      $("#requirement_modal").data({
+        unsaved_changes: true,
+        updated_formalization: true,
+      })
+    }
+    // title change listener
+    const name_input = $container.find('input[aria-describedby="variable-name-feedback"]')
+    function validateName() {
+      const val = name_input.val().trim()
+      const re = /^[a-zA-Z][a-zA-Z0-9_.]*$/
+      if (val && !re.test(val)) {
+        name_input.addClass("is-invalid")
+      } else {
+        name_input.removeClass("is-invalid")
+      }
+    }
+    validateName()
+    name_input.on("input", debounce(function () {
+      const newName = $(this).val().trim()
+      const button = $container.closest(".accordion-item").find(".accordion-button")
+      button.text(newName ? newName : `new_variable_${id}`)
+      validateName()
+      markDirty()
+    }, 300))
+    // value field needed
+    const $block = $container.closest(".accordion-item")
+    const $typeInput = $block.find(".variable-type")
+    const $valueGroup = $block.find(".variable-value-group")
+    const $enumeratorsContainer = $block.find(".enumerators-container")
+    function toggle() {
+      $valueGroup.toggleClass("d-none", $typeInput.val() != "CONST")
+      $enumeratorsContainer.toggleClass("d-none", !$typeInput.val().startsWith("ENUM_"))
+    }
+    function validateType() {
+      const val = $typeInput.val()
+      if (val && !AVAILABLE_VARIABLE_TYPES.includes(val)) {
+        $typeInput.addClass("is-invalid")
+      } else {
+        $typeInput.removeClass("is-invalid")
+      }
+    }
+    toggle()
+    validateType()
+    $container.find("#variable-type-feedback").text("Supported types are " + AVAILABLE_VARIABLE_TYPES.join(", "))
+    $typeInput.on("input change autocompleteselect", debounce(function () {
+      toggle()
+      validateType()
+      markDirty()
+    }, 300))
+    const $variableValue = $block.find("input.variable-value")
+    $variableValue.on("input", markDirty)
+    // enumerators
+    const $addEnumBtn = $container.find(".add-enumerator-btn")
+    $addEnumBtn.off("click").on("click", function () {
+      const $container = $(this).closest(".enumerators-container").find(".enumerators-list")
+      add_enumerator_to_variable(this, $container)
+      markDirty()
+    })
+    // pre-populate enumerators for existing ENUM variables
+    if (entry && entry.enumerators && entry.enumerators.length > 0) {
+      const $list = $container.find(".enumerators-list")
+      entry.enumerators.forEach(function (e) {
+        add_enumerator_to_variable(null, $list, e.name || e[0], e.value || e[1])
+      })
+    }
+  },
+})
+
+// bind it globaly on each selector change so it gets always loaded
+$(document).on("change", ".scope_selector, .pattern_selector", function () {
+  bind_var_autocomplete()
+})
+
+$(document).on("click", ".del_enum", function () {
+  $(this).closest(".enumerator-input").remove()
+  $("#requirement_modal").data({
+    unsaved_changes: true,
+    updated_formalization: true,
+  })
+})
+
+$(document).on("input", ".enum_name_input, .enum_value_input", function () {
+  $("#requirement_modal").data({
+    unsaved_changes: true,
+    updated_formalization: true,
+  })
+})
 
 let available_tags = ["", "has_formalization"]
 let available_status = ["", "Todo", "Review", "Done"]
@@ -89,6 +264,13 @@ $(document).ready(function () {
     },
   })
 
+  $("body").bootstrapConfirmButton({
+    selector: ".delete_variable",
+    onConfirm: function () {
+      delete_variable($(this).attr("name"), $(this).closest(".accordion-item"))
+    },
+  })
+
   body.on("click", ".delete_formalization1", function () {
     bootstrapConfirmation({
       yesCallBack: function () {
@@ -122,8 +304,19 @@ $(document).ready(function () {
   })
 
   // Bind formalization update.
-  body.on("change", ".formalization_selector, .reqirement-variable, .req_var_type", function () {
-    update_formalization()
+  body.on(
+    "change",
+    ".formalization_selector, .reqirement-variable, .req_var_type, .is-constraint-checkbox",
+    function () {
+      update_formalization()
+    }
+  )
+  // Bind is_constraint checkbox change so the save flag is set.
+  body.on("change", ".is-constraint-checkbox", function () {
+    $("#requirement_modal").data({
+      unsaved_changes: true,
+      updated_formalization: true,
+    })
   })
   // Bind formalization variable update.
   body.on("change", ".formalization_selector", function () {
@@ -156,24 +349,24 @@ $(document).ready(function () {
   bind_tag_field_events()
 })
 
-$(document).on('click', '.highlighted-variable, .highlighted-variable-extra', function() {
-    const varName = $(this).data('main-var') || $(this).data('var');
-    navigator.clipboard.writeText(varName);
+$(document).on('click', '.highlighted-variable, .highlighted-variable-extra', function () {
+  const varName = $(this).data('main-var') || $(this).data('var');
+  navigator.clipboard.writeText(varName);
 
-    const $tip = $('<span>Copied!</span>').css({
-        position: 'absolute',
-        background: 'yellow',
-        padding: '2px 4px',
-        borderRadius: '3px',
-        zIndex: 9999
-    }).appendTo('body');
+  const $tip = $('<span>Copied!</span>').css({
+    position: 'absolute',
+    background: 'yellow',
+    padding: '2px 4px',
+    borderRadius: '3px',
+    zIndex: 9999
+  }).appendTo('body');
 
-    const offset = $(this).offset();
-    $tip.css({
-        left: offset.left + 'px',
-        top: offset.top + $(this).outerHeight() + 5 + 'px'
-    });
-    setTimeout(() => $tip.remove(), 300);
+  const offset = $(this).offset();
+  $tip.css({
+    left: offset.left + 'px',
+    top: offset.top + $(this).outerHeight() + 5 + 'px'
+  });
+  setTimeout(() => $tip.remove(), 300);
 });
 
 
@@ -200,8 +393,13 @@ function init_datatable(columnDefs) {
       [10, 50, 100, 500, -1],
       [10, 50, 100, 500, "All"],
     ],
+    // column resizing enabled, avoid using saveState: bool option, due to it 
+    // colding with both plugins event handling
+    colResize: {
+      onResize: function () { throw new Error('Workaround: resizing works fine!'); },
+    },
     dom: 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
-    ajax: "api/req/gets",
+    ajax: "api/v1/req",
     deferRender: true,
     columnDefs: columnDefs,
     createdRow: function (row, data) {
@@ -451,39 +649,46 @@ function init_datatable_manipulators(requirements_table) {
  * @param {DataTable} requirements_table
  */
 function store_requirement(requirements_table) {
+  if ($('#formalization_accordion').find('.is-invalid').length > 0) {
+    alert('Please fix invalid variable names or types before saving.')
+    return
+  }
   let requirement_modal_content = $(".modal-content")
   requirement_modal_content.LoadingOverlay("show")
   const req_id = $("#requirement_id").val()
   const req_status = $('input[name="status"]:checked').val()
   const updated_formalization = $("#requirement_modal").data("updated_formalization")
   const associated_row_id = parseInt($("#modal_associated_row_index").val())
-
   // Fetch the formalizations
   let formalizations = {}
-  $(".formalization_card").each(function () {
-    // Scope and Pattern
-    let formalization = {}
-    formalization["id"] = $(this).attr("title")
-    $(this)
-      .find("select")
-      .each(function () {
-        if ($(this).hasClass("scope_selector")) {
-          formalization["scope"] = $(this).val()
-        }
-        if ($(this).hasClass("pattern_selector")) {
-          formalization["pattern"] = $(this).val()
-        }
-      })
+  $("#formalization_accordion > .accordion-item").each(function () {
+    const $item = $(this)
+    const id = String($item.data("id"))
+    let formalization = { id: id }
 
-    // Expressions
-    formalization["expression_mapping"] = {}
-    $(this)
-      .find("textarea.reqirement-variable")
-      .each(function () {
-        if ($(this).attr("title") !== "") formalization["expression_mapping"][$(this).attr("title")] = $(this).val()
+    if ($item.data("type") === "variable") {
+      formalization["formalization_type"] = "variable"
+      formalization["name"] = $item.find('input[aria-describedby="variable-name-feedback"]').val() || ""
+      formalization["var_type"] = $item.find("input.variable-type").val() || ""
+      formalization["const_val"] = $item.find("input.variable-value").val() || ""
+      const enumerators = []
+      $item.find(".enum_name_input").each(function (i) {
+        enumerators.push([$(this).val(), $item.find(".enum_value_input").eq(i).val() || ""])
       })
+      formalization["enumerators"] = enumerators
+    } else {
+      formalization["scope"] = $item.find(".scope_selector").val()
+      formalization["formalization_type"] = "formalization"
+      formalization["pattern"] = $item.find(".pattern_selector").val()
+      formalization["is_constraint"] = $item.find(".is-constraint-checkbox").is(":checked")
+      formalization["expression_mapping"] = {}
+      $item.find("textarea.reqirement-variable").each(function () {
+        const title = $(this).attr("title")
+        if (title) formalization["expression_mapping"][title] = $(this).val()
+      })
+    }
 
-    formalizations[formalization["id"]] = formalization
+    formalizations[id] = formalization
   })
 
   // Store the order of the formalizations to be loaded
@@ -491,7 +696,6 @@ function store_requirement(requirements_table) {
   $(".accordion-item").each(function (idx) {
     load_order[$(this).data("id")] = idx
   })
-  console.log(load_order)
 
   let tag_comments = new Map()
   $("#tags_comments_table tr:gt(0)").each(function () {
@@ -501,34 +705,46 @@ function store_requirement(requirements_table) {
   })
 
   sendTelemetry("requirements", req_id, "save")
-  // Store the requirement.
-  $.post(
-    "api/req/update",
-    {
-      id: req_id,
-      row_idx: associated_row_id,
-      update_formalization: updated_formalization,
-      tags: JSON.stringify(Object.fromEntries(tag_comments)),
-      status: req_status,
-      formalizations: JSON.stringify(formalizations),
-      formalizations_order: JSON.stringify(load_order),
-    }, // Update requirements table on success or show an error message.
-    function (data) {
-      requirement_modal_content.LoadingOverlay("hide", true)
-      if (data["success"] === false) {
-        alert(data["errormsg"])
-      } else {
-        requirements_table.row(associated_row_id).data(data)
-
-        //$('#requirement_modal').data('unsaved_changes', false).modal('hide');
-        $("#requirement_modal").data("unsaved_changes", false)
-
-        const requirement_modal = document.querySelector("#requirement_modal")
-        Modal.getOrCreateInstance(requirement_modal).hide()
-      }
-    },
+  const committedFormalizations = Object.fromEntries(
+    Object.entries(formalizations).filter(([id]) => !store.isCreated("formalization", id)),
+  )
+  console.log("Committed formalizations:", JSON.stringify(committedFormalizations, null, 2))
+  $.when(
+    store.commitDeletes(req_id, "formalization"),
+    store.commitDeletes(req_id, "variable"),
+    store.commitCreated(req_id),
   ).done(function () {
-    update_logs()
+    $.ajax({
+      url: `api/v1/req/${req_id}`,
+      method: "PATCH",
+      data: {
+        row_idx: associated_row_id,
+        update_formalization: updated_formalization,
+        tags: JSON.stringify(Object.fromEntries(tag_comments)),
+        status: req_status,
+        formalizations: JSON.stringify(committedFormalizations),
+        formalizations_order: JSON.stringify(load_order),
+      },
+      success: function (data) {
+        requirement_modal_content.LoadingOverlay("hide", true)
+
+        if (data["success"] === false) {
+          alert(data["errormsg"])
+        } else {
+          requirements_table.row(associated_row_id).data(data)
+
+          $("#requirement_modal").data("unsaved_changes", false)
+
+          const requirement_modal = document.querySelector("#requirement_modal")
+          Modal.getOrCreateInstance(requirement_modal).hide()
+        }
+      },
+    }).done(function () {
+      update_logs()
+    })
+  }).fail(function (err) {
+    requirement_modal_content.LoadingOverlay("hide", true)
+    alert("Save failed: " + (err && err.errormsg || "Unknown error"))
   })
 }
 
@@ -617,7 +833,7 @@ function load_datatable() {
     },
   ]
   // Load generic colums.
-  $.get("api/req/colum_defs", "", function (data) {
+  $.get("api/v1/req/colum_defs", "", function (data) {
     const dataLength = data["col_defs"].length
     for (let i = 0; i < dataLength; i++) {
       columnDefs.push({
@@ -625,6 +841,7 @@ function load_datatable() {
         data: data["col_defs"][i]["csv_name"],
         visible: false,
         searchable: true,
+        defaultContent: "",
       })
     }
   }).done(function () {
@@ -810,23 +1027,26 @@ function apply_multi_edit(requirements_table) {
   let set_status = $("#multi-set-status-input").val().trim()
   let selected_ids = get_selected_requirement_ids(requirements_table)
 
-  $.post(
-    "api/req/multi_update",
-    {
-      add_tag: add_tag,
-      remove_tag: remove_tag,
-      set_status: set_status,
-      selected_ids: JSON.stringify(selected_ids),
-    }, // Update requirements table on success or show an error message.
-    function (data) {
-      page.LoadingOverlay("hide", true)
-      if (data["success"] === false) {
-        alert(data["errormsg"])
-      } else {
-        location.reload()
-      }
-    },
-  )
+  let requests = []
+  for (let id of selected_ids) {
+    if (add_tag) {
+      requests.push($.ajax({ url: `api/v1/req/${id}/tags/${encodeURIComponent(add_tag)}`, method: "POST" }))
+    }
+    if (remove_tag) {
+      requests.push($.ajax({ url: `api/v1/req/${id}/tags/${encodeURIComponent(remove_tag)}`, method: "DELETE" }))
+    }
+    if (set_status) {
+      requests.push($.ajax({ url: `api/v1/req/${id}`, method: "PATCH", data: { status: set_status } }))
+    }
+  }
+
+  $.when(...requests).done(function () {
+    page.LoadingOverlay("hide", true)
+    location.reload()
+  }).fail(function () {
+    page.LoadingOverlay("hide", true)
+    alert("Failed to update one or more requirements.")
+  })
 }
 
 function add_top_guess_to_selected_requirements(requirements_table) {
@@ -836,7 +1056,7 @@ function add_top_guess_to_selected_requirements(requirements_table) {
   let insert_mode = $("#top_guess_append_mode").val()
 
   $.post(
-    "api/req/multi_add_top_guess",
+    "api/v1/req/multi_add_top_guess",
     {
       selected_ids: JSON.stringify(selected_ids),
       insert_mode: insert_mode,
@@ -919,6 +1139,10 @@ function init_modal() {
 
   //requirement_modal.on('hide.bs.modal', function (event) {
   requirement_modal[0].addEventListener("hide.bs.modal", function (event) {
+    $(".constraint-badge").each(function () {
+      const popover = Popover.getInstance(this)
+      if (popover) popover.dispose()
+    })
     modal_closing_routine(event)
   })
 
@@ -959,6 +1183,8 @@ function init_modal() {
     add_formalization()
   })
 
+  $("#add_variable").click(() => add_variable())
+
   // Listener for adding new guessed formalizations.
   $("#add_gussed_formalization").click(function () {
     fetch_available_guesses()
@@ -976,8 +1202,6 @@ function init_modal() {
     if (cookie) {
       formalization = JSON.parse(cookie)
     }
-    console.log(formalization)
-
     add_formalization(formalization)
   })
 
@@ -1033,6 +1257,8 @@ function modal_closing_routine(event) {
   } else {
     sendTelemetry("requirements", $("#requirement_id").val(), "close")
   }
+  // here we have to reset the last changes
+  store = new FormalizationStore()
 }
 
 function load_requirement(row_idx) {
@@ -1045,6 +1271,7 @@ function load_requirement(row_idx) {
 
   // Get row data
   let data = $("#requirements_table").DataTable().row(row_idx).data()
+  console.log(data)
 
   // Prepare requirement Modal
   let requirement_modal_content = $(".modal-content")
@@ -1059,7 +1286,7 @@ function load_requirement(row_idx) {
   $("#requirement_tag_field").data("bs.tokenfield").$input.autocomplete({ source: available_tags })
 
   // Get the requirement data and set the modal.
-  $.get("api/req/get", { id: data["id"], row_idx: row_idx }, function (data) {
+  $.get(`api/v1/req/${data["id"]}`, { row_idx: row_idx }, function (data) {
     if (data.success === false) {
       alert("Could Not load the Requirement: " + data.errormsg)
       return
@@ -1079,11 +1306,33 @@ function load_requirement(row_idx) {
     $("#add_guess_description").text(data.desc).change()
 
     // Parse the formalizations
-    $("#formalization_accordion").html(data.formalizations_html)
+    $.get(`api/v1/req/${data.id}/formalizations`, function (data) {
+      data
+        .sort((a, b) => a.order - b.order)
+        .forEach(function (entry) {
+          const $formalization = renderer.build(entry.formalization_type, entry)
+          $("#formalization_accordion").append($formalization)
+        })
+    }).done(function () {
+      update_vars()
+      bind_var_autocomplete()
+      update_formalization()
+      $(".constraint-badge").each(function () {
+        new Popover(this, { trigger: "hover focus", placement: "top" })
+      })
+      $("#requirement_modal").data({
+        unsaved_changes: false,
+        updated_formalization: false,
+      })
+      requirement_modal_content.LoadingOverlay("hide", true)
+      sendTelemetry("requirements", data.id, "open")
+      setCopyBtnEnable()
+    }).fail(function () {
+      // Defensive: hide the overlay even if a render error prevented .done from running.
+      requirement_modal_content.LoadingOverlay("hide", true)
+    })
 
-    $("#requirement_scope").val(data.scope)
-    $("#requirement_pattern").val(data.pattern)
-
+    store.initNextId(data["next_id"])
     // remove all lines from the tag comment table
     $("#tags_comments_table").find("tr:gt(0)").remove()
     // set Tag field and comments in Table (table rows are created via event)
@@ -1142,12 +1391,12 @@ function load_requirement(row_idx) {
       let query = "?command=search&col=1&q=%5C%22" + var_name + "%5C%22"
       used_variables_accordion.append(
         '<span class="badge bg-info" style="font-size: 18px">' +
-          '<a href="./variables' +
-          query +
-          '" target="_blank">' +
-          var_name +
-          "</a>" +
-          "</span>&numsp;",
+        '<a href="./variables' +
+        query +
+        '" target="_blank">' +
+        var_name +
+        "</a>" +
+        "</span>&numsp;",
       )
     })
 
@@ -1157,17 +1406,6 @@ function load_requirement(row_idx) {
       filter: "textarea, input, select",
       preventOnFilter: false,
     })
-  }).done(function () {
-    update_vars()
-    bind_var_autocomplete()
-    update_formalization()
-    $("#requirement_modal").data({
-      unsaved_changes: false,
-      updated_formalization: false,
-    })
-    requirement_modal_content.LoadingOverlay("hide", true)
-    sendTelemetry("requirements", data.id, "open")
-    setCopyBtnEnable()
   })
 }
 
@@ -1204,6 +1442,7 @@ function fuzzy_search(term) {
  */
 function bind_var_autocomplete() {
   $(".reqirement-variable").each(function () {
+    console.log(this)
     add_var_autocomplete(this)
   })
 }
@@ -1257,60 +1496,55 @@ function add_var_autocomplete(dom_obj) {
   })
 }
 
-function add_formalization(formalizationData = {}) {
-  // Request a new Formalization. And add its edit elements to the modal.
-  let requirement_modal_content = $(".modal-content")
-  requirement_modal_content.LoadingOverlay("show")
-
-  const req_id = $("#requirement_id").val()
-  $.post(
-    "api/req/new_formalization",
-    {
-      id: req_id,
-      formalization: JSON.stringify(formalizationData),
-    },
-    function (data) {
-      requirement_modal_content.LoadingOverlay("hide", true)
-      if (data["success"] === false) {
-        alert(data["errormsg"])
-      } else {
-        let formalization = $(data["html"])
-        formalization.find(".reqirement-variable").each(function () {
-          add_var_autocomplete(this)
-        })
-        formalization.appendTo("#formalization_accordion")
-      }
-    },
-  ).done(function () {
-    update_vars()
-    update_formalization()
-    update_logs()
+function add_variable() {
+  const $container = renderer.build("variable", {
+    id: store.create("variable"),
+  })
+  console.log(store)
+  $container.addClass("draft")
+  $("#formalization_accordion").append($container)
+  $("#requirement_modal").data({
+    unsaved_changes: true,
+    updated_formalization: true,
   })
 }
 
+function add_formalization(formalizationData = {}) {
+  const entry = {
+    ...formalizationData,
+    id: store.create("formalization"),
+  }
+  console.log(store)
+  const $container = renderer.build("formalization", entry)
+  $container.addClass("draft")
+  $("#formalization_accordion").append($container)
+  update_vars()
+  update_formalization()
+  update_logs()
+  bind_var_autocomplete()
+  setCopyBtnEnable()
+  $("#requirement_modal").data("unsaved_changes", true)
+}
+function delete_variable(id, $card) {
+  store.delete("variable", id)
+  $card.remove()
+  console.log(store)
+  update_vars()
+  update_formalization()
+  update_logs()
+  const hasUnsavedChanges = !store.hasNoDrafts("variable")
+  $("#requirement_modal").data("unsaved_changes", hasUnsavedChanges)
+}
+
 function delete_formalization(formal_id, card) {
-  let requirement_modal_content = $(".modal-content")
-  requirement_modal_content.LoadingOverlay("show")
-  const req_id = $("#requirement_id").val()
-  $.post(
-    "api/req/del_formalization",
-    {
-      requirement_id: req_id,
-      formalization_id: formal_id,
-    },
-    function (data) {
-      requirement_modal_content.LoadingOverlay("hide", true)
-      if (data["success"] === false) {
-        alert(data["errormsg"])
-      } else {
-        card.remove()
-      }
-    },
-  ).done(function () {
-    update_vars()
-    update_formalization()
-    update_logs()
-  })
+  store.delete("formalization", formal_id)
+  console.log(store)
+  card.remove()
+  update_vars()
+  update_formalization()
+  const hasUnsavedChanges = !store.hasNoDrafts("formalization")
+  console.log(hasUnsavedChanges)
+  $("#requirement_modal").data("unsaved_changes", hasUnsavedChanges)
 }
 
 function copy_formalization(formal_id) {
@@ -1318,6 +1552,7 @@ function copy_formalization(formal_id) {
   $(".formalization_card").each(function () {
     if ($(this).attr("title") === formal_id) {
       formalization["id"] = $(this).attr("title")
+      formalization["text"] = $(this).find(`#current_formalization_textarea${formal_id}`).text().trim()
       $(this)
         .find("select")
         .each(function () {
@@ -1328,6 +1563,12 @@ function copy_formalization(formal_id) {
             formalization["pattern"] = $(this).val()
           }
         })
+
+      // is_constraint checkbox
+      formalization["is_constraint"] = $(this)
+        .closest(".accordion-item")
+        .find(".is-constraint-checkbox")
+        .is(":checked")
 
       // Expressions
       formalization["expression_mapping"] = {}
@@ -1471,7 +1712,7 @@ function update_vars() {
     const formalization_id = $(this).attr("title")
     const selected_scope = $("#requirement_scope" + formalization_id).val()
     const selected_pattern = $("#requirement_pattern" + formalization_id).val()
-    let header = $("#formalization_heading" + formalization_id)
+    let header = $("#formalization_heading-formalization-" + formalization_id)
     let var_p = $("#requirement_var_group_p" + formalization_id)
     let var_q = $("#requirement_var_group_q" + formalization_id)
     let var_r = $("#requirement_var_group_r" + formalization_id)
@@ -1779,26 +2020,26 @@ function fetch_available_guesses() {
     available_guesses_cards.append(template)
   }
 
-  $.post(
-    "api/req/get_available_guesses",
-    {
-      requirement_id: requirement_id,
-    },
+  $.get(
+    `api/v1/req/${requirement_id}/guesses`,
     function (data) {
-      if (data["success"] === false) {
-        alert(data["errormsg"])
-      } else {
-        for (let i = 0; i < data["available_guesses"].length; i++) {
-          add_available_guess(data["available_guesses"][i])
-        }
+      for (let i = 0; i < data["available_guesses"].length; i++) {
+        add_available_guess(data["available_guesses"][i])
       }
     },
-  ).done(function () {
+  ).fail(function () {
+    alert("Failed to load guesses for this requirement.")
+  }).done(function () {
     $(".add_guess").click(function () {
       add_formalization_from_guess($(this).data("scope"), $(this).data("pattern"), $(this).data("mapping"))
     })
     modal_content.LoadingOverlay("hide", true)
   })
+}
+
+function add_enumerator_to_variable(button, $container, name = "", value = "") {
+  const html = Mustache.render($("#enumerator-template").html(), { name, value })
+  $container.append(html)
 }
 
 function add_formalization_from_guess(scope, pattern, mapping) {
@@ -1808,7 +2049,7 @@ function add_formalization_from_guess(scope, pattern, mapping) {
 
   let requirement_id = $("#requirement_id").val()
   $.post(
-    "api/req/add_formalization_from_guess",
+    "api/v1/req/add_formalization_from_guess",
     {
       requirement_id: requirement_id,
       scope: scope,

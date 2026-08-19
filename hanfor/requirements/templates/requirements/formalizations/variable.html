@@ -1,0 +1,77 @@
+{% raw %}
+<template id="variable-template">
+  <div id="variable-temp-{{ id }}" class="container-fluid mt-3">
+    <div class="row gx-2 gy-1 align-items-start">
+      <div class="col-auto">
+        <strong class="fs-5"> Properties </strong>
+      </div>
+      <div class="col">
+        <div class="input-group input-group-sm flex-wrap">
+          <span class="input-group-text" data-id="{{ id }}">Name</span>
+          <input type="text" class="form-control" aria-describedby="variable-name-feedback" value="{{ name }}" required/>
+          <div id="variable-name-feedback" class="invalid-feedback w-100">
+            Start with a letter, alphanumeric + underscore + period only.
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="input-group input-group-sm flex-wrap">
+          <label for="" class="input-group-text" data-id="{{ id }}">Type</label>
+          <input type="text" class="form-control variable-type" aria-describedby="variable-type-feedback" value="{{ type }}" required/>
+          <div id="variable-type-feedback" class="invalid-feedback w-100">
+            Only supported types
+          </div>
+        </div>
+      </div>
+      <div class="col variable-value-group d-none">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text" data-id="{{ id }}">Value</span>
+          <input type="text" class="form-control variable-value" aria-describedby="variable-value" value="{{ const_val }}" required/>
+        </div>
+      </div>
+      <div class="col-auto">
+        <button
+          name="{{ id }}"
+          class="delete_variable btn btn-sm btn-danger"
+          data-bs-toggle="confirmation"
+          data-btn-ok-label="Yes"
+          data-btn-ok-class="btn-success"
+          data-btn-cancel-label="Nooo Stoooop!"
+          data-btn-cancel-class="btn-danger"
+          data-title="Sure?"
+          data-content="Delete this variable?"
+          title="Delete me"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+   <div class="container-fluid my-3">
+     <div class="container px-0">
+       <div class="d-flex flex-wrap gap-1" id="constraints-wrapper">
+         <strong class="fs-6"> Also constrained in: </strong>
+         {{#constraint_refs}}
+         <span href="#"
+            class="badge text-bg-primary constraint-badge fs-6"
+            data-bs-toggle="popover"
+            data-bs-trigger="hover focus"
+            data-bs-placement="top"
+            data-bs-title="In: {{ owner_id }}"
+            data-bs-content="{{ pattern_text }}">
+           {{ usage_key }}
+         </span>
+         {{/constraint_refs}}
+         {{^constraint_refs}}
+         <div class="text-muted small align-center">No constraints.</div>
+         {{/constraint_refs}}
+       </div>
+     </div>
+   </div>
+  <div class="container-fluid my-3 d-none enumerators-container">
+    <strong class="fs-5 mb-2"> Enumerators </strong>
+    <button type="button" class="btn btn-success btn-sm p-1 add-enumerator-btn">+ Add</button>
+    <div class="container-fluid p-0 enumerators-list" id="enumerators-{{ id }}"></div>
+  </div>
+</template>
+{% endraw %}

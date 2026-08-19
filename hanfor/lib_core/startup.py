@@ -10,27 +10,42 @@ from typing import Callable
 
 from terminaltables import DoubleTable
 
+from ai_addons.ai_addon_handler import AiAddons
 from ai_addons.threading_ai_socketio import SendUpdateThreadingAndAi
+from ai_request.ai_core_requests import AiRequest
 from configuration.defaults import Color
-from configuration.tags import STANDARD_TAGS, FUNCTIONAL_TAGS
+from configuration.tags import FUNCTIONAL_TAGS, STANDARD_TAGS
 from hanfor_flask import HanforFlask
-from json_db_connector.json_db import JsonDatabase, remove_json_database_data_tracing_logger
+from json_db_connector.json_db import (
+    JsonDatabase,
+    remove_json_database_data_tracing_logger,
+)
 from lib_core import boogie_parsing
-from lib_core.data import Tag, VariableCollection, SessionValue, Requirement, Variable
+from lib_core.data import (
+    Formalization,
+    Requirement,
+    SessionValue,
+    Tag,
+    Variable,
+    VariableCollection,
+)
 from lib_core.pattern.patterns_basic import APattern
 from lib_core.scopes import Scope
 from lib_core.utils import (
-    get_requirements,
-    get_default_pattern_options,
-    clean_identifier_for_ultimate_parser,
-    get_filenames_from_dir,
     choice,
+    clean_identifier_for_ultimate_parser,
+    get_default_pattern_options,
+    get_filenames_from_dir,
+    get_requirements,
 )
 from reqtransformer import RequirementCollection
 from requirements.desc_highlighting import generate_all_highlighted_desc
-from thread_handling.threading_core import ThreadHandler, ThreadTask, SchedulingClass, ThreadGroup
-from ai_request.ai_core_requests import AiRequest
-from ai_addons.ai_addon_handler import AiAddons
+from thread_handling.threading_core import (
+    SchedulingClass,
+    ThreadGroup,
+    ThreadHandler,
+    ThreadTask,
+)
 
 
 def config_check(app_config):
@@ -56,9 +71,8 @@ def config_check(app_config):
 
 
 def update_var_usage(flask_app: HanforFlask, var_collection):
-    var_collection.refresh_var_usage(flask_app.db.get_objects(Requirement).values())
+    var_collection._build_all(flask_app.db.get_objects(Requirement).values())
     var_collection.req_var_mapping = var_collection.invert_mapping(var_collection.var_req_mapping)
-    var_collection.refresh_var_constraint_mapping()
     var_collection.store()
     flask_app.db.update()
 
@@ -67,7 +81,8 @@ def varcollection_consistency_check(flask_app: HanforFlask, args=None):
     logging.info("Check Variables for consistency.")
     # Update usages and constraint type check.
     var_collection = VariableCollection(
-        flask_app.db.get_objects(Variable).values(), flask_app.db.get_objects(Requirement).values()
+        flask_app.db.get_objects(Variable).values(),
+        flask_app.db.get_objects(Requirement).values(),
     )
     if args is not None and args.reload_type_inference:
         var_collection.reload_type_inference_errors_in_constraints(SessionValue.get_standard_tags(flask_app.db))
@@ -101,7 +116,8 @@ def user_request_new_revision(flask_app: HanforFlask, args):
     if flask_app.config["SESSION_TAG"] not in available_sessions:
         logging.error(
             "Session `{tag}` not found (in `{sessions_folder}`)".format(
-                tag=flask_app.config["SESSION_TAG"], sessions_folder=flask_app.config["SESSION_BASE_FOLDER"]
+                tag=flask_app.config["SESSION_TAG"],
+                sessions_folder=flask_app.config["SESSION_BASE_FOLDER"],
             )
         )
         raise FileNotFoundError
@@ -272,7 +288,10 @@ def startup_hanfor(
     if flask_app.config["FEATURE_AI"]:
         flask_app.ai_request = AiRequest(flask_app.thread_handler, send_update_threading_and_ai)
         flask_app.ai_addons = AiAddons(
-            flask_app.thread_handler, flask_app.ai_request, flask_app.db, send_update_threading_and_ai
+            flask_app.thread_handler,
+            flask_app.ai_request,
+            flask_app.db,
+            send_update_threading_and_ai,
         )
 
     return True
@@ -514,7 +533,10 @@ class HanforArgumentParser(argparse.ArgumentParser):
     def __init__(self, app):
         super().__init__()
         self.app = app
-        self.add_argument("tag", help="A tag for the session. Session will be reloaded, if tag exists.")
+        self.add_argument(
+            "tag",
+            help="A tag for the session. Session will be reloaded, if tag exists.",
+        )
         self.add_argument("-c", "--input_csv", help="Path to the csv to be processed.")
         self.add_argument(
             "-r",
@@ -523,7 +545,10 @@ class HanforArgumentParser(argparse.ArgumentParser):
             help="Create a new session by updating a existing session with a new csv file.",
         )
         self.add_argument(
-            "-rti", "--reload_type_inference", action="store_true", help="Reload the type inference results."
+            "-rti",
+            "--reload_type_inference",
+            action="store_true",
+            help="Reload the type inference results.",
         )
         self.add_argument(
             "-L",
@@ -615,7 +640,10 @@ class GenerateScopedPatternTrainingData(argparse.Action):
                                 continue
                             if formalization.scoped_pattern.get_scope_slug().lower() == "none":
                                 continue
-                            if formalization.scoped_pattern.get_pattern_slug() in ["NotFormalizable", "None"]:
+                            if formalization.scoped_pattern.get_pattern_slug() in [
+                                "NotFormalizable",
+                                "None",
+                            ]:
                                 continue
                             if len(formalization.get_string()) == 0:
                                 # formalization string is empty if expressions are missing or none set. Ignore in output
@@ -752,7 +780,9 @@ def add_custom_serializer_to_database(database: JsonDatabase) -> None:
     database.add_custom_serializer(datetime.datetime, datetime_serialize, datetime_deserialize)
 
     def boogie_type_serialize(
-        obj: boogie_parsing.BoogieType, db_serializer: Callable[[any, str], any], user: str
+        obj: boogie_parsing.BoogieType,
+        db_serializer: Callable[[any, str], any],
+        user: str,
     ) -> dict:
         return db_serializer(obj.value, user)
 

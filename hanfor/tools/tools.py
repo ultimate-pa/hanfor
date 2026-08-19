@@ -99,7 +99,9 @@ def generate_xls_file_content(
     """Generates the xlsx file content for a session."""
 
     requirements = get_requirements(app, filter_list=filter_list, invert_filter=invert_filter)
-    var_collection = VariableCollection(current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values())
+    var_collection = VariableCollection(
+        current_app.db.get_objects(Variable).values(), current_app.db.get_objects(Requirement).values()
+    )
     tags = {tag.name: tag.internal for tag in app.db.get_objects(Tag).values()}
 
     # create  styles

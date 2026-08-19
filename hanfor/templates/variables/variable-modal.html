@@ -26,9 +26,12 @@
                             <input type="text"
                                    class="form-control reqirement-variable"
                                    id="variable_name"
-                                   aria-describedby="name-addon"
+                                   aria-describedby="variable-name-feedback"
                                    aria-label="Name"
                                    title="Name">
+                            <div id="variable-name-feedback" class="invalid-feedback">
+                                Start with a letter, alphanumeric + underscore + period only.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -40,9 +43,12 @@
                             <input type="text"
                                    class="form-control"
                                    id="variable_type"
-                                   aria-describedby="type-addon"
+                                   aria-describedby="variable-type-feedback"
                                    aria-label="type"
                                    title="type">
+                            <div id="variable-type-feedback" class="invalid-feedback">
+                                Supported types are CONST, ENUM_INT, ENUM_REAL, BOOL
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -83,7 +89,7 @@
                         <strong>+</strong>
                     </button>
                 </h5>
-                <div id="formalization_accordion"></div>
+                <div id="formalization_accordion" class="accordion"></div>
                 <h5 class="enum-controls">
                     Enumerators
                     <button id="add_enumerator"

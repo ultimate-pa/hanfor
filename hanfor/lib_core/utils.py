@@ -1,4 +1,6 @@
+import functools
 import html
+import json
 import logging
 import os
 import re
@@ -7,12 +9,12 @@ from collections import defaultdict
 
 import colorama
 from colorama import Style, Fore
-from flask import Response
 from terminaltables import DoubleTable
+from flask import request, Response
 
+from lib_core import boogie_parsing
 from config import PATTERNS_GROUP_ORDER  # TODO should this be in the config?
 from hanfor_flask import HanforFlask
-from lib_core import boogie_parsing
 from lib_core.data import Requirement, VariableCollection, Variable
 from lib_core.pattern.patterns_basic import APattern
 
@@ -52,6 +54,19 @@ def get_requirements(app: HanforFlask, filter_list=None, invert_filter=False):
     requirements.sort(key=lambda x: x.pos_in_csv)
 
     return requirements
+
+
+def prepare_patterns_for_jinja():
+    opt_group_lists = defaultdict(list)
+    for name, pattern in APattern.get_patterns().items():
+        opt_group_lists[pattern.group].append((pattern.order, name, pattern()._pattern_text))
+
+    # Sort patterns inside each group
+    grouped_patterns = {}
+    for group_name, opt_list in opt_group_lists.items():
+        grouped_patterns[group_name] = [(name, pattern) for _, name, pattern in sorted(opt_list)]
+
+    return grouped_patterns
 
 
 def get_default_pattern_options():
@@ -372,3 +387,54 @@ def choice(choices: list[str], default: str) -> str:
             return choices[c]
 
         print('Illegal choice "' + str(c) + '", choose again')
+
+
+def log_request_response(cls):
+    """
+    Class decorator for flask_restx Resource classes.
+    Logs the incoming request data and the outgoing response at DEBUG level.
+    """
+    original_dispatch = cls.dispatch_request
+
+    @functools.wraps(original_dispatch)
+    def wrapper(self, *args, **kwargs):
+        request_data = {}
+        if request.form:
+            request_data = dict(request.form)
+        elif request.args:
+            request_data = dict(request.args)
+        elif request.is_json and request.json:
+            request_data = request.json
+
+        logging.debug(
+            ">>> %s %s\n>>> Request data: %s",
+            request.method,
+            request.path,
+            json.dumps(request_data, indent=2, default=str),
+        )
+
+        result = original_dispatch(self, *args, **kwargs)
+
+        if isinstance(result, tuple):
+            response_body = result[0]
+            response_status = next(
+                (v for v in result[1:] if isinstance(v, int)),
+                200,
+            )
+            logging.debug(
+                "<<< Response (%s): %s",
+                response_status,
+                json.dumps(response_body, indent=2, default=str),
+            )
+        elif isinstance(result, Response):
+            logging.debug("<<< Response (Flask Response): %s", result.status)
+        else:
+            logging.debug(
+                "<<< Response (200): %s",
+                json.dumps(result, indent=2, default=str),
+            )
+
+        return result
+
+    cls.dispatch_request = wrapper
+    return cls

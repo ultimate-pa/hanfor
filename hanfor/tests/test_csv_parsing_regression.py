@@ -53,7 +53,7 @@ class TestCSVParsing(TestCase):
         )
 
         # Check parsed requirements
-        reqs = self.app.get("api/req/gets")
+        reqs = self.app.get("api/v1/req")
         self.assertEqual("ELS", reqs.json["data"][0]["type"])
 
     def tearDown(self):

@@ -86,6 +86,7 @@
     <script type="text/javascript">
         let search_query = '{{ query|tojson }}';
         let _PATTERNS = JSON.parse('{{ patterns|tojson }}');
+        window.AVAILABLE_VARIABLE_TYPES = {{ available_variable_types|tojson }};
     </script>
 
     <script type="text/javascript">

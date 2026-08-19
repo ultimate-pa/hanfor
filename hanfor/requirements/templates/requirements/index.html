@@ -50,13 +50,13 @@
                     {% include 'search-tab.html' %}
                 </div>
                 <div class="tab-pane fade" id="filter-pane" role="tabpanel" aria-labelledby="filter-tab">
-                    {% include 'filter-tab.html' %}
+                    {% include 'requirements/filter-tab.html' %}
                 </div>
                 <div class="tab-pane fade" id="columns-pane" role="tabpanel" aria-labelledby="columns-tab">
-                    {% include 'columns-tab.html' %}
+                    {% include 'requirements/columns-tab.html' %}
                 </div>
                 <div class="tab-pane fade" id="selected-pane" role="tabpanel" aria-labelledby="selected-tab">
-                    {% include 'edit-selected-tab.html' %}
+                    {% include 'requirements/edit-selected-tab.html' %}
                 </div>
                 <div class="tab-pane fade" id="tools-pane" role="tabpanel" aria-labelledby="tools-tab">
                     {% include 'variables/tools-tab.html' %}
@@ -116,8 +116,12 @@
         <tbody>
         </tbody>
     </table>
-    {% include 'requirement-modal.html' %}
+    {% include 'requirements/requirement-modal.html' %}
     {% include 'report-modal.html' %}
+    {% include 'requirements/formalizations/container.html' %}
+    {% include 'requirements/formalizations/formalization.html' %}
+    {% include 'requirements/formalizations/variable.html' %}
+    {% include 'requirements/formalizations/enumerator.html' %}
 {% endblock %}
 {% block scripts %}
     {{ super() }}
@@ -125,6 +129,7 @@
     <script type="text/javascript">
         let search_query = '{{ query|tojson }}';
         let _PATTERNS = JSON.parse('{{ patterns|tojson }}');
+        window.AVAILABLE_VARIABLE_TYPES = {{ available_variable_types|tojson }};
         let init_table_connection_functions = []
     </script>
 

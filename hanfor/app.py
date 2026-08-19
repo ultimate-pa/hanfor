@@ -1,4 +1,4 @@
-""" 
+"""
 @copyright: 2018 Samuel Roth <samuel@smel.de>
 @licence: GPLv3
 """
@@ -6,7 +6,7 @@
 import logging
 import os
 import subprocess
-from flask import jsonify
+from flask import jsonify, request
 from flask_socketio import SocketIO
 
 from ai_addons.core_ui import (
@@ -63,7 +63,7 @@ api.add_namespace(api_models)
 # Register core blueprints and apis
 # Requirements
 app.register_blueprint(requirements.blueprint)
-app.register_blueprint(requirements.api_blueprint)
+api.add_namespace(requirements.api_ns)
 # Variables
 app.register_blueprint(variables.blueprint)
 app.register_blueprint(variables.blueprint2)  # import for variable_import
@@ -153,7 +153,7 @@ def unhandled_exception(e):
     if isinstance(e, HTTPException) and e.code in range(300, 309):
         return e
 
-    app.logger.error("Unhandled Exception: {}".format(e))
+    app.logger.error(f'Unhandled Exception at URL {request.url} - {e}')
     logging.exception(e)
 
     # Pass through HTTP errors.
