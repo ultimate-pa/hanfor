@@ -10,7 +10,7 @@ class Guess(tuple):
 
             (score, scoped_pattern, mapping)
 
-        'score:'          Float \in [0, 1]. The `score` will determine the order of the available guesses (DESC).
+        'score:'          Float in [0, 1]. The `score` will determine the order of the available guesses (DESC).
         'scoped_pattern:' A ScopedPattern instance.
         'mapping:'        A dict for the variables assignement like:
 
@@ -19,7 +19,7 @@ class Guess(tuple):
                 'R': 'Street_is_wet'
             }
 
-        :param score: Float \in [0, 1]. The `score` will determine the order of the available guesses (DESC).
+        :param score: Float in [0, 1]. The `score` will determine the order of the available guesses (DESC).
         :type score: float
         :param scoped_pattern: A ScopedPattern instance.
         :type scoped_pattern: ScopedPattern
@@ -37,7 +37,7 @@ class Guess(tuple):
 
             (score, scoped_pattern, mapping)
 
-        'score:'          Float \in [0, 1]. The `score` will determine the order of the available guesses (DESC).
+        'score:'          Float in [0, 1]. The `score` will determine the order of the available guesses (DESC).
         'scoped_pattern:' A ScopedPattern instance.
         'mapping:'        A dict for the variables assignement like:
 
@@ -46,7 +46,7 @@ class Guess(tuple):
                 'R': 'Street_is_wet'
             }
 
-        :param score: Float \in [0, 1]. The `score` will determine the order of the available guesses (DESC).
+        :param score: Float in [0, 1]. The `score` will determine the order of the available guesses (DESC).
         :type score: float
         :param scoped_pattern: A ScopedPattern instance.
         :type scoped_pattern: ScopedPattern

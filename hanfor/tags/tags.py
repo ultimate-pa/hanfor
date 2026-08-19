@@ -1,11 +1,12 @@
-from hanfor_flask import current_app
-from flask import Blueprint, render_template, request
-from flask_restx import Resource, Namespace
 from dataclasses import asdict
 
-from lib_core.data import Tag, Requirement
-from lib_core.api_models import TagModel, TagListModel, TagRequestModel, ErrorMessageModel
+from flask import Blueprint, render_template, request
+from flask_restx import Resource, Namespace
+
 from configuration.tags import STANDARD_TAGS
+from hanfor_flask import current_app
+from lib_core.api_models import TagModel, TagListModel, TagRequestModel, ErrorMessageModel
+from lib_core.data import Tag, Requirement
 
 BUNDLE_JS = "dist/tags-bundle.js"
 blueprint = Blueprint("tags", __name__, template_folder="templates", url_prefix="/tags")
@@ -77,7 +78,7 @@ class ApiTag(Resource):
         internal = bool(data["internal"])
         description = data["description"].strip()
 
-        if name in [t.name for t in current_app.db.get_objects(Tag).values() if t.uuid != tag.uuid]:  # type: Tag
+        if name in [t.name for t in current_app.db.get_objects(Tag).values() if t.uuid != tag.uuid]:
             return {"error": "Bad Request", "message": "Name exist already"}, 400
         tag.name = name
         tag.color = color

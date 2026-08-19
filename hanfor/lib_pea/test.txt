@@ -1,0 +1,12 @@
+define A bool
+define B bool
+define G bool
+define R bool
+push true;⌈A⌉;⌈!A && !G⌉;true
+push true;⌈B⌉;⌈!B && !R⌉;true
+push true;⌈G && R⌉;true
+product 3
+print 0
+print 1
+print 2
+print 3

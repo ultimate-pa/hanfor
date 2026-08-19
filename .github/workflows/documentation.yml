@@ -1,0 +1,36 @@
+name: Deploy Docs
+
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - 'documentation/**'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./documentation
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v6
+      - name: Install dependencies
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r requirements.txt
+          pip install mkdocs
+          pip install -r requirements.txt
+      - name: Just check if the documentation is building
+        if: github.ref_name != 'release'
+        run: mkdocs build
+      - name: Build and deploy Documentation
+        if: github.ref_name == 'release' && github.server_url == 'https://github.com'
+        run: mkdocs gh-deploy

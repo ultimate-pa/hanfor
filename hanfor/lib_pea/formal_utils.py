@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 
+from pysmt.environment import Environment
 from pysmt.fnode import FNode
 
 from lib_core import boogie_parsing
@@ -10,26 +11,29 @@ if TYPE_CHECKING:
     from lib_core.data import Requirement, VariableCollection, Formalization
 
 
-def get_expression_mapping_smt(f: "Formalization", vc: "VariableCollection") -> dict[str, FNode]:
+def get_expression_mapping_smt(smt_env: Environment, f: "Formalization", vc: "VariableCollection") -> dict[str, FNode]:
     expressions = {}
 
     for k, v in f.expressions_mapping.items():
         # Todo: hack to detect empty expressions (why is this necessary now)?
         if not v.raw_expression:
             continue
-        expressions[k] = get_smt_expression(f, vc, k)
+        expressions[k] = get_smt_expression(smt_env, f, vc, k)
 
     return expressions
 
 
-def get_smt_expression(f: "Formalization", vc: "VariableCollection", letter: str) -> FNode:
+def get_smt_expression(smt_env: Environment, f: "Formalization", vc: "VariableCollection", letter: str) -> FNode:
     boogie_parser = boogie_parsing.get_parser_instance()
     tree = boogie_parser.parse(f.expressions_mapping[letter].raw_expression)
-    return BoogiePysmtTransformer(set(vc.collection.values())).transform(tree)
+    return BoogiePysmtTransformer(smt_env, set(vc.collection.values())).transform(tree)
 
 
 def get_semantics_from_requirement(
-    requirement: "Requirement", requirements: list["Requirement"], var_collection: "VariableCollection"
+    smt_env: Environment,
+    requirement: "Requirement",
+    requirements: list["Requirement"],
+    var_collection: "VariableCollection",
 ) -> dict[tuple["Formalization", int], Countertrace]:
     """Instanciate the semantics of a single requirement.
     All other requirements should be passed in to allow for complexer patterns to be generated"""
@@ -46,7 +50,7 @@ def get_semantics_from_requirement(
 
         other_formalisations = [f for r in requirements for f in r.formalizations.values() if f is not formalization]
         for i, ct in enumerate(
-            pattern.get_instanciated_countertraces(scope, formalization, other_formalisations, var_collection)
+            pattern.get_instanciated_countertraces(smt_env, scope, formalization, other_formalisations, var_collection)
         ):
             dc_formulas[(formalization, i)] = ct
 

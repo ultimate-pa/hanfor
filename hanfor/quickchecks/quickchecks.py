@@ -1,13 +1,15 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Type
+
 from flask import Blueprint, render_template, Response
 from flask.views import MethodView
+from pysmt.environment import Environment
+
 from hanfor_flask import current_app
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
-from quickchecks.check_poormanscomplete import PoorMansComplete, CompletenessCheckResult, CompletenessCheckOutcome
 from lib_core.data import Variable, Requirement
-
+from quickchecks.check_poormanscomplete import PoorMansComplete, CompletenessCheckResult, CompletenessCheckOutcome
 
 BUNDLE_JS = "dist/quickchecks-bundle.js"
 blueprint = Blueprint("quickchecks", __name__, template_folder="templates", url_prefix="/quickchecks")
@@ -61,7 +63,7 @@ class QuickcheckApi(MethodView):
     def run_checks() -> list[CompletenessCheckResult]:
         reqs = list(current_app.db.get_objects(Requirement).values())
         variables = set(current_app.db.get_objects(Variable).values())
-        results = PoorMansComplete().run(reqs, variables)
+        results = PoorMansComplete(Environment()).run(reqs, variables)
         for result in results:
             if result.outcome == CompletenessCheckOutcome.OK:
                 continue

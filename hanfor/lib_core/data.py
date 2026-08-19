@@ -8,7 +8,8 @@ from abc import ABC
 from dataclasses import dataclass, field
 from enum import Enum
 from threading import Lock
-from typing import Any, Dict, Iterable, Literal, Protocol, Union, runtime_checkable
+
+from typing import Any, Dict, Iterable, Literal, Protocol, Union, runtime_checkable, TYPE_CHECKING
 from uuid import uuid4
 
 from lark import LarkError
@@ -28,6 +29,10 @@ from lib_core import boogie_parsing
 from lib_core.boogie_parsing import BoogieType, run_typecheck_fixpoint
 from lib_core.pattern.patterns_basic import APattern
 from lib_core.scopes import Scope
+
+if TYPE_CHECKING:
+    from hanfor_flask import HanforFlask
+    from json_db_connector.json_db import JsonDatabase
 
 
 @DatabaseTable(TableType.File)
@@ -221,9 +226,9 @@ class Requirement:
 
     def add_empty_formalization(self) -> tuple[int, "Formalization"]:
         """Add an empty formalization to the formalizations list."""
-        id = self.next_id()
-        self.formalizations[id] = Formalization(id)
-        return id, self.formalizations[id]
+        fid = self.next_id()
+        self.formalizations[fid] = Formalization(fid)
+        return fid, self.formalizations[fid]
 
     def delete_formalization(self, formalization_id, variable_collection: "VariableCollection"):
         logging.debug(f"Deleting currently the ID: {formalization_id}")
@@ -407,7 +412,7 @@ class Requirement:
 @DatabaseField("scoped_pattern", "ScopedPattern")
 @DatabaseField("expressions_mapping", dict)
 @DatabaseField("type_inference_errors", dict)
-@DatabaseField("is_constraint", bool, default=True)
+@DatabaseField("is_constraint", bool, default=False)
 class Formalization(BaseFormalization):
     def __init__(self, fid: int):
         self.id: int = fid
@@ -415,7 +420,7 @@ class Formalization(BaseFormalization):
         self.scoped_pattern = ScopedPattern()
         self.expressions_mapping: dict[str, Expression] = dict()
         self.type_inference_errors = dict()
-        self.is_constraint: bool = True
+        self.is_constraint: bool = False
 
     @property
     def used_variables(self):
@@ -522,7 +527,9 @@ class Formalization(BaseFormalization):
             "id": self.id,
             "order": self.order,
             "scope": self.scoped_pattern.scope.name,
-            "pattern": self.scoped_pattern.pattern.get_name(),
+            # NOTE: this is just a hack to force Hanfor to only communicate new pattern names (no legacy names)
+            # TODO: do migration when loading database the first time
+            "pattern": self.scoped_pattern.pattern.get_patternish().__class__.__name__,
             **{
                 f"expr_{key}": exp.raw_expression for key, exp in self.expressions_mapping.items() if exp.raw_expression
             },
@@ -590,13 +597,14 @@ class Expression:
 class Pattern:
     def __init__(self, name: str = "NotFormalizable"):
         # Hack: reflect over pattern class to update to correct name
-        self.name = APattern().get_pattern(name).__class__.__name__
-        self.pattern = APattern().get_pattern(name)._pattern_text
-        self.environment = APattern().get_pattern(name)._env
+        pattern = APattern.get_pattern(name)
+        self.name = pattern.__name__
+        self.pattern = pattern()._pattern_text
+        self.environment = pattern()._env
 
     def get_patternish(self) -> APattern:
         # TODO: find good name for pattern template
-        return APattern().get_pattern(self.get_name())
+        return APattern.get_pattern(self.get_name())()
 
     def get_name(self):
         return self.name
@@ -611,7 +619,7 @@ class Pattern:
         return self.pattern
 
     def get_allowed_types(self):
-        return BoogieType.alias_env_to_instantiated_env(self.get_patternish()._env)
+        return BoogieType.alias_env_to_instantiated_env(self.get_patternish().env)
 
 
 @DatabaseFieldType()
@@ -987,7 +995,7 @@ class VariableCollection:
         for var in used_variables:
             self.req_var_mapping[rid].add(var)
 
-    def rename(self, old_name: str, new_name: str, app: HanforFlask) -> list[tuple[str, str]]:
+    def rename(self, old_name: str, new_name: str, app: "HanforFlask") -> list[tuple[str, str]]:
         """Rename a var in the collection. Merges the variables if new_name variable exists.
 
         :param old_name: The old var name.
@@ -1055,7 +1063,7 @@ class VariableCollection:
             self.rename(old_enumerator_name, new_enumerator_name, app)
         return affected_enumerators
 
-    def get_boogie_type_env(self):
+    def get_boogie_type_env(self) -> dict[str, BoogieType]:
         mapping = {
             "bool": boogie_parsing.BoogieType.bool,
             "int": boogie_parsing.BoogieType.int,
@@ -1303,7 +1311,7 @@ class SessionValue:
     value: Any
 
     @staticmethod
-    def get_standard_tags(db: JsonDatabase) -> dict[str, Tag]:
+    def get_standard_tags(db: "JsonDatabase") -> dict[str, Tag]:
         standard_tags = dict()
         tag_ids = [
             "TAG_Type_inference_error",

@@ -1,9 +1,11 @@
 from collections import defaultdict
 from unittest import TestCase
 
+from pysmt.environment import Environment
+
 from lib_core.data import *
 from lib_core.pattern.patterns_automata import AAutomatonPattern
-from lib_pea.countertrace import Countertrace
+from lib_pea.countertrace import BoundTypes
 
 
 class TestComplexAutomaton(TestCase):
@@ -167,13 +169,16 @@ class TestComplexAutomaton(TestCase):
         return variable_collection, r, f1, f2, f3, f5a, f5b, f6a, f6b, f7, f8
 
     def test_assembly(self):
+        smt_env = Environment()
         variable_collection, r, f1, f2, f3, f5a, f5b, f6a, f6b, f7, f8 = self.__get_complex_automaton()
         # First automaton
-        req_belonging_to_r = AAutomatonPattern.get_hull(f1, [f for f in r.formalizations.values()], variable_collection)
+        req_belonging_to_r = AAutomatonPattern.get_hull(
+            smt_env, f1, [f for f in r.formalizations.values()], variable_collection
+        )
         self.assertSetEqual({f1, f2, f3, f6a, f6b}, set(req_belonging_to_r))
         # Second Automaton
         req_belonging_to_r = AAutomatonPattern.get_hull(
-            f5a, [f for f in r.formalizations.values()], variable_collection
+            smt_env, f5a, [f for f in r.formalizations.values()], variable_collection
         )
         self.assertSetEqual({f5a, f5b, f7, f8}, set(req_belonging_to_r))
 
@@ -183,32 +188,32 @@ class TestComplexAutomaton(TestCase):
         aut = {f1, f2, f3, f6a, f6b}
 
         formal_f6a = f6a.scoped_pattern.get_patternish().get_instanciated_countertraces(
-            f6a.scoped_pattern.scope, f6a, aut, variable_collection
+            Environment(), f6a.scoped_pattern.scope, f6a, aut, variable_collection
         )
         # basic transition formula
         self.assertIsNotNone(formal_f6a)
-        self.assertIn(r"(= states 3)", formal_f6a[0].dc_phases[1].invariant.to_smtlib(daggify=False))
-        self.assertIn(r"(= states 1)", formal_f6a[0].dc_phases[2].invariant.to_smtlib(daggify=False))
-        self.assertIn(r"(< 22.0 aGuardingVar)", formal_f6a[0].dc_phases[2].invariant.to_smtlib(daggify=False))
-        self.assertIn(r"(= states 3)", formal_f6a[0].dc_phases[2].invariant.to_smtlib(daggify=False))
-        self.assertIn(r"(< aGuardingVar 5.0)", formal_f6a[0].dc_phases[2].invariant.to_smtlib(daggify=False))
+        self.assertIn(r"(states = 3)", formal_f6a[0].dc_phases[1].invariant.serialize())
+        self.assertIn(r"(states = 1)", formal_f6a[0].dc_phases[2].invariant.serialize())
+        self.assertIn(r"(22.0 < aGuardingVar)", formal_f6a[0].dc_phases[2].invariant.serialize())
+        self.assertIn(r"(states = 3)", formal_f6a[0].dc_phases[2].invariant.serialize())
+        self.assertIn(r"(aGuardingVar < 5.0)", formal_f6a[0].dc_phases[2].invariant.serialize())
         # formula for minimum duration in C
-        self.assertIn(r"(= states 3)", formal_f6a[1].dc_phases[1].invariant.to_smtlib(daggify=False))
-        self.assertIn(r"55.0", formal_f6a[1].dc_phases[1].bound.to_smtlib(daggify=False))
-        self.assertEqual(Countertrace.BoundTypes.LESS, formal_f6a[1].dc_phases[1].bound_type)
-        self.assertIn(r"(= states 1)", formal_f6a[1].dc_phases[2].invariant.to_smtlib(daggify=False))
-        self.assertIn(r"(= states 2)", formal_f6a[1].dc_phases[2].invariant.to_smtlib(daggify=False))
+        self.assertIn(r"(states = 3)", formal_f6a[1].dc_phases[1].invariant.serialize())
+        self.assertIn(r"55.0", formal_f6a[1].dc_phases[1].bound.serialize())
+        self.assertEqual(BoundTypes.LESS, formal_f6a[1].dc_phases[1].bound_type)
+        self.assertIn(r"(states = 1)", formal_f6a[1].dc_phases[2].invariant.serialize())
+        self.assertIn(r"(states = 2)", formal_f6a[1].dc_phases[2].invariant.serialize())
 
     def test_edge_GE(self):
         variable_collection, r, f1, f2, f3, f5a, f5b, f6a, f6b, f7, f8 = self.__get_complex_automaton()
         # test general automaton layout
         aut = {f1, f2, f3, f6a, f6b}
-
+        env = Environment()
         formal_f2 = f2.scoped_pattern.get_patternish().get_instanciated_countertraces(
-            f2.scoped_pattern.scope, f2, aut, variable_collection
+            env, f2.scoped_pattern.scope, f2, aut, variable_collection
         )
-        self.assertIn(r"anOtherEventVar", formal_f2[0].dc_phases[1].invariant.to_smtlib(daggify=False))
-        self.assertNotIn(r"anOtherEventVar", formal_f2[0].dc_phases[2].invariant.to_smtlib(daggify=False))
+        self.assertIn(r"anOtherEventVar", formal_f2[0].dc_phases[1].invariant.serialize())
+        self.assertNotIn(r"anOtherEventVar", formal_f2[0].dc_phases[2].invariant.serialize())
 
     def test_edge_GEL(self):
         pass  # TODO

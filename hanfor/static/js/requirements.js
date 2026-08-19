@@ -1333,7 +1333,7 @@ function load_requirement(row_idx) {
     $("#add_guess_description").text(data.desc).change()
 
     // Parse the formalizations
-    $.get(`api/v1/req/formalizations/${data.id}`, function (data) {
+    $.get(`api/v1/req/${data.id}/formalizations`, function (data) {
       data
         .sort((a, b) => a.order - b.order)
         .forEach(function (entry) {

@@ -1,7 +1,7 @@
 import graphviz
 from lark import Lark
+from pysmt.environment import Environment
 from pysmt.fnode import FNode
-from pysmt.shortcuts import Symbol, substitute
 
 from lib_pea.pea import PhaseSetsPea
 
@@ -22,13 +22,13 @@ def get_countertrace_parser() -> Lark:
     return CT_PARSER
 
 
-def substitute_free_variables(fnode: FNode, suffix: str = "_", do_nothing: bool = True) -> FNode:
+def substitute_free_variables(smt_env: Environment, fnode: FNode, suffix: str = "_", do_nothing: bool = True) -> FNode:
     if do_nothing:
         return fnode
 
     symbols = fnode.get_free_variables()
-    subs = {s: Symbol(s.symbol_name() + suffix, s.symbol_type()) for s in symbols}
-    result = substitute(fnode, subs)
+    subs = {s: smt_env.formula_manager.Symbol(s.symbol_name() + suffix, s.symbol_type()) for s in symbols}
+    result = smt_env.substituter.substitute(fnode, subs)
     return result
 
 

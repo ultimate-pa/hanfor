@@ -58,8 +58,8 @@ def get_requirements(app: HanforFlask, filter_list=None, invert_filter=False):
 
 def prepare_patterns_for_jinja():
     opt_group_lists = defaultdict(list)
-    for name, pattern in APattern().get_patterns().items():
-        opt_group_lists[pattern.group].append((pattern.order, name, pattern._pattern_text))
+    for name, pattern in APattern.get_patterns().items():
+        opt_group_lists[pattern.group].append((pattern.order, name, pattern()._pattern_text))
 
     # Sort patterns inside each group
     grouped_patterns = {}
@@ -79,8 +79,8 @@ def get_default_pattern_options():
     opt_group_lists = defaultdict(list)
     opt_groups = defaultdict(str)
     # Collect pattern in groups.
-    for name, pattern in APattern().get_patterns().items():
-        opt_group_lists[pattern.group].append((pattern.order, name, pattern._pattern_text))
+    for name, pattern in APattern.get_patterns().items():
+        opt_group_lists[pattern.group].append((pattern.order, name, pattern()._pattern_text))
 
     # Sort groups and concatenate pattern options
     for group_name, opt_list in opt_group_lists.items():
@@ -395,6 +395,7 @@ def log_request_response(cls):
     Logs the incoming request data and the outgoing response at DEBUG level.
     """
     original_dispatch = cls.dispatch_request
+
     @functools.wraps(original_dispatch)
     def wrapper(self, *args, **kwargs):
         request_data = {}

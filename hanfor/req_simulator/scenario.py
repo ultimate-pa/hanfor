@@ -5,9 +5,8 @@ from dataclasses import dataclass, field
 from fractions import Fraction
 from typing import Any
 
+from pysmt.environment import Environment
 from pysmt.fnode import FNode
-from pysmt.shortcuts import Symbol, Real, Bool, Int, TRUE
-from pysmt.typing import BOOL, INT, REAL
 
 from req_simulator.utils import load_json_or_yaml_file, parse_json_or_yaml_string, save_json_file, dump_json_string
 
@@ -15,16 +14,17 @@ from req_simulator.utils import load_json_or_yaml_file, parse_json_or_yaml_strin
 @dataclass
 class Configuration:
     time: float
-    variables: dict[FNode, FNode]
+    variables: dict[FNode, FNode | None]
 
 
-@dataclass
 class Scenario:
-    times: list[float]
-    variables: dict[FNode, list[FNode]]
-    types: dict[FNode, BOOL | INT | REAL] = field(init=False)
 
-    def __post_init__(self):
+    def __init__(self, smt_env: Environment, times=None, variables=None):
+        self.__smt_env = smt_env
+        self.__tmgr = self.__smt_env.type_manager
+        self.__fmgr = self.__smt_env.formula_manager
+        self.times: list[float] = times if times else []
+        self.variables: dict[FNode, list[FNode | None]] = variables if variables else {}
         self.types = {k: k.symbol_type() for k in self.variables}
 
     def remove_variable(self, variable: FNode) -> None:
@@ -41,7 +41,7 @@ class Scenario:
     def difference(self, variables: list[FNode]) -> list[FNode]:
         return [k for k in self.variables if k not in variables]
 
-    def get_configuration(self, time: float) -> Configuration:
+    def get_configuration(self, time: float) -> Configuration | None:
         result = None
 
         for i in range(len(self.times) - 1):
@@ -52,81 +52,58 @@ class Scenario:
 
         return result
 
-    @staticmethod
-    def from_object(object: Any) -> Scenario | None:
+    def from_object(self, object: Any) -> Scenario | None:
         if object is None:
             return None
 
         var_map = {
-            "Bool": lambda v: Symbol(v, BOOL),
-            "Int": lambda v: Symbol(v, INT),
-            "Real": lambda v: Symbol(v, REAL),
+            "Bool": lambda v: self.__fmgr.Symbol(v, self.__tmgr.BOOL()),
+            "Int": lambda v: self.__fmgr.Symbol(v, self.__tmgr.INT()),
+            "Real": lambda v: self.__fmgr.Symbol(v, self.__tmgr.REAL()),
         }
-
-        const_map = {"Bool": lambda v: Bool(v == 1), "Int": lambda v: Int(v), "Real": lambda v: Real(v)}
-
-        scenario = Scenario(
-            object["head"]["times"] + [object["head"]["duration"]],
-            {
-                var_map[v["type"]](k): [None] + [const_map[v["type"]](vv) for vv in v["values"]]
-                for k, v in object["data"].items()
-            },
-        )
-
-        return scenario
-
-    @staticmethod
-    def to_object(scenario: Scenario) -> Any:
-        if scenario is None:
-            return None
 
         const_map = {
-            BOOL: lambda v: v == TRUE(),
-            INT: lambda v: int(str(v)),
-            REAL: lambda v: float(Fraction(str(v))),
+            "Bool": lambda v: self.__fmgr.Bool(v == 1),
+            "Int": lambda v: self.__fmgr.Int(v),
+            "Real": lambda v: self.__fmgr.Real(v),
         }
 
-        head = {}
-        head["duration"] = scenario.times[-1]
-        head["times"] = [v for v in scenario.times[:-1]]
+        self.times = object["head"]["times"] + [object["head"]["duration"]]
+        self.variables = {
+            var_map[v["type"]](k): [None] + [const_map[v["type"]](vv) for vv in v["values"]]
+            for k, v in object["data"].items()
+        }
+        self.types = {k: k.symbol_type() for k in self.variables}
+        return self
 
-        data = defaultdict(dict)
-        for k, v in scenario.variables.items():
+    def to_object(self) -> Any:
+        const_map = {
+            self.__tmgr.BOOL(): lambda v: v == self.__fmgr.TRUE(),
+            self.__tmgr.INT(): lambda v: int(str(v)),
+            self.__tmgr.REAL(): lambda v: float(Fraction(str(v))),
+        }
+
+        head = dict()
+        head["duration"] = self.times[-1]
+        head["times"] = [v for v in self.times[:-1]]
+
+        data = defaultdict(dict[str, Any])
+        for k, v in self.variables.items():
             data[str(k)]["type"] = str(k.get_type())
-            data[str(k)]["values"] = [const_map[scenario.types[k]](v_) for v_ in v[1:]]
+            data[str(k)]["values"] = [const_map[self.types[k]](v_) for v_ in v[1:]]
 
         return {"head": head, "data": data}
 
-    @staticmethod
-    def from_json_string(str: str) -> Scenario:
-        return Scenario.from_object(parse_json_or_yaml_string(str))
+    def from_json_string(self, str: str) -> Scenario:
+        self.from_object(parse_json_or_yaml_string(str))
+        return self
 
-    @staticmethod
-    def to_json_string(scenario: Scenario) -> str:
-        return dump_json_string(Scenario.to_object(scenario))
+    def to_json_string(self) -> str:
+        return dump_json_string(self.to_object())
 
-    @staticmethod
-    def load_from_file(path: str) -> Scenario:
-        return Scenario.from_object(load_json_or_yaml_file(path))
+    def load_from_file(self, path: str) -> Scenario:
+        self.from_object(load_json_or_yaml_file(path))
+        return self
 
-    @staticmethod
-    def save_to_file(scenario: Scenario, path: str, sort_keys: bool = False) -> None:
-        save_json_file(Scenario.to_object(scenario), path)
-
-
-def main():
-    scenario = Scenario(
-        [0.0, 1.0, 2.0, 3.0],
-        {
-            Symbol("A"): [None, TRUE(), TRUE(), TRUE()],
-            Symbol("B", INT): [None, Int(5), Int(10), Int(0)],
-            Symbol("C", REAL): [None, Real(5.0), Real(10.0), Real(0.0)],
-        },
-    )
-
-    Scenario.save_to_file(scenario, "/home/ubuntu/Desktop/test_scenario.json")
-    scenario = Scenario.load_from_file("/home/ubuntu/Desktop/test_scenario.json")
-
-
-if __name__ == "__main__":
-    main()
+    def save_to_file(self, path: str, sort_keys: bool = False) -> None:
+        save_json_file(self.to_object(), path, sort_keys=sort_keys)

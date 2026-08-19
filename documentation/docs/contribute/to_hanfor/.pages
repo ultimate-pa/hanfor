@@ -1,0 +1,5 @@
+nav:
+  - General: index.md
+  - Threading: threading.md
+  - AI Basic: ai.md
+  - AI Addon: ai_addon.md

@@ -1,13 +1,10 @@
-from __future__ import annotations
-
 import json
 import logging
 import time
 import uuid
 
 from flask import render_template
-from pysmt.shortcuts import Bool, Int, Real
-from pysmt.typing import BOOL, INT, REAL
+from pysmt.environment import Environment
 
 from lib_core.data import Requirement, VariableCollection, Variable
 from lib_core.pattern.patterns_basic import APattern
@@ -20,8 +17,6 @@ from lib_pea.utils import strtobool
 from req_simulator.scenario import Scenario
 from req_simulator.simulator import Simulator
 from ressources import Ressource
-
-validation_patterns = {BOOL: r"^0|false|False|1|true|True$", INT: r"^[+-]?\d+$", REAL: r"^[+-]?\d*[.]?\d+$"}
 
 
 class SimulatorRessource(Ressource):
@@ -117,6 +112,12 @@ class SimulatorRessource(Ressource):
             return
 
         simulator = self.simulator_cache[self.response.data["simulator_id"]]
+        tmgr = simulator.smt_env.type_manager
+        validation_patterns = {
+            tmgr.BOOL(): r"^0|false|False|1|true|True$",
+            tmgr.INT(): r"^[+-]?\d+$",
+            tmgr.REAL(): r"^[+-]?\d*[.]?\d+$",
+        }
         self.response.data["html"] = render_template(
             "simulator-modal/modal.html",
             simulator=simulator,
@@ -128,12 +129,13 @@ class SimulatorRessource(Ressource):
             return
 
         simulator = self.simulator_cache[self.response.data["simulator_id"]]
-        scenario = Scenario(simulator.times, {k: v for k, v in simulator.models.items()})
-        self.response.data["scenario_str"] = Scenario.to_json_string(scenario)
+        scenario = Scenario(simulator.smt_env, simulator.times, {k: v for k, v in simulator.models.items()})
+        self.response.data["scenario_str"] = scenario.to_json_string()
 
     def create_simulator(self) -> None:
         requirement_ids = json.loads(self.request.form.get("requirement_ids"))
         simulator_name = self.request.form.get("simulator_name")
+        smt_env = Environment()
 
         if len(requirement_ids) <= 0:
             self.response.success = False
@@ -150,7 +152,7 @@ class SimulatorRessource(Ressource):
             # filter for selected requirements
             if requirement.rid not in requirement_ids:
                 continue
-            cts = get_semantics_from_requirement(requirement, requirements, var_collection)
+            cts = get_semantics_from_requirement(smt_env, requirement, requirements, var_collection)
             for (f, i), ct in cts.items():
                 pea = get_pea_from_formalisation(requirement, f, i, ct)
                 pea.requirement = requirement
@@ -159,7 +161,7 @@ class SimulatorRessource(Ressource):
                 peas.append(pea)
 
         simulator_id = uuid.uuid4().hex
-        self.simulator_cache[simulator_id] = Simulator(peas, name=simulator_name)
+        self.simulator_cache[simulator_id] = Simulator(smt_env, peas, name=simulator_name)
 
         self.response.data = {"simulator_id": simulator_id, "simulator_name": simulator_name}
 
@@ -187,14 +189,14 @@ class SimulatorRessource(Ressource):
             for formalization in requirement.formalizations.values():
                 counter_traces = []
                 if not formalization.scoped_pattern.is_instantiatable():
-                    return None
+                    return
                 if has_variable_with_unknown_type(formalization, variables) or formalization.type_inference_errors:
-                    return None
+                    return
 
                 scope = formalization.scoped_pattern.scope.name
                 pattern = formalization.scoped_pattern.pattern.name
 
-                if APattern().get_pattern(pattern).has_countertraces(scope):
+                if APattern.get_pattern(pattern).has_countertraces(scope):
                     raise ValueError(f"No countertrace given: {scope}, {pattern}")
 
                 expressions = {}
@@ -230,9 +232,9 @@ class SimulatorRessource(Ressource):
             self.response.errormsg = "No scenario given."
             return
 
-        scenario = Scenario.from_json_string(scenario_str)
         simulator = self.simulator_cache[simulator_id]
-        self.simulator_cache[simulator_id] = Simulator(simulator.peas, scenario, simulator.name)
+        scenario = Scenario(simulator.smt_env).from_json_string(scenario_str)
+        self.simulator_cache[simulator_id] = Simulator(simulator.smt_env, simulator.peas, scenario, simulator.name)
 
         self.get_simulator()
 
@@ -254,10 +256,12 @@ class SimulatorRessource(Ressource):
         simulator.max_results = int(max_results)
 
         var_str_mapping = {str(k): k for k in simulator.variables}
+        tmgr = simulator.smt_env.type_manager
+        fmgr = simulator.smt_env.formula_manager
         const_mapping = {
-            BOOL: lambda v: Bool(bool(strtobool(v))),
-            INT: lambda v: Int(int(v)),
-            REAL: lambda v: Real(float(v)),
+            tmgr.BOOL(): lambda v: fmgr.Bool(bool(strtobool(v))),
+            tmgr.INT(): lambda v: fmgr.Int(int(v)),
+            tmgr.REAL(): lambda v: fmgr.Real(float(v)),
         }
 
         variables = {
