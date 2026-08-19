@@ -6,7 +6,7 @@
 import logging
 import os
 import subprocess
-from flask import jsonify
+from flask import jsonify, request
 from flask_socketio import SocketIO
 
 from ai_addons.core_ui import (
@@ -153,7 +153,7 @@ def unhandled_exception(e):
     if isinstance(e, HTTPException) and e.code in range(300, 309):
         return e
 
-    app.logger.error("Unhandled Exception: {}".format(e))
+    app.logger.error(f'Unhandled Exception at URL {request.url} - {e}')
     logging.exception(e)
 
     # Pass through HTTP errors.
