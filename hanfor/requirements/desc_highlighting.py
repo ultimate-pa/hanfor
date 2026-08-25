@@ -57,8 +57,17 @@ requirement_highlighting_data_per_req: dict[str, RequirementHighlightingData] = 
 variable_sets = defaultdict(set)
 
 
-def get_highlighted_desc(req_id: str) -> str:
-    return requirement_highlighting_data_per_req[req_id].highlighted_desc
+def get_highlighted_desc(req_id: str, description: str) -> str:
+    """Highlighted HTML for `description`, recomputed when there is a cache miss
+
+    generate_all_highlighted_desc seeds each entry with `highlighted_desc = description`
+    before it computes anything, so an entry equal to the description counts as
+    'not yet highlighted', exactly like a missing entry.
+    """
+    req_data = requirement_highlighting_data_per_req.get(req_id)
+    if req_data is None or req_data.highlighted_desc == description:
+        return rehighlight_requirement(req_id, description)
+    return req_data.highlighted_desc
 
 
 def highlight_text(text: str) -> str:

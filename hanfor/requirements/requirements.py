@@ -41,7 +41,9 @@ from lib_core.utils import (
 )
 from requirements.desc_highlighting import (
     get_highlighted_desc,
+    highlight_text,
     new_variables_regenerate_highlighting,
+    rehighlight_requirement,
 )
 
 blueprint = Blueprint("requirements", __name__, template_folder="templates", url_prefix="/")
@@ -114,14 +116,7 @@ class ApiRequirementSingle(Resource):
         result["available_vars"] = var_collection.get_available_var_names_list(used_only=False, exclude_types={"ENUM"})
         result["additional_static_available_vars"] = VARIABLE_AUTOCOMPLETE_EXTENSION
         if current_app.config.get("FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"):
-            try:
-                highlighted = get_highlighted_desc(rid)
-                if highlighted == result["desc"]:
-                    from requirements.desc_highlighting import rehighlight_requirement
-                    highlighted = rehighlight_requirement(rid, result["desc"])
-                result["desc_highlighted"] = highlighted
-            except KeyError:
-                result["desc_highlighted"] = result["desc"]
+            result["desc_highlighted"] = get_highlighted_desc(rid, result["desc"])
         else:
             result["desc_highlighted"] = result["desc"]
         result["next_id"] = requirement.next_id()
@@ -172,7 +167,6 @@ class ApiRequirementSingle(Resource):
         current_app.db.update()
         result = requirement.to_dict()
         if current_app.config.get("FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"):
-            from requirements.desc_highlighting import rehighlight_requirement
             result["desc_highlighted"] = rehighlight_requirement(rid, requirement.description)
         else:
             result["desc_highlighted"] = result["desc"]
@@ -336,7 +330,6 @@ class ApiHighlightDescription(Resource):
             return {"success": False, "errormsg": "Missing 'description' field."}, 400
 
         if current_app.config.get("FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"):
-            from requirements.desc_highlighting import highlight_text
             highlighted = highlight_text(body["description"])
         else:
             highlighted = body["description"]
