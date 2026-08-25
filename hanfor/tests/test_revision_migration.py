@@ -209,6 +209,55 @@ class TestRevisionMigration(TestCase):
         )
         self.assertListEqual(["revision_0_to_revision_1_data_changed"], new_revision_req_gets.json["data"][0]["tags"])
 
+    def test_edited_description_is_dropped_in_favour_of_csv(self):
+        """
+        The edit is dropped, desc is the CSV description again.
+        original_desc is refreshed to the CSV description of the new revision.
+        No description_changed tag, since the CSV description did not change.
+        """
+        rid = "SysRS FooXY_42"
+        csv_desc = "Dont worry, be happy"
+
+        # Create the first initial revision.
+        args = HanforArgumentParser(app).parse_args([TEST_TAGS["simple"], "-c", CSV_FILES["simple"]])
+        self.startup_hanfor(args, user_mock_answers=[2, 0, 1, 3, 0])
+
+        # Edit the description like the markdown editor does.
+        patched = self.app.patch(f"api/v1/req/{rid}", data={"description": "edited in hanfor"})
+        self.assertEqual(200, patched.status_code)
+        self.assertEqual("edited in hanfor", patched.json["desc"])
+
+        initial_req_gets = self.app.get("api/v1/req")
+        self.assertEqual(initial_req_gets.json["data"][0]["desc"], "edited in hanfor")
+        self.assertEqual(initial_req_gets.json["data"][0]["original_desc"], csv_desc)
+
+        # Create the second revision.
+        args = HanforArgumentParser(app).parse_args(
+            [TEST_TAGS["simple"], "--revision", "-c", CSV_FILES["simple_changed_desc"]]
+        )
+        self.startup_hanfor(args, user_mock_answers=[0, 0])
+
+        # Load the second revision.
+        args = HanforArgumentParser(app).parse_args([TEST_TAGS["simple"], "-c", CSV_FILES["simple_changed_desc"]])
+        self.startup_hanfor(args, user_mock_answers=[1])
+
+        new_revision_req_gets = self.app.get("api/v1/req")
+        self.assertEqual(rid, new_revision_req_gets.json["data"][0]["id"])
+        # The edit is dropped in favour of the CSV description.
+        self.assertEqual(csv_desc, new_revision_req_gets.json["data"][0]["desc"])
+        self.assertEqual(csv_desc, new_revision_req_gets.json["data"][0]["original_desc"])
+        # The CSV description did not change, so no description_changed tag.
+        self.assertListEqual([], new_revision_req_gets.json["data"][0]["tags"])
+
+        # The requirement whose CSV description did change still gets tagged.
+        self.assertCountEqual(
+            new_revision_req_gets.json["data"][1]["tags"],
+            ["revision_0_to_revision_1_data_changed", "revision_0_to_revision_1_description_changed"],
+        )
+        self.assertEqual(
+            "Mostly look on the bright side of life", new_revision_req_gets.json["data"][1]["original_desc"]
+        )
+
     def tearDown(self):
         # Clean test dir.
         clean_folders()

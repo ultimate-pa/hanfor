@@ -206,6 +206,7 @@ class Requirement:
             if len(diff) > 0:
                 self._revision_diff[csv_key] = diff
         self.description = other.description
+        self.original_desc = other.original_desc
         self.type_in_csv = other.type_in_csv
         self.csv_row = other.csv_row
         self.pos_in_csv = other.pos_in_csv

@@ -38,7 +38,7 @@ from lib_core.utils import (
     get_filenames_from_dir,
     get_requirements,
 )
-from reqtransformer import RequirementCollection
+from reqtransformer import RequirementCollection, try_cast_string
 from requirements.desc_highlighting import generate_all_highlighted_desc
 from thread_handling.threading_core import (
     SchedulingClass,
@@ -488,11 +488,17 @@ class Revision:  # TODO wohin damit
         else:
             migrated_formalization_tag = self.app.db.get_object(Tag, migrated_formalization_tag_name)
 
+        old_desc_header = self.base_revision_db.get_object(SessionValue, "csv_desc_header").value
         for rid in new_req_ids.intersection(req_ids):
             r = reqs[rid]
             new_r = new_reqs[rid]
+            # compare the CSV descriptions, not r.description, which may hold a user edit.
+            # this must be computed before r.revision_diff = new_r overwrites the CSV fields.
+            old_csv_desc = try_cast_string(r.csv_row.get(old_desc_header, r.original_desc))
+            csv_desc_changed = old_csv_desc != new_r.description
+
             # add revision diff and update description, type_in_csv, csv_row and pos_in_csv
-            if r.description != new_r.description:
+            if csv_desc_changed:
                 logging.info(f"Description changed. Add `description_changed` tag to `{rid}`.")
                 r.tags[description_changed_tag] = ""
                 r.status = "Todo"
@@ -509,7 +515,7 @@ class Revision:  # TODO wohin damit
                 pass
             elif len(new_r.formalizations) == 0 and len(r.formalizations) > 0:
                 logging.info("Migrate formalization for `{}`".format(rid))
-                if r.description != new_r.description:
+                if csv_desc_changed:
                     logging.info(
                         "Add `migrated_formalization` tag to `{}`, status to `Todo` since description changed".format(
                             rid
