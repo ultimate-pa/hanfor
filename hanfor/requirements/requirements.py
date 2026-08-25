@@ -23,7 +23,6 @@ from lib_core.api_models import (
 from lib_core.boogie_parsing import BoogieType
 from lib_core.data import (
     Formalization,
-    FormalizationOfType,
     Requirement,
     RequirementEditHistory,
     SessionValue,
@@ -488,7 +487,7 @@ class ApiFormalizationResource(Resource):
         return {"success": True}
 
 
-@api_ns.route("/<string:rid>/formalizations/<string:subtype>/<string:fid>")
+@api_ns.route("/<string:rid>/formalizations/<any(formalization,variable):subtype>/<string:fid>")
 @log_request_response
 class ApiFormalizationStore(Resource):
     @api_ns.doc(
@@ -506,14 +505,8 @@ class ApiFormalizationStore(Resource):
     @api_ns.response(400, "Bad Request", ErrorMessageModel)
     @nocache
     def post(self, rid, subtype, fid):
-        subtype_enum = None
         error_msg = ""
         error = False
-        if subtype:
-            try:
-                subtype_enum = FormalizationOfType(subtype)
-            except ValueError:
-                return {"success": False, "errormsg": f"Unknown subtype: {subtype}"}
 
         data = json.loads(request.form.get("data", ""))
         requirement = current_app.db.get_object(Requirement, rid)
@@ -521,7 +514,7 @@ class ApiFormalizationStore(Resource):
             current_app.db.get_objects(Variable).values(),
             current_app.db.get_objects(Requirement).values(),
         )
-        if subtype_enum == FormalizationOfType.FORMALIZATION:
+        if subtype == "formalization":
             if fid is None:
                 return {
                     "success": False,
@@ -556,7 +549,7 @@ class ApiFormalizationStore(Resource):
                 error = True
                 error_msg = f"Could not parse draft: `{e}`"
 
-        elif subtype_enum == FormalizationOfType.VARIABLE:
+        elif subtype == "variable":
             if fid is None:
                 return {
                     "success": False,
@@ -613,23 +606,13 @@ class ApiFormalizationStore(Resource):
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
     def patch(self, rid, subtype, fid):
-        subtype_enum = None
-        if subtype:
-            try:
-                subtype_enum = FormalizationOfType(subtype)
-            except ValueError:
-                return {
-                    "success": False,
-                    "errormsg": f"Unknown subtype: {subtype}",
-                }, 400
-
         data = json.loads(request.form.get("data", "{}"))
         if not data:
             return {"success": False, "errormsg": "No data provided."}, 400
 
         requirement = current_app.db.get_object(Requirement, rid)
 
-        if subtype_enum == FormalizationOfType.FORMALIZATION:
+        if subtype == "formalization":
             formalization = requirement.formalizations.get(int(fid))
             if not formalization or not isinstance(formalization, Formalization):
                 return {"success": False, "errormsg": "Formalization not found."}, 404
@@ -668,7 +651,7 @@ class ApiFormalizationStore(Resource):
                     "errormsg": f"Could not parse formalization: `{e}`",
                 }, 400
 
-        elif subtype_enum == FormalizationOfType.VARIABLE:
+        elif subtype == "variable":
             variable = requirement.formalizations.get(int(fid))
             if not variable or not isinstance(variable, Variable):
                 return {"success": False, "errormsg": "Variable not found."}, 404
@@ -722,20 +705,10 @@ class ApiFormalizationStore(Resource):
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
     def put(self, rid, subtype, fid):
-        subtype_enum = None
-        if subtype:
-            try:
-                subtype_enum = FormalizationOfType(subtype)
-            except ValueError:
-                return {
-                    "success": False,
-                    "errormsg": f"Unknown subtype: {subtype}",
-                }, 400
-
         data = json.loads(request.form.get("data", "{}"))
         requirement = current_app.db.get_object(Requirement, rid)
 
-        if subtype_enum == FormalizationOfType.FORMALIZATION:
+        if subtype == "formalization":
             if "scope" not in data or "pattern" not in data or "expression_mapping" not in data:
                 return {
                     "success": False,
@@ -773,7 +746,7 @@ class ApiFormalizationStore(Resource):
                     "errormsg": f"Could not parse formalization: `{e}`",
                 }, 400
 
-        elif subtype_enum == FormalizationOfType.VARIABLE:
+        elif subtype == "variable":
             if "name" not in data or "type" not in data:
                 return {"success": False, "errormsg": "name and type are required"}, 400
 
