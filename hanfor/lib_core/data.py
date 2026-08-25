@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from threading import Lock
 
-from typing import Any, Dict, Iterable, Literal, Protocol, Union, runtime_checkable, TYPE_CHECKING
+from typing import Any, Dict, Iterable, Protocol, Union, runtime_checkable, TYPE_CHECKING
 from uuid import uuid4
 
 from lark import LarkError
@@ -56,34 +56,6 @@ class Tag:
     def __hash__(self):
         return hash(self.uuid)
 
-class FormalizationOfType(Enum):
-    """
-    Enum for different formalization types.
-    The template_name property returns the string used on the frontend templates.
-    """
-    FORMALIZATION = "formalization"
-    VARIABLE = "variable"
-
-    @property
-    def template_name(self) -> str:
-        return f"{self.value}-template"
-
-
-# TODO: ask if this is something we actually want
-@runtime_checkable
-class FormalizationProtocol(Protocol):
-    order: int
-
-    def to_dict(self, **kwargs) -> Dict[str, Any]: ...
-    def get_string(self) -> str: ...
-
-
-class BaseFormalization(ABC):
-    def of_type(self) -> str:
-        return self.__class__.__name__.lower()
-
-
-
 
 class FormalizationOfType(Enum):
     """
@@ -116,7 +88,6 @@ class BaseFormalization(ABC):
 @DatabaseID("rid", str)
 @DatabaseField("formalizations", dict)
 @DatabaseField("description", str)
-@DatabaseField("original_desc", str, default="")
 @DatabaseField("type_in_csv", str)
 @DatabaseField("csv_row", dict)
 @DatabaseField("pos_in_csv", int)
@@ -137,7 +108,6 @@ class Requirement:
         self.rid: str = rid
         self.formalizations: dict[int, FormalizationProtocol] = dict()
         self.description = description
-        self.original_desc = description
         self.type_in_csv = type_in_csv
         self.csv_row = csv_row
         self.pos_in_csv = pos_in_csv
@@ -182,6 +152,19 @@ class Requirement:
         return d
 
     @property
+    def original_desc(self) -> str:
+        """The description as it stands in the CSV of the revision currently loaded, removes
+        the need for duplicate `original_desc`
+
+        Derived from `csv_row`, so it always matches the loaded revision. Requires an app context
+        (reads the `csv_desc_header` session value), do not touch it from startup or worker threads.
+        """
+        # this has to be here, if not it causes a circular import
+        from reqtransformer import  try_cast_string
+        desc_header = current_app.db.get_object(SessionValue, "csv_desc_header").value
+        return try_cast_string(self.csv_row.get(desc_header, ""))
+
+    @property
     def revision_diff(self) -> dict[str, str]:
         if not hasattr(self, "_revision_diff"):
             self._revision_diff = dict()
@@ -206,7 +189,6 @@ class Requirement:
             if len(diff) > 0:
                 self._revision_diff[csv_key] = diff
         self.description = other.description
-        self.original_desc = other.original_desc
         self.type_in_csv = other.type_in_csv
         self.csv_row = other.csv_row
         self.pos_in_csv = other.pos_in_csv

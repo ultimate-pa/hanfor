@@ -494,7 +494,7 @@ class Revision:  # TODO wohin damit
             new_r = new_reqs[rid]
             # compare the CSV descriptions, not r.description, which may hold a user edit.
             # this must be computed before r.revision_diff = new_r overwrites the CSV fields.
-            old_csv_desc = try_cast_string(r.csv_row.get(old_desc_header, r.original_desc))
+            old_csv_desc = try_cast_string(r.csv_row.get(old_desc_header, ""))
             csv_desc_changed = old_csv_desc != new_r.description
 
             # add revision diff and update description, type_in_csv, csv_row and pos_in_csv
