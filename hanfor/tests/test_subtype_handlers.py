@@ -111,3 +111,18 @@ class TestSubtypeHandlers(TestCase):
         self.formalizations.replace(self.ctx, "0", {**FORMALIZATION, "pattern": "Universality"})
 
         self.assertEqual("Universality", self.ctx.requirement.formalizations[0].scoped_pattern.pattern.get_name())
+
+    # a null field is as missing as an absent one
+    def test_create_rejects_a_null_scope(self):
+        with self.assertRaises(InvalidPayload) as caught:
+            self.formalizations.create(self.ctx, "7", {**FORMALIZATION, "scope": None})
+
+        self.assertEqual("Missing required field(s): scope", str(caught.exception))
+
+    def test_create_rejects_a_null_pattern_without_mutating(self):
+        before = dict(self.ctx.requirement.formalizations)
+
+        with self.assertRaises(InvalidPayload):
+            self.formalizations.create(self.ctx, "7", {**FORMALIZATION, "pattern": None})
+
+        self.assertDictEqual(before, self.ctx.requirement.formalizations)

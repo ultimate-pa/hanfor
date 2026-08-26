@@ -122,7 +122,8 @@ class FormalizationHandler(SubtypeHandler[Formalization]):
     def create(self, ctx: "SubtypeContext", fid: str, data: dict) -> None:
         fid = int(fid)
 
-        missing = [key for key in ("scope", "pattern", "expression_mapping") if key not in data]
+        # NOTE: `None` counts as missing, would this be good practice?
+        missing = [key for key in ("scope", "pattern", "expression_mapping") if data.get(key) is None]
         if missing:
             raise InvalidPayload(f"Missing required field(s): {', '.join(missing)}")
 

@@ -21,7 +21,6 @@ from lib_core.api_models import (
 )
 from lib_core.boogie_parsing import BoogieType
 from lib_core.data import (
-    Formalization,
     Requirement,
     SessionValue,
     Tag,
@@ -38,11 +37,10 @@ from lib_core.utils import (
     log_request_response,
     prepare_patterns_for_jinja,
 )
-from requirements.subtypes import InvalidPayload, SubtypeContext, SubtypeNotFound, subtype_errors_to_response
+from requirements.subtypes import SUBTYPES, InvalidPayload, SubtypeContext, subtype_errors_to_response
 from requirements.desc_highlighting import (
     get_highlighted_desc,
     highlight_text,
-    new_variables_regenerate_highlighting,
     rehighlight_requirement,
 )
 
@@ -453,18 +451,30 @@ class ApiFormalizationResource(Resource):
         return {"success": True}
 
 
-@api_ns.route("/<string:rid>/formalizations/<any(formalization,variable):subtype>/<string:fid>")
+def _request_data() -> dict:
+    """
+    The `data` form field, parsed. Absent or empty is an empty dict, never a 500 from `json.loads`.
+    A helper to make code more readable
+    """
+    return json.loads(request.form.get("data") or "{}")
+
+
+@api_ns.route(f"/<string:rid>/formalizations/<any({','.join(SUBTYPES)}):subtype>/<string:fid>")
 @log_request_response
 class ApiFormalizationStore(Resource):
+    """What each subtype does with a write lives in `requirements.subtypes`."""
+
     @api_ns.doc(
-        description="Stores a formalization (real or variable) on a requirement. "
-        "Creates the formalization or variable entry and updates "
-        "the variable collection.",
+        description="Creates a formalization or a variable on a requirement and updates the variable "
+        "collection.",
         params={
             "rid": "The requirement ID",
-            "subtype": "Either 'formalization' or 'variable'",
-            "fid": "The formalization ID (integer for formalization, " "temp_id for variable)",
-            "data": "JSON-encoded dict with scope, pattern, expression_mapping",
+            "subtype": f"One of {', '.join(SUBTYPES)}",
+            "fid": "The formalization ID. Authoritative for a formalization; for a variable it is only a "
+            "hint, the variable is keyed by its own temp_id",
+            "data": "JSON-encoded dict. For formalizations: scope, pattern, expression_mapping (all "
+            "required), is_constraint (optional). For variables: name, type, temp_id (required), "
+            "value, enumerators (optional)",
         },
     )
     @api_ns.response(200, "Success", SuccessResponseModel)
@@ -472,80 +482,19 @@ class ApiFormalizationStore(Resource):
     @nocache
     @subtype_errors_to_response
     def post(self, rid, subtype, fid):
-        data = json.loads(request.form.get("data", ""))
-        ctx = SubtypeContext.load(rid)
-        requirement = ctx.requirement
-        if subtype == "formalization":
-            fid = int(fid)
-            logging.debug(f"FID: {fid}")
-
-            # Validate before mutating: an incomplete payload must not leave a draft on the requirement.
-            missing = [key for key in ("scope", "pattern", "expression_mapping") if key not in data]
-            if missing:
-                raise InvalidPayload(f"Missing required field(s): {', '.join(missing)}")
-
-            requirement.add_formalization_with_id(Formalization(fid), fid)
-            try:
-                requirement.update_formalization(
-                    fid,
-                    data["scope"],
-                    data["pattern"],
-                    data["expression_mapping"],
-                    ctx.variable_collection,
-                    ctx.standard_tags,
-                )
-                add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
-                for v in ctx.variable_collection.new_vars:
-                    current_app.db.add_object(v)
-                if current_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
-                    new_variables_regenerate_highlighting(ctx.variable_collection.new_vars)
-                # Persist is_constraint on the new formalization.
-                if "is_constraint" in data:
-                    requirement.formalizations[fid].is_constraint = bool(data["is_constraint"])
-                # now rerun the inference checks, expensive, but works (and we don't care)
-                requirement.run_type_checks(ctx.variable_collection, ctx.standard_tags)
-            except Exception as e:
-                # A create that fails must leave nothing behind, including a half applied draft.
-                requirement.formalizations.pop(fid, None)
-                raise InvalidPayload(f"Could not parse draft: `{e}`") from e
-
-        elif subtype == "variable":
-            logging.debug(f"Data set by the variable: {data}")
-
-            try:
-                var = Variable(
-                    data["name"],
-                    data["type"],
-                    value=data.get("value"),
-                    order=int(data["temp_id"]),
-                )
-                var.set_type(data["type"])
-            except ValueError as e:
-                raise InvalidPayload(str(e)) from e
-
-            # The id of a variable is its own, assigned client side; the `fid` path segment is only a hint.
-            requirement.add_formalization_with_id(var, int(data["temp_id"]))
-
-            success, errormsg, _ = ctx.variable_collection.create_enum_variable(
-                data["name"], data["type"], data.get("enumerators", [])
-            )
-            if not success:
-                raise InvalidPayload(errormsg)
-
-        current_app.db.update()
-        return {"success": True}
+        return self._run(
+            SUBTYPES[subtype].handler.create, rid, fid, _request_data(), f"Created {subtype} {fid} of requirement"
+        )
 
     @api_ns.doc(
-        description="Partially updates a formalization or variable. Only fields "
-        "included in the 'data' JSON are changed; omitted fields keep "
-        "their existing values. 404 if the fid does not exist.",
+        description="Partially updates a formalization or variable. Only fields included in the 'data' "
+        "JSON are changed; omitted fields keep their existing values. 404 if the fid does not exist.",
         params={
             "rid": "The requirement ID",
-            "subtype": "Either 'formalization' or 'variable'",
+            "subtype": f"One of {', '.join(SUBTYPES)}",
             "fid": "The formalization ID",
-            "data": "JSON-encoded dict with optional fields (scope, pattern, "
-            "expression_mapping for formalizations; name, type, value, "
-            "enumerators for variables)",
+            "data": "JSON-encoded dict, all fields optional. For formalizations: scope, pattern, "
+            "expression_mapping. For variables: name, type, value, order, enumerators",
         },
     )
     @api_ns.response(200, "Success", SuccessResponseModel)
@@ -554,84 +503,21 @@ class ApiFormalizationStore(Resource):
     @nocache
     @subtype_errors_to_response
     def patch(self, rid, subtype, fid):
-        data = json.loads(request.form.get("data", "{}"))
+        data = _request_data()
+        # A verb level concern, not a subtype one: an empty patch asks for nothing.
         if not data:
             raise InvalidPayload("No data provided.")
-
-        ctx = SubtypeContext.load(rid)
-        requirement = ctx.requirement
-
-        if subtype == "formalization":
-            formalization = requirement.formalizations.get(int(fid))
-            if not formalization or not isinstance(formalization, Formalization):
-                raise SubtypeNotFound("Formalization not found.")
-
-            merged_scope = data.get("scope", formalization.scoped_pattern.scope.name)
-            merged_pattern = data.get("pattern", formalization.scoped_pattern.pattern.get_name())
-            merged_mapping = {
-                **{k: v.raw_expression for k, v in formalization.expressions_mapping.items()},
-                **data.get("expression_mapping", {}),
-            }
-
-            try:
-                requirement.update_formalization(
-                    int(fid),
-                    merged_scope,
-                    merged_pattern,
-                    merged_mapping,
-                    ctx.variable_collection,
-                    ctx.standard_tags,
-                )
-                for v in ctx.variable_collection.new_vars:
-                    current_app.db.add_object(v)
-            except KeyError as e:
-                raise InvalidPayload(f"Could not update formalization: {e}") from e
-            except Exception as e:
-                raise InvalidPayload(f"Could not parse formalization: `{e}`") from e
-
-        elif subtype == "variable":
-            variable = requirement.formalizations.get(int(fid))
-            if not variable or not isinstance(variable, Variable):
-                raise SubtypeNotFound("Variable not found.")
-
-            if "name" in data:
-                try:
-                    variable.set_name(data["name"])
-                except ValueError as e:
-                    raise InvalidPayload(str(e)) from e
-            if "type" in data:
-                variable.type = data["type"]
-            if "value" in data:
-                variable.value = data["value"]
-            if "order" in data:
-                variable.order = int(data["order"])
-
-            if "enumerators" in data:
-                success, errormsg, _ = ctx.variable_collection.create_enum_variable(
-                    variable.name, variable.type, data["enumerators"]
-                )
-                if not success:
-                    raise InvalidPayload(errormsg)
-
-        current_app.db.update()
-        add_msg_to_flask_session_log(
-            current_app,
-            f"Patched formalization {fid} of requirement",
-            [requirement],
-        )
-        return {"success": True}
+        return self._run(SUBTYPES[subtype].handler.patch, rid, fid, data, f"Patched {subtype} {fid} of requirement")
 
     @api_ns.doc(
-        description="Fully replaces a formalization or variable. All required "
-        "fields must be present. 404 if the fid does not exist, "
-        "400 if required fields are missing.",
+        description="Fully replaces a formalization or variable. All required fields must be present. "
+        "404 if the fid does not exist, 400 if required fields are missing.",
         params={
             "rid": "The requirement ID",
-            "subtype": "Either 'formalization' or 'variable'",
+            "subtype": f"One of {', '.join(SUBTYPES)}",
             "fid": "The formalization ID",
-            "data": "JSON-encoded dict. For formalizations: scope, pattern, "
-            "expression_mapping (all required). For variables: "
-            "name, type (required), value, order, enumerators (optional).",
+            "data": "JSON-encoded dict. For formalizations: scope, pattern, expression_mapping (all "
+            "required). For variables: name, type (required), value, order, enumerators (optional)",
         },
     )
     @api_ns.response(200, "Success", SuccessResponseModel)
@@ -640,63 +526,21 @@ class ApiFormalizationStore(Resource):
     @nocache
     @subtype_errors_to_response
     def put(self, rid, subtype, fid):
-        data = json.loads(request.form.get("data", "{}"))
-        ctx = SubtypeContext.load(rid)
-        requirement = ctx.requirement
-
-        if subtype == "formalization":
-            if "scope" not in data or "pattern" not in data or "expression_mapping" not in data:
-                raise InvalidPayload("scope, pattern, and expression_mapping are required")
-
-            formalization = requirement.formalizations.get(int(fid))
-            if not formalization or not isinstance(formalization, Formalization):
-                raise SubtypeNotFound("Formalization not found.")
-
-            try:
-                requirement.update_formalization(
-                    int(fid),
-                    data["scope"],
-                    data["pattern"],
-                    data["expression_mapping"],
-                    ctx.variable_collection,
-                    ctx.standard_tags,
-                )
-                for v in ctx.variable_collection.new_vars:
-                    current_app.db.add_object(v)
-            except KeyError as e:
-                raise InvalidPayload(f"Could not update formalization: {e}") from e
-            except Exception as e:
-                raise InvalidPayload(f"Could not parse formalization: `{e}`") from e
-
-        elif subtype == "variable":
-            if "name" not in data or "type" not in data:
-                raise InvalidPayload("name and type are required")
-
-            variable = requirement.formalizations.get(int(fid))
-            if not variable or not isinstance(variable, Variable):
-                raise SubtypeNotFound("Variable not found.")
-
-            try:
-                variable.set_name(data["name"])
-            except ValueError as e:
-                raise InvalidPayload(str(e)) from e
-            variable.type = data["type"]
-            variable.value = data.get("value", "")
-            variable.order = int(data.get("order", 0))
-
-            if "enumerators" in data:
-                success, errormsg, _ = ctx.variable_collection.create_enum_variable(
-                    variable.name, variable.type, data["enumerators"]
-                )
-                if not success:
-                    raise InvalidPayload(errormsg)
-
-        current_app.db.update()
-        add_msg_to_flask_session_log(
-            current_app,
-            f"Replaced formalization {fid} of requirement",
-            [requirement],
+        return self._run(
+            SUBTYPES[subtype].handler.replace, rid, fid, _request_data(), f"Replaced {subtype} {fid} of requirement"
         )
+
+    @staticmethod
+    def _run(action, rid: str, fid: str, data: dict, log_message: str):
+        """Load the context, pass it to the handler, persist what the handler changed.
+
+        The handler either returns having mutated `ctx`, or raises a `SubtypeError` that
+        `subtype_errors_to_response` turns into the right status.
+        """
+        ctx = SubtypeContext.load(rid)
+        action(ctx, fid, data)
+        current_app.db.update()
+        add_msg_to_flask_session_log(current_app, log_message, [ctx.requirement])
         return {"success": True}
 
 
