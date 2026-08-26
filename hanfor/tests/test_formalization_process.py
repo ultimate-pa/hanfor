@@ -1,5 +1,7 @@
 import json
 
+from app import app
+from lib_core.data import Requirement
 from tests.mock_hanfor import MockHanfor
 from unittest import TestCase
 
@@ -478,3 +480,118 @@ class TestMixedFormalizationCollection(TestCase):
         variables = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42/formalizations?subtype=variable")
 
         self.assertListEqual(["variable"], [e["formalization_type"] for e in variables.json])
+
+
+class TestCreateFormalizationValidation(TestCase):
+    """A create with an incomplete payload must be rejected before anything is mutated.
+
+    `store.js` posts `{}` whenever `getFormalizationFromDOM` misses its card, which used to reach
+    `data["scope"]` and be reported as a missing draft - after the draft had already been attached.
+    """
+
+    RID = "SysRS FooXY_42"
+    URL = "api/v1/req/SysRS%20FooXY_42/formalizations/formalization/7"
+
+    def setUp(self) -> None:
+        self.mock_hanfor = MockHanfor(session_tags=["simple"], test_session_source="test_formalization_process")
+        self.mock_hanfor.set_up()
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+    def tearDown(self) -> None:
+        self.mock_hanfor.tear_down()
+
+    def formalization_ids(self) -> list[int]:
+        with app.app_context():
+            return sorted(app.db.get_object(Requirement, self.RID).formalizations.keys())
+
+    def test_empty_payload_is_rejected(self):
+        result = self.mock_hanfor.app.post(self.URL, data={"data": json.dumps({})})
+
+        self.assertEqual(400, result.status_code)
+        self.assertFalse(result.json["success"])
+        self.assertIn("scope", result.json["errormsg"])
+
+    def test_rejected_create_leaves_no_stray_formalization(self):
+        before = self.formalization_ids()
+
+        self.mock_hanfor.app.post(self.URL, data={"data": json.dumps({})})
+
+        self.assertListEqual(before, self.formalization_ids())
+
+    def test_partial_payload_names_every_missing_field(self):
+        result = self.mock_hanfor.app.post(self.URL, data={"data": json.dumps({"scope": "GLOBALLY"})})
+
+        self.assertEqual(400, result.status_code)
+        self.assertIn("pattern", result.json["errormsg"])
+        self.assertIn("expression_mapping", result.json["errormsg"])
+        self.assertNotIn("scope", result.json["errormsg"])
+
+    def test_complete_payload_still_creates(self):
+        result = self.mock_hanfor.app.post(
+            self.URL,
+            data={
+                "data": json.dumps(
+                    {"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "foo != bar"}}
+                )
+            },
+        )
+
+        self.assertEqual(200, result.status_code)
+        self.assertTrue(result.json["success"])
+        self.assertIn(7, self.formalization_ids())
+
+
+class TestSubtypeErrorStatuses(TestCase):
+    """`post` used to answer 200 with `success: false` for every failure; all three verbs now agree."""
+
+    RID = "SysRS FooXY_42"
+    BASE = "api/v1/req/SysRS%20FooXY_42/formalizations"
+
+    def setUp(self) -> None:
+        self.mock_hanfor = MockHanfor(session_tags=["simple"], test_session_source="test_formalization_process")
+        self.mock_hanfor.set_up()
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+    def tearDown(self) -> None:
+        self.mock_hanfor.tear_down()
+
+    def post(self, url: str, payload: dict):
+        return self.mock_hanfor.app.post(url, data={"data": json.dumps(payload)})
+
+    def formalization_ids(self) -> list[int]:
+        with app.app_context():
+            return sorted(app.db.get_object(Requirement, self.RID).formalizations.keys())
+
+    def test_unparsable_formalization_is_bad_request(self):
+        result = self.post(
+            f"{self.BASE}/formalization/7",
+            {"scope": "NOT_A_SCOPE", "pattern": "Absence", "expression_mapping": {"R": "foo"}},
+        )
+
+        self.assertEqual(400, result.status_code)
+        self.assertIn("Could not parse draft", result.json["errormsg"])
+
+    def test_unparsable_formalization_rolls_back_the_draft(self):
+        before = self.formalization_ids()
+
+        self.post(
+            f"{self.BASE}/formalization/7",
+            {"scope": "NOT_A_SCOPE", "pattern": "Absence", "expression_mapping": {"R": "foo"}},
+        )
+
+        self.assertListEqual(before, self.formalization_ids())
+
+    def test_illegal_variable_name_is_bad_request(self):
+        result = self.post(f"{self.BASE}/variable/7", {"name": "9illegal", "type": "bool", "temp_id": 7})
+
+        self.assertEqual(400, result.status_code)
+        self.assertIn("9illegal", result.json["errormsg"])
+
+    def test_successful_create_is_unaffected(self):
+        result = self.post(
+            f"{self.BASE}/formalization/8",
+            {"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "foo != bar"}},
+        )
+
+        self.assertEqual(200, result.status_code)
+        self.assertTrue(result.json["success"])

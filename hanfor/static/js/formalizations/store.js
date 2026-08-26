@@ -112,6 +112,12 @@ export default class FormalizationStore {
     return data
   }
 
+  static asError(reason) {
+    if (reason && reason.responseJSON) return reason.responseJSON
+    if (reason && reason.errormsg) return reason
+    return { success: false, errormsg: (reason && reason.statusText) || "Unknown error" }
+  }
+
   commitDeletes(requirementId, type) {
     const requests = []
     const deletedSet = this.getSet(this.deleted, type)
@@ -122,9 +128,14 @@ export default class FormalizationStore {
         $.ajax({
           url: `/api/v1/req/${requirementId}/formalizations/${id}`,
           type: "DELETE",
-        }).then(function (res) {
-          if (!res.success) return $.Deferred().reject(res).promise()
-        }),
+        }).then(
+          function (res) {
+            if (!res.success) return $.Deferred().reject(res).promise()
+          },
+          function (reason) {
+            return $.Deferred().reject(FormalizationStore.asError(reason)).promise()
+          },
+        ),
       )
     })
     deletedSet.clear()
@@ -145,11 +156,23 @@ export default class FormalizationStore {
           endpoint = `/api/v1/req/${requirementId}/formalizations/variable/${id}`
         }
 
+        // Both getters return {} when their card is not in the DOM, this should handle that case
+        if ($.isEmptyObject(data)) {
+          const message = `Could not read the ${type} card for id ${id}, nothing was saved.`
+          console.error(message)
+          requests.push($.Deferred().reject({ success: false, errormsg: message }).promise())
+          return
+        }
+
         requests.push(
-          $.post(endpoint, { id: requirementId, data: JSON.stringify(data) })
-            .then(function (res) {
+          $.post(endpoint, { id: requirementId, data: JSON.stringify(data) }).then(
+            function (res) {
               if (!res.success) return $.Deferred().reject(res).promise()
-            }),
+            },
+            function (reason) {
+              return $.Deferred().reject(FormalizationStore.asError(reason)).promise()
+            },
+          ),
         )
       })
     }

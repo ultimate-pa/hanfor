@@ -39,6 +39,7 @@ from lib_core.utils import (
     log_request_response,
     prepare_patterns_for_jinja,
 )
+from requirements.subtypes import InvalidPayload, SubtypeContext, SubtypeNotFound, subtype_errors_to_response
 from requirements.desc_highlighting import (
     get_highlighted_desc,
     highlight_text,
@@ -470,24 +471,20 @@ class ApiFormalizationStore(Resource):
     @api_ns.response(200, "Success", SuccessResponseModel)
     @api_ns.response(400, "Bad Request", ErrorMessageModel)
     @nocache
+    @subtype_errors_to_response
     def post(self, rid, subtype, fid):
-        error_msg = ""
-        error = False
-
         data = json.loads(request.form.get("data", ""))
-        requirement = current_app.db.get_object(Requirement, rid)
-        variable_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(),
-            current_app.db.get_objects(Requirement).values(),
-        )
+        ctx = SubtypeContext.load(rid)
+        requirement = ctx.requirement
         if subtype == "formalization":
-            if fid is None:
-                return {
-                    "success": False,
-                    "errormsg": "Formalization has to have an id supplied",
-                }
             fid = int(fid)
             logging.debug(f"FID: {fid}")
+
+            # Validate before mutating: an incomplete payload must not leave a draft on the requirement.
+            missing = [key for key in ("scope", "pattern", "expression_mapping") if key not in data]
+            if missing:
+                raise InvalidPayload(f"Missing required field(s): {', '.join(missing)}")
+
             requirement.add_formalization_with_id(Formalization(fid), fid)
             try:
                 requirement.update_formalization(
@@ -495,32 +492,25 @@ class ApiFormalizationStore(Resource):
                     data["scope"],
                     data["pattern"],
                     data["expression_mapping"],
-                    variable_collection,
-                    SessionValue.get_standard_tags(current_app.db),
+                    ctx.variable_collection,
+                    ctx.standard_tags,
                 )
                 add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
-                for v in variable_collection.new_vars:
+                for v in ctx.variable_collection.new_vars:
                     current_app.db.add_object(v)
                 if current_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
-                    new_variables_regenerate_highlighting(variable_collection.new_vars)
+                    new_variables_regenerate_highlighting(ctx.variable_collection.new_vars)
                 # Persist is_constraint on the new formalization.
                 if "is_constraint" in data:
                     requirement.formalizations[fid].is_constraint = bool(data["is_constraint"])
                 # now rerun the inference checks, expensive, but works (and we don't care)
-                requirement.run_type_checks(variable_collection, SessionValue.get_standard_tags(current_app.db))
-            except KeyError as e:
-                error = True
-                error_msg = f"Did not find the created empty draft for ID: {e}"
+                requirement.run_type_checks(ctx.variable_collection, ctx.standard_tags)
             except Exception as e:
-                error = True
-                error_msg = f"Could not parse draft: `{e}`"
+                # A create that fails must leave nothing behind, including a half applied draft.
+                requirement.formalizations.pop(fid, None)
+                raise InvalidPayload(f"Could not parse draft: `{e}`") from e
 
         elif subtype == "variable":
-            if fid is None:
-                return {
-                    "success": False,
-                    "errormsg": "Variable has to have a name for it to be registered",
-                }
             logging.debug(f"Data set by the variable: {data}")
 
             try:
@@ -530,26 +520,18 @@ class ApiFormalizationStore(Resource):
                     value=data.get("value"),
                     order=int(data["temp_id"]),
                 )
-            except ValueError as e:
-                return {"success": False, "errormsg": str(e)}
-            try:
                 var.set_type(data["type"])
             except ValueError as e:
-                return {"success": False, "errormsg": str(e)}
-            requirement.add_formalization_with_id(
-                var,
-                int(data["temp_id"]),
-            )
+                raise InvalidPayload(str(e)) from e
 
-            success, errormsg, _ = variable_collection.create_enum_variable(
+            # The id of a variable is its own, assigned client side; the `fid` path segment is only a hint.
+            requirement.add_formalization_with_id(var, int(data["temp_id"]))
+
+            success, errormsg, _ = ctx.variable_collection.create_enum_variable(
                 data["name"], data["type"], data.get("enumerators", [])
             )
             if not success:
-                error = True
-                error_msg = errormsg
-        if error:
-            logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
-            return {"success": False, "errormsg": error_msg}
+                raise InvalidPayload(errormsg)
 
         current_app.db.update()
         return {"success": True}
@@ -571,22 +553,19 @@ class ApiFormalizationStore(Resource):
     @api_ns.response(400, "Bad Request", ErrorMessageModel)
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
+    @subtype_errors_to_response
     def patch(self, rid, subtype, fid):
         data = json.loads(request.form.get("data", "{}"))
         if not data:
-            return {"success": False, "errormsg": "No data provided."}, 400
+            raise InvalidPayload("No data provided.")
 
-        requirement = current_app.db.get_object(Requirement, rid)
+        ctx = SubtypeContext.load(rid)
+        requirement = ctx.requirement
 
         if subtype == "formalization":
             formalization = requirement.formalizations.get(int(fid))
             if not formalization or not isinstance(formalization, Formalization):
-                return {"success": False, "errormsg": "Formalization not found."}, 404
-
-            variable_collection = VariableCollection(
-                current_app.db.get_objects(Variable).values(),
-                current_app.db.get_objects(Requirement).values(),
-            )
+                raise SubtypeNotFound("Formalization not found.")
 
             merged_scope = data.get("scope", formalization.scoped_pattern.scope.name)
             merged_pattern = data.get("pattern", formalization.scoped_pattern.pattern.get_name())
@@ -601,32 +580,26 @@ class ApiFormalizationStore(Resource):
                     merged_scope,
                     merged_pattern,
                     merged_mapping,
-                    variable_collection,
-                    SessionValue.get_standard_tags(current_app.db),
+                    ctx.variable_collection,
+                    ctx.standard_tags,
                 )
-                for v in variable_collection.new_vars:
+                for v in ctx.variable_collection.new_vars:
                     current_app.db.add_object(v)
             except KeyError as e:
-                return {
-                    "success": False,
-                    "errormsg": f"Could not update formalization: {e}",
-                }, 400
+                raise InvalidPayload(f"Could not update formalization: {e}") from e
             except Exception as e:
-                return {
-                    "success": False,
-                    "errormsg": f"Could not parse formalization: `{e}`",
-                }, 400
+                raise InvalidPayload(f"Could not parse formalization: `{e}`") from e
 
         elif subtype == "variable":
             variable = requirement.formalizations.get(int(fid))
             if not variable or not isinstance(variable, Variable):
-                return {"success": False, "errormsg": "Variable not found."}, 404
+                raise SubtypeNotFound("Variable not found.")
 
             if "name" in data:
                 try:
                     variable.set_name(data["name"])
                 except ValueError as e:
-                    return {"success": False, "errormsg": str(e)}, 400
+                    raise InvalidPayload(str(e)) from e
             if "type" in data:
                 variable.type = data["type"]
             if "value" in data:
@@ -635,15 +608,11 @@ class ApiFormalizationStore(Resource):
                 variable.order = int(data["order"])
 
             if "enumerators" in data:
-                variable_collection = VariableCollection(
-                    current_app.db.get_objects(Variable).values(),
-                    current_app.db.get_objects(Requirement).values(),
-                )
-                success, errormsg, _ = variable_collection.create_enum_variable(
+                success, errormsg, _ = ctx.variable_collection.create_enum_variable(
                     variable.name, variable.type, data["enumerators"]
                 )
                 if not success:
-                    return {"success": False, "errormsg": errormsg}, 400
+                    raise InvalidPayload(errormsg)
 
         current_app.db.update()
         add_msg_to_flask_session_log(
@@ -670,25 +639,19 @@ class ApiFormalizationStore(Resource):
     @api_ns.response(400, "Bad Request", ErrorMessageModel)
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
+    @subtype_errors_to_response
     def put(self, rid, subtype, fid):
         data = json.loads(request.form.get("data", "{}"))
-        requirement = current_app.db.get_object(Requirement, rid)
+        ctx = SubtypeContext.load(rid)
+        requirement = ctx.requirement
 
         if subtype == "formalization":
             if "scope" not in data or "pattern" not in data or "expression_mapping" not in data:
-                return {
-                    "success": False,
-                    "errormsg": "scope, pattern, and expression_mapping are required",
-                }, 400
+                raise InvalidPayload("scope, pattern, and expression_mapping are required")
 
             formalization = requirement.formalizations.get(int(fid))
             if not formalization or not isinstance(formalization, Formalization):
-                return {"success": False, "errormsg": "Formalization not found."}, 404
-
-            variable_collection = VariableCollection(
-                current_app.db.get_objects(Variable).values(),
-                current_app.db.get_objects(Requirement).values(),
-            )
+                raise SubtypeNotFound("Formalization not found.")
 
             try:
                 requirement.update_formalization(
@@ -696,48 +659,38 @@ class ApiFormalizationStore(Resource):
                     data["scope"],
                     data["pattern"],
                     data["expression_mapping"],
-                    variable_collection,
-                    SessionValue.get_standard_tags(current_app.db),
+                    ctx.variable_collection,
+                    ctx.standard_tags,
                 )
-                for v in variable_collection.new_vars:
+                for v in ctx.variable_collection.new_vars:
                     current_app.db.add_object(v)
             except KeyError as e:
-                return {
-                    "success": False,
-                    "errormsg": f"Could not update formalization: {e}",
-                }, 400
+                raise InvalidPayload(f"Could not update formalization: {e}") from e
             except Exception as e:
-                return {
-                    "success": False,
-                    "errormsg": f"Could not parse formalization: `{e}`",
-                }, 400
+                raise InvalidPayload(f"Could not parse formalization: `{e}`") from e
 
         elif subtype == "variable":
             if "name" not in data or "type" not in data:
-                return {"success": False, "errormsg": "name and type are required"}, 400
+                raise InvalidPayload("name and type are required")
 
             variable = requirement.formalizations.get(int(fid))
             if not variable or not isinstance(variable, Variable):
-                return {"success": False, "errormsg": "Variable not found."}, 404
+                raise SubtypeNotFound("Variable not found.")
 
             try:
                 variable.set_name(data["name"])
             except ValueError as e:
-                return {"success": False, "errormsg": str(e)}, 400
+                raise InvalidPayload(str(e)) from e
             variable.type = data["type"]
             variable.value = data.get("value", "")
             variable.order = int(data.get("order", 0))
 
             if "enumerators" in data:
-                variable_collection = VariableCollection(
-                    current_app.db.get_objects(Variable).values(),
-                    current_app.db.get_objects(Requirement).values(),
-                )
-                success, errormsg, _ = variable_collection.create_enum_variable(
+                success, errormsg, _ = ctx.variable_collection.create_enum_variable(
                     variable.name, variable.type, data["enumerators"]
                 )
                 if not success:
-                    return {"success": False, "errormsg": errormsg}, 400
+                    raise InvalidPayload(errormsg)
 
         current_app.db.update()
         add_msg_to_flask_session_log(
