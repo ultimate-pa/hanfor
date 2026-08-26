@@ -4,11 +4,11 @@ import json
 import logging
 import re
 import string
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from threading import Lock
 
-from typing import Any, Dict, Iterable, Protocol, Union, runtime_checkable, TYPE_CHECKING
+from typing import Any, ClassVar, Dict, Iterable, Literal, Union, TYPE_CHECKING
 from uuid import uuid4
 
 from lark import LarkError
@@ -56,17 +56,26 @@ class Tag:
         return hash(self.uuid)
 
 
-@runtime_checkable
-class FormalizationProtocol(Protocol):
+FormalizationType = Literal["formalization", "variable"]
+
+
+class RequirementElement(ABC):
+    """Anything that can live in `Requirement.formalizations`"""
     order: int
 
+    # whether this subtype belongs in the CSV formalization column.
+    # `ClassVar`` for this to later be notice by static type checks.
+    exports_to_csv: ClassVar[bool] = False
+
+    @abstractmethod
+    def of_type(self) -> FormalizationType:
+        """The subtype token used in URLs, in JSON and by the frontend renderer"""
+
+    @abstractmethod
     def to_dict(self, **kwargs) -> Dict[str, Any]: ...
+
+    @abstractmethod
     def get_string(self) -> str: ...
-
-
-class BaseFormalization(ABC):
-    def of_type(self) -> str:
-        return self.__class__.__name__.lower()
 
 
 @DatabaseTable(TableType.Folder)
@@ -91,7 +100,7 @@ class Requirement:
         pos_in_csv: int,
     ):
         self.rid: str = rid
-        self.formalizations: dict[int, FormalizationProtocol] = dict()
+        self.formalizations: dict[int, RequirementElement] = dict()
         self.description = description
         self.type_in_csv = type_in_csv
         self.csv_row = csv_row
@@ -102,7 +111,7 @@ class Requirement:
         self._next_formalization_index: int = -1
         self._formalization_index_mutex: Lock = Lock()
 
-    def add_formalization_with_id(self, formalization: FormalizationProtocol, fid: int):
+    def add_formalization_with_id(self, formalization: RequirementElement, fid: int):
         self.formalizations[fid] = formalization
 
     def to_dict(self, include_used_vars=False):
@@ -342,17 +351,19 @@ class Requirement:
     def get_formalizations_json(self) -> str:
         """Fetch all formalizations in json format. Used to reload formalizations.
 
+        Only elements of type `formalization` are included: this feeds the CSV formalization column, and
+        `RequirementCollection.parse_csv_rows_into_requirements` reads it back as `Formalization` objects.
+        The other subtypes have no representation there.
+
         Returns:
             str: The json formatted version of the formalizations.
 
         """
-        # TODO: This now fetches variables and failes due to them not having scoped_pattern
-        # but being formalizations
         result = dict()
-        for key, formalization in self.formalizations.items():
-            if formalization.scoped_pattern is None:
+        for key, element in self.formalizations.items():
+            if not element.exports_to_csv:
                 continue
-            result[str(key)] = formalization.to_dict()
+            result[str(key)] = element.to_dict()
 
         return json.dumps(result, sort_keys=True)
 
@@ -381,7 +392,9 @@ class Requirement:
 @DatabaseField("expressions_mapping", dict)
 @DatabaseField("type_inference_errors", dict)
 @DatabaseField("is_constraint", bool, default=False)
-class Formalization(BaseFormalization):
+class Formalization(RequirementElement):
+    exports_to_csv = True
+
     def __init__(self, fid: int):
         self.id: int = fid
         self.order: int = 0
@@ -389,6 +402,9 @@ class Formalization(BaseFormalization):
         self.expressions_mapping: dict[str, Expression] = dict()
         self.type_inference_errors = dict()
         self.is_constraint: bool = False
+
+    def of_type(self) -> FormalizationType:
+        return "formalization"
 
     @property
     def used_variables(self):
@@ -665,8 +681,11 @@ class ScopedPattern:
 @DatabaseField("belongs_to_enum", str)
 @DatabaseField("constraints", dict)
 @DatabaseField("description", str)
-class Variable(BaseFormalization):
+class Variable(RequirementElement):
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
+
+    def of_type(self) -> FormalizationType:
+        return "variable"
 
     def __init__(self, name: str, var_type: str | None, value: str | None = None, order: int = 0):
         self.set_name(name)
