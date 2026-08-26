@@ -362,32 +362,11 @@ class ApiFormalizations(Resource):
         for idx, formalization in requirement.formalizations.items():
             if subtype and formalization.of_type() != subtype:
                 continue
-            formalization_repr = formalization.to_dict()
+            formalization_repr = formalization.to_dict(var_collection=var_collection)
             formalization_repr["formalization_type"] = formalization.of_type()
             formalization_repr["id"] = idx
             formalization_repr["text"] = formalization.get_string()
-            if isinstance(formalization, Formalization):
-                formalization_repr["is_constraint"] = getattr(formalization, "is_constraint", False)
-            if formalization.of_type() == "variable":
-                constraint_refs = var_collection._constraints.get(formalization.name, [])
-                formalization_repr["constraint_refs"] = [
-                    {
-                        "usage_key": c.usage_key,
-                        "owner_type": c.owner_type,
-                        "owner_id": c.owner_id,
-                        "pattern_text": c.formalization.get_string(),
-                    }
-                    for c in constraint_refs
-                ]
-                if formalization.type in ("ENUM_INT", "ENUM_REAL"):
-                    enums = var_collection.get_enumerators(formalization.name)
-                    formalization_repr["enumerators"] = [
-                        {
-                            "name": e.name[len(formalization.name) + 1 :],
-                            "value": e.value,
-                        }
-                        for e in enums
-                    ]
+            formalization_repr["is_constraint"] = formalization.is_constraint
 
             result.append(formalization_repr)
         return result
@@ -438,16 +417,10 @@ class ApiFormalizationResource(Resource):
             current_app.db.get_objects(Variable).values(),
             current_app.db.get_objects(Requirement).values(),
         )
-        result = formalization.to_dict()
+        result = formalization.to_dict(var_collection=var_collection)
         result["formalization_type"] = formalization.of_type()
         result["id"] = int(fid)
         result["text"] = formalization.get_string()
-        if formalization.of_type() == "variable" and formalization.type in (
-            "ENUM_INT",
-            "ENUM_REAL",
-        ):
-            enums = var_collection.get_enumerators(formalization.name)
-            result["enumerators"] = [{"name": e.name[len(formalization.name) + 1 :], "value": e.value} for e in enums]
         return result
 
     @api_ns.doc(

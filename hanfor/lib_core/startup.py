@@ -642,17 +642,7 @@ class GenerateScopedPatternTrainingData(argparse.Action):
                         result[slug] = dict()
                         result[slug]["desc"] = requirement.description
                         for index, formalization in requirement.formalizations.items():
-                            if formalization.scoped_pattern is None:
-                                continue
-                            if formalization.scoped_pattern.get_scope_slug().lower() == "none":
-                                continue
-                            if formalization.scoped_pattern.get_pattern_slug() in [
-                                "NotFormalizable",
-                                "None",
-                            ]:
-                                continue
-                            if len(formalization.get_string()) == 0:
-                                # formalization string is empty if expressions are missing or none set. Ignore in output
+                            if not formalization.is_exportable():
                                 continue
                             f_key = "formalization_{}".format(index)
                             result[slug][f_key] = dict()

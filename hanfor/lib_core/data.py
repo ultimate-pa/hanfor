@@ -63,6 +63,8 @@ class RequirementElement(ABC):
     """Anything that can live in `Requirement.formalizations`"""
     order: int
 
+    is_constraint: bool = False
+
     # whether this subtype belongs in the CSV formalization column.
     # `ClassVar`` for this to later be notice by static type checks.
     exports_to_csv: ClassVar[bool] = False
@@ -76,6 +78,35 @@ class RequirementElement(ABC):
 
     @abstractmethod
     def get_string(self) -> str: ...
+
+    def is_exportable(self) -> bool:
+        """
+        Helps determine how to export to .req file. The goal is to remove the try/except chains
+
+        Subtypes with no .req representation keep the `False` default
+        """
+        return False
+
+    def used_variable_names(self) -> set[str]:
+        """
+        Names of the variables this element references.
+
+        Subtypes referencing none keep the default
+        """
+        return set()
+
+    def type_inference_error_keys(self) -> list[str]:
+        """Lower cased keys of this element`s type inference errors, empty when it has none"""
+        return []
+
+    def run_type_inference(self, variable_collection, unknown_types: list[str]) -> tuple[dict, list[str]]:
+        """
+        Run type inference, returning this element`s errors and the accumulated unknown typed names.
+
+        Subtypes that take no part in type inference keep the default and pass `unknown_types` through
+        untouched
+        """
+        return {}, unknown_types
 
 
 @DatabaseTable(TableType.Folder)
@@ -117,13 +148,12 @@ class Requirement:
     def to_dict(self, include_used_vars=False):
         type_inference_errors = dict()
         used_variables = set()
-        for index, f in self.formalizations.items():
-            if isinstance(f, Formalization):
-                if f.type_inference_errors:
-                    type_inference_errors[index] = [key.lower() for key in f.type_inference_errors.keys()]
-                if include_used_vars:
-                    for name in f.used_variables:
-                        used_variables.add(name)
+        for index, element in self.formalizations.items():
+            error_keys = element.type_inference_error_keys()
+            if error_keys:
+                type_inference_errors[index] = error_keys
+            if include_used_vars:
+                used_variables |= element.used_variable_names()
 
         d = {
             "id": self.rid,
@@ -216,11 +246,8 @@ class Requirement:
         del self.formalizations[formalization_id]
         # Collect remaining vars.
         remaining_vars = set()
-        for formalization in self.formalizations.values():
-            if isinstance(formalization, Formalization):
-                for expression in formalization.expressions_mapping.values():
-                    if expression.used_variables is not None:
-                        remaining_vars = remaining_vars.union(expression.used_variables)
+        for element in self.formalizations.values():
+            remaining_vars |= element.used_variable_names()
 
         # Update the mappings.
         variable_collection.req_var_mapping[self.rid] = remaining_vars
@@ -331,20 +358,10 @@ class Requirement:
         if standard_tags["TAG_unknown_type"] in self.tags:
             self.tags.pop(standard_tags["TAG_unknown_type"])
         vars_with_unknown_type = []
-        for fid in self.formalizations.keys():
-            # Run type inference check
-            if not isinstance(self.formalizations[fid], Formalization):
-                continue
-            self.formalizations[fid].type_inference_check(var_collection)
-            if len(self.formalizations[fid].type_inference_errors) > 0:
-                self.tags[standard_tags["TAG_Type_inference_error"]] = self.format_error_tag(
-                    self.formalizations[fid], standard_tags
-                )
-
-            # Check for variables of type 'unknown' in formalization
-            vars_with_unknown_type = self.formalizations[fid].unknown_types_check(
-                var_collection, vars_with_unknown_type
-            )
+        for element in self.formalizations.values():
+            errors, vars_with_unknown_type = element.run_type_inference(var_collection, vars_with_unknown_type)
+            if errors:
+                self.tags[standard_tags["TAG_Type_inference_error"]] = self.format_error_tag(element, standard_tags)
             if vars_with_unknown_type:
                 self.tags[standard_tags["TAG_unknown_type"]] = self.format_unknown_type_tag(vars_with_unknown_type)
 
@@ -374,8 +391,8 @@ class Requirement:
         :return: True if var_name occurs at least once.
         """
         result = False
-        for formalization in self.formalizations.values():  # type: Formalization
-            if isinstance(formalization, Formalization) and var_name in formalization.used_variables:
+        for element in self.formalizations.values():
+            if var_name in element.used_variable_names():
                 result = True
                 break
         return result
@@ -506,7 +523,7 @@ class Formalization(RequirementElement):
                     unknowns.append(var)
         return unknowns
 
-    def to_dict(self):
+    def to_dict(self, **kwargs):
         d = {
             "id": self.id,
             "order": self.order,
@@ -522,6 +539,30 @@ class Formalization(RequirementElement):
 
     def get_string(self):
         return self.scoped_pattern.get_string(self.expressions_mapping)
+
+    def used_variable_names(self) -> set[str]:
+        names = set()
+        for expression in self.expressions_mapping.values():
+            if expression.used_variables is not None:
+                names.update(expression.used_variables)
+        return names
+
+    def type_inference_error_keys(self) -> list[str]:
+        return [key.lower() for key in self.type_inference_errors.keys()]
+
+    def run_type_inference(self, variable_collection, unknown_types: list[str]) -> tuple[dict, list[str]]:
+        self.type_inference_check(variable_collection)
+        return self.type_inference_errors, self.unknown_types_check(variable_collection, unknown_types)
+
+    def is_exportable(self) -> bool:
+        if self.scoped_pattern is None:
+            return False
+        if self.scoped_pattern.get_scope_slug().lower() == "none":
+            return False
+        if self.scoped_pattern.get_pattern_slug() in ["NotFormalizable", "None"]:
+            return False
+        # Empty if expressions are missing or none set.
+        return len(self.get_string()) > 0
 
     def __repr__(self):
         return f"<{self.__class__.__name__} rid={self.id}: {self.scoped_pattern}>"
@@ -719,6 +760,24 @@ class Variable(RequirementElement):
             "script_results": self.script_results,
             "belongs_to_enum": self.belongs_to_enum,
         }
+
+        # Only the API passes a collection; it holds the cross variable data a Variable cannot see alone.
+        var_collection = kwargs.get("var_collection")
+        if var_collection is not None:
+            d["constraint_refs"] = [
+                {
+                    "usage_key": c.usage_key,
+                    "owner_type": c.owner_type,
+                    "owner_id": c.owner_id,
+                    "pattern_text": c.formalization.get_string(),
+                }
+                for c in var_collection._constraints.get(self.name, [])
+            ]
+            if self.type in ("ENUM_INT", "ENUM_REAL"):
+                d["enumerators"] = [
+                    {"name": e.name[len(self.name) + 1 :], "value": e.value}
+                    for e in var_collection.get_enumerators(self.name)
+                ]
 
         return d
 
@@ -1132,10 +1191,9 @@ class VariableCollection:
 
     def _build_all(self, requirements: Iterable[Requirement]):
         for req in requirements:
-            for formalization in req.formalizations.values():
-                if isinstance(formalization, Formalization):
-                    for var_name in formalization.used_variables:
-                        self.var_req_mapping.setdefault(var_name, set()).add(req.rid)
+            for element in req.formalizations.values():
+                for var_name in element.used_variable_names():
+                    self.var_req_mapping.setdefault(var_name, set()).add(req.rid)
 
         # _constraints: per-variable iteration. For each variable, build the list
         # of all constraints that touch it
@@ -1144,11 +1202,7 @@ class VariableCollection:
             # Requirement-owned
             for req in requirements:
                 for fid, form in req.formalizations.items():
-                    if (
-                        isinstance(form, Formalization)
-                        and getattr(form, "is_constraint", False)
-                        and var.name in form.used_variables
-                    ):
+                    if form.is_constraint and var.name in form.used_variable_names():
                         refs.append(ConstraintReference(f"{req.rid}:{fid}", "requirement", req.rid, form))
             # Variable-owned
             for cid, form in var.constraints.items():

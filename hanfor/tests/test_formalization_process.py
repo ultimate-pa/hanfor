@@ -431,3 +431,50 @@ class TestFormalizationProcess(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
         success = self.mock_hanfor.startup_hanfor("simple_hashcollision.csv", "simple", [1])
         self.assertTrue(success, "Startup procedure was not successful")
+
+
+class TestMixedFormalizationCollection(TestCase):
+    """A requirement holding both element subtypes at once.
+
+    No fixture session has a `Variable` inside `Requirement.formalizations`, so every consumer that walks
+    that dict was only ever exercised with `Formalization` objects.
+    """
+
+    def setUp(self) -> None:
+        self.mock_hanfor = MockHanfor(session_tags=["simple"], test_session_source="test_formalization_process")
+        self.mock_hanfor.set_up()
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+        self.mock_hanfor.app.post(
+            "api/v1/req/SysRS%20FooXY_42/formalizations/variable/9",
+            data={"data": json.dumps({"name": "mixedvar", "type": "bool", "temp_id": 9})},
+        )
+
+    def tearDown(self) -> None:
+        self.mock_hanfor.tear_down()
+
+    def test_requirement_serialises_with_both_subtypes(self):
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
+
+        self.assertEqual(200, result.status_code)
+        self.assertListEqual(["bar", "foo"], result.json["vars"])
+
+    def test_list_endpoint_returns_both_subtypes(self):
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42/formalizations")
+
+        self.assertEqual(200, result.status_code)
+        self.assertListEqual(["formalization", "variable"], sorted(e["formalization_type"] for e in result.json))
+        # Every element answers `is_constraint`, not just the ones that can carry a scoped pattern.
+        self.assertListEqual([False, False], [e["is_constraint"] for e in result.json])
+
+    def test_single_endpoint_returns_the_variable(self):
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42/formalizations/9")
+
+        self.assertEqual(200, result.status_code)
+        self.assertEqual("variable", result.json["formalization_type"])
+        self.assertEqual("mixedvar", result.json["name"])
+        self.assertListEqual([], result.json["constraint_refs"])
+
+    def test_subtype_filter_still_separates_them(self):
+        variables = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42/formalizations?subtype=variable")
+
+        self.assertListEqual(["variable"], [e["formalization_type"] for e in variables.json])

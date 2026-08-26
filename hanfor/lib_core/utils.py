@@ -233,22 +233,12 @@ def generate_req_file_content(
                 content_list.append(
                     "Input {} IS {}".format(var.name, boogie_parsing.BoogieType.reverse_alias(var.type).name)
                 )
-            try:
-                for index, constraint in var.constraints.items():
-                    if constraint.scoped_pattern is None:
-                        continue
-                    if constraint.scoped_pattern.get_scope_slug().lower() == "none":
-                        continue
-                    if constraint.scoped_pattern.get_pattern_slug() in ["NotFormalizable", "None"]:
-                        continue
-                    if len(constraint.get_string()) == 0:
-                        continue
-                    constraints_list.append(
-                        "Constraint_{}_{}: {}".format(re.sub(r"\s+", "_", var.name), index, constraint.get_string())
-                    )
-            except Exception:
-                # TODO: this is not a nice way to solve this
-                pass
+            for index, constraint in var.constraints.items():
+                if not constraint.is_exportable():
+                    continue
+                constraints_list.append(
+                    "Constraint_{}_{}: {}".format(re.sub(r"\s+", "_", var.name), index, constraint.get_string())
+                )
     content_list.sort()
     constants_list.sort()
     constraints_list.sort()
@@ -266,22 +256,12 @@ def generate_req_file_content(
     # parse requirement formalizations.
     if not variables_only:
         used_identifiers = set()
-        for requirement in requirements:  # type: Requirement
-            try:
-                for index, formalization in requirement.formalizations.items():
-                    identifier = clean_identifier_for_ultimate_parser(requirement.rid, index, used_identifiers)
-                    if formalization.scoped_pattern is None:
-                        continue
-                    if formalization.scoped_pattern.get_scope_slug().lower() == "none":
-                        continue
-                    if formalization.scoped_pattern.get_pattern_slug() in ["NotFormalizable", "None"]:
-                        continue
-                    if len(formalization.get_string()) == 0:
-                        # Formalization string is empty if expressions are missing or none set. Ignore in output
-                        continue
-                    content += "{}: {}\n".format(identifier, formalization.get_string())
-            except AttributeError:
-                continue
+        for requirement in requirements:
+            for index, formalization in requirement.formalizations.items():
+                identifier = clean_identifier_for_ultimate_parser(requirement.rid, index, used_identifiers)
+                if not formalization.is_exportable():
+                    continue
+                content += "{}: {}\n".format(identifier, formalization.get_string())
     content += "\n"
 
     return content
