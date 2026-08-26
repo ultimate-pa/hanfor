@@ -1,4 +1,3 @@
-import datetime
 import json
 import logging
 
@@ -24,7 +23,6 @@ from lib_core.boogie_parsing import BoogieType
 from lib_core.data import (
     Formalization,
     Requirement,
-    RequirementEditHistory,
     SessionValue,
     Tag,
     Variable,
@@ -33,6 +31,7 @@ from lib_core.data import (
 from lib_core.pattern import APattern
 from lib_core.pattern.patterns_functions import VARIABLE_AUTOCOMPLETE_EXTENSION
 from lib_core.utils import (
+    add_msg_to_flask_session_log,
     default_scope_options,
     formalization_html,
     get_default_pattern_options,
@@ -981,13 +980,3 @@ def get_datatable_additional_cols(app: HanforFlask):  # TODO nach requirements
     return {"col_defs": result}
 
 
-def add_msg_to_flask_session_log(
-    app: HanforFlask, message: str, req_list: list[Requirement] = None
-) -> None:  # TODO nach requirements
-    """Add a log message for the frontend_logs.
-
-    :param req_list: A list of affected requirements
-    :param app: The flask app
-    :param message: Log message string
-    """
-    app.db.add_object(RequirementEditHistory(datetime.datetime.now(), message, req_list))

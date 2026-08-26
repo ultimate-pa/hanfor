@@ -1,3 +1,4 @@
+import datetime
 import functools
 import html
 import json
@@ -15,7 +16,7 @@ from flask import request, Response
 from lib_core import boogie_parsing
 from config import PATTERNS_GROUP_ORDER  # TODO should this be in the config?
 from hanfor_flask import HanforFlask
-from lib_core.data import Requirement, VariableCollection, Variable
+from lib_core.data import Requirement, RequirementEditHistory, VariableCollection, Variable
 from lib_core.pattern.patterns_basic import APattern
 
 default_scope_options = """
@@ -418,3 +419,13 @@ def log_request_response(cls):
 
     cls.dispatch_request = wrapper
     return cls
+
+
+def add_msg_to_flask_session_log(app: HanforFlask, message: str, req_list: list[Requirement] = None) -> None:
+    """Add a log message for the frontend_logs.
+
+    :param req_list: A list of affected requirements
+    :param app: The flask app
+    :param message: Log message string
+    """
+    app.db.add_object(RequirementEditHistory(datetime.datetime.now(), message, req_list))
