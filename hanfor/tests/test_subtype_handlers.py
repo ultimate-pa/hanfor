@@ -167,3 +167,19 @@ class TestSubtypeHandlers(TestCase):
         collection = self.ctx.variable_collection.collection
         self.assertNotIn("fresh", collection)
         self.assertIs(self.ctx.requirement.formalizations[9], collection["renamed"])
+
+    def test_patch_carries_the_enumerators_through_a_rename(self):
+        """A plain `set_name` renamed the enum alone, leaving `<old>_<variant>` under a dead enum."""
+        self.variables.create(
+            self.ctx,
+            "9",
+            {"name": "myenum", "type": "ENUM_INT", "temp_id": 9, "enumerators": [["A", "1"], ["B", "2"]]},
+        )
+
+        self.variables.patch(self.ctx, "9", {"name": "renamed"})
+
+        variables = {v.name: v for v in current_app.db.get_objects(Variable).values()}
+        self.assertNotIn("myenum_A", variables)
+        self.assertNotIn("myenum_B", variables)
+        self.assertEqual("renamed", variables["renamed_A"].belongs_to_enum)
+        self.assertEqual("renamed", variables["renamed_B"].belongs_to_enum)

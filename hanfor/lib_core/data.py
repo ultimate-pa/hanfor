@@ -95,6 +95,20 @@ class RequirementElement(ABC):
         """
         return set()
 
+    def rename_used_variable(self, old_name: str, new_name: str) -> None:
+        """Rewrite this elements references to `old_name`.
+
+        A variable rename has to reach every expression that names it, or the expression outlives the
+        name and reads as undefined. Subtypes referencing no variables keep the default.
+        """
+
+    def is_pattern_based(self) -> bool:
+        """
+        Whether this element expresses itself as a scoped pattern over expressions. Helps to avoid using
+        `is_instance` checks
+        """
+        return False
+
     def type_inference_error_keys(self) -> list[str]:
         """Lower cased keys of this element`s type inference errors, empty when it has none"""
         return []
@@ -494,19 +508,26 @@ class Formalization(RequirementElement):
             # Add type error if a variable is used in a timing expression
             if allowed_types[key] != [BoogieType.bool]:
                 for var in expression.used_variables:
-                    if variable_collection.collection[var].type != "CONST":
+                    variable = variable_collection.collection.get(var)
+                    if variable is None:
+                        continue
+                    if variable.type != "CONST":
                         type_errors.append(f"Variable '{var}' used in time bound.")
 
             for name, var_type in type_env.items():  # Update the hanfor variable types.
-                if variable_collection.collection[name].type and variable_collection.collection[name].type.lower() in [
+                variable = variable_collection.collection.get(name)
+                if variable is None:
+                    type_errors.append(f"Variable `{name}` is not defined.")
+                    continue
+                if variable.type and variable.type.lower() in [
                     "const",
                     "enum",
                 ]:
                     continue
-                if variable_collection.collection[name].type not in boogie_parsing.BoogieType.aliases(var_type):
+                if variable.type not in boogie_parsing.BoogieType.aliases(var_type):
                     logging.info(
                         f"Update variable `{name}` with derived type. "
-                        f"Old: `{variable_collection.collection[name].type}` => New: `{var_type.name}`."
+                        f"Old: `{variable.type}` => New: `{var_type.name}`."
                     )
                     variable_collection.set_type(name, var_type.name)
             if type_errors:
@@ -546,6 +567,19 @@ class Formalization(RequirementElement):
             if expression.used_variables is not None:
                 names.update(expression.used_variables)
         return names
+
+    def is_pattern_based(self) -> bool:
+        return True
+
+    def rename_used_variable(self, old_name: str, new_name: str) -> None:
+        for expression in self.expressions_mapping.values():
+            if old_name not in expression.raw_expression:
+                continue
+            expression.raw_expression = boogie_parsing.replace_var_in_expression(
+                expression=expression.raw_expression, old_var=old_name, new_var=new_name
+            )
+            expression.used_variables.discard(old_name)
+            expression.used_variables.add(new_name)
 
     def type_inference_error_keys(self) -> list[str]:
         return [key.lower() for key in self.type_inference_errors.keys()]
@@ -1171,7 +1205,13 @@ class VariableCollection:
         self.collection[name].set_type(new_type)
 
     def get_type(self, name):
-        return self.collection[name].type
+        """The type of `name`, or `unknown` when nothing answers to that name.
+
+        An expression can outlive the variable it mentions, for instance a rename that did not reach it.
+        Such a name has no type, which is what `unknown` says, so callers see it instead of a `KeyError`.
+        """
+        variable = self.collection.get(name)
+        return variable.type if variable is not None else boogie_parsing.BoogieType.unknown.name
 
     def add_new_constraint(self, var_name):
         """Add a new empty constraint to var_name variable.

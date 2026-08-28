@@ -31,6 +31,7 @@ from lib_core.pattern import APattern
 from lib_core.pattern.patterns_functions import VARIABLE_AUTOCOMPLETE_EXTENSION
 from lib_core.utils import (
     add_msg_to_flask_session_log,
+    rename_variable_everywhere,
     default_scope_options,
     formalization_html,
     get_default_pattern_options,
@@ -227,6 +228,7 @@ class ApiRequirementSingle(Resource):
             current_app, f"Updated description for requirement", [requirement]
         )
 
+    # TODO: This probably can also be refactored better
     @staticmethod
     def _update_formalizations(requirement):
         if request.form.get("update_formalization") != "true":
@@ -295,11 +297,11 @@ class ApiRequirementSingle(Resource):
                 if isinstance(var, Variable):
                     old_name = var.name
                     if old_name != var_name:
-                        if variable_collection.var_name_exists(old_name):
-                            variable_collection.collection[var_name] = variable_collection.collection.pop(old_name)
+                        if variable_collection.var_name_exists(var_name):
+                            return True, f"A variable named `{var_name}` already exists."
                         try:
-                            var.set_name(var_name)
-                        except ValueError as e:
+                            rename_variable_everywhere(current_app, variable_collection, old_name, var_name)
+                        except (KeyError, ValueError) as e:
                             return True, str(e)
                     try:
                         var.set_type(var_type)

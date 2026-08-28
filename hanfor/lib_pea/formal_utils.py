@@ -40,6 +40,8 @@ def get_semantics_from_requirement(
     dc_formulas = dict()
     variables = {k: v.type for k, v in var_collection.collection.items()}
     for formalization in requirement.formalizations.values():
+        if not formalization.is_pattern_based():
+            continue
         if not formalization.scoped_pattern.is_instantiatable():
             continue
         if has_variable_with_unknown_type(formalization, variables) or formalization.type_inference_errors:
@@ -48,7 +50,12 @@ def get_semantics_from_requirement(
         scope = formalization.scoped_pattern.scope.name
         pattern = formalization.scoped_pattern.get_patternish()
 
-        other_formalisations = [f for r in requirements for f in r.formalizations.values() if f is not formalization]
+        other_formalisations = [
+            f
+            for r in requirements
+            for f in r.formalizations.values()
+            if f is not formalization and f.is_pattern_based()
+        ]
         for i, ct in enumerate(
             pattern.get_instanciated_countertraces(smt_env, scope, formalization, other_formalisations, var_collection)
         ):

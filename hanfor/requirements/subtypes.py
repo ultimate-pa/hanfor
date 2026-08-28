@@ -15,6 +15,7 @@ from lib_core.data import (
     Variable,
     VariableCollection,
 )
+from lib_core.utils import rename_variable_everywhere
 from requirements.desc_highlighting import new_variables_regenerate_highlighting
 
 
@@ -240,13 +241,10 @@ class VariableHandler(SubtypeHandler[Variable]):
         if ctx.variable_collection.var_name_exists(new_name):
             raise InvalidPayload(f"A variable named `{new_name}` already exists.")
 
-        old_name = variable.name
         try:
-            variable.set_name(new_name)
-        except ValueError as e:
+            rename_variable_everywhere(current_app, ctx.variable_collection, variable.name, new_name)
+        except (KeyError, ValueError) as e:
             raise InvalidPayload(str(e)) from e
-        ctx.variable_collection.collection.pop(old_name, None)
-        ctx.variable_collection.collection[new_name] = variable
 
     @staticmethod
     def _apply_enumerators(ctx: "SubtypeContext", name: str, var_type: str, enumerators: list) -> None:

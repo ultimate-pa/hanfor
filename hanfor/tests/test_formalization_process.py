@@ -1,7 +1,10 @@
 import json
+import os
+
+from collections import defaultdict
 
 from app import app
-from lib_core.data import Requirement
+from lib_core.data import Requirement, Tag, Variable, VariableCollection
 from tests.mock_hanfor import MockHanfor
 from unittest import TestCase
 
@@ -595,3 +598,135 @@ class TestSubtypeErrorStatuses(TestCase):
 
         self.assertEqual(200, result.status_code)
         self.assertTrue(result.json["success"])
+
+
+RID = "SysRS FooXY_42"
+
+
+class TestVariableRename(TestCase):
+    """Renaming a variable from the requirement modal, the path through `_update_formalizations`."""
+
+    def setUp(self) -> None:
+        self.mock_hanfor = MockHanfor(session_tags=["simple"], test_session_source="test_formalization_process")
+        self.mock_hanfor.set_up()
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+    def tearDown(self) -> None:
+        self.mock_hanfor.tear_down()
+
+    def variable_names(self) -> list[str]:
+        with app.app_context():
+            return sorted(v.name for v in app.db.get_objects(Variable).values())
+
+    def variable_names_on_disk(self) -> list[str]:
+        """What was actually written, which is the only thing that survives the request.
+
+        A failed save still leaves the in-memory objects mutated, so `variable_names` alone cannot tell a
+        persisted rename from one that a 500 threw away.
+        """
+        folder = os.path.join(app.config["SESSION_BASE_FOLDER"], "simple", "revision_0", "Variable")
+        return sorted(json.load(open(os.path.join(folder, f)))["name"] for f in os.listdir(folder))
+
+    def create(self, fid: str, data: dict) -> None:
+        subtype = "variable" if "temp_id" in data else "formalization"
+        self.mock_hanfor.app.post(
+            f"api/v1/req/{RID}/formalizations/{subtype}/{fid}", data={"id": RID, "data": json.dumps(data)}
+        )
+
+    def save(self, formalizations: dict):
+        return self.mock_hanfor.app.patch(
+            f"api/v1/req/{RID}",
+            data={
+                "row_idx": "0",
+                "update_formalization": "true",
+                "formalizations_order": "{}",
+                "tags": "{}",
+                "status": "Todo",
+                "formalizations": json.dumps(formalizations),
+            },
+        )
+
+    def test_renaming_a_used_variable_rewrites_the_expression(self):
+        """The rename used to leave the expression on the old name, which then 500ed the whole save."""
+        self.create("9", {"name": "myvar", "type": "bool", "temp_id": 9})
+        self.create("7", {"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "myvar"}})
+
+        result = self.save(
+            {
+                "9": {
+                    "id": "9",
+                    "formalization_type": "variable",
+                    "name": "renamed",
+                    "var_type": "bool",
+                    "const_val": "",
+                    "enumerators": [],
+                },
+            }
+        )
+
+        self.assertEqual(200, result.status_code)
+        formal = self.mock_hanfor.app.get(f"api/v1/req/{RID}").json["formal"]
+        self.assertIn('Globally, it is never the case that "renamed" holds', formal)
+        self.assertNotIn("myvar", self.variable_names())
+
+    def test_renaming_a_used_variable_persists(self):
+        """The 500 skipped `db.update()`, so the old variable survived with everything intact."""
+        self.create("9", {"name": "myvar", "type": "bool", "temp_id": 9})
+        self.create("7", {"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "myvar"}})
+
+        self.save(
+            {
+                "9": {
+                    "id": "9",
+                    "formalization_type": "variable",
+                    "name": "renamed",
+                    "var_type": "bool",
+                    "const_val": "",
+                    "enumerators": [],
+                },
+            }
+        )
+
+        self.assertIn("renamed", self.variable_names_on_disk())
+        self.assertNotIn("myvar", self.variable_names_on_disk())
+
+    def test_renaming_an_enum_rewrites_expressions_naming_its_enumerators(self):
+        enumerators = [["A", "1"], ["B", "2"]]
+        self.create("9", {"name": "myenum", "type": "ENUM_INT", "temp_id": 9, "enumerators": enumerators})
+        self.create("7", {"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "myenum_A"}})
+
+        self.save(
+            {
+                "9": {
+                    "id": "9",
+                    "formalization_type": "variable",
+                    "name": "renamed",
+                    "var_type": "ENUM_INT",
+                    "const_val": "",
+                    "enumerators": enumerators,
+                },
+            }
+        )
+
+        formal = self.mock_hanfor.app.get(f"api/v1/req/{RID}").json["formal"]
+        self.assertIn('Globally, it is never the case that "renamed_A" holds', formal)
+        self.assertNotIn("myenum_A", self.variable_names())
+
+
+class TestUndefinedVariableInExpression(TestCase):
+    """An expression can outlive the variable it names. That is an error to show, not one to crash on."""
+
+    def test_run_type_checks_reports_the_name_instead_of_raising(self):
+        req = Requirement("req1", "a requirement", "requirement", {}, 0)
+        fid, _ = req.add_empty_formalization()
+        collection = VariableCollection([], [req])
+        tags = defaultdict(lambda: Tag("test", "color", False, ""))
+        req.update_formalization(fid, "GLOBALLY", "Absence", {"R": "ghost"}, collection, tags)
+
+        # Parsing the expression created `ghost`; drop it, the way a rename that missed this expression did.
+        collection.collection.pop("ghost")
+
+        req.run_type_checks(collection, tags)
+
+        self.assertEqual(["r"], req.formalizations[fid].type_inference_error_keys())
+        self.assertIn("`ghost` is not defined", str(req.formalizations[fid].type_inference_errors))

@@ -421,6 +421,18 @@ def log_request_response(cls):
     return cls
 
 
+def rename_variable_everywhere(app: HanforFlask, collection: VariableCollection, old_name: str, new_name: str) -> None:
+    used_by = {name: set(rids) for name, rids in collection.var_req_mapping.items()}
+    affected_enumerators = collection.rename(old_name, new_name, app)
+
+    for renamed_from, renamed_to in [(old_name, new_name), *affected_enumerators]:
+        for rid in used_by.get(renamed_from, ()):
+            requirement = app.db.get_object(Requirement, rid)
+            for element in requirement.formalizations.values():
+                element.rename_used_variable(renamed_from, renamed_to)
+    app.db.update()
+
+
 def add_msg_to_flask_session_log(app: HanforFlask, message: str, req_list: list[Requirement] = None) -> None:
     """Add a log message for the frontend_logs.
 
