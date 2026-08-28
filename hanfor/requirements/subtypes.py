@@ -242,7 +242,7 @@ class VariableHandler(SubtypeHandler[Variable]):
             raise InvalidPayload(f"A variable named `{new_name}` already exists.")
 
         try:
-            rename_variable_everywhere(current_app, ctx.variable_collection, variable.name, new_name)
+            rename_variable_everywhere(ctx.variable_collection, variable.name, new_name)
         except (KeyError, ValueError) as e:
             raise InvalidPayload(str(e)) from e
 

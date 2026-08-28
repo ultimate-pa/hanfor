@@ -507,7 +507,7 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
 
             # renames the var, its enumerators and every expression naming any of them.
             try:
-                rename_variable_everywhere(app, var_collection, var_name_old, var_name)
+                rename_variable_everywhere(var_collection, var_name_old, var_name)
             except (KeyError, ValueError) as e:
                 result = {"success": False, "errormsg": str(e)}
                 return result

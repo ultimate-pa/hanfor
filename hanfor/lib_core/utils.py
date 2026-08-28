@@ -15,7 +15,7 @@ from flask import request, Response
 
 from lib_core import boogie_parsing
 from config import PATTERNS_GROUP_ORDER  # TODO should this be in the config?
-from hanfor_flask import HanforFlask
+from hanfor_flask import HanforFlask, current_app
 from lib_core.data import Requirement, RequirementEditHistory, VariableCollection, Variable
 from lib_core.pattern.patterns_basic import APattern
 
@@ -421,16 +421,16 @@ def log_request_response(cls):
     return cls
 
 
-def rename_variable_everywhere(app: HanforFlask, collection: VariableCollection, old_name: str, new_name: str) -> None:
+def rename_variable_everywhere(collection: VariableCollection, old_name: str, new_name: str) -> None:
     used_by = {name: set(rids) for name, rids in collection.var_req_mapping.items()}
-    affected_enumerators = collection.rename(old_name, new_name, app)
+    affected_enumerators = collection.rename(old_name, new_name, current_app)
 
     for renamed_from, renamed_to in [(old_name, new_name), *affected_enumerators]:
         for rid in used_by.get(renamed_from, ()):
-            requirement = app.db.get_object(Requirement, rid)
+            requirement = current_app.db.get_object(Requirement, rid)
             for element in requirement.formalizations.values():
                 element.rename_used_variable(renamed_from, renamed_to)
-    app.db.update()
+    current_app.db.update()
 
 
 def add_msg_to_flask_session_log(app: HanforFlask, message: str, req_list: list[Requirement] = None) -> None:

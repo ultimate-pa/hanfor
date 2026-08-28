@@ -300,7 +300,7 @@ class ApiRequirementSingle(Resource):
                         if variable_collection.var_name_exists(var_name):
                             return True, f"A variable named `{var_name}` already exists."
                         try:
-                            rename_variable_everywhere(current_app, variable_collection, old_name, var_name)
+                            rename_variable_everywhere(variable_collection, old_name, var_name)
                         except (KeyError, ValueError) as e:
                             return True, str(e)
                     try:
