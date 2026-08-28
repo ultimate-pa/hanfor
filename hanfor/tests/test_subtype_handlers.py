@@ -1,6 +1,8 @@
 from unittest import TestCase
 
 from app import app
+from hanfor_flask import current_app
+from lib_core.data import Variable
 from requirements.subtypes import (
     SUBTYPES,
     InvalidPayload,
@@ -126,3 +128,42 @@ class TestSubtypeHandlers(TestCase):
             self.formalizations.create(self.ctx, "7", {**FORMALIZATION, "pattern": None})
 
         self.assertDictEqual(before, self.ctx.requirement.formalizations)
+
+    def test_create_registers_an_enum_variable_exactly_once(self):
+        """`create_enum_variable` used to find the name free and build a second object under it, leaving both there"""
+        self.variables.create(
+            self.ctx,
+            "9",
+            {"name": "myenum", "type": "ENUM_INT", "temp_id": 9, "enumerators": [["A", "1"], ["B", "2"]]},
+        )
+
+        names = [v.name for v in current_app.db.get_objects(Variable).values()]
+        self.assertEqual(1, names.count("myenum"))
+
+    def test_create_attaches_the_object_the_collection_holds(self):
+        self.variables.create(self.ctx, "9", {"name": "fresh", "type": "bool", "temp_id": 9})
+
+        self.assertIs(self.ctx.variable_collection.collection["fresh"], self.ctx.requirement.formalizations[9])
+
+    def test_create_rejects_a_taken_name_without_attaching(self):
+        with self.assertRaises(InvalidPayload) as caught:
+            self.variables.create(self.ctx, "9", {"name": "foo", "type": "bool", "temp_id": 9})
+
+        self.assertEqual("A variable named `foo` already exists.", str(caught.exception))
+        self.assertNotIn(9, self.ctx.requirement.formalizations)
+
+    def test_patch_rejects_a_rename_onto_a_taken_name(self):
+        self.variables.create(self.ctx, "9", {"name": "fresh", "type": "bool", "temp_id": 9})
+        with self.assertRaises(InvalidPayload):
+            self.variables.patch(self.ctx, "9", {"name": "foo"})
+
+        self.assertEqual("fresh", self.ctx.requirement.formalizations[9].name)
+
+    def test_patch_rekeys_the_collection_on_a_rename(self):
+        self.variables.create(self.ctx, "9", {"name": "fresh", "type": "bool", "temp_id": 9})
+
+        self.variables.patch(self.ctx, "9", {"name": "renamed"})
+
+        collection = self.ctx.variable_collection.collection
+        self.assertNotIn("fresh", collection)
+        self.assertIs(self.ctx.requirement.formalizations[9], collection["renamed"])

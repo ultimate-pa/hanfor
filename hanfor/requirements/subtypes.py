@@ -197,6 +197,10 @@ class VariableHandler(SubtypeHandler[Variable]):
         except ValueError as e:
             raise InvalidPayload(str(e)) from e
 
+        if ctx.variable_collection.add_var(var.name, var) is None:
+            raise InvalidPayload(f"A variable named `{var.name}` already exists.")
+        current_app.db.add_object(var)
+
         # The id of a variable is its own, assigned client side; the `fid` path segment is only a hint.
         ctx.requirement.add_formalization_with_id(var, int(data["temp_id"]))
         self._apply_enumerators(ctx, data["name"], data["type"], data.get("enumerators", []))
@@ -205,10 +209,7 @@ class VariableHandler(SubtypeHandler[Variable]):
         variable = self.fetch(ctx, fid)
 
         if "name" in data:
-            try:
-                variable.set_name(data["name"])
-            except ValueError as e:
-                raise InvalidPayload(str(e)) from e
+            self._rename(ctx, variable, data["name"])
         if "type" in data:
             variable.type = data["type"]
         if "value" in data:
@@ -224,16 +225,28 @@ class VariableHandler(SubtypeHandler[Variable]):
             raise InvalidPayload("name and type are required")
 
         variable = self.fetch(ctx, fid)
-        try:
-            variable.set_name(data["name"])
-        except ValueError as e:
-            raise InvalidPayload(str(e)) from e
+        self._rename(ctx, variable, data["name"])
         variable.type = data["type"]
         variable.value = data.get("value", "")
         variable.order = int(data.get("order", 0))
 
         if "enumerators" in data:
             self._apply_enumerators(ctx, variable.name, variable.type, data["enumerators"])
+
+    @staticmethod
+    def _rename(ctx: "SubtypeContext", variable: Variable, new_name: str) -> None:
+        if new_name == variable.name:
+            return
+        if ctx.variable_collection.var_name_exists(new_name):
+            raise InvalidPayload(f"A variable named `{new_name}` already exists.")
+
+        old_name = variable.name
+        try:
+            variable.set_name(new_name)
+        except ValueError as e:
+            raise InvalidPayload(str(e)) from e
+        ctx.variable_collection.collection.pop(old_name, None)
+        ctx.variable_collection.collection[new_name] = variable
 
     @staticmethod
     def _apply_enumerators(ctx: "SubtypeContext", name: str, var_type: str, enumerators: list) -> None:
