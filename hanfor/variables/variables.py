@@ -22,6 +22,7 @@ from lib_core.utils import (
     generate_file_response,
     generate_req_file_content,
     get_requirements,
+    rename_variable_everywhere,
 )
 from requirements.desc_highlighting import (
     changing_variables,
@@ -491,17 +492,8 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
         # update name.
         if var_name_old != var_name:
             logging.debug("Change name of var `{}` to `{}`".format(var_name_old, var_name))
-            #  Case: New name which does not exist -> remove the old var and replace in reqs occurring.
-            if var_name not in var_collection:
-                logging.debug("`{}` is a new var name. Rename the var, replace occurrences.".format(var_name))
-                # Rename the var (Copy to new name and remove the old item. Rename it)
-                try:
-                    affected_enumerators = var_collection.rename(var_name_old, var_name, app)
-                except ValueError as e:
-                    result = {"success": False, "errormsg": str(e)}
-                    return result
-
-            else:  # Case: New name exists. -> Merge the two vars into one. -> Complete rebuild.
+            #  new name exists means the two vars are merged into one which needs a complete rebuild.
+            if var_name in var_collection:
                 if var_collection.collection[var_name_old].type != var_collection.collection[var_name].type:
                     result["success"] = False
                     result["errormsg"] = "To merge two variables the types must be identical. {} != {}".format(
@@ -510,25 +502,16 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
                     )
                     return result
                 logging.debug("`{}` is an existing var name. Merging the two vars. ".format(var_name))
-                # var_collection.merge_vars(var_name_old, var_name, app)
-                try:
-                    affected_enumerators = var_collection.rename(var_name_old, var_name, app)
-                except ValueError as e:
-                    result = {"success": False, "errormsg": str(e)}
-                    return result
                 result["rebuild_table"] = True
                 reload_type_inference = True
 
-            # Update the requirements using this var.
-            if len(occurrences) > 0:
-                rename_variable_in_expressions(app, occurrences, var_name_old, var_name)
+            # renames the var, its enumerators and every expression naming any of them.
+            try:
+                rename_variable_everywhere(var_collection, var_name_old, var_name)
+            except (KeyError, ValueError) as e:
+                result = {"success": False, "errormsg": str(e)}
+                return result
 
-            for old_enumerator_name, new_enumerator_name in affected_enumerators:
-                # Todo: Implement this more eff.
-                # Todo: Refactor Formalizations to use hashes as vars and fetch them in __str__ from the var collection.
-                requirements = get_requirements(app)
-                affected_requirements = get_requirements_using_var(requirements, old_enumerator_name)
-                rename_variable_in_expressions(app, affected_requirements, old_enumerator_name, new_enumerator_name)
             if current_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
                 changing_variables(var_name_old, var_name)
             result["name_changed"] = True
@@ -589,40 +572,6 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
         return result
 
     return result
-
-
-def rename_variable_in_expressions(
-    app: HanforFlask, occurrences, var_name_old, var_name
-):  # TODO nach variables, refactor that expressions use uuids
-    """Updates (replace) the variables in the requirement expressions.
-
-    :param app: Flask app (used for session).
-    :type app: HanforFlask
-    :param occurrences: Requirement ids to be taken into account.
-    :type occurrences: list (of str)
-    :param var_name_old: The current name in the expressions.
-    :type var_name_old: str
-    :param var_name: The new name.
-    :type var_name: str
-    """
-    logging.debug("Update requirements using old var `{}` to `{}`".format(var_name_old, var_name))
-    for rid in occurrences:
-        requirement = app.db.get_object(Requirement, rid)
-        # replace in every formalization
-        for idx, formalization in requirement.formalizations.items():
-            for key, expression in formalization.expressions_mapping.items():
-                if var_name_old not in expression.raw_expression:
-                    continue
-                new_expression = boogie_parsing.replace_var_in_expression(
-                    expression=expression.raw_expression,
-                    old_var=var_name_old,
-                    new_var=var_name,
-                )
-                requirement.formalizations[idx].expressions_mapping[key].raw_expression = new_expression
-                requirement.formalizations[idx].expressions_mapping[key].used_variables.remove(var_name_old)
-                requirement.formalizations[idx].expressions_mapping[key].used_variables.add(var_name)
-        logging.debug("Updated variables in requirement id: `{}`.".format(requirement.rid))
-    app.db.update()
 
 
 def get_requirements_using_var(requirements: list, var_name: str):

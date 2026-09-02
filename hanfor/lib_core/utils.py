@@ -1,3 +1,4 @@
+import datetime
 import functools
 import html
 import json
@@ -14,8 +15,8 @@ from flask import request, Response
 
 from lib_core import boogie_parsing
 from config import PATTERNS_GROUP_ORDER  # TODO should this be in the config?
-from hanfor_flask import HanforFlask
-from lib_core.data import Requirement, VariableCollection, Variable
+from hanfor_flask import HanforFlask, current_app
+from lib_core.data import Requirement, RequirementEditHistory, VariableCollection, Variable
 from lib_core.pattern.patterns_basic import APattern
 
 default_scope_options = """
@@ -233,22 +234,12 @@ def generate_req_file_content(
                 content_list.append(
                     "Input {} IS {}".format(var.name, boogie_parsing.BoogieType.reverse_alias(var.type).name)
                 )
-            try:
-                for index, constraint in var.constraints.items():
-                    if constraint.scoped_pattern is None:
-                        continue
-                    if constraint.scoped_pattern.get_scope_slug().lower() == "none":
-                        continue
-                    if constraint.scoped_pattern.get_pattern_slug() in ["NotFormalizable", "None"]:
-                        continue
-                    if len(constraint.get_string()) == 0:
-                        continue
-                    constraints_list.append(
-                        "Constraint_{}_{}: {}".format(re.sub(r"\s+", "_", var.name), index, constraint.get_string())
-                    )
-            except Exception:
-                # TODO: this is not a nice way to solve this
-                pass
+            for index, constraint in var.constraints.items():
+                if not constraint.is_exportable():
+                    continue
+                constraints_list.append(
+                    "Constraint_{}_{}: {}".format(re.sub(r"\s+", "_", var.name), index, constraint.get_string())
+                )
     content_list.sort()
     constants_list.sort()
     constraints_list.sort()
@@ -266,22 +257,12 @@ def generate_req_file_content(
     # parse requirement formalizations.
     if not variables_only:
         used_identifiers = set()
-        for requirement in requirements:  # type: Requirement
-            try:
-                for index, formalization in requirement.formalizations.items():
-                    identifier = clean_identifier_for_ultimate_parser(requirement.rid, index, used_identifiers)
-                    if formalization.scoped_pattern is None:
-                        continue
-                    if formalization.scoped_pattern.get_scope_slug().lower() == "none":
-                        continue
-                    if formalization.scoped_pattern.get_pattern_slug() in ["NotFormalizable", "None"]:
-                        continue
-                    if len(formalization.get_string()) == 0:
-                        # Formalization string is empty if expressions are missing or none set. Ignore in output
-                        continue
-                    content += "{}: {}\n".format(identifier, formalization.get_string())
-            except AttributeError:
-                continue
+        for requirement in requirements:
+            for index, formalization in requirement.formalizations.items():
+                identifier = clean_identifier_for_ultimate_parser(requirement.rid, index, used_identifiers)
+                if not formalization.is_exportable():
+                    continue
+                content += "{}: {}\n".format(identifier, formalization.get_string())
     content += "\n"
 
     return content
@@ -438,3 +419,25 @@ def log_request_response(cls):
 
     cls.dispatch_request = wrapper
     return cls
+
+
+def rename_variable_everywhere(collection: VariableCollection, old_name: str, new_name: str) -> None:
+    used_by = {name: set(rids) for name, rids in collection.var_req_mapping.items()}
+    affected_enumerators = collection.rename(old_name, new_name, current_app)
+
+    for renamed_from, renamed_to in [(old_name, new_name), *affected_enumerators]:
+        for rid in used_by.get(renamed_from, ()):
+            requirement = current_app.db.get_object(Requirement, rid)
+            for element in requirement.formalizations.values():
+                element.rename_used_variable(renamed_from, renamed_to)
+    current_app.db.update()
+
+
+def add_msg_to_flask_session_log(app: HanforFlask, message: str, req_list: list[Requirement] = None) -> None:
+    """Add a log message for the frontend_logs.
+
+    :param req_list: A list of affected requirements
+    :param app: The flask app
+    :param message: Log message string
+    """
+    app.db.add_object(RequirementEditHistory(datetime.datetime.now(), message, req_list))

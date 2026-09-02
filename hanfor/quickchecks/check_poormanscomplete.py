@@ -123,6 +123,8 @@ class PoorMansComplete:
         parser = boogie_parsing.get_parser_instance()
         terms = []
         for _, formalisation in req.formalizations.items():
+            if not formalisation.is_pattern_based():
+                continue
             expression_types = formalisation.scoped_pattern.get_allowed_types()
             for ident, expression in formalisation.expressions_mapping.items():
                 if not expression or not expression.raw_expression or ident not in expression_types:

@@ -36,7 +36,34 @@
             <div class="row g-0 h-100">
               <div class="col-12 col-lg-5 h-100 overflow-auto d-flex flex-column" style="padding-right: 10px">
                 <div class="p-0">
-                  <div id="description_textarea"></div>
+                  <ul class="nav nav-tabs" id="descTabs" role="tablist">
+                    <li class="nav-item">
+                      <button class="nav-link active" id="desc-preview-tab"
+                              data-bs-toggle="tab" data-bs-target="#desc-preview"
+                              type="button">Preview</button>
+                    </li>
+                    <li class="nav-item">
+                      <button class="nav-link" id="desc-edit-tab"
+                              data-bs-toggle="tab" data-bs-target="#desc-edit"
+                              type="button">Edit</button>
+                    </li>
+                    <li class="nav-item">
+                      <button class="nav-link" id="desc-original-tab"
+                              data-bs-toggle="tab" data-bs-target="#desc-original"
+                              type="button">Original</button>
+                    </li>
+                  </ul>
+                  <div class="tab-content" id="descTabsContent">
+                    <div class="tab-pane fade show active" id="desc-preview" role="tabpanel">
+                      <div id="description_display" class="p-2"></div>
+                    </div>
+                    <div class="tab-pane fade" id="desc-edit" role="tabpanel">
+                      <textarea id="description_editor" class="form-control" rows="6"></textarea>
+                    </div>
+                    <div class="tab-pane fade" id="desc-original" role="tabpanel">
+                      <div id="description_original_display" class="p-2"></div>
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <h4>Tags</h4>

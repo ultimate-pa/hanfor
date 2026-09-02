@@ -4,12 +4,11 @@ import json
 import logging
 import re
 import string
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from enum import Enum
 from threading import Lock
 
-from typing import Any, Dict, Iterable, Literal, Protocol, Union, runtime_checkable, TYPE_CHECKING
+from typing import Any, ClassVar, Dict, Iterable, Literal, Union, TYPE_CHECKING
 from uuid import uuid4
 
 from lark import LarkError
@@ -57,31 +56,71 @@ class Tag:
         return hash(self.uuid)
 
 
-class FormalizationOfType(Enum):
-    """
-    Enum for different formalization types.
-    The template_name property returns the string used on the frontend templates.
-    """
-
-    FORMALIZATION = "formalization"
-    VARIABLE = "variable"
-
-    @property
-    def template_name(self) -> str:
-        return f"{self.value}-template"
+FormalizationType = Literal["formalization", "variable"]
 
 
-@runtime_checkable
-class FormalizationProtocol(Protocol):
+class RequirementElement(ABC):
+    """Anything that can live in `Requirement.formalizations`"""
     order: int
 
+    is_constraint: bool = False
+
+    # whether this subtype belongs in the CSV formalization column.
+    # `ClassVar`` for this to later be notice by static type checks.
+    exports_to_csv: ClassVar[bool] = False
+
+    @abstractmethod
+    def of_type(self) -> FormalizationType:
+        """The subtype token used in URLs, in JSON and by the frontend renderer"""
+
+    @abstractmethod
     def to_dict(self, **kwargs) -> Dict[str, Any]: ...
+
+    @abstractmethod
     def get_string(self) -> str: ...
 
+    def is_exportable(self) -> bool:
+        """
+        Helps determine how to export to .req file. The goal is to remove the try/except chains
 
-class BaseFormalization(ABC):
-    def of_type(self) -> str:
-        return self.__class__.__name__.lower()
+        Subtypes with no .req representation keep the `False` default
+        """
+        return False
+
+    def used_variable_names(self) -> set[str]:
+        """
+        Names of the variables this element references.
+
+        Subtypes referencing none keep the default
+        """
+        return set()
+
+    def rename_used_variable(self, old_name: str, new_name: str) -> None:
+        """Rewrite this elements references to `old_name`.
+
+        A variable rename has to reach every expression that names it, or the expression outlives the
+        name and reads as undefined. Subtypes referencing no variables keep the default.
+        """
+
+    def is_pattern_based(self) -> bool:
+        """
+        Whether this element expresses itself as a scoped pattern over expressions. Helps to avoid using
+        `is_instance` checks
+        """
+        return False
+
+    def type_inference_error_keys(self) -> list[str]:
+        """Lower cased keys of this element`s type inference errors, empty when it has none"""
+        return []
+
+    def run_type_inference(self, variable_collection, unknown_types: list[str]) -> tuple[dict, list[str]]:
+        """
+        Run type inference, returning this element`s errors and the accumulated unknown typed names.
+
+        Subtypes that take no part in type inference keep the default and pass `unknown_types` through
+        untouched
+        """
+        return {}, unknown_types
 
 
 @DatabaseTable(TableType.Folder)
@@ -106,7 +145,7 @@ class Requirement:
         pos_in_csv: int,
     ):
         self.rid: str = rid
-        self.formalizations: dict[int, FormalizationProtocol] = dict()
+        self.formalizations: dict[int, RequirementElement] = dict()
         self.description = description
         self.type_in_csv = type_in_csv
         self.csv_row = csv_row
@@ -117,23 +156,23 @@ class Requirement:
         self._next_formalization_index: int = -1
         self._formalization_index_mutex: Lock = Lock()
 
-    def add_formalization_with_id(self, formalization: FormalizationProtocol, fid: int):
+    def add_formalization_with_id(self, formalization: RequirementElement, fid: int):
         self.formalizations[fid] = formalization
 
     def to_dict(self, include_used_vars=False):
         type_inference_errors = dict()
         used_variables = set()
-        for index, f in self.formalizations.items():
-            if isinstance(f, Formalization):
-                if f.type_inference_errors:
-                    type_inference_errors[index] = [key.lower() for key in f.type_inference_errors.keys()]
-                if include_used_vars:
-                    for name in f.used_variables:
-                        used_variables.add(name)
+        for index, element in self.formalizations.items():
+            error_keys = element.type_inference_error_keys()
+            if error_keys:
+                type_inference_errors[index] = error_keys
+            if include_used_vars:
+                used_variables |= element.used_variable_names()
 
         d = {
             "id": self.rid,
             "desc": self.description,
+            "original_desc": self.original_desc,
             # Typecheck is for downwards compatibility (please do not remove)
             "type": self.type_in_csv if isinstance(self.type_in_csv, str) else "None",
             "tags": [tag.name for tag in self.tags.keys()],
@@ -149,6 +188,19 @@ class Requirement:
             "revision_diff": self.revision_diff,
         }
         return d
+
+    @property
+    def original_desc(self) -> str:
+        """The description as it stands in the CSV of the revision currently loaded, removes
+        the need for duplicate `original_desc`
+
+        Derived from `csv_row`, so it always matches the loaded revision. Requires an app context
+        (reads the `csv_desc_header` session value), do not touch it from startup or worker threads.
+        """
+        # this has to be here, if not it causes a circular import
+        from reqtransformer import  try_cast_string
+        desc_header = current_app.db.get_object(SessionValue, "csv_desc_header").value
+        return try_cast_string(self.csv_row.get(desc_header, ""))
 
     @property
     def revision_diff(self) -> dict[str, str]:
@@ -208,11 +260,8 @@ class Requirement:
         del self.formalizations[formalization_id]
         # Collect remaining vars.
         remaining_vars = set()
-        for formalization in self.formalizations.values():
-            if isinstance(formalization, Formalization):
-                for expression in formalization.expressions_mapping.values():
-                    if expression.used_variables is not None:
-                        remaining_vars = remaining_vars.union(expression.used_variables)
+        for element in self.formalizations.values():
+            remaining_vars |= element.used_variable_names()
 
         # Update the mappings.
         variable_collection.req_var_mapping[self.rid] = remaining_vars
@@ -323,37 +372,29 @@ class Requirement:
         if standard_tags["TAG_unknown_type"] in self.tags:
             self.tags.pop(standard_tags["TAG_unknown_type"])
         vars_with_unknown_type = []
-        for fid in self.formalizations.keys():
-            # Run type inference check
-            if not isinstance(self.formalizations[fid], Formalization):
-                continue
-            self.formalizations[fid].type_inference_check(var_collection)
-            if len(self.formalizations[fid].type_inference_errors) > 0:
-                self.tags[standard_tags["TAG_Type_inference_error"]] = self.format_error_tag(
-                    self.formalizations[fid], standard_tags
-                )
-
-            # Check for variables of type 'unknown' in formalization
-            vars_with_unknown_type = self.formalizations[fid].unknown_types_check(
-                var_collection, vars_with_unknown_type
-            )
+        for element in self.formalizations.values():
+            errors, vars_with_unknown_type = element.run_type_inference(var_collection, vars_with_unknown_type)
+            if errors:
+                self.tags[standard_tags["TAG_Type_inference_error"]] = self.format_error_tag(element, standard_tags)
             if vars_with_unknown_type:
                 self.tags[standard_tags["TAG_unknown_type"]] = self.format_unknown_type_tag(vars_with_unknown_type)
 
     def get_formalizations_json(self) -> str:
         """Fetch all formalizations in json format. Used to reload formalizations.
 
+        Only elements of type `formalization` are included: this feeds the CSV formalization column, and
+        `RequirementCollection.parse_csv_rows_into_requirements` reads it back as `Formalization` objects.
+        The other subtypes have no representation there.
+
         Returns:
             str: The json formatted version of the formalizations.
 
         """
-        # TODO: This now fetches variables and failes due to them not having scoped_pattern
-        # but being formalizations
         result = dict()
-        for key, formalization in self.formalizations.items():
-            if formalization.scoped_pattern is None:
+        for key, element in self.formalizations.items():
+            if not element.exports_to_csv:
                 continue
-            result[str(key)] = formalization.to_dict()
+            result[str(key)] = element.to_dict()
 
         return json.dumps(result, sort_keys=True)
 
@@ -364,8 +405,8 @@ class Requirement:
         :return: True if var_name occurs at least once.
         """
         result = False
-        for formalization in self.formalizations.values():  # type: Formalization
-            if isinstance(formalization, Formalization) and var_name in formalization.used_variables:
+        for element in self.formalizations.values():
+            if var_name in element.used_variable_names():
                 result = True
                 break
         return result
@@ -382,7 +423,9 @@ class Requirement:
 @DatabaseField("expressions_mapping", dict)
 @DatabaseField("type_inference_errors", dict)
 @DatabaseField("is_constraint", bool, default=False)
-class Formalization(BaseFormalization):
+class Formalization(RequirementElement):
+    exports_to_csv = True
+
     def __init__(self, fid: int):
         self.id: int = fid
         self.order: int = 0
@@ -390,6 +433,9 @@ class Formalization(BaseFormalization):
         self.expressions_mapping: dict[str, Expression] = dict()
         self.type_inference_errors = dict()
         self.is_constraint: bool = False
+
+    def of_type(self) -> FormalizationType:
+        return "formalization"
 
     @property
     def used_variables(self):
@@ -462,19 +508,26 @@ class Formalization(BaseFormalization):
             # Add type error if a variable is used in a timing expression
             if allowed_types[key] != [BoogieType.bool]:
                 for var in expression.used_variables:
-                    if variable_collection.collection[var].type != "CONST":
+                    variable = variable_collection.collection.get(var)
+                    if variable is None:
+                        continue
+                    if variable.type != "CONST":
                         type_errors.append(f"Variable '{var}' used in time bound.")
 
             for name, var_type in type_env.items():  # Update the hanfor variable types.
-                if variable_collection.collection[name].type and variable_collection.collection[name].type.lower() in [
+                variable = variable_collection.collection.get(name)
+                if variable is None:
+                    type_errors.append(f"Variable `{name}` is not defined.")
+                    continue
+                if variable.type and variable.type.lower() in [
                     "const",
                     "enum",
                 ]:
                     continue
-                if variable_collection.collection[name].type not in boogie_parsing.BoogieType.aliases(var_type):
+                if variable.type not in boogie_parsing.BoogieType.aliases(var_type):
                     logging.info(
                         f"Update variable `{name}` with derived type. "
-                        f"Old: `{variable_collection.collection[name].type}` => New: `{var_type.name}`."
+                        f"Old: `{variable.type}` => New: `{var_type.name}`."
                     )
                     variable_collection.set_type(name, var_type.name)
             if type_errors:
@@ -491,7 +544,7 @@ class Formalization(BaseFormalization):
                     unknowns.append(var)
         return unknowns
 
-    def to_dict(self):
+    def to_dict(self, **kwargs):
         d = {
             "id": self.id,
             "order": self.order,
@@ -507,6 +560,43 @@ class Formalization(BaseFormalization):
 
     def get_string(self):
         return self.scoped_pattern.get_string(self.expressions_mapping)
+
+    def used_variable_names(self) -> set[str]:
+        names = set()
+        for expression in self.expressions_mapping.values():
+            if expression.used_variables is not None:
+                names.update(expression.used_variables)
+        return names
+
+    def is_pattern_based(self) -> bool:
+        return True
+
+    def rename_used_variable(self, old_name: str, new_name: str) -> None:
+        for expression in self.expressions_mapping.values():
+            if old_name not in expression.raw_expression:
+                continue
+            expression.raw_expression = boogie_parsing.replace_var_in_expression(
+                expression=expression.raw_expression, old_var=old_name, new_var=new_name
+            )
+            expression.used_variables.discard(old_name)
+            expression.used_variables.add(new_name)
+
+    def type_inference_error_keys(self) -> list[str]:
+        return [key.lower() for key in self.type_inference_errors.keys()]
+
+    def run_type_inference(self, variable_collection, unknown_types: list[str]) -> tuple[dict, list[str]]:
+        self.type_inference_check(variable_collection)
+        return self.type_inference_errors, self.unknown_types_check(variable_collection, unknown_types)
+
+    def is_exportable(self) -> bool:
+        if self.scoped_pattern is None:
+            return False
+        if self.scoped_pattern.get_scope_slug().lower() == "none":
+            return False
+        if self.scoped_pattern.get_pattern_slug() in ["NotFormalizable", "None"]:
+            return False
+        # Empty if expressions are missing or none set.
+        return len(self.get_string()) > 0
 
     def __repr__(self):
         return f"<{self.__class__.__name__} rid={self.id}: {self.scoped_pattern}>"
@@ -666,8 +756,11 @@ class ScopedPattern:
 @DatabaseField("belongs_to_enum", str)
 @DatabaseField("constraints", dict)
 @DatabaseField("description", str)
-class Variable(BaseFormalization):
+class Variable(RequirementElement):
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
+
+    def of_type(self) -> FormalizationType:
+        return "variable"
 
     def __init__(self, name: str, var_type: str | None, value: str | None = None, order: int = 0):
         self.set_name(name)
@@ -701,6 +794,24 @@ class Variable(BaseFormalization):
             "script_results": self.script_results,
             "belongs_to_enum": self.belongs_to_enum,
         }
+
+        # Only the API passes a collection; it holds the cross variable data a Variable cannot see alone.
+        var_collection = kwargs.get("var_collection")
+        if var_collection is not None:
+            d["constraint_refs"] = [
+                {
+                    "usage_key": c.usage_key,
+                    "owner_type": c.owner_type,
+                    "owner_id": c.owner_id,
+                    "pattern_text": c.formalization.get_string(),
+                }
+                for c in var_collection._constraints.get(self.name, [])
+            ]
+            if self.type in ("ENUM_INT", "ENUM_REAL"):
+                d["enumerators"] = [
+                    {"name": e.name[len(self.name) + 1 :], "value": e.value}
+                    for e in var_collection.get_enumerators(self.name)
+                ]
 
         return d
 
@@ -1053,6 +1164,11 @@ class VariableCollection:
             elif var.type == "CONST":
                 # Check for int, real or unknown based on value.
                 try:
+                    logging.debug(
+                            f"Variable {var.name}: "
+                            f"Value={repr(var.value)}, "
+                            f"Type={type(var.value)}, "
+                    )
                     float(var.value)
                 except (TypeError, ValueError) as e:
                     logging.debug(
@@ -1089,7 +1205,13 @@ class VariableCollection:
         self.collection[name].set_type(new_type)
 
     def get_type(self, name):
-        return self.collection[name].type
+        """The type of `name`, or `unknown` when nothing answers to that name.
+
+        An expression can outlive the variable it mentions, for instance a rename that did not reach it.
+        Such a name has no type, which is what `unknown` says, so callers see it instead of a `KeyError`.
+        """
+        variable = self.collection.get(name)
+        return variable.type if variable is not None else boogie_parsing.BoogieType.unknown.name
 
     def add_new_constraint(self, var_name):
         """Add a new empty constraint to var_name variable.
@@ -1109,10 +1231,9 @@ class VariableCollection:
 
     def _build_all(self, requirements: Iterable[Requirement]):
         for req in requirements:
-            for formalization in req.formalizations.values():
-                if isinstance(formalization, Formalization):
-                    for var_name in formalization.used_variables:
-                        self.var_req_mapping.setdefault(var_name, set()).add(req.rid)
+            for element in req.formalizations.values():
+                for var_name in element.used_variable_names():
+                    self.var_req_mapping.setdefault(var_name, set()).add(req.rid)
 
         # _constraints: per-variable iteration. For each variable, build the list
         # of all constraints that touch it
@@ -1121,11 +1242,7 @@ class VariableCollection:
             # Requirement-owned
             for req in requirements:
                 for fid, form in req.formalizations.items():
-                    if (
-                        isinstance(form, Formalization)
-                        and getattr(form, "is_constraint", False)
-                        and var.name in form.used_variables
-                    ):
+                    if form.is_constraint and var.name in form.used_variable_names():
                         refs.append(ConstraintReference(f"{req.rid}:{fid}", "requirement", req.rid, form))
             # Variable-owned
             for cid, form in var.constraints.items():

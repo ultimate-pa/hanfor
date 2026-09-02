@@ -188,6 +188,8 @@ class SimulatorRessource(Ressource):
             formalizations = {}
             for formalization in requirement.formalizations.values():
                 counter_traces = []
+                if not formalization.is_pattern_based():
+                    continue
                 if not formalization.scoped_pattern.is_instantiatable():
                     return
                 if has_variable_with_unknown_type(formalization, variables) or formalization.type_inference_errors:

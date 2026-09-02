@@ -46,8 +46,8 @@ renderer.registerType("formalization", {
     order: 0,
     text: "// None, no pattern set",
     formalization_type: "formalization",
-    scope: "",
-    pattern: "",
+    scope: "NONE",
+    pattern: "NotFormalizable",
   },
   // a selector that fetches the correct template for the type
   templateSelector: "#formalization-template",
@@ -724,6 +724,7 @@ function store_requirement(requirements_table) {
         status: req_status,
         formalizations: JSON.stringify(committedFormalizations),
         formalizations_order: JSON.stringify(load_order),
+        description: $("#description_editor").val(),
       },
       success: function (data) {
         requirement_modal_content.LoadingOverlay("hide", true)
@@ -1271,7 +1272,6 @@ function load_requirement(row_idx) {
 
   // Get row data
   let data = $("#requirements_table").DataTable().row(row_idx).data()
-  console.log(data)
 
   // Prepare requirement Modal
   let requirement_modal_content = $(".modal-content")
@@ -1302,7 +1302,34 @@ function load_requirement(row_idx) {
     // Visible information
     $("#requirement_modal_title").html(data.id + ": " + data.type)
     const rendered_descr = marked(data.desc_highlighted, { sanitize: false })
-    $("#description_textarea").html(rendered_descr).change();
+    $("#description_display").html(rendered_descr)
+    $("#description_editor").val(data.desc)
+    $.ajax({
+      url: `api/v1/req/${data.id}/highlight-description`,
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ description: data.original_desc || "" }),
+    }).done(function (resp) {
+      $("#description_original_display").html(marked(resp.desc_highlighted, { sanitize: false }))
+    }).fail(function () {
+      $("#description_original_display").html(marked(data.original_desc || "", { sanitize: false }))
+    })
+
+    const previewTab = new Tab(document.querySelector("#desc-preview-tab"))
+    document.querySelector("#desc-preview-tab").addEventListener("shown.bs.tab", async function () {
+      const currentDesc = $("#description_editor").val()
+      const resp = await $.ajax({
+        url: `api/v1/req/${data.id}/highlight-description`,
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ description: currentDesc }),
+      })
+      $("#description_display").html(marked(resp.desc_highlighted, { sanitize: false }))
+    })
+    previewTab.show()
+
+    new Tab(document.querySelector("#desc-original-tab"))
+
     $("#add_guess_description").text(data.desc).change()
 
     // Parse the formalizations
@@ -1794,6 +1821,18 @@ function bind_tag_field_events() {
     })
     .on("tokenfield:createdtoken", function (e) {
       add_tag_table_row(e.attrs.value)
+      var color = tag_colors[e.attrs.value]
+      if (color) {
+        var $token = $(e.relatedTarget)
+        $token.css("background-color", color)
+        var hex = color.replace("#", "")
+        var r = parseInt(hex.substr(0, 2), 16)
+        var g = parseInt(hex.substr(2, 2), 16)
+        var b = parseInt(hex.substr(4, 2), 16)
+        var luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+        $token.css("color", luminance > 0.5 ? "#000" : "#fff")
+        $token.find(".close").css("color", luminance > 0.5 ? "#000" : "#fff")
+      }
     })
     .on("tokenfield:removedtoken", function (e) {
       $("#tags_comments_table tr:gt(0)").each(function () {
