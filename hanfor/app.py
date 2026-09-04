@@ -103,6 +103,11 @@ if app.config["FEATURE_AI"]:
             app.register_blueprint(ai_addon_blueprint)
         if ai_addon_namespace:
             api.add_namespace(ai_addon_namespace)
+# TS Editor
+from lib_ts_editor import ts_editor
+
+app.register_blueprint(ts_editor.blueprint)
+api.add_namespace(ts_editor.api)
 
 # Register feature blueprints and apis
 if app.config["FEATURE_EXAMPLE_BLUEPRINT"]:

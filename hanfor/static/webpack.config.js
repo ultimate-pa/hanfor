@@ -43,6 +43,7 @@ const config = {
         ultimate_tab: __dirname + '/../ultimate/static/ultimate-tab.js',
         telemetry: __dirname + '/../telemetry/static/telemetry.js',
         telemetry_frontend: __dirname + '/../telemetry/static/telemetry_frontend.js',
+        ts_editor: __dirname + "/../lib_ts_editor/static/ts_editor.js",
         ...aiAddonEntries,
     },
     output: {
