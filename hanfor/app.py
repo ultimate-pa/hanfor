@@ -139,11 +139,6 @@ if app.config["FEATURE_QUICK_CHECKS"]:
 telemetry_namespace = TelemetryWs("/telemetry")
 socketio.on_namespace(telemetry_namespace)
 
-ai_addon_namespace = AiAddonData("/ai_addon_data")
-socketio.on_namespace(ai_addon_namespace)
-
-# socket messanger for threading and ai / ai addon updats
-send_update_threading_and_ai = SendUpdateThreadingAndAi(socketio)
 
 logging.basicConfig(
     format="[%(asctime)s %(filename)s:%(lineno)d] %(levelname)s - %(message)s",
@@ -158,7 +153,7 @@ def unhandled_exception(e):
     if isinstance(e, HTTPException) and e.code in range(300, 309):
         return e
 
-    app.logger.error(f'Unhandled Exception at URL {request.url} - {e}')
+    app.logger.error("Unhandled Exception: {}".format(e))
     logging.exception(e)
 
     # Pass through HTTP errors.
@@ -197,12 +192,6 @@ def get_app_options():
     return app_options
 
 
-# Suppress Chrome DevTools route-not-found error
-@app.route("/.well-known/appspecific/com.chrome.devtools.json")
-def chrome_dev():
-    return "", 204
-
-
 if __name__ == "__main__":
     setup_logging(app)
     app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix=app.config["URL_PREFIX"])
@@ -216,15 +205,7 @@ if __name__ == "__main__":
 
     # Parse python args and startup hanfor session.
     parsed_args = HanforArgumentParser(app).parse_args()
-    if startup_hanfor(app, parsed_args, HERE, send_update_threading_and_ai=send_update_threading_and_ai):
-
-        # Register additional addon templates and static files
-        if app.config["FEATURE_AI"]:
-            with app.app_context():
-                app.ai_addons.load_all_ai_addons()
-                register_addon_templates(app, app.ai_addons.get_all_addons())
-                register_addon_statics(app, app.ai_addons.get_all_addons())
-
+    if startup_hanfor(app, parsed_args, HERE):
         if app.config["FEATURE_TELEMETRY"]:
             telemetry_namespace.set_data_folder(app.config["REVISION_FOLDER"])
         socketio.run(app, **get_app_options(), allow_unsafe_werkzeug=True)
