@@ -5,19 +5,18 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Tuple, Any, Union
 
+from pysmt.environment import Environment
 from pysmt.fnode import FNode
 from pysmt.rewritings import conjunctive_partition
-from pysmt.shortcuts import And, Equals, Symbol, Real, EqualsOrIff, get_model, is_sat, FALSE, get_unsat_core
-from pysmt.typing import REAL
 
-from lib_pea.config import SOLVER_NAME, LOGIC
-from lib_pea.countertrace_to_pea import complete
+from lib_core.data import Requirement, Formalization
+from lib_pea.config import SOLVER_NAME
+from lib_pea.countertrace_to_pea import PeaBuilder
 from lib_pea.location import PhaseSetsLocation
 from lib_pea.pea import PhaseSetsPea
 from lib_pea.transition import PhaseSetsTransition
 from req_simulator.scenario import Scenario
 from req_simulator.utils import num_zeros
-from lib_core.data import Requirement, Formalization
 
 
 class Simulator:
@@ -28,10 +27,20 @@ class Simulator:
         guard: FNode
 
     def __init__(
-        self, peas: list[PhaseSetsPea], scenario: Scenario = None, name: str = "unnamed", test: bool = False
+        self,
+        smt_env: Environment,
+        peas: list[PhaseSetsPea],
+        scenario: Scenario | None = None,
+        name: str = "unnamed",
+        test: bool = False,
     ) -> None:
         self.name: str = name
         self.scenario: Union[Scenario | None] = scenario
+
+        self.__smt_env: Environment = smt_env
+        self.__fmgr = self.__smt_env.formula_manager
+        self.__tmgr = self.__smt_env.type_manager
+        self.__solver = self.__smt_env.factory.get_solver(name=SOLVER_NAME)
 
         self.times: list[float] = [0.0]  # history
         self.time_steps: list[float] = [1.0]  # history
@@ -99,10 +108,13 @@ class Simulator:
             prefix = f"{self.peas[i].requirement.rid}_{self.peas[i].formalization.id}_{self.peas[i].countertrace_id}_"
 
             for v in current_phase.label.active:
-                is_complete = is_sat(
-                    And(complete(self.peas[i].countertrace, current_phase.label, v, "c_" + prefix), clock_assertions),
-                    solver_name=SOLVER_NAME,
-                    logic=LOGIC,
+                is_complete = self.__solver.is_sat(
+                    self.__fmgr.And(
+                        PeaBuilder(self.__smt_env).complete(
+                            self.peas[i].countertrace, current_phase.label, v, "c_" + prefix
+                        ),
+                        clock_assertions,
+                    )
                 )
 
                 if is_complete:
@@ -141,7 +153,7 @@ class Simulator:
     def save_scenario_to_file(self, path: str) -> None:
         Scenario.save_to_file(self.scenario, path)
 
-    def update_variables(self, variables: dict[FNode, FNode] = None) -> None:
+    def update_variables(self, variables: dict[FNode, FNode | None] = None) -> None:
         # TODO: fix scenario
         if variables is None and self.scenario is not None:
             variables = self.scenario.valuations.get(self.times[-1]).values
@@ -159,13 +171,14 @@ class Simulator:
 
         return result
 
-    @staticmethod
-    def build_variables_assertion(variables: dict[FNode, FNode]) -> FNode:
-        return And(EqualsOrIff(k, v) for k, v in variables.items() if v is not None)
+    def build_variables_assertion(self, variables: dict[FNode, FNode]) -> FNode:
+        return self.__fmgr.And(self.__fmgr.EqualsOrIff(k, v) for k, v in variables.items() if v is not None)
 
-    @staticmethod
-    def build_clocks_assertion(clocks: dict[str, float]) -> FNode:
-        return And(Equals(Symbol(k, REAL), Real(v)) for k, v in clocks.items())
+    def build_clocks_assertion(self, clocks: dict[str, float]) -> FNode:
+        return self.__fmgr.And(
+            self.__fmgr.Equals(self.__fmgr.Symbol(k, self.__tmgr.REAL()), self.__fmgr.Real(v))
+            for k, v in clocks.items()
+        )
 
     def calculate_max_time_step(self, transition: PhaseSetsTransition, clocks: dict[str, float], time_step: float):
         k, v = transition.dst.get_min_clock_bound()
@@ -212,8 +225,8 @@ class Simulator:
 
             for e in transitions:
                 # Check the guard with var and clock asserts.
-                if not is_sat(And(e.guard, var_asserts, clock_asserts), solver_name=SOLVER_NAME, logic=LOGIC):
-                    last_fail = And(e.guard, var_asserts, clock_asserts)
+                if not self.__solver.is_sat(self.__fmgr.And(e.guard, var_asserts, clock_asserts)):
+                    last_fail = self.__fmgr.And(e.guard, var_asserts, clock_asserts)
                     continue
 
                 # Compute duration to the closest bound, update clocks and build clock asserts.
@@ -222,7 +235,7 @@ class Simulator:
                 updated_clocks_assert = self.build_clocks_assertion(updated_clocks)
 
                 # Check the clock invariant of p'. (special case: last non-true phase has bound type '<=')
-                if not is_sat(And(e.dst.clock_invariant, updated_clocks_assert), solver_name=SOLVER_NAME, logic=LOGIC):
+                if not self.__solver.is_sat(self.__fmgr.And(e.dst.clock_invariant, updated_clocks_assert)):
                     continue
 
                 result_.append(e)
@@ -234,12 +247,9 @@ class Simulator:
                 if len(transitions) <= 0:
                     reason += "inconsistency"
                 else:
-                    unsat_core = get_unsat_core(conjunctive_partition(last_fail))
+                    unsat_core = self.__solver.get_unsat_core(conjunctive_partition(last_fail))
                     unsat_core = "Unknown" if not unsat_core else "\n" + ", ".join([f.serialize() for f in unsat_core])
                     reason += "unrealizable input, " + unsat_core
-
-                # reason = 'inconsistency' if len(transitions) <= 0 else \
-                #    'unrealizable input, ' + get_unsat_core(conjunctive_partition(last_fail))
 
                 self.sat_error = "Requirement violation: %s, Formalization: %s, Countertrace: %s\nReason: %s" % (
                     self.peas[i].requirement.rid,
@@ -290,8 +300,8 @@ class Simulator:
 
         # Terminate if tuple of transitions is complete.
         if i >= len(phases):
-            # model = get_model(guard, solver_name=SOLVER_NAME, logic=LOGIC)
-            model = get_model(And(guard, var_asserts, clock_asserts), solver_name=SOLVER_NAME, logic=LOGIC)
+            self.__solver.is_sat(self.__fmgr.And(guard, var_asserts, clock_asserts))
+            model = self.__solver.get_model()
             values = model.get_values(self.variables.keys())
             values.update({k: v[-1] for k, v in self.variables.items() if v[-1] is not None})
 
@@ -302,9 +312,11 @@ class Simulator:
 
         for transition in phases[i]:
             # Check conjunction of guards including the one of this transition with var and clock asserts.
-            guard_ = And(guard, transition.guard) if guard is not None else And(transition.guard)
+            guard_ = (
+                self.__fmgr.And(guard, transition.guard) if guard is not None else self.__fmgr.And(transition.guard)
+            )
 
-            if not is_sat(And(guard_, var_asserts, clock_asserts), solver_name=SOLVER_NAME, logic=LOGIC):
+            if not self.__solver.is_sat(self.__fmgr.And(guard_, var_asserts, clock_asserts)):
                 self.last_fail = guard_
                 continue
 
@@ -323,12 +335,12 @@ class Simulator:
         if i == 0 and len(result) == 0:
             reason = ""
 
-            if is_sat(And(self.last_fail, clock_asserts)):
+            if self.__solver.is_sat(self.__fmgr.And(self.last_fail, clock_asserts)):
                 reason += "unrealizable input"
             else:
                 reason += "inconsistency" if self.current_phases[-1][0] == None else "rt-inconsistency"
 
-            unsat_core = get_unsat_core(conjunctive_partition(self.last_fail))
+            unsat_core = self.__solver.get_unsat_core(conjunctive_partition(self.last_fail))
             unsat_core = "Unknown" if not unsat_core else "\n" + ", ".join([f.serialize() for f in unsat_core])
 
             self.sat_error = "Requirement violation: %s, Formalization: %s, Countertrace: %s\nReason: %s, %s" % (
@@ -413,3 +425,7 @@ class Simulator:
     def inconsistency_pre_check(self):
         # TODO: Do not modify existing member variables ;-)
         print("Called function inconsistency pre check ...")
+
+    @property
+    def smt_env(self):
+        return self.__smt_env

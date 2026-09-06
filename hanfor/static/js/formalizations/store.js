@@ -61,4 +61,71 @@ store.registerType("variable", {
   persistDelete: (rid, id) => api.deleteFormalization(rid, id),
 })
 
-export default store
+  static asError(reason) {
+    if (reason && reason.responseJSON) return reason.responseJSON
+    if (reason && reason.errormsg) return reason
+    return { success: false, errormsg: (reason && reason.statusText) || "Unknown error" }
+  }
+
+  commitDeletes(requirementId, type) {
+    const requests = []
+    const deletedSet = this.getSet(this.deleted, type)
+    console.log("Deleted set: ", deletedSet)
+
+    deletedSet.forEach((id) => {
+      requests.push(
+        $.ajax({
+          url: `/api/v1/req/${requirementId}/formalizations/${id}`,
+          type: "DELETE",
+        }).then(
+          function (res) {
+            if (!res.success) return $.Deferred().reject(res).promise()
+          },
+          function (reason) {
+            return $.Deferred().reject(FormalizationStore.asError(reason)).promise()
+          },
+        ),
+      )
+    })
+    deletedSet.clear()
+    return Promise.all(requests)
+  }
+
+  commitCreated(requirementId) {
+    const requests = []
+    for (const [type, idSet] of this.created.entries()) {
+      idSet.forEach((id) => {
+        let data = {}
+        let endpoint = ""
+        if (type === "formalization") {
+          data = this.getFormalizationFromDOM(id)
+          endpoint = `/api/v1/req/${requirementId}/formalizations/formalization/${id}`
+        } else if (type === "variable") {
+          data = this.getVariableFromDOM(id)
+          endpoint = `/api/v1/req/${requirementId}/formalizations/variable/${id}`
+        }
+
+        // Both getters return {} when their card is not in the DOM, this should handle that case
+        if ($.isEmptyObject(data)) {
+          const message = `Could not read the ${type} card for id ${id}, nothing was saved.`
+          console.error(message)
+          requests.push($.Deferred().reject({ success: false, errormsg: message }).promise())
+          return
+        }
+
+        requests.push(
+          $.post(endpoint, { id: requirementId, data: JSON.stringify(data) }).then(
+            function (res) {
+              if (!res.success) return $.Deferred().reject(res).promise()
+            },
+            function (reason) {
+              return $.Deferred().reject(FormalizationStore.asError(reason)).promise()
+            },
+          ),
+        )
+      })
+    }
+    this.created.clear()
+    return Promise.all(requests)
+  }
+}

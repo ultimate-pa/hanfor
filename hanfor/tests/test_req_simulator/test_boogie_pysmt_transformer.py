@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from parameterized import parameterized
+from pysmt.environment import Environment
 
 from lib_core import boogie_parsing
 from lib_core.data import Variable
@@ -33,5 +34,5 @@ class TestBoogiePysmtTransformer(TestCase):
         ]
     )
     def test_int_expressions(self, test_input: str, expected: str):
-        actual = str(BoogiePysmtTransformer(self.variables).transform(parser.parse(test_input)))
+        actual = str(BoogiePysmtTransformer(Environment(), self.variables).transform(parser.parse(test_input)))
         self.assertEqual(expected, actual, msg="Error while transforming boogie expression to pysmt formula.")

@@ -1,6 +1,8 @@
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
+from pysmt.environment import Environment
+
 from lib_pea.countertrace import Countertrace, CountertraceTransformer
 from lib_pea.formal_utils import get_expression_mapping_smt
 from lib_pea.utils import get_countertrace_parser
@@ -11,13 +13,13 @@ if TYPE_CHECKING:
 
 
 class APattern:
+    group: str = "Abstract"
+    order: int = 0
+    old_names: list[str] = []
 
     def __init__(self):
         self._pattern_text: str = "is an empty Pattern"
-        self.old_names: list[str] = []
         self._env: dict[str, list[str]] = {}
-        self.group: str = "Abstract"
-        self.order: int = 0
         self._countertraces: dict[str, list[str]] = defaultdict(list)
 
     def get_text(self):
@@ -33,45 +35,56 @@ class APattern:
     def has_countertraces(self, scope: str):
         return scope in self._countertraces and self._countertraces[scope]
 
+    @property
+    def env(self):
+        return self._env
+
     def get_instanciated_countertraces(
         self,
+        smt_env: Environment,
         scope: str,
         f: "Formalization",
         other_f: list["Formalization"],
         variable_collection: "VariableCollection",
     ) -> list[Countertrace]:
-        return self._get_instanciated_coutertrace(scope, f, other_f, variable_collection)
+        return self._get_instanciated_coutertrace(smt_env, scope, f, other_f, variable_collection)
 
     def _get_instanciated_coutertrace(
         self,
+        smt_env: Environment,
         scope: str,
         f: "Formalization",
         other_f: list["Formalization"],
         variable_collection: "VariableCollection",
     ) -> list[Countertrace]:
         cts = []
-        expr = get_expression_mapping_smt(f, variable_collection)
+        expr = get_expression_mapping_smt(smt_env, f, variable_collection)
         for ct_str in self.get_countertraces(scope):
             ct_ast = get_countertrace_parser().parse(ct_str)
-            cts.append(CountertraceTransformer(expr).transform(ct_ast))
+            cts.append(CountertraceTransformer(smt_env, expr).transform(ct_ast))
         return cts
 
-    def get_patterns(self) -> dict[str, "APattern"]:
-        return {t.__name__: t() for t in self.__get_inheriting_pattern(self.__class__) if t().group != "Abstract"}
+    @classmethod
+    def get_patterns(cls) -> dict[str, type["APattern"]]:
+        return {t.__name__: t for t in cls.__get_inheriting_pattern(cls) if t.group != "Abstract"}
 
-    def __get_inheriting_pattern(self, t: type["APattern"]) -> set[type["APattern"]]:
-        result = set(t.__subclasses__())
+    @classmethod
+    def __get_inheriting_pattern(cls, t: type["APattern"]) -> set[type["APattern"]]:
+        # noinspection PyTypeChecker
+        result: set[type["APattern"]] = set(t.__subclasses__())
         for sub in t.__subclasses__():
-            result |= self.__get_inheriting_pattern(sub)
+            # noinspection PyTypeChecker
+            result |= cls.__get_inheriting_pattern(sub)
         return result
 
-    def get_pattern(self, name: str) -> "APattern":
+    @classmethod
+    def get_pattern(cls, name: str) -> type["APattern"]:
         # TODO: search in old names for compatibility reasons
-        patterns = APattern().get_patterns()
+        patterns = cls.get_patterns()
         if name in patterns:
             return patterns[name]
-        by_old_name: dict[str, "APattern"] = dict()
-        for pattern in self.get_patterns().values():
+        by_old_name: dict[str, type["APattern"]] = dict()
+        for pattern in cls.get_patterns().values():
             by_old_name.update({old_name: pattern for old_name in pattern.old_names})
         if name in by_old_name:
             return by_old_name[name]
@@ -80,34 +93,35 @@ class APattern:
     @classmethod
     def to_frontent_dict(cls) -> dict:
         result = dict()
-        for name, pattern in APattern().get_patterns().items():
+        for name, pattern in APattern.get_patterns().items():
+            pattern_inst = pattern()
             result[name] = {
-                "env": pattern._env,
-                "countertraces": pattern._countertraces,
+                "env": pattern_inst._env,
+                "countertraces": pattern_inst._countertraces,
             }
         return result
 
 
 class NotFormalizable(APattern):
+    group: str = "not_formalizable"
+    order: int = 0
+    old_names = ["Plumbing"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "no pattern set"
-        self.old_names = ["Plumbing"]
         self._env: dict[str, list[str]] = {}
-        self.group: str = "not_formalizable"
-        self.order: int = 0
 
 
 class Response(APattern):
+    group: str = "Order"
+    order: int = 0
+    old_names = ["Response"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that if {R} holds then {S} eventually holds"
-        self.old_names = ["Response"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"]}
-        self.group: str = "Order"
-        self.order: int = 0
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": [],
             "BEFORE": ["⌈!P⌉;⌈(!P && (R && !S))⌉;⌈(!P && !S)⌉;⌈P⌉;true"],
@@ -118,16 +132,16 @@ class Response(APattern):
 
 
 class ResponseChain12(APattern):
+    group: str = "Order"
+    order: int = 2
+    old_names = ["ResponseChain1-2"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that if {R} holds then {S} eventually holds and is succeeded by {T}"
         )
-        self.old_names = ["ResponseChain1-2"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["bool"]}
-        self.group: str = "Order"
-        self.order: int = 2
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": [],
             "BEFORE": [
@@ -144,16 +158,16 @@ class ResponseChain12(APattern):
 
 
 class ConstrainedChain(APattern):
+    group: str = "Order"
+    order: int = 4
+    old_names = ["ConstrainedChain"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that if {R} holds then {S} eventually holds and is succeeded by {T}, where {U} does not hold between {S} and {T}"
         )
-        self.old_names = ["ConstrainedChain"]
         self._env: dict[str, list[str]] = {"U": ["bool"], "R": ["bool"], "S": ["bool"], "T": ["bool"]}
-        self.group: str = "Order"
-        self.order: int = 4
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": [],
             "BEFORE": [
@@ -172,14 +186,14 @@ class ConstrainedChain(APattern):
 
 
 class Precedence(APattern):
+    group: str = "Order"
+    order: int = 4
+    old_names = ["Precedence"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that if {R} holds then {S} previously held"
-        self.old_names = ["Precedence"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"]}
-        self.group: str = "Order"
-        self.order: int = 4
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["⌈!S⌉;⌈R⌉;true"],
             "BEFORE": ["⌈(!P && !S)⌉;⌈(!P && R)⌉;true"],
@@ -190,16 +204,17 @@ class Precedence(APattern):
 
 
 class PrecedenceChain21(APattern):
+    group: str = "Order"
+    order: int = 5
+    old_names = ["PrecedenceChain2-1"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that if {R} holds then {S} previously held and was preceded by {T}"
         )
-        self.old_names = ["PrecedenceChain2-1"]
+
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["bool"]}
-        self.group: str = "Order"
-        self.order: int = 5
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["⌈!T⌉;⌈R⌉;true", "⌈!S⌉;⌈R⌉;true", "⌈!T⌉;⌈(S && !T)⌉;⌈!T⌉;⌈(!S && T)⌉;⌈!S⌉;⌈R⌉;true"],
             "BEFORE": [
@@ -226,16 +241,18 @@ class PrecedenceChain21(APattern):
 
 
 class PrecedenceChain12(APattern):
+    group: str = "Order"
+    order: int = 6
+    old_names = ["PrecedenceChain1-2"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that if {R} holds and is succeeded by {S}, then {T} previously held"
         )
-        self.old_names = ["PrecedenceChain1-2"]
+
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["bool"]}
-        self.group: str = "Order"
-        self.order: int = 6
+
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["⌈!T⌉;⌈R⌉;true;⌈S⌉;true"],
             "BEFORE": ["⌈(!P && !T)⌉;⌈(!P && R)⌉;⌈!P⌉;⌈(!P && S)⌉;true"],
@@ -246,14 +263,16 @@ class PrecedenceChain12(APattern):
 
 
 class Universality(APattern):
+    group: str = "Occurence"
+    order: int = 0
+    old_names = ["Universality"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that {R} holds"
-        self.old_names = ["Universality"]
+
         self._env: dict[str, list[str]] = {"R": ["bool"]}
-        self.group: str = "Occurence"
-        self.order: int = 0
+
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈!R⌉;true"],
             "BEFORE": ["⌈!P⌉;⌈(!P && !R)⌉;true"],
@@ -264,14 +283,14 @@ class Universality(APattern):
 
 
 class UniversalityDelay(APattern):
+    group: str = "Real-time"
+    order: int = 5
+    old_names = ["UniversalityDelay"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that {R} holds after at most {S} time units"
-        self.old_names = ["UniversalityDelay"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"]}
-        self.group: str = "Real-time"
-        self.order: int = 5
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true ∧ ℓ ≥ S;⌈!R⌉;true"],
             "BEFORE": ["⌈!P⌉ ∧ ℓ ≥ S;⌈(!P && !R)⌉;true"],
@@ -282,14 +301,14 @@ class UniversalityDelay(APattern):
 
 
 class ExistenceBoundU(APattern):
+    group: str = "Occurence"
+    order: int = 3
+    old_names = ["BoundedExistence"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "transitions to states in which {R} holds occur at most twice"
-        self.old_names = ["BoundedExistence"]
         self._env: dict[str, list[str]] = {"R": ["bool"]}
-        self.group: str = "Occurence"
-        self.order: int = 3
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈R⌉;⌈!R⌉;⌈R⌉;⌈!R⌉;⌈R⌉;true"],
             "BEFORE": ["⌈!P⌉;⌈(!P && R)⌉;⌈(!P && !R)⌉;⌈(!P && R)⌉;⌈(!P && !R)⌉;⌈(!P && R)⌉;true"],
@@ -302,14 +321,14 @@ class ExistenceBoundU(APattern):
 
 
 class Invariance(APattern):
+    group: str = "Occurence"
+    order: int = 2
+    old_names = ["Invariant"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that if {R} holds, then {S} holds as well"
-        self.old_names = ["Invariant"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"]}
-        self.group: str = "Occurence"
-        self.order: int = 2
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈(R && !S)⌉;true"],
             "BEFORE": ["⌈!P⌉;⌈(!P && (R && !S))⌉;true"],
@@ -320,14 +339,14 @@ class Invariance(APattern):
 
 
 class Absence(APattern):
+    group: str = "Occurence"
+    order: int = 4
+    old_names = ["Absence"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is never the case that {R} holds"
-        self.old_names = ["Absence"]
         self._env: dict[str, list[str]] = {"R": ["bool"]}
-        self.group: str = "Occurence"
-        self.order: int = 4
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈R⌉;true"],
             "BEFORE": ["⌈!P⌉;⌈(!P && R)⌉;true"],
@@ -338,14 +357,16 @@ class Absence(APattern):
 
 
 class ResponseDelay(APattern):
+    group: str = "Real-time"
+    order: int = 0
+    old_names = ["BoundedResponse"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that if {R} holds, then {S} holds after at most {T} time units"
-        self.old_names = ["BoundedResponse"]
+
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"]}
-        self.group: str = "Real-time"
-        self.order: int = 0
+
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈(R && !S)⌉;⌈!S⌉ ∧ ℓ > T;true"],
             "BEFORE": ["⌈!P⌉;⌈(!P && (R && !S))⌉;⌈(!P && !S)⌉ ∧ ℓ > T;true"],
@@ -356,14 +377,14 @@ class ResponseDelay(APattern):
 
 
 class ReccurrenceBound(APattern):
+    group: str = "Real-time"
+    order: int = 0
+    old_names = ["BoundedRecurrence"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that {R} holds at least every {S} time units"
-        self.old_names = ["BoundedRecurrence"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"]}
-        self.group: str = "Real-time"
-        self.order: int = 0
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈!R⌉ ∧ ℓ > S;true"],
             "BEFORE": ["⌈!P⌉;⌈(!P && !R)⌉ ∧ ℓ > S;true"],
@@ -374,16 +395,16 @@ class ReccurrenceBound(APattern):
 
 
 class DurationBoundU(APattern):
+    group: str = "Real-time"
+    order: int = 0
+    old_names = ["MaxDuration"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that once {R} becomes satisfied, it holds for less than {S} time units"
         )
-        self.old_names = ["MaxDuration"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"]}
-        self.group: str = "Real-time"
-        self.order: int = 0
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈R⌉ ∧ ℓ ≥ S;true"],
             "BEFORE": ["⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ S;true"],
@@ -394,16 +415,16 @@ class DurationBoundU(APattern):
 
 
 class ResponseBoundL12(APattern):
+    group: str = "Real-time"
+    order: int = 0
+    old_names = ["TimeConstrainedMinDuration"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that if {R} holds for at least {S} time units, then {T} holds afterwards for at least {U} time units"
         )
-        self.old_names = ["TimeConstrainedMinDuration"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"], "T": ["bool"], "U": ["real"]}
-        self.group: str = "Real-time"
-        self.order: int = 0
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈R⌉ ∧ ℓ ≥ S;⌈T⌉ ∧ ℓ <₀ U;⌈!T⌉;true"],
             "BEFORE": ["⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ S;⌈(!P && T)⌉ ∧ ℓ <₀ U;⌈(!P && !T)⌉;true"],
@@ -414,14 +435,14 @@ class ResponseBoundL12(APattern):
 
 
 class InvarianceBoundL2(APattern):
+    group: str = "Real-time"
+    order: int = 0
+    old_names = ["BoundedInvariance"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that if {R} holds, then {S} holds for at least {T} time units"
-        self.old_names = ["BoundedInvariance"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"]}
-        self.group: str = "Real-time"
-        self.order: int = 0
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈R⌉;true ∧ ℓ < T;⌈!S⌉;true"],
             "BEFORE": ["⌈!P⌉;⌈(!P && R)⌉;⌈!P⌉ ∧ ℓ < T;⌈(!P && !S)⌉;true"],
@@ -432,16 +453,16 @@ class InvarianceBoundL2(APattern):
 
 
 class ResponseBoundL1(APattern):
+    group: str = "Real-time"
+    order: int = 0
+    old_names = ["TimeConstrainedInvariant"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that if {R} holds for at least {S} time units, then {T} holds afterwards"
         )
-        self.old_names = ["TimeConstrainedInvariant"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"], "T": ["bool"]}
-        self.group: str = "Real-time"
-        self.order: int = 0
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈R⌉ ∧ ℓ ≥ S;⌈!T⌉;true"],
             "BEFORE": ["⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ S;⌈(!P && !T)⌉;true"],
@@ -452,16 +473,16 @@ class ResponseBoundL1(APattern):
 
 
 class DurationBoundL(APattern):
+    group: str = "Real-time"
+    order: int = 0
+    old_names = ["MinDuration"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that once {R} becomes satisfied, it holds for at least {S} time units"
         )
-        self.old_names = ["MinDuration"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"]}
-        self.group: str = "Real-time"
-        self.order: int = 0
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈!R⌉;⌈R⌉ ∧ ℓ < S;⌈!R⌉;true"],
             "BEFORE": ["⌈!P⌉;⌈(!P && !R)⌉;⌈(!P && R)⌉ ∧ ℓ < S;⌈(!P && !R)⌉;true"],
@@ -472,16 +493,16 @@ class DurationBoundL(APattern):
 
 
 class ResponseDelayBoundL2(APattern):
+    group: str = "Real-time"
+    order: int = 0
+    old_names = ["ConstrainedTimedExistence"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that if {R} holds, then {S} holds after at most {T} time units for at least {U} time units"
         )
-        self.old_names = ["ConstrainedTimedExistence"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"], "U": ["real"]}
-        self.group: str = "Real-time"
-        self.order: int = 0
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈R⌉;⌈!S⌉ ∧ ℓ > T;true", "true;⌈R⌉;⌈!S⌉ ∧ ℓ <₀ T;⌈S⌉ ∧ ℓ < U;⌈!S⌉;true"],
             "BEFORE": [
@@ -501,16 +522,16 @@ class ResponseDelayBoundL2(APattern):
 
 
 class TriggerResponseBoundL1(APattern):
+    group: str = "Real-time"
+    order: int = 0
+    old_names = ["BndTriggeredEntryConditionPattern"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that after {R} holds for at least {S} time units and {T} holds, then {U} holds"
         )
-        self.old_names = ["BndTriggeredEntryConditionPattern"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"], "T": ["bool"], "U": ["bool"]}
-        self.group: str = "Real-time"
-        self.order: int = 0
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈R⌉ ∧ ℓ ≥ S;⌈(R && (T && !U))⌉;true"],
             "BEFORE": ["⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ S;⌈(!P && (R && (T && !U)))⌉;true"],
@@ -521,16 +542,16 @@ class TriggerResponseBoundL1(APattern):
 
 
 class TriggerResponseDelayBoundL1(APattern):
+    group: str = "Real-time"
+    order: int = 0
+    old_names = ["BndTriggeredEntryConditionPatternDelayed"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that after {R} holds for at least {S}  time units and {T} holds, then {U} holds after at most {V}  time units"
         )
-        self.old_names = ["BndTriggeredEntryConditionPatternDelayed"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"], "T": ["bool"], "U": ["bool"], "V": ["real"]}
-        self.group: str = "Real-time"
-        self.order: int = 0
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈R⌉ ∧ ℓ ≥ S;⌈(R && (T && !U))⌉;⌈!U⌉ ∧ ℓ > V;true"],
             "BEFORE": ["⌈!P⌉;⌈(!P && R)⌉ ∧ ℓ ≥ S;⌈(!P && (R && (T && !U)))⌉;⌈(!P && !U)⌉ ∧ ℓ > V;true"],
@@ -543,16 +564,16 @@ class TriggerResponseDelayBoundL1(APattern):
 
 
 class EdgeResponseDelay(APattern):
+    group: str = "Real-time"
+    order: int = 0
+    old_names = ["EdgeResponsePatternDelayed"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that once {R} becomes satisfied, {S} holds after at most {T} time units"
         )
-        self.old_names = ["EdgeResponsePatternDelayed"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"]}
-        self.group: str = "Real-time"
-        self.order: int = 0
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈!R⌉;⌈(R && !S)⌉;⌈!S⌉ ∧ ℓ > T;true"],
             "BEFORE": ["⌈!P⌉;⌈(!P && !R)⌉;⌈(!P && (R && !S))⌉;⌈(!P && !S)⌉ ∧ ℓ > T;true"],
@@ -563,16 +584,16 @@ class EdgeResponseDelay(APattern):
 
 
 class EdgeResponseBoundL2(APattern):
+    group: str = "Real-time"
+    order: int = 0
+    old_names = ["BndEdgeResponsePattern"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that once {R} becomes satisfied, {S} holds for at least {T} time units"
         )
-        self.old_names = ["BndEdgeResponsePattern"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"]}
-        self.group: str = "Real-time"
-        self.order: int = 0
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈!R⌉;⌈R⌉;⌈S⌉ ∧ ℓ < T;⌈!S⌉;true", "true;⌈!R⌉;⌈(R && !S)⌉;true"],
             "BEFORE": [
@@ -592,16 +613,16 @@ class EdgeResponseBoundL2(APattern):
 
 
 class EdgeResponseDelayBoundL2(APattern):
+    group: str = "Real-time"
+    order: int = 0
+    old_names = ["BndEdgeResponsePatternDelayed"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that once {R} becomes satisfied, {S} holds after at most {T} time units for at least {U} time units"
         )
-        self.old_names = ["BndEdgeResponsePatternDelayed"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"], "U": ["real"]}
-        self.group: str = "Real-time"
-        self.order: int = 0
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈!R⌉;⌈(R && !S)⌉;⌈!S⌉ ∧ ℓ > T;true", "true;⌈!R⌉;⌈R⌉;true ∧ ℓ < T;⌈S⌉ ∧ ℓ < U;⌈!S⌉;true"],
             "BEFORE": [
@@ -624,16 +645,16 @@ class EdgeResponseDelayBoundL2(APattern):
 
 
 class EdgeResponseBoundU1(APattern):
+    group: str = "Real-time"
+    order: int = 0
+    old_names = ["BndEdgeResponsePatternTU "]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that once {R} becomes satisfied and holds for at most {S} time units, then {T} holds  afterwards"
         )
-        self.old_names = ["BndEdgeResponsePatternTU "]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"], "T": ["bool"]}
-        self.group: str = "Real-time"
-        self.order: int = 0
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈!R⌉;⌈R⌉ ∧ ℓ ≤ S;⌈(!R && !T)⌉;true"],
             "BEFORE": ["⌈!P⌉;⌈(!P && !R)⌉;⌈(!P && R)⌉ ∧ ℓ ≥ S;⌈(!P && (!R && !T))⌉;true"],
@@ -644,14 +665,14 @@ class EdgeResponseBoundU1(APattern):
 
 
 class Initialization(APattern):
+    group: str = "Order"
+    order: int = 6
+    old_names = ["Initialization "]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that initially {R} holds"
-        self.old_names = ["Initialization "]
         self._env: dict[str, list[str]] = {"R": ["bool"]}
-        self.group: str = "Order"
-        self.order: int = 6
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["⌈!R⌉;true"],
             "BEFORE": ["⌈(!P && !R)⌉;true"],
@@ -662,14 +683,14 @@ class Initialization(APattern):
 
 
 class Persistence(APattern):
+    group: str = "Order"
+    order: int = 7
+    old_names = ["Persistence"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that if {R} holds, then it holds persistently"
-        self.old_names = ["Persistence"]
         self._env: dict[str, list[str]] = {"R": ["bool"]}
-        self.group: str = "Order"
-        self.order: int = 7
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈R⌉;⌈!R⌉;true"],
             "BEFORE": ["⌈!P⌉;⌈(!P && R)⌉;⌈(!P && !R)⌉;true"],
@@ -680,16 +701,16 @@ class Persistence(APattern):
 
 
 class ConditionalResponseBoundL1(APattern):
+    group: str = "Real-time"
+    order: int = 10
+    old_names = ["InvarianceDelay"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that if {R} holds, then {S} holds as well after at most {T} time units"
         )
-        self.old_names = ["InvarianceDelay"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["real"]}
-        self.group: str = "Real-time"
-        self.order: int = 10
         self._countertraces: dict[str, list[str]] = {
             "GLOBALLY": ["true;⌈R && S⌉;⌈R && !S⌉;true", "true;⌈R && !S⌉;⌈!S⌉ ∧ ℓ > T;true"],
             "BEFORE": [],
@@ -700,61 +721,61 @@ class ConditionalResponseBoundL1(APattern):
 
 
 class Toggle1(APattern):
+    group: str = "Legacy"
+    order: int = 0
+    old_names = ["Toggle1"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "it is always the case that if {R} holds then {S} toggles {T}"
-        self.old_names = ["Toggle1"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["bool"]}
-        self.group: str = "Legacy"
-        self.order: int = 0
 
 
 class Toggle2(APattern):
+    group: str = "Legacy"
+    order: int = 0
+    old_names = ["Toggle2"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that if {R} holds then {S} toggles {T} at most {U} time units later"
         )
-        self.old_names = ["Toggle2"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["bool"], "U": ["real"]}
-        self.group: str = "Legacy"
-        self.order: int = 0
 
 
 class BndEntryConditionPattern(APattern):
+    group: str = "Legacy"
+    order: int = 0
+    old_names = ["BndEntryConditionPattern"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that after {R} holds for at least {S}  time units, then {T} holds"
         )
-        self.old_names = ["BndEntryConditionPattern"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["real"], "T": ["bool"]}
-        self.group: str = "Legacy"
-        self.order: int = 0
 
 
 class ResponseChain21(APattern):
+    group: str = "Legacy"
+    order: int = 1
+    old_names = ["ResponseChain2-1"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = (
             "it is always the case that if {R} holds and is succeeded by {S}, then {T} eventually holds after {S}"
         )
-        self.old_names = ["ResponseChain2-1"]
         self._env: dict[str, list[str]] = {"R": ["bool"], "S": ["bool"], "T": ["bool"]}
-        self.group: str = "Legacy"
-        self.order: int = 1
 
 
 class Existence(APattern):
+    group: str = "Legacy"
+    order: int = 1
+    old_names = ["Existence"]
 
     def __init__(self):
         super().__init__()
         self._pattern_text: str = "{R} eventually holds"
-        self.old_names = ["Existence"]
         self._env: dict[str, list[str]] = {"R": ["bool"]}
-        self.group: str = "Legacy"
-        self.order: int = 1

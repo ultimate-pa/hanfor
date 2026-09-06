@@ -1,6 +1,8 @@
 from collections import defaultdict
 from unittest import TestCase
 
+from pysmt.environment import Environment
+
 from lib_core.data import *
 from lib_core.pattern.patterns_automata import AAutomatonPattern
 
@@ -87,35 +89,42 @@ class TestSimpleAutomaton(TestCase):
         return variable_collection, r, f1, f2, f3a, f3b, f5
 
     def test_simple_transitions(self):
+        smt_env = Environment()
         variable_collection, r, f1, f2, f3a, f3b, f5 = self.__get_aut_easy()
         # test general automaton layout
-        req_belonging_to_r = AAutomatonPattern.get_hull(f1, [f for f in r.formalizations.values()], variable_collection)
+        req_belonging_to_r = AAutomatonPattern.get_hull(
+            smt_env, f1, [f for f in r.formalizations.values()], variable_collection
+        )
         aut = {f1, f2, f3a, f3b}
         self.assertSetEqual(aut, set(req_belonging_to_r))
 
     def test_initial_edge(self):
+        smt_env = Environment()
         variable_collection, r, f1, f2, f3a, f3b, f5 = self.__get_aut_easy()
         # test general automaton layout
-        req_belonging_to_r = AAutomatonPattern.get_hull(f1, [f for f in r.formalizations.values()], variable_collection)
+        req_belonging_to_r = AAutomatonPattern.get_hull(
+            smt_env, f1, [f for f in r.formalizations.values()], variable_collection
+        )
         aut = {f1, f2, f3a, f3b}
         # test formula generation
         formal_f3a = f3a.scoped_pattern.get_patternish().get_instanciated_countertraces(
-            f3a.scoped_pattern.scope, f3a, aut, variable_collection
+            smt_env, f3a.scoped_pattern.scope, f3a, aut, variable_collection
         )
         self.assertIsNotNone(formal_f3a)
         # States A and B (1 and 2) are initial.
-        self.assertIn(r"(= states 1)", formal_f3a[0].dc_phases[0].invariant.to_smtlib(daggify=False))
-        self.assertIn(r"(= states 2)", formal_f3a[0].dc_phases[0].invariant.to_smtlib(daggify=False))
+        self.assertIn(r"(states = 1)", formal_f3a[0].dc_phases[0].invariant.serialize())
+        self.assertIn(r"(states = 2)", formal_f3a[0].dc_phases[0].invariant.serialize())
 
     def test_edge_simple(self):
+        smt_env = Environment()
         variable_collection, r, f1, f2, f3a, f3b, f5 = self.__get_aut_easy()
         aut = {f1, f2, f3a, f3b}
 
         formal_f1 = f1.scoped_pattern.get_patternish().get_instanciated_countertraces(
-            f1.scoped_pattern.scope, f1, aut, variable_collection
+            smt_env, f1.scoped_pattern.scope, f1, aut, variable_collection
         )
         self.assertIsNotNone(formal_f1)
-        self.assertIn(r"(= states 1)", formal_f1[0].dc_phases[1].invariant.to_smtlib(daggify=False))
-        self.assertNotIn(r"(= states 2)", formal_f1[0].dc_phases[1].invariant.to_smtlib(daggify=False))
-        self.assertIn(r"(= states 1)", formal_f1[0].dc_phases[2].invariant.to_smtlib(daggify=False))
-        self.assertIn(r"(= states 2)", formal_f1[0].dc_phases[2].invariant.to_smtlib(daggify=False))
+        self.assertIn(r"(states = 1)", formal_f1[0].dc_phases[1].invariant.serialize())
+        self.assertNotIn(r"(states = 2)", formal_f1[0].dc_phases[1].invariant.serialize())
+        self.assertIn(r"(states = 1)", formal_f1[0].dc_phases[2].invariant.serialize())
+        self.assertIn(r"(states = 2)", formal_f1[0].dc_phases[2].invariant.serialize())

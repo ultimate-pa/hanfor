@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from pysmt.formula import FormulaManager
+from pysmt.environment import Environment
 
 from lib_pea.countertrace import Countertrace
 from lib_pea.location import PhaseSetsLocation, Location
@@ -9,9 +9,14 @@ from lib_pea.transition import PhaseSetsTransition, Transition
 
 
 class Pea(PeaOperationsMixin):
-    def __init__(self):
+    def __init__(
+        self,
+        smt_env: Environment,  # current  pySMT Environment (containing the right/current symbols and types)
+    ):
         self.transitions: defaultdict[Location, set[Transition]] = defaultdict(set)
         self.clocks: set[str] = set()
+        self._smt_env: Environment = smt_env
+        self._solver = self._smt_env.factory.get_solver(name="z3")
 
     def locations(self) -> set[Location]:
         return set(self.transitions.keys())
@@ -24,33 +29,34 @@ class Pea(PeaOperationsMixin):
             + "\n".join([str(t) for ts in self.transitions.values() for t in ts])
         )
 
+    def pretty_str(self):
+        return (
+            "PEA:\n"
+            + "\n".join([loc.pretty_str() for loc in self.locations() if loc is not None])
+            + "\n"
+            + "\n".join([t.pretty_str() for ts in self.transitions.values() for t in ts])
+            + "\n"
+        )
+
 
 class PhaseSetsPea(Pea):
-    def __init__(self, countertrace: Countertrace = None):
-        super().__init__()
-
-        self.transitions: defaultdict[PhaseSetsLocation, set[PhaseSetsTransition]] = defaultdict(set)
+    def __init__(self, smt_env: Environment, countertrace: Countertrace):
+        super().__init__(smt_env)
+        self.transitions: defaultdict[PhaseSetsLocation | None, set[PhaseSetsTransition]] = defaultdict(set)
         self.countertrace: Countertrace = countertrace
         self.requirement = None
         self.formalization = None
-        self.countertrace_id: int = None
+        self.countertrace_id: int | None = None
 
     def __eq__(self, o: "PhaseSetsPea") -> bool:
         return isinstance(o, PhaseSetsPea) and o.transitions == self.transitions
 
-    @classmethod
-    def load(cls, path: str) -> "PhaseSetsPea":
-        # pea = super().load(path)
-        # pea.normalize(get_env().formula_manager)
-        # return pea
-        raise NotImplementedError
-
-    def normalize(self, formula_manager: FormulaManager) -> None:
-        self.countertrace.normalize(formula_manager)
+    def normalize(self) -> None:
+        self.countertrace.normalize()
 
         for transitions in self.transitions.values():
             for transition in transitions:
-                transition.normalize(formula_manager)
+                transition.normalize()
 
     def add_transition(self, transition: PhaseSetsTransition) -> None:
         if transition in self.transitions[transition.src]:

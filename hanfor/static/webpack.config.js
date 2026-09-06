@@ -1,6 +1,11 @@
 const webpack = require('webpack');
 const path = require("path");
 const fs = require('fs');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+
+// Determine mode from the --mode flag passed by webpack-cli
+const modeArg = process.argv.find((a, i) => process.argv[i - 1] === '--mode' && (a === 'production' || a === 'development'));
+const NODE_ENV = modeArg || 'development';
 
 // auto-discovery of ai-addons
 const aiAddonEntries = fs.readdirSync(__dirname + '/../ai_addons')
@@ -20,6 +25,7 @@ const aiAddonEntries = fs.readdirSync(__dirname + '/../ai_addons')
     }, {});
 
 const config = {
+    mode: NODE_ENV,
     entry: {
         layout_globals: __dirname + '/js/layout-globals.js',
         requirements: __dirname + '/js/requirements.js',
@@ -53,32 +59,33 @@ const config = {
             {
                 test: /\.css$/,
                 use: [
-                    'style-loader',
+                    NODE_ENV === 'production' ? MiniCssExtractPlugin.loader : 'style-loader',
                     'css-loader'
                 ]
             },
             {
                 test: /\.(scss)$/,
-                use: [{
-                    loader: 'style-loader', // inject CSS to page
-                }, {
-                    loader: 'css-loader', // translates CSS into CommonJS modules
-                }, {
-                    loader: 'postcss-loader', // Run post css actions
-                    options: {
-                        postcssOptions: { // post css plugins, can be exported to postcss.config.js
-                            plugins: [
-                                //require('precss-v8'),
-                                require('autoprefixer')
-                            ]
+                use: [
+                    NODE_ENV === 'production' ? MiniCssExtractPlugin.loader : { loader: 'style-loader' },
+                    { loader: 'css-loader' },
+                    {
+                        loader: 'postcss-loader',
+                        options: {
+                            postcssOptions: {
+                                plugins: [
+                                    //require('precss-v8'),
+                                    require('autoprefixer')
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        loader: 'sass-loader',
+                        options: {
+                            implementation: require("sass")
                         }
                     }
-                }, {
-                    loader: 'sass-loader', // compiles Sass to CSS
-                    options: {
-                        implementation: require("sass")
-                    }
-                }]
+                ]
             },
             {
                 test: /\.(jpe?g|png|gif)$/i,
@@ -101,7 +108,10 @@ const config = {
         new webpack.ProvidePlugin({
             $: 'jquery',
             jQuery: 'jquery'
-        })
+        }),
+        ...(NODE_ENV === 'production'
+            ? [new MiniCssExtractPlugin({ filename: '[name].css' })]
+            : [])
     ]
 };
 

@@ -3,31 +3,41 @@ toc_depth: 4
 # What is Hanfor?
 **Hanfor** is a tool that **h**elps **an**alyzing and **fo**rmalizing **r**equirements.
 
-The specification of requirements is a critical activity in software and system development. A defect in a requirement specification can result in a situation where a software or system is delivered that fulfills the given requirements, but does not satisfy the customer's needs due to erroneous requirements.
+The specification of requirements is a critical activity in software and system development. 
+A defect in a requirement specification can result in a situation where a software or system is delivered 
+that fulfills the given requirements, but does not satisfy the customer's needs.
 
-Requirement analysis, as a human activity, is error-prone. Especially for large sets of requirements, it is difficult and time consuming to manually check whether a given property is satisfied or not.
+Requirement analysis, as a human activity, is error-prone.
+For larger sets of requirements, it is difficult and time-consuming to manually check whether a given property is satisfied or not.
 
-Requirement based testing is helpful to increase the efficiency during development. Obtaining a high test coverage on requirements often takes a long time. As the number of requirements increases over the releases, the test specifications have to cover more and more requirements. 
+Hanfor is developed to ease the process of requirement analysis and 
+facilitates the following major steps to discover requirements defects:
 
-Hanfor is developed to ease the process of requirement analysis. Its method consists of three major steps to discover requirement defects and obtain test specifications based on a set of informal requirements (Figure 1):
-
-1. Requirement Formalization
-2. Requirement Check
-3. Test Generation
-
-<figure markdown="span">
-  ![](../img/hanfor_method.svg){ loading=lazy }
-  <figcaption>Figure 1: The Hanfor tool discovers requirement defects and derives test specifications from a given set of informal requirements.</figcaption>
-</figure>
+1. Individual (tool supported) inspection of requirements
+2. Formalisation of requirements
+3. Automatic reasoning on the combined requirements
 
 ## Requirement Formalization
-To make it possible for a computer to check a set of requirements for a given criteria, it has to "understand" the semantics of the requirements. This could be achieved by using formal languages, which usually share the fact that they are rarely understandable for humans.
+To make it possible for a computer to check a set of requirements for a given criteria, 
+it has to "understand" the semantics of the requirements.
+This is achieved by translating the requirements into a formal, machine-readable, langauge first.
+As these langauges are usually hard to read for humans, we use _HanforPL_, 
+a restricted english grammar that looks like natural langauge but 
+can also be directly mapped to formal logics.
 
-In this method we make use of a simple pattern language. The language is based on a restricted English grammar and hence looks like natural language. Requirements formalized in this specification language can automatically be translated into logics.
+???+ note "Example: A requirement written in _HanforPL_."
+    ```
+    Globally, it is always the case that, if "ButtonPressed" holds, then "DoorClosed" holds after at most 5 seconds.
 
+    ```
 
 ### Specification Language
-The grammar of the specification language is given below. A requirement is defined by an ID, a scope and a pattern. Scope and pattern are parameterised by expressions over system observables and durations. Some patterns require a more detailed description concerning the order or the realtime occurence of events. Note that not all combinations of scope and pattern are supported within the **Hanfor** tool. For more information, have a look at our [pattern section](../references/patterns.md "Patterns").
+The grammar of the specification language is given below. 
+A requirement is defined by an ID, a scope and a pattern. 
+Scope and pattern are parameterised by expressions over system observables and durations. 
+Some patterns require a more detailed description concerning the order or the realtime occurence of events. 
+Note that not all combinations of scope and pattern are supported within the **Hanfor** tool. 
+For more information, have a look at our [pattern section](../references/patterns.md "Patterns").
 
 ???+ note "Grammar: Requirements"
     ```
@@ -98,7 +108,10 @@ The grammar of the specification language is given below. A requirement is defin
     OP_UNARY  ::= + | -
     ```
 
-Figure 2 shows the toolchain for the translation of an informal requirement into a formalized version. In the first step, the informal requirement, given in natural language, is translated into the specification language. This process is done manually. The requirement expressed in the specification language is then automatically translated into a formula in realtime logic (the Duration Calculus).
+Figure 2 shows the toolchain for the translation of an informal requirement into a formalized version. 
+In the first step, the informal requirement, given in natural language, 
+is translated into the specification language. This process is done manually. 
+The requirement expressed in the specification language is then automatically translated into a formula in realtime logic (the Duration Calculus).
 
 <figure markdown="span">
   ![](../img/toolchain_language.svg){ loading=lazy }
@@ -115,7 +128,9 @@ The **Hanfor** tool chain checks requirements for the following three correctnes
 ### Consistency
 A set of requirements is inconsistent, if there exists no system satisfying all requirements in the set.
 
-Consider the two requirements in the specification language given below. This set of requirements is obviously not consistent as there is no interpretation where the observable 'A' evaluates both to *true* and to *false* at each point in time.
+Consider the two requirements in the specification language given below. 
+This set of requirements is obviously not consistent as there is no interpretation where the observable 'A' 
+evaluates both to *true* and to *false* at each point in time.
 
 !!! example "Example 1: Inconsistent requirements"
     * ``Req1: Globally, it is never the case that 'A' holds.``
@@ -229,7 +244,8 @@ Wait for at most 20 for:
 C == true, (req3)
 ```
 
-The given test case tests the output variable *C* based on the third requirement. The input sequence is specified by an initial state only, in which both input variables *A* and *B* are set to *true*. The output variable *C* is expected to evaluate to *true* after at most 20 time units.
+The given test case tests the output variable *C* based on the third requirement. 
+The input sequence is specified by an initial state only, in which both input variables *A* and *B* are set to *true*. The output variable *C* is expected to evaluate to *true* after at most 20 time units.
 
 
 ## Tool support

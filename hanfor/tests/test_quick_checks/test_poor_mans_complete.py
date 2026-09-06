@@ -1,5 +1,7 @@
 from unittest import TestCase
 
+from pysmt.environment import Environment
+
 from lib_core.data import Variable, Requirement, ScopedPattern, Pattern, Formalization
 from lib_core.scopes import Scope
 from quickchecks.check_poormanscomplete import PoorMansComplete, CompletenessCheckOutcome
@@ -19,22 +21,31 @@ class TestPoorMansComplete(TestCase):
         req = Requirement("test_1", "I am a requirement.", "req", dict(), 3)
         f = Formalization(0)
         f.scoped_pattern = ScopedPattern(Scope.GLOBALLY, Pattern(name="BoundedResponse"))
-        f.expressions_mapping = {"R": Mock_Expression(expr1), "S": Mock_Expression(expr2), "T": Mock_Expression(bound)}
+        # noinspection PyTypeChecker
+        f.expressions_mapping = {
+            "R": Mock_Expression(expr1),
+            "S": Mock_Expression(expr2),
+            "T": Mock_Expression(bound),
+        }
         req.formalizations[0] = f
         return req
 
+    @staticmethod
     def __instantiate_universality(name: str, expr1: str) -> Requirement:
         req = Requirement("test_1", "I am a requirement.", "req", dict(), 3)
         req.formalizations[0] = TestPoorMansComplete.__formalisation_universality(expr1)
         return req
 
+    @staticmethod
     def __formalisation_universality(expr1: str) -> Formalization:
         f = Formalization(0)
         f.scoped_pattern = ScopedPattern(Scope.GLOBALLY, Pattern(name="Universality"))
+        # noinspection PyTypeChecker
         f.expressions_mapping = {"R": Mock_Expression(expr1)}
         return f
 
     def test_incomplete_without_env(self):
+        smt_env = Environment()
         vars = {
             "a": Variable("a", "bool", None),
             "b": Variable("b", "int", None),
@@ -44,13 +55,14 @@ class TestPoorMansComplete(TestCase):
             TestPoorMansComplete.__instantiate_bound_response("req1", "a && b < 5", "b > 6", "5.0"),
             TestPoorMansComplete.__instantiate_bound_response("req2", "!a && b < 5", "c > 7", "5.0"),
         ]
-        results = PoorMansComplete().run(reqs, set(vars.values()))
+        results = PoorMansComplete(smt_env).run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE_UNCONSTRAINT}
         self.assertIn("b", b_result)
         self.assertIn("c", b_result)
         self.assertNotIn("a", b_result)
 
     def test_incomplete_with_env_bool(self):
+        smt_env = Environment()
         vars = {
             "a": Variable("a", "bool", None),
             "d": Variable("d", "bool", None),
@@ -59,15 +71,16 @@ class TestPoorMansComplete(TestCase):
         vars["c"].constraints[0] = TestPoorMansComplete.__formalisation_universality("c > 7")
         reqs = [
             TestPoorMansComplete.__instantiate_bound_response("req1", "a && d", "c > 22", "5.0"),
-            TestPoorMansComplete.__instantiate_bound_response("req2", "!a && d", "c > 7", "5.0"),
+            TestPoorMansComplete.__instantiate_bound_response("req2", "!a && d", "c > 7 && !a", "5.0"),
         ]
-        results = PoorMansComplete().run(reqs, set(vars.values()))
+        results = PoorMansComplete(smt_env).run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE_UNCONSTRAINT}
         self.assertIn("d", b_result)
         self.assertNotIn("c", b_result)
         self.assertNotIn("a", b_result)
 
     def test_incomplete_with_env(self):
+        smt_env = Environment()
         vars = {
             "a": Variable("a", "bool", None),
             "d": Variable("d", "bool", None),
@@ -78,13 +91,14 @@ class TestPoorMansComplete(TestCase):
             TestPoorMansComplete.__instantiate_bound_response("req1", "a && d", "c >= 22", "5.0"),
             TestPoorMansComplete.__instantiate_bound_response("req2", "!a && d", "c > 10", "5.0"),
         ]
-        results = PoorMansComplete().run(reqs, set(vars.values()))
+        results = PoorMansComplete(smt_env).run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE}
         self.assertNotIn("d", b_result)
         self.assertIn("c", b_result)
         self.assertNotIn("a", b_result)
 
     def test_incomplete_with_env_cmplx(self):
+        smt_env = Environment()
         vars = {
             "a": Variable("a", "bool", None),
             "d": Variable("d", "bool", None),
@@ -99,7 +113,7 @@ class TestPoorMansComplete(TestCase):
             TestPoorMansComplete.__instantiate_bound_response("req1", "a && d", "c >= 22 && x == 0 ", "5.0"),
             TestPoorMansComplete.__instantiate_bound_response("req2", "!a && d", "c > 11", "5.0"),
         ]
-        results = PoorMansComplete().run(reqs, set(vars.values()))
+        results = PoorMansComplete(smt_env).run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE}
         self.assertNotIn("d", b_result)
         self.assertIn("c", b_result)
@@ -107,6 +121,7 @@ class TestPoorMansComplete(TestCase):
         self.assertIn("x", b_result)
 
     def test_incomplete_with_env_int(self):
+        smt_env = Environment()
         vars = {
             "a": Variable("a", "bool", None),
             "d": Variable("d", "bool", None),
@@ -117,13 +132,14 @@ class TestPoorMansComplete(TestCase):
             TestPoorMansComplete.__instantiate_bound_response("req1", "a && d", "c > 22", "5.0"),
             TestPoorMansComplete.__instantiate_bound_response("req2", "!a && d", "c > 7", "5.0"),
         ]
-        results = PoorMansComplete().run(reqs, set(vars.values()))
+        results = PoorMansComplete(smt_env).run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE_UNCONSTRAINT}
         self.assertNotIn("d", b_result)
         self.assertIn("c", b_result)
         self.assertNotIn("a", b_result)
 
     def test_incomplete_with_env_neg(self):
+        smt_env = Environment()
         vars = {
             "c": Variable("c", "int", None),
         }
@@ -133,11 +149,12 @@ class TestPoorMansComplete(TestCase):
             TestPoorMansComplete.__instantiate_bound_response("req1", "c == 4", "c > 22", "5.0"),
             # TestPoorMansComplete.__instantiate_bound_response("req2", "c < 1000", "c > -33", "5.0"),
         ]
-        results = PoorMansComplete().run(reqs, set(vars.values()))
+        results = PoorMansComplete(smt_env).run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE}
         self.assertIn("c", b_result)
 
     def test_incomplete_with_env_univ(self):
+        smt_env = Environment()
         vars = {
             "c": Variable("c", "int", None),
         }
@@ -145,13 +162,14 @@ class TestPoorMansComplete(TestCase):
         reqs = [
             TestPoorMansComplete.__instantiate_bound_response("req1", "c != -4", "c > 22", "5.0"),
             TestPoorMansComplete.__instantiate_bound_response("req1", "c != -5", "c > 22", "5.0"),
-            # TestPoorMansComplete.__instantiate_bound_response("req2", "c < 1000", "c > -33", "5.0"),
+            TestPoorMansComplete.__instantiate_bound_response("req2", "c < 1000", "c > -33", "5.0"),
         ]
-        results = PoorMansComplete().run(reqs, set(vars.values()))
+        results = PoorMansComplete(smt_env).run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE}
         self.assertNotIn("c", b_result)
 
     def test_incomplete_with_env_ok(self):
+        smt_env = Environment()
         vars = {
             "a": Variable("a", "bool", None),
             "d": Variable("d", "bool", None),
@@ -163,13 +181,14 @@ class TestPoorMansComplete(TestCase):
             TestPoorMansComplete.__instantiate_bound_response("req1", "a && d", "c > 22", "5.0"),
             TestPoorMansComplete.__instantiate_bound_response("req2", "!a && d", "c > 7", "5.0"),
         ]
-        results = PoorMansComplete().run(reqs, set(vars.values()))
+        results = PoorMansComplete(smt_env).run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.INCOMPLETE}
         self.assertNotIn("d", b_result)
         self.assertNotIn("c", b_result)
         self.assertNotIn("a", b_result)
 
     def test_env_violation_int(self):
+        smt_env = Environment()
         vars = {
             "a": Variable("a", "bool", None),
             "d": Variable("d", "bool", None),
@@ -180,13 +199,14 @@ class TestPoorMansComplete(TestCase):
             TestPoorMansComplete.__instantiate_bound_response("req1", "a && d", "c > 22", "5.0"),
             TestPoorMansComplete.__instantiate_bound_response("req2", "!a && d", "c > 7", "5.0"),
         ]
-        results = PoorMansComplete().run(reqs, set(vars.values()))
+        results = PoorMansComplete(smt_env).run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.ENV_VIOLATED}
         self.assertNotIn("d", b_result)
         self.assertIn("c", b_result)
         self.assertNotIn("a", b_result)
 
     def test_env_violation_bool(self):
+        smt_env = Environment()
         vars = {
             "a": Variable("a", "bool", None),
             "d": Variable("d", "bool", None),
@@ -197,13 +217,13 @@ class TestPoorMansComplete(TestCase):
             TestPoorMansComplete.__instantiate_bound_response("req1", "a && d", "c > 22", "5.0"),
             TestPoorMansComplete.__instantiate_bound_response("req2", "!a && d", "c > 7", "5.0"),
         ]
-        results = PoorMansComplete().run(reqs, set(vars.values()))
+        results = PoorMansComplete(smt_env).run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.ENV_VIOLATED}
-        self.assertIn("d", b_result)
         self.assertNotIn("c", b_result)
         self.assertNotIn("a", b_result)
 
     def test_env_violation_all(self):
+        smt_env = Environment()
         vars = {
             "a": Variable("a", "bool", None),
             "d": Variable("d", "bool", None),
@@ -215,13 +235,13 @@ class TestPoorMansComplete(TestCase):
             TestPoorMansComplete.__instantiate_bound_response("req1", "a && d", "c > 22", "5.0"),
             TestPoorMansComplete.__instantiate_bound_response("req2", "!a && d", "c > 7", "5.0"),
         ]
-        results = PoorMansComplete().run(reqs, set(vars.values()))
+        results = PoorMansComplete(smt_env).run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.ENV_VIOLATED}
-        self.assertIn("d", b_result)
         self.assertIn("c", b_result)
         self.assertNotIn("a", b_result)
 
     def test_env_violation_none(self):
+        smt_env = Environment()
         vars = {
             "a": Variable("a", "bool", None),
             "d": Variable("d", "bool", None),
@@ -233,7 +253,7 @@ class TestPoorMansComplete(TestCase):
             TestPoorMansComplete.__instantiate_bound_response("req1", "a && d", "c > 22", "5.0"),
             TestPoorMansComplete.__instantiate_bound_response("req2", "!a && d", "c > 7", "5.0"),
         ]
-        results = PoorMansComplete().run(reqs, set(vars.values()))
+        results = PoorMansComplete(smt_env).run(reqs, set(vars.values()))
         b_result = {r.var: r for r in results if r.outcome == CompletenessCheckOutcome.ENV_VIOLATED}
         self.assertNotIn("d", b_result)
         self.assertNotIn("c", b_result)

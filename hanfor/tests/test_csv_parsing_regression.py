@@ -1,7 +1,3 @@
-"""
-TODO: Add description here
-"""
-
 from app import app
 import os
 import shutil

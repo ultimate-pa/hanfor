@@ -30,7 +30,7 @@ If you wish to find out more about the different patterns that are supported by 
 	* [Patterns](references/patterns.md "Patterns")
 	* [Publications](references/publications.md "Publications")
   * Contribute
-	* [Hanfor](contribute/to_hanfor.md "Contribute To Hanfor")
+	* [Hanfor](contribute/to_hanfor/index.md "Contribute To Hanfor")
 	* [Docs](contribute/to_docs.md "Contribute To Docs")
   * Contact
     * [Contact](contact/contact.md "Contact")

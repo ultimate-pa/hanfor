@@ -1,6 +1,8 @@
 from collections import defaultdict
 from unittest import TestCase
 
+from pysmt.environment import Environment
+
 from lib_core.data import Requirement, VariableCollection, Tag, Variable
 from lib_pea.formal_utils import get_semantics_from_requirement
 
@@ -21,7 +23,8 @@ class TestAbsFunction(TestCase):
         )
         self.assertIn("aBooleanVar", [var.name for var in variable_collection.new_vars])
         self.assertIn("anIntegerVar", [var.name for var in variable_collection.new_vars])
-        sem = get_semantics_from_requirement(r, [r], variable_collection)
+        smt_env = Environment()
+        sem = get_semantics_from_requirement(smt_env, r, [r], variable_collection)
         self.assertEqual("True", list(sem.items())[0][1].dc_phases[0].__str__())
         self.assertEqual("⌈((anIntegerVar = 42) & (! aBooleanVar))⌉", list(sem.items())[0][1].dc_phases[1].__str__())
         self.assertEqual("True", list(sem.items())[0][1].dc_phases[2].__str__())
@@ -56,7 +59,8 @@ class TestAbsFunction(TestCase):
         self.assertIn("anIntegerVar", [var.name for var in variable_collection.new_vars])
         self.assertIn("before", [var.name for var in variable_collection.new_vars])
         self.assertIn("after", [var.name for var in variable_collection.new_vars])
-        sem = get_semantics_from_requirement(r, [r], variable_collection)
+        smt_env = Environment()
+        sem = get_semantics_from_requirement(smt_env, r, [r], variable_collection)
         # "true;⌈P⌉;⌈!Q⌉;⌈(!Q && R)⌉;⌈(!Q && !S)⌉ ∧ ℓ > T;true"
         self.assertEqual("True", list(sem.items())[0][1].dc_phases[0].__str__())
         self.assertEqual("⌈before⌉", list(sem.items())[0][1].dc_phases[1].__str__())

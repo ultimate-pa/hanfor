@@ -525,6 +525,7 @@ class TestEnums(TestCase):
                 "formalization_type": "formalization",
                 "scope": "GLOBALLY",
                 "pattern": "Absence",
+                "is_constraint": True,
                 "expression_mapping": {"P": "", "Q": "", "R": "", "S": "", "T": "", "U": ""},
             }
         }
@@ -567,6 +568,7 @@ class TestEnums(TestCase):
                 "formalization_type": "formalization",
                 "scope": "GLOBALLY",
                 "pattern": "Absence",
+                "is_constraint": True,
                 "expression_mapping": {"P": "", "Q": "", "R": "", "S": "", "T": "", "U": ""},
             }
         }
@@ -688,6 +690,7 @@ class TestEnums(TestCase):
                 "formalization_type": "formalization",
                 "scope": "GLOBALLY",
                 "pattern": "Absence",
+                "is_constraint": True,
                 "expression_mapping": {"P": "", "Q": "", "R": "", "S": "", "T": "", "U": ""},
             }
         }
@@ -752,6 +755,7 @@ class TestEnums(TestCase):
                 "formalization_type": "formalization",
                 "scope": "GLOBALLY",
                 "pattern": "Absence",
+                "is_constraint": True,
                 "expression_mapping": {"P": "", "Q": "", "R": "", "S": "", "T": "", "U": ""},
             }
         }
@@ -816,6 +820,7 @@ class TestEnums(TestCase):
                 "formalization_type": "formalization",
                 "scope": "GLOBALLY",
                 "pattern": "Absence",
+                "is_constraint": True,
                 "expression_mapping": {"P": "", "Q": "", "R": "", "S": "", "T": "", "U": ""},
             }
         }
@@ -880,6 +885,7 @@ class TestEnums(TestCase):
                 "formalization_type": "formalization",
                 "scope": "GLOBALLY",
                 "pattern": "Absence",
+                "is_constraint": True,
                 "expression_mapping": {"P": "", "Q": "", "R": "", "S": "", "T": "", "U": ""},
             }
         }
