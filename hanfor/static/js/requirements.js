@@ -1424,7 +1424,7 @@ async function load_requirement(row_idx) {
     const sortable = Sortable.create($("#formalization_accordion")[0], {
       animation: 200,
       ghostClass: "ghost",
-      filter: "textarea, input, select",
+      filter: "textarea, input, select, .formalization-preview",
       preventOnFilter: false,
     })
   })
