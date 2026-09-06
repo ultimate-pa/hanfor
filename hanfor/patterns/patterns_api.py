@@ -17,16 +17,17 @@ class ApiPatterns(Resource):
         groups = {}
         for name, data in frontend.items():
             try:
-                pattern = APattern().get_pattern(name)
+                pattern_cls = APattern.get_pattern(name)
             except KeyError:
                 continue
-            group = pattern.group
+            pattern = pattern_cls()
+            group = pattern_cls.group
             if group not in groups:
                 groups[group] = []
             groups[group].append(
                 {
                     "name": name,
-                    "text": pattern._pattern_text,
+                    "text": pattern.get_text(),
                     "env": data["env"],
                 }
             )
