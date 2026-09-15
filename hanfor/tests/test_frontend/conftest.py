@@ -1,3 +1,8 @@
+"""
+Test configuration for the test fixtures that do all the wiring so that
+when a url is supplied, a hanfor server instance with the right context gets spun up
+"""
+
 import socket
 import threading
 
