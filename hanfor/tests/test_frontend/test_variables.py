@@ -73,3 +73,19 @@ def test_rename_variable(page: Page):
     assert variable["name"] == "velocity"
     [formalization] = get_formalizations(page, RID, "formalization")
     assert formalization["expr_R"].replace(" ", "") == "velocity>5"
+
+
+def test_cancelled_close_keeps_new_variable(page: Page):
+    modal = open_requirement(page, RID)
+    modal.locator("#add_variable").click()
+    card = modal.locator(f"{VARIABLE_CARD}.draft")
+    card.locator(".accordion-button").click()
+    card.locator('input[aria-describedby="variable-name-feedback"]').fill("speed")
+    card.locator("input.variable-type").fill("int")
+    card.locator("input.variable-type").press("Tab")
+    page.once("dialog", lambda dialog: dialog.dismiss())
+    modal.locator(".modal-footer").get_by_role("button", name="Close").click()
+    expect(modal).to_be_visible()
+    save_requirement(page, modal, RID)
+
+    assert "speed" in {v["name"] for v in get_formalizations(page, RID, "variable")}

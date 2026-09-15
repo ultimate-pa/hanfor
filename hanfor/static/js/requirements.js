@@ -1144,10 +1144,6 @@ function init_modal() {
 
   //requirement_modal.on('hide.bs.modal', function (event) {
   requirement_modal[0].addEventListener("hide.bs.modal", function (event) {
-    $(".constraint-badge").each(function () {
-      const popover = Popover.getInstance(this)
-      if (popover) popover.dispose()
-    })
     modal_closing_routine(event)
   })
 
@@ -1181,6 +1177,11 @@ function init_modal() {
   requirement_modal.on("hidden.bs.modal", function () {
     $("#requirement_tag_field").val("")
     $("#requirement_tag_field-tokenfield").val("")
+    $(".constraint-badge").each(function () {
+      const popover = Popover.getInstance(this)
+      if (popover) popover.dispose()
+    })
+    store.reset()
   })
 
   // Listener for adding new formalizations.
@@ -1262,8 +1263,6 @@ function modal_closing_routine(event) {
   } else {
     sendTelemetry("requirements", $("#requirement_id").val(), "close")
   }
-  // here we have to reset the last changes
-  store.reset()
 }
 
 async function load_requirement(row_idx) {
