@@ -1,108 +1,54 @@
-export default class FormalizationStore {
-  constructor() {
-    this.created = new Map()
-    this.deleted = new Map()
-    this.nextId = null
-  }
+import ApiClient from "../api/ApiClient.js"
+import TrackedStore from "../store/TrackedStore.js"
 
-  hasNoDrafts(type = null) {
-    if (type) {
-      const createdSet = this.getSet(this.created, type)
-      const deletedSet = this.getSet(this.deleted, type)
+const api = new ApiClient()
+const store = new TrackedStore()
 
-      return createdSet.size === 0 && deletedSet.size === 0
-    }
-
-    const mapsAreEmpty = (map) => {
-      for (const set of map.values()) {
-        if (set.size > 0) return false
-      }
-      return true
-    }
-
-    return mapsAreEmpty(this.created) && mapsAreEmpty(this.deleted)
-  }
-
-  initNextId(nextId) {
-    this.nextId = Number(nextId)
-  }
-
-  generateId() {
-    return Number(this.nextId++)
-  }
-
-  getSet(map, type) {
-    if (!map.has(type)) {
-      map.set(type, new Set())
-    }
-    return map.get(type)
-  }
-
-  create(type) {
-    const id = Number(this.generateId())
-    this.getSet(this.created, type).add(id)
-    return id
-  }
-
-  delete(type, id) {
-    id = Number(id)
-    console.log("DELETE called with:", id, typeof id)
-    const createdSet = this.getSet(this.created, type)
-    const deletedSet = this.getSet(this.deleted, type)
-    console.log("createdSet BEFORE:", [...createdSet])
-    if (createdSet.has(id)) {
-      console.log("Removing from created")
-      createdSet.delete(id)
-    } else {
-      console.log("Adding to deleted")
-      deletedSet.add(id)
-    }
-    console.log("createdSet AFTER:", [...createdSet])
-    console.log("deletedSet AFTER:", [...deletedSet])
-  }
-
-  isCreated(type, id) {
-    return this.getSet(this.created, type).has(Number(id))
-  }
-
-  getFormalizationFromDOM(id) {
+store.registerType("formalization", {
+  readDOM(id) {
     const card = $(`.formalization_card[title="${id}"]`)
-    if (!card.length) return {}
+    if (!card.length) return null
 
-    const formalization = { id: id, expression_mapping: {} }
+    const data = { id: Number(id), expression_mapping: {} }
 
     card.find("select").each(function () {
-      if ($(this).hasClass("scope_selector")) formalization.scope = $(this).val()
-      if ($(this).hasClass("pattern_selector")) formalization.pattern = $(this).val()
+      if ($(this).hasClass("scope_selector")) data.scope = $(this).val()
+      if ($(this).hasClass("pattern_selector")) data.pattern = $(this).val()
+      console.log(`Scope: ${data.scope}, Pattern: ${data.pattern}`)
     })
 
-    formalization["is_constraint"] = card.find(".is-constraint-checkbox").is(":checked")
+    data.is_constraint = card.find(".is-constraint-checkbox").is(":checked")
+    console.log(`Constraint: ${data.is_constraint}`)
 
     card.find("textarea.reqirement-variable").each(function () {
       const title = $(this).attr("title")
-      if (title) formalization.expression_mapping[title] = $(this).val()
+      if (title) data.expression_mapping[title] = $(this).val()
     })
 
-    return formalization
-  }
+    return data
+  },
+  persistCreate: (rid, data) => api.createFormalization(rid, data),
+  persistDelete: (rid, id) => api.deleteFormalization(rid, id),
+})
 
-  getVariableFromDOM(id) {
+store.registerType("variable", {
+  readDOM(id) {
     const $card = $(`.accordion-item[data-id="${id}"][data-type="variable"]`)
-    if (!$card.length) return {}
+    if (!$card.length) return null
 
-    const data = { id: id }
+    const data = { id: id, enumerators: [] }
 
     const $nameInput = $card.find('input[aria-describedby="variable-name-feedback"]')
     data.name = $nameInput.val() || ""
     data.id = data.name
-    data.temp_id = id
+    data.temp_id = Number(id)
+
     const $typeInput = $card.find("input.variable-type")
     data.type = $typeInput.val() || ""
+
     const $variableValue = $card.find("input.variable-value")
     data.value = $variableValue.val() || ""
 
-    // Collect enumerators for ENUM types
-    data.enumerators = []
     $card.find(".enum_name_input").each(function (i) {
       const enumName = $(this).val() || ""
       const enumValue = $card.find(".enum_value_input").eq(i).val() || ""
@@ -110,73 +56,9 @@ export default class FormalizationStore {
     })
 
     return data
-  }
+  },
+  persistCreate: (rid, data) => api.createVariable(rid, data),
+  persistDelete: (rid, id) => api.deleteFormalization(rid, id),
+})
 
-  static asError(reason) {
-    if (reason && reason.responseJSON) return reason.responseJSON
-    if (reason && reason.errormsg) return reason
-    return { success: false, errormsg: (reason && reason.statusText) || "Unknown error" }
-  }
-
-  commitDeletes(requirementId, type) {
-    const requests = []
-    const deletedSet = this.getSet(this.deleted, type)
-    console.log("Deleted set: ", deletedSet)
-
-    deletedSet.forEach((id) => {
-      requests.push(
-        $.ajax({
-          url: `/api/v1/req/${requirementId}/formalizations/${id}`,
-          type: "DELETE",
-        }).then(
-          function (res) {
-            if (!res.success) return $.Deferred().reject(res).promise()
-          },
-          function (reason) {
-            return $.Deferred().reject(FormalizationStore.asError(reason)).promise()
-          },
-        ),
-      )
-    })
-    deletedSet.clear()
-    return Promise.all(requests)
-  }
-
-  commitCreated(requirementId) {
-    const requests = []
-    for (const [type, idSet] of this.created.entries()) {
-      idSet.forEach((id) => {
-        let data = {}
-        let endpoint = ""
-        if (type === "formalization") {
-          data = this.getFormalizationFromDOM(id)
-          endpoint = `/api/v1/req/${requirementId}/formalizations/formalization/${id}`
-        } else if (type === "variable") {
-          data = this.getVariableFromDOM(id)
-          endpoint = `/api/v1/req/${requirementId}/formalizations/variable/${id}`
-        }
-
-        // Both getters return {} when their card is not in the DOM, this should handle that case
-        if ($.isEmptyObject(data)) {
-          const message = `Could not read the ${type} card for id ${id}, nothing was saved.`
-          console.error(message)
-          requests.push($.Deferred().reject({ success: false, errormsg: message }).promise())
-          return
-        }
-
-        requests.push(
-          $.post(endpoint, { id: requirementId, data: JSON.stringify(data) }).then(
-            function (res) {
-              if (!res.success) return $.Deferred().reject(res).promise()
-            },
-            function (reason) {
-              return $.Deferred().reject(FormalizationStore.asError(reason)).promise()
-            },
-          ),
-        )
-      })
-    }
-    this.created.clear()
-    return Promise.all(requests)
-  }
-}
+export default store

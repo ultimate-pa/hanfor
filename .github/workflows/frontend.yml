@@ -1,0 +1,46 @@
+name: Playwright Tests
+on: [push]
+
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: hanfor
+    steps:
+    - uses: actions/checkout@v6
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.13'
+    - name: Set up Node
+      uses: actions/setup-node@v5
+      with:
+        node-version: '24'
+    - name: Build static content
+      working-directory: hanfor/static
+      run: |
+        npm install
+        npm run build
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt -r requirements-dev.txt
+    - name: Set up configuration
+      run: |
+        cp config.dist.py config.py
+        cp configuration/threading_config.dist.py configuration/threading_config.py
+        cp configuration/ai_config.dist.py configuration/ai_config.py
+    - name: Install Z3
+      run: pysmt-install --z3 --confirm-agreement
+    - name: Install Chromium
+      run: python -m playwright install --with-deps chromium
+    - name: Run frontend tests
+      run: python -m pytest tests/test_frontend --browser chromium --tracing=retain-on-failure
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: playwright-traces
+        path: hanfor/test-results/
