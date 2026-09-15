@@ -8,6 +8,7 @@ FORMALIZATIONS_URL = f"/api/v1/req/{quote(RID)}/formalizations"
 
 def test_save_default_formalization_draft(page: Page):
     existing_ids = {f["id"] for f in page.request.get(FORMALIZATIONS_URL).json()}
+    assert existing_ids == {0}
 
     page.goto("/")
     page.get_by_role("link", name=RID, exact=True).click()
