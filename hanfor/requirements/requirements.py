@@ -118,7 +118,7 @@ class ApiRequirementSingle(Resource):
             result["desc_highlighted"] = get_highlighted_desc(rid, result["desc"])
         else:
             result["desc_highlighted"] = result["desc"]
-        result["next_id"] = requirement.next_id()
+        result["next_id"] = requirement.peek_next_id()
         return result
 
     @api_ns.doc(

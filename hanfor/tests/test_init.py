@@ -11,6 +11,7 @@ import shutil
 from unittest import TestCase
 from unittest.mock import patch
 from lib_core.startup import HanforArgumentParser
+from lib_core.data import Requirement
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 TESTS_BASE_FOLDER = os.path.join(HERE, "test_sessions")
@@ -153,6 +154,20 @@ class TestInit(TestCase):
             "revision_diff": {},
         }
         self.assertDictEqual(desired_req, result.json)
+
+    def test_3_get_does_not_consume_formalization_id(self):
+        args = HanforArgumentParser(app).parse_args([TEST_TAG, "-c", TEST_CSV])
+        self.startup_hanfor(args, [2, 0, 1, 3, 0])
+        first = self.app.get("api/v1/req/SysRS%20FooXY_42")
+        second = self.app.get("api/v1/req/SysRS%20FooXY_42")
+        self.assertEqual(0, first.json["next_id"])
+        self.assertEqual(0, second.json["next_id"])
+
+        requirement = app.db.get_object(Requirement, "SysRS FooXY_42")
+        fid, _ = requirement.add_empty_formalization()
+        self.assertEqual(0, fid)
+        third = self.app.get("api/v1/req/SysRS%20FooXY_42")
+        self.assertEqual(1, third.json["next_id"])
 
     def tearDown(self):
         # Clean test dir.
