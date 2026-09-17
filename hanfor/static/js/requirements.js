@@ -718,7 +718,9 @@ function store_requirement(requirements_table) {
 
   sendTelemetry("requirements", req_id, "save")
   const committedFormalizations = Object.fromEntries(
-    Object.entries(formalizations).filter(([id]) => !store.isCreated("formalization", id)),
+    Object.entries(formalizations).filter(
+      ([id]) => !store.isCreated("formalization", id) && !store.isCreated("variable", id),
+    ),
   )
   console.log("Committed formalizations:", JSON.stringify(committedFormalizations, null, 2))
   $.when(
@@ -733,7 +735,7 @@ function store_requirement(requirements_table) {
       tags: JSON.stringify(Object.fromEntries(tag_comments)),
       status: req_status,
       formalizations: JSON.stringify(committedFormalizations),
-      formalizations_order: JSON.stringify(load_order),
+      formalizations_order: JSON.stringify(store.resolveKeys(load_order)),
       description: $("#description_editor").val(),
     }).done(function (data) {
       requirement_modal_content.LoadingOverlay("hide", true)
@@ -1353,7 +1355,6 @@ async function load_requirement(row_idx) {
       requirement_modal_content.LoadingOverlay("hide", true)
     })
 
-    store.initNextId(data["next_id"])
     // remove all lines from the tag comment table
     $("#tags_comments_table").find("tr:gt(0)").remove()
     // set Tag field and comments in Table (table rows are created via event)

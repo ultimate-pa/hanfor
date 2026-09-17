@@ -449,10 +449,11 @@ class TestMixedFormalizationCollection(TestCase):
         self.mock_hanfor = MockHanfor(session_tags=["simple"], test_session_source="test_formalization_process")
         self.mock_hanfor.set_up()
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
-        self.mock_hanfor.app.post(
-            "api/v1/req/SysRS%20FooXY_42/formalizations/variable/9",
-            data={"data": json.dumps({"name": "mixedvar", "type": "bool", "temp_id": 9})},
+        created = self.mock_hanfor.app.post(
+            "api/v1/req/SysRS%20FooXY_42/formalizations/variable/tmp-1",
+            data={"data": json.dumps({"name": "mixedvar", "type": "bool"})},
         )
+        self.fid = created.json["id"]
 
     def tearDown(self) -> None:
         self.mock_hanfor.tear_down()
@@ -472,7 +473,7 @@ class TestMixedFormalizationCollection(TestCase):
         self.assertListEqual([False, False], [e["is_constraint"] for e in result.json])
 
     def test_single_endpoint_returns_the_variable(self):
-        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42/formalizations/9")
+        result = self.mock_hanfor.app.get(f"api/v1/req/SysRS%20FooXY_42/formalizations/{self.fid}")
 
         self.assertEqual(200, result.status_code)
         self.assertEqual("variable", result.json["formalization_type"])
@@ -493,7 +494,7 @@ class TestCreateFormalizationValidation(TestCase):
     """
 
     RID = "SysRS FooXY_42"
-    URL = "api/v1/req/SysRS%20FooXY_42/formalizations/formalization/7"
+    URL = "api/v1/req/SysRS%20FooXY_42/formalizations/formalization/tmp-1"
 
     def setUp(self) -> None:
         self.mock_hanfor = MockHanfor(session_tags=["simple"], test_session_source="test_formalization_process")
@@ -541,7 +542,7 @@ class TestCreateFormalizationValidation(TestCase):
 
         self.assertEqual(200, result.status_code)
         self.assertTrue(result.json["success"])
-        self.assertIn(7, self.formalization_ids())
+        self.assertIn(result.json["id"], self.formalization_ids())
 
 
 class TestSubtypeErrorStatuses(TestCase):
@@ -585,7 +586,7 @@ class TestSubtypeErrorStatuses(TestCase):
         self.assertListEqual(before, self.formalization_ids())
 
     def test_illegal_variable_name_is_bad_request(self):
-        result = self.post(f"{self.BASE}/variable/7", {"name": "9illegal", "type": "bool", "temp_id": 7})
+        result = self.post(f"{self.BASE}/variable/tmp-1", {"name": "9illegal", "type": "bool"})
 
         self.assertEqual(400, result.status_code)
         self.assertIn("9illegal", result.json["errormsg"])
@@ -627,11 +628,12 @@ class TestVariableRename(TestCase):
         folder = os.path.join(app.config["SESSION_BASE_FOLDER"], "simple", "revision_0", "Variable")
         return sorted(json.load(open(os.path.join(folder, f)))["name"] for f in os.listdir(folder))
 
-    def create(self, fid: str, data: dict) -> None:
-        subtype = "variable" if "temp_id" in data else "formalization"
-        self.mock_hanfor.app.post(
-            f"api/v1/req/{RID}/formalizations/{subtype}/{fid}", data={"id": RID, "data": json.dumps(data)}
+    def create(self, data: dict, temp_id: str = "tmp-1") -> int:
+        subtype = "formalization" if "scope" in data else "variable"
+        result = self.mock_hanfor.app.post(
+            f"api/v1/req/{RID}/formalizations/{subtype}/{temp_id}", data={"id": RID, "data": json.dumps(data)}
         )
+        return result.json["id"]
 
     def save(self, formalizations: dict):
         return self.mock_hanfor.app.patch(
@@ -648,13 +650,13 @@ class TestVariableRename(TestCase):
 
     def test_renaming_a_used_variable_rewrites_the_expression(self):
         """The rename used to leave the expression on the old name, which then 500ed the whole save."""
-        self.create("9", {"name": "myvar", "type": "bool", "temp_id": 9})
-        self.create("7", {"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "myvar"}})
+        vid = self.create({"name": "myvar", "type": "bool"})
+        self.create({"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "myvar"}})
 
         result = self.save(
             {
-                "9": {
-                    "id": "9",
+                str(vid): {
+                    "id": str(vid),
                     "formalization_type": "variable",
                     "name": "renamed",
                     "var_type": "bool",
@@ -671,13 +673,13 @@ class TestVariableRename(TestCase):
 
     def test_renaming_a_used_variable_persists(self):
         """The 500 skipped `db.update()`, so the old variable survived with everything intact."""
-        self.create("9", {"name": "myvar", "type": "bool", "temp_id": 9})
-        self.create("7", {"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "myvar"}})
+        vid = self.create({"name": "myvar", "type": "bool"})
+        self.create({"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "myvar"}})
 
         self.save(
             {
-                "9": {
-                    "id": "9",
+                str(vid): {
+                    "id": str(vid),
                     "formalization_type": "variable",
                     "name": "renamed",
                     "var_type": "bool",
@@ -692,13 +694,13 @@ class TestVariableRename(TestCase):
 
     def test_renaming_an_enum_rewrites_expressions_naming_its_enumerators(self):
         enumerators = [["A", "1"], ["B", "2"]]
-        self.create("9", {"name": "myenum", "type": "ENUM_INT", "temp_id": 9, "enumerators": enumerators})
-        self.create("7", {"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "myenum_A"}})
+        vid = self.create({"name": "myenum", "type": "ENUM_INT", "enumerators": enumerators})
+        self.create({"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "myenum_A"}})
 
         self.save(
             {
-                "9": {
-                    "id": "9",
+                str(vid): {
+                    "id": str(vid),
                     "formalization_type": "variable",
                     "name": "renamed",
                     "var_type": "ENUM_INT",

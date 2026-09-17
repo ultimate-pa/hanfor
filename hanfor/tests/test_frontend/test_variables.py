@@ -42,7 +42,7 @@ def test_create_variable(page: Page, name, var_type, value, enumerators, expecte
 
 
 def test_change_variable_type(page: Page):
-    create_variable(page, RID, 0, "speed", "int")
+    create_variable(page, RID, "speed", "int")
 
     modal = open_requirement(page, RID)
     card = modal.locator(VARIABLE_CARD)
@@ -59,8 +59,8 @@ def test_change_variable_type(page: Page):
 
 
 def test_rename_variable(page: Page):
-    create_variable(page, RID, 0, "speed", "int")
-    create_formalization(page, RID, 1, "GLOBALLY", "Absence", {"R": "speed > 5"})
+    create_variable(page, RID, "speed", "int")
+    create_formalization(page, RID, "GLOBALLY", "Absence", {"R": "speed > 5"})
 
     modal = open_requirement(page, RID)
     card = modal.locator(VARIABLE_CARD)

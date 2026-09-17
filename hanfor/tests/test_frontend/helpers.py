@@ -32,13 +32,17 @@ def get_formalizations(page: Page, rid: str, subtype: str | None = None) -> list
     return response.json()
 
 
-def create_formalization(page: Page, rid: str, fid: int, scope: str, pattern: str, mapping: dict) -> None:
+def create_formalization(page: Page, rid: str, scope: str, pattern: str, mapping: dict, temp_id: str = "tmp-1") -> int:
     data = {"scope": scope, "pattern": pattern, "expression_mapping": mapping}
-    response = page.request.post(f"{req_url(rid)}/formalizations/formalization/{fid}", form={"data": json.dumps(data)})
+    response = page.request.post(
+        f"{req_url(rid)}/formalizations/formalization/{temp_id}", form={"data": json.dumps(data)}
+    )
     expect(response).to_be_ok()
+    return response.json()["id"]
 
 
-def create_variable(page: Page, rid: str, temp_id: int, name: str, var_type: str) -> None:
-    data = {"name": name, "type": var_type, "temp_id": temp_id}
+def create_variable(page: Page, rid: str, name: str, var_type: str, temp_id: str = "tmp-1") -> int:
+    data = {"name": name, "type": var_type}
     response = page.request.post(f"{req_url(rid)}/formalizations/variable/{temp_id}", form={"data": json.dumps(data)})
     expect(response).to_be_ok()
+    return response.json()["id"]

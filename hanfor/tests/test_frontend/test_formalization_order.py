@@ -5,7 +5,7 @@ from tests.test_frontend.helpers import create_formalization, get_formalizations
 
 def test_reorder_formalizations(page: Page):
     rid = "SysRS FooXY_42"
-    create_formalization(page, rid, 1, "GLOBALLY", "Absence", {"R": "foo == bar"})
+    create_formalization(page, rid, "GLOBALLY", "Absence", {"R": "foo == bar"})
 
     modal = open_requirement(page, rid)
     items = modal.locator("#formalization_accordion > .accordion-item")

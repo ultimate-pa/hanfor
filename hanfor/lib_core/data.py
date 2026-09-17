@@ -242,12 +242,6 @@ class Requirement:
             self._next_formalization_index += 1
             return i
 
-    def peek_next_id(self) -> int:
-        with self._formalization_index_mutex:
-            if self._next_formalization_index != -1:
-                return self._next_formalization_index
-            return max(self.formalizations.keys()) + 1 if self.formalizations else 0
-
     def next_id(self) -> int:
         return self._next_free_formalization_id()
 

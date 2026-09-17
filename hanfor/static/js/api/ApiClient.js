@@ -53,14 +53,14 @@ export default class ApiClient {
   deleteFormalization(rid, fid) { return this.delete(`/req/${rid}/formalizations/${fid}`) }
 
   createFormalization(rid, data) {
-    return this.post(`/req/${rid}/formalizations/formalization/${data.id}`, {
+    return this.post(`/req/${rid}/formalizations/formalization/${data.temp_id}`, {
       id: rid,
       data: JSON.stringify(data),
     })
   }
 
   createVariable(rid, data) {
-    return this.post(`/req/${rid}/formalizations/variable/${data.id}`, {
+    return this.post(`/req/${rid}/formalizations/variable/${data.temp_id}`, {
       id: rid,
       data: JSON.stringify(data),
     })

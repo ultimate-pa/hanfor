@@ -9,7 +9,7 @@ store.registerType("formalization", {
     const card = $(`.formalization_card[title="${id}"]`)
     if (!card.length) return null
 
-    const data = { id: Number(id), expression_mapping: {} }
+    const data = { temp_id: String(id), expression_mapping: {} }
 
     card.find("select").each(function () {
       if ($(this).hasClass("scope_selector")) data.scope = $(this).val()
@@ -36,12 +36,11 @@ store.registerType("variable", {
     const $card = $(`.accordion-item[data-id="${id}"][data-type="variable"]`)
     if (!$card.length) return null
 
-    const data = { id: id, enumerators: [] }
+    const data = { temp_id: String(id), enumerators: [] }
 
     const $nameInput = $card.find('input[aria-describedby="variable-name-feedback"]')
     data.name = $nameInput.val() || ""
     data.id = data.name
-    data.temp_id = Number(id)
 
     const $typeInput = $card.find("input.variable-type")
     data.type = $typeInput.val() || ""

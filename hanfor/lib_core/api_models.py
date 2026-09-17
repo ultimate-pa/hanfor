@@ -100,7 +100,6 @@ RequirementDetailModel = api_models.model(
         "available_vars": fields.List(fields.String, example=["bar", "foo"]),
         "additional_static_available_vars": fields.List(fields.String, example=["TRUE", "FALSE"]),
         "original_desc": fields.String(example="The system shall ..."),
-        "next_id": fields.String(example="SysRS FooXY_43"),
     },
 )
 

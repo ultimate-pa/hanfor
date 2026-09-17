@@ -3,19 +3,16 @@ export default class TrackedStore {
     this._created = new Map()
     this._deleted = new Map()
     this._types = new Map()
-    this._nextId = null
+    this._assigned = new Map()
+    this._counter = 0
   }
 
   registerType(type, config) {
     this._types.set(type, config)
   }
 
-  initNextId(nextId) {
-    this._nextId = Number(nextId)
-  }
-
   _generateId() {
-    return Number(this._nextId++)
+    return `tmp-${++this._counter}`
   }
 
   create(type) {
@@ -25,7 +22,7 @@ export default class TrackedStore {
   }
 
   delete(type, id) {
-    id = Number(id)
+    id = String(id)
     if (this._getSet(this._created, type).has(id)) {
       this._getSet(this._created, type).delete(id)
     } else {
@@ -34,7 +31,7 @@ export default class TrackedStore {
   }
 
   isCreated(type, id) {
-    return this._getSet(this._created, type).has(Number(id))
+    return this._getSet(this._created, type).has(String(id))
   }
 
   hasNoDrafts(type = null) {
@@ -67,16 +64,23 @@ export default class TrackedStore {
         console.warn(`TrackedStore: readDOM for ${type}:${id} returned null`)
         return Promise.resolve()
       }
-      return config.persistCreate(rid, data)
+      return Promise.resolve(config.persistCreate(rid, data)).then(response => {
+        if (response?.id !== undefined) this._assigned.set(id, response.id)
+      })
     })
     this._getSet(this._created, type).clear()
     return Promise.all(requests)
   }
 
+  resolveKeys(byId) {
+    return Object.fromEntries(Object.entries(byId).map(([id, value]) => [this._assigned.get(id) ?? id, value]))
+  }
+
   reset() {
     this._created.clear()
     this._deleted.clear()
-    this._nextId = null
+    this._assigned.clear()
+    this._counter = 0
   }
 
   _getSet(map, type) {

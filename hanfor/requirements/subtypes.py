@@ -92,12 +92,11 @@ class SubtypeHandler(ABC, Generic[E]):
     model: type[E]
 
     @abstractmethod
-    # TODO: check what should be done to unify the ids of all formalizations
-    def create(self, ctx: "SubtypeContext", fid: str, data: dict) -> None:
-        """Attach a new element.
+    def create(self, ctx: "SubtypeContext", fid: str, data: dict) -> int:
+        """Attach a new element and return the id it was given.
 
-        `fid` is the id the client proposed in the URL. A variable carries its own id,
-        assigned client side, and keys itself by that instead.
+        `fid` is the temporary id the client used in the URL. Only the server assigns
+        the real one, so a second client cannot pick the same id.
         """
 
     @abstractmethod
@@ -120,15 +119,13 @@ class FormalizationHandler(SubtypeHandler[Formalization]):
     name = "formalization"
     model = Formalization
 
-    def create(self, ctx: "SubtypeContext", fid: str, data: dict) -> None:
-        fid = int(fid)
-
+    def create(self, ctx: "SubtypeContext", fid: str, data: dict) -> int:
         # NOTE: `None` counts as missing, would this be good practice?
         missing = [key for key in ("scope", "pattern", "expression_mapping") if data.get(key) is None]
         if missing:
             raise InvalidPayload(f"Missing required field(s): {', '.join(missing)}")
 
-        ctx.requirement.add_formalization_with_id(Formalization(fid), fid)
+        fid, _ = ctx.requirement.add_empty_formalization()
         try:
             ctx.requirement.update_formalization(
                 fid,
@@ -150,6 +147,7 @@ class FormalizationHandler(SubtypeHandler[Formalization]):
             # A create that fails must leave nothing behind, including a half applied draft
             ctx.requirement.formalizations.pop(fid, None)
             raise InvalidPayload(f"Could not parse draft: `{e}`") from e
+        return fid
 
     def patch(self, ctx: "SubtypeContext", fid: str, data: dict) -> None:
         formalization = self.fetch(ctx, fid)
@@ -190,10 +188,11 @@ class VariableHandler(SubtypeHandler[Variable]):
     name = "variable"
     model = Variable
 
-    def create(self, ctx: "SubtypeContext", fid: str, data: dict) -> None:
+    def create(self, ctx: "SubtypeContext", fid: str, data: dict) -> int:
         logging.debug(f"Data set by the variable: {data}")
+        assigned_fid = ctx.requirement.next_id()
         try:
-            var = Variable(data["name"], data["type"], value=data.get("value"), order=int(data["temp_id"]))
+            var = Variable(data["name"], data["type"], value=data.get("value"), order=assigned_fid)
             var.set_type(data["type"])
         except ValueError as e:
             raise InvalidPayload(str(e)) from e
@@ -202,9 +201,9 @@ class VariableHandler(SubtypeHandler[Variable]):
             raise InvalidPayload(f"A variable named `{var.name}` already exists.")
         current_app.db.add_object(var)
 
-        # The id of a variable is its own, assigned client side; the `fid` path segment is only a hint.
-        ctx.requirement.add_formalization_with_id(var, int(data["temp_id"]))
+        ctx.requirement.add_formalization_with_id(var, assigned_fid)
         self._apply_enumerators(ctx, data["name"], data["type"], data.get("enumerators", []))
+        return assigned_fid
 
     def patch(self, ctx: "SubtypeContext", fid: str, data: dict) -> None:
         variable = self.fetch(ctx, fid)
