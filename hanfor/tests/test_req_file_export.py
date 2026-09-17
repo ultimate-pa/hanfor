@@ -73,5 +73,20 @@ class TestReqFileExport(TestCase):
         self.assertIn('Constraint_SysRS_FooXY_42_0: Globally, it is never the case that "foo != bar" holds', content)
         self.assertNotIn("\nSysRS_FooXY_42_0:", content)
 
+    def test_skipped_formalizations_do_not_reserve_an_identifier(self):
+        """
+        `SysRS.FooXY_42` and `SysRS FooXY_42` clean to the same base identifier, i think
+        moving the check an instruction after should resolve the same cleanup step
+        """
+        with app.app_context():
+            twin = Requirement("SysRS.FooXY_42", "a twin", "req", {}, -1)
+            twin.add_empty_formalization()
+            app.db.add_object(twin)
+
+        content = self.content()
+
+        self.assertIn('SysRS_FooXY_42_0: Globally, it is never the case that "foo != bar" holds', content)
+        self.assertNotIn("SysRS_FooXY_42_1", content)
+
     def test_filter_list_narrows_variables_and_requirements(self):
         self.assertEqual("\n\n\n", self.content(filter_list=["SysRS FooXY_1"]))
