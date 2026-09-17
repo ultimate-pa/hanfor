@@ -6,11 +6,13 @@ Check if API api/v1/req returns correct requirements.
 """
 
 from app import app, startup_hanfor
+import json
 import os
 import shutil
 from unittest import TestCase
 from unittest.mock import patch
 from lib_core.startup import HanforArgumentParser
+from lib_core.data import Requirement
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 TESTS_BASE_FOLDER = os.path.join(HERE, "test_sessions")
@@ -149,10 +151,31 @@ class TestInit(TestCase):
             "pos": 1,
             "scope": "None",
             "type": "req",
-            "next_id": 0,
             "revision_diff": {},
         }
         self.assertDictEqual(desired_req, result.json)
+
+    def test_3_concurrent_creates_get_distinct_ids(self):
+        args = HanforArgumentParser(app).parse_args([TEST_TAG, "-c", TEST_CSV])
+        self.startup_hanfor(args, [2, 0, 1, 3, 0])
+
+        def create(temp_id: str, expression: str) -> int:
+            data = {"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": expression}}
+            result = self.app.post(
+                f"api/v1/req/SysRS%20FooXY_42/formalizations/formalization/{temp_id}",
+                data={"data": json.dumps(data)},
+            )
+            self.assertTrue(result.json["success"])
+            self.assertEqual(temp_id, result.json["temp_id"])
+            return result.json["id"]
+
+        first = create("tmp-1", "foo > 1")
+        second = create("tmp-1", "foo > 2")
+        self.assertNotEqual(first, second)
+
+        requirement = app.db.get_object(Requirement, "SysRS FooXY_42")
+        self.assertIn(first, requirement.formalizations)
+        self.assertIn(second, requirement.formalizations)
 
     def tearDown(self):
         # Clean test dir.

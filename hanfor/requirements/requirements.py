@@ -118,7 +118,6 @@ class ApiRequirementSingle(Resource):
             result["desc_highlighted"] = get_highlighted_desc(rid, result["desc"])
         else:
             result["desc_highlighted"] = result["desc"]
-        result["next_id"] = requirement.next_id()
         return result
 
     @api_ns.doc(
@@ -472,10 +471,10 @@ class ApiFormalizationStore(Resource):
         params={
             "rid": "The requirement ID",
             "subtype": f"One of {', '.join(SUBTYPES)}",
-            "fid": "The formalization ID. Authoritative for a formalization; for a variable it is only a "
-            "hint, the variable is keyed by its own temp_id",
+            "fid": "The temporary ID the client used for the draft. It is echoed back as temp_id; "
+            "the real ID is assigned by the server and returned as id",
             "data": "JSON-encoded dict. For formalizations: scope, pattern, expression_mapping (all "
-            "required), is_constraint (optional). For variables: name, type, temp_id (required), "
+            "required), is_constraint (optional). For variables: name, type (required), "
             "value, enumerators (optional)",
         },
     )
@@ -484,9 +483,10 @@ class ApiFormalizationStore(Resource):
     @nocache
     @subtype_errors_to_response
     def post(self, rid, subtype, fid):
-        return self._run(
+        result = self._run(
             SUBTYPES[subtype].handler.create, rid, fid, _request_data(), f"Created {subtype} {fid} of requirement"
         )
+        return {**result, "temp_id": fid}
 
     @api_ns.doc(
         description="Partially updates a formalization or variable. Only fields included in the 'data' "
@@ -537,13 +537,16 @@ class ApiFormalizationStore(Resource):
         """Load the context, pass it to the handler, persist what the handler changed.
 
         The handler either returns having mutated `ctx`, or raises a `SubtypeError` that
-        `subtype_errors_to_response` turns into the right status.
+        `subtype_errors_to_response` turns into the right status. A handler that assigns an id
+        returns it, and it reaches the client as `id`.
         """
         ctx = SubtypeContext.load(rid)
-        action(ctx, fid, data)
+        assigned_fid = action(ctx, fid, data)
         current_app.db.update()
         add_msg_to_flask_session_log(current_app, log_message, [ctx.requirement])
-        return {"success": True}
+        if assigned_fid is None:
+            return {"success": True}
+        return {"success": True, "id": assigned_fid}
 
 
 @api_ns.route("/<string:rid>/tags/<string:tag_name>")
