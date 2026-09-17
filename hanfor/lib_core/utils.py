@@ -259,7 +259,8 @@ def generate_req_file_content(
         used_identifiers = set()
         for requirement in requirements:
             for index, formalization in requirement.formalizations.items():
-                identifier = clean_identifier_for_ultimate_parser(requirement.rid, index, used_identifiers)
+                base = f"Constraint_{requirement.rid}" if formalization.is_constraint else requirement.rid
+                identifier = clean_identifier_for_ultimate_parser(base, index, used_identifiers)
                 if not formalization.is_exportable():
                     continue
                 content += "{}: {}\n".format(identifier, formalization.get_string())
