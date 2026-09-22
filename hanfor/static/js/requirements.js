@@ -1363,7 +1363,10 @@ async function load_requirement(row_idx) {
     $("#requirement_tag_field").tokenfield("setTokens", data.tags)
     $("#tags_comments_table tr:gt(0)").each(function () {
       let tag = $(this).find("td:eq(0)").text()
-      $(this).find("textarea:eq(0)").val(data.tags_comments[tag])
+      const comment = $(this).find("textarea:eq(0)")
+      comment.val(data.tags_comments[tag])
+      autosize(comment)
+      autosize.update(comment)
     })
 
     // Choose the right radio button and then load the status
