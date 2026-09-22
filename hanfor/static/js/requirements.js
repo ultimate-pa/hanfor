@@ -1213,18 +1213,20 @@ function init_modal() {
     add_formalization(formalization)
   })
 
-  $(".modal").on("hidden.bs.modal", function () {
-    if ($(".modal:visible").length) {
-      $("body").addClass("modal-open")
-    } else {
-      $("textarea").each(function () {
-        autosize.destroy($(this))
-      })
-    }
-  })
+  document.querySelectorAll(".modal").forEach((modal) =>
+    modal.addEventListener("hidden.bs.modal", function () {
+      if ($(".modal:visible").length) {
+        $("body").addClass("modal-open")
+      } else {
+        $("textarea").each(function () {
+          autosize.destroy($(this))
+        })
+      }
+    })
+  )
 
-  $("#formalization_accordion").on("shown.bs.collapse", ".card", function () {
-    $(this)
+  document.querySelector("#formalization_accordion").addEventListener("shown.bs.collapse", function (event) {
+    $(event.target)
       .find("textarea")
       .each(function () {
         autosize($(this))
