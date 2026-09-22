@@ -3,6 +3,8 @@ from urllib.parse import quote
 
 from playwright.sync_api import Locator, Page, expect
 
+VARIABLE_CARD = '#formalization_accordion > .accordion-item[data-type="variable"]'
+
 
 def req_url(rid: str) -> str:
     return f"/api/v1/req/{quote(rid)}"
@@ -46,3 +48,10 @@ def create_variable(page: Page, rid: str, name: str, var_type: str, temp_id: str
     response = page.request.post(f"{req_url(rid)}/formalizations/variable/{temp_id}", form={"data": json.dumps(data)})
     expect(response).to_be_ok()
     return response.json()["id"]
+
+
+def confirm_delete(button: Locator) -> None:
+    # The delete buttons use a two-click confirm, the first click only arms the button.
+    button.click()
+    expect(button).to_have_text("Do it!")
+    button.click()

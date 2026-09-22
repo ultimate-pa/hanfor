@@ -1176,7 +1176,7 @@ function init_modal() {
   // Clear the Modal after closing modal.
   // In case of stacked modals and on modal closing:
   // Prevent removal of modal-open class from body if a modal remains. This will keep the scrollbar intact.
-  requirement_modal.on("hidden.bs.modal", function () {
+  requirement_modal[0].addEventListener("hidden.bs.modal", function () {
     $("#requirement_tag_field").val("")
     $("#requirement_tag_field-tokenfield").val("")
     $(".constraint-badge").each(function () {

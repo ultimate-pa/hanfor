@@ -2,6 +2,8 @@ import pytest
 from playwright.sync_api import Page, expect
 
 from tests.test_frontend.helpers import (
+    VARIABLE_CARD,
+    confirm_delete,
     create_formalization,
     create_variable,
     get_formalizations,
@@ -10,7 +12,6 @@ from tests.test_frontend.helpers import (
 )
 
 RID = "SysRS FooXY_91"
-VARIABLE_CARD = '#formalization_accordion > .accordion-item[data-type="variable"]'
 
 
 @pytest.mark.parametrize(
@@ -89,3 +90,41 @@ def test_cancelled_close_keeps_new_variable(page: Page):
     save_requirement(page, modal, RID)
 
     assert "speed" in {v["name"] for v in get_formalizations(page, RID, "variable")}
+
+
+def test_delete_enumerator_of_saved_variable(page: Page):
+    modal = open_requirement(page, RID)
+    modal.locator("#add_variable").click()
+    card = modal.locator(f"{VARIABLE_CARD}.draft")
+    card.locator(".accordion-button").click()
+    card.locator('input[aria-describedby="variable-name-feedback"]').fill("mode")
+    card.locator("input.variable-type").fill("ENUM_INT")
+    card.locator("input.variable-type").press("Tab")
+    for enum_name, enum_value in [("on", "1"), ("off", "2")]:
+        card.locator(".add-enumerator-btn").click()
+        card.locator(".enum_name_input").last.fill(enum_name)
+        card.locator(".enum_value_input").last.fill(enum_value)
+    save_requirement(page, modal, RID)
+
+    # Reopen so the delete goes through the update path of a saved variable, not the create path.
+    modal = open_requirement(page, RID)
+    card = modal.locator(VARIABLE_CARD)
+    card.locator(".accordion-button").click()
+    card.locator(".enumerator-input").filter(has=page.locator('.enum_name_input[value="off"]')).locator(".del_enum").click()
+    save_requirement(page, modal, RID)
+
+    [variable] = get_formalizations(page, RID, "variable")
+    assert variable["enumerators"] == [{"name": "on", "value": "1"}]
+
+
+def test_delete_variable_card(page: Page):
+    create_variable(page, RID, "speed", "int")
+
+    modal = open_requirement(page, RID)
+    card = modal.locator(VARIABLE_CARD)
+    card.locator(".accordion-button").click()
+    confirm_delete(card.locator(".delete_variable"))
+    expect(card).to_have_count(0)
+    save_requirement(page, modal, RID)
+
+    assert get_formalizations(page, RID, "variable") == []
