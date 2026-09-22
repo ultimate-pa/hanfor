@@ -165,3 +165,42 @@ def test_discarded_delete_is_not_applied_on_next_save(page: Page) -> None:
     save_requirement(page, modal, rid)
 
     assert len(get_formalizations(page, rid)) == 1
+
+
+def test_copy_formalization_to_other_requirement(page: Page) -> None:
+    source, target = "SysRS FooXY_42", "SysRS FooXY_91"
+    modal = open_requirement(page, source)
+    card = modal.locator("#formalization_accordion > .accordion-item")
+    card.locator(".accordion-button").click()
+    card.locator(".copy_formalization").click()
+    page.once("dialog", lambda dialog: dialog.accept())
+    modal.locator(".modal-footer").get_by_role("button", name="Close").click()
+    expect(modal).to_be_hidden()
+
+    # cross requirement copy
+    modal = open_requirement(page, target)
+    modal.locator("#add_copied_formalization").click()
+    save_requirement(page, modal, target)
+
+    [copied] = get_formalizations(page, target)
+    [original] = get_formalizations(page, source)
+    fields = ("scope", "pattern", "expr_R", "is_constraint")
+    assert {k: copied[k] for k in fields} == {k: original[k] for k in fields}
+
+
+def test_mark_formalization_as_constraint(page: Page) -> None:
+    rid = "SysRS FooXY_42"
+    modal = open_requirement(page, rid)
+    card = modal.locator("#formalization_accordion > .accordion-item")
+    card.locator(".accordion-button").click()
+    card.locator(".is-constraint-checkbox").check()
+    save_requirement(page, modal, rid)
+
+    [saved] = get_formalizations(page, rid)
+    assert saved["is_constraint"] is True
+
+    # reopen to check that the render path restores the flag
+    modal = open_requirement(page, rid)
+    card = modal.locator("#formalization_accordion > .accordion-item")
+    card.locator(".accordion-button").click()
+    expect(card.locator(".is-constraint-checkbox")).to_be_checked()

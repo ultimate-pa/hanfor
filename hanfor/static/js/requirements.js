@@ -1593,11 +1593,11 @@ function copy_formalization(formal_id) {
         .is(":checked")
 
       // Expressions
-      formalization["expression_mapping"] = {}
       $(this)
         .find("textarea.reqirement-variable")
         .each(function () {
-          if ($(this).attr("title") !== "") formalization["expression_mapping"][$(this).attr("title")] = $(this).val()
+          const title = $(this).attr("title")
+          if (title) formalization[`expr_${title}`] = $(this).val()
         })
     }
   })
