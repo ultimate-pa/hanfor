@@ -145,6 +145,22 @@ def test_delete_saved_formalization(page: Page) -> None:
     assert get_formalizations(page, rid) == []
 
 
+def test_delete_last_formalization_removes_formalization_tags(page: Page) -> None:
+    rid = "SysRS FooXY_91"
+    create_formalization(page, rid, "NONE", "NotFormalizable", {})
+    assert "incomplete_formalization" in page.request.get(req_url(rid)).json()["tags"]
+
+    modal = open_requirement(page, rid)
+    card = modal.locator("#formalization_accordion > .accordion-item")
+    card.locator(".accordion-button").click()
+    confirm_delete(card.locator(".delete_formalization"))
+    save_requirement(page, modal, rid)
+
+    tags = page.request.get(req_url(rid)).json()["tags"]
+    assert "incomplete_formalization" not in tags
+    assert "has_formalization" not in tags
+
+
 def test_discarded_delete_is_not_applied_on_next_save(page: Page) -> None:
     rid = "SysRS FooXY_91"
     create_formalization(page, rid, "GLOBALLY", "Absence", {"R": "foo"})

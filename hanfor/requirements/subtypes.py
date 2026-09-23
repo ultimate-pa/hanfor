@@ -49,16 +49,19 @@ class SubtypeContext:
 
 class SubtypeError(Exception):
     """A subtype operation failed. `status` is what the resource should answer with."""
+
     status = 400
 
 
 class SubtypeNotFound(SubtypeError):
     """No element of the requested subtype exists under that id."""
+
     status = 404
 
 
 class InvalidPayload(SubtypeError):
     """The request body cannot be applied to this subtype."""
+
     status = 400
 
 
@@ -88,6 +91,7 @@ class SubtypeHandler(ABC, Generic[E]):
     failure. Persisting and turning the outcome into a response is the `flask` job, which is what makes
     a handler callable from a script or a test with no request in sight.
     """
+
     name: ClassVar[FormalizationType]
     model: type[E]
 

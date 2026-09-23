@@ -755,7 +755,7 @@ function store_requirement(requirements_table) {
     })
   }).fail(function (err) {
     requirement_modal_content.LoadingOverlay("hide", true)
-    alert("Save failed: " + (err && err.errormsg || "Unknown error"))
+    alert(`Save failed (${err?.status}): ${err?.responseJSON?.errormsg || err?.statusText || "Unknown error"}`)
   })
 }
 

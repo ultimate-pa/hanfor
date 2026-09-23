@@ -1,5 +1,6 @@
 import json
 import logging
+import threading
 
 from flask import Blueprint, render_template, request
 from flask_restx import Namespace, Resource
@@ -47,6 +48,7 @@ from requirements.desc_highlighting import (
 
 blueprint = Blueprint("requirements", __name__, template_folder="templates", url_prefix="/")
 api_ns = Namespace("Requirements", "Requirements API description", path="/req", ordered=True)
+_SUBTYPE_WRITE_LOCK = threading.Lock()
 
 
 @blueprint.route("", methods=["GET"])
@@ -153,14 +155,13 @@ class ApiRequirementSingle(Resource):
             logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
             return {"success": False, "errormsg": error_msg}
 
+        standard_tags = SessionValue.get_standard_tags(current_app.db)
+        requirement.recompute_formalization_tags(standard_tags)
         variable_collection = VariableCollection(
             current_app.db.get_objects(Variable).values(),
             current_app.db.get_objects(Requirement).values(),
         )
-        requirement.run_type_checks(
-            variable_collection,
-            SessionValue.get_standard_tags(current_app.db),
-        )
+        requirement.run_type_checks(variable_collection, standard_tags)
 
         current_app.db.update()
         result = requirement.to_dict()
@@ -223,9 +224,7 @@ class ApiRequirementSingle(Resource):
         if desc_markdown is None:
             return
         requirement.description = desc_markdown
-        add_msg_to_flask_session_log(
-            current_app, f"Updated description for requirement", [requirement]
-        )
+        add_msg_to_flask_session_log(current_app, f"Updated description for requirement", [requirement])
 
     # TODO: This probably can also be refactored better
     @staticmethod
@@ -434,21 +433,23 @@ class ApiFormalizationResource(Resource):
     def delete(self, rid, fid):
         logging.debug(f"Deletion formalization ID: {fid}")
         logging.debug(f"Deletion requirement ID: {rid}")
-        requirement = current_app.db.get_object(Requirement, rid)
-        logging.debug(f"Current: {requirement.formalizations}")
-        requirement.delete_formalization(
-            int(fid),
-            VariableCollection(
-                current_app.db.get_objects(Variable).values(),
-                current_app.db.get_objects(Requirement).values(),
-            ),
-        )
-        current_app.db.update()
-        add_msg_to_flask_session_log(
-            current_app,
-            "Deleted formalization from requirement",
-            [requirement],
-        )
+        with _SUBTYPE_WRITE_LOCK:
+            requirement = current_app.db.get_object(Requirement, rid)
+            logging.debug(f"Current: {requirement.formalizations}")
+            requirement.delete_formalization(
+                int(fid),
+                VariableCollection(
+                    current_app.db.get_objects(Variable).values(),
+                    current_app.db.get_objects(Requirement).values(),
+                ),
+            )
+            requirement.recompute_formalization_tags(SessionValue.get_standard_tags(current_app.db))
+            current_app.db.update()
+            add_msg_to_flask_session_log(
+                current_app,
+                "Deleted formalization from requirement",
+                [requirement],
+            )
         return {"success": True}
 
 
@@ -466,8 +467,7 @@ class ApiFormalizationStore(Resource):
     """What each subtype does with a write lives in `requirements.subtypes`."""
 
     @api_ns.doc(
-        description="Creates a formalization or a variable on a requirement and updates the variable "
-        "collection.",
+        description="Creates a formalization or a variable on a requirement and updates the variable " "collection.",
         params={
             "rid": "The requirement ID",
             "subtype": f"One of {', '.join(SUBTYPES)}",
@@ -540,10 +540,11 @@ class ApiFormalizationStore(Resource):
         `subtype_errors_to_response` turns into the right status. A handler that assigns an id
         returns it, and it reaches the client as `id`.
         """
-        ctx = SubtypeContext.load(rid)
-        assigned_fid = action(ctx, fid, data)
-        current_app.db.update()
-        add_msg_to_flask_session_log(current_app, log_message, [ctx.requirement])
+        with _SUBTYPE_WRITE_LOCK:
+            ctx = SubtypeContext.load(rid)
+            assigned_fid = action(ctx, fid, data)
+            current_app.db.update()
+            add_msg_to_flask_session_log(current_app, log_message, [ctx.requirement])
         if assigned_fid is None:
             return {"success": True}
         return {"success": True, "id": assigned_fid}
@@ -799,6 +800,7 @@ class ApiMultiAddTopGuess(Resource):
 
         return result
 
+
 def get_formalization_template(templates_folder, formalization_id, formalization):  # TODO wohin damit, HTML generation
     result = {
         "success": True,
@@ -812,6 +814,7 @@ def get_formalization_template(templates_folder, formalization_id, formalization
     }
 
     return result
+
 
 def get_datatable_additional_cols(app: HanforFlask):  # TODO nach requirements
     offset = 8  # we have 8 fixed cols.
@@ -827,5 +830,3 @@ def get_datatable_additional_cols(app: HanforFlask):  # TODO nach requirements
         )
 
     return {"col_defs": result}
-
-
