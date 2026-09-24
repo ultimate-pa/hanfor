@@ -1,5 +1,5 @@
 require("gasparesganga-jquery-loading-overlay")
-const { Collapse, Modal, Popover, Tab } = require("bootstrap")
+const { Collapse, Modal, Popover, Tab, Toast } = require("bootstrap")
 require("datatables.net-bs5")
 require("datatables.net-select-bs5")
 require("jquery-ui/ui/widgets/autocomplete")
@@ -15,10 +15,16 @@ require("./bootstrap-confirm-button")
 const { marked } = require("marked")
 import Sortable from "sortablejs"
 import Mustache from "mustache"
-import FormalizationStore from "./formalizations/store"
+import store from "./formalizations/store"
 import "jquery-sortablejs"
-import FormalizationRenderer from "./formalizations/renderer.js"
+import TemplateRenderer from "./template/TemplateRenderer.js"
 import { AVAILABLE_VARIABLE_TYPES } from "./variables.js"
+import ApiClient from "./api/ApiClient.js"
+
+const api = new ApiClient()
+api.onError = (err, method, path) => {
+  console.error(`API ${method} ${path} failed:`, err.responseJSON?.errormsg || err.statusText)
+}
 
 let utils = require("./hanfor-utils")
 const autosize = require("autosize/dist/autosize")
@@ -36,8 +42,7 @@ const { TextareaEditor } = require("@textcomplete/textarea")
 let Fuse = require("fuse.js")
 let fuse = new Fuse([], {})
 
-let store = new FormalizationStore()
-let renderer = new FormalizationRenderer()
+let renderer = new TemplateRenderer({ baseUrl: "/static/templates/formalizations" })
 // register the types of formalizations with the identifier from the "type" supplied in the API
 // second example not convoluted with comments is directly below (if noone moved it)
 renderer.registerType("formalization", {
@@ -50,12 +55,16 @@ renderer.registerType("formalization", {
     pattern: "NotFormalizable",
   },
   // a selector that fetches the correct template for the type
-  templateSelector: "#formalization-template",
+  template: "formalization",
+  container: "container",
+  contentSelector: ".accordion-collapse",
+  requires: ["save_error_toast"],
+  withPatterns: true,
   // each function can define after render behavior function that gets applied
   // after mustache renders it, i.e setting the required variable placeholders as visible
   afterRender: ($container, entry) => {
-    $container.find(`#requirement_scope${entry.id}`).val(entry.scope)
-    $container.find(`#requirement_pattern${entry.id}`).val(entry.pattern)
+    if (entry.scope) $container.find(`#requirement_scope${entry.id}`).val(entry.scope)
+    if (entry.pattern) $container.find(`#requirement_pattern${entry.id}`).val(entry.pattern)
     $container.find(`#is_constraint${entry.id}`).prop("checked", !!entry.is_constraint)
     const vars = ["P", "Q", "R", "S", "T", "U", "V"]
     vars.forEach((v) => {
@@ -99,7 +108,10 @@ renderer.registerType("variable", {
     formalization_type: "variable",
     text: "New Variable",
   },
-  templateSelector: "#variable-template",
+  template: "variable",
+  container: "container",
+  contentSelector: ".accordion-collapse",
+  requires: ["enumerator"],
   afterRender: ($container, entry) => {
     // autocomplete
     let type_input = $container.find(".variable-type")
@@ -246,6 +258,7 @@ $(document).ready(function () {
   update_logs()
   init_report_generation()
   init_simulator_tab()
+  renderer.ready().catch(console.error)
 
   let body = $("body")
   // Bind formalization deletion.
@@ -706,47 +719,64 @@ function store_requirement(requirements_table) {
 
   sendTelemetry("requirements", req_id, "save")
   const committedFormalizations = Object.fromEntries(
-    Object.entries(formalizations).filter(([id]) => !store.isCreated("formalization", id)),
+    Object.entries(formalizations)
+      .filter(([id]) => !store.isCreated("formalization", id) && !store.isCreated("variable", id))
+      .map(([id, entry]) => {
+        const real = String(store.resolveId(id))
+        return [real, { ...entry, id: real }]
+      }),
   )
   console.log("Committed formalizations:", JSON.stringify(committedFormalizations, null, 2))
   $.when(
     store.commitDeletes(req_id, "formalization"),
     store.commitDeletes(req_id, "variable"),
-    store.commitCreated(req_id),
+    store.commitCreated(req_id, "formalization"),
+    store.commitCreated(req_id, "variable"),
   ).done(function () {
-    $.ajax({
-      url: `api/v1/req/${req_id}`,
-      method: "PATCH",
-      data: {
-        row_idx: associated_row_id,
-        update_formalization: updated_formalization,
-        tags: JSON.stringify(Object.fromEntries(tag_comments)),
-        status: req_status,
-        formalizations: JSON.stringify(committedFormalizations),
-        formalizations_order: JSON.stringify(load_order),
-        description: $("#description_editor").val(),
-      },
-      success: function (data) {
-        requirement_modal_content.LoadingOverlay("hide", true)
+    api.patchRequirement(req_id, {
+      row_idx: associated_row_id,
+      update_formalization: updated_formalization,
+      tags: JSON.stringify(Object.fromEntries(tag_comments)),
+      status: req_status,
+      formalizations: JSON.stringify(committedFormalizations),
+      formalizations_order: JSON.stringify(store.resolveKeys(load_order)),
+      description: $("#description_editor").val(),
+    }).done(function (data) {
+      requirement_modal_content.LoadingOverlay("hide", true)
 
-        if (data["success"] === false) {
-          alert(data["errormsg"])
-        } else {
-          requirements_table.row(associated_row_id).data(data)
+      if (data["success"] === false) {
+        alert(data["errormsg"])
+      } else {
+        requirements_table.row(associated_row_id).data(data)
 
-          $("#requirement_modal").data("unsaved_changes", false)
+        $("#requirement_modal").data("unsaved_changes", false)
 
-          const requirement_modal = document.querySelector("#requirement_modal")
-          Modal.getOrCreateInstance(requirement_modal).hide()
-        }
-      },
+        const requirement_modal = document.querySelector("#requirement_modal")
+        Modal.getOrCreateInstance(requirement_modal).hide()
+      }
     }).done(function () {
       update_logs()
     })
   }).fail(function (err) {
     requirement_modal_content.LoadingOverlay("hide", true)
-    alert("Save failed: " + (err && err.errormsg || "Unknown error"))
+    if (err?.responseJSON?.errors) {
+      show_save_errors(err.responseJSON.errors)
+      return
+    }
+    alert(`Save failed (${err?.status}): ${err?.responseJSON?.errormsg || err?.statusText || "Unknown error"}`)
   })
+}
+
+function show_save_errors(errors) {
+  const items = Object.entries(errors).map(([temp_id, message]) => {
+    const card = $(`#formalization_accordion > .accordion-item[data-id="${temp_id}"]`)
+    card.addClass("border-danger")
+    return { name: card.find(".accordion-button").first().text().trim() || temp_id, message }
+  })
+  const toast = $(Mustache.render(renderer.getTemplate("save_error_toast"), { errors: items }).trim())
+  $("#save_error_toasts").append(toast)
+  toast[0].addEventListener("hidden.bs.toast", () => toast.remove())
+  Toast.getOrCreateInstance(toast[0], { autohide: false }).show()
 }
 
 /**
@@ -834,7 +864,7 @@ function load_datatable() {
     },
   ]
   // Load generic colums.
-  $.get("api/v1/req/colum_defs", "", function (data) {
+  api.getColumnDefs().done(function (data) {
     const dataLength = data["col_defs"].length
     for (let i = 0; i < dataLength; i++) {
       columnDefs.push({
@@ -1031,13 +1061,13 @@ function apply_multi_edit(requirements_table) {
   let requests = []
   for (let id of selected_ids) {
     if (add_tag) {
-      requests.push($.ajax({ url: `api/v1/req/${id}/tags/${encodeURIComponent(add_tag)}`, method: "POST" }))
+      requests.push(api.addTag(id, add_tag))
     }
     if (remove_tag) {
-      requests.push($.ajax({ url: `api/v1/req/${id}/tags/${encodeURIComponent(remove_tag)}`, method: "DELETE" }))
+      requests.push(api.removeTag(id, remove_tag))
     }
     if (set_status) {
-      requests.push($.ajax({ url: `api/v1/req/${id}`, method: "PATCH", data: { status: set_status } }))
+      requests.push(api.setStatus(id, set_status))
     }
   }
 
@@ -1056,21 +1086,17 @@ function add_top_guess_to_selected_requirements(requirements_table) {
   let selected_ids = get_selected_requirement_ids(requirements_table)
   let insert_mode = $("#top_guess_append_mode").val()
 
-  $.post(
-    "api/v1/req/multi_add_top_guess",
-    {
-      selected_ids: JSON.stringify(selected_ids),
-      insert_mode: insert_mode,
-    }, // Update requirements table on success or show an error message.
-    function (data) {
-      page.LoadingOverlay("hide", true)
-      if (data["success"] === false) {
-        alert(data["errormsg"])
-      } else {
-        location.reload()
-      }
-    },
-  )
+  api.addMultiTopGuess({
+    selected_ids: JSON.stringify(selected_ids),
+    insert_mode: insert_mode,
+  }).done(function (data) {
+    page.LoadingOverlay("hide", true)
+    if (data["success"] === false) {
+      alert(data["errormsg"])
+    } else {
+      location.reload()
+    }
+  })
 }
 
 /**
@@ -1140,10 +1166,6 @@ function init_modal() {
 
   //requirement_modal.on('hide.bs.modal', function (event) {
   requirement_modal[0].addEventListener("hide.bs.modal", function (event) {
-    $(".constraint-badge").each(function () {
-      const popover = Popover.getInstance(this)
-      if (popover) popover.dispose()
-    })
     modal_closing_routine(event)
   })
 
@@ -1174,9 +1196,15 @@ function init_modal() {
   // Clear the Modal after closing modal.
   // In case of stacked modals and on modal closing:
   // Prevent removal of modal-open class from body if a modal remains. This will keep the scrollbar intact.
-  requirement_modal.on("hidden.bs.modal", function () {
+  requirement_modal[0].addEventListener("hidden.bs.modal", function () {
     $("#requirement_tag_field").val("")
     $("#requirement_tag_field-tokenfield").val("")
+    $(".constraint-badge").each(function () {
+      const popover = Popover.getInstance(this)
+      if (popover) popover.dispose()
+    })
+    document.querySelectorAll("#save_error_toasts .toast").forEach(el => Toast.getOrCreateInstance(el).hide())
+    store.reset()
   })
 
   // Listener for adding new formalizations.
@@ -1206,18 +1234,20 @@ function init_modal() {
     add_formalization(formalization)
   })
 
-  $(".modal").on("hidden.bs.modal", function () {
-    if ($(".modal:visible").length) {
-      $("body").addClass("modal-open")
-    } else {
-      $("textarea").each(function () {
-        autosize.destroy($(this))
-      })
-    }
-  })
+  document.querySelectorAll(".modal").forEach((modal) =>
+    modal.addEventListener("hidden.bs.modal", function () {
+      if ($(".modal:visible").length) {
+        $("body").addClass("modal-open")
+      } else {
+        $("textarea").each(function () {
+          autosize.destroy($(this))
+        })
+      }
+    })
+  )
 
-  $("#formalization_accordion").on("shown.bs.collapse", ".card", function () {
-    $(this)
+  document.querySelector("#formalization_accordion").addEventListener("shown.bs.collapse", function (event) {
+    $(event.target)
       .find("textarea")
       .each(function () {
         autosize($(this))
@@ -1258,17 +1288,16 @@ function modal_closing_routine(event) {
   } else {
     sendTelemetry("requirements", $("#requirement_id").val(), "close")
   }
-  // here we have to reset the last changes
-  store = new FormalizationStore()
 }
 
-function load_requirement(row_idx) {
+async function load_requirement(row_idx) {
   if (row_idx === -1) {
     alert("Requirement not found.")
     return
   }
 
   load_tags()
+  await renderer.ready()
 
   // Get row data
   let data = $("#requirements_table").DataTable().row(row_idx).data()
@@ -1286,7 +1315,7 @@ function load_requirement(row_idx) {
   $("#requirement_tag_field").data("bs.tokenfield").$input.autocomplete({ source: available_tags })
 
   // Get the requirement data and set the modal.
-  $.get(`api/v1/req/${data["id"]}`, { row_idx: row_idx }, function (data) {
+  api.getRequirement(data["id"]).done(function (data) {
     if (data.success === false) {
       alert("Could Not load the Requirement: " + data.errormsg)
       return
@@ -1304,12 +1333,7 @@ function load_requirement(row_idx) {
     const rendered_descr = marked(data.desc_highlighted, { sanitize: false })
     $("#description_display").html(rendered_descr)
     $("#description_editor").val(data.desc)
-    $.ajax({
-      url: `api/v1/req/${data.id}/highlight-description`,
-      method: "POST",
-      contentType: "application/json",
-      data: JSON.stringify({ description: data.original_desc || "" }),
-    }).done(function (resp) {
+    api.highlightDescription(data.id, data.original_desc || "").done(function (resp) {
       $("#description_original_display").html(marked(resp.desc_highlighted, { sanitize: false }))
     }).fail(function () {
       $("#description_original_display").html(marked(data.original_desc || "", { sanitize: false }))
@@ -1318,12 +1342,7 @@ function load_requirement(row_idx) {
     const previewTab = new Tab(document.querySelector("#desc-preview-tab"))
     document.querySelector("#desc-preview-tab").addEventListener("shown.bs.tab", async function () {
       const currentDesc = $("#description_editor").val()
-      const resp = await $.ajax({
-        url: `api/v1/req/${data.id}/highlight-description`,
-        method: "POST",
-        contentType: "application/json",
-        data: JSON.stringify({ description: currentDesc }),
-      })
+      const resp = await api.highlightDescription(data.id, currentDesc)
       $("#description_display").html(marked(resp.desc_highlighted, { sanitize: false }))
     })
     previewTab.show()
@@ -1333,7 +1352,7 @@ function load_requirement(row_idx) {
     $("#add_guess_description").text(data.desc).change()
 
     // Parse the formalizations
-    $.get(`api/v1/req/${data.id}/formalizations`, function (data) {
+    api.getFormalizations(data.id).done(function (data) {
       data
         .sort((a, b) => a.order - b.order)
         .forEach(function (entry) {
@@ -1359,14 +1378,16 @@ function load_requirement(row_idx) {
       requirement_modal_content.LoadingOverlay("hide", true)
     })
 
-    store.initNextId(data["next_id"])
     // remove all lines from the tag comment table
     $("#tags_comments_table").find("tr:gt(0)").remove()
     // set Tag field and comments in Table (table rows are created via event)
     $("#requirement_tag_field").tokenfield("setTokens", data.tags)
     $("#tags_comments_table tr:gt(0)").each(function () {
       let tag = $(this).find("td:eq(0)").text()
-      $(this).find("textarea:eq(0)").val(data.tags_comments[tag])
+      const comment = $(this).find("textarea:eq(0)")
+      comment.val(data.tags_comments[tag])
+      autosize(comment)
+      autosize.update(comment)
     })
 
     // Choose the right radio button and then load the status
@@ -1426,16 +1447,14 @@ function load_requirement(row_idx) {
         "</span>&numsp;",
       )
     })
-
     const sortable = Sortable.create($("#formalization_accordion")[0], {
       animation: 200,
       ghostClass: "ghost",
-      filter: "textarea, input, select",
+      filter: "textarea, input, select, .formalization-preview",
       preventOnFilter: false,
     })
   })
 }
-
 /**
  * Reload fuse the fuzzy search provider used for autocomplete.
  * fuse will be reloaded with available_vars.
@@ -1598,11 +1617,11 @@ function copy_formalization(formal_id) {
         .is(":checked")
 
       // Expressions
-      formalization["expression_mapping"] = {}
       $(this)
         .find("textarea.reqirement-variable")
         .each(function () {
-          if ($(this).attr("title") !== "") formalization["expression_mapping"][$(this).attr("title")] = $(this).val()
+          const title = $(this).attr("title")
+          if (title) formalization[`expr_${title}`] = $(this).val()
         })
     }
   })
@@ -1795,10 +1814,7 @@ function update_vars() {
 }
 
 function load_tags() {
-  $.ajax({
-    type: "GET",
-    url: "api/v1/tags",
-  })
+  api.getTags()
     .done(function (data) {
       available_tags = []
       for (let tag of data) {
@@ -2059,13 +2075,11 @@ function fetch_available_guesses() {
     available_guesses_cards.append(template)
   }
 
-  $.get(
-    `api/v1/req/${requirement_id}/guesses`,
-    function (data) {
-      for (let i = 0; i < data["available_guesses"].length; i++) {
-        add_available_guess(data["available_guesses"][i])
-      }
-    },
+  api.getGuesses(requirement_id).done(function (data) {
+    for (let i = 0; i < data["available_guesses"].length; i++) {
+      add_available_guess(data["available_guesses"][i])
+    }
+  }
   ).fail(function () {
     alert("Failed to load guesses for this requirement.")
   }).done(function () {
@@ -2077,8 +2091,7 @@ function fetch_available_guesses() {
 }
 
 function add_enumerator_to_variable(button, $container, name = "", value = "") {
-  const html = Mustache.render($("#enumerator-template").html(), { name, value })
-  $container.append(html)
+  $container.append(Mustache.render(renderer.getTemplate("enumerator"), { name, value }))
 }
 
 function add_formalization_from_guess(scope, pattern, mapping) {
@@ -2087,26 +2100,24 @@ function add_formalization_from_guess(scope, pattern, mapping) {
   requirement_modal_content.LoadingOverlay("show")
 
   let requirement_id = $("#requirement_id").val()
-  $.post(
-    "api/v1/req/add_formalization_from_guess",
-    {
-      requirement_id: requirement_id,
-      scope: scope,
-      pattern: pattern,
-      mapping: JSON.stringify(mapping),
-    },
-    function (data) {
-      requirement_modal_content.LoadingOverlay("hide", true)
-      if (data["success"] === false) {
-        alert(data["errormsg"])
-      } else {
-        $("#formalization_accordion").append(data["html"])
-      }
-    },
-  ).done(function () {
+  api.addFormalizationFromGuess({
+    requirement_id: requirement_id,
+    scope: scope,
+    pattern: pattern,
+    mapping: JSON.stringify(mapping),
+  }).done(function (data) {
+    requirement_modal_content.LoadingOverlay("hide", true)
+    if (data["success"] === false) {
+      alert(data["errormsg"])
+    } else {
+      $("#formalization_accordion").append(data["html"])
+    }
     update_vars()
     update_formalization()
     bind_var_autocomplete()
     update_logs()
+  }).fail(function (err) {
+    requirement_modal_content.LoadingOverlay("hide", true)
+    alert(`Could not add the guess (${err?.status}): ${err?.responseJSON?.errormsg || err?.statusText}`)
   })
 }
