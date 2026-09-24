@@ -589,6 +589,19 @@ class TestSubtypeErrorStatuses(TestCase):
         for url in ("api/v1/req/unknown/formalizations/0", "api/v1/req/unknown/formalizations/formalization/0"):
             self.assertEqual(404, self.mock_hanfor.app.delete(url).status_code)
 
+    def test_single_get_returns_is_constraint(self):
+        self.assertIn("is_constraint", self.mock_hanfor.app.get(f"{self.BASE}/0").json)
+
+    def test_get_of_non_numeric_fid_is_not_found(self):
+        self.assertEqual(404, self.mock_hanfor.app.get(f"{self.BASE}/tmp-1").status_code)
+
+    def test_get_of_unknown_requirement_is_not_found(self):
+        for url in ("api/v1/req/unknown/formalizations", "api/v1/req/unknown/formalizations/0"):
+            self.assertEqual(404, self.mock_hanfor.app.get(url).status_code)
+
+    def test_get_with_unknown_subtype_is_not_found(self):
+        self.assertEqual(404, self.mock_hanfor.app.get(f"{self.BASE}/0?subtype=nonsense").status_code)
+
     def test_delete_of_non_numeric_fid_is_not_found(self):
         self.assertEqual(404, self.mock_hanfor.app.delete(f"{self.BASE}/tmp-1").status_code)
 

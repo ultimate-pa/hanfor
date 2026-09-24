@@ -44,6 +44,7 @@ from requirements.subtypes import (
     InvalidPayload,
     SubtypeContext,
     SubtypeError,
+    SubtypeHandler,
     SubtypeNotFound,
     subtype_errors_to_response,
 )
@@ -317,26 +318,17 @@ class ApiFormalizations(Resource):
         },
     )
     @api_ns.response(200, "Success", [FormalizationModel])
+    @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
+    @subtype_errors_to_response
     def get(self, rid):
-        requirement = current_app.db.get_object(Requirement, rid)
-        var_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(),
-            current_app.db.get_objects(Requirement).values(),
-        )
+        ctx = SubtypeContext.load(rid)
         subtype = request.args.get("subtype")
-        result = []
-        for idx, formalization in requirement.formalizations.items():
-            if subtype and formalization.of_type() != subtype:
-                continue
-            formalization_repr = formalization.to_dict(var_collection=var_collection)
-            formalization_repr["formalization_type"] = formalization.of_type()
-            formalization_repr["id"] = idx
-            formalization_repr["text"] = formalization.get_string()
-            formalization_repr["is_constraint"] = formalization.is_constraint
-
-            result.append(formalization_repr)
-        return result
+        return [
+            SUBTYPES[element.of_type()].handler.serialize(ctx, fid)
+            for fid, element in ctx.requirement.formalizations.items()
+            if not subtype or element.of_type() == subtype
+        ]
 
 
 @api_ns.route("")
@@ -372,23 +364,14 @@ class ApiFormalizationResource(Resource):
     @api_ns.response(200, "Success", FormalizationModel)
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
+    @subtype_errors_to_response
     def get(self, rid, fid):
+        ctx = SubtypeContext.load(rid)
         subtype = request.args.get("subtype")
-        requirement = current_app.db.get_object(Requirement, rid)
-        formalization = requirement.formalizations.get(int(fid))
-        if not formalization:
-            return {"success": False, "errormsg": "Formalization not found."}, 404
-        if subtype and formalization.of_type() != subtype:
-            return {"success": False, "errormsg": "Subtype mismatch."}, 404
-        var_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(),
-            current_app.db.get_objects(Requirement).values(),
-        )
-        result = formalization.to_dict(var_collection=var_collection)
-        result["formalization_type"] = formalization.of_type()
-        result["id"] = int(fid)
-        result["text"] = formalization.get_string()
-        return result
+        if subtype and subtype not in SUBTYPES:
+            raise SubtypeNotFound(f"Unknown subtype '{subtype}'.")
+        handler = SUBTYPES[subtype].handler if subtype else SubtypeHandler.handler_for(ctx, fid)
+        return handler.serialize(ctx, fid)
 
     @api_ns.doc(
         description="Removes the formalization with the given ID from " "the requirement and re-runs type inference.",
@@ -403,10 +386,7 @@ class ApiFormalizationResource(Resource):
     @subtype_errors_to_response
     def delete(self, rid, fid):
         with _subtype_write(rid, f"Deleted formalization {fid} from requirement") as ctx:
-            element = ctx.requirement.formalizations.get(int(fid)) if str(fid).isdigit() else None
-            if element is None:
-                raise SubtypeNotFound("Formalization not found.")
-            SUBTYPES[element.of_type()].handler.delete(ctx, fid)
+            SubtypeHandler.handler_for(ctx, fid).delete(ctx, fid)
         return {"success": True}
 
 

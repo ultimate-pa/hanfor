@@ -122,6 +122,23 @@ class SubtypeHandler(ABC, Generic[E]):
             raise SubtypeNotFound(f"{self.name.capitalize()} not found.")
         return element
 
+    @staticmethod
+    def handler_for(ctx: "SubtypeContext", fid: str) -> "SubtypeHandler":
+        element = ctx.requirement.formalizations.get(int(fid)) if str(fid).isdigit() else None
+        if element is None:
+            raise SubtypeNotFound("Formalization not found.")
+        return SUBTYPES[element.of_type()].handler
+
+    def serialize(self, ctx: "SubtypeContext", fid: str) -> dict:
+        element = self.fetch(ctx, fid)
+        return {
+            **element.to_dict(var_collection=ctx.variable_collection),
+            "formalization_type": element.of_type(),
+            "id": int(fid),
+            "text": element.get_string(),
+            "is_constraint": element.is_constraint,
+        }
+
     def delete(self, ctx: "SubtypeContext", fid: str) -> None:
         """Remove the element, then derive the formalization tags again from what is left."""
         self.fetch(ctx, fid)
