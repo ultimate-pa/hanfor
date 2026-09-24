@@ -1,7 +1,9 @@
 import asyncio
 import logging
 from typing import Optional
+
 import httpx
+
 from ai_request import ai_api_methods_abstract_class
 from thread_handling.thread_function_decorator import is_stopped, set_status
 
@@ -15,7 +17,8 @@ class OllamaStandard(ai_api_methods_abstract_class.AiApiMethod):
     @staticmethod
     async def do_request(url: str, headers: dict, payload: dict):
         async def _fetch():
-            async with httpx.AsyncClient(timeout=120) as client:
+            timeout = httpx.Timeout(connect=10, read=600, write=10, pool=10)
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 return await client.post(url, headers=headers, json=payload)
 
         async def _watch():
