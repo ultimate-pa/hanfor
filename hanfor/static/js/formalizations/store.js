@@ -27,7 +27,7 @@ store.registerType("formalization", {
 
     return data
   },
-  persistCreate: (rid, data) => api.createFormalization(rid, data),
+  persistCreate: (rid, drafts) => api.createMany(rid, "formalization", drafts),
   persistDelete: (rid, id) => api.deleteFormalization(rid, id),
 })
 
@@ -56,7 +56,7 @@ store.registerType("variable", {
 
     return data
   },
-  persistCreate: (rid, data) => api.createVariable(rid, data),
+  persistCreate: (rid, drafts) => api.createMany(rid, "variable", drafts),
   persistDelete: (rid, id) => api.deleteFormalization(rid, id),
 })
 

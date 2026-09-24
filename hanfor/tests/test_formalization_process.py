@@ -732,3 +732,42 @@ class TestUndefinedVariableInExpression(TestCase):
 
         self.assertEqual(["r"], req.formalizations[fid].type_inference_error_keys())
         self.assertIn("`ghost` is not defined", str(req.formalizations[fid].type_inference_errors))
+
+
+class TestBatchCreate(TestCase):
+    RID = "SysRS FooXY_91"
+    URL = "api/v1/req/SysRS%20FooXY_91/formalizations/formalization"
+
+    def setUp(self) -> None:
+        self.mock_hanfor = MockHanfor(session_tags=["simple"], test_session_source="test_formalization_process")
+        self.mock_hanfor.set_up()
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+    def tearDown(self) -> None:
+        self.mock_hanfor.tear_down()
+
+    @staticmethod
+    def draft(temp_id: str, **overrides) -> dict:
+        draft = {"temp_id": temp_id, "scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "foo"}}
+        return draft | overrides
+
+    def formalization_ids(self) -> list[int]:
+        with app.app_context():
+            return sorted(app.db.get_object(Requirement, self.RID).formalizations.keys())
+
+    def test_ids_follow_draft_order(self):
+        drafts = [self.draft(f"tmp-{i}") for i in (1, 2, 3)]
+        result = self.mock_hanfor.app.post(self.URL, data={"data": json.dumps(drafts)})
+
+        self.assertEqual(200, result.status_code)
+        self.assertDictEqual({"tmp-1": 0, "tmp-2": 1, "tmp-3": 2}, result.json["ids"])
+        self.assertListEqual([0, 1, 2], self.formalization_ids())
+
+    def test_invalid_draft_does_not_block_the_others(self):
+        drafts = [self.draft("tmp-1"), self.draft("tmp-2", pattern=None), self.draft("tmp-3")]
+        result = self.mock_hanfor.app.post(self.URL, data={"data": json.dumps(drafts)})
+
+        self.assertEqual(400, result.status_code)
+        self.assertIn("tmp-2", result.json["errormsg"])
+        self.assertDictEqual({"tmp-1": 0, "tmp-3": 1}, result.json["ids"])
+        self.assertListEqual([0, 1], self.formalization_ids())

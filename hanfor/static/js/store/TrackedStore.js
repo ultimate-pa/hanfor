@@ -58,18 +58,12 @@ export default class TrackedStore {
   commitCreated(rid, type) {
     const config = this._types.get(type)
     if (!config?.readDOM || !config?.persistCreate) return Promise.resolve()
-    const requests = [...this._getSet(this._created, type)].map(id => {
-      const data = config.readDOM(id)
-      if (!data) {
-        console.warn(`TrackedStore: readDOM for ${type}:${id} returned null`)
-        return Promise.resolve()
-      }
-      return Promise.resolve(config.persistCreate(rid, data)).then(response => {
-        if (response?.id !== undefined) this._assigned.set(id, response.id)
-      })
-    })
+    const drafts = [...this._getSet(this._created, type)].map(id => config.readDOM(id)).filter(Boolean)
     this._getSet(this._created, type).clear()
-    return Promise.all(requests)
+    if (!drafts.length) return Promise.resolve()
+    return Promise.resolve(config.persistCreate(rid, drafts)).then(response => {
+      for (const [tmp, id] of Object.entries(response?.ids ?? {})) this._assigned.set(tmp, id)
+    })
   }
 
   resolveKeys(byId) {

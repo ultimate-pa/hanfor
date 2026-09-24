@@ -39,7 +39,7 @@ from lib_core.utils import (
     log_request_response,
     prepare_patterns_for_jinja,
 )
-from requirements.subtypes import SUBTYPES, InvalidPayload, SubtypeContext, subtype_errors_to_response
+from requirements.subtypes import SUBTYPES, InvalidPayload, SubtypeContext, SubtypeError, subtype_errors_to_response
 from requirements.desc_highlighting import (
     get_highlighted_desc,
     highlight_text,
@@ -459,6 +459,39 @@ def _request_data() -> dict:
     A helper to make code more readable
     """
     return json.loads(request.form.get("data") or "{}")
+
+
+@api_ns.route(f"/<string:rid>/formalizations/<any({','.join(SUBTYPES)}):subtype>")
+@log_request_response
+class ApiFormalizationStoreBatch(Resource):
+    @api_ns.doc(
+        description="Creates several formalizations or variables on a requirement in one write. "
+        "Drafts that fail are skipped (for now) the others are still created.",
+        params={
+            "rid": "The requirement ID",
+            "subtype": f"One of {', '.join(SUBTYPES)}",
+            "data": "JSON-encoded list of drafts, each with a temp_id and the fields of the single create",
+        },
+    )
+    @api_ns.response(200, "Success", SuccessResponseModel)
+    @api_ns.response(400, "Bad Request", ErrorMessageModel)
+    @nocache
+    def post(self, rid, subtype):
+        drafts = json.loads(request.form.get("data") or "[]")
+        handler = SUBTYPES[subtype].handler
+        ids, errors = {}, {}
+        with _SUBTYPE_WRITE_LOCK:
+            ctx = SubtypeContext.load(rid)
+            for draft in drafts:
+                try:
+                    ids[draft["temp_id"]] = handler.create(ctx, draft["temp_id"], draft)
+                except SubtypeError as e:
+                    errors[draft["temp_id"]] = str(e)
+            current_app.db.update()
+            add_msg_to_flask_session_log(current_app, f"Created {len(ids)} {subtype} of requirement", [ctx.requirement])
+        if errors:
+            return {"success": False, "ids": ids, "errormsg": "; ".join(f"{k}: {v}" for k, v in errors.items())}, 400
+        return {"success": True, "ids": ids}
 
 
 @api_ns.route(f"/<string:rid>/formalizations/<any({','.join(SUBTYPES)}):subtype>/<string:fid>")
