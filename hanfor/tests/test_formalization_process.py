@@ -589,6 +589,15 @@ class TestSubtypeErrorStatuses(TestCase):
         for url in ("api/v1/req/unknown/formalizations/0", "api/v1/req/unknown/formalizations/formalization/0"):
             self.assertEqual(404, self.mock_hanfor.app.delete(url).status_code)
 
+    def test_unparsable_guess_is_rejected_and_leaves_nothing(self):
+        before = self.formalization_ids()
+        guess = {"requirement_id": self.RID, "scope": "GLOBALLY", "pattern": "Absence", "mapping": '{"R": "foo >"}'}
+
+        result = self.mock_hanfor.app.post("api/v1/req/add_formalization_from_guess", data=guess)
+
+        self.assertEqual(400, result.status_code)
+        self.assertListEqual(before, self.formalization_ids())
+
     def test_single_get_returns_is_constraint(self):
         self.assertIn("is_constraint", self.mock_hanfor.app.get(f"{self.BASE}/0").json)
 
@@ -881,3 +890,4 @@ class TestVariableCardDelete(TestCase):
 
         self.assertTrue(self.mock_hanfor.app.post("api/var/del_var", data={"name": "speed"}).json["success"])
         self.assert_gone_from_requirement()
+

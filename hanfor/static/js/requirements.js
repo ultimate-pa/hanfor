@@ -2116,5 +2116,8 @@ function add_formalization_from_guess(scope, pattern, mapping) {
     update_formalization()
     bind_var_autocomplete()
     update_logs()
+  }).fail(function (err) {
+    requirement_modal_content.LoadingOverlay("hide", true)
+    alert(`Could not add the guess (${err?.status}): ${err?.responseJSON?.errormsg || err?.statusText}`)
   })
 }

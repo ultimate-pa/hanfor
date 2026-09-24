@@ -677,42 +677,25 @@ class ApiAddFormalizationFromGuess(Resource):
         },
     )
     @api_ns.response(200, "Success")
+    @api_ns.response(400, "Bad Request", ErrorMessageModel)
+    @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
+    @subtype_errors_to_response
     def post(self):
+        data = {
+            "scope": request.form.get("scope", ""),
+            "pattern": request.form.get("pattern", ""),
+            "expression_mapping": json.loads(request.form.get("mapping") or "{}"),
+        }
         requirement_id = request.form.get("requirement_id", "")
-        scope = request.form.get("scope", "")
-        pattern = request.form.get("pattern", "")
-        mapping = request.form.get("mapping", "")
-        mapping = json.loads(mapping)
+        with _subtype_write(requirement_id, "Added formalization guess to requirement") as ctx:
+            fid = SUBTYPES["formalization"].handler.create(ctx, None, data)
 
-        # Add an empty Formalization.
-        requirement = current_app.db.get_object(Requirement, requirement_id)
-        formalization_id, formalization = requirement.add_empty_formalization()
-        # Add content to the formalization.
-        variable_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(),
-            current_app.db.get_objects(Requirement).values(),
-        )
-        requirement.update_formalization(
-            formalization_id=formalization_id,
-            scope_name=scope,
-            pattern_name=pattern,
-            mapping=mapping,
-            variable_collection=variable_collection,
-            standard_tags=SessionValue.get_standard_tags(current_app.db),
-        )
-        for v in variable_collection.new_vars:
-            current_app.db.add_object(v)
-        current_app.db.update()
-        add_msg_to_flask_session_log(current_app, "Added formalization guess to requirement", [requirement])
-
-        result = get_formalization_template(
+        return get_formalization_template(
             current_app.config["TEMPLATES_FOLDER"],
-            formalization_id,
-            requirement.formalizations[formalization_id],
+            fid,
+            ctx.requirement.formalizations[fid],
         )
-
-        return result
 
 
 @api_ns.route("/multi_add_top_guess")
