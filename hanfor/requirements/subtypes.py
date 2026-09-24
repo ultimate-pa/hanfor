@@ -16,8 +16,8 @@ from lib_core.data import (
     Variable,
     VariableCollection,
 )
-from lib_core.utils import rename_variable_everywhere
-from requirements.desc_highlighting import new_variables_regenerate_highlighting
+from lib_core.utils import delete_variable_everywhere, rename_variable_everywhere
+from requirements.desc_highlighting import delete_variables, new_variables_regenerate_highlighting
 
 
 @dataclass
@@ -249,6 +249,18 @@ class VariableHandler(SubtypeHandler[Variable]):
 
         if "enumerators" in data:
             self._apply_enumerators(ctx, variable.name, variable.type, data["enumerators"])
+
+    def delete(self, ctx: "SubtypeContext", fid: str) -> None:
+        variable = self.fetch(ctx, fid)
+        super().delete(ctx, fid)
+        collection = ctx.variable_collection
+        names = [variable.name, *(e.name for e in collection.get_enumerators(variable.name))]
+        if any(collection.is_used(name) for name in names):
+            return
+        for name in names:
+            delete_variable_everywhere(collection, name)
+        if current_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
+            delete_variables(names)
 
     @staticmethod
     def _rename(ctx: "SubtypeContext", variable: Variable, new_name: str) -> None:

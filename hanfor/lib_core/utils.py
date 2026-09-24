@@ -434,6 +434,19 @@ def rename_variable_everywhere(collection: VariableCollection, old_name: str, ne
     current_app.db.update()
 
 
+# TODO: refactor this together with rename_variable_everywhere in the variables page refactor
+def delete_variable_everywhere(collection: VariableCollection, name: str) -> Variable | None:
+    variable = collection.del_var(name)
+    if variable is None:
+        return None
+    for requirement in current_app.db.get_objects(Requirement).values():
+        for fid, element in list(requirement.formalizations.items()):
+            if isinstance(element, Variable) and element.name == name:
+                requirement.delete_formalization(fid, collection)
+    current_app.db.remove_object(variable)
+    return variable
+
+
 def add_msg_to_flask_session_log(app: HanforFlask, message: str, req_list: list[Requirement] = None) -> None:
     """Add a log message for the frontend_logs.
 

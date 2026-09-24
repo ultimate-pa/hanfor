@@ -800,3 +800,71 @@ class TestBatchCreate(TestCase):
         self.assertIn("pattern", result.json["errors"]["tmp-2"])
         self.assertDictEqual({"tmp-1": 0, "tmp-3": 1}, result.json["ids"])
         self.assertListEqual([0, 1], self.formalization_ids())
+
+
+class TestVariableCardDelete(TestCase):
+    RID = "SysRS%20FooXY_91"
+
+    def setUp(self) -> None:
+        self.mock_hanfor = MockHanfor(session_tags=["simple"], test_session_source="test_formalization_process")
+        self.mock_hanfor.set_up()
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+    def tearDown(self) -> None:
+        self.mock_hanfor.tear_down()
+
+    def create(self, rid: str, subtype: str, data: dict):
+        return self.mock_hanfor.app.post(
+            f"api/v1/req/{rid}/formalizations/{subtype}/tmp-1", data={"data": json.dumps(data)}
+        )
+
+    def delete_variable(self, fid: int):
+        return self.mock_hanfor.app.delete(f"api/v1/req/{self.RID}/formalizations/variable/{fid}")
+
+    @staticmethod
+    def variable_names() -> set[str]:
+        with app.app_context():
+            return {v.name for v in app.db.get_objects(Variable).values()}
+
+    def test_unused_variable_is_deleted_globally(self):
+        fid = self.create(self.RID, "variable", {"name": "speed", "type": "int"}).json["id"]
+
+        self.assertEqual(200, self.delete_variable(fid).status_code)
+        self.assertNotIn("speed", self.variable_names())
+        self.assertEqual(200, self.create(self.RID, "variable", {"name": "speed", "type": "int"}).status_code)
+
+    def test_variable_used_elsewhere_is_kept_globally(self):
+        fid = self.create(self.RID, "variable", {"name": "speed", "type": "int"}).json["id"]
+        formalization = {"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "speed > 1"}}
+        self.create("SysRS%20FooXY_42", "formalization", formalization)
+
+        self.assertEqual(200, self.delete_variable(fid).status_code)
+        self.assertIn("speed", self.variable_names())
+        remaining = self.mock_hanfor.app.get(f"api/v1/req/{self.RID}/formalizations?subtype=variable").json
+        self.assertListEqual([], remaining)
+
+    def test_enum_is_deleted_with_its_enumerators(self):
+        enum = {"name": "mode", "type": "ENUM_INT", "enumerators": [["on", "1"]]}
+        fid = self.create(self.RID, "variable", enum).json["id"]
+        self.assertIn("mode_on", self.variable_names())
+
+        self.assertEqual(200, self.delete_variable(fid).status_code)
+        self.assertEqual(set(), {"mode", "mode_on"} & self.variable_names())
+
+    def assert_gone_from_requirement(self):
+        remaining = self.mock_hanfor.app.get(f"api/v1/req/{self.RID}/formalizations?subtype=variable").json
+        self.assertListEqual([], remaining)
+        self.assertNotIn("speed", self.variable_names())
+
+    def test_variables_page_multi_delete_removes_the_card(self):
+        self.create(self.RID, "variable", {"name": "speed", "type": "int"})
+
+        data = {"change_type": "", "selected_vars": json.dumps(["speed"]), "del": "true"}
+        self.assertTrue(self.mock_hanfor.app.post("api/var/multi_update", data=data).json["success"])
+        self.assert_gone_from_requirement()
+
+    def test_variables_page_single_delete_removes_the_card(self):
+        self.create(self.RID, "variable", {"name": "speed", "type": "int"})
+
+        self.assertTrue(self.mock_hanfor.app.post("api/var/del_var", data={"name": "speed"}).json["success"])
+        self.assert_gone_from_requirement()

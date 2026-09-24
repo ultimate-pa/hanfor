@@ -61,6 +61,7 @@ FormalizationType = Literal["formalization", "variable"]
 
 class RequirementElement(ABC):
     """Anything that can live in `Requirement.formalizations`"""
+
     order: int
 
     is_constraint: bool = False
@@ -198,7 +199,8 @@ class Requirement:
         (reads the `csv_desc_header` session value), do not touch it from startup or worker threads.
         """
         # this has to be here, if not it causes a circular import
-        from reqtransformer import  try_cast_string
+        from reqtransformer import try_cast_string
+
         desc_header = current_app.db.get_object(SessionValue, "csv_desc_header").value
         return try_cast_string(self.csv_row.get(desc_header, ""))
 
@@ -1279,28 +1281,23 @@ class VariableCollection:
             if refs:
                 self._constraints[var.name] = refs
 
+    def is_used(self, var_name) -> bool:
+        """
+        uses by the variables own constraints do not count here
+        """
+        constraint_pref = "Constraint_{}".format(var_name)
+        return any(constraint_pref not in usage for usage in self.var_req_mapping.get(var_name, ()))
+
     def del_var(self, var_name) -> Union[Variable, None]:
         """Check if a variable can be deleted ie, is not used somewhere.
 
         :param var_name:
         :return: variable to delete from db or None
         """
-        deletable = False
-        if var_name not in self.var_req_mapping:
-            deletable = True
-        else:
-            constraint_pref = "Constraint_{}".format(var_name)
-            affected_constraints = len([f for f in self.var_req_mapping[var_name] if constraint_pref in f])
-            total_usages = len(self.var_req_mapping[var_name])
-            if affected_constraints == total_usages:
-                deletable = True
-
-        if deletable:
-            deleted_var = self.collection.pop(var_name, None)
-            self.var_req_mapping.pop(var_name, None)
-            if deleted_var:
-                return deleted_var
-        return None
+        if self.is_used(var_name):
+            return None
+        self.var_req_mapping.pop(var_name, None)
+        return self.collection.pop(var_name, None)
 
     def get_enumerators(self, enum_name: str) -> list["Variable"]:
         enumerators = []
