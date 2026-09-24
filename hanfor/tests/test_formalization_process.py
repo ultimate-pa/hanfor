@@ -585,6 +585,25 @@ class TestSubtypeErrorStatuses(TestCase):
 
         self.assertListEqual(before, self.formalization_ids())
 
+    def test_unknown_requirement_is_not_found(self):
+        for url in ("api/v1/req/unknown/formalizations/0", "api/v1/req/unknown/formalizations/formalization/0"):
+            self.assertEqual(404, self.mock_hanfor.app.delete(url).status_code)
+
+    def test_delete_of_non_numeric_fid_is_not_found(self):
+        self.assertEqual(404, self.mock_hanfor.app.delete(f"{self.BASE}/tmp-1").status_code)
+
+    def test_subtype_delete_removes_the_formalization(self):
+        result = self.mock_hanfor.app.delete(f"{self.BASE}/formalization/0")
+
+        self.assertEqual(200, result.status_code)
+        self.assertNotIn(0, self.formalization_ids())
+
+    def test_subtype_delete_with_wrong_subtype_is_not_found(self):
+        result = self.mock_hanfor.app.delete(f"{self.BASE}/variable/0")
+
+        self.assertEqual(404, result.status_code)
+        self.assertIn(0, self.formalization_ids())
+
     def test_illegal_variable_name_is_bad_request(self):
         result = self.post(f"{self.BASE}/variable/tmp-1", {"name": "9illegal", "type": "bool"})
 

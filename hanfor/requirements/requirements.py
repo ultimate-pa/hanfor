@@ -1,6 +1,7 @@
 import json
 import logging
 import threading
+from contextlib import contextmanager
 
 from flask import Blueprint, render_template, request
 from flask_restx import Namespace, Resource
@@ -38,7 +39,14 @@ from lib_core.utils import (
     log_request_response,
     prepare_patterns_for_jinja,
 )
-from requirements.subtypes import SUBTYPES, InvalidPayload, SubtypeContext, SubtypeError, subtype_errors_to_response
+from requirements.subtypes import (
+    SUBTYPES,
+    InvalidPayload,
+    SubtypeContext,
+    SubtypeError,
+    SubtypeNotFound,
+    subtype_errors_to_response,
+)
 from requirements.desc_highlighting import (
     get_highlighted_desc,
     highlight_text,
@@ -390,28 +398,30 @@ class ApiFormalizationResource(Resource):
         },
     )
     @api_ns.response(200, "Success", SuccessResponseModel)
+    @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
+    @subtype_errors_to_response
     def delete(self, rid, fid):
-        logging.debug(f"Deletion formalization ID: {fid}")
-        logging.debug(f"Deletion requirement ID: {rid}")
-        with _SUBTYPE_WRITE_LOCK:
-            requirement = current_app.db.get_object(Requirement, rid)
-            logging.debug(f"Current: {requirement.formalizations}")
-            requirement.delete_formalization(
-                int(fid),
-                VariableCollection(
-                    current_app.db.get_objects(Variable).values(),
-                    current_app.db.get_objects(Requirement).values(),
-                ),
-            )
-            requirement.recompute_formalization_tags(SessionValue.get_standard_tags(current_app.db))
-            current_app.db.update()
-            add_msg_to_flask_session_log(
-                current_app,
-                "Deleted formalization from requirement",
-                [requirement],
-            )
+        with _subtype_write(rid, f"Deleted formalization {fid} from requirement") as ctx:
+            element = ctx.requirement.formalizations.get(int(fid)) if str(fid).isdigit() else None
+            if element is None:
+                raise SubtypeNotFound("Formalization not found.")
+            SUBTYPES[element.of_type()].handler.delete(ctx, fid)
         return {"success": True}
+
+
+@contextmanager
+def _subtype_write(rid: str, log_message: str):
+    """
+    Manager for the writing context in requirements, with the block before the yield running on start
+    of the `with` block, yielding then returns the ctx to the block for it to be used `as` a variable
+    and then then the code after running after the with ends normally, allowing us to minimize code needed
+    """
+    with _SUBTYPE_WRITE_LOCK:
+        ctx = SubtypeContext.load(rid)
+        yield ctx
+        current_app.db.update()
+        add_msg_to_flask_session_log(current_app, log_message, [ctx.requirement])
 
 
 def _request_data() -> dict:
@@ -441,15 +451,12 @@ class ApiFormalizationStoreBatch(Resource):
         drafts = json.loads(request.form.get("data") or "[]")
         handler = SUBTYPES[subtype].handler
         ids, errors = {}, {}
-        with _SUBTYPE_WRITE_LOCK:
-            ctx = SubtypeContext.load(rid)
+        with _subtype_write(rid, f"Created {subtype} drafts of requirement") as ctx:
             for draft in drafts:
                 try:
                     ids[draft["temp_id"]] = handler.create(ctx, draft["temp_id"], draft)
                 except SubtypeError as e:
                     errors[draft["temp_id"]] = str(e)
-            current_app.db.update()
-            add_msg_to_flask_session_log(current_app, f"Created {len(ids)} {subtype} of requirement", [ctx.requirement])
         if errors:
             errormsg = "; ".join(f"{k}: {v}" for k, v in errors.items())
             return {"success": False, "ids": ids, "errors": errors, "errormsg": errormsg}, 400
@@ -527,6 +534,24 @@ class ApiFormalizationStore(Resource):
             SUBTYPES[subtype].handler.replace, rid, fid, _request_data(), f"Replaced {subtype} {fid} of requirement"
         )
 
+    @api_ns.doc(
+        description="Deletes a formalization or variable and derives the formalization tags again. "
+        "404 if the fid does not exist or is of a different subtype.",
+        params={
+            "rid": "The requirement ID",
+            "subtype": f"One of {', '.join(SUBTYPES)}",
+            "fid": "The formalization ID",
+        },
+    )
+    @api_ns.response(200, "Success", SuccessResponseModel)
+    @api_ns.response(404, "Not Found", ErrorMessageModel)
+    @nocache
+    @subtype_errors_to_response
+    def delete(self, rid, subtype, fid):
+        with _subtype_write(rid, f"Deleted {subtype} {fid} from requirement") as ctx:
+            SUBTYPES[subtype].handler.delete(ctx, fid)
+        return {"success": True}
+
     @staticmethod
     def _run(action, rid: str, fid: str, data: dict, log_message: str):
         """Load the context, pass it to the handler, persist what the handler changed.
@@ -535,11 +560,8 @@ class ApiFormalizationStore(Resource):
         `subtype_errors_to_response` turns into the right status. A handler that assigns an id
         returns it, and it reaches the client as `id`.
         """
-        with _SUBTYPE_WRITE_LOCK:
-            ctx = SubtypeContext.load(rid)
+        with _subtype_write(rid, log_message) as ctx:
             assigned_fid = action(ctx, fid, data)
-            current_app.db.update()
-            add_msg_to_flask_session_log(current_app, log_message, [ctx.requirement])
         if assigned_fid is None:
             return {"success": True}
         return {"success": True, "id": assigned_fid}

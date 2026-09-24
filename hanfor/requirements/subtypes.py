@@ -5,6 +5,7 @@ from functools import cached_property, wraps
 from typing import ClassVar, Generic, TypeVar
 
 from hanfor_flask import current_app
+from json_db_connector.json_db import DatabaseKeyError
 from lib_core.data import (
     Formalization,
     FormalizationType,
@@ -32,7 +33,10 @@ class SubtypeContext:
 
     @classmethod
     def load(cls, rid: str) -> "SubtypeContext":
-        return cls(rid=rid, requirement=current_app.db.get_object(Requirement, rid))
+        try:
+            return cls(rid=rid, requirement=current_app.db.get_object(Requirement, rid))
+        except DatabaseKeyError as e:
+            raise SubtypeNotFound(f"Requirement '{rid}' not found.") from e
 
     # TODO: Check if the caching of this is actually okay, if it introduces errors
     @cached_property
@@ -117,6 +121,12 @@ class SubtypeHandler(ABC, Generic[E]):
         if not isinstance(element, self.model):
             raise SubtypeNotFound(f"{self.name.capitalize()} not found.")
         return element
+
+    def delete(self, ctx: "SubtypeContext", fid: str) -> None:
+        """Remove the element, then derive the formalization tags again from what is left."""
+        self.fetch(ctx, fid)
+        ctx.requirement.delete_formalization(int(fid), ctx.variable_collection)
+        ctx.requirement.recompute_formalization_tags(ctx.standard_tags)
 
 
 class FormalizationHandler(SubtypeHandler[Formalization]):
