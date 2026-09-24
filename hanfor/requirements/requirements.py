@@ -490,7 +490,8 @@ class ApiFormalizationStoreBatch(Resource):
             current_app.db.update()
             add_msg_to_flask_session_log(current_app, f"Created {len(ids)} {subtype} of requirement", [ctx.requirement])
         if errors:
-            return {"success": False, "ids": ids, "errormsg": "; ".join(f"{k}: {v}" for k, v in errors.items())}, 400
+            errormsg = "; ".join(f"{k}: {v}" for k, v in errors.items())
+            return {"success": False, "ids": ids, "errors": errors, "errormsg": errormsg}, 400
         return {"success": True, "ids": ids}
 
 

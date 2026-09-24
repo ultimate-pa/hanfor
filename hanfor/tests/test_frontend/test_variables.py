@@ -110,7 +110,9 @@ def test_delete_enumerator_of_saved_variable(page: Page):
     modal = open_requirement(page, RID)
     card = modal.locator(VARIABLE_CARD)
     card.locator(".accordion-button").click()
-    card.locator(".enumerator-input").filter(has=page.locator('.enum_name_input[value="off"]')).locator(".del_enum").click()
+    card.locator(".enumerator-input").filter(has=page.locator('.enum_name_input[value="off"]')).locator(
+        ".del_enum"
+    ).click()
     save_requirement(page, modal, RID)
 
     [variable] = get_formalizations(page, RID, "variable")

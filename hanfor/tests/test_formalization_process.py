@@ -769,5 +769,6 @@ class TestBatchCreate(TestCase):
 
         self.assertEqual(400, result.status_code)
         self.assertIn("tmp-2", result.json["errormsg"])
+        self.assertIn("pattern", result.json["errors"]["tmp-2"])
         self.assertDictEqual({"tmp-1": 0, "tmp-3": 1}, result.json["ids"])
         self.assertListEqual([0, 1], self.formalization_ids())

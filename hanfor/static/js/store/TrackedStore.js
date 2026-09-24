@@ -22,7 +22,7 @@ export default class TrackedStore {
   }
 
   delete(type, id) {
-    id = String(id)
+    id = String(this.resolveId(id))
     if (this._getSet(this._created, type).has(id)) {
       this._getSet(this._created, type).delete(id)
     } else {
@@ -58,16 +58,30 @@ export default class TrackedStore {
   commitCreated(rid, type) {
     const config = this._types.get(type)
     if (!config?.readDOM || !config?.persistCreate) return Promise.resolve()
-    const drafts = [...this._getSet(this._created, type)].map(id => config.readDOM(id)).filter(Boolean)
-    this._getSet(this._created, type).clear()
+    const created = this._getSet(this._created, type)
+    const drafts = [...created].map(id => config.readDOM(id)).filter(Boolean)
     if (!drafts.length) return Promise.resolve()
-    return Promise.resolve(config.persistCreate(rid, drafts)).then(response => {
-      for (const [tmp, id] of Object.entries(response?.ids ?? {})) this._assigned.set(tmp, id)
-    })
+    const assign = ids => {
+      for (const [tmp, id] of Object.entries(ids ?? {})) {
+        this._assigned.set(tmp, id)
+        created.delete(tmp)
+      }
+    }
+    return Promise.resolve(config.persistCreate(rid, drafts)).then(
+      response => assign(response?.ids),
+      err => {
+        assign(err?.responseJSON?.ids)
+        throw err
+      },
+    )
+  }
+
+  resolveId(id) {
+    return this._assigned.get(String(id)) ?? id
   }
 
   resolveKeys(byId) {
-    return Object.fromEntries(Object.entries(byId).map(([id, value]) => [this._assigned.get(id) ?? id, value]))
+    return Object.fromEntries(Object.entries(byId).map(([id, value]) => [this.resolveId(id), value]))
   }
 
   reset() {

@@ -1,5 +1,5 @@
 require("gasparesganga-jquery-loading-overlay")
-const { Collapse, Modal, Popover, Tab } = require("bootstrap")
+const { Collapse, Modal, Popover, Tab, Toast } = require("bootstrap")
 require("datatables.net-bs5")
 require("datatables.net-select-bs5")
 require("jquery-ui/ui/widgets/autocomplete")
@@ -58,6 +58,7 @@ renderer.registerType("formalization", {
   template: "formalization",
   container: "container",
   contentSelector: ".accordion-collapse",
+  requires: ["save_error_toast"],
   withPatterns: true,
   // each function can define after render behavior function that gets applied
   // after mustache renders it, i.e setting the required variable placeholders as visible
@@ -718,9 +719,12 @@ function store_requirement(requirements_table) {
 
   sendTelemetry("requirements", req_id, "save")
   const committedFormalizations = Object.fromEntries(
-    Object.entries(formalizations).filter(
-      ([id]) => !store.isCreated("formalization", id) && !store.isCreated("variable", id),
-    ),
+    Object.entries(formalizations)
+      .filter(([id]) => !store.isCreated("formalization", id) && !store.isCreated("variable", id))
+      .map(([id, entry]) => {
+        const real = String(store.resolveId(id))
+        return [real, { ...entry, id: real }]
+      }),
   )
   console.log("Committed formalizations:", JSON.stringify(committedFormalizations, null, 2))
   $.when(
@@ -755,8 +759,24 @@ function store_requirement(requirements_table) {
     })
   }).fail(function (err) {
     requirement_modal_content.LoadingOverlay("hide", true)
+    if (err?.responseJSON?.errors) {
+      show_save_errors(err.responseJSON.errors)
+      return
+    }
     alert(`Save failed (${err?.status}): ${err?.responseJSON?.errormsg || err?.statusText || "Unknown error"}`)
   })
+}
+
+function show_save_errors(errors) {
+  const items = Object.entries(errors).map(([temp_id, message]) => {
+    const card = $(`#formalization_accordion > .accordion-item[data-id="${temp_id}"]`)
+    card.addClass("border-danger")
+    return { name: card.find(".accordion-button").first().text().trim() || temp_id, message }
+  })
+  const toast = $(Mustache.render(renderer.getTemplate("save_error_toast"), { errors: items }).trim())
+  $("#save_error_toasts").append(toast)
+  toast[0].addEventListener("hidden.bs.toast", () => toast.remove())
+  Toast.getOrCreateInstance(toast[0], { autohide: false }).show()
 }
 
 /**
@@ -1183,6 +1203,7 @@ function init_modal() {
       const popover = Popover.getInstance(this)
       if (popover) popover.dispose()
     })
+    document.querySelectorAll("#save_error_toasts .toast").forEach(el => Toast.getOrCreateInstance(el).hide())
     store.reset()
   })
 
