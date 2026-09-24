@@ -31,7 +31,11 @@ jobs:
           pip install -r requirements.txt
       - name: Just check if the documentation is building
         if: github.ref_name != 'release'
-        run: mkdocs build
+        run: |
+          source .venv/bin/activate
+          mkdocs build
       - name: Build and deploy Documentation
         if: github.ref_name == 'release' && github.server_url == 'https://github.com'
-        run: mkdocs gh-deploy
+        run: |
+          source .venv/bin/activate
+          mkdocs gh-deploy
