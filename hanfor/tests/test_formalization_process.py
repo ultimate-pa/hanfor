@@ -648,6 +648,15 @@ class TestVariableRename(TestCase):
             },
         )
 
+    def test_illegal_type_is_rejected(self):
+        vid = self.create({"name": "myvar", "type": "bool"})
+        entry = {"id": str(vid), "formalization_type": "variable", "name": "myvar", "var_type": "nonsense"}
+
+        result = self.save({str(vid): entry})
+
+        self.assertFalse(result.json["success"])
+        self.assertIn("Illegal variable type", result.json["errormsg"])
+
     def test_renaming_a_used_variable_rewrites_the_expression(self):
         """The rename used to leave the expression on the old name, which then 500ed the whole save."""
         vid = self.create({"name": "myvar", "type": "bool"})

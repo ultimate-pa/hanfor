@@ -113,7 +113,7 @@ class SubtypeHandler(ABC, Generic[E]):
 
     def fetch(self, ctx: "SubtypeContext", fid: str) -> E:
         """The identity check, once, for every subtype."""
-        element = ctx.requirement.formalizations.get(int(fid))
+        element = ctx.requirement.formalizations.get(int(fid)) if str(fid).isdigit() else None
         if not isinstance(element, self.model):
             raise SubtypeNotFound(f"{self.name.capitalize()} not found.")
         return element
@@ -215,7 +215,10 @@ class VariableHandler(SubtypeHandler[Variable]):
         if "name" in data:
             self._rename(ctx, variable, data["name"])
         if "type" in data:
-            variable.type = data["type"]
+            try:
+                variable.set_type(data["type"])
+            except ValueError as e:
+                raise InvalidPayload(str(e)) from e
         if "value" in data:
             variable.value = data["value"]
         if "order" in data:

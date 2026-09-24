@@ -32,7 +32,6 @@ from lib_core.pattern import APattern
 from lib_core.pattern.patterns_functions import VARIABLE_AUTOCOMPLETE_EXTENSION
 from lib_core.utils import (
     add_msg_to_flask_session_log,
-    rename_variable_everywhere,
     default_scope_options,
     formalization_html,
     get_default_pattern_options,
@@ -149,9 +148,9 @@ class ApiRequirementSingle(Resource):
         self._update_status(requirement, request.form.get("status", ""))
         self._update_tags(requirement, request.form.get("tags"))
         self._update_description(requirement, request.form.get("description"))
-        error, error_msg = self._update_formalizations(requirement)
+        error_msg = self._update_formalizations(SubtypeContext(rid=rid, requirement=requirement))
 
-        if error:
+        if error_msg:
             logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
             return {"success": False, "errormsg": error_msg}
 
@@ -226,95 +225,57 @@ class ApiRequirementSingle(Resource):
         requirement.description = desc_markdown
         add_msg_to_flask_session_log(current_app, f"Updated description for requirement", [requirement])
 
-    # TODO: This probably can also be refactored better
+    def _update_formalizations(self, ctx: SubtypeContext) -> str | None:
+        if request.form.get("update_formalization") != "true":
+            logging.debug("Skipping formalization update.")
+            return None
+
+        entries = json.loads(request.form.get("formalizations", ""))
+        formalization_entries = {fid: e for fid, e in entries.items() if e.get("formalization_type") == "formalization"}
+        variable_entries = {fid: e for fid, e in entries.items() if e.get("formalization_type") == "variable"}
+
+        error_msg = self._update_formal_entries(ctx, formalization_entries)
+        if error_msg:
+            return error_msg
+        return self._update_variable_entries(ctx, variable_entries)
+
     @staticmethod
-    def _update_formalizations(requirement):
-        if request.form.get("update_formalization") != "true":
-            logging.debug("Skipping formalization update.")
-            return False, ""
+    def _update_formal_entries(ctx: SubtypeContext, entries: dict) -> str | None:
+        if not entries:
+            return None
+        requirement = ctx.requirement
+        try:
+            requirement.update_formalizations(entries, ctx.standard_tags, ctx.variable_collection)
+            add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
+            for v in ctx.variable_collection.new_vars:
+                current_app.db.add_object(v)
+            for fid_str, entry in entries.items():
+                try:
+                    fid = int(fid_str)
+                except (TypeError, ValueError):
+                    continue
+                if fid in requirement.formalizations and "is_constraint" in entry:
+                    requirement.formalizations[fid].is_constraint = bool(entry.get("is_constraint", False))
+        except KeyError as e:
+            return f"Could not set formalization: Missing expression/variable for {e}"
+        except Exception as e:
+            return f"Could not parse formalization: `{e}`"
+        return None
 
-        formalizations = json.loads(request.form.get("formalizations", ""))
-        if request.form.get("update_formalization") != "true":
-            logging.debug("Skipping formalization update.")
-            return False, ""
-
-        formalizations = json.loads(request.form.get("formalizations", ""))
-        logging.debug("Updated Formalizations: {}".format(formalizations))
-        variable_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(),
-            current_app.db.get_objects(Requirement).values(),
-        )
-        logging.debug(f"Formalizations: {requirement.formalizations}")
-
-        variable_entries = {k: v for k, v in formalizations.items() if v.get("formalization_type") == "variable"}
-        formal_entries = {k: v for k, v in formalizations.items() if v.get("formalization_type") == "formalization"}
-        logging.debug(f"Only Formalizations: {formal_entries}")
-        logging.debug(f"Only Variables: {variable_entries}")
-
-        if formal_entries:
+    @staticmethod
+    def _update_variable_entries(ctx: SubtypeContext, entries: dict) -> str | None:
+        for fid, entry in entries.items():
+            data = {
+                "name": entry.get("name", ""),
+                "type": entry.get("var_type", ""),
+                "value": entry.get("const_val", ""),
+                "enumerators": entry.get("enumerators", []),
+            }
             try:
-                requirement.update_formalizations(
-                    formal_entries,
-                    SessionValue.get_standard_tags(current_app.db),
-                    variable_collection,
-                )
-                add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
-                for v in variable_collection.new_vars:
-                    current_app.db.add_object(v)
-                # Persist is_constraint on each updated formalization.
-                for fid_str, entry in formal_entries.items():
-                    try:
-                        fid = int(fid_str)
-                    except (TypeError, ValueError):
-                        continue
-                    if fid in requirement.formalizations and "is_constraint" in entry:
-                        requirement.formalizations[fid].is_constraint = bool(entry.get("is_constraint", False))
-            except KeyError as e:
-                return (
-                    True,
-                    f"Could not set formalization: Missing expression/variable for {e}",
-                )
-            except Exception as e:
-                return True, f"Could not parse formalization: `{e}`"
-
-        logging.debug(f"variable_entries: {json.dumps(variable_entries, indent=2)}")
-        for fid, entry in variable_entries.items():
-            var_name = entry.get("name", "")
-            var_type = entry.get("var_type", "")
-            var_value = entry.get("const_val", "")
-            enumerators = entry.get("enumerators", [])
-
-            logging.debug(
-                f"Variable update: fid={fid} name={var_name} type={var_type} "
-                f"value={var_value} enumerators={enumerators}"
-            )
-
-            if int(fid) in requirement.formalizations:
-                var = requirement.formalizations[int(fid)]
-                logging.debug(f"Found in formalizations: name={var.name} old_type={var.type}")
-                if isinstance(var, Variable):
-                    old_name = var.name
-                    if old_name != var_name:
-                        if variable_collection.var_name_exists(var_name):
-                            return True, f"A variable named `{var_name}` already exists."
-                        try:
-                            rename_variable_everywhere(variable_collection, old_name, var_name)
-                        except (KeyError, ValueError) as e:
-                            return True, str(e)
-                    try:
-                        var.set_type(var_type)
-                    except ValueError as e:
-                        return True, str(e)
-                    var.value = var_value
-                    logging.debug(f"Updated: name={var.name} type={var.type} value={var.value}")
-                else:
-                    logging.debug(f"Not a Variable instance, got: {type(var).__name__}")
-
-            success, errormsg, _ = variable_collection.create_enum_variable(var_name, var_type, enumerators)
-            if not success:
-                return True, errormsg
-
-        return False, ""
+                SUBTYPES["variable"].handler.patch(ctx, fid, data)
+            except SubtypeError as e:
+                return str(e)
+        return None
 
 
 @api_ns.route("/<string:rid>/highlight-description")
