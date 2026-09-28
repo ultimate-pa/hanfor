@@ -47,16 +47,10 @@ class TestFormalizationProcess(TestCase):
         }
 
         # So we submit then the current frontend state to the backend
-        for draft in drafts.values():
-            self.mock_hanfor.app.post(
-                "api/v1/req/add_formalization_from_guess",
-                data={
-                    "requirement_id": "SysRS FooXY_42",
-                    "scope": draft["scope"],
-                    "pattern": draft["pattern"],
-                    "mapping": json.dumps(draft["expression_mapping"]),
-                },
-            )
+        self.mock_hanfor.app.post(
+            "api/v1/req/SysRS%20FooXY_42/formalizations/formalization",
+            data={"data": json.dumps([{**d, "temp_id": d["id"]} for d in drafts.values()])},
+        )
         self.mock_hanfor.app.patch(
             "api/v1/req/SysRS%20FooXY_42",
             data={
@@ -238,23 +232,6 @@ class TestFormalizationProcess(TestCase):
         result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42/guesses")
         self.assertEqual(result.status, "200 OK")
         self.assertIn("available_guesses", result.json)
-        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
-        self.assertEqual(result.status, "200 OK")
-
-    def test_add_formalization_from_guess(self):
-        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
-
-        result = self.mock_hanfor.app.post(
-            "api/v1/req/add_formalization_from_guess",
-            data={
-                "requirement_id": "SysRS FooXY_42",
-                "formalizations_order": "{}",
-                "scope": "GLOBALLY",
-                "pattern": "Response",
-                "mapping": '{"R": "", "S": ""}',
-            },
-        )
-        self.assertEqual(result.status, "200 OK")
         result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertEqual(result.status, "200 OK")
 
@@ -589,15 +566,6 @@ class TestSubtypeErrorStatuses(TestCase):
         for url in ("api/v1/req/unknown/formalizations/0", "api/v1/req/unknown/formalizations/formalization/0"):
             self.assertEqual(404, self.mock_hanfor.app.delete(url).status_code)
 
-    def test_unparsable_guess_is_rejected_and_leaves_nothing(self):
-        before = self.formalization_ids()
-        guess = {"requirement_id": self.RID, "scope": "GLOBALLY", "pattern": "Absence", "mapping": '{"R": "foo >"}'}
-
-        result = self.mock_hanfor.app.post("api/v1/req/add_formalization_from_guess", data=guess)
-
-        self.assertEqual(400, result.status_code)
-        self.assertListEqual(before, self.formalization_ids())
-
     def test_single_get_returns_is_constraint(self):
         self.assertIn("is_constraint", self.mock_hanfor.app.get(f"{self.BASE}/0").json)
 
@@ -823,6 +791,14 @@ class TestBatchCreate(TestCase):
         self.assertDictEqual({"tmp-1": 0, "tmp-3": 1}, result.json["ids"])
         self.assertListEqual([0, 1], self.formalization_ids())
 
+
+    def test_unparsable_expression_is_rejected(self):
+        drafts = [self.draft("tmp-1", expression_mapping={"R": "foo >"})]
+        result = self.mock_hanfor.app.post(self.URL, data={"data": json.dumps(drafts)})
+
+        self.assertEqual(400, result.status_code)
+        self.assertIn("tmp-1", result.json["errors"])
+        self.assertListEqual([], self.formalization_ids())
 
 class TestVariableCardDelete(TestCase):
     RID = "SysRS%20FooXY_91"

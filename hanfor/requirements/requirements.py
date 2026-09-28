@@ -33,9 +33,6 @@ from lib_core.pattern import APattern
 from lib_core.pattern.patterns_functions import VARIABLE_AUTOCOMPLETE_EXTENSION
 from lib_core.utils import (
     add_msg_to_flask_session_log,
-    default_scope_options,
-    formalization_html,
-    get_default_pattern_options,
     log_request_response,
     prepare_patterns_for_jinja,
 )
@@ -663,41 +660,6 @@ class ApiRequirementGuesses(Resource):
         return result
 
 
-@api_ns.route("/add_formalization_from_guess")
-@log_request_response
-class ApiAddFormalizationFromGuess(Resource):
-    @api_ns.doc(
-        description="Adds an empty formalization, then fills it with "
-        "the data from the selected scope, pattern, and mapping.",
-        params={
-            "requirement_id": "Requirement ID",
-            "scope": "Scope name",
-            "pattern": "Pattern name",
-            "mapping": "JSON-encoded mapping dict",
-        },
-    )
-    @api_ns.response(200, "Success")
-    @api_ns.response(400, "Bad Request", ErrorMessageModel)
-    @api_ns.response(404, "Not Found", ErrorMessageModel)
-    @nocache
-    @subtype_errors_to_response
-    def post(self):
-        data = {
-            "scope": request.form.get("scope", ""),
-            "pattern": request.form.get("pattern", ""),
-            "expression_mapping": json.loads(request.form.get("mapping") or "{}"),
-        }
-        requirement_id = request.form.get("requirement_id", "")
-        with _subtype_write(requirement_id, "Added formalization guess to requirement") as ctx:
-            fid = SUBTYPES["formalization"].handler.create(ctx, None, data)
-
-        return get_formalization_template(
-            current_app.config["TEMPLATES_FOLDER"],
-            fid,
-            ctx.requirement.formalizations[fid],
-        )
-
-
 @api_ns.route("/multi_add_top_guess")
 @log_request_response
 class ApiMultiAddTopGuess(Resource):
@@ -777,23 +739,6 @@ class ApiMultiAddTopGuess(Resource):
         add_msg_to_flask_session_log(current_app, "Added top guess to requirements", requirements)
 
         return result
-
-        return result
-
-
-def get_formalization_template(templates_folder, formalization_id, formalization):  # TODO wohin damit, HTML generation
-    result = {
-        "success": True,
-        "html": formalization_html(
-            templates_folder,
-            formalization_id,
-            default_scope_options,
-            get_default_pattern_options(),
-            formalization,
-        ),
-    }
-
-    return result
 
 
 def get_datatable_additional_cols(app: HanforFlask):  # TODO nach requirements

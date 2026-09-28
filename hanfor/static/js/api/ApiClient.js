@@ -66,6 +66,5 @@ export default class ApiClient {
     return this.postJSON(`/req/${rid}/highlight-description`, { description: text })
   }
 
-  addFormalizationFromGuess(data) { return this.post(`/req/add_formalization_from_guess`, data) }
   addMultiTopGuess(data) { return this.post(`/req/multi_add_top_guess`, data) }
 }

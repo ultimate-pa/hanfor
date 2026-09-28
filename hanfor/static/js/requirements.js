@@ -2095,29 +2095,6 @@ function add_enumerator_to_variable(button, $container, name = "", value = "") {
 }
 
 function add_formalization_from_guess(scope, pattern, mapping) {
-  // Request a new Formalization. And add its edit elements to the modal.
-  let requirement_modal_content = $(".modal-content")
-  requirement_modal_content.LoadingOverlay("show")
-
-  let requirement_id = $("#requirement_id").val()
-  api.addFormalizationFromGuess({
-    requirement_id: requirement_id,
-    scope: scope,
-    pattern: pattern,
-    mapping: JSON.stringify(mapping),
-  }).done(function (data) {
-    requirement_modal_content.LoadingOverlay("hide", true)
-    if (data["success"] === false) {
-      alert(data["errormsg"])
-    } else {
-      $("#formalization_accordion").append(data["html"])
-    }
-    update_vars()
-    update_formalization()
-    bind_var_autocomplete()
-    update_logs()
-  }).fail(function (err) {
-    requirement_modal_content.LoadingOverlay("hide", true)
-    alert(`Could not add the guess (${err?.status}): ${err?.responseJSON?.errormsg || err?.statusText}`)
-  })
+  const expressions = Object.fromEntries(Object.entries(mapping).map(([v, expr]) => [`expr_${v}`, expr]))
+  add_formalization({ scope, pattern, ...expressions })
 }
