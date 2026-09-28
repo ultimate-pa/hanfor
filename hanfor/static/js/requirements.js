@@ -1060,7 +1060,7 @@ function apply_multi_edit(requirements_table) {
       requests.push(api.removeTag(id, remove_tag))
     }
     if (set_status) {
-      requests.push(api.setStatus(id, set_status))
+      requests.push(api.patchRequirement(id, { status: set_status }))
     }
   }
 
