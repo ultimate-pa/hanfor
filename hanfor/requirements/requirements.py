@@ -1,5 +1,7 @@
 import json
 import logging
+import threading
+from contextlib import contextmanager
 
 from flask import Blueprint, render_template, request
 from flask_restx import Namespace, Resource
@@ -9,7 +11,6 @@ from configuration.defaults import Color
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from hanfor_flask import HanforFlask, current_app, nocache
-from json_db_connector.json_db import DatabaseKeyError
 from lib_core.api_models import (
     AvailableGuessesModel,
     ColumnDefsModel,
@@ -31,14 +32,18 @@ from lib_core.pattern import APattern
 from lib_core.pattern.patterns_functions import VARIABLE_AUTOCOMPLETE_EXTENSION
 from lib_core.utils import (
     add_msg_to_flask_session_log,
-    rename_variable_everywhere,
-    default_scope_options,
-    formalization_html,
-    get_default_pattern_options,
     log_request_response,
     prepare_patterns_for_jinja,
 )
-from requirements.subtypes import SUBTYPES, InvalidPayload, SubtypeContext, subtype_errors_to_response
+from requirements.subtypes import (
+    SUBTYPES,
+    InvalidPayload,
+    SubtypeContext,
+    SubtypeError,
+    SubtypeHandler,
+    SubtypeNotFound,
+    subtype_errors_to_response,
+)
 from requirements.desc_highlighting import (
     get_highlighted_desc,
     highlight_text,
@@ -47,6 +52,7 @@ from requirements.desc_highlighting import (
 
 blueprint = Blueprint("requirements", __name__, template_folder="templates", url_prefix="/")
 api_ns = Namespace("Requirements", "Requirements API description", path="/req", ordered=True)
+_SUBTYPE_WRITE_LOCK = threading.Lock()
 
 
 @blueprint.route("", methods=["GET"])
@@ -75,7 +81,7 @@ def index():
     )
 
 
-@api_ns.route("/colum_defs")
+@api_ns.route("/column-defs")
 @log_request_response
 class ApiColumnDefs(Resource):
     @api_ns.doc(
@@ -99,14 +105,9 @@ class ApiRequirementSingle(Resource):
     @api_ns.response(200, "Success", RequirementDetailModel)
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
+    @subtype_errors_to_response
     def get(self, rid):
-        try:
-            requirement = current_app.db.get_object(Requirement, rid)
-        except DatabaseKeyError:
-            return {
-                "success": False,
-                "errormsg": f"Requirement '{rid}' not found.",
-            }, 404
+        requirement = SubtypeContext.load(rid).requirement
         var_collection = VariableCollection(
             current_app.db.get_objects(Variable).values(),
             current_app.db.get_objects(Requirement).values(),
@@ -118,50 +119,39 @@ class ApiRequirementSingle(Resource):
             result["desc_highlighted"] = get_highlighted_desc(rid, result["desc"])
         else:
             result["desc_highlighted"] = result["desc"]
-        result["next_id"] = requirement.next_id()
         return result
 
     @api_ns.doc(
-        description="Partial update - only form fields that are sent are " "changed. Omitted fields remain untouched.",
+        description="Changes only the fields in the JSON body. The other fields keep their values. "
+        "To change a formalization or a variable, use /<rid>/formalizations/<fid>.",
         params={
             "rid": "The requirement ID",
-            "status": "New status value (empty string = no change)",
-            "tags": "JSON dict of {tag_name: comment}. Replaces all tags.",
-            "update_formalization": "Set 'true' to update formalizations",
-            "formalizations": "JSON-encoded formalization data",
-            "formalizations_order": "JSON dict of {fid: order} for reordering",
+            "status": "Body field: the new status. An empty string makes no change",
+            "description": "Body field: the new description",
+            "tags": "Body field: a dict of {tag_name: comment}. It replaces all tags",
+            "formalizations_order": "Body field: a dict of {fid: order}",
         },
     )
     @api_ns.response(200, "Success", RequirementDetailModel)
     @api_ns.response(400, "Bad Request", ErrorMessageModel)
     @nocache
+    @subtype_errors_to_response
     def patch(self, rid):
-        try:
-            requirement = current_app.db.get_object(Requirement, rid)
-        except DatabaseKeyError:
-            return {
-                "success": False,
-                "errormsg": f"Requirement '{rid}' not found.",
-            }, 404
+        requirement = SubtypeContext.load(rid).requirement
 
-        self._update_formalizations_order(requirement, request.form.get("formalizations_order"))
-        self._update_status(requirement, request.form.get("status", ""))
-        self._update_tags(requirement, request.form.get("tags"))
-        self._update_description(requirement, request.form.get("description"))
-        error, error_msg = self._update_formalizations(requirement)
+        body = request.get_json(silent=True) or {}
+        self._update_formalizations_order(requirement, body.get("formalizations_order"))
+        self._update_status(requirement, body.get("status", ""))
+        self._update_tags(requirement, body.get("tags"))
+        self._update_description(requirement, body.get("description"))
 
-        if error:
-            logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
-            return {"success": False, "errormsg": error_msg}
-
+        standard_tags = SessionValue.get_standard_tags(current_app.db)
+        requirement.recompute_formalization_tags(standard_tags)
         variable_collection = VariableCollection(
             current_app.db.get_objects(Variable).values(),
             current_app.db.get_objects(Requirement).values(),
         )
-        requirement.run_type_checks(
-            variable_collection,
-            SessionValue.get_standard_tags(current_app.db),
-        )
+        requirement.run_type_checks(variable_collection, standard_tags)
 
         current_app.db.update()
         result = requirement.to_dict()
@@ -172,10 +162,9 @@ class ApiRequirementSingle(Resource):
         return result, 200
 
     @staticmethod
-    def _update_formalizations_order(requirement, order_json):
-        if not order_json:
+    def _update_formalizations_order(requirement, order_dict):
+        if not order_dict:
             return
-        order_dict = json.loads(order_json)
         # TODO: still a problem with dictionary changing size, but the changes going through
         for idx, formalization in requirement.formalizations.items():
             formalization.order = order_dict.get(str(idx))
@@ -190,10 +179,9 @@ class ApiRequirementSingle(Resource):
         logging.debug(f"Requirement status set to {requirement.status}")
 
     @staticmethod
-    def _update_tags(requirement, tags_json):
-        if tags_json is None:
+    def _update_tags(requirement, new_tag_set):
+        if new_tag_set is None:
             return
-        new_tag_set = json.loads(tags_json)
         req_tags = {t.name: c for t, c in requirement.tags.items()}
         if req_tags == new_tag_set:
             return
@@ -224,99 +212,7 @@ class ApiRequirementSingle(Resource):
         if desc_markdown is None:
             return
         requirement.description = desc_markdown
-        add_msg_to_flask_session_log(
-            current_app, f"Updated description for requirement", [requirement]
-        )
-
-    # TODO: This probably can also be refactored better
-    @staticmethod
-    def _update_formalizations(requirement):
-        if request.form.get("update_formalization") != "true":
-            logging.debug("Skipping formalization update.")
-            return False, ""
-
-        formalizations = json.loads(request.form.get("formalizations", ""))
-        if request.form.get("update_formalization") != "true":
-            logging.debug("Skipping formalization update.")
-            return False, ""
-
-        formalizations = json.loads(request.form.get("formalizations", ""))
-        logging.debug("Updated Formalizations: {}".format(formalizations))
-        variable_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(),
-            current_app.db.get_objects(Requirement).values(),
-        )
-        logging.debug(f"Formalizations: {requirement.formalizations}")
-
-        variable_entries = {k: v for k, v in formalizations.items() if v.get("formalization_type") == "variable"}
-        formal_entries = {k: v for k, v in formalizations.items() if v.get("formalization_type") == "formalization"}
-        logging.debug(f"Only Formalizations: {formal_entries}")
-        logging.debug(f"Only Variables: {variable_entries}")
-
-        if formal_entries:
-            try:
-                requirement.update_formalizations(
-                    formal_entries,
-                    SessionValue.get_standard_tags(current_app.db),
-                    variable_collection,
-                )
-                add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
-                for v in variable_collection.new_vars:
-                    current_app.db.add_object(v)
-                # Persist is_constraint on each updated formalization.
-                for fid_str, entry in formal_entries.items():
-                    try:
-                        fid = int(fid_str)
-                    except (TypeError, ValueError):
-                        continue
-                    if fid in requirement.formalizations and "is_constraint" in entry:
-                        requirement.formalizations[fid].is_constraint = bool(entry.get("is_constraint", False))
-            except KeyError as e:
-                return (
-                    True,
-                    f"Could not set formalization: Missing expression/variable for {e}",
-                )
-            except Exception as e:
-                return True, f"Could not parse formalization: `{e}`"
-
-        logging.debug(f"variable_entries: {json.dumps(variable_entries, indent=2)}")
-        for fid, entry in variable_entries.items():
-            var_name = entry.get("name", "")
-            var_type = entry.get("var_type", "")
-            var_value = entry.get("const_val", "")
-            enumerators = entry.get("enumerators", [])
-
-            logging.debug(
-                f"Variable update: fid={fid} name={var_name} type={var_type} "
-                f"value={var_value} enumerators={enumerators}"
-            )
-
-            if int(fid) in requirement.formalizations:
-                var = requirement.formalizations[int(fid)]
-                logging.debug(f"Found in formalizations: name={var.name} old_type={var.type}")
-                if isinstance(var, Variable):
-                    old_name = var.name
-                    if old_name != var_name:
-                        if variable_collection.var_name_exists(var_name):
-                            return True, f"A variable named `{var_name}` already exists."
-                        try:
-                            rename_variable_everywhere(variable_collection, old_name, var_name)
-                        except (KeyError, ValueError) as e:
-                            return True, str(e)
-                    try:
-                        var.set_type(var_type)
-                    except ValueError as e:
-                        return True, str(e)
-                    var.value = var_value
-                    logging.debug(f"Updated: name={var.name} type={var.type} value={var.value}")
-                else:
-                    logging.debug(f"Not a Variable instance, got: {type(var).__name__}")
-
-            success, errormsg, _ = variable_collection.create_enum_variable(var_name, var_type, enumerators)
-            if not success:
-                return True, errormsg
-
-        return False, ""
+        add_msg_to_flask_session_log(current_app, f"Updated description for requirement", [requirement])
 
 
 @api_ns.route("/<string:rid>/highlight-description")
@@ -343,33 +239,24 @@ class ApiFormalizations(Resource):
     @api_ns.doc(
         description="Returns all formalizations (including variables) for "
         "a requirement, with enumerator data where applicable. "
-        "Use ?subtype=formalization|variable to filter by type.",
+        "Use ?subtype=formalization | variable to filter by type.",
         params={
             "rid": "The requirement ID",
             "subtype": "Query param: 'formalization' or 'variable'",
         },
     )
     @api_ns.response(200, "Success", [FormalizationModel])
+    @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
+    @subtype_errors_to_response
     def get(self, rid):
-        requirement = current_app.db.get_object(Requirement, rid)
-        var_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(),
-            current_app.db.get_objects(Requirement).values(),
-        )
+        ctx = SubtypeContext.load(rid)
         subtype = request.args.get("subtype")
-        result = []
-        for idx, formalization in requirement.formalizations.items():
-            if subtype and formalization.of_type() != subtype:
-                continue
-            formalization_repr = formalization.to_dict(var_collection=var_collection)
-            formalization_repr["formalization_type"] = formalization.of_type()
-            formalization_repr["id"] = idx
-            formalization_repr["text"] = formalization.get_string()
-            formalization_repr["is_constraint"] = formalization.is_constraint
-
-            result.append(formalization_repr)
-        return result
+        return [
+            SUBTYPES[element.of_type()].handler.serialize(ctx, fid)
+            for fid, element in ctx.requirement.formalizations.items()
+            if not subtype or element.of_type() == subtype
+        ]
 
 
 @api_ns.route("")
@@ -405,52 +292,90 @@ class ApiFormalizationResource(Resource):
     @api_ns.response(200, "Success", FormalizationModel)
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
+    @subtype_errors_to_response
     def get(self, rid, fid):
+        ctx = SubtypeContext.load(rid)
         subtype = request.args.get("subtype")
-        requirement = current_app.db.get_object(Requirement, rid)
-        formalization = requirement.formalizations.get(int(fid))
-        if not formalization:
-            return {"success": False, "errormsg": "Formalization not found."}, 404
-        if subtype and formalization.of_type() != subtype:
-            return {"success": False, "errormsg": "Subtype mismatch."}, 404
-        var_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(),
-            current_app.db.get_objects(Requirement).values(),
-        )
-        result = formalization.to_dict(var_collection=var_collection)
-        result["formalization_type"] = formalization.of_type()
-        result["id"] = int(fid)
-        result["text"] = formalization.get_string()
-        return result
+        if subtype and subtype not in SUBTYPES:
+            raise SubtypeNotFound(f"Unknown subtype '{subtype}'.")
+        handler = SUBTYPES[subtype].handler if subtype else SubtypeHandler.handler_for(ctx, fid)
+        return handler.serialize(ctx, fid)
 
     @api_ns.doc(
-        description="Removes the formalization with the given ID from " "the requirement and re-runs type inference.",
+        description="Changes only the fields in 'data' of the formalization or variable. The other fields "
+        "keep their values. The server finds the subtype from the element. Gives 404 if the ID is not found.",
         params={
             "rid": "The requirement ID",
-            "fid": "The formalization ID to delete",
+            "fid": "The formalization ID",
+            "data": "A JSON dict. All fields are optional. For a formalization: scope, pattern, "
+            "expression_mapping. For a variable: name, type, value, order, enumerators",
         },
     )
     @api_ns.response(200, "Success", SuccessResponseModel)
+    @api_ns.response(400, "Bad Request", ErrorMessageModel)
+    @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
-    def delete(self, rid, fid):
-        logging.debug(f"Deletion formalization ID: {fid}")
-        logging.debug(f"Deletion requirement ID: {rid}")
-        requirement = current_app.db.get_object(Requirement, rid)
-        logging.debug(f"Current: {requirement.formalizations}")
-        requirement.delete_formalization(
-            int(fid),
-            VariableCollection(
-                current_app.db.get_objects(Variable).values(),
-                current_app.db.get_objects(Requirement).values(),
-            ),
-        )
-        current_app.db.update()
-        add_msg_to_flask_session_log(
-            current_app,
-            "Deleted formalization from requirement",
-            [requirement],
-        )
+    @subtype_errors_to_response
+    def patch(self, rid, fid):
+        data = _request_data()
+        if not data:
+            raise InvalidPayload("No data provided.")
+        with _subtype_write(rid, f"Patched formalization {fid} of requirement") as ctx:
+            SubtypeHandler.handler_for(ctx, fid).patch(ctx, fid, data)
         return {"success": True}
+
+    @api_ns.doc(
+        description="Replaces all fields of the formalization or variable. 'data' must have all the "
+        "required fields. The server finds the subtype from the element. Gives 404 if the ID is not found, "
+        "and 400 if a required field is missing.",
+        params={
+            "rid": "The requirement ID",
+            "fid": "The formalization ID",
+            "data": "A JSON dict. For a formalization: scope, pattern, expression_mapping (all required). "
+            "For a variable: name, type (required), value, order, enumerators (optional)",
+        },
+    )
+    @api_ns.response(200, "Success", SuccessResponseModel)
+    @api_ns.response(400, "Bad Request", ErrorMessageModel)
+    @api_ns.response(404, "Not Found", ErrorMessageModel)
+    @nocache
+    @subtype_errors_to_response
+    def put(self, rid, fid):
+        data = _request_data()
+        with _subtype_write(rid, f"Replaced formalization {fid} of requirement") as ctx:
+            SubtypeHandler.handler_for(ctx, fid).replace(ctx, fid, data)
+        return {"success": True}
+
+    @api_ns.doc(
+        description="Deletes the formalization or variable and calculates the formalization tags again. "
+        "Gives 404 if the ID is not found.",
+        params={
+            "rid": "The requirement ID",
+            "fid": "The formalization ID",
+        },
+    )
+    @api_ns.response(200, "Success", SuccessResponseModel)
+    @api_ns.response(404, "Not Found", ErrorMessageModel)
+    @nocache
+    @subtype_errors_to_response
+    def delete(self, rid, fid):
+        with _subtype_write(rid, f"Deleted formalization {fid} from requirement") as ctx:
+            SubtypeHandler.handler_for(ctx, fid).delete(ctx, fid)
+        return {"success": True}
+
+
+@contextmanager
+def _subtype_write(rid: str, log_message: str):
+    """
+    Manager for the writing context in requirements, with the block before the yield running on start
+    of the `with` block, yielding then returns the ctx to the block for it to be used `as` a variable
+    and then then the code after running after the with ends normally, allowing us to minimize code needed
+    """
+    with _SUBTYPE_WRITE_LOCK:
+        ctx = SubtypeContext.load(rid)
+        yield ctx
+        current_app.db.update()
+        add_msg_to_flask_session_log(current_app, log_message, [ctx.requirement])
 
 
 def _request_data() -> dict:
@@ -461,110 +386,53 @@ def _request_data() -> dict:
     return json.loads(request.form.get("data") or "{}")
 
 
-@api_ns.route(f"/<string:rid>/formalizations/<any({','.join(SUBTYPES)}):subtype>/<string:fid>")
+@api_ns.route(f"/<string:rid>/formalizations/<any({','.join(SUBTYPES)}):subtype>")
 @log_request_response
-class ApiFormalizationStore(Resource):
-    """What each subtype does with a write lives in `requirements.subtypes`."""
-
+class ApiFormalizationStoreBatch(Resource):
     @api_ns.doc(
-        description="Creates a formalization or a variable on a requirement and updates the variable "
-        "collection.",
+        description="Creates several formalizations or variables on a requirement in one write. "
+        "Drafts that fail are skipped (for now) the others are still created.",
         params={
             "rid": "The requirement ID",
             "subtype": f"One of {', '.join(SUBTYPES)}",
-            "fid": "The formalization ID. Authoritative for a formalization; for a variable it is only a "
-            "hint, the variable is keyed by its own temp_id",
-            "data": "JSON-encoded dict. For formalizations: scope, pattern, expression_mapping (all "
-            "required), is_constraint (optional). For variables: name, type, temp_id (required), "
-            "value, enumerators (optional)",
+            "data": "A JSON list of drafts. Each draft has a temp_id and the fields of the subtype",
         },
     )
-    @api_ns.response(200, "Success", SuccessResponseModel)
-    @api_ns.response(400, "Bad Request", ErrorMessageModel)
-    @nocache
-    @subtype_errors_to_response
-    def post(self, rid, subtype, fid):
-        return self._run(
-            SUBTYPES[subtype].handler.create, rid, fid, _request_data(), f"Created {subtype} {fid} of requirement"
-        )
-
-    @api_ns.doc(
-        description="Partially updates a formalization or variable. Only fields included in the 'data' "
-        "JSON are changed; omitted fields keep their existing values. 404 if the fid does not exist.",
-        params={
-            "rid": "The requirement ID",
-            "subtype": f"One of {', '.join(SUBTYPES)}",
-            "fid": "The formalization ID",
-            "data": "JSON-encoded dict, all fields optional. For formalizations: scope, pattern, "
-            "expression_mapping. For variables: name, type, value, order, enumerators",
-        },
-    )
-    @api_ns.response(200, "Success", SuccessResponseModel)
+    @api_ns.response(201, "Created", SuccessResponseModel)
     @api_ns.response(400, "Bad Request", ErrorMessageModel)
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
     @subtype_errors_to_response
-    def patch(self, rid, subtype, fid):
-        data = _request_data()
-        # A verb level concern, not a subtype one: an empty patch asks for nothing.
-        if not data:
-            raise InvalidPayload("No data provided.")
-        return self._run(SUBTYPES[subtype].handler.patch, rid, fid, data, f"Patched {subtype} {fid} of requirement")
-
-    @api_ns.doc(
-        description="Fully replaces a formalization or variable. All required fields must be present. "
-        "404 if the fid does not exist, 400 if required fields are missing.",
-        params={
-            "rid": "The requirement ID",
-            "subtype": f"One of {', '.join(SUBTYPES)}",
-            "fid": "The formalization ID",
-            "data": "JSON-encoded dict. For formalizations: scope, pattern, expression_mapping (all "
-            "required). For variables: name, type (required), value, order, enumerators (optional)",
-        },
-    )
-    @api_ns.response(200, "Success", SuccessResponseModel)
-    @api_ns.response(400, "Bad Request", ErrorMessageModel)
-    @api_ns.response(404, "Not Found", ErrorMessageModel)
-    @nocache
-    @subtype_errors_to_response
-    def put(self, rid, subtype, fid):
-        return self._run(
-            SUBTYPES[subtype].handler.replace, rid, fid, _request_data(), f"Replaced {subtype} {fid} of requirement"
-        )
-
-    @staticmethod
-    def _run(action, rid: str, fid: str, data: dict, log_message: str):
-        """Load the context, pass it to the handler, persist what the handler changed.
-
-        The handler either returns having mutated `ctx`, or raises a `SubtypeError` that
-        `subtype_errors_to_response` turns into the right status.
-        """
-        ctx = SubtypeContext.load(rid)
-        action(ctx, fid, data)
-        current_app.db.update()
-        add_msg_to_flask_session_log(current_app, log_message, [ctx.requirement])
-        return {"success": True}
+    def post(self, rid, subtype):
+        drafts = json.loads(request.form.get("data") or "[]")
+        handler = SUBTYPES[subtype].handler
+        ids, errors = {}, {}
+        with _subtype_write(rid, f"Created {subtype} drafts of requirement") as ctx:
+            for draft in drafts:
+                try:
+                    ids[draft["temp_id"]] = handler.create(ctx, draft["temp_id"], draft)
+                except SubtypeError as e:
+                    errors[draft["temp_id"]] = str(e)
+        if errors:
+            errormsg = "; ".join(f"{k}: {v}" for k, v in errors.items())
+            return {"success": False, "ids": ids, "errors": errors, "errormsg": errormsg}, 400
+        return {"success": True, "ids": ids}, 201
 
 
 @api_ns.route("/<string:rid>/tags/<string:tag_name>")
 @log_request_response
 class ApiRequirementTag(Resource):
     @api_ns.doc(
-        description="Adds a tag to the requirement. Creates the Tag "
-        "object if it doesn't exist. No-op if already present.",
-        params={"rid": "The requirement ID", "tag_name": "Name of the tag to add"},
+        description="Adds the tag to the requirement. If the tag does not exist, the server makes it. "
+        "If the requirement has the tag, nothing changes. A second request gives the same result.",
+        params={"rid": "The requirement ID", "tag_name": "The name of the tag to add"},
     )
     @api_ns.response(200, "Success", SuccessResponseModel)
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
-    def post(self, rid, tag_name):
-        try:
-            requirement = current_app.db.get_object(Requirement, rid)
-        except DatabaseKeyError:
-            return {
-                "success": False,
-                "errormsg": f"Requirement '{rid}' not found.",
-            }, 404
+    @subtype_errors_to_response
+    def put(self, rid, tag_name):
+        requirement = SubtypeContext.load(rid).requirement
         all_tags: dict[str, Tag] = {t.name: t for t in current_app.db.get_objects(Tag).values()}
         if tag_name not in all_tags:
             tag = Tag(tag_name, Color.BS_INFO.value, False, "")
@@ -584,14 +452,9 @@ class ApiRequirementTag(Resource):
     @api_ns.response(200, "Success", SuccessResponseModel)
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
+    @subtype_errors_to_response
     def delete(self, rid, tag_name):
-        try:
-            requirement = current_app.db.get_object(Requirement, rid)
-        except DatabaseKeyError:
-            return {
-                "success": False,
-                "errormsg": f"Requirement '{rid}' not found.",
-            }, 404
+        requirement = SubtypeContext.load(rid).requirement
         all_tags: dict[str, Tag] = {t.name: t for t in current_app.db.get_objects(Tag).values()}
         if tag_name in all_tags and all_tags[tag_name] in requirement.tags:
             requirement.tags.pop(all_tags[tag_name])
@@ -615,13 +478,9 @@ class ApiRequirementGuesses(Resource):
     @api_ns.response(200, "Success", AvailableGuessesModel)
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
+    @subtype_errors_to_response
     def get(self, rid):
-        requirement = current_app.db.get_object(Requirement, rid)
-        if requirement is None:
-            return {
-                "success": False,
-                "errormsg": f"Requirement '{rid}' not found.",
-            }, 404
+        requirement = SubtypeContext.load(rid).requirement
 
         result = {"available_guesses": []}
         var_collection = VariableCollection(
@@ -658,58 +517,6 @@ class ApiRequirementGuesses(Resource):
                     "string": scoped_pattern.get_string(mapping),
                 }
             )
-
-        return result
-
-
-@api_ns.route("/add_formalization_from_guess")
-@log_request_response
-class ApiAddFormalizationFromGuess(Resource):
-    @api_ns.doc(
-        description="Adds an empty formalization, then fills it with "
-        "the data from the selected scope, pattern, and mapping.",
-        params={
-            "requirement_id": "Requirement ID",
-            "scope": "Scope name",
-            "pattern": "Pattern name",
-            "mapping": "JSON-encoded mapping dict",
-        },
-    )
-    @api_ns.response(200, "Success")
-    @nocache
-    def post(self):
-        requirement_id = request.form.get("requirement_id", "")
-        scope = request.form.get("scope", "")
-        pattern = request.form.get("pattern", "")
-        mapping = request.form.get("mapping", "")
-        mapping = json.loads(mapping)
-
-        # Add an empty Formalization.
-        requirement = current_app.db.get_object(Requirement, requirement_id)
-        formalization_id, formalization = requirement.add_empty_formalization()
-        # Add content to the formalization.
-        variable_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(),
-            current_app.db.get_objects(Requirement).values(),
-        )
-        requirement.update_formalization(
-            formalization_id=formalization_id,
-            scope_name=scope,
-            pattern_name=pattern,
-            mapping=mapping,
-            variable_collection=variable_collection,
-            standard_tags=SessionValue.get_standard_tags(current_app.db),
-        )
-        for v in variable_collection.new_vars:
-            current_app.db.add_object(v)
-        current_app.db.update()
-        add_msg_to_flask_session_log(current_app, "Added formalization guess to requirement", [requirement])
-
-        result = get_formalization_template(
-            current_app.config["TEMPLATES_FOLDER"],
-            formalization_id,
-            requirement.formalizations[formalization_id],
-        )
 
         return result
 
@@ -794,21 +601,6 @@ class ApiMultiAddTopGuess(Resource):
 
         return result
 
-        return result
-
-def get_formalization_template(templates_folder, formalization_id, formalization):  # TODO wohin damit, HTML generation
-    result = {
-        "success": True,
-        "html": formalization_html(
-            templates_folder,
-            formalization_id,
-            default_scope_options,
-            get_default_pattern_options(),
-            formalization,
-        ),
-    }
-
-    return result
 
 def get_datatable_additional_cols(app: HanforFlask):  # TODO nach requirements
     offset = 8  # we have 8 fixed cols.
@@ -824,5 +616,3 @@ def get_datatable_additional_cols(app: HanforFlask):  # TODO nach requirements
         )
 
     return {"col_defs": result}
-
-

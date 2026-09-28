@@ -259,9 +259,10 @@ def generate_req_file_content(
         used_identifiers = set()
         for requirement in requirements:
             for index, formalization in requirement.formalizations.items():
-                identifier = clean_identifier_for_ultimate_parser(requirement.rid, index, used_identifiers)
                 if not formalization.is_exportable():
                     continue
+                base = f"Constraint_{requirement.rid}" if formalization.is_constraint else requirement.rid
+                identifier = clean_identifier_for_ultimate_parser(base, index, used_identifiers)
                 content += "{}: {}\n".format(identifier, formalization.get_string())
     content += "\n"
 
@@ -431,6 +432,19 @@ def rename_variable_everywhere(collection: VariableCollection, old_name: str, ne
             for element in requirement.formalizations.values():
                 element.rename_used_variable(renamed_from, renamed_to)
     current_app.db.update()
+
+
+# TODO: refactor this together with rename_variable_everywhere in the variables page refactor
+def delete_variable_everywhere(collection: VariableCollection, name: str) -> Variable | None:
+    variable = collection.del_var(name)
+    if variable is None:
+        return None
+    for requirement in current_app.db.get_objects(Requirement).values():
+        for fid, element in list(requirement.formalizations.items()):
+            if isinstance(element, Variable) and element.name == name:
+                requirement.delete_formalization(fid, collection)
+    current_app.db.remove_object(variable)
+    return variable
 
 
 def add_msg_to_flask_session_log(app: HanforFlask, message: str, req_list: list[Requirement] = None) -> None:

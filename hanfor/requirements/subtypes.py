@@ -5,6 +5,7 @@ from functools import cached_property, wraps
 from typing import ClassVar, Generic, TypeVar
 
 from hanfor_flask import current_app
+from json_db_connector.json_db import DatabaseKeyError
 from lib_core.data import (
     Formalization,
     FormalizationType,
@@ -15,8 +16,8 @@ from lib_core.data import (
     Variable,
     VariableCollection,
 )
-from lib_core.utils import rename_variable_everywhere
-from requirements.desc_highlighting import new_variables_regenerate_highlighting
+from lib_core.utils import delete_variable_everywhere, rename_variable_everywhere
+from requirements.desc_highlighting import delete_variables, new_variables_regenerate_highlighting
 
 
 @dataclass
@@ -32,7 +33,10 @@ class SubtypeContext:
 
     @classmethod
     def load(cls, rid: str) -> "SubtypeContext":
-        return cls(rid=rid, requirement=current_app.db.get_object(Requirement, rid))
+        try:
+            return cls(rid=rid, requirement=current_app.db.get_object(Requirement, rid))
+        except DatabaseKeyError as e:
+            raise SubtypeNotFound(f"Requirement '{rid}' not found.") from e
 
     # TODO: Check if the caching of this is actually okay, if it introduces errors
     @cached_property
@@ -49,16 +53,19 @@ class SubtypeContext:
 
 class SubtypeError(Exception):
     """A subtype operation failed. `status` is what the resource should answer with."""
+
     status = 400
 
 
 class SubtypeNotFound(SubtypeError):
     """No element of the requested subtype exists under that id."""
+
     status = 404
 
 
 class InvalidPayload(SubtypeError):
     """The request body cannot be applied to this subtype."""
+
     status = 400
 
 
@@ -88,16 +95,16 @@ class SubtypeHandler(ABC, Generic[E]):
     failure. Persisting and turning the outcome into a response is the `flask` job, which is what makes
     a handler callable from a script or a test with no request in sight.
     """
+
     name: ClassVar[FormalizationType]
     model: type[E]
 
     @abstractmethod
-    # TODO: check what should be done to unify the ids of all formalizations
-    def create(self, ctx: "SubtypeContext", fid: str, data: dict) -> None:
-        """Attach a new element.
+    def create(self, ctx: "SubtypeContext", fid: str, data: dict) -> int:
+        """Attach a new element and return the id it was given.
 
-        `fid` is the id the client proposed in the URL. A variable carries its own id,
-        assigned client side, and keys itself by that instead.
+        `fid` is the temporary id the client used in the URL. Only the server assigns
+        the real one, so a second client cannot pick the same id.
         """
 
     @abstractmethod
@@ -110,25 +117,46 @@ class SubtypeHandler(ABC, Generic[E]):
 
     def fetch(self, ctx: "SubtypeContext", fid: str) -> E:
         """The identity check, once, for every subtype."""
-        element = ctx.requirement.formalizations.get(int(fid))
+        element = ctx.requirement.formalizations.get(int(fid)) if str(fid).isdigit() else None
         if not isinstance(element, self.model):
             raise SubtypeNotFound(f"{self.name.capitalize()} not found.")
         return element
+
+    @staticmethod
+    def handler_for(ctx: "SubtypeContext", fid: str) -> "SubtypeHandler":
+        element = ctx.requirement.formalizations.get(int(fid)) if str(fid).isdigit() else None
+        if element is None:
+            raise SubtypeNotFound("Formalization not found.")
+        return SUBTYPES[element.of_type()].handler
+
+    def serialize(self, ctx: "SubtypeContext", fid: str) -> dict:
+        element = self.fetch(ctx, fid)
+        return {
+            **element.to_dict(var_collection=ctx.variable_collection),
+            "formalization_type": element.of_type(),
+            "id": int(fid),
+            "text": element.get_string(),
+            "is_constraint": element.is_constraint,
+        }
+
+    def delete(self, ctx: "SubtypeContext", fid: str) -> None:
+        """Remove the element, then derive the formalization tags again from what is left."""
+        self.fetch(ctx, fid)
+        ctx.requirement.delete_formalization(int(fid), ctx.variable_collection)
+        ctx.requirement.recompute_formalization_tags(ctx.standard_tags)
 
 
 class FormalizationHandler(SubtypeHandler[Formalization]):
     name = "formalization"
     model = Formalization
 
-    def create(self, ctx: "SubtypeContext", fid: str, data: dict) -> None:
-        fid = int(fid)
-
+    def create(self, ctx: "SubtypeContext", fid: str, data: dict) -> int:
         # NOTE: `None` counts as missing, would this be good practice?
         missing = [key for key in ("scope", "pattern", "expression_mapping") if data.get(key) is None]
         if missing:
             raise InvalidPayload(f"Missing required field(s): {', '.join(missing)}")
 
-        ctx.requirement.add_formalization_with_id(Formalization(fid), fid)
+        fid, _ = ctx.requirement.add_empty_formalization()
         try:
             ctx.requirement.update_formalization(
                 fid,
@@ -150,6 +178,7 @@ class FormalizationHandler(SubtypeHandler[Formalization]):
             # A create that fails must leave nothing behind, including a half applied draft
             ctx.requirement.formalizations.pop(fid, None)
             raise InvalidPayload(f"Could not parse draft: `{e}`") from e
+        return fid
 
     def patch(self, ctx: "SubtypeContext", fid: str, data: dict) -> None:
         formalization = self.fetch(ctx, fid)
@@ -162,6 +191,7 @@ class FormalizationHandler(SubtypeHandler[Formalization]):
                 **{k: v.raw_expression for k, v in formalization.expressions_mapping.items()},
                 **data.get("expression_mapping", {}),
             },
+            data.get("is_constraint", formalization.is_constraint),
         )
 
     def replace(self, ctx: "SubtypeContext", fid: str, data: dict) -> None:
@@ -169,10 +199,12 @@ class FormalizationHandler(SubtypeHandler[Formalization]):
             raise InvalidPayload("scope, pattern, and expression_mapping are required")
 
         self.fetch(ctx, fid)
-        self._update(ctx, fid, data["scope"], data["pattern"], data["expression_mapping"])
+        self._update(
+            ctx, fid, data["scope"], data["pattern"], data["expression_mapping"], data.get("is_constraint", False)
+        )
 
     @staticmethod
-    def _update(ctx: "SubtypeContext", fid: str, scope: str, pattern: str, mapping: dict) -> None:
+    def _update(ctx: "SubtypeContext", fid: str, scope: str, pattern: str, mapping: dict, is_constraint: bool) -> None:
         """The half `patch` and `replace` share; they differ only in how they arrive at the arguments."""
         try:
             ctx.requirement.update_formalization(
@@ -180,6 +212,9 @@ class FormalizationHandler(SubtypeHandler[Formalization]):
             )
             for v in ctx.variable_collection.new_vars:
                 current_app.db.add_object(v)
+            ctx.requirement.formalizations[int(fid)].is_constraint = bool(is_constraint)
+            ctx.requirement.recompute_formalization_tags(ctx.standard_tags)
+            ctx.requirement.run_type_checks(ctx.variable_collection, ctx.standard_tags)
         except KeyError as e:
             raise InvalidPayload(f"Could not update formalization: {e}") from e
         except Exception as e:
@@ -190,10 +225,11 @@ class VariableHandler(SubtypeHandler[Variable]):
     name = "variable"
     model = Variable
 
-    def create(self, ctx: "SubtypeContext", fid: str, data: dict) -> None:
+    def create(self, ctx: "SubtypeContext", fid: str, data: dict) -> int:
         logging.debug(f"Data set by the variable: {data}")
+        assigned_fid = ctx.requirement.next_id()
         try:
-            var = Variable(data["name"], data["type"], value=data.get("value"), order=int(data["temp_id"]))
+            var = Variable(data["name"], data["type"], value=data.get("value"), order=assigned_fid)
             var.set_type(data["type"])
         except ValueError as e:
             raise InvalidPayload(str(e)) from e
@@ -202,9 +238,9 @@ class VariableHandler(SubtypeHandler[Variable]):
             raise InvalidPayload(f"A variable named `{var.name}` already exists.")
         current_app.db.add_object(var)
 
-        # The id of a variable is its own, assigned client side; the `fid` path segment is only a hint.
-        ctx.requirement.add_formalization_with_id(var, int(data["temp_id"]))
+        ctx.requirement.add_formalization_with_id(var, assigned_fid)
         self._apply_enumerators(ctx, data["name"], data["type"], data.get("enumerators", []))
+        return assigned_fid
 
     def patch(self, ctx: "SubtypeContext", fid: str, data: dict) -> None:
         variable = self.fetch(ctx, fid)
@@ -212,7 +248,10 @@ class VariableHandler(SubtypeHandler[Variable]):
         if "name" in data:
             self._rename(ctx, variable, data["name"])
         if "type" in data:
-            variable.type = data["type"]
+            try:
+                variable.set_type(data["type"])
+            except ValueError as e:
+                raise InvalidPayload(str(e)) from e
         if "value" in data:
             variable.value = data["value"]
         if "order" in data:
@@ -233,6 +272,18 @@ class VariableHandler(SubtypeHandler[Variable]):
 
         if "enumerators" in data:
             self._apply_enumerators(ctx, variable.name, variable.type, data["enumerators"])
+
+    def delete(self, ctx: "SubtypeContext", fid: str) -> None:
+        variable = self.fetch(ctx, fid)
+        super().delete(ctx, fid)
+        collection = ctx.variable_collection
+        names = [variable.name, *(e.name for e in collection.get_enumerators(variable.name))]
+        if any(collection.is_used(name) for name in names):
+            return
+        for name in names:
+            delete_variable_everywhere(collection, name)
+        if current_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
+            delete_variables(names)
 
     @staticmethod
     def _rename(ctx: "SubtypeContext", variable: Variable, new_name: str) -> None:

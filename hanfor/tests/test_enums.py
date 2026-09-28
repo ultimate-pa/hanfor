@@ -490,16 +490,12 @@ class TestEnums(TestCase):
         # self.assertEqual(response.status_code, 422)
 
     def apply_update(self, update):
+        for fid, entry in update.items():
+            self.mock_hanfor.app.patch(
+                f"api/v1/req/SysRS%20FooXY_91/formalizations/{fid}", data={"data": json.dumps(entry)}
+            )
         result = self.mock_hanfor.app.patch(
-            "api/v1/req/SysRS%20FooXY_91",
-            data={
-                "row_idx": "1",
-                "update_formalization": "true",
-                "tags": json.dumps({"unseen": ""}),
-                "status": "Todo",
-                "formalizations_order": "{}",
-                "formalizations": json.dumps(update),
-            },
+            "api/v1/req/SysRS%20FooXY_91", json={"tags": {"unseen": ""}, "status": "Todo"}
         )
         self.assertEqual("200 OK", result.status)
         self.assertEqual("application/json", result.mimetype)

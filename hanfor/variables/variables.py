@@ -18,6 +18,7 @@ from lib_core.data import (
 from lib_core.pattern.patterns_basic import APattern
 from lib_core.scopes import Scope
 from lib_core.utils import (
+    delete_variable_everywhere,
     formalizations_to_html,
     generate_file_response,
     generate_req_file_content,
@@ -150,9 +151,7 @@ def api_multi_update():
             for var_name in var_list:
                 try:
                     logging.debug(f"Deleting `{var_name}`")
-                    variable = var_collection.del_var(var_name)
-                    if variable:
-                        current_app.db.remove_object(variable)
+                    delete_variable_everywhere(var_collection, var_name)
                 except KeyError:
                     logging.debug(f"Variable `{var_list}` not found")
             var_collection.store()
@@ -213,15 +212,14 @@ def api_del_var():
     )
     try:
         logging.debug(f"Deleting `{var_name}`")
-        variable = var_collection.del_var(var_name)
+        variable = delete_variable_everywhere(var_collection, var_name)
         if not variable:
             return {
                 "success": False,
                 "errormsg": "Variable is used and thus cannot be deleted.",
             }
         if current_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
-            delete_variables(list(var_name))
-        current_app.db.remove_object(variable)
+            delete_variables([var_name])
         var_collection.store()
         current_app.db.update()
     except KeyError:

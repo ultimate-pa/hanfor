@@ -34,6 +34,7 @@ from queries.queries import api_blueprint as queries_api
 from req_simulator import simulator_blueprint
 from tags import tags
 from statistics import statistics
+from patterns.patterns_api import patterns_ns
 
 import mimetypes
 
@@ -72,6 +73,8 @@ app.register_blueprint(variables.api_blueprint)
 app.register_blueprint(logs_api)
 # Tags
 app.register_blueprint(tags.blueprint)
+# Patterns
+api.add_namespace(patterns_ns)
 api.add_namespace(tags.api)
 # Statistics
 app.register_blueprint(statistics.blueprint)
