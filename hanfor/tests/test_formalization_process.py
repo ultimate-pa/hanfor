@@ -327,6 +327,19 @@ class TestFormalizationProcess(TestCase):
         self.assertNotIn("incomplete_formalization", tags)
         self.assertIn("has_formalization", tags)
 
+    def test_unparsable_patch_leaves_the_formalization_unchanged(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+        result = self.mock_hanfor.app.patch(
+            "api/v1/req/SysRS%20FooXY_42/formalizations/0",
+            data={"data": json.dumps({"scope": "AFTER", "expression_mapping": {"R": "foo >"}})},
+        )
+        self.assertEqual(400, result.status_code)
+
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42/formalizations/0")
+        self.assertEqual("GLOBALLY", result.json["scope"])
+        self.assertEqual("foo != bar", result.json["expr_R"])
+
     def test_patch_formalization_404(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
 

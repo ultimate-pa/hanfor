@@ -283,6 +283,9 @@ class Requirement:
         # set scoped pattern
         scope_name = scope_name or Scope.NONE.name
         pattern_name = pattern_name or "NotFormalizable"
+        parser = boogie_parsing.get_parser_instance()
+        for expression in mapping.values():
+            parser.parse(expression)
         sp: ScopedPattern = self.formalizations[formalization_id].scoped_pattern
         if not sp.scope.name == scope_name or not sp.pattern.name == pattern_name:
             self.formalizations[formalization_id].scoped_pattern = ScopedPattern(
