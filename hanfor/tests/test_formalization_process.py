@@ -177,8 +177,8 @@ class TestFormalizationProcess(TestCase):
     def test_add_and_remove_tag(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
 
-        # POST a tag
-        result = self.mock_hanfor.app.post("api/v1/req/SysRS%20FooXY_42/tags/some-mass-added-tag")
+        # PUT a tag
+        result = self.mock_hanfor.app.put("api/v1/req/SysRS%20FooXY_42/tags/some-mass-added-tag")
         self.assertEqual(result.status, "200 OK")
 
         result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
@@ -192,7 +192,7 @@ class TestFormalizationProcess(TestCase):
         self.assertNotIn("some-mass-added-tag", result.json["tags"])
 
         # Adding a tag that doesn't exist yet creates it
-        result = self.mock_hanfor.app.post("api/v1/req/SysRS%20FooXY_42/tags/brand-new-tag")
+        result = self.mock_hanfor.app.put("api/v1/req/SysRS%20FooXY_42/tags/brand-new-tag")
         self.assertEqual(result.status, "200 OK")
 
         result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
@@ -203,7 +203,7 @@ class TestFormalizationProcess(TestCase):
         self.assertEqual(result.status, "200 OK")
 
         # 404 for non-existent requirement
-        result = self.mock_hanfor.app.post("api/v1/req/NONEXISTENT/tags/foo")
+        result = self.mock_hanfor.app.put("api/v1/req/NONEXISTENT/tags/foo")
         self.assertEqual(result.status, "404 NOT FOUND")
 
         result = self.mock_hanfor.app.delete("api/v1/req/NONEXISTENT/tags/foo")
@@ -511,7 +511,7 @@ class TestCreateFormalizationValidation(TestCase):
     def test_complete_payload_still_creates(self):
         result = self.create({"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "foo != bar"}})
 
-        self.assertEqual(200, result.status_code)
+        self.assertEqual(201, result.status_code)
         self.assertTrue(result.json["success"])
         self.assertIn(result.json["ids"]["tmp-1"], self.formalization_ids())
 
@@ -561,6 +561,11 @@ class TestSubtypeErrorStatuses(TestCase):
     def test_unknown_requirement_is_not_found(self):
         self.assertEqual(404, self.mock_hanfor.app.delete("api/v1/req/unknown/formalizations/0").status_code)
 
+    def test_guesses_and_create_of_unknown_requirement_are_not_found(self):
+        self.assertEqual(404, self.mock_hanfor.app.get("api/v1/req/unknown/guesses").status_code)
+        create = self.mock_hanfor.app.post("api/v1/req/unknown/formalizations/formalization", data={"data": "[]"})
+        self.assertEqual(404, create.status_code)
+
     def test_single_get_returns_is_constraint(self):
         self.assertIn("is_constraint", self.mock_hanfor.app.get(f"{self.BASE}/0").json)
 
@@ -595,7 +600,7 @@ class TestSubtypeErrorStatuses(TestCase):
             {"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "foo != bar"}},
         )
 
-        self.assertEqual(200, result.status_code)
+        self.assertEqual(201, result.status_code)
         self.assertTrue(result.json["success"])
 
 
@@ -722,7 +727,7 @@ class TestBatchCreate(TestCase):
         drafts = [self.draft(f"tmp-{i}") for i in (1, 2, 3)]
         result = self.mock_hanfor.app.post(self.URL, data={"data": json.dumps(drafts)})
 
-        self.assertEqual(200, result.status_code)
+        self.assertEqual(201, result.status_code)
         self.assertDictEqual({"tmp-1": 0, "tmp-2": 1, "tmp-3": 2}, result.json["ids"])
         self.assertListEqual([0, 1, 2], self.formalization_ids())
 
@@ -774,7 +779,7 @@ class TestVariableCardDelete(TestCase):
 
         self.assertEqual(200, self.delete_variable(fid).status_code)
         self.assertNotIn("speed", self.variable_names())
-        self.assertEqual(200, self.create(self.RID, "variable", {"name": "speed", "type": "int"}).status_code)
+        self.assertEqual(201, self.create(self.RID, "variable", {"name": "speed", "type": "int"}).status_code)
 
     def test_variable_used_elsewhere_is_kept_globally(self):
         fid = self.create(self.RID, "variable", {"name": "speed", "type": "int"}).json["ids"]["tmp-1"]

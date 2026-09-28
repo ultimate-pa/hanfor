@@ -718,13 +718,7 @@ function store_requirement(requirements_table) {
     store.commitCreated(req_id, "formalization"),
     store.commitCreated(req_id, "variable"),
   ).then(() =>
-    $.when(
-      ...committedFormalizations.map(([id, entry]) =>
-        api.patchFormalization(req_id, store.resolveId(id), entry).done(() =>
-          $(`#formalization_accordion > .accordion-item[data-id="${id}"]`).removeClass("draft"),
-        ),
-      ),
-    ),
+    patch_edited_cards(req_id, committedFormalizations),
   ).then(() =>
     api.patchRequirement(req_id, {
       tags: Object.fromEntries(tag_comments),
@@ -746,6 +740,24 @@ function store_requirement(requirements_table) {
     }
     alert(`Save failed (${err?.status}): ${err?.responseJSON?.errormsg || err?.statusText || "Unknown error"}`)
   })
+}
+
+async function patch_edited_cards(req_id, cards) {
+  const results = await Promise.allSettled(
+    cards.map(([id, entry]) => api.patchFormalization(req_id, store.resolveId(id), entry)),
+  )
+  const errors = {}
+  results.forEach((result, i) => {
+    const [id] = cards[i]
+    if (result.status === "fulfilled") {
+      $(`#formalization_accordion > .accordion-item[data-id="${id}"]`).removeClass("draft")
+    } else {
+      errors[id] = result.reason?.responseJSON?.errormsg || result.reason?.statusText
+    }
+  })
+  if (Object.keys(errors).length) {
+    throw { responseJSON: { errors } }
+  }
 }
 
 function show_save_errors(errors) {

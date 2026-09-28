@@ -44,6 +44,13 @@ export default class ApiClient {
     }).fail(e => this._onError(e, "PATCH", path))
   }
 
+  put(path) {
+    return $.ajax({
+      url: this.base + path,
+      method: "PUT",
+    }).fail(e => this._onError(e, "PUT", path))
+  }
+
   delete(path) {
     return $.ajax({
       url: this.base + path,
@@ -54,7 +61,7 @@ export default class ApiClient {
   // Specializied methods to eliminate duplicate code
   getRequirement(rid) { return this.get(`/req/${rid}`) }
   getRequirements() { return this.get(`/req`) }
-  getColumnDefs() { return this.get(`/req/colum_defs`) }
+  getColumnDefs() { return this.get(`/req/column-defs`) }
   getFormalizations(rid) { return this.get(`/req/${rid}/formalizations`) }
   getTags() { return this.get(`/tags`) }
   getGuesses(rid) { return this.get(`/req/${rid}/guesses`) }
@@ -66,7 +73,7 @@ export default class ApiClient {
     return this.post(`/req/${rid}/formalizations/${subtype}`, { data: JSON.stringify(drafts) })
   }
 
-  addTag(rid, name) { return this.post(`/req/${rid}/tags/${encodeURIComponent(name)}`) }
+  addTag(rid, name) { return this.put(`/req/${rid}/tags/${encodeURIComponent(name)}`) }
   removeTag(rid, name) { return this.delete(`/req/${rid}/tags/${encodeURIComponent(name)}`) }
   setStatus(rid, status) { return this.patchJSON(`/req/${rid}`, { status }) }
 

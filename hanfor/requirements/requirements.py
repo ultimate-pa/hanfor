@@ -11,7 +11,6 @@ from configuration.defaults import Color
 from guesser.Guess import Guess
 from guesser.guesser_registerer import REGISTERED_GUESSERS
 from hanfor_flask import HanforFlask, current_app, nocache
-from json_db_connector.json_db import DatabaseKeyError
 from lib_core.api_models import (
     AvailableGuessesModel,
     ColumnDefsModel,
@@ -82,7 +81,7 @@ def index():
     )
 
 
-@api_ns.route("/colum_defs")
+@api_ns.route("/column-defs")
 @log_request_response
 class ApiColumnDefs(Resource):
     @api_ns.doc(
@@ -106,14 +105,9 @@ class ApiRequirementSingle(Resource):
     @api_ns.response(200, "Success", RequirementDetailModel)
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
+    @subtype_errors_to_response
     def get(self, rid):
-        try:
-            requirement = current_app.db.get_object(Requirement, rid)
-        except DatabaseKeyError:
-            return {
-                "success": False,
-                "errormsg": f"Requirement '{rid}' not found.",
-            }, 404
+        requirement = SubtypeContext.load(rid).requirement
         var_collection = VariableCollection(
             current_app.db.get_objects(Variable).values(),
             current_app.db.get_objects(Requirement).values(),
@@ -141,14 +135,9 @@ class ApiRequirementSingle(Resource):
     @api_ns.response(200, "Success", RequirementDetailModel)
     @api_ns.response(400, "Bad Request", ErrorMessageModel)
     @nocache
+    @subtype_errors_to_response
     def patch(self, rid):
-        try:
-            requirement = current_app.db.get_object(Requirement, rid)
-        except DatabaseKeyError:
-            return {
-                "success": False,
-                "errormsg": f"Requirement '{rid}' not found.",
-            }, 404
+        requirement = SubtypeContext.load(rid).requirement
 
         body = request.get_json(silent=True) or {}
         self._update_formalizations_order(requirement, body.get("formalizations_order"))
@@ -406,12 +395,14 @@ class ApiFormalizationStoreBatch(Resource):
         params={
             "rid": "The requirement ID",
             "subtype": f"One of {', '.join(SUBTYPES)}",
-            "data": "JSON-encoded list of drafts, each with a temp_id and the fields of the single create",
+            "data": "A JSON list of drafts. Each draft has a temp_id and the fields of the subtype",
         },
     )
-    @api_ns.response(200, "Success", SuccessResponseModel)
+    @api_ns.response(201, "Created", SuccessResponseModel)
     @api_ns.response(400, "Bad Request", ErrorMessageModel)
+    @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
+    @subtype_errors_to_response
     def post(self, rid, subtype):
         drafts = json.loads(request.form.get("data") or "[]")
         handler = SUBTYPES[subtype].handler
@@ -425,28 +416,23 @@ class ApiFormalizationStoreBatch(Resource):
         if errors:
             errormsg = "; ".join(f"{k}: {v}" for k, v in errors.items())
             return {"success": False, "ids": ids, "errors": errors, "errormsg": errormsg}, 400
-        return {"success": True, "ids": ids}
+        return {"success": True, "ids": ids}, 201
 
 
 @api_ns.route("/<string:rid>/tags/<string:tag_name>")
 @log_request_response
 class ApiRequirementTag(Resource):
     @api_ns.doc(
-        description="Adds a tag to the requirement. Creates the Tag "
-        "object if it doesn't exist. No-op if already present.",
-        params={"rid": "The requirement ID", "tag_name": "Name of the tag to add"},
+        description="Adds the tag to the requirement. If the tag does not exist, the server makes it. "
+        "If the requirement has the tag, nothing changes. A second request gives the same result.",
+        params={"rid": "The requirement ID", "tag_name": "The name of the tag to add"},
     )
     @api_ns.response(200, "Success", SuccessResponseModel)
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
-    def post(self, rid, tag_name):
-        try:
-            requirement = current_app.db.get_object(Requirement, rid)
-        except DatabaseKeyError:
-            return {
-                "success": False,
-                "errormsg": f"Requirement '{rid}' not found.",
-            }, 404
+    @subtype_errors_to_response
+    def put(self, rid, tag_name):
+        requirement = SubtypeContext.load(rid).requirement
         all_tags: dict[str, Tag] = {t.name: t for t in current_app.db.get_objects(Tag).values()}
         if tag_name not in all_tags:
             tag = Tag(tag_name, Color.BS_INFO.value, False, "")
@@ -466,14 +452,9 @@ class ApiRequirementTag(Resource):
     @api_ns.response(200, "Success", SuccessResponseModel)
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
+    @subtype_errors_to_response
     def delete(self, rid, tag_name):
-        try:
-            requirement = current_app.db.get_object(Requirement, rid)
-        except DatabaseKeyError:
-            return {
-                "success": False,
-                "errormsg": f"Requirement '{rid}' not found.",
-            }, 404
+        requirement = SubtypeContext.load(rid).requirement
         all_tags: dict[str, Tag] = {t.name: t for t in current_app.db.get_objects(Tag).values()}
         if tag_name in all_tags and all_tags[tag_name] in requirement.tags:
             requirement.tags.pop(all_tags[tag_name])
@@ -497,13 +478,9 @@ class ApiRequirementGuesses(Resource):
     @api_ns.response(200, "Success", AvailableGuessesModel)
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
+    @subtype_errors_to_response
     def get(self, rid):
-        requirement = current_app.db.get_object(Requirement, rid)
-        if requirement is None:
-            return {
-                "success": False,
-                "errormsg": f"Requirement '{rid}' not found.",
-            }, 404
+        requirement = SubtypeContext.load(rid).requirement
 
         result = {"available_guesses": []}
         var_collection = VariableCollection(
