@@ -308,7 +308,7 @@ class ApiFormalizations(Resource):
     @api_ns.doc(
         description="Returns all formalizations (including variables) for "
         "a requirement, with enumerator data where applicable. "
-        "Use ?subtype=formalization|variable to filter by type.",
+        "Use ?subtype=formalization | variable to filter by type.",
         params={
             "rid": "The requirement ID",
             "subtype": "Query param: 'formalization' or 'variable'",
@@ -371,10 +371,56 @@ class ApiFormalizationResource(Resource):
         return handler.serialize(ctx, fid)
 
     @api_ns.doc(
-        description="Removes the formalization with the given ID from " "the requirement and re-runs type inference.",
+        description="Changes only the fields in 'data' of the formalization or variable. The other fields "
+        "keep their values. The server finds the subtype from the element. Gives 404 if the ID is not found.",
         params={
             "rid": "The requirement ID",
-            "fid": "The formalization ID to delete",
+            "fid": "The formalization ID",
+            "data": "A JSON dict. All fields are optional. For a formalization: scope, pattern, "
+            "expression_mapping. For a variable: name, type, value, order, enumerators",
+        },
+    )
+    @api_ns.response(200, "Success", SuccessResponseModel)
+    @api_ns.response(400, "Bad Request", ErrorMessageModel)
+    @api_ns.response(404, "Not Found", ErrorMessageModel)
+    @nocache
+    @subtype_errors_to_response
+    def patch(self, rid, fid):
+        data = _request_data()
+        if not data:
+            raise InvalidPayload("No data provided.")
+        with _subtype_write(rid, f"Patched formalization {fid} of requirement") as ctx:
+            SubtypeHandler.handler_for(ctx, fid).patch(ctx, fid, data)
+        return {"success": True}
+
+    @api_ns.doc(
+        description="Replaces all fields of the formalization or variable. 'data' must have all the "
+        "required fields. The server finds the subtype from the element. Gives 404 if the ID is not found, "
+        "and 400 if a required field is missing.",
+        params={
+            "rid": "The requirement ID",
+            "fid": "The formalization ID",
+            "data": "A JSON dict. For a formalization: scope, pattern, expression_mapping (all required). "
+            "For a variable: name, type (required), value, order, enumerators (optional)",
+        },
+    )
+    @api_ns.response(200, "Success", SuccessResponseModel)
+    @api_ns.response(400, "Bad Request", ErrorMessageModel)
+    @api_ns.response(404, "Not Found", ErrorMessageModel)
+    @nocache
+    @subtype_errors_to_response
+    def put(self, rid, fid):
+        data = _request_data()
+        with _subtype_write(rid, f"Replaced formalization {fid} of requirement") as ctx:
+            SubtypeHandler.handler_for(ctx, fid).replace(ctx, fid, data)
+        return {"success": True}
+
+    @api_ns.doc(
+        description="Deletes the formalization or variable and calculates the formalization tags again. "
+        "Gives 404 if the ID is not found.",
+        params={
+            "rid": "The requirement ID",
+            "fid": "The formalization ID",
         },
     )
     @api_ns.response(200, "Success", SuccessResponseModel)
@@ -438,110 +484,6 @@ class ApiFormalizationStoreBatch(Resource):
             errormsg = "; ".join(f"{k}: {v}" for k, v in errors.items())
             return {"success": False, "ids": ids, "errors": errors, "errormsg": errormsg}, 400
         return {"success": True, "ids": ids}
-
-
-@api_ns.route(f"/<string:rid>/formalizations/<any({','.join(SUBTYPES)}):subtype>/<string:fid>")
-@log_request_response
-class ApiFormalizationStore(Resource):
-    """What each subtype does with a write lives in `requirements.subtypes`."""
-
-    @api_ns.doc(
-        description="Creates a formalization or a variable on a requirement and updates the variable " "collection.",
-        params={
-            "rid": "The requirement ID",
-            "subtype": f"One of {', '.join(SUBTYPES)}",
-            "fid": "The temporary ID the client used for the draft. It is echoed back as temp_id; "
-            "the real ID is assigned by the server and returned as id",
-            "data": "JSON-encoded dict. For formalizations: scope, pattern, expression_mapping (all "
-            "required), is_constraint (optional). For variables: name, type (required), "
-            "value, enumerators (optional)",
-        },
-    )
-    @api_ns.response(200, "Success", SuccessResponseModel)
-    @api_ns.response(400, "Bad Request", ErrorMessageModel)
-    @nocache
-    @subtype_errors_to_response
-    def post(self, rid, subtype, fid):
-        result = self._run(
-            SUBTYPES[subtype].handler.create, rid, fid, _request_data(), f"Created {subtype} {fid} of requirement"
-        )
-        return {**result, "temp_id": fid}
-
-    @api_ns.doc(
-        description="Partially updates a formalization or variable. Only fields included in the 'data' "
-        "JSON are changed; omitted fields keep their existing values. 404 if the fid does not exist.",
-        params={
-            "rid": "The requirement ID",
-            "subtype": f"One of {', '.join(SUBTYPES)}",
-            "fid": "The formalization ID",
-            "data": "JSON-encoded dict, all fields optional. For formalizations: scope, pattern, "
-            "expression_mapping. For variables: name, type, value, order, enumerators",
-        },
-    )
-    @api_ns.response(200, "Success", SuccessResponseModel)
-    @api_ns.response(400, "Bad Request", ErrorMessageModel)
-    @api_ns.response(404, "Not Found", ErrorMessageModel)
-    @nocache
-    @subtype_errors_to_response
-    def patch(self, rid, subtype, fid):
-        data = _request_data()
-        # A verb level concern, not a subtype one: an empty patch asks for nothing.
-        if not data:
-            raise InvalidPayload("No data provided.")
-        return self._run(SUBTYPES[subtype].handler.patch, rid, fid, data, f"Patched {subtype} {fid} of requirement")
-
-    @api_ns.doc(
-        description="Fully replaces a formalization or variable. All required fields must be present. "
-        "404 if the fid does not exist, 400 if required fields are missing.",
-        params={
-            "rid": "The requirement ID",
-            "subtype": f"One of {', '.join(SUBTYPES)}",
-            "fid": "The formalization ID",
-            "data": "JSON-encoded dict. For formalizations: scope, pattern, expression_mapping (all "
-            "required). For variables: name, type (required), value, order, enumerators (optional)",
-        },
-    )
-    @api_ns.response(200, "Success", SuccessResponseModel)
-    @api_ns.response(400, "Bad Request", ErrorMessageModel)
-    @api_ns.response(404, "Not Found", ErrorMessageModel)
-    @nocache
-    @subtype_errors_to_response
-    def put(self, rid, subtype, fid):
-        return self._run(
-            SUBTYPES[subtype].handler.replace, rid, fid, _request_data(), f"Replaced {subtype} {fid} of requirement"
-        )
-
-    @api_ns.doc(
-        description="Deletes a formalization or variable and derives the formalization tags again. "
-        "404 if the fid does not exist or is of a different subtype.",
-        params={
-            "rid": "The requirement ID",
-            "subtype": f"One of {', '.join(SUBTYPES)}",
-            "fid": "The formalization ID",
-        },
-    )
-    @api_ns.response(200, "Success", SuccessResponseModel)
-    @api_ns.response(404, "Not Found", ErrorMessageModel)
-    @nocache
-    @subtype_errors_to_response
-    def delete(self, rid, subtype, fid):
-        with _subtype_write(rid, f"Deleted {subtype} {fid} from requirement") as ctx:
-            SUBTYPES[subtype].handler.delete(ctx, fid)
-        return {"success": True}
-
-    @staticmethod
-    def _run(action, rid: str, fid: str, data: dict, log_message: str):
-        """Load the context, pass it to the handler, persist what the handler changed.
-
-        The handler either returns having mutated `ctx`, or raises a `SubtypeError` that
-        `subtype_errors_to_response` turns into the right status. A handler that assigns an id
-        returns it, and it reaches the client as `id`.
-        """
-        with _subtype_write(rid, log_message) as ctx:
-            assigned_fid = action(ctx, fid, data)
-        if assigned_fid is None:
-            return {"success": True}
-        return {"success": True, "id": assigned_fid}
 
 
 @api_ns.route("/<string:rid>/tags/<string:tag_name>")

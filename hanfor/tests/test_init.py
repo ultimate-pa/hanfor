@@ -162,12 +162,11 @@ class TestInit(TestCase):
         def create(temp_id: str, expression: str) -> int:
             data = {"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": expression}}
             result = self.app.post(
-                f"api/v1/req/SysRS%20FooXY_42/formalizations/formalization/{temp_id}",
-                data={"data": json.dumps(data)},
+                "api/v1/req/SysRS%20FooXY_42/formalizations/formalization",
+                data={"data": json.dumps([{"temp_id": temp_id, **data}])},
             )
             self.assertTrue(result.json["success"])
-            self.assertEqual(temp_id, result.json["temp_id"])
-            return result.json["id"]
+            return result.json["ids"][temp_id]
 
         first = create("tmp-1", "foo > 1")
         second = create("tmp-1", "foo > 2")

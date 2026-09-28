@@ -286,7 +286,7 @@ class TestFormalizationProcess(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
 
         result = self.mock_hanfor.app.patch(
-            "api/v1/req/SysRS%20FooXY_42/formalizations/formalization/0",
+            "api/v1/req/SysRS%20FooXY_42/formalizations/0",
             data={"data": json.dumps({"scope": "AFTER"})},
         )
         self.assertEqual(result.status, "200 OK")
@@ -300,7 +300,7 @@ class TestFormalizationProcess(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
 
         result = self.mock_hanfor.app.patch(
-            "api/v1/req/SysRS%20FooXY_42/formalizations/formalization/0",
+            "api/v1/req/SysRS%20FooXY_42/formalizations/0",
             data={"data": json.dumps({"pattern": "Response"})},
         )
         self.assertEqual(result.status, "200 OK")
@@ -313,7 +313,7 @@ class TestFormalizationProcess(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
 
         result = self.mock_hanfor.app.patch(
-            "api/v1/req/SysRS%20FooXY_42/formalizations/formalization/0",
+            "api/v1/req/SysRS%20FooXY_42/formalizations/0",
             data={"data": json.dumps({"expression_mapping": {"R": "spam == ham"}})},
         )
         self.assertEqual(result.status, "200 OK")
@@ -327,14 +327,8 @@ class TestFormalizationProcess(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
 
         result = self.mock_hanfor.app.patch(
-            "api/v1/req/SysRS%20FooXY_42/formalizations/formalization/999",
+            "api/v1/req/SysRS%20FooXY_42/formalizations/999",
             data={"data": json.dumps({"scope": "AFTER"})},
-        )
-        self.assertEqual(result.status, "404 NOT FOUND")
-
-        result = self.mock_hanfor.app.patch(
-            "api/v1/req/SysRS%20FooXY_42/formalizations/variable/999",
-            data={"data": json.dumps({"name": "newname"})},
         )
         self.assertEqual(result.status, "404 NOT FOUND")
 
@@ -342,7 +336,7 @@ class TestFormalizationProcess(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
 
         result = self.mock_hanfor.app.put(
-            "api/v1/req/SysRS%20FooXY_42/formalizations/formalization/0",
+            "api/v1/req/SysRS%20FooXY_42/formalizations/0",
             data={
                 "data": json.dumps(
                     {
@@ -365,7 +359,7 @@ class TestFormalizationProcess(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
 
         result = self.mock_hanfor.app.put(
-            "api/v1/req/SysRS%20FooXY_42/formalizations/formalization/999",
+            "api/v1/req/SysRS%20FooXY_42/formalizations/999",
             data={
                 "data": json.dumps(
                     {
@@ -382,7 +376,7 @@ class TestFormalizationProcess(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
 
         result = self.mock_hanfor.app.put(
-            "api/v1/req/SysRS%20FooXY_42/formalizations/formalization/0",
+            "api/v1/req/SysRS%20FooXY_42/formalizations/0",
             data={"data": json.dumps({"scope": "AFTER"})},
         )
         self.assertEqual(result.status, "400 BAD REQUEST")
@@ -399,7 +393,7 @@ class TestFormalizationProcess(TestCase):
                 }
             )
         }
-        store_url = "api/v1/req/SysRS%20FooXY_42/formalizations/formalization/0"
+        store_url = "api/v1/req/SysRS%20FooXY_42/formalizations/0"
 
         r1 = self.mock_hanfor.app.put(store_url, data=body)
         r2 = self.mock_hanfor.app.put(store_url, data=body)
@@ -427,10 +421,10 @@ class TestMixedFormalizationCollection(TestCase):
         self.mock_hanfor.set_up()
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
         created = self.mock_hanfor.app.post(
-            "api/v1/req/SysRS%20FooXY_42/formalizations/variable/tmp-1",
-            data={"data": json.dumps({"name": "mixedvar", "type": "bool"})},
+            "api/v1/req/SysRS%20FooXY_42/formalizations/variable",
+            data={"data": json.dumps([{"temp_id": "tmp-1", "name": "mixedvar", "type": "bool"}])},
         )
-        self.fid = created.json["id"]
+        self.fid = created.json["ids"]["tmp-1"]
 
     def tearDown(self) -> None:
         self.mock_hanfor.tear_down()
@@ -471,7 +465,7 @@ class TestCreateFormalizationValidation(TestCase):
     """
 
     RID = "SysRS FooXY_42"
-    URL = "api/v1/req/SysRS%20FooXY_42/formalizations/formalization/tmp-1"
+    URL = "api/v1/req/SysRS%20FooXY_42/formalizations/formalization"
 
     def setUp(self) -> None:
         self.mock_hanfor = MockHanfor(session_tags=["simple"], test_session_source="test_formalization_process")
@@ -485,8 +479,11 @@ class TestCreateFormalizationValidation(TestCase):
         with app.app_context():
             return sorted(app.db.get_object(Requirement, self.RID).formalizations.keys())
 
+    def create(self, payload: dict):
+        return self.mock_hanfor.app.post(self.URL, data={"data": json.dumps([{"temp_id": "tmp-1", **payload}])})
+
     def test_empty_payload_is_rejected(self):
-        result = self.mock_hanfor.app.post(self.URL, data={"data": json.dumps({})})
+        result = self.create({})
 
         self.assertEqual(400, result.status_code)
         self.assertFalse(result.json["success"])
@@ -495,12 +492,12 @@ class TestCreateFormalizationValidation(TestCase):
     def test_rejected_create_leaves_no_stray_formalization(self):
         before = self.formalization_ids()
 
-        self.mock_hanfor.app.post(self.URL, data={"data": json.dumps({})})
+        self.create({})
 
         self.assertListEqual(before, self.formalization_ids())
 
     def test_partial_payload_names_every_missing_field(self):
-        result = self.mock_hanfor.app.post(self.URL, data={"data": json.dumps({"scope": "GLOBALLY"})})
+        result = self.create({"scope": "GLOBALLY"})
 
         self.assertEqual(400, result.status_code)
         self.assertIn("pattern", result.json["errormsg"])
@@ -508,18 +505,11 @@ class TestCreateFormalizationValidation(TestCase):
         self.assertNotIn("scope", result.json["errormsg"])
 
     def test_complete_payload_still_creates(self):
-        result = self.mock_hanfor.app.post(
-            self.URL,
-            data={
-                "data": json.dumps(
-                    {"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "foo != bar"}}
-                )
-            },
-        )
+        result = self.create({"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "foo != bar"}})
 
         self.assertEqual(200, result.status_code)
         self.assertTrue(result.json["success"])
-        self.assertIn(result.json["id"], self.formalization_ids())
+        self.assertIn(result.json["ids"]["tmp-1"], self.formalization_ids())
 
 
 class TestSubtypeErrorStatuses(TestCase):
@@ -536,8 +526,10 @@ class TestSubtypeErrorStatuses(TestCase):
     def tearDown(self) -> None:
         self.mock_hanfor.tear_down()
 
-    def post(self, url: str, payload: dict):
-        return self.mock_hanfor.app.post(url, data={"data": json.dumps(payload)})
+    def post(self, subtype: str, payload: dict):
+        return self.mock_hanfor.app.post(
+            f"{self.BASE}/{subtype}", data={"data": json.dumps([{"temp_id": "tmp-1", **payload}])}
+        )
 
     def formalization_ids(self) -> list[int]:
         with app.app_context():
@@ -545,7 +537,7 @@ class TestSubtypeErrorStatuses(TestCase):
 
     def test_unparsable_formalization_is_bad_request(self):
         result = self.post(
-            f"{self.BASE}/formalization/7",
+            "formalization",
             {"scope": "NOT_A_SCOPE", "pattern": "Absence", "expression_mapping": {"R": "foo"}},
         )
 
@@ -556,15 +548,14 @@ class TestSubtypeErrorStatuses(TestCase):
         before = self.formalization_ids()
 
         self.post(
-            f"{self.BASE}/formalization/7",
+            "formalization",
             {"scope": "NOT_A_SCOPE", "pattern": "Absence", "expression_mapping": {"R": "foo"}},
         )
 
         self.assertListEqual(before, self.formalization_ids())
 
     def test_unknown_requirement_is_not_found(self):
-        for url in ("api/v1/req/unknown/formalizations/0", "api/v1/req/unknown/formalizations/formalization/0"):
-            self.assertEqual(404, self.mock_hanfor.app.delete(url).status_code)
+        self.assertEqual(404, self.mock_hanfor.app.delete("api/v1/req/unknown/formalizations/0").status_code)
 
     def test_single_get_returns_is_constraint(self):
         self.assertIn("is_constraint", self.mock_hanfor.app.get(f"{self.BASE}/0").json)
@@ -582,27 +573,21 @@ class TestSubtypeErrorStatuses(TestCase):
     def test_delete_of_non_numeric_fid_is_not_found(self):
         self.assertEqual(404, self.mock_hanfor.app.delete(f"{self.BASE}/tmp-1").status_code)
 
-    def test_subtype_delete_removes_the_formalization(self):
-        result = self.mock_hanfor.app.delete(f"{self.BASE}/formalization/0")
+    def test_delete_removes_the_formalization(self):
+        result = self.mock_hanfor.app.delete(f"{self.BASE}/0")
 
         self.assertEqual(200, result.status_code)
         self.assertNotIn(0, self.formalization_ids())
 
-    def test_subtype_delete_with_wrong_subtype_is_not_found(self):
-        result = self.mock_hanfor.app.delete(f"{self.BASE}/variable/0")
-
-        self.assertEqual(404, result.status_code)
-        self.assertIn(0, self.formalization_ids())
-
     def test_illegal_variable_name_is_bad_request(self):
-        result = self.post(f"{self.BASE}/variable/tmp-1", {"name": "9illegal", "type": "bool"})
+        result = self.post("variable", {"name": "9illegal", "type": "bool"})
 
         self.assertEqual(400, result.status_code)
         self.assertIn("9illegal", result.json["errormsg"])
 
     def test_successful_create_is_unaffected(self):
         result = self.post(
-            f"{self.BASE}/formalization/8",
+            "formalization",
             {"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "foo != bar"}},
         )
 
@@ -640,9 +625,9 @@ class TestVariableRename(TestCase):
     def create(self, data: dict, temp_id: str = "tmp-1") -> int:
         subtype = "formalization" if "scope" in data else "variable"
         result = self.mock_hanfor.app.post(
-            f"api/v1/req/{RID}/formalizations/{subtype}/{temp_id}", data={"id": RID, "data": json.dumps(data)}
+            f"api/v1/req/{RID}/formalizations/{subtype}", data={"data": json.dumps([{"temp_id": temp_id, **data}])}
         )
-        return result.json["id"]
+        return result.json["ids"][temp_id]
 
     def save(self, formalizations: dict):
         return self.mock_hanfor.app.patch(
@@ -791,7 +776,6 @@ class TestBatchCreate(TestCase):
         self.assertDictEqual({"tmp-1": 0, "tmp-3": 1}, result.json["ids"])
         self.assertListEqual([0, 1], self.formalization_ids())
 
-
     def test_unparsable_expression_is_rejected(self):
         drafts = [self.draft("tmp-1", expression_mapping={"R": "foo >"})]
         result = self.mock_hanfor.app.post(self.URL, data={"data": json.dumps(drafts)})
@@ -799,6 +783,7 @@ class TestBatchCreate(TestCase):
         self.assertEqual(400, result.status_code)
         self.assertIn("tmp-1", result.json["errors"])
         self.assertListEqual([], self.formalization_ids())
+
 
 class TestVariableCardDelete(TestCase):
     RID = "SysRS%20FooXY_91"
@@ -813,11 +798,11 @@ class TestVariableCardDelete(TestCase):
 
     def create(self, rid: str, subtype: str, data: dict):
         return self.mock_hanfor.app.post(
-            f"api/v1/req/{rid}/formalizations/{subtype}/tmp-1", data={"data": json.dumps(data)}
+            f"api/v1/req/{rid}/formalizations/{subtype}", data={"data": json.dumps([{"temp_id": "tmp-1", **data}])}
         )
 
     def delete_variable(self, fid: int):
-        return self.mock_hanfor.app.delete(f"api/v1/req/{self.RID}/formalizations/variable/{fid}")
+        return self.mock_hanfor.app.delete(f"api/v1/req/{self.RID}/formalizations/{fid}")
 
     @staticmethod
     def variable_names() -> set[str]:
@@ -825,14 +810,14 @@ class TestVariableCardDelete(TestCase):
             return {v.name for v in app.db.get_objects(Variable).values()}
 
     def test_unused_variable_is_deleted_globally(self):
-        fid = self.create(self.RID, "variable", {"name": "speed", "type": "int"}).json["id"]
+        fid = self.create(self.RID, "variable", {"name": "speed", "type": "int"}).json["ids"]["tmp-1"]
 
         self.assertEqual(200, self.delete_variable(fid).status_code)
         self.assertNotIn("speed", self.variable_names())
         self.assertEqual(200, self.create(self.RID, "variable", {"name": "speed", "type": "int"}).status_code)
 
     def test_variable_used_elsewhere_is_kept_globally(self):
-        fid = self.create(self.RID, "variable", {"name": "speed", "type": "int"}).json["id"]
+        fid = self.create(self.RID, "variable", {"name": "speed", "type": "int"}).json["ids"]["tmp-1"]
         formalization = {"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "speed > 1"}}
         self.create("SysRS%20FooXY_42", "formalization", formalization)
 
@@ -843,7 +828,7 @@ class TestVariableCardDelete(TestCase):
 
     def test_enum_is_deleted_with_its_enumerators(self):
         enum = {"name": "mode", "type": "ENUM_INT", "enumerators": [["on", "1"]]}
-        fid = self.create(self.RID, "variable", enum).json["id"]
+        fid = self.create(self.RID, "variable", enum).json["ids"]["tmp-1"]
         self.assertIn("mode_on", self.variable_names())
 
         self.assertEqual(200, self.delete_variable(fid).status_code)
@@ -866,4 +851,3 @@ class TestVariableCardDelete(TestCase):
 
         self.assertTrue(self.mock_hanfor.app.post("api/var/del_var", data={"name": "speed"}).json["success"])
         self.assert_gone_from_requirement()
-
