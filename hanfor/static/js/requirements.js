@@ -129,10 +129,8 @@ renderer.registerType("variable", {
         $(this).keydown()
       })
     function markDirty() {
-      $("#requirement_modal").data({
-        unsaved_changes: true,
-        updated_formalization: true,
-      })
+      $container.closest(".accordion-item").addClass("draft")
+      $("#requirement_modal").data("unsaved_changes", true)
     }
     // title change listener
     const name_input = $container.find('input[aria-describedby="variable-name-feedback"]')
@@ -203,18 +201,17 @@ $(document).on("change", ".scope_selector, .pattern_selector", function () {
 })
 
 $(document).on("click", ".del_enum", function () {
+  $(this).closest(".accordion-item").addClass("draft")
   $(this).closest(".enumerator-input").remove()
-  $("#requirement_modal").data({
-    unsaved_changes: true,
-    updated_formalization: true,
-  })
+  $("#requirement_modal").data("unsaved_changes", true)
+})
+
+$(document).on("input change", "#formalization_accordion > .accordion-item :input", function () {
+  $(this).closest(".accordion-item").addClass("draft")
 })
 
 $(document).on("input", ".enum_name_input, .enum_value_input", function () {
-  $("#requirement_modal").data({
-    unsaved_changes: true,
-    updated_formalization: true,
-  })
+  $("#requirement_modal").data("unsaved_changes", true)
 })
 
 let available_tags = ["", "has_formalization"]
@@ -326,10 +323,7 @@ $(document).ready(function () {
   )
   // Bind is_constraint checkbox change so the save flag is set.
   body.on("change", ".is-constraint-checkbox", function () {
-    $("#requirement_modal").data({
-      unsaved_changes: true,
-      updated_formalization: true,
-    })
+    $("#requirement_modal").data("unsaved_changes", true)
   })
   // Bind formalization variable update.
   body.on("change", ".formalization_selector", function () {
@@ -670,20 +664,18 @@ function store_requirement(requirements_table) {
   requirement_modal_content.LoadingOverlay("show")
   const req_id = $("#requirement_id").val()
   const req_status = $('input[name="status"]:checked').val()
-  const updated_formalization = $("#requirement_modal").data("updated_formalization")
   const associated_row_id = parseInt($("#modal_associated_row_index").val())
   // Fetch the formalizations
   let formalizations = {}
-  $("#formalization_accordion > .accordion-item").each(function () {
+  $("#formalization_accordion > .accordion-item.draft").each(function () {
     const $item = $(this)
     const id = String($item.data("id"))
-    let formalization = { id: id }
+    let formalization = {}
 
     if ($item.data("type") === "variable") {
-      formalization["formalization_type"] = "variable"
       formalization["name"] = $item.find('input[aria-describedby="variable-name-feedback"]').val() || ""
-      formalization["var_type"] = $item.find("input.variable-type").val() || ""
-      formalization["const_val"] = $item.find("input.variable-value").val() || ""
+      formalization["type"] = $item.find("input.variable-type").val() || ""
+      formalization["value"] = $item.find("input.variable-value").val() || ""
       const enumerators = []
       $item.find(".enum_name_input").each(function (i) {
         enumerators.push([$(this).val(), $item.find(".enum_value_input").eq(i).val() || ""])
@@ -691,7 +683,6 @@ function store_requirement(requirements_table) {
       formalization["enumerators"] = enumerators
     } else {
       formalization["scope"] = $item.find(".scope_selector").val()
-      formalization["formalization_type"] = "formalization"
       formalization["pattern"] = $item.find(".pattern_selector").val()
       formalization["is_constraint"] = $item.find(".is-constraint-checkbox").is(":checked")
       formalization["expression_mapping"] = {}
@@ -718,45 +709,35 @@ function store_requirement(requirements_table) {
   })
 
   sendTelemetry("requirements", req_id, "save")
-  const committedFormalizations = Object.fromEntries(
-    Object.entries(formalizations)
-      .filter(([id]) => !store.isCreated("formalization", id) && !store.isCreated("variable", id))
-      .map(([id, entry]) => {
-        const real = String(store.resolveId(id))
-        return [real, { ...entry, id: real }]
-      }),
+  const committedFormalizations = Object.entries(formalizations).filter(
+    ([id]) => !store.isCreated("formalization", id) && !store.isCreated("variable", id),
   )
-  console.log("Committed formalizations:", JSON.stringify(committedFormalizations, null, 2))
   $.when(
     store.commitDeletes(req_id, "formalization"),
     store.commitDeletes(req_id, "variable"),
     store.commitCreated(req_id, "formalization"),
     store.commitCreated(req_id, "variable"),
-  ).done(function () {
+  ).then(() =>
+    $.when(
+      ...committedFormalizations.map(([id, entry]) =>
+        api.patchFormalization(req_id, store.resolveId(id), entry).done(() =>
+          $(`#formalization_accordion > .accordion-item[data-id="${id}"]`).removeClass("draft"),
+        ),
+      ),
+    ),
+  ).then(() =>
     api.patchRequirement(req_id, {
-      row_idx: associated_row_id,
-      update_formalization: updated_formalization,
-      tags: JSON.stringify(Object.fromEntries(tag_comments)),
+      tags: Object.fromEntries(tag_comments),
       status: req_status,
-      formalizations: JSON.stringify(committedFormalizations),
-      formalizations_order: JSON.stringify(store.resolveKeys(load_order)),
+      formalizations_order: store.resolveKeys(load_order),
       description: $("#description_editor").val(),
-    }).done(function (data) {
-      requirement_modal_content.LoadingOverlay("hide", true)
-
-      if (data["success"] === false) {
-        alert(data["errormsg"])
-      } else {
-        requirements_table.row(associated_row_id).data(data)
-
-        $("#requirement_modal").data("unsaved_changes", false)
-
-        const requirement_modal = document.querySelector("#requirement_modal")
-        Modal.getOrCreateInstance(requirement_modal).hide()
-      }
-    }).done(function () {
-      update_logs()
-    })
+    }),
+  ).done(function (data) {
+    requirement_modal_content.LoadingOverlay("hide", true)
+    requirements_table.row(associated_row_id).data(data)
+    $("#requirement_modal").data("unsaved_changes", false)
+    Modal.getOrCreateInstance(document.querySelector("#requirement_modal")).hide()
+    update_logs()
   }).fail(function (err) {
     requirement_modal_content.LoadingOverlay("hide", true)
     if (err?.responseJSON?.errors) {
@@ -1366,10 +1347,7 @@ async function load_requirement(row_idx) {
       $(".constraint-badge").each(function () {
         new Popover(this, { trigger: "hover focus", placement: "top" })
       })
-      $("#requirement_modal").data({
-        unsaved_changes: false,
-        updated_formalization: false,
-      })
+      $("#requirement_modal").data("unsaved_changes", false)
       requirement_modal_content.LoadingOverlay("hide", true)
       sendTelemetry("requirements", data.id, "open")
       setCopyBtnEnable()
@@ -1549,10 +1527,7 @@ function add_variable() {
   console.log(store)
   $container.addClass("draft")
   $("#formalization_accordion").append($container)
-  $("#requirement_modal").data({
-    unsaved_changes: true,
-    updated_formalization: true,
-  })
+  $("#requirement_modal").data("unsaved_changes", true)
 }
 
 function add_formalization(formalizationData = {}) {
@@ -1706,10 +1681,7 @@ function update_formalization() {
     formalization_textarea.html(formalization)
     autosize.update(formalization_textarea)
   })
-  $("#requirement_modal").data({
-    unsaved_changes: true,
-    updated_formalization: true,
-  })
+  $("#requirement_modal").data("unsaved_changes", true)
 }
 
 /**

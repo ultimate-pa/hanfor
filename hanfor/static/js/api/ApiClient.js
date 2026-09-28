@@ -35,6 +35,15 @@ export default class ApiClient {
     }).fail(e => this._onError(e, "PATCH", path))
   }
 
+  patchJSON(path, data) {
+    return $.ajax({
+      url: this.base + path,
+      method: "PATCH",
+      contentType: "application/json",
+      data: JSON.stringify(data),
+    }).fail(e => this._onError(e, "PATCH", path))
+  }
+
   delete(path) {
     return $.ajax({
       url: this.base + path,
@@ -50,6 +59,7 @@ export default class ApiClient {
   getTags() { return this.get(`/tags`) }
   getGuesses(rid) { return this.get(`/req/${rid}/guesses`) }
 
+  patchFormalization(rid, fid, data) { return this.patch(`/req/${rid}/formalizations/${fid}`, { data: JSON.stringify(data) }) }
   deleteFormalization(rid, fid) { return this.delete(`/req/${rid}/formalizations/${fid}`) }
 
   createMany(rid, subtype, drafts) {
@@ -58,9 +68,9 @@ export default class ApiClient {
 
   addTag(rid, name) { return this.post(`/req/${rid}/tags/${encodeURIComponent(name)}`) }
   removeTag(rid, name) { return this.delete(`/req/${rid}/tags/${encodeURIComponent(name)}`) }
-  setStatus(rid, status) { return this.patch(`/req/${rid}`, { status }) }
+  setStatus(rid, status) { return this.patchJSON(`/req/${rid}`, { status }) }
 
-  patchRequirement(rid, formData) { return this.patch(`/req/${rid}`, formData) }
+  patchRequirement(rid, fields) { return this.patchJSON(`/req/${rid}`, fields) }
 
   highlightDescription(rid, text) {
     return this.postJSON(`/req/${rid}/highlight-description`, { description: text })

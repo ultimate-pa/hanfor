@@ -191,6 +191,7 @@ class FormalizationHandler(SubtypeHandler[Formalization]):
                 **{k: v.raw_expression for k, v in formalization.expressions_mapping.items()},
                 **data.get("expression_mapping", {}),
             },
+            data.get("is_constraint", formalization.is_constraint),
         )
 
     def replace(self, ctx: "SubtypeContext", fid: str, data: dict) -> None:
@@ -198,10 +199,12 @@ class FormalizationHandler(SubtypeHandler[Formalization]):
             raise InvalidPayload("scope, pattern, and expression_mapping are required")
 
         self.fetch(ctx, fid)
-        self._update(ctx, fid, data["scope"], data["pattern"], data["expression_mapping"])
+        self._update(
+            ctx, fid, data["scope"], data["pattern"], data["expression_mapping"], data.get("is_constraint", False)
+        )
 
     @staticmethod
-    def _update(ctx: "SubtypeContext", fid: str, scope: str, pattern: str, mapping: dict) -> None:
+    def _update(ctx: "SubtypeContext", fid: str, scope: str, pattern: str, mapping: dict, is_constraint: bool) -> None:
         """The half `patch` and `replace` share; they differ only in how they arrive at the arguments."""
         try:
             ctx.requirement.update_formalization(
@@ -209,6 +212,9 @@ class FormalizationHandler(SubtypeHandler[Formalization]):
             )
             for v in ctx.variable_collection.new_vars:
                 current_app.db.add_object(v)
+            ctx.requirement.formalizations[int(fid)].is_constraint = bool(is_constraint)
+            ctx.requirement.recompute_formalization_tags(ctx.standard_tags)
+            ctx.requirement.run_type_checks(ctx.variable_collection, ctx.standard_tags)
         except KeyError as e:
             raise InvalidPayload(f"Could not update formalization: {e}") from e
         except Exception as e:

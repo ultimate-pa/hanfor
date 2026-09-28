@@ -52,14 +52,13 @@ class TestFormalizationProcess(TestCase):
             data={"data": json.dumps([{**d, "temp_id": d["id"]} for d in drafts.values()])},
         )
         self.mock_hanfor.app.patch(
+            "api/v1/req/SysRS%20FooXY_42/formalizations/0", data={"data": json.dumps(update["0"])}
+        )
+        self.mock_hanfor.app.patch(
             "api/v1/req/SysRS%20FooXY_42",
-            data={
-                "row_idx": "0",
-                "update_formalization": "true",
-                "formalizations_order": "{}",
-                "tags": json.dumps({"tag1": "comment 1 with some character", "tag2": "äüö%&/+= coment330+-# chars"}),
+            json={
+                "tags": {"tag1": "comment 1 with some character", "tag2": "äüö%&/+= coment330+-# chars"},
                 "status": "Todo",
-                "formalizations": json.dumps(update),
             },
         )
         # Check if content is correct.
@@ -102,16 +101,9 @@ class TestFormalizationProcess(TestCase):
             }
         }
         self.mock_hanfor.app.patch(
-            "api/v1/req/SysRS%20FooXY_42",
-            data={
-                "row_idx": "0",
-                "update_formalization": "true",
-                "tags": json.dumps({}),
-                "formalizations_order": "{}",
-                "status": "Todo",
-                "formalizations": json.dumps(update),
-            },
+            "api/v1/req/SysRS%20FooXY_42/formalizations/0", data={"data": json.dumps(update["0"])}
         )
+        self.mock_hanfor.app.patch("api/v1/req/SysRS%20FooXY_42", json={"tags": {}, "status": "Todo"})
         # Check if content is correct.
         result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertListEqual(result.json["formal"], ['Globally, it is never the case that "foo != bas" holds'])
@@ -177,17 +169,7 @@ class TestFormalizationProcess(TestCase):
         # Check current available variables.
         self.assertCountEqual(result.json["available_vars"], ["spam_ham", "bar", "foo", "spam_egg", "spam"])
 
-        self.mock_hanfor.app.patch(
-            "api/v1/req/SysRS%20FooXY_42",
-            data={
-                "row_idx": "0",
-                "update_formalization": "true",
-                "formalizations_order": "{}",
-                "tags": json.dumps({}),
-                "status": "Done",
-                "formalizations": json.dumps({}),
-            },
-        )
+        self.mock_hanfor.app.patch("api/v1/req/SysRS%20FooXY_42", json={"tags": {}, "status": "Done"})
         # Check if content is correct.
         result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
         self.assertEqual(result.json["status"], "Done")
@@ -322,6 +304,28 @@ class TestFormalizationProcess(TestCase):
         self.assertEqual(result.json["expr_R"], "spam == ham")
         self.assertEqual(result.json["scope"], "GLOBALLY")
         self.assertEqual(result.json["pattern"], "Absence")
+
+    def test_patch_formalization_sets_is_constraint(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+        self.mock_hanfor.app.patch(
+            "api/v1/req/SysRS%20FooXY_42/formalizations/0", data={"data": json.dumps({"is_constraint": True})}
+        )
+
+        result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42/formalizations/0")
+        self.assertTrue(result.json["is_constraint"])
+
+    def test_patch_formalization_recomputes_formalization_tags(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
+
+        for scope in ("NONE", "GLOBALLY"):
+            self.mock_hanfor.app.patch(
+                "api/v1/req/SysRS%20FooXY_42/formalizations/0", data={"data": json.dumps({"scope": scope})}
+            )
+
+        tags = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42").json["tags"]
+        self.assertNotIn("incomplete_formalization", tags)
+        self.assertIn("has_formalization", tags)
 
     def test_patch_formalization_404(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple", [])
@@ -629,26 +633,15 @@ class TestVariableRename(TestCase):
         )
         return result.json["ids"][temp_id]
 
-    def save(self, formalizations: dict):
-        return self.mock_hanfor.app.patch(
-            f"api/v1/req/{RID}",
-            data={
-                "row_idx": "0",
-                "update_formalization": "true",
-                "formalizations_order": "{}",
-                "tags": "{}",
-                "status": "Todo",
-                "formalizations": json.dumps(formalizations),
-            },
-        )
+    def save(self, fid: int, data: dict):
+        return self.mock_hanfor.app.patch(f"api/v1/req/{RID}/formalizations/{fid}", data={"data": json.dumps(data)})
 
     def test_illegal_type_is_rejected(self):
         vid = self.create({"name": "myvar", "type": "bool"})
-        entry = {"id": str(vid), "formalization_type": "variable", "name": "myvar", "var_type": "nonsense"}
 
-        result = self.save({str(vid): entry})
+        result = self.save(vid, {"name": "myvar", "type": "nonsense"})
 
-        self.assertFalse(result.json["success"])
+        self.assertEqual(400, result.status_code)
         self.assertIn("Illegal variable type", result.json["errormsg"])
 
     def test_renaming_a_used_variable_rewrites_the_expression(self):
@@ -656,18 +649,7 @@ class TestVariableRename(TestCase):
         vid = self.create({"name": "myvar", "type": "bool"})
         self.create({"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "myvar"}})
 
-        result = self.save(
-            {
-                str(vid): {
-                    "id": str(vid),
-                    "formalization_type": "variable",
-                    "name": "renamed",
-                    "var_type": "bool",
-                    "const_val": "",
-                    "enumerators": [],
-                },
-            }
-        )
+        result = self.save(vid, {"name": "renamed", "type": "bool", "value": "", "enumerators": []})
 
         self.assertEqual(200, result.status_code)
         formal = self.mock_hanfor.app.get(f"api/v1/req/{RID}").json["formal"]
@@ -679,18 +661,7 @@ class TestVariableRename(TestCase):
         vid = self.create({"name": "myvar", "type": "bool"})
         self.create({"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "myvar"}})
 
-        self.save(
-            {
-                str(vid): {
-                    "id": str(vid),
-                    "formalization_type": "variable",
-                    "name": "renamed",
-                    "var_type": "bool",
-                    "const_val": "",
-                    "enumerators": [],
-                },
-            }
-        )
+        self.save(vid, {"name": "renamed", "type": "bool", "value": "", "enumerators": []})
 
         self.assertIn("renamed", self.variable_names_on_disk())
         self.assertNotIn("myvar", self.variable_names_on_disk())
@@ -700,18 +671,7 @@ class TestVariableRename(TestCase):
         vid = self.create({"name": "myenum", "type": "ENUM_INT", "enumerators": enumerators})
         self.create({"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "myenum_A"}})
 
-        self.save(
-            {
-                str(vid): {
-                    "id": str(vid),
-                    "formalization_type": "variable",
-                    "name": "renamed",
-                    "var_type": "ENUM_INT",
-                    "const_val": "",
-                    "enumerators": enumerators,
-                },
-            }
-        )
+        self.save(vid, {"name": "renamed", "type": "ENUM_INT", "value": "", "enumerators": enumerators})
 
         formal = self.mock_hanfor.app.get(f"api/v1/req/{RID}").json["formal"]
         self.assertIn('Globally, it is never the case that "renamed_A" holds', formal)

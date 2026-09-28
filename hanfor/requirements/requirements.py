@@ -128,14 +128,14 @@ class ApiRequirementSingle(Resource):
         return result
 
     @api_ns.doc(
-        description="Partial update - only form fields that are sent are " "changed. Omitted fields remain untouched.",
+        description="Changes only the fields in the JSON body. The other fields keep their values. "
+        "To change a formalization or a variable, use /<rid>/formalizations/<fid>.",
         params={
             "rid": "The requirement ID",
-            "status": "New status value (empty string = no change)",
-            "tags": "JSON dict of {tag_name: comment}. Replaces all tags.",
-            "update_formalization": "Set 'true' to update formalizations",
-            "formalizations": "JSON-encoded formalization data",
-            "formalizations_order": "JSON dict of {fid: order} for reordering",
+            "status": "Body field: the new status. An empty string makes no change",
+            "description": "Body field: the new description",
+            "tags": "Body field: a dict of {tag_name: comment}. It replaces all tags",
+            "formalizations_order": "Body field: a dict of {fid: order}",
         },
     )
     @api_ns.response(200, "Success", RequirementDetailModel)
@@ -150,15 +150,11 @@ class ApiRequirementSingle(Resource):
                 "errormsg": f"Requirement '{rid}' not found.",
             }, 404
 
-        self._update_formalizations_order(requirement, request.form.get("formalizations_order"))
-        self._update_status(requirement, request.form.get("status", ""))
-        self._update_tags(requirement, request.form.get("tags"))
-        self._update_description(requirement, request.form.get("description"))
-        error_msg = self._update_formalizations(SubtypeContext(rid=rid, requirement=requirement))
-
-        if error_msg:
-            logging.error(f"We got an error parsing the expressions: {error_msg}. Omitting requirement update.")
-            return {"success": False, "errormsg": error_msg}
+        body = request.get_json(silent=True) or {}
+        self._update_formalizations_order(requirement, body.get("formalizations_order"))
+        self._update_status(requirement, body.get("status", ""))
+        self._update_tags(requirement, body.get("tags"))
+        self._update_description(requirement, body.get("description"))
 
         standard_tags = SessionValue.get_standard_tags(current_app.db)
         requirement.recompute_formalization_tags(standard_tags)
@@ -177,10 +173,9 @@ class ApiRequirementSingle(Resource):
         return result, 200
 
     @staticmethod
-    def _update_formalizations_order(requirement, order_json):
-        if not order_json:
+    def _update_formalizations_order(requirement, order_dict):
+        if not order_dict:
             return
-        order_dict = json.loads(order_json)
         # TODO: still a problem with dictionary changing size, but the changes going through
         for idx, formalization in requirement.formalizations.items():
             formalization.order = order_dict.get(str(idx))
@@ -195,10 +190,9 @@ class ApiRequirementSingle(Resource):
         logging.debug(f"Requirement status set to {requirement.status}")
 
     @staticmethod
-    def _update_tags(requirement, tags_json):
-        if tags_json is None:
+    def _update_tags(requirement, new_tag_set):
+        if new_tag_set is None:
             return
-        new_tag_set = json.loads(tags_json)
         req_tags = {t.name: c for t, c in requirement.tags.items()}
         if req_tags == new_tag_set:
             return
@@ -230,58 +224,6 @@ class ApiRequirementSingle(Resource):
             return
         requirement.description = desc_markdown
         add_msg_to_flask_session_log(current_app, f"Updated description for requirement", [requirement])
-
-    def _update_formalizations(self, ctx: SubtypeContext) -> str | None:
-        if request.form.get("update_formalization") != "true":
-            logging.debug("Skipping formalization update.")
-            return None
-
-        entries = json.loads(request.form.get("formalizations", ""))
-        formalization_entries = {fid: e for fid, e in entries.items() if e.get("formalization_type") == "formalization"}
-        variable_entries = {fid: e for fid, e in entries.items() if e.get("formalization_type") == "variable"}
-
-        error_msg = self._update_formal_entries(ctx, formalization_entries)
-        if error_msg:
-            return error_msg
-        return self._update_variable_entries(ctx, variable_entries)
-
-    @staticmethod
-    def _update_formal_entries(ctx: SubtypeContext, entries: dict) -> str | None:
-        if not entries:
-            return None
-        requirement = ctx.requirement
-        try:
-            requirement.update_formalizations(entries, ctx.standard_tags, ctx.variable_collection)
-            add_msg_to_flask_session_log(current_app, "Updated requirement formalization", [requirement])
-            for v in ctx.variable_collection.new_vars:
-                current_app.db.add_object(v)
-            for fid_str, entry in entries.items():
-                try:
-                    fid = int(fid_str)
-                except (TypeError, ValueError):
-                    continue
-                if fid in requirement.formalizations and "is_constraint" in entry:
-                    requirement.formalizations[fid].is_constraint = bool(entry.get("is_constraint", False))
-        except KeyError as e:
-            return f"Could not set formalization: Missing expression/variable for {e}"
-        except Exception as e:
-            return f"Could not parse formalization: `{e}`"
-        return None
-
-    @staticmethod
-    def _update_variable_entries(ctx: SubtypeContext, entries: dict) -> str | None:
-        for fid, entry in entries.items():
-            data = {
-                "name": entry.get("name", ""),
-                "type": entry.get("var_type", ""),
-                "value": entry.get("const_val", ""),
-                "enumerators": entry.get("enumerators", []),
-            }
-            try:
-                SUBTYPES["variable"].handler.patch(ctx, fid, data)
-            except SubtypeError as e:
-                return str(e)
-        return None
 
 
 @api_ns.route("/<string:rid>/highlight-description")
