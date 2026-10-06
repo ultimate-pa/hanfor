@@ -1,3 +1,4 @@
+import ApiClient from "./api/ApiClient.js"
 require('gasparesganga-jquery-loading-overlay');
 const {Modal} = require("bootstrap");
 
@@ -17,6 +18,7 @@ require('./bootstrap-confirm-button');
 let utils = require('./hanfor-utils');
 
 // Globals
+const api = new ApiClient()
 export let AVAILABLE_VARIABLE_TYPES = window.AVAILABLE_VARIABLE_TYPES
     || ['CONST', 'ENUM_INT', 'ENUM_REAL', 'BOOL'];
 let search_autocomplete = [
@@ -695,7 +697,7 @@ $(document).ready(function () {
         "responsive": true,
         "lengthMenu": [[10, 50, 100, 500, -1], [10, 50, 100, 500, "All"]],
         "dom": 'rt<"container"<"row"<"col-md-6"li><"col-md-6"p>>>',
-        "ajax": "api/var/gets",
+        "ajax": (data, callback) => api.getVariables().done(callback),
         "deferRender": true,
         colResize: {
           onResize: function () { throw new Error('Workaround: resizing works fine!'); },

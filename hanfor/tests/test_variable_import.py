@@ -89,7 +89,7 @@ class TestVariableImport(TestCase):
         args = HanforArgumentParser(app).parse_args(["test_variable_import"])
         self.startup_hanfor(args, user_mock_answers=[])
         # Get the available requirements.
-        var_gets = self.app.get("api/var/gets")
+        var_gets = self.app.get("api/v1/variables")
         self.assertEqual(var_gets.json["data"], [])
 
         response = self.app.post(
@@ -100,7 +100,7 @@ class TestVariableImport(TestCase):
         )
         self.assertEqual(True, response.json["success"])
 
-        var_gets = self.app.get("api/var/gets")
+        var_gets = self.app.get("api/v1/variables")
         self.assertEqual(
             {
                 "integer_constant",

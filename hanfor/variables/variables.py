@@ -4,6 +4,7 @@ import logging
 import re
 
 from flask import Blueprint, Request, render_template, request
+from flask_restx import Namespace, Resource
 
 from hanfor_flask import HanforFlask, current_app, nocache
 from lib_core import boogie_parsing
@@ -23,6 +24,7 @@ from lib_core.utils import (
     generate_file_response,
     generate_req_file_content,
     get_requirements,
+    log_request_response,
     rename_variable_everywhere,
 )
 from requirements.desc_highlighting import (
@@ -33,6 +35,7 @@ from requirements.desc_highlighting import (
 
 blueprint = Blueprint("variables", __name__, template_folder="templates", url_prefix="/variables")
 api_blueprint = Blueprint("api_variables", __name__, url_prefix="/api/var")
+api_ns = Namespace("Variables", "Read and change the variables of the session.", path="/variables", ordered=True)
 
 
 @blueprint.route("", methods=["GET"])
@@ -45,20 +48,27 @@ def index():
     )
 
 
-@api_blueprint.route("/gets", methods=["GET"])
-@nocache
-def api_gets():
-    var_collection = VariableCollection(
-        current_app.db.get_objects(Variable).values(),
-        current_app.db.get_objects(Requirement).values(),
+@api_ns.route("")
+@log_request_response
+class ApiVariables(Resource):
+    @api_ns.doc(
+        description="Gives all variables of the session in the field 'data'. Each variable has its name, "
+        "type, value, the requirements that use it, and the references to its constraints."
     )
-    result = var_collection.get_available_vars_list(used_only=False)
-    for entry in result:
-        # constraint_refs come from var_collection._constraints, which is rebuilt
-        # on every construction by walking Variable.constraints and
-        # Requirement.formalizations (is_constraint=True).
-        entry["constraint_refs"] = [c.usage_key for c in var_collection._constraints.get(entry["name"], [])]
-    return {"data": result}
+    @api_ns.response(200, "Success")
+    @nocache
+    def get(self):
+        var_collection = VariableCollection(
+            current_app.db.get_objects(Variable).values(),
+            current_app.db.get_objects(Requirement).values(),
+        )
+        result = var_collection.get_available_vars_list(used_only=False)
+        for entry in result:
+            # constraint_refs come from var_collection._constraints, which is rebuilt
+            # on every construction by walking Variable.constraints and
+            # Requirement.formalizations (is_constraint=True).
+            entry["constraint_refs"] = [c.usage_key for c in var_collection._constraints.get(entry["name"], [])]
+        return {"data": result}
 
 
 @api_blueprint.route("/get_constraints_html", methods=["POST"])

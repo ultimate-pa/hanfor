@@ -63,7 +63,7 @@ class TestHanforVersionMigrations(TestCase):
         args = HanforArgumentParser(app).parse_args(["test_variable_manipulation_edge_cases"])
         self.startup_hanfor(args, user_mock_answers=[])
         # Get the available requirements.
-        var_gets = self.app.get("api/var/gets")
+        var_gets = self.app.get("api/v1/variables")
         self.assertIn(
             {
                 "name": "egg",
@@ -114,7 +114,7 @@ class TestHanforVersionMigrations(TestCase):
         )
         self.assertEqual(True, change_type.json["success"])
         self.assertEqual(200, add_constraint.status_code)
-        var_gets = self.app.get("api/var/gets")
+        var_gets = self.app.get("api/v1/variables")
         for t in var_gets.json["data"]:
             if t["name"] == "egg":
                 self.assertEqual(

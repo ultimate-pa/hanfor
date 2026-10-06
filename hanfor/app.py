@@ -66,6 +66,7 @@ app.register_blueprint(requirements.blueprint)
 api.add_namespace(requirements.api_ns)
 # Variables
 app.register_blueprint(variables.blueprint)
+api.add_namespace(variables.api_ns)
 app.register_blueprint(variables.api_blueprint)
 # Logs
 app.register_blueprint(logs_api)
