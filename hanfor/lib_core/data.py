@@ -807,6 +807,7 @@ class Variable(RequirementElement):
         used_by = sorted(list(var_req_mapping[self.name])) if self.name in var_req_mapping else []
 
         d = {
+            "id": getattr(self, "uuid", None),
             "name": self.name,
             "type": self.type,
             "const_val": self.value,

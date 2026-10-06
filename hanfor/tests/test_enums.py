@@ -1,7 +1,8 @@
 import json
 
 from copy import deepcopy
-from tests.mock_hanfor import MockHanfor
+from uuid import uuid4
+from tests.mock_hanfor import MockHanfor, variable_id, variable_url, variables_without_ids
 from unittest import TestCase
 
 
@@ -16,18 +17,16 @@ class TestEnums(TestCase):
     def test_new_int_enum_generation(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
         # We expect there is no enum we are about to create.
-        initial_vars = self.mock_hanfor.app.get("api/v1/variables").json["data"]  # type: list
+        initial_vars = variables_without_ids(self.mock_hanfor.app)  # type: list
         for name in [d["name"] for d in initial_vars]:
             self.assertNotEqual(name, "my_first_enum")
 
         # We create a new ENUM "my_first_enum"
-        response = self.mock_hanfor.app.post(
-            "api/v1/variables", json={"name": "my_first_enum", "type": "ENUM_INT"}
-        )
+        response = self.mock_hanfor.app.post("api/v1/variables", json={"name": "my_first_enum", "type": "ENUM_INT"})
         # We expect the creation to be successful.
         self.assertEqual(response.json["success"], True)
         # Now we expect there is an ENUM "my_first_enum"
-        updated_vars = self.mock_hanfor.app.get("api/v1/variables").json["data"]
+        updated_vars = variables_without_ids(self.mock_hanfor.app)
         expected_updated_vars = deepcopy(initial_vars)
         expected_updated_vars.append(
             {
@@ -49,18 +48,16 @@ class TestEnums(TestCase):
     def test_new_real_enum_generation(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
         # We expect there is no enum we are about to create.
-        initial_vars = self.mock_hanfor.app.get("api/v1/variables").json["data"]  # type: list
+        initial_vars = variables_without_ids(self.mock_hanfor.app)  # type: list
         for name in [d["name"] for d in initial_vars]:
             self.assertNotEqual(name, "my_first_enum")
 
         # We create a new ENUM "my_first_enum"
-        response = self.mock_hanfor.app.post(
-            "api/v1/variables", json={"name": "my_first_enum", "type": "ENUM_REAL"}
-        )
+        response = self.mock_hanfor.app.post("api/v1/variables", json={"name": "my_first_enum", "type": "ENUM_REAL"})
         # We expect the creation to be successful.
         self.assertEqual(response.json["success"], True)
         # Now we expect there is an ENUM "my_first_enum"
-        updated_vars = self.mock_hanfor.app.get("api/v1/variables").json["data"]
+        updated_vars = variables_without_ids(self.mock_hanfor.app)
         expected_updated_vars = deepcopy(initial_vars)
         expected_updated_vars.append(
             {
@@ -83,32 +80,26 @@ class TestEnums(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
 
         # Fetch the initial vars.
-        initial_vars = self.mock_hanfor.app.get("api/v1/variables").json["data"]  # type: list
+        initial_vars = variables_without_ids(self.mock_hanfor.app)  # type: list
 
         # We create a new ENUM "my_first_enum"
-        response = self.mock_hanfor.app.post(
-            "api/v1/variables", json={"name": "my_first_enum", "type": "ENUM_INT"}
-        )
+        response = self.mock_hanfor.app.post("api/v1/variables", json={"name": "my_first_enum", "type": "ENUM_INT"})
         self.assertEqual(response.json["success"], True)
         # We add 2 enumerators for "my_first_enum".
-        response = self.mock_hanfor.app.post(
-            "api/var/update",
-            data={
+        response = self.mock_hanfor.app.patch(
+            variable_url(self.mock_hanfor.app, "my_first_enum"),
+            json={
                 "name": "my_first_enum",
-                "name_old": "my_first_enum",
                 "type": "ENUM_INT",
                 "const_val": "",
-                "const_val_old": "",
-                "type_old": "ENUM_INT",
-                "occurrences": "",
-                "constraints": json.dumps({}),
+                "constraints": {},
                 "updated_constraints": False,
-                "enumerators": json.dumps([["foo", "12"], ["bar", "11"]]),
+                "enumerators": [["foo", "12"], ["bar", "11"]],
             },
         )
         self.assertEqual(response.json["success"], True)
         # We expect there is an ENUM "my_first_enum" and the 2 enumerators with the correct value.
-        updated_vars = self.mock_hanfor.app.get("api/v1/variables").json["data"]
+        updated_vars = variables_without_ids(self.mock_hanfor.app)
         expected_updated_vars = deepcopy(initial_vars)
         expected_updated_vars.append(
             {
@@ -167,65 +158,49 @@ class TestEnums(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
 
         # Fetch the initial vars.
-        _ = self.mock_hanfor.app.get("api/v1/variables").json["data"]  # type: list
+        _ = variables_without_ids(self.mock_hanfor.app)  # type: list
 
         # We create a new ENUM "my_first_enum"
-        response = self.mock_hanfor.app.post(
-            "api/v1/variables", json={"name": "my_first_enum", "type": "ENUM_INT"}
-        )
+        response = self.mock_hanfor.app.post("api/v1/variables", json={"name": "my_first_enum", "type": "ENUM_INT"})
         self.assertEqual(response.json["success"], True)
         # We add 2 enumerators for "my_first_enum".
-        self.mock_hanfor.app.post(
-            "api/var/update",
-            data={
+        self.mock_hanfor.app.patch(
+            variable_url(self.mock_hanfor.app, "my_first_enum"),
+            json={
                 "name": "my_first_enum",
-                "name_old": "my_first_enum",
                 "type": "ENUM_INT",
                 "const_val": "",
-                "const_val_old": "",
-                "type_old": "ENUM_INT",
-                "occurrences": "",
-                "constraints": json.dumps({}),
+                "constraints": {},
                 "updated_constraints": False,
-                "enumerators": json.dumps([["foo", "12"], ["bar", "11"]]),
+                "enumerators": [["foo", "12"], ["bar", "11"]],
             },
         )
         # Add another enum for populated data structures
-        response = self.mock_hanfor.app.post(
-            "api/v1/variables", json={"name": "my_second_enum", "type": "ENUM_INT"}
-        )
+        response = self.mock_hanfor.app.post("api/v1/variables", json={"name": "my_second_enum", "type": "ENUM_INT"})
         self.assertEqual(response.json["success"], True)
         # We add 2 enumerators for "my_first_enum".
-        response = self.mock_hanfor.app.post(
-            "api/var/update",
-            data={
+        response = self.mock_hanfor.app.patch(
+            variable_url(self.mock_hanfor.app, "my_second_enum"),
+            json={
                 "name": "my_second_enum",
-                "name_old": "my_second_enum",
                 "type": "ENUM_INT",
                 "const_val": "",
-                "const_val_old": "",
-                "type_old": "ENUM_INT",
-                "occurrences": "",
-                "constraints": json.dumps({}),
+                "constraints": {},
                 "updated_constraints": False,
-                "enumerators": json.dumps([["fupp", "5"], ["flii", "6"]]),
+                "enumerators": [["fupp", "5"], ["flii", "6"]],
             },
         )
         # Test renaming the first enum
         self.assertEqual(response.json["success"], True)
-        response = self.mock_hanfor.app.post(
-            "api/var/update",
-            data={
+        response = self.mock_hanfor.app.patch(
+            variable_url(self.mock_hanfor.app, "my_first_enum"),
+            json={
                 "name": "my_renamed_enum",
-                "name_old": "my_first_enum",
                 "type": "ENUM_INT",
                 "const_val": "",
-                "const_val_old": "",
-                "type_old": "ENUM_INT",
-                "occurrences": "",
-                "constraints": json.dumps({}),
+                "constraints": {},
                 "updated_constraints": False,
-                "enumerators": json.dumps([["foo", "12"], ["bar", "11"]]),
+                "enumerators": [["foo", "12"], ["bar", "11"]],
             },
         )
         self.assertEqual(response.json["success"], True)
@@ -243,32 +218,26 @@ class TestEnums(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
 
         # Fetch the initial vars.
-        initial_vars = self.mock_hanfor.app.get("api/v1/variables").json["data"]  # type: list
+        initial_vars = variables_without_ids(self.mock_hanfor.app)  # type: list
 
         # We create a new ENUM "my_first_enum"
-        response = self.mock_hanfor.app.post(
-            "api/v1/variables", json={"name": "my_first_enum", "type": "ENUM_REAL"}
-        )
+        response = self.mock_hanfor.app.post("api/v1/variables", json={"name": "my_first_enum", "type": "ENUM_REAL"})
         self.assertEqual(response.json["success"], True)
         # We add 2 enumerators for "my_first_enum".
-        response = self.mock_hanfor.app.post(
-            "api/var/update",
-            data={
+        response = self.mock_hanfor.app.patch(
+            variable_url(self.mock_hanfor.app, "my_first_enum"),
+            json={
                 "name": "my_first_enum",
-                "name_old": "my_first_enum",
                 "type": "ENUM_REAL",
                 "const_val": "",
-                "const_val_old": "",
-                "type_old": "ENUM_REAL",
-                "occurrences": "",
-                "constraints": json.dumps({}),
+                "constraints": {},
                 "updated_constraints": False,
-                "enumerators": json.dumps([["foo", "12.123"], ["bar", "11.123"]]),
+                "enumerators": [["foo", "12.123"], ["bar", "11.123"]],
             },
         )
         self.assertEqual(response.json["success"], True)
         # We expect there is an ENUM "my_first_enum" and the 2 enumerators with the correct value.
-        updated_vars = self.mock_hanfor.app.get("api/v1/variables").json["data"]
+        updated_vars = variables_without_ids(self.mock_hanfor.app)
         expected_updated_vars = deepcopy(initial_vars)
         expected_updated_vars.append(
             {
@@ -328,75 +297,99 @@ class TestEnums(TestCase):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
 
         # Fetch the initial vars.
-        _ = self.mock_hanfor.app.get("api/v1/variables").json["data"]  # type: list
+        _ = variables_without_ids(self.mock_hanfor.app)  # type: list
 
         # We create a new ENUM "my_third_enum"
-        response = self.mock_hanfor.app.post(
-            "api/v1/variables", json={"name": "my_third_enum", "type": "ENUM_REAL"}
-        )
+        response = self.mock_hanfor.app.post("api/v1/variables", json={"name": "my_third_enum", "type": "ENUM_REAL"})
 
         self.assertEqual(response.json["success"], True)
 
         # We add 2 enumerators for "my_third_enum".
-        response = self.mock_hanfor.app.post(
-            "api/var/update",
-            data={
+        response = self.mock_hanfor.app.patch(
+            variable_url(self.mock_hanfor.app, "my_third_enum"),
+            json={
                 "name": "my_third_enum",
-                "name_old": "my_third_enum",
                 "type": "ENUM_REAL",
                 "const_val": "",
-                "const_val_old": "",
-                "type_old": "ENUM_REAL",
-                "occurrences": "",
-                "constraints": json.dumps({}),
+                "constraints": {},
                 "updated_constraints": False,
-                "enumerators": json.dumps([["foo", "12.123"], ["bar", "11.123"]]),
+                "enumerators": [["foo", "12.123"], ["bar", "11.123"]],
             },
         )
         self.assertEqual(response.json["success"], True)
 
-        response = self.mock_hanfor.app.get("api/v1/variables/my_third_enum/enumerators")
+        response = self.mock_hanfor.app.get(variable_url(self.mock_hanfor.app, "my_third_enum", "/enumerators"))
         self.assertEqual(response.json["enumerators"][0][0], "my_third_enum_bar")
         self.assertEqual(response.json["enumerators"][1][0], "my_third_enum_foo")
+        self.assertEqual(variable_id(self.mock_hanfor.app, "my_third_enum_bar"), response.json["enumerators"][0][2])
+
+    def test_get_filters_by_name(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
+        response = self.mock_hanfor.app.get("api/v1/variables", query_string={"name": "foo"})
+        self.assertEqual(["foo"], [v["name"] for v in response.json["data"]])
+        self.assertTrue(response.json["data"][0]["id"])
+        response = self.mock_hanfor.app.get("api/v1/variables", query_string={"name": "nonexistent"})
+        self.assertEqual([], response.json["data"])
+
+    def test_patch_of_unknown_variable_is_not_found(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
+        response = self.mock_hanfor.app.patch(f"api/v1/variables/{uuid4()}", json={"name": "nonexistent"})
+        self.assertEqual(404, response.status_code)
+
+    def test_patch_with_illegal_type_is_bad_request(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
+        self.mock_hanfor.app.post("api/v1/variables", json={"name": "speed", "type": "INT"})
+        response = self.mock_hanfor.app.patch(variable_url(self.mock_hanfor.app, "speed"), json={"type": "nonsense"})
+        self.assertEqual(400, response.status_code)
+        self.assertIn("nonsense", response.json["errormsg"])
+
+    def test_patch_keeps_the_fields_it_does_not_send(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
+        self.mock_hanfor.app.post("api/v1/variables", json={"name": "limit", "type": "CONST", "value": "5"})
+        response = self.mock_hanfor.app.patch(variable_url(self.mock_hanfor.app, "limit"), json={"const_val": "7"})
+        self.assertEqual(200, response.status_code)
+
+        variables = {v["name"]: v for v in variables_without_ids(self.mock_hanfor.app)}
+        self.assertEqual("CONST", variables["limit"]["type"])
+        self.assertEqual("7", variables["limit"]["const_val"])
+
+    def test_patch_answers_used_by_from_the_server(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
+        response = self.mock_hanfor.app.patch(variable_url(self.mock_hanfor.app, "foo"), json={"used_by": ["made up"]})
+        self.assertEqual(["SysRS FooXY_42"], response.json["data"]["used_by"])
 
     def test_get_enumerators_of_unknown_variable_is_not_found(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
-        response = self.mock_hanfor.app.get("api/v1/variables/nonexistent/enumerators")
+        response = self.mock_hanfor.app.get(f"api/v1/variables/{uuid4()}/enumerators")
         self.assertEqual(404, response.status_code)
 
     def test_delete_var(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
 
         # Fetch the initial vars.
-        initial_vars = self.mock_hanfor.app.get("api/v1/variables").json["data"]  # type: list
+        initial_vars = variables_without_ids(self.mock_hanfor.app)  # type: list
 
         # We create a new ENUM "my_third_enum"
-        response = self.mock_hanfor.app.post(
-            "api/v1/variables", json={"name": "my_third_enum", "type": "ENUM_REAL"}
-        )
+        response = self.mock_hanfor.app.post("api/v1/variables", json={"name": "my_third_enum", "type": "ENUM_REAL"})
 
         self.assertEqual(response.json["success"], True)
 
         # We add 2 enumerators for "my_third_enum".
-        response = self.mock_hanfor.app.post(
-            "api/var/update",
-            data={
+        response = self.mock_hanfor.app.patch(
+            variable_url(self.mock_hanfor.app, "my_third_enum"),
+            json={
                 "name": "my_third_enum",
-                "name_old": "my_third_enum",
                 "type": "ENUM_REAL",
                 "const_val": "",
-                "const_val_old": "",
-                "type_old": "ENUM_REAL",
-                "occurrences": "",
-                "constraints": json.dumps({}),
+                "constraints": {},
                 "updated_constraints": False,
-                "enumerators": json.dumps([["foo", "12.123"], ["bar", "11.123"]]),
+                "enumerators": [["foo", "12.123"], ["bar", "11.123"]],
             },
         )
         self.assertEqual(response.json["success"], True)
 
         # We expect there is an ENUM "my_third_enum" and the 2 enumerators with the correct value.
-        updated_vars = self.mock_hanfor.app.get("api/v1/variables").json["data"]
+        updated_vars = variables_without_ids(self.mock_hanfor.app)
         expected_updated_vars = deepcopy(initial_vars)
         expected_updated_vars.append(
             {
@@ -451,8 +444,8 @@ class TestEnums(TestCase):
         self.assertIn("CONST my_third_enum_foo IS 12.123", req_file_content)
 
         # We remove one of the added vars
-        response = self.mock_hanfor.app.delete("api/v1/variables/my_third_enum_foo")
-        updated_vars = self.mock_hanfor.app.get("api/v1/variables").json["data"]
+        response = self.mock_hanfor.app.delete(variable_url(self.mock_hanfor.app, "my_third_enum_foo"))
+        updated_vars = variables_without_ids(self.mock_hanfor.app)
 
         expected_updated_vars.remove(
             {
@@ -488,7 +481,8 @@ class TestEnums(TestCase):
 
     def test_add_existing_var_is_a_conflict(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
-        self.mock_hanfor.app.post("api/v1/variables", json={"name": "twice", "type": "INT"})
+        first = self.mock_hanfor.app.post("api/v1/variables", json={"name": "twice", "type": "INT"})
+        self.assertEqual(variable_id(self.mock_hanfor.app, "twice"), first.json["id"])
         response = self.mock_hanfor.app.post("api/v1/variables", json={"name": "twice", "type": "INT"})
         self.assertEqual(409, response.status_code)
         self.assertIn("already existing", response.json["errormsg"])
@@ -580,7 +574,7 @@ class TestEnums(TestCase):
         }
 
         # We expect there is no ['new_int', 'new_int_1', 'new_real', 'new_real_1'] we are about to create.
-        initial_vars = self.mock_hanfor.app.get("api/v1/variables").json["data"]  # type: list
+        initial_vars = variables_without_ids(self.mock_hanfor.app)  # type: list
         for name in [d["name"] for d in initial_vars]:
             self.assertNotIn(name, ["new_int", "new_int_1", "new_real", "new_real_1"])
 
@@ -591,7 +585,7 @@ class TestEnums(TestCase):
         self.assertEqual({}, update_result.json["type_inference_errors"], expression)
 
         # Now we expect there is an int "new_int"
-        updated_vars = self.mock_hanfor.app.get("api/v1/variables").json["data"]
+        updated_vars = variables_without_ids(self.mock_hanfor.app)
         new_variable = {
             "name": "new_int",
             "tags": [],
@@ -614,7 +608,7 @@ class TestEnums(TestCase):
         self.assertEqual({}, update_result.json["type_inference_errors"], expression)
 
         # Now we expect there is an int "new_int_1"
-        updated_vars = self.mock_hanfor.app.get("api/v1/variables").json["data"]
+        updated_vars = variables_without_ids(self.mock_hanfor.app)
         new_variable = {
             "name": "new_int_1",
             "tags": [],
@@ -637,7 +631,7 @@ class TestEnums(TestCase):
         self.assertEqual({}, update_result.json["type_inference_errors"], expression)
 
         # Now we expect there is a real "new_real"
-        updated_vars = self.mock_hanfor.app.get("api/v1/variables").json["data"]
+        updated_vars = variables_without_ids(self.mock_hanfor.app)
         new_variable = {
             "name": "new_real",
             "tags": [],
@@ -660,7 +654,7 @@ class TestEnums(TestCase):
         self.assertEqual({}, update_result.json["type_inference_errors"], expression)
 
         # Now we expect there is a real "new_real_1"
-        updated_vars = self.mock_hanfor.app.get("api/v1/variables").json["data"]
+        updated_vars = variables_without_ids(self.mock_hanfor.app)
         new_variable = {
             "name": "new_real_1",
             "tags": [],
@@ -702,7 +696,7 @@ class TestEnums(TestCase):
         }
 
         # We expect there is an unknown "ham_unknown"
-        variables = self.mock_hanfor.app.get("api/v1/variables").json["data"]
+        variables = variables_without_ids(self.mock_hanfor.app)
         unknown = {
             "name": "ham_unknown",
             "tags": [],
@@ -725,7 +719,7 @@ class TestEnums(TestCase):
         self.assertEqual({}, update_result.json["type_inference_errors"], expression)
 
         # We expect "ham_unknown" is now int
-        variables = self.mock_hanfor.app.get("api/v1/variables").json["data"]
+        variables = variables_without_ids(self.mock_hanfor.app)
         unknown = {
             "name": "ham_unknown",
             "tags": [],
@@ -767,7 +761,7 @@ class TestEnums(TestCase):
         }
 
         # We expect there is an unknown "ham_unknown"
-        variables = self.mock_hanfor.app.get("api/v1/variables").json["data"]
+        variables = variables_without_ids(self.mock_hanfor.app)
         unknown = {
             "name": "ham_unknown",
             "tags": [],
@@ -790,7 +784,7 @@ class TestEnums(TestCase):
         self.assertEqual({}, update_result.json["type_inference_errors"], expression)
 
         # We expect "ham_unknown" is now int
-        variables = self.mock_hanfor.app.get("api/v1/variables").json["data"]
+        variables = variables_without_ids(self.mock_hanfor.app)
         unknown = {
             "name": "ham_unknown",
             "tags": [],
@@ -832,7 +826,7 @@ class TestEnums(TestCase):
         }
 
         # We expect there is an unknown "ham_unknown"
-        variables = self.mock_hanfor.app.get("api/v1/variables").json["data"]
+        variables = variables_without_ids(self.mock_hanfor.app)
         unknown = {
             "name": "ham_unknown",
             "tags": [],
@@ -855,7 +849,7 @@ class TestEnums(TestCase):
         self.assertEqual({}, update_result.json["type_inference_errors"], expression)
 
         # We expect "ham_unknown" is now int
-        variables = self.mock_hanfor.app.get("api/v1/variables").json["data"]
+        variables = variables_without_ids(self.mock_hanfor.app)
         unknown = {
             "name": "ham_unknown",
             "tags": [],
@@ -897,7 +891,7 @@ class TestEnums(TestCase):
         }
 
         # We expect there is an unknown "ham_unknown"
-        variables = self.mock_hanfor.app.get("api/v1/variables").json["data"]
+        variables = variables_without_ids(self.mock_hanfor.app)
         unknown = {
             "name": "ham_unknown",
             "tags": [],
@@ -920,7 +914,7 @@ class TestEnums(TestCase):
         self.assertEqual({}, update_result.json["type_inference_errors"], expression)
 
         # We expect "ham_unknown" is now int
-        variables = self.mock_hanfor.app.get("api/v1/variables").json["data"]
+        variables = variables_without_ids(self.mock_hanfor.app)
         unknown = {
             "name": "ham_unknown",
             "tags": [],

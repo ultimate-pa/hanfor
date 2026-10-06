@@ -1,4 +1,5 @@
 import logging
+import threading
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import cached_property, wraps
@@ -18,6 +19,19 @@ from lib_core.data import (
 )
 from lib_core.utils import delete_variable_everywhere, rename_variable_everywhere
 from requirements.desc_highlighting import delete_variables, new_variables_regenerate_highlighting
+
+WRITE_LOCK = threading.Lock()
+
+
+def write_locked(view):
+    """Run the whole view under `WRITE_LOCK`, so it sees and changes the data without other writes between."""
+
+    @wraps(view)
+    def wrapper(*args, **kwargs):
+        with WRITE_LOCK:
+            return view(*args, **kwargs)
+
+    return wrapper
 
 
 @dataclass

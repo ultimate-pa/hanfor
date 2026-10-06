@@ -2,10 +2,11 @@ import csv
 import json
 import logging
 
-from flask import Blueprint, Request, render_template, request
+from flask import Blueprint, render_template, request
 from flask_restx import Namespace, Resource
 
 from hanfor_flask import HanforFlask, current_app, nocache
+from json_db_connector.json_db import DatabaseKeyError
 from lib_core.api_models import VariableRequestModel
 from lib_core import boogie_parsing
 from lib_core.boogie_parsing import BoogieType
@@ -32,7 +33,13 @@ from requirements.desc_highlighting import (
     delete_variables,
     new_variables_regenerate_highlighting,
 )
-from requirements.subtypes import Conflict, InvalidPayload, SubtypeNotFound, subtype_errors_to_response
+from requirements.subtypes import (
+    Conflict,
+    InvalidPayload,
+    SubtypeNotFound,
+    subtype_errors_to_response,
+    write_locked,
+)
 
 blueprint = Blueprint("variables", __name__, template_folder="templates", url_prefix="/variables")
 api_blueprint = Blueprint("api_variables", __name__, url_prefix="/api/var")
@@ -54,8 +61,10 @@ def index():
 @log_request_response
 class ApiVariables(Resource):
     @api_ns.doc(
-        description="Gives all variables of the session in the field 'data'. Each variable has its name, "
-        "type, value, the requirements that use it, and the references to its constraints."
+        description="Gives all variables of the session in the field 'data'. Each variable has its id, name, "
+        "type, value, the requirements that use it, and the references to its constraints. Use the query "
+        "parameter 'name' to get only the variable with that name, for example to find its id.",
+        params={"name": "Optional. Gives only the variable with this name"},
     )
     @api_ns.response(200, "Success")
     @nocache
@@ -70,6 +79,9 @@ class ApiVariables(Resource):
             # on every construction by walking Variable.constraints and
             # Requirement.formalizations (is_constraint=True).
             entry["constraint_refs"] = [c.usage_key for c in var_collection._constraints.get(entry["name"], [])]
+        name = request.args.get("name")
+        if name is not None:
+            result = [entry for entry in result if entry["name"] == name]
         return {"data": result}
 
     @api_ns.doc(
@@ -82,6 +94,7 @@ class ApiVariables(Resource):
     @api_ns.response(409, "Conflict")
     @nocache
     @subtype_errors_to_response
+    @write_locked
     def post(self):
         body = request.get_json(silent=True) or {}
         variable_name = str(body.get("name", "")).strip()
@@ -115,30 +128,37 @@ class ApiVariables(Resource):
         current_app.db.update()
         if current_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
             new_variables_regenerate_highlighting({new_variable})
-        return {"success": True, "name": variable_name}, 201
+        return {"success": True, "name": variable_name, "id": new_variable.uuid}, 201
 
 
-@api_ns.route("/<string:name>")
+def _load_variable(vid) -> Variable:
+    try:
+        return current_app.db.get_object(Variable, str(vid))
+    except DatabaseKeyError as e:
+        raise SubtypeNotFound(f"Variable `{vid}` not found.") from e
+
+
+@api_ns.route("/<uuid:vid>")
 @log_request_response
 class ApiVariable(Resource):
     @api_ns.doc(
         description="Deletes the variable everywhere: in the variable list and in the requirement that "
         "defines it. Gives 404 if the variable is not found, and 409 if a requirement or a constraint "
         "uses it.",
-        params={"name": "The name of the variable"},
+        params={"vid": "The id (uuid) of the variable"},
     )
     @api_ns.response(200, "Success")
     @api_ns.response(404, "Not Found")
     @api_ns.response(409, "Conflict")
     @nocache
     @subtype_errors_to_response
-    def delete(self, name):
+    @write_locked
+    def delete(self, vid):
+        name = _load_variable(vid).name
         var_collection = VariableCollection(
             current_app.db.get_objects(Variable).values(),
             current_app.db.get_objects(Requirement).values(),
         )
-        if not var_collection.var_name_exists(name):
-            raise SubtypeNotFound(f"Variable `{name}` not found.")
         logging.debug(f"Deleting `{name}`")
         if delete_variable_everywhere(var_collection, name) is None:
             raise Conflict(f"Variable `{name}` is used and thus cannot be deleted.")
@@ -148,28 +168,47 @@ class ApiVariable(Resource):
         current_app.db.update()
         return {"success": True}
 
+    @api_ns.doc(
+        description="Changes the variable. The JSON body has the new values: 'name', 'type', 'const_val', "
+        "'belongs_to_enum', 'enumerators', and 'constraints' with 'updated_constraints': true. A field that is "
+        "not in the body keeps its value. Gives 404 if the variable is not found, and 400 if the change is not "
+        "valid.",
+        params={"vid": "The id (uuid) of the variable"},
+    )
+    @api_ns.response(200, "Success")
+    @api_ns.response(400, "Bad Request")
+    @api_ns.response(404, "Not Found")
+    @nocache
+    @subtype_errors_to_response
+    @write_locked
+    def patch(self, vid):
+        name = _load_variable(vid).name
+        result = update_variable_in_collection(current_app, {**(request.get_json(silent=True) or {}), "name_old": name})
+        if not result["success"]:
+            return result, 400
+        return result
 
-@api_ns.route("/<string:name>/enumerators")
+
+@api_ns.route("/<uuid:vid>/enumerators")
 @log_request_response
 class ApiVariableEnumerators(Resource):
     @api_ns.doc(
         description="Gives the enumerators of the ENUM variable in the field 'enumerators', as a list of "
-        "[name, value] pairs sorted by value. Gives 404 if the variable is not found.",
-        params={"name": "The name of the ENUM variable"},
+        "[name, value, id] triples sorted by value. Gives 404 if the variable is not found.",
+        params={"vid": "The id (uuid) of the ENUM variable"},
     )
     @api_ns.response(200, "Success")
     @api_ns.response(404, "Not Found")
     @nocache
     @subtype_errors_to_response
-    def get(self, name):
+    def get(self, vid):
+        name = _load_variable(vid).name
         var_collection = VariableCollection(
             current_app.db.get_objects(Variable).values(),
             current_app.db.get_objects(Requirement).values(),
         )
-        if not var_collection.var_name_exists(name):
-            raise SubtypeNotFound(f"Variable `{name}` not found.")
         enumerators = var_collection.get_enumerators(name)
-        enum_results = [(enumerator.name, enumerator.value) for enumerator in enumerators]
+        enum_results = [(enumerator.name, enumerator.value, enumerator.uuid) for enumerator in enumerators]
         try:
             enum_results.sort(key=lambda x: float(x[1]))
         except Exception as e:
@@ -307,12 +346,6 @@ def api_gen_req():
     return generate_file_response(content, name)
 
 
-@api_blueprint.route("/update", methods=["POST"])
-@nocache
-def api_update():
-    return update_variable_in_collection(current_app, request)
-
-
 @api_blueprint.route("/import_csv", methods=["POST"])
 @nocache
 def api_import_csv():
@@ -369,39 +402,39 @@ def api_import_csv():
     return result
 
 
-def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
-    """Update a single variable. The request should contain a form:
+def update_variable_in_collection(app: HanforFlask, data: dict) -> dict:
+    """Update a single variable. `data` is the JSON body plus `name_old` from the path.
+    A field that is not in `data` keeps its stored value:
         name -> the new name of the var.
         name_old -> the name of the var before.
         type -> the new type of the var.
-        type_old -> the old type of the var.
-        occurrences -> Ids of requirements using this variable.
+        const_val -> the new value of the var.
+        belongs_to_enum -> the new ENUM parent of an ENUMERATOR.
         enumerators -> The dict of enumerators
 
     :param app: the running flask app
-    :param req: A form request
+    :param data: The fields of the update
     :return: Dictionary containing changed data and request status information.
     """
-    # Get properties from request
-    var_name = req.form.get("name", "").strip()
-    var_name_old = req.form.get("name_old", "").strip()
-    var_type = req.form.get("type", "").strip()
-    var_type_old = req.form.get("type_old", "").strip()
-    var_const_val = req.form.get("const_val", "").strip()
-    var_const_val_old = req.form.get("const_val_old", "").strip()
-    belongs_to_enum = req.form.get("belongs_to_enum", "").strip()
-    belongs_to_enum_old = req.form.get("belongs_to_enum_old", "").strip()
-    occurrences = req.form.get("occurrences", "").strip().split(",")
-    enumerators = json.loads(req.form.get("enumerators", ""))
-
-    # TODO: remove
-    while "" in occurrences:
-        occurrences.remove("")
-
     var_collection = VariableCollection(
         current_app.db.get_objects(Variable).values(),
         current_app.db.get_objects(Requirement).values(),
     )
+    var_name_old = str(data.get("name_old") or "").strip()
+    current = var_collection.collection[var_name_old]
+    var_type_old = current.type or ""
+    var_const_val_old = str(current.value or "")
+    belongs_to_enum_old = current.belongs_to_enum or ""
+
+    def new_value(key: str, old: str) -> str:
+        return old if data.get(key) is None else str(data[key]).strip()
+
+    var_name = new_value("name", var_name_old)
+    var_type = new_value("type", var_type_old)
+    var_const_val = new_value("const_val", var_const_val_old)
+    belongs_to_enum = new_value("belongs_to_enum", belongs_to_enum_old)
+    enumerators = data.get("enumerators") or []
+    updated_constraints = data.get("updated_constraints") is True
     result = {
         "success": True,
         "has_changes": False,
@@ -411,7 +444,7 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
         "data": {
             "name": var_name,
             "type": var_type,
-            "used_by": occurrences,
+            "used_by": sorted(var_collection.var_req_mapping.get(var_name_old, [])),
             "const_val": var_const_val,
         },
     }
@@ -421,7 +454,7 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
         var_type_old != var_type
         or var_name_old != var_name
         or var_const_val_old != var_const_val
-        or req.form.get("updated_constraints") == "true"
+        or updated_constraints
         or belongs_to_enum != belongs_to_enum_old
     ):
         logging.info(f"Update Variable `{var_name_old}`")
@@ -460,8 +493,8 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
             result["val_changed"] = True
 
         # Update constraints.
-        if req.form.get("updated_constraints") == "true":
-            constraints = json.loads(req.form.get("constraints", ""))
+        if updated_constraints:
+            constraints = data.get("constraints") or {}
             logging.debug("Update Variable Constraints")
             try:
                 var_collection = var_collection.collection[var_name_old].update_constraints(
@@ -473,10 +506,10 @@ def update_variable_in_collection(app: HanforFlask, req: Request) -> dict:
                 app.db.update()
             except KeyError as e:
                 result["success"] = False
-                result["error_msg"] = f"Could not set constraint: Missing expression/variable for {e}"
+                result["errormsg"] = f"Could not set constraint: Missing expression/variable for {e}"
             except Exception as e:
                 result["success"] = False
-                result["error_msg"] = f"Could not parse formalization: `{e}`"
+                result["errormsg"] = f"Could not parse formalization: `{e}`"
         else:
             logging.debug("Skipping variable Constraints update.")
 

@@ -12,6 +12,7 @@ import shutil
 from unittest import TestCase
 from unittest.mock import patch
 from lib_core.startup import HanforArgumentParser
+from tests.mock_hanfor import variable_url, variables_without_ids
 
 HERE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_sessions")
 MOCK_DATA_FOLDER = os.path.join(HERE, "test_variable_manipulation_edge_cases")
@@ -63,7 +64,6 @@ class TestHanforVersionMigrations(TestCase):
         args = HanforArgumentParser(app).parse_args(["test_variable_manipulation_edge_cases"])
         self.startup_hanfor(args, user_mock_answers=[])
         # Get the available requirements.
-        var_gets = self.app.get("api/v1/variables")
         self.assertIn(
             {
                 "name": "egg",
@@ -78,7 +78,7 @@ class TestHanforVersionMigrations(TestCase):
                 "order": 0,
                 "belongs_to_enum": "",
             },
-            var_gets.json["data"],
+            variables_without_ids(self.app),
         )
         add_constraint = self.app.post("api/var/new_constraint", data={"name": "egg"})
         self.assertEqual(True, add_constraint.json["success"])
@@ -88,34 +88,27 @@ class TestHanforVersionMigrations(TestCase):
         self.assertEqual(True, delete_constraint.json["success"])
         self.assertEqual(200, add_constraint.status_code)
         add_constraint = self.app.post("api/var/new_constraint", data={"name": "egg"})
-        change_type = self.app.post(
-            "api/var/update",
-            data={
+        change_type = self.app.patch(
+            variable_url(self.app, "egg"),
+            json={
                 "name": "egg",
-                "name_old": "egg",
                 "type": "ENUM_INT",
                 "const_val": "",
-                "const_val_old": "",
-                "type_old": "bool",
-                "occurrences": "SysRS+FooXY_91",
-                "constraints": json.dumps(
-                    {
-                        "0": {
-                            "id": "0",
-                            "scope": "GLOBALLY",
-                            "pattern": "Universality",
-                            "expression_mapping": {"P": "", "Q": "", "R": "egg > 10", "S": "", "T": "", "U": ""},
-                        }
+                "constraints": {
+                    "0": {
+                        "id": "0",
+                        "scope": "GLOBALLY",
+                        "pattern": "Universality",
+                        "expression_mapping": {"P": "", "Q": "", "R": "egg > 10", "S": "", "T": "", "U": ""},
                     }
-                ),
-                "updated_constraints": "true",
-                "enumerators": json.dumps([]),
+                },
+                "updated_constraints": True,
+                "enumerators": [],
             },
         )
         self.assertEqual(True, change_type.json["success"])
         self.assertEqual(200, add_constraint.status_code)
-        var_gets = self.app.get("api/v1/variables")
-        for t in var_gets.json["data"]:
+        for t in variables_without_ids(self.app):
             if t["name"] == "egg":
                 self.assertEqual(
                     {
@@ -147,7 +140,7 @@ class TestHanforVersionMigrations(TestCase):
                 "script_results": "",
                 "belongs_to_enum": "",
             },
-            var_gets.json["data"],
+            variables_without_ids(self.app),
         )
 
     def tearDown(self):

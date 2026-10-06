@@ -90,14 +90,10 @@ function store_variable(variables_table) {
     const var_name = $('#variable_name').val();
     const var_name_old = $('#variable_name_old').val();
     const var_type = $('#variable_type').val();
-    const var_type_old = $('#variable_type_old').val();
     const associated_row_id = parseInt($('#modal_associated_row_index').val());
-    const occurrences = $('#occurences').val();
     const const_val = $('#variable_value').val();
-    const const_val_old = $('#variable_value_old').val();
     const updated_constraints = $('#variable_constraint_updated').val();
     const belongs_to_enum = $('#belongs_to_enum').val();
-    const belongs_to_enum_old = $('#belongs_to_enum_old').val();
 
     // Fetch the constraints
     let constraints = {};
@@ -139,39 +135,29 @@ function store_variable(variables_table) {
     sendTelemetry("variables", var_name_old, "save")
 
     // Store the variable.
-    $.post("api/var/update",
-        {
-            name: var_name,
-            name_old: var_name_old,
-            type: var_type,
-            const_val: const_val,
-            const_val_old: const_val_old,
-            type_old: var_type_old,
-            occurrences: occurrences,
-            constraints: JSON.stringify(constraints),
-            updated_constraints: updated_constraints,
-            enumerators: JSON.stringify(enumerators),
-            belongs_to_enum: belongs_to_enum,
-            belongs_to_enum_old: belongs_to_enum_old
-        },
-        // Update var table on success or show an error message.
-        function (data) {
-            var_modal_content.LoadingOverlay('hide', true);
-            if (data['success'] === false) {
-                alert(data['errormsg']);
-            } else {
-                let modal = $('#variable_modal')
-                modal.data('unsaved_changes', false);
-                if (data.rebuild_table) {
-                    //location.reload();
-                    Modal.getOrCreateInstance(modal).hide()
-                    $('#variables_table').DataTable().ajax.reload(null, false)
-                } else {
-                    variables_table.row(associated_row_id).data(data.data).draw();
-                    Modal.getOrCreateInstance(modal).hide()
-                }
-            }
-        });
+    api.patchVariable($('#variable_id').val(), {
+        name: var_name,
+        type: var_type,
+        const_val: const_val,
+        constraints: constraints,
+        updated_constraints: updated_constraints === 'true',
+        enumerators: enumerators,
+        belongs_to_enum: belongs_to_enum
+    }).done(function (data) {
+        let modal = $('#variable_modal')
+        modal.data('unsaved_changes', false);
+        if (data.rebuild_table) {
+            Modal.getOrCreateInstance(modal).hide()
+            $('#variables_table').DataTable().ajax.reload(null, false)
+        } else {
+            variables_table.row(associated_row_id).data(data.data).draw();
+            Modal.getOrCreateInstance(modal).hide()
+        }
+    }).fail(function (err) {
+        alert(err?.responseJSON?.errormsg || err?.statusText);
+    }).always(function () {
+        var_modal_content.LoadingOverlay('hide', true);
+    });
 }
 
 /**
@@ -484,12 +470,12 @@ function show_enumerators_in_modal(revert = false) {
     }
 }
 
-function load_enumerators_to_modal(var_name) {
-    api.getEnumerators(var_name).done(function (data) {
+function load_enumerators_to_modal(var_id, var_name) {
+    api.getEnumerators(var_id).done(function (data) {
         // Remove prefix from Enumerators for display.
         $.each(data['enumerators'], function (index, item) {
             const stripped_name = item[0].substr(var_name.length + 1);
-            add_enumerator_template(stripped_name, item[1]);
+            add_enumerator_template(stripped_name, item[1], item[2]);
         })
     }).fail(function (err) {
         alert(err?.responseJSON?.errormsg || err?.statusText);
@@ -514,9 +500,8 @@ function load_variable(row_idx) {
 
     // Meta information
     $('#modal_associated_row_index').val(row_idx);
+    $('#variable_id').val(data.id);
     $('#variable_name_old').val(data.name);
-    $('#variable_type_old').val(data.type);
-    $('#occurences').val(data.used_by);
 
     // Visible information
     $('#variable_modal_title').html('Variable: ' + data.name);
@@ -524,31 +509,25 @@ function load_variable(row_idx) {
 
     let type_input = $('#variable_type');
     let variable_value = $('#variable_value');
-    let variable_value_old = $('#variable_value_old');
     let belongs_to_enum = $('#belongs_to_enum');
-    let belongs_to_enum_old = $('#belongs_to_enum_old');
     let enumerators = $('#enumerators');
 
     type_input.val(data.type);
     variable_value.val('');
-    variable_value_old.val('');
     belongs_to_enum.val('');
-    belongs_to_enum_old.val('');
     enumerators.html('');
 
     if (data.type === 'CONST' || data.type === 'ENUMERATOR_INT' || data.type === 'ENUMERATOR_REAL') {
         show_variable_val_input();
         variable_value.val(data.const_val);
-        variable_value_old.val(data.const_val);
     }
     if (data.type === 'ENUMERATOR_INT' || data.type === 'ENUMERATOR_REAL') {
         show_belongs_to_enum_input();
         belongs_to_enum.val(data.belongs_to_enum);
-        belongs_to_enum_old.val(data.belongs_to_enum);
     }
     if (data.type === 'ENUM_REAL' || data.type === 'ENUM_INT') {
         show_enumerators_in_modal();
-        load_enumerators_to_modal(data.name);
+        load_enumerators_to_modal(data.id, data.name);
     }
 
     type_input.autocomplete({
@@ -587,22 +566,22 @@ function add_variable_via_modal() {
     });
 }
 
-function add_enumerator_template(name, value) {
+function add_enumerator_template(name, value, id = '') {
     const enumerator_template = `
         <div class="input-group enumerator-input">
             <span class="input-group-prepend input-group-text">Name</span>
             <input class="form-control enum_name_input" type="text" value="${name}">
             <span class="input-group-prepend input-group-text">Value</span>
             <input class="form-control enum_value_input" type="number" step="any" value="${value}">
-            <buttton type="button" class="btn btn-danger input-group-append del_enum" data-name="${name}">Delete</buttton>
+            <buttton type="button" class="btn btn-danger input-group-append del_enum" data-id="${id}">Delete</buttton>
         </div>`;
     $('#enumerators').append(enumerator_template);
 }
 
-function delete_enumerator(enum_name, enumerator_name, enum_dom) {
+function delete_enumerator(enumerator_id, enum_dom) {
     let var_modal = $('#variable_modal');
     var_modal.LoadingOverlay('show');
-    api.deleteVariable(enum_name + '_' + enumerator_name).done(function () {
+    api.deleteVariable(enumerator_id).done(function () {
         enum_dom.remove();
     }).fail(function (err) {
         alert(err?.responseJSON?.errormsg || err?.statusText);
@@ -986,13 +965,12 @@ $(document).ready(function () {
 
     // Delete enumerator via the enum modal.
     $('#enumerators').on('click', '.del_enum', function () {
-        const enumerator_name = $(this).attr('data-name');
-        const enum_name = $('#variable_name_old').val();
+        const enumerator_id = $(this).attr('data-id');
         let enum_dom = $(this).parent('.enumerator-input');
-        if (enumerator_name.length === 0) {
+        if (enumerator_id.length === 0) {
             enum_dom.remove();
         } else {
-            delete_enumerator(enum_name, enumerator_name, enum_dom);
+            delete_enumerator(enumerator_id, enum_dom);
         }
     }).on('paste', '.enum_name_input', function (e) {
         let pasted_text = e.originalEvent.clipboardData.getData('text');

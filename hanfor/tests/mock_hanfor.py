@@ -11,6 +11,18 @@ import shutil
 from unittest.mock import patch
 
 
+def variable_id(client, name: str) -> str:
+    return client.get("api/v1/variables", query_string={"name": name}).json["data"][0]["id"]
+
+
+def variable_url(client, name: str, suffix: str = "") -> str:
+    return f"api/v1/variables/{variable_id(client, name)}{suffix}"
+
+
+def variables_without_ids(client) -> list[dict]:
+    return [{k: v for k, v in var.items() if k != "id"} for var in client.get("api/v1/variables").json["data"]]
+
+
 def mock_user_input() -> str:
     """Mocks user input. Returns the mock_results entry at position given by the number of calls.
     :return: mock_results[#of call starting with 0]

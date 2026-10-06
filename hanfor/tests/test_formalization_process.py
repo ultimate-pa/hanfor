@@ -2,10 +2,11 @@ import json
 import os
 
 from collections import defaultdict
+from uuid import uuid4
 
 from app import app
 from lib_core.data import Requirement, Tag, Variable, VariableCollection
-from tests.mock_hanfor import MockHanfor
+from tests.mock_hanfor import MockHanfor, variable_url
 from unittest import TestCase
 
 
@@ -123,19 +124,14 @@ class TestFormalizationProcess(TestCase):
         # Change the name of foo to bas
         update = {
             "name": "bas",
-            "name_old": "foo",
             "type": "unknown",
             "const_val": "",
-            "const_val_old": "",
-            "type_old": "unknown",
-            "occurrences": "SysRS FooXY_42",
-            "constraints": "{}",
-            "updated_constraints": "true",
-            "enumerators": "[]",
+            "constraints": {},
+            "updated_constraints": True,
+            "enumerators": [],
             "belongs_to_enum": "",
-            "belongs_to_enum_old": "",
         }
-        self.mock_hanfor.app.post("api/var/update", data=update)
+        self.mock_hanfor.app.patch(variable_url(self.mock_hanfor.app, "foo"), json=update)
 
         # Check changed formalization for `SysRS FooXY_42`
         result = self.mock_hanfor.app.get("api/v1/req/SysRS%20FooXY_42")
@@ -827,14 +823,17 @@ class TestVariableCardDelete(TestCase):
     def test_variables_page_single_delete_removes_the_card(self):
         self.create(self.RID, "variable", {"name": "speed", "type": "int"})
 
-        self.assertEqual(200, self.mock_hanfor.app.delete("api/v1/variables/speed").status_code)
+        self.assertEqual(200, self.mock_hanfor.app.delete(variable_url(self.mock_hanfor.app, "speed")).status_code)
         self.assert_gone_from_requirement()
 
     def test_variables_page_delete_of_unknown_variable_is_not_found(self):
-        self.assertEqual(404, self.mock_hanfor.app.delete("api/v1/variables/nonexistent").status_code)
+        self.assertEqual(404, self.mock_hanfor.app.delete(f"api/v1/variables/{uuid4()}").status_code)
+
+    def test_variables_page_delete_by_name_is_not_found(self):
+        self.assertEqual(404, self.mock_hanfor.app.delete("api/v1/variables/foo").status_code)
 
     def test_variables_page_delete_of_used_variable_is_a_conflict(self):
-        result = self.mock_hanfor.app.delete("api/v1/variables/foo")
+        result = self.mock_hanfor.app.delete(variable_url(self.mock_hanfor.app, "foo"))
 
         self.assertEqual(409, result.status_code)
         self.assertIn("foo", self.variable_names())

@@ -1,6 +1,5 @@
 import json
 import logging
-import threading
 from contextlib import contextmanager
 
 from flask import Blueprint, render_template, request
@@ -42,6 +41,7 @@ from requirements.subtypes import (
     SubtypeError,
     SubtypeHandler,
     SubtypeNotFound,
+    WRITE_LOCK,
     subtype_errors_to_response,
 )
 from requirements.desc_highlighting import (
@@ -52,7 +52,6 @@ from requirements.desc_highlighting import (
 
 blueprint = Blueprint("requirements", __name__, template_folder="templates", url_prefix="/")
 api_ns = Namespace("Requirements", "Requirements API description", path="/req", ordered=True)
-_SUBTYPE_WRITE_LOCK = threading.Lock()
 
 
 @blueprint.route("", methods=["GET"])
@@ -372,7 +371,7 @@ def _subtype_write(rid: str, log_message: str):
     of the `with` block, yielding then returns the ctx to the block for it to be used `as` a variable
     and then then the code after running after the with ends normally, allowing us to minimize code needed
     """
-    with _SUBTYPE_WRITE_LOCK:
+    with WRITE_LOCK:
         ctx = SubtypeContext.load(rid)
         yield ctx
         current_app.db.update()

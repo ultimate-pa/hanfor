@@ -12,6 +12,7 @@ import shutil
 from unittest import TestCase
 from unittest.mock import patch
 from lib_core.startup import HanforArgumentParser
+from tests.mock_hanfor import variables_without_ids
 
 HERE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_sessions")
 MOCK_DATA_FOLDER = os.path.join(HERE, "test_delete_variable")
@@ -78,7 +79,7 @@ class TestHanforVersionMigrations(TestCase):
                 "order": 0,
                 "belongs_to_enum": "",
             },
-            var_gets.json["data"],
+            variables_without_ids(self.app),
         )
         self.assertEqual(
             {"spam", "spam_ham", "foo", "egg", "spam_egg", "spam", "bar", "ham"},
