@@ -30,7 +30,6 @@ const config = {
         layout_globals: __dirname + '/js/layout-globals.js',
         requirements: __dirname + '/js/requirements.js',
         variables: __dirname + '/js/variables.js',
-        variable_import: __dirname + '/js/variable-import.js',
         //stats: __dirname + '/js/stats.js',
         //tags: __dirname + '/js/tags.js',
         simulator_tab: __dirname + '/js/simulator-tab.js',

@@ -41,7 +41,6 @@ import mimetypes
 # import Socket IO modules
 from telemetry.telemetry import TelemetryWs
 
-
 mimetypes.add_type("text/css", ".css")
 mimetypes.add_type("text/javascript", ".js")
 
@@ -67,7 +66,6 @@ app.register_blueprint(requirements.blueprint)
 api.add_namespace(requirements.api_ns)
 # Variables
 app.register_blueprint(variables.blueprint)
-app.register_blueprint(variables.blueprint2)  # import for variable_import
 app.register_blueprint(variables.api_blueprint)
 # Logs
 app.register_blueprint(logs_api)
@@ -156,7 +154,7 @@ def unhandled_exception(e):
     if isinstance(e, HTTPException) and e.code in range(300, 309):
         return e
 
-    app.logger.error(f'Unhandled Exception at URL {request.url} - {e}')
+    app.logger.error(f"Unhandled Exception at URL {request.url} - {e}")
     logging.exception(e)
 
     # Pass through HTTP errors.

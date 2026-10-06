@@ -32,12 +32,6 @@ from requirements.desc_highlighting import (
 )
 
 blueprint = Blueprint("variables", __name__, template_folder="templates", url_prefix="/variables")
-blueprint2 = Blueprint(
-    "variables_import",
-    __name__,
-    template_folder="templates",
-    url_prefix="/variable_import",
-)
 api_blueprint = Blueprint("api_variables", __name__, url_prefix="/api/var")
 
 
@@ -45,19 +39,7 @@ api_blueprint = Blueprint("api_variables", __name__, url_prefix="/api/var")
 def index():
     return render_template(
         "variables/variables.html",
-        available_sessions=[],
         available_variable_types=["CONST"] + list(BoogieType.get_valid_type_names()),
-        query=request.args,
-        patterns=APattern().to_frontent_dict(),
-    )
-
-
-@blueprint2.route("/<rid>", methods=["GET"])
-@nocache
-def variable_import(rid):
-    return render_template(
-        "variables/variable-import-session.html",
-        id=rid,
         query=request.args,
         patterns=APattern().to_frontent_dict(),
     )

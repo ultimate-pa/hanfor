@@ -175,64 +175,6 @@ function store_variable(variables_table) {
 }
 
 /**
- * Start a new import session (redirect to the session on success).
- */
-function start_import_session() {
-    let variable_import_modal = $('#variable_import_modal');
-    let sess_name = $('#variable_import_sess_name').val();
-    let sess_revision = $('#variable_import_sess_revision').val();
-
-    variable_import_modal.LoadingOverlay('show');
-
-    $.post("api/var/start_import_session",
-        {
-            sess_name: sess_name,
-            sess_revision: sess_revision
-        },
-        function (data) {
-            variable_import_modal.LoadingOverlay('hide', true);
-            if (data['success'] === false) {
-                alert(data['errormsg']);
-            } else {
-                window.location.href = base_url + "variable_import/" + data['session_id'];
-            }
-        });
-}
-
-/**
- * Open modal for the user to trigger variable import.
- * @param sess_name
- * @param sess_revision
- */
-function open_import_modal(sess_name, sess_revision) {
-    // Prepare requirement Modal
-    let variable_import_modal = $('#variable_import_modal');
-    $('#variable_import_sess_name').val(sess_name);
-    $('#variable_import_sess_revision').val(sess_revision);
-    $('#variable_import_modal_title').html('Import from Session: ' + sess_name + ' at: ' + sess_revision);
-
-    //variable_import_modal.modal('show');
-    Modal.getOrCreateInstance(variable_import_modal).show();
-
-    // Load informations about selected var collection
-    variable_import_modal.LoadingOverlay('show');
-    $.post("api/var/var_import_info",
-        {
-            sess_name: sess_name,
-            sess_revision: sess_revision
-        },
-        function (data) {
-            variable_import_modal.LoadingOverlay('hide', true);
-            if (data['success'] === false) {
-                alert(data['errormsg']);
-            } else {
-                $('#import_tot_number').html('Total:\t' + data['tot_vars'] + ' Variables.');
-                $('#import_new_number').html('New:\t' + data['new_vars'] + ' Variables.');
-            }
-        });
-}
-
-/**
  * Apply multi edit on selected variables.
  * @param variables_table
  * @param del
@@ -984,18 +926,6 @@ $(document).ready(function () {
         } else {
             show_enumerators_in_modal(true);
         }
-    });
-
-    // Add listener for importing variables from existing sessions/revisions
-    $('.import_link').on('click', function () {
-        const sess_name = $(this).attr('data-name');
-        const sess_revision = $(this).attr('data-revision');
-
-        open_import_modal(sess_name, sess_revision);
-    });
-
-    $('#start_variable_import_session').click(function () {
-        start_import_session();
     });
 
     // Multiselect.
