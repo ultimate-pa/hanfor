@@ -827,5 +827,14 @@ class TestVariableCardDelete(TestCase):
     def test_variables_page_single_delete_removes_the_card(self):
         self.create(self.RID, "variable", {"name": "speed", "type": "int"})
 
-        self.assertTrue(self.mock_hanfor.app.post("api/var/del_var", data={"name": "speed"}).json["success"])
+        self.assertEqual(200, self.mock_hanfor.app.delete("api/v1/variables/speed").status_code)
         self.assert_gone_from_requirement()
+
+    def test_variables_page_delete_of_unknown_variable_is_not_found(self):
+        self.assertEqual(404, self.mock_hanfor.app.delete("api/v1/variables/nonexistent").status_code)
+
+    def test_variables_page_delete_of_used_variable_is_a_conflict(self):
+        result = self.mock_hanfor.app.delete("api/v1/variables/foo")
+
+        self.assertEqual(409, result.status_code)
+        self.assertIn("foo", self.variable_names())

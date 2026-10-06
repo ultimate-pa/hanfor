@@ -602,18 +602,13 @@ function add_enumerator_template(name, value) {
 function delete_enumerator(enum_name, enumerator_name, enum_dom) {
     let var_modal = $('#variable_modal');
     var_modal.LoadingOverlay('show');
-    $.post("api/var/del_var",
-        {
-            name: enum_name + '_' + enumerator_name
-        },
-        function (data) {
-            var_modal.LoadingOverlay('hide', true);
-            if (data['success'] === false) {
-                alert(data['errormsg']);
-            } else {
-                enum_dom.remove();
-            }
-        });
+    api.deleteVariable(enum_name + '_' + enumerator_name).done(function () {
+        enum_dom.remove();
+    }).fail(function (err) {
+        alert(err?.responseJSON?.errormsg || err?.statusText);
+    }).always(function () {
+        var_modal.LoadingOverlay('hide', true);
+    });
 }
 
 /**

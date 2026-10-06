@@ -118,6 +118,37 @@ class ApiVariables(Resource):
         return {"success": True, "name": variable_name}, 201
 
 
+@api_ns.route("/<string:name>")
+@log_request_response
+class ApiVariable(Resource):
+    @api_ns.doc(
+        description="Deletes the variable everywhere: in the variable list and in the requirement that "
+        "defines it. Gives 404 if the variable is not found, and 409 if a requirement or a constraint "
+        "uses it.",
+        params={"name": "The name of the variable"},
+    )
+    @api_ns.response(200, "Success")
+    @api_ns.response(404, "Not Found")
+    @api_ns.response(409, "Conflict")
+    @nocache
+    @subtype_errors_to_response
+    def delete(self, name):
+        var_collection = VariableCollection(
+            current_app.db.get_objects(Variable).values(),
+            current_app.db.get_objects(Requirement).values(),
+        )
+        if not var_collection.var_name_exists(name):
+            raise SubtypeNotFound(f"Variable `{name}` not found.")
+        logging.debug(f"Deleting `{name}`")
+        if delete_variable_everywhere(var_collection, name) is None:
+            raise Conflict(f"Variable `{name}` is used and thus cannot be deleted.")
+        if current_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
+            delete_variables([name])
+        var_collection.store()
+        current_app.db.update()
+        return {"success": True}
+
+
 @api_ns.route("/<string:name>/enumerators")
 @log_request_response
 class ApiVariableEnumerators(Resource):
@@ -264,34 +295,6 @@ def api_del_constraint():
     var_collection.store()
     current_app.db.update()
     result["html"] = formalizations_to_html(current_app, var_collection.collection[var_name].get_constraints())
-    return result
-
-
-@api_blueprint.route("/del_var", methods=["POST"])
-@nocache
-def api_del_var():
-    result = {"success": True, "errormsg": ""}
-    var_name = request.form.get("name", "").strip()
-
-    var_collection = VariableCollection(
-        current_app.db.get_objects(Variable).values(),
-        current_app.db.get_objects(Requirement).values(),
-    )
-    try:
-        logging.debug(f"Deleting `{var_name}`")
-        variable = delete_variable_everywhere(var_collection, var_name)
-        if not variable:
-            return {
-                "success": False,
-                "errormsg": "Variable is used and thus cannot be deleted.",
-            }
-        if current_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
-            delete_variables([var_name])
-        var_collection.store()
-        current_app.db.update()
-    except KeyError:
-        logging.debug("Variable `{}` not found".format(var_name))
-        result = {"success": False, "errormsg": "Variable not found."}
     return result
 
 

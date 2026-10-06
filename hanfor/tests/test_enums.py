@@ -451,7 +451,7 @@ class TestEnums(TestCase):
         self.assertIn("CONST my_third_enum_foo IS 12.123", req_file_content)
 
         # We remove one of the added vars
-        response = self.mock_hanfor.app.post("api/var/del_var", data={"name": "my_third_enum_foo"})
+        response = self.mock_hanfor.app.delete("api/v1/variables/my_third_enum_foo")
         updated_vars = self.mock_hanfor.app.get("api/v1/variables").json["data"]
 
         expected_updated_vars.remove(
