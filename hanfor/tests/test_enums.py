@@ -22,7 +22,7 @@ class TestEnums(TestCase):
 
         # We create a new ENUM "my_first_enum"
         response = self.mock_hanfor.app.post(
-            "api/var/add_new_variable", data={"name": "my_first_enum", "type": "ENUM_INT"}
+            "api/v1/variables", json={"name": "my_first_enum", "type": "ENUM_INT"}
         )
         # We expect the creation to be successful.
         self.assertEqual(response.json["success"], True)
@@ -55,7 +55,7 @@ class TestEnums(TestCase):
 
         # We create a new ENUM "my_first_enum"
         response = self.mock_hanfor.app.post(
-            "api/var/add_new_variable", data={"name": "my_first_enum", "type": "ENUM_REAL"}
+            "api/v1/variables", json={"name": "my_first_enum", "type": "ENUM_REAL"}
         )
         # We expect the creation to be successful.
         self.assertEqual(response.json["success"], True)
@@ -87,7 +87,7 @@ class TestEnums(TestCase):
 
         # We create a new ENUM "my_first_enum"
         response = self.mock_hanfor.app.post(
-            "api/var/add_new_variable", data={"name": "my_first_enum", "type": "ENUM_INT"}
+            "api/v1/variables", json={"name": "my_first_enum", "type": "ENUM_INT"}
         )
         self.assertEqual(response.json["success"], True)
         # We add 2 enumerators for "my_first_enum".
@@ -171,7 +171,7 @@ class TestEnums(TestCase):
 
         # We create a new ENUM "my_first_enum"
         response = self.mock_hanfor.app.post(
-            "api/var/add_new_variable", data={"name": "my_first_enum", "type": "ENUM_INT"}
+            "api/v1/variables", json={"name": "my_first_enum", "type": "ENUM_INT"}
         )
         self.assertEqual(response.json["success"], True)
         # We add 2 enumerators for "my_first_enum".
@@ -192,7 +192,7 @@ class TestEnums(TestCase):
         )
         # Add another enum for populated data structures
         response = self.mock_hanfor.app.post(
-            "api/var/add_new_variable", data={"name": "my_second_enum", "type": "ENUM_INT"}
+            "api/v1/variables", json={"name": "my_second_enum", "type": "ENUM_INT"}
         )
         self.assertEqual(response.json["success"], True)
         # We add 2 enumerators for "my_first_enum".
@@ -247,7 +247,7 @@ class TestEnums(TestCase):
 
         # We create a new ENUM "my_first_enum"
         response = self.mock_hanfor.app.post(
-            "api/var/add_new_variable", data={"name": "my_first_enum", "type": "ENUM_REAL"}
+            "api/v1/variables", json={"name": "my_first_enum", "type": "ENUM_REAL"}
         )
         self.assertEqual(response.json["success"], True)
         # We add 2 enumerators for "my_first_enum".
@@ -332,7 +332,7 @@ class TestEnums(TestCase):
 
         # We create a new ENUM "my_third_enum"
         response = self.mock_hanfor.app.post(
-            "api/var/add_new_variable", data={"name": "my_third_enum", "type": "ENUM_REAL"}
+            "api/v1/variables", json={"name": "my_third_enum", "type": "ENUM_REAL"}
         )
 
         self.assertEqual(response.json["success"], True)
@@ -367,7 +367,7 @@ class TestEnums(TestCase):
 
         # We create a new ENUM "my_third_enum"
         response = self.mock_hanfor.app.post(
-            "api/var/add_new_variable", data={"name": "my_third_enum", "type": "ENUM_REAL"}
+            "api/v1/variables", json={"name": "my_third_enum", "type": "ENUM_REAL"}
         )
 
         self.assertEqual(response.json["success"], True)
@@ -477,17 +477,22 @@ class TestEnums(TestCase):
 
     def test_add_var_with_no_name(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
-        response = self.mock_hanfor.app.post("api/var/add_new_variable", data={"name": "", "type": "INT"})
-        self.assertEqual(response.json["success"], False)
-        # todo: Check well-formed input and return the right status code
-        # self.assertEqual(response.status_code, 422)
+        response = self.mock_hanfor.app.post("api/v1/variables", json={"name": "", "type": "INT"})
+        self.assertEqual(400, response.status_code)
+        self.assertIn("Illegal variable name", response.json["errormsg"])
+
+    def test_add_existing_var_is_a_conflict(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
+        self.mock_hanfor.app.post("api/v1/variables", json={"name": "twice", "type": "INT"})
+        response = self.mock_hanfor.app.post("api/v1/variables", json={"name": "twice", "type": "INT"})
+        self.assertEqual(409, response.status_code)
+        self.assertIn("already existing", response.json["errormsg"])
 
     def test_add_oddly_named_var(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
-        response = self.mock_hanfor.app.post("api/var/add_new_variable", data={"name": "._", "type": "INT"})
-        self.assertEqual(response.json["success"], False)
-        # todo: Check well-formed input and return the right status code
-        # self.assertEqual(response.status_code, 422)
+        response = self.mock_hanfor.app.post("api/v1/variables", json={"name": "._", "type": "INT"})
+        self.assertEqual(400, response.status_code)
+        self.assertIn("Illegal variable name", response.json["errormsg"])
 
     def apply_update(self, update):
         for fid, entry in update.items():

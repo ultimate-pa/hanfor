@@ -1,7 +1,6 @@
 import csv
 import json
 import logging
-import re
 
 from flask import Blueprint, Request, render_template, request
 from flask_restx import Namespace, Resource
@@ -32,6 +31,7 @@ from requirements.desc_highlighting import (
     delete_variables,
     new_variables_regenerate_highlighting,
 )
+from requirements.subtypes import Conflict, InvalidPayload, subtype_errors_to_response
 
 blueprint = Blueprint("variables", __name__, template_folder="templates", url_prefix="/variables")
 api_blueprint = Blueprint("api_variables", __name__, url_prefix="/api/var")
@@ -43,6 +43,7 @@ def index():
     return render_template(
         "variables/variables.html",
         available_variable_types=["CONST"] + list(BoogieType.get_valid_type_names()),
+        variable_name_regex=Variable.NAME_REGEX,
         query=request.args,
         patterns=APattern().to_frontent_dict(),
     )
@@ -69,6 +70,50 @@ class ApiVariables(Resource):
             # Requirement.formalizations (is_constraint=True).
             entry["constraint_refs"] = [c.usage_key for c in var_collection._constraints.get(entry["name"], [])]
         return {"data": result}
+
+    @api_ns.doc(
+        description="Makes a new variable. The JSON body has 'name', 'type' and, for a CONST, 'value'. "
+        "Gives 400 if a field is not valid, and 409 if a variable with the name exists.",
+    )
+    @api_ns.response(201, "Created")
+    @api_ns.response(400, "Bad Request")
+    @api_ns.response(409, "Conflict")
+    @nocache
+    @subtype_errors_to_response
+    def post(self):
+        body = request.get_json(silent=True) or {}
+        variable_name = str(body.get("name", "")).strip()
+        variable_type = str(body.get("type", "")).strip()
+        variable_value = str(body.get("value", "")).strip()
+        var_collection = VariableCollection(
+            current_app.db.get_objects(Variable).values(),
+            current_app.db.get_objects(Requirement).values(),
+        )
+
+        try:
+            new_variable = Variable(variable_name, variable_type, None)
+        except ValueError as e:
+            raise InvalidPayload(str(e)) from e
+        if var_collection.var_name_exists(variable_name):
+            raise Conflict(f"`{variable_name}` is already existing.")
+        if variable_type not in ["ENUM_INT", "ENUM_REAL", "REAL", "INT", "BOOL", "CONST"]:
+            raise InvalidPayload(f"`{variable_type}` Is not a valid Variable type.")
+        if variable_type == "CONST":
+            try:
+                float(variable_value)
+            except ValueError as e:
+                raise InvalidPayload("Const value not valid.") from e
+
+        logging.debug(f"Adding new Variable `{variable_name}` to Variable collection.")
+        variable = var_collection.add_var(variable_name, new_variable)
+        current_app.db.add_object(variable)
+        if variable_type == "CONST":
+            var_collection.collection[variable_name].value = variable_value
+        var_collection.store()
+        current_app.db.update()
+        if current_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
+            new_variables_regenerate_highlighting({new_variable})
+        return {"success": True, "name": variable_name}, 201
 
 
 @api_blueprint.route("/get_constraints_html", methods=["POST"])
@@ -218,63 +263,6 @@ def api_del_var():
         logging.debug("Variable `{}` not found".format(var_name))
         result = {"success": False, "errormsg": "Variable not found."}
     return result
-
-
-@api_blueprint.route("/add_new_variable", methods=["POST"])
-@nocache
-def api_add_new_variable():
-    result = {"success": True, "errormsg": ""}
-    variable_name = request.form.get("name", "").strip()
-    variable_type = request.form.get("type", "").strip()
-    variable_value = request.form.get("value", "").strip()
-    var_collection = VariableCollection(
-        current_app.db.get_objects(Variable).values(),
-        current_app.db.get_objects(Requirement).values(),
-    )
-
-    # Apply some tests if the new Variable is legal.
-    if len(variable_name) == 0 or not re.match(r"^[a-zA-Z][a-zA-Z0-9_\.]*$", variable_name):
-        result = {
-            "success": False,
-            "errormsg": "Illegal Variable name. Must Be at least 1 Char and only alphanum + {_}",
-        }
-    elif var_collection.var_name_exists(variable_name):
-        result = {
-            "success": False,
-            "errormsg": f"`{variable_name}` is already existing.",
-        }
-    elif variable_type not in ["ENUM_INT", "ENUM_REAL", "REAL", "INT", "BOOL", "CONST"]:
-        result = {
-            "success": False,
-            "errormsg": f"`{variable_type}` Is not a valid Variable type.",
-        }
-    if variable_type == "CONST":
-        try:
-            float(variable_value)
-        except Exception as e:
-            logging.info(f"Cloud not cast ENUMERATORS: {e}")
-            result = {"success": False, "errormsg": "Const value not valid."}
-    # We passed all tests, so add the new variable.
-    if result["success"]:
-        logging.debug(f"Adding new Variable `{variable_name}` to Variable collection.")
-        # Check if variable is already exists is above already
-        try:
-            new_variable = Variable(variable_name, variable_type, None)
-        except ValueError as e:
-            return {"success": False, "errormsg": str(e)}
-        variable = var_collection.add_var(variable_name, new_variable)
-        current_app.db.add_object(variable)
-        if variable_type == "CONST":
-            var_collection.collection[variable_name].value = variable_value
-        var_collection.store()
-        current_app.db.update()
-        if current_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
-            new_variables_regenerate_highlighting({new_variable})
-        return result
-    return {
-        "success": False,
-        "errormsg": f"You should not reach this point, something went really wrong.",
-    }
 
 
 @api_blueprint.route("/get_enumerators", methods=["POST"])

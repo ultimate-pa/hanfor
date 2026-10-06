@@ -26,6 +26,7 @@ export default class ApiClient {
   getFormalizations(rid) { return this.get(url`/req/${rid}/formalizations`) }
   getTags() { return this.get(`/tags`) }
   getVariables() { return this.get(`/variables`) }
+  createVariable(fields) { return this.post(`/variables`, { json: fields }) }
   getGuesses(rid) { return this.get(url`/req/${rid}/guesses`) }
 
   patchFormalization(rid, fid, data) { return this.patch(url`/req/${rid}/formalizations/${fid}`, { form: { data: JSON.stringify(data) } }) }

@@ -18,7 +18,7 @@ import Mustache from "mustache"
 import store from "./formalizations/store"
 import "jquery-sortablejs"
 import TemplateRenderer from "./template/TemplateRenderer.js"
-import { AVAILABLE_VARIABLE_TYPES } from "./variables.js"
+import { AVAILABLE_VARIABLE_TYPES, VARIABLE_NAME_RE } from "./available-variable-types.js"
 import ApiClient from "./api/ApiClient.js"
 
 const api = new ApiClient()
@@ -136,8 +136,7 @@ renderer.registerType("variable", {
     const name_input = $container.find('input[aria-describedby="variable-name-feedback"]')
     function validateName() {
       const val = name_input.val().trim()
-      const re = /^[a-zA-Z][a-zA-Z0-9_.]*$/
-      if (val && !re.test(val)) {
+      if (val && !VARIABLE_NAME_RE.test(val)) {
         name_input.addClass("is-invalid")
       } else {
         name_input.removeClass("is-invalid")

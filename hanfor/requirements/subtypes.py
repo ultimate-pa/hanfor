@@ -63,6 +63,11 @@ class SubtypeNotFound(SubtypeError):
     status = 404
 
 
+class Conflict(SubtypeError):
+    """The request clashes with an element that already exists."""
+    status = 409
+
+
 class InvalidPayload(SubtypeError):
     """The request body cannot be applied to this subtype."""
 

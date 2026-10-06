@@ -1,4 +1,5 @@
 import ApiClient from "./api/ApiClient.js"
+import { AVAILABLE_VARIABLE_TYPES, VARIABLE_NAME_RE } from "./available-variable-types.js"
 require('gasparesganga-jquery-loading-overlay');
 const {Modal} = require("bootstrap");
 
@@ -19,8 +20,6 @@ let utils = require('./hanfor-utils');
 
 // Globals
 const api = new ApiClient()
-export let AVAILABLE_VARIABLE_TYPES = window.AVAILABLE_VARIABLE_TYPES
-    || ['CONST', 'ENUM_INT', 'ENUM_REAL', 'BOOL'];
 let search_autocomplete = [
     ":AND:",
     ":OR:",
@@ -58,8 +57,7 @@ function update_search() {
 
 function validateNameInput($input) {
     const val = $input.val().trim();
-    const re = /^[a-zA-Z][a-zA-Z0-9_.]*$/;
-    if (val && !re.test(val)) {
+    if (val && !VARIABLE_NAME_RE.test(val)) {
         $input.addClass("is-invalid");
         return false;
     }
@@ -583,20 +581,16 @@ function add_variable_via_modal() {
     const new_variable_name = $('#new_variable_name').val();
     const new_variable_type = $('#new_variable_type').val();
     const new_variable_value = $('#new_variable_const_value').val();
-    $.post("api/var/add_new_variable",
-        {
-            name: new_variable_name,
-            type: new_variable_type,
-            value: new_variable_value
-        },
-        function (data) {
-            if (data['success'] === false) {
-                alert(data['errormsg']);
-            } else {
-                location.reload();
-                $('#new_variable_name').val("")
-            }
-        });
+    api.createVariable({
+        name: new_variable_name,
+        type: new_variable_type,
+        value: new_variable_value
+    }).done(function () {
+        location.reload();
+        $('#new_variable_name').val("")
+    }).fail(function (err) {
+        alert(err?.responseJSON?.errormsg || err?.statusText);
+    });
 }
 
 function add_enumerator_template(name, value) {

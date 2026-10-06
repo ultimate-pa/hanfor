@@ -1,2 +1,3 @@
 export let AVAILABLE_VARIABLE_TYPES = window.AVAILABLE_VARIABLE_TYPES
     || ['CONST', 'ENUM_INT', 'ENUM_REAL', 'BOOL'];
+export const VARIABLE_NAME_RE = new RegExp(window.VARIABLE_NAME_REGEX);

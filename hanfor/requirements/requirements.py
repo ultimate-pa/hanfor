@@ -72,6 +72,7 @@ def index():
         # TODO: the object refactor will break this - fix later!!
         "requirements/index.html",
         available_variable_types=["CONST"] + list(BoogieType.get_valid_type_names()),
+        variable_name_regex=Variable.NAME_REGEX,
         query=request.args,
         additional_cols=additional_cols,
         default_cols=default_cols,

@@ -781,6 +781,7 @@ class ScopedPattern:
 @DatabaseField("description", str)
 class Variable(RequirementElement):
     CONSTRAINT_REGEX = r"^(Constraint_)(.*)(_[0-9]+$)"
+    NAME_REGEX = r"^[a-zA-Z][a-zA-Z0-9_.]*$"
 
     def of_type(self) -> FormalizationType:
         return "variable"
@@ -848,7 +849,7 @@ class Variable(RequirementElement):
         return self.tags
 
     def set_name(self, new_name):
-        if not new_name or not re.match(r"^[a-zA-Z][a-zA-Z0-9_\.]*$", new_name):
+        if not new_name or not re.match(self.NAME_REGEX, new_name):
             raise ValueError(f"Illegal variable name: `{new_name}`.")
         self.name = new_name
 
