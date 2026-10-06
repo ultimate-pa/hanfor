@@ -50,6 +50,24 @@ TagRequestModel = api_models.model(
 
 TagListModel = fields.List(Nested(TagModel))
 
+VariableRequestModel = api_models.model(
+    "Variable Request",
+    {
+        "name": fields.String(
+            required=True,
+            example="speed",
+            description="The name. It starts with a letter, then letters, digits, '_' or '.'.",
+        ),
+        "type": fields.String(
+            required=True,
+            example="INT",
+            enum=["ENUM_INT", "ENUM_REAL", "REAL", "INT", "BOOL", "CONST"],
+            description="The type of the variable.",
+        ),
+        "value": fields.String(example="12.5", description="The value. Only a CONST uses it, and it must be a number."),
+    },
+)
+
 # Requirements models
 
 RequirementModel = api_models.model(
@@ -213,7 +231,7 @@ PatternModel = api_models.model(
     "Pattern",
     {
         "name": fields.String(example="Absence"),
-        "text": fields.String(example='it is never the case that {R} holds'),
+        "text": fields.String(example="it is never the case that {R} holds"),
         "env": fields.Wildcard(fields.List(fields.String), example={"R": ["bool"]}),
     },
 )

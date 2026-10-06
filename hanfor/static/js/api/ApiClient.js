@@ -27,6 +27,7 @@ export default class ApiClient {
   getTags() { return this.get(`/tags`) }
   getVariables() { return this.get(`/variables`) }
   createVariable(fields) { return this.post(`/variables`, { json: fields }) }
+  getEnumerators(name) { return this.get(url`/variables/${name}/enumerators`) }
   getGuesses(rid) { return this.get(url`/req/${rid}/guesses`) }
 
   patchFormalization(rid, fid, data) { return this.patch(url`/req/${rid}/formalizations/${fid}`, { form: { data: JSON.stringify(data) } }) }

@@ -355,9 +355,14 @@ class TestEnums(TestCase):
         )
         self.assertEqual(response.json["success"], True)
 
-        response = self.mock_hanfor.app.post("api/var/get_enumerators", data={"name": "my_third_enum"})
+        response = self.mock_hanfor.app.get("api/v1/variables/my_third_enum/enumerators")
         self.assertEqual(response.json["enumerators"][0][0], "my_third_enum_bar")
         self.assertEqual(response.json["enumerators"][1][0], "my_third_enum_foo")
+
+    def test_get_enumerators_of_unknown_variable_is_not_found(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
+        response = self.mock_hanfor.app.get("api/v1/variables/nonexistent/enumerators")
+        self.assertEqual(404, response.status_code)
 
     def test_delete_var(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])

@@ -485,21 +485,15 @@ function show_enumerators_in_modal(revert = false) {
 }
 
 function load_enumerators_to_modal(var_name) {
-    $.post("api/var/get_enumerators",
-        {
-            name: var_name
-        },
-        function (data) {
-            if (data['success'] === false) {
-                alert(data['errormsg']);
-            } else {
-                // Remove prefix from Enumerators for display.
-                $.each(data['enumerators'], function (index, item) {
-                    const stripped_name = item[0].substr(var_name.length + 1);
-                    add_enumerator_template(stripped_name, item[1]);
-                })
-            }
-        }).done(function () {
+    api.getEnumerators(var_name).done(function (data) {
+        // Remove prefix from Enumerators for display.
+        $.each(data['enumerators'], function (index, item) {
+            const stripped_name = item[0].substr(var_name.length + 1);
+            add_enumerator_template(stripped_name, item[1]);
+        })
+    }).fail(function (err) {
+        alert(err?.responseJSON?.errormsg || err?.statusText);
+    }).always(function () {
         update_displayed_constraint_inputs();
         update_formalization(false);
         bind_expression_buttons();

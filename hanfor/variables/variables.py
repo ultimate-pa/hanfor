@@ -6,6 +6,7 @@ from flask import Blueprint, Request, render_template, request
 from flask_restx import Namespace, Resource
 
 from hanfor_flask import HanforFlask, current_app, nocache
+from lib_core.api_models import VariableRequestModel
 from lib_core import boogie_parsing
 from lib_core.boogie_parsing import BoogieType
 from lib_core.data import (
@@ -31,7 +32,7 @@ from requirements.desc_highlighting import (
     delete_variables,
     new_variables_regenerate_highlighting,
 )
-from requirements.subtypes import Conflict, InvalidPayload, subtype_errors_to_response
+from requirements.subtypes import Conflict, InvalidPayload, SubtypeNotFound, subtype_errors_to_response
 
 blueprint = Blueprint("variables", __name__, template_folder="templates", url_prefix="/variables")
 api_blueprint = Blueprint("api_variables", __name__, url_prefix="/api/var")
@@ -75,6 +76,7 @@ class ApiVariables(Resource):
         description="Makes a new variable. The JSON body has 'name', 'type' and, for a CONST, 'value'. "
         "Gives 400 if a field is not valid, and 409 if a variable with the name exists.",
     )
+    @api_ns.expect(VariableRequestModel)
     @api_ns.response(201, "Created")
     @api_ns.response(400, "Bad Request")
     @api_ns.response(409, "Conflict")
@@ -114,6 +116,34 @@ class ApiVariables(Resource):
         if current_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
             new_variables_regenerate_highlighting({new_variable})
         return {"success": True, "name": variable_name}, 201
+
+
+@api_ns.route("/<string:name>/enumerators")
+@log_request_response
+class ApiVariableEnumerators(Resource):
+    @api_ns.doc(
+        description="Gives the enumerators of the ENUM variable in the field 'enumerators', as a list of "
+        "[name, value] pairs sorted by value. Gives 404 if the variable is not found.",
+        params={"name": "The name of the ENUM variable"},
+    )
+    @api_ns.response(200, "Success")
+    @api_ns.response(404, "Not Found")
+    @nocache
+    @subtype_errors_to_response
+    def get(self, name):
+        var_collection = VariableCollection(
+            current_app.db.get_objects(Variable).values(),
+            current_app.db.get_objects(Requirement).values(),
+        )
+        if not var_collection.var_name_exists(name):
+            raise SubtypeNotFound(f"Variable `{name}` not found.")
+        enumerators = var_collection.get_enumerators(name)
+        enum_results = [(enumerator.name, enumerator.value) for enumerator in enumerators]
+        try:
+            enum_results.sort(key=lambda x: float(x[1]))
+        except Exception as e:
+            logging.info(f"Cloud not sort ENUMERATORS: {e}")
+        return {"success": True, "enumerators": enum_results}
 
 
 @api_blueprint.route("/get_constraints_html", methods=["POST"])
@@ -262,26 +292,6 @@ def api_del_var():
     except KeyError:
         logging.debug("Variable `{}` not found".format(var_name))
         result = {"success": False, "errormsg": "Variable not found."}
-    return result
-
-
-@api_blueprint.route("/get_enumerators", methods=["POST"])
-@nocache
-def api_get_enumerators():
-    result = {"success": True, "errormsg": ""}
-    enum_name = request.form.get("name", "").strip()
-    var_collection = VariableCollection(
-        current_app.db.get_objects(Variable).values(),
-        current_app.db.get_objects(Requirement).values(),
-    )
-    enumerators = var_collection.get_enumerators(enum_name)
-    enum_results = [(enumerator.name, enumerator.value) for enumerator in enumerators]
-    try:
-        enum_results.sort(key=lambda x: float(x[1]))
-    except Exception as e:
-        logging.info(f"Cloud not sort ENUMERATORS: {e}")
-    result["enumerators"] = enum_results
-
     return result
 
 
