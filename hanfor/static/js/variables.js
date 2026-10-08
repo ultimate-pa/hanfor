@@ -326,11 +326,11 @@ function delete_constraint(constraint_id) {
 }
 
 function bind_expression_buttons() {
-    $('.formalization_selector').change(function () {
+    $('.formalization_selector').off('change').change(function () {
         update_displayed_constraint_inputs();
         update_formalization();
     });
-    $('.reqirement-variable, .req_var_type').change(function () {
+    $('.reqirement-variable, .req_var_type').off('change').change(function () {
         update_formalization();
     });
 
@@ -340,7 +340,7 @@ function bind_expression_buttons() {
     //     delete_constraint($(this).attr('name'));
     // });
 
-    $('.delete_formalization').bootstrapConfirmButton({
+    $('.delete_formalization').off('click').bootstrapConfirmButton({
         onConfirm: function () {
             delete_constraint($(this).attr('name'))
         }
