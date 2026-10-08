@@ -3,7 +3,6 @@ Test the hanfor version migrations.
 
 """
 
-import json
 
 from app import app, startup_hanfor
 from lib_core.utils import setup_logging
@@ -12,7 +11,7 @@ import shutil
 from unittest import TestCase
 from unittest.mock import patch
 from lib_core.startup import HanforArgumentParser
-from tests.mock_hanfor import variables_without_ids
+from tests.mock_hanfor import variable_url, variables_without_ids
 
 HERE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_sessions")
 MOCK_DATA_FOLDER = os.path.join(HERE, "test_delete_variable")
@@ -85,10 +84,8 @@ class TestHanforVersionMigrations(TestCase):
             {"spam", "spam_ham", "foo", "egg", "spam_egg", "spam", "bar", "ham"},
             {var[key] for var in var_gets.json["data"] for key in var if key == "name"},
         )
-        del_ham_result = self.app.post(
-            "api/var/multi_update", data={"change_type": "", "selected_vars": json.dumps(["ham"]), "del": "true"}
-        )
-        self.assertEqual(True, del_ham_result.json["success"])
+        del_ham_result = self.app.delete(variable_url(self.app, "ham"))
+        self.assertEqual(200, del_ham_result.status_code)
         var_gets = self.app.get("api/v1/variables")
         self.assertEqual(
             {"spam", "spam_ham", "foo", "egg", "spam_egg", "spam", "bar"},
@@ -104,10 +101,8 @@ class TestHanforVersionMigrations(TestCase):
             {"spam", "spam_ham", "foo", "egg", "spam_egg", "spam", "bar", "ham"},
             {var[key] for var in var_gets.json["data"] for key in var if key == "name"},
         )
-        del_ham_result = self.app.post(
-            "api/var/multi_update", data={"change_type": "", "selected_vars": json.dumps(["spam_egg"]), "del": "true"}
-        )
-        self.assertEqual(True, del_ham_result.json["success"])
+        del_ham_result = self.app.delete(variable_url(self.app, "spam_egg"))
+        self.assertEqual(200, del_ham_result.status_code)
         var_gets = self.app.get("api/v1/variables")
         self.assertEqual(
             {"spam", "spam_ham", "foo", "egg", "spam", "bar", "ham"},
@@ -123,10 +118,8 @@ class TestHanforVersionMigrations(TestCase):
             {"spam", "spam_ham", "foo", "egg", "spam_egg", "spam", "bar", "ham"},
             {var[key] for var in var_gets.json["data"] for key in var if key == "name"},
         )
-        del_ham_result = self.app.post(
-            "api/var/multi_update", data={"change_type": "", "selected_vars": json.dumps(["foo"]), "del": "true"}
-        )
-        self.assertEqual(True, del_ham_result.json["success"])
+        del_ham_result = self.app.delete(variable_url(self.app, "foo"))
+        self.assertEqual(409, del_ham_result.status_code)
         var_gets = self.app.get("api/v1/variables")
         self.assertEqual(
             {"spam", "spam_ham", "foo", "egg", "spam_egg", "spam", "bar", "ham"},

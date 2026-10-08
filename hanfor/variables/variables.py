@@ -1,5 +1,4 @@
 import csv
-import json
 import logging
 
 from flask import Blueprint, render_template, request
@@ -241,63 +240,6 @@ def api_get_constraints_html():
     return result
 
 
-@api_blueprint.route("/multi_update", methods=["POST"])
-@nocache
-def api_multi_update():
-    logging.info("Multi edit Variables.")
-    result = {"success": True, "errormsg": ""}
-
-    # Get user Input.
-    change_type = request.form.get("change_type", "").strip()
-    var_list = request.form.get("selected_vars", "")
-    delete = request.form.get("del", "false")
-    if len(var_list) > 0:
-        var_list = json.loads(var_list)
-    else:
-        result["success"] = False
-        result["errormsg"] = "No variables selected."
-
-    # Update all requirements given by the rid_list
-    if result["success"]:
-        if len(change_type) > 0:  # Change the var type.
-            logging.debug("Change type to `{}`.\nAffected Vars:\n{}".format(change_type, "\n".join(var_list)))
-            var_collection = VariableCollection(
-                current_app.db.get_objects(Variable).values(),
-                current_app.db.get_objects(Requirement).values(),
-            )
-            for var_name in var_list:
-                try:
-                    logging.debug(
-                        "Set type for `{}` to `{}`. Formerly was `{}`".format(
-                            var_name,
-                            change_type,
-                            var_collection.collection[var_name].type,
-                        )
-                    )
-                    var_collection.collection[var_name].set_type(change_type)
-                except KeyError:
-                    logging.debug("Variable `{}` not found".format(var_list))
-            var_collection.store()
-
-        if delete == "true":
-            logging.info("Deleting variables.\nAffected Vars:\n{}".format("\n".join(var_list)))
-            var_collection = VariableCollection(
-                current_app.db.get_objects(Variable).values(),
-                current_app.db.get_objects(Requirement).values(),
-            )
-            for var_name in var_list:
-                try:
-                    logging.debug(f"Deleting `{var_name}`")
-                    delete_variable_everywhere(var_collection, var_name)
-                except KeyError:
-                    logging.debug(f"Variable `{var_list}` not found")
-            var_collection.store()
-            if current_app.config["FEATURE_VARIABLE_DESCRIPTION_HIGHLIGHTING"]:
-                delete_variables(var_list)
-    current_app.db.update()
-    return result
-
-
 @api_blueprint.route("/new_constraint", methods=["POST"])
 @nocache
 def api_new_constraint():
@@ -433,7 +375,7 @@ def update_variable_in_collection(app: HanforFlask, data: dict) -> dict:
     var_type = new_value("type", var_type_old)
     var_const_val = new_value("const_val", var_const_val_old)
     belongs_to_enum = new_value("belongs_to_enum", belongs_to_enum_old)
-    enumerators = data.get("enumerators") or []
+    enumerators = data.get("enumerators")
     updated_constraints = data.get("updated_constraints") is True
     result = {
         "success": True,
@@ -586,6 +528,8 @@ def update_variable_in_collection(app: HanforFlask, data: dict) -> dict:
                     requirement.run_type_checks(var_collection, SessionValue.get_standard_tags(app.db))
             app.db.update()
 
+    if enumerators is None:
+        return result
     try:
         success, errormsg, _ = var_collection.create_enum_variable(var_name, var_type, enumerators)
     except ValueError as e:

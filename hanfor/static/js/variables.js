@@ -166,31 +166,29 @@ function store_variable(variables_table) {
  * @param del
  */
 function apply_multi_edit(variables_table, del = false) {
+    const change_type = $('#multi-change-type-input').val().trim();
+    const selected = variables_table.rows({selected: true}).data().toArray();
+    if (selected.length === 0) {
+        alert('No variables selected.');
+        return;
+    }
+    if (!del && !change_type) return;
+
     let page = $('body');
     page.LoadingOverlay('show');
-    let change_type = $('#multi-change-type-input').val().trim();
-    let selected_vars = [];
-    variables_table.rows({selected: true}).every(function () {
-        let d = this.data();
-        selected_vars.push(d['name']);
+    const requests = selected.map(variable =>
+        del ? api.deleteVariable(variable.id) : api.patchVariable(variable.id, {type: change_type})
+    );
+    Promise.allSettled(requests).then(function (results) {
+        const failed = results
+            .map((result, i) => [result, selected[i]])
+            .filter(([result]) => result.status === 'rejected')
+            .map(([result, variable]) =>
+                `${variable.name}: ${result.reason?.responseJSON?.errormsg || result.reason?.statusText}`);
+        page.LoadingOverlay('hide', true);
+        if (failed.length) alert(failed.join('\n'));
+        location.reload();
     });
-
-    // Update selected vars.
-    $.post("api/var/multi_update",
-        {
-            change_type: change_type,
-            selected_vars: JSON.stringify(selected_vars),
-            del: del
-        },
-        // Update requirements table on success or show an error message.
-        function (data) {
-            page.LoadingOverlay('hide', true);
-            if (data['success'] === false) {
-                alert(data['errormsg']);
-            } else {
-                location.reload();
-            }
-        });
 }
 
 /**

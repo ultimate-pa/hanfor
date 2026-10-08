@@ -353,6 +353,17 @@ class TestEnums(TestCase):
         self.assertEqual("CONST", variables["limit"]["type"])
         self.assertEqual("7", variables["limit"]["const_val"])
 
+    def test_patch_without_enumerators_keeps_them(self):
+        self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
+        self.mock_hanfor.app.post("api/v1/variables", json={"name": "mode", "type": "ENUM_INT"})
+        self.mock_hanfor.app.patch(variable_url(self.mock_hanfor.app, "mode"), json={"enumerators": [["on", "1"]]})
+
+        response = self.mock_hanfor.app.patch(variable_url(self.mock_hanfor.app, "mode"), json={"type": "ENUM_INT"})
+        self.assertEqual(200, response.status_code)
+
+        enumerators = self.mock_hanfor.app.get(variable_url(self.mock_hanfor.app, "mode", "/enumerators")).json
+        self.assertEqual(["mode_on"], [e[0] for e in enumerators["enumerators"]])
+
     def test_patch_answers_used_by_from_the_server(self):
         self.mock_hanfor.startup_hanfor("simple.csv", "simple_enum", [])
         response = self.mock_hanfor.app.patch(variable_url(self.mock_hanfor.app, "foo"), json={"used_by": ["made up"]})

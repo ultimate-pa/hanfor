@@ -813,13 +813,6 @@ class TestVariableCardDelete(TestCase):
         self.assertListEqual([], remaining)
         self.assertNotIn("speed", self.variable_names())
 
-    def test_variables_page_multi_delete_removes_the_card(self):
-        self.create(self.RID, "variable", {"name": "speed", "type": "int"})
-
-        data = {"change_type": "", "selected_vars": json.dumps(["speed"]), "del": "true"}
-        self.assertTrue(self.mock_hanfor.app.post("api/var/multi_update", data=data).json["success"])
-        self.assert_gone_from_requirement()
-
     def test_variables_page_single_delete_removes_the_card(self):
         self.create(self.RID, "variable", {"name": "speed", "type": "int"})
 
