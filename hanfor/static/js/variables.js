@@ -319,24 +319,10 @@ function update_formalization(changes = true) {
 function delete_constraint(constraint_id) {
     let requirement_modal_content = $('.modal-content');
     requirement_modal_content.LoadingOverlay('show');
-    const var_name = $('#variable_name').val();
-    $.post("api/var/del_constraint",
-        {
-            name: var_name,
-            constraint_id: constraint_id
-        },
-        function (data) {
-            requirement_modal_content.LoadingOverlay('hide', true);
-            if (data['success'] === false) {
-                alert(data['errormsg']);
-            } else {
-                $('#formalization_accordion').html(data['html']);
-            }
-        }).done(function () {
-        update_displayed_constraint_inputs();
-        update_formalization(false);
-        bind_expression_buttons();
-    });
+    api.deleteVariableConstraint($('#variable_id').val(), constraint_id)
+        .then(() => get_variable_constraints_html($('#variable_name').val()))
+        .fail(e => alert(e.responseJSON?.errormsg || e.statusText))
+        .always(() => requirement_modal_content.LoadingOverlay('hide', true));
 }
 
 function bind_expression_buttons() {
@@ -362,37 +348,23 @@ function bind_expression_buttons() {
 }
 
 function add_constraint() {
-    // Request a new Constraint/Formalization. And add its edit elements to the modal.
     let var_modal_content = $('.modal-content');
     var_modal_content.LoadingOverlay('show');
-
-    // Get data.
-    const var_name = $('#variable_name').val();
-
-    // Store the variable.
-    $.post("api/var/new_constraint",
-        {
-            name: var_name
-        },
-        // Update var table on success or show an error message.
-        function (data) {
-            var_modal_content.LoadingOverlay('hide', true);
-            let constraint = $(data['html'])
-            if (data['success'] === false) {
-                alert(data['errormsg']);
-            } else {
+    api.addVariableConstraint($('#variable_id').val())
+        .then(created => $.post("api/var/get_constraints_html", {name: $('#variable_name').val()})
+            .then(data => {
                 $('#formalization_accordion .no-constraints-placeholder').remove();
-                constraint.appendTo('#formalization_accordion');
-            }
-        }).done(function () {
-        update_displayed_constraint_inputs();
-        update_formalization(false);
-        bind_expression_buttons();
-    });
+                $(data['html']).filter(`.accordion-item[data-id="${created.id}"]`).appendTo('#formalization_accordion');
+                update_displayed_constraint_inputs();
+                update_formalization(false);
+                bind_expression_buttons();
+            }))
+        .fail(e => alert(e.responseJSON?.errormsg || e.statusText))
+        .always(() => var_modal_content.LoadingOverlay('hide', true));
 }
 
 function get_variable_constraints_html(var_name) {
-    $.post("api/var/get_constraints_html",
+    return $.post("api/var/get_constraints_html",
         {
             name: var_name
         },

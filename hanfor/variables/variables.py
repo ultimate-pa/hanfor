@@ -188,6 +188,69 @@ class ApiVariable(Resource):
         return result
 
 
+@api_ns.route("/<uuid:vid>/constraints")
+@log_request_response
+class ApiVariableConstraints(Resource):
+    @api_ns.doc(
+        description="Gives the constraints of the variable as a list. Each constraint has its id, scope, pattern, "
+        "expressions and type inference errors. Gives 404 if the variable is not found.",
+        params={"vid": "The id (uuid) of the variable"},
+    )
+    @api_ns.response(200, "Success")
+    @api_ns.response(404, "Not Found")
+    @nocache
+    @subtype_errors_to_response
+    def get(self, vid):
+        return [
+            {**constraint.to_dict(), "type_inference_errors": constraint.type_inference_errors}
+            for constraint in _load_variable(vid).get_constraints().values()
+        ]
+
+    @api_ns.doc(
+        description="Adds an empty constraint to the variable. Gives the id of the new constraint. "
+        "Gives 404 if the variable is not found.",
+        params={"vid": "The id (uuid) of the variable"},
+    )
+    @api_ns.response(201, "Created")
+    @api_ns.response(404, "Not Found")
+    @nocache
+    @subtype_errors_to_response
+    @write_locked
+    def post(self, vid):
+        cid = _load_variable(vid).add_constraint()
+        current_app.db.update()
+        return {"success": True, "id": cid}, 201
+
+
+@api_ns.route("/<uuid:vid>/constraints/<int:cid>")
+@log_request_response
+class ApiVariableConstraint(Resource):
+    @api_ns.doc(
+        description="Deletes the constraint of the variable and checks the types of the other constraints again. "
+        "Gives 404 if the variable or the constraint is not found.",
+        params={"vid": "The id (uuid) of the variable", "cid": "The id of the constraint"},
+    )
+    @api_ns.response(200, "Success")
+    @api_ns.response(404, "Not Found")
+    @nocache
+    @subtype_errors_to_response
+    @write_locked
+    def delete(self, vid, cid):
+        name = _load_variable(vid).name
+        var_collection = VariableCollection(
+            current_app.db.get_objects(Variable).values(),
+            current_app.db.get_objects(Requirement).values(),
+        )
+        if not var_collection.del_constraint(var_name=name, constraint_id=cid):
+            raise SubtypeNotFound(f"Constraint `{cid}` of variable `{name}` not found.")
+        var_collection.collection[name].reload_constraints_type_inference_errors(
+            var_collection, SessionValue.get_standard_tags(current_app.db)
+        )
+        var_collection.store()
+        current_app.db.update()
+        return {"success": True}
+
+
 @api_ns.route("/<uuid:vid>/enumerators")
 @log_request_response
 class ApiVariableEnumerators(Resource):
@@ -316,45 +379,6 @@ def api_get_constraints_html():
     if formalizations:
         result["html"] = formalizations_to_html(current_app, formalizations)
         result["type_inference_errors"] = {fid: f.type_inference_errors for fid, f in formalizations.items()}
-    return result
-
-
-@api_blueprint.route("/new_constraint", methods=["POST"])
-@nocache
-def api_new_constraint():
-    result = {"success": True, "errormsg": ""}
-    var_name = request.form.get("name", "").strip()
-
-    var_collection = VariableCollection(
-        current_app.db.get_objects(Variable).values(),
-        current_app.db.get_objects(Requirement).values(),
-    )
-    cid = var_collection.add_new_constraint(var_name=var_name)
-    var_collection.store()
-    current_app.db.update()
-    form = var_collection.collection[var_name].constraints[cid]
-    result["html"] = formalizations_to_html(current_app, {cid: form})
-    return result
-
-
-@api_blueprint.route("/del_constraint", methods=["POST"])
-@nocache
-def api_del_constraint():
-    result = {"success": True, "errormsg": ""}
-    var_name = request.form.get("name", "").strip()
-    constraint_id = int(request.form.get("constraint_id", "").strip())
-
-    var_collection = VariableCollection(
-        current_app.db.get_objects(Variable).values(),
-        current_app.db.get_objects(Requirement).values(),
-    )
-    var_collection.del_constraint(var_name=var_name, constraint_id=constraint_id)
-    var_collection.collection[var_name].reload_constraints_type_inference_errors(
-        var_collection, SessionValue.get_standard_tags(current_app.db)
-    )
-    var_collection.store()
-    current_app.db.update()
-    result["html"] = formalizations_to_html(current_app, var_collection.collection[var_name].get_constraints())
     return result
 
 

@@ -80,14 +80,16 @@ class TestHanforVersionMigrations(TestCase):
             },
             variables_without_ids(self.app),
         )
-        add_constraint = self.app.post("api/var/new_constraint", data={"name": "egg"})
-        self.assertEqual(True, add_constraint.json["success"])
-        self.assertEqual(200, add_constraint.status_code)
+        add_constraint = self.app.post(variable_url(self.app, "egg", "/constraints"))
+        self.assertEqual(0, add_constraint.json["id"])
+        self.assertEqual(201, add_constraint.status_code)
+        self.assertEqual([0], [c["id"] for c in self.app.get(variable_url(self.app, "egg", "/constraints")).json])
 
-        delete_constraint = self.app.post("api/var/del_constraint", data={"name": "egg", "constraint_id": 0})
+        delete_constraint = self.app.delete(variable_url(self.app, "egg", "/constraints/0"))
         self.assertEqual(True, delete_constraint.json["success"])
-        self.assertEqual(200, add_constraint.status_code)
-        add_constraint = self.app.post("api/var/new_constraint", data={"name": "egg"})
+        self.assertEqual(200, delete_constraint.status_code)
+        self.assertEqual(404, self.app.delete(variable_url(self.app, "egg", "/constraints/0")).status_code)
+        add_constraint = self.app.post(variable_url(self.app, "egg", "/constraints"))
         change_type = self.app.patch(
             variable_url(self.app, "egg"),
             json={
@@ -107,7 +109,7 @@ class TestHanforVersionMigrations(TestCase):
             },
         )
         self.assertEqual(True, change_type.json["success"])
-        self.assertEqual(200, add_constraint.status_code)
+        self.assertEqual(200, change_type.status_code)
         for t in variables_without_ids(self.app):
             if t["name"] == "egg":
                 self.assertEqual(
