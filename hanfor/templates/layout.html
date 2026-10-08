@@ -6,6 +6,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <meta name="description" content="Requirements transformer web frontend.">
         <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+        <script>
+            if (localStorage.getItem('color_mode') === 'dark') {
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+            }
+        </script>
         {% if not config.DEBUG %}
             <link rel="stylesheet" href="{{ url_for('static', filename='dist/layout_globals.css') }}">
         {% endif %}

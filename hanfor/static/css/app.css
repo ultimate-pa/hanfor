@@ -32,9 +32,15 @@
   z-index: 9999999 !important;
 }
 
+[data-bs-theme="dark"] .ui-widget-content {
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  border-color: var(--bs-border-color);
+}
+
 /* Fix Tokenfield close button */
 .tokenfield .close {
-  color: #000;
+  color: var(--bs-body-color);
   opacity: 0.2;
   text-decoration: none;
 }
@@ -75,7 +81,7 @@
 /* Centered content */
 .overlay-content {
   text-align: center;
-  background: white;
+  background: var(--bs-body-bg);
   padding: 30px;
   border-radius: 10px;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);

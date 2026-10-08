@@ -2,10 +2,6 @@
 
 code {
     padding: .2rem .4rem;
-    background-color: #f7f7f9;
+    background-color: var(--bs-tertiary-bg);
     border-radius: .25rem;
-}
-
-[data-theme ="dark"] {
-    @import "dark-theme.scss";
 }

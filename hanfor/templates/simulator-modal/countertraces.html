@@ -16,7 +16,7 @@
                         <h6>Formalizations / Countertraces</h6>
                         <div class="d-grid gap-2">
                             {% for formalization, peas in formalizations.items() %}
-                                <div class="px-3 py-2 rounded bg-light border font-monospace">
+                                <div class="px-3 py-2 rounded bg-body-tertiary border font-monospace">
                                     {{ formalization.get_string() }}
                                 </div>
 
@@ -26,7 +26,7 @@
                                             {% for dc_phase in pea.countertrace.dc_phases %}
                                                 {{ ";" if loop.index > 1 }}
                                                 <code id="{{ "%s_%s_%s_%s_dc_phase" % (requirement.rid, formalization.id, countertrace_id, loop.index - 1) }}"
-                                                      class="text-dark bg-opacity-25">{{ dc_phase }}</code>
+                                                      class="text-body-emphasis bg-opacity-25">{{ dc_phase }}</code>
                                             {% endfor %}
                                         </li>
                                     {% endfor %}

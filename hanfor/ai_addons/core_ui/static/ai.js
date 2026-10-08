@@ -110,7 +110,7 @@ function btnDefault(isDefault, action, dataset) {
 
 function modelCard(provider, m) {
   return `
-    <div class="card mb-2 border-0 bg-light">
+    <div class="card mb-2 border-0 bg-body-tertiary">
       <div class="card-body py-2 px-3">
         <div class="d-flex align-items-center justify-content-between mb-1">
           <div class="d-flex align-items-center gap-2">

@@ -238,7 +238,7 @@ function init_simulator_modal(data) {
                     dataset.hidden = true
                     y_scale.display = false
                     y_scale.stackWeight = 0.001
-                    input_prepend.css('background-color', '#e9ecef')
+                    input_prepend.css('background-color', 'var(--bs-tertiary-bg)')
                 }
             }
 
