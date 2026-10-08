@@ -46,6 +46,13 @@ class TestReqFileExport(TestCase):
         self.assertIn("Input foo IS unknown", content)
         self.assertNotIn("SysRS_FooXY_42_0", content)
 
+    def test_export_endpoint_returns_variables_only_file(self):
+        response = self.mock_hanfor.app.get("/api/v1/variables/export")
+
+        self.assertEqual(200, response.status_code)
+        self.assertIn("attachment", response.headers["Content-Disposition"])
+        self.assertEqual(self.content(variables_only=True), response.get_data(as_text=True))
+
     def test_variable_constraints_are_exported_in_full(self):
         """Pins the whole constraint list: `except Exception: pass` used to abandon it mid-iteration."""
         with app.app_context():

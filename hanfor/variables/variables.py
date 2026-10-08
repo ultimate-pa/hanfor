@@ -215,6 +215,21 @@ class ApiVariableEnumerators(Resource):
         return {"success": True, "enumerators": enum_results}
 
 
+@api_ns.route("/export", endpoint="variables_export")
+@log_request_response
+class ApiVariablesExport(Resource):
+    @api_ns.doc(
+        description="Get a .req file that contains all variables of the session and their constraints. "
+        "The file contains no requirements."
+    )
+    @api_ns.response(200, "Success")
+    @nocache
+    def get(self):
+        content = generate_req_file_content(current_app, variables_only=True)
+        name = "{}_variables_only.req".format(current_app.config["CSV_INPUT_FILE"][:-4])
+        return generate_file_response(content, name)
+
+
 @api_blueprint.route("/get_constraints_html", methods=["POST"])
 @nocache
 def api_get_constraints_html():
@@ -277,15 +292,6 @@ def api_del_constraint():
     current_app.db.update()
     result["html"] = formalizations_to_html(current_app, var_collection.collection[var_name].get_constraints())
     return result
-
-
-@api_blueprint.route("/gen_req", methods=["POST"])
-@nocache
-def api_gen_req():
-    content = generate_req_file_content(current_app, variables_only=True)
-    name = "{}_variables_only.req".format(current_app.config["CSV_INPUT_FILE"][:-4])
-
-    return generate_file_response(content, name)
 
 
 @api_blueprint.route("/import_csv", methods=["POST"])

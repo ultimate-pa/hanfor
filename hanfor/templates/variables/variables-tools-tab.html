@@ -1,10 +1,8 @@
 <div class="row g-2">
     <div class="col-12">
-        <form id="generate_req_form" method="post" action="{{ url_for('api_variables.api_gen_req') }}"
-              target="_blank"></form>
-        <button id="generate_req" class="btn btn-secondary w-100" type="button">
+        <a id="generate_req" class="btn btn-secondary w-100" href="{{ url_for('variables_export') }}">
             Generate .req file for variables.
-        </button>
+        </a>
     </div>
     <div class="col-12">
         <button class="btn btn-success w-100 add-new-enum" type="button" data-bs-toggle="modal"

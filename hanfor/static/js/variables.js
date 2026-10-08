@@ -984,10 +984,6 @@ $(document).ready(function () {
         }
     });
 
-    $('#generate_req').click(function () {
-        $('#generate_req_form').submit();
-    });
-
     // Clear all applied searches.
     $('.clear-all-filters').click(function () {
         $('#search_bar').val('').effect("highlight", {color: 'green'}, 500);
