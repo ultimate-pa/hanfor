@@ -230,6 +230,70 @@ class ApiVariablesExport(Resource):
         return generate_file_response(content, name)
 
 
+@api_ns.route("/import")
+@log_request_response
+class ApiVariablesImport(Resource):
+    @api_ns.doc(
+        description="Add the variables from a CSV text to the session. "
+        'Send a JSON body with the key "csv". '
+        "The CSV must have the columns name, enum_name, description, type, value and constraint. "
+        "The import skips a row if the name is empty or invalid, or if the variable exists."
+    )
+    @api_ns.response(200, "Success")
+    @api_ns.response(400, "Bad Request")
+    @nocache
+    @subtype_errors_to_response
+    @write_locked
+    def post(self):
+        variables_csv_str = (request.get_json(silent=True) or {}).get("csv", "")
+        var_collection = VariableCollection(
+            current_app.db.get_objects(Variable).values(),
+            current_app.db.get_objects(Requirement).values(),
+        )
+
+        dict_reader = csv.DictReader(variables_csv_str.splitlines())
+        variables = list(dict_reader)
+
+        missing_fieldnames = {
+            "name",
+            "enum_name",
+            "description",
+            "type",
+            "value",
+            "constraint",
+        }.difference(dict_reader.fieldnames or [])
+        if len(missing_fieldnames) > 0:
+            raise InvalidPayload(f"Import failed due to missing fieldnames: {missing_fieldnames}.")
+
+        for variable in variables:
+            if variable["name"] == "" or var_collection.var_name_exists(variable["name"]):
+                continue
+            try:
+                current_app.db.add_object(var_collection.add_var(variable["name"]))
+            except ValueError as e:
+                logging.warning(f"Skipping CSV import for invalid variable name: {e}")
+                continue
+            var_collection.collection[variable["name"]].belongs_to_enum = variable["enum_name"]
+            var_collection.set_type(variable["name"], variable["type"])
+            var_collection.collection[variable["name"]].value = variable["value"]
+            var_collection.collection[variable["name"]].description = variable["description"]
+
+            if variable["constraint"] != "":
+                constraint_id = var_collection.collection[variable["name"]].add_constraint()
+                var_collection.collection[variable["name"]].update_constraint(
+                    constraint_id,
+                    Scope.GLOBALLY.name,
+                    "Universality",
+                    {"R": variable["constraint"]},
+                    var_collection,
+                    SessionValue.get_standard_tags(current_app.db),
+                )
+
+        var_collection.store()
+        current_app.db.update()
+        return {"success": True}
+
+
 @api_blueprint.route("/get_constraints_html", methods=["POST"])
 @nocache
 def api_get_constraints_html():
@@ -291,62 +355,6 @@ def api_del_constraint():
     var_collection.store()
     current_app.db.update()
     result["html"] = formalizations_to_html(current_app, var_collection.collection[var_name].get_constraints())
-    return result
-
-
-@api_blueprint.route("/import_csv", methods=["POST"])
-@nocache
-def api_import_csv():
-    result = {"success": True, "errormsg": ""}
-
-    variables_csv_str = request.form.get("variables_csv_str", "")
-    var_collection = VariableCollection(
-        current_app.db.get_objects(Variable).values(),
-        current_app.db.get_objects(Requirement).values(),
-    )
-
-    dict_reader = csv.DictReader(variables_csv_str.splitlines())
-    variables = list(dict_reader)
-
-    missing_fieldnames = {
-        "name",
-        "enum_name",
-        "description",
-        "type",
-        "value",
-        "constraint",
-    }.difference(dict_reader.fieldnames)
-    if len(missing_fieldnames) > 0:
-        result["errormsg"] = f"Import failed due to missing fieldnames: {missing_fieldnames}."
-        result["success"] = False
-        return result
-
-    for variable in variables:
-        if variable["name"] == "" or var_collection.var_name_exists(variable["name"]):
-            continue
-        try:
-            current_app.db.add_object(var_collection.add_var(variable["name"]))
-        except ValueError as e:
-            logging.warning(f"Skipping CSV import for invalid variable name: {e}")
-            continue
-        var_collection.collection[variable["name"]].belongs_to_enum = variable["enum_name"]
-        var_collection.set_type(variable["name"], variable["type"])
-        var_collection.collection[variable["name"]].value = variable["value"]
-        var_collection.collection[variable["name"]].description = variable["description"]
-
-        if variable["constraint"] != "":
-            constraint_id = var_collection.collection[variable["name"]].add_constraint()
-            var_collection.collection[variable["name"]].update_constraint(
-                constraint_id,
-                Scope.GLOBALLY.name,
-                "Universality",
-                {"R": variable["constraint"]},
-                var_collection,
-                SessionValue.get_standard_tags(current_app.db),
-            )
-
-    var_collection.store()
-    current_app.db.update()
     return result
 
 

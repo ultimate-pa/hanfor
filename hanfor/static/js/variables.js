@@ -1001,24 +1001,11 @@ $(document).ready(function () {
         update_new_var_const_value_input();
     });
 
-    $('#import-variables-from-csv-input').change(function () {
-        const file_reader = new FileReader()
-        file_reader.onload = function () {
-            $.ajax({
-                type: 'POST', url: 'api/var/import_csv', data: {
-                    variables_csv_str: file_reader.result
-                }, success: function (response) {
-                    if (response['success'] === false) {
-                        alert(response['errormsg'])
-                        return
-                    }
-
-                    location.reload();
-                }
-            })
-        }
-
-        file_reader.readAsText($('#import-variables-from-csv-input').prop('files')[0]);
+    $('#import-variables-from-csv-input').change(async function () {
+        const csv = await this.files[0].text();
+        api.importVariables(csv)
+            .done(() => location.reload())
+            .fail(e => alert(e.responseJSON?.errormsg || e.statusText));
     })
 });
 

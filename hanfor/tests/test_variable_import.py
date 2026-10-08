@@ -93,10 +93,8 @@ class TestVariableImport(TestCase):
         self.assertEqual(var_gets.json["data"], [])
 
         response = self.app.post(
-            "api/var/import_csv",
-            data={
-                "variables_csv_str": csv_str,
-            },
+            "api/v1/variables/import",
+            json={"csv": csv_str},
         )
         self.assertEqual(True, response.json["success"])
 
@@ -115,3 +113,13 @@ class TestVariableImport(TestCase):
             },
             {var[key] for var in var_gets.json["data"] for key in var if key == "name"},
         )
+
+    def test_import_with_missing_columns_is_rejected(self):
+        args = HanforArgumentParser(app).parse_args(["test_variable_import"])
+        self.startup_hanfor(args, user_mock_answers=[])
+
+        response = self.app.post("api/v1/variables/import", json={"csv": '"name","type"\n"foo","bool"\n'})
+
+        self.assertEqual(400, response.status_code)
+        self.assertIn("missing fieldnames", response.json["errormsg"])
+        self.assertEqual([], self.app.get("api/v1/variables").json["data"])
