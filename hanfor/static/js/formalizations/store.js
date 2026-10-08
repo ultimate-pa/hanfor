@@ -1,5 +1,6 @@
 import ApiClient from "../api/ApiClient.js"
 import TrackedStore from "../store/TrackedStore.js"
+import { read_formalization_card } from "./formalization-card.js"
 
 const api = new ApiClient()
 const store = new TrackedStore()
@@ -8,24 +9,7 @@ store.registerType("formalization", {
   readDOM(id) {
     const card = $(`.formalization_card[title="${id}"]`)
     if (!card.length) return null
-
-    const data = { temp_id: String(id), expression_mapping: {} }
-
-    card.find("select").each(function () {
-      if ($(this).hasClass("scope_selector")) data.scope = $(this).val()
-      if ($(this).hasClass("pattern_selector")) data.pattern = $(this).val()
-      console.log(`Scope: ${data.scope}, Pattern: ${data.pattern}`)
-    })
-
-    data.is_constraint = card.find(".is-constraint-checkbox").is(":checked")
-    console.log(`Constraint: ${data.is_constraint}`)
-
-    card.find("textarea.reqirement-variable").each(function () {
-      const title = $(this).attr("title")
-      if (title) data.expression_mapping[title] = $(this).val()
-    })
-
-    return data
+    return { temp_id: String(id), ...read_formalization_card(card) }
   },
   persistCreate: (rid, drafts) => api.createMany(rid, "formalization", drafts),
   persistDelete: (rid, id) => api.deleteFormalization(rid, id),

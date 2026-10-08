@@ -18,6 +18,8 @@ import Mustache from "mustache"
 import store from "./formalizations/store"
 import "jquery-sortablejs"
 import TemplateRenderer from "./template/TemplateRenderer.js"
+import { FORMALIZATION_TYPE, read_formalization_card, update_previews, update_var_groups } from "./formalizations/formalization-card.js"
+import { bind_card_events, patch_edited_cards, show_save_errors } from "./formalizations/card-accordion.js"
 import { AVAILABLE_VARIABLE_TYPES, VARIABLE_NAME_RE } from "./available-variable-types.js"
 import ApiClient from "./api/ApiClient.js"
 
@@ -43,55 +45,7 @@ let Fuse = require("fuse.js")
 let fuse = new Fuse([], {})
 
 let renderer = new TemplateRenderer({ baseUrl: "/static/templates/formalizations" })
-// register the types of formalizations with the identifier from the "type" supplied in the API
-// second example not convoluted with comments is directly below (if noone moved it)
-renderer.registerType("formalization", {
-  // define the defaults for generating an empty entry
-  defaults: {
-    order: 0,
-    text: "// None, no pattern set",
-    formalization_type: "formalization",
-    scope: "NONE",
-    pattern: "NotFormalizable",
-  },
-  // a selector that fetches the correct template for the type
-  template: "formalization",
-  container: "container",
-  contentSelector: ".accordion-collapse",
-  requires: ["save_error_toast"],
-  withPatterns: true,
-  // each function can define after render behavior function that gets applied
-  // after mustache renders it, i.e setting the required variable placeholders as visible
-  afterRender: ($container, entry) => {
-    if (entry.scope) $container.find(`#requirement_scope${entry.id}`).val(entry.scope)
-    if (entry.pattern) $container.find(`#requirement_pattern${entry.id}`).val(entry.pattern)
-    $container.find(`#is_constraint${entry.id}`).prop("checked", !!entry.is_constraint)
-    const vars = ["P", "Q", "R", "S", "T", "U", "V"]
-    vars.forEach((v) => {
-      const val = entry[`expr_${v}`]
-      if (!val) {
-        $container.find(`#requirement_var_group_${v.toLowerCase()}${entry.id}`).hide()
-      }
-    })
-    // this is the title observer for changing the text of the drafts so the users
-    // have easier time knowing which drafts did they create
-    const preview = $container.find(`#current_formalization_textarea${entry.id}`)
-    const accordionItem = $container.closest(".accordion-item")
-    const updateTitle = () => {
-      const text = preview.text().trim() || "// None, no pattern set"
-      accordionItem.attr("title", text)
-      accordionItem.find(".accordion-button").text(text)
-    }
-    updateTitle()
-    // if preview gets updated dynamically, watch it
-    const observer = new MutationObserver(updateTitle)
-    observer.observe(preview[0], {
-      childList: true,
-      subtree: true,
-      characterData: true,
-    })
-  },
-})
+renderer.registerType("formalization", FORMALIZATION_TYPE)
 
 function debounce(fn, delay) {
   let timer
@@ -205,10 +159,6 @@ $(document).on("click", ".del_enum", function () {
   $("#requirement_modal").data("unsaved_changes", true)
 })
 
-$(document).on("input change", "#formalization_accordion > .accordion-item :input", function () {
-  $(this).closest(".accordion-item").addClass("draft")
-})
-
 $(document).on("input", ".enum_name_input, .enum_value_input", function () {
   $("#requirement_modal").data("unsaved_changes", true)
 })
@@ -266,12 +216,7 @@ $(document).ready(function () {
   //     }
   // });
 
-  $("body").bootstrapConfirmButton({
-    selector: ".delete_formalization",
-    onConfirm: function () {
-      delete_formalization($(this).attr("name"), $(this).closest(".accordion-item"))
-    },
-  })
+  bind_card_events("#formalization_accordion", { onChange: refresh_cards, onDelete: delete_formalization })
 
   $("body").bootstrapConfirmButton({
     selector: ".delete_variable",
@@ -312,21 +257,9 @@ $(document).ready(function () {
     }, 600)
   })
 
-  // Bind formalization update.
-  body.on(
-    "change",
-    ".formalization_selector, .reqirement-variable, .req_var_type, .is-constraint-checkbox",
-    function () {
-      update_formalization()
-    }
-  )
   // Bind is_constraint checkbox change so the save flag is set.
   body.on("change", ".is-constraint-checkbox", function () {
     $("#requirement_modal").data("unsaved_changes", true)
-  })
-  // Bind formalization variable update.
-  body.on("change", ".formalization_selector", function () {
-    update_vars()
   })
 
   /*
@@ -681,14 +614,7 @@ function store_requirement(requirements_table) {
       })
       formalization["enumerators"] = enumerators
     } else {
-      formalization["scope"] = $item.find(".scope_selector").val()
-      formalization["pattern"] = $item.find(".pattern_selector").val()
-      formalization["is_constraint"] = $item.find(".is-constraint-checkbox").is(":checked")
-      formalization["expression_mapping"] = {}
-      $item.find("textarea.reqirement-variable").each(function () {
-        const title = $(this).attr("title")
-        if (title) formalization["expression_mapping"][title] = $(this).val()
-      })
+      formalization = read_formalization_card($item)
     }
 
     formalizations[id] = formalization
@@ -717,7 +643,9 @@ function store_requirement(requirements_table) {
     store.commitCreated(req_id, "formalization"),
     store.commitCreated(req_id, "variable"),
   ).then(() =>
-    patch_edited_cards(req_id, committedFormalizations),
+    patch_edited_cards($("#formalization_accordion"), committedFormalizations, (id, entry) =>
+      api.patchFormalization(req_id, store.resolveId(id), entry),
+    ),
   ).then(() =>
     api.patchRequirement(req_id, {
       tags: Object.fromEntries(tag_comments),
@@ -734,41 +662,11 @@ function store_requirement(requirements_table) {
   }).fail(function (err) {
     requirement_modal_content.LoadingOverlay("hide", true)
     if (err?.responseJSON?.errors) {
-      show_save_errors(err.responseJSON.errors)
+      show_save_errors(renderer, $("#formalization_accordion"), err.responseJSON.errors)
       return
     }
     alert(`Save failed (${err?.status}): ${err?.responseJSON?.errormsg || err?.statusText || "Unknown error"}`)
   })
-}
-
-async function patch_edited_cards(req_id, cards) {
-  const results = await Promise.allSettled(
-    cards.map(([id, entry]) => api.patchFormalization(req_id, store.resolveId(id), entry)),
-  )
-  const errors = {}
-  results.forEach((result, i) => {
-    const [id] = cards[i]
-    if (result.status === "fulfilled") {
-      $(`#formalization_accordion > .accordion-item[data-id="${id}"]`).removeClass("draft")
-    } else {
-      errors[id] = result.reason?.responseJSON?.errormsg || result.reason?.statusText
-    }
-  })
-  if (Object.keys(errors).length) {
-    throw { responseJSON: { errors } }
-  }
-}
-
-function show_save_errors(errors) {
-  const items = Object.entries(errors).map(([temp_id, message]) => {
-    const card = $(`#formalization_accordion > .accordion-item[data-id="${temp_id}"]`)
-    card.addClass("border-danger")
-    return { name: card.find(".accordion-button").first().text().trim() || temp_id, message }
-  })
-  const toast = $(Mustache.render(renderer.getTemplate("save_error_toast"), { errors: items }).trim())
-  $("#save_error_toasts").append(toast)
-  toast[0].addEventListener("hidden.bs.toast", () => toast.remove())
-  Toast.getOrCreateInstance(toast[0], { autohide: false }).show()
 }
 
 /**
@@ -1248,7 +1146,7 @@ function init_modal() {
   })
 
   // Initialize variables.
-  update_vars()
+  refresh_cards()
 }
 
 function getCookie(name) {
@@ -1352,9 +1250,8 @@ async function load_requirement(row_idx) {
           $("#formalization_accordion").append($formalization)
         })
     }).done(function () {
-      update_vars()
       bind_var_autocomplete()
-      update_formalization()
+      refresh_cards()
       $(".constraint-badge").each(function () {
         new Popover(this, { trigger: "hover focus", placement: "top" })
       })
@@ -1550,8 +1447,7 @@ function add_formalization(formalizationData = {}) {
   const $container = renderer.build("formalization", entry)
   $container.addClass("draft")
   $("#formalization_accordion").append($container)
-  update_vars()
-  update_formalization()
+  refresh_cards()
   update_logs()
   bind_var_autocomplete()
   setCopyBtnEnable()
@@ -1561,8 +1457,7 @@ function delete_variable(id, $card) {
   store.delete("variable", id)
   $card.remove()
   console.log(store)
-  update_vars()
-  update_formalization()
+  refresh_cards()
   update_logs()
   const hasUnsavedChanges = !store.hasNoDrafts("variable")
   $("#requirement_modal").data("unsaved_changes", hasUnsavedChanges)
@@ -1572,8 +1467,7 @@ function delete_formalization(formal_id, card) {
   store.delete("formalization", formal_id)
   console.log(store)
   card.remove()
-  update_vars()
-  update_formalization()
+  refresh_cards()
   const hasUnsavedChanges = !store.hasNoDrafts("formalization")
   console.log(hasUnsavedChanges)
   $("#requirement_modal").data("unsaved_changes", hasUnsavedChanges)
@@ -1621,179 +1515,10 @@ function copy_formalization(formal_id) {
   // TODO give some feedback
 }
 
-/**
- * Updates the formalization textarea based on the selected scope and expressions in P, Q, R, S, T, ... .
- */
-function update_formalization() {
-  $(".formalization_card").each(function () {
-    // Fetch attributes
-    const formalization_id = $(this).attr("title")
-
-    let formalization = ""
-    let formalization_textarea = $("#current_formalization_textarea" + formalization_id)
-    const selected_scope = $("#requirement_scope" + formalization_id)
-      .find("option:selected")
-      .text()
-      .replace(/\s\s+/g, " ")
-    const selected_pattern = $("#requirement_pattern" + formalization_id)
-      .find("option:selected")
-      .text()
-      .replace(/\s\s+/g, " ")
-
-    if (selected_scope !== "None" && selected_pattern !== "None") {
-      formalization = selected_scope + ", " + selected_pattern + "."
-    }
-
-    // Update formalization with variables.
-    let var_p = $("#formalization_var_p" + formalization_id)
-      .val()
-      .trim()
-    let var_q = $("#formalization_var_q" + formalization_id)
-      .val()
-      .trim()
-    let var_r = $("#formalization_var_r" + formalization_id)
-      .val()
-      .trim()
-    let var_s = $("#formalization_var_s" + formalization_id)
-      .val()
-      .trim()
-    let var_t = $("#formalization_var_t" + formalization_id)
-      .val()
-      .trim()
-    let var_u = $("#formalization_var_u" + formalization_id)
-      .val()
-      .trim()
-    let var_v = $("#formalization_var_v" + formalization_id)
-      .val()
-      .trim()
-
-    if (var_p.length > 0) {
-      formalization = formalization.replace(/{P}/g, parse_vars_to_link(var_p))
-    }
-    if (var_q.length > 0) {
-      formalization = formalization.replace(/{Q}/g, parse_vars_to_link(var_q))
-    }
-    if (var_r.length > 0) {
-      formalization = formalization.replace(/{R}/g, parse_vars_to_link(var_r))
-    }
-    if (var_s.length > 0) {
-      formalization = formalization.replace(/{S}/g, parse_vars_to_link(var_s))
-    }
-    if (var_t.length > 0) {
-      formalization = formalization.replace(/{T}/g, parse_vars_to_link(var_t))
-    }
-    if (var_u.length > 0) {
-      formalization = formalization.replace(/{U}/g, parse_vars_to_link(var_u))
-    }
-    if (var_v.length > 0) {
-      formalization = formalization.replace(/{V}/g, parse_vars_to_link(var_v))
-    }
-
-    formalization_textarea.html(formalization)
-    autosize.update(formalization_textarea)
-  })
-  $("#requirement_modal").data("unsaved_changes", true)
-}
-
-/**
- * Replace variables in a formalization string by links to that variable.
- * Only if variable is available in the global "available_vars" array.
- * Example: foo || bar -> <a href ...>foo</a> || <a href ...>bar</a>
- * @param formal_string
- * @returns {string}
- */
-function parse_vars_to_link(formal_string) {
-  let result = ""
-
-  // Split the formalization string on possible variable delimiters given by the boogie grammar.
-  // We enclose the regular expression by /()/g to yield the delimiters itself: We want to keep them in the result.
-  formal_string.split(/([\s&<>!()=:\[\]{}\-|+*,])/g).forEach(function (chunk) {
-    if (available_vars.includes(chunk)) {
-      let query = "?command=search&col=1&q=%5C%22" + chunk + "%5C%22"
-      result +=
-        '<a href="./variables' +
-        query +
-        '" target="_blank"' +
-        '  title="Go to declaration of ' +
-        chunk +
-        '" class="alert-link">' +
-        chunk +
-        "</a>"
-    } else {
-      // We need to escape potential HTML special chars to prevent a broken display.
-      result += utils.escapeHtml(chunk)
-    }
-  })
-  return result
-}
-
-/**
- * Enable/disable the active variables (P, Q, R, ...) in the requirement modal based on scope and pattern.
- */
-function update_vars() {
-  $(".requirement_var_group").each(function () {
-    $(this).hide()
-    $(this).removeClass("type-error")
-  })
-
-  $(".formalization_card").each(function () {
-    // Fetch attributes
-    const formalization_id = $(this).attr("title")
-    const selected_scope = $("#requirement_scope" + formalization_id).val()
-    const selected_pattern = $("#requirement_pattern" + formalization_id).val()
-    let header = $("#formalization_heading-formalization-" + formalization_id)
-    let var_p = $("#requirement_var_group_p" + formalization_id)
-    let var_q = $("#requirement_var_group_q" + formalization_id)
-    let var_r = $("#requirement_var_group_r" + formalization_id)
-    let var_s = $("#requirement_var_group_s" + formalization_id)
-    let var_t = $("#requirement_var_group_t" + formalization_id)
-    let var_u = $("#requirement_var_group_u" + formalization_id)
-    let var_v = $("#requirement_var_group_v" + formalization_id)
-
-    // Set the red boxes for type inference failed expressions.
-    if (formalization_id in type_inference_errors) {
-      for (let i = 0; i < type_inference_errors[formalization_id].length; i++) {
-        $("#formalization_var_" + type_inference_errors[formalization_id][i] + formalization_id).addClass("type-error")
-        header.addClass("type-error-head")
-      }
-    } else {
-      header.removeClass("type-error-head")
-    }
-
-    switch (selected_scope) {
-      case "BEFORE":
-      case "AFTER":
-        var_p.show()
-        break
-      case "BETWEEN":
-      case "AFTER_UNTIL":
-        var_p.show()
-        var_q.show()
-        break
-      default:
-        break
-    }
-
-    Object.keys(_PATTERNS[selected_pattern]["env"]).forEach(function (key) {
-      switch (key) {
-        case "R":
-          var_r.show()
-          break
-        case "S":
-          var_s.show()
-          break
-        case "T":
-          var_t.show()
-          break
-        case "U":
-          var_u.show()
-          break
-        case "V":
-          var_v.show()
-          break
-      }
-    })
-  })
+function refresh_cards() {
+  const $accordion = $("#formalization_accordion")
+  update_var_groups($accordion, type_inference_errors)
+  update_previews($accordion, available_vars)
 }
 
 function load_tags() {
