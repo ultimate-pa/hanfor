@@ -92,8 +92,6 @@ class TestEnums(TestCase):
                 "name": "my_first_enum",
                 "type": "ENUM_INT",
                 "const_val": "",
-                "constraints": {},
-                "updated_constraints": False,
                 "enumerators": [["foo", "12"], ["bar", "11"]],
             },
         )
@@ -170,8 +168,6 @@ class TestEnums(TestCase):
                 "name": "my_first_enum",
                 "type": "ENUM_INT",
                 "const_val": "",
-                "constraints": {},
-                "updated_constraints": False,
                 "enumerators": [["foo", "12"], ["bar", "11"]],
             },
         )
@@ -185,8 +181,6 @@ class TestEnums(TestCase):
                 "name": "my_second_enum",
                 "type": "ENUM_INT",
                 "const_val": "",
-                "constraints": {},
-                "updated_constraints": False,
                 "enumerators": [["fupp", "5"], ["flii", "6"]],
             },
         )
@@ -198,8 +192,6 @@ class TestEnums(TestCase):
                 "name": "my_renamed_enum",
                 "type": "ENUM_INT",
                 "const_val": "",
-                "constraints": {},
-                "updated_constraints": False,
                 "enumerators": [["foo", "12"], ["bar", "11"]],
             },
         )
@@ -230,8 +222,6 @@ class TestEnums(TestCase):
                 "name": "my_first_enum",
                 "type": "ENUM_REAL",
                 "const_val": "",
-                "constraints": {},
-                "updated_constraints": False,
                 "enumerators": [["foo", "12.123"], ["bar", "11.123"]],
             },
         )
@@ -311,8 +301,6 @@ class TestEnums(TestCase):
                 "name": "my_third_enum",
                 "type": "ENUM_REAL",
                 "const_val": "",
-                "constraints": {},
-                "updated_constraints": False,
                 "enumerators": [["foo", "12.123"], ["bar", "11.123"]],
             },
         )
@@ -392,8 +380,6 @@ class TestEnums(TestCase):
                 "name": "my_third_enum",
                 "type": "ENUM_REAL",
                 "const_val": "",
-                "constraints": {},
-                "updated_constraints": False,
                 "enumerators": [["foo", "12.123"], ["bar", "11.123"]],
             },
         )

@@ -70,3 +70,17 @@ class TestVariableConstraints(TestCase):
         self.assertEqual("spam > 5", self.constraints()[0]["expr_R"])
 
         self.assertEqual(404, self.app.patch(f"{self.url}/7", json={}).status_code)
+
+    def test_constraint_without_needed_expressions_is_rejected(self):
+        draft = {"temp_id": "a", "scope": "BEFORE", "pattern": "Existence", "expression_mapping": {"R": "spam > 0"}}
+        response = self.app.post(self.url, json=[draft])
+        self.assertEqual(400, response.status_code)
+        self.assertIn("P", response.json["errors"]["a"])
+        self.assertEqual({}, self.constraints())
+
+        draft = {"temp_id": "b", "scope": "GLOBALLY", "pattern": "Existence", "expression_mapping": {"R": "spam > 0"}}
+        self.app.post(self.url, json=[draft])
+        response = self.app.patch(f"{self.url}/0", json={"scope": "BETWEEN"})
+        self.assertEqual(400, response.status_code)
+        self.assertEqual("GLOBALLY", self.constraints()[0]["scope"])
+        self.assertEqual(200, self.app.patch(f"{self.url}/0", json={"pattern": "Universality"}).status_code)

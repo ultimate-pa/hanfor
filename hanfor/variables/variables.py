@@ -4,10 +4,9 @@ import logging
 from flask import Blueprint, render_template, request
 from flask_restx import Namespace, Resource
 
-from hanfor_flask import HanforFlask, current_app, nocache
+from hanfor_flask import current_app, nocache
 from json_db_connector.json_db import DatabaseKeyError
 from lib_core.api_models import VariableRequestModel
-from lib_core import boogie_parsing
 from lib_core.boogie_parsing import BoogieType
 from lib_core.data import (
     Requirement,
@@ -20,7 +19,6 @@ from lib_core.pattern.patterns_basic import APattern
 from lib_core.scopes import Scope
 from lib_core.utils import (
     delete_variable_everywhere,
-    formalizations_to_html,
     generate_file_response,
     generate_req_file_content,
     get_requirements,
@@ -169,7 +167,7 @@ class ApiVariable(Resource):
 
     @api_ns.doc(
         description="Changes the variable. The JSON body has the new values: 'name', 'type', 'const_val', "
-        "'belongs_to_enum', 'enumerators', and 'constraints' with 'updated_constraints': true. A field that is "
+        "'belongs_to_enum' and 'enumerators'. A field that is "
         "not in the body keeps its value. Gives 404 if the variable is not found, and 400 if the change is not "
         "valid.",
         params={"vid": "The id (uuid) of the variable"},
@@ -182,7 +180,7 @@ class ApiVariable(Resource):
     @write_locked
     def patch(self, vid):
         name = _load_variable(vid).name
-        result = update_variable_in_collection(current_app, {**(request.get_json(silent=True) or {}), "name_old": name})
+        result = update_variable_in_collection({**(request.get_json(silent=True) or {}), "name_old": name})
         if not result["success"]:
             return result, 400
         return result
@@ -206,6 +204,8 @@ def _update_constraint(var_collection: VariableCollection, name: str, cid: int, 
             var_collection,
             SessionValue.get_standard_tags(current_app.db),
         )
+    except ValueError as e:
+        raise InvalidPayload(str(e)) from e
     except Exception as e:
         raise InvalidPayload(f"Could not parse constraint: `{e}`") from e
 
@@ -428,32 +428,7 @@ class ApiVariablesImport(Resource):
         return {"success": True}
 
 
-@api_blueprint.route("/get_constraints_html", methods=["POST"])
-@nocache
-def api_get_constraints_html():
-    result = {
-        "success": True,
-        "errormsg": "",
-        "html": '<p class="no-constraints-placeholder">No constraints set.</p>',
-        "type_inference_errors": dict(),
-    }
-    var_name = request.form.get("name", "").strip()
-    var_collection = VariableCollection(
-        current_app.db.get_objects(Variable).values(),
-        current_app.db.get_objects(Requirement).values(),
-    )
-    var = var_collection.collection.get(var_name)
-    if var is None:
-        return result
-    # `var.constraints` is the source of truth for variable-owned constraints.
-    formalizations = dict(var.constraints)
-    if formalizations:
-        result["html"] = formalizations_to_html(current_app, formalizations)
-        result["type_inference_errors"] = {fid: f.type_inference_errors for fid, f in formalizations.items()}
-    return result
-
-
-def update_variable_in_collection(app: HanforFlask, data: dict) -> dict:
+def update_variable_in_collection(data: dict) -> dict:
     """Update a single variable. `data` is the JSON body plus `name_old` from the path.
     A field that is not in `data` keeps its stored value:
         name -> the new name of the var.
@@ -463,7 +438,6 @@ def update_variable_in_collection(app: HanforFlask, data: dict) -> dict:
         belongs_to_enum -> the new ENUM parent of an ENUMERATOR.
         enumerators -> The dict of enumerators
 
-    :param app: the running flask app
     :param data: The fields of the update
     :return: Dictionary containing changed data and request status information.
     """
@@ -485,7 +459,6 @@ def update_variable_in_collection(app: HanforFlask, data: dict) -> dict:
     var_const_val = new_value("const_val", var_const_val_old)
     belongs_to_enum = new_value("belongs_to_enum", belongs_to_enum_old)
     enumerators = data.get("enumerators")
-    updated_constraints = data.get("updated_constraints") is True
     result = {
         "success": True,
         "has_changes": False,
@@ -505,7 +478,6 @@ def update_variable_in_collection(app: HanforFlask, data: dict) -> dict:
         var_type_old != var_type
         or var_name_old != var_name
         or var_const_val_old != var_const_val
-        or updated_constraints
         or belongs_to_enum != belongs_to_enum_old
     ):
         logging.info(f"Update Variable `{var_name_old}`")
@@ -542,27 +514,6 @@ def update_variable_in_collection(app: HanforFlask, data: dict) -> dict:
             logging.info("Change value from `{}` to `{}`.".format(var_const_val_old, var_const_val))
             var_collection.collection[var_name].value = var_const_val
             result["val_changed"] = True
-
-        # Update constraints.
-        if updated_constraints:
-            constraints = data.get("constraints") or {}
-            logging.debug("Update Variable Constraints")
-            try:
-                var_collection = var_collection.collection[var_name_old].update_constraints(
-                    constraints,
-                    var_collection,
-                    SessionValue.get_standard_tags(current_app.db),
-                )
-                result["rebuild_table"] = True
-                app.db.update()
-            except KeyError as e:
-                result["success"] = False
-                result["errormsg"] = f"Could not set constraint: Missing expression/variable for {e}"
-            except Exception as e:
-                result["success"] = False
-                result["errormsg"] = f"Could not parse formalization: `{e}`"
-        else:
-            logging.debug("Skipping variable Constraints update.")
 
         # update name.
         if var_name_old != var_name:
@@ -621,21 +572,22 @@ def update_variable_in_collection(app: HanforFlask, data: dict) -> dict:
 
             var_collection.collection[var_name].belongs_to_enum = belongs_to_enum
             try:
-                var_collection.rename(var_name, new_enumerator_name, app)
+                var_collection.rename(var_name, new_enumerator_name, current_app)
             except ValueError as e:
                 result = {"success": False, "errormsg": str(e)}
                 return result
 
         logging.info("Store updated variables.")
         var_collection.store()
-        app.db.update()
+        current_app.db.update()
         logging.info("Update derived types by parsing affected formalizations.")
-        if reload_type_inference and var_name in var_collection.var_req_mapping:
-            for rid in var_collection.var_req_mapping[var_name]:
-                if app.db.key_in_table(Requirement, rid):
-                    requirement = app.db.get_object(Requirement, rid)
-                    requirement.run_type_checks(var_collection, SessionValue.get_standard_tags(app.db))
-            app.db.update()
+        if reload_type_inference:
+            standard_tags = SessionValue.get_standard_tags(current_app.db)
+            var_collection.reload_type_inference_errors_in_constraints(standard_tags)
+            for rid in var_collection.var_req_mapping.get(var_name, []):
+                if current_app.db.key_in_table(Requirement, rid):
+                    current_app.db.get_object(Requirement, rid).run_type_checks(var_collection, standard_tags)
+            current_app.db.update()
 
     if enumerators is None:
         return result

@@ -1,6 +1,5 @@
 import datetime
 import functools
-import html
 import json
 import logging
 import os
@@ -18,15 +17,6 @@ from config import PATTERNS_GROUP_ORDER  # TODO should this be in the config?
 from hanfor_flask import HanforFlask, current_app
 from lib_core.data import Requirement, RequirementEditHistory, VariableCollection, Variable
 from lib_core.pattern.patterns_basic import APattern
-
-default_scope_options = """
-    <option value="NONE">None</option>
-    <option value="GLOBALLY">Globally</option>
-    <option value="BEFORE">Before "{P}"</option>
-    <option value="AFTER">After "{P}"</option>
-    <option value="BETWEEN">Between "{P}" and "{Q}"</option>
-    <option value="AFTER_UNTIL">After "{P}" until "{Q}"</option>
-    """
 
 
 def get_requirements(app: HanforFlask, filter_list=None, invert_filter=False):
@@ -95,54 +85,6 @@ def get_default_pattern_options():
         result += opt_groups[group_name]
         result += "</optgroup>"
 
-    return result
-
-
-def formalization_html(
-    templates_folder, formalization_id, scope_options, pattern_options, formalization
-):  # TODO wohin damit, HTML generation
-    # Load template.
-    html_template = ""
-    with open(os.path.join(templates_folder, "formalization.html"), mode="r") as f:
-        html_template += "\n".join(f.readlines())
-
-    # Set values
-    html_template = html_template.replace("__formalization_text__", formalization.get_string())
-    html_template = html_template.replace("__formal_id__", "{}".format(formalization_id))
-    form_desc = formalization.get_string()
-    if len(form_desc) < 10:  # Add hint to open if desc is short.
-        form_desc += "... (click to open)"
-    html_template = html_template.replace("__formal_desc__", form_desc)
-    html_template = html_template.replace("__formal__data__id__", str(formalization_id))
-
-    scope = formalization.scoped_pattern.get_scope_slug()
-    pattern = formalization.scoped_pattern.get_pattern_slug()
-    scope_options = scope_options.replace('value="{}"'.format(scope), 'value="{}" selected'.format(scope))
-    pattern_options = pattern_options.replace('value="{}"'.format(pattern), 'value="{}" selected'.format(pattern))
-    html_template = html_template.replace("__scope_options__", scope_options)
-    html_template = html_template.replace("__pattern__options__", pattern_options)
-
-    # Expressions
-    for key, value in formalization.expressions_mapping.items():
-        html_template = html_template.replace(
-            "__expr_{}_content__".format(key), "{}".format(html.escape(str(value.raw_expression)))
-        )
-
-    # Unset remaining vars.
-    html_template = re.sub(r"__expr_._content__", "", html_template)
-    html_template = html_template.replace("\n", "")
-
-    return html_template
-
-
-def formalizations_to_html(app: HanforFlask, formalizations):  # TODO wohin damit, HTML generation
-    result = ""
-    for idx, formalization in sorted(
-        formalizations.items(), key=lambda item: (item[1].order is None, getattr(item[1], "order", 0))
-    ):
-        result += formalization_html(
-            app.config["TEMPLATES_FOLDER"], idx, default_scope_options, get_default_pattern_options(), formalization
-        )
     return result
 
 

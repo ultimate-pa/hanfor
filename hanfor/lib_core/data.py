@@ -3,7 +3,6 @@ import difflib
 import json
 import logging
 import re
-import string
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from threading import Lock
@@ -733,18 +732,16 @@ class ScopedPattern:
     def instantiate(self, *args):
         return self.pattern.instantiate(self.scope, *args)
 
+    def placeholders(self) -> set[str]:
+        """Find all the placeholders inside the pattern text like `Before {P} ... {R}` -> ['P', 'R']"""
+        return set(re.findall(r"\{(\w+)\}", str(self)))
+
     def regex(self):
         if self.regex_pattern is not None:
             return self.regex_pattern
 
-        fmt = string.Formatter()
-        fields = set()
         literal_str = self.__str__()
-        for _, field_name, _, _ in fmt.parse(literal_str):
-            fields.add(field_name)
-        fields.remove(None)
-
-        for f in fields:
+        for f in self.placeholders():
             literal_str = literal_str.replace('"{{{}}}"'.format(f), r'"([\d\w\s"-]*)"')
 
         self.regex_pattern = literal_str
@@ -919,8 +916,20 @@ class Variable(RequirementElement):
         for expression_string in mapping.values():
             if expression_string:
                 parser.parse(expression_string)
+        scoped_pattern = ScopedPattern(Scope[scope_name], Pattern(name=pattern_name))
+        filled_keys = set()
+        for key, expression_string in mapping.items():
+            if expression_string:
+                filled_keys.add(key)
+        stored = self.constraints[constraint_id].expressions_mapping or {}
+        for key, expression in stored.items():
+            if expression.raw_expression:
+                filled_keys.add(key)
+        missing = scoped_pattern.placeholders() - filled_keys
+        if missing:
+            raise ValueError(f"The scope and pattern need an expression for {', '.join(sorted(missing))}.")
         # set scoped pattern
-        self.constraints[constraint_id].scoped_pattern = ScopedPattern(Scope[scope_name], Pattern(name=pattern_name))
+        self.constraints[constraint_id].scoped_pattern = scoped_pattern
         # Parse and set the expressions.
         for key, expression_string in mapping.items():
             if len(expression_string) == 0:
@@ -945,32 +954,6 @@ class Variable(RequirementElement):
             self.add_tag(standard_tags["TAG_Type_inference_error"])
 
         variable_collection.collection[self.name] = self
-
-        return variable_collection
-
-    def update_constraints(self, constraints, variable_collection, standard_tags):
-        """replace all constraints with :param constraints.
-
-        :return: updated VariableCollection
-        """
-        logging.debug(f"Updating constraints for variable `{self.name}`.")
-        self.remove_tag(standard_tags["TAG_Type_inference_error"])
-
-        for constraint in constraints.values():
-            logging.debug(f"Updating formalization No. {constraint['id']}.")
-            logging.debug(f"Scope: `{constraint['scope']}`, Pattern: `{constraint['pattern']}`.")
-            try:
-                variable_collection = self.update_constraint(
-                    constraint_id=int(constraint["id"]),
-                    scope_name=constraint["scope"],
-                    pattern_name=constraint["pattern"],
-                    mapping=constraint["expression_mapping"],
-                    variable_collection=variable_collection,
-                    standard_tags=standard_tags,
-                )
-            except Exception as e:
-                logging.error(f"Could not update Constraint: {e.__str__()}.")
-                raise e
 
         return variable_collection
 

@@ -90,23 +90,14 @@ class TestHanforVersionMigrations(TestCase):
         self.assertEqual(200, delete_constraint.status_code)
         self.assertEqual(404, self.app.delete(variable_url(self.app, "egg", "/constraints/0")).status_code)
         add_constraint = self.app.post(variable_url(self.app, "egg", "/constraints"), json=[{"temp_id": "a"}])
+        patch_constraint = self.app.patch(
+            variable_url(self.app, "egg", "/constraints/0"),
+            json={"scope": "GLOBALLY", "pattern": "Universality", "expression_mapping": {"R": "egg > 10"}},
+        )
+        self.assertEqual(200, patch_constraint.status_code)
         change_type = self.app.patch(
             variable_url(self.app, "egg"),
-            json={
-                "name": "egg",
-                "type": "ENUM_INT",
-                "const_val": "",
-                "constraints": {
-                    "0": {
-                        "id": "0",
-                        "scope": "GLOBALLY",
-                        "pattern": "Universality",
-                        "expression_mapping": {"P": "", "Q": "", "R": "egg > 10", "S": "", "T": "", "U": ""},
-                    }
-                },
-                "updated_constraints": True,
-                "enumerators": [],
-            },
+            json={"name": "egg", "type": "ENUM_INT", "const_val": "", "enumerators": []},
         )
         self.assertEqual(True, change_type.json["success"])
         self.assertEqual(200, change_type.status_code)

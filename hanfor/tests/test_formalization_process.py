@@ -126,8 +126,6 @@ class TestFormalizationProcess(TestCase):
             "name": "bas",
             "type": "unknown",
             "const_val": "",
-            "constraints": {},
-            "updated_constraints": True,
             "enumerators": [],
             "belongs_to_enum": "",
         }
