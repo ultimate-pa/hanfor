@@ -915,6 +915,10 @@ class Variable(RequirementElement):
         :param variable_collection:
         :return:
         """
+        parser = boogie_parsing.get_parser_instance()
+        for expression_string in mapping.values():
+            if expression_string:
+                parser.parse(expression_string)
         # set scoped pattern
         self.constraints[constraint_id].scoped_pattern = ScopedPattern(Scope[scope_name], Pattern(name=pattern_name))
         # Parse and set the expressions.

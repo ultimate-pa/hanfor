@@ -80,8 +80,8 @@ class TestHanforVersionMigrations(TestCase):
             },
             variables_without_ids(self.app),
         )
-        add_constraint = self.app.post(variable_url(self.app, "egg", "/constraints"))
-        self.assertEqual(0, add_constraint.json["id"])
+        add_constraint = self.app.post(variable_url(self.app, "egg", "/constraints"), json=[{"temp_id": "a"}])
+        self.assertEqual({"a": 0}, add_constraint.json["ids"])
         self.assertEqual(201, add_constraint.status_code)
         self.assertEqual([0], [c["id"] for c in self.app.get(variable_url(self.app, "egg", "/constraints")).json])
 
@@ -89,7 +89,7 @@ class TestHanforVersionMigrations(TestCase):
         self.assertEqual(True, delete_constraint.json["success"])
         self.assertEqual(200, delete_constraint.status_code)
         self.assertEqual(404, self.app.delete(variable_url(self.app, "egg", "/constraints/0")).status_code)
-        add_constraint = self.app.post(variable_url(self.app, "egg", "/constraints"))
+        add_constraint = self.app.post(variable_url(self.app, "egg", "/constraints"), json=[{"temp_id": "a"}])
         change_type = self.app.patch(
             variable_url(self.app, "egg"),
             json={

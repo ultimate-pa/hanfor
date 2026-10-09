@@ -188,6 +188,38 @@ class ApiVariable(Resource):
         return result
 
 
+def _load_var_collection() -> VariableCollection:
+    return VariableCollection(
+        current_app.db.get_objects(Variable).values(),
+        current_app.db.get_objects(Requirement).values(),
+    )
+
+
+def _update_constraint(var_collection: VariableCollection, name: str, cid: int, data: dict) -> None:
+    constraint = var_collection.collection[name].constraints[cid]
+    try:
+        var_collection.collection[name].update_constraint(
+            cid,
+            data.get("scope") or constraint.scoped_pattern.scope.name,
+            data.get("pattern") or constraint.scoped_pattern.pattern.name,
+            data.get("expression_mapping") or {},
+            var_collection,
+            SessionValue.get_standard_tags(current_app.db),
+        )
+    except Exception as e:
+        raise InvalidPayload(f"Could not parse constraint: `{e}`") from e
+
+
+def _store_constraints(var_collection: VariableCollection, name: str) -> None:
+    for v in var_collection.new_vars:
+        current_app.db.add_object(v)
+    var_collection.collection[name].reload_constraints_type_inference_errors(
+        var_collection, SessionValue.get_standard_tags(current_app.db)
+    )
+    var_collection.store()
+    current_app.db.update()
+
+
 @api_ns.route("/<uuid:vid>/constraints")
 @log_request_response
 class ApiVariableConstraints(Resource):
@@ -202,24 +234,49 @@ class ApiVariableConstraints(Resource):
     @subtype_errors_to_response
     def get(self, vid):
         return [
-            {**constraint.to_dict(), "type_inference_errors": constraint.type_inference_errors}
+            {
+                **constraint.to_dict(),
+                "formalization_type": "formalization",
+                "text": constraint.get_string(),
+                "type_inference_errors": constraint.type_inference_errors,
+            }
             for constraint in _load_variable(vid).get_constraints().values()
         ]
 
     @api_ns.doc(
-        description="Adds an empty constraint to the variable. Gives the id of the new constraint. "
-        "Gives 404 if the variable is not found.",
+        description="Adds the constraints to the variable. The JSON body is a list of drafts. Each draft has "
+        "'temp_id', 'scope', 'pattern' and 'expression_mapping'. Gives the new ids in 'ids' as {temp_id: id}. "
+        "A draft that is not valid is not added: then the response is 400 with the ids of the added drafts and "
+        "the error of each draft that failed in 'errors'. Gives 404 if the variable is not found.",
         params={"vid": "The id (uuid) of the variable"},
     )
     @api_ns.response(201, "Created")
+    @api_ns.response(400, "Bad Request")
     @api_ns.response(404, "Not Found")
     @nocache
     @subtype_errors_to_response
     @write_locked
     def post(self, vid):
-        cid = _load_variable(vid).add_constraint()
-        current_app.db.update()
-        return {"success": True, "id": cid}, 201
+        name = _load_variable(vid).name
+        drafts = request.get_json(silent=True)
+        if not isinstance(drafts, list) or not all(isinstance(draft, dict) for draft in drafts):
+            raise InvalidPayload("The body must be a list of constraint drafts.")
+        var_collection = _load_var_collection()
+        ids, errors = {}, {}
+        for draft in drafts:
+            cid = var_collection.collection[name].add_constraint()
+            try:
+                _update_constraint(var_collection, name, cid, draft)
+            except InvalidPayload as e:
+                var_collection.del_constraint(var_name=name, constraint_id=cid)
+                errors[draft.get("temp_id")] = str(e)
+                continue
+            ids[draft.get("temp_id")] = cid
+        _store_constraints(var_collection, name)
+        if errors:
+            errormsg = "; ".join(f"{k}: {v}" for k, v in errors.items())
+            return {"success": False, "ids": ids, "errors": errors, "errormsg": errormsg}, 400
+        return {"success": True, "ids": ids}, 201
 
 
 @api_ns.route("/<uuid:vid>/constraints/<int:cid>")
@@ -237,17 +294,31 @@ class ApiVariableConstraint(Resource):
     @write_locked
     def delete(self, vid, cid):
         name = _load_variable(vid).name
-        var_collection = VariableCollection(
-            current_app.db.get_objects(Variable).values(),
-            current_app.db.get_objects(Requirement).values(),
-        )
+        var_collection = _load_var_collection()
         if not var_collection.del_constraint(var_name=name, constraint_id=cid):
             raise SubtypeNotFound(f"Constraint `{cid}` of variable `{name}` not found.")
-        var_collection.collection[name].reload_constraints_type_inference_errors(
-            var_collection, SessionValue.get_standard_tags(current_app.db)
-        )
-        var_collection.store()
-        current_app.db.update()
+        _store_constraints(var_collection, name)
+        return {"success": True}
+
+    @api_ns.doc(
+        description="Changes the constraint of the variable. The JSON body can have 'scope', 'pattern' and "
+        "'expression_mapping'. A field that is not in the body keeps its value. Gives 400 if an expression is not "
+        "valid: then nothing changes. Gives 404 if the variable or the constraint is not found.",
+        params={"vid": "The id (uuid) of the variable", "cid": "The id of the constraint"},
+    )
+    @api_ns.response(200, "Success")
+    @api_ns.response(400, "Bad Request")
+    @api_ns.response(404, "Not Found")
+    @nocache
+    @subtype_errors_to_response
+    @write_locked
+    def patch(self, vid, cid):
+        name = _load_variable(vid).name
+        var_collection = _load_var_collection()
+        if cid not in var_collection.collection[name].constraints:
+            raise SubtypeNotFound(f"Constraint `{cid}` of variable `{name}` not found.")
+        _update_constraint(var_collection, name, cid, request.get_json(silent=True) or {})
+        _store_constraints(var_collection, name)
         return {"success": True}
 
 

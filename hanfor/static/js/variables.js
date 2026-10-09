@@ -350,11 +350,11 @@ function bind_expression_buttons() {
 function add_constraint() {
     let var_modal_content = $('.modal-content');
     var_modal_content.LoadingOverlay('show');
-    api.addVariableConstraint($('#variable_id').val())
+    api.createVariableConstraints($('#variable_id').val(), [{temp_id: 'new'}])
         .then(created => $.post("api/var/get_constraints_html", {name: $('#variable_name').val()})
             .then(data => {
                 $('#formalization_accordion .no-constraints-placeholder').remove();
-                $(data['html']).filter(`.accordion-item[data-id="${created.id}"]`).appendTo('#formalization_accordion');
+                $(data['html']).filter(`.accordion-item[data-id="${created.ids.new}"]`).appendTo('#formalization_accordion');
                 update_displayed_constraint_inputs();
                 update_formalization(false);
                 bind_expression_buttons();
