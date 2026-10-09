@@ -48,6 +48,7 @@
       </div>
       <div class="col-12 col-xl-3 d-flex flex-xl-column justify-content-around align-items-center">
         <div class="d-flex w-xl-100 flex-grow-1 flex-xl-grow-0">
+          {{^variable_constraint}}
           <div class="flex-fill pe-1">
             <button
               name="{{ id }}"
@@ -58,6 +59,7 @@
               Copy
             </button>
           </div>
+          {{/variable_constraint}}
           <div class="flex-fill ps-1">
             <button
               name="{{ id }}"
@@ -76,6 +78,7 @@
             </button>
           </div>
         </div>
+        {{^variable_constraint}}
         <div class="form-check mt-xl-1 ms-2 ms-xl-0">
           <input
             class="form-check-input is-constraint-checkbox"
@@ -87,6 +90,7 @@
             Mark as constraint
           </label>
         </div>
+        {{/variable_constraint}}
       </div>
     </div>
   </div>

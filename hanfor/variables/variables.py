@@ -238,7 +238,7 @@ class ApiVariableConstraints(Resource):
                 **constraint.to_dict(),
                 "formalization_type": "formalization",
                 "text": constraint.get_string(),
-                "type_inference_errors": constraint.type_inference_errors,
+                "type_inference_errors": constraint.type_inference_error_keys(),
             }
             for constraint in _load_variable(vid).get_constraints().values()
         ]

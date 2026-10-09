@@ -1,7 +1,11 @@
 import ApiClient from "./api/ApiClient.js"
 import { AVAILABLE_VARIABLE_TYPES, VARIABLE_NAME_RE } from "./available-variable-types.js"
+import TemplateRenderer from "./template/TemplateRenderer.js"
+import TrackedStore from "./store/TrackedStore.js"
+import { FORMALIZATION_TYPE, read_formalization_card, update_previews, update_var_groups } from "./formalizations/formalization-card.js"
+import { bind_card_events, patch_edited_cards, show_save_errors } from "./formalizations/card-accordion.js"
 require('gasparesganga-jquery-loading-overlay');
-const {Modal} = require("bootstrap");
+const {Modal, Toast} = require("bootstrap");
 
 require('datatables.net-bs5');
 require('datatables.net-select');
@@ -20,6 +24,20 @@ let utils = require('./hanfor-utils');
 
 // Globals
 const api = new ApiClient()
+const renderer = new TemplateRenderer({baseUrl: "/static/templates/formalizations"})
+renderer.registerType("formalization", {
+    ...FORMALIZATION_TYPE,
+    defaults: {...FORMALIZATION_TYPE.defaults, variable_constraint: true},
+})
+const store = new TrackedStore()
+store.registerType("constraint", {
+    readDOM(id) {
+        const $item = $(`#formalization_accordion > .accordion-item[data-id="${id}"]`)
+        return $item.length ? {temp_id: String(id), ...read_formalization_card($item)} : null
+    },
+    persistCreate: (vid, drafts) => api.createVariableConstraints(vid, drafts),
+    persistDelete: (vid, cid) => api.deleteVariableConstraint(vid, cid),
+})
 let search_autocomplete = [
     ":AND:",
     ":OR:",
@@ -30,7 +48,7 @@ let search_autocomplete = [
     ":COL_INDEX_04:"
 ];
 let var_search_string = sessionStorage.getItem('var_search_string');
-let type_inference_errors = [];
+let type_inference_errors = {};
 const {SearchNode} = require('./datatables-advanced-search.js');
 let search_tree = undefined;
 let visible_columns = [true, true, true, true, true];
@@ -92,33 +110,14 @@ function store_variable(variables_table) {
     const var_type = $('#variable_type').val();
     const associated_row_id = parseInt($('#modal_associated_row_index').val());
     const const_val = $('#variable_value').val();
-    const updated_constraints = $('#variable_constraint_updated').val();
     const belongs_to_enum = $('#belongs_to_enum').val();
 
-    // Fetch the constraints
-    let constraints = {};
-    $('.formalization_card').each(function () {
-        // Scope and Pattern
-        let constraint = {};
-        constraint['id'] = $(this).attr('title');
-        $(this).find('select').each(function () {
-            if ($(this).hasClass('scope_selector')) {
-                constraint['scope'] = $(this).val();
-            }
-            if ($(this).hasClass('pattern_selector')) {
-                constraint['pattern'] = $(this).val();
-            }
-        });
-
-        // Expressions
-        constraint['expression_mapping'] = {};
-        $(this).find("textarea.reqirement-variable").each(function () {
-            if ($(this).attr('title') !== '')
-                constraint['expression_mapping'][$(this).attr('title')] = $(this).val();
-        });
-
-        constraints[constraint['id']] = constraint;
-    });
+    const vid = $('#variable_id').val();
+    const $accordion = $('#formalization_accordion');
+    const edited_constraints = $accordion.children('.accordion-item.draft').toArray()
+        .map(item => [String($(item).data('id')), read_formalization_card($(item))])
+        .filter(([id]) => !store.isCreated('constraint', id));
+    const constraints_changed = edited_constraints.length > 0 || !store.hasNoDrafts('constraint');
 
     // Process enumerators in case we have an enum
     let enumerators = [];
@@ -134,19 +133,25 @@ function store_variable(variables_table) {
     // TODO use variable UUID
     sendTelemetry("variables", var_name_old, "save")
 
-    // Store the variable.
-    api.patchVariable($('#variable_id').val(), {
-        name: var_name,
-        type: var_type,
-        const_val: const_val,
-        constraints: constraints,
-        updated_constraints: updated_constraints === 'true',
-        enumerators: enumerators,
-        belongs_to_enum: belongs_to_enum
-    }).done(function (data) {
+    // Store the constraints, then the variable.
+    $.when(
+        store.commitDeletes(vid, 'constraint'),
+        store.commitCreated(vid, 'constraint'),
+    ).then(() =>
+        patch_edited_cards($accordion, edited_constraints, (id, entry) =>
+            api.patchVariableConstraint(vid, store.resolveId(id), entry)),
+    ).then(() =>
+        api.patchVariable(vid, {
+            name: var_name,
+            type: var_type,
+            const_val: const_val,
+            enumerators: enumerators,
+            belongs_to_enum: belongs_to_enum
+        }),
+    ).done(function (data) {
         let modal = $('#variable_modal')
         modal.data('unsaved_changes', false);
-        if (data.rebuild_table) {
+        if (data.rebuild_table || constraints_changed) {
             Modal.getOrCreateInstance(modal).hide()
             $('#variables_table').DataTable().ajax.reload(null, false)
         } else {
@@ -154,6 +159,10 @@ function store_variable(variables_table) {
             Modal.getOrCreateInstance(modal).hide()
         }
     }).fail(function (err) {
+        if (err?.responseJSON?.errors) {
+            show_save_errors(renderer, $accordion, err.responseJSON.errors);
+            return;
+        }
         alert(err?.responseJSON?.errormsg || err?.statusText);
     }).always(function () {
         var_modal_content.LoadingOverlay('hide', true);
@@ -191,195 +200,36 @@ function apply_multi_edit(variables_table, del = false) {
     });
 }
 
-/**
- * Enable/disable the active variables (P, Q, R, ...) in the requirement modal based on scope and pattern.
- */
-function update_displayed_constraint_inputs() {
-    $('.requirement_var_group').each(function () {
-        $(this).hide();
-    });
-
-    $('.formalization_card').each(function () {
-        // Fetch attributes
-        const formalization_id = $(this).attr('title');
-        const selected_scope = $('#requirement_scope' + formalization_id).val();
-        const selected_pattern = $('#requirement_pattern' + formalization_id).val();
-        let var_p = $('#requirement_var_group_p' + formalization_id);
-        let var_q = $('#requirement_var_group_q' + formalization_id);
-        let var_r = $('#requirement_var_group_r' + formalization_id);
-        let var_s = $('#requirement_var_group_s' + formalization_id);
-        let var_t = $('#requirement_var_group_t' + formalization_id);
-        let var_u = $('#requirement_var_group_u' + formalization_id);
-        let var_v = $('#requirement_var_group_v' + formalization_id);
-
-        switch (selected_scope) {
-            case 'BEFORE':
-            case 'AFTER':
-                var_p.show();
-                break;
-            case 'BETWEEN':
-            case 'AFTER_UNTIL':
-                var_p.show();
-                var_q.show();
-                break;
-            default:
-                break;
-        }
-
-        Object.keys(_PATTERNS[selected_pattern]['env']).forEach(function (key) {
-            switch (key) {
-                case 'R':
-                    var_r.show();
-                    break;
-                case 'S':
-                    var_s.show();
-                    break;
-                case 'T':
-                    var_t.show();
-                    break;
-                case 'U':
-                    var_u.show();
-                    break;
-                case 'V':
-                    var_v.show();
-                    break;
-            }
-        });
-    });
+function refresh_cards() {
+    const variable_names = $('#variables_table').DataTable().rows().data().toArray().map(variable => variable.name);
+    const $accordion = $('#formalization_accordion');
+    update_var_groups($accordion, type_inference_errors);
+    update_previews($accordion, variable_names);
 }
 
-/**
- * Updates the formalization textarea based on the selected scope and expressions in P, Q, R, S, T, U, V.
- */
-function update_formalization(changes = true) {
-    $('.formalization_card').each(function () {
-        // Fetch attributes
-        const formalization_id = $(this).attr('title');
-
-        let formalization = '';
-        const selected_scope = $('#requirement_scope' + formalization_id).find('option:selected').text().replace(/\s\s+/g, ' ');
-        const selected_pattern = $('#requirement_pattern' + formalization_id).find('option:selected').text().replace(/\s\s+/g, ' ');
-
-        if (selected_scope !== 'None' && selected_pattern !== 'None') {
-            formalization = selected_scope + ', ' + selected_pattern + '.';
-        }
-
-        // Update formalization with variables.
-        let var_p = $('#formalization_var_p' + formalization_id).val();
-        let var_q = $('#formalization_var_q' + formalization_id).val();
-        let var_r = $('#formalization_var_r' + formalization_id).val();
-        let var_s = $('#formalization_var_s' + formalization_id).val();
-        let var_t = $('#formalization_var_t' + formalization_id).val();
-        let var_u = $('#formalization_var_u' + formalization_id).val();
-        let var_v = $('#formalization_var_v' + formalization_id).val();
-
-        if (var_p.length > 0) {
-            formalization = formalization.replace(/{P}/g, var_p);
-        }
-        if (var_q.length > 0) {
-            formalization = formalization.replace(/{Q}/g, var_q);
-        }
-        if (var_r.length > 0) {
-            formalization = formalization.replace(/{R}/g, var_r);
-        }
-        if (var_s.length > 0) {
-            formalization = formalization.replace(/{S}/g, var_s);
-        }
-        if (var_t.length > 0) {
-            formalization = formalization.replace(/{T}/g, var_t);
-        }
-        if (var_u.length > 0) {
-            formalization = formalization.replace(/{U}/g, var_u);
-        }
-        if (var_v.length > 0) {
-            formalization = formalization.replace(/{V}/g, var_v);
-        }
-
-        $('#current_formalization_textarea' + formalization_id).val(formalization);
-
-        // Update visual representation of type inference errors.
-        let header = $('#formalization_heading' + formalization_id);
-        if (formalization_id in type_inference_errors) {
-            for (let i = 0; i < type_inference_errors[formalization_id].length; i++) {
-                $('#formalization_var_' + type_inference_errors[formalization_id][i] + formalization_id)
-                    .addClass('type-error');
-                header.addClass('type-error-head');
-            }
-        } else {
-            header.removeClass('type-error-head');
-        }
-    });
-    $('#variable_constraint_updated').val('true');
-
-    if (changes) {
-        $('#variable_modal').data('unsaved_changes', true);
-    }
-}
-
-function delete_constraint(constraint_id) {
-    let requirement_modal_content = $('.modal-content');
-    requirement_modal_content.LoadingOverlay('show');
-    api.deleteVariableConstraint($('#variable_id').val(), constraint_id)
-        .then(() => get_variable_constraints_html($('#variable_name').val()))
-        .fail(e => alert(e.responseJSON?.errormsg || e.statusText))
-        .always(() => requirement_modal_content.LoadingOverlay('hide', true));
-}
-
-function bind_expression_buttons() {
-    $('.formalization_selector').off('change').change(function () {
-        update_displayed_constraint_inputs();
-        update_formalization();
-    });
-    $('.reqirement-variable, .req_var_type').off('change').change(function () {
-        update_formalization();
-    });
-
-    // $('.delete_formalization').confirmation({
-    //     rootSelector: '.delete_formalization'
-    // }).click(function () {
-    //     delete_constraint($(this).attr('name'));
-    // });
-
-    $('.delete_formalization').off('click').bootstrapConfirmButton({
-        onConfirm: function () {
-            delete_constraint($(this).attr('name'))
-        }
-    })
+async function load_constraints(vid) {
+    await renderer.ready();
+    const constraints = await api.getVariableConstraints(vid);
+    type_inference_errors = Object.fromEntries(constraints
+        .filter(constraint => constraint.type_inference_errors.length)
+        .map(constraint => [constraint.id, constraint.type_inference_errors]));
+    $('#formalization_accordion').html('')
+        .append(constraints.map(constraint => renderer.build('formalization', constraint)));
+    refresh_cards();
+    $('#variable_modal').data('unsaved_changes', false);
 }
 
 function add_constraint() {
-    let var_modal_content = $('.modal-content');
-    var_modal_content.LoadingOverlay('show');
-    api.createVariableConstraints($('#variable_id').val(), [{temp_id: 'new'}])
-        .then(created => $.post("api/var/get_constraints_html", {name: $('#variable_name').val()})
-            .then(data => {
-                $('#formalization_accordion .no-constraints-placeholder').remove();
-                $(data['html']).filter(`.accordion-item[data-id="${created.ids.new}"]`).appendTo('#formalization_accordion');
-                update_displayed_constraint_inputs();
-                update_formalization(false);
-                bind_expression_buttons();
-            }))
-        .fail(e => alert(e.responseJSON?.errormsg || e.statusText))
-        .always(() => var_modal_content.LoadingOverlay('hide', true));
+    const $card = renderer.build('formalization', {id: store.create('constraint')});
+    $card.addClass('draft');
+    $('#formalization_accordion').append($card);
+    refresh_cards();
 }
 
-function get_variable_constraints_html(var_name) {
-    return $.post("api/var/get_constraints_html",
-        {
-            name: var_name
-        },
-        function (data) {
-            if (data['success'] === false) {
-                alert(data['errormsg']);
-            } else {
-                type_inference_errors = data.type_inference_errors;
-                $('#formalization_accordion').html(data['html']);
-            }
-        }).done(function () {
-        update_displayed_constraint_inputs();
-        update_formalization(false);
-        bind_expression_buttons();
-    });
+function delete_constraint(id, $card) {
+    store.delete('constraint', id);
+    $card.remove();
+    refresh_cards();
 }
 
 function is_constraint_link(name) {
@@ -449,10 +299,6 @@ function load_enumerators_to_modal(var_id, var_name) {
         })
     }).fail(function (err) {
         alert(err?.responseJSON?.errormsg || err?.statusText);
-    }).always(function () {
-        update_displayed_constraint_inputs();
-        update_formalization(false);
-        bind_expression_buttons();
     });
 }
 
@@ -512,7 +358,7 @@ function load_variable(row_idx) {
     validateTypeInput($('#variable_type'));
 
     // Load constraints
-    get_variable_constraints_html(data.name);
+    load_constraints(data.id).catch(err => alert(err?.responseJSON?.errormsg || err?.statusText || err));
     // TODO send variable UUID
     sendTelemetry("variables", data.name, "open")
 
@@ -922,6 +768,7 @@ $(document).ready(function () {
     $('#add_constraint').click(function () {
         add_constraint();
     });
+    bind_card_events('#formalization_accordion', {onChange: refresh_cards, onDelete: delete_constraint});
 
     // Add new variable via modal.
     $('#save_new_variable_modal').click(function () {
@@ -986,6 +833,11 @@ function init_modal() {
 
     modal[0].addEventListener('hide.bs.modal', function (event) {
         modal_closing_routine(event);
+    })
+
+    modal[0].addEventListener('hidden.bs.modal', function () {
+        store.reset();
+        document.querySelectorAll('#save_error_toasts .toast').forEach(el => Toast.getOrCreateInstance(el).hide());
     })
 
     $('#variable_name').change(function () {

@@ -30,6 +30,8 @@ export default class ApiClient {
   patchVariable(id, fields) { return this.patch(url`/variables/${id}`, { json: fields }) }
   deleteVariable(id) { return this.delete(url`/variables/${id}`) }
   importVariables(csv) { return this.post(`/variables/import`, { json: { csv } }) }
+  getVariableConstraints(id) { return this.get(url`/variables/${id}/constraints`) }
+  patchVariableConstraint(id, cid, fields) { return this.patch(url`/variables/${id}/constraints/${cid}`, { json: fields }) }
   createVariableConstraints(id, drafts) { return this.post(url`/variables/${id}/constraints`, { json: drafts }) }
   deleteVariableConstraint(id, cid) { return this.delete(url`/variables/${id}/constraints/${cid}`) }
   getEnumerators(id) { return this.get(url`/variables/${id}/enumerators`) }

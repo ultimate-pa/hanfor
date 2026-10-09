@@ -71,7 +71,7 @@ export default class TemplateRenderer {
         if (config.container) names.add(config.container)
         ;(config.requires || []).forEach(name => names.add(name))
       })
-      this._ready = Promise.all([...names].map(name => this.load(name)), this.patterns())
+      this._ready = Promise.all([...[...names].map(name => this.load(name)), this.patterns()])
     }
     return this._ready
   }
