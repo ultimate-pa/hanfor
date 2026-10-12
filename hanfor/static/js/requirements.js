@@ -19,7 +19,13 @@ import store from "./formalizations/store"
 import "jquery-sortablejs"
 import TemplateRenderer from "./template/TemplateRenderer.js"
 import { FORMALIZATION_TYPE, read_formalization_card, update_previews, update_var_groups } from "./formalizations/formalization-card.js"
-import { bind_card_events, patch_edited_cards, show_save_errors } from "./formalizations/card-accordion.js"
+import {
+  bind_card_events,
+  patch_edited_cards,
+  read_copied_formalization,
+  setCopyBtnEnable,
+  show_save_errors,
+} from "./formalizations/card-accordion.js"
 import { AVAILABLE_VARIABLE_TYPES, VARIABLE_NAME_RE } from "./available-variable-types.js"
 import ApiClient from "./api/ApiClient.js"
 
@@ -247,14 +253,6 @@ $(document).ready(function () {
         },
       },
     })
-  })
-
-  body.on("click", ".copy_formalization", function () {
-    copy_formalization($(this).attr("name"))
-    $(this).addClass("animate-success")
-    setTimeout(() => {
-      $(this).removeClass("animate-success")
-    }, 600)
   })
 
   // Bind is_constraint checkbox change so the save flag is set.
@@ -1116,12 +1114,7 @@ function init_modal() {
   })
 
   $("#add_copied_formalization").click(function () {
-    const cookie = getCookie("copied_formalization")
-    let formalization = {}
-    if (cookie) {
-      formalization = JSON.parse(cookie)
-    }
-    add_formalization(formalization)
+    add_formalization(read_copied_formalization())
   })
 
   document.querySelectorAll(".modal").forEach((modal) =>
@@ -1147,18 +1140,6 @@ function init_modal() {
 
   // Initialize variables.
   refresh_cards()
-}
-
-function getCookie(name) {
-  const value = `; ${document.cookie}`
-  const parts = value.split(`; ${name}=`)
-  if (parts.length === 2) return parts.pop().split(";").shift()
-}
-
-function setCopyBtnEnable() {
-  const cookie = getCookie("copied_formalization")
-  const button = document.getElementById("add_copied_formalization")
-  button.disabled = !cookie
 }
 
 /**
@@ -1471,48 +1452,6 @@ function delete_formalization(formal_id, card) {
   const hasUnsavedChanges = !store.hasNoDrafts("formalization")
   console.log(hasUnsavedChanges)
   $("#requirement_modal").data("unsaved_changes", hasUnsavedChanges)
-}
-
-function copy_formalization(formal_id) {
-  let formalization = {}
-  $(".formalization_card").each(function () {
-    if ($(this).attr("title") === formal_id) {
-      formalization["id"] = $(this).attr("title")
-      formalization["text"] = $(this).find(`#current_formalization_textarea${formal_id}`).text().trim()
-      $(this)
-        .find("select")
-        .each(function () {
-          if ($(this).hasClass("scope_selector")) {
-            formalization["scope"] = $(this).val()
-          }
-          if ($(this).hasClass("pattern_selector")) {
-            formalization["pattern"] = $(this).val()
-          }
-        })
-
-      // is_constraint checkbox
-      formalization["is_constraint"] = $(this)
-        .closest(".accordion-item")
-        .find(".is-constraint-checkbox")
-        .is(":checked")
-
-      // Expressions
-      $(this)
-        .find("textarea.reqirement-variable")
-        .each(function () {
-          const title = $(this).attr("title")
-          if (title) formalization[`expr_${title}`] = $(this).val()
-        })
-    }
-  })
-
-  const d = new Date()
-  d.setTime(d.getTime() + 8 * 3600 * 1000)
-  let expires = "expires=" + d.toUTCString()
-  document.cookie = "copied_formalization=" + JSON.stringify(formalization) + ";" + expires + ";path=/"
-  localStorage.setItem("cookieUpdate", Date.now())
-  setCopyBtnEnable()
-  // TODO give some feedback
 }
 
 function refresh_cards() {

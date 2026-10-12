@@ -3,7 +3,13 @@ import { AVAILABLE_VARIABLE_TYPES, VARIABLE_NAME_RE } from "./available-variable
 import TemplateRenderer from "./template/TemplateRenderer.js"
 import TrackedStore from "./store/TrackedStore.js"
 import { FORMALIZATION_TYPE, read_formalization_card, update_previews, update_var_groups } from "./formalizations/formalization-card.js"
-import { bind_card_events, patch_edited_cards, show_save_errors } from "./formalizations/card-accordion.js"
+import {
+    bind_card_events,
+    patch_edited_cards,
+    read_copied_formalization,
+    setCopyBtnEnable,
+    show_save_errors,
+} from "./formalizations/card-accordion.js"
 require('gasparesganga-jquery-loading-overlay');
 const {Modal, Tab, Toast} = require("bootstrap");
 const { marked } = require("marked")
@@ -221,8 +227,8 @@ async function load_constraints(vid) {
     $('#variable_modal').data('unsaved_changes', false);
 }
 
-function add_constraint() {
-    const $card = renderer.build('formalization', {id: store.create('constraint')});
+function add_constraint(entry = {}) {
+    const $card = renderer.build('formalization', {...entry, id: store.create('constraint')});
     $card.addClass('draft');
     $('#formalization_accordion').append($card);
     refresh_cards();
@@ -334,6 +340,7 @@ function load_variable(row_idx) {
     $('#variable_description_editor').val(data.description || '');
     $('#variable_description_display').html(marked(data.description || ''));
     Tab.getOrCreateInstance(document.querySelector('#var-desc-preview-tab')).show();
+    setCopyBtnEnable();
     variable_value.val('');
     belongs_to_enum.val('');
     enumerators.html('');
@@ -770,6 +777,9 @@ $(document).ready(function () {
 
 
     // Add new Constraint
+    $('#add_copied_formalization').click(function () {
+        add_constraint(read_copied_formalization());
+    });
     $('#add_constraint').click(function () {
         add_constraint();
     });
