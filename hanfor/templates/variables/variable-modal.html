@@ -1,5 +1,5 @@
 <div id="variable_modal" class="modal fade" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
+    <div class="modal-dialog modal-xl" style="max-width: 1400px">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 id="variable_modal_title" class="modal-title"></h5>
@@ -10,90 +10,119 @@
 
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <h5>Properties</h5>
-                <div id="variable_name_form_group" class="form-group">
-                    <div class="row form-inline">
-                        <div class="input-group col-md-12">
-                            <span class="input-group-prepend input-group-text" id="name-addon"
-                                  style="width: 5em">Name</span>
-                            <input type="text"
-                                   class="form-control reqirement-variable"
-                                   id="variable_name"
-                                   aria-describedby="variable-name-feedback"
-                                   aria-label="Name"
-                                   title="Name">
-                            <div id="variable-name-feedback" class="invalid-feedback">
-                                Start with a letter, alphanumeric + underscore + period only.
+            <div class="modal-body overflow-auto" style="height: 75vh">
+                <div class="row g-0 h-100">
+                    <div class="col-12 col-lg-5 h-100 overflow-auto d-flex flex-column" style="padding-right: 1rem;">
+                        <div class="mb-2">
+                            <h5>Properties</h5>
+                            <div id="variable_name_form_group" class="form-group">
+                                <div class="row g-0">
+                                    <div class="input-group col-md-12">
+                                        <span class="input-group-prepend input-group-text" id="name-addon"
+                                              style="width: 5em">Name</span>
+                                        <input type="text"
+                                               class="form-control reqirement-variable"
+                                               id="variable_name"
+                                               aria-describedby="variable-name-feedback"
+                                               aria-label="Name"
+                                               title="Name">
+                                        <div id="variable-name-feedback" class="invalid-feedback">
+                                            Start with a letter, alphanumeric + underscore + period only.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="variable_type_form_group" class="form-group">
+                                <div class="row g-0">
+                                    <div class="input-group col-md-12">
+                                        <span class="input-group-prepend input-group-text" id="type-addon"
+                                              style="width: 5em">Type</span>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="variable_type"
+                                               aria-describedby="variable-type-feedback"
+                                               aria-label="type"
+                                               title="type">
+                                        <div id="variable-type-feedback" class="invalid-feedback">
+                                            Supported types are CONST, ENUM_INT, ENUM_REAL, BOOL
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="variable_value_form_group" class="form-group">
+                                <div class="row g-0">
+                                    <div class="input-group col-md-12">
+                                        <span class="input-group-prepend input-group-text" id="value-addon"
+                                              style="width: 5em">Value</span>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="variable_value"
+                                               aria-describedby="value-addon"
+                                               aria-label="value"
+                                               title="value">
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="variable_belongs_to_form_group" class="form-group">
+                                <div class="row g-0">
+                                    <div class="input-group col-md-12">
+                                                <span class="input-group-prepend input-group-text" id="belongs_to-addon"
+                                                      style="width: 10em">Belongs to Enum</span>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="belongs_to_enum"
+                                               aria-describedby="belongs_to-addon"
+                                               aria-label="belongs_to"
+                                               title="belongs_to">
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div id="variable_type_form_group" class="form-group">
-                    <div class="row form-inline">
-                        <div class="input-group col-md-12">
-                            <span class="input-group-prepend input-group-text" id="type-addon"
-                                  style="width: 5em">Type</span>
-                            <input type="text"
-                                   class="form-control"
-                                   id="variable_type"
-                                   aria-describedby="variable-type-feedback"
-                                   aria-label="type"
-                                   title="type">
-                            <div id="variable-type-feedback" class="invalid-feedback">
-                                Supported types are CONST, ENUM_INT, ENUM_REAL, BOOL
+                        <h5 style="margin-bottom: 0.5rem;">Description</h5>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active" id="var-desc-preview-tab"
+                                        data-bs-toggle="tab" data-bs-target="#var-desc-preview"
+                                        type="button">Preview</button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" id="var-desc-edit-tab"
+                                        data-bs-toggle="tab" data-bs-target="#var-desc-edit"
+                                        type="button">Edit</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content mb-3 flex-grow-1" style="min-height: 10rem">
+                            <div class="tab-pane fade show active h-100" id="var-desc-preview" role="tabpanel">
+                                <div id="variable_description_display" class="p-2 h-100 overflow-auto"></div>
+                            </div>
+                            <div class="tab-pane fade h-100" id="var-desc-edit" role="tabpanel">
+                                <textarea id="variable_description_editor" class="form-control h-100" style="resize: none"></textarea>
                             </div>
                         </div>
+                        <h5 class="enum-controls">
+                            Enumerators
+                            <button id="add_enumerator"
+                                    type="button"
+                                    class="btn btn-success btn-sm"
+                                    title="Add Enumerator">
+                                <strong>+</strong>
+                            </button>
+                        </h5>
+                        <div id="enumerators" class="enum-controls"></div>
+                    </div>
+                    <div class="col-12 col-lg-7 h-100 overflow-auto">
+                        <h5 class="sticky-top bg-body">
+                            Constraints
+                            <button id="add_constraint"
+                                    type="button"
+                                    class="btn btn-success btn-sm"
+                                    title="Add constraint">
+                                <strong>+</strong>
+                            </button>
+                        </h5>
+                        <div id="formalization_accordion" class="accordion"></div>
                     </div>
                 </div>
-                <div id="variable_value_form_group" class="form-group">
-                    <div class="row form-inline">
-                        <div class="input-group col-md-12">
-                            <span class="input-group-prepend input-group-text" id="value-addon"
-                                  style="width: 5em">Value</span>
-                            <input type="text"
-                                   class="form-control"
-                                   id="variable_value"
-                                   aria-describedby="value-addon"
-                                   aria-label="value"
-                                   title="value">
-                        </div>
-                    </div>
-                </div>
-                <div id="variable_belongs_to_form_group" class="form-group">
-                    <div class="row form-inline">
-                        <div class="input-group col-md-12">
-                                    <span class="input-group-prepend input-group-text" id="belongs_to-addon"
-                                          style="width: 10em">Belongs to Enum</span>
-                            <input type="text"
-                                   class="form-control"
-                                   id="belongs_to_enum"
-                                   aria-describedby="belongs_to-addon"
-                                   aria-label="belongs_to"
-                                   title="belongs_to">
-                        </div>
-                    </div>
-                </div>
-                <h5>
-                    Constraints
-                    <button id="add_constraint"
-                            type="button"
-                            class="btn btn-success btn-sm"
-                            title="Add constraint">
-                        <strong>+</strong>
-                    </button>
-                </h5>
-                <div id="formalization_accordion" class="accordion"></div>
-                <h5 class="enum-controls">
-                    Enumerators
-                    <button id="add_enumerator"
-                            type="button"
-                            class="btn btn-success btn-sm"
-                            title="Add Enumerator">
-                        <strong>+</strong>
-                    </button>
-                </h5>
-                <div id="enumerators" class="enum-controls"></div>
             </div>
             <div class="modal-footer">
                 <button id="save_variable_modal" type="button" class="btn btn-primary">Save changes</button>

@@ -21,7 +21,6 @@ from lib_core.utils import (
     delete_variable_everywhere,
     generate_file_response,
     generate_req_file_content,
-    get_requirements,
     log_request_response,
     rename_variable_everywhere,
 )
@@ -167,7 +166,7 @@ class ApiVariable(Resource):
 
     @api_ns.doc(
         description="Changes the variable. The JSON body has the new values: 'name', 'type', 'const_val', "
-        "'belongs_to_enum' and 'enumerators'. A field that is "
+        "'belongs_to_enum', 'enumerators' and 'description'. A field that is "
         "not in the body keeps its value. Gives 404 if the variable is not found, and 400 if the change is not "
         "valid.",
         params={"vid": "The id (uuid) of the variable"},
@@ -436,6 +435,7 @@ def update_variable_in_collection(data: dict) -> dict:
         type -> the new type of the var.
         const_val -> the new value of the var.
         belongs_to_enum -> the new ENUM parent of an ENUMERATOR.
+        description -> the new description of the var (markdown).
         enumerators -> The dict of enumerators
 
     :param data: The fields of the update
@@ -458,6 +458,7 @@ def update_variable_in_collection(data: dict) -> dict:
     var_type = new_value("type", var_type_old)
     var_const_val = new_value("const_val", var_const_val_old)
     belongs_to_enum = new_value("belongs_to_enum", belongs_to_enum_old)
+    description = current.description if data.get("description") is None else str(data["description"])
     enumerators = data.get("enumerators")
     result = {
         "success": True,
@@ -470,6 +471,7 @@ def update_variable_in_collection(data: dict) -> dict:
             "type": var_type,
             "used_by": sorted(var_collection.var_req_mapping.get(var_name_old, [])),
             "const_val": var_const_val,
+            "description": description,
         },
     }
 
@@ -479,10 +481,12 @@ def update_variable_in_collection(data: dict) -> dict:
         or var_name_old != var_name
         or var_const_val_old != var_const_val
         or belongs_to_enum != belongs_to_enum_old
+        or description != current.description
     ):
         logging.info(f"Update Variable `{var_name_old}`")
         result["has_changes"] = True
         reload_type_inference = False
+        current.description = description
 
         # Update type.
         if var_type_old != var_type:

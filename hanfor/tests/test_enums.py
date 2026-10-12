@@ -41,6 +41,7 @@ class TestEnums(TestCase):
                 "const_val": None,
                 "order": 0,
                 "belongs_to_enum": "",
+                "description": "",
             }
         )
         self.assertCountEqual(updated_vars, expected_updated_vars)
@@ -72,6 +73,7 @@ class TestEnums(TestCase):
                 "const_val": None,
                 "order": 0,
                 "belongs_to_enum": "",
+                "description": "",
             }
         )
         self.assertCountEqual(updated_vars, expected_updated_vars)
@@ -112,6 +114,7 @@ class TestEnums(TestCase):
                 "const_val": None,
                 "order": 0,
                 "belongs_to_enum": "",
+                "description": "",
             }
         )
         expected_updated_vars.append(
@@ -127,6 +130,7 @@ class TestEnums(TestCase):
                 "script_results": "",
                 "order": 0,
                 "belongs_to_enum": "my_first_enum",
+                "description": "",
             }
         )
         expected_updated_vars.append(
@@ -142,6 +146,7 @@ class TestEnums(TestCase):
                 "script_results": "",
                 "order": 0,
                 "belongs_to_enum": "my_first_enum",
+                "description": "",
             }
         )
         self.assertCountEqual(updated_vars, expected_updated_vars)
@@ -242,6 +247,7 @@ class TestEnums(TestCase):
                 "const_val": None,
                 "order": 0,
                 "belongs_to_enum": "",
+                "description": "",
             }
         )
         expected_updated_vars.append(
@@ -257,6 +263,7 @@ class TestEnums(TestCase):
                 "script_results": "",
                 "order": 0,
                 "belongs_to_enum": "my_first_enum",
+                "description": "",
             }
         )
         expected_updated_vars.append(
@@ -272,6 +279,7 @@ class TestEnums(TestCase):
                 "script_results": "",
                 "order": 0,
                 "belongs_to_enum": "my_first_enum",
+                "description": "",
             }
         )
 
@@ -401,6 +409,7 @@ class TestEnums(TestCase):
                 "const_val": None,
                 "order": 0,
                 "belongs_to_enum": "",
+                "description": "",
             }
         )
         expected_updated_vars.append(
@@ -416,6 +425,7 @@ class TestEnums(TestCase):
                 "script_results": "",
                 "order": 0,
                 "belongs_to_enum": "my_third_enum",
+                "description": "",
             }
         )
         expected_updated_vars.append(
@@ -431,6 +441,7 @@ class TestEnums(TestCase):
                 "script_results": "",
                 "order": 0,
                 "belongs_to_enum": "my_third_enum",
+                "description": "",
             }
         )
         self.assertCountEqual(updated_vars, expected_updated_vars)
@@ -457,6 +468,7 @@ class TestEnums(TestCase):
                 "script_results": "",
                 "order": 0,
                 "belongs_to_enum": "my_third_enum",
+                "description": "",
             }
         )
         self.assertEqual(response.json["success"], True)
@@ -595,6 +607,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "order": 0,
             "belongs_to_enum": "",
+            "description": "",
         }
         self.assertIn(new_variable, updated_vars)
 
@@ -618,6 +631,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "order": 0,
             "belongs_to_enum": "",
+            "description": "",
         }
         self.assertIn(new_variable, updated_vars)
 
@@ -641,6 +655,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "order": 0,
             "belongs_to_enum": "",
+            "description": "",
         }
         self.assertIn(new_variable, updated_vars)
 
@@ -664,6 +679,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "order": 0,
             "belongs_to_enum": "",
+            "description": "",
         }
         self.assertIn(new_variable, updated_vars)
 
@@ -706,6 +722,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "order": 0,
             "belongs_to_enum": "",
+            "description": "",
         }
         self.assertIn(unknown, variables)
 
@@ -729,6 +746,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "order": 0,
             "belongs_to_enum": "",
+            "description": "",
         }
         self.assertIn(unknown, variables)
 
@@ -771,6 +789,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "order": 0,
             "belongs_to_enum": "",
+            "description": "",
         }
         self.assertIn(unknown, variables)
 
@@ -794,6 +813,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "order": 0,
             "belongs_to_enum": "",
+            "description": "",
         }
         self.assertIn(unknown, variables)
 
@@ -836,6 +856,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "order": 0,
             "belongs_to_enum": "",
+            "description": "",
         }
         self.assertIn(unknown, variables)
 
@@ -859,6 +880,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "order": 0,
             "belongs_to_enum": "",
+            "description": "",
         }
         self.assertIn(unknown, variables)
 
@@ -901,6 +923,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "order": 0,
             "belongs_to_enum": "",
+            "description": "",
         }
         self.assertIn(unknown, variables)
 
@@ -924,6 +947,7 @@ class TestEnums(TestCase):
             "const_val": None,
             "order": 0,
             "belongs_to_enum": "",
+            "description": "",
         }
         self.assertIn(unknown, variables)
 

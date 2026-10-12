@@ -815,6 +815,7 @@ class Variable(RequirementElement):
             "constraints": [constraint.get_string() for constraint in self.get_constraints().values()],
             "script_results": self.script_results,
             "belongs_to_enum": self.belongs_to_enum,
+            "description": self.description,
         }
 
         # Only the API passes a collection; it holds the cross variable data a Variable cannot see alone.

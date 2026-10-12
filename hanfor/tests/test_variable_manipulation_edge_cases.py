@@ -77,6 +77,7 @@ class TestHanforVersionMigrations(TestCase):
                 "type": "bool",
                 "order": 0,
                 "belongs_to_enum": "",
+                "description": "",
             },
             variables_without_ids(self.app),
         )
@@ -116,6 +117,7 @@ class TestHanforVersionMigrations(TestCase):
                         "order": 0,
                         "script_results": "",
                         "belongs_to_enum": "",
+                        "description": "",
                     },
                     t,
                 )
@@ -132,9 +134,21 @@ class TestHanforVersionMigrations(TestCase):
                 "order": 0,
                 "script_results": "",
                 "belongs_to_enum": "",
+                "description": "",
             },
             variables_without_ids(self.app),
         )
+
+    def test_variable_description_is_saved(self):
+        args = HanforArgumentParser(app).parse_args(["test_variable_manipulation_edge_cases"])
+        self.startup_hanfor(args, user_mock_answers=[])
+        set_description = self.app.patch(variable_url(self.app, "egg"), json={"description": "**hot** egg\n"})
+        self.assertEqual(200, set_description.status_code)
+        self.assertEqual("**hot** egg\n", set_description.json["data"]["description"])
+        keep_description = self.app.patch(variable_url(self.app, "egg"), json={"const_val": ""})
+        self.assertEqual(200, keep_description.status_code)
+        egg = self.app.get("api/v1/variables", query_string={"name": "egg"}).json["data"][0]
+        self.assertEqual("**hot** egg\n", egg["description"])
 
     def tearDown(self):
         # Clean test dir.

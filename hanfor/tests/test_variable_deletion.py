@@ -77,6 +77,7 @@ class TestHanforVersionMigrations(TestCase):
                 "type": "bool",
                 "order": 0,
                 "belongs_to_enum": "",
+                "description": "",
             },
             variables_without_ids(self.app),
         )

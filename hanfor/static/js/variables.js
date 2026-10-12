@@ -5,7 +5,8 @@ import TrackedStore from "./store/TrackedStore.js"
 import { FORMALIZATION_TYPE, read_formalization_card, update_previews, update_var_groups } from "./formalizations/formalization-card.js"
 import { bind_card_events, patch_edited_cards, show_save_errors } from "./formalizations/card-accordion.js"
 require('gasparesganga-jquery-loading-overlay');
-const {Modal, Toast} = require("bootstrap");
+const {Modal, Tab, Toast} = require("bootstrap");
+const { marked } = require("marked")
 
 require('datatables.net-bs5');
 require('datatables.net-select');
@@ -146,7 +147,8 @@ function store_variable(variables_table) {
             type: var_type,
             const_val: const_val,
             enumerators: enumerators,
-            belongs_to_enum: belongs_to_enum
+            belongs_to_enum: belongs_to_enum,
+            description: $('#variable_description_editor').val()
         }),
     ).done(function (data) {
         let modal = $('#variable_modal')
@@ -155,7 +157,7 @@ function store_variable(variables_table) {
             Modal.getOrCreateInstance(modal).hide()
             $('#variables_table').DataTable().ajax.reload(null, false)
         } else {
-            variables_table.row(associated_row_id).data(data.data).draw();
+            variables_table.row(associated_row_id).data({...variables_table.row(associated_row_id).data(), ...data.data}).draw();
             Modal.getOrCreateInstance(modal).hide()
         }
     }).fail(function (err) {
@@ -329,6 +331,9 @@ function load_variable(row_idx) {
     let enumerators = $('#enumerators');
 
     type_input.val(data.type);
+    $('#variable_description_editor').val(data.description || '');
+    $('#variable_description_display').html(marked(data.description || ''));
+    Tab.getOrCreateInstance(document.querySelector('#var-desc-preview-tab')).show();
     variable_value.val('');
     belongs_to_enum.val('');
     enumerators.html('');
@@ -769,6 +774,9 @@ $(document).ready(function () {
         add_constraint();
     });
     bind_card_events('#formalization_accordion', {onChange: refresh_cards, onDelete: delete_constraint});
+    document.querySelector('#var-desc-preview-tab').addEventListener('shown.bs.tab', function () {
+        $('#variable_description_display').html(marked($('#variable_description_editor').val()));
+    });
 
     // Add new variable via modal.
     $('#save_new_variable_modal').click(function () {
@@ -845,6 +853,10 @@ function init_modal() {
     })
 
     $('#variable_type').change(function () {
+        $('#variable_modal').data('unsaved_changes', true);
+    })
+
+    $('#variable_description_editor').change(function () {
         $('#variable_modal').data('unsaved_changes', true);
     })
 
