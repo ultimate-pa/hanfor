@@ -61,6 +61,7 @@ FormalizationType = Literal["formalization", "variable"]
 
 class RequirementElement(ABC):
     """Anything that can live in `Requirement.formalizations`"""
+
     order: int
 
     is_constraint: bool = False
@@ -198,7 +199,8 @@ class Requirement:
         (reads the `csv_desc_header` session value), do not touch it from startup or worker threads.
         """
         # this has to be here, if not it causes a circular import
-        from reqtransformer import  try_cast_string
+        from reqtransformer import try_cast_string
+
         desc_header = current_app.db.get_object(SessionValue, "csv_desc_header").value
         return try_cast_string(self.csv_row.get(desc_header, ""))
 
@@ -824,8 +826,12 @@ class Variable(RequirementElement):
     def get_tags(self):
         return self.tags
 
+    @staticmethod
+    def check_name(new_name) -> bool:
+        return re.match(r"^[a-zA-Z][a-zA-Z0-9_\.]*$", new_name) is not None
+
     def set_name(self, new_name):
-        if not new_name or not re.match(r"^[a-zA-Z][a-zA-Z0-9_\.]*$", new_name):
+        if not new_name or not Variable.check_name(new_name):
             raise ValueError(f"Illegal variable name: `{new_name}`.")
         self.name = new_name
 
@@ -1164,11 +1170,7 @@ class VariableCollection:
             elif var.type == "CONST":
                 # Check for int, real or unknown based on value.
                 try:
-                    logging.debug(
-                            f"Variable {var.name}: "
-                            f"Value={repr(var.value)}, "
-                            f"Type={type(var.value)}, "
-                    )
+                    logging.debug(f"Variable {var.name}: " f"Value={repr(var.value)}, " f"Type={type(var.value)}, ")
                     float(var.value)
                 except (TypeError, ValueError) as e:
                     logging.debug(
