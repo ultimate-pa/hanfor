@@ -1,7 +1,10 @@
+const errorMessage = err => err?.responseJSON?.errormsg || err?.statusText || "Unknown error"
+
 export default class TrackedStore {
   constructor() {
     this._created = new Map()
     this._deleted = new Map()
+    this._edited = new Map()
     this._types = new Map()
     this._assigned = new Map()
     this._counter = 0
@@ -21,7 +24,15 @@ export default class TrackedStore {
     return id
   }
 
+  edit(type, id) {
+    id = String(id)
+    if (!this.isCreated(type, id)) {
+      this._getSet(this._edited, type).add(id)
+    }
+  }
+
   delete(type, id) {
+    this._getSet(this._edited, type).delete(String(id))
     id = String(this.resolveId(id))
     if (this._getSet(this._created, type).has(id)) {
       this._getSet(this._created, type).delete(id)
@@ -35,31 +46,56 @@ export default class TrackedStore {
   }
 
   hasNoDrafts(type = null) {
-    if (type) {
-      return this._getSet(this._created, type).size === 0 && this._getSet(this._deleted, type).size === 0
-    }
-    for (const [, set] of this._created) {
-      if (set.size > 0) return false
-    }
-    for (const [, set] of this._deleted) {
-      if (set.size > 0) return false
+    for (const map of [this._created, this._deleted, this._edited]) {
+      for (const [mapType, set] of map) {
+        if ((type === null || mapType === type) && set.size > 0) return false
+      }
     }
     return true
   }
 
-  commitDeletes(rid, type) {
-    const config = this._types.get(type)
-    if (!config?.persistDelete) return Promise.resolve()
-    const requests = [...this._getSet(this._deleted, type)].map(id => config.persistDelete(rid, id))
-    this._getSet(this._deleted, type).clear()
+  /**
+   * Sends all deletes, creates and patches of all types. Rejects with {responseJSON: {errors}},
+   * keyed by the card id, if one or more requests fail. Failed changes stay drafts.
+   */
+  async commit(parentId) {
+    const errors = {}
+    const requests = []
+    for (const [type, config] of this._types) {
+      requests.push(this._commitDeletes(parentId, type, config, errors))
+      requests.push(this._commitCreated(parentId, type, config, errors))
+      requests.push(this._commitEdited(parentId, type, config, errors))
+    }
+    await Promise.all(requests)
+    if (Object.keys(errors).length) {
+      throw { responseJSON: { errors } }
+    }
+  }
+
+  _commitDeletes(parentId, type, config, errors) {
+    if (!config.persistDelete) return Promise.resolve()
+    const deleted = this._getSet(this._deleted, type)
+    const requests = []
+    for (const id of deleted) {
+      const request = Promise.resolve(config.persistDelete(parentId, id)).then(
+        () => deleted.delete(id),
+        err => {
+          errors[id] = errorMessage(err)
+        },
+      )
+      requests.push(request)
+    }
     return Promise.all(requests)
   }
 
-  commitCreated(rid, type) {
-    const config = this._types.get(type)
-    if (!config?.readDOM || !config?.persistCreate) return Promise.resolve()
+  _commitCreated(parentId, type, config, errors) {
+    if (!config.readDOM || !config.persistCreate) return Promise.resolve()
     const created = this._getSet(this._created, type)
-    const drafts = [...created].map(id => config.readDOM(id)).filter(Boolean)
+    const drafts = []
+    for (const id of created) {
+      const draft = config.readDOM(id)
+      if (draft) drafts.push(draft)
+    }
     if (!drafts.length) return Promise.resolve()
     const assign = ids => {
       for (const [tmp, id] of Object.entries(ids ?? {})) {
@@ -67,13 +103,40 @@ export default class TrackedStore {
         created.delete(tmp)
       }
     }
-    return Promise.resolve(config.persistCreate(rid, drafts)).then(
+    return Promise.resolve(config.persistCreate(parentId, drafts)).then(
       response => assign(response?.ids),
       err => {
         assign(err?.responseJSON?.ids)
-        throw err
+        const draftErrors = err?.responseJSON?.errors ?? {}
+        for (const draft of drafts) {
+          if (created.has(draft.temp_id)) {
+            errors[draft.temp_id] = draftErrors[draft.temp_id] ?? errorMessage(err)
+          }
+        }
       },
     )
+  }
+
+  _commitEdited(parentId, type, config, errors) {
+    if (!config.readDOM || !config.persistPatch) return Promise.resolve()
+    const edited = this._getSet(this._edited, type)
+    const requests = []
+    for (const id of edited) {
+      const entry = config.readDOM(id)
+      if (!entry) {
+        edited.delete(id)
+        continue
+      }
+      delete entry.temp_id
+      const request = Promise.resolve(config.persistPatch(parentId, this.resolveId(id), entry)).then(
+        () => edited.delete(id),
+        err => {
+          errors[id] = errorMessage(err)
+        },
+      )
+      requests.push(request)
+    }
+    return Promise.all(requests)
   }
 
   resolveId(id) {
@@ -87,6 +150,7 @@ export default class TrackedStore {
   reset() {
     this._created.clear()
     this._deleted.clear()
+    this._edited.clear()
     this._assigned.clear()
     this._counter = 0
   }

@@ -3,3 +3,4 @@ nav:
   - Threading: threading.md
   - AI Basic: ai.md
   - AI Addon: ai_addon.md
+  - Frontend: frontend.md

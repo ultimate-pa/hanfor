@@ -4,9 +4,11 @@ import { read_formalization_card } from "./formalization-card.js"
 const { Toast } = require("bootstrap")
 require("../bootstrap-confirm-button")
 
-export function bind_card_events(selector, { onChange, onDelete }) {
+export function bind_card_events(selector, { store, onChange, onDelete }) {
   $(document).on("input change", `${selector} > .accordion-item :input`, function () {
-    $(this).closest(".accordion-item").addClass("draft")
+    const $item = $(this).closest(".accordion-item")
+    $item.addClass("draft")
+    store.edit($item.data("type"), $item.data("id"))
   })
   $(selector).on(
     "change",
@@ -63,20 +65,18 @@ function copy_formalization($item) {
   setCopyBtnEnable()
 }
 
-export async function patch_edited_cards($accordion, cards, patch) {
-  const results = await Promise.allSettled(cards.map(([id, entry]) => patch(id, entry)))
-  const errors = {}
-  results.forEach((result, i) => {
-    const [id] = cards[i]
-    if (result.status === "fulfilled") {
-      $accordion.children(`.accordion-item[data-id="${id}"]`).removeClass("draft")
-    } else {
-      errors[id] = result.reason?.responseJSON?.errormsg || result.reason?.statusText
+export function handle_save_error(renderer, $accordion, err) {
+  const errors = err?.responseJSON?.errors ?? {}
+  $accordion.children(".accordion-item.draft").each(function () {
+    if (!(String($(this).data("id")) in errors)) {
+      $(this).removeClass("draft border-danger")
     }
   })
   if (Object.keys(errors).length) {
-    throw { responseJSON: { errors } }
+    show_save_errors(renderer, $accordion, errors)
+    return
   }
+  alert(`Save failed (${err?.status}): ${err?.responseJSON?.errormsg || err?.statusText || "Unknown error"}`)
 }
 
 export function show_save_errors(renderer, $accordion, errors) {

@@ -1,3 +1,5 @@
+import re
+
 from playwright.sync_api import Page, expect
 
 from tests.test_frontend.helpers import (
@@ -92,6 +94,32 @@ def test_add_several_drafts_save_then_edit_the_first(page: Page) -> None:
     assert set(final) == {0, 1, 2, 3, 4}
     assert final[0]["expr_R"] == "bright_side"
 
+
+
+def test_failed_draft_stays_draft_and_retry_saves_it_once(page: Page) -> None:
+    rid = "SysRS FooXY_91"
+    modal = open_requirement(page, rid)
+    items = modal.locator("#formalization_accordion > .accordion-item")
+    modal.locator("#add_formalization").click()
+    modal.locator("#add_formalization").click()
+    bad = items.nth(1)
+    bad.locator(".accordion-button").click()
+    bad.locator(".scope_selector").select_option("GLOBALLY")
+    bad.locator(".pattern_selector").select_option("Absence")
+    bad.get_by_role("textbox", name="R", exact=True).fill("foo >")
+    with page.expect_response(lambda r: r.request.method == "POST" and "/formalizations/" in r.url) as create:
+        modal.locator("#save_requirement_modal").click()
+    assert create.value.status == 400
+    expect(items.nth(0)).not_to_have_class(re.compile(r"\bdraft\b"))
+    expect(bad).to_have_class(re.compile(r"\bdraft\b"))
+    assert len(get_formalizations(page, rid)) == 1
+
+    bad.get_by_role("textbox", name="R", exact=True).fill("foo > 1")
+    save_requirement(page, modal, rid)
+
+    saved = get_formalizations(page, rid)
+    assert len(saved) == 2
+    assert [f.get("expr_R") for f in saved if f["pattern"] == "Absence"] == ["foo > 1"]
 
 def test_delete_draft_does_not_save_it(page: Page) -> None:
     rid = "SysRS FooXY_91"

@@ -18,13 +18,12 @@ import Mustache from "mustache"
 import store from "./formalizations/store"
 import "jquery-sortablejs"
 import TemplateRenderer from "./template/TemplateRenderer.js"
-import { FORMALIZATION_TYPE, read_formalization_card, update_previews, update_var_groups } from "./formalizations/formalization-card.js"
+import { FORMALIZATION_TYPE, update_previews, update_var_groups } from "./formalizations/formalization-card.js"
 import {
   bind_card_events,
-  patch_edited_cards,
+  handle_save_error,
   read_copied_formalization,
   setCopyBtnEnable,
-  show_save_errors,
 } from "./formalizations/card-accordion.js"
 import { AVAILABLE_VARIABLE_TYPES, VARIABLE_NAME_RE } from "./available-variable-types.js"
 import ApiClient from "./api/ApiClient.js"
@@ -89,7 +88,9 @@ renderer.registerType("variable", {
         $(this).keydown()
       })
     function markDirty() {
-      $container.closest(".accordion-item").addClass("draft")
+      const $item = $container.closest(".accordion-item")
+      $item.addClass("draft")
+      store.edit($item.data("type"), $item.data("id"))
       $("#requirement_modal").data("unsaved_changes", true)
     }
     // title change listener
@@ -160,7 +161,9 @@ $(document).on("change", ".scope_selector, .pattern_selector", function () {
 })
 
 $(document).on("click", ".del_enum", function () {
-  $(this).closest(".accordion-item").addClass("draft")
+  const $item = $(this).closest(".accordion-item")
+  $item.addClass("draft")
+  store.edit($item.data("type"), $item.data("id"))
   $(this).closest(".enumerator-input").remove()
   $("#requirement_modal").data("unsaved_changes", true)
 })
@@ -222,7 +225,7 @@ $(document).ready(function () {
   //     }
   // });
 
-  bind_card_events("#formalization_accordion", { onChange: refresh_cards, onDelete: delete_formalization })
+  bind_card_events("#formalization_accordion", { store, onChange: refresh_cards, onDelete: delete_formalization })
 
   $("body").bootstrapConfirmButton({
     selector: ".delete_variable",
@@ -595,29 +598,6 @@ function store_requirement(requirements_table) {
   const req_id = $("#requirement_id").val()
   const req_status = $('input[name="status"]:checked').val()
   const associated_row_id = parseInt($("#modal_associated_row_index").val())
-  // Fetch the formalizations
-  let formalizations = {}
-  $("#formalization_accordion > .accordion-item.draft").each(function () {
-    const $item = $(this)
-    const id = String($item.data("id"))
-    let formalization = {}
-
-    if ($item.data("type") === "variable") {
-      formalization["name"] = $item.find('input[aria-describedby="variable-name-feedback"]').val() || ""
-      formalization["type"] = $item.find("input.variable-type").val() || ""
-      formalization["value"] = $item.find("input.variable-value").val() || ""
-      const enumerators = []
-      $item.find(".enum_name_input").each(function (i) {
-        enumerators.push([$(this).val(), $item.find(".enum_value_input").eq(i).val() || ""])
-      })
-      formalization["enumerators"] = enumerators
-    } else {
-      formalization = read_formalization_card($item)
-    }
-
-    formalizations[id] = formalization
-  })
-
   // Store the order of the formalizations to be loaded
   let load_order = {}
   $(".accordion-item").each(function (idx) {
@@ -632,38 +612,22 @@ function store_requirement(requirements_table) {
   })
 
   sendTelemetry("requirements", req_id, "save")
-  const committedFormalizations = Object.entries(formalizations).filter(
-    ([id]) => !store.isCreated("formalization", id) && !store.isCreated("variable", id),
-  )
-  $.when(
-    store.commitDeletes(req_id, "formalization"),
-    store.commitDeletes(req_id, "variable"),
-    store.commitCreated(req_id, "formalization"),
-    store.commitCreated(req_id, "variable"),
-  ).then(() =>
-    patch_edited_cards($("#formalization_accordion"), committedFormalizations, (id, entry) =>
-      api.patchFormalization(req_id, store.resolveId(id), entry),
-    ),
-  ).then(() =>
+  store.commit(req_id).then(() =>
     api.patchRequirement(req_id, {
       tags: Object.fromEntries(tag_comments),
       status: req_status,
       formalizations_order: store.resolveKeys(load_order),
       description: $("#description_editor").val(),
     }),
-  ).done(function (data) {
-    requirement_modal_content.LoadingOverlay("hide", true)
+  ).then(function (data) {
     requirements_table.row(associated_row_id).data(data)
     $("#requirement_modal").data("unsaved_changes", false)
     Modal.getOrCreateInstance(document.querySelector("#requirement_modal")).hide()
     update_logs()
-  }).fail(function (err) {
+  }, function (err) {
+    handle_save_error(renderer, $("#formalization_accordion"), err)
+  }).finally(function () {
     requirement_modal_content.LoadingOverlay("hide", true)
-    if (err?.responseJSON?.errors) {
-      show_save_errors(renderer, $("#formalization_accordion"), err.responseJSON.errors)
-      return
-    }
-    alert(`Save failed (${err?.status}): ${err?.responseJSON?.errormsg || err?.statusText || "Unknown error"}`)
   })
 }
 

@@ -13,6 +13,7 @@ store.registerType("formalization", {
   },
   persistCreate: (rid, drafts) => api.createMany(rid, "formalization", drafts),
   persistDelete: (rid, id) => api.deleteFormalization(rid, id),
+  persistPatch: (rid, id, entry) => api.patchFormalization(rid, id, entry),
 })
 
 store.registerType("variable", {
@@ -42,6 +43,7 @@ store.registerType("variable", {
   },
   persistCreate: (rid, drafts) => api.createMany(rid, "variable", drafts),
   persistDelete: (rid, id) => api.deleteFormalization(rid, id),
+  persistPatch: (rid, id, entry) => api.patchFormalization(rid, id, entry),
 })
 
 export default store
