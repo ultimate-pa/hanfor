@@ -41,8 +41,8 @@ from requirements.subtypes import (
     SubtypeError,
     SubtypeHandler,
     SubtypeNotFound,
-    WRITE_LOCK,
     subtype_errors_to_response,
+    write_locked,
 )
 from requirements.desc_highlighting import (
     get_highlighted_desc,
@@ -136,6 +136,7 @@ class ApiRequirementSingle(Resource):
     @api_ns.response(400, "Bad Request", ErrorMessageModel)
     @nocache
     @subtype_errors_to_response
+    @write_locked
     def patch(self, rid):
         requirement = SubtypeContext.load(rid).requirement
 
@@ -220,6 +221,7 @@ class ApiRequirementSingle(Resource):
 class ApiHighlightDescription(Resource):
     @api_ns.doc(description="Server-side variable highlighting for a description text.")
     @nocache
+    @write_locked
     def post(self, rid):
         body = request.get_json()
         if not body or "description" not in body:
@@ -316,6 +318,7 @@ class ApiFormalizationResource(Resource):
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
     @subtype_errors_to_response
+    @write_locked
     def patch(self, rid, fid):
         data = _request_data()
         if not data:
@@ -340,6 +343,7 @@ class ApiFormalizationResource(Resource):
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
     @subtype_errors_to_response
+    @write_locked
     def put(self, rid, fid):
         data = _request_data()
         with _subtype_write(rid, f"Replaced formalization {fid} of requirement") as ctx:
@@ -358,6 +362,7 @@ class ApiFormalizationResource(Resource):
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
     @subtype_errors_to_response
+    @write_locked
     def delete(self, rid, fid):
         with _subtype_write(rid, f"Deleted formalization {fid} from requirement") as ctx:
             SubtypeHandler.handler_for(ctx, fid).delete(ctx, fid)
@@ -371,11 +376,10 @@ def _subtype_write(rid: str, log_message: str):
     of the `with` block, yielding then returns the ctx to the block for it to be used `as` a variable
     and then then the code after running after the with ends normally, allowing us to minimize code needed
     """
-    with WRITE_LOCK:
-        ctx = SubtypeContext.load(rid)
-        yield ctx
-        current_app.db.update()
-        add_msg_to_flask_session_log(current_app, log_message, [ctx.requirement])
+    ctx = SubtypeContext.load(rid)
+    yield ctx
+    current_app.db.update()
+    add_msg_to_flask_session_log(current_app, log_message, [ctx.requirement])
 
 
 def _request_data() -> dict:
@@ -403,6 +407,7 @@ class ApiFormalizationStoreBatch(Resource):
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
     @subtype_errors_to_response
+    @write_locked
     def post(self, rid, subtype):
         drafts = json.loads(request.form.get("data") or "[]")
         handler = SUBTYPES[subtype].handler
@@ -431,6 +436,7 @@ class ApiRequirementTag(Resource):
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
     @subtype_errors_to_response
+    @write_locked
     def put(self, rid, tag_name):
         requirement = SubtypeContext.load(rid).requirement
         all_tags: dict[str, Tag] = {t.name: t for t in current_app.db.get_objects(Tag).values()}
@@ -453,6 +459,7 @@ class ApiRequirementTag(Resource):
     @api_ns.response(404, "Not Found", ErrorMessageModel)
     @nocache
     @subtype_errors_to_response
+    @write_locked
     def delete(self, rid, tag_name):
         requirement = SubtypeContext.load(rid).requirement
         all_tags: dict[str, Tag] = {t.name: t for t in current_app.db.get_objects(Tag).values()}
@@ -533,6 +540,7 @@ class ApiMultiAddTopGuess(Resource):
     )
     @api_ns.response(200, "Success", SuccessResponseModel)
     @nocache
+    @write_locked
     def post(self):
         result = {"success": True}
         requirement_ids = request.form.get("selected_ids", "")

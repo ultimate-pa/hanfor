@@ -20,7 +20,7 @@ from lib_core.data import (
 from lib_core.utils import delete_variable_everywhere, rename_variable_everywhere
 from requirements.desc_highlighting import delete_variables, new_variables_regenerate_highlighting
 
-WRITE_LOCK = threading.Lock()
+WRITE_LOCK = threading.RLock()
 
 
 def write_locked(view):
