@@ -223,7 +223,7 @@ class TestRevisionMigration(TestCase):
         self.startup_hanfor(args, user_mock_answers=[2, 0, 1, 3, 0])
 
         # Edit the description like the markdown editor does.
-        patched = self.app.patch(f"api/v1/req/{rid}", data={"description": "edited in hanfor"})
+        patched = self.app.patch(f"api/v1/req/{rid}", json={"description": "edited in hanfor"})
         self.assertEqual(200, patched.status_code)
         self.assertEqual("edited in hanfor", patched.json["desc"])
 

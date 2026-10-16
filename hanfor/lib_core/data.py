@@ -281,6 +281,11 @@ class Requirement:
     ):
         # TODO: simplify
         # set scoped pattern
+        scope_name = scope_name or Scope.NONE.name
+        pattern_name = pattern_name or "NotFormalizable"
+        parser = boogie_parsing.get_parser_instance()
+        for expression in mapping.values():
+            parser.parse(expression)
         sp: ScopedPattern = self.formalizations[formalization_id].scoped_pattern
         if not sp.scope.name == scope_name or not sp.pattern.name == pattern_name:
             self.formalizations[formalization_id].scoped_pattern = ScopedPattern(
@@ -338,15 +343,27 @@ class Requirement:
         else:
             return self.tags[standard_tags["TAG_incomplete_formalization"]] + "\n- " + rid_fid
 
+    def recompute_formalization_tags(self, standard_tags: dict[str, Tag]) -> None:
+        for key in ("TAG_incomplete_formalization", "TAG_has_formalization"):
+            tag = standard_tags[key]
+            if tag in self.tags:
+                self.tags.pop(tag)
+        for fid, formalization in self.formalizations.items():
+            if not isinstance(formalization, Formalization):
+                continue
+            sp = formalization.scoped_pattern
+            if sp.scope != Scope.NONE and sp.pattern.get_name() != "NotFormalizable":
+                self.tags[standard_tags["TAG_has_formalization"]] = ""
+            else:
+                self.tags[standard_tags["TAG_incomplete_formalization"]] = self.format_incomplete_formalization_tag(
+                    fid, standard_tags
+                )
+
     def update_formalizations(self, formalizations: dict, standard_tags: dict[str, Tag], variable_collection):
         if standard_tags["TAG_Type_inference_error"] in self.tags:
             self.tags.pop(standard_tags["TAG_Type_inference_error"])
         if standard_tags["TAG_unknown_type"] in self.tags:
             self.tags.pop(standard_tags["TAG_unknown_type"])
-        if standard_tags["TAG_incomplete_formalization"] in self.tags:
-            self.tags.pop(standard_tags["TAG_incomplete_formalization"])
-        if standard_tags["TAG_has_formalization"] in self.tags:
-            self.tags.pop(standard_tags["TAG_has_formalization"])
         logging.debug(f"Updating formalisations of requirement {self.rid}.")
         # Reset the var mapping.
         variable_collection.req_var_mapping[self.rid] = set()
@@ -366,6 +383,10 @@ class Requirement:
             except Exception as e:
                 logging.error(f"Could not update Formalization: {e.__str__()}")
                 raise e
+
+        # Recompute tags from the full state so formalizations created in the
+        # same save via the create (POST, since those are new) endpoint are included as well
+        self.recompute_formalization_tags(standard_tags)
 
     def run_type_checks(self, var_collection, standard_tags: dict[str, Tag]):
         logging.info(f"Run type inference and unknown check for `{self.rid}`")
@@ -1267,28 +1288,23 @@ class VariableCollection:
             if refs:
                 self._constraints[var.name] = refs
 
+    def is_used(self, var_name) -> bool:
+        """
+        uses by the variables own constraints do not count here
+        """
+        constraint_pref = "Constraint_{}".format(var_name)
+        return any(constraint_pref not in usage for usage in self.var_req_mapping.get(var_name, ()))
+
     def del_var(self, var_name) -> Union[Variable, None]:
         """Check if a variable can be deleted ie, is not used somewhere.
 
         :param var_name:
         :return: variable to delete from db or None
         """
-        deletable = False
-        if var_name not in self.var_req_mapping:
-            deletable = True
-        else:
-            constraint_pref = "Constraint_{}".format(var_name)
-            affected_constraints = len([f for f in self.var_req_mapping[var_name] if constraint_pref in f])
-            total_usages = len(self.var_req_mapping[var_name])
-            if affected_constraints == total_usages:
-                deletable = True
-
-        if deletable:
-            deleted_var = self.collection.pop(var_name, None)
-            self.var_req_mapping.pop(var_name, None)
-            if deleted_var:
-                return deleted_var
-        return None
+        if self.is_used(var_name):
+            return None
+        self.var_req_mapping.pop(var_name, None)
+        return self.collection.pop(var_name, None)
 
     def get_enumerators(self, enum_name: str) -> list["Variable"]:
         enumerators = []

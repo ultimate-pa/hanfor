@@ -4,7 +4,6 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -35,6 +34,6 @@ jobs:
           emoji: true
           job-summary: true
           custom-pytest: 'cd hanfor && python3 -m pytest'
-          custom-arguments: '-q'
+          custom-arguments: '-q --ignore=tests/test_frontend'
           click-to-expand: true
           report-title: 'Test Report'

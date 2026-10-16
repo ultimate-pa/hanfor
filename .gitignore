@@ -5,8 +5,7 @@ hanfor/data/**
 hanfor/configuration/*_config.py
 hanfor/ai_addons/pattern_prediction/tree
 
-**/__pycache__*
-**/.webassets-cache/
+**/__pycache__* **/.webassets-cache/
 **/static/gen/style.css
 **/static/gen/vendor.js
 **/static/main/
@@ -127,6 +126,7 @@ package.json
 # Local test files
 loctest_*
 test_results.xml
+test_hanfor/
 http-client.env.json
 
 volumes/
