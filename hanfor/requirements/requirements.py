@@ -305,7 +305,8 @@ class ApiFormalizationResource(Resource):
 
     @api_ns.doc(
         description="Changes only the fields in 'data' of the formalization or variable. The other fields "
-        "keep their values. The server finds the subtype from the element. Gives 404 if the ID is not found.",
+        "keep their values. The server finds the subtype from the element. After a variable change, the server "
+        "does the type checks again for each requirement that uses the variable. Gives 404 if the ID is not found.",
         params={
             "rid": "The requirement ID",
             "fid": "The formalization ID",
@@ -329,8 +330,9 @@ class ApiFormalizationResource(Resource):
 
     @api_ns.doc(
         description="Replaces all fields of the formalization or variable. 'data' must have all the "
-        "required fields. The server finds the subtype from the element. Gives 404 if the ID is not found, "
-        "and 400 if a required field is missing.",
+        "required fields. The server finds the subtype from the element. After a variable change, the server "
+        "does the type checks again for each requirement that uses the variable. Gives 404 if the ID is not "
+        "found, and 400 if a required field is missing.",
         params={
             "rid": "The requirement ID",
             "fid": "The formalization ID",

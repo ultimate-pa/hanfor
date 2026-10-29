@@ -41,6 +41,7 @@ store.registerType("variable", {
 
     return data
   },
+  declaresNames: true,
   persistCreate: (rid, drafts) => api.createMany(rid, "variable", drafts),
   persistDelete: (rid, id) => api.deleteFormalization(rid, id),
   persistPatch: (rid, id, entry) => api.patchFormalization(rid, id, entry),

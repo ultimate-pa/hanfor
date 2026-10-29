@@ -187,3 +187,14 @@ class TestSubtypeHandlers(TestCase):
         self.assertNotIn("myenum_B", variables)
         self.assertEqual("renamed", variables["renamed_A"].belongs_to_enum)
         self.assertEqual("renamed", variables["renamed_B"].belongs_to_enum)
+
+    def test_patch_of_a_variable_type_checks_the_formalizations_that_use_it(self):
+        vid = self.variables.create(self.ctx, "tmp-1", {"name": "speed", "type": "int"})
+        fid = self.formalizations.create(
+            self.ctx, "tmp-2", {"scope": "GLOBALLY", "pattern": "Absence", "expression_mapping": {"R": "speed > 5"}}
+        )
+        self.assertFalse(self.ctx.requirement.formalizations[fid].type_inference_errors)
+
+        self.variables.patch(self.ctx, str(vid), {"type": "bool"})
+
+        self.assertTrue(self.ctx.requirement.formalizations[fid].type_inference_errors)

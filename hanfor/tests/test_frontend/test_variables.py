@@ -12,6 +12,7 @@ from tests.test_frontend.helpers import (
 )
 
 RID = "SysRS FooXY_91"
+FORMALIZATION_CARD = '#formalization_accordion > .accordion-item[data-type="formalization"]'
 
 
 @pytest.mark.parametrize(
@@ -130,3 +131,68 @@ def test_delete_variable_card(page: Page):
     save_requirement(page, modal, RID)
 
     assert get_formalizations(page, RID, "variable") == []
+
+
+def variable_names(page: Page) -> set[str]:
+    response = page.request.get("/api/v1/variables")
+    expect(response).to_be_ok()
+    return {v["name"] for v in response.json()["data"]}
+
+
+def test_new_card_and_formalization_using_it_save_together(page: Page):
+    modal = open_requirement(page, RID)
+    modal.locator("#add_formalization").click()
+    formalization = modal.locator(f"{FORMALIZATION_CARD}.draft")
+    formalization.locator(".accordion-button").click()
+    formalization.locator(".scope_selector").select_option("GLOBALLY")
+    formalization.locator(".pattern_selector").select_option("Absence")
+    formalization.get_by_role("textbox", name="R", exact=True).fill("speed > 5")
+    modal.locator("#add_variable").click()
+    card = modal.locator(f"{VARIABLE_CARD}.draft")
+    card.locator(".accordion-button").click()
+    card.locator('input[aria-describedby="variable-name-feedback"]').fill("speed")
+    card.locator("input.variable-type").fill("int")
+    card.locator("input.variable-type").press("Tab")
+    save_requirement(page, modal, RID)
+
+    [variable] = get_formalizations(page, RID, "variable")
+    assert (variable["name"], variable["type"]) == ("speed", "int")
+    [saved] = get_formalizations(page, RID, "formalization")
+    assert saved["expr_R"].replace(" ", "") == "speed>5"
+
+
+def test_rename_card_while_editing_a_formalization_that_uses_it(page: Page):
+    create_variable(page, RID, "speed", "int")
+    create_formalization(page, RID, "GLOBALLY", "Absence", {"R": "speed > 5"})
+
+    modal = open_requirement(page, RID)
+    formalization = modal.locator(FORMALIZATION_CARD)
+    formalization.locator(".accordion-button").click()
+    formalization.get_by_role("textbox", name="R", exact=True).fill("speed > 6")
+    card = modal.locator(VARIABLE_CARD)
+    card.locator(".accordion-button").click()
+    card.locator('input[aria-describedby="variable-name-feedback"]').fill("velocity")
+    expect(card.locator(".accordion-button")).to_have_text("velocity")
+    save_requirement(page, modal, RID)
+
+    [saved] = get_formalizations(page, RID, "formalization")
+    assert saved["expr_R"].replace(" ", "") == "velocity>6"
+    assert "speed" not in variable_names(page)
+
+
+def test_delete_card_while_removing_its_last_use(page: Page):
+    create_variable(page, RID, "speed", "int")
+    create_formalization(page, RID, "GLOBALLY", "Absence", {"R": "speed > 5"})
+
+    modal = open_requirement(page, RID)
+    formalization = modal.locator(FORMALIZATION_CARD)
+    formalization.locator(".accordion-button").click()
+    formalization.get_by_role("textbox", name="R", exact=True).fill("true")
+    card = modal.locator(VARIABLE_CARD)
+    card.locator(".accordion-button").click()
+    confirm_delete(card.locator(".delete_variable"))
+    expect(card).to_have_count(0)
+    save_requirement(page, modal, RID)
+
+    assert get_formalizations(page, RID, "variable") == []
+    assert "speed" not in variable_names(page)

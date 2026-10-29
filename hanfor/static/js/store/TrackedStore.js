@@ -55,20 +55,45 @@ export default class TrackedStore {
   }
 
   /**
-   * Sends all deletes, creates and patches of all types. Rejects with {responseJSON: {errors}},
-   * keyed by the card id, if one or more requests fail. Failed changes stay drafts.
+   * Sends the changes in three phases. Each phase starts when the previous phase is done.
+   * If a phase has errors, the next phase does not start. Rejects with {responseJSON: {errors}},
+   * keyed by the card id. Failed changes stay drafts.
    */
   async commit(parentId) {
     const errors = {}
-    const requests = []
-    for (const [type, config] of this._types) {
-      requests.push(this._commitDeletes(parentId, type, config, errors))
-      requests.push(this._commitCreated(parentId, type, config, errors))
-      requests.push(this._commitEdited(parentId, type, config, errors))
-    }
-    await Promise.all(requests)
-    if (Object.keys(errors).length) {
-      throw { responseJSON: { errors } }
+    const phases = [
+      // create variables
+      (type, config) => {
+        if (!config.declaresNames) return []
+        return [this._commitCreated(parentId, type, config, errors)]
+      },
+      // save formalizations
+      (type, config) => {
+        if (config.declaresNames) return []
+        return [
+          this._commitDeletes(parentId, type, config, errors),
+          this._commitCreated(parentId, type, config, errors),
+          this._commitEdited(parentId, type, config, errors),
+        ]
+      },
+      //change and delete variables
+      (type, config) => {
+        if (!config.declaresNames) return []
+        return [
+          this._commitEdited(parentId, type, config, errors),
+          this._commitDeletes(parentId, type, config, errors),
+        ]
+      },
+    ]
+    for (const phase of phases) {
+      const requests = []
+      for (const [type, config] of this._types) {
+        requests.push(...phase(type, config))
+      }
+      await Promise.all(requests)
+      if (Object.keys(errors).length) {
+        throw { responseJSON: { errors } }
+      }
     }
   }
 

@@ -79,6 +79,7 @@ class SubtypeNotFound(SubtypeError):
 
 class Conflict(SubtypeError):
     """The request clashes with an element that already exists."""
+
     status = 409
 
 
@@ -278,6 +279,7 @@ class VariableHandler(SubtypeHandler[Variable]):
 
         if "enumerators" in data:
             self._apply_enumerators(ctx, variable.name, variable.type, data["enumerators"])
+        self._rerun_typechecks(ctx, variable.name)
 
     def replace(self, ctx: "SubtypeContext", fid: str, data: dict) -> None:
         if "name" not in data or "type" not in data:
@@ -291,6 +293,7 @@ class VariableHandler(SubtypeHandler[Variable]):
 
         if "enumerators" in data:
             self._apply_enumerators(ctx, variable.name, variable.type, data["enumerators"])
+        self._rerun_typechecks(ctx, variable.name)
 
     def delete(self, ctx: "SubtypeContext", fid: str) -> None:
         variable = self.fetch(ctx, fid)
@@ -315,6 +318,12 @@ class VariableHandler(SubtypeHandler[Variable]):
             rename_variable_everywhere(ctx.variable_collection, variable.name, new_name)
         except (KeyError, ValueError) as e:
             raise InvalidPayload(str(e)) from e
+
+    @staticmethod
+    def _rerun_typechecks(ctx: "SubtypeContext", name: str) -> None:
+        for rid in ctx.variable_collection.var_req_mapping.get(name, []):
+            if current_app.db.key_in_table(Requirement, rid):
+                current_app.db.get_object(Requirement, rid).run_type_checks(ctx.variable_collection, ctx.standard_tags)
 
     @staticmethod
     def _apply_enumerators(ctx: "SubtypeContext", name: str, var_type: str, enumerators: list) -> None:
