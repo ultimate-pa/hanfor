@@ -1,4 +1,4 @@
 #!/bin/sh
-# Start hanfor
-echo "Starting server"
-python3 hanfor/app.py -c example_input/example_input.csv --headers='{ "csv_id_header": "ID", "csv_desc_header": "Description", "csv_formal_header": "Hanfor_Formalization", "csv_type_header" : "Type"}' awesome_tag
+set -e
+#                     set the session tag           pass all the other args
+exec python3 app.py "${HANFOR_TAG:?set HANFOR_TAG}" "$@"

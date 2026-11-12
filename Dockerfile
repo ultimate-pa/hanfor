@@ -1,32 +1,30 @@
-# Main stage for hanfor.
-FROM python:3.7-slim
-LABEL maintainer="Breee@github"
-WORKDIR /usr/src/app
+# multi stage so that changing the code doesnt do a cache miss
+FROM node:24-slim AS assets
+WORKDIR /build/static
+COPY hanfor/static/package*.json ./
+RUN npm install
+COPY hanfor/ /build/
+RUN npm run build
 
-# copy requirements the reduce layersize.
-COPY hanfor/requirements.txt /usr/src/app/requirements.txt
+FROM python:3.13-slim
+WORKDIR /app
+COPY hanfor/requirements.txt ./
+COPY hanfor/lib_pea/requirements.txt lib_pea/
+RUN pip install --no-cache-dir -r requirements.txt \
+ && pysmt-install --z3 --confirm-agreement
+# always install before copying to not cause a cache miss and reinstall every time
+COPY hanfor/ ./
+COPY --from=assets /build/static/dist ./static/dist
+# add your config files here
+COPY hanfor/config.dist.py config.py
+COPY hanfor/configuration/ai_config.dist.py configuration/ai_config.py
+COPY hanfor/configuration/threading_config.dist.py configuration/threading_config.py
+COPY hanfor/configuration/ultimate_config.dist.py configuration/ultimate_config.py
 
-# Install required system packages + python requirements + cleanup in one layer (yields smaller docker image).
-# If you try to debug the build you should split into single RUN commands ;)
-RUN export DEBIAN_FRONTEND=noninteractive && apt-get update \
-&& apt-get install -y --no-install-recommends \
-build-essential \
-# python reqs
-&& python3 -m pip install --no-cache-dir -r requirements.txt \
-# cleanup
-&& apt-get remove -y build-essential \
-# Remove f*** python2.7 from the 3.7 image, why is that even a thing.
-&& apt-get remove -y python2.7 && rm -rf /usr/lib/python2.7 \
-# Purge autoremove, but keep recommends which are important.
-&& apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-# delete apt cache
-&& rm -rf /var/lib/apt/lists/*
-
-# Copy hanfor + entrypoint.
-COPY hanfor /usr/src/app
-COPY entrypoint.sh /usr/src/app/entrypoint.sh
-RUN chmod +x /usr/src/app/entrypoint.sh
-
-# Change if you expose Hanfor on another port.
+# run the entrypoint 
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENV HANFOR_HOST=0.0.0.0 HANFOR_PORT=5000
 EXPOSE 5000
-ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
+VOLUME /app/data
+ENTRYPOINT ["/entrypoint.sh"]

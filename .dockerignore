@@ -1,4 +1,10 @@
-# comment
-venv
+.git
+**/node_modules
+**/hanfor_venv
+**/__pycache__
+hanfor/static/dist
+hanfor/data
+hanfor/config.py
+hanfor/configuration/*_config.py
+hanfor/tests/test_sessions
 volumes
-settings.py
