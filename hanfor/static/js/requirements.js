@@ -1168,6 +1168,13 @@ async function load_requirement(row_idx) {
     const rendered_descr = marked(data.desc_highlighted, { sanitize: false })
     $("#description_display").html(rendered_descr)
     $("#description_editor").val(data.desc)
+    const original_desc = (data.original_desc || "").trim()
+    $("#description_editor")
+      .off("input.edited")
+      .on("input.edited", function () {
+        $("#desc_edited_badge").prop("hidden", $(this).val().trim() === original_desc)
+      })
+      .trigger("input.edited")
     api.highlightDescription(data.id, data.original_desc || "").done(function (resp) {
       $("#description_original_display").html(marked(resp.desc_highlighted, { sanitize: false }))
     }).fail(function () {
