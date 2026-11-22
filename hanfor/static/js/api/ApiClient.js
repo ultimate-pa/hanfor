@@ -44,4 +44,18 @@ export default class ApiClient {
   }
 
   addMultiTopGuess(data) { return this.post(`/req/multi_add_top_guess`, { form: data }) }
+
+  getTestScenarios(requirementId) {
+    return this.get(requirementId ? url`/test_scenarios?requirement_id=${requirementId}` : `/test_scenarios?global=true`)
+  }
+  createTestScenario(data) { return this.post(`/test_scenarios`, { json: data }) }
+  updateTestScenario(id, data) { return this.put(url`/test_scenarios/${id}`, { json: data }) }
+  deleteTestScenario(id) { return this.delete(url`/test_scenarios/${id}`) }
+  getTestScenarioVariables() { return this.get(`/test_scenarios/variables`) }
+  importTestScenarios(file, replace) {
+    const data = new FormData()
+    data.append("file", file)
+    data.append("replace", String(replace))
+    return $.ajax({ url: `${this.base}/test_scenarios/import`, method: "POST", data, processData: false, contentType: false })
+  }
 }

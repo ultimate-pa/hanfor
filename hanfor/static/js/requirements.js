@@ -20,6 +20,13 @@ import "jquery-sortablejs"
 import TemplateRenderer from "./template/TemplateRenderer.js"
 import { AVAILABLE_VARIABLE_TYPES } from "./variables.js"
 import ApiClient from "./api/ApiClient.js"
+import {
+  TYPE as TEST_SCENARIO,
+  buildNewCard,
+  buildSavedCard,
+  registerTestScenarioType,
+  saveTestScenarios,
+} from "./formalizations/test-scenarios.js"
 
 const api = new ApiClient()
 api.onError = (err, method, path) => {
@@ -195,6 +202,12 @@ renderer.registerType("variable", {
   },
 })
 
+// test scenarios of this requirement, stored apart from the formalizations (see test-scenarios.js)
+registerTestScenarioType(renderer, {
+  variables: () => available_vars.filter(Boolean),
+  onChange: () => $("#requirement_modal").data("unsaved_changes", true),
+})
+
 // bind it globaly on each selector change so it gets always loaded
 $(document).on("change", ".scope_selector, .pattern_selector", function () {
   bind_var_autocomplete()
@@ -271,6 +284,13 @@ $(document).ready(function () {
     selector: ".delete_formalization",
     onConfirm: function () {
       delete_formalization($(this).attr("name"), $(this).closest(".accordion-item"))
+    },
+  })
+
+  $("body").bootstrapConfirmButton({
+    selector: ".delete_test_scenario",
+    onConfirm: function () {
+      delete_test_scenario($(this).attr("name"), $(this).closest(".accordion-item"))
     },
   })
 
@@ -548,6 +568,7 @@ function init_datatable_manipulators(requirements_table) {
       req_ids.push(d["id"])
     })
     $("#selected_requirement_ids").val(JSON.stringify(req_ids))
+    $("#req_include_test_scenarios").val(String($("#gen-req-include-test-scenarios").is(":checked")))
     $("#generate_req_form").submit()
   })
 
@@ -667,7 +688,8 @@ function store_requirement(requirements_table) {
   const associated_row_id = parseInt($("#modal_associated_row_index").val())
   // Fetch the formalizations
   let formalizations = {}
-  $("#formalization_accordion > .accordion-item.draft").each(function () {
+  // test scenarios are not formalizations, they are saved by saveTestScenarios
+  $("#formalization_accordion > .accordion-item.draft").not(`[data-type="${TEST_SCENARIO}"]`).each(function () {
     const $item = $(this)
     const id = String($item.data("id"))
     let formalization = {}
@@ -697,7 +719,7 @@ function store_requirement(requirements_table) {
 
   // Store the order of the formalizations to be loaded
   let load_order = {}
-  $(".accordion-item").each(function (idx) {
+  $(".accordion-item").not(`[data-type="${TEST_SCENARIO}"]`).each(function (idx) {
     load_order[$(this).data("id")] = idx
   })
 
@@ -719,6 +741,8 @@ function store_requirement(requirements_table) {
     store.commitCreated(req_id, "variable"),
   ).then(() =>
     patch_edited_cards(req_id, committedFormalizations),
+  ).then(() =>
+    saveTestScenarios(api, store, req_id),
   ).then(() =>
     api.patchRequirement(req_id, {
       tags: Object.fromEntries(tag_comments),
@@ -1206,6 +1230,7 @@ function init_modal() {
   })
 
   $("#add_variable").click(() => add_variable())
+  $("#add_test_scenario").click(() => add_test_scenario())
 
   // Listener for adding new guessed formalizations.
   $("#add_gussed_formalization").click(function () {
@@ -1344,14 +1369,15 @@ async function load_requirement(row_idx) {
 
     $("#add_guess_description").text(data.desc).change()
 
-    // Parse the formalizations
-    api.getFormalizations(data.id).done(function (data) {
-      data
+    // Parse the formalizations, then the test scenarios of this requirement
+    $.when(api.getFormalizations(data.id), api.getTestScenarios(data.id)).done(function ([formalizations], [tests]) {
+      formalizations
         .sort((a, b) => a.order - b.order)
         .forEach(function (entry) {
           const $formalization = renderer.build(entry.formalization_type, entry)
           $("#formalization_accordion").append($formalization)
         })
+      tests.scenarios.forEach((scenario) => $("#formalization_accordion").append(buildSavedCard(renderer, scenario)))
     }).done(function () {
       update_vars()
       bind_var_autocomplete()
@@ -1567,6 +1593,17 @@ function delete_variable(id, $card) {
   update_logs()
   const hasUnsavedChanges = !store.hasNoDrafts("variable")
   $("#requirement_modal").data("unsaved_changes", hasUnsavedChanges)
+}
+
+function add_test_scenario() {
+  $("#formalization_accordion").append(buildNewCard(renderer, store))
+  $("#requirement_modal").data("unsaved_changes", true)
+}
+
+function delete_test_scenario(id, $card) {
+  store.delete(TEST_SCENARIO, id)
+  $card.remove()
+  $("#requirement_modal").data("unsaved_changes", true)
 }
 
 function delete_formalization(formal_id, card) {

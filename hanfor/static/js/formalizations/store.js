@@ -1,5 +1,6 @@
 import ApiClient from "../api/ApiClient.js"
 import TrackedStore from "../store/TrackedStore.js"
+import { TYPE, storeConfig } from "./test-scenarios.js"
 
 const api = new ApiClient()
 const store = new TrackedStore()
@@ -59,5 +60,7 @@ store.registerType("variable", {
   persistCreate: (rid, drafts) => api.createMany(rid, "variable", drafts),
   persistDelete: (rid, id) => api.deleteFormalization(rid, id),
 })
+
+store.registerType(TYPE, storeConfig(api))
 
 export default store

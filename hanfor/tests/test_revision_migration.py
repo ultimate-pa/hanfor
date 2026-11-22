@@ -258,6 +258,29 @@ class TestRevisionMigration(TestCase):
             "Mostly look on the bright side of life", new_revision_req_gets.json["data"][1]["original_desc"]
         )
 
+    def test_test_scenarios_of_deleted_requirement_are_removed(self):
+        args = HanforArgumentParser(app).parse_args([TEST_TAGS["simple"], "-c", CSV_FILES["simple"]])
+        self.startup_hanfor(args, user_mock_answers=[2, 0, 1, 3, 0])
+        scenario = {"desired_behavior": True, "lanes": [], "steps": [{"duration": 1, "states": {}}]}
+        for name, rid in [("Kept", "SysRS FooXY_91"), ("Removed", "SysRS FooXY_42"), ("Global", "")]:
+            response = self.app.post("api/v1/test_scenarios", json={**scenario, "name": name, "requirement_id": rid})
+            self.assertEqual(201, response.status_code, response.json)
+
+        # the new csv has no SysRS FooXY_42 any more
+        without_42 = os.path.join(TESTS_BASE_FOLDER, "simple_without_42.csv")
+        with open(CSV_FILES["simple"]) as f:
+            lines = [line for line in f if "FooXY_42" not in line]
+        with open(without_42, "w") as f:
+            f.writelines(lines)
+        self.addCleanup(os.remove, without_42)
+        args = HanforArgumentParser(app).parse_args([TEST_TAGS["simple"], "--revision", "-c", without_42])
+        self.startup_hanfor(args, user_mock_answers=[0, 0])
+        args = HanforArgumentParser(app).parse_args([TEST_TAGS["simple"], "-c", without_42])
+        self.startup_hanfor(args, user_mock_answers=[1])
+
+        names = [s["name"] for s in self.app.get("api/v1/test_scenarios").json["scenarios"]]
+        self.assertEqual(["Kept", "Global"], names)
+
     def tearDown(self):
         # Clean test dir.
         clean_folders()

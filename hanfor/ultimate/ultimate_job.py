@@ -1,10 +1,13 @@
 import json
+import re
+import textwrap
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from hanfor_flask import current_app
 
 from configuration.ultimate_config import AUTOMATED_TAGS
 from lib_core.data import Requirement, SessionValue
+from lib_core.test_scenario import TestScenario
 from lib_core.utils import get_requirements
 
 from json_db_connector.json_db import DatabaseTable, TableType, DatabaseID, DatabaseField
@@ -142,3 +145,55 @@ def process_result(ultimate_job: UltimateJob) -> None:
     if AUTOMATED_TAGS:
         for requirement, results in tags.items():
             add_ultimate_result_to_requirement(requirement, results, ultimate_job)
+    apply_test_scenario_results(ultimate_job)
+
+
+_SUMMARY_HEADING = re.compile(r"^(Passed|Failed|Not analyzed) \(\d+\):$")
+_SUMMARY_ITEM = re.compile(r"^  - TestScenario (?P<name>\w+) (?P<message>.*)$")
+_SUMMARY_STATUS = {"Passed": "passed", "Failed": "failed", "Not analyzed": "not_analyzed"}
+
+
+def parse_test_scenario_summary(long_desc: str) -> dict[str, dict]:
+    """Parses Ultimate's test scenario summary, e.g.
+
+        Failed (1):
+          - TestScenario Neg is possible, though forbidden
+              [0;1]  foo=true
+
+    -> {"Neg": {"status": "failed", "message": "is possible, though forbidden", "details": "[0;1]  foo=true"}}
+    """
+    parsed: dict[str, dict] = {}
+    status, current = None, None
+    for line in long_desc.splitlines():
+        heading, item = _SUMMARY_HEADING.match(line), _SUMMARY_ITEM.match(line)
+        if heading:
+            status, current = _SUMMARY_STATUS[heading[1]], None
+        elif item and status:
+            current = parsed[item["name"]] = {"status": status, "message": item["message"].strip(), "details": ""}
+        elif current is not None and line.startswith("    "):
+            current["details"] += line + "\n"
+    for result in parsed.values():
+        result["details"] = textwrap.dedent(result["details"]).strip("\n")
+    return parsed
+
+
+def apply_test_scenario_results(ultimate_job: UltimateJob) -> None:
+    """Store the outcome of the job at every test scenario of its .req file (TestScenario.ultimate_result)."""
+    names = re.findall(r"^\s*(\w+)\s*:\s*TestScenario for ", ultimate_job.requirement_file or "", re.MULTILINE)
+    if not names:
+        return
+    summary = next(
+        (r for r in ultimate_job.results or [] if str(r.get("shortDesc", "")).startswith("Test scenarios:")), None
+    )
+    parsed = parse_test_scenario_summary(summary.get("longDesc", "")) if summary else {}
+    if summary:
+        missing = {"status": "not_analyzed", "message": "has no result in the summary of the job", "details": ""}
+    else:
+        missing = {"status": "error", "message": "Ultimate reported no test scenario summary", "details": ""}
+
+    by_name = {s.name: s for s in current_app.db.get_objects(TestScenario).values()}
+    time = ultimate_job.last_update.strftime(DATETIME_STR_FORMAT) if ultimate_job.last_update else ""
+    for name in names:
+        if name in by_name:
+            by_name[name].ultimate_result = {**parsed.get(name, missing), "job_id": ultimate_job.job_id, "time": time}
+    current_app.db.update()

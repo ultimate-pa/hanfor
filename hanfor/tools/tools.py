@@ -28,7 +28,11 @@ def tools_api(command):
     file_name = f"{current_app.config['CSV_INPUT_FILE'][:-4]}"
 
     if command == "req_file":
-        content = generate_req_file_content(current_app, filter_list=filter_list)
+        # "false" leaves the test scenarios out of the .req file
+        include_test_scenarios = request.form.get("include_test_scenarios", "true").lower() != "false"
+        content = generate_req_file_content(
+            current_app, filter_list=filter_list, include_test_scenarios=include_test_scenarios
+        )
         return generate_file_response(content, file_name + ".req")
 
     if command == "csv_file":

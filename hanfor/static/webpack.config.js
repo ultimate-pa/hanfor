@@ -38,6 +38,7 @@ const config = {
         example_blueprint: __dirname + '/../example_blueprint/static/example_blueprint.js',
         quickchecks: __dirname + '/../quickchecks/static/quickchecks.js',
         tags: __dirname + '/../tags/static/tags.js',
+        test_scenarios: __dirname + '/../test_scenarios/static/test_scenarios.js',
         statistics: __dirname + '/../statistics/static/statistics.js',
         ultimate: __dirname + '/../ultimate/static/ultimate.js',
         ultimate_tab: __dirname + '/../ultimate/static/ultimate-tab.js',

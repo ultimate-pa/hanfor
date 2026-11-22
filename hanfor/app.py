@@ -33,6 +33,7 @@ from tools.tools import api_blueprint as tools_api
 from queries.queries import api_blueprint as queries_api
 from req_simulator import simulator_blueprint
 from tags import tags
+from test_scenarios import test_scenarios_api
 from statistics import statistics
 from patterns.patterns_api import patterns_ns
 
@@ -76,6 +77,9 @@ app.register_blueprint(tags.blueprint)
 # Patterns
 api.add_namespace(patterns_ns)
 api.add_namespace(tags.api)
+# Global test scenarios
+app.register_blueprint(test_scenarios_api.blueprint)
+api.add_namespace(test_scenarios_api.api_ns)
 # Statistics
 app.register_blueprint(statistics.blueprint)
 app.register_blueprint(statistics.api_blueprint)

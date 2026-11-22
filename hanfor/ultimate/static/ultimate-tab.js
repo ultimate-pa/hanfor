@@ -80,9 +80,10 @@ function update_configurations() {
 function create_ultimate_analysis(btn, req_ids) {
     let old_text = btn.text()
     btn.text("Processing Request")
-    let request_data = {'selected_requirement_ids': JSON.stringify(req_ids)}
+    const include_test_scenarios = String($('#ultimate-tab-include-test-scenarios').is(':checked'))
+    let request_data = {'selected_requirement_ids': JSON.stringify(req_ids), include_test_scenarios}
     if (req_ids === "all") {
-        request_data = {}
+        request_data = {include_test_scenarios}
     }
     $.ajax({
         type: 'POST',

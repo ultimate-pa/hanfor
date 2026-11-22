@@ -17,6 +17,7 @@ from lib_core import boogie_parsing
 from config import PATTERNS_GROUP_ORDER  # TODO should this be in the config?
 from hanfor_flask import HanforFlask, current_app
 from lib_core.data import Requirement, RequirementEditHistory, VariableCollection, Variable
+from lib_core.test_scenario import TestScenario
 from lib_core.pattern.patterns_basic import APattern
 
 default_scope_options = """
@@ -184,7 +185,7 @@ def generate_file_response(content, name, mimetype="text/plain"):
 
 
 def generate_req_file_content(
-    app: HanforFlask, filter_list=None, invert_filter=False, variables_only=False
+    app: HanforFlask, filter_list=None, invert_filter=False, variables_only=False, include_test_scenarios=True
 ):  # TODO nach tools
     """Generate the content (string) for the ultimate requirements file.
     :param app: Current app.
@@ -195,6 +196,7 @@ def generate_req_file_content(
     :type invert_filter: bool
     :type invert_filter: bool
     :param variables_only: If true, only variables and no requirements will be included.
+    :param include_test_scenarios: If false, the test scenarios are left out (only the requirements are checked).
     :return: Content for the req file.
     :rtype: str
     """
@@ -220,6 +222,34 @@ def generate_req_file_content(
         available_vars = var_collection.get_available_vars_list(sort_by="name")
 
     available_vars = [var["name"] for var in available_vars]
+
+    # Test scenarios of the exported requirements. The global ones only if all requirements are exported.
+    exported_rids = {requirement.rid for requirement in requirements}
+    all_rids = {
+        rid
+        for rid, requirement in app.db.get_objects(Requirement).items()
+        if any(f.is_exportable() for f in requirement.formalizations.values())
+    }
+    with_global = all_rids <= exported_rids
+    scenarios = [
+        s
+        for _, s in sorted(app.db.get_objects(TestScenario).items())
+        if include_test_scenarios and s.steps and (s.is_global and with_global or s.requirement_id in exported_rids)
+    ]
+    left_out_global = 0
+    if include_test_scenarios and not with_global:
+        left_out_global = sum(1 for s in app.db.get_objects(TestScenario).values() if s.steps and s.is_global)
+    if left_out_global:
+        logging.info(
+            f"Leaving out {left_out_global} global test scenarios: "
+            f"only {len(all_rids & exported_rids)} of {len(all_rids)} formalized requirements are exported."
+        )
+    if not variables_only:
+        # their variables have to be declared too, even if no exported requirement uses them
+        for scenario in scenarios:
+            for token in sorted(scenario.used_lane_tokens()):
+                if token in var_collection.collection and token not in available_vars:
+                    available_vars.append(token)
 
     content_list = []
     constants_list = []
@@ -264,6 +294,17 @@ def generate_req_file_content(
                 base = f"Constraint_{requirement.rid}" if formalization.is_constraint else requirement.rid
                 identifier = clean_identifier_for_ultimate_parser(base, index, used_identifiers)
                 content += "{}: {}\n".format(identifier, formalization.get_string())
+            for scenario in scenarios:
+                if scenario.requirement_id == requirement.rid:
+                    content += scenario.to_req_line() + "\n"
+        for scenario in scenarios:
+            if scenario.is_global:
+                content += scenario.to_req_line() + "\n"
+        if left_out_global:
+            content += (
+                f"// {left_out_global} global test scenarios left out: "
+                f"only {len(all_rids & exported_rids)} of {len(all_rids)} formalized requirements exported\n"
+            )
     content += "\n"
 
     return content
@@ -431,6 +472,8 @@ def rename_variable_everywhere(collection: VariableCollection, old_name: str, ne
             requirement = current_app.db.get_object(Requirement, rid)
             for element in requirement.formalizations.values():
                 element.rename_used_variable(renamed_from, renamed_to)
+        for scenario in current_app.db.get_objects(TestScenario).values():
+            scenario.rename_used_variable(renamed_from, renamed_to)
     current_app.db.update()
 
 

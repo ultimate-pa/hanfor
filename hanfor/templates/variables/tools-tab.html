@@ -3,11 +3,19 @@
         <form id="generate_req_form" method="post" action="{{ url_for('tools_api.tools_api', command='req_file') }}"
               target="_blank">
             <input type="hidden" id="selected_requirement_ids" name="selected_requirement_ids" hidden/>
+            <input type="hidden" id="req_include_test_scenarios" name="include_test_scenarios" value="true" hidden/>
         </form>
 
-        <button id="gen-req-from-selection" class="btn btn-secondary w-100" type="button">
-            Generate .req file from (filtered) requirements table.
-        </button>
+        <div class="input-group">
+            <div class="input-group-text">
+                <input id="gen-req-include-test-scenarios" class="form-check-input mt-0" type="checkbox" checked
+                       title="Also export the test scenarios of these requirements; the global ones only if all requirements are exported">
+                <label class="ms-1" for="gen-req-include-test-scenarios">with test scenarios</label>
+            </div>
+            <button id="gen-req-from-selection" class="btn btn-secondary form-control" type="button">
+                Generate .req file from (filtered) requirements table.
+            </button>
+        </div>
     </div>
 
     <div class="col-12">

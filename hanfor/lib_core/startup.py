@@ -31,6 +31,7 @@ from lib_core.data import (
 )
 from lib_core.pattern.patterns_basic import APattern
 from lib_core.scopes import Scope
+from lib_core.test_scenario import TestScenario
 from lib_core.utils import (
     choice,
     clean_identifier_for_ultimate_parser,
@@ -204,15 +205,8 @@ def startup_hanfor(
     else:
         if not os.path.exists(flask_app.config["SESSION_FOLDER"]):
             # If there is no session with given tag: Create a new (initial) revision.
+            # the functional and standard tags are inserted there, before the csv is read
             create_revision(flask_app, args, None)
-            # insert functional and standard tags
-            for name, values in FUNCTIONAL_TAGS.items():
-                tag = Tag(name, **values)
-                flask_app.db.add_object(tag, delay_update=True)
-                flask_app.db.add_object(SessionValue(f"TAG_{name}", tag), delay_update=True)
-            for name, properties in STANDARD_TAGS.items():
-                flask_app.db.add_object(Tag(name, **properties), delay_update=True)
-            flask_app.db.update()
         else:
             # If this is an already existing session, ask the user which revision to start.
             revision_choice = user_choose_start_revision(flask_app)
@@ -323,6 +317,9 @@ class Revision:  # TODO wohin damit
 
         self._set_base_revision_db()
         self.app.db.init_tables(self.app.config["REVISION_FOLDER"])
+        if self.is_initial_revision:
+            # before the csv is read: importing formalizations from the csv needs the functional tags
+            self._insert_functional_and_standard_tags()
         self._try_save(self._load_from_csv, "Could not read CSV")
         if self.is_initial_revision:
             for req in self.requirement_collection.requirements:
@@ -422,6 +419,15 @@ class Revision:  # TODO wohin damit
             remove_json_database_data_tracing_logger(True)
             shutil.rmtree(self.app.config["REVISION_FOLDER"])
 
+    def _insert_functional_and_standard_tags(self):
+        for name, values in FUNCTIONAL_TAGS.items():
+            tag = Tag(name, **values)
+            self.app.db.add_object(tag, delay_update=True)
+            self.app.db.add_object(SessionValue(f"TAG_{name}", tag), delay_update=True)
+        for name, properties in STANDARD_TAGS.items():
+            self.app.db.add_object(Tag(name, **properties), delay_update=True)
+        self.app.db.update()
+
     def _generate_session_values(self):
         # Generate the session values: Store some meta information.
         self.app.db.add_object(SessionValue("csv_input_file", self.args.input_csv))
@@ -456,6 +462,11 @@ class Revision:  # TODO wohin damit
         # delete deleted requirements
         for rid in req_ids.difference(new_req_ids):
             self.app.db.remove_object(reqs[rid])
+        # and their test scenarios, the global ones stay
+        for scenario in list(self.app.db.get_objects(TestScenario).values()):
+            if scenario.requirement_id in req_ids.difference(new_req_ids):
+                logging.info(f"Remove test scenario `{scenario.name}` of the deleted requirement.")
+                self.app.db.remove_object(scenario)
 
         # insert and tag new reqs
         revision_tag_name = f"{self.base_revision_name}_to_{self.revision_name}_new_requirement"

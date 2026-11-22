@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block title %}Test scenarios{% endblock %}
+{% block content %}
+  <div class="d-flex align-items-center gap-2 mb-2">
+    <h4 class="mb-0 me-auto">Global test scenarios</h4>
+    <button id="add_test_scenario" type="button" class="btn btn-success btn-sm">
+      <strong>+ Test scenario</strong>
+    </button>
+    <button id="save_test_scenarios" type="button" class="btn btn-primary btn-sm">Save</button>
+  </div>
+  <p class="text-muted small">
+    A global test scenario belongs to no requirement and is checked against all of them,
+    e.g. <em>key is in the ignition and turned &rarr; the engine runs</em>.
+    It is exported to the .req file as <code>NAME: TestScenario for ALL, trace ...</code>.
+    The test scenarios of a single requirement are edited in the requirement.
+  </p>
+  <div class="input-group input-group-sm mb-2" style="max-width: 760px">
+    <span class="input-group-text">Import file</span>
+    <input id="test_scenario_import_file" type="file" class="form-control" accept=".req,.txt">
+    <div class="input-group-text">
+      <input id="test_scenario_import_replace" class="form-check-input mt-0" type="checkbox"
+             title="Overwrite test scenarios whose name exists already">
+      <label class="ms-1" for="test_scenario_import_replace">overwrite existing</label>
+    </div>
+    <button id="test_scenario_import" type="button" class="btn btn-secondary">Import</button>
+  </div>
+  <p class="text-muted small mb-2">
+    One test scenario per line, as in the .req export:
+    <code>NAME: TestScenario for &lt;RID | ALL&gt;, trace has to hold: (duration, formula), ...</code>
+    Other lines are ignored, so a whole .req file can be imported. Scenarios of a requirement are shown in that
+    requirement.
+  </p>
+  <div id="test_scenario_import_report" class="alert d-none small"></div>
+  <div id="test_scenario_save_error" class="alert alert-danger d-none"></div>
+  <div id="test_scenario_accordion" class="accordion"></div>
+  <p id="no_test_scenarios" class="text-muted d-none">No global test scenarios yet.</p>
+{% endblock %}
+{% block scripts %}
+  {{ super() }}
+  <script type="text/javascript" src="{{ url_for('static', filename=BUNDLE_JS) }}"></script>
+{% endblock %}

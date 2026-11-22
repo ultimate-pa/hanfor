@@ -1,0 +1,53 @@
+<div class="container-fluid mt-3">
+  <div class="row gx-2 gy-1 align-items-start">
+    <div class="col-auto">
+      <strong class="fs-5">Test scenario</strong>
+    </div>
+    <div class="col">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text">Name</span>
+        <input type="text" class="form-control ts-name" value="{{ name }}"
+               placeholder="assigned automatically if empty"/>
+      </div>
+    </div>
+    <div class="col">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text">Trace</span>
+        <select class="form-select ts-behavior">
+          <option value="true">has to hold (POS)</option>
+          <option value="false">is forbidden to hold (NEG)</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-auto">
+      <button
+        name="{{ id }}"
+        class="delete_test_scenario btn btn-sm btn-danger"
+        type="button"
+        title="Delete me"
+      >
+        Delete
+      </button>
+    </div>
+    <div class="col-12">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text">Description</span>
+        <input type="text" class="form-control ts-description" value="{{ description }}"
+               placeholder="e.g. Key in the ignition and turned &rarr; the engine runs"/>
+      </div>
+    </div>
+    {{#result}}
+    <div class="col-12">
+      <div class="alert alert-{{ alert }} py-1 px-2 mb-0 small ts-result">
+        <strong>Ultimate: {{ label }}</strong>
+        &ndash; {{ name }} {{ message }}
+        <span class="text-muted">(job {{ job_id }}, {{ time }})</span>
+        {{#details}}<pre class="mb-0 mt-1">{{ details }}</pre>{{/details}}
+      </div>
+    </div>
+    {{/result}}
+  </div>
+</div>
+<div class="container-fluid my-3">
+  <div class="ts-timeline"></div>
+</div>

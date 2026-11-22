@@ -1,0 +1,24 @@
+// Test scenarios for example_input/ignition.csv (group_ok: IGN_1 .. IGN_4).
+// Import in Hanfor: page "Test scenarios" -> "Import file". Only the test scenario lines are read, comments and
+// everything else are ignored. Target ALL = global test scenario, otherwise the requirement it belongs to.
+//
+// Run: Ultimate tab, search ":NOT:group_inconsistent", "with test scenarios" checked, configuration "Standard".
+// Expected (3/8 passed, the same with "Test scenarios: only against their requirement"):
+//   TS_IGN_1_POS_1  passed   starting with brake is possible
+//   TS_IGN_1_NEG_1  passed   IGN_1 forbids that the engine stays off for more than 2
+//   TS_IGN_3_NEG_1  FAILED   nothing forbids "tank empty, engine off" -> the run is shown
+//   TS_START_POS    passed   the normal start
+//   TS_NOBRAKE_NEG  FAILED   no requirement forbids a start without brake -> the run is shown
+//   TS_FUEL_POS     FAILED   IGN_3: the engine cannot run with an empty tank
+//   TS_CONFLICT_POS FAILED   IGN_1 forces the engine on, IGN_3 off
+//   TS_NOKEY_POS    FAILED   IGN_2: without key the engine is off
+
+TS_IGN_1_POS_1: TestScenario for IGN_1, trace has to hold: (1.0, key_inserted && key_turned && brake_pressed && !engine_on), (1.0, key_inserted && key_turned && engine_on)
+TS_IGN_1_NEG_1: TestScenario for IGN_1, trace is forbidden to hold: (3.0, key_inserted && key_turned && brake_pressed && !engine_on)
+TS_IGN_3_NEG_1: TestScenario for IGN_3, trace is forbidden to hold: (1.0, fuel_empty && !engine_on)
+
+TS_START_POS: TestScenario for ALL, trace has to hold: (1.0, key_inserted && !key_turned && !fuel_empty && !engine_on), (1.0, key_inserted && key_turned && brake_pressed && !fuel_empty && !engine_on), (1.0, key_inserted && key_turned && !fuel_empty && engine_on)
+TS_NOBRAKE_NEG: TestScenario for ALL, trace is forbidden to hold: (1.0, key_inserted && key_turned && !brake_pressed && !fuel_empty && !engine_on), (1.0, key_inserted && key_turned && !brake_pressed && !fuel_empty && engine_on)
+TS_FUEL_POS: TestScenario for ALL, trace has to hold: (1.0, key_inserted && key_turned && brake_pressed && !fuel_empty && !engine_on), (2.0, key_inserted && key_turned && fuel_empty && engine_on)
+TS_CONFLICT_POS: TestScenario for ALL, trace has to hold: (3.0, key_inserted && key_turned && brake_pressed && fuel_empty)
+TS_NOKEY_POS: TestScenario for ALL, trace has to hold: (1.0, !key_inserted && engine_on)

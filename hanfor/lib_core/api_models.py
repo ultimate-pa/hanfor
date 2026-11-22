@@ -243,3 +243,63 @@ PatternsResponseModel = api_models.model(
         ),
     },
 )
+
+# Test scenario models
+
+TestScenarioStepModel = api_models.model(
+    "Test Scenario Step",
+    {
+        "duration": fields.Float(example=1.0),
+        "states": fields.Wildcard(fields.Boolean, example={"key_turned": True, "engine_on": False}),
+    },
+)
+
+TestScenarioRequestModel = api_models.model(
+    "Test Scenario Request",
+    {
+        "requirement_id": fields.String(
+            example="IGN_1", description="Only when creating: the requirement it tests, empty for a global scenario"
+        ),
+        "name": fields.String(example="TS_IGN_1_POS_1", description="Optional, cleaned to an identifier, unique"),
+        "description": fields.String(example="Key turned -> engine on"),
+        "desired_behavior": fields.Boolean(example=True, description="true: has to hold (POS), false: forbidden (NEG)"),
+        "lanes": fields.List(fields.String, example=["key_turned", "engine_on"], description="Boolean expressions"),
+        "steps": fields.List(fields.Nested(TestScenarioStepModel), description="A missing lane is don't care"),
+    },
+)
+
+TestScenarioModel = api_models.inherit(
+    "Test Scenario",
+    TestScenarioRequestModel,
+    {
+        "id": fields.Integer(example=1),
+        "ultimate_result": fields.Wildcard(
+            fields.String, example={"status": "passed", "message": "is possible, as required", "job_id": "job1"}
+        ),
+    },
+)
+
+TestScenarioResponseModel = api_models.model(
+    "Test Scenario Response",
+    {"success": fields.Boolean(example=True), "scenario": fields.Nested(TestScenarioModel)},
+)
+
+TestScenarioListModel = api_models.model(
+    "Test Scenario List",
+    {"success": fields.Boolean(example=True), "scenarios": fields.List(fields.Nested(TestScenarioModel))},
+)
+
+TestScenarioVariablesModel = api_models.model(
+    "Test Scenario Variables",
+    {"success": fields.Boolean(example=True), "variables": fields.List(fields.String, example=["engine_on"])},
+)
+
+TestScenarioImportReportModel = api_models.model(
+    "Test Scenario Import Report",
+    {
+        "success": fields.Boolean(example=True),
+        "imported": fields.List(fields.String, example=["TS_IGN_1_POS_1"]),
+        "skipped": fields.List(fields.String, example=[]),
+        "errors": fields.List(fields.String, example=["line 4: Requirement `nope` not found or ambiguous"]),
+    },
+)
