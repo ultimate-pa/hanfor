@@ -33,6 +33,7 @@ jobs:
         cp config.dist.py config.py
         cp configuration/threading_config.dist.py configuration/threading_config.py
         cp configuration/ai_config.dist.py configuration/ai_config.py
+        cp configuration/ultimate_config.dist.py configuration/ultimate_config.py
     - name: Install Z3
       run: pysmt-install --z3 --confirm-agreement
     - name: Install Chromium
