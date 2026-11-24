@@ -128,7 +128,7 @@ def verify_upgrade(project: Project, rev: int) -> bool:
         if line.startswith(b"Traceback"):
             error = True
         if line.startswith(b" * Running on"):
-            logger.info(f"Hanfor started for '{project.tag}' at '{rev}'! Everythin seems to be fine   \o/")
+            logger.info(f"Hanfor started for '{project.tag}' at '{rev}'! Everythin seems to be fine   \\o/")
             proc.kill()
             return error
         if line.startswith(b"Which revision should I start."):

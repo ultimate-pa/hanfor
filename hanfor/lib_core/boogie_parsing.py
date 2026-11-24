@@ -34,7 +34,12 @@ def get_parser_instance():
     global lark
     if lark is None:
         lark = Lark.open(
-            "hanfor_boogie_grammar.lark", rel_to=__file__, start="expr", parser="lalr", propagate_positions=True
+            "hanfor_boogie_grammar.lark",
+            rel_to=__file__,
+            start="expr",
+            parser="lalr",
+            propagate_positions=True,
+            maybe_placeholders=False,
         )
     return lark
 

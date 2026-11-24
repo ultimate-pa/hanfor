@@ -113,7 +113,7 @@ class ReqSyntaxTree(object):
         FORALL: "forall"
         GREATER: ">"
         GTEQ: ">="
-        ID: /[0-9A-Za-z$\^_.?\{\}]+/
+        ID: /[0-9A-Za-z$\\^_.?\\{\\}]+/
         IF: "IF" | "WENN"
         IFF: "<==>"
         IMPLIES: "==>"
@@ -143,7 +143,7 @@ class ReqSyntaxTree(object):
                 | "OR-logic" 
                 | "or logic" 
                 | "OR logic"
-        UNIT: /[\(\)A-Za-z]+/
+        UNIT: /[\\(\\)A-Za-z]+/
         ENUMVALUE : /"[0-9A-Za-z_ ]+"/ | /"[0-9A-Za-z_ ]+/ | /[0-9A-Za-z_ ]+"/
         SET_CONDITION_ACTIVE: /set condition active for /
         RECEIVED: /(is)* received/
@@ -151,7 +151,7 @@ class ReqSyntaxTree(object):
         AVAILABLE: /(is)* available/
         NOT_AVAILABLE: /(is)* not available/
         ERR_DETECTED: /Error detected for the corresponding output/
-        TEXT: /^([0-9A-Za-z$\^_.?",\(\)-]+ [0-9A-Za-z$\^_.?",\(\)-]+){5,300}/
+        TEXT: /^([0-9A-Za-z$\\^_.?",\\(\\)-]+ [0-9A-Za-z$\\^_.?",\\(\\)-]+){5,300}/
         
 
         // Misc
@@ -169,7 +169,7 @@ class ReqSyntaxTree(object):
         """
         # @formatter:on
 
-        self.parser = Lark(self.grammar)
+        self.parser = Lark(self.grammar, maybe_placeholders=False)
         self.tree = self.parser.parse("NONE")
 
     def create_tree(self, text):
